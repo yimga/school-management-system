@@ -29,7 +29,7 @@ body.portal-backend-dark {
 .marketing-surface {
   --rmc-glass-bg: rgba(255, 255, 255, 0.12);
   --rmc-glass-bg-strong: rgba(255, 255, 255, 0.18);
-  --rmc-glass-border: rgba(255, 255, 255, 0.2);
+  --rmc-glass-border: rgba(255, 255, 255, 0.2); /* off-token-allow: white-overlay */
   --rmc-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 

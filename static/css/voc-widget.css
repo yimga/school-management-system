@@ -1,0 +1,38 @@
+/* Voice-of-customer contextual feedback widget.
+   Mounted by templates/components/contextual_feedback_widget.html.
+   Uses theme tokens so the panel flips correctly in dark mode. */
+
+.voc-widget {
+  position: fixed;
+  right: 1rem;
+  bottom: 5.25rem;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.voc-widget__panel {
+  display: none;
+  width: min(360px, calc(100vw - 2rem));
+  background: var(--surface-elevated, var(--bs-body-bg));
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-3, 0 18px 45px var(--surface-overlay));
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.voc-widget[data-open="true"] .voc-widget__panel {
+  display: block;
+}
+
+.voc-widget__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.voc-widget textarea {
+  min-height: 84px;
+}

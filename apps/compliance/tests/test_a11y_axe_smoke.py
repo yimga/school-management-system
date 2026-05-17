@@ -120,6 +120,12 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
     # shells + finance/students + people + studio_os + super (control plane) +
     # app catalog (governance + tenant) + at-risk labeling + help center +
     # notifications. Each shell + each high-traffic CRUD surface gets scanned.
+    # 2026-05-17 wave v3.18: 18 authenticated routes — adds 4 explicit
+    # manager.runmycampus.com surfaces that the 12-pillar audit (P2)
+    # flagged as not in axe coverage. In CI these resolve through the
+    # default URL conf; in production they are served from the dedicated
+    # manager subdomain via `config.manager_urls`. The same templates
+    # render in both, so axe-on-default-conf is the authoritative gate.
     AUTH_ROUTES = [
         "/portal/",
         "/portal/teacher/",
@@ -128,8 +134,12 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
         "/portal/finance/invoices/",
         "/portal/configure/",
         "/studio/",
-        "/super/",
-        "/super/marketplace-app-catalog/",
+        "/super/",                                # manager: control plane home
+        "/super/marketplace-app-catalog/",        # manager: marketplace
+        "/super/feature-control/",                # manager: feature-flag control panel
+        "/super/operator-console/",               # manager: operator console
+        "/super/configuration-center/",           # manager: tenant config hub
+        "/super/security-surface/",               # manager: security posture
         "/portal/marketplace/app-catalog/",
         "/portal/notifications/",
         "/help/",

@@ -454,8 +454,8 @@ class ConfigControlCenterShellTests(unittest.TestCase):
     def test_console_domains_hubs_mark_config_control_surface(self):
         root = Path(__file__).resolve().parent.parent.parent.parent
         for relpath in (
-            "templates/siteconfig/console_domains_hub.html",
-            "templates/siteconfig/console_domains_hub_control_plane.html",
+            "templates/siteconfig/partials/console_domains_hub_body.html",
+            "templates/siteconfig/partials/console_domains_hub_manager_body.html",
         ):
             p = root / relpath
             if not p.is_file():

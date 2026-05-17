@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 496,
+  "finding_count": 559,
   "findings": [
     {
       "line": 120,
@@ -337,6 +337,12 @@
       "line": 95,
       "path": "apps/analytics/ml/train_at_risk.py",
       "snippet": "n_estimators=150,",
+      "value": 150
+    },
+    {
+      "line": 78,
+      "path": "apps/analytics/ml/train_grade_prediction.py",
+      "snippet": "n_estimators=150, max_depth=3, learning_rate=0.05, random_state=42,",
       "value": 150
     },
     {
@@ -946,25 +952,37 @@
       "value": 130
     },
     {
-      "line": 563,
+      "line": 520,
+      "path": "apps/migration_cloud/ai_bridge.py",
+      "snippet": "f\"OCR text (truncated): {text[:3000]}\\n\\n\"",
+      "value": 3000
+    },
+    {
+      "line": 616,
+      "path": "apps/migration_cloud/ai_bridge.py",
+      "snippet": "f\"{json.dumps(discovery.get('per_artifact_domain') or {}, default=str)[:1500]}\\n\"",
+      "value": 1500
+    },
+    {
+      "line": 1122,
       "path": "apps/migration_cloud/ai_bridge.py",
       "snippet": "str(obj.get(\"reasoning\", \"\")).strip()[:280],",
       "value": 280
     },
     {
-      "line": 582,
+      "line": 1141,
       "path": "apps/migration_cloud/ai_bridge.py",
       "snippet": "str(obj.get(\"reasoning\", \"\")).strip()[:280],",
       "value": 280
     },
     {
-      "line": 602,
+      "line": 1161,
       "path": "apps/migration_cloud/ai_bridge.py",
       "snippet": "str(obj.get(\"reasoning\", \"\")).strip()[:280],",
       "value": 280
     },
     {
-      "line": 625,
+      "line": 1184,
       "path": "apps/migration_cloud/ai_bridge.py",
       "snippet": "str(obj.get(\"reasoning\", \"\")).strip()[:280],",
       "value": 280
@@ -1114,6 +1132,120 @@
       "value": 50000
     },
     {
+      "line": 94,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"migration_cloud.cost.avg_tokens_per_call\": 800,",
+      "value": 800
+    },
+    {
+      "line": 98,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"small\": {\"max_students\": 1500, \"max_bytes\": 524288000, \"max_rows\": 250000},",
+      "value": 1500
+    },
+    {
+      "line": 98,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"small\": {\"max_students\": 1500, \"max_bytes\": 524288000, \"max_rows\": 250000},",
+      "value": 250000
+    },
+    {
+      "line": 98,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"small\": {\"max_students\": 1500, \"max_bytes\": 524288000, \"max_rows\": 250000},",
+      "value": 524288000
+    },
+    {
+      "line": 99,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"mid\": {\"max_students\": 15000, \"max_bytes\": 5368709120, \"max_rows\": 5000000},",
+      "value": 15000
+    },
+    {
+      "line": 99,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"mid\": {\"max_students\": 15000, \"max_bytes\": 5368709120, \"max_rows\": 5000000},",
+      "value": 5000000
+    },
+    {
+      "line": 99,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"mid\": {\"max_students\": 15000, \"max_bytes\": 5368709120, \"max_rows\": 5000000},",
+      "value": 5368709120
+    },
+    {
+      "line": 100,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"large\": {\"max_students\": 75000, \"max_bytes\": 26843545600, \"max_rows\": 50000000},",
+      "value": 75000
+    },
+    {
+      "line": 100,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"large\": {\"max_students\": 75000, \"max_bytes\": 26843545600, \"max_rows\": 50000000},",
+      "value": 50000000
+    },
+    {
+      "line": 100,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"large\": {\"max_students\": 75000, \"max_bytes\": 26843545600, \"max_rows\": 50000000},",
+      "value": 26843545600
+    },
+    {
+      "line": 101,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"state\": {\"max_students\": 1000000, \"max_bytes\": 268435456000, \"max_rows\": 1000000000},",
+      "value": 1000000
+    },
+    {
+      "line": 101,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"state\": {\"max_students\": 1000000, \"max_bytes\": 268435456000, \"max_rows\": 1000000000},",
+      "value": 1000000000
+    },
+    {
+      "line": 101,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"state\": {\"max_students\": 1000000, \"max_bytes\": 268435456000, \"max_rows\": 1000000000},",
+      "value": 268435456000
+    },
+    {
+      "line": 106,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"mid\": {\"target_minutes\": 240, \"escalate_minutes\": 480},",
+      "value": 240
+    },
+    {
+      "line": 106,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"mid\": {\"target_minutes\": 240, \"escalate_minutes\": 480},",
+      "value": 480
+    },
+    {
+      "line": 107,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"large\": {\"target_minutes\": 720, \"escalate_minutes\": 1440},",
+      "value": 720
+    },
+    {
+      "line": 107,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"large\": {\"target_minutes\": 720, \"escalate_minutes\": 1440},",
+      "value": 1440
+    },
+    {
+      "line": 108,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"state\": {\"target_minutes\": 4320, \"escalate_minutes\": 7200},",
+      "value": 4320
+    },
+    {
+      "line": 108,
+      "path": "apps/migration_cloud/defaults.py",
+      "snippet": "\"state\": {\"target_minutes\": 4320, \"escalate_minutes\": 7200},",
+      "value": 7200
+    },
+    {
       "line": 42,
       "path": "apps/migration_cloud/intake/archive_intake.py",
       "snippet": "_READ_CHUNK = 1024 * 1024  # 1 MiB",
@@ -1204,10 +1336,148 @@
       "value": 1024
     },
     {
-      "line": 342,
+      "line": 104,
+      "path": "apps/migration_cloud/network_resilience.py",
+      "snippet": "chunk_size = 64 * 1024",
+      "value": 1024
+    },
+    {
+      "line": 148,
+      "path": "apps/migration_cloud/network_resilience.py",
+      "snippet": "chunk = r.read(64 * 1024)",
+      "value": 1024
+    },
+    {
+      "line": 175,
+      "path": "apps/migration_cloud/network_resilience.py",
+      "snippet": "chunk = fh.read(64 * 1024)",
+      "value": 1024
+    },
+    {
+      "line": 441,
       "path": "apps/migration_cloud/orchestrator.py",
       "snippet": "sample = fh.read(4096)",
       "value": 4096
+    },
+    {
+      "line": 69,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"small\": {\"max_students\": 1_500, \"max_bytes\": 500 * 1024 * 1024, \"max_rows\": 250_000},",
+      "value": 1024
+    },
+    {
+      "line": 69,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"small\": {\"max_students\": 1_500, \"max_bytes\": 500 * 1024 * 1024, \"max_rows\": 250_000},",
+      "value": 1024
+    },
+    {
+      "line": 69,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"small\": {\"max_students\": 1_500, \"max_bytes\": 500 * 1024 * 1024, \"max_rows\": 250_000},",
+      "value": 1500
+    },
+    {
+      "line": 69,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"small\": {\"max_students\": 1_500, \"max_bytes\": 500 * 1024 * 1024, \"max_rows\": 250_000},",
+      "value": 250000
+    },
+    {
+      "line": 70,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"mid\": {\"max_students\": 15_000, \"max_bytes\": 5 * 1024 * 1024 * 1024, \"max_rows\": 5_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 70,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"mid\": {\"max_students\": 15_000, \"max_bytes\": 5 * 1024 * 1024 * 1024, \"max_rows\": 5_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 70,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"mid\": {\"max_students\": 15_000, \"max_bytes\": 5 * 1024 * 1024 * 1024, \"max_rows\": 5_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 70,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"mid\": {\"max_students\": 15_000, \"max_bytes\": 5 * 1024 * 1024 * 1024, \"max_rows\": 5_000_000},",
+      "value": 15000
+    },
+    {
+      "line": 70,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"mid\": {\"max_students\": 15_000, \"max_bytes\": 5 * 1024 * 1024 * 1024, \"max_rows\": 5_000_000},",
+      "value": 5000000
+    },
+    {
+      "line": 71,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"large\": {\"max_students\": 75_000, \"max_bytes\": 25 * 1024 * 1024 * 1024, \"max_rows\": 50_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 71,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"large\": {\"max_students\": 75_000, \"max_bytes\": 25 * 1024 * 1024 * 1024, \"max_rows\": 50_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 71,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"large\": {\"max_students\": 75_000, \"max_bytes\": 25 * 1024 * 1024 * 1024, \"max_rows\": 50_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 71,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"large\": {\"max_students\": 75_000, \"max_bytes\": 25 * 1024 * 1024 * 1024, \"max_rows\": 50_000_000},",
+      "value": 75000
+    },
+    {
+      "line": 71,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"large\": {\"max_students\": 75_000, \"max_bytes\": 25 * 1024 * 1024 * 1024, \"max_rows\": 50_000_000},",
+      "value": 50000000
+    },
+    {
+      "line": 72,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"state\": {\"max_students\": 1_000_000, \"max_bytes\": 250 * 1024 * 1024 * 1024, \"max_rows\": 1_000_000_000},",
+      "value": 250
+    },
+    {
+      "line": 72,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"state\": {\"max_students\": 1_000_000, \"max_bytes\": 250 * 1024 * 1024 * 1024, \"max_rows\": 1_000_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 72,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"state\": {\"max_students\": 1_000_000, \"max_bytes\": 250 * 1024 * 1024 * 1024, \"max_rows\": 1_000_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 72,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"state\": {\"max_students\": 1_000_000, \"max_bytes\": 250 * 1024 * 1024 * 1024, \"max_rows\": 1_000_000_000},",
+      "value": 1024
+    },
+    {
+      "line": 72,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"state\": {\"max_students\": 1_000_000, \"max_bytes\": 250 * 1024 * 1024 * 1024, \"max_rows\": 1_000_000_000},",
+      "value": 1000000
+    },
+    {
+      "line": 72,
+      "path": "apps/migration_cloud/preflight.py",
+      "snippet": "\"state\": {\"max_students\": 1_000_000, \"max_bytes\": 250 * 1024 * 1024 * 1024, \"max_rows\": 1_000_000_000},",
+      "value": 1000000000
     },
     {
       "line": 331,
@@ -1246,10 +1516,88 @@
       "value": 168
     },
     {
-      "line": 341,
+      "line": 188,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "tokens = 800",
+      "value": 800
+    },
+    {
+      "line": 196,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "_AVG_TOKENS_PER_CALL = 800",
+      "value": 800
+    },
+    {
+      "line": 364,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "\"mid\": {\"target_minutes\": 240, \"escalate_minutes\": 480},",
+      "value": 240
+    },
+    {
+      "line": 364,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "\"mid\": {\"target_minutes\": 240, \"escalate_minutes\": 480},",
+      "value": 480
+    },
+    {
+      "line": 365,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "\"large\": {\"target_minutes\": 720, \"escalate_minutes\": 1440},",
+      "value": 720
+    },
+    {
+      "line": 365,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "\"large\": {\"target_minutes\": 720, \"escalate_minutes\": 1440},",
+      "value": 1440
+    },
+    {
+      "line": 366,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "\"state\": {\"target_minutes\": 4320, \"escalate_minutes\": 7200},",
+      "value": 4320
+    },
+    {
+      "line": 366,
+      "path": "apps/migration_cloud/tier3.py",
+      "snippet": "\"state\": {\"target_minutes\": 4320, \"escalate_minutes\": 7200},",
+      "value": 7200
+    },
+    {
+      "line": 473,
+      "path": "apps/migration_cloud/views.py",
+      "snippet": "return 1024 * 1024 * 1024  # 1 GiB",
+      "value": 1024
+    },
+    {
+      "line": 473,
+      "path": "apps/migration_cloud/views.py",
+      "snippet": "return 1024 * 1024 * 1024  # 1 GiB",
+      "value": 1024
+    },
+    {
+      "line": 473,
+      "path": "apps/migration_cloud/views.py",
+      "snippet": "return 1024 * 1024 * 1024  # 1 GiB",
+      "value": 1024
+    },
+    {
+      "line": 849,
       "path": "apps/migration_cloud/views.py",
       "snippet": "max_window_hours=int(payload.get(\"max_window_hours\", 168)),",
       "value": 168
+    },
+    {
+      "line": 1484,
+      "path": "apps/migration_cloud/views.py",
+      "snippet": "MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MiB",
+      "value": 1024
+    },
+    {
+      "line": 1484,
+      "path": "apps/migration_cloud/views.py",
+      "snippet": "MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MiB",
+      "value": 1024
     },
     {
       "line": 40,
@@ -1630,7 +1978,7 @@
       "value": 4000
     },
     {
-      "line": 534,
+      "line": 538,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "if len(body) > 50000:",
       "value": 50000
@@ -1876,109 +2224,109 @@
       "value": 1500
     },
     {
-      "line": 314,
+      "line": 316,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
       "value": 1200
     },
     {
-      "line": 374,
+      "line": 376,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": ":1500",
       "value": 1500
     },
     {
-      "line": 442,
+      "line": 444,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or body.get(\"policy_text\") or \"\").strip()[:3000]",
       "value": 3000
     },
     {
-      "line": 478,
+      "line": 480,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
       "value": 1200
     },
     {
-      "line": 548,
+      "line": 550,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "text = (body.get(\"text\") or \"\").strip()[:8000]",
       "value": 8000
     },
     {
-      "line": 638,
+      "line": 640,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = str(results[0].get(\"metadata\", \"\"))[:1500]",
       "value": 1500
     },
     {
-      "line": 787,
+      "line": 789,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or \"\").strip()[:1500]",
       "value": 1500
     },
     {
-      "line": 943,
+      "line": 945,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or \"\").strip()[:1500]",
       "value": 1500
     },
     {
-      "line": 1169,
+      "line": 1171,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
       "value": 1200
     },
     {
-      "line": 1329,
+      "line": 1331,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or body.get(\"institution_type\") or \"\").strip()[:1500]",
       "value": 1500
     },
     {
-      "line": 1462,
+      "line": 1464,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "blob = json.dumps(snapshot, default=str)[:3500]",
       "value": 3500
     },
     {
-      "line": 1464,
+      "line": 1466,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "blob = str(snapshot)[:3500]",
       "value": 3500
     },
     {
-      "line": 1497,
+      "line": 1499,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "blob = \"\\n\".join(context_parts)[:1200]",
       "value": 1200
     },
     {
-      "line": 1518,
+      "line": 1520,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "f\"Absolute base URL for this request (prefix for relative paths in CONTEXT): {base[:240]}\"",
       "value": 240
     },
     {
-      "line": 1833,
+      "line": 1849,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "\"source_fields\": str(source_fields)[:1500],",
       "value": 1500
     },
     {
-      "line": 1834,
+      "line": 1850,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "\"target_fields\": str(target_fields)[:1500],",
       "value": 1500
     },
     {
-      "line": 1840,
+      "line": 1856,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "f\"Source: {str(source_fields)[:1500]}\\nTarget: {str(target_fields)[:1500]}\\n\\nRespond with JSON array only. No other text.\"",
       "value": 1500
     },
     {
-      "line": 1840,
+      "line": 1856,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "f\"Source: {str(source_fields)[:1500]}\\nTarget: {str(target_fields)[:1500]}\\n\\nRespond with JSON array only. No other text.\"",
       "value": 1500
@@ -2308,43 +2656,49 @@
       "value": 81057
     },
     {
-      "line": 1847,
+      "line": 1866,
       "path": "apps/schools/marketing_views.py",
       "snippet": "hero_subheadline = _cms_s[:1200]",
       "value": 1200
     },
     {
-      "line": 1850,
+      "line": 1869,
       "path": "apps/schools/marketing_views.py",
       "snippet": "hero_ai_line = _cms_ai[:1200]",
       "value": 1200
     },
     {
-      "line": 2267,
+      "line": 2286,
       "path": "apps/schools/marketing_views.py",
       "snippet": "\"seo_description\": (post.excerpt or post.title)[:160],",
       "value": 160
     },
     {
-      "line": 2434,
+      "line": 2430,
+      "path": "apps/schools/marketing_views.py",
+      "snippet": "\"seo_description\": str(persona[\"lead\"])[:160],",
+      "value": 160
+    },
+    {
+      "line": 2496,
       "path": "apps/schools/marketing_views.py",
       "snippet": "message_for_store = (message + suffix).strip()[:4000]",
       "value": 4000
     },
     {
-      "line": 2501,
+      "line": 2563,
       "path": "apps/schools/marketing_views.py",
       "snippet": "message = (request.POST.get(\"message\") or \"\").strip()[:4000]",
       "value": 4000
     },
     {
-      "line": 2558,
+      "line": 2620,
       "path": "apps/schools/marketing_views.py",
       "snippet": "artifact_needs = (request.POST.get(\"artifact_needs\") or \"\").strip()[:4000]",
       "value": 4000
     },
     {
-      "line": 953,
+      "line": 960,
       "path": "apps/schools/middleware.py",
       "snippet": "cache.set(cache_key, True, timeout=3600)",
       "value": 3600
@@ -2356,7 +2710,7 @@
       "value": 180
     },
     {
-      "line": 328,
+      "line": 338,
       "path": "apps/schools/models.py",
       "snippet": "max_length=1024,",
       "value": 1024
@@ -2386,7 +2740,7 @@
       "value": -100
     },
     {
-      "line": 84,
+      "line": 98,
       "path": "apps/schools/signup_views.py",
       "snippet": "email = (request.GET.get(\"email\") or \"\").strip()[:254]",
       "value": 254
@@ -2638,13 +2992,13 @@
       "value": 600
     },
     {
-      "line": 83,
+      "line": 91,
       "path": "apps/siteconfig/i18n_catalog_builder.py",
       "snippet": "if path.stat().st_size > 2_000_000:",
       "value": 2000000
     },
     {
-      "line": 231,
+      "line": 239,
       "path": "apps/siteconfig/i18n_catalog_builder.py",
       "snippet": "return {s for s in strings if s and len(s) < 5000 and not s.isspace()}",
       "value": 5000
@@ -2872,19 +3226,19 @@
       "value": 150
     },
     {
-      "line": 1331,
+      "line": 1384,
       "path": "apps/siteconfig/views.py",
       "snippet": "BULK_LETTER_BODY_MAX_LENGTH = 100_000",
       "value": 100000
     },
     {
-      "line": 2068,
+      "line": 2129,
       "path": "apps/siteconfig/views.py",
       "snippet": "if gate.get(\"slug\") != slug or (time.time() - gate_ts > 900):",
       "value": 900
     },
     {
-      "line": 37,
+      "line": 44,
       "path": "apps/siteconfig/views_academic_years_evidence.py",
       "snippet": "base.order_by(\"-start_date\", \"name\", \"id\")[:150]",
       "value": 150
@@ -2896,28 +3250,46 @@
       "value": 1500
     },
     {
-      "line": 970,
+      "line": 977,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "for row in GlobalGeoCatalog.search_cities(country_code=country_code, limit=220)",
       "value": 220
     },
     {
-      "line": 1329,
+      "line": 1348,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "if import_data.size > 2 * 1024 * 1024:  # 2MB max",
       "value": 1024
     },
     {
-      "line": 1329,
+      "line": 1348,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "if import_data.size > 2 * 1024 * 1024:  # 2MB max",
       "value": 1024
     },
     {
-      "line": 1568,
+      "line": 1607,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "limit = _clamp_int(request.GET.get(\"limit\"), 220, minimum=10, maximum=500)",
       "value": 220
+    },
+    {
+      "line": 33,
+      "path": "apps/siteconfig/views_mascot_storybook.py",
+      "snippet": "sizes = [64, 96, 128, 180, 240, 320]",
+      "value": 180
+    },
+    {
+      "line": 33,
+      "path": "apps/siteconfig/views_mascot_storybook.py",
+      "snippet": "sizes = [64, 96, 128, 180, 240, 320]",
+      "value": 240
+    },
+    {
+      "line": 33,
+      "path": "apps/siteconfig/views_mascot_storybook.py",
+      "snippet": "sizes = [64, 96, 128, 180, 240, 320]",
+      "value": 320
     },
     {
       "line": 118,
@@ -2926,7 +3298,7 @@
       "value": 1200
     },
     {
-      "line": 114,
+      "line": 116,
       "path": "apps/siteconfig/views_school_automation.py",
       "snippet": "wf.name = name[:160]",
       "value": 160
@@ -2968,16 +3340,22 @@
       "value": 86400
     },
     {
-      "line": 561,
+      "line": 596,
       "path": "services/ai_gateway.py",
       "snippet": "cache.set(cache_key, 1, timeout=86400 * 2)",
       "value": 86400
     },
     {
-      "line": 586,
+      "line": 621,
       "path": "services/ai_gateway.py",
       "snippet": "cache.set(cache_key, 1, timeout=86400 * 2)  # 2 days TTL to cover day boundary",
       "value": 86400
+    },
+    {
+      "line": 97,
+      "path": "services/ai_guided_fallback.py",
+      "snippet": "summary_parts.append(rag_text[:2500])",
+      "value": 2500
     },
     {
       "line": 45,
@@ -3076,7 +3454,7 @@
       "value": 1500
     }
   ],
-  "generated_at": "2026-05-16T15:21:38+00:00",
+  "generated_at": "2026-05-17T13:44:46+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

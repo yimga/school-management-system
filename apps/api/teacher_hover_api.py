@@ -39,6 +39,7 @@ class TeacherHoverContextView(View):
 
             from apps.evals.models import TeacherAssignment
 
+            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             qs = TeacherAssignment.objects.filter(
                 teacher_id=tid, is_active=True
             ).select_related("subject_assignment__classroom")

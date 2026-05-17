@@ -17,7 +17,7 @@
   left: 0;
   right: 0;
   height: var(--mkt-progress-height, 3px);
-  background: rgba(26, 22, 18, 0.08);
+  background: rgba(26, 22, 18, 0.08); /* off-token-allow: always-dark-warm-bg */
   z-index: 1030;
   pointer-events: none;
 }
@@ -133,13 +133,13 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(26, 22, 18, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(26, 22, 18, 0.25); /* off-token-allow: always-dark-warm-bg */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
   pointer-events: auto;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 .mkt-chapter-dot:hover {
-  background: rgba(26, 22, 18, 0.5);
+  background: rgba(26, 22, 18, 0.5); /* off-token-allow: always-dark-warm-bg */
 }
 .mkt-chapter-dot.active {
   background: var(--mkt-accent, #c47f1c);

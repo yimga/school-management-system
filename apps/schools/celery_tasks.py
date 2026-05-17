@@ -44,9 +44,9 @@ def _resolve_client(schema_name=None, client_id=None, school_id=None):
         from apps.customers.models import Client
 
         if schema_name:
-            return Client.objects.get(schema_name=schema_name)
+            return Client.objects.get(schema_name=schema_name)  # tenant-isolation-allow: tenant-resolver (Client is the tenant identity model; this IS the per-tenant lookup)
         if client_id is not None:
-            return Client.objects.get(pk=client_id)
+            return Client.objects.get(pk=client_id)  # tenant-isolation-allow: tenant-resolver (Client.pk uniquely identifies a tenant)
         if school_id is not None:
             from apps.schools.models import School
             from apps.schools.domain_sync import ensure_tenant_client_for_school
@@ -101,7 +101,7 @@ def _run_with_tenant_context(
             try:
                 from apps.customers.models import Client
 
-                c = Client.objects.get(pk=client_id)
+                c = Client.objects.get(pk=client_id)  # tenant-isolation-allow: tenant-resolver (Client.pk uniquely identifies a tenant; used to derive matching School)
                 school = (
                     School.objects.filter(id=c.id).first()
                     or School.objects.filter(slug=c.schema_name).first()

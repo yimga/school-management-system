@@ -1,0 +1,234 @@
+{% load i18n static %}
+{% load terminology_tags %}
+<div class="container py-3 cp-evidence-page" style="max-width: 52rem;" data-page-archetype="operator-report" data-shell-surface="billing-plan-readonly">
+  <h1 class="h3 mb-2">{% trans "Plan & entitlements" %}</h1>
+  <p class="text-muted small mb-3">
+    {% trans "Summary of the subscription plan assigned to this tenant and coarse usage versus plan limits. When your operator has configured Stripe, you can start checkout or open the billing portal from here. Otherwise, controls stay disabled with a clear setup state." %}
+  </p>
+  {% if messages %}
+  <ul class="list-unstyled mb-3">
+    {% for message in messages %}
+    <li class="alert alert-{{ message.tags|default:'info' }} py-2 small mb-1" role="status">{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if not school %}
+  <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
+  {% else %}
+  <p class="small text-muted mb-3"><strong>{% trans "Tenant" %}</strong>: {{ school.name }}</p>
+
+  {% if plan_tier_ctx %}
+  <div class="card border-0 shadow-sm mb-3" data-rmc-commercial-tier-summary="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Commercial tier (packaging)" %}</div>
+    <div class="card-body small">
+      <p class="mb-2">{% trans "Your plan maps to a Free / Pro / Enterprise ladder for marketplace gates and upgrade messaging. Technical feature codes are listed below on the assigned plan." %}</p>
+      <p class="mb-2"><strong>{% trans "Resolved tier" %}</strong>: <span class="badge text-bg-secondary">{{ plan_tier_ctx.tier_label }}</span>
+        {% if plan_tier_ctx.slug %}<span class="text-muted">(<code>{{ plan_tier_ctx.slug }}</code>)</span>{% endif %}
+      </p>
+      {% if upgrade_next_tier %}
+      <div class="alert alert-light border py-2 mb-0" role="status" data-rmc-upgrade-messaging="1">
+        <strong>{% trans "Upgrade path" %}</strong> — {% blocktrans with next=upgrade_next_tier|title %}Higher marketplace apps and automation often need {{ next }} or Enterprise. Billing and contracts are handled with your account team; this page stays read-only.{% endblocktrans %}
+        {% if app_catalog_url %}
+        <span class="d-block mt-2"><a href="{{ app_catalog_url }}">{% trans "Browse app catalog" %}</a> {% trans "(blocked apps show upgrade hints on each card)." %}</span>
+        {% endif %}
+      </div>
+      {% elif plan_tier_ctx.tier_key == 'enterprise' %}
+      <p class="text-muted mb-0">{% trans "You are on the top commercial tier for in-product gates. Enterprise add-ons still use feature codes on the plan." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Active students" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ student_count }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Teacher profiles" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ teacher_count }}</div>
+    </div>
+    {% if plan and plan.max_students %}
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Plan student cap" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ plan.max_students }}</div>
+    </div>
+    {% endif %}
+    {% if plan and plan.max_staff %}
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Plan staff cap" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ plan.max_staff }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if plan %}
+  <div class="card border-0 shadow-sm mb-3" data-rmc-billing-usage-clarity="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Usage clarity" %}</div>
+    <div class="card-body small">
+      {% if plan.max_students %}
+      <div class="mb-2">
+        <div class="d-flex justify-content-between mb-1"><span>{% trans "Students used" %}</span><strong>{{ student_count }} / {{ plan.max_students }}</strong></div>
+        <div class="progress" role="progressbar" aria-label="{% trans 'Student usage' %}">
+          <div class="progress-bar {% if student_count > plan.max_students %}bg-danger{% elif student_count >= plan.max_students|add:'-5' %}bg-warning{% else %}bg-primary{% endif %}" style="width: {% widthratio student_count plan.max_students 100 %}%"></div>
+        </div>
+      </div>
+      {% endif %}
+      {% if plan.max_staff %}
+      <div>
+        <div class="d-flex justify-content-between mb-1"><span>{% trans "Staff used" %}</span><strong>{{ teacher_count }} / {{ plan.max_staff }}</strong></div>
+        <div class="progress" role="progressbar" aria-label="{% trans 'Staff usage' %}">
+          <div class="progress-bar {% if teacher_count > plan.max_staff %}bg-danger{% elif teacher_count >= plan.max_staff|add:'-3' %}bg-warning{% else %}bg-primary{% endif %}" style="width: {% widthratio teacher_count plan.max_staff 100 %}%"></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if plan %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-light fw-semibold">{% trans "Assigned plan" %}</div>
+    <div class="card-body small">
+      <dl class="row mb-0">
+        <dt class="col-sm-4 text-muted">{% trans "Name" %}</dt>
+        <dd class="col-sm-8">{{ plan.name }}</dd>
+        <dt class="col-sm-4 text-muted">{% trans "Slug" %}</dt>
+        <dd class="col-sm-8"><code>{{ plan.slug }}</code></dd>
+        <dt class="col-sm-4 text-muted">{% trans "Billing model" %}</dt>
+        <dd class="col-sm-8">{{ plan.get_billing_model_display }}</dd>
+        <dt class="col-sm-4 text-muted">{% trans "Included feature codes" %}</dt>
+        <dd class="col-sm-8">
+          {% if plan.included_features %}
+          <ul class="mb-0 ps-3">
+            {% for code in plan.included_features %}
+            <li><code>{{ code }}</code></li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <span class="text-muted">{% trans "None listed" %}</span>
+          {% endif %}
+        </dd>
+      </dl>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted">{% trans "No plan is assigned to this tenant in the database." %}</p>
+  {% endif %}
+
+  {% if school and billing_account and platform_subscription %}
+  <div class="card border-0 shadow-sm mb-3" data-rmc-platform-billing-subscription="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Platform billing (processor sync)" %}</div>
+    <div class="card-body small">
+      <dl class="row mb-0">
+        <dt class="col-sm-4 text-muted">{% trans "Billing account status" %}</dt>
+        <dd class="col-sm-8"><span class="badge text-bg-secondary">{{ billing_account.get_status_display }}</span></dd>
+        <dt class="col-sm-4 text-muted">{% trans "Subscription status" %}</dt>
+        <dd class="col-sm-8"><span class="badge text-bg-secondary">{{ platform_subscription.get_status_display }}</span></dd>
+        <dt class="col-sm-4 text-muted">{% trans "Billing cycle" %}</dt>
+        <dd class="col-sm-8">{{ platform_subscription.get_billing_cycle_display }}</dd>
+        <dt class="col-sm-4 text-muted">{% trans "Current period" %}</dt>
+        <dd class="col-sm-8">
+          {% if platform_subscription.current_period_start and platform_subscription.current_period_end %}
+          {{ platform_subscription.current_period_start|date:"Y-m-d H:i" }} — {{ platform_subscription.current_period_end|date:"Y-m-d H:i" }}
+          {% else %}
+          <span class="text-muted">{% trans "Not synced yet" %}</span>
+          {% endif %}
+        </dd>
+        <dt class="col-sm-4 text-muted">{% trans "Stripe linkage" %}</dt>
+        <dd class="col-sm-8">
+          {% if stripe_customer_linked %}
+          {% trans "Customer record linked (managed in Stripe)." %}
+          {% else %}
+          <span class="text-muted">{% trans "No Stripe customer linked yet — complete checkout or wait for operator setup." %}</span>
+          {% endif %}
+        </dd>
+      </dl>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if school and usage_meters %}
+  <div class="card border-0 shadow-sm mb-3" data-rmc-platform-usage-meters="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Usage meters (recent periods)" %}</div>
+    <div class="card-body small p-0">
+      <div class="table-responsive">
+        <table class="table table-family table-sm mb-0 align-middle">
+          <caption class="visually-hidden">{% trans "Usage meters (recent periods)" %}</caption>
+          <thead class="table-light"><tr><th scope="col">{% trans "Metric" %}</th><th scope="col">{% trans_term "Period" key="period" %}</th><th scope="col" class="text-end">{% trans "Qty" %}</th></tr></thead>
+          <tbody>
+            {% for m in usage_meters %}
+            <tr>
+              <td><code>{{ m.metric_code }}</code></td>
+              <td>{{ m.period_start }} — {{ m.period_end }}</td>
+              <td class="text-end">{{ m.quantity }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if addons %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-light fw-semibold">{% trans "Add-on feature codes" %}</div>
+    <div class="card-body small">
+      <ul class="mb-0">
+        {% for code in addons %}
+        <li><code>{{ code }}</code></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="ds-action-bar d-flex flex-wrap gap-2 mb-2 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related links' %}">
+    {% if console_url %}
+    <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ console_url }}">{% trans "Configuration Control Center" %}</a>
+    {% endif %}
+    {% if school and checkout_start_url %}
+    {% if stripe_processor_configured and plan and has_stripe_price_for_current_plan %}
+    <a class="btn btn-sm btn-primary ds-btn" href="{{ checkout_start_url }}?plan_code={{ plan.slug|urlencode }}&billing_cycle={% if platform_subscription %}{{ platform_subscription.billing_cycle|urlencode }}{% else %}MONTHLY{% endif %}">{% trans "Checkout / renew (Stripe)" %}</a>
+    {% else %}
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'Stripe is not configured or no price is mapped for this plan.' %}">
+      <button type="button" class="btn btn-sm btn-primary" disabled>{% trans "Checkout / renew (Stripe)" %}</button>
+    </span>
+    {% endif %}
+    {% if upgrade_next_tier and upgrade_checkout_plan_code and stripe_processor_configured %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ checkout_start_url }}?plan_code={{ upgrade_checkout_plan_code|urlencode }}&billing_cycle={% if platform_subscription %}{{ platform_subscription.billing_cycle|urlencode }}{% else %}MONTHLY{% endif %}">{% blocktrans with t=upgrade_next_tier|title %}Upgrade toward {{ t }}{% endblocktrans %}</a>
+    {% elif upgrade_next_tier %}
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'No Stripe price mapped for the next tier, or Stripe is not configured.' %}">
+      <button type="button" class="btn btn-sm btn-outline-primary" disabled>{% blocktrans with t=upgrade_next_tier|title %}Upgrade toward {{ t }}{% endblocktrans %}</button>
+    </span>
+    {% endif %}
+    {% if customer_portal_url %}
+    {% if stripe_processor_configured and stripe_customer_linked %}
+    <a class="btn btn-sm btn-outline-secondary" href="{{ customer_portal_url }}">{% trans "Manage billing (Stripe portal)" %}</a>
+    {% else %}
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'Requires Stripe configuration and a linked customer record.' %}">
+      <button type="button" class="btn btn-sm btn-outline-secondary" disabled>{% trans "Manage billing (Stripe portal)" %}</button>
+    </span>
+    {% endif %}
+    {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="alert alert-light border small" role="status" data-rmc-billing-next-steps="1">
+    <strong>{% trans "What happens next" %}</strong>
+    <ol class="mb-0 mt-2 ps-3">
+      <li>{% trans "Review current plan and usage limits above." %}</li>
+      <li>{% trans "Use checkout or upgrade CTA if your team is nearing a cap." %}</li>
+      <li>{% trans "After payment, billing status syncs here and in your marketplace gates." %}</li>
+    </ol>
+  </div>
+
+  {% if user.is_superuser and plan_catalog_advanced_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ plan_catalog_advanced_url }}">{% trans "Advanced/Admin: plan catalog (platform)" %}</a>
+  </div>
+  {% endif %}
+  {% endif %}
+</div>

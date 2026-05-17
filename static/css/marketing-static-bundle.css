@@ -28,7 +28,7 @@
         radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--school-primary) 25%, transparent), transparent 34%),
         radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--school-accent) 20%, transparent), transparent 33%),
         linear-gradient(150deg, #1a1612, #241e18);
-      color: #fffaf0;
+      color: #fffaf0; /* off-token-allow: hex-literal-decorative */
       box-shadow: 0 16px 42px rgba(2, 6, 23, 0.34);
     }
     .detail-eyebrow {
@@ -45,7 +45,7 @@
       max-width: 24ch;
     }
     .detail-subheadline {
-      color: rgba(226, 232, 240, 0.94);
+      color: rgba(226, 232, 240, 0.94); /* off-token-allow: slate-text-on-dark */
       max-width: 68ch;
       margin-bottom: 0.95rem;
     }

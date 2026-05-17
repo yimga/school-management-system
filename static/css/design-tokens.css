@@ -433,6 +433,35 @@
      decorative sky/teal accent on dark control-plane surfaces. */
   --color-teal-300: #5eead4;
 
+  /* Emerald ladder extensions — used by status badges and the wizard step
+     indicator's "complete" state. v3.17 (2026-05-17). */
+  --color-emerald-50: #d1fae5;
+  --color-emerald-700: #047857;
+
+  /* Amber ladder for warning surfaces (badge tint + ink). v3.17. */
+  --color-amber-50: #fef3c7;
+  --color-amber-700: #b45309;
+
+  /* Status-color semantic tokens. Light-mode defaults; light/dark variants
+     follow the same naming so consuming rules don't need theme-conditional
+     overrides. Used by .omig-domain__badge, .rmc-wizard-steps__item.is-complete,
+     and any other status chip the platform adds. v3.17. */
+  --success-bg: rgba(16, 185, 129, 0.10);
+  --success-fg: var(--color-emerald-700, #047857);
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-fg: var(--color-amber-700, #b45309);
+
+  /* Accent semantics — the muted "tinted brand" backgrounds used by chips and
+     pill banners (Apple Settings-style). Surface stays neutral; the chip carries
+     a faint accent. text-accent picks up the school primary so tenants override
+     it via the brand cascade. v3.17. */
+  --surface-accent-subtle: color-mix(in srgb, var(--school-primary, #4f46e5) 8%, transparent);
+  --text-accent: var(--school-primary, #4f46e5);
+
+  /* Pure easing curve — separate from --motion-* which carry duration. Used
+     by .ovendor-tile hover and similar single-property transitions. v3.17. */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
   /* Control-plane ink scale — extremely dark blue-blacks used as the operator
      surface canvas and as text-on-gold for the manager + /super/ shells. These
      sit below --color-base-950 in luminosity and carry slight cool/warm shifts
@@ -643,6 +672,17 @@ body.portal-backend-dark {
 
   --admin-text: #f1f5f9;
   --admin-border: rgba(148, 163, 184, 0.25);
+
+  /* v3.17 (2026-05-17) — status / accent token overrides for dark surfaces.
+     Brighter fg (200-step instead of 700-step) so chips stay legible against
+     the near-black backdrop; tints stay at the same alpha so the surface
+     tint reads as the same intent across light + dark. */
+  --success-bg: rgba(16, 185, 129, 0.18);
+  --success-fg: #6ee7b7;
+  --warning-bg: rgba(245, 158, 11, 0.22);
+  --warning-fg: #fcd34d;
+  --surface-accent-subtle: color-mix(in srgb, var(--school-primary, #818cf8) 18%, transparent);
+  --text-accent: #a5b4fc;
 
   /* Overlay / modals / dropdowns */
   --overlay-bg: #1e293b;
@@ -2408,7 +2448,15 @@ body.error-page {
   justify-content: center;
 }
 
-/* ----- HTMX content swap fade — every htmx-driven panel transitions cleanly ----- */
+/* Maintenance-mode operator preview: same shell as .error-page, scoped class
+   so the staff-only maintenance preview body partial keeps a stable hook
+   for scan_undefined_css_classes. The class itself adds no rules of its own
+   beyond what .error-page already provides; it's a named anchor for the
+   surface inventory (data-shell-surface="maintenance-preview"). */
+.rmc-maintenance-preview {
+  /* Inherits .error-page layout; reserved hook for future scoped styling. */
+}
+
 [hx-swap-oob="true"],
 [data-hx-swap-oob],
 .htmx-swapping,

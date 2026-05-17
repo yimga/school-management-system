@@ -128,12 +128,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(bundle, out_path)
-    print(json.dumps({  # noqa: T201 -- intentional script output
+    sys.stdout.write(json.dumps({
         "wrote": str(out_path),
         "version": version,
         "metrics": metrics,
         "n_total": len(X),
-    }, indent=2))
+    }, indent=2) + "\n")
     return 0
 
 

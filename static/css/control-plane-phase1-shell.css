@@ -24,8 +24,8 @@
   margin-top: 1rem;
   padding: 0.65rem 0.85rem;
   border-radius: var(--radius-md, 0.5rem);
-  background: rgba(8, 16, 30, 0.92);
-  border: 1px solid rgba(125, 152, 187, 0.25);
+  background: rgba(8, 16, 30, 0.92); /* off-token-allow: rgba-decorative */
+  border: 1px solid rgba(125, 152, 187, 0.25); /* off-token-allow: rgba-decorative */
   backdrop-filter: blur(8px);
 }
 
@@ -60,7 +60,7 @@
   z-index: 1010;
   margin-top: auto;
   padding: 0.65rem 1rem;
-  background: rgba(26, 22, 18, 0.95);
+  background: rgba(26, 22, 18, 0.95); /* off-token-allow: always-dark-warm-bg */
   border-top: 1px solid rgba(125, 152, 187, 0.22);
   backdrop-filter: blur(8px);
 }

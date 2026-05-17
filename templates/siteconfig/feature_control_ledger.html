@@ -1,25 +1,8 @@
 {% extends "portal_base.html" %}
+{% load i18n static %}
+
 {% block title %}Feature control ledger{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <h1>Feature control ledger</h1>
-  <p class="text-muted">Audit trail for feature toggles. Metadata lineage: see <code>docs/</code> usage_registry and feature_control governance.</p>
-  <p><a href="{{ panel_url }}">Feature control panel</a> · <a href="{{ audit_url }}">Legacy audit view</a></p>
-  <table class="table table-sm table-striped table-family align-middle">
-    <caption class="visually-hidden">{% trans "Feature control ledger" %}</caption>
-    <thead><tr><th>When</th><th>User</th><th>Action</th><th>Changes (summary)</th></tr></thead>
-    <tbody>
-      {% for e in entries %}
-      <tr>
-        <td>{{ e.created_at|date:"Y-m-d H:i" }}</td>
-        <td>{% if e.user %}{{ e.user.username }}{% else %}—{% endif %}</td>
-        <td>{{ e.action }}</td>
-        <td><pre class="small mb-0" style="max-height:4rem;overflow:auto">{{ e.changes|truncatechars:400 }}</pre></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="4">No audit entries yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+{% include "siteconfig/partials/feature_control_ledger_body.html" %}
 {% endblock %}

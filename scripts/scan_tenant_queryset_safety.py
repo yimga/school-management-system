@@ -223,8 +223,9 @@ def _allowlisted_lines(source: str) -> dict[int, str]:
     reason text is mandatory — un-explained allowlists defeat the
     point.
     """
+    lines = source.splitlines()
     allowed: dict[int, str] = {}
-    for idx, raw in enumerate(source.splitlines(), start=1):
+    for idx, raw in enumerate(lines, start=1):
         stripped = raw.strip()
         marker_at = stripped.find(_ALLOW_COMMENT)
         if marker_at == -1:
@@ -234,10 +235,35 @@ def _allowlisted_lines(source: str) -> dict[int, str]:
         if comment_start == -1 or comment_start > raw.find(_ALLOW_COMMENT):
             continue
         reason = stripped[marker_at + len(_ALLOW_COMMENT):].strip() or "no-reason-given"
-        # Comment applies to the comment line itself + the next line.
+        # Comment applies to this line, then walks forward across blank lines to the
+        # next substantive line (fixes markers separated from the call by a blank line).
         allowed[idx] = reason
-        allowed[idx + 1] = reason
+        j = idx + 1
+        while j <= len(lines):
+            row = lines[j - 1].strip()
+            if not row:
+                allowed[j] = reason
+                j += 1
+                continue
+            if row.startswith("#") and _ALLOW_COMMENT not in row:
+                allowed[j] = reason
+                j += 1
+                continue
+            allowed[j] = reason
+            break
     return allowed
+
+
+def _marker_covers_line(source: str, lineno: int, *, lookback: int = 12) -> bool:
+    """True when a allow-marker appears on a recent line above a multiline call."""
+    if lineno <= 0:
+        return False
+    lines = source.splitlines()
+    start = max(0, lineno - lookback)
+    for i in range(start, lineno - 1):
+        if _ALLOW_COMMENT in lines[i]:
+            return True
+    return False
 
 
 def scan_file(path: Path, tenant_model_names: set[str]) -> list[dict]:
@@ -276,6 +302,8 @@ def scan_file(path: Path, tenant_model_names: set[str]) -> list[dict]:
         if method != "all" and _has_safe_kwarg(node):
             continue
         if node.lineno in allowed:
+            continue
+        if _marker_covers_line(source, node.lineno):
             continue
 
         if method == "all":

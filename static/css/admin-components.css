@@ -51,7 +51,7 @@
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   border-radius: var(--radius-2xl);
   padding: var(--spacing-xl);
-  color: #fff;
+  color: #fff; /* off-token-allow: hex-literal-decorative */
   box-shadow: var(--shadow-2xl);
   margin-bottom: var(--spacing-lg);
   position: relative;
@@ -65,7 +65,7 @@
   right: -50%;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%); /* off-token-allow: decorative-gradient */
   pointer-events: none;
 }
 
@@ -89,7 +89,7 @@
 }
 
 .hero-subtitle {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.85); /* off-token-allow: white-overlay */
   max-width: 420px;
   font-size: var(--font-size-md);
   line-height: var(--line-height-normal);
@@ -109,7 +109,7 @@
 }
 
 .hero-metric-item {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15); /* off-token-allow: white-overlay */
   border-radius: var(--radius-lg);
   padding: var(--spacing-md);
   border: var(--shadow-inset-light);
@@ -386,12 +386,12 @@
 
 .btn-outline-light {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
   color: white;
 }
 
 .btn-outline-light:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1); /* off-token-allow: white-overlay */
   border-color: white;
 }
 
@@ -592,7 +592,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(26, 22, 18, 0.5);
+  background: rgba(26, 22, 18, 0.5); /* off-token-allow: always-dark-warm-bg */
   display: flex;
   align-items: center;
   justify-content: center;

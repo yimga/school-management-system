@@ -1,9 +1,9 @@
 # SOT backlog — internal closure + external-only open items
 
 **Authority:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §0.1.5  
-**Updated:** 2026-04-24 — **PATH** [External program blockers](PATH_TO_100_PERCENT_EXECUTION_PLAN.md#external-program-blockers-wopi-app-stores-soc2-or-iso-clever-live) + [Agent 2 off-repo execution](PATH_TO_100_PERCENT_EXECUTION_PLAN.md#agent-2-off-repo-execution): Tier **2**/ **3** table, PMO **ticket stub**, Tier 2 **attack pattern**, Tier 3 **cadence**. **Backlog:** [Agent 2 PMO discipline](#agent-2-pmo-discipline-streams-1-5). Prior: batch **951** governance; batch **944** `release_readiness_check.sh`; 2026-03-23 [SOT_0155_EVIDENCE_REGISTER.md](SOT_0155_EVIDENCE_REGISTER.md); [docs/README.md](README.md); [SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md](SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md).
+**Updated:** 2026-05-17 — **Lane 1 honest remainder** lives in [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md — §11.4 Repo remainder callout](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md#114--repo-remainder-callout-lane-1-only-updated-2026-05-17) (deferred items inside DONE batches, tenant-scoping burndown, RLS follow-ups, CSP enforce flip, etc.). **PATH** [External program blockers](PATH_TO_100_PERCENT_EXECUTION_PLAN.md#external-program-blockers-wopi-app-stores-soc2-or-iso-clever-live) + [Agent 2 off-repo execution](PATH_TO_100_PERCENT_EXECUTION_PLAN.md#agent-2-off-repo-execution): Tier **2**/ **3** table, PMO **ticket stub**, Tier 2 **attack pattern**, Tier 3 **cadence**. **Backlog:** [Agent 2 PMO discipline](#agent-2-pmo-discipline-streams-1-5). Prior: batch **951** governance; batch **944** `release_readiness_check.sh`; 2026-03-23 [SOT_0155_EVIDENCE_REGISTER.md](SOT_0155_EVIDENCE_REGISTER.md); [docs/README.md](README.md); [SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md](SOT_0155_SECTION_0_1_5_QUEUE_STATUS.md).
 
-**Policy:** All **repository-deliverable** work for the §0.1.5 / Wave 8 **internal** program is **closed** with tests, templates, and/or `verify_sot_pillar_evidence.py`. This file lists **only** items that **cannot** be completed inside this git repository (external vendors, app stores, audits, open-ended product depth).
+**Policy:** Wave 8 **mechanical / pillar** repo bars are largely **closed** (`verify_sot_pillar_evidence.py`, release gates). **Ongoing Lane 1 work** (burndowns, RLS depth, CSP enforce, wiring) is **not** “zero backlog” — see the SOT callout above. **This file** still lists items that **cannot** be completed inside git alone (external vendors, app stores, audits, staffed operations).
 
 **Do everything in one order:** **[PATH_TO_100_PERCENT_EXECUTION_PLAN.md — Single end-to-end goal checklist (merged)](PATH_TO_100_PERCENT_EXECUTION_PLAN.md#single-end-to-end-goal-checklist-merged)** — that section pulls **A** (release gates), **B** (this file’s External + PATH blocker table), **C** ([Program tracks](#program-tracks-end-to-end-execution-steps)), **D** (PATH Phase II–V + SOT §11.4). This backlog is **supporting detail**, not a second master plan.
 
@@ -15,7 +15,9 @@
 
 ---
 
-## Internal — **CLOSED** (evidence in repo)
+## Internal — **CLOSED** (mechanical / Wave 8 bars) + **open Lane 1 remainder**
+
+**Open in-repo work (summary):** see SOT [§11.4 Repo remainder callout](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md#114--repo-remainder-callout-lane-1-only-updated-2026-05-17). Headline queues: **tenant-scoping burndown** (720→0), **RLS FORCE follow-ups** (batch 1242), **CSP_ENFORCE flip**, **workflow/event-bus wiring**, **webhook idempotency opt-in**, program **SiteSettings decomposition**.
 
 Shipped in code/tests/docs, including but not limited to:
 

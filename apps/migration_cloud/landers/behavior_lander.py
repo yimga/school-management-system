@@ -63,6 +63,7 @@ class BehaviorLander(Lander):
                     f"behavior: missing student/date/description in {row!r}"
                 )
                 continue
+            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             student = StudentProfile.objects.filter(
                 **{student_lookup: external_id}
             ).first()

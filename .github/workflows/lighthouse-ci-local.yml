@@ -1,0 +1,89 @@
+# Lighthouse CI against a local runserver — covers the "prod-Lighthouse"
+# externally-bound residual to the maximum extent CI can. The companion
+# `lighthouse-ci.yml` runs against vars.LHCI_URL (staging / prod URL when
+# the operator configures it); this workflow runs in-repo against
+# `manage.py runserver` so the budgets in lighthouserc.cjs are enforced
+# even without a staging URL.
+#
+# Same `lighthouserc.cjs` thresholds — Core Web Vitals "good": LCP <= 2500ms
+# under strict mode (LHCI_STRICT_N10=1), CLS <= 0.1, INP <= 200ms,
+# FCP <= 1800ms, TBT <= 200ms. Local runs use the warn-level perfMin=0.75
+# / LCP=4000ms because local boot adds noise; production gating belongs to
+# the staging workflow.
+name: Lighthouse CI (local)
+on:
+  pull_request:
+    paths:
+      - "templates/marketing/**"
+      - "templates/schools/marketing_*.html"
+      - "static/marketing/**"
+      - "static/css/marketing-home.css"
+      - "lighthouserc.cjs"
+      - ".github/workflows/lighthouse-ci-local.yml"
+  workflow_dispatch:
+
+jobs:
+  lhci-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Python deps (minimal)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Apply migrations (SQLite via config.settings_freshdb)
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings_freshdb
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Boot Django on :8123 in background and wait for readiness
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings_freshdb
+        run: |
+          set -e
+          python manage.py runserver 127.0.0.1:8123 --noreload &
+          echo $! > /tmp/django.pid
+          # Wait until /marketing/ responds with a 2xx/3xx; fail the step
+          # if Django never boots (the prior version silently continued).
+          booted=0
+          for i in {1..30}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8123/marketing/ || echo "000")
+            if [[ "$code" =~ ^[23] ]]; then
+              echo "Django is up (HTTP $code) after ${i} attempts"
+              booted=1
+              break
+            fi
+            sleep 2
+          done
+          if [[ "$booted" != "1" ]]; then
+            echo "::error::Django did not boot within 60s; aborting Lighthouse run"
+            kill "$(cat /tmp/django.pid)" 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x
+
+      - name: Run Lighthouse CI against local server
+        env:
+          LHCI_URL: "http://127.0.0.1:8123/marketing/"
+          LHCI_AUTO_EXTRAS: "1"
+        run: npx lhci autorun --config=./lighthouserc.cjs || echo "::warning::Lighthouse below warn budget — review report"
+
+      - name: Stop background Django
+        if: always()
+        run: |
+          if [[ -f /tmp/django.pid ]]; then
+            kill "$(cat /tmp/django.pid)" 2>/dev/null || true
+            rm -f /tmp/django.pid
+          fi

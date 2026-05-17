@@ -11,9 +11,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
 from apps.schools.control_plane import is_control_plane_request
 from apps.siteconfig.config_service import (
     BaseDomainConfig,
@@ -172,4 +178,12 @@ def tenant_runtime_configuration_hub(request: HttpRequest) -> HttpResponse:
         "school_group_hierarchy_url": school_group_hierarchy_url,
         "guided_configuration_url": guided_configuration_url,
     }
-    return render(request, "siteconfig/tenant_runtime_configuration_hub.html", ctx)
+    return render_siteconfig_stem(
+        request,
+        "tenant_runtime_configuration_hub",
+        ctx,
+        cp_title=_("Tenant runtime configuration"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Tenant runtime configuration"), active=True),
+        ),
+    )

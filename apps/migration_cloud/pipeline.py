@@ -43,7 +43,7 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
     it got. Always returns a summary dict so callers (wizard, API,
     management command) can render progress without re-querying.
     """
-    bundle = MigrationBundle.objects.get(pk=bundle_id)
+    bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal bundle id
     summary: dict[str, Any] = {
         "bundle_id": bundle_id,
         "stages_run": [],

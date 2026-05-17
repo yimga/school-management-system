@@ -1,0 +1,102 @@
+{% load i18n static %}
+{% load terminology_tags %}
+<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="tenant-report-schedules-evidence" data-admin-replacement-category="reports_scheduled_evidence" data-cp-evidence-surface="tenant-report-schedules" data-rmc-operator-evidence-surface="1" data-rmc-report-bulk-evidence="1099" data-rmc-component-audit="1">
+  <h1 class="h3 mb-2">{% trans "Tenant scheduled reports (read-only)" %}</h1>
+  <p class="text-muted small mb-2">
+    {% trans "Evidence-only view of TenantReportSchedule rows for this school. Delivery runs via send_scheduled_reports / automation; this page does not send mail or export data." %}
+  </p>
+  {% if school %}
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Schedules" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ schedule_total }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Active" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ schedule_active }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Due now" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ schedule_due }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Needs recipients" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ schedule_missing_recipients }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Run history" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ schedule_last_run_total }}</div>
+    </div>
+  </div>
+  {% endif %}
+  {% if not school %}
+  <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
+  {% else %}
+  <p class="small text-muted mb-3">{% trans_term "School" key="school" %}: {{ school.name }}</p>
+  {% endif %}
+  <div class="table-responsive mb-3">
+    <table class="table table-sm align-middle table-family table-sticky-head" aria-label="{% trans 'Scheduled reports' %}">
+      <thead>
+        <tr>
+          <th>{% trans "Name" %}</th>
+          <th>{% trans "Key" %}</th>
+          <th>{% trans "Frequency" %}</th>
+          <th>{% trans "Next run" %}</th>
+          <th>{% trans "Last run" %}</th>
+          <th>{% trans "Recipients" %}</th>
+          <th>{% trans "Active" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedules %}
+        <tr>
+          <td>{{ s.name }}</td>
+          <td><code>{{ s.report_key }}</code></td>
+          <td>{{ s.get_schedule_frequency_display }}</td>
+          <td class="text-nowrap">{{ s.next_run|date:"Y-m-d H:i" }}</td>
+          <td class="text-nowrap">{% if s.last_run %}{{ s.last_run|date:"Y-m-d H:i" }}{% else %}<span class="text-muted">{% trans "Never" %}</span>{% endif %}</td>
+          <td>{% if s.is_active and s.recipients|length == 0 %}<span class="text-warning">{{ s.recipients|length }} {% trans "missing" %}</span>{% else %}{{ s.recipients|length }}{% endif %}</td>
+          <td>{% if s.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-muted">{% trans "No scheduled report rows for this school yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="d-flex flex-wrap gap-2 mb-2 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:scheduled_reports_delivery_hub' %}">{% trans "Full delivery hub" %}</a>
+    {% if operator_bulk_letters_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ operator_bulk_letters_url }}">{% trans "Bulk letters" %}</a>
+    {% endif %}
+    {% if operator_term_publish_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ operator_term_publish_evidence_url }}">{% trans "Term publish status" %}</a>
+    {% endif %}
+    {% if operator_academic_years_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ operator_academic_years_evidence_url }}">{% trans "Academic years (setup)" %}</a>
+    {% endif %}
+    {% if operator_departments_setup_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ operator_departments_setup_evidence_url }}">{% trans "Departments (setup)" %}</a>
+    {% endif %}
+    {% if operator_report_templates_catalog_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ operator_report_templates_catalog_url }}">{% trans "Report templates (catalog)" %}</a>
+    {% endif %}
+    {% if operator_report_output_history_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ operator_report_output_history_evidence_url }}">{% trans "Report output history" %}</a>
+    {% endif %}
+  </div>
+  <p class="text-muted small mb-3">
+    {% trans "List/create via API" %}
+    {% if reports_scheduled_api_list_url %}
+    <a href="{{ reports_scheduled_api_list_url }}"><code>/api/v1/reports/scheduled</code></a>
+    {% else %}
+    <code>/api/v1/reports/scheduled</code>
+    {% endif %}
+    — {% trans "read-only on this page." %}
+  </p>
+  {% if user.is_superuser and tenant_report_schedule_admin_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ tenant_report_schedule_admin_url }}">{% trans "Advanced/Admin: schedule rows" %}</a>
+  </div>
+  {% endif %}
+</div>

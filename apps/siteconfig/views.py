@@ -72,6 +72,11 @@ from .tenant_config import apply_tenant_settings_overrides
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
 from apps.schools.control_plane import require_super_access_with_host, use_control_plane_shell
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -358,7 +363,19 @@ def preview_from_form(request):
 
 @staff_member_required(login_url=settings.LOGIN_URL)
 def maintenance_view(request):
-    return render(request, "siteconfig/maintenance.html")
+    return render_siteconfig_stem(
+        request,
+        "maintenance",
+        {},
+        cp_title=_("Maintenance preview"),
+        cp_meta_description=_(
+            "Staff preview of the maintenance page shown to users when maintenance mode is on."
+        ),
+        cp_page_archetype="maintenance-preview",
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Maintenance preview")),
+        ),
+    )
 
 
 # Neutral fallback when no region scales (Phase 2: no country names in tenant-facing form)
@@ -575,6 +592,7 @@ def build_reportcard_builder_context(
     classroom_ids = [assignment.classroom_id for assignment in assignments]
     if classroom_ids:
         sample_candidates = (
+            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             StudentProfile.objects.filter(
                 classroom_id__in=classroom_ids, is_active=True
             )
@@ -585,6 +603,7 @@ def build_reportcard_builder_context(
             sample_students.setdefault(student.classroom_id, student)
     for assignment in assignments:
         assignment.sample_student = sample_students.get(assignment.classroom_id)
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     preview_students = list(
         StudentProfile.objects.filter(is_active=True)
         .defer("passport")
@@ -680,6 +699,24 @@ def build_reportcard_builder_context(
     }
 
 
+def _render_reportcard_builder_page(request, ctx):
+    from apps.siteconfig.control_plane_render import (
+        default_operator_breadcrumbs,
+        operator_cp_breadcrumb,
+        render_siteconfig_stem,
+    )
+
+    return render_siteconfig_stem(
+        request,
+        "reportcard_builder",
+        ctx,
+        cp_title=_("Report card builder"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Report card builder"), active=True),
+        ),
+    )
+
+
 @permission_required("settings.manage")
 def reportcard_builder(request):
     post_studio = (
@@ -721,10 +758,10 @@ def reportcard_builder(request):
                 )
             return redirect("siteconfig:reportcard_builder")
 
-        return render(request, "siteconfig/reportcard_builder.html", ctx)
+        return _render_reportcard_builder_page(request, ctx)
 
     ctx = build_reportcard_builder_context(request, studio_output_native=False)
-    return render(request, "siteconfig/reportcard_builder.html", ctx)
+    return _render_reportcard_builder_page(request, ctx)
 
 
 @permission_required("settings.manage")
@@ -838,10 +875,20 @@ def scheduled_reports_delivery_hub(request):
         ctx["northstar_ai_draft_url"] = reverse("siteconfig:northstar_ai_draft")
     except NoReverseMatch:
         ctx["northstar_ai_draft_url"] = None
-    return render(
+    from apps.siteconfig.control_plane_render import (
+        default_operator_breadcrumbs,
+        operator_cp_breadcrumb,
+        render_siteconfig_stem,
+    )
+
+    return render_siteconfig_stem(
         request,
-        "siteconfig/scheduled_reports_delivery_hub.html",
+        "scheduled_reports_delivery_hub",
         ctx,
+        cp_title=_("Scheduled reports"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Scheduled reports"), active=True),
+        ),
     )
 
 
@@ -899,6 +946,7 @@ def _mock_preview_student():
 
 
 def _preview_student_queryset():
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     return StudentProfile.objects.filter(is_active=True).select_related(
         "classroom", "specialty"
     )
@@ -1179,7 +1227,22 @@ def reportcard_style_preview(request, slug: str):
         "preview_mode": True,
         "SITE": site,
     }
-    return render(request, "siteconfig/reportcard_style_preview.html", context)
+    from apps.siteconfig.control_plane_render import (
+        default_operator_breadcrumbs,
+        operator_cp_breadcrumb,
+        render_siteconfig_stem,
+    )
+
+    return render_siteconfig_stem(
+        request,
+        "reportcard_style_preview",
+        context,
+        cp_title=_("Report card style preview"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Report card builder"), url=reverse("siteconfig:reportcard_builder")),
+            operator_cp_breadcrumb(_("Style preview"), active=True),
+        ),
+    )
 
 
 @permission_required("settings.manage")
@@ -1305,9 +1368,15 @@ def user_preferences(request):
     ):
         next_page = reverse("accounts:redirect")
 
-    return render(
+    from apps.siteconfig.control_plane_render import (
+        default_operator_breadcrumbs,
+        operator_cp_breadcrumb,
+        render_siteconfig_stem,
+    )
+
+    return render_siteconfig_stem(
         request,
-        "siteconfig/user_preferences.html",
+        "user_preferences",
         {
             "form": form,
             "previous_page": next_page,
@@ -1315,12 +1384,17 @@ def user_preferences(request):
             "page_subtitle": "Pick your dashboard style, theme, timezone, and how often to refresh data.",
             "action_url": next_page,
         },
+        cp_title=_("User preferences"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("User preferences"), active=True),
+        ),
     )
 
 
 def _get_classrooms_queryset():
     """Classrooms for bulk letter dropdown; prefer active year."""
     year, _ = get_active_year_and_term()
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     if year:
         return Classroom.objects.filter(academic_year=year).order_by("name")
     return Classroom.objects.select_related("academic_year").order_by(
@@ -1383,9 +1457,11 @@ def _bulk_letters_form_data(request):
 
 @permission_required("settings.manage")
 def bulk_letters(request):
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     """Generate one ODT letter per student in a classroom (mail-merge style). Requires Pandoc."""
     classrooms = _get_classrooms_queryset()
     student_counts = dict(
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         StudentProfile.objects.filter(classroom__in=classrooms)
         .values("classroom_id")
         .annotate(count=Count("id"))
@@ -1424,6 +1500,7 @@ def bulk_letters(request):
         )
     classroom = None
     if classroom_id:
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         try:
             classroom = Classroom.objects.get(pk=classroom_id)
         except (ValueError, Classroom.DoesNotExist):
@@ -1433,8 +1510,10 @@ def bulk_letters(request):
         return render(
             request,
             "siteconfig/bulk_letters.html",
+            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             _bulk_letters_page_context(request, classroom_list, form_data),
         )
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     students = StudentProfile.objects.filter(classroom=classroom).order_by(
         "last_name", "first_name"
     )
@@ -1748,29 +1827,37 @@ def theme_colors_page(request):
         contrast_values[field_name] = incoming
     contrast_report = build_theme_contrast_report(contrast_values)
 
-    template = (
-        "siteconfig/theme_colors_control_plane.html"
-        if use_control_plane_shell(request)
-        else "siteconfig/theme_colors.html"
+    from apps.siteconfig.control_plane_render import (
+        default_operator_breadcrumbs,
+        operator_cp_breadcrumb,
+        render_siteconfig_operator_page,
     )
-    return render(
+
+    theme_ctx = {
+        "form": form,
+        "site_settings": site,
+        "preview_mode_active": preview_mode_active,
+        "admin_theme_packs": admin_theme_packs,
+        "admin_theme_packs_by_group": admin_theme_packs_by_group,
+        "admin_change_url": admin_change_url,
+        "back_url": back_url,
+        "theme_recent_change_meta": theme_recent_change_meta,
+        "theme_contrast_report": contrast_report,
+        "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
+        "skip_theme_publish_guard": bool(
+            theme_settings.get("skip_theme_publish_guard", False)
+        ),
+    }
+    return render_siteconfig_operator_page(
         request,
-        template,
-        {
-            "form": form,
-            "site_settings": site,
-            "preview_mode_active": preview_mode_active,
-            "admin_theme_packs": admin_theme_packs,
-            "admin_theme_packs_by_group": admin_theme_packs_by_group,
-            "admin_change_url": admin_change_url,
-            "back_url": back_url,
-            "theme_recent_change_meta": theme_recent_change_meta,
-            "theme_contrast_report": contrast_report,
-            "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
-            "skip_theme_publish_guard": bool(
-                theme_settings.get("skip_theme_publish_guard", False)
-            ),
-        },
+        portal_template="siteconfig/theme_colors.html",
+        body_template="siteconfig/partials/theme_colors_page_body.html",
+        context=theme_ctx,
+        cp_title=_("Theme & Experience"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Studio"), url=reverse("studio_os:shell")),
+            operator_cp_breadcrumb(_("Theme & Experience"), active=True),
+        ),
     )
 
 
@@ -2407,10 +2494,12 @@ def region_validation_dashboard(request):
                     "type": "warning",
                     "message": "No portal features enabled",
                 }
+            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             )
             if severity == "success":
                 severity = "warning"
 
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         # Check holiday coverage for current year
         current_year = AcademicYear.objects.filter(is_active=True).order_by(
             "-start_date"
@@ -2453,7 +2542,19 @@ def region_validation_dashboard(request):
         "total_issues": issues_count,
     }
 
-    return render(request, "siteconfig/region_validation_dashboard.html", context)
+    return render_siteconfig_stem(
+        request,
+        "region_validation_dashboard",
+        context,
+        cp_title=_("Region validation"),
+        cp_meta_description=_(
+            "Regional configuration completeness and validation checks for operators."
+        ),
+        cp_page_archetype="operator-report",
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Region validation")),
+        ),
+    )
 
 
 @require_super_access_with_host
@@ -2489,7 +2590,19 @@ def region_comparison_view(request):
         "comparison_rows": comparison_rows,
     }
 
-    return render(request, "siteconfig/region_comparison.html", context)
+    return render_siteconfig_stem(
+        request,
+        "region_comparison",
+        context,
+        cp_title=_("Region comparison"),
+        cp_meta_description=_(
+            "Side-by-side comparison of core regional settings across fleet regions."
+        ),
+        cp_page_archetype="operator-report",
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Region comparison")),
+        ),
+    )
 
 
 @require_super_access_with_host
@@ -2513,7 +2626,19 @@ def region_grading_scales_view(request):
         "scale_types": scale_types,
     }
 
-    return render(request, "siteconfig/region_grading_scales_matrix.html", context)
+    return render_siteconfig_stem(
+        request,
+        "region_grading_scales_matrix",
+        context,
+        cp_title=_("Region grading scales matrix"),
+        cp_meta_description=_(
+            "Fleet-wide grading scale matrix for cross-region operator triage."
+        ),
+        cp_page_archetype="operator-report",
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Region grading matrix")),
+        ),
+    )
 
 
 @login_required

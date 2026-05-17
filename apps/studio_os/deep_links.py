@@ -191,8 +191,8 @@ def studio_legacy_urls_map() -> dict[str, str]:
     """Legacy shell keys with best-effort URLs."""
     out: dict[str, str] = {}
     pairs = [
-        ("customizer", "studio_os:experience"),
-        ("theme_colors", "studio_os:experience"),
+        ("customizer", "siteconfig:legacy_customizer"),
+        ("theme_colors", "siteconfig:theme_colors"),
         ("feature_control", "siteconfig:feature_control_panel"),
         ("report_library", "studio_os:output"),
         ("workflow_hub", "studio_os:automation"),
@@ -216,4 +216,7 @@ def studio_legacy_urls_map() -> dict[str, str]:
     rl = out.get("report_library")
     if rl:
         out["report_library"] = f"{rl}{'&' if '?' in rl else '?'}pane=reports"
+    tc = out.get("theme_colors")
+    if tc and "standalone=" not in tc:
+        out["theme_colors"] = f"{tc}{'&' if '?' in tc else '?'}standalone=1"
     return out

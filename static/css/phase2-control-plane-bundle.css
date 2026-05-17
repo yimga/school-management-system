@@ -5,8 +5,8 @@
  */
 
 /* ========== templates/siteconfig/console_domains_hub_control_plane.html ========== */
-.sysconfig-hub-list .sysconfig-hub-link { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
-.sysconfig-hub-list .sysconfig-hub-link:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); color: #fff; }
+.sysconfig-hub-list .sysconfig-hub-link { background: rgba(255,255,255,0.06); /* off-token-allow: white-overlay */ border: 1px solid rgba(255,255,255,0.08); /* off-token-allow: white-overlay */ }
+.sysconfig-hub-list .sysconfig-hub-link:hover { background: rgba(255,255,255,0.1); /* off-token-allow: white-overlay */ border-color: rgba(255,255,255,0.15); /* off-token-allow: white-overlay */ color: #fff; /* off-token-allow: hex-literal-decorative */ }
 
 /* ========== templates/siteconfig/partials/theme_colors_page_body.html ========== */
 /* Full-width: no sidebar on this page */

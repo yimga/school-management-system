@@ -10,6 +10,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
+from django.utils.translation import gettext as _
+
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.decorators import permission_required
@@ -78,19 +85,12 @@ def report_templates_catalog_evidence(
     except NoReverseMatch:
         compliance_exports_url = None
 
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/report_templates_catalog_evidence.html",
-        {
-            "school": school,
-            "template_rows": template_rows,
-            "template_total": len(template_rows),
-            "template_with_handler": template_with_handler,
-            "report_template_family": report_template_family,
-            "admin_reporttemplate_changelist_url": admin_reporttemplate_changelist_url,
-            "scheduled_reports_hub_url": scheduled_reports_hub_url,
-            "tenant_report_schedules_evidence_url": tenant_report_schedules_evidence_url,
-            "term_publish_status_evidence_url": term_publish_status_evidence_url,
-            "compliance_exports_url": compliance_exports_url,
-        },
+        "report_templates_catalog_evidence",
+        None,
+        cp_title=_("Report templates catalog"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Report templates catalog"), active=True),
+        ),
     )

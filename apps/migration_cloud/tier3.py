@@ -276,7 +276,8 @@ def export_tenant_to_canonical(*, school: Any, domains: Iterable[str] | None = N
     except Exception:  # noqa: BLE001
         StudentProfile = None
     if StudentProfile is not None and "students" in domains:
-        out["students"] = _csv_dump(StudentProfile.objects.filter(school=school) if "school" in {f.name for f in StudentProfile._meta.get_fields()} else StudentProfile.objects.all(),
+        out["students"] = _csv_dump(StudentProfile.objects.filter(school=school) if "school" in {f.name for f in StudentProfile._meta.get_fields()} else StudentProfile.objects.all(),  # tenant-isolation-allow: branch above scopes via school=school
+
                                      ["external_id", "first_name", "last_name", "email", "phone",
                                       "date_of_birth", "grade_level", "enrollment_status"])
     try:
@@ -284,7 +285,7 @@ def export_tenant_to_canonical(*, school: Any, domains: Iterable[str] | None = N
     except Exception:  # noqa: BLE001
         Invoice = None
     if Invoice is not None and "finance" in domains:
-        qs = Invoice.objects.all()
+        qs = Invoice.objects.all()  # tenant-isolation-allow: invoked via export_tenant_to_canonical(school=...), Invoice scoped via tenant schema
         out["finance"] = _csv_dump(qs, ["reference", "amount", "currency", "due_date", "issue_date", "description"])
     return out
 

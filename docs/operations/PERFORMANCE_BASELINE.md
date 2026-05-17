@@ -67,7 +67,19 @@ Aligned with `docs/operations/SLA.md`:
 These cannot be measured from inside the repo — they need a deployed
 environment + an APM like Sentry / Datadog wired to `apps/observability/`.
 
-## 4. Capacity headroom
+## 4. Recorded k6 runs (repo artifact)
+
+When a baseline completes, `scripts/run_k6_baseline_local.sh` (or CI
+`k6-baseline-dispatch.yml`) writes **`docs/generated/k6_baseline_last_run.json`**
+via `scripts/record_k6_baseline_results.py`. Status is `recorded` when k6 ran;
+`pending` until the first successful export. Dispatch workflow or local:
+
+```bash
+bash scripts/run_k6_baseline_local.sh
+# or: gh workflow run k6-baseline-dispatch.yml
+```
+
+## 5. Capacity headroom
 
 When k6 + Lighthouse both pass, the deployment is considered ready. When a
 threshold breaches:
@@ -78,7 +90,7 @@ threshold breaches:
 4. Add an index, fix the query, or batch the call.
 5. Re-run k6; commit the fix when it passes.
 
-## 5. What this doc does NOT cover
+## 6. What this doc does NOT cover
 
 - DR / RTO / RPO — see `docs/DR_BACKUP_RESTORE_RUNBOOK.md`.
 - Provider-side SLOs (Stripe, Render, etc.) — those are the providers' contracts.

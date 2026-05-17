@@ -57,10 +57,20 @@ SCANNER_BASELINE_MAP: dict[str, str | None] = {
     "scan_inline_style_off_token.py": "security-audit-baseline-inline-style-off-token.json",
     "scan_undefined_css_classes.py": "security-audit-baseline-undefined-css-classes.json",
     "scan_rls_bypass.py": "security-audit-baseline-rls-bypass.json",
+    "scan_money_float.py": "security-audit-baseline-money-float.json",
+    "scan_tenant_isolation_marker_quality.py": "security-audit-baseline-tenant-isolation-marker-quality.json",
+    "scan_sri_required.py": "security-audit-baseline-sri-required.json",
+    "verify_csp_nonce_emission.py": "security-audit-baseline-csp-nonce-emission.json",
+    "scan_pwa_manifest_coverage.py": "security-audit-baseline-pwa-manifest-coverage.json",
     # Filters / audit-only scripts that don't produce JSON baselines:
     "audit_template_render_safety.py": None,
     "check_real_migration_drift.py": None,
     "check_documented_baselines.py": None,
+    "scan_locale_coverage.py": None,
+    "verify_service_worker_version.py": None,
+    "verify_slo_registry.py": None,
+    "verify_sentry_alert_rule_drift.py": None,
+    "verify_dr_drill_schedule.py": None,
 }
 
 

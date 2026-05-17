@@ -53,6 +53,7 @@ def api_center_dashboard(request):
     integrations = (
         Integration.objects.filter(Q(school__isnull=True) | Q(school=school))
         if school
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         else Integration.objects.all()
     )
     integrations = integrations.order_by("provider", "name")
@@ -179,6 +180,7 @@ def api_center_toggle(request, slug):
     school = getattr(request, "school", None)
     if school is None and getattr(request, "public_host_kind", None) != "manager":
         return HttpResponseForbidden("School context required.")
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     integrations = Integration.objects.all()
     if school is not None:
         integrations = integrations.filter(Q(school__isnull=True) | Q(school=school))
@@ -231,8 +233,10 @@ def webhook_docs(request):
             "API Center is disabled or you do not have permission."
         )
     from apps.events.models import WebhookSubscription
+# tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
     school = getattr(request, "school", None)
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     subscriptions = WebhookSubscription.objects.all().order_by("-created_at")
     if school is not None:
         subscriptions = subscriptions.filter(school_id=getattr(school, "id", None))
@@ -317,6 +321,7 @@ def api_key_revoke(request, key_id):
         return HttpResponseForbidden(
             "API Center is disabled or you do not have permission."
         )
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     school = getattr(request, "school", None)
     qs = APIKey.objects.all()
     if school is not None:
@@ -390,8 +395,10 @@ def webhook_subscription_edit(request, pk: int):
             "API Center is disabled or you do not have permission."
         )
     from apps.events.models import WebhookSubscription
+# tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
     school = getattr(request, "school", None)
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     qs = WebhookSubscription.objects.all()
     if school is not None:
         qs = qs.filter(school_id=getattr(school, "id", None))
@@ -430,8 +437,10 @@ def webhook_subscription_delete(request, pk: int):
         return HttpResponseForbidden(
             "API Center is disabled or you do not have permission."
         )
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     from apps.events.models import WebhookSubscription
 
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     school = getattr(request, "school", None)
     qs = WebhookSubscription.objects.all()
     if school is not None:

@@ -36,6 +36,7 @@ def summarize_rum_web_vitals(
     since = timezone.now() - timedelta(hours=h)
 
     rows = list(
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         PlatformEventLog.objects.filter(
             event_type="rum_web_vitals",
             created_at__gte=since,

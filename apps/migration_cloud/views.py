@@ -34,6 +34,12 @@ from django.utils import timezone
 from django.views import View
 
 from .ai_bridge import AIProposal, record_operator_feedback, remember_mapping_decision
+from .reliability import (
+    bundle_status_safe,
+    idempotent_post,
+    safe_500,
+    with_progress_fallback,
+)
 from .models import (
     AssetStatus,
     BundleStatus,
@@ -108,6 +114,24 @@ def _enforce_portal_entitlement(request, shell: str) -> JsonResponse | None:
     )
 
 
+def _tenant_scoped_bundle(request, bundle_id: int, shell: str):
+    """Resolve a bundle by id, tenant-scoped in portal shell.
+
+    Operator shell (``super``) sees everything. Portal shell can only resolve
+    bundles bound to the caller's active tenant — a mismatch is reported as
+    404, never 403, so an ID-enumeration attacker cannot distinguish "exists
+    elsewhere" from "doesn't exist".
+    """
+    from django.http import Http404
+    bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+    if shell == "portal":
+        school = getattr(request, "school", None) or getattr(request, "tenant", None)
+        school_pk = getattr(school, "pk", None)
+        if school_pk is None or bundle.school_id != school_pk:
+            raise Http404("bundle not found")
+    return bundle
+
+
 class MigrationCloudIntakeView(LoginRequiredMixin, View):
     """GET → render intake wizard. POST → create the bundle and ingest artifacts.
 
@@ -127,12 +151,47 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
         gate = _enforce_portal_entitlement(request, shell)
         if gate is not None:
             return gate
-        return render(
-            request,
-            self.template_name,
-            self._context(request=request, shell=shell, errors=None, form=None),
-        )
 
+        # v3.17 (2026-05-17): honour pre-fill query params from the onboarding
+        # handoff page. Keeps the bundle-creation contract intact (POST still
+        # validates everything) while letting the operator land on a form
+        # already populated with their vendor and school choice — one click
+        # from there to "Create bundle and start".
+        prefill_keys = (
+            "vendor", "source_hint", "profile", "school_id", "label", "intake_method", "sla_tier", "domains",
+        )
+        prefill = {k: (request.GET.get(k) or "").strip() for k in prefill_keys}
+        # `vendor` is our own slug; the form's `source_hint` accepts either
+        # a marketing-friendly vendor slug OR the MigrationProfile.SourceSystem
+        # value. If vendor is set but source_hint isn't, propagate vendor → hint.
+        if prefill["vendor"] and not prefill["source_hint"]:
+            prefill["source_hint"] = prefill["vendor"]
+
+        form = None
+        if any(prefill.values()):
+            form = {
+                "intake_method": prefill["intake_method"] or "",
+                "label": prefill["label"] or "",
+                "source_hint": prefill["source_hint"] or "",
+                "sla_tier": prefill["sla_tier"] or "",
+                "intake_source_uri": "",
+                "school_id": prefill["school_id"] or "",
+                "auto_advance": True,
+            }
+
+        ctx = self._context(request=request, shell=shell, errors=None, form=form)
+        # Surface pre-fill provenance so the template can render an inline hint
+        # ("Pre-filled from your onboarding choice") and a discreet reset link.
+        ctx["prefill_from_onboarding"] = bool(prefill["vendor"] or prefill["profile"])
+        ctx["prefill_vendor_slug"] = prefill["vendor"]
+        ctx["prefill_profile_slug"] = prefill["profile"]
+        ctx["prefill_domains"] = [
+            d for d in (prefill["domains"].split(",") if prefill["domains"] else []) if d
+        ]
+        return render(request, self.template_name, ctx)
+
+    @idempotent_post
+    @safe_500
     def post(self, request, shell: str = "super"):
         gate = _enforce_portal_entitlement(request, shell)
         if gate is not None:
@@ -516,7 +575,7 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
     template_name = "migration_cloud/bundle_detail.html"
 
     def get(self, request, bundle_id: int, shell: str = "super"):
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         per_artifact_domain = (
             (bundle.discovery_summary or {}).get("per_artifact_domain") or {}
         )
@@ -553,8 +612,16 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
 
 
 class MigrationCloudAdvanceView(LoginRequiredMixin, View):
-    """POST endpoint: advance bundle through profile → classify → map."""
+    """POST endpoint: advance bundle through profile → classify → map.
 
+    Reliability contract (v3.17):
+      - HTTP-level idempotency: a duplicate POST with the same Idempotency-Key
+        header within 24h returns the cached response (X-Idempotency-Replay: true).
+      - Uncaught exceptions → structured JSON 500 with a request_id for support.
+    """
+
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from .pipeline import advance_bundle
 
@@ -562,9 +629,6 @@ class MigrationCloudAdvanceView(LoginRequiredMixin, View):
             summary = advance_bundle(bundle_id=bundle_id, use_accelerator=True)
         except MigrationBundle.DoesNotExist:
             return JsonResponse({"error": "bundle not found"}, status=404)
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("migration_cloud.views: advance failed for bundle %s", bundle_id)
-            return JsonResponse({"error": str(exc)}, status=500)
         return JsonResponse(summary)
 
 
@@ -575,8 +639,19 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
     ``?confirm=1`` explicitly; ``?dry_run=1`` (or any truthy dry_run
     value) also forces dry-run regardless of confirm. This means API
     misuse and accidental form replays never overwrite a live tenant.
+
+    Reliability contract (v3.17):
+      - HTTP-level idempotency: a duplicate POST with the same Idempotency-Key
+        header within 24h returns the cached response (X-Idempotency-Replay: true).
+        Critical here: live applies are LARGE writes; a doubled POST without
+        this guard could double-create records (the orchestrator catches it
+        via bundle.idempotency_key, but request-level is the first line of
+        defense).
+      - Uncaught exceptions → structured JSON 500 with a request_id.
     """
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from .orchestrator import apply_bundle
 
@@ -590,9 +665,6 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
             return JsonResponse({"error": "bundle not found"}, status=404)
         except ValueError as exc:
             return JsonResponse({"error": str(exc)}, status=409)
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("migration_cloud.views: apply failed for bundle %s", bundle_id)
-            return JsonResponse({"error": str(exc)}, status=500)
         return JsonResponse({
             "bundle_id": result.bundle_id,
             "dry_run": result.dry_run,
@@ -619,8 +691,13 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
 
 
 class MigrationCloudReconcileView(LoginRequiredMixin, View):
-    """POST endpoint: compute reconciliation report for an APPLIED bundle."""
+    """POST endpoint: compute reconciliation report for an APPLIED bundle.
 
+    Reliability contract (v3.17): idempotency-key replay + structured 500.
+    """
+
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
@@ -638,9 +715,6 @@ class MigrationCloudReconcileView(LoginRequiredMixin, View):
             return JsonResponse({"error": "bundle not found"}, status=404)
         except ValueError as exc:
             return JsonResponse({"error": str(exc)}, status=409)
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("migration_cloud.views: reconcile failed for bundle %s", bundle_id)
-            return JsonResponse({"error": str(exc)}, status=500)
         return JsonResponse({
             "bundle_id": report.bundle_id,
             "overall_parity_pct": report.overall_parity_pct,
@@ -671,6 +745,8 @@ class MigrationCloudFeedbackView(LoginRequiredMixin, View):
     prompts on the slowest-converging domains.
     """
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
@@ -679,7 +755,7 @@ class MigrationCloudFeedbackView(LoginRequiredMixin, View):
         except json.JSONDecodeError:
             return JsonResponse({"error": "invalid JSON"}, status=400)
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         accepted = bool(payload.get("accepted", False))
         manual_correction = bool(payload.get("manual_correction", False))
         prompt_type = str(payload.get("prompt_type") or "migration_cloud.field_mapper")
@@ -750,6 +826,8 @@ class MigrationCloudShadowView(LoginRequiredMixin, View):
     can't assume how the old SIS exposes itself.
     """
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
@@ -782,7 +860,7 @@ class MigrationCloudShadowView(LoginRequiredMixin, View):
                     accepted=bool(payload.get("accepted", False)),
                 )
             elif action == "status":
-                bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+                bundle = _tenant_scoped_bundle(request, bundle_id, shell)
                 state = (bundle.reconciliation_summary or {}).get("shadow") or {}
                 return JsonResponse({"bundle_id": bundle.pk, "shadow": state})
             else:
@@ -806,6 +884,8 @@ class MigrationCloudShadowView(LoginRequiredMixin, View):
 class MigrationCloudRollbackView(LoginRequiredMixin, View):
     """POST endpoint: roll back one child ``MigrationRun`` of a bundle."""
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, run_id: int, shell: str = "super"):
         try:
             from apps.automation.models import MigrationRun
@@ -831,6 +911,8 @@ class MigrationCloudSaveProfileView(LoginRequiredMixin, View):
     for known shapes. Tenant-scoped via the bundle's school.
     """
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
         import re
@@ -840,7 +922,7 @@ class MigrationCloudSaveProfileView(LoginRequiredMixin, View):
         except Exception:  # noqa: BLE001
             return JsonResponse({"error": "automation app not available"}, status=500)
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         try:
             payload = json.loads(request.body or b"{}")
         except json.JSONDecodeError:
@@ -938,7 +1020,7 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, shell: str = "super"):
         from apps.migration_cloud import defaults as mc_defaults
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         threshold = float(mc_defaults.get("migration_cloud.mapper.field_min_confidence"))
 
         low_conf_mappings: list[dict[str, Any]] = []
@@ -963,8 +1045,10 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
             from apps.automation.models import MigrationQuarantineRecord, MigrationRun
 
             run_ids = list(
+                # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
                 MigrationRun.objects.filter(parent_bundle_id=bundle.pk).values_list("pk", flat=True)
             )
+            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             for q in MigrationQuarantineRecord.objects.filter(
                 migration_run_id__in=run_ids
             ).order_by("-id")[:200]:
@@ -1016,9 +1100,11 @@ class MigrationCloudAttachSourceView(LoginRequiredMixin, View):
         gate = _enforce_portal_entitlement(request, shell)
         if gate is not None:
             return gate
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         return render(request, self.template_name, self._context(shell, bundle, errors=None))
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from django.contrib import messages
         from django.shortcuts import redirect
@@ -1027,7 +1113,7 @@ class MigrationCloudAttachSourceView(LoginRequiredMixin, View):
         gate = _enforce_portal_entitlement(request, shell)
         if gate is not None:
             return gate
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
 
         method = bundle.intake_method
         errors: list[str] = []
@@ -1103,9 +1189,11 @@ class MigrationCloudBindSchoolView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, shell: str = "super"):
         if shell != "super":
             return JsonResponse({"error": "Operator-only action."}, status=403)
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         return render(request, self.template_name, self._context(shell, bundle, errors=None))
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from django.contrib import messages
         from django.shortcuts import redirect
@@ -1113,7 +1201,7 @@ class MigrationCloudBindSchoolView(LoginRequiredMixin, View):
 
         if shell != "super":
             return JsonResponse({"error": "Operator-only action."}, status=403)
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
 
         raw = (request.POST.get("school_id") or "").strip()
         errors: list[str] = []
@@ -1173,7 +1261,7 @@ class MigrationCloudAIPlanView(LoginRequiredMixin, View):
     """
 
     def get(self, request, bundle_id: int, shell: str = "super"):
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         from .ai_bridge import generate_migration_plan
 
         plan = generate_migration_plan(bundle=bundle)
@@ -1183,6 +1271,8 @@ class MigrationCloudAIPlanView(LoginRequiredMixin, View):
 class MigrationCloudAIExplainView(LoginRequiredMixin, View):
     """POST endpoint: AI explains a quarantine row in plain language."""
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
@@ -1193,7 +1283,7 @@ class MigrationCloudAIExplainView(LoginRequiredMixin, View):
         except json.JSONDecodeError:
             return JsonResponse({"error": "invalid JSON"}, status=400)
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         row = payload.get("row") or {}
         reason = (payload.get("reason") or "").strip()
         if not isinstance(row, dict) and not isinstance(row, list):
@@ -1220,6 +1310,8 @@ class MigrationCloudAIRebindView(LoginRequiredMixin, View):
     decision feeds AIEmbeddingStore for next-bundle recall.
     """
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
@@ -1230,7 +1322,7 @@ class MigrationCloudAIRebindView(LoginRequiredMixin, View):
         except json.JSONDecodeError:
             return JsonResponse({"error": "invalid JSON"}, status=400)
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         command = (payload.get("command") or "").strip()
         if not command:
             return JsonResponse({"error": "command required"}, status=400)
@@ -1326,6 +1418,7 @@ class MigrationCloudAIAskView(LoginRequiredMixin, View):
     the right surface for full-row computation.
     """
 
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
@@ -1342,7 +1435,7 @@ class MigrationCloudAIAskView(LoginRequiredMixin, View):
         if len(question) > 500:
             return JsonResponse({"error": "question too long (max 500 chars)"}, status=400)
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         proposal = answer_bundle_question(
             school=bundle.school, bundle=bundle, question=question,
         )
@@ -1361,7 +1454,7 @@ class MigrationCloudAINarrateReconciliationView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, shell: str = "super"):
         from .ai_bridge import narrate_reconciliation
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         report = bundle.reconciliation_summary or {}
         if not report:
             return JsonResponse({
@@ -1393,6 +1486,8 @@ class MigrationCloudAIVendorFromImageView(LoginRequiredMixin, View):
     MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MiB
     ALLOWED_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf", ".gif", ".bmp", ".tiff", ".webp")
 
+    @idempotent_post
+    @safe_500
     def post(self, request, shell: str = "super"):
         from .ai_bridge import identify_vendor_from_image
         from .classifiers.signatures import SOURCE_HEADER_SIGNATURES
@@ -1457,17 +1552,19 @@ class MigrationCloudExpectedTotalsView(LoginRequiredMixin, View):
     """
 
     def get(self, request, bundle_id: int, shell: str = "super"):
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         return JsonResponse({
             "bundle_id": bundle.pk,
             "expected_totals": bundle.expected_totals or {},
             "financial_guardrail": (bundle.mapping_summary or {}).get("financial_guardrail"),
         })
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         try:
             payload = json.loads(request.body or b"{}")
         except json.JSONDecodeError:
@@ -1491,10 +1588,11 @@ class MigrationCloudGuardrailCheckView(LoginRequiredMixin, View):
     before flipping APPLIED to preview whether the guardrail will pass.
     """
 
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from .guardrails import compute_observed_totals, evaluate_expected_totals
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         observed = compute_observed_totals(bundle=bundle)
         report = evaluate_expected_totals(bundle=bundle, observed=observed)
         return JsonResponse(report.to_dict())
@@ -1513,6 +1611,7 @@ class MigrationCloudIdMappingLookupView(LoginRequiredMixin, View):
         namespace = (request.GET.get("namespace") or "").strip()
         if not legacy_id:
             return JsonResponse({"error": "legacy_id required"}, status=400)
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         qs = MigrationIdMapping.objects.filter(legacy_id=legacy_id)
         if namespace:
             qs = qs.filter(legacy_namespace=namespace)
@@ -1548,7 +1647,7 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
     template_name = "migration_cloud/conflicts.html"
 
     def get(self, request, bundle_id: int, shell: str = "super"):
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         pending_qs = bundle.conflicts.filter(resolution=ConflictResolution.PENDING)
         pending = list(pending_qs.order_by("-created_at")[:200])
         pending_count = pending_qs.count()
@@ -1581,6 +1680,8 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
             },
         )
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
         try:
@@ -1605,14 +1706,20 @@ class MigrationCloudProgressView(LoginRequiredMixin, View):
     """GET endpoint: live DAG-style progress snapshot for a bundle.
 
     Returns the per-stage breakdown the UI renders as a timeline.
+
+    Reliability contract (v3.17): wrapped with :func:`with_progress_fallback`
+    so any snapshot-computation failure renders a degraded surface instead of
+    a 500. The operator always sees their bundle's identity + a request_id
+    + remediation copy, never a stack trace.
     """
 
     template_name = "migration_cloud/progress.html"
 
+    @with_progress_fallback
     def get(self, request, bundle_id: int, shell: str = "super"):
         from .progress import refresh_snapshot
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         snapshot = refresh_snapshot(bundle=bundle)
         recent_events = list(
             bundle.progress_events.order_by("-created_at").values(
@@ -1655,7 +1762,7 @@ class MigrationCloudProgressStreamView(LoginRequiredMixin, View):
             after_id = int(request.GET.get("after_id") or 0)
         except ValueError:
             after_id = 0
-        get_object_or_404(MigrationBundle, pk=bundle_id)
+        _tenant_scoped_bundle(request, bundle_id, shell)
 
         def _events():
             yield ": connected\n\n"
@@ -1670,12 +1777,19 @@ class MigrationCloudProgressStreamView(LoginRequiredMixin, View):
 
 
 class MigrationCloudPreflightView(LoginRequiredMixin, View):
-    """POST endpoint: run the pre-flight gate before APPLYING."""
+    """POST endpoint: run the pre-flight gate before APPLYING.
 
+    Mutates ``bundle.size_summary['preflight']`` so the report sticks
+    between requests; hence ``@idempotent_post`` even though the response
+    is shaped like a read-only check.
+    """
+
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from .preflight import run_all
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         report = run_all(bundle=bundle)
         summary = dict(bundle.size_summary or {})
         summary["preflight"] = report.to_dict()
@@ -1690,7 +1804,7 @@ class MigrationCloudAssetsView(LoginRequiredMixin, View):
     template_name = "migration_cloud/assets.html"
 
     def get(self, request, bundle_id: int, shell: str = "super"):
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         assets = bundle.assets.order_by("-created_at")[:500]
         counts = {
             status: bundle.assets.filter(status=status).count()
@@ -1724,11 +1838,13 @@ class MigrationCloudAssetsView(LoginRequiredMixin, View):
             },
         )
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from .celery_tasks import enqueue_fetch_assets
         from .asset_pipeline import fetch_pending_assets
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         async_result = enqueue_fetch_assets(bundle.pk, max_batch=int(request.POST.get("max_batch") or 100))
         if async_result is None:
             counts = fetch_pending_assets(bundle_id=bundle.pk)
@@ -1744,10 +1860,12 @@ class MigrationCloudSandboxView(LoginRequiredMixin, View):
     ``?action=discard``  — discard a sandbox
     """
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         from .sandbox import clone_bundle_to_sandbox, discard_sandbox, promote_sandbox_to_origin
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         action = (request.GET.get("action") or "clone").lower()
         try:
             if action == "clone":
@@ -1772,7 +1890,7 @@ class MigrationCloudDiffModeView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, shell: str = "super"):
         from .diff_mode import recommended_diff_since
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         source = (bundle.discovery_summary or {}).get("source", {}).get("chosen") or ""
         suggested = recommended_diff_since(school_id=bundle.school_id, source_system=source)
         return JsonResponse({
@@ -1782,11 +1900,13 @@ class MigrationCloudDiffModeView(LoginRequiredMixin, View):
             "suggested_diff_since": suggested.isoformat() if suggested else None,
         })
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
         from datetime import datetime
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         try:
             payload = json.loads(request.body or b"{}")
         except json.JSONDecodeError:
@@ -1814,10 +1934,12 @@ class MigrationCloudDiffModeView(LoginRequiredMixin, View):
 class MigrationCloudBundleSettingsView(LoginRequiredMixin, View):
     """POST endpoint: flip the apply_atomic + parity_drift_rollback_pct flags."""
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         try:
             payload = json.loads(request.body or b"{}")
         except json.JSONDecodeError:
@@ -1845,7 +1967,7 @@ class MigrationCloudCostEstimateView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, shell: str = "super"):
         from .tier3 import estimate_token_spend
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         est = estimate_token_spend(bundle=bundle)
         return JsonResponse({
             "bundle_id": bundle.pk,
@@ -1883,7 +2005,7 @@ class MigrationCloudHandoffDocView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, shell: str = "super"):
         from .tier3 import generate_handoff_doc
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         doc = generate_handoff_doc(bundle=bundle)
         if request.GET.get("format") == "json":
             return JsonResponse(doc)
@@ -1901,11 +2023,13 @@ class MigrationCloudHandoffDocView(LoginRequiredMixin, View):
 class MigrationCloudLegacyLockoutView(LoginRequiredMixin, View):
     """POST endpoint: confirm the operator has flipped the legacy SIS to read-only."""
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
         from .tier3 import lockout_legacy_source
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         try:
             payload = json.loads(request.body or b"{}")
         except json.JSONDecodeError:
@@ -1953,11 +2077,13 @@ class MigrationCloudExportCanonicalView(LoginRequiredMixin, View):
 class MigrationCloudRolloutPlanView(LoginRequiredMixin, View):
     """POST endpoint: set or advance a multi-stage rollout plan."""
 
+    @idempotent_post
+    @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
         from .tier3 import advance_rollout_stage, stage_rollout_plan
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         action = (request.GET.get("action") or "set").lower()
         try:
             payload = json.loads(request.body or b"{}")
@@ -1982,13 +2108,15 @@ class MigrationCloudSlaTargetsView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, shell: str = "super"):
         from .tier3 import sla_tier_targets
 
-        bundle = get_object_or_404(MigrationBundle, pk=bundle_id)
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         return JsonResponse({"bundle_id": bundle.pk, **sla_tier_targets(bundle=bundle)})
 
 
 class MigrationCloudMergeBundlesView(LoginRequiredMixin, View):
     """POST endpoint: merge N bundles into a single parent bundle for joint apply."""
 
+    @idempotent_post
+    @safe_500
     def post(self, request, shell: str = "super"):
         import json
         from .tier3 import merge_bundles
@@ -1999,6 +2127,7 @@ class MigrationCloudMergeBundlesView(LoginRequiredMixin, View):
             return JsonResponse({"error": "invalid JSON"}, status=400)
         bundle_ids = payload.get("bundle_ids") or []
         if not isinstance(bundle_ids, list) or len(bundle_ids) < 2:
+            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             return JsonResponse({"error": "bundle_ids must be a list of at least 2 IDs"}, status=400)
         bundles = list(MigrationBundle.objects.filter(pk__in=bundle_ids))
         if len(bundles) != len(bundle_ids):

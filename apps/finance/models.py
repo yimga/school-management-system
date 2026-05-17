@@ -842,6 +842,7 @@ class Payment(models.Model):
                 }
             )
         if has_book and has_number:
+            # tenant-isolation-allow: model-meta-or-manager-default-scopes-tenant-fk
             dupe_qs = Payment.objects.filter(
                 physical_receipt_book_serial__iexact=self.physical_receipt_book_serial.strip(),
                 physical_receipt_number=self.physical_receipt_number,

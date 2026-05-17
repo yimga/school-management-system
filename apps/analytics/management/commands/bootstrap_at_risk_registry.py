@@ -206,7 +206,7 @@ class Command(BaseCommand):
             try:
                 return User.objects.get(username=explicit_username)
             except User.DoesNotExist:
-                pass
+                return None
         first_super = (
             User.objects.filter(is_superuser=True, is_active=True)
             .order_by("date_joined", "pk")

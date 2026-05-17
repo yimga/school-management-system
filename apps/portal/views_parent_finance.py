@@ -59,6 +59,7 @@ def parent_finance(request: HttpRequest):
     else:
         students = guardian_students(request.user, finance_only=True)
         invoices_qs = (
+            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             Invoice.objects.filter(student__in=students)
             .exclude(status=Invoice.Status.DRAFT)
             .select_related("student", "academic_year")

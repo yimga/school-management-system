@@ -24,6 +24,16 @@ _SOFT = (
 )
 
 
+# 12-pillar audit P4 follow-up: workflow → event → workflow recursion guard.
+# When a workflow's action fires a new event that re-enters the executor
+# (e.g. offline_action_conflict → workflow that publishes another event the
+# same workflow listens to), `event_payload["_workflow_depth"]` tracks the
+# nesting count. The executor refuses to run beyond MAX_WORKFLOW_DEPTH;
+# event-bus publishers downstream are expected to thread the counter into
+# subsequent payloads via the `_workflow_depth` key.
+MAX_WORKFLOW_DEPTH = 5
+
+
 def run_workflow(
     workflow_id: int,
     event_payload: dict[str, Any],
@@ -35,7 +45,31 @@ def run_workflow(
     Evaluate compiled graph DSL for one workflow run.
 
     ``event_payload`` is merged with ``_workflow_id`` for action handlers.
+    Recursion guard: if ``event_payload["_workflow_depth"]`` (best-effort
+    int) exceeds :data:`MAX_WORKFLOW_DEPTH`, the executor refuses to fire
+    and returns ``ok=False, error="workflow_recursion_limit"``.
     """
+    # Recursion guard — checked before any model fetch so the bail-out is cheap.
+    depth_raw = (
+        event_payload.get("_workflow_depth")
+        if isinstance(event_payload, dict)
+        else None
+    )
+    try:
+        depth = int(depth_raw) if depth_raw is not None else 0
+    except (TypeError, ValueError):
+        depth = 0
+    if depth > MAX_WORKFLOW_DEPTH:
+        logger.warning(
+            "run_workflow refused: depth=%d exceeds MAX_WORKFLOW_DEPTH=%d wf=%s",
+            depth, MAX_WORKFLOW_DEPTH, workflow_id,
+        )
+        return {
+            "ok": False,
+            "error": "workflow_recursion_limit",
+            "workflow_id": workflow_id,
+            "depth": depth,
+        }
     Workflow = apps.get_model("automation", "Workflow")
     WorkflowRunLog = apps.get_model("automation", "WorkflowRunLog")
 

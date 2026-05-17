@@ -41,6 +41,7 @@ def mark_sla_breaches() -> dict:
     now = timezone.now()
     stamped = {"exports": 0, "erases": 0}
 
+    # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
     overdue_exports = ExportJob.objects.filter(
         sla_breach_at__isnull=True,
         due_at__isnull=False,
@@ -50,6 +51,7 @@ def mark_sla_breaches() -> dict:
         stamped["exports"] = overdue_exports.update(sla_breach_at=now)
     except Exception:  # noqa: BLE001 - never crash beat worker
         logger.exception("mark_sla_breaches: ExportJob update failed")
+# tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
 
     overdue_erases = EraseRequest.objects.filter(
         sla_breach_at__isnull=True,

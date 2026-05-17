@@ -5,12 +5,11 @@
 # test is gated on RUN_A11Y_TESTS=1; we set that here, plus install Chrome
 # + chromedriver so the headless run has a real browser.
 #
-# Fails the workflow on any "serious" or "critical" axe violation on
-# 13 templates total (1 homepage + 6 public + 6 auth):
-#   public:  /, /onboard/, /marketing/, /marketing/pricing/,
-#            /authentication/login/, /authentication/forgot-password/, /healthz/
-#   auth:    /portal/, /portal/teacher/, /portal/parent/, /backend/,
-#            /portal/finance/invoices/, /portal/configure/
+# Fails the workflow on any "serious" or "critical" axe violation across
+# the public + authenticated route matrix. Authenticated set includes the
+# explicit manager.runmycampus.com surface (/super/*) added 2026-05-17
+# per 12-pillar audit P2 follow-up: control plane home, marketplace,
+# feature-control, operator-console, configuration-center, security-surface.
 #
 # Authenticated routes use the _login_via_session helper that drops a
 # Django session cookie into the Chrome driver (see test file).

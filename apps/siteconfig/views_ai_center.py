@@ -9,11 +9,16 @@ from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.portal.ai_provider import get_public_ai_provider_status
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_operator_page,
+)
 from apps.siteconfig.ai_assistants import (
     get_assistant,
     iter_assistants,
@@ -64,14 +69,20 @@ def ai_center(request: HttpRequest) -> HttpResponse:
     show_operator_setup = bool(
         getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
     )
-    return render(
+    return render_siteconfig_operator_page(
         request,
-        "siteconfig/ai_center.html",
-        {
+        portal_template="siteconfig/ai_center.html",
+        body_template="siteconfig/partials/ai_center_body.html",
+        context={
             "assistants": rows,
             "default_assistant": default_row,
             "provider_status": get_public_ai_provider_status(),
             "ai_governance_url": _resolve_optional("siteconfig:ai_governance"),
             "show_operator_ollama_setup": show_operator_setup,
         },
+        cp_title=_("AI Center"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("AI Center"), active=True),
+            include_config_center=True,
+        ),
     )

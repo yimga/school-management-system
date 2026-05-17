@@ -3,20 +3,22 @@
 from __future__ import annotations
 
 # Roles that use backend command center (subset get leadership/ops variants).
+# This module is the SOT for tour-context role mapping — strings declared here
+# drive which guided-tour catalog key a backend dashboard loads.
 _BACKEND_ROLES = frozenset(
     {
-        "ADMIN",
-        "SUPERADMIN",
-        "PRINCIPAL",
-        "PROPRIETOR",
-        "IT_ADMIN",
-        "LEADERSHIP",
-        "SECRETARY",
-        "ACCOUNTANT",
+        "ADMIN",  # role-string-allow: tour-context-role-map SOT
+        "SUPERADMIN",  # role-string-allow: tour-context-role-map SOT
+        "PRINCIPAL",  # role-string-allow: tour-context-role-map SOT
+        "PROPRIETOR",  # role-string-allow: tour-context-role-map SOT
+        "IT_ADMIN",  # role-string-allow: tour-context-role-map SOT
+        "LEADERSHIP",  # role-string-allow: tour-context-role-map SOT
+        "SECRETARY",  # role-string-allow: tour-context-role-map SOT
+        "ACCOUNTANT",  # role-string-allow: tour-context-role-map SOT
     }
 )
-_LEADERSHIP_ROLES = frozenset({"PRINCIPAL", "PROPRIETOR", "LEADERSHIP"})
-_OPS_ROLES = frozenset({"IT_ADMIN", "SECRETARY"})
+_LEADERSHIP_ROLES = frozenset({"PRINCIPAL", "PROPRIETOR", "LEADERSHIP"})  # role-string-allow: tour-context-role-map SOT
+_OPS_ROLES = frozenset({"IT_ADMIN", "SECRETARY"})  # role-string-allow: tour-context-role-map SOT
 
 
 def user_role_upper(user) -> str:
@@ -34,13 +36,13 @@ def resolve_backend_tour_context(user) -> str:
     if getattr(user, "is_superuser", False):
         return "backend_dashboard_admin"
     role = user_role_upper(user)
-    if role in ("TEACHER", "PARENT", "STUDENT"):
+    if role in ("TEACHER", "PARENT", "STUDENT"):  # role-string-allow: tour-context-role-map SOT
         return ""
     if role in _LEADERSHIP_ROLES:
         return "backend_dashboard_leadership"
     if role in _OPS_ROLES:
         return "backend_dashboard_operations"
-    if role in _BACKEND_ROLES or role == "ADMIN":
+    if role in _BACKEND_ROLES or role == "ADMIN":  # role-string-allow: tour-context-role-map SOT
         return "backend_dashboard_admin"
     return "backend_dashboard_admin"
 

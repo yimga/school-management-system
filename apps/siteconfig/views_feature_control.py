@@ -20,6 +20,13 @@ from django.core.cache import cache
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
+
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_operator_page,
+)
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -1264,6 +1271,18 @@ def feature_control_export(request):
 def feature_control_panel(request):
     """Feature Control Panel - toggle modules system-wide. When GET and not embedded, redirect to Studio Control."""
     if request.method == "GET" and request.GET.get("embed") != "1":
+        if getattr(request, "public_host_kind", None) == "manager":
+            ctx = get_feature_control_panel_context(request)
+            return render_siteconfig_operator_page(
+                request,
+                portal_template="siteconfig/feature_control_panel.html",
+                body_template="siteconfig/feature_control_panel_content.html",
+                context=ctx,
+                cp_title=_("Feature control"),
+                breadcrumbs=default_operator_breadcrumbs(
+                    operator_cp_breadcrumb(_("Feature control"), active=True),
+                ),
+            )
         return redirect(reverse("studio_os:control"))
     site = _resolve_feature_control_site(request)
     current = _get_site_features(site)
@@ -1453,7 +1472,16 @@ def feature_control_panel(request):
         return _feature_control_panel_redirect_response(request)
 
     ctx = get_feature_control_panel_context(request)
-    return render(request, "siteconfig/feature_control_panel.html", ctx)
+    return render_siteconfig_operator_page(
+        request,
+        portal_template="siteconfig/feature_control_panel.html",
+        body_template="siteconfig/partials/feature_control_panel_body.html",
+        context=ctx,
+        cp_title=_("Feature control"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Feature control"), active=True),
+        ),
+    )
 
 
 def get_feature_control_panel_context(request):
@@ -1553,8 +1581,19 @@ def feature_control_audit_log(request):
     entries = FeatureControlAudit.objects.select_related("user").order_by(
         "-created_at"
     )[:50]
-    return render(
-        request, "siteconfig/feature_control_audit.html", {"entries": entries}
+    return render_siteconfig_operator_page(
+        request,
+        portal_template="siteconfig/feature_control_audit.html",
+        body_template="siteconfig/partials/feature_control_audit_body.html",
+        context={"entries": entries},
+        cp_title=_("Feature control audit"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(
+                _("Feature control"),
+                url=reverse("siteconfig:feature_control_panel"),
+            ),
+            operator_cp_breadcrumb(_("Audit log"), active=True),
+        ),
     )
 
 
@@ -1639,12 +1678,21 @@ def feature_control_ledger(request):
     entries = list(
         FeatureControlAudit.objects.select_related("user").order_by("-created_at")[:200]
     )
-    return render(
+    return render_siteconfig_operator_page(
         request,
-        "siteconfig/feature_control_ledger.html",
-        {
+        portal_template="siteconfig/feature_control_ledger.html",
+        body_template="siteconfig/partials/feature_control_ledger_body.html",
+        context={
             "entries": entries,
             "panel_url": reverse("siteconfig:feature_control_panel"),
             "audit_url": reverse("siteconfig:feature_control_audit"),
         },
+        cp_title=_("Feature control ledger"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(
+                _("Feature control"),
+                url=reverse("siteconfig:feature_control_panel"),
+            ),
+            operator_cp_breadcrumb(_("Ledger"), active=True),
+        ),
     )

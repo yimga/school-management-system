@@ -1,20 +1,6 @@
-{% extends "control_plane_base.html" %}
 {% load static i18n control_console phase8_tags %}
-
-{% block cp_title %}{% trans "Configuration Control Center" %} — RunMyCampus Manager{% endblock %}
-
-{% block breadcrumbs %}
-<nav aria-label="{% trans 'Breadcrumb' %}">
-  <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Configuration Control Center" %}</li>
-  </ol>
-</nav>
-{% endblock %}
-
-{% block cp_content %}
-<div class="container-fluid py-2 content-max-960" data-page-archetype="decision-console" data-decision-engine="surface" data-shell-surface="config-control-center" data-cp-evidence-surface="configuration-control-center" aria-labelledby="ccc-heading" aria-describedby="ccc-desc">
-  {% phase8_dashboard_declaration "siteconfig/console_domains_hub_control_plane.html" %}
+<div class="container-fluid py-2" data-page-archetype="decision-console" data-decision-engine="surface" data-shell-surface="config-control-center" data-cp-evidence-surface="configuration-control-center" aria-labelledby="ccc-heading" aria-describedby="ccc-desc">
+  {% phase8_dashboard_declaration "siteconfig/partials/console_domains_hub_manager_body.html" %}
   {% operator_console_strip %}
   <h1 id="ccc-heading" class="visually-hidden">{% trans "Configuration Control Center" %}</h1>
   <p id="ccc-desc" class="visually-hidden">{% trans "Nine outcome groups, operational hubs, and domain shortcuts. Staged publish and rollback live in Studio Control and Feature audit." %}</p>
@@ -121,5 +107,3 @@
   </footer>
   {% endif %}
 </div>
-
-{% endblock %}

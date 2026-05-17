@@ -418,7 +418,7 @@ body.dashboard-preset-high-contrast[data-dashboard-page] .btn-outline-primary,
 body.dashboard-preset-high-contrast[data-dashboard-page] .backend-quick-action-btn {
   color: var(--color-base-50);
   border-color: var(--color-primary-400);
-  background: rgba(30, 64, 175, 0.25);
+  background: rgba(30, 64, 175, 0.25); /* off-token-allow: rgba-decorative */
 }
 
 .profile-shell { width: 100%; }

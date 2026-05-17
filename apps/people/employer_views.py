@@ -43,6 +43,7 @@ def employer_dashboard(request: HttpRequest):
     if not _is_employer(request):
         return HttpResponseForbidden("Employer access only.")
     placements = (
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         ApprenticePlacement.objects.filter(employer=request.user)
         .select_related("school", "student")
         .order_by("-updated_at")

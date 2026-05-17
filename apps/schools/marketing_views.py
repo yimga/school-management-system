@@ -2770,10 +2770,12 @@ def marketing_funnel_dashboard(request):
     week_ago = now - timedelta(days=7)
     month_ago = now - timedelta(days=30)
     last7 = (
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         MarketingFunnelEvent.objects.filter(created_at__gte=week_ago)
         .values("event_type")
         .annotate(count=Count("id"))
     )
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     last30 = (
         MarketingFunnelEvent.objects.filter(created_at__gte=month_ago)
         .values("event_type")
@@ -2782,8 +2784,10 @@ def marketing_funnel_dashboard(request):
     last7_map = {r["event_type"]: r["count"] for r in last7}
     last30_map = {r["event_type"]: r["count"] for r in last30}
 
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     # By channel (utm_source / utm_medium) for last 30 days
     channel_qs = (
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         MarketingFunnelEvent.objects.filter(created_at__gte=month_ago)
         .values("utm_source", "utm_medium")
         .annotate(

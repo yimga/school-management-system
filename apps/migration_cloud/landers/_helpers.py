@@ -110,7 +110,7 @@ def record_id_mapping(
     except Exception:  # noqa: BLE001
         return
     try:
-        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).only(
+        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).only(  # tenant-isolation-allow: PK lookup by internal bundle id
             "pk", "school_id", "discovery_summary"
         ).first()
         if bundle is None:
@@ -162,7 +162,7 @@ def detect_and_register_assets(
         from apps.migration_cloud.models import MigrationBundle
     except Exception:  # noqa: BLE001
         return
-    bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).first()
+    bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).first()  # tenant-isolation-allow: PK lookup by internal bundle id
     if bundle is None:
         return
     for asset_kind, keys in _ASSET_KEY_PATTERNS.items():
@@ -231,7 +231,7 @@ def detect_conflict(
     if not changed:
         return False
     try:
-        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).first()
+        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).first()  # tenant-isolation-allow: PK lookup by internal bundle id
         if bundle is None:
             return False
         canonical_model_path = f"{model.__module__}.{model.__name__}"

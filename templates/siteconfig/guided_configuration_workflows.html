@@ -1,56 +1,8 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Guided configuration" %}{% endblock %}
 
 {% block content %}
-<div class="container py-3" style="max-width: 56rem;" data-siteconfig-surface="guided-configuration-workflows">
-  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
-    <div>
-      <h1 class="h3 mb-1">{% trans "Guided configuration workflows" %}</h1>
-      <p class="text-muted small mb-0">
-        {% trans "Each card summarizes the current modular config slice, gaps, and a safe next action. No raw singleton editing here." %}
-      </p>
-    </div>
-    <div class="btn-group btn-group-sm">
-      {% if runtime_hub_url %}
-      <a class="btn btn-outline-secondary" href="{{ runtime_hub_url }}">{% trans "Runtime hub" %}</a>
-      {% endif %}
-      {% if feature_control_url %}
-      <a class="btn btn-outline-primary" href="{{ feature_control_url }}">{% trans "Feature control" %}</a>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="row g-3">
-    {% for card in guided_cards %}
-    <div class="col-12 col-md-6">
-      <div class="card h-100 border shadow-sm">
-        <div class="card-body d-flex flex-column">
-          <h2 class="h6 card-title text-body">{{ card.title }}</h2>
-          <p class="small text-muted mb-2"><strong>{% trans "Current state" %}:</strong> {{ card.current_state }}</p>
-          {% if card.missing_setup %}
-          <div class="small mb-2">
-            <strong class="text-warning">{% trans "Missing setup" %}:</strong>
-            <ul class="mb-0 ps-3">
-              {% for item in card.missing_setup %}
-              <li>{{ item }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% else %}
-          <p class="small text-success mb-2">{% trans "No blocking gaps flagged for this slice." %}</p>
-          {% endif %}
-          <p class="small mb-3 flex-grow-1"><strong>{% trans "Recommended next step" %}:</strong> {{ card.recommended_next_step }}</p>
-          {% if card.safe_fix_url %}
-          <a class="btn btn-sm btn-primary align-self-start" href="{{ card.safe_fix_url }}">{{ card.safe_fix_label }}</a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    {% empty %}
-    <p class="text-muted">{% trans "No workflow cards available." %}</p>
-    {% endfor %}
-  </div>
-</div>
+{% include "siteconfig/partials/guided_configuration_workflows_body.html" %}
 {% endblock %}

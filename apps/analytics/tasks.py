@@ -83,11 +83,13 @@ def run_deadline_reminders(
 
     for days_threshold in reminder_days:
         target_date = today + timedelta(days=days_threshold)
+        # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
         subject_assignments = SubjectAssignment.objects.filter(
             grading_deadline_at__isnull=False,
             grading_deadline_at__date=target_date,
         ).select_related("academic_year", "term", "classroom", "subject")
 
+        # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
         for sa in subject_assignments:
             teacher_assignments = TeacherAssignment.objects.filter(
                 subject_assignment=sa

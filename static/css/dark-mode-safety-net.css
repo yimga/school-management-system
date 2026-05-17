@@ -1,0 +1,309 @@
+/**
+ * Dark-mode safety net — catch-all readability layer.
+ *
+ * v3.7.1 (2026-05-17): platform-wide theme-switching audit found 897 raw-color
+ * declarations across 75 CSS files. Burndown is multi-wave. In the meantime
+ * this file is the "no one is invisible in dark mode" safety floor: it adds
+ * default dark overrides for the bootstrap-derived component classes the
+ * platform uses everywhere (.card, .btn, .table, .modal, body, etc.) PLUS
+ * the project-prefixed shells (.rmc-page, .rmc-card, .cp-*, .portal-*) so
+ * a tenant or operator switching to dark gets readable contrast even on
+ * surfaces whose component CSS still uses raw light-mode colors.
+ *
+ * Load order: AFTER design-tokens.css, AFTER all component CSS, BEFORE any
+ * per-tenant brand stylesheet. The selector specificity is intentionally low
+ * (no !important except where bootstrap inline-styles fight back) so
+ * properly-tokenized components keep winning over this safety net.
+ *
+ * Marketing surface (cream-only, intentionally NOT theme-switching) is
+ * scoped OUT via `:not(.marketing-surface)` so this file never inverts
+ * the editorial palette.
+ *
+ * Token references resolve through the existing dark-mode cascade in
+ * design-tokens.css — confirmed available: --surface-canvas, --surface-elevated,
+ * --text-primary, --text-secondary, --hairline, --ds-success, --ds-danger,
+ * --ds-info, --school-accent.
+ */
+
+/* ====================================================================== */
+/* 1. Resolved-dark scope (the html attribute the theme-bootstrap sets).  */
+/*    Both data-theme="dark" AND data-bs-theme="dark" cover all callers.  */
+/* ====================================================================== */
+
+html[data-theme="dark"] body:not(.marketing-surface),
+html[data-bs-theme="dark"] body:not(.marketing-surface),
+html[data-resolved-theme="dark"] body:not(.marketing-surface) {
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+}
+
+/* ====================================================================== */
+/* 2. Bootstrap-derived components — used across portal, manager, backend. */
+/*    Without these, switching to dark leaves white cards on dark canvas. */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .card,
+html[data-theme="dark"] body:not(.marketing-surface) .card,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .widget-card,
+html[data-theme="dark"] body:not(.marketing-surface) .widget-card,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .panel,
+html[data-theme="dark"] body:not(.marketing-surface) .panel {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .card-header,
+html[data-theme="dark"] body:not(.marketing-surface) .card-header,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .card-footer,
+html[data-theme="dark"] body:not(.marketing-surface) .card-footer {
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .card-title,
+html[data-theme="dark"] body:not(.marketing-surface) .card-title,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .card-text,
+html[data-theme="dark"] body:not(.marketing-surface) .card-text {
+  color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .text-muted,
+html[data-theme="dark"] body:not(.marketing-surface) .text-muted,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .text-secondary,
+html[data-theme="dark"] body:not(.marketing-surface) .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .text-dark,
+html[data-theme="dark"] body:not(.marketing-surface) .text-dark {
+  /* In dark mode, ".text-dark" would render dark-on-dark = invisible.
+     Flip to the readable primary text color. */
+  color: var(--text-primary) !important;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .bg-white,
+html[data-theme="dark"] body:not(.marketing-surface) .bg-white,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .bg-light,
+html[data-theme="dark"] body:not(.marketing-surface) .bg-light {
+  /* Same bug class — ".bg-white" in dark mode leaves a glaring white slab.
+     Demote to the elevated surface so it still tone-lifts but stays dark. */
+  background-color: var(--surface-elevated, var(--surface-canvas)) !important;
+  color: var(--text-primary);
+}
+
+/* ====================================================================== */
+/* 3. Bootstrap buttons — the .btn-light / .btn-outline-light pair break    */
+/*    in dark mode without this. Other btn-* variants are tenant-branded.  */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .btn-light,
+html[data-theme="dark"] body:not(.marketing-surface) .btn-light {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .btn-outline-light,
+html[data-theme="dark"] body:not(.marketing-surface) .btn-outline-light {
+  color: var(--text-primary);
+  border-color: var(--hairline);
+  background-color: transparent;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .btn-outline-light:hover,
+html[data-theme="dark"] body:not(.marketing-surface) .btn-outline-light:hover {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+}
+
+/* ====================================================================== */
+/* 4. Tables — the worst offender. Without this, .table renders with        */
+/*    inherited dark-text-on-dark-canvas striping in dark mode.            */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .table,
+html[data-theme="dark"] body:not(.marketing-surface) .table {
+  color: var(--text-primary);
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: var(--hairline);
+  --bs-table-striped-color: var(--text-primary);
+  --bs-table-striped-bg: var(--surface-elevated, var(--surface-canvas));
+  --bs-table-hover-color: var(--text-primary);
+  --bs-table-hover-bg: var(--surface-popover, var(--surface-elevated));
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .table th,
+html[data-theme="dark"] body:not(.marketing-surface) .table th,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .table td,
+html[data-theme="dark"] body:not(.marketing-surface) .table td {
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .table thead th,
+html[data-theme="dark"] body:not(.marketing-surface) .table thead th {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+  border-bottom-color: var(--hairline);
+}
+
+/* ====================================================================== */
+/* 5. Modals / popovers / tooltips / dropdowns — overlay surfaces.        */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .modal-content,
+html[data-theme="dark"] body:not(.marketing-surface) .modal-content,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .popover,
+html[data-theme="dark"] body:not(.marketing-surface) .popover,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .dropdown-menu,
+html[data-theme="dark"] body:not(.marketing-surface) .dropdown-menu,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .tooltip-inner,
+html[data-theme="dark"] body:not(.marketing-surface) .tooltip-inner {
+  background-color: var(--surface-popover, var(--surface-elevated));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .modal-header,
+html[data-theme="dark"] body:not(.marketing-surface) .modal-header,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .modal-footer,
+html[data-theme="dark"] body:not(.marketing-surface) .modal-footer {
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .dropdown-item,
+html[data-theme="dark"] body:not(.marketing-surface) .dropdown-item {
+  color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .dropdown-item:hover,
+html[data-theme="dark"] body:not(.marketing-surface) .dropdown-item:hover,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .dropdown-item:focus,
+html[data-theme="dark"] body:not(.marketing-surface) .dropdown-item:focus {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+}
+
+/* ====================================================================== */
+/* 6. Form controls — invisible labels are the #1 reported bug.            */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-control,
+html[data-theme="dark"] body:not(.marketing-surface) .form-control,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-select,
+html[data-theme="dark"] body:not(.marketing-surface) .form-select {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-control::placeholder,
+html[data-theme="dark"] body:not(.marketing-surface) .form-control::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-label,
+html[data-theme="dark"] body:not(.marketing-surface) .form-label,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-text,
+html[data-theme="dark"] body:not(.marketing-surface) .form-text {
+  color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-check-label,
+html[data-theme="dark"] body:not(.marketing-surface) .form-check-label {
+  color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .input-group-text,
+html[data-theme="dark"] body:not(.marketing-surface) .input-group-text {
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+/* ====================================================================== */
+/* 7. Project-prefixed primitives — .rmc-* / .cp-* / .portal-* shells.    */
+/*    Catches component CSS that uses these shells but hasn't tokenized.  */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-card,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-card,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-card,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-card {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-empty,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-empty {
+  color: var(--text-secondary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-back,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-back,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-h1,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-h1,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-h2,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-h2,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-h3,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-h3 {
+  color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-muted,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-muted,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-lede,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-lede,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-form__help,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-form__help {
+  color: var(--text-secondary);
+}
+
+/* ====================================================================== */
+/* 8. Borders + hairlines — single rule covers every component using       */
+/*    .border / .border-* utilities.                                      */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .border,
+html[data-theme="dark"] body:not(.marketing-surface) .border,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .border-top,
+html[data-theme="dark"] body:not(.marketing-surface) .border-top,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .border-bottom,
+html[data-theme="dark"] body:not(.marketing-surface) .border-bottom,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .border-start,
+html[data-theme="dark"] body:not(.marketing-surface) .border-start,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .border-end,
+html[data-theme="dark"] body:not(.marketing-surface) .border-end {
+  border-color: var(--hairline) !important;
+}
+
+/* ====================================================================== */
+/* 9. Links — keep brand accent in dark; ensure visited stays visible.    */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) a:not(.btn):not(.rmc-back),
+html[data-theme="dark"] body:not(.marketing-surface) a:not(.btn):not(.rmc-back) {
+  color: var(--school-accent);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) a:not(.btn):visited,
+html[data-theme="dark"] body:not(.marketing-surface) a:not(.btn):visited {
+  color: var(--school-accent);
+  opacity: 0.85;
+}
+
+/* ====================================================================== */
+/* 10. Alerts — bootstrap variants stay readable.                          */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .alert,
+html[data-theme="dark"] body:not(.marketing-surface) .alert {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}

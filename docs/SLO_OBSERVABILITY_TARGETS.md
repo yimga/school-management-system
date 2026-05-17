@@ -1,5 +1,8 @@
 # SLO and observability targets (BR-01)
 
+> **CONSOLIDATED — read [OBSERVABILITY_SLO_CODE.md](OBSERVABILITY_SLO_CODE.md) first.**
+> Per the 2026-05-17 12-pillar audit (P10 doc-hygiene), SLO targets are code-defined in [`apps/observability/slo.py`](../apps/observability/slo.py) and verified via `scripts/verify_slo_registry.py --strict`. This BR-01 stub is retained for historical references.
+
 | Metric | Target | Notes |
 |--------|--------|-------|
 | API p50 | ≤ 800 ms | Core list/read/save |

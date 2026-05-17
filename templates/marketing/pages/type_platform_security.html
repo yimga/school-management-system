@@ -1,26 +1,143 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% load terminology_tags %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-security.css' %}">
+{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-security mkt-platform-theme--platform-security{% endblock %}
 {% block marketing_page_inner %}
-<article class="mkt-v3-archetype" data-mkt-archetype="security-governance">
-  <header class="mkt-v3-archetype__hero mkt-edt-container">
-    <p class="mkt-v3-eyebrow">{% trans "Security & governance" %}</p>
-    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
-    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-    <div class="mkt-v3-archetype__ctas">
-      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
-      <a href="{% url 'marketing_trust_dedicated' %}" class="mkt-edt-link">{% trans "Trust center →" %}</a>
+<article class="mkt-security-page" data-mkt-platform-security="1">
+  <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+    <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+  </nav>
+
+  <header class="mkt-security-hero">
+    <div class="mkt-security-hero-copy">
+      <p class="detail-eyebrow mb-0">runmycampus.com | {{ page.label }}</p>
+      <h1 class="detail-headline">{{ page.headline }}</h1>
+      <p class="detail-subheadline">{{ page.subheadline }}</p>
+      <div class="hero-cta mt-3">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="platform-security">{% trans "Request demo" %}</a>
+        <a href="{% url 'marketing_trust_dedicated' %}" class="btn btn-outline-light" data-cta="secondary" data-page="platform-security">{% trans "Trust center" %}</a>
+        <a href="{% url 'marketing_security_packet_request' %}" class="btn btn-outline-light">{% trans "Security packet" %}</a>
+      </div>
+      {% if page_extras.trust_strip %}
+      <div class="mkt-security-trust trust-strip">
+        {% for item in page_extras.trust_strip %}
+        <span class="trust-pill">{{ item }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="mkt-security-hero-visual" aria-hidden="true">
+      <img src="{% static 'images/marketing/platform-security-governance.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
     </div>
   </header>
-  {% include "marketing/components/_dashboard_frame.html" with frame_title="Tenant health" dashboard_partial="schools/_v2/_artifact_it_health.svg.html" %}
-  <section class="mkt-edt-container mkt-v3-archetype__wins">
-    <h2>{% trans "Isolation operators can prove" %}</h2>
-    <ul>
-      <li>{% trans "Per-tenant boundaries with audit-ready access logs." %}</li>
-      <li>{% trans "SSO and MFA patterns IT already runs." %}</li>
-      <li>{% trans "Regional defaults for FERPA, GDPR, and residency." %}</li>
-    </ul>
+
+  <section class="mkt-security-section rmc-reveal" aria-labelledby="mkt-security-visual-heading">
+    <h2 id="mkt-security-visual-heading">{% trans "Governance operators can demonstrate" %}</h2>
+    <p class="section-lead">{% trans "Role matrices, audit trails, MFA discipline, and tenant boundaries—so security reviews start with evidence, not slogans." %}</p>
+    <div class="mkt-security-visual-wrap">
+      <img src="{% static 'images/marketing/platform-security-governance.svg' %}" alt="{% trans 'Diagram: role matrix, audit log stream, MFA badge, and campus policy boundaries' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-security-visual="1">
+    </div>
   </section>
+
+  <section class="mkt-security-section rmc-reveal" aria-labelledby="mkt-security-before-after-heading">
+    <h2 id="mkt-security-before-after-heading">{% trans "Before and after disciplined school data stewardship" %}</h2>
+    <p class="section-lead">{% trans "Replace casual sharing and opaque admin history with least-privilege access and meaningful logs." %}</p>
+    <div class="mkt-security-split">
+      <div class="mkt-security-card mkt-security-card--before">
+        <h3>{% trans "Before" %}</h3>
+        <ul>
+          <li>{% trans "Shared credentials and unclear role ownership" %}</li>
+          <li>{% trans "Sensitive changes without durable audit history" %}</li>
+          <li>{% trans "Campus policies applied inconsistently" %}</li>
+          <li>{% trans "Security reviews backed by promises, not artifacts" %}</li>
+          <li>{% trans "Integrations with unclear data boundaries" %}</li>
+        </ul>
+      </div>
+      <div class="mkt-security-card mkt-security-card--after">
+        <h3>{% trans "After" %}</h3>
+        <ul>
+          <li>{% trans "Role-based permissions with clear administrators" %}</li>
+          <li>{% trans "Audit trails for sensitive operations" %}</li>
+          <li>{% trans "SSO and MFA patterns IT teams already run" %}</li>
+          <li>{% trans "Tenant isolation discipline multi-campus networks can enforce" %}</li>
+          <li>{% trans "Trust center and procurement paths for assurance conversations" %}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mkt-security-section rmc-reveal" aria-labelledby="mkt-security-handoff-heading" data-mkt-security-connected-handoff="1">
+    <h2 id="mkt-security-handoff-heading">{% trans "Connected across workflows, analytics, and trust" %}</h2>
+    <p class="section-lead">{% trans "Security is not a sidebar—it binds how workflows execute and how leadership reads operational truth." %}</p>
+    <div class="mkt-security-handoff-grid">
+      <a href="{% url 'marketing_run_workflows' %}">{% trans "Workflows" %}</a>
+      <a href="{% url 'marketing_run_analytics' %}">{% trans "Analytics" %}</a>
+      <a href="{% url 'marketing_platform_integrations' %}">{% trans "Integrations" %}</a>
+      <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust center" %}</a>
+      <a href="{% url 'marketing_security_packet_request' %}">{% trans "Request security packet" %}</a>
+      <a href="{% url 'marketing_platform_control_plane' %}">{% trans "Control plane" %}</a>
+    </div>
+  </section>
+
+  <section class="mkt-security-section rmc-reveal" aria-labelledby="mkt-security-roles-heading">
+    <h2 id="mkt-security-roles-heading">{% trans "Who benefits" %}</h2>
+    <p class="section-lead">{% trans "Technology, leadership, and compliance stakeholders each get evidence appropriate to their mandate." %}</p>
+    <div class="mkt-security-roles">
+      <div class="mkt-security-role">
+        <h3>{% trans "Technology leaders" %}</h3>
+        <p>{% trans "Clear integration surface area and identity patterns for reviews." %}</p>
+      </div>
+      <div class="mkt-security-role">
+        <h3>{% trans "School leadership" %}</h3>
+        <p>{% trans "Confidence in who can change financial or academic records." %}</p>
+      </div>
+      <div class="mkt-security-role">
+        <h3>{% trans "Compliance stakeholders" %}</h3>
+        <p>{% trans "Operational trace—not a vague security claim." %}</p>
+      </div>
+      <div class="mkt-security-role">
+        <h3>{% trans "Finance & operations" %}</h3>
+        <p>{% trans "Separation of duties and permissioned access for sensitive workflows." %}</p>
+      </div>
+      <div class="mkt-security-role">
+        <h3>{% trans "Families & staff" %}</h3>
+        <p>{% trans "Data handled with policies the institution can stand behind." %}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if page.segments %}
+  <section class="mkt-security-section rmc-reveal" aria-label="{% trans 'Highlights' %}">
+    <h2>{% trans "What this surface emphasizes" %}</h2>
+    <div class="row g-3">
+      {% for seg in page.segments %}
+      <div class="col-md-4">
+        <article class="segment-card h-100 rmc-reveal">
+          <h3 class="h6">{{ seg.title }}</h3>
+          <p class="mb-0 text-muted small">{{ seg.body }}</p>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="mkt-security-cta">
+    <a href="{% url 'marketing_demo' %}" class="btn btn-primary btn-lg">{% trans "Request demo" %}</a>
+    <a href="{% url 'marketing_security_packet_request' %}" class="btn btn-outline-light btn-lg">{% trans "Request security packet" %}</a>
+  </footer>
 </article>
 {% endblock %}

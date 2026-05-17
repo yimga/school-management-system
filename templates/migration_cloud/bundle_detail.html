@@ -1,3 +1,4 @@
+{% extends "control_plane_skeleton.html" %}
 {% comment %}
   Migration Cloud — single-bundle detail / wizard (Phase U6 + polish wave).
 
@@ -10,8 +11,11 @@
   an accept ✓ button, an override picker, and an explain link. Operator
   decisions POST to /<bundle>/feedback/ → record_operator_feedback →
   AIGatewayMetric daily rollup + AIEmbeddingStore for next-bundle recall.
+
+  v3.16 (2026-05-17): {% extends %} hoisted above this docstring. Django
+  enforces "extends must be the first tag" — a leading {% comment %} block
+  is a tag, so the page 500'd on every load. Confirmed by audit.
 {% endcomment %}
-{% extends "control_plane_skeleton.html" %}
 {% load i18n %}
 
 {% block page_title %}{{ page_title }}{% endblock %}

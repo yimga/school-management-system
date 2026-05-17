@@ -15,10 +15,10 @@
   transition: background 0.15s, opacity 0.15s;
 }
 #nav-sidebar .admin-sidebar-brand-link-header:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
 }
 .dark #nav-sidebar .admin-sidebar-brand-link-header:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
 }
 #nav-sidebar .admin-sidebar-logo-wrap img {
   object-fit: contain;
@@ -35,7 +35,7 @@
 }
 
 .dark #nav-sidebar .admin-sidebar-brand-link {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important; /* off-token-allow: white-overlay */
 }
 
 /* ----- Section titles: QUICK ACCESS (target: uppercase, bold, white) ----- */
@@ -116,27 +116,27 @@ body.portal-backend-lavender #nav-sidebar .admin-sidebar-section-title {
 /* Hover for inactive quick links */
 #nav-sidebar .admin-sidebar-quick-list .admin-sidebar-link:not(.active):hover,
 #nav-sidebar-apps .admin-sidebar-quick-list .admin-sidebar-link:not(.active):hover {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.06) !important; /* off-token-allow: white-overlay */
   color: var(--color-base-200, var(--color-base-200)) !important;
 }
 
 /* App group model links (nested items) */
 #nav-sidebar .admin-sidebar-model-link:hover,
 #nav-sidebar-apps .admin-sidebar-model-link:hover {
-  background: rgba(59, 130, 246, 0.08) !important;
+  background: rgba(59, 130, 246, 0.08) !important; /* off-token-allow: info-blue-overlay */
   color: var(--color-primary-600, var(--color-primary)) !important;
 }
 
 .dark #nav-sidebar .admin-sidebar-model-link:hover,
 .dark #nav-sidebar-apps .admin-sidebar-model-link:hover {
-  background: rgba(96, 165, 250, 0.12) !important;
+  background: rgba(96, 165, 250, 0.12) !important; /* off-token-allow: info-blue-overlay */
   color: var(--color-primary-400, var(--color-primary-400)) !important;
 }
 
 #nav-sidebar .admin-sidebar-model-link.active,
 #nav-sidebar .admin-sidebar-model-link[aria-current="page"],
 #nav-sidebar-apps .admin-sidebar-model-link.active {
-  background: rgba(59, 130, 246, 0.15) !important;
+  background: rgba(59, 130, 246, 0.15) !important; /* off-token-allow: info-blue-overlay */
   color: var(--color-primary-600, var(--color-primary)) !important;
   font-weight: 600;
   border-left: none;
@@ -145,7 +145,7 @@ body.portal-backend-lavender #nav-sidebar .admin-sidebar-section-title {
 .dark #nav-sidebar .admin-sidebar-model-link.active,
 .dark #nav-sidebar .admin-sidebar-model-link[aria-current="page"],
 .dark #nav-sidebar-apps .admin-sidebar-model-link.active {
-  background: rgba(96, 165, 250, 0.2) !important;
+  background: rgba(96, 165, 250, 0.2) !important; /* off-token-allow: info-blue-overlay */
   color: var(--color-primary-400, var(--color-primary-400)) !important;
 }
 
@@ -194,12 +194,12 @@ body.portal-backend-lavender #nav-sidebar .admin-sidebar-section-title {
 
 #nav-sidebar .admin-sidebar-app-title:hover,
 #nav-sidebar-apps .admin-sidebar-app-title:hover {
-  background: rgba(0, 123, 255, 0.06);
+  background: rgba(0, 123, 255, 0.06); /* off-token-allow: rgba-decorative */
 }
 
 .dark #nav-sidebar .admin-sidebar-app-title:hover,
 .dark #nav-sidebar-apps .admin-sidebar-app-title:hover {
-  background: rgba(96, 165, 250, 0.08);
+  background: rgba(96, 165, 250, 0.08); /* off-token-allow: info-blue-overlay */
 }
 
 #nav-sidebar .admin-sidebar-app-title .admin-sidebar-chevron,
@@ -231,7 +231,7 @@ body.portal-backend-lavender #nav-sidebar .admin-sidebar-section-title {
 
 .dark #nav-sidebar .admin-sidebar-model-list,
 .dark #nav-sidebar-apps .admin-sidebar-model-list {
-  border-left-color: rgba(255, 255, 255, 0.06);
+  border-left-color: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
 }
 
 /* ----- Quick access styling ----- */
@@ -244,7 +244,7 @@ body.portal-backend-lavender #nav-sidebar .admin-sidebar-section-title {
 
 .dark #nav-sidebar .admin-sidebar-quick-access,
 .dark #nav-sidebar-apps .admin-sidebar-quick-access {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
 }
 
 .admin-sidebar-quick-list {
@@ -363,7 +363,7 @@ html[data-bs-theme="dark"] #nav-sidebar-inner .admin-sidebar-user-avatar {
 }
 
 .dark .admin-sidebar-section-divider {
-  border-top-color: rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
 }
 
 /* ----- Keyboard shortcut hint below search ----- */
@@ -375,8 +375,8 @@ html[data-bs-theme="dark"] #nav-sidebar-inner .admin-sidebar-user-avatar {
   opacity: 0.7;
 }
 .admin-sidebar-search-hint kbd {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* off-token-allow: white-overlay */
   border-radius: 3px;
   padding: 1px 4px;
   font-size: var(--type-size-micro);

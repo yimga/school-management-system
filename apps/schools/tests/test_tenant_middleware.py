@@ -98,6 +98,39 @@ class TenantMiddlewareTests(TestCase):
             "https://runmycampus.com/school-not-found/?slug=unknown",
         )
 
+    def test_manager_host_honors_session_school_id(self):
+        """Platform operators on manager host with a selected tenant keep request.school."""
+        with patch.dict(
+            os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
+        ):
+            request = self._request("/siteconfig/dashboard-configuration/", "manager.runmycampus.com")
+            request.session["school_id"] = str(self.school.id)
+            request.session.save()
+            request.public_host_kind = "manager"
+            response = self.middleware.process_request(request)
+
+        self.assertIsNone(response)
+        self.assertEqual(request.school.id, self.school.id)
+
+    def test_manager_prefix_host_honors_session_without_host_kind(self):
+        """manager.* hosts keep session school even when base-domain env is mismatched."""
+        with patch.dict(
+            os.environ,
+            {"MULTI_TENANT_BASE_DOMAIN": "other-platform.example"},
+            clear=False,
+        ):
+            request = self._request(
+                "/siteconfig/dashboard-configuration/",
+                "manager.runmycampus.com",
+            )
+            request.session["school_id"] = str(self.school.id)
+            request.session.save()
+            response = self.middleware.process_request(request)
+
+        self.assertIsNone(response)
+        self.assertEqual(request.school.id, self.school.id)
+        self.assertEqual(request.session.get("school_id"), str(self.school.id))
+
     @override_settings(DEBUG=False)
     def test_tenant_path_fallback_redirects_to_subdomain_in_production(self):
         with patch.dict(

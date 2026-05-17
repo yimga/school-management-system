@@ -1,5 +1,8 @@
 # Observability and health
 
+> **CONSOLIDATED — read [OBSERVABILITY.md](OBSERVABILITY.md) + [OBSERVABILITY_SLO_CODE.md](OBSERVABILITY_SLO_CODE.md) first.**
+> Per the 2026-05-17 12-pillar audit (P10 doc-hygiene), the canonical pair for observability + health content is `OBSERVABILITY.md` and `OBSERVABILITY_SLO_CODE.md`. This file is retained for historical references; new content belongs in the canonical pair.
+
 **Goal:** Truthful health signals; SLO and logs with trace/request ID; operator dashboard and analytics schema.
 
 ## Health endpoints

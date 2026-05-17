@@ -8,8 +8,15 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext as _
+
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_operator_page,
+)
 
 from apps.accounts.decorators import permission_required
 
@@ -112,7 +119,16 @@ def compliance_exports_view(request: HttpRequest) -> HttpResponse:
         "runtime_hub_url": _u("siteconfig:tenant_runtime_configuration_hub"),
         "admin_reports_app_url": admin_fallback,
     }
-    return render(request, "siteconfig/compliance_exports.html", ctx)
+    return render_siteconfig_operator_page(
+        request,
+        portal_template="siteconfig/compliance_exports.html",
+        body_template="siteconfig/partials/compliance_exports_body.html",
+        context=ctx,
+        cp_title=_("Compliance exports"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Compliance exports"), active=True),
+        ),
+    )
 
 
 @login_required

@@ -73,6 +73,8 @@ from apps.schools.signup_views import (
     verify_signup,
     api_trial_school,
     onboarding_wizard,
+    onboard_migration_handoff,
+    onboard_migration_start,
 )
 from apps.schools.section8_views import (
     verify_caddy_domain,
@@ -367,6 +369,13 @@ urlpatterns = [
     ),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
+    path(
+        "admin/siteconfig/customizer/",
+        __import__(
+            "apps.siteconfig.legacy_redirects",
+            fromlist=["legacy_customizer_redirect"],
+        ).legacy_customizer_redirect,
+    ),
     # Admin interfaces - /admin/ only for superuser/staff
     path("admin/", platform_admin_site.urls),
     # API schema (RBAC-protected; same as schema UI) — legacy DRF schema view.
@@ -1325,6 +1334,8 @@ urlpatterns = [
         "setup-studio/", onboarding_wizard, name="setup_studio"
     ),  # Public 3-step onboarding (delegates to onboarding_wizard); post-signup setup lives in siteconfig Setup Studio
     path("onboard/", onboarding_wizard, name="onboard_wizard"),
+    path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
+    path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
     path("verify-signup/", verify_signup, name="verify_signup"),
     path("api/trial/", api_trial_school, name="api_trial_school"),

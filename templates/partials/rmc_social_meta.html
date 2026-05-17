@@ -53,9 +53,7 @@
 {% endif %}
 {% if twitter_creator %}<meta name="twitter:creator" content="{{ twitter_creator }}">{% endif %}
 
-{# Hreflang: emits per-locale alternate URLs so search engines surface the right
-   language version. Reads either `hreflang_entries` (a list of {hreflang, href} dicts
-   set by the view) OR falls back to enumerating LANGUAGES against the current path. #}
+{# Hreflang: per-locale alternate URLs via hreflang_entries or LANGUAGES fallback. #}
 {% if hreflang_entries %}
   {% for entry in hreflang_entries %}
   <link rel="alternate" hreflang="{{ entry.hreflang }}" href="{{ entry.href }}">

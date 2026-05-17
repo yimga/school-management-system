@@ -25,9 +25,18 @@ on:
       - "beta/school-management-system/scripts/scan_magic_numbers.py"
       - "beta/school-management-system/scripts/scan_subprocess_shell_true.py"
       - "beta/school-management-system/scripts/scan_rls_bypass.py"
+      - "beta/school-management-system/scripts/scan_money_float.py"
+      - "beta/school-management-system/scripts/scan_locale_coverage.py"
+      - "beta/school-management-system/scripts/verify_service_worker_version.py"
+      - "beta/school-management-system/scripts/verify_slo_registry.py"
+      - "beta/school-management-system/scripts/scan_sri_required.py"
+      - "beta/school-management-system/scripts/verify_csp_nonce_emission.py"
+      - "beta/school-management-system/scripts/scan_pwa_manifest_coverage.py"
+      - "beta/school-management-system/scripts/verify_sentry_alert_rule_drift.py"
       - "beta/school-management-system/scripts/audit_template_render_safety.py"
       - "beta/school-management-system/scripts/scan_inline_style_off_token.py"
       - "beta/school-management-system/scripts/scan_undefined_css_classes.py"
+      - "beta/school-management-system/scripts/scan_off_token_colors.py"
       - "beta/school-management-system/templates/**/*.html"
       - "beta/school-management-system/static/css/**/*.css"
       - "beta/school-management-system/static/marketing/css/**/*.css"
@@ -44,6 +53,15 @@ on:
       - "beta/school-management-system/var/security-audit-baseline-magic-numbers.json"
       - "beta/school-management-system/var/security-audit-baseline-subprocess-shell.json"
       - "beta/school-management-system/var/security-audit-baseline-rls-bypass.json"
+      - "beta/school-management-system/var/security-audit-baseline-money-float.json"
+      - "beta/school-management-system/var/security-audit-baseline-locale-coverage.json"
+      - "beta/school-management-system/var/security-audit-baseline-service-worker-version.json"
+      - "beta/school-management-system/var/security-audit-baseline-sri-required.json"
+      - "beta/school-management-system/var/security-audit-baseline-csp-nonce-emission.json"
+      - "beta/school-management-system/var/security-audit-baseline-pwa-manifest-coverage.json"
+      - "beta/school-management-system/static/js/service-worker.js"
+      - "beta/school-management-system/apps/observability/slo.py"
+      - "beta/school-management-system/locale/**/*.po"
       - "beta/school-management-system/apps/platform_runtime/management/commands/verify_platform_readiness.py"
       - "beta/school-management-system/apps/security/csp_readiness.py"
       - "beta/school-management-system/apps/analytics/at_risk_readiness.py"
@@ -216,6 +234,178 @@ jobs:
         run: |
           python scripts/scan_rls_bypass.py --compare
 
+  money-float:
+    name: "FinTech: float() on money paths (Decimal-only)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # P5 seven-pillar FinTech guardrail: prevents new Decimal->float
+        # casts on amount/balance/fee/tax/etc. expressions in apps/finance,
+        # apps/billing, apps/marketplace, payment/. Allowlist marker:
+        #   # money-float-allow: <reason>
+        run: |
+          python scripts/scan_money_float.py --compare
+
+  tenant-isolation-marker-quality:
+    name: "P3: Tenant-isolation marker reason quality"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # Sister gate to scan_tenant_queryset_safety (count) and
+        # verify_tenant_scoping_burndown (schedule). This one audits
+        # the REASON STRING on each `# tenant-isolation-allow:` marker.
+        # Flags: empty reasons, "TODO"/"FIXME"/"WIP", "fix later",
+        # "see above", reasons <8 chars, single-token generic strings.
+        # Baseline-pinned at 0 from day one (the 802 existing markers
+        # all have plausibly-descriptive reasons).
+        run: |
+          python scripts/scan_tenant_isolation_marker_quality.py --compare
+
+  dr-drill-schedule:
+    name: "P12: DR restore drill cadence"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run schedule verifier --strict
+        # Reads var/dr-drill-schedule.json (cadence + next due date) and
+        # docs/generated/dr_drill_log.json (history). Fails when today
+        # is past the next-due date AND no in-window drill is recorded.
+        # Pairs with scripts/restore_drill.py (the dry-run scaffold that
+        # appends to the log).
+        run: |
+          python scripts/verify_dr_drill_schedule.py --strict
+
+  locale-coverage:
+    name: "i18n: per-locale msgstr coverage (drift detection)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # P11 seven-pillar i18n guardrail: per-locale translated/total
+        # ratio is baselined; a locale that USED to have translations
+        # cannot regress to zero without CI flagging it.
+        run: |
+          python scripts/scan_locale_coverage.py --compare
+
+  service-worker-version:
+    name: "PWA: service-worker CACHE_VERSION shape + monotonicity"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run verifier --check-monotonic
+        # P9 seven-pillar mobile/offline guardrail: every wave bumps
+        # CACHE_VERSION per CLAUDE.md deploy checklist. Shape must match
+        # sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and (MAJOR,MINOR,PATCH)
+        # must be >= baseline.
+        run: |
+          python scripts/verify_service_worker_version.py --check-monotonic
+
+  slo-registry:
+    name: "SRE: SLO registry structural integrity"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run verifier --strict
+        # P10 seven-pillar observability guardrail: apps/observability/slo.py
+        # SLODefinition tuple must have unique keys, valid kinds, sane
+        # targets, and threshold_ms only on latency SLOs.
+        run: |
+          python scripts/verify_slo_registry.py --strict
+
+  sri-required:
+    name: "P1: Subresource Integrity required on third-party HTTPS assets"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_sri_required.py --compare
+
+  csp-nonce-emission:
+    name: "P1: CSP nonce emission across shells"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run verifier --compare
+        run: |
+          python scripts/verify_csp_nonce_emission.py --compare
+
+  pwa-manifest-coverage:
+    name: "P9: PWA manifest coverage across dashboard shells"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_pwa_manifest_coverage.py --compare
+
+  sentry-alert-rule-drift:
+    name: "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Django runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run drift detector --strict
+        # Soft-passes when snapshot is missing (operator runs the export
+        # asynchronously). Hard-fails on any drift between two present sets.
+        run: |
+          python scripts/verify_sentry_alert_rule_drift.py --strict
+
   template-render-safety:
     name: "Template render-safety (leaks / unclosed tags / missing refs)"
     runs-on: ubuntu-latest
@@ -256,6 +446,29 @@ jobs:
         # inside the style itself.
         run: |
           python scripts/scan_inline_style_off_token.py --compare
+
+  off-token-colors:
+    name: "Off-token color literals in CSS (theme switching safety)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        # Drift-detection gate: a color/background/border declaration in
+        # static/css or static/marketing/css that contains a hex / rgb / rgba
+        # literal AND sits outside a theme block (:root, [data-theme=...],
+        # [data-bs-theme=...], [data-rmc-aesthetic=...], @media prefers-color-scheme)
+        # cannot adapt across the light/dark/system theme cascade. This is
+        # the root cause of "elements invisible in dark mode" bugs.
+        # Mark intentional literals with /* off-token-allow: <reason> */ on
+        # the declaration. Baseline allows existing debt; CI fails on any
+        # NEW violation while the burndown wave reduces the existing 897.
+        run: |
+          python scripts/scan_off_token_colors.py --strict
 
   undefined-css-classes:
     name: "Undefined CSS classes (typos & silent layout bugs)"
@@ -305,6 +518,23 @@ jobs:
         # can't tell ambient drift from genuine forgotten migrations.
         run: |
           python scripts/check_real_migration_drift.py
+
+  settings-registry-strict:
+    name: Settings registry coverage (strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: verify_settings_registry_coverage --strict
+        run: python scripts/verify_settings_registry_coverage.py --strict
 
   documented-baselines:
     name: "Documented baselines (CLAUDE.md vs var/*.json drift)"
@@ -398,6 +628,15 @@ jobs:
         # as path(...). NEVER raise this number to silence the scanner.
         run: |
           python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 0
+
+  migration-files-tracked:
+    name: Migration files tracked in git
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify migration files are not gitignored or untracked
+        run: python scripts/verify_migration_files_tracked.py
 
   marketing-bell-clock:
     name: Bell-clock mark consistency

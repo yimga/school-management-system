@@ -1,63 +1,8 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load i18n static %}
 
 {% block title %}Workflow Flow Gallery{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4 professional-page" data-page-archetype="operational-workbench">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-4">
-      <h1 class="h6">Available templates</h1>
-      <p class="small text-muted">Activate a template to enable it for this school; deactivate to disable. Rollback clears custom overrides and restores template default.</p>
-      <table class="table table-sm table-bordered">
-        <caption class="visually-hidden">{% trans "Available templates" %}</caption>
-        <thead>
-          <tr>
-            <th>Template</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t, tw in template_rows %}
-            <tr>
-              <td>
-                <strong>{{ t.code }}</strong> — {{ t.name }}{% if t.description %}<br><span class="text-muted small">{{ t.description|truncatewords:20 }}</span>{% endif %}
-              </td>
-              <td>
-                {% if tw %}
-                  {{ tw.is_active|yesno:"Active,Inactive" }}{% if tw.overrides %} (has overrides){% endif %}
-                {% else %}
-                  Not assigned
-                {% endif %}
-              </td>
-              <td>
-                <form method="post" action="{% url 'siteconfig:workflow_flow_gallery' %}" class="d-inline">
-                  {% csrf_token %}
-                  <input type="hidden" name="template_id" value="{{ t.id }}">
-                  {% if tw %}
-                    {% if tw.is_active %}
-                      <button type="submit" name="action" value="deactivate" class="btn btn-outline-warning btn-sm">Deactivate</button>
-                      {% if tw.overrides %}
-                        <button type="submit" name="action" value="rollback" class="btn btn-outline-secondary btn-sm">Rollback</button>
-                      {% endif %}
-                    {% else %}
-                      <button type="submit" name="action" value="activate" class="btn btn-outline-success btn-sm">Activate</button>
-                    {% endif %}
-                  {% else %}
-                    <button type="submit" name="action" value="activate" class="btn btn-outline-success btn-sm">Activate</button>
-                  {% endif %}
-                </form>
-              </td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="3" class="text-muted">No workflow templates defined yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <p class="text-muted small mb-0">{% trans "Advanced overrides are governed by Studio OS and Configuration Control Center guardrails." %}</p>
-    </div>
-  </div>
-</div>
+{% include "siteconfig/partials/workflow_flow_gallery_body.html" %}
 {% endblock %}

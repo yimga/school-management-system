@@ -1,0 +1,35 @@
+{% load i18n %}
+{% comment %}
+Reusable wizard step indicator. Apple-style: numbered circles connected by a
+thin track, with the current step highlighted and prior steps marked complete.
+
+Usage:
+  {% include "components/_wizard_steps.html" with step=2 steps=wizard_steps %}
+
+Where `wizard_steps` is a list of dicts: [{"id": 1, "label": "Region"}, ...].
+The `step` value (1-indexed) marks which is currently active.
+
+Accessibility: <nav aria-label="Progress"> + aria-current="step" on the active
+node. Reduced-motion respected by the CSS (no animations on connectors).
+{% endcomment %}
+{% with active=step|default:1 %}
+<nav class="rmc-wizard-steps" aria-label="{% trans 'Progress' %}" data-rmc-wizard-active="{{ active }}">
+  <ol class="rmc-wizard-steps__list" role="list">
+    {% for s in steps %}
+    {% with idx=forloop.counter %}
+    <li class="rmc-wizard-steps__item{% if idx < active %} is-complete{% elif idx == active %} is-active{% endif %}" role="listitem">
+      <span class="rmc-wizard-steps__dot" aria-hidden="true">
+        {% if idx < active %}
+          <i class="bi bi-check2" aria-hidden="true"></i>
+        {% else %}
+          {{ idx }}
+        {% endif %}
+      </span>
+      <span class="rmc-wizard-steps__label"{% if idx == active %} aria-current="step"{% endif %}>{{ s.label }}</span>
+      {% if not forloop.last %}<span class="rmc-wizard-steps__track" aria-hidden="true"></span>{% endif %}
+    </li>
+    {% endwith %}
+    {% endfor %}
+  </ol>
+</nav>
+{% endwith %}

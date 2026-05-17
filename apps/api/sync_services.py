@@ -72,6 +72,7 @@ def _user_can_edit_entity(user, entity_type, instance):
         if not teacher:
             return False
         classroom_ids = set(
+            # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
             TeacherAssignment.objects.filter(
                 teacher=teacher, is_active=True
             ).values_list("subject_assignment__classroom_id", flat=True)

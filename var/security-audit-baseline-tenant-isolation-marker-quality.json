@@ -1,0 +1,6 @@
+{
+  "finding_count": 0,
+  "generated_at": "2026-05-17T20:08:40+00:00",
+  "note": "Lazy reason strings on # tenant-isolation-allow: markers. Increasing this number requires intentional opt-in; the gate fails CI when count > baseline.",
+  "scanner": "scan_tenant_isolation_marker_quality.py"
+}

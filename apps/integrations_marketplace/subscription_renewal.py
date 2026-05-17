@@ -248,9 +248,8 @@ def renew_due_subscriptions(*, dry_run: bool = False) -> list[dict[str, Any]]:
     )
     out: list[dict[str, Any]] = []
     try:
-        # tenant-isolation-allow: cross-tenant sweeper by design; per-call
-        # renewal writes only to that row's school.
-        qs = ServiceIntegration.objects.filter(is_active=True).exclude(connector_slug="")
+        # Cross-tenant sweeper by design; per-call renewal writes only to that row's school.
+        qs = ServiceIntegration.objects.filter(is_active=True).exclude(connector_slug="")  # tenant-isolation-allow: cross-tenant sweeper, per-row writes only to row.school
         for row in qs.iterator():
             sub = (row.config or {}).get("push_subscription") or {}
             if not _is_due(sub):

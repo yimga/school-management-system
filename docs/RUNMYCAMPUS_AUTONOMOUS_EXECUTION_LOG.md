@@ -1,5 +1,41 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1262 operator siteconfig CP stem completion (2026-05-17)
+
+**A. Scope:** End-to-end closeout of the four siteconfig pages still on plain `render()` (maintenance preview, region validation, region comparison, region grading matrix) — no verifier allowlist bypass.
+
+**B. Implementation:** `render_siteconfig_stem` in `apps/siteconfig/views.py`; four `*_body.html` partials + portal wrappers; `OperatorSiteconfigManagerShellMiddleware` canonical URLs; `verify_operator_siteconfig_cp_shell.py` forbidden plain-render gate; `verify_shell_surface_inventory.py` portal+partial ledger rows.
+
+**C. Tests:** `apps.siteconfig.tests.test_operator_siteconfig_cp_qa` (+4), `test_region_operator_control_plane_routes`, `test_region_grading_scales_control_plane_route`, `apps.schools.tests.test_tenant_middleware` — **38 OK**.
+
+**D. Gates:** `verify_operator_siteconfig_cp_shell` **OK (22 stems, 35 partials)**; `audit_template_render_safety` **0**; `manage.py check` **OK**; `verify_shell_surface_inventory` **PASS**.
+
+**F. Verdict:** **BATCH 1262 DONE** — operator siteconfig CP stem pattern complete for maintenance + region surfaces.
+
+## Slice - batch 1260 in-repo certification closeout (2026-05-17)
+
+**A. Scope:** Close in-repo tails for **1197** local browser UX cert, **1176** Lane 1 operational dominance refresh, **1199** repo-local render parity artifacts, **1170-dev** staging deploy documentation — without Lane 2 (hosted SHA, pilots, PSP, k6).
+
+**B. Implementation:** `scripts/run_local_browser_ux_certification.py`, `scripts/write_render_parity_local_report.py`, `scripts/verify_staging_deploy_profile.py`, `.env.staging.example`; `ModuleAccessMiddleware` maps `/school/` → `portal` (after feedback/roadmap prefixes).
+
+**C. Tests / artifacts:** `run_local_browser_ux_certification.py --write` → **LIVE BROWSER UX CERTIFIED - LOCAL** (14+10+9+5); `validate_marketing_urls --smoke` PASS; `ExperienceControlMarketingRegistryTests` + `test_urlconf_import` **5/5** OK; `STAGING_PROFILE=1 verify_staging_deploy_profile` → staging simulation ready.
+
+**D. Gates:** Regenerated `docs/generated/live_browser_ux_certification_report.*`, `render_parity_certification_report.*`, `staging_deploy_readiness.*`.
+
+**F. Verdict:** **BATCH 1260 DONE** — in-repo certification wave closed; **1197/1176 Lane 1 DONE**; **1199/1170** remain **PARTIAL** with honest Lane 2 carve-outs.
+
+## Slice - batch 1255 platform surfaces plan closeout (2026-05-17)
+
+**A. Scope:** Close remaining `platform_surfaces_explainer` plan items: sticky notes persistence, optional AI surfaces FAQ, migration-files CI/predeploy guard, bootstrap operator fix.
+
+**B. Implementation:** `StudentNote` + `0049_studentnote.py`; `_apply_notes_report` writes rows; `StudentNoteAdmin`; `AI_SURFACES_FAQ.md`; `verify_migration_files_tracked` in predeploy + `architectural-boundaries.yml`; `_resolve_operator` explicit-username guard.
+
+**C. Tests:** `BootstrapRegistryTests.test_skips_unknown_operator` OK; `OfflineFirstClosureSliceTests.test_critical_offline_domains_sync_success` OK.
+
+**D. Gates:** Commit `apps/people/migrations/0049_studentnote.py` before deploy (`verify_migration_files_tracked`).
+
+**F. Verdict:** **BATCH 1255 DONE** — plan sticky + optional FAQ closed; batches 1246/1247 were already DONE.
+
 ## Slice - batch 1254 guided tour + marketing v3 verb routes (2026-05-17)
 
 **A. Scope:** Close guided-tour platform (shared runner, role catalogs, APIs, info tags) and marketing v3 verb-route HTTP regressions called out in session follow-ups.

@@ -1,0 +1,65 @@
+{% load static i18n phase8_tags %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Configuration Center — dashboards by role" %}</h1>
+<div class="container-fluid py-4 professional-page" data-decision-engine="surface" data-rmc-os-center="configuration_center_dashboards">
+  {% phase8_dashboard_declaration "siteconfig/dashboard_configuration_hub.html" %}
+  {% url 'siteconfig:dashboard_hub' as cfg_hub_url %}
+  {% trans "Configuration" as cfg_eyebrow %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="configuration_center_dashboards" center_eyebrow=cfg_eyebrow center_title=page_title center_purpose=page_subtitle %}
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ action_url }}">{{ action_text }}</a>
+  </div>
+  {% include "components/rmc_os_action_bar.html" with primary_url=cfg_hub_url primary_label=_("Configuration Center home") primary_data_action="config-back-home" primary_task="configuration_center" primary_step="siteconfig:hub-home" %}
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      {% if not templates %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-layout-text-window-reverse" title=_("No dashboard templates yet") message=_("Create or import a dashboard template before you can assign roles.") purpose=_("Finish setup") action_url=cfg_hub_url action_text=_("Return to Configuration Center") empty_primary_task="configuration_center" empty_primary_step="siteconfig:no-templates" %}
+      {% else %}
+        <form method="post" action="{% url 'siteconfig:dashboard_configuration_hub' %}">
+          {% csrf_token %}
+          <div class="row mb-3">
+            <label class="form-label col-md-2">{% trans "Assign template by role" %}</label>
+            <div class="col-md-4">
+              <select name="role" class="form-select form-select-sm" required>
+                <option value="">— Select role —</option>
+                {% for value, label in role_choices %}
+                  <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <select name="template_id" class="form-select form-select-sm" required>
+                <option value="">— Select template —</option>
+                {% for t in templates %}
+                  <option value="{{ t.pk }}">{{ t.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+            </div>
+          </div>
+        </form>
+        <div class="table-responsive" data-rmc-table-scroll="horizontal">
+        <table class="table table-sm table-bordered mb-0">
+          <caption class="visually-hidden">{% trans "Configuration Center — dashboards by role" %}</caption>
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Assigned template</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for role_val, role_label, assignment in assignment_rows %}
+              <tr>
+                <td>{{ role_label }}</td>
+                <td>{% if assignment %}{{ assignment.template.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        <p class="text-muted small mb-0">DashboardLayout and DashboardUserPreference still apply for per-user overrides; the template defines the default layout and theme per role.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>

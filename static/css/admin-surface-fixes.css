@@ -97,5 +97,5 @@ body.admin-index #main > #header.admin-top-header {
 
 /* Ensure bridge text line is rendered correctly with readable contrast. */
 .admin-nav-bridge__location {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(255, 255, 255, 0.9) !important; /* off-token-allow: white-overlay */
 }

@@ -843,6 +843,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         for i, label in enumerate(classroom_seed_names[:3]):
             name = str(label).strip() or f"Class {i + 1}"
             code = f"{dept_code}-C{i + 1}"
+            # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
             if Classroom.objects.filter(code=code).exists():
                 continue
             Classroom.objects.get_or_create(

@@ -546,6 +546,13 @@ urlpatterns = [
     ),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
+    path(
+        "admin/siteconfig/customizer/",
+        __import__(
+            "apps.siteconfig.legacy_redirects",
+            fromlist=["legacy_customizer_redirect"],
+        ).legacy_customizer_redirect,
+    ),
     path("admin/", platform_admin_site.urls),
     path(
         "authentication/",

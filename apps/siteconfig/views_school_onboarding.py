@@ -9,6 +9,12 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpRe
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
+
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
 from django.views.decorators.http import require_POST
 
 from apps.accounts.permissions import tenant_operator_hub_eligible
@@ -50,9 +56,9 @@ def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
             misconfiguration_flags.append("at_risk")
         if int(progress.get("percent") or 0) < 50:
             misconfiguration_flags.append("low_progress")
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/onboarding.html",
+        "onboarding",
         {
             "school": school,
             "onboarding": progress,
@@ -60,6 +66,10 @@ def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
             "health_recommendations": recommendations,
             "misconfiguration_flags": misconfiguration_flags,
         },
+        cp_title=_("School onboarding"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Onboarding"), active=True),
+        ),
     )
 
 
@@ -90,15 +100,22 @@ def onboarding_step_detail(
 
         return HttpResponseNotFound("Unknown onboarding step")
     can_mark = not step_row.get("done")
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/onboarding_step.html",
+        "onboarding_step",
         {
             "school": school,
             "step": step_row,
             "onboarding": get_school_onboarding_progress(school, user=request.user),
             "can_mark_pending": can_mark,
         },
+        cp_title=step_row.get("title") or _("Onboarding step"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Onboarding"), url=_reverse_tenant_onboarding()),
+            operator_cp_breadcrumb(
+                step_row.get("title") or _("Step"), active=True
+            ),
+        ),
     )
 
 

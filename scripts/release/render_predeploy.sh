@@ -16,6 +16,9 @@ run() {
   "$@"
 }
 
+# Fail fast when migration files are gitignored or not committed (e.g. *Conflict*.py rule).
+run "${PYTHON_BIN}" scripts/verify_migration_files_tracked.py
+
 # Detect tenant mode once (used for migrate block and for re-migrate before import_ui_config).
 TENANT_MODE="$("${PYTHON_BIN}" - <<'PY'
 import os

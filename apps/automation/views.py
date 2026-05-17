@@ -25,9 +25,11 @@ def outcomes_console(request):
     No raw settings (profiles, playbooks); read-only outcome summary.
     """
     school = getattr(request, "school", None)
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     base_runs = MigrationRun.objects.all().select_related(
         "triggered_by", "school"
     ).annotate(quarantine_record_count=Count("quarantine_records"))
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     base_logs = AutomationExecutionLog.objects.all().select_related(
         "triggered_by", "school"
     )

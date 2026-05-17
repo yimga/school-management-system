@@ -10,6 +10,13 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
+from django.utils.translation import gettext as _
+
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.decorators import permission_required
@@ -63,17 +70,12 @@ def term_publish_status_evidence(request: HttpRequest) -> HttpResponse:
         tenant_sched_evidence = reverse("siteconfig:tenant_report_schedules_evidence")
     except NoReverseMatch:
         tenant_sched_evidence = ""
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/term_publish_status_evidence.html",
-        {
-            "school": school,
-            "rows": rows,
-            "admin_termpublish_changelist_url": admin_list,
-            "scheduled_reports_hub_url": sched_hub,
-            "academic_years_setup_evidence_url": academic_years_evidence,
-            "tenant_report_schedules_evidence_url": tenant_sched_evidence,
-            "tps_total": tps_total,
-            "tps_published": tps_published,
-        },
+        "term_publish_status_evidence",
+        None,
+        cp_title=_("Term publish status"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Term publish status"), active=True),
+        ),
     )

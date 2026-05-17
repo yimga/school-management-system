@@ -32,7 +32,7 @@ body.portal-backend-dark.backend-shell .portal-main-col .card,
 body.portal-backend-dark[data-dashboard-page] #main-content .card,
 body.portal-backend-dark[data-dashboard-page] .portal-main-col .card {
   box-shadow:var(--rmc-lit-cd9da089fd);
-  border-color: rgba(168, 160, 146, 0.15);
+  border-color: rgba(168, 160, 146, 0.15); /* off-token-allow: warm-neutral-overlay */
 }
 body.backend-shell #main-content .card:hover,
 body.backend-shell .portal-main-col .card:hover,
@@ -65,7 +65,7 @@ body.portal-backend-dark[data-dashboard-page] #main-content .dashboard-section,
 body.portal-backend-dark[data-dashboard-page] #main-content .workflow-hero,
 body.portal-backend-dark[data-dashboard-page] #main-content .hub-card {
   box-shadow:var(--rmc-lit-cd9da089fd);
-  border-color: rgba(168, 160, 146, 0.15);
+  border-color: rgba(168, 160, 146, 0.15); /* off-token-allow: warm-neutral-overlay */
 }
 
 /* Sidebar: same premium radius and shadow as control plane */

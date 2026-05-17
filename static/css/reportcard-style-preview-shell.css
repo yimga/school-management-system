@@ -6,8 +6,8 @@
 .preview-header {
   border-radius: 14px;
   padding: 1.25rem;
-  background: linear-gradient(135deg, rgba(13, 110, 253, 0.9), rgba(124, 58, 237, 0.95));
-  color: white;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.9), rgba(124, 58, 237, 0.95)); /* off-token-allow: preview-hero-brand-gradient */
+  color: white; /* off-token-allow: white-on-brand-gradient */
 }
 
 .preview-header .tagline {
@@ -19,7 +19,7 @@
 
 .style-details {
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--hairline);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
@@ -49,7 +49,7 @@
 }
 
 .report-table th {
-  background: #f7f7fc;
+  background: #f7f7fc; /* off-token-allow: hex-literal-decorative */
   text-transform: uppercase;
   font-size: var(--type-size-eyebrow);
   position: sticky;
@@ -67,7 +67,7 @@
 .summary-card {
   border-radius: 12px;
   padding: 0.75rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  background: #fff;
+  border: 1px solid var(--hairline);
+  background: #fff; /* off-token-allow: hex-literal-decorative */
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
 }

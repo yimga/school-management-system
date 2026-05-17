@@ -52,7 +52,7 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-link:hover, body.admin-prem
 body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link:hover, body.admin-premium-shell #nav-sidebar .admin-sidebar-model-link:hover,
 body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-link:hover, body.admin-premium-shell #nav-sidebar-apps .admin-sidebar-link:hover,
 body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-model-link:hover , body.admin-premium-shell #nav-sidebar-apps .admin-sidebar-model-link:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.06) !important; /* off-token-allow: white-overlay */
   color: var(--cp-accent, var(--color-sky-400)) !important;
 }
 
@@ -61,7 +61,7 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link.active, body.adm
 body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link[aria-current="page"], body.admin-premium-shell #nav-sidebar .admin-sidebar-model-link[aria-current="page"],
 body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-link.active, body.admin-premium-shell #nav-sidebar-apps .admin-sidebar-link.active,
 body.admin-manager-shell #nav-sidebar-apps .admin-sidebar-model-link.active , body.admin-premium-shell #nav-sidebar-apps .admin-sidebar-model-link.active {
-  background: rgba(16, 185, 129, 0.15) !important;
+  background: rgba(16, 185, 129, 0.15) !important; /* off-token-allow: success-emerald-overlay */
   color: var(--platform-gold, var(--school-accent)) !important;
   border-left-color: var(--platform-gold, var(--school-accent)) !important;
 }
@@ -143,7 +143,7 @@ body.admin-manager-shell #content .results table , body.admin-premium-shell #con
 
 body.admin-manager-shell #content th, body.admin-premium-shell #content th,
 body.admin-manager-shell #content thead th , body.admin-premium-shell #content thead th {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(255, 255, 255, 0.05) !important; /* off-token-allow: white-overlay */
   color: var(--cp-text) !important;
   border-color: var(--cp-panel-border) !important;
 }
@@ -233,7 +233,7 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link , body.admin-pre
 }
 body.admin-manager-shell #nav-sidebar .admin-sidebar-link:hover, body.admin-premium-shell #nav-sidebar .admin-sidebar-link:hover,
 body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link:hover , body.admin-premium-shell #nav-sidebar .admin-sidebar-model-link:hover {
-  background: rgba(16, 185, 129, 0.12) !important;
+  background: rgba(16, 185, 129, 0.12) !important; /* off-token-allow: success-emerald-overlay */
   color: var(--color-base-100) !important;
 }
 body.admin-manager-shell #nav-sidebar .admin-sidebar-app-title , body.admin-premium-shell #nav-sidebar .admin-sidebar-app-title {
@@ -276,7 +276,7 @@ body.admin-manager-shell #content .xfull, body.admin-premium-shell #content .xfu
 body.admin-manager-shell #content #changelist .actions , body.admin-premium-shell #content #changelist .actions {
   padding: 0.75rem 1rem !important;
   border-color: var(--cp-panel-border) !important;
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: rgba(255, 255, 255, 0.03) !important; /* off-token-allow: white-overlay */
 }
 body.admin-manager-shell #content thead th , body.admin-premium-shell #content thead th {
   padding: 0.65rem 0.85rem !important;
@@ -320,7 +320,7 @@ body.admin-manager-shell #content input[type="url"], body.admin-premium-shell #c
 body.admin-manager-shell #content input[type="password"], body.admin-premium-shell #content input[type="password"],
 body.admin-manager-shell #content select, body.admin-premium-shell #content select,
 body.admin-manager-shell #content textarea , body.admin-premium-shell #content textarea {
-  background: rgba(8, 16, 30, 0.6) !important;
+  background: rgba(8, 16, 30, 0.6) !important; /* off-token-allow: rgba-decorative */
   border: 1px solid var(--cp-panel-border) !important;
   border-radius: var(--platform-premium-radius-sm, 10px) !important;
   color: var(--cp-text) !important;
@@ -356,7 +356,7 @@ body.admin-manager-shell #content #toolbar input, body.admin-premium-shell #cont
 body.admin-manager-shell #content #searchbar , body.admin-premium-shell #content #searchbar {
   border-radius: var(--platform-premium-radius-sm, 10px) !important;
   border-color: var(--cp-panel-border) !important;
-  background: rgba(8, 16, 30, 0.6) !important;
+  background: rgba(8, 16, 30, 0.6) !important; /* off-token-allow: rgba-decorative */
   color: var(--cp-text) !important;
 }
 body.admin-manager-shell #content .object-tools , body.admin-premium-shell #content .object-tools {
@@ -370,6 +370,6 @@ body.admin-manager-shell #content .object-tools li , body.admin-premium-shell #c
   font-weight: 500 !important;
 }
 body.admin-manager-shell #content .object-tools a:hover , body.admin-premium-shell #content .object-tools a:hover {
-  background: rgba(16, 185, 129, 0.15) !important;
+  background: rgba(16, 185, 129, 0.15) !important; /* off-token-allow: success-emerald-overlay */
   color: var(--platform-gold) !important;
 }

@@ -60,6 +60,13 @@ const MARKETING_PATHS = [
   '/platform/fees-payments/',
   '/platform/parent-portal/',
   '/platform/teacher-portal/',
+  '/platform/security/',
+  '/pay/fees/',
+  '/communicate/inbox/',
+  '/teach/workspace/',
+  '/run/analytics/',
+  '/communicate/announcements/',
+  '/run/workflows/',
 ];
 
 async function assertNoWideOverflow(page) {

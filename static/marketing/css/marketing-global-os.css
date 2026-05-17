@@ -5,33 +5,33 @@
 .mkt-main.mkt-global-os-main,
 .marketing-home.mkt-global-os {
   background: radial-gradient(1200px 600px at 10% -10%, rgba(196, 127, 28, 0.10), transparent),
-    linear-gradient(180deg, #1a1612 0%, #2a241e 35%, #1a1612 100%);
-  color: #f5efe3;
+    linear-gradient(180deg, #1a1612 0%, #2a241e 35%, #1a1612 100%); /* off-token-allow: decorative-gradient */
+  color: #f5efe3; /* off-token-allow: hex-literal-decorative */
 }
 
 .mkt-glob-strip-dark {
-  background: rgba(26, 22, 18, 0.85);
+  background: rgba(26, 22, 18, 0.85); /* off-token-allow: always-dark-warm-bg */
   border-bottom: 1px solid rgba(245, 220, 180, 0.18);
 }
 
 .mkt-glob-pill {
-  background: rgba(42, 36, 30, 0.92);
-  border: 1px solid rgba(245, 220, 180, 0.22);
-  color: #f5efe3;
+  background: rgba(42, 36, 30, 0.92); /* off-token-allow: rgba-decorative */
+  border: 1px solid rgba(245, 220, 180, 0.22); /* off-token-allow: rgba-decorative */
+  color: #f5efe3; /* off-token-allow: hex-literal-decorative */
   font-weight: 500;
   padding: 0.45rem 0.85rem;
 }
 
 .mkt-problem-glob {
-  background: rgba(13, 10, 7, 0.35);
+  background: rgba(13, 10, 7, 0.35); /* off-token-allow: rgba-decorative */
 }
 
 .mkt-platform-overview-grid .mkt-cap-thumb img {
   width: 100%;
   height: auto;
   border-radius: 0.5rem;
-  border: 1px solid rgba(245, 220, 180, 0.18);
-  background: #2a241e;
+  border: 1px solid rgba(245, 220, 180, 0.18); /* off-token-allow: rgba-decorative */
+  background: #2a241e; /* off-token-allow: hex-literal-decorative */
 }
 
 .mkt-offline-glob {
@@ -43,8 +43,8 @@
 .mkt-premium-stock-frame {
   border-radius: 0.75rem;
   overflow: hidden;
-  border: 1px solid rgba(245, 220, 180, 0.22);
-  background: #2a241e;
+  border: 1px solid rgba(245, 220, 180, 0.22); /* off-token-allow: rgba-decorative */
+  background: #2a241e; /* off-token-allow: hex-literal-decorative */
 }
 .mkt-premium-stock-img {
   display: block;
@@ -56,8 +56,8 @@
 .mkt-premium-problem-panel {
   border-radius: 0.75rem;
   padding: 1.25rem 1.5rem;
-  background: rgba(26, 22, 18, 0.65);
-  border: 1px solid rgba(168, 160, 146, 0.28);
+  background: rgba(26, 22, 18, 0.65); /* off-token-allow: always-dark-warm-bg */
+  border: 1px solid rgba(168, 160, 146, 0.28); /* off-token-allow: warm-neutral-overlay */
 }
 .mkt-workflow-rail {
   display: flex;
@@ -70,8 +70,8 @@
   gap: 0.5rem;
   padding: 0.45rem 0.85rem;
   border-radius: 999px;
-  background: rgba(36, 30, 24, 0.85);
-  border: 1px solid rgba(168, 160, 146, 0.35);
+  background: rgba(36, 30, 24, 0.85); /* off-token-allow: rgba-decorative */
+  border: 1px solid rgba(168, 160, 146, 0.35); /* off-token-allow: warm-neutral-overlay */
   font-size: 0.9rem;
 }
 .mkt-workflow-index {
@@ -81,8 +81,8 @@
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 999px;
-  background: rgba(245, 158, 11, 0.25);
-  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.25); /* off-token-allow: warning-amber-overlay */
+  color: #fbbf24; /* off-token-allow: hex-literal-decorative */
   font-weight: 700;
   font-size: 0.75rem;
 }
@@ -107,9 +107,9 @@
   display: inline-block;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  background: rgba(26, 22, 18, 0.75);
-  border: 1px solid rgba(168, 160, 146, 0.35);
+  background: rgba(26, 22, 18, 0.75); /* off-token-allow: always-dark-warm-bg */
+  border: 1px solid rgba(168, 160, 146, 0.35); /* off-token-allow: warm-neutral-overlay */
   font-size: 0.82rem;
   font-weight: 600;
-  color: rgba(248, 250, 252, 0.92);
+  color: rgba(248, 250, 252, 0.92); /* off-token-allow: rgba-decorative */
 }

@@ -3,11 +3,10 @@
 
 {% block extrastyle %}
 {{ block.super }}
-
 {% endblock %}
 
 {% block content %}
-<div class="cp-admin-index">
+<div class="cp-admin-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center">
   {% if PREVIEW_MODE_ENABLED %}
   <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
     <span>Preview mode — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}</span>
@@ -19,14 +18,45 @@
     <div class="cp-eyebrow">{% trans "Platform Backoffice" %}</div>
     <h1 class="cp-hero-title">{% trans "Platform Backoffice" %}</h1>
     <p class="cp-hero-copy">
-      {% trans "Remaining platform models only. Prefer Configuration Control Center and Studio (Experience, Outputs, Control) for operator workflows — use this index for raw model access when required." %}
+      {% trans "Raw Django model access when required. Day-to-day operator work lives in the control plane, Config center, Studio, and siteconfig hubs below — same chrome as /super/." %}
     </p>
     <div class="d-flex flex-wrap gap-2">
       <a href="{% url 'super:platform_operator_hub' %}" class="btn btn-primary btn-sm">{% trans "Platform operator hub" %}</a>
-      <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-outline-light btn-sm">{% trans "Open Config center" %}</a>
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-outline-light btn-sm">{% trans "Config center" %}</a>
+      <a href="{% url 'siteconfig:ai_center' %}" class="btn btn-outline-light btn-sm">{% trans "AI Center" %}</a>
+      <a href="{% url 'siteconfig:theme_colors' %}?standalone=1" class="btn btn-outline-light btn-sm">{% trans "Theme & Experience" %}</a>
       <a href="{% url 'studio_os:control' %}" class="btn btn-outline-light btn-sm">{% trans "Studio Control" %}</a>
-      <a href="{% url 'studio_os:output' %}" class="btn btn-outline-light btn-sm">{% trans "Studio Outputs" %}</a>
-      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Control plane" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Control plane home" %}</a>
+    </div>
+  </section>
+
+  <section class="mb-4" aria-labelledby="admin-operator-shortcuts-heading">
+    <h2 id="admin-operator-shortcuts-heading" class="h6 text-uppercase text-muted mb-2">{% trans "Operator shortcuts" %}</h2>
+    <div class="row g-3">
+      <div class="col-md-6 col-xl-4">
+        <a href="{% url 'siteconfig:feature_control_panel' %}" class="card h-100 text-decoration-none border-0 shadow-sm cp-admin-shortcut-card">
+          <div class="card-body">
+            <h3 class="h6 mb-1">{% trans "Feature control" %}</h3>
+            <p class="small text-muted mb-0">{% trans "Toggle modules and entitlements per tenant." %}</p>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-6 col-xl-4">
+        <a href="{% url 'siteconfig:ai_governance' %}" class="card h-100 text-decoration-none border-0 shadow-sm cp-admin-shortcut-card">
+          <div class="card-body">
+            <h3 class="h6 mb-1">{% trans "AI governance" %}</h3>
+            <p class="small text-muted mb-0">{% trans "Policies, assistants, and usage guardrails." %}</p>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-6 col-xl-4">
+        <a href="{% url 'siteconfig:guided_configuration_workflows' %}" class="card h-100 text-decoration-none border-0 shadow-sm cp-admin-shortcut-card">
+          <div class="card-body">
+            <h3 class="h6 mb-1">{% trans "Guided configuration" %}</h3>
+            <p class="small text-muted mb-0">{% trans "Staged setup workflows and publish paths." %}</p>
+          </div>
+        </a>
+      </div>
     </div>
   </section>
 

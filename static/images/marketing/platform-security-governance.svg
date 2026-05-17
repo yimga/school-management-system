@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="sec-dash-title sec-dash-desc">
+  <title id="sec-dash-title">Security and governance: roles, audit trail, tenant isolation</title>
+  <desc id="sec-dash-desc">Stylized panel with role matrix, audit log stream, MFA badge, and campus policy boundaries.</desc>
+  <defs>
+    <linearGradient id="sec-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1220"/><stop offset="100%" stop-color="#134e4a"/>
+    </linearGradient>
+    <filter id="sec-s"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .p { fill: #1e293b; stroke: #475569; rx: 10; filter: url(#sec-s); }
+      .t { fill: #ccfbf1; font: 700 12px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 10px ui-sans-serif, system-ui, sans-serif; }
+      .ok { fill: #2dd4bf; opacity: 0.4; rx: 4; }
+      .lock { fill: #14b8a6; opacity: 0.65; }
+      .row { fill: #334155; rx: 3; opacity: 0.85; }
+    </style>
+  </defs>
+  <rect width="920" height="340" fill="url(#sec-bg)"/>
+  <text class="t" x="460" y="28" text-anchor="middle">Governance workspace  roles, audit, isolation</text>
+  <rect class="p" x="24" y="48" width="240" height="130"/>
+  <text class="ts" x="40" y="72">Role matrix</text>
+  <rect class="ok" x="48" y="88" width="72" height="24"/>
+  <rect class="ok" x="128" y="88" width="72" height="24"/>
+  <rect class="row" x="48" y="120" width="168" height="10"/>
+  <rect class="row" x="48" y="136" width="140" height="10"/>
+  <rect class="p" x="280" y="48" width="400" height="130"/>
+  <text class="ts" x="296" y="72">Audit trail</text>
+  <rect class="row" x="296" y="88" width="360" height="10"/>
+  <rect class="row" x="296" y="104" width="320" height="10"/>
+  <rect class="row" x="296" y="120" width="340" height="10"/>
+  <rect class="row" x="296" y="136" width="280" height="10"/>
+  <rect class="p" x="696" y="48" width="200" height="130"/>
+  <text class="ts" x="712" y="72">Tenant boundary</text>
+  <rect class="lock" x="720" y="88" width="48" height="48" rx="8"/>
+  <text class="ts" x="776" y="108">MFA</text>
+  <rect class="ok" x="776" y="120" width="100" height="20"/>
+  <rect class="p" x="24" y="196" width="872" height="120"/>
+  <text class="ts" x="40" y="220">Policy &amp; residency defaults</text>
+  <rect class="ok" x="48" y="236" width="200" height="14"/>
+  <rect class="ok" x="48" y="258" width="260" height="14"/>
+  <rect class="row" x="360" y="236" width="220" height="14"/>
+  <rect class="row" x="360" y="258" width="180" height="14"/>
+</svg>

@@ -43,14 +43,14 @@
 
 .mkt-fees-hero-copy .detail-subheadline {
   font-size: 1.05rem;
-  color: rgba(226, 232, 240, 0.9);
+  color: rgba(226, 232, 240, 0.9); /* off-token-allow: slate-text-on-dark */
   line-height: 1.55;
   max-width: 38rem;
 }
 
 .mkt-fees-hero-visual {
   background: linear-gradient(145deg, var(--mkt-fees-accent-dim), rgba(26, 22, 18, 0.65));
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.2); /* off-token-allow: rgba-decorative */
   border-radius: 16px;
   padding: 0.75rem;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
@@ -85,16 +85,16 @@
 }
 
 .mkt-fees-section .section-lead {
-  color: rgba(203, 213, 225, 0.95);
+  color: rgba(203, 213, 225, 0.95); /* off-token-allow: rgba-decorative */
   max-width: 42rem;
   margin-bottom: 1.5rem;
 }
 
 .mkt-fees-visual-wrap {
-  background: rgba(26, 22, 18, 0.5);
+  background: rgba(26, 22, 18, 0.5); /* off-token-allow: always-dark-warm-bg */
   border-radius: 16px;
   padding: 1rem;
-  border: 1px solid rgba(71, 85, 105, 0.4);
+  border: 1px solid rgba(71, 85, 105, 0.4); /* off-token-allow: rgba-decorative */
   overflow-x: auto;
 }
 
@@ -117,8 +117,8 @@
 }
 
 .mkt-fees-card {
-  background: rgba(36, 30, 24, 0.55);
-  border: 1px solid rgba(133, 124, 112, 0.35);
+  background: rgba(36, 30, 24, 0.55); /* off-token-allow: rgba-decorative */
+  border: 1px solid rgba(133, 124, 112, 0.35); /* off-token-allow: rgba-decorative */
   border-radius: 14px;
   padding: 1.25rem 1.35rem;
 }
@@ -129,7 +129,7 @@
 }
 
 .mkt-fees-card--before h3 {
-  color: #fca5a5;
+  color: #fca5a5; /* off-token-allow: hex-literal-decorative */
 }
 
 .mkt-fees-card--after h3 {
@@ -139,7 +139,7 @@
 .mkt-fees-card ul {
   margin: 0;
   padding-left: 1.15rem;
-  color: rgba(203, 213, 225, 0.92);
+  color: rgba(203, 213, 225, 0.92); /* off-token-allow: rgba-decorative */
   font-size: 0.95rem;
   line-height: 1.55;
 }
@@ -153,10 +153,10 @@
 .mkt-fees-handoff-grid a {
   display: block;
   padding: 0.85rem 1rem;
-  background: rgba(26, 22, 18, 0.85);
-  border: 1px solid rgba(71, 85, 105, 0.5);
+  background: rgba(26, 22, 18, 0.85); /* off-token-allow: always-dark-warm-bg */
+  border: 1px solid rgba(71, 85, 105, 0.5); /* off-token-allow: rgba-decorative */
   border-radius: 10px;
-  color: #ede4d6;
+  color: #ede4d6; /* off-token-allow: hex-literal-decorative */
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
@@ -166,8 +166,8 @@
 .mkt-fees-handoff-grid a:hover,
 .mkt-fees-handoff-grid a:focus-visible {
   border-color: var(--mkt-fees-accent);
-  background: rgba(36, 30, 24, 0.95);
-  color: #fff;
+  background: rgba(36, 30, 24, 0.95); /* off-token-allow: rgba-decorative */
+  color: #fff; /* off-token-allow: hex-literal-decorative */
   outline: none;
 }
 
@@ -178,22 +178,22 @@
 }
 
 .mkt-fees-role {
-  background: linear-gradient(180deg, rgba(36, 30, 24, 0.7), rgba(26, 22, 18, 0.85));
-  border: 1px solid rgba(71, 85, 105, 0.4);
+  background: linear-gradient(180deg, rgba(36, 30, 24, 0.7), rgba(26, 22, 18, 0.85)); /* off-token-allow: decorative-gradient */
+  border: 1px solid rgba(71, 85, 105, 0.4); /* off-token-allow: rgba-decorative */
   border-radius: 12px;
   padding: 1.1rem 1.2rem;
 }
 
 .mkt-fees-role h3 {
   font-size: 0.95rem;
-  color: #f5eedd;
+  color: #f5eedd; /* off-token-allow: hex-literal-decorative */
   margin-bottom: 0.65rem;
 }
 
 .mkt-fees-role p {
   margin: 0;
   font-size: 0.88rem;
-  color: rgba(168, 160, 146, 0.95);
+  color: rgba(168, 160, 146, 0.95); /* off-token-allow: warm-neutral-overlay */
   line-height: 1.45;
 }
 

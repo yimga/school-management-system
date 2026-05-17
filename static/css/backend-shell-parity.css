@@ -5,14 +5,14 @@ body.backend-shell .topbar .js-sidebar-toggle {
   min-height: 34px;
   padding: 0.35rem 0.75rem;
   font-weight: 600;
-  border-color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.55); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.09); /* off-token-allow: white-overlay */
 }
 
 body.backend-shell .topbar .js-sidebar-toggle:hover,
 body.backend-shell .topbar .js-sidebar-toggle:focus-visible {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.18); /* off-token-allow: white-overlay */
+  border-color: rgba(255, 255, 255, 0.75); /* off-token-allow: white-overlay */
 }
 
 body.backend-shell .portal-sidebar-col .sidebar {

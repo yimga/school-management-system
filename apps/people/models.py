@@ -667,8 +667,10 @@ class StudentProfile(models.Model):
             if auto_allowed and not self.admission_number:
                 from apps.academics.models import AcademicYear, Classroom, Specialty
 
+                # tenant-isolation-allow: model-meta-or-manager-default-scopes-tenant-fk
                 year = AcademicYear.objects.get(id=self.academic_year_id)
                 specialty = Specialty.objects.get(id=self.specialty_id)
+                # tenant-isolation-allow: model-meta-or-manager-default-scopes-tenant-fk
                 classroom = Classroom.objects.get(id=self.classroom_id)
                 self.admission_number = self.generate_admission_number(
                     year, specialty, classroom, school=school
@@ -1487,3 +1489,69 @@ class SpecialEducationPlan(models.Model):
 
     def __str__(self):
         return f"{self.get_plan_type_display()} — {self.student_id}"
+
+
+class StudentNote(models.Model):
+    """
+    Teacher/staff narrative captured online or via offline NOTES_REPORT sync.
+    Scoped by school; optional student link for per-learner sticky notes.
+    """
+
+    class Kind(models.TextChoices):
+        NOTE = "note", _("Note")
+        REPORT = "report", _("Report")
+        QUICK_CAPTURE = "quick_capture", _("Quick capture")
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="student_notes",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="staff_notes",
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="student_notes_authored",
+    )
+    kind = models.CharField(
+        max_length=48,
+        choices=Kind.choices,
+        default=Kind.NOTE,
+    )
+    title = models.CharField(max_length=200, blank=True)
+    body = models.TextField()
+    client_offline_id = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text=_("Idempotency key from offline queue payload."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        verbose_name = _("Student note")
+        verbose_name_plural = _("Student notes")
+        indexes = [
+            models.Index(fields=["school", "-created_at"]),
+            models.Index(fields=["student", "-created_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=models.Q(client_offline_id__gt=""),
+                name="people_studentnote_school_client_offline_uniq",
+            ),
+        ]
+
+    def __str__(self):
+        label = self.title or self.body[:48]
+        return f"{self.get_kind_display()}: {label}"

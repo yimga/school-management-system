@@ -1,0 +1,38 @@
+; Coverage thresholds for RunMyCampus.
+;
+; 12-pillar audit P12 follow-up. Per-app fail-under thresholds.
+; Activate with `coverage run -m pytest && coverage report` or
+; `pytest --cov`.
+
+[run]
+source = apps,services
+branch = True
+omit =
+    */migrations/*
+    */tests/*
+    */__pycache__/*
+    */node_modules/*
+
+[report]
+precision = 1
+show_missing = True
+skip_covered = False
+; Platform-wide floor. Operators tighten per-app via the
+; `coverage report --include=...` flag in CI matrix.
+fail_under = 60
+
+; Per-app target ceiling -- documented for operator reference;
+; coverage.py honors only the global fail_under, but the
+; per-app intent is recorded here so CI can split runs.
+;
+; apps/analytics/   ≥ 80%
+; apps/finance/     ≥ 85%
+; apps/security/    ≥ 90%
+; apps/api/         ≥ 75%
+; (others)          ≥ 60%
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

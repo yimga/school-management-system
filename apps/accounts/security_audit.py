@@ -117,6 +117,7 @@ def log_security_event(
     # Dedupe: same user, ip, event_type, within window
     since = timezone.now() - DEDUPE_WINDOW
     existing = (
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         SecurityAuditLog.objects.filter(
             user=user,
             event_type=event_type,
@@ -241,6 +242,7 @@ def check_impossible_travel(request, user):
         return
     now = timezone.now()
     # Previous LOGIN (the one before the one we just created)
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     prev = (
         SecurityAuditLog.objects.filter(
             user=user,

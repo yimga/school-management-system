@@ -1,0 +1,101 @@
+{% load static i18n %}
+<div class="container-fluid py-4 professional-page" data-page-archetype="operational-workbench">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+
+  <div class="row g-4 rmc-reveal-stagger">
+    <div class="col-lg-3 rmc-reveal">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h1 class="h6">{% trans "Palette" %}</h1>
+          <p class="small text-muted">{% trans "Drag onto the canvas. Use Connect mode to branch (multiple paths)." %}</p>
+          <div id="palette-triggers" class="mb-3">
+            <strong class="small text-uppercase text-muted">{% trans "Triggers" %}</strong>
+            {% for key, meta in domain_triggers.items %}
+            <div class="palette-node border rounded p-2 mb-2 bg-light small" draggable="true" data-kind="trigger" data-node-type="{{ key }}" title="{{ meta.description }}">{{ meta.label }}</div>
+            {% endfor %}
+          </div>
+          <div class="mb-3">
+            <strong class="small text-uppercase text-muted">{% trans "Conditions" %}</strong>
+            <div class="palette-node border rounded p-2 mb-2 bg-light small" draggable="true" data-kind="condition" data-node-type="condition">{% trans "Condition" %}</div>
+          </div>
+          <div class="mb-3">
+            <strong class="small text-uppercase text-muted">{% trans "Actions" %}</strong>
+            <div class="palette-node border rounded p-2 mb-2 bg-light small" draggable="true" data-kind="action" data-node-type="notify">{% trans "Notify" %}</div>
+            <div class="palette-node border rounded p-2 mb-2 bg-light small" draggable="true" data-kind="action" data-node-type="webhook">{% trans "Webhook" %}</div>
+            <div class="palette-node border rounded p-2 mb-2 bg-light small" draggable="true" data-kind="action" data-node-type="create_record">{% trans "Create record" %}</div>
+            <div class="palette-node border rounded p-2 mb-2 bg-light small" draggable="true" data-kind="action" data-node-type="ai_suggestion">{% trans "AI suggestion" %}</div>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="auto-chain" checked>
+            <label class="form-check-label small" for="auto-chain">{% trans "Auto-link each new node to previous" %}</label>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-1" id="btn-connect-mode">{% trans "Connect mode: off" %}</button>
+          <p class="small text-muted mb-0">{% trans "With Connect mode on, click two nodes to draw an edge (branching)." %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6 rmc-reveal">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Canvas" %}</h2>
+          <div id="workflow-canvas-wrap" class="workflow-canvas-wrap">
+            <svg class="workflow-edge-svg" id="workflow-edge-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div id="workflow-canvas-inner" class="workflow-canvas-inner">
+              <p class="text-muted small m-3 canvas-placeholder position-absolute">{% trans "Drop palette items here." %}</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-link btn-sm p-0 mt-1" id="btn-redraw-edges">{% trans "Redraw edges" %}</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 rmc-reveal">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Workflow JSON" %}</h2>
+          <label class="small text-muted">{% trans "Name" %}</label>
+          <input type="text" id="wf-name" class="form-control form-control-sm mb-2" value="" placeholder="{% trans 'My automation' %}">
+          <label class="small text-muted">{% trans "Selected trigger (domain)" %}</label>
+          <select id="wf-trigger" class="form-select form-select-sm mb-2">
+            {% for key, meta in domain_triggers.items %}
+            <option value="{{ key }}">{{ meta.label }}</option>
+            {% endfor %}
+          </select>
+          <textarea id="wf-json" class="form-control font-monospace small" rows="12" placeholder='{"conditions":[],"actions":[]}'></textarea>
+          <div class="d-grid gap-2 mt-2">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="btn-save">{% trans "Save draft" %}</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-publish">{% trans "Validate & publish" %}</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-simulate">{% trans "Simulate" %}</button>
+          </div>
+          <label class="small text-muted mt-2">{% trans "Recent runs (retry failed actions)" %}</label>
+          <button type="button" class="btn btn-outline-warning btn-sm w-100 mb-1" id="btn-load-logs">{% trans "Load execution logs" %}</button>
+          <select id="exec-log-pick" class="form-select form-select-sm mb-1" size="3"></select>
+          <button type="button" class="btn btn-warning btn-sm w-100" id="btn-retry-log">{% trans "Retry failed actions" %}</button>
+          <pre id="wf-output" class="small mt-3 bg-light p-2 rounded border" style="max-height:200px;overflow:auto;"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mt-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Existing workflows" %}</h2>
+      <ul class="list-unstyled mb-0 small">
+        {% for w in workflows %}
+        <li class="mb-1"><strong>{{ w.name }}</strong> — {{ w.trigger }} ({{ w.status }}) id={{ w.id }}</li>
+        {% empty %}
+        <li class="text-muted">{% trans "None yet." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="page-data-siteconfig__school_automation_builder-1">{
+  "url_siteconfig_school_automation_save_api": "{% url "siteconfig:school_automation_save_api" %}",
+  "url_siteconfig_school_automation_publish_api": "{% url "siteconfig:school_automation_publish_api" %}",
+  "url_siteconfig_school_automation_simulate_api": "{% url "siteconfig:school_automation_simulate_api" %}",
+  "url_siteconfig_school_automation_execution_logs_api": "{% url "siteconfig:school_automation_execution_logs_api" %}",
+  "url_siteconfig_school_automation_retry_api": "{% url "siteconfig:school_automation_retry_api" %}",
+  "trans_connect_mode_on": "{% trans "Connect mode: on" %}",
+  "trans_connect_mode_off": "{% trans "Connect mode: off" %}"
+}</script><script src="{% static 'js/_pages/siteconfig__school_automation_builder-1.js' %}"></script>

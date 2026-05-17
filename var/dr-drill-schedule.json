@@ -1,0 +1,15 @@
+{
+  "_comment": "DR restore drill schedule. SOT for verify_dr_drill_schedule.py. The doc/operations/SLA.md commitment is quarterly drills; this file declares when the NEXT drill must be completed by, and the audit trail at docs/generated/dr_drill_log.json must include an entry on or before that date.",
+  "_runbook": "scripts/restore_drill.py (--dry-run validates the runbook; --apply runs against side DB).",
+  "cadence_days": 90,
+  "rpo_max_hours": 1,
+  "rto_max_hours": 4,
+  "next_drill_due_by": "2026-08-15",
+  "note": "First scheduled drill follows the v3.22 12-pillar closeout by 90 days. Operator updates this date AND appends a drill-log entry after each successful drill.",
+  "history": [
+    {
+      "scheduled_for": "2026-08-15",
+      "purpose": "Q3 2026 DR drill cadence baseline (first ritualized drill post-12-pillar audit)."
+    }
+  ]
+}

@@ -198,6 +198,35 @@ class MarketingHomeNineSectionsTest(SimpleTestCase):
 
 
 @override_settings(ROOT_URLCONF="config.public_urls", ALLOWED_HOSTS=["runmycampus.com", "testserver"])
+class MarketingDifferentiatedVerbRoutesHttpTest(TestCase):
+    """Verb-canonical routes must render tranche-2 differentiated platform layouts."""
+
+    def setUp(self) -> None:
+        self.client = Client(HTTP_HOST="runmycampus.com")
+
+    def test_verb_routes_render_differentiated_markers_and_css(self) -> None:
+        cases = (
+            ("/pay/fees/", b"data-mkt-platform-fees-payments", b"marketing-platform-fees-payments.css"),
+            ("/communicate/inbox/", b"data-mkt-platform-parent-portal", b"marketing-platform-parent-portal.css"),
+            ("/teach/workspace/", b"data-mkt-platform-teacher-portal", b"marketing-platform-teacher-portal.css"),
+            ("/run/analytics/", b"data-mkt-platform-analytics", b"marketing-platform-analytics.css"),
+        )
+        for path, marker, css in cases:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200, msg=path)
+                body = response.content
+                self.assertIn(marker, body, msg=path)
+                self.assertIn(css, body, msg=path)
+
+    def test_platform_security_renders_differentiated_layout(self) -> None:
+        response = self.client.get("/platform/security/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"data-mkt-platform-security", response.content)
+        self.assertIn(b"marketing-platform-security.css", response.content)
+
+
+@override_settings(ROOT_URLCONF="config.public_urls", ALLOWED_HOSTS=["runmycampus.com", "testserver"])
 class MarketingV3PagesHttpTest(TestCase):
     """Smoke v3 backlog pages on canonical marketing host."""
 

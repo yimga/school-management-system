@@ -208,6 +208,7 @@ def notify_guardians_new_invoices_bulk(
     from apps.finance.models import Invoice
 
     total = 0
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     for inv in Invoice.objects.filter(id__in=invoice_ids).select_related("student"):
         total += notify_guardians_new_invoice(
             inv, created_by=created_by, send_email=send_email, force=True

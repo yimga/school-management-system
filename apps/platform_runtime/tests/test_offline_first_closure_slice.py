@@ -259,7 +259,15 @@ class OfflineFirstClosureSliceTests(TestCase):
         process_offline_queue(school_id=self.school.pk, user_id=self.user.pk)
         action_note.refresh_from_db()
         self.assertEqual(action_note.status, OfflineAction.Status.SYNCED)
-        self.assertTrue((action_note.sync_metadata or {}).get("notes_report_capture"))
+        meta = action_note.sync_metadata or {}
+        self.assertTrue(meta.get("notes_report_capture"))
+        self.assertIsNotNone(meta.get("student_note_id"))
+        from apps.people.models import StudentNote
+
+        note = StudentNote.objects.get(pk=meta["student_note_id"])
+        self.assertEqual(note.body, "Student showed improvement during lab.")
+        self.assertEqual(note.student_id, self.student.pk)
+        self.assertEqual(note.school_id, self.school.pk)
 
     def test_enqueue_idempotency_single_row(self):
         a1 = enqueue_offline_action(

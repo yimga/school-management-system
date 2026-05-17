@@ -10,6 +10,13 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
+from django.utils.translation import gettext as _
+
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.decorators import permission_required
@@ -58,17 +65,12 @@ def departments_setup_evidence(request: HttpRequest) -> HttpResponse:
         )
     except NoReverseMatch:
         tenant_report_schedules_evidence_url = ""
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/departments_setup_evidence.html",
-        {
-            "school": school,
-            "rows": rows,
-            "admin_department_changelist_url": admin_changelist,
-            "scheduled_reports_hub_url": sched_hub,
-            "academic_years_setup_evidence_url": academic_years_url,
-            "term_publish_status_evidence_url": term_publish_evidence_url,
-            "tenant_report_schedules_evidence_url": tenant_report_schedules_evidence_url,
-            "department_total": department_total,
-        },
+        "departments_setup_evidence",
+        None,
+        cp_title=_("Departments setup"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Departments setup"), active=True),
+        ),
     )

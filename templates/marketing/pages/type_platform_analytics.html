@@ -1,26 +1,143 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
-{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-analytics{% endblock %}
+{% load terminology_tags %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-analytics.css' %}">
+{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-analytics mkt-platform-theme--platform-analytics{% endblock %}
 {% block marketing_page_inner %}
-<article class="mkt-v3-archetype" data-mkt-archetype="leadership-intelligence">
-  <header class="mkt-v3-archetype__hero mkt-edt-container">
-    <p class="mkt-v3-eyebrow">{% trans "Leadership intelligence center" %}</p>
-    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
-    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-    <div class="mkt-v3-archetype__ctas">
-      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
-      <a href="{% url 'marketing_run_hub' %}" class="mkt-edt-link">{% trans "Back to Run →" %}</a>
+<article class="mkt-analytics-page" data-mkt-platform-analytics="1">
+  <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
+    <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+    <span aria-hidden="true">·</span>
+    <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+  </nav>
+
+  <header class="mkt-analytics-hero">
+    <div class="mkt-analytics-hero-copy">
+      <p class="detail-eyebrow mb-0">runmycampus.com | {{ page.label }}</p>
+      <h1 class="detail-headline">{{ page.headline }}</h1>
+      <p class="detail-subheadline">{{ page.subheadline }}</p>
+      <div class="hero-cta mt-3">
+        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="platform-analytics">{% trans "Request demo" %}</a>
+        <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light" data-cta="secondary" data-page="platform-analytics">{% trans "Explore platform" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
+      </div>
+      {% if page_extras.trust_strip %}
+      <div class="mkt-analytics-trust trust-strip">
+        {% for item in page_extras.trust_strip %}
+        <span class="trust-pill">{{ item }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="mkt-analytics-hero-visual" aria-hidden="true">
+      <img src="{% static 'images/marketing/platform-analytics-leadership.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
     </div>
   </header>
-  {% include "marketing/components/_dashboard_frame.html" with frame_title="Head of school" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
-  <section class="mkt-edt-container mkt-v3-archetype__wins">
-    <h2>{% trans "Signals without tab hunting" %}</h2>
-    <ul>
-      <li>{% trans "Heads-view dashboards with cohort drill-down." %}</li>
-      <li>{% trans "Early-warning panels before crises land in email." %}</li>
-      <li>{% trans "Roll-ups that respect campus boundaries." %}</li>
-    </ul>
+
+  <section class="mkt-analytics-section rmc-reveal" aria-labelledby="mkt-analytics-visual-heading">
+    <h2 id="mkt-analytics-visual-heading">{% trans "Leadership dashboards built on live operations" %}</h2>
+    <p class="section-lead">{% trans "Enrollment, attendance, collection, and academic signals roll up from the same records your teams capture daily—without rebuilding spreadsheets every week." %}</p>
+    <div class="mkt-analytics-visual-wrap">
+      <img src="{% static 'images/marketing/platform-analytics-leadership.svg' %}" alt="{% trans 'Diagram: leadership analytics with trends, campus rollups, early-warning panel, and export summary' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-analytics-visual="1">
+    </div>
   </section>
+
+  <section class="mkt-analytics-section rmc-reveal" aria-labelledby="mkt-analytics-before-after-heading">
+    <h2 id="mkt-analytics-before-after-heading">{% trans "Before and after governed school intelligence" %}</h2>
+    <p class="section-lead">{% trans "Move from debated exports to dashboards everyone can trust because definitions stay tied to operational data." %}</p>
+    <div class="mkt-analytics-split">
+      <div class="mkt-analytics-card mkt-analytics-card--before">
+        <h3>{% trans "Before" %}</h3>
+        <ul>
+          <li>{% trans "Metrics rebuilt weekly from different exports" %}</li>
+          <li>{% trans "Campus comparisons that disagree on definitions" %}</li>
+          <li>{% trans "Late visibility into enrollment or collection drift" %}</li>
+          <li>{% trans "Board packs assembled manually at month-end" %}</li>
+          <li>{% trans "Finance and academic narratives that do not reconcile" %}</li>
+        </ul>
+      </div>
+      <div class="mkt-analytics-card mkt-analytics-card--after">
+        <h3>{% trans "After" %}</h3>
+        <ul>
+          <li>{% trans "Dashboards fed from the same system of record" %}</li>
+          <li>{% trans "Multi-campus rollups with role-appropriate visibility" %}</li>
+          <li>{% trans "Early-warning panels before issues compound" %}</li>
+          <li>{% trans "Export-ready summaries for leadership forums" %}</li>
+          <li>{% trans "Finance and academic signals in one disciplined view" %}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="mkt-analytics-section rmc-reveal" aria-labelledby="mkt-analytics-handoff-heading" data-mkt-analytics-connected-handoff="1">
+    <h2 id="mkt-analytics-handoff-heading">{% trans "Connected across finance, attendance, and governance" %}</h2>
+    <p class="section-lead">{% trans "Analytics should explain operations—not sit beside them. Drill from trends into the modules that produce the numbers." %}</p>
+    <div class="mkt-analytics-handoff-grid">
+      <a href="{% url 'marketing_pay_fees' %}">{% trans "Fees & Payments" %}</a>
+      <a href="{% url 'marketing_run_attendance' %}">{% trans_term "Attendance" key="attendance" %}</a>
+      <a href="{% url 'marketing_run_admissions' %}">{% trans "Admissions" %}</a>
+      <a href="{% url 'marketing_platform_security' %}">{% trans "Security & Governance" %}</a>
+      <a href="{% url 'marketing_run_workflows' %}">{% trans "Workflows" %}</a>
+      <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust center" %}</a>
+    </div>
+  </section>
+
+  <section class="mkt-analytics-section rmc-reveal" aria-labelledby="mkt-analytics-roles-heading">
+    <h2 id="mkt-analytics-roles-heading">{% trans "Who benefits" %}</h2>
+    <p class="section-lead">{% trans "Role-aware visibility so operators see what they need without exposing sensitive ledgers broadly." %}</p>
+    <div class="mkt-analytics-roles">
+      <div class="mkt-analytics-role">
+        <h3>{% trans "School leadership" %}</h3>
+        <p>{% trans "Fewer blind spots across enrollment, attendance, and collection with earlier signals." %}</p>
+      </div>
+      <div class="mkt-analytics-role">
+        <h3>{% trans "Finance" %}</h3>
+        <p>{% trans "Collection and arrears narratives tied to invoices—not shadow spreadsheets." %}</p>
+      </div>
+      <div class="mkt-analytics-role">
+        <h3>{% trans "Operators" %}</h3>
+        <p>{% trans "Dashboards respect permissions while keeping teams focused on operations." %}</p>
+      </div>
+      <div class="mkt-analytics-role">
+        <h3>{% trans "Network leadership" %}</h3>
+        <p>{% trans "Campus rollups that standardize definitions without hiding local context." %}</p>
+      </div>
+      <div class="mkt-analytics-role">
+        <h3>{% trans "Boards & owners" %}</h3>
+        <p>{% trans "Export discipline for reviews that expect traceable source data." %}</p>
+      </div>
+    </div>
+  </section>
+
+  {% if page.segments %}
+  <section class="mkt-analytics-section rmc-reveal" aria-label="{% trans 'Highlights' %}">
+    <h2>{% trans "What this surface emphasizes" %}</h2>
+    <div class="row g-3">
+      {% for seg in page.segments %}
+      <div class="col-md-4">
+        <article class="segment-card h-100 rmc-reveal">
+          <h3 class="h6">{{ seg.title }}</h3>
+          <p class="mb-0 text-muted small">{{ seg.body }}</p>
+        </article>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <footer class="mkt-analytics-cta">
+    <a href="{% url 'marketing_demo' %}" class="btn btn-primary btn-lg">{% trans "Request demo" %}</a>
+    <a href="{% url 'marketing_platform' %}" class="btn btn-outline-light btn-lg">{% trans "Explore platform" %}</a>
+  </footer>
 </article>
 {% endblock %}

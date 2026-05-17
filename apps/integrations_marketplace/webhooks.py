@@ -306,7 +306,7 @@ def webhook_receiver(
         return JsonResponse(
             {"error": "unknown_connector", "slug": connector_slug}, status=404
         )
-    row = ServiceIntegration.objects.filter(
+    row = ServiceIntegration.objects.filter(  # tenant-isolation-allow: webhook entry-point keyed on PK + slug, school comes from row.school
         pk=integration_id, connector_slug__iexact=connector_slug, is_active=True
     ).first()
     if row is None:

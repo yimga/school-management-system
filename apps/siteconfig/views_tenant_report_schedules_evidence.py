@@ -6,6 +6,13 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from django.utils.translation import gettext as _
+
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
@@ -85,8 +92,12 @@ def tenant_report_schedules_evidence(request: HttpRequest) -> HttpResponse:
             "siteconfig:report_output_history_evidence"
         ),
     }
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/tenant_report_schedules_evidence.html",
+        "tenant_report_schedules_evidence",
         ctx,
+        cp_title=_("Report schedules"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Report schedules"), active=True),
+        ),
     )

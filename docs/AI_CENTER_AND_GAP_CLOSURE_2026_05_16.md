@@ -1,5 +1,7 @@
 # AI Center + master-prompt gap closeout — 2026-05-16 (v2.85)
 
+**FAQ:** [AI_SURFACES_FAQ.md](AI_SURFACES_FAQ.md) — AI Center vs gateway console vs API Center.
+
 Closes 4 of the 5 "genuinely not done" items from the v2.83 status report,
 plus the new platform-wide bug the user surfaced (broken / scattered AI
 assistant cards). Shipped end-to-end in one wave.

@@ -81,7 +81,7 @@ PHASE7_DASHBOARD_TEMPLATES: tuple[str, ...] = (
     "schools/super_wedge_index.html",
     "schools/super_wedge_operator_detail.html",
     "siteconfig/console_domains_hub.html",
-    "siteconfig/console_domains_hub_control_plane.html",
+    "siteconfig/partials/console_domains_hub_manager_body.html",
     "siteconfig/feature_control_panel.html",
     "siteconfig/dashboard_configuration_hub.html",
     "siteconfig/dashboard_hub.html",

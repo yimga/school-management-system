@@ -58,7 +58,12 @@ jobs:
           python manage.py migrate --noinput
           python manage.py ensure_superuser --password VisualQaPass123! --no-input || true
 
-      - name: Marketing visual truth Playwright
+      - name: Axe CI readiness
+        run: python scripts/verify_marketing_axe_ci_ready.py
+
+      - name: Marketing visual truth Playwright (axe enabled)
+        env:
+          SKIP_AXE: "0"
         run: bash scripts/run_marketing_visual_truth.sh
 
       - name: Upload artifacts

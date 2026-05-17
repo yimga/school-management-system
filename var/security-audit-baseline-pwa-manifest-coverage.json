@@ -1,0 +1,26 @@
+{
+  "exempt_marketing_shell": "templates/marketing/base_marketing.html",
+  "finding_count": 3,
+  "findings": [
+    {
+      "name": "backend",
+      "path": "templates/base.html"
+    },
+    {
+      "name": "control_plane",
+      "path": "templates/control_plane_skeleton.html"
+    },
+    {
+      "name": "admin",
+      "path": "templates/admin/base_site.html"
+    }
+  ],
+  "generated_at": "2026-05-17T19:15:23+00:00",
+  "rule": "each of 4 dashboard shells must emit <link rel=\"manifest\" href=\"...\">",
+  "shells_required": [
+    "portal",
+    "backend",
+    "control_plane",
+    "admin"
+  ]
+}

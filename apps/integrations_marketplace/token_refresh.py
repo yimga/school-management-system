@@ -258,9 +258,8 @@ def refresh_due_oauth_tokens(*, dry_run: bool = False) -> list[dict[str, Any]]:
     )
     out: list[dict[str, Any]] = []
     try:
-        # tenant-isolation-allow: sweeper walks every tenant's OAuth rows by design;
-        # the per-call refresh writes back only to that row's school.
-        qs = ServiceIntegration.objects.filter(is_active=True).exclude(connector_slug="")
+        # Sweeper walks every tenant's OAuth rows by design; per-call refresh writes back only to row.school.
+        qs = ServiceIntegration.objects.filter(is_active=True).exclude(connector_slug="")  # tenant-isolation-allow: cross-tenant sweeper, per-row writes only to row.school
         for row in qs.iterator():
             if not _is_due(row.config or {}):
                 out.append({"row_id": row.pk, "slug": row.connector_slug, "status": "not_due"})

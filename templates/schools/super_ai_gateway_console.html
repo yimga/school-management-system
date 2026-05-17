@@ -46,6 +46,12 @@ python scripts/verify_ollama_live.py --invoke</code></pre>
   <p class="small text-muted mb-2">
     {% trans "Each card POSTs JSON to the gateway (CSRF, same-origin). Staff-only and tenant-scoped rules apply per endpoint — see docs/AI_DOMAIN_ASSISTANT_REGISTRY.md." %}
   </p>
+  <div class="mb-3">
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-rmc-ai-gateway-test-all>
+      {% trans "Run all visible API cards" %}
+    </button>
+    <span class="text-muted small ms-2">{% trans "Runs each card in the open accordion sections (sequential)." %}</span>
+  </div>
   <div class="d-flex flex-wrap gap-2 mb-4" aria-label="{% trans 'Related control-plane surfaces' %}">
     <a href="{% url 'super:command_center' %}" class="btn btn-outline-secondary btn-sm">{% trans "Mission queues" %}</a>
     <a href="{% url 'super:trust_center' %}" class="btn btn-outline-secondary btn-sm">{% trans "Trust center" %}</a>

@@ -137,6 +137,7 @@ def oauth_authorize(request):
         return _oauth_error(
             "unsupported_response_type", "Only response_type=code is supported", 400
         )
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     app = DeveloperApplication.objects.filter(
         client_id=client_id, is_active=True
     ).first()

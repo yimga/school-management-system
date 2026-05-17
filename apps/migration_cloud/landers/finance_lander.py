@@ -64,7 +64,7 @@ class FinanceLander(Lander):
                     f"finance: missing student/reference/amount in {row!r}"
                 )
                 continue
-            student = StudentProfile.objects.filter(
+            student = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
                 **{student_lookup: external_id}
             ).first()
             if student is None:
@@ -88,7 +88,7 @@ class FinanceLander(Lander):
 
             if ctx.dry_run:
                 if ref_field:
-                    exists = Invoice.objects.filter(**{ref_field: reference}).exists()
+                    exists = Invoice.objects.filter(**{ref_field: reference}).exists()  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
                     if exists:
                         result.updated += 1
                     else:

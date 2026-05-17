@@ -1,5 +1,8 @@
 # SLO targets & observability (BR-01)
 
+> **CONSOLIDATED — read [OBSERVABILITY_SLO_CODE.md](OBSERVABILITY_SLO_CODE.md) first.**
+> Per the 2026-05-17 12-pillar audit (P10 doc-hygiene), SLO targets are code-defined in [`apps/observability/slo.py`](../apps/observability/slo.py) and verified via `scripts/verify_slo_registry.py --strict`. This BR-01 doc is retained for historical references.
+
 **Definition of done:** Documented p50/p99 targets, dashboard URL, settings keys, CI hook reference.
 
 ## Targets

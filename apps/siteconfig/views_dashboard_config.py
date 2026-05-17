@@ -8,14 +8,21 @@ Phase 4: Workflow hub and Dashboard hub — single tenant-facing entry points; a
 import logging
 
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.urls import reverse, NoReverseMatch
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 from django.db import DatabaseError
 from django.utils.translation import gettext as _
 
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_operator_page,
+    render_siteconfig_stem,
+)
+from apps.siteconfig.operator_school import redirect_missing_operator_school
 from apps.siteconfig.models_dashboard import DashboardTemplate, TenantLayoutAssignment
 from apps.siteconfig.models_workflow import WorkflowTemplate, TenantWorkflow
 
@@ -44,30 +51,37 @@ def dashboard_hub(request):
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(
-            request, "No school context. Switch to a school to manage dashboards."
+        return redirect_missing_operator_school(
+            request,
+            detail=_(
+                "No school context. Switch to a school to manage dashboards."
+            ),
         )
-        return redirect(reverse("accounts:backend_dashboard"))
     config_url = reverse("siteconfig:dashboard_configuration_hub")
     backend_url = reverse("accounts:backend_dashboard")
     assignment_count = TenantLayoutAssignment.objects.filter(school=school).count()
-    # §2e row 8 page maturity: studio_os page_header + data-page-archetype (CONTROL_PLANE §5.1)
-    return render(
+    ctx = {
+        "school": school,
+        "config_url": config_url,
+        "backend_url": backend_url,
+        "assignment_count": assignment_count,
+        "page_title": _("Configuration Center"),
+        "page_subtitle": _(
+            "Role dashboards and layout defaults for %(school_name)s — assign templates so each role lands on the right widgets."
+        )
+        % {"school_name": school.name},
+        "action_url": backend_url,
+        "action_text": _("Back to backend"),
+    }
+    return render_siteconfig_operator_page(
         request,
-        "siteconfig/dashboard_hub.html",
-        {
-            "school": school,
-            "config_url": config_url,
-            "backend_url": backend_url,
-            "assignment_count": assignment_count,
-            "page_title": _("Configuration Center"),
-            "page_subtitle": _(
-                "Role dashboards and layout defaults for %(school_name)s — assign templates so each role lands on the right widgets."
-            )
-            % {"school_name": school.name},
-            "action_url": backend_url,
-            "action_text": _("Back to backend"),
-        },
+        portal_template="siteconfig/dashboard_hub.html",
+        body_template="siteconfig/partials/dashboard_hub_body.html",
+        context=ctx,
+        cp_title=_("Dashboard hub"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Dashboard hub"), active=True),
+        ),
     )
 
 
@@ -84,8 +98,7 @@ def get_blueprints(request):
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "No school context.")
-        return redirect(reverse("accounts:backend_dashboard"))
+        return redirect_missing_operator_school(request)
     packs = []
     applied_pack = None
     pack_update_available = False
@@ -139,10 +152,11 @@ def get_blueprints(request):
     else:
         action_url = reverse("siteconfig:dashboard_hub")
         action_text = _("Back to dashboard")
-    return render(
+    return render_siteconfig_operator_page(
         request,
-        "siteconfig/get_blueprints.html",
-        {
+        portal_template="siteconfig/get_blueprints.html",
+        body_template="siteconfig/partials/get_blueprints_body.html",
+        context={
             "school": school,
             "packs": packs,
             "applied_pack": applied_pack,
@@ -157,6 +171,10 @@ def get_blueprints(request):
             "action_url": action_url,
             "action_text": action_text,
         },
+        cp_title=_("Blueprints & policy packs"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Blueprints & policy packs"), active=True),
+        ),
     )
 
 
@@ -172,11 +190,12 @@ def dashboard_configuration_hub(request):
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(
+        return redirect_missing_operator_school(
             request,
-            "No school context. Switch to a school to manage dashboard layouts.",
+            detail=_(
+                "No school context. Switch to a school to manage dashboard layouts."
+            ),
         )
-        return redirect(reverse("accounts:backend_dashboard"))
 
     templates = list(DashboardTemplate.objects.filter(is_active=True).order_by("name"))
     assignments = {
@@ -218,9 +237,9 @@ def dashboard_configuration_hub(request):
     ]
     dashboard_hub_url = reverse("siteconfig:dashboard_hub")
     # §2e row 8 page maturity: studio_os page_header + data-page-archetype (CONTROL_PLANE §5.1)
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/dashboard_configuration_hub.html",
+        "dashboard_configuration_hub",
         {
             "templates": templates,
             "assignments": assignments,
@@ -235,6 +254,11 @@ def dashboard_configuration_hub(request):
             "action_url": dashboard_hub_url,
             "action_text": _("Back to Configuration Center home"),
         },
+        cp_title=_("Dashboard configuration"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Dashboard hub"), url=dashboard_hub_url),
+            operator_cp_breadcrumb(_("Dashboard configuration"), active=True),
+        ),
     )
 
 
@@ -251,8 +275,7 @@ def workflow_flow_gallery(request):
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "No school context.")
-        return redirect(reverse("accounts:backend_dashboard"))
+        return redirect_missing_operator_school(request)
 
     if request.method == "POST":
         action = (request.POST.get("action") or "").strip()
@@ -307,10 +330,11 @@ def workflow_flow_gallery(request):
         action_url = reverse("studio_os:automation")
         action_text = _("Back to Workflow hub")
 
-    return render(
+    return render_siteconfig_operator_page(
         request,
-        "siteconfig/workflow_flow_gallery.html",
-        {
+        portal_template="siteconfig/workflow_flow_gallery.html",
+        body_template="siteconfig/partials/workflow_flow_gallery_body.html",
+        context={
             "templates": templates,
             "template_rows": template_rows,
             "school": school,
@@ -322,4 +346,8 @@ def workflow_flow_gallery(request):
             "action_url": action_url,
             "action_text": action_text,
         },
+        cp_title=_("Workflow flow gallery"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Workflow flow gallery"), active=True),
+        ),
     )

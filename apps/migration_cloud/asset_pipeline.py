@@ -83,7 +83,7 @@ def register_asset(
     """Register a pending asset for a row. Idempotent by (bundle, entity, legacy, kind, uri)."""
     if not source_uri or not legacy_id:
         return None
-    existing = MigrationAsset.objects.filter(
+    existing = MigrationAsset.objects.filter(  # tenant-isolation-allow: scoped via bundle FK (bundle.school)
         bundle=bundle,
         entity_kind=entity_kind,
         legacy_id=legacy_id,
@@ -108,8 +108,8 @@ def fetch_pending_assets(*, bundle_id: int, max_batch: int = 100) -> dict[str, i
     Streams each asset's bytes, computes SHA256 on the fly, and writes to
     MEDIA_ROOT. Returns a summary of counts (stored / failed / skipped).
     """
-    bundle = MigrationBundle.objects.get(pk=bundle_id)
-    pending = MigrationAsset.objects.filter(
+    bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal id from caller
+    pending = MigrationAsset.objects.filter(  # tenant-isolation-allow: scoped via bundle FK (bundle.school)
         bundle=bundle, status=AssetStatus.PENDING
     )[:max_batch]
     counts = {"stored": 0, "failed": 0, "skipped": 0}

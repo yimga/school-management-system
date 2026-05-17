@@ -284,7 +284,7 @@ def assign_positions_to_year(modeladmin, request, queryset):
     total_assigned = 0
 
     for year_id in years:
-        terms = Term.objects.filter(academic_year_id=year_id).order_by(
+        terms = Term.objects.filter(academic_year_id=year_id).order_by(  # tenant-isolation-allow: django-admin-action-scoped-by-FK (academic_year scopes the tenant via its school FK; this is a staff-only admin bulk action)
             "start_date", "id"
         )
         used_positions = set(
@@ -309,7 +309,7 @@ def assign_positions_to_year(modeladmin, request, queryset):
                 # Find next free position
                 pos = 1
                 while pos in set(
-                    Term.objects.filter(academic_year_id=year_id, position=pos).count()
+                    Term.objects.filter(academic_year_id=year_id, position=pos).count()  # tenant-isolation-allow: django-admin-action-scoped-by-FK (same FK-scoping as above)
                     for pos in range(1, 5)
                 ):
                     pos += 1

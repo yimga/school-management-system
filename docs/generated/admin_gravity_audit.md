@@ -1,14 +1,14 @@
 # Admin gravity audit (generated)
 
-**UTC** `2026-05-15T12:09:35.674024+00:00`
+**UTC** `2026-05-17T19:37:53.622827+00:00`  
 
 | Metric | Value |
 | --- | --- |
 | approx `admin.site.register` calls | 0 |
 | custom admin template files | 67 |
-| product files w/ admin bridge hints | 62 |
+| product files w/ admin bridge hints | 65 |
 | product files w/ `admin:metadata` references | 6 |
-| approx product `admin.` reference lines (non-migration) | 503 |
+| approx product `admin.` reference lines (non-migration) | 530 |
 | product views rendering `admin/*.html` | 0 |
 
 ## High-registration apps (3+ register calls, heuristic)
@@ -27,3 +27,4 @@ _None (threshold not met)._
 - **audit_rollback_staging_evidence** (rank 8, shipped) — Audit, rollback, staging evidence (feature audit + Control Studio; admin bridge fallback)
 - **admin_gravity_artifact_themes** (rank 9, shipped) — Admin gravity theme hints in generated JSON (roadmap/strict/CP map)
 - **metadata_dynamic_field_operator** (rank 10, shipped) — Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)
+

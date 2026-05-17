@@ -1,0 +1,201 @@
+{% load i18n static phase8_tags %}
+<div class="container py-3 cp-evidence-page" style="max-width: 52rem;" data-page-archetype="operational-workbench" data-decision-engine="surface" data-siteconfig-surface="tenant-runtime-hub" data-phase-b-surface="runtime-snapshot" data-shell-surface="tenant-runtime-configuration" data-cp-evidence-surface="tenant-runtime-config">
+  {% phase8_dashboard_declaration "siteconfig/tenant_runtime_configuration_hub.html" %}
+  <h1 class="h3 mb-2">{% trans "Tenant runtime configuration" %}</h1>
+  <p class="text-muted small mb-2">
+    {% trans "Read-only snapshot of effective settings, region, and enabled backend feature flag keys. Product links below; admin remains an escape hatch." %}
+    {% if guided_configuration_url %}
+    <a class="ms-1" href="{{ guided_configuration_url }}">{% trans "Open guided configuration workflows" %}</a>
+    {% endif %}
+  </p>
+  {% if school %}
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Effective fields" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_effective_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Region fields" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_region_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Flags on" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_flags_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Config slices" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_config_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Setup gaps" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ summary_missing_n|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-2 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 12rem; max-width: 18rem;" role="region" aria-label="{% trans 'Regional UI' %}" data-rmc-regional-ui-status="1">
+      <div class="text-uppercase text-muted mb-1" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Regional UI" %}</div>
+      <div class="fw-semibold text-body">
+        {% trans "Locale" %}: {{ rmc_locale|default:'en' }} · {% trans "Direction" %}: {{ rmc_text_direction|default:'ltr' }}
+      </div>
+      {% if region %}
+      <div class="text-muted mt-1" style="font-size:var(--type-size-eyebrow);">{% trans "Region profile" %}: {{ region_name }} · {% trans "Region code" %}: {{ region_code }}</div>
+      {% endif %}
+      {% if grading_scale %}
+      <div class="text-muted mt-1" style="font-size:var(--type-size-eyebrow);">{% trans "Terminology / grading context" %}: {{ grading_scale }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  <div class="alert alert-light border shadow-sm mb-3" role="region" aria-label="{% trans 'Where to change settings' %}">
+    <p class="small mb-0">
+      {% trans "This page is a read-only snapshot. For outcome-based configuration, staging, and audit links, use the Configuration Control Center; use Studio Control and Feature audit when changing behavior." %}
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="alert-link">{% trans "Open Configuration Control Center" %}</a>
+    </p>
+  </div>
+  <div class="ds-action-bar d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if school_group_hierarchy_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ school_group_hierarchy_url }}" data-rmc-school-hierarchy-link="1">{% trans "School group hierarchy" %}</a>
+    {% endif %}
+    {% if onboarding_checklist_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ onboarding_checklist_url }}" data-rmc-guided-workflow="onboarding-checklist">{% trans "School activation checklist" %}</a>
+    {% endif %}
+    {% if migration_wizard_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ migration_wizard_url }}" data-rmc-guided-workflow="csv-migration">{% trans "CSV migration wizard" %}</a>
+    {% endif %}
+    {% if studio_automation_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ studio_automation_url }}" data-rmc-workflow-builder-foundation="studio-automation">{% trans "Studio: workflows & automation" %}</a>
+    {% endif %}
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Configuration control center" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:feature_control_panel' %}">{% trans "Feature control" %}</a>
+    {% if scheduled_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if compliance_exports_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ compliance_exports_url }}">{% trans "Compliance exports" %}</a>
+    {% endif %}
+    {% if sync_center_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ sync_center_url }}">{% trans "Sync center" %}</a>
+    {% endif %}
+    {% if metadata_operator_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ metadata_operator_hub_url }}">{% trans "Metadata operator hub" %}</a>
+    {% endif %}
+    {% if report_output_history_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_output_history_evidence_url }}">{% trans "Report output history" %}</a>
+    {% endif %}
+    {% if billing_plan_readonly_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ billing_plan_readonly_url }}">{% trans "Plan & entitlements" %}</a>
+    {% endif %}
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:grading_scale_bands' %}">{% trans "Grading scale bands" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:curriculum_templates' %}">{% trans "Curriculum templates" %}</a>
+    {% if ai_governance_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ ai_governance_url }}">{% trans "AI governance" %}</a>
+    {% endif %}
+  </div>
+
+  {% if school %}
+  <p class="small text-muted mb-3"><strong>{% trans "Tenant" %}</strong>: {{ school.name }}</p>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4" data-rmc-guided-configuration-workflows="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Guided configuration workflows" %}</div>
+    <div class="card-body">
+      {% if guided_workflows %}
+      <div class="row g-2">
+        {% for workflow in guided_workflows %}
+        <div class="col-12 col-md-6">
+          <div class="border rounded-2 p-2 h-100">
+            <div class="d-flex justify-content-between gap-2 align-items-start">
+              <h2 class="h6 mb-1">{{ workflow.label }}</h2>
+              <span class="badge text-bg-light">{{ workflow.value_count }}</span>
+            </div>
+            <p class="small mb-1"><strong>{% trans "Current state" %}:</strong> {{ workflow.current_state }}</p>
+            {% if workflow.missing_setup %}
+            <div class="small mb-2">
+              <strong>{% trans "Missing setup" %}:</strong>
+              <ul class="mb-0 ps-3">
+                {% for missing in workflow.missing_setup %}
+                <li>{{ missing }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% else %}
+            <p class="small text-success mb-2">{% trans "No setup gaps detected." %}</p>
+            {% endif %}
+            <p class="small mb-2"><strong>{% trans "Recommended next step" %}:</strong> {{ workflow.recommended_next_step }}</p>
+            {% if workflow.safe_fix_url %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ workflow.safe_fix_url }}">{{ workflow.safe_fix_label }}</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0">{% trans "No guided workflows available." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Effective settings (safe fields)" %}</div>
+    <div class="card-body">
+      {% if effective_rows %}
+      <dl class="row small mb-0">
+        {% for key, val in effective_rows %}
+        <dt class="col-sm-4 text-muted">{{ key }}</dt>
+        <dd class="col-sm-8"><code>{{ val }}</code></dd>
+        {% endfor %}
+      </dl>
+      {% else %}
+      <p class="text-muted small mb-0">{% trans "No effective settings resolved for this request." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if region_rows %}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Region" %}</div>
+    <div class="card-body">
+      <dl class="row small mb-0">
+        {% for key, val in region_rows %}
+        <dt class="col-sm-4 text-muted">{{ key }}</dt>
+        <dd class="col-sm-8"><code>{{ val }}</code></dd>
+        {% endfor %}
+      </dl>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Backend feature flags (enabled keys)" %}</div>
+    <div class="card-body">
+      {% if flags_on %}
+      <ul class="small mb-0">
+        {% for k in flags_on %}
+        <li><code>{{ k }}</code></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted small mb-0">{% trans "None enabled in the merged effective payload (or not a dict)." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light fw-semibold">{% trans "Product configuration links" %}</div>
+    <div class="card-body">
+      <ul class="mb-0">
+        <li><a href="{{ console_url }}">{% trans "Configuration Control Center (domains & outcomes)" %}</a></li>
+        <li><a href="{{ feature_control_url }}">{% trans "Feature control" %}</a></li>
+        <li><a href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a></li>
+        <li><a href="{{ school_theme_url }}">{% trans "School theme" %}</a></li>
+        <li><a href="{{ user_preferences_url }}">{% trans "User preferences" %}</a></li>
+      </ul>
+    </div>
+  </div>
+
+  {% if admin_sitesettings_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">
+    <p class="small text-muted mb-0">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ admin_sitesettings_url }}">{% trans "Advanced/Admin: Site Settings in tenant admin" %}</a>
+    </p>
+  </div>
+  {% endif %}
+</div>

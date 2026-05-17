@@ -7,7 +7,7 @@
 }
 
 .verify-invalid {
-  color: #dc3545;
+  color: #dc3545; /* off-token-allow: hex-literal-decorative */
 }
 
 .badge-verify-icon {

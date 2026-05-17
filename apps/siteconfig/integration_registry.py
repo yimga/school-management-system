@@ -239,6 +239,7 @@ def backfill_service_integrations_from_legacy(
     Create/update ServiceIntegration records from legacy Integration rows.
     """
     qs = (
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         Integration.objects.filter(enabled=True)
         .exclude(school__isnull=True)
         .select_related("school")

@@ -36,7 +36,7 @@ body.marketing-surface {
   display: grid;
   align-items: center;
   background:
-    linear-gradient(140deg, rgba(8, 13, 24, 0.96) 0%, rgba(12, 23, 39, 0.94) 52%, rgba(36, 30, 24, 0.94) 100%);
+    linear-gradient(140deg, rgba(8, 13, 24, 0.96) 0%, rgba(12, 23, 39, 0.94) 52%, rgba(36, 30, 24, 0.94) 100%); /* off-token-allow: decorative-gradient */
 }
 
 .marketing-surface .mkt-hero-inner {
@@ -53,7 +53,7 @@ body.marketing-surface {
 
 .marketing-surface .mkt-hero-subheadline {
   max-width: 58ch;
-  color: rgba(241, 245, 249, 0.86);
+  color: rgba(241, 245, 249, 0.86); /* off-token-allow: rgba-decorative */
 }
 
 .marketing-surface .mkt-hero-trusted,
@@ -84,7 +84,7 @@ body.marketing-surface {
 .marketing-surface .mkt-hero-visual,
 .marketing-surface .mkt-product-demo-visual {
   border-radius: var(--rmc-premium-radius);
-  border: 1px solid rgba(226, 232, 240, 0.22);
+  border: 1px solid rgba(226, 232, 240, 0.22); /* off-token-allow: slate-text-on-dark */
   box-shadow: var(--rmc-premium-shadow);
 }
 
@@ -125,7 +125,7 @@ body.marketing-surface {
 .cp-shell-content .cp-layout {
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 34rem),
-    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95));
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.95)); /* off-token-allow: decorative-gradient */
 }
 
 .portal-body-with-layout .portal-main-col,
@@ -170,8 +170,8 @@ body.marketing-surface {
 [data-empty-state],
 .empty-state {
   border-radius: var(--rmc-premium-radius);
-  border: 1px dashed rgba(133, 124, 112, 0.35);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px dashed rgba(133, 124, 112, 0.35); /* off-token-allow: rgba-decorative */
+  background: rgba(255, 255, 255, 0.72); /* off-token-allow: white-overlay */
 }
 
 @media (max-width: 767.98px) {

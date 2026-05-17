@@ -59,3 +59,27 @@ def is_positive(value):
         return float(value) > 0
     except (ValueError, TypeError):
         return False
+
+
+@register.filter(name="attr")
+def attr(obj, name):
+    """Read an attribute or dict key by name, including names Django templates can't access directly.
+
+    Django blocks ``obj._foo`` (leading underscore) and ``obj.foo-bar`` (dash) in templates.
+    This filter routes around both by using ``getattr`` and dict lookup.
+
+    Usage:
+      {{ badge|attr:"_evidence_report_term_id" }}
+      {{ counts|attr:"in-flight" }}
+
+    Returns empty string when the attribute / key is missing so templates degrade
+    cleanly rather than KeyError-ing at render time.
+    """
+    if obj is None:
+        return ""
+    try:
+        if isinstance(obj, dict):
+            return obj.get(name, "")
+        return getattr(obj, name, "")
+    except Exception:  # noqa: BLE001 — template filter must never raise
+        return ""

@@ -1,6 +1,9 @@
 # N24 — Observability, runbooks, and on-call (execution map)
 
-**Purpose:** Single index for operators implementing N24 (RUNMYCAMPUS §0.1.5). Full “metrics everywhere + 24/7 NOC” remains **ops**-dependent; this doc ties **repo truth** to **runbooks**.
+> **CONSOLIDATED — read [OBSERVABILITY.md](OBSERVABILITY.md) + [operations/INCIDENT_RUNBOOK.md](operations/INCIDENT_RUNBOOK.md) first.**
+> Per the 2026-05-17 12-pillar audit (P10 doc-hygiene), foundational observability lives in `OBSERVABILITY.md` and on-call / incident response lives in [`operations/INCIDENT_RUNBOOK.md`](operations/INCIDENT_RUNBOOK.md) (SOT batch 1213). This N24 doc is retained as a §0.1.5 execution-map index.
+
+**Purpose:** Single index for operators implementing N24 (RUNMYCAMPUS §0.1.5). Full "metrics everywhere + 24/7 NOC" remains **ops**-dependent; this doc ties **repo truth** to **runbooks**.
 
 ## In-product / API
 

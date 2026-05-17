@@ -53,8 +53,19 @@ module.exports = {
     assert: {
       assertions: {
         "categories:performance": [perfLevel, { minScore: perfMin }],
+        // 12-pillar audit P1 — Core Web Vitals "good" thresholds per web.dev.
+        // LCP good = 2500ms; the existing 4000/3500 budget stays as the warn
+        // threshold via lcpMax, and the strict tightening kicks in under
+        // LHCI_STRICT_N10=1 (production gate).
         "largest-contentful-paint": [perfLevel, { maxNumericValue: lcpMax }],
-        "cumulative-layout-shift": [perfLevel, { maxNumericValue: 0.15 }],
+        // CLS good = 0.1; tightening from 0.15 to 0.1 was the audit ask.
+        "cumulative-layout-shift": [perfLevel, { maxNumericValue: 0.1 }],
+        // INP good = 200ms. Lighthouse 10+ audit id.
+        "interaction-to-next-paint": [perfLevel, { maxNumericValue: 200 }],
+        // First Contentful Paint good = 1800ms.
+        "first-contentful-paint": [perfLevel, { maxNumericValue: 1800 }],
+        // Total Blocking Time good = 200ms (proxy for INP on lab runs).
+        "total-blocking-time": [perfLevel, { maxNumericValue: 200 }],
       },
     },
     upload: {

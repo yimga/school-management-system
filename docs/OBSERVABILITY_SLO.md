@@ -1,5 +1,8 @@
 # Observability and SLO for Platform Health
 
+> **CONSOLIDATED — read [OBSERVABILITY.md](OBSERVABILITY.md) + [OBSERVABILITY_SLO_CODE.md](OBSERVABILITY_SLO_CODE.md) first.**
+> Per the 2026-05-17 12-pillar audit (P10 doc-hygiene), the canonical pair for SLO + observability content is `OBSERVABILITY.md` (foundation / debugging / on-call) and `OBSERVABILITY_SLO_CODE.md` (SLO code SOT pointing to [`apps/observability/slo.py`](../apps/observability/slo.py)). This file is retained for historical references; new SLO targets and dashboard prose belong in the canonical pair.
+
 **Purpose:** Single place for platform operators to find SLO dashboards, health checks, and runbooks.
 
 ---

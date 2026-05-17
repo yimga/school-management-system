@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import os
 import uuid
-
 from unittest.mock import patch
 
 from django.test import Client, TestCase, override_settings
@@ -14,7 +14,7 @@ from apps.accounts.models import Permission, User
 from apps.people.models import TeacherProfile
 from apps.siteconfig.ai_assistants import assistant_keys, get_assistant
 from apps.siteconfig.models import Plan
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 _T_HOST = "aicenter.runmycampus.com"
 
@@ -22,6 +22,19 @@ _T_HOST = "aicenter.runmycampus.com"
 @override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST])
 class AICenterPageTests(TestCase):
     databases = {"default"}
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._cp_roles_patch = patch.dict(
+            os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"}, clear=False
+        )
+        cls._cp_roles_patch.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._cp_roles_patch.stop()
+        super().tearDownClass()
 
     @classmethod
     def setUpTestData(cls):
@@ -38,14 +51,20 @@ class AICenterPageTests(TestCase):
             defaults={"name": "Manage settings"},
         )
 
-    def _staff_user(self):
+    def _staff_user(self, *, role=User.Role.ADMIN):
         u = User.objects.create_user(
             username=f"ai_center_{uuid.uuid4().hex[:8]}",
             password="x" * 8,
-            role=User.Role.ADMIN,
+            role=role,
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.create(
+            user=u,
+            school=self.school,
+            role=str(role),
+            is_primary=True,
+        )
         TeacherProfile.objects.create(
             user=u, school=self.school, staff_id=f"AC{uuid.uuid4().hex[:4].upper()}"
         )
@@ -54,11 +73,12 @@ class AICenterPageTests(TestCase):
         )
         return u
 
-    def _staff_client(self):
-        u = self._staff_user()
+    def _staff_client(self, **user_kwargs):
+        u = self._staff_user(**user_kwargs)
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username=u.username, password="x" * 8)
         session = c.session
+        session["school_id"] = str(self.school.id)
         session["mfa_verified"] = True
         session.save()
         return c, u
@@ -83,6 +103,7 @@ class AICenterPageTests(TestCase):
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("AI Center", body)
         self.assertIn("data-rmc-ai-center", body)
+        self.assertIn("data-rmc-ai-transcript", body)
         self.assertIn("data-rmc-ai-health-root", body)
         self.assertIn("api/ai/health/", body)
         self.assertIn("data-rmc-ai-browser-offline", body)
@@ -144,3 +165,33 @@ class AICenterPageTests(TestCase):
         self.assertTrue(payload.get("success"))
         summary = (payload.get("guided") or {}).get("summary") or ""
         self.assertGreater(len(summary), 40, summary)
+
+
+_MGR_HOST = "manager.runmycampus.com"
+
+
+@override_settings(
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _MGR_HOST],
+    ROOT_URLCONF="config.manager_urls",
+)
+class AICenterManagerControlPlaneTests(TestCase):
+    databases = {"default"}
+
+    def test_manager_ai_center_uses_control_plane_shell(self):
+        u = User.objects.create_user(
+            username="mgr_ai_center",
+            password="x" * 8,
+            is_staff=True,
+            is_superuser=True,
+        )
+        c = Client(HTTP_HOST=_MGR_HOST)
+        c.login(username=u.username, password="x" * 8)
+        path = reverse("siteconfig:ai_center", urlconf="config.manager_urls")
+        self.assertIn("/siteconfig/ai-center/", path)
+        resp = c.get(path)
+        self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:500])
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-os-shell="control-plane"', body)
+        self.assertIn('id="cp-main-content"', body)
+        self.assertIn("data-rmc-ai-center", body)
+        self.assertNotIn("Hreflang: emits per-locale", body)

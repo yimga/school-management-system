@@ -11,6 +11,7 @@ from config.admin import register_tenant_admin
 from .models import (
     TeacherProfile,
     InformationTag,
+    StudentNote,
     StudentProfile,
     StudentGuardian,
     StudentResourceReturn,
@@ -337,7 +338,7 @@ class StudentProfileAdmin(ModelAdmin):
                     school_id=school_id, is_active=True
                 ).order_by("sort_order", "name")
             else:
-                kwargs["queryset"] = InformationTag.objects.filter(
+                kwargs["queryset"] = InformationTag.objects.filter(  # tenant-isolation-allow: django-admin-fallback (when no school context is resolved in admin, superuser sees all tenants ordered by school FK -- staff-only formfield_for_manytomany)
                     is_active=True
                 ).order_by("school", "sort_order", "name")
         return super().formfield_for_manytomany(db_field, request, **kwargs)
@@ -860,3 +861,14 @@ class SpecialEducationPlanAdmin(ModelAdmin):
 
 
 register_tenant_admin(SpecialEducationPlan, SpecialEducationPlanAdmin)
+
+
+class StudentNoteAdmin(ModelAdmin):
+    list_display = ("title", "kind", "student", "school", "author", "created_at")
+    list_filter = ("kind", "school")
+    search_fields = ("title", "body", "student__first_name", "student__last_name")
+    raw_id_fields = ("school", "student", "author")
+    ordering = ("-created_at",)
+
+
+register_tenant_admin(StudentNote, StudentNoteAdmin)

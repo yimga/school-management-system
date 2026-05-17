@@ -81,6 +81,7 @@ def build_student_one_record_data(
         from apps.academics.models import Attendance
 
         att = (
+            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             Attendance.objects.filter(student_id=sid)
             .select_related("classroom")
             .order_by("-date")

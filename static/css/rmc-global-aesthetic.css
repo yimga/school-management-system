@@ -86,7 +86,7 @@
 
 .card-header:not(.card-unstyled .card-header) {
   border-bottom: var(--rmc-card-border);
-  background: rgba(26, 22, 18, 0.02);
+  background: rgba(26, 22, 18, 0.02); /* off-token-allow: always-dark-warm-bg */
   font-weight: 600;
   letter-spacing: -0.005em;
 }
@@ -96,7 +96,7 @@
 }
 
 .card-footer {
-  background: rgba(26, 22, 18, 0.02);
+  background: rgba(26, 22, 18, 0.02); /* off-token-allow: always-dark-warm-bg */
   border-top: var(--rmc-card-border);
 }
 
@@ -135,7 +135,7 @@
   font-size: var(--type-size-micro);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(26, 22, 18, 0.55);
+  color: rgba(26, 22, 18, 0.55); /* off-token-allow: always-dark-warm-bg */
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
@@ -186,7 +186,7 @@ main > * + *,
 }
 
 .table > thead {
-  background: rgba(26, 22, 18, 0.03);
+  background: rgba(26, 22, 18, 0.03); /* off-token-allow: always-dark-warm-bg */
 }
 
 .table > thead th {
@@ -200,7 +200,7 @@ main > * + *,
 }
 
 .table > tbody > tr:hover > * {
-  background: rgba(79, 70, 229, 0.03);
+  background: rgba(79, 70, 229, 0.03); /* off-token-allow: indigo-accent-overlay */
 }
 
 .table caption {
@@ -214,7 +214,7 @@ main > * + *,
 
 .form-control,
 .form-select {
-  border-color: rgba(26, 22, 18, 0.15);
+  border-color: rgba(26, 22, 18, 0.15); /* off-token-allow: always-dark-warm-bg */
   border-radius: 8px;
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
@@ -258,8 +258,8 @@ main > * + *,
 
 .badge.text-bg-secondary,
 .badge.bg-secondary {
-  background: rgba(26, 22, 18, 0.08) !important;
-  color: rgba(26, 22, 18, 0.75) !important;
+  background: rgba(26, 22, 18, 0.08) !important; /* off-token-allow: always-dark-warm-bg */
+  color: rgba(26, 22, 18, 0.75) !important; /* off-token-allow: always-dark-warm-bg */
 }
 
 /* === 10. Breadcrumb polish ============================================= */

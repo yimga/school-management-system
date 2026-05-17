@@ -1,0 +1,88 @@
+name: Marketing visual snapshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: "Set true to regenerate PNG baselines"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+  pull_request:
+    branches: [main]
+    paths:
+      - "templates/marketing/**"
+      - "static/marketing/**"
+      - "tests/e2e/marketing-snapshots.spec.js"
+      - "tests/e2e/marketing-snapshots.spec.js-snapshots/**"
+      - "scripts/run_marketing_snapshots.sh"
+      - ".github/workflows/marketing-snapshots.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  snapshots:
+    name: Marketing snapshot compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SECRET_KEY: "ci-marketing-snapshots-not-production-64chars________________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      VISUAL_QA_PORT: "8012"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: beta/school-management-system/requirements.txt
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: beta/school-management-system/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Scaffold gate
+        run: python scripts/verify_marketing_snapshots_scaffold.py
+
+      - name: Migrate
+        run: python manage.py migrate --noinput
+
+      - name: Run snapshot suite
+        env:
+          UPDATE_SNAPSHOTS: ${{ github.event.inputs.update_snapshots == 'true' && '1' || '0' }}
+        run: bash scripts/run_marketing_snapshots.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marketing-snapshots
+          path: |
+            artifacts/marketing-snapshots
+            test-results
+            tests/e2e/marketing-snapshots.spec.js-snapshots
+          if-no-files-found: ignore

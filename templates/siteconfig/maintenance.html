@@ -1,56 +1,7 @@
-{% load i18n %}<!doctype html>
-{% comment %}
-Standalone — must render when the full base templates can't render.
-Self-contained Apple-tier polish, no external CSS dependency.
-{% endcomment %}
-<html lang="{{ LANGUAGE_CODE|default:'en' }}">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#c47f1c">
-  <title>{% trans "Maintenance" %} · RunMyCampus</title>
-  <style>
-    /* v2.44 — warm-bright self-contained styling. */
-    html, body { margin: 0; padding: 0; background: #fdf9f2; color: #2a241e;
-                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
-                 line-height: 1.6; min-height: 100vh;
-                 display: grid; place-items: center; text-align: center; }
-    main { max-width: 32rem; padding: 2rem 1.5rem; }
-    .icon { display: inline-grid; place-items: center; width: 64px; height: 64px;
-            border-radius: 999px; background: rgba(196, 127, 28, 0.14);
-            color: #c47f1c; margin: 0 0 1.5rem; }
-    h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.012em;
-         margin: 0 0 1rem; color: #2a241e; }
-    p { color: #544d44; margin: 0 0 1.5rem; font-size: 1.1rem; }
-    button { display: inline-flex; align-items: center; gap: 0.5em; min-height: 44px;
-             padding: 0.625rem 1.5rem; border-radius: 14px;
-             background: #c47f1c; color: #fff; border: 1px solid #c47f1c;
-             font: inherit; font-weight: 500; cursor: pointer;
-             transition: transform 140ms ease; }
-    button:hover { transform: translateY(-1px); }
-    @media (prefers-color-scheme: dark) {
-      html, body { background: #1a1612; color: #f5efe3; }
-      .icon { background: rgba(230, 160, 82, 0.20); color: #e6a052; }
-      h1 { color: #f5efe3; }
-      p { color: #d9d0c2; }
-      button { background: #e6a052; color: #1a1612; border-color: #e6a052; }
-    }
-  </style>
-</head>
-<body>
-  <main role="main">
-    <div class="icon" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.121 2.121 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-      </svg>
-    </div>
-    <h1>{% trans "We'll be right back." %}</h1>
-    <p>{% trans "RunMyCampus is undergoing scheduled maintenance. Your data is safe — please check back in a few minutes." %}</p>
-    <button type="button" onclick="window.location.reload()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      {% trans "Try again" %}
-    </button>
-  </main>
-</body>
-</html>
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block page_archetype %}maintenance-preview{% endblock %}
+{% block title %}{% trans "Maintenance preview" %}{% endblock %}
+{% block content %}
+{% include "siteconfig/partials/maintenance_body.html" %}
+{% endblock %}

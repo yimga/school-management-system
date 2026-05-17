@@ -1,0 +1,101 @@
+{% load static %}
+{% load i18n accounts_extras %}
+<div class="container py-3" data-page-archetype="operational-workbench">
+  {% trans "Back to dashboard" as back_action %}
+  {% trans "My settings" as prefs_eyebrow %}
+  {% include "studio_os/components/page_header.html" with eyebrow=prefs_eyebrow title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      {% trans "Personalize your portal." as prefs_banner_title %}
+      {% blocktrans trimmed asvar prefs_banner_body %}These settings only change what you see (theme, widgets, notifications). Full Site Settings stay locked to Admins.{% endblocktrans %}
+      {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
+        {% url 'siteconfig:console_domains_hub' as prefs_banner_action_url %}
+        {% trans "Config center" as prefs_banner_action_label %}
+        {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body chrome_banner_action_url=prefs_banner_action_url chrome_banner_action_label=prefs_banner_action_label %}
+      {% else %}
+        {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body %}
+      {% endif %}
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h1 class="h6 mb-0">Settings</h1>
+          <p class="text-muted small mb-0">Theme, timezone, dashboard view, and refresh options.</p>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate id="user-preferences-form">
+            {% csrf_token %}
+
+            {% if form.dashboard_visual_preset %}
+            <div class="mb-3 p-3 border rounded-3 bg-light-subtle">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <label class="form-label fw-semibold mb-1" for="{{ form.dashboard_visual_preset.id_for_label }}">
+                    {{ form.dashboard_visual_preset.label }}
+                  </label>
+                  <div class="small text-muted">
+                    Applied to your current role:
+                    <strong>{{ request.user.get_role_display|default:request.user.role|default:"User" }}</strong>
+                  </div>
+                </div>
+              </div>
+              {{ form.dashboard_visual_preset }}
+              {% if form.dashboard_visual_preset.help_text %}
+                <div class="form-text">{{ form.dashboard_visual_preset.help_text }}</div>
+              {% endif %}
+              {% if form.dashboard_visual_preset.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.dashboard_visual_preset.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            {% for field in form %}
+              {% if field.name != "dashboard_visual_preset" %}
+              {% if field.field.widget.input_type == "checkbox" %}
+                <div class="form-check mb-3">
+                  {{ field }}
+                  <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+              {% endif %}
+            {% endfor %}
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button type="submit" class="btn btn-primary" id="preferences-submit-btn">Save preferences</button>
+              <a class="btn btn-outline-secondary btn-back-primary" href="{{ previous_page }}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
+              {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
+                <a class="btn btn-outline-secondary" href="{% url 'siteconfig:console_domains_hub' %}">
+                  {% trans "Config center" %}
+                </a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="{% static 'js/_pages/siteconfig__user_preferences.js' %}"></script>

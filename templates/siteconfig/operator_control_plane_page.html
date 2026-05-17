@@ -1,0 +1,53 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static region_format %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+{% endblock %}
+
+{% block title %}{{ operator_cp_title|default:"RunMyCampus Manager" }} — RunMyCampus Manager{% endblock %}
+
+{% block cp_title %}{{ operator_cp_title }} — RunMyCampus Manager{% endblock %}
+
+{% block cp_page_archetype %}{{ operator_cp_page_archetype|default:"decision-console" }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+{% if operator_cp_meta_description or operator_cp_title %}
+<meta name="description" content="{{ operator_cp_meta_description|default:operator_cp_title|truncatewords:28 }}">
+{% endif %}
+{% if operator_cp_title %}
+<meta property="og:title" content="{{ operator_cp_title }} — RunMyCampus Manager">
+<meta name="twitter:title" content="{{ operator_cp_title }} — RunMyCampus Manager">
+{% endif %}
+{% if operator_cp_meta_description %}
+<meta property="og:description" content="{{ operator_cp_meta_description|truncatewords:30 }}">
+<meta name="twitter:description" content="{{ operator_cp_meta_description|truncatewords:30 }}">
+{% endif %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block cp_workspace_header %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0 flex-wrap">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% for crumb in operator_cp_breadcrumbs %}
+      {% if crumb.active or not crumb.url %}
+        <li class="breadcrumb-item active" aria-current="page">{{ crumb.label }}</li>
+      {% else %}
+        <li class="breadcrumb-item"><a href="{{ crumb.url }}">{{ crumb.label }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<section class="operator-siteconfig-cp-body" data-shell-surface="siteconfig-operator" aria-label="{{ operator_cp_title }}">
+  {% include operator_cp_body_template %}
+</section>
+{% endblock %}

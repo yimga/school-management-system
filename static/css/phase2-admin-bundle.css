@@ -52,7 +52,7 @@ body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important;
   .cp-admin-index .cp-hero-copy { font-size: var(--type-size-caption); color: var(--cp-muted, rgba(255,255,255,0.6)); margin-bottom: 1rem; }
   .cp-admin-app-list { list-style: none; padding: 0; margin: 0; }
   .cp-admin-app-list li { border: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); border-radius: 0.5rem; margin-bottom: 0.5rem; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; }
-  .cp-admin-app-list li:hover { background: rgba(255,255,255,0.04); }
+  .cp-admin-app-list li:hover { background: rgba(255,255,255,0.04); /* off-token-allow: white-overlay */ }
   .cp-admin-app-list a { color: inherit; text-decoration: none; }
   .cp-admin-app-list .app-models { font-size: var(--type-size-caption); color: var(--cp-muted); margin-top: 0.25rem; }
 
@@ -271,27 +271,27 @@ body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important;
     .submit-row button[type="submit"]:not(.default),
     .submit-row input[type="submit"][name="_continue"] {
       background: transparent !important;
-      border: 2px solid rgba(168, 160, 146, 0.5) !important;
+      border: 2px solid rgba(168, 160, 146, 0.5) !important; /* off-token-allow: warm-neutral-overlay */
       color: var(--admin-content-text, var(--color-base-900)) !important;
     }
     
     .submit-row input[type="submit"]:not(.default):hover,
     .submit-row button[type="submit"]:not(.default):hover {
-      background: rgba(168, 160, 146, 0.1) !important;
-      border-color: rgba(168, 160, 146, 0.7) !important;
+      background: rgba(168, 160, 146, 0.1) !important; /* off-token-allow: warm-neutral-overlay */
+      border-color: rgba(168, 160, 146, 0.7) !important; /* off-token-allow: warm-neutral-overlay */
     }
     
     /* Back button styling */
     .submit-row .submit-row-back {
       background: transparent !important;
-      border: 2px solid rgba(168, 160, 146, 0.5) !important;
+      border: 2px solid rgba(168, 160, 146, 0.5) !important; /* off-token-allow: warm-neutral-overlay */
       color: var(--admin-content-text, var(--color-base-900)) !important;
       margin-right: auto !important;
     }
     
     .submit-row .submit-row-back:hover {
-      background: rgba(168, 160, 146, 0.1) !important;
-      border-color: rgba(168, 160, 146, 0.7) !important;
+      background: rgba(168, 160, 146, 0.1) !important; /* off-token-allow: warm-neutral-overlay */
+      border-color: rgba(168, 160, 146, 0.7) !important; /* off-token-allow: warm-neutral-overlay */
     }
 
     /* ALL TOGGLES: Red when OFF, Green when ON - explicit hex so visible in all themes */

@@ -24,7 +24,21 @@ from django.views.decorators.cache import never_cache
 from apps.platform_runtime.helpers import get_platform_defaults
 from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
 from apps.schools.models import School, SignupVerification
+from apps.schools.onboarding_vendors import (
+    DOMAINS_BY_SLUG,
+    ONBOARDING_DATA_DOMAINS,
+    ONBOARDING_VENDORS,
+    VENDORS_BY_SLUG,
+    estimate_minutes,
+    resolve_vendor,
+)
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+# v3.17 (2026-05-17): public onboarding gained a Migration step.
+# Order: 1 Region/type → 2 Plan/look → 3 Migration → 4 Review → signup.
+ONBOARDING_TOTAL_STEPS = 4
+ONBOARDING_STEP_MIGRATION = 3
+ONBOARDING_STEP_REVIEW = 4
 
 try:
     from django_ratelimit.decorators import ratelimit
@@ -208,6 +222,19 @@ def signup_school(request: HttpRequest):
                 "site_name": request.session.get("onboarding_import_site_name"),
                 "primary_color": request.session.get("onboarding_import_primary_color"),
                 "logo_url": request.session.get("onboarding_import_logo_url"),
+            }
+        # v3.17 (2026-05-17): carry the Migration step intent into school.settings
+        # so verify_signup can route the new admin to the handoff page after
+        # magic-link activation. None means "skip / set up later" — verify_signup
+        # falls back to the normal dashboard redirect in that case.
+        migrate_vendor = (request.session.get("onboarding_migrate_vendor") or "").strip()
+        if migrate_vendor:
+            rmc_ob["migration"] = {
+                "vendor_slug": migrate_vendor,
+                "profile_slug": request.session.get("onboarding_migrate_profile"),
+                "source_system": request.session.get("onboarding_migrate_source_system"),
+                "domains": request.session.get("onboarding_migrate_domains") or [],
+                "started_from": "public_onboarding",
             }
         school_settings["rmc_public_onboarding"] = rmc_ob
     country_defaults = GlobalGeoCatalog.country_defaults(country_code)
@@ -460,8 +487,11 @@ def onboarding_wizard(request: HttpRequest):
         or request.POST.get("step")
         or str(session.get("onboarding_step", 1))
     )
+    # v3.17 (2026-05-17): Migration step inserted as step 3. Review becomes
+    # step 4. The expansion is bounded by ONBOARDING_TOTAL_STEPS so the
+    # progress indicator and the back-button affordances stay in sync.
     try:
-        step = max(1, min(3, int(step_raw)))
+        step = max(1, min(ONBOARDING_TOTAL_STEPS, int(step_raw)))
     except (TypeError, ValueError):
         step = 1
 
@@ -519,10 +549,41 @@ def onboarding_wizard(request: HttpRequest):
             session["onboarding_pack_slug"] = (
                 request.POST.get("pack_slug") or ""
             ).strip() or None
-            session["onboarding_step"] = 3
+            session["onboarding_step"] = ONBOARDING_STEP_MIGRATION
             session.modified = True
-            return redirect(reverse("onboard_wizard") + "?step=3")
-        if step == 3:
+            return redirect(
+                reverse("onboard_wizard") + f"?step={ONBOARDING_STEP_MIGRATION}"
+            )
+        if step == ONBOARDING_STEP_MIGRATION:
+            # v3.17: Migration step. User picks a vendor (or "spreadsheet"
+            # for CSV/Excel/other) OR clicks "set up later". The intent
+            # persists in session and is carried into school.settings via
+            # signup_school so verify_signup can route to the handoff page
+            # after magic-link activation.
+            skip = request.POST.get("skip_migration") in ("1", "true", "on")
+            chosen_slug = (request.POST.get("vendor_slug") or "").strip().lower()
+            chosen = resolve_vendor(chosen_slug) if chosen_slug else None
+            if skip or not chosen:
+                session["onboarding_migrate_vendor"] = None
+                session["onboarding_migrate_profile"] = None
+                session["onboarding_migrate_source_system"] = None
+                session["onboarding_migrate_domains"] = []
+            else:
+                session["onboarding_migrate_vendor"] = chosen.slug
+                session["onboarding_migrate_profile"] = chosen.profile_slug
+                session["onboarding_migrate_source_system"] = chosen.source_system
+                # Default to the all-quick + standard domains pre-checked
+                # (matches OnboardingDataDomain.default_on); the handoff page
+                # lets the operator toggle individuals.
+                session["onboarding_migrate_domains"] = [
+                    d.slug for d in ONBOARDING_DATA_DOMAINS if d.default_on
+                ]
+            session["onboarding_step"] = ONBOARDING_STEP_REVIEW
+            session.modified = True
+            return redirect(
+                reverse("onboard_wizard") + f"?step={ONBOARDING_STEP_REVIEW}"
+            )
+        if step == ONBOARDING_STEP_REVIEW:
             # Pass 7: sample-data toggle — persist the choice and forward to the
             # signup form (which carries it into school.settings.rmc_public_onboarding).
             session["onboarding_sample_data"] = request.POST.get("sample_data") in (
@@ -546,7 +607,7 @@ def onboarding_wizard(request: HttpRequest):
         )
 
     _maybe_emit_onboarding_start(request, session)
-    if step == 3 and session.get("onboarding_country_code"):
+    if step == ONBOARDING_STEP_REVIEW and session.get("onboarding_country_code"):
         _maybe_emit_onboarding_complete(request, session)
 
     countries = GlobalGeoCatalog.list_countries()
@@ -561,11 +622,23 @@ def onboarding_wizard(request: HttpRequest):
     if cid:
         signup_url += f"?ob={str(cid)[:12]}"
 
+    # v3.17 (2026-05-17): vendor + step-indicator context for the migration step.
+    selected_vendor_slug = session.get("onboarding_migrate_vendor")
+    selected_vendor = resolve_vendor(selected_vendor_slug) if selected_vendor_slug else None
+    wizard_steps = [
+        {"id": 1, "label": "Region"},
+        {"id": 2, "label": "Plan"},
+        {"id": ONBOARDING_STEP_MIGRATION, "label": "Migration"},
+        {"id": ONBOARDING_STEP_REVIEW, "label": "Review"},
+    ]
+
     return render(
         request,
         "schools/onboard_wizard.html",
         {
             "step": step,
+            "wizard_steps": wizard_steps,
+            "wizard_total_steps": ONBOARDING_TOTAL_STEPS,
             "trial_endpoint": reverse("api_trial_school"),
             "signup_url": signup_url,
             "countries": countries[:120],
@@ -589,6 +662,11 @@ def onboarding_wizard(request: HttpRequest):
             "onboarding_import_logo_url": session.get("onboarding_import_logo_url"),
             "onboarding_import_site_name": session.get("onboarding_import_site_name"),
             "onboarding_correlation_id": session.get("onboarding_correlation_id"),
+            # v3.17 migration-step context
+            "vendors": ONBOARDING_VENDORS,
+            "selected_vendor": selected_vendor,
+            "selected_vendor_slug": selected_vendor_slug,
+            "data_domains": ONBOARDING_DATA_DOMAINS,
         },
     )
 
@@ -621,6 +699,7 @@ def verify_signup(request: HttpRequest):
         )
 
     verification = (
+        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         SignupVerification.objects.filter(
             token=token_uuid,
             verified_at__isnull=True,
@@ -677,6 +756,18 @@ def verify_signup(request: HttpRequest):
             admin_user = None
 
     if admin_user is not None and admin_user.is_active:
+        # v3.17 (2026-05-17): if the new admin asked to migrate from another
+        # platform during onboarding, route them to the handoff page before
+        # the dashboard so they land in Migration Cloud with their vendor +
+        # data-domain selection pre-bound. Dashboard remains the fallback.
+        migration_intent = ((school.settings or {}).get("rmc_public_onboarding") or {}).get(
+            "migration"
+        )
+        if migration_intent and migration_intent.get("vendor_slug"):
+            try:
+                return redirect(reverse("onboard_migration_handoff"))
+            except NoReverseMatch:
+                pass  # fall through to dashboard
         for url_name in ("studio_os:launch", "accounts:backend_dashboard"):
             try:
                 return redirect(reverse(url_name))
@@ -858,3 +949,191 @@ def brand_import_api(request: HttpRequest):
     return JsonResponse(
         {k: v for k, v in result.items() if k != "error" and v is not None}
     )
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# v3.17 (2026-05-17) — Migration handoff after magic-link verification.
+#
+# Two views:
+#   onboard_migration_handoff (GET)     → render the handoff page
+#   onboard_migration_start    (POST)   → create MigrationBundle, jump to MC
+#
+# Triggered by verify_signup when school.settings.rmc_public_onboarding.migration
+# was set in the public wizard. The handoff page reads the same source-of-truth
+# so the operator can adjust their domain selection before kicking off, but the
+# rule is: ONE click should be enough to start migration from this page.
+# ───────────────────────────────────────────────────────────────────────────
+
+
+def _school_for_authenticated_admin(request: HttpRequest):
+    """Locate the school whose signup just completed for the current user.
+
+    Order of resolution:
+      1. ``request.school`` (multi-tenant middleware sets this when present).
+      2. A School whose creator/admin matches request.user (covers self-service
+         signup before tenant DNS is configured — common on day 0).
+      3. The user's owned schools, most-recent first.
+    Returns None if no plausible match exists.
+    """
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school
+    user = getattr(request, "user", None)
+    if not getattr(user, "is_authenticated", False):
+        return None
+    # Match by signup verification email — the magic-link recipient is the
+    # admin we just activated. SignupVerification stores email + school FK.
+    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
+    sv = (
+        SignupVerification.objects.filter(email__iexact=user.email)
+        .select_related("school")
+        .order_by("-created_at")
+        .first()
+    )
+    return sv.school if sv else None
+
+
+@require_GET
+def onboard_migration_handoff(request: HttpRequest):
+    """Post-verification migration handoff page.
+
+    Shows the vendor confirmation chip + the data-domain checklist + one-click
+    "Start migration" CTA. Operators arriving here picked a vendor during the
+    public onboarding wizard. If they didn't (or settings got cleared), we
+    fall back to a generic "Pick a vendor" tile grid — the same one the
+    wizard step 3 uses — so this page is always usable as a standalone
+    surface (e.g. linked from a dashboard "complete your setup" banner).
+    """
+    user = getattr(request, "user", None)
+    if not getattr(user, "is_authenticated", False):
+        login_url = (settings.LOGIN_URL or "/authentication/login/").lstrip("/")
+        return redirect(
+            f"/{login_url}?next={reverse('onboard_migration_handoff')}"
+        )
+
+    school = _school_for_authenticated_admin(request)
+    intent = {}
+    if school is not None:
+        intent = ((school.settings or {}).get("rmc_public_onboarding") or {}).get(
+            "migration"
+        ) or {}
+
+    selected_vendor_slug = (intent.get("vendor_slug") or "").strip().lower()
+    selected_vendor = resolve_vendor(selected_vendor_slug) if selected_vendor_slug else None
+    selected_domain_slugs = set(intent.get("domains") or [])
+    if not selected_domain_slugs:
+        # First-time landings (or "set up later" fallbacks) pre-check the
+        # default-on subset so the operator sees a sensible starting state.
+        selected_domain_slugs = {d.slug for d in ONBOARDING_DATA_DOMAINS if d.default_on}
+
+    minutes_total = estimate_minutes(list(selected_domain_slugs))
+
+    return render(
+        request,
+        "schools/onboard_migration_handoff.html",
+        {
+            "school": school,
+            "selected_vendor": selected_vendor,
+            "selected_vendor_slug": selected_vendor_slug,
+            "vendors": ONBOARDING_VENDORS,
+            "data_domains": ONBOARDING_DATA_DOMAINS,
+            "selected_domain_slugs": selected_domain_slugs,
+            "minutes_total": minutes_total,
+            "dashboard_url": (
+                reverse("accounts:backend_dashboard")
+                if _url_exists("accounts:backend_dashboard")
+                else "/"
+            ),
+        },
+    )
+
+
+def _url_exists(name: str) -> bool:
+    """Reverse-with-fallback so handoff degrades cleanly if a target route is missing."""
+    try:
+        reverse(name)
+        return True
+    except NoReverseMatch:
+        return False
+
+
+@require_POST
+def onboard_migration_start(request: HttpRequest):
+    """One-click bundle creation from the handoff page.
+
+    Reads vendor + domain selection from POST, persists the final selection
+    onto school.settings (so re-landings show the operator's adjusted state),
+    and deep-links into the Migration Cloud intake wizard with everything
+    pre-filled via query string. The intake view honours vendor / school_id
+    / source_hint / profile parameters added in this wave.
+
+    Why we don't directly create a MigrationBundle here:
+      - The intake wizard is the SOT for bundle creation (intake_method
+        validation, idempotency keys, artifact upload, AI plan kickoff).
+        Going through it preserves that contract instead of forking it.
+      - Deep-linking with pre-filled params gives the operator one final
+        confirmation point — important for trust on the first migration.
+    """
+    user = getattr(request, "user", None)
+    if not getattr(user, "is_authenticated", False):
+        return redirect(reverse("onboard_migration_handoff"))
+
+    school = _school_for_authenticated_admin(request)
+    vendor_slug = (request.POST.get("vendor_slug") or "").strip().lower()
+    vendor = resolve_vendor(vendor_slug) if vendor_slug else None
+    domain_slugs = [
+        s for s in request.POST.getlist("domains") if s in DOMAINS_BY_SLUG
+    ]
+
+    # Persist the operator's final selection so a return visit shows it.
+    if school is not None and vendor is not None:
+        school_settings = dict(school.settings or {})
+        rmc_ob = dict(school_settings.get("rmc_public_onboarding") or {})
+        rmc_ob["migration"] = {
+            "vendor_slug": vendor.slug,
+            "profile_slug": vendor.profile_slug,
+            "source_system": vendor.source_system,
+            "domains": domain_slugs,
+            "started_from": "onboarding_handoff",
+            "started_at": timezone.now().isoformat(),
+        }
+        school_settings["rmc_public_onboarding"] = rmc_ob
+        school.settings = school_settings
+        school.save(update_fields=["settings", "updated_at"])
+
+    # Skip-for-now button → land on dashboard.
+    if request.POST.get("skip") in ("1", "true", "on") or vendor is None:
+        try:
+            return redirect(reverse("accounts:backend_dashboard"))
+        except NoReverseMatch:
+            return redirect("/")
+
+    # Deep-link into Migration Cloud intake with everything pre-bound.
+    try:
+        intake_url = reverse("migration_cloud_super:bundle_new")
+    except NoReverseMatch:
+        try:
+            intake_url = reverse("migration_cloud_portal:bundle_new")
+        except NoReverseMatch:
+            # Fall back to the operator dashboard if MC isn't routed in
+            # this deployment (defensive — MC ships with the platform).
+            try:
+                return redirect(reverse("accounts:backend_dashboard"))
+            except NoReverseMatch:
+                return redirect("/")
+
+    # Build the pre-fill query string.
+    from urllib.parse import urlencode
+
+    qs = {
+        "vendor": vendor.slug,
+        "source_hint": vendor.source_system,
+    }
+    if vendor.profile_slug:
+        qs["profile"] = vendor.profile_slug
+    if school is not None and getattr(school, "id", None):
+        qs["school_id"] = str(school.id)
+    if domain_slugs:
+        qs["domains"] = ",".join(domain_slugs)
+
+    return redirect(f"{intake_url}?{urlencode(qs)}")

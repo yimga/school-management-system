@@ -727,15 +727,22 @@ class TenantMiddleware(MiddlewareMixin):
         # Resolve school from host (subdomain/custom domain) or from session when not on base domain
         try:
             school = _resolve_school_from_request(request)
-            if (
-                school is None
-                and request.session.get("school_id")
-                and (not _is_base_domain(host, base_domain) or is_local_dev_host(host))
-            ):
-                school = School.objects.filter(
-                    id=request.session["school_id"],
-                    is_active=True,
-                ).first()
+            if school is None and request.session.get("school_id"):
+                host_kind = getattr(request, "public_host_kind", None) or public_host_kind(
+                    host
+                )
+                normalized_host = (host or "").strip().lower()
+                allow_session_school = (
+                    not _is_base_domain(host, base_domain)
+                    or is_local_dev_host(host)
+                    or host_kind == "manager"
+                    or normalized_host.startswith("manager.")
+                )
+                if allow_session_school:
+                    school = School.objects.filter(
+                        id=request.session["school_id"],
+                        is_active=True,
+                    ).first()
         except (AttributeError, DatabaseError, KeyError, TypeError, ValueError) as e:
             logger.warning("Tenant resolution failed: %s", e, exc_info=True)
             school = None

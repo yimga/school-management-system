@@ -18,12 +18,12 @@
 }
 
 .topbar .btn-outline-light {
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.5); /* off-token-allow: white-overlay */
   color: var(--header-brand-fg) !important;
 }
 
 .topbar .btn-outline-light:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2); /* off-token-allow: white-overlay */
   color: var(--header-brand-fg) !important;
 }
 
@@ -102,12 +102,12 @@ body.portal-backend-snow #nav-sidebar .admin-sidebar-footer,
 body.portal-backend-cream #nav-sidebar .admin-sidebar-footer,
 body.portal-backend-lavender #nav-sidebar .admin-sidebar-footer {
   background: var(--admin-sidebar-surface, #241e18) !important;
-  color: #1a1612 !important;
+  color: #1a1612 !important; /* off-token-allow: hex-literal-decorative */
 }
 body.portal-backend-light #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-sand #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-snow #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-cream #nav-sidebar .admin-sidebar-footer a,
 body.portal-backend-lavender #nav-sidebar .admin-sidebar-footer a {
-  color: #1a1612 !important;
+  color: #1a1612 !important; /* off-token-allow: hex-literal-decorative */
 }

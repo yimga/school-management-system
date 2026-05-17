@@ -235,6 +235,7 @@ def on_student_critical_tag_added(sender, instance, action, pk_set, **kwargs):
     from django.contrib.contenttypes.models import ContentType
 
     critical_tags = list(
+        # tenant-isolation-allow: signal-handler-scoped-via-instance-school-fk
         InformationTag.objects.filter(pk__in=pk_set, is_critical=True).values_list(
             "name", flat=True
         )

@@ -12,7 +12,13 @@ from typing import Any
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.utils.translation import gettext as _
+
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_operator_page,
+)
 from django.urls import NoReverseMatch, reverse
 
 from apps.siteconfig.control_outcome_center import (
@@ -353,11 +359,6 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
     domains = _build_console_domains_context(request)
     operational_hubs = _build_operational_hubs_context(request)
     studio_shell_url = _safe_reverse("studio_os:shell")
-    template = (
-        "siteconfig/console_domains_hub_control_plane.html"
-        if getattr(request, "public_host_kind", None) == "manager"
-        else "siteconfig/console_domains_hub.html"
-    )
     school = getattr(request, "school", None)
     ccc_onboarding = None
     if school is not None:
@@ -395,23 +396,29 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         "ccc_outcome_compact": getattr(request, "public_host_kind", None) != "manager",
         "ccc_onboarding": ccc_onboarding,
     }
-    if template == "siteconfig/console_domains_hub_control_plane.html":
-        try:
-            context["super_dashboard_url"] = reverse("super:dashboard")
-        except NoReverseMatch:
-            context["super_dashboard_url"] = None
-        try:
-            context["platform_operator_hub_url"] = reverse(
-                "super:platform_operator_hub"
-            )
-        except NoReverseMatch:
-            context["platform_operator_hub_url"] = None
-        context["platform_config"] = _build_platform_config_context(request)
-        context["operational_links"] = _build_operational_links_context(request)
-        try:
-            context["admin_index_url"] = reverse("admin:index")
-        except NoReverseMatch:
-            context["admin_index_url"] = None
-    else:
-        context["compact"] = True
-    return render(request, template, context)
+    try:
+        context["super_dashboard_url"] = reverse("super:dashboard")
+    except NoReverseMatch:
+        context["super_dashboard_url"] = None
+    try:
+        context["platform_operator_hub_url"] = reverse("super:platform_operator_hub")
+    except NoReverseMatch:
+        context["platform_operator_hub_url"] = None
+    context["platform_config"] = _build_platform_config_context(request)
+    context["operational_links"] = _build_operational_links_context(request)
+    try:
+        context["admin_index_url"] = reverse("admin:index")
+    except NoReverseMatch:
+        context["admin_index_url"] = None
+    context["compact"] = getattr(request, "public_host_kind", None) != "manager"
+    return render_siteconfig_operator_page(
+        request,
+        portal_template="siteconfig/console_domains_hub.html",
+        body_template="siteconfig/partials/console_domains_hub_body.html",
+        manager_body_template="siteconfig/partials/console_domains_hub_manager_body.html",
+        context=context,
+        cp_title=_("Configuration Control Center"),
+        breadcrumbs=[
+            operator_cp_breadcrumb(_("Configuration Control Center"), active=True),
+        ],
+    )

@@ -42,6 +42,7 @@ def get_repaired_rows(
     school=None, domain: str = None, migration_run=None
 ) -> list[dict]:
     """Return list of repaired row payloads (resolution_payload or payload) for replay."""
+    # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     qs = MigrationQuarantineRecord.objects.filter(
         status=MigrationQuarantineRecord.Status.REPAIRED
     )

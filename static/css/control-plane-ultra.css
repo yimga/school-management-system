@@ -154,7 +154,7 @@ body.control-plane-shell .admin-login-hero .hero-logo {
   width: 52px;
   height: 52px;
   border-radius: var(--rmc-lit-840a8131b3);
-  background: linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.08));
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.08)); /* off-token-allow: decorative-gradient */
   border: 1px solid var(--cp-ultra-border-strong);
   display: grid;
   place-items: center;
@@ -209,7 +209,7 @@ body.control-plane-shell .admin-login-card::before {
   inset: 0;
   border-radius: var(--rmc-lit-2a07851a9d);
   padding: var(--rmc-lit-4baf8f49ed);
-  background: linear-gradient(160deg, rgba(16, 185, 129, 0.15), transparent 40%, transparent 70%, rgba(16, 185, 129, 0.05));
+  background: linear-gradient(160deg, rgba(16, 185, 129, 0.15), transparent 40%, transparent 70%, rgba(16, 185, 129, 0.05)); /* off-token-allow: decorative-gradient */
   -webkit-mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0);
   mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0);
   -webkit-mask-composite: xor;
@@ -233,7 +233,7 @@ body.control-plane-shell .admin-login-card h2 {
 body.control-plane-shell .manager-login-card .form-control,
 body.control-plane-shell .admin-login-card .form-control {
   border-radius: var(--rmc-lit-cc76ee6d59);
-  background: rgba(26, 22, 18, 0.6);
+  background: rgba(26, 22, 18, 0.6); /* off-token-allow: always-dark-warm-bg */
   border: 1px solid var(--cp-ultra-border);
   color: var(--cp-ultra-text);
   padding: var(--rmc-lit-d1f559869e);
@@ -245,7 +245,7 @@ body.control-plane-shell .manager-login-card .form-control:focus,
 body.control-plane-shell .admin-login-card .form-control:focus {
   border-color: var(--cp-ultra-gold);
   box-shadow: var(--rmc-lit-c092dd4476);
-  background: rgba(26, 22, 18, 0.8);
+  background: rgba(26, 22, 18, 0.8); /* off-token-allow: always-dark-warm-bg */
 }
 
 body.control-plane-shell .manager-login-card .form-control:focus-visible,
@@ -259,7 +259,7 @@ body.control-plane-shell .admin-login-card .btn-primary {
   padding: var(--rmc-lit-47f460520a);
   font-weight: 600;
   background: linear-gradient(180deg, var(--cp-gold-600) 0%, var(--cp-ultra-gold) 50%, var(--cp-gold-700) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.5);
+  border: 1px solid rgba(16, 185, 129, 0.5); /* off-token-allow: success-emerald-overlay */
   color: var(--cp-ink-deep);
   box-shadow: var(--rmc-lit-62bdb7f2e6);
   transition: transform var(--cp-ultra-transition), box-shadow var(--cp-ultra-transition), filter var(--cp-ultra-transition);
@@ -349,7 +349,7 @@ body.control-plane-shell #nav-sidebar,
 
 #nav-sidebar .admin-sidebar-link:hover,
 #nav-sidebar .admin-sidebar-model-link:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   color: var(--cp-ultra-gold-dim) !important;
 }
 
@@ -391,7 +391,7 @@ body.control-plane-shell #nav-sidebar,
 }
 
 .cp-sidebar-nav .nav-link:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   color: var(--cp-ultra-gold-dim);
 }
 
@@ -491,7 +491,7 @@ body.control-plane-shell #nav-sidebar,
 .cp-navbar .form-control-sm {
   border-radius: var(--rmc-lit-cc76ee6d59);
   border: 1px solid var(--cp-ultra-border);
-  background: rgba(26, 22, 18, 0.6);
+  background: rgba(26, 22, 18, 0.6); /* off-token-allow: always-dark-warm-bg */
   color: var(--cp-ultra-text);
 }
 
@@ -510,7 +510,7 @@ body.control-plane-shell #nav-sidebar,
 .cp-navbar .btn-outline-light:hover {
   border-color: var(--cp-ultra-gold);
   color: var(--cp-ultra-gold);
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(16, 185, 129, 0.08); /* off-token-allow: success-emerald-overlay */
 }
 
 .cp-navbar .btn-outline-light.active {
@@ -550,7 +550,7 @@ body.control-plane-shell #nav-sidebar,
 
 .cp-navbar .dropdown-item:hover,
 .cp-navbar .dropdown-item:focus {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
 }
 
 .cp-navbar .dropdown-item:focus-visible {
@@ -627,7 +627,7 @@ body.control-plane-shell #nav-sidebar,
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent); /* off-token-allow: decorative-gradient */
   opacity: 0;
   transition: opacity var(--cp-ultra-transition);
 }
@@ -636,7 +636,7 @@ body.control-plane-shell #nav-sidebar,
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--rmc-lit-8ba273c033);
-  background: linear-gradient(145deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05)); /* off-token-allow: decorative-gradient */
   border: 1px solid var(--cp-ultra-border-strong);
   display: inline-flex;
   align-items: center;
@@ -662,7 +662,7 @@ body.control-plane-shell #nav-sidebar,
 
 .cp-admin-index .cp-primary-action {
   background: linear-gradient(180deg, var(--cp-gold-600) 0%, var(--cp-ultra-gold) 50%, var(--cp-gold-700) 100%) !important;
-  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+  border: 1px solid rgba(16, 185, 129, 0.5) !important; /* off-token-allow: success-emerald-overlay */
   color: var(--cp-ink-deep) !important;
   font-weight: 600;
   box-shadow: var(--rmc-lit-62bdb7f2e6);

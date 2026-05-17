@@ -34,7 +34,7 @@ def advance_bundle_task(self, bundle_id: int, use_accelerator: bool = True) -> d
     except Exception as exc:  # noqa: BLE001 — never crash the worker
         logger.exception("advance_bundle_task: bundle %s failed", bundle_id)
         try:
-            bundle = MigrationBundle.objects.get(pk=bundle_id)
+            bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal task arg
             bundle.mark_status(
                 BundleStatus.FAILED,
                 summary_patch={

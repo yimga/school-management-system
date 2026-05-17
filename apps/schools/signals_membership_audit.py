@@ -16,6 +16,7 @@ def _membership_capture_old_role(sender, instance, **kwargs):
         setattr(instance, "_audit_prev_role", None)
         return
     try:
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         prev = SchoolMembership.objects.filter(pk=instance.pk).values_list(
             "role", flat=True
         ).first()

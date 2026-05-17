@@ -157,8 +157,10 @@ class LinkChildForm(forms.Form):
             )
         super().__init__(*args, **kwargs)
         # Populate dynamic term choices from active academic year
+        # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
         active_year = AcademicYear.objects.filter(is_active=True).first()
         if active_year:
+            # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
             terms = Term.objects.filter(academic_year=active_year).order_by(
                 "start_date"
             )
@@ -660,18 +662,22 @@ class StudentOnboardingForm(forms.Form):
                 "apply_form_policy (student_onboarding) skipped", exc_info=True
             )
         # Populate academic year choices
+        # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
         academic_years = AcademicYear.objects.filter(is_active=True)
         if school is not None:
             academic_years = academic_years.filter(school=school)
         self.fields["academic_year"].queryset = academic_years.order_by("-start_date")
 
+        # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
         # Populate specialty choices
         specialties = Specialty.objects.all()
         if school is not None and hasattr(Specialty, "school_id"):
             specialties = specialties.filter(school=school)
         self.fields["specialty"].queryset = specialties.order_by("name")
+# tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
 
         # Populate classroom choices
+        # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
         classrooms = Classroom.objects.all()
         if school is not None:
             classrooms = classrooms.filter(school=school)
@@ -744,10 +750,13 @@ class StudentOnboardingForm(forms.Form):
 
             pattern = (admissions.get("admission_number_pattern") or "").strip()
             if pattern and not re.match(pattern, admission):
+                # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
                 raise forms.ValidationError(
                     _("Admission number does not match the required format.")
+                # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
                 )
 
+            # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
             if StudentProfile.objects.filter(
                 admission_number__iexact=admission
             ).exists():

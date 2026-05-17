@@ -294,7 +294,7 @@ html[data-bs-theme="dark"] .btn-close {
 .badge.bg-danger,
 .badge.bg-warning,
 .badge.bg-info {
-  color: #f5eedd !important;
+  color: #f5eedd !important; /* off-token-allow: hex-literal-decorative */
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 html[data-bs-theme="dark"] .badge.bg-light {

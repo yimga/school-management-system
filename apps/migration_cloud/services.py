@@ -180,6 +180,7 @@ class BundleIngestionService:
 
     def _get_or_create_bundle(self, spec: BundleSpec) -> MigrationBundle:
         key = spec.idempotency_key or _new_idempotency_key()
+        # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
         existing = MigrationBundle.objects.filter(idempotency_key=key).first()
         if existing is not None:
             return existing

@@ -103,7 +103,25 @@ html[data-rmc-admin-shell="1"] .change-list .empty {
 /* Manager index — control-plane hero card */
 html[data-surface="control-plane"] .cp-admin-index {
   padding: 1.5rem;
-  max-width: 64rem;
+  max-width: none;
+  width: 100%;
+}
+
+/* Manager platform backoffice: full-width changelist/content (parity with /super/) */
+body.admin-manager-shell #content.container,
+body.admin-manager-shell #content > .container,
+body.admin-manager-shell #main .container.mx-auto {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+body.admin-manager-shell #content {
+  max-width: none !important;
+}
+
+body.admin-manager-shell .cp-admin-index {
+  max-width: none !important;
+  width: 100%;
 }
 
 html[data-surface="control-plane"] .cp-admin-index .cp-hero,
@@ -113,6 +131,17 @@ html[data-surface="control-plane"] .admin-index-hero {
   background: var(--surface-elevated, var(--color-base-800));
   padding: 1.75rem 2rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--elev-2, 0 4px 16px rgba(0, 0, 0, 0.08));
+}
+
+html[data-surface="control-plane"] .cp-admin-shortcut-card {
+  border: 1px solid var(--hairline, var(--color-base-200));
+  background: var(--surface-elevated, var(--color-base-800));
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+html[data-surface="control-plane"] .cp-admin-shortcut-card:hover {
+  border-color: var(--brand-success, #22c55e);
   box-shadow: var(--elev-2, 0 4px 16px rgba(0, 0, 0, 0.08));
 }
 

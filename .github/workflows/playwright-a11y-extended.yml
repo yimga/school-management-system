@@ -1,0 +1,123 @@
+name: Playwright a11y extended (RTL + 400% zoom)
+
+# 12-pillar audit P2/P11 follow-up — runs the two specs shipped in
+# batch 1258:
+#   * tests/e2e/marketing-rtl.spec.js     — ar locale dir=rtl, no overflow
+#   * tests/e2e/zoom-400-matrix.spec.js   — WCAG 1.4.10 reflow at 320×256
+#
+# Mirrors the boot pattern from .github/workflows/marketing-visual-truth.yml:
+# spin up a Django runserver on a known port + host, then point Playwright
+# at it via BASE_URL. Workflow_dispatch + path-targeted PR trigger to
+# avoid running on every unrelated change.
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "templates/marketing/**"
+      - "templates/marketing/base_marketing.html"
+      - "static/marketing/**"
+      - "static/css/**"
+      - "static/js/theme-preference-bootstrap.js"
+      - "locale/ar/**"
+      - "apps/schools/marketing_views.py"
+      - "apps/portal/templates/**"
+      - "tests/e2e/marketing-rtl.spec.js"
+      - "tests/e2e/zoom-400-matrix.spec.js"
+      - ".github/workflows/playwright-a11y-extended.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  rtl-and-zoom:
+    name: RTL flip + 400% reflow Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SECRET_KEY: "ci-playwright-a11y-extended-not-production-64chars__________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      DEBUG: "0"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      VISUAL_QA_PORT: "8011"
+      BASE_URL: "http://runmycampus.com:8011"
+      MARKETING_BASE_URL: "http://runmycampus.com:8011"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: beta/school-management-system/requirements.txt
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: beta/school-management-system/package-lock.json
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Node deps
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Migrate test DB + seed superuser + compile i18n
+        run: |
+          python manage.py migrate --noinput
+          python manage.py ensure_superuser --password A11yPass123! --no-input || true
+          # Ensure ar locale .mo files are compiled so RTL switch returns ar HTML.
+          python manage.py sync_i18n_catalog --compile || true
+
+      - name: Map runmycampus.com to 127.0.0.1
+        run: |
+          # The marketing surface's URL conf is host-scoped; add a hosts entry
+          # so the Playwright HTTP client can hit `runmycampus.com` locally.
+          sudo bash -c "echo '127.0.0.1 runmycampus.com' >> /etc/hosts"
+
+      - name: Start Django runserver
+        run: |
+          mkdir -p artifacts/playwright-a11y-extended
+          nohup python manage.py runserver "0.0.0.0:${VISUAL_QA_PORT}" --noreload \
+            > artifacts/playwright-a11y-extended/runserver.log 2>&1 &
+          # Poll readiness up to 60s.
+          for i in $(seq 1 30); do
+            curl --silent --fail "http://127.0.0.1:${VISUAL_QA_PORT}/healthz/" \
+              && break || sleep 2
+          done
+
+      - name: Run RTL spec
+        run: |
+          npx playwright test tests/e2e/marketing-rtl.spec.js \
+            --reporter=list
+
+      - name: Run 400% zoom matrix
+        run: |
+          npx playwright test tests/e2e/zoom-400-matrix.spec.js \
+            --reporter=list
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-a11y-extended-artifacts
+          path: |
+            beta/school-management-system/artifacts/playwright-a11y-extended
+            beta/school-management-system/test-results
+            beta/school-management-system/playwright-report
+          if-no-files-found: ignore

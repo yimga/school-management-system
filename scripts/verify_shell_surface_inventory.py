@@ -200,9 +200,13 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "data-siteconfig-surface=",
     ),
     "templates/siteconfig/region_grading_scales_matrix.html": (
+        "portal_base.html",
+        "partials/region_grading_scales_matrix_body.html",
+    ),
+    "templates/siteconfig/partials/region_grading_scales_matrix_body.html": (
         "data-shell-surface=",
         "data-page-archetype=",
-        "control_plane_base.html",
+        "region-grading-matrix",
     ),
     "templates/siteconfig/grading_scale_bands.html": (
         "data-shell-surface=",
@@ -218,14 +222,30 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "backend_base.html",
     ),
     "templates/siteconfig/region_validation_dashboard.html": (
+        "portal_base.html",
+        "partials/region_validation_dashboard_body.html",
+    ),
+    "templates/siteconfig/partials/region_validation_dashboard_body.html": (
         "data-shell-surface=",
         "data-page-archetype=",
-        "control_plane_base.html",
+        "region-validation-dashboard",
     ),
     "templates/siteconfig/region_comparison.html": (
+        "portal_base.html",
+        "partials/region_comparison_body.html",
+    ),
+    "templates/siteconfig/partials/region_comparison_body.html": (
         "data-shell-surface=",
         "data-page-archetype=",
-        "control_plane_base.html",
+        "region-comparison-matrix",
+    ),
+    "templates/siteconfig/maintenance.html": (
+        "portal_base.html",
+        "partials/maintenance_body.html",
+    ),
+    "templates/siteconfig/partials/maintenance_body.html": (
+        "data-shell-surface=",
+        "maintenance-preview",
     ),
     "templates/siteconfig/entity_catalog_overview.html": (
         "data-shell-surface=",

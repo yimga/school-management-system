@@ -1,57 +1,8 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Blueprints" %}{% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Blueprints" %}</h1>
-<div class="container-fluid py-4 professional-page" data-page-archetype="catalog">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <p class="text-muted small mb-3"><a href="{% url 'siteconfig:dashboard_hub' %}">{% trans "Dashboard hub" %}</a> · <a href="{% url 'studio_os:automation' %}">{% trans "Workflow hub" %}</a>.</p>
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-4">
-      {% if applied_pack %}
-        <p class="mb-3"><strong>Current pack:</strong> {{ applied_pack.name }} ({{ applied_pack.slug }}) — v{{ applied_pack.version }}</p>
-        {% if pack_update_available and manager_blueprints_url %}
-          <p class="mb-3 text-warning"><strong>Newer version available.</strong> Your platform administrator can update your pack from the <a href="{{ manager_blueprints_url }}" target="_blank" rel="noopener noreferrer">Blueprint marketplace</a>.</p>
-          <p class="mb-0"><a href="{% url 'portal:support_request' %}" class="btn btn-sm btn-outline-primary">Request update</a></p>
-        {% endif %}
-      {% endif %}
-
-      {% if platform_catalog_preview.rows %}
-        <h3 class="h6 mt-4">{% trans "Platform pack catalog (reference)" %}</h3>
-        {% if not platform_catalog_preview.catalog_ok %}
-        <p class="small text-warning mb-2">{% trans "Catalog validation warnings; confirm with platform operations." %}</p>
-        {% endif %}
-        <p class="text-muted small mb-2">{% trans "Read-only manifests for workflow, dashboard, and theme packs (same registry surfaced in Studio)." %}</p>
-        <ul class="list-group list-group-flush mb-3">
-          {% for row in platform_catalog_preview.rows %}
-          <li class="list-group-item small">
-            <span class="badge bg-light text-dark border me-2">{{ row._catalog_section }}</span>
-            <strong>{{ row.pack_key }}</strong>
-            <span class="text-muted">· {% trans "modules" %}: {{ row.modules|join:", " }}</span>
-            <span class="text-muted">· v{{ row.version }}</span>
-          </li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-      {% if packs %}
-        <p class="text-muted small mb-2">Available packs (catalog). To request or change a pack, contact your platform administrator.</p>
-        <ul class="list-group list-group-flush">
-          {% for p in packs %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>{{ p.name }} <span class="text-muted">({{ p.category }})</span></span>
-              <span class="badge bg-secondary">v{{ p.version }}</span>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-muted mb-2">Blueprint packs are managed by your platform administrator. To request a pack or see what's available, contact your platform admin.</p>
-        {% if manager_blueprints_url %}
-          <p class="mb-0">Platform staff can manage blueprints at the <a href="{{ manager_blueprints_url }}" target="_blank" rel="noopener noreferrer">Blueprint marketplace</a>.</p>
-        {% endif %}
-      {% endif %}
-    </div>
-  </div>
-</div>
+{% include "siteconfig/partials/get_blueprints_body.html" %}
 {% endblock %}

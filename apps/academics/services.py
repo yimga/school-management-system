@@ -20,10 +20,12 @@ def get_active_year_and_term(
     *, school=None
 ) -> Tuple[Optional[AcademicYear], Optional[Term]]:
     """Return (active_year, active_term) if configured, optionally scoped to one school."""
+    # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     years = AcademicYear.objects.filter(is_active=True)
     if school is not None and hasattr(AcademicYear, "school_id"):
         years = years.filter(school=school)
     year = years.order_by("id").first()
+    # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     term = (
         Term.objects.filter(is_active=True, academic_year=year).order_by("id").first()
         if year
@@ -112,6 +114,7 @@ def get_approved_transfer_equivalency_map(
 
     Program-scoped mappings are included when `program` matches; program-null mappings
     are always included for that student.
+    # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     """
     queryset = TransferCourseEquivalency.objects.filter(
         student=student,

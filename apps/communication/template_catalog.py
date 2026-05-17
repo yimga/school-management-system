@@ -409,6 +409,7 @@ def resolve_template(key: str, *, school=None, locale: str = "") -> dict:
     except Exception:  # noqa: BLE001 — Django not configured / migrations not run
         return get_template(key) or _hard_fallback_for(key)
 
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     qs = CommunicationTemplate.objects.filter(key=key, is_active=True)
     if locale:
         qs_for_locale = qs.filter(locale=locale)

@@ -111,12 +111,17 @@ def find_processed_duplicate(provider: str, bucket: str):
         return None
     from apps.finance.models import WebhookLog  # local import — Django boundary
 
+    from django.db.models import Q
+
     return (
         WebhookLog.objects.filter(
             provider=provider,
-            idempotency_bucket=bucket,
-            status=WebhookLog.Status.PROCESSED,
+            status__in=(
+                WebhookLog.Status.PROCESSED,
+                WebhookLog.Status.DUPLICATE,
+            ),
         )
+        .filter(Q(idempotency_bucket=bucket) | Q(reference_id=bucket))
         .order_by("-created_at")
         .first()
     )

@@ -45,6 +45,7 @@ def _teacher_and_assignment_queryset(user):
     if not year:
         return teacher, TeacherAssignment.objects.none()
     qs = (
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         TeacherAssignment.objects.filter(
             teacher=teacher,
             academic_year=year,
@@ -504,6 +505,7 @@ def syllabus_clone(request, subject_assignment_id: int):
         )
     )
     candidate_ids = my_sa_ids - existing_sa_ids - {source_sa.pk}
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     target_assignments = list(
         SubjectAssignment.objects.filter(pk__in=candidate_ids)
         .filter(

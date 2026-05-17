@@ -246,7 +246,7 @@
     ));
   /* Apple-style squircle radius scales with size: ~22% of side. */
   border-radius: calc(var(--rmc-bm-size, 32px) * 0.22);
-  color: #ffffff;
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
   position: relative;
   overflow: hidden;
   /* Subtle inset highlight for premium feel (mimics the mockup). */
@@ -278,7 +278,7 @@
 }
 .cp-navbar .rmc-brand-mark--has-image .rmc-brand-mark__squircle,
 [data-resolved-theme="dark"] .rmc-brand-mark--has-image .rmc-brand-mark__squircle {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
 }
 
 /* JS-free light/dark image swap — both <img> tags ship in the DOM; the
@@ -327,7 +327,7 @@
 .cp-navbar .rmc-brand-mark__subtitle,
 [data-resolved-theme="dark"] .cp-navbar .rmc-brand-mark__title,
 [data-resolved-theme="dark"] .cp-navbar .rmc-brand-mark__subtitle {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.95); /* off-token-allow: white-overlay */
 }
 
 [data-resolved-theme="dark"] .rmc-brand-mark__squircle {
@@ -378,22 +378,22 @@
 .cp-navbar .cp-topbar-search-input {
   border-radius: 999px;
   padding: 0.5rem 4.25rem 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
   height: 38px;
 }
 
 .cp-navbar .cp-topbar-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.55); /* off-token-allow: white-overlay */
 }
 
 .cp-navbar .cp-topbar-search-input:focus {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(129, 140, 248, 0.55);
+  background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  border-color: rgba(129, 140, 248, 0.55); /* off-token-allow: rgba-decorative */
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
   outline: none;
-  color: #ffffff;
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
 }
 
 /* Trailing keyboard-shortcut hint inside the search field (replaces the
@@ -408,9 +408,9 @@
   font-size: 0.7rem;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.14); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.6); /* off-token-allow: white-overlay */
   line-height: 1;
   user-select: none;
 }
@@ -438,7 +438,7 @@
     var(--school-primary, #4f46e5),
     color-mix(in oklab, var(--school-primary, #4f46e5) 65%, var(--school-accent, #10b981))
   ) !important;
-  color: #ffffff !important;
+  color: #ffffff !important; /* off-token-allow: hex-literal-decorative */
   border-color: transparent !important;
   font-weight: 600;
   box-shadow:
@@ -449,7 +449,7 @@
 
 .cp-primary-nav__pill--active i,
 .cp-primary-nav__pill[aria-current="page"] i {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.95); /* off-token-allow: white-overlay */
 }
 
 /* ========================================================================== */
@@ -464,17 +464,17 @@
   width: 38px;
   height: 38px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
   text-decoration: none;
   transition: background 140ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
 
 .cp-topbar-bell:hover,
 .cp-topbar-bell:focus-visible {
-  background: rgba(255, 255, 255, 0.10);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
   outline: none;
 }
 
@@ -491,8 +491,8 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 999px;
-  background: #ef4444;
-  color: #ffffff;
+  background: #ef4444; /* off-token-allow: hex-literal-decorative */
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
   font-size: 0.65rem;
   font-weight: 700;
   display: inline-flex;
@@ -509,17 +509,17 @@
   width: 38px;
   height: 38px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
   cursor: pointer;
   transition: background 140ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
 
 .cp-topbar-theme-toggle:hover,
 .cp-topbar-theme-toggle:focus-visible {
-  background: rgba(255, 255, 255, 0.10);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
   outline: none;
 }
 

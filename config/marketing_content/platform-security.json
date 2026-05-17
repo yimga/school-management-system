@@ -27,7 +27,8 @@
       "Audit-friendly operations",
       "Implementation hardening options"
     ],
-    "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    "diagram_path": "images/marketing/platform-security-governance.svg",
+    "stock_photo_static": "images/marketing/platform-security-governance.svg",
     "premium_platform_layout": true,
     "suppress_footer_clusters": true,
     "stock_photo_url": "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1600&q=75",

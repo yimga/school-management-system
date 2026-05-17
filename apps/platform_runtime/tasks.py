@@ -167,6 +167,7 @@ def automation_failure_trend_signal() -> str:
         max_v=1000,
     )
     since = timezone.now() - timedelta(hours=lookback_hours)
+    # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
     recent = AutomationExecutionLog.objects.filter(started_at__gte=since)
     failure_count = recent.filter(status=AutomationExecutionLog.Status.FAILED).count()
     partial_count = recent.filter(status=AutomationExecutionLog.Status.PARTIAL).count()

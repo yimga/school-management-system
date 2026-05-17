@@ -38,7 +38,7 @@
 .admin-nav-bridge__brand-icon {
   width: 32px;
   height: 32px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2); /* off-token-allow: white-overlay */
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -47,7 +47,7 @@
 }
 
 .admin-nav-bridge__location {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.85); /* off-token-allow: white-overlay */
   font-size: var(--type-size-body);
   font-weight: 400;
 }
@@ -65,7 +65,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.95); /* off-token-allow: white-overlay */
   color: var(--color-base-900);
   border: none;
   border-radius: 999px;
@@ -93,9 +93,9 @@
 
 .admin-nav-bridge__home-btn {
   padding: 0.44rem 0.8rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15); /* off-token-allow: white-overlay */
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
   border-radius: 999px;
   min-height: 2.05rem;
   font-size: var(--type-size-caption);
@@ -105,8 +105,8 @@
 }
 
 .admin-nav-bridge__home-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.25); /* off-token-allow: white-overlay */
+  border-color: rgba(255, 255, 255, 0.5); /* off-token-allow: white-overlay */
   color: white;
   text-decoration: none;
 }
@@ -125,11 +125,11 @@
 }
 
 .admin-nav-bridge__stat-card {
-  background: rgba(26, 22, 18, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(26, 22, 18, 0.35); /* off-token-allow: always-dark-warm-bg */
+  border: 1px solid rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
   border-radius: 12px;
   padding: 0.6rem 0.75rem;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
 }
 
 .admin-nav-bridge__stat-title {
@@ -137,7 +137,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.75); /* off-token-allow: white-overlay */
   margin-bottom: 0.35rem;
 }
 
@@ -156,15 +156,15 @@
 
 .admin-nav-bridge__stat-value {
   font-weight: 600;
-  color: #ffffff;
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
 }
 
 .admin-nav-bridge__logout-left {
   margin-left: 1rem;
   padding: 0.4rem 0.8rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15); /* off-token-allow: white-overlay */
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.35); /* off-token-allow: white-overlay */
   border-radius: 999px;
   min-height: 2.05rem;
   font-size: var(--type-size-caption);
@@ -174,8 +174,8 @@
 }
 
 .admin-nav-bridge__logout-left:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.25); /* off-token-allow: white-overlay */
+  border-color: rgba(255, 255, 255, 0.5); /* off-token-allow: white-overlay */
   color: white;
   text-decoration: none;
 }

@@ -65,7 +65,7 @@ class StudentLander(Lander):
             defaults = {k: v for k, v in defaults.items() if k in model_fields and v not in (None, "")}
 
             if ctx.dry_run:
-                exists = StudentProfile.objects.filter(
+                exists = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
                     **{_lookup_field("external_id", model_fields): external_id}
                 ).exists()
                 if exists:
@@ -76,7 +76,7 @@ class StudentLander(Lander):
 
             try:
                 lookup_field = _lookup_field("external_id", model_fields)
-                existing_obj = StudentProfile.objects.filter(
+                existing_obj = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
                     **{lookup_field: external_id}
                 ).first()
                 if existing_obj is not None:
@@ -133,7 +133,7 @@ def _surface_dedup_candidates(model, new_obj, row: dict[str, Any], ctx: "LanderC
 
     try:
         from apps.migration_cloud.models import MigrationBundle
-        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).first()
+        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).first()  # tenant-isolation-allow: PK lookup by internal bundle id
     except Exception:  # noqa: BLE001
         bundle = None
     if bundle is None:

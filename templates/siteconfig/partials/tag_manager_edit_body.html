@@ -1,0 +1,52 @@
+{% load i18n %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Edit tag" %}: {{ tag.name }}</h1>
+<div class="container-fluid py-4" data-page-archetype="record-detail">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  <form method="post" class="card card-body shadow-sm">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label for="name" class="form-label">{% trans "Name" %}</label>
+          <input type="text" name="name" id="name" class="form-control" value="{{ tag.name }}" maxlength="50" required>
+        </div>
+        <div class="col-md-2">
+          <label for="category" class="form-label">{% trans "Category" %}</label>
+          <select name="category" id="category" class="form-select">
+            {% for value, label in category_choices %}
+            <option value="{{ value }}" {% if tag.category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="color_hex" class="form-label">{% trans "Color" %}</label>
+          <input type="text" name="color_hex" id="color_hex" class="form-control" value="{{ tag.color_hex }}" maxlength="7">
+        </div>
+        <div class="col-md-4">
+          <label for="description" class="form-label">{% trans "Description" %}</label>
+          <input type="text" name="description" id="description" class="form-control" value="{{ tag.description }}">
+        </div>
+        <div class="col-12">
+          <div class="form-check form-check-inline">
+            <input type="checkbox" name="is_private" id="is_private" class="form-check-input" {% if tag.is_private %}checked{% endif %}>
+            <label for="is_private" class="form-check-label">{% trans "Private" %}</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input type="checkbox" name="is_critical" id="is_critical" class="form-check-input" {% if tag.is_critical %}checked{% endif %}>
+            <label for="is_critical" class="form-check-label">{% trans "Critical" %}</label>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+      <a href="{% url 'siteconfig:tag_manager' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+    </form>
+    <hr class="my-4">
+    <form method="post" onsubmit="return confirm('{% trans "Deactivate this tag? It will no longer appear for new assignments." %}');">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete">
+      <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Deactivate tag" %}</button>
+    </form>
+  <p class="small text-muted mt-3">
+    <a href="{% url 'siteconfig:tag_manager' %}">{% trans "Back to Tag Manager" %}</a>
+  </p>
+</div>

@@ -130,7 +130,7 @@
 .cp-warning {
   padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
   border-radius: var(--radius-md, 12px);
-  background: color-mix(in srgb, #f59e0b 10%, transparent);
+  background: color-mix(in srgb, #f59e0b 10%, transparent); /* off-token-allow: rgba-decorative */
   border-inline-start: 3px solid #f59e0b;
   color: var(--text-primary);
 }
@@ -331,7 +331,7 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: 60% 60%;
-  color: #fff; /* glyph fill via currentColor; safe contrast on every brand tile */
+  color: #fff; /* off-token-allow: hex-literal-decorative */ /* glyph fill via currentColor; safe contrast on every brand tile */
 }
 /* v2.79: inner SVG glyph (sourced from static/sprites/integrations.svg) */
 .rmc-integration-mark__glyph {
@@ -500,7 +500,7 @@
   block-size: 1.25em;
   border-radius: 999px;
   background: var(--school-accent, #10b981);
-  color: #fff;
+  color: #fff; /* off-token-allow: hex-literal-decorative */
 }
 
 .rmc-section-nav--horizontal {
@@ -782,7 +782,7 @@
 .setup-studio-blocker {
   padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
   border-radius: var(--radius-md, 12px);
-  background: color-mix(in srgb, #f59e0b 12%, transparent);
+  background: color-mix(in srgb, #f59e0b 12%, transparent); /* off-token-allow: rgba-decorative */
   border-inline-start: 3px solid #f59e0b;
   color: var(--text-primary);
   font-size: var(--type-size-small, 0.875rem);
@@ -976,12 +976,12 @@
   border-inline-start: 3px solid var(--school-primary, #4f46e5);
   color: var(--text-secondary);
 }
-.mkt-inst-audience-callout--international { border-inline-start-color: #0ea5e9; }
-.mkt-inst-audience-callout--multicampus   { border-inline-start-color: #8b5cf6; }
-.mkt-inst-audience-callout--faith         { border-inline-start-color: #f59e0b; }
-.mkt-inst-audience-callout--private       { border-inline-start-color: #c47f1c; }
-.mkt-inst-audience-callout--networks      { border-inline-start-color: #10b981; }
-.mkt-inst-audience-callout--k12           { border-inline-start-color: #ef4444; }
+.mkt-inst-audience-callout--international { border-inline-start-color: #0ea5e9; /* off-token-allow: hex-literal-decorative */ }
+.mkt-inst-audience-callout--multicampus   { border-inline-start-color: #8b5cf6; /* off-token-allow: hex-literal-decorative */ }
+.mkt-inst-audience-callout--faith         { border-inline-start-color: #f59e0b; /* off-token-allow: hex-literal-decorative */ }
+.mkt-inst-audience-callout--private       { border-inline-start-color: #c47f1c; /* off-token-allow: hex-literal-decorative */ }
+.mkt-inst-audience-callout--networks      { border-inline-start-color: #10b981; /* off-token-allow: hex-literal-decorative */ }
+.mkt-inst-audience-callout--k12           { border-inline-start-color: #ef4444; /* off-token-allow: hex-literal-decorative */ }
 
 .mkt-inst-stock,
 .mkt-premium-stock {
@@ -996,7 +996,7 @@
 .mkt-premium-problem {
   padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
   border-radius: var(--radius-lg, 16px);
-  background: color-mix(in srgb, #ef4444 6%, transparent);
+  background: color-mix(in srgb, #ef4444 6%, transparent); /* off-token-allow: rgba-decorative */
   border-inline-start: 3px solid #ef4444;
   color: var(--text-secondary);
 }
@@ -1990,27 +1990,30 @@
 }
 
 .rmc-card--muted {
-  background: var(--surface-muted, rgba(0,0,0,0.02));
-  border: 1px dashed var(--hairline, rgba(0,0,0,0.08));
+  background: var(--surface-canvas);
+  border: 1px dashed var(--hairline);
+  color: var(--text-secondary);
 }
 
 .rmc-stage--pending {
   opacity: 0.6;
+  color: var(--text-secondary);
 }
 .rmc-stage--current {
   font-weight: 600;
-  color: var(--accent, currentColor);
+  color: var(--school-accent, currentColor);
 }
 .rmc-stage--done {
   opacity: 0.9;
+  color: var(--text-primary);
 }
 .rmc-stage--done::before {
   content: "✓ ";
-  color: var(--success, #2c8a3c);
+  color: var(--ds-success, currentColor);
 }
 
 .rmc-section-nav--secondary {
-  border-top: 1px solid var(--hairline, rgba(0,0,0,0.08));
+  border-top: 1px solid var(--hairline);
   padding-top: var(--space-2, 0.5rem);
   margin-top: var(--space-2, 0.5rem);
 }
@@ -2022,4 +2025,45 @@
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+/* rmc-info-tag — inline help icon (Bootstrap popover on focus) used by
+   templates/partials/rmc_info_tag.html. Wrapper span anchors the popover;
+   inner btn carries the icon. Inherits ink so it tints to the surrounding
+   text in every theme. */
+.rmc-info-tag {
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  margin-inline-start: 0.25rem;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+.rmc-info-tag__btn {
+  color: inherit;
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: help;
+  transition: color var(--motion-fast, 120ms) var(--ease-standard, ease);
+}
+
+.rmc-info-tag__btn:hover,
+.rmc-info-tag__btn:focus-visible {
+  color: var(--text-primary);
+  outline: none;
+}
+
+.rmc-info-tag__btn .bi {
+  font-size: 0.9em;
+  vertical-align: baseline;
+}
+
+/* Bootstrap .text-muted → design-token contrast (batch 1225 sweep) */
+.rmc-text-muted,
+.text-muted {
+  color: var(--rmc-acx-text-muted, var(--text-secondary, #475569)) !important;
 }

@@ -82,7 +82,7 @@ def _populate_eval_history(features, student, subject, term):
         return
     try:
         current = list(
-            Evaluation.objects.filter(
+            Evaluation.objects.filter(  # tenant-isolation-allow: scoped via student FK (student.school)
                 student=student,
                 subject_assignment__subject=subject,
                 subject_assignment__term=term,
@@ -109,7 +109,7 @@ def _populate_eval_history(features, student, subject, term):
     # Prior-term: same student/subject, term != current.
     try:
         prior = list(
-            Evaluation.objects.filter(
+            Evaluation.objects.filter(  # tenant-isolation-allow: scoped via student FK (student.school)
                 student=student,
                 subject_assignment__subject=subject,
             )
@@ -144,7 +144,7 @@ def _populate_attendance(features, student, term):
         return
     try:
         rows = list(
-            Attendance.objects.filter(
+            Attendance.objects.filter(  # tenant-isolation-allow: scoped via student FK (student.school)
                 student=student,
                 date__gte=term.start_date,
                 date__lte=term.end_date,
@@ -167,7 +167,7 @@ def _populate_incidents(features, student, term):
     except (ImportError, ModuleNotFoundError):
         return
     try:
-        features.incident_count = Incident.objects.filter(
+        features.incident_count = Incident.objects.filter(  # tenant-isolation-allow: scoped via student FK (student.school)
             student=student,
             date__gte=term.start_date,
             date__lte=term.end_date,

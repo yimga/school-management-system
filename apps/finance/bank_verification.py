@@ -173,7 +173,7 @@ class BankDepositVerifier:
 
             # Calculate confidence (closer amounts and dates = higher confidence)
             amount_confidence = (
-                1.0 - (float(amount_diff) / float(amount)) if amount > 0 else 0.0
+                1.0 - (float(amount_diff) / float(amount)) if amount > 0 else 0.0  # money-float-allow: ratio-not-money (confidence score)
             )
             date_confidence = 1.0 - (date_diff / tolerance_days)
             confidence = (amount_confidence * 0.7) + (date_confidence * 0.3)

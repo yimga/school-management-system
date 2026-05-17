@@ -98,6 +98,7 @@ def ensure_portal_smoke_prerequisites(*, school: "School", teacher_user: "User |
             is_active=True,
         )
 
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     term = Term.objects.filter(is_active=True, academic_year=year).first()
     if term is None:
         Term.objects.create(

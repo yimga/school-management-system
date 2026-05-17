@@ -308,6 +308,7 @@ MIDDLEWARE += [
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware",  # manager: no /studio/hubs/* or /authentication/backend/*
+    "apps.siteconfig.middleware.OperatorSiteconfigManagerShellMiddleware",  # operators: tenant siteconfig URLs → manager shell
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
     "apps.siteconfig.middleware.preview_mode.PreviewModeMiddleware",
     # Phase 4: Audit & Monitoring middleware

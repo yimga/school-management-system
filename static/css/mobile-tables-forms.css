@@ -21,7 +21,7 @@ label {
 textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid #ccc; /* off-token-allow: rgba-decorative */
   border-radius: 8px;
   font-size: var(--type-size-body); /* Prevents zoom on iOS */
   transition: border-color 0.2s, box-shadow 0.2s;

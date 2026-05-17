@@ -23,6 +23,17 @@
   </div>
   {% endif %}
 
+  {% if prefill_from_onboarding %}
+  {% comment %}v3.17 (2026-05-17) — onboarding hand-off pre-filled the form. Surface
+     the provenance so the operator can either continue with the pre-filled
+     values or reset to a blank form via the inline link.{% endcomment %}
+  <div class="rmc-banner rmc-banner--info" role="status" data-rmc-prefill-source="onboarding">
+    <strong>{% trans "Pre-filled from your onboarding choice." %}</strong>
+    {% trans "Adjust anything below before you create the bundle, or" %}
+    <a href="?">{% trans "start with a blank form" %}</a>.
+  </div>
+  {% endif %}
+
   <details class="rmc-card rmc-ai-disclosure" id="mc-vendor-from-image">
     <summary>{% trans "Not sure of the source platform? Upload a screenshot." %}</summary>
     <p class="rmc-form__help">

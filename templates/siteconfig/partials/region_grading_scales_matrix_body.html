@@ -1,0 +1,37 @@
+{% load i18n %}
+<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="region-grading-matrix">
+  <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+    <div>
+      <h1 class="h4 text-white mb-1">{% trans "Grading scales by region" %}</h1>
+      <p class="text-white-50 small mb-0">{% trans "Operator view of grading scale configurations. Prefer this control-plane surface over raw model admin when triaging cross-region standards." %} {% trans "Per-tenant DB band tables are shown under Configuration → Grading scale bands on each school subdomain." %}</p>
+    </div>
+    <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Related region tools' %}">
+      <a class="btn btn-outline-light" href="{% url 'siteconfig:region_validation' %}">{% trans "Region validation" %}</a>
+      <a class="btn btn-outline-light" href="{% url 'siteconfig:region_comparison' %}">{% trans "Region comparison" %}</a>
+    </div>
+  </div>
+  {% for region, scales in scales_by_region.items %}
+  <section class="mb-4" data-region-id="{{ region.pk }}">
+    <h2 class="h6 text-white-50 text-uppercase">{{ region.name }}</h2>
+    <div class="table-responsive">
+      <table class="table table-sm table-dark table-bordered">
+        <caption class="visually-hidden">{{ region.name }}</caption>
+        <thead><tr><th>{% trans "Scale type" %}</th><th>{% trans "Range" %}</th><th>{% trans "Display" %}</th></tr></thead>
+        <tbody>
+          {% for sc in scales %}
+          <tr>
+            <td>{{ sc.scale_type }}</td>
+            <td>{{ sc.min_score }} – {{ sc.max_score }}</td>
+            <td><code class="small">{{ sc.display_format }}</code></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="text-muted">{% trans "No scales for this region." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% empty %}
+  <p class="text-white-50">{% trans "No regions configured." %}</p>
+  {% endfor %}
+</div>

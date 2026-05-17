@@ -27016,3 +27016,381 @@ msgstr ""
 
 msgid "Variants"
 msgstr ""
+
+msgid "Academic years setup"
+msgstr ""
+
+msgid "Adjust anything below before you create the bundle, or"
+msgstr ""
+
+msgid ""
+"Analytics should explain operations—not sit beside them. Drill from trends "
+"into the modules that produce the numbers."
+msgstr ""
+
+msgid "Audit trails for sensitive operations"
+msgstr ""
+
+msgid "Before and after disciplined school data stewardship"
+msgstr ""
+
+msgid "Before and after governed school intelligence"
+msgstr ""
+
+msgid "Billing plan"
+msgstr ""
+
+msgid "Board packs assembled manually at month-end"
+msgstr ""
+
+msgid "Boards & owners"
+msgstr ""
+
+msgid "Bring your data across"
+msgstr ""
+
+msgid "Campus comparisons that disagree on definitions"
+msgstr ""
+
+msgid "Campus policies applied inconsistently"
+msgstr ""
+
+msgid ""
+"Campus rollups that standardize definitions without hiding local context."
+msgstr ""
+
+msgid "Change"
+msgstr ""
+
+msgid "Clear integration surface area and identity patterns for reviews."
+msgstr ""
+
+msgid ""
+"Collection and arrears narratives tied to invoices—not shadow spreadsheets."
+msgstr ""
+
+msgid ""
+"Coming from another platform? Pick where your data lives now and we’ll bring"
+" it across when you finish signing up."
+msgstr ""
+
+msgid "Compliance stakeholders"
+msgstr ""
+
+msgid "Confidence in who can change financial or academic records."
+msgstr ""
+
+msgid "Connected across finance, attendance, and governance"
+msgstr ""
+
+msgid "Connected across workflows, analytics, and trust"
+msgstr ""
+
+msgid "Continue with {{ name }}"
+msgstr ""
+
+msgid "Control Studio outcomes"
+msgstr ""
+
+msgid "Control plane home"
+msgstr ""
+
+msgid "Dashboards fed from the same system of record"
+msgstr ""
+
+msgid ""
+"Dashboards respect permissions while keeping teams focused on operations."
+msgstr ""
+
+msgid "Data handled with policies the institution can stand behind."
+msgstr ""
+
+msgid "Departments setup"
+msgstr ""
+
+msgid "Detailed"
+msgstr ""
+
+msgid ""
+"Diagram: leadership analytics with trends, campus rollups, early-warning "
+"panel, and export summary"
+msgstr ""
+
+msgid ""
+"Diagram: role matrix, audit log stream, MFA badge, and campus policy "
+"boundaries"
+msgstr ""
+
+msgid "Don’t see your platform? Pick \\"
+msgstr ""
+
+msgid "Early-warning panels before issues compound"
+msgstr ""
+
+msgid ""
+"Enrollment, attendance, collection, and academic signals roll up from the "
+"same records your teams capture daily—without rebuilding spreadsheets every "
+"week."
+msgstr ""
+
+msgid "Export discipline for reviews that expect traceable source data."
+msgstr ""
+
+msgid "Export-ready summaries for leadership forums"
+msgstr ""
+
+msgid "Families & staff"
+msgstr ""
+
+msgid "Feature Control Panel"
+msgstr ""
+
+msgid ""
+"Fewer blind spots across enrollment, attendance, and collection with earlier"
+" signals."
+msgstr ""
+
+msgid "Finance & operations"
+msgstr ""
+
+msgid "Finance and academic narratives that do not reconcile"
+msgstr ""
+
+msgid "Finance and academic signals in one disciplined view"
+msgstr ""
+
+msgid "Governance operators can demonstrate"
+msgstr ""
+
+msgid "Integrations with unclear data boundaries"
+msgstr ""
+
+msgid "Late visibility into enrollment or collection drift"
+msgstr ""
+
+msgid "Leadership dashboards built on live operations"
+msgstr ""
+
+msgid "Let’s bring your data in."
+msgstr ""
+
+msgid "Let’s bring {{ name }}’s data in."
+msgstr ""
+
+msgid "Metrics rebuilt weekly from different exports"
+msgstr ""
+
+msgid "Migrate from"
+msgstr ""
+
+msgid ""
+"Move from debated exports to dashboards everyone can trust because "
+"definitions stay tied to operational data."
+msgstr ""
+
+msgid "Multi-campus rollups with role-appropriate visibility"
+msgstr ""
+
+msgid "Network leadership"
+msgstr ""
+
+msgid "Next: Migration"
+msgstr ""
+
+msgid "Onboarding"
+msgstr ""
+
+msgid "Onboarding step"
+msgstr ""
+
+msgid "Operational trace—not a vague security claim."
+msgstr ""
+
+msgid "Operator shortcuts"
+msgstr ""
+
+msgid "Operators"
+msgstr ""
+
+msgid "Pick a source platform"
+msgstr ""
+
+msgid "Pick an assistant on the left first."
+msgstr ""
+
+msgid ""
+"Pick what you want to migrate. We’ll match columns automatically, surface "
+"anything ambiguous, and never overwrite a record you didn’t approve."
+msgstr ""
+
+msgid "Pick where your data lives now—or skip and set up migration later."
+msgstr ""
+
+msgid "Platform health, tenants, runtime, marketplace shortcuts."
+msgstr ""
+
+msgid "Policies, assistants, and usage guardrails."
+msgstr ""
+
+msgid "Pre-filled from your onboarding choice."
+msgstr ""
+
+msgid "Progress snapshot unavailable"
+msgstr ""
+
+msgid "Quick"
+msgstr ""
+
+msgid ""
+"Raw Django model access when required. Day-to-day operator work lives in the"
+" control plane, Config center, Studio, and siteconfig hubs below — same "
+"chrome as /super/."
+msgstr ""
+
+msgid ""
+"Replace casual sharing and opaque admin history with least-privilege access "
+"and meaningful logs."
+msgstr ""
+
+msgid "Report card style preview"
+msgstr ""
+
+msgid "Report templates catalog"
+msgstr ""
+
+msgid "Request ID"
+msgstr ""
+
+msgid ""
+"Role matrices, audit trails, MFA discipline, and tenant boundaries—so "
+"security reviews start with evidence, not slogans."
+msgstr ""
+
+msgid ""
+"Role-aware visibility so operators see what they need without exposing "
+"sensitive ledgers broadly."
+msgstr ""
+
+msgid "Role-based permissions with clear administrators"
+msgstr ""
+
+msgid "SSO and MFA patterns IT teams already run"
+msgstr ""
+
+msgid "School automation builder"
+msgstr ""
+
+msgid "School onboarding"
+msgstr ""
+
+msgid "Security & Governance"
+msgstr ""
+
+msgid ""
+"Security is not a sidebar—it binds how workflows execute and how leadership "
+"reads operational truth."
+msgstr ""
+
+msgid "Security reviews backed by promises, not artifacts"
+msgstr ""
+
+msgid "Select {{ name }}"
+msgstr ""
+
+msgid "Selected source platform"
+msgstr ""
+
+msgid "Sensitive changes without durable audit history"
+msgstr ""
+
+msgid "Separation of duties and permissioned access for sensitive workflows."
+msgstr ""
+
+msgid "Set up later"
+msgstr ""
+
+msgid "Set up migration later"
+msgstr ""
+
+msgid "Shared credentials and unclear role ownership"
+msgstr ""
+
+msgid "Skip for now"
+msgstr ""
+
+msgid "Staged setup workflows and publish paths."
+msgstr ""
+
+msgid "Start migration"
+msgstr ""
+
+msgid "Style preview"
+msgstr ""
+
+msgid "Take me to my dashboard"
+msgstr ""
+
+msgid ""
+"Tap the tile that matches your current system. Spreadsheets / Other works "
+"for CSV exports."
+msgstr ""
+
+msgid "Technology leaders"
+msgstr ""
+
+msgid ""
+"Technology, leadership, and compliance stakeholders each get evidence "
+"appropriate to their mandate."
+msgstr ""
+
+msgid "Tenant isolation discipline multi-campus networks can enforce"
+msgstr ""
+
+msgid "Toggle modules and entitlements per tenant."
+msgstr ""
+
+msgid "Trust center and procurement paths for assurance conversations"
+msgstr ""
+
+msgid ""
+"We never touch records you don’t approve. Every migration starts as a dry-"
+"run."
+msgstr ""
+
+msgid ""
+"We support PowerSchool, Blackbaud, Veracross, Alma, FACTS, and more. If your"
+" data lives in spreadsheets, pick the last tile—we’ll guide you through it."
+msgstr ""
+
+msgid "Welcome to RunMyCampus"
+msgstr ""
+
+msgid "What we’ll bring across"
+msgstr ""
+
+msgid "Workflow flow gallery"
+msgstr ""
+
+msgid ""
+"You've chosen your region, plan, look, and migration source. Create your "
+"account to activate your school—we'll guide your first action on the "
+"dashboard."
+msgstr ""
+
+msgid ""
+"Your bundle exists and your data is safe — we just couldn't compute the live"
+" timeline for it right now. Retry shortly or share the request ID below with"
+" support."
+msgstr ""
+
+msgid "min"
+msgstr ""
+
+msgid "min to set up"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "start with a blank form"
+msgstr ""

@@ -70,22 +70,22 @@ body[data-dashboard-page] #content .container {
   border-radius: 10px;
   border: 1px solid var(--color-base-200, #ede4d6);
   font-size: var(--type-size-body);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.02); /* off-token-allow: white-overlay */
   color: var(--color-base-900, #1a1612);
   margin-top: 12px;
   box-shadow: 0 8px 20px rgba(26, 22, 18, 0.45);
 }
 
 .preview-cue--active {
-  background: rgba(251, 191, 36, 0.08);
-  border-color: #f97316;
-  color: #f97316;
+  background: rgba(251, 191, 36, 0.08); /* off-token-allow: rgba-decorative */
+  border-color: #f97316; /* off-token-allow: hex-literal-decorative */
+  color: #f97316; /* off-token-allow: hex-literal-decorative */
 }
 
 .preview-cue--ready {
-  background: rgba(56, 189, 248, 0.08);
-  border-color: #38bdf8;
-  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08); /* off-token-allow: rgba-decorative */
+  border-color: #38bdf8; /* off-token-allow: hex-literal-decorative */
+  color: #38bdf8; /* off-token-allow: hex-literal-decorative */
 }
 
 .preview-cue-actions {
@@ -105,7 +105,7 @@ body[data-dashboard-page] #content .container {
 }
 
 .preview-cue-actions a:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
 }
 
 /* Critical: sidebar left of main (rem layout). */

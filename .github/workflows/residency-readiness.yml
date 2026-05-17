@@ -1,0 +1,81 @@
+name: Data-residency readiness gate
+
+# 12-pillar audit P7 follow-up. The `verify_residency_readiness`
+# management command (memory v3.06) is opt-in at predeploy via
+# RUN_VERIFY_RESIDENCY_READINESS=1. CI bumps the same flag against a
+# clean test DB so any new schema / settings change that would
+# silently break residency enforcement surfaces at PR time.
+#
+# Failure semantics:
+#   * --quiet exits 0 when no residency surfaces are configured
+#     (so a fresh PR doesn't fail when DATA_RESIDENCY_ENFORCE is off);
+#   * removing --quiet here makes the gate strict — the operator
+#     wants any drift visible in the logs.
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/schools/residency_readiness.py"
+      - "apps/schools/middleware_residency.py"
+      - "apps/schools/management/commands/verify_residency_readiness.py"
+      - "apps/finance/regional_payment_profiles.py"
+      - "apps/compliance/**.py"
+      - ".github/workflows/residency-readiness.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  residency:
+    name: verify_residency_readiness on Postgres
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-retries 12
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb
+      SECRET_KEY: ci-residency-readiness-not-prod
+      ALLOWED_HOSTS: "*"
+      DEBUG: "0"
+      # Run the gate explicitly so it surfaces tenant.data_region
+      # misalignments against DATABASES even when DATA_RESIDENCY_ENFORCE
+      # is off (the gate is informational here, not enforcement).
+      RUN_VERIFY_RESIDENCY_READINESS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: beta/school-management-system/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Migrate
+        run: python manage.py migrate --noinput
+      - name: Verify residency readiness
+        # --quiet keeps stdout small but the command still exits non-zero
+        # on any tenant whose data_region cannot be served by the current
+        # DATABASES configuration. CI honors that exit code.
+        run: python manage.py verify_residency_readiness --quiet

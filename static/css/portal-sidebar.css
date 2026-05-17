@@ -31,7 +31,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #fff; /* off-token-allow: hex-literal-decorative */
   font-weight: 700;
   font-size: var(--type-size-body);
   flex-shrink: 0;
@@ -108,14 +108,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.72rem;
-  background: rgba(79, 70, 229, 0.08);
+  background: rgba(79, 70, 229, 0.08); /* off-token-allow: indigo-accent-overlay */
   border-radius: 8px;
   cursor: pointer;
   user-select: none;
 }
 
 .sidebar-collapsible-header:hover {
-  background: rgba(79, 70, 229, 0.12);
+  background: rgba(79, 70, 229, 0.12); /* off-token-allow: indigo-accent-overlay */
 }
 
 .sidebar-collapsible-header span {

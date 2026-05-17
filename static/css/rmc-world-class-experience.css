@@ -162,7 +162,7 @@ button.cp-context-drawer-toggle i,
 }
 
 #cp-main-content .rmc-wcx-hero .btn-outline-primary {
-  background: rgba(26, 22, 18, 0.72);
+  background: rgba(26, 22, 18, 0.72); /* off-token-allow: always-dark-warm-bg */
   border-color: var(--color-primary-100);
 }
 

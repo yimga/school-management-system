@@ -69,6 +69,8 @@ from apps.schools.signup_views import (
     verify_signup,
     api_trial_school,
     onboarding_wizard,
+    onboard_migration_handoff,
+    onboard_migration_start,
     brand_import_api,
 )
 from apps.siteconfig.views_tour import tour_steps_public_api
@@ -933,6 +935,8 @@ urlpatterns = [
         name="marketing_ca",
     ),
     path("onboard/", onboarding_wizard, name="onboard_wizard"),
+    path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
+    path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
     path("verify-signup/", verify_signup, name="verify_signup"),
     path("verify/<str:token>/", verify_student_id, name="verify_student_id"),

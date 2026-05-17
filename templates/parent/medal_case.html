@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n static %}
+{% load i18n static portal_filters %}
 
 {% block title %}Medal case – {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -23,11 +23,11 @@
                 <li class="d-flex align-items-center flex-wrap gap-2 mb-2" role="listitem">
                   <span class="badge rounded-pill" style="background: var(--school-primary, var(--color-indigo-600)); color: var(--school-primary-inverse, var(--text-on-brand));" aria-label="{% blocktrans with label=badge.badge_type.label %}Badge: {{ label }}{% endblocktrans %}">{{ badge.badge_type.label }}</span>
                   <span class="text-muted small">{{ badge.issued_at|date }}</span>
-                  {% if badge._evidence_report_term_id or badge._evidence_syllabus_id %}
-                    {% if badge._evidence_report_term_id %}
+                  {% if badge|attr:"_evidence_report_term_id" or badge|attr:"_evidence_syllabus_id" %}
+                    {% if badge|attr:"_evidence_report_term_id" %}
                       <a class="btn btn-link btn-sm p-0 text-decoration-none" style="color: var(--school-accent, var(--color-emerald-500));" href="{% url 'reports:parent_download_term_report' student.id %}"><i class="bi bi-file-earmark-pdf me-1"></i>{% trans "View report" %}</a>
                     {% endif %}
-                    {% if badge._evidence_syllabus_id %}
+                    {% if badge|attr:"_evidence_syllabus_id" %}
                       <a class="btn btn-link btn-sm p-0 text-decoration-none" style="color: var(--school-accent, var(--color-emerald-500));" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-text me-1"></i>{% trans "View syllabus" %}</a>
                     {% endif %}
                   {% endif %}

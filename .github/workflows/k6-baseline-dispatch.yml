@@ -1,0 +1,64 @@
+name: k6 baseline (dispatch)
+
+# Operator/staging load baseline — requires a reachable K6_BASE_URL (defaults to local runserver).
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Target base URL (e.g. https://staging.example.com)"
+        required: false
+        default: "http://127.0.0.1:8000"
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  k6:
+    name: k6 baseline smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SECRET_KEY: "ci-k6-baseline-not-production-64chars____________________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver"
+      K6_BASE_URL: ${{ github.event.inputs.base_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Migrate (local target only)
+        if: contains(github.event.inputs.base_url, '127.0.0.1')
+        run: python manage.py migrate --noinput
+
+      - name: Start local runserver
+        if: contains(github.event.inputs.base_url, '127.0.0.1')
+        run: |
+          nohup python manage.py runserver 127.0.0.1:8000 --noreload > /tmp/k6-runserver.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -sf "http://127.0.0.1:8000/" >/dev/null && break
+            sleep 2
+          done
+
+      - name: Run k6 baseline
+        uses: grafana/setup-k6-action@v1
+
+      - name: Execute k6 script
+        run: k6 run tests/load/k6_baseline.js
+
+      - name: Upload summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-baseline-output
+          path: artifacts/k6
+          if-no-files-found: ignore

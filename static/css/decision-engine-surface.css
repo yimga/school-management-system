@@ -60,10 +60,10 @@
 }
 
 .de-metric-card.de-status-warn {
-  border-color: rgba(245, 158, 11, 0.45);
+  border-color: rgba(245, 158, 11, 0.45); /* off-token-allow: warning-amber-overlay */
 }
 .de-metric-card.de-status-danger {
-  border-color: rgba(220, 53, 69, 0.45);
+  border-color: rgba(220, 53, 69, 0.45); /* off-token-allow: danger-red-overlay */
 }
 
 .de-metric-label {

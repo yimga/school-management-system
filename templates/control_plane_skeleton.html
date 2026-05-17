@@ -72,6 +72,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
+    <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
   <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>

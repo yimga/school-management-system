@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-05-17T18:48:29.676075Z",
+  "staging_profile_applied": true,
+  "check_deploy_exit_code": 0,
+  "security_warnings": [],
+  "required_staging_env": {
+    "DEBUG": "0",
+    "SECRET_KEY": "staging-profile-not-for-production-use-change-me-32chars",
+    "SECURE_SSL_REDIRECT": "1",
+    "SESSION_COOKIE_SECURE": "1",
+    "CSRF_COOKIE_SECURE": "1",
+    "SECURE_HSTS_SECONDS": "31536000"
+  },
+  "verdict": "STAGING PROFILE READY (local simulation)",
+  "honesty": "Real staging/prod still requires operator secrets, TLS termination, and DATABASE_URL; this script only documents Django deploy checks."
+}

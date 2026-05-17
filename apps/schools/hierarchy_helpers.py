@@ -145,6 +145,7 @@ def scoped_schools_for_user(user: "User", root_school=None) -> QuerySet:
 
     from apps.schools.models import SchoolMembership
 
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     memberships = SchoolMembership.objects.filter(
         user=user, school__is_active=True
     ).select_related("school")

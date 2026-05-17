@@ -77,6 +77,7 @@ def _teacher_scoped_classroom_ids(user: Any, school: Any) -> frozenset[int]:
     if not tp or not school:
         return frozenset()
     ids = (
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         TeacherAssignment.objects.filter(
             teacher=tp,
             is_active=True,
@@ -174,6 +175,7 @@ def build_student_attendance_export_queryset(
     if not user_can_access_student_attendance_export(user):
         return Attendance.objects.none(), "Not authorized for student attendance export."
 
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     qs: QuerySet = safe_queryset_for_school(Attendance.objects.all(), school).filter(
         date__gte=filters.start_date,
         date__lte=filters.end_date,

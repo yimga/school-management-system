@@ -8,7 +8,7 @@
 /* (viewport meta is in base templates; ensure no min-width locks body) */
 body {
   overflow-x: hidden;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.08); /* off-token-allow: black-overlay */
 }
 
 /* ========== Minimum touch targets (WCAG 2.5.5 — 44x44px) ========== */
@@ -154,10 +154,10 @@ textarea:focus-visible,
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .cp-sidebar-nav .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
 }
 .cp-sidebar-nav .nav-link:active {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
 }
 .offcanvas .cp-sidebar-nav .nav-link {
   padding: 0.75rem 1rem;

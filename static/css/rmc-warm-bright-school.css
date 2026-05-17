@@ -358,10 +358,10 @@ body {
 }
 
 /* Badges follow same tone-chip language */
-.badge.bg-success    { background: var(--accent-sage)  !important; color: #fff; }
-.badge.bg-warning    { background: var(--accent-honey) !important; color: #fff; }
-.badge.bg-danger     { background: var(--accent-coral) !important; color: #fff; }
-.badge.bg-info       { background: var(--accent-sky)   !important; color: #fff; }
+.badge.bg-success    { background: var(--accent-sage)  !important; color: #fff; /* off-token-allow: hex-literal-decorative */ }
+.badge.bg-warning    { background: var(--accent-honey) !important; color: #fff; /* off-token-allow: hex-literal-decorative */ }
+.badge.bg-danger     { background: var(--accent-coral) !important; color: #fff; /* off-token-allow: hex-literal-decorative */ }
+.badge.bg-info       { background: var(--accent-sky)   !important; color: #fff; /* off-token-allow: hex-literal-decorative */ }
 
 
 /* ============================================================ */

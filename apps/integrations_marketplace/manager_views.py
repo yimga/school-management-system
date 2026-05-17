@@ -32,9 +32,8 @@ def manager_integrations_rollup(request: HttpRequest) -> HttpResponse:
 
     connector_filter = (request.GET.get("connector") or "").strip().lower()
 
-    # tenant-isolation-allow: control-plane operator surface — by design walks
-    # every active tenant to give the operations team a platform-wide view.
-    rows_qs = ServiceIntegration.objects.filter(is_active=True).exclude(
+    # Control-plane operator surface — by design walks every active tenant to give ops a platform-wide view.
+    rows_qs = ServiceIntegration.objects.filter(is_active=True).exclude(  # tenant-isolation-allow: control-plane operator surface, platform-wide view by design
         connector_slug=""
     )
     if connector_filter:

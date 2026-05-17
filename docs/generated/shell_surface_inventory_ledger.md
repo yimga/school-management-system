@@ -1,7 +1,7 @@
 # Shell surface inventory (generated)
 
-**UTC** `2026-05-15T12:09:14.290091+00:00`
-**Status** `PASS`
+**UTC** `2026-05-17T19:37:48.351199+00:00`  
+**Status** `FAIL`  
 
 | Template | Substrings (required) |
 | --- | --- |
@@ -11,7 +11,7 @@
 | `templates/backend_base.html` | ok |
 | `templates/base.html` | ok |
 | `templates/components/admin_nav_bridge.html` | ok |
-| `templates/control_plane_base.html` | ok |
+| `templates/control_plane_base.html` | missing: data-rmc-shell-title= |
 | `templates/control_plane_skeleton.html` | ok |
 | `templates/marketplace/tenant_app_catalog.html` | ok |
 | `templates/partials/backend_portal_breadcrumb_actions.html` | ok |
@@ -42,24 +42,30 @@
 | `templates/portal_base.html` | ok |
 | `templates/schools/super_blueprints_catalog.html` | ok |
 | `templates/schools/super_workflow_packs.html` | ok |
-| `templates/siteconfig/academic_years_setup_evidence.html` | ok |
+| `templates/siteconfig/academic_years_setup_evidence.html` | missing: data-shell-surface=, data-admin-replacement-category= |
 | `templates/siteconfig/bulk_letters.html` | ok |
 | `templates/siteconfig/config_mutation_audit_evidence.html` | ok |
 | `templates/siteconfig/curriculum_templates.html` | ok |
-| `templates/siteconfig/departments_setup_evidence.html` | ok |
+| `templates/siteconfig/departments_setup_evidence.html` | missing: data-shell-surface=, data-admin-replacement-category= |
 | `templates/siteconfig/entity_catalog_overview.html` | ok |
 | `templates/siteconfig/grading_scale_bands.html` | ok |
+| `templates/siteconfig/maintenance.html` | ok |
 | `templates/siteconfig/metadata_dynamic_fields_operator.html` | ok |
 | `templates/siteconfig/metadata_operator_hub.html` | ok |
 | `templates/siteconfig/partials/configuration_control_center_staging_publish.html` | ok |
+| `templates/siteconfig/partials/maintenance_body.html` | ok |
+| `templates/siteconfig/partials/region_comparison_body.html` | ok |
+| `templates/siteconfig/partials/region_grading_scales_matrix_body.html` | ok |
+| `templates/siteconfig/partials/region_validation_dashboard_body.html` | ok |
 | `templates/siteconfig/region_comparison.html` | ok |
 | `templates/siteconfig/region_grading_scales_matrix.html` | ok |
 | `templates/siteconfig/region_validation_dashboard.html` | ok |
-| `templates/siteconfig/scheduled_reports_delivery_hub.html` | ok |
+| `templates/siteconfig/scheduled_reports_delivery_hub.html` | missing: data-shell-surface= |
 | `templates/siteconfig/school_theme_settings.html` | ok |
-| `templates/siteconfig/tenant_runtime_configuration_hub.html` | ok |
-| `templates/siteconfig/term_publish_status_evidence.html` | ok |
-| `templates/siteconfig/user_preferences.html` | ok |
+| `templates/siteconfig/tenant_runtime_configuration_hub.html` | missing: data-siteconfig-surface= |
+| `templates/siteconfig/term_publish_status_evidence.html` | missing: data-shell-surface=, data-admin-replacement-category= |
+| `templates/siteconfig/user_preferences.html` | missing: shell_chrome_contextual_info_banner.html, chrome_banner_title= |
 | `templates/studio_os/partials/shell_main_content.html` | ok |
 | `templates/studio_os/shell.html` | ok |
 | `templates/studio_os/shell_control_plane.html` | ok |
+

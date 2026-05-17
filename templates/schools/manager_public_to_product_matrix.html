@@ -1,5 +1,5 @@
 {% extends "control_plane_skeleton.html" %}
-{% load i18n %}
+{% load i18n portal_filters %}
 
 {% block title %}{% trans "Public-to-Product Promise Matrix" %}{% endblock %}
 
@@ -17,7 +17,7 @@
         {% blocktrans count counter=counts.shipped %}{{ counter }} shipped{% plural %}{{ counter }} shipped{% endblocktrans %}
       </span>
       <span class="badge text-bg-warning text-dark">
-        {% blocktrans count counter=counts.in-flight %}{{ counter }} in flight{% plural %}{{ counter }} in flight{% endblocktrans %}
+        {% with inflight=counts|attr:"in-flight" %}{% blocktrans count counter=inflight %}{{ counter }} in flight{% plural %}{{ counter }} in flight{% endblocktrans %}{% endwith %}
       </span>
       <span class="badge text-bg-secondary">
         {% blocktrans count counter=counts.planned %}{{ counter }} planned{% plural %}{{ counter }} planned{% endblocktrans %}

@@ -338,7 +338,7 @@ def department_announcement_create(request: HttpRequest):
                 request,
                 f"Department announcement created for {announcement.department or announcement.classroom}.",
             )
-            return redirect("portal:teacher_dashboard")
+            return redirect("evals:teacher_dashboard")
     else:
         initial = {}
         if user_department:

@@ -30,6 +30,7 @@ def create_teacher_badge_for_syllabus_approval(syllabus):
     from apps.evals.models import TeacherAssignment
 
     ta = (
+        # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
         TeacherAssignment.objects.filter(
             subject_assignment=syllabus.subject_assignment,
             is_active=True,

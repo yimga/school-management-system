@@ -41,7 +41,7 @@ def recommended_diff_since(*, school_id: int | None, source_system: str) -> _dt.
     Returns None when there's no prior bundle — caller renders an empty
     field and asks the operator to specify their own.
     """
-    qs = MigrationBundle.objects.filter(
+    qs = MigrationBundle.objects.filter(  # tenant-isolation-allow: optionally narrowed by school_id below
         status__in=[BundleStatus.APPLIED, BundleStatus.RECONCILED],
     )
     if school_id is not None:

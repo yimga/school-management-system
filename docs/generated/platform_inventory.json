@@ -1,30 +1,30 @@
 {
   "baseline_counts": {
-    "allow_any": 112,
-    "csrf_exempt": 305,
-    "cursor_execute": 377,
-    "except_exception": 479,
-    "get_solo": 207,
-    "gilead": 16620,
-    "gilead_files": 162,
-    "html_files": 859,
-    "management_commands": 170,
-    "markdown_files": 1088,
-    "migration_files": 774,
-    "print_calls": 1152,
-    "python_files": 3162,
-    "site_settings": 1942
+    "allow_any": 116,
+    "csrf_exempt": 344,
+    "cursor_execute": 389,
+    "except_exception": 721,
+    "get_solo": 208,
+    "gilead": 16694,
+    "gilead_files": 183,
+    "html_files": 972,
+    "management_commands": 226,
+    "markdown_files": 1223,
+    "migration_files": 825,
+    "print_calls": 1498,
+    "python_files": 3597,
+    "site_settings": 2105
   },
   "doc_drift": {
-    "actual_installed_app_count": 46,
+    "actual_installed_app_count": 47,
     "documented_app_count": 46,
-    "is_stale": false,
+    "is_stale": true,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
   "largest_python_files": [
     {
-      "bytes": 147264,
-      "lines": 3677,
+      "bytes": 151913,
+      "lines": 3782,
       "path": "apps/schools/marketing_views.py"
     },
     {
@@ -33,33 +33,38 @@
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 119193,
-      "lines": 3107,
+      "bytes": 125726,
+      "lines": 3231,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 118727,
-      "lines": 2856,
-      "path": "apps/api/views_v1.py"
-    },
-    {
-      "bytes": 117976,
-      "lines": 3179,
+      "bytes": 120486,
+      "lines": 3209,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 105500,
-      "lines": 3018,
+      "bytes": 119404,
+      "lines": 2865,
+      "path": "apps/api/views_v1.py"
+    },
+    {
+      "bytes": 105720,
+      "lines": 3022,
       "path": "apps/finance/models.py"
     },
     {
-      "bytes": 101336,
-      "lines": 2671,
+      "bytes": 104985,
+      "lines": 2785,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 98733,
-      "lines": 2815,
+      "bytes": 100182,
+      "lines": 2154,
+      "path": "config/settings.py"
+    },
+    {
+      "bytes": 99012,
+      "lines": 2816,
       "path": "apps/siteconfig/admin.py"
     },
     {
@@ -68,19 +73,14 @@
       "path": "apps/studio_os/views.py"
     },
     {
-      "bytes": 92569,
-      "lines": 2007,
-      "path": "config/settings.py"
+      "bytes": 89899,
+      "lines": 2132,
+      "path": "apps/migration_cloud/views.py"
     },
     {
-      "bytes": 82395,
+      "bytes": 82421,
       "lines": 2062,
       "path": "apps/finance/tasks.py"
-    },
-    {
-      "bytes": 78737,
-      "lines": 2029,
-      "path": "apps/siteconfig/models.py"
     }
   ],
   "management_commands_list": [
@@ -118,6 +118,11 @@
       "app": "academics",
       "command": "seed_testdata_2425",
       "path": "apps/academics/management/commands/seed_testdata_2425.py"
+    },
+    {
+      "app": "academics",
+      "command": "solve_timetable",
+      "path": "apps/academics/management/commands/solve_timetable.py"
     },
     {
       "app": "accounts",
@@ -171,8 +176,48 @@
     },
     {
       "app": "analytics",
+      "command": "ai_narrate_risk_digest",
+      "path": "apps/analytics/management/commands/ai_narrate_risk_digest.py"
+    },
+    {
+      "app": "analytics",
+      "command": "bootstrap_at_risk_registry",
+      "path": "apps/analytics/management/commands/bootstrap_at_risk_registry.py"
+    },
+    {
+      "app": "analytics",
+      "command": "build_student_embeddings",
+      "path": "apps/analytics/management/commands/build_student_embeddings.py"
+    },
+    {
+      "app": "analytics",
+      "command": "check_at_risk_calibration",
+      "path": "apps/analytics/management/commands/check_at_risk_calibration.py"
+    },
+    {
+      "app": "analytics",
+      "command": "check_at_risk_drift",
+      "path": "apps/analytics/management/commands/check_at_risk_drift.py"
+    },
+    {
+      "app": "analytics",
+      "command": "check_grade_prediction_calibration",
+      "path": "apps/analytics/management/commands/check_grade_prediction_calibration.py"
+    },
+    {
+      "app": "analytics",
+      "command": "check_grade_prediction_drift",
+      "path": "apps/analytics/management/commands/check_grade_prediction_drift.py"
+    },
+    {
+      "app": "analytics",
       "command": "compute_benchmark_aggregates",
       "path": "apps/analytics/management/commands/compute_benchmark_aggregates.py"
+    },
+    {
+      "app": "analytics",
+      "command": "compute_nightly_grade_predictions",
+      "path": "apps/analytics/management/commands/compute_nightly_grade_predictions.py"
     },
     {
       "app": "analytics",
@@ -181,13 +226,123 @@
     },
     {
       "app": "analytics",
+      "command": "evaluate_at_risk_model",
+      "path": "apps/analytics/management/commands/evaluate_at_risk_model.py"
+    },
+    {
+      "app": "analytics",
+      "command": "evaluate_grade_prediction_model",
+      "path": "apps/analytics/management/commands/evaluate_grade_prediction_model.py"
+    },
+    {
+      "app": "analytics",
+      "command": "export_at_risk_training_data",
+      "path": "apps/analytics/management/commands/export_at_risk_training_data.py"
+    },
+    {
+      "app": "analytics",
       "command": "export_to_warehouse",
       "path": "apps/analytics/management/commands/export_to_warehouse.py"
     },
     {
       "app": "analytics",
+      "command": "migrate_embeddings_to_pgvector",
+      "path": "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py"
+    },
+    {
+      "app": "analytics",
+      "command": "promote_at_risk_artifact",
+      "path": "apps/analytics/management/commands/promote_at_risk_artifact.py"
+    },
+    {
+      "app": "analytics",
+      "command": "promote_grade_prediction_artifact",
+      "path": "apps/analytics/management/commands/promote_grade_prediction_artifact.py"
+    },
+    {
+      "app": "analytics",
+      "command": "rebuild_pgvector_index",
+      "path": "apps/analytics/management/commands/rebuild_pgvector_index.py"
+    },
+    {
+      "app": "analytics",
+      "command": "register_at_risk_artifact",
+      "path": "apps/analytics/management/commands/register_at_risk_artifact.py"
+    },
+    {
+      "app": "analytics",
+      "command": "register_grade_prediction_artifact",
+      "path": "apps/analytics/management/commands/register_grade_prediction_artifact.py"
+    },
+    {
+      "app": "analytics",
+      "command": "retrain_at_risk_pipeline",
+      "path": "apps/analytics/management/commands/retrain_at_risk_pipeline.py"
+    },
+    {
+      "app": "analytics",
+      "command": "score_shadow_at_risk",
+      "path": "apps/analytics/management/commands/score_shadow_at_risk.py"
+    },
+    {
+      "app": "analytics",
+      "command": "score_shadow_grade_prediction",
+      "path": "apps/analytics/management/commands/score_shadow_grade_prediction.py"
+    },
+    {
+      "app": "analytics",
+      "command": "score_student_risk",
+      "path": "apps/analytics/management/commands/score_student_risk.py"
+    },
+    {
+      "app": "analytics",
+      "command": "seed_default_digest_recipients",
+      "path": "apps/analytics/management/commands/seed_default_digest_recipients.py"
+    },
+    {
+      "app": "analytics",
+      "command": "seed_grade_prediction_labels_from_history",
+      "path": "apps/analytics/management/commands/seed_grade_prediction_labels_from_history.py"
+    },
+    {
+      "app": "analytics",
       "command": "send_deadline_reminders",
       "path": "apps/analytics/management/commands/send_deadline_reminders.py"
+    },
+    {
+      "app": "analytics",
+      "command": "send_risk_digest",
+      "path": "apps/analytics/management/commands/send_risk_digest.py"
+    },
+    {
+      "app": "analytics",
+      "command": "should_retrain_at_risk",
+      "path": "apps/analytics/management/commands/should_retrain_at_risk.py"
+    },
+    {
+      "app": "analytics",
+      "command": "should_retrain_grade_prediction",
+      "path": "apps/analytics/management/commands/should_retrain_grade_prediction.py"
+    },
+    {
+      "app": "analytics",
+      "command": "train_at_risk_baseline",
+      "path": "apps/analytics/management/commands/train_at_risk_baseline.py"
+    },
+    {
+      "app": "analytics",
+      "command": "verify_ai_ml_readiness",
+      "path": "apps/analytics/management/commands/verify_ai_ml_readiness.py"
+    },
+    {
+      "app": "analytics",
+      "command": "verify_at_risk_readiness",
+      "path": "apps/analytics/management/commands/verify_at_risk_readiness.py"
+    },
+    {
+      "app": "analytics",
+      "command": "verify_pgvector_index",
+      "path": "apps/analytics/management/commands/verify_pgvector_index.py"
     },
     {
       "app": "automation",
@@ -198,6 +353,11 @@
       "app": "automation",
       "command": "seed_migration_profiles",
       "path": "apps/automation/management/commands/seed_migration_profiles.py"
+    },
+    {
+      "app": "billing",
+      "command": "aggregate_storage_usage",
+      "path": "apps/billing/management/commands/aggregate_storage_usage.py"
     },
     {
       "app": "billing",
@@ -213,6 +373,11 @@
       "app": "billing",
       "command": "run_revenue_share_payouts",
       "path": "apps/billing/management/commands/run_revenue_share_payouts.py"
+    },
+    {
+      "app": "communication",
+      "command": "check_email_signing",
+      "path": "apps/communication/management/commands/check_email_signing.py"
     },
     {
       "app": "communication",
@@ -273,6 +438,11 @@
       "app": "compliance",
       "command": "privacy_request",
       "path": "apps/compliance/management/commands/privacy_request.py"
+    },
+    {
+      "app": "compliance",
+      "command": "process_erase_requests",
+      "path": "apps/compliance/management/commands/process_erase_requests.py"
     },
     {
       "app": "compliance",
@@ -400,6 +570,46 @@
       "path": "apps/finance/management/commands/verify_bank_deposits.py"
     },
     {
+      "app": "integrations_marketplace",
+      "command": "apply_marketplace_migrations",
+      "path": "apps/integrations_marketplace/management/commands/apply_marketplace_migrations.py"
+    },
+    {
+      "app": "integrations_marketplace",
+      "command": "check_brand_assets",
+      "path": "apps/integrations_marketplace/management/commands/check_brand_assets.py"
+    },
+    {
+      "app": "integrations_marketplace",
+      "command": "check_marketplace_deps",
+      "path": "apps/integrations_marketplace/management/commands/check_marketplace_deps.py"
+    },
+    {
+      "app": "integrations_marketplace",
+      "command": "export_sentry_alert_rules",
+      "path": "apps/integrations_marketplace/management/commands/export_sentry_alert_rules.py"
+    },
+    {
+      "app": "integrations_marketplace",
+      "command": "fetch_mailboxes",
+      "path": "apps/integrations_marketplace/management/commands/fetch_mailboxes.py"
+    },
+    {
+      "app": "integrations_marketplace",
+      "command": "refresh_oauth_tokens",
+      "path": "apps/integrations_marketplace/management/commands/refresh_oauth_tokens.py"
+    },
+    {
+      "app": "integrations_marketplace",
+      "command": "renew_push_subscriptions",
+      "path": "apps/integrations_marketplace/management/commands/renew_push_subscriptions.py"
+    },
+    {
+      "app": "integrations_marketplace",
+      "command": "subscribe_push",
+      "path": "apps/integrations_marketplace/management/commands/subscribe_push.py"
+    },
+    {
       "app": "marketplace",
       "command": "create_sandbox_tenant",
       "path": "apps/marketplace/management/commands/create_sandbox_tenant.py"
@@ -436,6 +646,11 @@
     },
     {
       "app": "metadata",
+      "command": "seed_dynamic_field_recipes",
+      "path": "apps/metadata/management/commands/seed_dynamic_field_recipes.py"
+    },
+    {
+      "app": "metadata",
       "command": "seed_entity_catalog",
       "path": "apps/metadata/management/commands/seed_entity_catalog.py"
     },
@@ -445,9 +660,24 @@
       "path": "apps/metadata/management/commands/sync_siteconfig_dynamicfields_to_metadata.py"
     },
     {
+      "app": "migration_cloud",
+      "command": "cleanup_intake_uploads",
+      "path": "apps/migration_cloud/management/commands/cleanup_intake_uploads.py"
+    },
+    {
       "app": "observability",
       "command": "db_health_check",
       "path": "apps/observability/management/commands/db_health_check.py"
+    },
+    {
+      "app": "observability",
+      "command": "digest_friction",
+      "path": "apps/observability/management/commands/digest_friction.py"
+    },
+    {
+      "app": "observability",
+      "command": "summarize_feedback_loop",
+      "path": "apps/observability/management/commands/summarize_feedback_loop.py"
     },
     {
       "app": "observability",
@@ -506,6 +736,11 @@
     },
     {
       "app": "platform_runtime",
+      "command": "apply_platform_migration",
+      "path": "apps/platform_runtime/management/commands/apply_platform_migration.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "backfill_runtime_defaults",
       "path": "apps/platform_runtime/management/commands/backfill_runtime_defaults.py"
     },
@@ -543,6 +778,11 @@
       "app": "platform_runtime",
       "command": "sync_ollama_models",
       "path": "apps/platform_runtime/management/commands/sync_ollama_models.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "verify_platform_readiness",
+      "path": "apps/platform_runtime/management/commands/verify_platform_readiness.py"
     },
     {
       "app": "policies",
@@ -696,8 +936,28 @@
     },
     {
       "app": "schools",
+      "command": "verify_data_residency",
+      "path": "apps/schools/management/commands/verify_data_residency.py"
+    },
+    {
+      "app": "schools",
+      "command": "verify_residency_readiness",
+      "path": "apps/schools/management/commands/verify_residency_readiness.py"
+    },
+    {
+      "app": "schools",
+      "command": "verify_rls_readiness",
+      "path": "apps/schools/management/commands/verify_rls_readiness.py"
+    },
+    {
+      "app": "schools",
       "command": "verify_tenant_rls",
       "path": "apps/schools/management/commands/verify_tenant_rls.py"
+    },
+    {
+      "app": "security",
+      "command": "verify_csp_readiness",
+      "path": "apps/security/management/commands/verify_csp_readiness.py"
     },
     {
       "app": "siteconfig",
@@ -801,6 +1061,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "i18n_review_status",
+      "path": "apps/siteconfig/management/commands/i18n_review_status.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "import_config",
       "path": "apps/siteconfig/management/commands/import_config.py"
     },
@@ -846,6 +1111,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "sanitize_existing_svgs",
+      "path": "apps/siteconfig/management/commands/sanitize_existing_svgs.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "seed_admin_dashboard_palettes",
       "path": "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py"
     },
@@ -883,6 +1153,11 @@
       "app": "siteconfig",
       "command": "seed_marketing_cms",
       "path": "apps/siteconfig/management/commands/seed_marketing_cms.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_platform_complete",
+      "path": "apps/siteconfig/management/commands/seed_platform_complete.py"
     },
     {
       "app": "siteconfig",
@@ -931,6 +1206,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "verify_all_migrations_applied",
+      "path": "apps/siteconfig/management/commands/verify_all_migrations_applied.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "verify_region_coverage",
       "path": "apps/siteconfig/management/commands/verify_region_coverage.py"
     }
@@ -967,13 +1247,13 @@
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 39,
-    "cursor_execute_apps_config_py_excl_migrations": 32,
-    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 41,
+    "cursor_execute_apps_config_py_excl_migrations": 36,
+    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 3,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 1048,
-    "site_settings_refs_apps_py_excl_migrations": 46,
-    "site_settings_refs_apps_py_excl_migrations_tests": 12
+    "print_calls_scripts_py": 1372,
+    "site_settings_refs_apps_py_excl_migrations": 54,
+    "site_settings_refs_apps_py_excl_migrations_tests": 20
   },
   "site_settings_fields": [
     {
@@ -987,6 +1267,7 @@
   ],
   "successor_domain_imports": {
     "brand_experience": [
+      "apps/brand_experience/migrations/0003_svg_safe_validator.py",
       "apps/brand_experience/models.py",
       "apps/brand_experience/platform_global_branding.py",
       "apps/brand_experience/resolvers.py"
@@ -995,7 +1276,23 @@
       "apps/global_registries/models.py"
     ],
     "integrations_marketplace": [
-      "apps/integrations_marketplace/models.py"
+      "apps/integrations_marketplace/connector_registry.py",
+      "apps/integrations_marketplace/mailbox_fetch.py",
+      "apps/integrations_marketplace/management/commands/subscribe_push.py",
+      "apps/integrations_marketplace/manager_views.py",
+      "apps/integrations_marketplace/models.py",
+      "apps/integrations_marketplace/oauth.py",
+      "apps/integrations_marketplace/resolver.py",
+      "apps/integrations_marketplace/subscription_renewal.py",
+      "apps/integrations_marketplace/tests/test_email_backend.py",
+      "apps/integrations_marketplace/tests/test_oauth_flow.py",
+      "apps/integrations_marketplace/tests/test_resolver_cascade.py",
+      "apps/integrations_marketplace/tests/test_v2_94_residuals.py",
+      "apps/integrations_marketplace/tests/test_v3_4_ten_items.py",
+      "apps/integrations_marketplace/token_refresh.py",
+      "apps/integrations_marketplace/views.py",
+      "apps/integrations_marketplace/webhook_handlers.py",
+      "apps/integrations_marketplace/webhooks.py"
     ],
     "plans_entitlements": [
       "apps/plans_entitlements/models.py"

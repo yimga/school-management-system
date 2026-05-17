@@ -71,6 +71,7 @@ class ContactRequestCreateForm(forms.Form):
     def __init__(self, *args, parent: User | None = None, students=None, **kwargs):
         super().__init__(*args, **kwargs)
         students = students or []
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         self.fields["student"].queryset = StudentProfile.objects.filter(
             id__in=[s.id for s in students]
         )

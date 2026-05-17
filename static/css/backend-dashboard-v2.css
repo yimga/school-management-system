@@ -56,7 +56,7 @@ body[data-dashboard-page="backend"] #portalHeader .topbar-icon-btn {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.22); /* off-token-allow: white-overlay */
   background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 80%, transparent);
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -718,7 +718,7 @@ body[data-dashboard-page="backend"] .backend-cmd-palette.is-open {
 body[data-dashboard-page="backend"] .backend-cmd-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(2, 6, 23, 0.55);
+  background: rgba(2, 6, 23, 0.55); /* off-token-allow: rgba-decorative */
   backdrop-filter: blur(2px);
 }
 
@@ -820,7 +820,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   body[data-dashboard-page="backend"] .backend-quick-link,
   body[data-dashboard-page="backend"] .backend-cmd-item {
     border-color: var(--admin-border, var(--color-base-300));
-    background: rgba(59, 130, 246, 0.08);
+    background: rgba(59, 130, 246, 0.08); /* off-token-allow: info-blue-overlay */
   }
 }
 

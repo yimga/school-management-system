@@ -26,9 +26,9 @@
   background: var(--mkt-edt-rule);
 }
 
-.mkt-v3-dashboard-frame__dot:nth-child(1) { background: #FCA5A5; }
-.mkt-v3-dashboard-frame__dot:nth-child(2) { background: #FCD34D; }
-.mkt-v3-dashboard-frame__dot:nth-child(3) { background: #86EFAC; }
+.mkt-v3-dashboard-frame__dot:nth-child(1) { background: #FCA5A5; /* off-token-allow: hex-literal-decorative */ }
+.mkt-v3-dashboard-frame__dot:nth-child(2) { background: #FCD34D; /* off-token-allow: hex-literal-decorative */ }
+.mkt-v3-dashboard-frame__dot:nth-child(3) { background: #86EFAC; /* off-token-allow: hex-literal-decorative */ }
 
 .mkt-v3-dashboard-frame__title {
   margin-left: 0.5rem;

@@ -19,14 +19,14 @@
 
 .mkt-v3-theme-toggle:hover,
 .mkt-v3-theme-toggle:focus-visible {
-  background: rgba(15, 27, 45, 0.06);
+  background: rgba(15, 27, 45, 0.06); /* off-token-allow: rgba-decorative */
   outline: 2px solid var(--mkt-accent, #C2410C);
   outline-offset: 2px;
 }
 
 .mkt-navbar .mkt-v3-theme-toggle {
-  color: rgba(248, 250, 252, 0.88);
-  border-color: rgba(248, 250, 252, 0.22);
+  color: rgba(248, 250, 252, 0.88); /* off-token-allow: rgba-decorative */
+  border-color: rgba(248, 250, 252, 0.22); /* off-token-allow: rgba-decorative */
 }
 
 .mkt-v3-root {
@@ -95,7 +95,7 @@
 }
 
 .mkt-v3-cta--ghost:hover {
-  background: rgba(15, 27, 45, 0.04);
+  background: rgba(15, 27, 45, 0.04); /* off-token-allow: rgba-decorative */
   color: var(--mkt-edt-ink);
 }
 

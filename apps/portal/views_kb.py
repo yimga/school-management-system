@@ -514,7 +514,7 @@ def kb_comment_add(request, article_slug):
     else:
         messages.error(request, "Comment cannot be empty.")
 
-    return redirect("portal:kb_article", article_slug=article_slug)
+    return redirect("kb:kb_article", article_slug=article_slug)
 
 
 @login_required

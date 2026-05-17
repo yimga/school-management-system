@@ -27,7 +27,7 @@ body.control-plane-shell .btn {
   position: relative;
   overflow: hidden;
   padding: 2rem;
-  border: 1px solid rgba(151, 177, 214, 0.16);
+  border: 1px solid rgba(151, 177, 214, 0.16); /* off-token-allow: rgba-decorative */
   border-radius: 1.75rem;
   background:
     radial-gradient(circle at top right, rgba(94, 234, 212, 0.18), transparent 32%),
@@ -90,8 +90,8 @@ body.control-plane-shell .btn {
   gap: 0.4rem;
   padding: 0.42rem 0.78rem;
   border-radius: 999px;
-  border: 1px solid rgba(157, 181, 214, 0.18);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(157, 181, 214, 0.18); /* off-token-allow: rgba-decorative */
+  background: rgba(255, 255, 255, 0.05); /* off-token-allow: white-overlay */
   color: var(--cp-text);
   font-size: var(--type-size-caption);
   text-decoration: none;
@@ -103,18 +103,18 @@ a.cp-chip:hover {
 }
 .cp-chip-healthy,
 .cp-chip-success {
-  border-color: rgba(49, 196, 141, 0.35);
+  border-color: rgba(49, 196, 141, 0.35); /* off-token-allow: rgba-decorative */
   color: var(--cp-success-350);
 }
 
 .cp-chip-warning {
-  border-color: rgba(255, 191, 71, 0.35);
+  border-color: rgba(255, 191, 71, 0.35); /* off-token-allow: rgba-decorative */
   color: var(--cp-warning-350);
 }
 
 .cp-chip-critical,
 .cp-chip-danger {
-  border-color: rgba(255, 107, 107, 0.35);
+  border-color: rgba(255, 107, 107, 0.35); /* off-token-allow: rgba-decorative */
   color: var(--cp-danger-350);
 }
 
@@ -146,8 +146,8 @@ a.cp-chip:hover {
 .cp-hero-stat {
   padding: 1rem 1.15rem;
   border-radius: 1.2rem;
-  border: 1px solid rgba(181, 203, 235, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(181, 203, 235, 0.18); /* off-token-allow: rgba-decorative */
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   margin-bottom: 0.75rem;
 }
 
@@ -226,31 +226,31 @@ a.cp-chip:hover {
 }
 
 .cp-overview-card-blue {
-  background: linear-gradient(180deg, rgba(31, 78, 121, 0.32), rgba(8, 16, 30, 0.82));
+  background: linear-gradient(180deg, rgba(31, 78, 121, 0.32), rgba(8, 16, 30, 0.82)); /* off-token-allow: decorative-gradient */
 }
 
 .cp-overview-card-emerald {
-  background: linear-gradient(180deg, rgba(27, 94, 76, 0.36), rgba(8, 16, 30, 0.82));
+  background: linear-gradient(180deg, rgba(27, 94, 76, 0.36), rgba(8, 16, 30, 0.82)); /* off-token-allow: decorative-gradient */
 }
 
 .cp-overview-card-crimson {
-  background: linear-gradient(180deg, rgba(118, 34, 44, 0.34), rgba(8, 16, 30, 0.82));
+  background: linear-gradient(180deg, rgba(118, 34, 44, 0.34), rgba(8, 16, 30, 0.82)); /* off-token-allow: decorative-gradient */
 }
 
 .cp-overview-card-amber {
-  background: linear-gradient(180deg, rgba(112, 78, 14, 0.34), rgba(8, 16, 30, 0.82));
+  background: linear-gradient(180deg, rgba(112, 78, 14, 0.34), rgba(8, 16, 30, 0.82)); /* off-token-allow: decorative-gradient */
 }
 
 .cp-overview-card-violet {
-  background: linear-gradient(180deg, rgba(77, 54, 128, 0.34), rgba(8, 16, 30, 0.82));
+  background: linear-gradient(180deg, rgba(77, 54, 128, 0.34), rgba(8, 16, 30, 0.82)); /* off-token-allow: decorative-gradient */
 }
 
 .cp-overview-card-sky {
-  background: linear-gradient(180deg, rgba(15, 88, 111, 0.34), rgba(8, 16, 30, 0.82));
+  background: linear-gradient(180deg, rgba(15, 88, 111, 0.34), rgba(8, 16, 30, 0.82)); /* off-token-allow: decorative-gradient */
 }
 
 .cp-overview-card-slate {
-  background: linear-gradient(180deg, rgba(51, 67, 94, 0.34), rgba(8, 16, 30, 0.82));
+  background: linear-gradient(180deg, rgba(51, 67, 94, 0.34), rgba(8, 16, 30, 0.82)); /* off-token-allow: decorative-gradient */
 }
 
 .cp-section-nav {
@@ -305,13 +305,13 @@ a.cp-chip:hover {
   align-items: center;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   color: var(--cp-sky-175);
   font-size: var(--type-size-eyebrow);
 }
 a.cp-panel-stat:hover {
   color: var(--cp-sky-175);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1); /* off-token-allow: white-overlay */
 }
 
 .cp-queue-grid {
@@ -397,17 +397,17 @@ a.cp-queue-card-header:hover {
 
 .cp-health-card-danger,
 .cp-readiness-card-warning {
-  border-color: rgba(255, 107, 107, 0.25);
+  border-color: rgba(255, 107, 107, 0.25); /* off-token-allow: rgba-decorative */
 }
 
 .cp-health-card-warning,
 .cp-readiness-card-neutral {
-  border-color: rgba(255, 191, 71, 0.25);
+  border-color: rgba(255, 191, 71, 0.25); /* off-token-allow: rgba-decorative */
 }
 
 .cp-health-card-success,
 .cp-readiness-card-success {
-  border-color: rgba(49, 196, 141, 0.25);
+  border-color: rgba(49, 196, 141, 0.25); /* off-token-allow: rgba-decorative */
 }
 
 .cp-stack-card {
@@ -447,11 +447,11 @@ a.cp-queue-card-header:hover {
   font-size: var(--type-size-eyebrow);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  border-bottom-color: rgba(154, 180, 214, 0.16);
+  border-bottom-color: rgba(154, 180, 214, 0.16); /* off-token-allow: rgba-decorative */
 }
 
 .cp-table tbody td {
-  border-bottom-color: rgba(154, 180, 214, 0.1);
+  border-bottom-color: rgba(154, 180, 214, 0.1); /* off-token-allow: rgba-decorative */
   vertical-align: top;
 }
 
@@ -487,8 +487,8 @@ a.cp-queue-card-header:hover {
 
 .cp-risk-pill {
   padding: 0.28rem 0.55rem;
-  background: rgba(255, 191, 71, 0.12);
-  border-color: rgba(255, 191, 71, 0.22);
+  background: rgba(255, 191, 71, 0.12); /* off-token-allow: rgba-decorative */
+  border-color: rgba(255, 191, 71, 0.22); /* off-token-allow: rgba-decorative */
   color: var(--cp-warning-350);
 }
 
@@ -507,7 +507,7 @@ a.cp-queue-card-header:hover {
 
 .cp-workstream-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(122, 198, 255, 0.4);
+  border-color: rgba(122, 198, 255, 0.4); /* off-token-allow: rgba-decorative */
 }
 
 .cp-workstream-cta {
@@ -524,8 +524,8 @@ a.cp-queue-card-header:hover {
   border-radius: 999px;
   font-size: var(--type-size-eyebrow);
   font-weight: 700;
-  border: 1px solid rgba(171, 190, 216, 0.18);
-  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(171, 190, 216, 0.18); /* off-token-allow: rgba-decorative */
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
 }
 
 .cp-status-badge-success,
@@ -533,8 +533,8 @@ a.cp-queue-card-header:hover {
 .cp-status-badge-resolved,
 .cp-status-badge-healthy {
   color: var(--cp-success-300);
-  border-color: rgba(49, 196, 141, 0.28);
-  background: rgba(49, 196, 141, 0.12);
+  border-color: rgba(49, 196, 141, 0.28); /* off-token-allow: rgba-decorative */
+  background: rgba(49, 196, 141, 0.12); /* off-token-allow: rgba-decorative */
 }
 
 .cp-status-badge-warning,
@@ -544,8 +544,8 @@ a.cp-queue-card-header:hover {
 .cp-status-badge-attention,
 .cp-status-badge-trialing {
   color: var(--cp-warning-300);
-  border-color: rgba(255, 191, 71, 0.28);
-  background: rgba(255, 191, 71, 0.12);
+  border-color: rgba(255, 191, 71, 0.28); /* off-token-allow: rgba-decorative */
+  background: rgba(255, 191, 71, 0.12); /* off-token-allow: rgba-decorative */
 }
 
 .cp-status-badge-danger,
@@ -554,8 +554,8 @@ a.cp-queue-card-header:hover {
 .cp-status-badge-suspended,
 .cp-status-badge-inactive {
   color: var(--cp-danger-300);
-  border-color: rgba(255, 107, 107, 0.28);
-  background: rgba(255, 107, 107, 0.12);
+  border-color: rgba(255, 107, 107, 0.28); /* off-token-allow: rgba-decorative */
+  background: rgba(255, 107, 107, 0.12); /* off-token-allow: rgba-decorative */
 }
 
 .cp-status-badge-neutral,
@@ -779,26 +779,26 @@ body.control-plane-shell .cp-navbar {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent; /* off-token-allow: white-overlay */
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar {
   width: 8px;
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
   border-radius: 4px;
   margin: 4px 0;
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
   border-radius: 4px;
   min-height: 40px;
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.45); /* off-token-allow: white-overlay */
 }
 .cp-sidebar-col .cp-sidebar-inner::-webkit-scrollbar-thumb:active {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.55); /* off-token-allow: white-overlay */
 }
 .cp-sidebar-col::-webkit-scrollbar {
   width: 8px;
@@ -807,11 +807,11 @@ body.control-plane-shell .cp-navbar {
   background: transparent;
 }
 .cp-sidebar-col::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
   border-radius: 4px;
 }
 .cp-sidebar-col::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.45); /* off-token-allow: white-overlay */
 }
 /* Main content column: ONLY this area scrolls; sidebar stays fixed (min-height: 0 enables flex child to scroll) */
 .cp-main-col,
@@ -827,7 +827,7 @@ body.control-plane-shell .cp-navbar {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
 }
 /* Inner wrappers must not force main to grow; allow main to be the scroll container */
 #cp-main-content > .container-fluid,
@@ -841,23 +841,23 @@ body.control-plane-shell .cp-navbar {
 }
 .cp-main-col::-webkit-scrollbar-track,
 #cp-main-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
   border-radius: 4px;
   margin: 4px 0;
 }
 .cp-main-col::-webkit-scrollbar-thumb,
 #cp-main-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.28); /* off-token-allow: white-overlay */
   border-radius: 4px;
   min-height: 40px;
 }
 .cp-main-col::-webkit-scrollbar-thumb:hover,
 #cp-main-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.42); /* off-token-allow: white-overlay */
 }
 .cp-main-col::-webkit-scrollbar-thumb:active,
 #cp-main-content::-webkit-scrollbar-thumb:active {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.5); /* off-token-allow: white-overlay */
 }
 @media (prefers-reduced-motion: reduce) {
   .cp-main-col,
@@ -892,11 +892,11 @@ body.control-plane-shell .cp-navbar {
   width: 6px;
 }
 .cp-sidebar-offcanvas .offcanvas-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
   border-radius: 3px;
 }
 .cp-sidebar-offcanvas .offcanvas-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.45); /* off-token-allow: white-overlay */
 }
 
 /* ========== Navbar: responsive brand and actions ========== */
@@ -926,7 +926,7 @@ body.control-plane-shell .cp-navbar {
 }
 #cpSearchResults.dropdown-menu .dropdown-item:hover,
 #cpSearchResults.dropdown-menu .dropdown-item:focus {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1); /* off-token-allow: white-overlay */
 }
 
 /* ========== Control plane sidebar: section collapse + compact mode ========== */
@@ -1025,7 +1025,7 @@ body.control-plane-shell .cp-navbar.cp-navbar--surface {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.7); /* off-token-allow: black-overlay */
   display: flex;
   align-items: center;
   justify-content: center;

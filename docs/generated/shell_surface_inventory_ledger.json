@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-05-15T12:09:14.290091+00:00",
-  "passed": true,
+  "generated_at": "2026-05-17T19:37:48.351199+00:00",
+  "passed": false,
   "rows": [
     {
       "path": "templates/accounts/backend_dashboard.html",
@@ -28,7 +28,7 @@
     },
     {
       "path": "templates/control_plane_base.html",
-      "summary": "ok"
+      "summary": "missing: data-rmc-shell-title="
     },
     {
       "path": "templates/control_plane_skeleton.html",
@@ -152,7 +152,7 @@
     },
     {
       "path": "templates/siteconfig/academic_years_setup_evidence.html",
-      "summary": "ok"
+      "summary": "missing: data-shell-surface=, data-admin-replacement-category="
     },
     {
       "path": "templates/siteconfig/bulk_letters.html",
@@ -168,7 +168,7 @@
     },
     {
       "path": "templates/siteconfig/departments_setup_evidence.html",
-      "summary": "ok"
+      "summary": "missing: data-shell-surface=, data-admin-replacement-category="
     },
     {
       "path": "templates/siteconfig/entity_catalog_overview.html",
@@ -176,6 +176,10 @@
     },
     {
       "path": "templates/siteconfig/grading_scale_bands.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/maintenance.html",
       "summary": "ok"
     },
     {
@@ -188,6 +192,22 @@
     },
     {
       "path": "templates/siteconfig/partials/configuration_control_center_staging_publish.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/partials/maintenance_body.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/partials/region_comparison_body.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/partials/region_grading_scales_matrix_body.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/siteconfig/partials/region_validation_dashboard_body.html",
       "summary": "ok"
     },
     {
@@ -204,7 +224,7 @@
     },
     {
       "path": "templates/siteconfig/scheduled_reports_delivery_hub.html",
-      "summary": "ok"
+      "summary": "missing: data-shell-surface="
     },
     {
       "path": "templates/siteconfig/school_theme_settings.html",
@@ -212,15 +232,15 @@
     },
     {
       "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
-      "summary": "ok"
+      "summary": "missing: data-siteconfig-surface="
     },
     {
       "path": "templates/siteconfig/term_publish_status_evidence.html",
-      "summary": "ok"
+      "summary": "missing: data-shell-surface=, data-admin-replacement-category="
     },
     {
       "path": "templates/siteconfig/user_preferences.html",
-      "summary": "ok"
+      "summary": "missing: shell_chrome_contextual_info_banner.html, chrome_banner_title="
     },
     {
       "path": "templates/studio_os/partials/shell_main_content.html",
@@ -235,6 +255,6 @@
       "summary": "ok"
     }
   ],
-  "templates_checked": 58,
+  "templates_checked": 63,
   "verify": "verify_shell_surface_inventory"
 }

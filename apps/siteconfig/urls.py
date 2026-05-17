@@ -117,10 +117,20 @@ from .views_school_onboarding import (
 )
 from .views_school_group_hierarchy import school_group_hierarchy
 from .views_console_ai_rag import ingest_policy_docs as ai_rag_ingest_policy_docs
+from .legacy_redirects import (
+    legacy_customizer_clear_preview_redirect,
+    legacy_customizer_redirect,
+)
 
 app_name = "siteconfig"
 
 urlpatterns = [
+    path("customizer/", legacy_customizer_redirect, name="legacy_customizer"),
+    path(
+        "customizer/clear-preview/",
+        legacy_customizer_clear_preview_redirect,
+        name="legacy_customizer_clear_preview",
+    ),
     path("maintenance/", maintenance_view, name="maintenance"),
     path(
         "dev/mascot/",

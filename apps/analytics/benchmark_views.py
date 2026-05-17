@@ -31,6 +31,7 @@ class BenchmarkComparisonAPI(APIView):
 
         # School's averages per subject/term (current term or all)
         school_avgs = (
+            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             Evaluation.objects.filter(
                 subject_assignment__school=school,
                 subject_assignment__academic_year__is_active=True,

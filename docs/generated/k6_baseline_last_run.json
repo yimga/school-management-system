@@ -1,0 +1,8 @@
+{
+  "recorded_at": "2026-05-17T20:22:00+00:00",
+  "base_url": null,
+  "status": "pending",
+  "thresholds": {},
+  "metrics": {},
+  "note": "Run bash scripts/run_k6_baseline_local.sh or gh workflow k6-baseline-dispatch.yml to populate."
+}

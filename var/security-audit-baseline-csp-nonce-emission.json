@@ -1,0 +1,68 @@
+{
+  "finding_count": 12,
+  "findings": [
+    {
+      "attrs": "",
+      "line": 16,
+      "path": "templates/admin/base_site.html"
+    },
+    {
+      "attrs": "",
+      "line": 88,
+      "path": "templates/admin/base_site.html"
+    },
+    {
+      "attrs": "",
+      "line": 105,
+      "path": "templates/admin/base_site.html"
+    },
+    {
+      "attrs": "",
+      "line": 115,
+      "path": "templates/admin/base_site.html"
+    },
+    {
+      "attrs": "",
+      "line": 216,
+      "path": "templates/admin/base_site.html"
+    },
+    {
+      "attrs": "",
+      "line": 265,
+      "path": "templates/admin/base_site.html"
+    },
+    {
+      "attrs": "type=\"application/json\" id=\"page-data-base-1\"",
+      "line": 281,
+      "path": "templates/base.html"
+    },
+    {
+      "attrs": "",
+      "line": 19,
+      "path": "templates/marketing/base_marketing.html"
+    },
+    {
+      "attrs": "type=\"application/json\" id=\"sms-offline-config\"",
+      "line": 463,
+      "path": "templates/portal_base.html"
+    },
+    {
+      "attrs": "type=\"application/json\" id=\"rmc-click-ingest-config\"",
+      "line": 513,
+      "path": "templates/portal_base.html"
+    },
+    {
+      "attrs": "type=\"application/json\" id=\"rmc-service-worker-url\"",
+      "line": 527,
+      "path": "templates/portal_base.html"
+    },
+    {
+      "attrs": "type=\"application/json\" id=\"rmc-preview-labels\"",
+      "line": 579,
+      "path": "templates/portal_base.html"
+    }
+  ],
+  "generated_at": "2026-05-17T19:00:03+00:00",
+  "rule": "inline <script> elements in the 5 canonical shells must carry nonce=\"{{ csp_nonce }}\" (or a <!-- csp-nonce-allow: --> marker for legitimately-safe JSON data blocks)",
+  "shells_missing": []
+}

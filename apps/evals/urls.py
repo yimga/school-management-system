@@ -24,6 +24,7 @@ from .views import (
     rosetta_grade_preview_api,
 )
 from .views_drilldown import evaluation_drilldown
+from .views_import_enhanced import grade_import_job_detail
 
 urlpatterns = [
     # Pass 9.E: per-evaluation drill-down with GradeAudit trail.
@@ -83,4 +84,13 @@ urlpatterns = [
     ),
     # PHASE 4: Import Monitoring & Caching
     path("import-jobs/monitor/", import_job_monitor_view, name="import_job_monitor"),
+    # v3.16 (2026-05-17): wire grade_import_job_detail — view function existed at
+    # views_import_enhanced.py:130 but had no URL route, so 5 redirects to
+    # `evals:grade_import_job_detail` raised NoReverseMatch (HTTP 500) on every
+    # successful grade-import POST. Caught by platform-wide dead-URL audit.
+    path(
+        "grade-import/job/<int:job_id>/",
+        grade_import_job_detail,
+        name="grade_import_job_detail",
+    ),
 ]

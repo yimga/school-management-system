@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% comment %}
+v3.17 (2026-05-17) — Migration handoff page.
+
+Renders after magic-link verification when the new admin picked a vendor on the
+public wizard. Shows:
+  - Hero: welcome + vendor confirmation chip
+  - Card: data-domain checklist with a live time-tally pill
+  - Footer CTA row: "Skip for now" (→ dashboard) and "Start migration" (→ MC intake)
+
+Posts to onboard_migration_start, which writes the operator's adjusted selection
+back onto school.settings and deep-links into the Migration Cloud intake wizard
+with vendor/profile/school_id/source_hint/domains as query params.
+
+If the user lands here without a vendor (came back via dashboard banner), we
+re-render the wizard step-3 vendor grid as a "pick where your data lives now"
+fallback so the page is always actionable.
+{% endcomment %}
+{% block title %}{% trans "Bring your data across" %} | RunMyCampus{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/onboarding-migration.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="omig-handoff" data-shell-page="onboarding-migration-handoff">
+
+  <header class="omig-handoff__hero">
+    <span class="omig-handoff__eyebrow">
+      <i class="bi bi-stars" aria-hidden="true"></i>
+      {% trans "Welcome to RunMyCampus" %}
+    </span>
+    <h1 class="omig-handoff__title">
+      {% if school %}{% blocktrans with name=school.name %}Let’s bring {{ name }}’s data in.{% endblocktrans %}{% else %}{% trans "Let’s bring your data in." %}{% endif %}
+    </h1>
+    <p class="omig-handoff__subtitle">
+      {% trans "Pick what you want to migrate. We’ll match columns automatically, surface anything ambiguous, and never overwrite a record you didn’t approve." %}
+    </p>
+  </header>
+
+  {% if selected_vendor %}
+  {# Vendor confirmation chip — operator already picked one during onboarding. #}
+  <div class="omig-vendor-chip" role="status" aria-label="{% trans 'Selected source platform' %}">
+    <span class="omig-vendor-chip__monogram ovendor-tile__monogram--{{ selected_vendor.palette }}" aria-hidden="true">{{ selected_vendor.monogram }}</span>
+    <div>
+      <div class="omig-vendor-chip__name">{{ selected_vendor.name }}</div>
+      <div class="omig-vendor-chip__tagline">{{ selected_vendor.tagline }}</div>
+    </div>
+    <a href="#change-vendor" class="omig-vendor-chip__change" data-bs-toggle="collapse" aria-expanded="false" aria-controls="change-vendor">
+      <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>{% trans "Change" %}
+    </a>
+  </div>
+  {% endif %}
+
+  {% comment %}Collapsible vendor-grid for changing the choice in-place (or picking one
+     if the operator skipped during onboarding). Stays collapsed by default
+     when a vendor is already set; auto-expanded if none was picked.{% endcomment %}
+  <form method="post" action="{% url 'onboard_migration_start' %}" id="omig-start-form">
+    {% csrf_token %}
+    <div class="collapse{% if not selected_vendor %} show{% endif %}" id="change-vendor">
+      <section class="ovendor-section" aria-labelledby="omig-change-vendor-heading">
+        <h2 class="h6 fw-semibold mb-2" id="omig-change-vendor-heading">{% trans "Pick a source platform" %}</h2>
+        <p class="ovendor-section__lede">{% trans "Tap the tile that matches your current system. Spreadsheets / Other works for CSV exports." %}</p>
+        <div class="ovendor-grid" role="radiogroup" aria-label="{% trans 'Source platform' %}">
+          {% for v in vendors %}
+          <button type="button"
+                  class="ovendor-tile{% if selected_vendor_slug == v.slug %} is-selected{% endif %}"
+                  data-vendor-slug="{{ v.slug }}"
+                  data-vendor-name="{{ v.name }}"
+                  aria-label="{% blocktrans with name=v.name %}Select {{ name }}{% endblocktrans %}">
+            <span class="ovendor-tile__monogram ovendor-tile__monogram--{{ v.palette }}" aria-hidden="true">{{ v.monogram }}</span>
+            <span class="ovendor-tile__name">{{ v.name }}</span>
+            <span class="ovendor-tile__tagline">{{ v.tagline }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+    <input type="hidden" name="vendor_slug" id="vendor-selected-slug" value="{{ selected_vendor_slug|default:'' }}">
+
+    {% if selected_vendor or vendors %}
+    <section class="omig-domain-card" aria-labelledby="omig-domain-heading">
+      <h2 class="omig-domain-card__title" id="omig-domain-heading">
+        <i class="bi bi-list-check me-1" aria-hidden="true"></i>{% trans "What we’ll bring across" %}
+      </h2>
+      <ul class="omig-domain-list" role="list">
+        {% for d in data_domains %}
+        <li class="omig-domain" role="listitem">
+          <input type="checkbox"
+                 class="omig-domain__check form-check-input"
+                 id="omig-domain-{{ d.slug }}"
+                 name="domains"
+                 value="{{ d.slug }}"
+                 data-minutes="{{ d.minutes }}"
+                 {% if d.slug in selected_domain_slugs %}checked{% endif %}>
+          <div class="omig-domain__main">
+            <label class="omig-domain__label" for="omig-domain-{{ d.slug }}">
+              <i class="{{ d.icon }}" aria-hidden="true"></i>{{ d.label }}
+            </label>
+            <p class="omig-domain__desc mb-0">{{ d.description }}</p>
+          </div>
+          <span class="omig-domain__badge omig-domain__badge--{{ d.complexity }}">
+            {% if d.complexity == "quick" %}{% trans "Quick" %} · ~{{ d.minutes }} {% trans "min" %}
+            {% elif d.complexity == "standard" %}{% trans "Standard" %} · ~{{ d.minutes }} {% trans "min" %}
+            {% else %}{% trans "Detailed" %} · ~{{ d.minutes }} {% trans "min" %}{% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="omig-tally" role="status" aria-live="polite">
+        <span class="omig-tally__count" id="omig-tally-count">{{ selected_domain_slugs|length }}</span>
+        <span>{% trans "selected" %}</span>
+        <span class="omig-tally__sep">·</span>
+        <span>~</span>
+        <span class="omig-tally__count" id="omig-tally-minutes">{{ minutes_total }}</span>
+        <span>{% trans "min to set up" %}</span>
+      </div>
+    </section>
+    {% endif %}
+
+    <div class="omig-cta-row">
+      <button type="submit" name="skip" value="1" class="btn btn-link p-0 text-decoration-none">
+        <i class="bi bi-arrow-right-short" aria-hidden="true"></i>{% trans "Skip for now" %}
+      </button>
+      <div class="d-flex gap-2 align-items-center">
+        <a href="{{ dashboard_url }}" class="btn btn-outline-secondary">{% trans "Take me to my dashboard" %}</a>
+        <button type="submit" class="btn btn-primary">
+          {% trans "Start migration" %} <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <p class="text-muted small mt-4 text-center">
+    <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+    {% trans "We never touch records you don’t approve. Every migration starts as a dry-run." %}
+  </p>
+</div>
+
+<script src="{% static 'js/onboarding-migration.js' %}" defer></script>
+{% endblock %}

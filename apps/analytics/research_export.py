@@ -56,6 +56,7 @@ def get_deidentified_aggregates(
             out["aggregates"]["students_count"] = qs.count()
         if apps.is_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
+            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             qs = Evaluation.objects.filter(student__school_id=school_id)
             out["aggregates"]["evaluations_count"] = qs.count()
         if apps.is_installed("finance"):

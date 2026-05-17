@@ -49,10 +49,10 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: linear-gradient(135deg, rgba(26, 22, 18, 0.6), rgba(36, 30, 24, 0.4));
+  background: linear-gradient(135deg, rgba(26, 22, 18, 0.6), rgba(36, 30, 24, 0.4)); /* off-token-allow: decorative-gradient */
   -webkit-backdrop-filter: saturate(160%) blur(20px);
           backdrop-filter: saturate(160%) blur(20px);
-  color: #f5eedd;
+  color: #f5eedd; /* off-token-allow: hex-literal-decorative */
   margin-bottom: 1.5rem;
   box-shadow: 0 0 0 1px rgba(168, 160, 146, 0.14), 0 12px 32px -4px rgba(0, 0, 0, 0.35);
   position: relative;
@@ -75,7 +75,7 @@ body {
   place-items: center;
   font-size: var(--type-size-headline-m);
   font-weight: 700;
-  color: #fff;
+  color: #fff; /* off-token-allow: hex-literal-decorative */
   flex-shrink: 0;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 4px 12px rgba(0, 0, 0, 0.3);
 }
@@ -91,7 +91,7 @@ body {
 .manager-login-hero small,
 .admin-login-hero small {
   display: block;
-  color: rgba(241, 245, 249, 0.78);
+  color: rgba(241, 245, 249, 0.78); /* off-token-allow: rgba-decorative */
   font-size: var(--type-size-caption);
   margin-top: 0.25rem;
   letter-spacing: -0.005em;
@@ -101,8 +101,8 @@ body {
 .manager-login-card,
 .admin-login-card {
   border-radius: 16px !important;
-  border: 1px solid rgba(168, 160, 146, 0.18) !important;
-  background: rgba(11, 17, 32, 0.78) !important;
+  border: 1px solid rgba(168, 160, 146, 0.18) !important; /* off-token-allow: warm-neutral-overlay */
+  background: rgba(11, 17, 32, 0.78) !important; /* off-token-allow: rgba-decorative */
   -webkit-backdrop-filter: saturate(160%) blur(20px);
           backdrop-filter: saturate(160%) blur(20px);
   box-shadow: 0 0 0 1px rgba(168, 160, 146, 0.10), 0 18px 48px -8px rgba(0, 0, 0, 0.45) !important;
@@ -131,26 +131,26 @@ body {
 .manager-login-card .form-control,
 .admin-login-card .form-control {
   border-radius: 10px;
-  background: rgba(26, 22, 18, 0.6);
-  border-color: rgba(168, 160, 146, 0.22);
-  color: #e7eefc;
+  background: rgba(26, 22, 18, 0.6); /* off-token-allow: always-dark-warm-bg */
+  border-color: rgba(168, 160, 146, 0.22); /* off-token-allow: warm-neutral-overlay */
+  color: #e7eefc; /* off-token-allow: hex-literal-decorative */
   letter-spacing: -0.005em;
   font-weight: 500;
   padding: 10px 14px;
   transition: border-color var(--dur-fast, 150ms) ease, box-shadow var(--dur-fast, 150ms) ease, background var(--dur-fast, 150ms) ease;
 }
 .manager-login-card .form-control::placeholder,
-.admin-login-card .form-control::placeholder { color: rgba(231, 238, 252, 0.5); }
+.admin-login-card .form-control::placeholder { color: rgba(231, 238, 252, 0.5); /* off-token-allow: rgba-decorative */ }
 .manager-login-card .form-control:focus,
 .admin-login-card .form-control:focus {
-  background: rgba(26, 22, 18, 0.85);
+  background: rgba(26, 22, 18, 0.85); /* off-token-allow: always-dark-warm-bg */
   border-color: color-mix(in oklab, var(--school-primary) 70%, transparent);
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--school-primary) 22%, transparent);
 }
 
 .manager-login-card .form-label,
 .admin-login-card .form-label {
-  color: rgba(241, 245, 249, 0.82);
+  color: rgba(241, 245, 249, 0.82); /* off-token-allow: rgba-decorative */
   font-size: var(--type-size-caption);
   font-weight: 500;
   letter-spacing: -0.005em;
@@ -162,7 +162,7 @@ body {
 .admin-login-card .btn-primary {
   background: var(--school-primary) !important;
   border: none !important;
-  color: #fff !important;
+  color: #fff !important; /* off-token-allow: hex-literal-decorative */
   font-weight: 600;
   padding: 11px 14px;
   border-radius: 10px;
@@ -188,7 +188,7 @@ body {
 }
 .manager-login-footer a,
 .admin-login-footer a {
-  color: rgba(168, 160, 146, 0.9);
+  color: rgba(168, 160, 146, 0.9); /* off-token-allow: warm-neutral-overlay */
   text-decoration: none;
   font-size: var(--type-size-caption);
   transition: color 150ms ease;
@@ -200,9 +200,9 @@ body {
 
 /* Validation + alerts on dark card */
 .admin-login-card .form-control.is-invalid {
-  border-color: rgba(248, 113, 113, 0.7);
+  border-color: rgba(248, 113, 113, 0.7); /* off-token-allow: rgba-decorative */
 }
-.admin-login-card .invalid-feedback { color: #fca5a5; }
+.admin-login-card .invalid-feedback { color: #fca5a5; /* off-token-allow: hex-literal-decorative */ }
 
 .admin-login-card .admin-login-alert,
 .manager-login-card .manager-login-alert,
@@ -210,9 +210,9 @@ body {
 .admin-login-card .alert-warning,
 .manager-login-card .alert-danger,
 .manager-login-card .alert-warning {
-  background: rgba(220, 38, 38, 0.14);
-  border: 1px solid rgba(248, 113, 113, 0.36);
-  color: #fca5a5;
+  background: rgba(220, 38, 38, 0.14); /* off-token-allow: rgba-decorative */
+  border: 1px solid rgba(248, 113, 113, 0.36); /* off-token-allow: rgba-decorative */
+  color: #fca5a5; /* off-token-allow: hex-literal-decorative */
   border-radius: 10px;
 }
 .admin-login-card .alert-warning,
@@ -225,7 +225,7 @@ body {
 /* Password reset link */
 .admin-login-reset a,
 .admin-login-card .admin-login-reset a {
-  color: rgba(168, 160, 146, 0.9);
+  color: rgba(168, 160, 146, 0.9); /* off-token-allow: warm-neutral-overlay */
   text-decoration: none;
   font-size: var(--type-size-caption);
 }

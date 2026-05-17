@@ -136,6 +136,7 @@ def main(argv: list[str] | None = None) -> int:
     lint_singleton = root / "scripts" / "lint_sitesettings_orm_singleton.py"
     audit_surface = root / "scripts" / "audit_sitesettings_python_surface.py"
     typed_map = root / "scripts" / "verify_sitesettings_typed_ownership_map.py"
+    cache_rankings_parity = root / "scripts" / "verify_cache_rankings_interval_parity.py"
     checks = [
         ([py, str(verify_phase_5), "--base", str(root)], "verify_phase_5_siteconfig"),
         (
@@ -183,6 +184,14 @@ def main(argv: list[str] | None = None) -> int:
         (
             [py, str(typed_map)],
             "verify_sitesettings_typed_ownership_map (1042 JSON)",
+        ),
+        (
+            [py, str(cache_rankings_parity)],
+            "verify_cache_rankings_interval_parity (1264/1265 slice)",
+        ),
+        (
+            [py, str(root / "scripts" / "verify_top_students_default_limit_parity.py")],
+            "verify_top_students_default_limit_parity (1267 slice)",
         ),
     ]
     for cmd, label in checks:

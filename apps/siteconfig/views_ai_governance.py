@@ -6,12 +6,17 @@ from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_operator_page,
+)
 from apps.compliance.models_audit import AuditLog
 from apps.portal.ai_provider import get_public_ai_provider_status
 from apps.siteconfig.ai_assistants import iter_assistants, user_may_use_assistant
@@ -68,10 +73,11 @@ def ai_governance(request: HttpRequest) -> HttpResponse:
     except (AttributeError, TypeError, ValueError):
         pass
 
-    return render(
+    return render_siteconfig_operator_page(
         request,
-        "siteconfig/ai_governance.html",
-        {
+        portal_template="siteconfig/ai_governance.html",
+        body_template="siteconfig/partials/ai_governance_body.html",
+        context={
             "school": school,
             "ai_policy": ai_policy,
             "provider_status": provider_status,
@@ -79,4 +85,9 @@ def ai_governance(request: HttpRequest) -> HttpResponse:
             "audit_feed_url": audit_feed_url,
             "ai_audit_recent_count": ai_audit_recent,
         },
+        cp_title=_("AI governance"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("AI Center"), url=reverse("siteconfig:ai_center")),
+            operator_cp_breadcrumb(_("AI governance"), active=True),
+        ),
     )

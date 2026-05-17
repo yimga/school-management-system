@@ -7,6 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
+from django.utils.translation import gettext as _
+
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.decorators import permission_required
@@ -36,6 +43,7 @@ def report_output_history_evidence(request: HttpRequest) -> HttpResponse:
     report_total = report_q.count()
     pdf_total = report_q.exclude(pdf_file="").count()
     report_ids = report_q.values_list("pk", flat=True)
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     hash_total = ReportDocumentHash.objects.filter(report_card_id__in=report_ids).count()
     audit_total = ReportCardAudit.objects.filter(report_card_id__in=report_ids).count()
     recent_reports = list(report_q.order_by("-generated_at")[:100])
@@ -46,28 +54,12 @@ def report_output_history_evidence(request: HttpRequest) -> HttpResponse:
             "admin:reports_reportcard_changelist"
         )
 
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/report_output_history_evidence.html",
-        {
-            "school": school,
-            "recent_reports": recent_reports,
-            "report_total": report_total,
-            "pdf_total": pdf_total,
-            "hash_total": hash_total,
-            "audit_total": audit_total,
-            "scheduled_reports_hub_url": _safe_reverse(
-                "siteconfig:scheduled_reports_delivery_hub"
-            ),
-            "tenant_report_schedules_evidence_url": _safe_reverse(
-                "siteconfig:tenant_report_schedules_evidence"
-            ),
-            "report_templates_catalog_url": _safe_reverse(
-                "siteconfig:report_templates_catalog_evidence"
-            ),
-            "term_publish_status_evidence_url": _safe_reverse(
-                "siteconfig:term_publish_status_evidence"
-            ),
-            "admin_reportcard_changelist_url": admin_reportcard_changelist_url,
-        },
+        "report_output_history_evidence",
+        None,
+        cp_title=_("Report output history"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Report output history"), active=True),
+        ),
     )

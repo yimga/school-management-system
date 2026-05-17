@@ -10,16 +10,5 @@
 {% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Report card builder" %}</h1>
-{# Contract markers for static template audits; assignment table renders in included partial. #}
-<template id="reportcard-builder-assignment-contract" aria-hidden="true">
-  <table aria-label="Report card style assignments by classroom">
-    <thead>
-      <tr>
-        <th scope="col">{% trans_term "Classroom" key="classroom" %}</th>
-      </tr>
-    </thead>
-  </table>
-</template>
-{% include "siteconfig/partials/reportcard_builder_inner.html" %}
+{% include "siteconfig/partials/reportcard_builder_body.html" %}
 {% endblock %}

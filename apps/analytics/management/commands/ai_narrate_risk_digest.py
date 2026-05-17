@@ -100,7 +100,7 @@ class Command(BaseCommand):
             return
 
         bullets = self._fact_bullets(top)
-        narrative = self._narrate(school, bullets)
+        narrative = self._narrate(school, bullets, top=top)
         digest = self._format_digest(school, bullets, narrative)
 
         if opts.get("out"):
@@ -128,7 +128,30 @@ class Command(BaseCommand):
             )
         return bullets
 
-    def _narrate(self, school, bullets: list[str]) -> str:
+    def _allowed_entities(self, top) -> list[str]:
+        """Names the AI narrative is permitted to reference.
+
+        Sourced from the RiskFactor input set so :func:`assert_grounded`
+        can refuse hallucinated names that aren't in this list. Empty
+        first+last (e.g. anonymized student) becomes ``"#<pk>"``, which
+        is also added to the allowlist so the bullet form round-trips.
+        """
+        names: list[str] = []
+        for rf in top:
+            student = rf.student
+            full = f"{student.first_name} {student.last_name}".strip()
+            if full:
+                names.append(full)
+            names.append(f"#{student.pk}")
+        # School name itself is grounded content too.
+        for rf in top:
+            school_name = getattr(getattr(rf, "school", None), "name", "")
+            if school_name:
+                names.append(school_name)
+                break
+        return names
+
+    def _narrate(self, school, bullets: list[str], top=None) -> str:
         try:
             from services.ai_helpers import invoke_with_request
         except ImportError:
@@ -161,7 +184,37 @@ class Command(BaseCommand):
             response, _meta = result
         except (TypeError, ValueError):
             response = result
-        return str(response or "").strip()
+        narrative = str(response or "").strip()
+        if not narrative:
+            return ""
+        # P8 hallucination guardrail: reject narrative when it mentions a
+        # proper-noun-shaped entity not present in the fact bullets.
+        # Caller already has a graceful empty-string fall-back path that
+        # renders the bullets without a narrative.
+        if top is not None:
+            try:
+                from apps.analytics.ai_narration_grounding import (
+                    UngroundedNarrativeError,
+                    assert_grounded,
+                )
+                # School name + each student's full name are the grounded
+                # entity set. The school's own name is allowed because the
+                # narrative may include it as context.
+                allowed = self._allowed_entities(top) + [school.name]
+                assert_grounded(narrative, allowed)
+            except UngroundedNarrativeError as exc:
+                logger.warning(
+                    "ai_narrate_risk_digest: dropped ungrounded narrative "
+                    "(unknown entities=%r)",
+                    exc.unknown_entities,
+                )
+                return ""
+            except ImportError:
+                # Grounding helper missing: fall open. The digest still
+                # ships; the operator can decide whether to gate
+                # narration on the helper's presence in deploy.
+                pass
+        return narrative
 
     def _format_digest(self, school, bullets, narrative) -> str:
         header = f"At-risk digest — {school.name} — {timezone.now():%Y-%m-%d}"

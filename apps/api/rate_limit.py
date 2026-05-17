@@ -245,6 +245,7 @@ def record_tenant_api_usage(school, limit_type: str = "api_calls"):
             limit_type=limit_type,
             defaults={"request_count": 0},
         )
+        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         TenantApiUsage.objects.filter(pk=obj.pk).update(
             request_count=F("request_count") + 1
         )

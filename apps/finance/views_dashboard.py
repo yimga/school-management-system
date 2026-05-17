@@ -158,7 +158,7 @@ def dashboard(request: HttpRequest):
             "datasets": [
                 {
                     "label": "Invoice total",
-                    "data": [float(t["total"]) for t in trend],
+                    "data": [float(t["total"]) for t in trend],  # money-float-allow: display-precision-acceptable (chart.js dataset)
                     "fill": True,
                     "borderColor": "#0d6efd",
                     "backgroundColor": "rgba(13, 110, 253, 0.15)",

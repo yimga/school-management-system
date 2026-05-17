@@ -255,6 +255,7 @@ def run_pre_migration_validation(
         )
         student_codes = {str(s).strip().upper() for s in student_codes if s}
         sa_ids = set(
+            # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
             SubjectAssignment.objects.filter(academic_year=active_year).values_list(
                 "id", flat=True
             )

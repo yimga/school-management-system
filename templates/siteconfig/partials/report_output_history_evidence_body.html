@@ -1,0 +1,82 @@
+{% load i18n static %}
+{% load terminology_tags %}
+<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: 58rem;" data-page-archetype="operator-report" data-shell-surface="report-output-history-evidence" data-admin-replacement-category="reports_output_history_evidence" data-cp-evidence-surface="report-output-history" data-rmc-operator-evidence-surface="1" data-rmc-report-bulk-evidence="1072" data-rmc-component-audit="1">
+  <h1 class="h3 mb-2">{% trans "Report output history (read-only)" %}</h1>
+  <p class="text-muted small mb-2">
+    {% trans "Evidence-only view of generated report card output rows, PDF coverage, hash ledger coverage, and audit events. This page does not generate, export, publish, or resend reports." %}
+  </p>
+  {% if school %}
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Outputs" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ report_total }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "PDF files" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ pdf_total }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Hash ledger" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ hash_total }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Audit events" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ audit_total }}</div>
+    </div>
+  </div>
+  {% endif %}
+  {% if not school %}
+  <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
+  {% else %}
+  <p class="small text-muted mb-3">{% trans_term "School" key="school" %}: {{ school.name }}</p>
+  {% endif %}
+
+  <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if scheduled_reports_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if tenant_report_schedules_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ tenant_report_schedules_evidence_url }}">{% trans "Scheduled reports (evidence)" %}</a>
+    {% endif %}
+    {% if report_templates_catalog_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ report_templates_catalog_url }}">{% trans "Report templates (catalog)" %}</a>
+    {% endif %}
+    {% if term_publish_status_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ term_publish_status_evidence_url }}">{% trans "Term publish status" %}</a>
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle table-family table-sticky-head" aria-label="{% trans 'Report output history' %}">
+      <thead>
+        <tr>
+          <th>{% trans "Generated" %}</th>
+          <th>{% trans_term "Student" key="student" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans_term "Academic year" key="academic_year" %}</th>
+          <th>{% trans_term "Term" key="term" %}</th>
+          <th>{% trans "PDF" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent_reports %}
+        <tr>
+          <td class="text-nowrap">{{ r.generated_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ r.student.first_name }} {{ r.student.last_name }}</td>
+          <td>{{ r.get_type_display|default:r.type }}</td>
+          <td>{{ r.academic_year.name|default:"—" }}</td>
+          <td>{% if r.term %}{{ r.term.label|default:r.term.name }}{% else %}<span class="text-muted">{% trans "Annual" %}</span>{% endif %}</td>
+          <td>{% if r.pdf_file %}<span class="badge bg-success">{% trans "Stored" %}</span>{% else %}<span class="badge bg-secondary">{% trans "None" %}</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-muted">{% trans "No generated report output rows for this school yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if user.is_superuser and admin_reportcard_changelist_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_reportcard_changelist_url }}">{% trans "Advanced/Admin: report card rows" %}</a>
+  </div>
+  {% endif %}
+</div>

@@ -10,7 +10,7 @@
   --mkt-product-surface: var(--color-base-800);
   --mkt-product-text: var(--color-base-50);
   --mkt-product-muted: var(--color-base-400);
-  --mkt-product-border: rgba(168, 160, 146, 0.2);
+  --mkt-product-border: rgba(168, 160, 146, 0.2); /* off-token-allow: warm-neutral-overlay */
   --mkt-product-spacing: clamp(1rem, 2.5vw, 2rem);
   --mkt-product-spacing-lg: clamp(2rem, 5vw, 4rem);
   --mkt-product-radius: clamp(0.5rem, 1.5vw, 1rem);
@@ -86,7 +86,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(26, 22, 18, 0.2);
+  background: rgba(26, 22, 18, 0.2); /* off-token-allow: always-dark-warm-bg */
   z-index: 1030;
   pointer-events: none;
 }
@@ -129,7 +129,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 40% at 80% 20%, rgba(59, 130, 246, 0.12), transparent 50%);
+  background: radial-gradient(ellipse 70% 40% at 80% 20%, rgba(59, 130, 246, 0.12), transparent 50%); /* off-token-allow: decorative-gradient */
   pointer-events: none;
 }
 .mkt-product-hero-inner {

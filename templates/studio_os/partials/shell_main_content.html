@@ -25,9 +25,11 @@
     </div>
   </div>
 
+  {% if current_mode != 'control' or request.public_host_kind != 'manager' %}
   {% include "components/ai_guided_assistant_card.html" with assistant_key="studio_os_assistant" card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Experience, Automation, Outputs, Launch, and Control. Publishing still requires explicit preview and human confirmation.") %}
+  {% endif %}
 
-  <div class="studio-os">
+  <div class="studio-os"{% if current_mode == 'control' and request.public_host_kind == 'manager' %} data-studio-density="control-compact"{% endif %}>
     <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
       <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}>{% trans "Overview" %}</a>

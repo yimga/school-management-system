@@ -1,0 +1,71 @@
+{% load i18n static %}
+{% load terminology_tags %}
+<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="academic-years-setup-evidence" data-cp-evidence-surface="academic-years-setup" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="academic_setup_evidence" data-rmc-report-bulk-evidence="1084" data-rmc-component-audit="1">
+  <h1 class="h3 mb-2">{% trans "Academic years (read-only)" %}</h1>
+  <p class="text-muted small mb-2">
+    {% trans "Tenant academic years with start/end dates and lock flags. Changes belong in academic setup workflows or Django admin; this page is evidence only." %}
+  </p>
+  {% if school %}
+  <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Total" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ year_total }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Active" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ year_active }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Locked" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ year_locked }}</div>
+    </div>
+  </div>
+  {% endif %}
+  {% if not school %}
+  <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
+  {% else %}
+  <p class="small text-muted mb-3">{% trans_term "School" key="school" %}: {{ school.name }}</p>
+  {% endif %}
+  <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" data-rmc-operator-evidence-related="1" aria-label="{% trans 'Related control-plane links' %}">
+    {% if scheduled_reports_hub_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_hub_url }}">{% trans "Scheduled report delivery" %}</a>
+    {% endif %}
+    {% if departments_setup_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ departments_setup_evidence_url }}">{% trans "Departments (setup)" %}</a>
+    {% endif %}
+    {% if term_publish_status_evidence_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ term_publish_status_evidence_url }}">{% trans "Term publish status" %}</a>
+    {% endif %}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle table-family table-sticky-head" aria-label="{% trans 'Academic years' %}">
+      <thead>
+        <tr>
+          <th>{% trans "Name" %}</th>
+          <th>{% trans "Start" %}</th>
+          <th>{% trans "End" %}</th>
+          <th>{% trans "Active" %}</th>
+          <th>{% trans "Locked" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for y in rows %}
+        <tr>
+          <td>{{ y.name|default:"—" }}</td>
+          <td class="text-nowrap">{{ y.start_date|default:"—" }}</td>
+          <td class="text-nowrap">{{ y.end_date|default:"—" }}</td>
+          <td>{% if y.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
+          <td>{% if y.is_locked %}<span class="badge bg-warning text-dark">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted">{% trans "No academic years for this school yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if user.is_superuser and admin_academic_year_changelist_url %}
+  <div class="cp-evidence-advanced border-top pt-3 mt-3" data-rmc-evidence-advanced="1">
+    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_academic_year_changelist_url }}">{% trans "Advanced/Admin: academic year rows" %}</a>
+  </div>
+  {% endif %}
+</div>

@@ -179,7 +179,7 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
         Invoice = None
     if Invoice is not None:
         def _finance():
-            qs = Invoice.objects.filter(student__school=school) if hasattr(Invoice, "student") else Invoice.objects.all()
+            qs = Invoice.objects.filter(student__school=school) if hasattr(Invoice, "student") else Invoice.objects.all()  # tenant-isolation-allow: branch above scopes via student__school=school
             from django.db.models import Sum, Count
 
             agg = qs.aggregate(amount_sum=Sum("amount"), c=Count("pk"))

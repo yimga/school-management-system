@@ -704,6 +704,7 @@ def import_payments(school, rows: Iterable[dict], *, actor=None) -> dict:
             continue
 
         reference_number = _normalize(row.get("payment_reference"))[:50] or None
+        # tenant-isolation-allow: import-pipeline-validates-school-before-persist
         if reference_number and Payment.objects.filter(
             reference_number=reference_number
         ).exists():

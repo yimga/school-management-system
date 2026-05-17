@@ -53,6 +53,7 @@ def announcements(request):
             return {"announcements": []}
         now = timezone.now()
         active_announcements = (
+            # tenant-isolation-allow: context-scoped-via-request-school-membership
             Announcement.objects.filter(is_active=True)
             .filter(
                 Q(start_date__isnull=True) | Q(start_date__lte=now),

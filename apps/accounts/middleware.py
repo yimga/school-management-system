@@ -349,6 +349,7 @@ class ModuleAccessMiddleware:
         ("/feedback/", "feedback"),
         ("/school/feedback/", "feedback"),
         ("/school/roadmap/", "feedback"),
+        ("/school/", "portal"),  # Tenant school configuration / setup facade (batch 1192)
         ("/teacher/feedback/", "feedback"),
         ("/parent/feedback/", "feedback"),
         ("/student/feedback/", "feedback"),

@@ -82,7 +82,7 @@ body.portal-backend-dark {
 /* ========== Premium polish – selection, focus, motion ========== */
 /* Refined text selection (all surfaces) */
 ::selection {
-  background: rgba(79, 70, 229, 0.2);
+  background: rgba(79, 70, 229, 0.2); /* off-token-allow: indigo-accent-overlay */
   color: inherit;
 }
 .control-plane-shell ::selection,
@@ -150,15 +150,15 @@ body.portal-backend-dark .portal-sidebar-col .sidebar {
   transition: background var(--lux-motion-fast, 140ms ease), color var(--lux-motion-fast, 140ms ease), padding-left var(--lux-motion-fast, 140ms ease);
 }
 .cp-sidebar-nav .nav-link:hover {
-  background: rgba(16, 185, 129, 0.12);
-  color: #f5eedd;
+  background: rgba(16, 185, 129, 0.12); /* off-token-allow: success-emerald-overlay */
+  color: #f5eedd; /* off-token-allow: hex-literal-decorative */
 }
 .cp-sidebar-nav .nav-link:focus-visible {
   outline: 2px solid var(--platform-gold, var(--school-accent));
   outline-offset: 2px;
 }
 .control-plane-shell .cp-sidebar-nav .nav-item .border-top {
-  border-color: rgba(125, 152, 187, 0.25) !important;
+  border-color: rgba(125, 152, 187, 0.25) !important; /* off-token-allow: rgba-decorative */
 }
 
 /* Admin (Unfold) sidebar – use premium radius for logo and nav items */
@@ -244,12 +244,12 @@ body.portal-backend-dark .dashboard-chart-wrapper {
 }
 .cp-overview-card {
   border-radius:var(--rmc-lit-1790534eb5);
-  border: 1px solid rgba(125, 152, 187, 0.2);
+  border: 1px solid rgba(125, 152, 187, 0.2); /* off-token-allow: rgba-decorative */
   transition: box-shadow var(--lux-motion-fast, 140ms ease), border-color var(--lux-motion-fast, 140ms ease);
 }
 .cp-overview-card:hover {
   box-shadow:var(--rmc-lit-ef1608ba77);
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(16, 185, 129, 0.35); /* off-token-allow: success-emerald-overlay */
 }
 
 /* Admin index and tenant dashboard headers */
@@ -285,8 +285,8 @@ html[data-bs-theme="dark"] .dashboard-header {
   padding: var(--rmc-lit-fec2baec80);
 }
 .control-plane-shell .table thead th {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(125, 152, 187, 0.2);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border-color: rgba(125, 152, 187, 0.2); /* off-token-allow: rgba-decorative */
 }
 
 /* ========== Buttons and form controls – consistent radius ========== */

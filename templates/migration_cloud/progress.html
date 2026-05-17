@@ -13,6 +13,26 @@
     <h1 class="rmc-h1">{% trans "Pipeline progress" %}</h1>
   </header>
 
+  {% if degraded_status %}
+  {% comment %}v3.17 (2026-05-17) — fallback surface engaged. The snapshot
+     computation raised; the view's `with_progress_fallback` decorator
+     re-fetched the bundle and rendered this branch instead of a 500.
+     Operator sees what we know + a request_id for support.{% endcomment %}
+  <section class="rmc-banner rmc-banner--warning" role="alert">
+    <strong>{% trans "Progress snapshot unavailable" %}.</strong>
+    {% trans "Your bundle exists and your data is safe — we just couldn't compute the live timeline for it right now. Retry shortly or share the request ID below with support." %}
+    <div class="rmc-muted small mt-2">
+      <span>{% trans "Bundle" %}: <code>{{ degraded_status.label|default:degraded_status.idempotency_key|default:bundle.pk }}</code></span>
+      <span class="ms-2">{% trans "Status" %}: <code>{{ degraded_status.status }}</code></span>
+      <span class="ms-2">{% trans "Request ID" %}: <code>{{ request_id }}</code></span>
+    </div>
+    {% if degraded_status.warnings %}
+    <ul class="small mt-2 mb-0">
+      {% for w in degraded_status.warnings %}<li>{{ w }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+  {% else %}
   <section class="rmc-card">
     <h2 class="rmc-h2">{% trans "Stages" %}</h2>
     <ol class="rmc-stage-list">
@@ -28,6 +48,7 @@
     </ol>
     <p class="rmc-muted">{% trans "Snapshot updated" %}: {{ snapshot.updated_at }}</p>
   </section>
+  {% endif %}
 
   <section class="rmc-card">
     <h2 class="rmc-h2">{% trans "Recent events" %}</h2>
@@ -49,8 +70,20 @@
   src.onmessage = function (ev) {
     try {
       var data = JSON.parse(ev.data);
+      // Build the row with DOM APIs (textContent) so progress event fields
+      // — which originate from MigrationProgressEvent rows and may contain
+      // operator-entered text — render as data, never as markup. innerHTML
+      // here would XSS through a crafted message value.
       var li = document.createElement("li");
-      li.innerHTML = "<time>" + (data.at || "") + "</time> · <code>" + (data.kind || "") + "</code> · <strong>" + (data.stage || "") + "</strong> — " + (data.message || "");
+      var t = document.createElement("time"); t.textContent = data.at || "";
+      var k = document.createElement("code"); k.textContent = data.kind || "";
+      var s = document.createElement("strong"); s.textContent = data.stage || "";
+      li.appendChild(t);
+      li.appendChild(document.createTextNode(" · "));
+      li.appendChild(k);
+      li.appendChild(document.createTextNode(" · "));
+      li.appendChild(s);
+      li.appendChild(document.createTextNode(" — " + (data.message || "")));
       list.insertBefore(li, list.firstChild);
     } catch (_) { /* swallow */ }
   };

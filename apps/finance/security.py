@@ -243,18 +243,11 @@ class WebhookSecurityValidator:
         Returns:
             True if this is a new webhook (not processed before)
         """
-        from .models import WebhookLog
+        from apps.finance.webhooks.idempotency import find_processed_duplicate
 
-        # Match provider payment reference or stored idempotency bucket (header replay).
-        duplicate = WebhookLog.objects.filter(
-            provider=provider,
-            status__in=["PROCESSED", "DUPLICATE"],
-        ).filter(
-            Q(reference_id=reference_id) | Q(idempotency_bucket=reference_id)
-        ).exists()
-
-        if duplicate:
-            logger.info(f"Duplicate webhook detected: {provider} {reference_id}")
+        bucket = (reference_id or "").strip()
+        if find_processed_duplicate(provider, bucket):
+            logger.info("Duplicate webhook detected: %s %s", provider, bucket)
             return False
 
         return True

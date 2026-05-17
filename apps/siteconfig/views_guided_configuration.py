@@ -6,8 +6,14 @@ from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext as _
+
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_operator_page,
+)
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
@@ -29,12 +35,17 @@ def guided_configuration_workflows(request: HttpRequest) -> HttpResponse:
         feature_control_url = reverse("siteconfig:feature_control_panel")
     except NoReverseMatch:
         pass
-    return render(
+    return render_siteconfig_operator_page(
         request,
-        "siteconfig/guided_configuration_workflows.html",
-        {
+        portal_template="siteconfig/guided_configuration_workflows.html",
+        body_template="siteconfig/partials/guided_configuration_workflows_body.html",
+        context={
             "guided_cards": cards,
             "runtime_hub_url": runtime_hub_url,
             "feature_control_url": feature_control_url,
         },
+        cp_title=_("Guided configuration"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Guided configuration"), active=True),
+        ),
     )

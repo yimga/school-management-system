@@ -34,10 +34,10 @@
 }
 #nav-sidebar-inner .flex-shrink-0.border-b {
   padding: 12px var(--sidebar-px) 12px !important;
-  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important; /* off-token-allow: white-overlay */
 }
 .dark #nav-sidebar-inner .flex-shrink-0.border-b {
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important; /* off-token-allow: white-overlay */
 }
 
 /* Logo box: square, aligned */
@@ -62,7 +62,7 @@
 }
 .dark #nav-sidebar .admin-sidebar-section-title,
 .dark #nav-sidebar-apps .admin-sidebar-section-title {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(255, 255, 255, 0.6) !important; /* off-token-allow: white-overlay */
 }
 
 /* Nav blocks: clear separation between Pinned, Start, School setup, Libraries, All apps */
@@ -72,7 +72,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .dark #nav-sidebar-apps .admin-sidebar-nav-block {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
 }
 #nav-sidebar-apps .admin-sidebar-nav-block:last-of-type {
   border-bottom: none;
@@ -89,7 +89,7 @@
 }
 .dark #nav-sidebar-apps .admin-sidebar-pinned-section,
 .dark #nav-sidebar-apps #admin-sidebar-pinned-wrap {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
 }
 
 /* Muted section title (e.g. Pinned) */
@@ -196,7 +196,7 @@
 }
 .dark #nav-sidebar .admin-sidebar-model-list,
 .dark #nav-sidebar-apps .admin-sidebar-model-list {
-  border-left-color: rgba(255, 255, 255, 0.1) !important;
+  border-left-color: rgba(255, 255, 255, 0.1) !important; /* off-token-allow: white-overlay */
 }
 
 #nav-sidebar .admin-sidebar-model-list li,
@@ -229,7 +229,7 @@
   background: none !important;
 }
 .dark #nav-sidebar-apps .admin-sidebar-section-title--secondary {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: rgba(255, 255, 255, 0.5) !important; /* off-token-allow: white-overlay */
 }
 #nav-sidebar-apps .admin-sidebar-all-apps-trigger {
   display: flex;
@@ -249,15 +249,15 @@
   transition: background 0.15s, color 0.15s;
 }
 .dark #nav-sidebar-apps .admin-sidebar-all-apps-trigger {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.65); /* off-token-allow: white-overlay */
 }
 #nav-sidebar-apps .admin-sidebar-all-apps-trigger:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   color: var(--color-base-800, var(--color-base-800));
 }
 .dark #nav-sidebar-apps .admin-sidebar-all-apps-trigger:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.9); /* off-token-allow: white-overlay */
 }
 
 /* App groups container: consistent padding */
@@ -272,7 +272,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 .dark .admin-sidebar-section-divider {
-  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important; /* off-token-allow: white-overlay */
 }
 
 /* Search hint: aligned, subtle */
@@ -312,7 +312,7 @@
   line-height: 1.2;
 }
 .dark #nav-sidebar-apps .admin-sidebar-section-heading {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: rgba(255, 255, 255, 0.6) !important; /* off-token-allow: white-overlay */
 }
 
 /* ----- Quick access collapsible groups ----- */
@@ -340,10 +340,10 @@
   color: var(--color-base-800, var(--color-base-800)) !important;
 }
 .dark #nav-sidebar-apps .admin-sidebar-quick-group-title {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: rgba(255, 255, 255, 0.7) !important; /* off-token-allow: white-overlay */
 }
 .dark #nav-sidebar-apps .admin-sidebar-quick-group-title:hover {
-  color: rgba(255, 255, 255, 0.95) !important;
+  color: rgba(255, 255, 255, 0.95) !important; /* off-token-allow: white-overlay */
 }
 #nav-sidebar-apps .admin-sidebar-quick-group-label {
   flex: 1;

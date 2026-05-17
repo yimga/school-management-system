@@ -27,7 +27,8 @@
       "Audit-friendly reporting",
       "Aligned to live operational data"
     ],
-    "data_viz_path": "images/marketing/viz-admin.svg",
+    "data_viz_path": "images/marketing/platform-analytics-leadership.svg",
+    "stock_photo_static": "images/marketing/platform-analytics-leadership.svg",
     "data_viz_caption": "Illustrative leadership dashboard: operational signals at a glance.",
     "premium_platform_layout": true,
     "suppress_footer_clusters": true,

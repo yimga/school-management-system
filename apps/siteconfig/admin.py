@@ -1064,7 +1064,7 @@ class HolidayCalendarInline(admin.TabularInline):
     def get_queryset(self, request):
         """Filter to current academic year."""
         qs = super().get_queryset(request)
-        current_year = AcademicYear.objects.filter(is_current=True).first()
+        current_year = AcademicYear.objects.filter(is_current=True).first()  # tenant-isolation-allow: django-admin-list-filter (staff-only superadmin admin; cross-tenant by intent for the platform's holiday overlap view)
         if current_year:
             return qs.filter(academic_year=current_year)
         return qs

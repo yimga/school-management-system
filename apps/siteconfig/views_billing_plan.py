@@ -8,6 +8,13 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
+from django.utils.translation import gettext as _
+
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods
 
@@ -160,28 +167,12 @@ def billing_plan_readonly(request: HttpRequest) -> HttpResponse:
             UsageMeter.objects.filter(school=school).order_by("-period_start")[:24]
         )
 
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/billing_plan_readonly.html",
-        {
-            "school": school,
-            "plan": plan,
-            "addons": addons,
-            "student_count": student_count,
-            "teacher_count": teacher_count,
-            "plan_catalog_advanced_url": plan_catalog_advanced_url,
-            "console_url": console_url,
-            "plan_tier_ctx": plan_tier_ctx,
-            "upgrade_next_tier": upgrade_next_tier,
-            "app_catalog_url": app_catalog_url,
-            "billing_account": billing_account,
-            "platform_subscription": platform_subscription,
-            "usage_meters": usage_meters,
-            "stripe_processor_configured": stripe_processor_configured,
-            "stripe_customer_linked": stripe_customer_linked,
-            "has_stripe_price_for_current_plan": has_stripe_price_for_current_plan,
-            "upgrade_checkout_plan_code": upgrade_checkout_plan_code,
-            "checkout_start_url": checkout_start_url,
-            "customer_portal_url": customer_portal_url,
-        },
+        "billing_plan_readonly",
+        None,
+        cp_title=_("Billing plan"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Billing plan"), active=True),
+        ),
     )

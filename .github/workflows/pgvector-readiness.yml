@@ -1,0 +1,81 @@
+name: pgvector readiness (Postgres service container)
+
+# 12-pillar audit P4 follow-up — local runs of verify_pgvector_index
+# silently skip on sqlite vendors. CI must assert the vector path
+# against a real PostgreSQL service container so dimension / IVFFLAT
+# index / EXPLAIN-uses-index regressions surface in the PR, not at
+# tenant deploy.
+#
+# Trigger: on PRs that touch the pgvector code path, the embedding
+# store, or the migration command. workflow_dispatch lets operators
+# re-run on demand.
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/analytics/semantic_search.py"
+      - "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py"
+      - "apps/analytics/management/commands/verify_pgvector_index.py"
+      - "apps/analytics/management/commands/rebuild_pgvector_index.py"
+      - "apps/analytics/models.py"
+      - ".github/workflows/pgvector-readiness.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  pgvector:
+    name: pgvector migrate + verify on Postgres 16 + pgvector
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        # pgvector/pgvector ships the extension preinstalled, no
+        # CREATE EXTENSION elevation needed for the CI run.
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-retries 12
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb
+      SECRET_KEY: ci-pgvector-readiness-not-prod
+      ALLOWED_HOSTS: "*"
+      DEBUG: "0"
+      PGVECTOR_ENABLED: "1"
+      # Run the migrate command + the strict verify; both refuse on
+      # non-Postgres vendors so the gate is meaningful only here.
+      RUN_PGVECTOR_MIGRATE: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: beta/school-management-system/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Migrate
+        run: python manage.py migrate --noinput
+      - name: Migrate embeddings into pgvector (idempotent)
+        run: python manage.py migrate_embeddings_to_pgvector --write-env-flag
+      - name: Verify pgvector index strict
+        run: python manage.py verify_pgvector_index --strict

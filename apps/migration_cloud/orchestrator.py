@@ -109,7 +109,7 @@ def _apply_bundle_inner(
     dry_run: bool = False,
     workers: int | None = None,
 ) -> ApplyResult:
-    bundle = MigrationBundle.objects.get(pk=bundle_id)
+    bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal id from caller
 
     if bundle.status == BundleStatus.APPLIED and not dry_run:
         logger.info("migration_cloud.apply: bundle %s already APPLIED — no-op", bundle_id)
@@ -257,7 +257,7 @@ def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
         if not o.migration_run_id:
             continue
         try:
-            run = MigrationRun.objects.get(pk=o.migration_run_id)
+            run = MigrationRun.objects.get(pk=o.migration_run_id)  # tenant-isolation-allow: PK lookup by internal run id
             run.trigger_rollback(user=None)
         except Exception:  # noqa: BLE001
             logger.debug("orchestrator: rollback failed for run %s", o.migration_run_id, exc_info=True)

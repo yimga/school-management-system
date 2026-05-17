@@ -1,6 +1,9 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% trans "Onboard Your Campus" %} | RunMyCampus{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/onboarding-migration.css' %}">
+{% endblock %}
 {% block content %}
 <div class="container py-5" data-shell-page="onboarding-wizard">
   <div class="row justify-content-center">
@@ -13,6 +16,8 @@
               {% trans "Choose your region and school type. We pre-select a reasonable plan and look in the next step—change anything you like." %}
             {% elif step == 2 %}
               {% trans "Confirm your plan and how your school will look. One screen, fewer decisions." %}
+            {% elif step == 3 %}
+              {% trans "Coming from another platform? Pick where your data lives now and we’ll bring it across when you finish signing up." %}
             {% else %}
               {% trans "Review your choices, then create your account. After signup, we will point you to your first high-value action (attendance, marks, or a report)." %}
             {% endif %}
@@ -28,16 +33,19 @@
             <strong>{% trans "Guided tip" %}:</strong>
             {% trans "We aligned starter plan and theme with your region; adjust if needed. Starting a trial keeps risk low while your team explores RunMyCampus." %}
           </div>
-          {% else %}
+          {% elif step == 3 %}
           <div class="alert alert-light border small mb-3" role="note" data-rmc-onboarding-hint="3">
+            <strong>{% trans "Guided tip" %}:</strong>
+            {% trans "We support PowerSchool, Blackbaud, Veracross, Alma, FACTS, and more. If your data lives in spreadsheets, pick the last tile—we’ll guide you through it." %}
+          </div>
+          {% else %}
+          <div class="alert alert-light border small mb-3" role="note" data-rmc-onboarding-hint="4">
             <strong>{% trans "Guided tip" %}:</strong>
             {% trans "Your dashboard will highlight one quick win—take attendance, enter marks, or generate a report—so you see value in your first session." %}
           </div>
           {% endif %}
 
-          <div class="mb-3">
-            <span class="badge bg-secondary">{% trans "Step" %} {{ step }} {% trans "of" %} 3</span>
-          </div>
+          {% include "components/_wizard_steps.html" with step=step steps=wizard_steps %}
 
           {% if step == 1 %}
           <form method="post" action="{% url 'onboard_wizard' %}?step=1">
@@ -112,7 +120,7 @@
               {% endfor %}
             </div>
             <div class="d-flex flex-wrap gap-2 mt-4">
-              <button type="submit" class="btn btn-primary">{% trans "Next: Review" %}</button>
+              <button type="submit" class="btn btn-primary">{% trans "Next: Migration" %}</button>
               <a href="{% url 'onboard_wizard' %}?step=1" class="btn btn-outline-secondary">{% trans "Back" %}</a>
             </div>
           </form>
@@ -137,6 +145,49 @@
           {% endif %}
 
           {% if step == 3 %}
+          {% comment %}v3.17 (2026-05-17) — NEW migration step. Vendor picker grid.
+             Posts vendor_slug + skip_migration to onboard_wizard?step=3.
+             The view persists the choice into session, which signup_school
+             then carries into school.settings.rmc_public_onboarding.migration.{% endcomment %}
+          <section class="ovendor-section">
+            <p class="ovendor-section__lede mb-3">{% trans "Pick where your data lives now—or skip and set up migration later." %}</p>
+            <form method="post" action="{% url 'onboard_wizard' %}?step=3" id="vendor-form">
+              {% csrf_token %}
+              <input type="hidden" name="step" value="3">
+              <input type="hidden" name="vendor_slug" id="vendor-selected-slug" value="{{ selected_vendor_slug|default:'' }}">
+              <div class="ovendor-grid" role="radiogroup" aria-label="{% trans 'Source platform' %}">
+                {% for v in vendors %}
+                <button type="button"
+                        class="ovendor-tile{% if selected_vendor_slug == v.slug %} is-selected{% endif %}"
+                        data-vendor-slug="{{ v.slug }}"
+                        data-vendor-name="{{ v.name }}"
+                        aria-label="{% blocktrans with name=v.name %}Select {{ name }}{% endblocktrans %}">
+                  <span class="ovendor-tile__monogram ovendor-tile__monogram--{{ v.palette }}" aria-hidden="true">{{ v.monogram }}</span>
+                  <span class="ovendor-tile__name">{{ v.name }}</span>
+                  <span class="ovendor-tile__tagline">{{ v.tagline }}</span>
+                </button>
+                {% endfor %}
+              </div>
+              <div class="ovendor-actions">
+                <p class="ovendor-actions__hint mb-0">
+                  <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{% trans "Don’t see your platform? Pick \"Spreadsheets / Other\" — we handle CSV exports." %}
+                </p>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                  <button type="submit" name="skip_migration" value="1" class="btn btn-link p-0 text-decoration-none">{% trans "Set up migration later" %}</button>
+                  <a href="{% url 'onboard_wizard' %}?step=2" class="btn btn-outline-secondary">{% trans "Back" %}</a>
+                  <button type="submit" id="vendor-continue-btn" class="btn btn-primary"{% if not selected_vendor_slug %} disabled{% endif %}>
+                    <span id="vendor-continue-label" data-default-label="{% trans 'Continue' %}">
+                      {% if selected_vendor %}{% blocktrans with name=selected_vendor.name %}Continue with {{ name }}{% endblocktrans %}{% else %}{% trans "Continue" %}{% endif %}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </section>
+          <script src="{% static 'js/onboarding-migration.js' %}" defer></script>
+          {% endif %}
+
+          {% if step == 4 %}
           <ul class="list-unstyled small mb-4">
             <li><strong>{% trans "Country" %}:</strong> {{ onboarding_country_code|default:"—" }}</li>
             <li><strong>{% trans "School type" %}:</strong> {{ onboarding_school_flavor|default:"—" }}</li>
@@ -144,12 +195,13 @@
             <li><strong>{% trans "Trial" %}:</strong> {% if onboarding_trial %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</li>
             <li><strong>{% trans "Template" %}:</strong> {{ onboarding_template_slug|default:"—" }}</li>
             <li><strong>{% trans "Blueprint pack" %}:</strong> {{ onboarding_pack_slug|default:"—" }}</li>
+            <li><strong>{% trans "Migrate from" %}:</strong> {% if selected_vendor %}{{ selected_vendor.name }}{% else %}{% trans "Set up later" %}{% endif %}</li>
             {% if onboarding_correlation_id %}<li class="text-muted"><strong>{% trans "Session ref" %}:</strong> {{ onboarding_correlation_id|truncatechars:14 }}…</li>{% endif %}
           </ul>
-          <p class="mb-4">{% trans "You've chosen your region, plan, and look. Create your account to activate your school—we'll steer you to one fast win on the dashboard." %}</p>
-          <form method="post" action="{% url 'onboard_wizard' %}?step=3">
+          <p class="mb-4">{% trans "You've chosen your region, plan, look, and migration source. Create your account to activate your school—we'll guide your first action on the dashboard." %}</p>
+          <form method="post" action="{% url 'onboard_wizard' %}?step=4">
             {% csrf_token %}
-            <input type="hidden" name="step" value="3">
+            <input type="hidden" name="step" value="4">
             <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" name="sample_data" id="sample_data" value="1" {% if onboarding_sample_data %}checked{% endif %}>
               <label class="form-check-label" for="sample_data">
@@ -159,7 +211,7 @@
             </div>
             <div class="d-flex flex-wrap gap-2">
               <button type="submit" class="btn btn-primary">{% trans "Create account" %}</button>
-              <a href="{% url 'onboard_wizard' %}?step=2" class="btn btn-outline-secondary">{% trans "Back" %}</a>
+              <a href="{% url 'onboard_wizard' %}?step=3" class="btn btn-outline-secondary">{% trans "Back" %}</a>
               <a href="{% url 'marketing_landing' %}" class="btn btn-outline-secondary">{% trans "Back to Marketing" %}</a>
             </div>
           </form>

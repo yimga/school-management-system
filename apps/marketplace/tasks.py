@@ -31,6 +31,7 @@ def marketplace_health_check(status: str = "ok"):
     """
     Update health for all active app installations. Run periodically via beat.
     """
+    # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
     qs = AppInstallation.objects.filter(
         status=AppInstallation.Status.ACTIVE,
         uninstalled_at__isnull=True,

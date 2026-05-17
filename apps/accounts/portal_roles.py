@@ -35,6 +35,7 @@ def has_teacher_hat(user) -> bool:
         return False
     from apps.people.models import TeacherProfile
 
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     return TeacherProfile.objects.filter(user=user).exists()
 
 

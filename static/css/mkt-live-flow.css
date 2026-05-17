@@ -29,17 +29,17 @@
 }
 .mkt-live-demo-sidebar .mkt-live-nav-item:hover,
 .mkt-live-demo-sidebar .mkt-live-nav-item.is-active {
-  background: rgba(11, 61, 145, 0.12);
-  border-color: rgba(11, 61, 145, 0.2);
+  background: rgba(11, 61, 145, 0.12); /* off-token-allow: rgba-decorative */
+  border-color: rgba(11, 61, 145, 0.2); /* off-token-allow: rgba-decorative */
 }
 .mkt-live-demo-main {
   min-height: 220px;
   padding: 1rem;
   border-radius: 12px;
-  background: rgba(26, 22, 18, 0.04);
+  background: rgba(26, 22, 18, 0.04); /* off-token-allow: always-dark-warm-bg */
 }
 .marketing-home .mkt-live-demo-main {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
 }
 .mkt-live-stage {
   animation: mktLiveFade 0.35s ease;
@@ -65,12 +65,12 @@
   border-radius: 999px;
   padding: 0.4rem 1rem;
   font-size: var(--type-size-caption);
-  border: 1px solid rgba(168, 160, 146, 0.4);
+  border: 1px solid rgba(168, 160, 146, 0.4); /* off-token-allow: warm-neutral-overlay */
   background: transparent;
   cursor: pointer;
 }
 .mkt-live-tabs button.is-active {
   background: var(--color-primary-500, #c47f1c);
-  color: #fff;
+  color: #fff; /* off-token-allow: hex-literal-decorative */
   border-color: transparent;
 }

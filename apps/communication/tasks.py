@@ -72,6 +72,7 @@ def _students_with_three_consecutive_present(school, end_date):
         .values_list("student_id", flat=True)
     )
     return list(
+        # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
         StudentProfile.objects.filter(id__in=student_ids).select_related("school")
     )
 

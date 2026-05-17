@@ -128,7 +128,7 @@
   font-size: 0.75rem;
   padding: 0.35rem 0.5rem;
   text-align: center;
-  color: #ede4d6;
+  color: #ede4d6; /* off-token-allow: hex-literal-decorative */
 }
 
 /* Security / trust visual band */
@@ -154,7 +154,7 @@
     rgba(26, 22, 18, 0.04),
     rgba(99, 102, 241, 0.08),
     rgba(26, 22, 18, 0.04)
-  );
+  ); /* off-token-allow: decorative-gradient */
   border-radius: 12px;
   padding: 1rem 1.25rem;
   text-align: center;

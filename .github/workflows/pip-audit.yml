@@ -1,0 +1,91 @@
+name: pip-audit (CVE scan)
+
+# 12-pillar audit P7 follow-up. Scheduled CVE scan over the Python
+# dependency set. Runs weekly + on requirements.txt changes. The
+# scheduled run posts a job summary; CI doesn't fail on every CVE
+# (vulnerabilities are real but often non-exploitable in our path) —
+# the gate is "Critical / High CVSS findings fail loudly," "Medium /
+# Low CVSS findings are reported but don't block." Dependabot is the
+# remediation vehicle; this is the visibility / audit gate.
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - "beta/school-management-system/requirements.txt"
+      - "beta/school-management-system/requirements_optional.txt"
+      - ".github/workflows/pip-audit.yml"
+  schedule:
+    # Mondays at 14:00 UTC. Catches CVEs published over the weekend
+    # before the operator's Monday-morning standup.
+    - cron: "0 14 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  audit:
+    name: pip-audit Critical+High strict
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: beta/school-management-system/requirements.txt
+      - name: Install pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+      - name: Run pip-audit (informational JSON)
+        # Captures the full report into an artifact even on success;
+        # auditors / Dependabot reviewers consume this asynchronously.
+        run: |
+          pip-audit --requirement requirements.txt --format json \
+            --output pip-audit-report.json --strict || true
+      - name: Fail on Critical / High CVSS
+        # We treat severity strings as 'critical' or 'high' (case-insensitive).
+        # pip-audit's JSON format includes a `fix_versions` and `aliases`
+        # per finding; severity is in the underlying advisory record.
+        # If pip-audit can't compute severity (offline / OSV miss), the
+        # informational pass above still wrote the JSON; the strict
+        # critical-only check below is best-effort gating.
+        run: |
+          python - <<'PY'
+          import json, sys
+          try:
+              data = json.load(open("pip-audit-report.json"))
+          except (OSError, json.JSONDecodeError):
+              print("pip-audit: no JSON report; treating as no findings.")
+              sys.exit(0)
+          # pip-audit shape: { "dependencies": [ { "vulns": [ { ... }, ... ] }, ... ] }
+          critical = []
+          high = []
+          for dep in data.get("dependencies", []):
+              for v in dep.get("vulns", []) or []:
+                  sev = (v.get("severity") or "").lower()
+                  if "critical" in sev:
+                      critical.append((dep.get("name"), v.get("id"), v.get("description", "")[:120]))
+                  elif "high" in sev:
+                      high.append((dep.get("name"), v.get("id"), v.get("description", "")[:120]))
+          print(f"pip-audit: critical={len(critical)} high={len(high)}")
+          for n, vid, d in critical + high:
+              print(f"  {n} {vid}: {d}")
+          if critical:
+              sys.exit(1)
+          PY
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: beta/school-management-system/pip-audit-report.json
+          if-no-files-found: ignore

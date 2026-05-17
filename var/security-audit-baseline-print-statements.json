@@ -6,15 +6,9 @@
     "node_modules",
     "tests"
   ],
-  "finding_count": 1,
-  "findings": [
-    {
-      "line": 131,
-      "path": "apps/analytics/ml/train_grade_prediction.py",
-      "statement": "print(...)"
-    }
-  ],
-  "generated_at": "2026-05-17T01:39:31+00:00",
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-05-17T12:26:12+00:00",
   "rule": "no print() in apps/ or services/ outside management commands and tests",
   "scan_dirs": [
     "apps",

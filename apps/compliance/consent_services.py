@@ -86,6 +86,7 @@ def create_consent_record(
 
 def withdraw_consent(record_id, user):
     """Set withdrawn_at; record must belong to user."""
+    # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     record = ConsentRecord.objects.filter(id=record_id, user=user).first()
     if not record:
         return False

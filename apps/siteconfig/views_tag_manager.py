@@ -16,6 +16,14 @@ from django.views.decorators.http import require_http_methods
 from apps.accounts.decorators import permission_required
 from apps.people.models import InformationTag
 from apps.platform_runtime.structured_logging import log_view_exception
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
+from apps.siteconfig.operator_school import redirect_missing_operator_school
+from apps.schools.control_plane import use_control_plane_shell
+from django.utils.translation import gettext as _
 
 _TAG_SAVE_ERRORS = (
     ValidationError,
@@ -31,6 +39,8 @@ def _school_required(view_func):
 
     def _wrapped(request, *args, **kwargs):
         if not getattr(request, "school", None):
+            if use_control_plane_shell(request):
+                return redirect_missing_operator_school(request)
             return HttpResponseForbidden("School context required.")
         return view_func(request, *args, **kwargs)
 
@@ -74,13 +84,17 @@ def tag_manager(request):
             )
             messages.success(request, f"Tag «{name}» created.")
             return redirect("siteconfig:tag_manager")
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/tag_manager.html",
+        "tag_manager",
         {
             "tags": all_tags,
             "category_choices": InformationTag.Category.choices,
         },
+        cp_title=_("Tag manager"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Tag manager"), active=True),
+        ),
     )
 
 
@@ -124,9 +138,9 @@ def tag_manager_edit(request, tag_id):
                 )
                 messages.error(request, str(e))
             return redirect("siteconfig:tag_manager")
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/tag_manager_edit.html",
+        "tag_manager_edit",
         {
             "tag": tag,
             "category_choices": InformationTag.Category.choices,
@@ -135,4 +149,9 @@ def tag_manager_edit(request, tag_id):
             "action_url": reverse("siteconfig:tag_manager"),
             "action_text": "Back to List",
         },
+        cp_title=_("Edit tag"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("Tag manager"), url=reverse("siteconfig:tag_manager")),
+            operator_cp_breadcrumb(tag.name, active=True),
+        ),
     )

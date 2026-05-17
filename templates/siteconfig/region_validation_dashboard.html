@@ -1,67 +1,7 @@
-{% extends "control_plane_base.html" %}
+{% extends "portal_base.html" %}
 {% load i18n %}
-{% block cp_title %}{% trans "Region validation" %} — RunMyCampus{% endblock %}
-{% block breadcrumbs %}
-<nav aria-label="{% trans 'Breadcrumb' %}">
-  <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Region validation" %}</li>
-  </ol>
-</nav>
-{% endblock %}
-{% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="region-validation-dashboard">
-  <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
-    <div>
-      <h1 class="h4 text-white mb-1">{% trans "Region configuration validation" %}</h1>
-      <p class="text-white-50 small mb-0">{% trans "Completeness and consistency checks per region. Prefer this control-plane view over ad-hoc admin inspection for operator triage." %}</p>
-    </div>
-    <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Related region tools' %}">
-      <a class="btn btn-outline-light" href="{% url 'siteconfig:region_comparison' %}">{% trans "Region comparison" %}</a>
-      <a class="btn btn-outline-light" href="{% url 'siteconfig:region_grading_scales' %}">{% trans "Grading matrix" %}</a>
-    </div>
-  </div>
-  <div class="row g-3 mb-4 text-white-50 small">
-    <div class="col-6 col-md-3">
-      <div class="p-2 rounded border border-secondary">{% trans "Regions" %}: <strong class="text-white">{{ total_regions }}</strong></div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="p-2 rounded border border-secondary">{% trans "OK" %}: <strong class="text-white">{{ complete_regions }}</strong></div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="p-2 rounded border border-secondary">{% trans "With warnings" %}: <strong class="text-white">{{ regions_with_warnings }}</strong></div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="p-2 rounded border border-secondary">{% trans "Severe issues" %}: <strong class="text-white">{{ total_issues }}</strong></div>
-    </div>
-  </div>
-  {% for row in validation_results %}
-  <section class="mb-4" data-region-id="{{ row.region.pk }}">
-    <div class="d-flex align-items-center gap-2 mb-2">
-      <span class="fs-5" title="{{ row.severity }}">{{ row.status_badge }}</span>
-      <h2 class="h6 text-white mb-0">{{ row.region.name }} <span class="text-white-50">({{ row.region.code }})</span></h2>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-sm table-dark table-bordered mb-2">
-        <caption class="visually-hidden">{{ row.region.name }} ({{ row.region.code }})</caption>
-        <tbody>
-          <tr><th scope="row" class="w-25">{% trans "Grading scales" %}</th><td>{{ row.grading_scales }}</td></tr>
-          <tr><th scope="row">{% trans "Holidays (rows)" %}</th><td>{{ row.holidays }}</td></tr>
-        </tbody>
-      </table>
-    </div>
-    {% if row.issues %}
-    <ul class="list-unstyled small mb-0">
-      {% for issue in row.issues %}
-      <li class="mb-1 text-{{ issue.type }}">{{ issue.icon }} {{ issue.message }}</li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="text-white-50 small mb-0">{% trans "No issues flagged by these checks." %}</p>
-    {% endif %}
-  </section>
-  {% empty %}
-  <p class="text-white-50">{% trans "No regions configured." %}</p>
-  {% endfor %}
-</div>
+{% block page_archetype %}operator-report{% endblock %}
+{% block title %}{% trans "Region validation" %}{% endblock %}
+{% block content %}
+{% include "siteconfig/partials/region_validation_dashboard_body.html" %}
 {% endblock %}

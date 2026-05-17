@@ -36,6 +36,7 @@ def ensure_invoice_reference(sender, instance: Invoice, created: bool, **kwargs)
     if instance.reference:
         return
     school_id = getattr(instance, "school_id", None)
+    # tenant-isolation-allow: signal-handler-scoped-via-instance-school-fk
     queryset = Invoice.objects.filter(id=instance.id, reference="")
     if school_id is not None:
         queryset = queryset.filter(school_id=school_id)
@@ -119,6 +120,7 @@ def sync_payment(sender, instance: Payment, created: bool, **kwargs):
         receipt = f"RCPT-{instance.id:05d}"
         school_id = getattr(instance, "school_id", None)
         if school_id is None and getattr(instance, "invoice_id", None):
+            # tenant-isolation-allow: signal-handler-scoped-via-instance-school-fk
             school_id = getattr(getattr(instance, "invoice", None), "school_id", None)
         queryset = Payment.objects.filter(id=instance.id, receipt_number="")
         if school_id is not None:
@@ -189,8 +191,10 @@ def _deactivate_reminders_for_student(student_profile):
     if school_id is None and _requires_explicit_rls_context():
         from apps.schools.rls_context import rls_bypass
 
+        # tenant-isolation-allow: signal-handler-scoped-via-instance-school-fk
         with rls_bypass():
             school_ids = list(
+                # tenant-isolation-allow: signal-handler-scoped-via-instance-school-fk
                 Invoice.objects.filter(student=student_profile)
                 .exclude(school_id__isnull=True)
                 .values_list("school_id", flat=True)

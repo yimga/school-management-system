@@ -8,6 +8,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
+from django.utils.translation import gettext as _
+
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
@@ -49,19 +56,14 @@ def school_automation_builder(request):
         action_url = reverse("siteconfig:workflow_flow_gallery")
     except Exception:
         action_url = reverse("accounts:backend_dashboard")
-    return render(
+    return render_siteconfig_stem(
         request,
-        "siteconfig/school_automation_builder.html",
-        {
-            "school": school,
-            "workflows": wfs,
-            "domain_triggers": SCHOOL_DOMAIN_TRIGGERS,
-            "catalog": get_workflow_catalog(),
-            "page_title": "Automation builder",
-            "page_subtitle": "Triggers, conditions, and actions without code.",
-            "action_url": action_url,
-            "action_text": "Workflow gallery",
-        },
+        "school_automation_builder",
+        None,
+        cp_title=_("School automation builder"),
+        breadcrumbs=default_operator_breadcrumbs(
+            operator_cp_breadcrumb(_("School automation builder"), active=True),
+        ),
     )
 
 

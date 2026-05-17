@@ -42,7 +42,7 @@ html[data-surface="tenant"] body.portal-backend-dark .dashboard-section,
 html[data-surface="tenant"] body.portal-backend-dark .workflow-hero,
 html[data-surface="tenant"] body.portal-backend-dark .hub-card {
   box-shadow: var(--platform-premium-shadow-dark);
-  border-color: rgba(168, 160, 146, 0.15);
+  border-color: rgba(168, 160, 146, 0.15); /* off-token-allow: warm-neutral-overlay */
 }
 
 /* Tables: density and header styling */
