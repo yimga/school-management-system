@@ -11,7 +11,7 @@
   var diffBody = document.querySelector('#studio-infra-diff tbody');
   var rbNote = document.getElementById('studio-infra-rollback-note');
   var apNote = document.getElementById('studio-infra-apply-note');
-  var previewUrl = "(window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"]||{})["url_studio_os_school_infrastructure_preview_api"]";
+  var previewUrl = ((window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"] || {})["url_studio_os_school_infrastructure_preview_api"]);
   if (!btn || !sel) return;
   btn.addEventListener('click', function () {
     var key = (sel.value || '').trim();
@@ -56,11 +56,11 @@
           diffBody.appendChild(tr);
         });
         rbNote.textContent = data.rollback_supported
-          ? '(window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"]||{})["trans_rollback_is_flagged_as_supported_for_this_template_platform_governed"]'
-          : '(window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"]||{})["trans_rollback_disabled_for_tenant_apply_use_platform_rollback_when_available"]';
+          ? ((window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"] || {})["trans_rollback_is_flagged_as_supported_for_this_template_platform_governed"])
+          : ((window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"] || {})["trans_rollback_disabled_for_tenant_apply_use_platform_rollback_when_available"]);
         apNote.textContent = data.tenant_safe_apply
-          ? '(window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"]||{})["trans_tenant_apply_may_be_supported_for_this_template_in_future_releases"]'
-          : '(window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"]||{})["trans_one_click_tenant_apply_is_not_enabled_request_changes_via_your_platform_administrator"]';
+          ? ((window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"] || {})["trans_tenant_apply_may_be_supported_for_this_template_in_future_releases"])
+          : ((window.__RMC_PAGE_DATA__["studio_os__partials__launch_school_infrastructure_body-1"] || {})["trans_one_click_tenant_apply_is_not_enabled_request_changes_via_your_platform_administrator"]);
       })
       .catch(function () {
         statusEl.textContent = 'Error';

@@ -76,7 +76,7 @@
     var dirty = trackedFieldNames.some(function(name) {
       return readFieldValue(name) !== (savedSnapshot[name] || '');
     });
-    draftBadge.textContent = dirty ? '(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_draft_changes_pending"]' : '(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_saved_state"]';
+    draftBadge.textContent = dirty ? ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_draft_changes_pending"]) : ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_saved_state"]);
     draftBadge.classList.toggle('text-bg-warning', dirty);
     draftBadge.classList.toggle('text-bg-warning-subtle', dirty);
     draftBadge.classList.toggle('text-bg-success-subtle', !dirty);
@@ -163,7 +163,7 @@
         if (confirmCheck && previewConfirmedField) previewConfirmedField.value = confirmCheck.checked ? '1' : '0';
       });
       form.addEventListener('submit', function() {
-        setSource('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_saving_current_form_values"]');
+        setSource(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_saving_current_form_values"]));
         var confirmCheck = document.getElementById('theme-confirm-publish');
         var previewConfirmedField = document.getElementById('theme-preview-confirmed');
         if (confirmCheck && previewConfirmedField && confirmCheck.checked) previewConfirmedField.value = '1';
@@ -196,7 +196,7 @@
     document.addEventListener('theme-pack-selected', function(event) {
       if (!event || !event.detail) return;
       var name = event.detail.packName || event.detail.packSlug || event.detail.packId || '';
-      setSource(name ? ('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_selected_theme_pack"] ' + name) : '(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_selected_theme_pack_2"]');
+      setSource(name ? ('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_selected_theme_pack"] ' + name) : ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_selected_theme_pack_2"]));
       writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
       writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
       updatePackParityNote();
@@ -206,13 +206,13 @@
     document.addEventListener('theme-studio:applied', function(event) {
       if (!event || !event.detail) return;
       if (event.detail.source === 'theme-pack') {
-        setSource('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_theme_pack_colors_applied_to_form"]');
+        setSource(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_theme_pack_colors_applied_to_form"]));
       } else if (event.detail.source === 'preset') {
-        setSource('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_preset_palette_applied"]');
+        setSource(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_preset_palette_applied"]));
       } else if (event.detail.source === 'harmony') {
-        setSource('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_generated_harmony_applied"]');
+        setSource(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_generated_harmony_applied"]));
       } else {
-        setSource('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_source_manual_edit"]');
+        setSource(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_manual_edit"]));
       }
       updateDraftState();
     });
@@ -227,20 +227,20 @@
         var previewConfirmedField = document.getElementById('theme-preview-confirmed');
         if (previewConfirmedField) previewConfirmedField.value = '1';
         var csrf = form.querySelector('input[name="csrfmiddlewaretoken"]');
-        var url = '(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["url_siteconfig_preview_from_form"]';
+        var url = ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["url_siteconfig_preview_from_form"]);
         fetch(url, { method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf ? csrf.value : '', 'Accept': 'application/json' }, credentials: 'same-origin' })
           .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
           .then(function(res) {
             if (!res.ok) {
-              var msg = (res.data.errors && res.data.errors.length) ? res.data.errors.join(' ') : '(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_preview_failed"]';
+              var msg = (res.data.errors && res.data.errors.length) ? res.data.errors.join(' ') : ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_preview_failed"]);
               if (typeof window.showToast === 'function') window.showToast(msg, 'error', 4000);
               return;
             }
             if (res.data.redirect_url) window.open(res.data.redirect_url, '_blank', 'noopener');
-            if (typeof window.showToast === 'function') window.showToast('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_preview_opened_in_new_tab"]', 'success', 2000);
+            if (typeof window.showToast === 'function') window.showToast(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_preview_opened_in_new_tab"]), 'success', 2000);
           })
           .catch(function() {
-            if (typeof window.showToast === 'function') window.showToast('(window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]||{})["trans_preview_failed_2"]', 'error', 3000);
+            if (typeof window.showToast === 'function') window.showToast(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_preview_failed_2"]), 'error', 3000);
           });
       });
     }

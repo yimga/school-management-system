@@ -7,7 +7,7 @@
   if (modalEl) {
     var modal = new bootstrap.Modal(modalEl);
     modal.show();
-    modalEl.addEventListener('hidden.bs.modal', function() { window.location.href = '(window.__RMC_PAGE_DATA__["accounts__rbac_dashboard-1"]||{})["url_accounts_rbac"]'; });
+    modalEl.addEventListener('hidden.bs.modal', function() { window.location.href = ((window.__RMC_PAGE_DATA__["accounts__rbac_dashboard-1"] || {})["url_accounts_rbac"]); });
   }
 })();
 })();

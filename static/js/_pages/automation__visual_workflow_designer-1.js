@@ -77,7 +77,7 @@
 
   function defaultConfig(kind){
     if(kind === "action") return {action: {type: "notify", params: {channel: "log", body: "Hello ${student_id}"}}};
-    if(kind === "condition") return {condition: {field: "school_id", op: "eq", value: "(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["var_school_pk"]"}};
+    if(kind === "condition") return {condition: {field: "school_id", op: "eq", value: ((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_school_pk"])}};
     if(kind === "delay") return {seconds: 1};
     return {};
   }
@@ -86,7 +86,7 @@
     var id = uid();
     nodes.push({id:id, kind:kind, config: defaultConfig(kind), position:{x:x,y:y}});
     if(kind==="trigger" && nodes.filter(function(z){return z.kind==="trigger"}).length>1){
-      alert("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["trans_only_one_trigger_recommended_remove_extras"]");
+      alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_only_one_trigger_recommended_remove_extras"]));
     }
     redraw();
   }
@@ -130,7 +130,7 @@
       nodes: nodes,
       edges: edges
     };
-    postJson("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["var_save_graph_url"]", payload).then(function(r){
+    postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_save_graph_url"]), payload).then(function(r){
       var j = r.j;
       if(j.workflow_id){ document.getElementById("wf-id").value = j.workflow_id; }
       document.getElementById("wf-dsl").textContent = JSON.stringify(j.compiled || j, null, 2);
@@ -140,41 +140,41 @@
 
   document.getElementById("wf-validate").addEventListener("click", function(){
     var wid = document.getElementById("wf-id").value;
-    if(!wid){ alert("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["trans_save_the_graph_first_workflow_id_required"]"); return; }
-    postJson("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["var_validate_graph_url"]", {workflow_id: parseInt(wid,10)}).then(function(r){
+    if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_the_graph_first_workflow_id_required"])); return; }
+    postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_validate_graph_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       document.getElementById("wf-validate-out").textContent = JSON.stringify(r.j, null, 2);
     });
   });
 
   document.getElementById("wf-publish").addEventListener("click", function(){
     var wid = document.getElementById("wf-id").value;
-    if(!wid){ alert("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["trans_save_the_graph_first_workflow_id_required_2"]"); return; }
-    postJson("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["var_publish_url"]", {workflow_id: parseInt(wid,10)}).then(function(r){
+    if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_the_graph_first_workflow_id_required_2"])); return; }
+    postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_publish_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       var j = r.j;
       if(!r.okHttp && j.validation_errors){
         document.getElementById("wf-validate-out").textContent = JSON.stringify(j.validation_errors, null, 2);
-        alert("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["trans_publish_blocked_invalid_graph"]");
+        alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_publish_blocked_invalid_graph"]));
         return;
       }
-      alert(j.ok ? "(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["trans_published"]" : (j.error || JSON.stringify(j)));
+      alert(j.ok ? ((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_published"]) : (j.error || JSON.stringify(j)));
     }).catch(function(e){ alert(e); });
   });
 
   document.getElementById("wf-rollback").addEventListener("click", function(){
     var wid = document.getElementById("wf-id").value;
     if(!wid){ return; }
-    postJson("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["var_rollback_url"]", {workflow_id: parseInt(wid,10)}).then(function(r){
+    postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_rollback_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       var j = r.j;
-      alert(j.ok ? "(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["trans_moved_to_draft"]" : (j.error || JSON.stringify(j)));
+      alert(j.ok ? ((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_moved_to_draft"]) : (j.error || JSON.stringify(j)));
     }).catch(function(e){ alert(e); });
   });
 
   document.getElementById("wf-sim").addEventListener("click", function(){
     var wid = document.getElementById("wf-id").value;
-    if(!wid){ alert("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["trans_save_first_or_enter_workflow_id"]"); return; }
-    postJson("(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["var_simulate_url"]", {
+    if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_first_or_enter_workflow_id"])); return; }
+    postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_simulate_url"]), {
       workflow_id: parseInt(wid,10),
-      sample_payload: {school_id: "(window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"]||{})["var_school_pk_2"]", student_id: 1}
+      sample_payload: {school_id: ((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_school_pk_2"]), student_id: 1}
     }).then(function(r){
       document.getElementById("wf-sim-out").textContent = JSON.stringify(r.j, null, 2);
     });

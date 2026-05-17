@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function shareThis() {
     if (navigator.share) {
         navigator.share({
-            title: '(window.__RMC_PAGE_DATA__["portal__faq_detail-1"]||{})["var_faq_question"]',
+            title: ((window.__RMC_PAGE_DATA__["portal__faq_detail-1"] || {})["var_faq_question"]),
             text: 'Check out this FAQ on our help center',
             url: window.location.href
         });

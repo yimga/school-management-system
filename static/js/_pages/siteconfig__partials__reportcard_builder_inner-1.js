@@ -17,11 +17,17 @@
         }
         if (dirty) {
           draftBadge.className = "badge text-bg-warning";
-          draftBadge.textContent = "(window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["trans_draft_status"]: (window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["trans_unsaved_changes"]";
+          draftBadge.textContent =
+            (((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["trans_draft_status"]) || "Draft") +
+            ": " +
+            (((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["trans_unsaved_changes"]) || "unsaved changes");
           return;
         }
         draftBadge.className = "badge text-bg-success";
-        draftBadge.textContent = "(window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["trans_draft_status_2"]: (window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["trans_saved"]";
+        draftBadge.textContent =
+          (((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["trans_draft_status_2"]) || "Draft") +
+          ": " +
+          (((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["trans_saved"]) || "saved");
       }
 
       function updateLiveStyle(styleSlug) {
@@ -29,10 +35,15 @@
           return;
         }
         if (!styleSlug) {
-          liveStyleBadge.textContent = "(window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["trans_live_preview"]: (window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["trans_not_loaded"]";
+          liveStyleBadge.textContent =
+            (((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["trans_live_preview"]) || "Live preview") +
+            ": " +
+            (((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["trans_not_loaded"]) || "not loaded");
           return;
         }
-        liveStyleBadge.textContent = "(window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["trans_live_preview_2"]: " + styleSlug;
+        liveStyleBadge.textContent =
+          (((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["trans_live_preview_2"]) || "Live preview") +
+          ": " + styleSlug;
         styleCards.forEach(function (card) {
           var active = card.dataset.styleSlug === styleSlug;
           card.classList.toggle("border-primary", active);
@@ -105,7 +116,7 @@
         styleFilter.addEventListener("change", applyStyleFilter);
       }
 
-      updateLiveStyle("(window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"]||{})["var_preview_default_style_slug_escapejs"]");
+      updateLiveStyle(((window.__RMC_PAGE_DATA__["siteconfig__partials__reportcard_builder_inner-1"] || {})["var_preview_default_style_slug_escapejs"]));
       applyStyleFilter();
       setDraftState(false);
     });

@@ -20,7 +20,7 @@
     btn.addEventListener('click', function() {
       var helpful = this.getAttribute('data-helpful');
       if (typeof window.showToast === 'function') {
-        window.showToast(helpful === 'yes' ? '(window.__RMC_PAGE_DATA__["components__was_this_helpful-1"]||{})["trans_thanks_for_your_feedback"]' : '{% trans "We\'ll use your feedback to improve." %}', helpful === 'yes' ? 'success' : 'info', 2500);
+        window.showToast(helpful === 'yes' ? ((window.__RMC_PAGE_DATA__["components__was_this_helpful-1"] || {})["trans_thanks_for_your_feedback"]) : '{% trans "We\'ll use your feedback to improve." %}', helpful === 'yes' ? 'success' : 'info', 2500);
       }
       markDone();
     });

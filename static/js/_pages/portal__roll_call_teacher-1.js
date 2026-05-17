@@ -9,7 +9,7 @@
       el.classList.remove('d-none');
       el.textContent = 'Offline. Teacher list will load when you\'re back online. Use student attendance for cached class/student data when offline.';
     })();
-    var presentVal = '(window.__RMC_PAGE_DATA__["portal__roll_call_teacher-1"]||{})["var_teacherattendance_present"]';
+    var presentVal = ((window.__RMC_PAGE_DATA__["portal__roll_call_teacher-1"] || {})["var_teacherattendance_present"]);
     document.getElementById('mark-all-present')?.addEventListener('click', function() {
       document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
     });

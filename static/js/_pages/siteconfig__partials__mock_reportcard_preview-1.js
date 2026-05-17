@@ -24,10 +24,10 @@
       return;
     }
 
-    var embedTermTemplate = "(window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"]||{})["url_siteconfig_reportcard_style_embed_preview"]";
-    var embedAnnualTemplate = "(window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"]||{})["url_siteconfig_reportcard_style_embed_preview_2"]";
-    var pdfTermTemplate = "(window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"]||{})["url_siteconfig_reportcard_style_pdf"]";
-    var pdfAnnualTemplate = "(window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"]||{})["url_siteconfig_reportcard_style_pdf_2"]";
+    var embedTermTemplate = ((window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"] || {})["url_siteconfig_reportcard_style_embed_preview"]);
+    var embedAnnualTemplate = ((window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"] || {})["url_siteconfig_reportcard_style_embed_preview_2"]);
+    var pdfTermTemplate = ((window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"] || {})["url_siteconfig_reportcard_style_pdf"]);
+    var pdfAnnualTemplate = ((window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"] || {})["url_siteconfig_reportcard_style_pdf_2"]);
 
     function buildPreviewUrl(styleSlug, reportType, studentId, previewToken) {
       var base = reportType === "annual" ? embedAnnualTemplate : embedTermTemplate;
@@ -144,7 +144,7 @@
       }, 12000);
       frame.src = latestPreviewUrl;
       openTab.href = latestPdfUrl;
-      openTab.textContent = reportType === "annual" ? "(window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"]||{})["trans_open_annual_pdf"]" : "(window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"]||{})["trans_open_term_pdf"]";
+      openTab.textContent = reportType === "annual" ? ((window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"] || {})["trans_open_annual_pdf"]) : ((window.__RMC_PAGE_DATA__["siteconfig__partials__mock_reportcard_preview-1"] || {})["trans_open_term_pdf"]);
       if (fallbackOpenTab) {
         fallbackOpenTab.href = latestPdfUrl;
       }

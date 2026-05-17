@@ -22,7 +22,7 @@
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-      errorMessage.textContent = '(window.__RMC_PAGE_DATA__["portal__photo_upload_phone-1"]||{})["trans_please_take_or_choose_a_photo_first"]';
+      errorMessage.textContent = ((window.__RMC_PAGE_DATA__["portal__photo_upload_phone-1"] || {})["trans_please_take_or_choose_a_photo_first"]);
       errorMessage.style.display = 'block';
       return;
     }
@@ -41,12 +41,12 @@
         uploadSection.style.display = 'none';
         successMessage.style.display = 'block';
       } else {
-        errorMessage.textContent = r.data && r.data.error ? r.data.error : '(window.__RMC_PAGE_DATA__["portal__photo_upload_phone-1"]||{})["trans_upload_failed_try_again"]';
+        errorMessage.textContent = r.data && r.data.error ? r.data.error : ((window.__RMC_PAGE_DATA__["portal__photo_upload_phone-1"] || {})["trans_upload_failed_try_again"]);
         errorMessage.style.display = 'block';
       }
     })
     .catch(function() {
-      errorMessage.textContent = '(window.__RMC_PAGE_DATA__["portal__photo_upload_phone-1"]||{})["trans_upload_failed_check_your_connection_and_try_again"]';
+      errorMessage.textContent = ((window.__RMC_PAGE_DATA__["portal__photo_upload_phone-1"] || {})["trans_upload_failed_check_your_connection_and_try_again"]);
       errorMessage.style.display = 'block';
     });
   });

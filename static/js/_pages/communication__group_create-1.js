@@ -3,7 +3,7 @@
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["communication__group_create-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 document.addEventListener('DOMContentLoaded', function() {
-  const scopeSelect = document.getElementById('(window.__RMC_PAGE_DATA__["communication__group_create-1"]||{})["var_form_scope_id_for_label"]');
+  const scopeSelect = document.getElementById(((window.__RMC_PAGE_DATA__["communication__group_create-1"] || {})["var_form_scope_id_for_label"]));
   const departmentField = document.getElementById('department-field');
   const classroomField = document.getElementById('classroom-field');
   

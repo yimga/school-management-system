@@ -7,7 +7,7 @@ async function markAsRead(notifId) {
     const response = await fetch(`/api/notifications/${notifId}/read/`, {
       method: 'POST',
       headers: {
-        'X-CSRFToken': '(window.__RMC_PAGE_DATA__["accounts__notifications-1"]||{})["var_csrf_token"]',
+        'X-CSRFToken': ((window.__RMC_PAGE_DATA__["accounts__notifications-1"] || {})["var_csrf_token"]),
         'Content-Type': 'application/json',
       },
     });

@@ -38,7 +38,7 @@
     };
 
     var undoHtml = onUndo
-      ? '<button type="button" class="toast-undo" aria-label="(window.__RMC_PAGE_DATA__["components__toast_notifications-1"]||{})["trans_undo"]">(window.__RMC_PAGE_DATA__["components__toast_notifications-1"]||{})["trans_undo_2"]</button>'
+      ? '<button type="button" class="toast-undo" aria-label=((window.__RMC_PAGE_DATA__["components__toast_notifications-1"] || {})["trans_undo"])>(window.__RMC_PAGE_DATA__["components__toast_notifications-1"]||{})["trans_undo_2"]</button>'
       : '';
     toast.innerHTML =
       '<div class="toast-body">' +
@@ -47,7 +47,7 @@
       '</div>' +
       '<div class="toast-actions">' +
         undoHtml +
-        '<button type="button" class="toast-close" aria-label="(window.__RMC_PAGE_DATA__["components__toast_notifications-1"]||{})["trans_close"]"><i class="bi bi-x"></i></button>' +
+        '<button type="button" class="toast-close" aria-label=((window.__RMC_PAGE_DATA__["components__toast_notifications-1"] || {})["trans_close"])><i class="bi bi-x"></i></button>' +
       '</div>' +
       '<div class="toast-progress" role="presentation"></div>';
 

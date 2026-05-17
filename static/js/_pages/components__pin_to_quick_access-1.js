@@ -3,7 +3,7 @@
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["components__pin_to_quick_access-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 (function() {
-  var btn = document.querySelector('.page-pin-btn[data-sidebar-id="(window.__RMC_PAGE_DATA__["components__pin_to_quick_access-1"]||{})["var_sidebar_item_id"]"]');
+  var btn = document.querySelector('.page-pin-btn[data-sidebar-id=((window.__RMC_PAGE_DATA__["components__pin_to_quick_access-1"] || {})["var_sidebar_item_id"])]');
   if (!btn) return;
   function getCsrfToken() {
     var name = 'csrftoken';

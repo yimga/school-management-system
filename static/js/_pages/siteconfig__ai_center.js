@@ -4,6 +4,38 @@
  * rmc_ai_guided_assistant.js (already loaded by the page).
  */
 (function () {
+  var MAX_TRANSCRIPT = 10;
+
+  function clearTranscript(root) {
+    if (!root) return;
+    var wrap = root.querySelector("[data-rmc-ai-transcript-wrap]");
+    var list = root.querySelector("[data-rmc-ai-transcript]");
+    if (list) list.innerHTML = "";
+    if (wrap) wrap.classList.add("d-none");
+  }
+
+  function appendTranscript(root, question, answer) {
+    if (!root || !question) return;
+    var wrap = root.querySelector("[data-rmc-ai-transcript-wrap]");
+    var list = root.querySelector("[data-rmc-ai-transcript]");
+    if (!list || !wrap) return;
+    var item = document.createElement("li");
+    item.className = "mb-2";
+    var q = document.createElement("div");
+    q.className = "fw-semibold";
+    q.textContent = question;
+    var a = document.createElement("div");
+    a.className = "text-muted";
+    a.textContent = answer || "(no summary)";
+    item.appendChild(q);
+    item.appendChild(a);
+    list.appendChild(item);
+    while (list.children.length > MAX_TRANSCRIPT) {
+      list.removeChild(list.firstChild);
+    }
+    wrap.classList.remove("d-none");
+  }
+
   function reset(form) {
     if (!form) return;
     var ta = form.querySelector("[data-rmc-ai-query]");
@@ -32,7 +64,19 @@
       } else {
         form.removeAttribute("data-studio-mode");
       }
+      var ta = form.querySelector("[data-rmc-ai-query]");
+      var runBtn = form.querySelector("[data-rmc-ai-run]");
+      if (ta) {
+        ta.disabled = false;
+        ta.removeAttribute("aria-disabled");
+        ta.setAttribute("placeholder", "What should we verify or do next?");
+      }
+      if (runBtn) {
+        runBtn.disabled = false;
+        runBtn.removeAttribute("aria-disabled");
+      }
       reset(form);
+      clearTranscript(root);
     }
     if (label) label.textContent = btn.getAttribute("data-label") || "";
     if (hint) hint.textContent = btn.getAttribute("data-hint") || "";
@@ -48,6 +92,12 @@
       });
     }
   }
+
+  document.addEventListener("rmc:ai-guided-answered", function (e) {
+    var root = document.querySelector("[data-rmc-ai-center]");
+    var d = e.detail || {};
+    appendTranscript(root, d.question, d.answer);
+  });
 
   document.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-rmc-ai-center-pick]");

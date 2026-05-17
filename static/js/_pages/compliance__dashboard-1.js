@@ -8,11 +8,11 @@ async function muteThreats(duration) {
     formData.append('duration', duration);
     
     try {
-        const response = await fetch("(window.__RMC_PAGE_DATA__["compliance__dashboard-1"]||{})["url_compliance_api_mute_threats"]", {
+        const response = await fetch(((window.__RMC_PAGE_DATA__["compliance__dashboard-1"] || {})["url_compliance_api_mute_threats"]), {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': '(window.__RMC_PAGE_DATA__["compliance__dashboard-1"]||{})["var_csrf_token"]'
+                'X-CSRFToken': ((window.__RMC_PAGE_DATA__["compliance__dashboard-1"] || {})["var_csrf_token"])
             }
         });
         

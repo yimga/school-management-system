@@ -3,7 +3,7 @@
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["portal__partials__document_library_manage_inner-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 (function () {
-  var DELETE_URL_TEMPLATE = "(window.__RMC_PAGE_DATA__["portal__partials__document_library_manage_inner-1"]||{})["url_portal_document_delete"]";
+  var DELETE_URL_TEMPLATE = ((window.__RMC_PAGE_DATA__["portal__partials__document_library_manage_inner-1"] || {})["url_portal_document_delete"]);
   function confirmDelete(docId, docTitle) {
     var t = document.getElementById('deleteDocTitle');
     if (t) t.textContent = docTitle || '';

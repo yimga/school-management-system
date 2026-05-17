@@ -3,7 +3,7 @@
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["schools__super_dashboard-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 (function() {
-  var layoutUrl = '(window.__RMC_PAGE_DATA__["schools__super_dashboard-1"]||{})["var_super_dashboard_layout_url_escapejs"]';
+  var layoutUrl = ((window.__RMC_PAGE_DATA__["schools__super_dashboard-1"] || {})["var_super_dashboard_layout_url_escapejs"]);
   var sectionOrder = JSON.parse(document.getElementById('cp-section-order-json').textContent || '[]');
   var sectionLabels = {
     'cp-action-queue': 'Action queue',

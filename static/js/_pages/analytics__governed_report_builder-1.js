@@ -10,8 +10,8 @@
     return m ? m[1] : '';
   }
   var catalog = (window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_governed_catalog_json_safe"];
-  var RUN_MAGIC = '(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_saved_run_magic"]';
-  var runUrlTpl = '(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_saved_run_url_magic_escapejs"]';
+  var RUN_MAGIC = ((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_saved_run_magic"]);
+  var runUrlTpl = ((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_saved_run_url_magic_escapejs"]);
   var ds = document.getElementById('gr-dataset');
   Object.keys(catalog).sort().forEach(function(k){
     var o = document.createElement('option');
@@ -52,7 +52,7 @@
     };
   }
   function refreshSaved(){
-    fetch('(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_saved_list_url"]', { credentials: 'same-origin' })
+    fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_saved_list_url"]), { credentials: 'same-origin' })
       .then(function(r){ return r.json(); })
       .then(function(j){
         var sel = document.getElementById('gr-saved-list');
@@ -73,7 +73,7 @@
   document.getElementById('gr-preview').addEventListener('click', function(){
     try {
       var body = JSON.stringify(payload());
-      fetch('(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_preview_url"]', {
+      fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_preview_url"]), {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
@@ -93,7 +93,7 @@
   }
   document.getElementById('gr-export-csv').addEventListener('click', function(){
     try {
-      fetch('(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_export_csv_url"]', {
+      fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_export_csv_url"]), {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
@@ -106,7 +106,7 @@
   });
   document.getElementById('gr-export-json').addEventListener('click', function(){
     try {
-      fetch('(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_export_json_url"]', {
+      fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_export_json_url"]), {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},
@@ -120,10 +120,10 @@
   });
   document.getElementById('gr-save').addEventListener('click', function(){
     var name = (document.getElementById('gr-save-name').value || '').trim();
-    if (!name) { alert('(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["trans_enter_a_report_name"]'); return; }
+    if (!name) { alert(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["trans_enter_a_report_name"])); return; }
     try {
       var def = payload();
-      fetch('(window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"]||{})["var_saved_save_url"]', {
+      fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_saved_save_url"]), {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfHeader()},

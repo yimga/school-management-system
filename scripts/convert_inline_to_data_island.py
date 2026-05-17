@@ -152,6 +152,26 @@ def _build_island_and_js(body: str, page_data_key: str) -> tuple[str, str]:
 
     body = RE_VAR_TAG.sub(_var_repl, body)
 
+    # Guard: refuse to emit output where a property-read expression ended up
+    # wrapped in surrounding string-literal quotes. This happens when the
+    # original inline script had a Django tag *inside* a JS string literal —
+    # the regex substitution preserved the outer quotes and turned the
+    # expression into a literal string. That broke ~40 page-JS files before
+    # this guard was added; manual unwrap fix lives in
+    # scripts/fix_data_island_string_literals.py. Refuse to write any new
+    # broken output and surface the line so a human can rewrite it.
+    if re.search(
+        r'[\"\']\(window\.__RMC_PAGE_DATA__\[\"[^\"]+\"\]\|\|\{\}\)\[\"[^\"]+\"\][\"\']',
+        body,
+    ):
+        raise RuntimeError(
+            "Cannot externalise this inline script: a Django tag sits inside "
+            "a JS string literal, which would emit a literal-string expression "
+            "(see scripts/fix_data_island_string_literals.py for the bug class). "
+            "Rewrite the inline source to read the value into a variable first, "
+            "e.g. const X = '{{ var|escapejs }}'; then use X in the string."
+        )
+
     # Build payload lines
     lines = []
     for k, v in payload:

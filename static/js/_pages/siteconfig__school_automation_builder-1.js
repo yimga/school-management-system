@@ -162,7 +162,7 @@
 
   document.getElementById('btn-connect-mode').addEventListener('click', function() {
     connectMode = !connectMode;
-    this.textContent = connectMode ? '(window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"]||{})["trans_connect_mode_on"]' : '(window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"]||{})["trans_connect_mode_off"]';
+    this.textContent = connectMode ? ((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["trans_connect_mode_on"]) : ((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["trans_connect_mode_off"]);
     connectFromId = null;
     inner.querySelectorAll('.workflow-node-card.selected').forEach(function(x) { x.classList.remove('selected'); });
   });
@@ -204,14 +204,14 @@
       actions: extra.actions || [],
       graph: extra.graph || graphState
     }, lastSavedWorkflowId ? { id: lastSavedWorkflowId } : {});
-    const out = await postJson('(window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"]||{})["url_siteconfig_school_automation_save_api"]', body);
+    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_save_api"]), body);
     if (out.id) { lastSavedWorkflowId = out.id; }
     document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
   });
 
   document.getElementById('btn-publish').addEventListener('click', async function() {
     if (!lastSavedWorkflowId) { alert('Save draft first'); return; }
-    const out = await postJson('(window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"]||{})["url_siteconfig_school_automation_publish_api"]', { id: lastSavedWorkflowId });
+    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_publish_api"]), { id: lastSavedWorkflowId });
     document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
   });
 
@@ -225,7 +225,7 @@
         actions: extra.actions || []
       };
     } catch (e) { alert('Invalid JSON'); return; }
-    const out = await postJson('(window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"]||{})["url_siteconfig_school_automation_simulate_api"]', {
+    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_simulate_api"]), {
       dsl: dsl,
       context: { score: 10, student_id: 1 }
     });
@@ -233,7 +233,7 @@
   });
 
   document.getElementById('btn-load-logs').addEventListener('click', async function() {
-    let url = '(window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"]||{})["url_siteconfig_school_automation_execution_logs_api"]';
+    let url = ((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_execution_logs_api"]);
     if (lastSavedWorkflowId) url += '?workflow_id=' + lastSavedWorkflowId;
     const r = await fetch(url, { credentials: 'same-origin' });
     const data = await r.json();
@@ -252,7 +252,7 @@
     const sel = document.getElementById('exec-log-pick');
     const logId = sel.value;
     if (!logId) { alert('Load logs and pick an entry'); return; }
-    const out = await postJson('(window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"]||{})["url_siteconfig_school_automation_retry_api"]', {
+    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_retry_api"]), {
       execution_log_id: parseInt(logId, 10),
       context: {}
     });

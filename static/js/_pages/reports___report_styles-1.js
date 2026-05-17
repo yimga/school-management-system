@@ -3,7 +3,7 @@
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["reports___report_styles-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
   (function () {
-    var token = "(window.__RMC_PAGE_DATA__["reports___report_styles-1"]||{})["var_preview_token_escapejs"]";
+    var token = ((window.__RMC_PAGE_DATA__["reports___report_styles-1"] || {})["var_preview_token_escapejs"]);
     function notifyReady() {
       try {
         if (window.parent && window.parent !== window) {

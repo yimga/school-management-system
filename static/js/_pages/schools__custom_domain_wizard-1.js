@@ -11,7 +11,7 @@
       var fd = new FormData(form);
       var domain = fd.get('domain');
       errorEl.style.display = 'none';
-      fetch('(window.__RMC_PAGE_DATA__["schools__custom_domain_wizard-1"]||{})["url_api_domains_list_or_create"]', {
+      fetch(((window.__RMC_PAGE_DATA__["schools__custom_domain_wizard-1"] || {})["url_api_domains_list_or_create"]), {
         method: 'POST',
         body: JSON.stringify({ domain: domain }),
         headers: {
@@ -24,7 +24,7 @@
         if (r.ok) { window.location.reload(); return; }
         return r.json().then(function(d) { throw d; });
       }).catch(function(err) {
-        errorEl.textContent = err && err.error ? err.error : '(window.__RMC_PAGE_DATA__["schools__custom_domain_wizard-1"]||{})["trans_request_failed"]';
+        errorEl.textContent = err && err.error ? err.error : ((window.__RMC_PAGE_DATA__["schools__custom_domain_wizard-1"] || {})["trans_request_failed"]);
         errorEl.style.display = 'block';
       });
     });
@@ -42,7 +42,7 @@
       var id = this.getAttribute('data-id');
       var self = this;
       self.disabled = true;
-      fetch('(window.__RMC_PAGE_DATA__["schools__custom_domain_wizard-1"]||{})["var_api_domains_url_default_api_tenant_domains"]'.replace(/\/$/, '') + '/' + id + '/verify/', {
+      fetch(((window.__RMC_PAGE_DATA__["schools__custom_domain_wizard-1"] || {})["var_api_domains_url_default_api_tenant_domains"]).replace(/\/$/, '') + '/' + id + '/verify/', {
         method: 'POST',
         headers: {
           'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,

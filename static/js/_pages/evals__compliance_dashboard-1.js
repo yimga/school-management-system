@@ -2,7 +2,7 @@
   var pageDataEl=document.getElementById("page-data-evals__compliance_dashboard-1");
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["evals__compliance_dashboard-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
-  window.EVALS_EXTEND_DEADLINE_URL_BASE = "(window.__RMC_PAGE_DATA__["evals__compliance_dashboard-1"]||{})["url_evals_extend_deadline"]";
+  window.EVALS_EXTEND_DEADLINE_URL_BASE = ((window.__RMC_PAGE_DATA__["evals__compliance_dashboard-1"] || {})["url_evals_extend_deadline"]);
 function showTeacherDetails(teacherId, teacherName, deadlines) {
     document.getElementById('teacherName').textContent = teacherName;
     

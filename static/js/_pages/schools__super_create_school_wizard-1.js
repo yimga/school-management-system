@@ -86,7 +86,7 @@
           education_system_type_codes.unshift(primarySectorEl.value);
         }
         if (education_system_type_codes.length === 0) {
-          errorEl.textContent = '(window.__RMC_PAGE_DATA__["schools__super_create_school_wizard-1"]||{})["trans_at_least_one_sector_primary_sector_or_education_system_types_is_required"]';
+          errorEl.textContent = ((window.__RMC_PAGE_DATA__["schools__super_create_school_wizard-1"] || {})["trans_at_least_one_sector_primary_sector_or_education_system_types_is_required"]);
           errorEl.classList.remove('d-none');
           return;
         }
@@ -119,7 +119,7 @@
         var parentSchoolIdEl = document.getElementById('parent_school_id');
         if (parentSchoolIdEl && parentSchoolIdEl.value) payload.parent_school_id = parentSchoolIdEl.value.trim();
         var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        fetch('(window.__RMC_PAGE_DATA__["schools__super_create_school_wizard-1"]||{})["url_super_api_create_school"]', {
+        fetch(((window.__RMC_PAGE_DATA__["schools__super_create_school_wizard-1"] || {})["url_super_api_create_school"]), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

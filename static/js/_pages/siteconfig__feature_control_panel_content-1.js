@@ -256,7 +256,7 @@
 
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.key === 's') { e.preventDefault(); if (form) form.querySelector('[type="submit"]').click(); }
-    if (e.key === 'Escape') { window.location.href = '(window.__RMC_PAGE_DATA__["siteconfig__feature_control_panel_content-1"]||{})["url_accounts_backend_dashboard"]'; }
+    if (e.key === 'Escape') { window.location.href = ((window.__RMC_PAGE_DATA__["siteconfig__feature_control_panel_content-1"] || {})["url_accounts_backend_dashboard"]); }
   });
 
   const importFile = document.getElementById('importFile');

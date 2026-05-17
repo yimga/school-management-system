@@ -24,12 +24,12 @@
     }
     var btn = document.getElementById('btn-use-passkey');
     var msg = document.getElementById('passkey-verify-msg');
-    var nextUrl = '(window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"]||{})["var_next_url_escapejs"]';
+    var nextUrl = ((window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"] || {})["var_next_url_escapejs"]);
     if (btn && msg) {
         btn.addEventListener('click', function() {
             msg.textContent = 'Signing in with passkey…';
             msg.className = 'mt-2 small text-info';
-            fetch('(window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"]||{})["url_accounts_passkey_authentication_options"]', { method: 'GET', credentials: 'same-origin' })
+            fetch(((window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"] || {})["url_accounts_passkey_authentication_options"]), { method: 'GET', credentials: 'same-origin' })
                 .then(function(r) { return r.json(); })
                 .then(function(options) {
                     if (options.error) throw new Error(options.error);
@@ -55,7 +55,7 @@
                         },
                         remember_device: document.getElementById('remember_device') && document.getElementById('remember_device').checked
                     };
-                    return fetch('(window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"]||{})["url_accounts_passkey_authentication_verify"]', {
+                    return fetch(((window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"] || {})["url_accounts_passkey_authentication_verify"]), {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: {
@@ -70,7 +70,7 @@
                     if (o.ok && o.json.ok) {
                         msg.textContent = 'Verified. Redirecting…';
                         msg.className = 'mt-2 small text-success';
-                        window.location.href = nextUrl || '(window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"]||{})["url_accounts_redirect"]';
+                        window.location.href = nextUrl || ((window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"] || {})["url_accounts_redirect"]);
                     } else {
                         msg.textContent = o.json.error || 'Verification failed';
                         msg.className = 'mt-2 small text-danger';

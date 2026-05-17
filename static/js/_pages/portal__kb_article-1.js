@@ -40,7 +40,7 @@ function copyUrl() {
 
 function shareOn(platform) {
     const url = encodeURIComponent(window.location.href);
-    const title = encodeURIComponent('(window.__RMC_PAGE_DATA__["portal__kb_article-1"]||{})["var_article_title"]');
+    const title = encodeURIComponent(((window.__RMC_PAGE_DATA__["portal__kb_article-1"] || {})["var_article_title"]));
     let shareUrl;
     
     switch(platform) {

@@ -3,7 +3,7 @@
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["backend_base-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
   document.addEventListener('DOMContentLoaded', function () {
-    var theme = '(window.__RMC_PAGE_DATA__["backend_base-1"]||{})["var_resolved_backend_console_theme_default_dark"]';
+    var theme = ((window.__RMC_PAGE_DATA__["backend_base-1"] || {})["var_resolved_backend_console_theme_default_dark"]);
     if (theme === 'system') {
       theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }

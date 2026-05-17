@@ -18,7 +18,7 @@ function setLanguage(languageCode) {
 // Restore preferred language on page load
 document.addEventListener('DOMContentLoaded', function() {
     const preferredLanguage = localStorage.getItem('preferred_language');
-    if (preferredLanguage && preferredLanguage !== '(window.__RMC_PAGE_DATA__["partials__language_switcher-1"]||{})["var_current_language"]') {
+    if (preferredLanguage && preferredLanguage !== ((window.__RMC_PAGE_DATA__["partials__language_switcher-1"] || {})["var_current_language"])) {
         setLanguage(preferredLanguage);
     }
 });

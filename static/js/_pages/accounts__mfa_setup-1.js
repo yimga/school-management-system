@@ -29,7 +29,7 @@
         btn.addEventListener('click', function() {
             msg.textContent = 'Requesting passkey registration…';
             msg.className = 'mt-2 small text-info';
-            fetch('(window.__RMC_PAGE_DATA__["accounts__mfa_setup-1"]||{})["url_accounts_passkey_registration_options"]', { method: 'GET', credentials: 'same-origin' })
+            fetch(((window.__RMC_PAGE_DATA__["accounts__mfa_setup-1"] || {})["url_accounts_passkey_registration_options"]), { method: 'GET', credentials: 'same-origin' })
                 .then(function(r) { return r.json(); })
                 .then(function(options) {
                     if (options.error) throw new Error(options.error);
@@ -49,7 +49,7 @@
                         },
                         deviceName: 'Passkey'
                     };
-                    return fetch('(window.__RMC_PAGE_DATA__["accounts__mfa_setup-1"]||{})["url_accounts_passkey_registration_verify"]', {
+                    return fetch(((window.__RMC_PAGE_DATA__["accounts__mfa_setup-1"] || {})["url_accounts_passkey_registration_verify"]), {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: {

@@ -81,7 +81,7 @@
     c: { url: '/super/command-center/', label: 'Command Center' },
     t: { url: '/studio/', label: 'Studio OS' },
     o: { url: '/super/orchestration/', label: 'Orchestration' },
-    a: { url: '(window.__RMC_PAGE_DATA__["control_plane_base-1"]||{})["url_siteconfig_console_domains_hub"]', label: 'Config center' },
+    a: { url: ((window.__RMC_PAGE_DATA__["control_plane_base-1"] || {})["url_siteconfig_console_domains_hub"]), label: 'Config center' },
     b: { url: '/super/billing/', label: 'Billing' },
     s: { url: '/super/support/', label: 'Support' },
     m: { url: '/super/migration/', label: 'Migration' },

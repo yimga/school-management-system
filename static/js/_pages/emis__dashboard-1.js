@@ -2,7 +2,7 @@
   var pageDataEl=document.getElementById("page-data-emis__dashboard-1");
   window.__RMC_PAGE_DATA__=window.__RMC_PAGE_DATA__||{};
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["emis__dashboard-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
-  window.EMIS_DOWNLOAD_URL_BASE = "(window.__RMC_PAGE_DATA__["emis__dashboard-1"]||{})["url_emis_download"]";
+  window.EMIS_DOWNLOAD_URL_BASE = ((window.__RMC_PAGE_DATA__["emis__dashboard-1"] || {})["url_emis_download"]);
 document.addEventListener('DOMContentLoaded', function() {
   // Load initial data
   loadCountryInfo();
