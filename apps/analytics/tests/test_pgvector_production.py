@@ -205,7 +205,10 @@ class VerifyPgvectorTests(TestCase):
         ctx_mock.__exit__ = mock.MagicMock(return_value=False)
 
         with mock.patch.object(mod.connection, "vendor", "postgresql"), \
-             mock.patch.object(mod.connection, "cursor", return_value=ctx_mock):
+             mock.patch.object(mod.connection, "cursor", return_value=ctx_mock), \
+             mock.patch.object(
+                 mod.Command, "_indexable_row_count", return_value=1,
+             ):
             with self.assertRaises(SystemExit) as cm:
                 call_command(
                     "verify_pgvector_index", "--strict",
