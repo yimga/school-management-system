@@ -38,6 +38,39 @@ class AutoTuneListsMathTests(SimpleTestCase):
         self.assertEqual(cmd._auto_lists(100_000_000), 5000)
 
 
+class SkipEmptyStoreTests(TestCase):
+    """Fresh deploys with no embeddings must not fail predeploy."""
+
+    def test_migrate_skips_when_no_rows_and_no_dimensions(self):
+        from apps.analytics.management.commands import (
+            migrate_embeddings_to_pgvector as mod,
+        )
+        out = StringIO()
+        with mock.patch.object(mod.connection, "vendor", "postgresql"), \
+             mock.patch.object(
+                 mod.Command, "_count_indexable_rows", return_value=0,
+             ), \
+             mock.patch.object(
+                 mod.Command, "_detect_dimensions", return_value=None,
+             ):
+            call_command("migrate_embeddings_to_pgvector", stdout=out)
+        self.assertIn("Skipping pgvector migration", out.getvalue())
+
+    def test_verify_strict_passes_when_no_rows(self):
+        from apps.analytics.management.commands import (
+            verify_pgvector_index as mod,
+        )
+        out = StringIO()
+        with mock.patch.object(mod.connection, "vendor", "postgresql"), \
+             mock.patch.object(
+                 mod.Command, "_indexable_row_count", return_value=0,
+             ):
+            call_command(
+                "verify_pgvector_index", "--strict", stdout=out,
+            )
+        self.assertIn("skipped", out.getvalue())
+
+
 class VendorRefusalTests(TestCase):
     """All three commands must refuse when not running on PostgreSQL."""
 

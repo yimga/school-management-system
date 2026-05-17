@@ -41,6 +41,7 @@ former so the latter can be enforced operationally.
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 from django.conf import settings
@@ -162,7 +163,16 @@ def assert_dkim_configured() -> dict[str, Any]:
     if status["required"]:
         raise EmailSigningMisconfigured(msg)
 
-    logger.warning(msg)
+    # Render predeploy runs many management commands; console backend without
+    # anymail is an acknowledged staging posture until ESP DNS is wired.
+    render_hosted = os.getenv("RENDER", "").strip().lower() == "true"
+    silence_console = os.getenv(
+        "EMAIL_SIGNING_SILENCE_CONSOLE_WARN", ""
+    ).strip().lower() in ("1", "true", "yes")
+    if render_hosted or silence_console:
+        logger.debug(msg)
+    else:
+        logger.warning(msg)
     return status
 
 

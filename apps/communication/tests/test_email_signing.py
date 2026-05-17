@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import unittest.mock as mock
+
 from django.test import SimpleTestCase, override_settings
 
 from apps.communication.email_signing import (
@@ -76,6 +79,19 @@ class AssertDkimConfiguredTests(SimpleTestCase):
         # only log a warning and never raise.
         with self.assertLogs("apps.communication.email_signing", level="WARNING") as cm:
             status = assert_dkim_configured()
+        self.assertFalse(status["signs_dkim"])
+        self.assertTrue(any("does NOT sign DKIM" in line for line in cm.output))
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
+        EMAIL_SIGNING_REQUIRED=False,
+    )
+    def test_render_hosted_console_downgrades_to_debug(self):
+        with mock.patch.dict(os.environ, {"RENDER": "true"}, clear=False):
+            with self.assertLogs(
+                "apps.communication.email_signing", level="DEBUG"
+            ) as cm:
+                status = assert_dkim_configured()
         self.assertFalse(status["signs_dkim"])
         self.assertTrue(any("does NOT sign DKIM" in line for line in cm.output))
 

@@ -91,7 +91,18 @@ class Command(BaseCommand):
                 f"pgvector requires PostgreSQL; current vendor is {vendor}."
             )
 
+        row_count = self._count_indexable_rows()
         dim = opts.get("dimensions") or self._detect_dimensions()
+        if not dim and row_count == 0:
+            # Fresh deploys have no AIEmbeddingStore rows yet — pgvector setup
+            # is deferred until build_student_embeddings / index_ai_knowledge runs.
+            self.stdout.write(self.style.SUCCESS(
+                "Skipping pgvector migration: no embedding rows and --dimensions "
+                "not set. Re-run after embeddings are indexed, or pass "
+                "--dimensions explicitly."
+            ))
+            return
+
         if not dim:
             raise CommandError(
                 "Could not auto-detect dimensions and --dimensions wasn't passed. "
@@ -99,7 +110,6 @@ class Command(BaseCommand):
             )
 
         # Row count — used for both progress reporting and IVFFLAT auto-tune.
-        row_count = self._count_indexable_rows()
         lists = opts.get("index_lists") or self._auto_lists(row_count)
         self.stdout.write(
             f"  vector dim={dim}  rows_to_index~={row_count}  ivfflat_lists={lists}"

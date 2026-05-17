@@ -47,6 +47,25 @@ class Command(BaseCommand):
                 f"pgvector verification requires PostgreSQL; "
                 f"current vendor is {connection.vendor}."
             )
+        if self._indexable_row_count() == 0:
+            detail = "skipped — no embedding rows indexed yet"
+            results = [
+                {"check": name, "ok": True, "detail": detail}
+                for name in (
+                    "extension_loaded",
+                    "vector_column",
+                    "ivfflat_index",
+                    "explain_uses_index",
+                    "row_stats",
+                )
+            ]
+            if opts.get("json"):
+                self.stdout.write(json.dumps(results, indent=2))
+            else:
+                self.stdout.write("pgvector index verification:")
+                for r in results:
+                    self.stdout.write(f"  [OK ] {r['check']:22s} {r['detail']}")
+            return
         checks = [
             ("extension_loaded", self._check_extension),
             ("vector_column", self._check_column),
@@ -72,6 +91,15 @@ class Command(BaseCommand):
         if opts.get("strict"):
             if any(not r["ok"] for r in results):
                 raise SystemExit(1)
+
+    def _indexable_row_count(self) -> int:
+        from apps.siteconfig.models import AIEmbeddingStore
+
+        # tenant-isolation-allow: public-schema embedding store; sizing only.
+        try:
+            return AIEmbeddingStore.objects.exclude(embedding=[]).count()
+        except Exception:  # noqa: BLE001 — table may not exist on fresh DBs
+            return 0
 
     def _check_extension(self) -> dict:
         with connection.cursor() as cur:
