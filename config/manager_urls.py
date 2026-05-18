@@ -19,6 +19,7 @@ from apps.observability.models import PlatformIncident
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
+from apps.schools.section8_views import find_school, global_login_discovery
 from apps.schools.control_plane import (
     require_control_plane_access,
     user_has_control_plane_access,
@@ -598,6 +599,8 @@ urlpatterns = [
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_status, name="status"),
+    path("find/", find_school, name="find_school"),
+    path("discover/", global_login_discovery, name="global_login_discovery"),
     path("api/health/", obs_views.api_health, name="api_health"),
     path(
         "api/control-plane-preferences/",

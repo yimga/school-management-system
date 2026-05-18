@@ -84,6 +84,9 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    {% if SHOW_CORPORATE_MARKETING_FOOTER %}
+    {% include "marketing/partials/corporate_footer_styles.html" %}
+    {% endif %}
     <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
     <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
@@ -245,7 +248,9 @@
     </main>
 
     {% block footer %}
-    {% if PUBLIC_BRAND_MODE %}
+    {% if SHOW_CORPORATE_MARKETING_FOOTER %}
+      {% include "marketing/partials/corporate_footer_bundle.html" %}
+    {% elif PUBLIC_BRAND_MODE %}
       <footer class="container text-center text-muted small pt-3 pb-5 rmc-shell-footer" data-rmc-shell-footer="base">
         <p class="mb-1">
           <a href="{% url 'marketing_privacy' %}">{% trans "Privacy Policy" %}</a>

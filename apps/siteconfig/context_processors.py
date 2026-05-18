@@ -700,6 +700,11 @@ def site_settings(request):
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
     path = (request.path or "").strip()
     ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager"
+    user = getattr(request, "user", None)
+    is_authenticated = bool(user and getattr(user, "is_authenticated", False))
+    ctx["SHOW_CORPORATE_MARKETING_FOOTER"] = (
+        public_host_kind == "manager" and not school and not is_authenticated
+    )
     ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
     ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
     if ctx["CONTROL_PLANE_SHELL"]:
