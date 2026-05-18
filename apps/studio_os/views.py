@@ -2127,7 +2127,12 @@ def studio_set_operator_school(request):
     from apps.schools.host_routing import public_host_kind
 
     host = (request.get_host() or "").split(":")[0].lower()
-    on_manager = use_control_plane_shell(request) or public_host_kind(host) == "manager"
+    on_manager = (
+        use_control_plane_shell(request)
+        or public_host_kind(host) == "manager"
+        or host.startswith("manager.")
+        or host in ("manager.localhost",)
+    )
     if not on_manager:
         return redirect(reverse("studio_os:shell"))
 
