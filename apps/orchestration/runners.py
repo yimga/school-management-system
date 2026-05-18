@@ -48,17 +48,46 @@ class BaseOrchestrationRunner:
         raise NotImplementedError
 
     def execute(self) -> bool:
-        """Run one step; update run state; return True if completed (or compensated)."""
+        """Run one step; update run state; return True if completed (or compensated).
+
+        Move 2 instrumentation: bind the run to the current ProcessDefinitionVersion
+        on first execution and emit OrchestrationStepEvent rows around each step.
+        """
+
+        # Move 2: import lazily so legacy callers / migrations don't import a model
+        # before the app is ready.
+        try:
+            from apps.orchestration import event_log, versioning
+            from apps.orchestration.models import OrchestrationStepEvent
+
+            event_emit = event_log.emit
+            event_types = OrchestrationStepEvent.EventType
+            versioning.bind_run_to_current_version(self.run)
+        except Exception:
+            event_emit = None
+            event_types = None
+
         if self.run.status not in (
             OrchestrationRun.Status.PENDING,
             OrchestrationRun.Status.RUNNING,
         ):
             return True
+        step_started_at = timezone.now()
         try:
             self.run.status = OrchestrationRun.Status.RUNNING
+            first_start = False
             if not self.run.started_at:
-                self.run.started_at = timezone.now()
+                self.run.started_at = step_started_at
+                first_start = True
             self.run.save(update_fields=["status", "started_at", "updated_at"])
+            if event_emit and event_types:
+                if first_start:
+                    event_emit(self.run, event_type=event_types.RUN_STARTED)
+                event_emit(
+                    self.run,
+                    event_type=event_types.STEP_STARTED,
+                    step_name=type(self).__name__,
+                )
             out = self.run_step()
             self.run.output_payload = {**(self.run.output_payload or {}), **out}
             self.run.status = OrchestrationRun.Status.COMPLETED
@@ -66,6 +95,16 @@ class BaseOrchestrationRunner:
             self.run.save(
                 update_fields=["output_payload", "status", "completed_at", "updated_at"]
             )
+            if event_emit and event_types:
+                step_ms = int((self.run.completed_at - step_started_at).total_seconds() * 1000)
+                event_emit(
+                    self.run,
+                    event_type=event_types.STEP_SUCCEEDED,
+                    step_name=type(self).__name__,
+                    payload={k: v for k, v in (out or {}).items() if isinstance(v, (str, int, float, bool, list, dict))},
+                    duration_ms=step_ms,
+                )
+                event_emit(self.run, event_type=event_types.RUN_COMPLETED)
             return True
         except _ORCHESTRATION_RUN_ERRORS as e:
             school_id = getattr(self.run, "school_id", None)
@@ -82,6 +121,15 @@ class BaseOrchestrationRunner:
             )
             self.run.retry_count = (self.run.retry_count or 0) + 1
             self.run.error_message = str(e)[:2000]
+            step_ms = int((timezone.now() - step_started_at).total_seconds() * 1000)
+            if event_emit and event_types:
+                event_emit(
+                    self.run,
+                    event_type=event_types.STEP_FAILED,
+                    step_name=type(self).__name__,
+                    error_message=str(e)[:2000],
+                    duration_ms=step_ms,
+                )
             if self.run.retry_count >= self.max_retries:
                 self.run.status = OrchestrationRun.Status.FAILED
                 self.run.completed_at = timezone.now()
@@ -94,8 +142,14 @@ class BaseOrchestrationRunner:
                         "updated_at",
                     ]
                 )
+                if event_emit and event_types:
+                    event_emit(self.run, event_type=event_types.RUN_FAILED, error_message=str(e)[:2000])
                 try:
+                    if event_emit and event_types:
+                        event_emit(self.run, event_type=event_types.COMPENSATION_STARTED)
                     self.compensate()
+                    if event_emit and event_types:
+                        event_emit(self.run, event_type=event_types.COMPENSATION_COMPLETED)
                 except _ORCHESTRATION_RUN_ERRORS:
                     log_exception_with_context(
                         "Orchestration compensate failed",
@@ -111,6 +165,13 @@ class BaseOrchestrationRunner:
             self.run.save(
                 update_fields=["retry_count", "error_message", "status", "updated_at"]
             )
+            if event_emit and event_types:
+                event_emit(
+                    self.run,
+                    event_type=event_types.RETRY_SCHEDULED,
+                    step_name=type(self).__name__,
+                    payload={"attempt": self.run.retry_count},
+                )
         return False
 
     def compensate(self) -> None:

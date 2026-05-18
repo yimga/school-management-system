@@ -4,6 +4,8 @@
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 (function() {
   var colorFieldNames = ['primary_color', 'accent_color', 'header_bg_color', 'footer_bg_color', 'success_color', 'warning_color', 'danger_color'];
+  var contrastBadge = null;
+  var contrastTargets = {};
   var trackedFieldNames = colorFieldNames.concat([
     'theme_pack',
     'admin_theme_pack',
@@ -71,6 +73,38 @@
     note.classList.toggle('text-warning', !unified);
   }
 
+  function loadContrastTargets() {
+    var el = document.getElementById('theme-contrast-targets');
+    if (!el) return {};
+    try {
+      return JSON.parse(el.textContent || '{}');
+    } catch (_e) {
+      return {};
+    }
+  }
+
+  function updateContrastBadge(dirty) {
+    if (!contrastBadge || !window.ContrastGuard || !window.ContrastGuard.buildThemeContrastReport) return;
+    var values = {};
+    colorFieldNames.forEach(function(name) {
+      values[name] = readFieldValue(name);
+    });
+    var report = window.ContrastGuard.buildThemeContrastReport(values, contrastTargets);
+    var pageData = window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {};
+    var ok = report.status === 'ok';
+    contrastBadge.textContent = ok
+      ? (pageData.trans_contrast_pass || 'Contrast safety: pass')
+      : (pageData.trans_contrast_needs_attention || 'Contrast safety: needs attention');
+    contrastBadge.dataset.status = report.status;
+    contrastBadge.classList.toggle('text-bg-success-subtle', ok);
+    contrastBadge.classList.toggle('text-bg-warning', !ok);
+    if (activeSource) {
+      activeSource.textContent = dirty
+        ? (pageData.trans_source_draft_values || 'Source: draft values')
+        : (pageData.trans_source_saved_values || 'Source: saved values');
+    }
+  }
+
   function updateDraftState() {
     if (!draftBadge) return;
     var dirty = trackedFieldNames.some(function(name) {
@@ -80,6 +114,7 @@
     draftBadge.classList.toggle('text-bg-warning', dirty);
     draftBadge.classList.toggle('text-bg-warning-subtle', dirty);
     draftBadge.classList.toggle('text-bg-success-subtle', !dirty);
+    updateContrastBadge(dirty);
   }
 
   function snapshot() {
@@ -107,7 +142,9 @@
   document.addEventListener('DOMContentLoaded', function() {
     form = document.getElementById('theme-colors-form');
     draftBadge = document.getElementById('theme-draft-status-badge');
+    contrastBadge = document.getElementById('theme-contrast-status-badge');
     activeSource = document.getElementById('theme-active-source');
+    contrastTargets = loadContrastTargets();
 
     function syncAdminPrimaryGuard() {
       var lockToggle = document.getElementById('id_admin_use_site_primary');

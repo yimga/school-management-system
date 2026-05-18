@@ -1,0 +1,29 @@
+{% load i18n %}{# Migration Cloud — canonical-template panel. Surfaces the "Shopify CSV" long-tail intake path from the wizard so operators with Excel / Sheets / Access / in-house exports can self-serve. Renders inside both super and portal shells; namespace selection mirrors the established {% if shell == 'portal' %} pattern used elsewhere in this wizard. #}
+<aside class="rmc-card rmc-card--canonical-template" data-rmc-canonical-template-panel aria-labelledby="rmc-canonical-template-title">
+  <header class="rmc-card__header">
+    <span class="rmc-card__eyebrow">{% trans "Long-tail intake" %}</span>
+    <h2 class="rmc-h2" id="rmc-canonical-template-title">
+      {% trans "Don't see your SIS? Use our canonical template." %}
+    </h2>
+  </header>
+  <div class="rmc-card__body">
+    <p class="rmc-lede rmc-lede--sm">
+      {% trans "Same idea as a Shopify CSV import: download our canonical template, fill in the rows you have, upload through the wizard. No source-system signature required." %}
+    </p>
+    <p class="rmc-form__help">
+      {% trans "Twenty domains covered — students, staff, guardians, enrollment, attendance, grades, finance, and more. Extra columns you keep are preserved as DynamicFieldValues; re-uploads on the same external_id update existing records (idempotent)." %}
+    </p>
+    <div class="rmc-card__actions">
+      <a class="rmc-btn rmc-btn--primary"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:canonical_template_zip' %}{% else %}{% url 'migration_cloud_super:canonical_template_zip' %}{% endif %}"
+         data-rmc-canonical-template-zip>
+        {% trans "Download all 20 templates (zip)" %}
+      </a>
+      <a class="rmc-btn rmc-btn--ghost"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:canonical_template_picker' %}{% else %}{% url 'migration_cloud_super:canonical_template_picker' %}{% endif %}"
+         data-rmc-canonical-template-picker>
+        {% trans "Pick a specific domain →" %}
+      </a>
+    </div>
+  </div>
+</aside>

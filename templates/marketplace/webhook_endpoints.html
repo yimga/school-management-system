@@ -1,0 +1,64 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Webhook endpoints" %} — {{ app.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="marketplace-webhook-endpoints">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'super:marketplace_publisher_dashboard' %}">{% trans "Publisher" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'super:marketplace_publisher_app_detail' app.slug %}">{{ app.name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Webhooks" %}</li>
+    </ol>
+  </nav>
+  <h1 class="h3 mb-3">{% trans "Webhook endpoints for" %} {{ app.name }}</h1>
+
+  {% if messages %}{% for m in messages %}<div class="alert alert-info">{{ m }}</div>{% endfor %}{% endif %}
+
+  <div class="card mb-4"><div class="card-body">
+    <h2 class="h6">{% trans "Add endpoint" %}</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-6"><input class="form-control form-control-sm" name="url" type="url" placeholder="https://hooks.example.com/incoming" required></div>
+        <div class="col-md-3"><input class="form-control form-control-sm" name="topics" placeholder="{% trans 'topics, comma separated or *' %}" value="*"></div>
+        <div class="col-md-3"><input class="form-control form-control-sm" name="description" placeholder="{% trans 'Label' %}"></div>
+      </div>
+      <button class="btn btn-sm btn-primary mt-2" type="submit">{% trans "Add" %}</button>
+    </form>
+  </div></div>
+
+  {% if endpoints %}
+  <table class="table table-sm align-middle">
+    <thead class="table-light">
+      <tr><th>{% trans "URL" %}</th><th>{% trans "Topics" %}</th><th>{% trans "Active" %}</th><th>{% trans "Failures" %}</th><th>{% trans "Last success" %}</th><th>{% trans "Actions" %}</th></tr>
+    </thead>
+    <tbody>
+    {% for e in endpoints %}
+      <tr>
+        <td><code class="small">{{ e.url }}</code>{% if e.description %}<div class="small text-muted">{{ e.description }}</div>{% endif %}
+          <details class="small mt-1"><summary>{% trans "Secret" %}</summary><code class="small">{{ e.secret }}</code></details>
+        </td>
+        <td><small>{{ e.topics|join:", " }}</small></td>
+        <td>{% if e.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "Disabled" %}</span>{% endif %}</td>
+        <td>{{ e.consecutive_failures }}</td>
+        <td><small>{{ e.last_success_at|default:"—"|date:"Y-m-d H:i" }}</small></td>
+        <td class="d-flex gap-1">
+          <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}">
+            {% csrf_token %}<button name="action" value="toggle" class="btn btn-sm btn-outline-secondary">{% if e.is_active %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}</button>
+          </form>
+          <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}">
+            {% csrf_token %}<button name="action" value="rotate_secret" class="btn btn-sm btn-outline-warning">{% trans "Rotate secret" %}</button>
+          </form>
+          <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}" onsubmit="return confirm('{% trans "Delete this endpoint?" %}');">
+            {% csrf_token %}<button name="action" value="delete" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">{% trans "No endpoints registered yet." %}</p>{% endif %}
+</div>
+{% endblock %}

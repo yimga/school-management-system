@@ -1,10 +1,13 @@
 from django.urls import path
 
-from . import views
+from . import views, views_public_status
 
 app_name = "feedback"
 
 urlpatterns = [
+    # Move 4 — public status page.
+    path("status/", views_public_status.public_status_page, name="public_status"),
+    path("status/api/", views_public_status.public_status_json, name="public_status_json"),
     path("feedback/", views.school_feedback_center, name="school_feedback"),
     path("school/feedback/", views.school_feedback_center, name="school_feedback_alias"),
     path("teacher/feedback/", views.role_feedback_center, {"role": "teacher"}, name="teacher_feedback"),

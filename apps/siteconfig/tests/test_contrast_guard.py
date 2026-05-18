@@ -79,3 +79,34 @@ class ContrastGuardTests(SimpleTestCase):
 
     def test_meets_contrast_false(self):
         self.assertFalse(meets_contrast("#cccccc", "#eeeeee", 4.5))
+
+
+class ThemeContrastReportTests(SimpleTestCase):
+    """Theme colors page badge uses best readable foreground per swatch."""
+
+    def test_platform_brand_defaults_pass(self):
+        from apps.siteconfig.forms import build_theme_contrast_report
+
+        report = build_theme_contrast_report(
+            {
+                "primary_color": "#002147",
+                "accent_color": "#d4af37",
+                "header_bg_color": "#002147",
+                "footer_bg_color": "#002147",
+                "success_color": "#198754",
+                "warning_color": "#ffc107",
+                "danger_color": "#dc3545",
+            }
+        )
+        self.assertEqual(report["status"], "ok")
+        self.assertEqual(report["failures"], [])
+        accent = next(c for c in report["checks"] if c["field"] == "accent_color")
+        self.assertTrue(accent["passed"])
+        self.assertEqual(accent["target"], DARK_TEXT)
+
+    def test_unreadable_mid_grey_still_warns(self):
+        from apps.siteconfig.forms import build_theme_contrast_report
+
+        report = build_theme_contrast_report({"primary_color": "#777777"})
+        self.assertEqual(report["status"], "warn")
+        self.assertEqual(len(report["failures"]), 1)

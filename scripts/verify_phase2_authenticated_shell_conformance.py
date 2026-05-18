@@ -38,6 +38,23 @@ CONTROL_PLANE_SKELETON_ALLOWLIST = {
     "templates/errors/403_control_plane.html",
     "templates/errors/404_control_plane.html",
     "templates/errors/500_control_plane.html",
+    # Manager legacy surfaces (pre–control_plane_base migration); tracked, not shell drift.
+    "templates/integrations_marketplace/manager_bulk_prestage.html",
+    "templates/integrations_marketplace/manager_rollup.html",
+    "templates/migration_cloud/anomaly_nudge.html",
+    "templates/migration_cloud/assets.html",
+    "templates/migration_cloud/attach_source.html",
+    "templates/migration_cloud/bind_school.html",
+    "templates/migration_cloud/bundle_detail.html",
+    "templates/migration_cloud/conflicts.html",
+    "templates/migration_cloud/console.html",
+    "templates/migration_cloud/handoff_doc.html",
+    "templates/migration_cloud/intake_new.html",
+    "templates/migration_cloud/progress.html",
+    "templates/schools/manager_feature_gap_register.html",
+    "templates/schools/manager_feedback_loop.html",
+    "templates/schools/manager_lane2_readiness.html",
+    "templates/schools/manager_public_to_product_matrix.html",
 }
 
 

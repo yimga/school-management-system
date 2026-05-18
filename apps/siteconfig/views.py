@@ -56,6 +56,7 @@ from .forms import (
     ThemeColorsForm,
     UserPreferenceForm,
     build_theme_contrast_report,
+    theme_contrast_targets_for_client,
 )
 from .models import (
     DashboardView,
@@ -1843,6 +1844,7 @@ def theme_colors_page(request):
         "back_url": back_url,
         "theme_recent_change_meta": theme_recent_change_meta,
         "theme_contrast_report": contrast_report,
+        "theme_contrast_targets": theme_contrast_targets_for_client(),
         "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
         "skip_theme_publish_guard": bool(
             theme_settings.get("skip_theme_publish_guard", False)
@@ -2027,6 +2029,7 @@ def get_theme_colors_context(request):
         "back_url": back_url,
         "theme_recent_change_meta": theme_recent_change_meta,
         "theme_contrast_report": contrast_report,
+        "theme_contrast_targets": theme_contrast_targets_for_client(),
         "theme_token_values": contrast_values,
         "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
         "skip_theme_publish_guard": bool(

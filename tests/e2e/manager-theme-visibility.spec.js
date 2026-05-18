@@ -103,6 +103,21 @@ test.describe('manager theme visibility (authenticated)', () => {
   });
 
   for (const pref of ['light', 'dark', 'system']) {
+    test(`admin index readable: ${pref}`, async ({ page }) => {
+      await page.goto('/admin/', {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await ensureManagerHost(page);
+      await setThemePreference(page, pref);
+      const index = page.locator('.cp-admin-index');
+      await expect(index).toBeVisible({ timeout: 30000 });
+      await expect(index).toContainText(/Platform Backoffice/i);
+      const box = await index.boundingBox();
+      expect(box?.height ?? 0).toBeGreaterThan(120);
+      await assertMainReadable(page);
+    });
+
     test(`admin changelist readable: ${pref}`, async ({ page }) => {
       await setThemePreference(page, pref);
       const resolved = await page.evaluate(() =>

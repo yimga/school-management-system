@@ -21,7 +21,9 @@ def main() -> int:
             "data-rmc-studio-workspace",
             "data-rmc-studio-inline-control",
             "data-rmc-studio-embed",
-            "manager-login",
+            "AUTH_STATE_PATH",
+            "data-studio-command-deck",
+            "data-studio-operator-toolbar",
         ):
             if needle not in text:
                 findings.append(f"studio-os-manager-ux.spec.js missing {needle!r}")

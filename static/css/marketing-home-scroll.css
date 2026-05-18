@@ -92,7 +92,7 @@
     position: sticky;
     top: calc(56px + var(--mkt-spacing-md, 1rem));
     border-radius: var(--mkt-radius-lg, 16px);
-    overflow: hidden;
+    overflow: hidden; /* sticky-overflow-allow: border-radius-frame-clip-single-image */
     background: var(--mkt-surface, #241e18);
     box-shadow: var(--mkt-shadow-lg, 0 18px 48px rgba(26, 22, 18, 0.12));
   }

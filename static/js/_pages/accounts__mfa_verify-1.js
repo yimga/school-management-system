@@ -53,7 +53,7 @@
                             signature: bufToB64url(cred.response.signature),
                             userHandle: cred.response.userHandle ? bufToB64url(cred.response.userHandle) : null
                         },
-                        remember_device: document.getElementById('remember_device') && document.getElementById('remember_device').checked
+                        remember_device: document.getElementById('remember_device') && document.getElementById('remember_device')?.checked
                     };
                     return fetch(((window.__RMC_PAGE_DATA__["accounts__mfa_verify-1"] || {})["url_accounts_passkey_authentication_verify"]), {
                         method: 'POST',

@@ -263,7 +263,7 @@ backend-shell dashboard-page-backend
           {% if overview_cards %}
           <div class="backend-bento-asymmetric" data-tour="backend-kpi-strip">
             {% with m=overview_cards.0 %}
-            <article class="backend-bento-hero rmc-glass-surface backend-v2-metric backend-v2-metric--tone-1 {% if m.status == 'danger' %}is-danger{% endif %}" class="rmc-reveal">
+            <article class="backend-bento-hero rmc-glass-surface backend-v2-metric backend-v2-metric--tone-1 rmc-reveal {% if m.status == 'danger' %}is-danger{% endif %}">
               <div class="backend-v2-metric-title"><span>{{ m.title }}</span><i class="bi {{ m.icon }}"></i></div>
               <div class="backend-v2-metric-value">{{ m.value }}</div>
               {% if m.sparkline_points %}
@@ -279,7 +279,7 @@ backend-shell dashboard-page-backend
             <div class="backend-bento-stack">
               {% for metric in overview_cards %}
               {% if not forloop.first %}
-              <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} {% if metric.status == 'danger' %}is-danger{% endif %}" class="rmc-reveal">
+              <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} rmc-reveal {% if metric.status == 'danger' %}is-danger{% endif %}">
                 <div class="backend-v2-metric-title"><span>{{ metric.title }}</span><i class="bi {{ metric.icon }}"></i></div>
                 <div class="backend-v2-metric-value">{{ metric.value }}</div>
                 {% if metric.sparkline_points %}
@@ -346,7 +346,7 @@ backend-shell dashboard-page-backend
             <div class="backend-bento-stack">
               {% for item in kpi_strip_cards %}
               {% if not forloop.first %}
-              <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}" class="rmc-reveal">
+              <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} rmc-reveal {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
                 <div class="backend-v2-kpi-head"><span>{{ item.label }}</span><i class="bi {{ item.icon }}"></i></div>
                 <div class="backend-v2-kpi-value">{{ item.value }}</div>
                 <div class="backend-v2-kpi-meta">{{ item.meta }}</div>
@@ -376,7 +376,7 @@ backend-shell dashboard-page-backend
           {% if kpi_strip_cards and overview_cards %}
           <div class="backend-v2-kpi-strip mt-3" data-widget-id="backend-overview-kpis" data-bento-tier="trend">
             {% for item in kpi_strip_cards %}
-            <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}" class="rmc-reveal">
+            <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} rmc-reveal {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
               <div class="backend-v2-kpi-head">
                 <span>{{ item.label }}</span>
                 <i class="bi {{ item.icon }}"></i>

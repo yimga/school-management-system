@@ -16,11 +16,19 @@ on:
       - "templates/admin/base.html"
       - "templates/admin/base_site.html"
       - "static/css/admin-cp-parity.css"
+      - "static/css/admin-sidebar-scroll.css"
+      - "static/css/admin-base-site-shell.css"
+      - "static/css/studio-command-deck.css"
+      - "static/css/studio-operator-toolbar.css"
       - "scripts/verify_super_admin_surface_parity.py"
+      - "scripts/verify_manager_admin_cp_layout.py"
       - "scripts/verify_manager_render_parity.py"
+      - "scripts/verify_studio_os_ux_waves.py"
       - "scripts/run_manager_surface_parity.sh"
       - "tests/e2e/manager-surface-parity.spec.js"
       - "tests/e2e/manager-theme-visibility.spec.js"
+      - "tests/e2e/studio-os-manager-ux.spec.js"
+      - "templates/studio_os/**"
       - "static/css/theme-platform-contrast.css"
       - "static/css/dark-mode-safety-net.css"
       - "static/js/theme-preference-bootstrap.js"
@@ -69,6 +77,8 @@ jobs:
         run: |
           python manage.py migrate --noinput
           python scripts/verify_theme_visibility_platform.py
+          python scripts/verify_manager_admin_cp_layout.py
+          python scripts/verify_studio_os_ux_waves.py
           python scripts/scan_main_content_text_utilities.py
           python scripts/verify_manager_render_parity.py --write-matrix
 

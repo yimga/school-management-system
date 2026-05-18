@@ -27,7 +27,8 @@
   <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
   <script src="{% static 'js/rmc-friction.js' %}" defer></script>
   <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
-  <script src="{% static 'js/rmc-reveal.js' %}" defer></script>
+  {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
+  <script src="{% static 'js/rmc-reveal.js' %}"></script>
   <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
   <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
@@ -102,7 +103,7 @@
 {% block extrahead %}
   {{ block.super }}
   <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
-  {% if is_manager_host %}<link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.png' %}{% endif %}" type="image/png">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
+  {% if is_manager_host %}<link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon-bell.svg' %}{% endif %}" type="image/svg+xml">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
   {# Configuration Engine: premium shell on all hosts – manager gets navy/gold, tenant gets same UX with school theme #}
   <script nonce="{{ csp_nonce }}">
     (function () {

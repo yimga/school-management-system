@@ -29,7 +29,7 @@
       async function previewStudents() {
         studentStatus.textContent = 'Previewing…';
         try {
-          const csv = document.getElementById('studentCsv').value;
+          const csv = document.getElementById('studentCsv')?.value;
           const res = await fetch('/api/entities/students/bulk-preview/', {
             method: 'POST',
             headers: {
@@ -65,7 +65,7 @@
       async function previewGuardians() {
         guardianStatus.textContent = 'Previewing…';
         try {
-          const csv = document.getElementById('guardianCsv').value;
+          const csv = document.getElementById('guardianCsv')?.value;
           const res = await fetch('/api/entities/guardians/bulk-preview/', {
             method: 'POST',
             headers: {

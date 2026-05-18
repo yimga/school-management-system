@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Status" %} — RunMyCampus{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="public-status">
+  <h1 class="h3 mb-3">{% trans "Platform status & roadmap" %}</h1>
+
+  <section class="mb-4" aria-labelledby="incidents-hdr">
+    <h2 id="incidents-hdr" class="h5">{% trans "Recent incidents (7d)" %}</h2>
+    {% if incidents %}
+    <ul class="list-group">
+      {% for i in incidents %}
+        <li class="list-group-item d-flex justify-content-between">
+          <span><strong>{{ i.action }}</strong>{% if i.app %} — {{ i.app.slug }}{% endif %}</span>
+          <small class="text-muted">{{ i.created_at|date:"Y-m-d H:i" }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">{% trans "No incidents in the last 7 days." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="mb-4" aria-labelledby="shipped-hdr">
+    <h2 id="shipped-hdr" class="h5">{% trans "Recently shipped (30d)" %}</h2>
+    {% if shipped %}
+    <ul class="list-group">
+      {% for r in shipped %}
+        <li class="list-group-item">
+          <strong>{{ r.title }}</strong>
+          <small class="text-muted ms-2">{{ r.created_at|date:"Y-m-d" }}</small>
+          {% if r.summary %}<div class="small">{{ r.summary|linebreaksbr }}</div>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">{% trans "Nothing shipped in the last 30 days." %}</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="top-hdr">
+    <h2 id="top-hdr" class="h5">{% trans "Most-voted requests" %}</h2>
+    {% if top_requests %}
+    <table class="table table-sm">
+      <thead class="table-light">
+        <tr><th>{% trans "Request" %}</th><th>{% trans "Status" %}</th><th>{% trans "Votes" %}</th><th>{% trans "Score" %}</th></tr>
+      </thead>
+      <tbody>
+        {% for fr in top_requests %}
+        <tr>
+          <td>{{ fr.title }}</td>
+          <td><span class="badge bg-light text-muted">{{ fr.status }}</span></td>
+          <td>{{ fr.vote_count }}</td>
+          <td>{{ fr.weighted_score }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">{% trans "No open requests." %}</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

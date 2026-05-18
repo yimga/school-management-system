@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1274 manager admin layout fix + Studio UX QA sweep (2026-05-18)
+
+**A. Scope:** Fix blank manager `/admin/` main content; QA pass on Studio OS waves + admin CP parity; mechanical gates + regression tests.
+
+**B. Implementation:** Scoped `#page` row layout to `#page:not(.admin-cp-unified-page)` in `admin-sidebar-scroll.css` + `admin-base-site-shell.css`; column flex contract in `admin-cp-parity.css`. New `verify_manager_admin_cp_layout.py`. Studio: `studio-command-deck.css` root/eyebrow/lede/hint/tenant-banner/hubs; `studio-operator-toolbar.css` + `shell_extrastyle.html` link.
+
+**C. Tests:** `test_manager_admin_index_renders_backoffice_content`; `test_manager_admin_uses_control_plane_sidebar_chrome`; `test_studio_focus_layout` + `test_studio_ux_waves_mechanical_gate` **4/4 OK**.
+
+**D. Gates:** `verify_manager_admin_cp_layout` OK; `verify_studio_os_ux_waves` OK; `verify_theme_visibility_platform` OK; `verify_phase2_authenticated_shell_conformance` OK (manager legacy skeleton allowlist); `audit_template_render_safety` **0**; `scan_undefined_css_classes --compare` **0→0**; `scan_inline_style_off_token` **0**. **CI/E2E:** `run_manager_surface_parity.sh` runs admin layout verifier + Studio Playwright (`studio-os-manager-ux.spec.js`); wired in `manager-surface-parity.yml`, `theme-visibility-platform.yml`, `architectural-boundaries` theme job.
+
+**E. SW:** `sms-v3.25.6-manager-admin-qa-sweep-2026-05-18`.
+
+**F. Verdict:** **BATCH 1274 DONE** — manager admin blank-main closed; Studio UX QA polish + CI/Playwright optionals landed end-to-end.
+
 ## Slice - batch 1272 Studio OS manager UX waves 1–6 (2026-05-17)
 
 **A. Scope:** World-class manager Studio OS UX — six waves, each closed before the next: focus layout, embed chrome, unified workspace, inline feature control density, nav dedupe, verification + SOT.

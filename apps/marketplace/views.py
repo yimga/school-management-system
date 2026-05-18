@@ -1159,6 +1159,7 @@ def tenant_install_app(request):
         )
         return redirect("tenant_app_catalog")
 
+    target_version = (request.POST.get("target_version") or "").strip() or None
     try:
         installation = install_app(
             school,
@@ -1167,6 +1168,7 @@ def tenant_install_app(request):
             install_phase=AppInstallation.InstallPhase.SANDBOX,
             skip_compatibility=False,
             grant_scope_codes=consented_scopes,
+            target_version=target_version,
         )
         # Compliance audit: capture the EXACT scope list the admin acknowledged.
         try:

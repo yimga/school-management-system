@@ -30,7 +30,8 @@
   <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
   <script src="{% static 'js/rmc-friction.js' %}" defer></script>
   <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
-  <script src="{% static 'js/rmc-reveal.js' %}" defer></script>
+  {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
+  <script src="{% static 'js/rmc-reveal.js' %}"></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
   <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
@@ -41,7 +42,7 @@
   {% if seo_description %}<meta name="description" content="{{ seo_description|truncatewords:50 }}">{% endif %}
   {% endblock %}
   <title>{% block title %}{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}{% endblock %}</title>
-  <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.png' %}{% endif %}" type="image/png">
+  <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon-bell.svg' %}{% endif %}" type="image/svg+xml">
 
   {# Source Serif 4 — editorial display face. Preconnect first so the font request fires in parallel with CSS. #}
   <link rel="preconnect" href="https://fonts.googleapis.com">

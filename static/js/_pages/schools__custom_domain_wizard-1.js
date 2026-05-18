@@ -16,7 +16,7 @@
         body: JSON.stringify({ domain: domain }),
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value,
           'Accept': 'application/json'
         },
         credentials: 'same-origin'
@@ -45,12 +45,12 @@
       fetch(((window.__RMC_PAGE_DATA__["schools__custom_domain_wizard-1"] || {})["var_api_domains_url_default_api_tenant_domains"]).replace(/\/$/, '') + '/' + id + '/verify/', {
         method: 'POST',
         headers: {
-          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value,
           'Accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         credentials: 'same-origin',
-        body: 'csrfmiddlewaretoken=' + encodeURIComponent(document.querySelector('[name=csrfmiddlewaretoken]').value)
+        body: 'csrfmiddlewaretoken=' + encodeURIComponent(document.querySelector('[name=csrfmiddlewaretoken]')?.value)
       }).then(function(r) {
         return r.json();
       }).then(function() {

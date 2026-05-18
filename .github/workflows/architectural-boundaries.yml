@@ -74,6 +74,7 @@ on:
       - "beta/school-management-system/scripts/scan_bell_clock_consistency.py"
       - "beta/school-management-system/scripts/check_marketing_assets_claimed_vs_present.py"
       - "beta/school-management-system/scripts/verify_theme_visibility_platform.py"
+      - "beta/school-management-system/scripts/verify_manager_admin_cp_layout.py"
       - "beta/school-management-system/scripts/scan_main_content_text_utilities.py"
       - "beta/school-management-system/var/security-audit-baseline-main-content-text-utilities.json"
       - "beta/school-management-system/static/css/theme-platform-contrast.css"
@@ -408,6 +409,20 @@ jobs:
         run: |
           python scripts/verify_plan_deliverables_12_pillar.py --strict
 
+  reveal-armed-invariants:
+    name: "Reveal-armed defense + no-duplicate-class-attrs invariants"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run reveal-armed invariants scanner --strict
+        run: |
+          python scripts/scan_reveal_armed_invariants.py --strict
+
   sentry-alert-rule-drift:
     name: "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
     runs-on: ubuntu-latest
@@ -726,5 +741,6 @@ jobs:
         run: |
           python manage.py migrate --noinput
           python scripts/verify_theme_visibility_platform.py
+          python scripts/verify_manager_admin_cp_layout.py
           python scripts/scan_main_content_text_utilities.py
           python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1

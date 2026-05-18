@@ -19,6 +19,10 @@
   }
 
   function getCsrf() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) {
+      return meta.content;
+    }
     return getCookie("csrftoken") || getCookie("rmc_manager_csrftoken") || "";
   }
 

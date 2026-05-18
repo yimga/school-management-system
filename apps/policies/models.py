@@ -319,3 +319,125 @@ class ScheduledPolicyOverride(models.Model):
     class Meta:
         verbose_name = "Scheduled policy override"
         verbose_name_plural = "Scheduled policy overrides"
+
+
+class PolicyRule(models.Model):
+    """Move 3 (ABAC): typed policy rule.
+
+    Each rule has an effect (allow|deny), subject/action/resource selectors,
+    and optional structured conditions. The PolicyDecisionPoint (see
+    ``apps.policies.pdp``) evaluates rules in priority order and emits a
+    decision + explanation written to ``PolicyDecisionLog``.
+
+    A rule is "scoped" to either the platform (school=None) or a specific tenant.
+    """
+
+    class Effect(models.TextChoices):
+        ALLOW = "allow", "Allow"
+        DENY = "deny", "Deny"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="policy_rules",
+        help_text="Null => platform-wide rule applied to every tenant.",
+    )
+    code = models.SlugField(max_length=120, db_index=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    effect = models.CharField(
+        max_length=8, choices=Effect.choices, default=Effect.ALLOW, db_index=True
+    )
+    # Selectors. The string DSL is documented in apps/policies/pdp.py.
+    subject_match = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='e.g. {"role_any": ["TEACHER","ADMIN"]} or {"user_id": 42}.',
+    )
+    action_match = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='e.g. {"actions": ["read","export"]} or {"actions": ["*"]}.',
+    )
+    resource_match = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='e.g. {"entity": "student", "field": "ssn"} or {"entity_any": ["student","parent"]}.',
+    )
+    conditions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of {attr,op,value} predicates ANDed together.',
+    )
+    priority = models.IntegerField(
+        default=100,
+        db_index=True,
+        help_text="Lower number = higher priority. First-matching rule wins.",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Policy rule"
+        verbose_name_plural = "Policy rules"
+        ordering = ["priority", "code"]
+        unique_together = [["school", "code"]]
+        indexes = [
+            models.Index(fields=["is_active", "priority"], name="pol_rule_act_pri_idx"),
+        ]
+
+    def __str__(self) -> str:
+        scope = self.school.slug if self.school_id else "platform"
+        return f"[{scope}] {self.effect}:{self.code}"
+
+
+class PolicyDecisionLog(models.Model):
+    """Append-only log of every PDP decision.
+
+    The decision_reason field carries a human-readable explanation (e.g.,
+    "denied because rule abac.ssn_secret matched on field-level sensitivity").
+    """
+
+    class Effect(models.TextChoices):
+        ALLOW = "allow", "Allow"
+        DENY = "deny", "Deny"
+        IMPLICIT_DENY = "implicit_deny", "Implicit deny (no rule matched)"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="policy_decision_logs",
+    )
+    subject_id = models.CharField(max_length=120, blank=True, db_index=True)
+    subject_role = models.CharField(max_length=64, blank=True, db_index=True)
+    action = models.CharField(max_length=64, db_index=True)
+    resource_type = models.CharField(max_length=120, db_index=True)
+    resource_id = models.CharField(max_length=190, blank=True, db_index=True)
+    effect = models.CharField(max_length=20, choices=Effect.choices, db_index=True)
+    matched_rule = models.ForeignKey(
+        PolicyRule,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="decisions",
+    )
+    decision_reason = models.TextField(blank=True)
+    context_snapshot = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "Policy decision log"
+        verbose_name_plural = "Policy decision logs"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "subject_role", "-created_at"], name="pol_dec_sch_role_idx"),
+            models.Index(fields=["action", "resource_type"], name="pol_dec_act_res_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.effect}:{self.action}:{self.resource_type}"

@@ -1,0 +1,61 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Versions" %} — {{ app.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="marketplace-app-versions">
+  <nav aria-label="breadcrumb" class="small mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'super:marketplace_publisher_dashboard' %}">{% trans "Publisher" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'super:marketplace_publisher_app_detail' app.slug %}">{{ app.name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Versions" %}</li>
+    </ol>
+  </nav>
+  <h1 class="h3 mb-3">{% trans "Versions" %} — {{ app.name }}</h1>
+  {% if messages %}{% for m in messages %}<div class="alert alert-info">{{ m }}</div>{% endfor %}{% endif %}
+
+  <div class="card mb-4"><div class="card-body">
+    <h2 class="h6">{% trans "Publish new version" %}</h2>
+    <p class="small text-muted">{% trans "Semver only. The newest stable version becomes the install default." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-3"><input class="form-control form-control-sm" name="version" placeholder="1.2.3" required></div>
+        <div class="col-md-3">
+          <select name="channel" class="form-select form-select-sm">
+            <option value="stable">{% trans "Stable" %}</option>
+            <option value="beta">{% trans "Beta" %}</option>
+            <option value="alpha">{% trans "Alpha" %}</option>
+          </select>
+        </div>
+      </div>
+      <textarea class="form-control form-control-sm mt-2" name="changelog" rows="3" placeholder="{% trans 'Changelog (markdown allowed)' %}"></textarea>
+      <button class="btn btn-sm btn-primary mt-2" type="submit">{% trans "Publish" %}</button>
+    </form>
+  </div></div>
+
+  {% if versions %}
+  <table class="table table-sm align-middle">
+    <thead class="table-light"><tr>
+      <th>{% trans "Version" %}</th><th>{% trans "Channel" %}</th><th>{% trans "Published" %}</th><th>{% trans "Status" %}</th><th>{% trans "Changelog" %}</th>
+    </tr></thead>
+    <tbody>
+    {% for v in versions %}
+      <tr>
+        <td><code>{{ v.version }}</code></td>
+        <td><span class="badge bg-light text-muted">{{ v.get_channel_display }}</span></td>
+        <td><small>{{ v.published_at|default:"draft"|date:"Y-m-d H:i" }}</small></td>
+        <td>
+          {% if v.is_yanked %}<span class="badge bg-danger">{% trans "Yanked" %}</span>
+          {% elif v.is_published %}<span class="badge bg-success">{% trans "Published" %}</span>
+          {% else %}<span class="badge bg-secondary">{% trans "Draft" %}</span>{% endif %}
+        </td>
+        <td>{% if v.changelog %}<details><summary class="small">{% trans "View" %}</summary><pre class="small mb-0">{{ v.changelog }}</pre></details>{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="text-muted">{% trans "No versions published yet." %}</p>{% endif %}
+</div>
+{% endblock %}

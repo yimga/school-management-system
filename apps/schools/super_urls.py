@@ -7,6 +7,7 @@ from apps.marketplace.views_publisher import (
     publisher_app_detail as marketplace_publisher_app_detail,
     publisher_dashboard as marketplace_publisher_dashboard,
 )
+from apps.marketplace import views_developer_platform as marketplace_dev_views
 from apps.customersuccess import views_super as cs_views
 from apps.orchestration import views as orchestration_views
 from . import super_views
@@ -447,6 +448,48 @@ urlpatterns = [
             marketplace_views.marketplace_incident_dashboard
         ),
         name="marketplace_incident_dashboard",
+    ),
+    # Move 1 — developer-platform operator surfaces.
+    path(
+        "marketplace/signups/",
+        require_super_access_with_host(marketplace_dev_views.signup_review_queue),
+        name="marketplace_signup_review_queue",
+    ),
+    path(
+        "marketplace/signups/<int:signup_id>/decide/",
+        require_super_access_with_host(marketplace_dev_views.signup_decide),
+        name="marketplace_signup_decide",
+    ),
+    path(
+        "marketplace/publisher/metrics.json",
+        require_super_access_with_host(marketplace_dev_views.partner_dashboard_metrics),
+        name="marketplace_publisher_metrics",
+    ),
+    path(
+        "marketplace/publisher/webhooks/",
+        require_super_access_with_host(marketplace_dev_views.publisher_webhook_log),
+        name="marketplace_publisher_webhook_log",
+    ),
+    # Publisher self-serve webhook CRUD + version publish.
+    path(
+        "marketplace/publisher/apps/<slug:app_slug>/webhooks/",
+        require_super_access_with_host(marketplace_dev_views.webhook_endpoints_view),
+        name="marketplace_webhook_endpoints",
+    ),
+    path(
+        "marketplace/publisher/apps/<slug:app_slug>/webhooks/<int:endpoint_id>/edit/",
+        require_super_access_with_host(marketplace_dev_views.webhook_endpoint_edit_view),
+        name="marketplace_webhook_endpoint_edit",
+    ),
+    path(
+        "marketplace/publisher/apps/<slug:app_slug>/versions/",
+        require_super_access_with_host(marketplace_dev_views.app_versions_view),
+        name="marketplace_app_versions",
+    ),
+    path(
+        "marketplace/ratings/<int:rating_id>/reply/",
+        require_super_access_with_host(marketplace_dev_views.publisher_reply_view),
+        name="marketplace_publisher_reply",
     ),
     path(
         "marketplace/activate-sandbox/",

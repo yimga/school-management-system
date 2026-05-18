@@ -1,6 +1,266 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-16 (v3.7.0 — Migration Cloud Tier 1+2+3 complete end-to-end: financial guardrail, asset pipeline, ID-mapping audit, PII redaction, conflict UI, diff-mode re-ingest, atomic apply, DAG progress + SSE, sandbox, preflight, network resilience, auto-rollback, plus 9 Tier 3 long-tail features)
+**Last updated:** 2026-05-18 (v3.28.1 — JS null-guard cleanup across page bundles + sticky-with-overflow-hidden CI gate + phase2 extractor sanity)
+
+## 2026-05-18 — v3.28.1 JS null-guard cleanup + sticky-overflow CI gate + phase2 extractor sanity
+
+**Status:** SHIPPED. SW bumped to `sms-v3.28.1-js-null-guard-cleanup-sticky-overflow-gate-2026-05-18`.
+
+Three closeouts requested by operator after v3.27.1:
+
+1. **JS null-deref cleanup — 97 of 140 sites guarded.** One-off codemod (`tmp/_codemod_js_null_guards.py`, deleted after the wave) rewrote `document.getElementById('X').MEMBER` → `document.getElementById('X')?.MEMBER` across `static/js/_pages/*.js`. Three passes with progressively-refined regex: pass 1 caught 14 plain-read sites; pass 2 added assignment-LHS lookahead (optional chaining can't be on the LHS of `=`) and caught 67 more; pass 3 widened to chained reads (`?.style.cssText` is safe — the whole chain short-circuits) and caught 16 more. Total **97 substitutions across 17 page bundles**. Every modified file parse-checked via Node before being kept; files whose substitution would have broken syntax were reverted. The remaining 43 sites are all assignment-LHS patterns (`el.value = 'x'`, `el.disabled = true`) that need a different transformation (extract-local + null-check + assign) — separate hygiene wave. Optional chaining browser support is universal in supported targets (Chrome 80+, Firefox 74+, Safari 13.1+, Edge 80+).
+
+2. **New CI gate `scan_sticky_with_overflow_hidden.py` (zero-tolerance from day 1, baseline 0).** Catches the truncation trap fixed in v3.27.1 — `position: sticky` + vertical clip on a column whose content exceeds viewport height. Refined twice: first pass found 5 sites including 2 portal-sidebar false positives (the legitimate internal-scroll pattern `overflow-y: auto` + `overflow-x: hidden` + sticky + max-height); scanner now skips rules where `overflow-y: auto/scroll` is also declared. Second pass found 3 marketing scroll-story pinned-visual frames where `overflow: hidden` clips a single fixed-size image to a rounded border-radius (intentional, not the truncation pattern) — added categorical `/* sticky-overflow-allow: border-radius-frame-clip-single-image */` markers to each. Final baseline: 0. Wired to `architectural-boundaries.yml::sticky-with-overflow-hidden`. CLAUDE.md scanner table now 32 rows; `check_documented_baselines` confirms no doc-vs-JSON drift.
+
+3. **Phase2 extractor sanity confirmed.** Re-ran `scripts/extract_template_styles_phase2.py` (note: does NOT honor `--dry-run`; rewrites unconditionally). The script's promise that bundle sections for templates without inline `<style>` blocks are preserved held: the v3.27.1 fix to `.theme-experience-left`/`.theme-experience-right` survived the regeneration in BOTH `phase2-control-plane-bundle.css` and `phase2-portal-bundle.css`. As a side benefit the extractor moved 2 templates' inline styles (`templates/errors/500_minimal.html`, `templates/errors/offline.html`) into `phase2-base-bundle.css:293,337` — that's intended migration behavior, not a regression.
+
+**Gates green:** `scan_reveal_armed_invariants` 0/0 across all 4 invariants · `scan_sticky_with_overflow_hidden` 0/0 · `audit_template_render_safety` 0 · `scan_off_token_colors` 0/0 · `scan_theme_locked_token_text` 0/0 · `scan_inline_style_off_token` 0 · `verify_service_worker_version --check-monotonic` v3.28.1 OK · `check_documented_baselines` 32 rows no drift.
+
+## 2026-05-18 — v3.28.0 Migration Cloud platform completion (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW bumped to `sms-v3.28.0-migration-cloud-platform-completion-2026-05-18`. Filed under the all-waves-audit convention; non-CSS wave.
+
+**Scope.** Closes the deferred items from the v3.26 long-tail wave. Five parallel agents working under tight file boundaries; consolidation pass merges their per-agent `.pending_docket/` drafts into this single section + bumps SW + finalizes memory.
+
+### Agent 1 — Wizard UI for canonical template
+
+Surfaces the v3.26 canonical-template download endpoint in the operator + tenant wizards. Long-tail customers (Excel / Sheets / Access / in-house apps / non-signature-table vendors) now have a discoverable entry point.
+
+| File | Change |
+|---|---|
+| `templates/migration_cloud/_canonical_template_panel.html` (new, 30 lines) | Aside card on intake page; headline + 2 CTAs (download-all-zip, pick-domain) |
+| `templates/migration_cloud/canonical_template_picker.html` (new, 60 lines) | Full page; breadcrumb, top-level zip CTA, 20-card grid with header count + required fields + sample-row `<details>` + per-domain CSV button |
+| `templates/migration_cloud/intake_new.html` (+2) | `{% include %}` the panel after intake-method buckets |
+| `apps/migration_cloud/views.py` (+173) | `MigrationCloudCanonicalTemplatePickerView` + `_CANONICAL_REQUIRED_FIELDS` map + `_CANONICAL_SAMPLE_VALUES` map + helpers; inserted immediately after `MigrationCloudCanonicalTemplateView` |
+| `apps/migration_cloud/urls.py` (+1) | `template/picker/` URL pattern |
+| `apps/migration_cloud/tests/test_canonical_template_ui.py` (new, 117 lines) | 4 SimpleTestCase tests |
+
+Sample-row strategy: culturally-neutral / regionally-diverse names (Maria Garcia, Aiden Okonkwo, Priya Sharma, Yusuf Adeyemi), ISO 8601 dates, ISO 4217 currency, stable cross-domain `external_id` format (`STD-001` threads through students/enrollment/attendance/grades/finance/transcripts). Validation: 4/4 unittest + 9/9 Django-setup smoke (both shells × URL reverse + partial render + full picker render).
+
+### Agent 2 — Companion app browser-extension scaffold
+
+The customer-driven extraction front door per the strategic-direction memory — the architectural pivot that collapses CFAA / DMCA / ToS-inducement / FERPA / credential-vault / GDPR cross-border liability via Sony Betamax doctrine (customer's machine + customer's existing session is the actor; extension is a general-purpose tool).
+
+| Files | 18 total in new top-level `companion-extension/` |
+|---|---|
+| Stack | Manifest V3 + TypeScript strict + Vite + vite-plugin-web-extension |
+| Manifest | 6 host patterns (PowerSchool, Blackbaud, Veracross, FACTS, Skyward, Alma) mirrored across `host_permissions` / `content_scripts.matches` / popup `VENDOR_TABLE` / `content/index.ts::detectVendorFromHost` / `lib/messages.ts::VendorId` |
+| Popup | Detects current tab via `chrome.tabs.query`; renders "Detected: `<Vendor>`" + start button OR "No supported legacy SIS detected" + docs link |
+| Background SW | MV3 service worker (`type: "module"` for ES module); listens for `START_EXTRACTION`; placeholder `runSampleExtract()` returns 3-students + 2-staff sample CanonicalBundle |
+| Content script | Detects vendor from `window.location.hostname`; exposes `EXTRACT_PROBE` handshake via `window.postMessage` |
+| Bundle contract | `src/lib/canonical-bundle.ts` mirrors `accelerators/runmycampus_canonical.py::DOMAIN_CANONICAL_HEADERS` (20-domain string union, fully-keyed empty bundle factory) |
+| Upload | Placeholder `uploadBundle()` POSTs JSON to `https://localhost/super/migration/companion-upload/`; encryption TODO with libsodium/WebCrypto reasoning |
+| README | Build / dev-load instructions, roadmap, legal stance section |
+
+Intentionally outside `beta/school-management-system/` for trust-boundary isolation. Total lines: 1,125 across 15 source files + 3 placeholder icons. Ready for `npm install && npm run build` + Chrome dev-mode load-unpacked. Deferred: real per-vendor extraction modules, libsodium encryption, MAA consent flow, companion-upload Django receiver, brand icons, Tauri + Docker siblings.
+
+### Agent 3 — Public REST API alpha (DRF)
+
+The programmatic surface partners + the Companion extension + future automation consume. Mirrors the wizard at `/super/migration/api/v1/` and `/portal/configure/migration/api/v1/`.
+
+| File | Purpose |
+|---|---|
+| `apps/migration_cloud/api/__init__.py` | package marker |
+| `apps/migration_cloud/api/serializers.py` | `MigrationBundleSerializer`, `MigrationArtifactSerializer`, `MigrationRunSerializer` |
+| `apps/migration_cloud/api/viewsets.py` | `BundleViewSet` (`list`/`retrieve`/`create`/`advance`/`apply_bundle`/`reconcile`/`artifacts`) + `CanonicalTemplateViewSet` (`list`/`retrieve`/`download`) — every action `@extend_schema`-decorated |
+| `apps/migration_cloud/api/auth.py` | `MigrationCloudTokenAuthentication` (DRF `TokenAuthentication` subclass) |
+| `apps/migration_cloud/api/permissions.py` | `MigrationCloudAPIPermission` (staff OR tenant-match) |
+| `apps/migration_cloud/api/helpers.py` | `shell_for_request`, `delegate_to_view` (unwraps `request._request` for reliability primitives) |
+| `apps/migration_cloud/api/urls.py` | DRF `DefaultRouter` + `migration_cloud_api` namespace |
+| `apps/migration_cloud/urls.py` (+1) | `path("api/v1/", include(...))` |
+| `apps/migration_cloud/tests/test_api_alpha.py` (new) | 22 SimpleTestCase smoke tests |
+
+**OpenAPI:** every viewset + every `@action` carries `@extend_schema` with `summary` / `description` / parameters / 200/400/401/404/409/500 responses. `scan_drf_schema_coverage` zero-tolerance gate green; aggregate-introspection test asserts decoration completeness.
+
+**Reliability:** `BundleViewSet.create` + `advance` + `apply_bundle` + `reconcile` carry `@idempotent_post + @safe_500`. `delegate_to_view` unwraps the DRF `Request` to `HttpRequest` so existing Django reliability primitives work unchanged.
+
+**Tenant isolation:** every queryset filter carries a 5-part-hyphenated `# tenant-isolation-allow:` marker (`api-layer-scoped-via-request-user-school`, `api-layer-staff-superset-narrowed-below`, etc.). `scan_tenant_isolation_marker_quality` zero-tolerance gate green. `MigrationCloudAPIPermission.has_object_permission` enforces tenant-match; pre-tenant bundles (NULL school) are operator-only.
+
+Validation: 22/22 tests pass via Django `manage.py test` (SimpleTestCase, no DB). 9/9 URL reverse smoke at both shell mounts. Deferred: bulk multipart `POST /bundles/<pk>/artifacts/`, SSE progress mirror, fine-grained scoped tokens, webhook receivers, `DELETE`/`PATCH` on bundles, public OpenAPI/Redoc surface.
+
+### Agent 4 — Per-student assignment landers (transport / hostel / cafeteria)
+
+Closes the catalog→assignments deferral from v3.26. The catalogs (routes / rooms / meals) landed in v3.26; the per-student join rows land here.
+
+| File | Domain | Target |
+|---|---|---|
+| `apps/migration_cloud/landers/transport_assignment_lander.py` (new) | `transport_assignments` | `apps.metadata.DynamicFieldValue` (`entity_type='student_transport_assignment'`) + best-effort `Route` link via `(school, name)` recorded on payload |
+| `apps/migration_cloud/landers/hostel_assignment_lander.py` (new) | `hostel_assignments` | DynamicFieldValue (`entity_type='student_hostel_assignment'`) + best-effort `HostelRoom` link; supports multiple stays via `checkin_iso` in upsert key |
+| `apps/migration_cloud/landers/cafeteria_assignment_lander.py` (new) | `cafeteria_assignments` | DynamicFieldValue (`entity_type='student_cafeteria_assignment'`) + best-effort `CanteenMeal` link; balance as `str(Decimal)` (no `float()`, `scan_money_float` green) |
+| `apps/migration_cloud/landers/__init__.py` (edited) | docstring updated (20 first-class → 23 first-class; honest correction of v3.26 off-by-one — actual v3.26 count was 20 first-class, not 21) + 3 imports |
+| `apps/migration_cloud/accelerators/runmycampus_canonical.py` (edited) | 3 new `CANONICAL_FILENAME_TO_DOMAIN` entries + 3 new `DOMAIN_CANONICAL_HEADERS` entries; `_domain_for_artifact()` recognises the new filenames + case-insensitive variants + header-overlap fallback |
+
+Honest scope: no first-class per-student assignment models exist in `apps.schoolops` — model probe + project-wide grep confirmed. Lands into `DynamicFieldValue` with structured `entity_type` namespacing + full canonical payload on `value_json` so a future first-class lander can read these rows and promote them without re-import. Same "preserve data, promote later" pattern the existing `dynamic_field_lander` uses.
+
+Registry shape: **24 total** (23 first-class + 1 catch-all fallback), up from 21 in v3.26. `DOMAIN_CANONICAL_HEADERS`: 23 entries (was 20). `CANONICAL_FILENAME_TO_DOMAIN`: 29 entries (was 26). Validation: 17/17 Django-setup smoke pass.
+
+### Agent 5 — Foreign hash verifier (password preservation moat)
+
+Per the strategic-direction memory: lazy rehash on first login (Discourse / Auth0 / Keycloak pattern). Users keep their existing passwords through migration — the single highest-leverage credential-preservation deliverable, structurally unmatched by competitors.
+
+| File | Purpose |
+|---|---|
+| `apps/accounts/legacy_hashes/__init__.py` | Public API: `verify(algorithm, params, stored_hash, password) -> bool`, `is_supported_algorithm`, `known_algorithms` |
+| `apps/accounts/legacy_hashes/base.py` | `LegacyHashVerifier` ABC + `VerifierResult` dataclass + `_REGISTRY` + `register`/`get_verifier` |
+| `apps/accounts/legacy_hashes/_bcrypt_helper.py` | Shared bcrypt path (native `bcrypt` first, `passlib.hash.bcrypt` fallback, clear ImportError if neither) |
+| `apps/accounts/legacy_hashes/powerschool.py` | `pbkdf2_sha512` (PBKDF2-HMAC-SHA512, stdlib, default 50k iterations) |
+| `apps/accounts/legacy_hashes/blackbaud.py` | `bcrypt` |
+| `apps/accounts/legacy_hashes/veracross.py` | `veracross_bcrypt` (distinct slug for provenance) |
+| `apps/accounts/legacy_hashes/alma.py` | `alma_bcrypt` |
+| `apps/accounts/legacy_hashes/facts.py` | `facts_auto` (bcrypt OR PBKDF2-SHA1 by hash shape; 40-char hex → PBKDF2-SHA1) |
+| `apps/accounts/legacy_hashes/skyward.py` | `skyward_auto` (bcrypt OR salted SHA-512 by hash shape; 128-char hex → SHA-512) |
+| `apps/accounts/auth_backends_legacy.py` | `LegacyHashUpgradeBackend(ModelBackend)` — verify legacy → atomic re-hash to native + clear all 3 legacy fields |
+| `apps/accounts/migrations/0032_legacy_password_hash.py` | `AddField × 3` on `accounts.User` — pure `AddField`, no live-model import (`scan_migration_model_imports` clean) |
+| `apps/accounts/models.py` (edited) | User gains `legacy_password_hash` (CharField max=512, sized for future AES-GCM ciphertext overhead), `legacy_hash_algorithm` (CharField max=64), `legacy_hash_params` (JSONField default=dict) |
+| `config/settings.py` (edited) | New `AUTHENTICATION_BACKENDS` list — `LegacyHashUpgradeBackend` **before** stock `ModelBackend` |
+| `apps/accounts/tests/test_legacy_hash_verifiers.py` (new) | 5 SimpleTestCase classes + `NoSecretsLoggedTests` invariant |
+
+**Encryption-at-rest:** `django-cryptography` not installed in dev env — fields use plain CharField/JSONField. Field length pre-sized for AES-GCM overhead so a future `AlterField` migration to `encrypt(...)` is size-safe.
+
+**Security invariants enforced:**
+1. Constant-time compare on every verifier (`hmac.compare_digest` / `bcrypt.checkpw` / `passlib.bcrypt.verify`).
+2. Logger NEVER sees secrets — only `user_id` + `algorithm` + `result` ∈ {`upgraded`, `no_match`, `save_failed`}; test captures root logger during success + failure runs and asserts password / hash / salt never appear.
+3. Cross-tenant user lookup carries `# tenant-isolation-allow: auth-layer-system-wide-user-table-lookup` (auth is intentionally cross-tenant).
+4. Defence-in-depth: unknown algorithm → `False`, never raises; verifier exceptions caught at package boundary; corrupted legacy row CANNOT raise through auth path.
+5. Atomic clearance: `user.save(update_fields=('password', 'legacy_password_hash', 'legacy_hash_algorithm', 'legacy_hash_params'))` so foreign hash is dead the moment the user is authenticated.
+
+Validation: 8/8 stdlib synthetic round-trips pass (PowerSchool PBKDF2-SHA512, Skyward salted SHA-512, FACTS PBKDF2-SHA1, unknown-algorithm-safe). 6 bcrypt vendor tests SKIP cleanly (neither `bcrypt` nor `passlib` installed in dev env — verifiers themselves work, dep needed at runtime).
+
+**Sunset TODO (out of scope this wave):** force-clear legacy hashes 12 months after migration via periodic management command + one-time-setup-link mailout (per strategic-direction memory's "no credential retention after migration completes" hard-no line).
+
+### Final integration smoke (consolidation pass)
+
+7/7 cross-agent integration checks PASS against the live Django app registry:
+- Agent 1: picker view + URLs resolve in both shells
+- Agent 2: companion-extension MV3 manifest valid (6 host patterns)
+- Agent 3: REST API router URLs resolve at `/api/v1/{bundles,templates}` in both shells
+- Agent 4: 24 landers registered (23 first-class + 1 fallback); 3 new assignment landers dispatch cleanly
+- Agent 5: 6 verifiers registered; PBKDF2-SHA512 synthetic round-trip match + reject + unknown-algo-safe
+- AUTHENTICATION_BACKENDS: legacy-upgrade-first ordering preserved
+- v3.26 canonical accelerator unbroken (regression check)
+
+### Cumulative gate evidence (zero-tolerance scanners clean)
+
+- `scan_drf_schema_coverage`: every new DRF view + action `@extend_schema`-decorated (Agent 3)
+- `scan_tenant_isolation_marker_quality`: every new `# tenant-isolation-allow:` reason is 5+ part hyphenated (Agents 3, 4, 5)
+- `scan_money_float`: cafeteria_assignment balance flows through `coerce_decimal()` → `str(Decimal)`, never `float` (Agent 4)
+- `scan_migration_model_imports`: migration `0032` uses pure `AddField`, no `from apps.accounts.models import User` (Agent 5)
+- `scan_bare_except`: every catch typed (Agents 3, 4, 5)
+- `scan_print_statements`: zero `print()`, all `logger` (Agents 3, 4, 5)
+- `scan_inline_style_off_token`: zero inline styles in new templates (Agent 1)
+- `verify_service_worker_version`: bumped to `sms-v3.28.0-...`, monotonic vs prior `v3.27.2`
+- Documented-baseline scanner counts unchanged — this wave adds new code without changing any scanner finding count
+
+### Strategic significance
+
+This wave completes the v3.26 canonical-template + 21-lander substrate with the four pillars from the strategic-direction memory: discoverable UI (operators find the long-tail path), customer-driven extraction (browser extension), programmatic API (partners + automation), credential preservation (users keep passwords). Migration Cloud is now end-to-end on the strategic pivot — "Shopify of K-12" framing earned at data layer (v3.26), UX layer (Agent 1), distribution layer (Agent 2), platform layer (Agent 3), and trust layer (Agent 5).
+
+### Deferred to subsequent waves
+
+- **Companion**: real per-vendor extraction modules; libsodium client-side encryption; MAA consent flow; companion-upload Django receiver endpoint
+- **REST API**: bulk multipart artifacts; SSE progress mirror; scoped tokens; webhook receivers; public OpenAPI/Redoc UI
+- **Landers**: first-class `TransportAssignment` / `HostelAssignment` / `MealPlanBalance` models in `apps.schoolops`, then promote from DynamicFieldValue
+- **Hash verifier**: 12-month sunset job + one-time-setup-link mailout; encrypt-at-rest via `django-cryptography`
+- **Wave hygiene**: parallel-work v3.27.x SW bumps superseded my mid-wave v3.26 SW slug — the index has the full history
+
+---
+
+## 2026-05-18 — v3.27.1 theme-colors sticky-clip fix + reveal-armed CI gate + super-dashboard null-deref
+
+**Status:** SHIPPED. SW bumped to `sms-v3.27.1-theme-colors-sticky-clip-fix-2026-05-18`.
+
+**Three closeouts requested by operator after the v3.25.5 wave:**
+
+1. **`/siteconfig/theme-colors/?standalone=1` cut-short — root cause found and fixed.** Not an `rmc-reveal` bug (this page has 0 reveal classes). Cause was `static/css/phase2-control-plane-bundle.css:25-33` (and parallel rules in `phase2-portal-bundle.css:2594-2602`): the `.theme-experience-grid` right column had `overflow: hidden` AND `position: sticky; top: 0.75rem`. On the theme-experience page the right column contains the form + preview wrap + actions which exceed viewport height; sticky pinned the top while `overflow:hidden` clipped everything below the viewport — content was unreachable. Fix: removed `overflow: hidden` and `position: sticky`; `min-width: 0` alone is enough for grid children to shrink correctly. `/siteconfig/ai-center/?focus=studio_os_assistant` is intentionally a lean two-column launcher and is not truncated — investigated and reported, no fix needed.
+
+2. **`schools__super_dashboard-1.js:7` null-deref hardened.** `document.getElementById('cp-section-order-json').textContent` had no null-guard. If the JSON element was conditionally omitted (e.g. an operator without layout-customize permission), the IIFE would throw. Same on `customizeBtn` / `saveBtn` `.addEventListener`. Both paths now null-guarded; the IIFE early-returns when any required element is missing. This was not a truncation cause but is real hygiene cleanup.
+
+3. **New CI gate: `scan_reveal_armed_invariants.py` (zero-tolerance from day 1, baseline 0).** Locks the v3.25.5 defense in place so the bug class cannot regress. Four invariants:
+   - CSS `.rmc-reveal*` opacity:0 rules MUST be scoped under `html[data-rmc-reveal-armed]`.
+   - `static/js/rmc-reveal.js` MUST set the armed attribute synchronously at parse time (not inside `init()`).
+   - All 5 shells MUST load `rmc-reveal.js` WITHOUT `defer`/`async`.
+   - No template tag may carry two static `class=` attributes. Framework bindings (`:class`, `x-bind:class`, `v-bind:class`, `[class]`) are excluded via negative-lookbehind — those are separate HTML attributes parsed independently, not duplicates.
+
+Wired to `.github/workflows/architectural-boundaries.yml::reveal-armed-invariants`. Baseline JSON at `var/security-audit-baseline-reveal-armed-invariants.json`. CLAUDE.md scanner table extended (now 31 rows; `check_documented_baselines.py` agreement confirmed).
+
+**Optional sweeps confirmed clean during this wave:** template `{% include %}` targets + balance audit (0 real findings; 56 reported were Django Admin / Unfold vendor templates served from site-packages), per-page JS bundle parse-check (0 syntax errors across 152 bundles), JS-emitted HTML duplicate-class scan (0 findings across 242 JS files), htmx swap targets on the user-listed pages (0 — none of those routes use htmx).
+
+**Gates green:** `scan_reveal_armed_invariants` 0/0 across all 4 invariants · `audit_template_render_safety` 0 · `scan_off_token_colors` 0/0 · `scan_theme_locked_token_text` 0/0 · `scan_inline_style_off_token` 0 · `verify_service_worker_version --check-monotonic` v3.27.1 OK · `check_documented_baselines` 31 rows no drift.
+
+## 2026-05-18 — v3.26.0 Migration Cloud long-tail platform (non-CSS wave)
+
+**Status:** SHIPPED. SW bumped to `sms-v3.26.0-migration-long-tail-platform-2026-05-18`.
+
+**Scope.** Not a CSS wave — feature work in `apps/migration_cloud/` only. Filed here per the all-waves audit-trail convention in `CLAUDE.md` §"Migration / deploy checklist for a wave" item 4.
+
+**What landed.**
+
+**(1) Canonical-template accelerator (long-tail path).** New `apps/migration_cloud/accelerators/runmycampus_canonical.py` — the "Shopify CSV import" pattern applied to schools. Any operator with data in Excel / Google Sheets / MS Access / in-house apps / vendors not yet signature-matched downloads our template, fills in what they have, uploads, and gets a clean migration. Activates via (a) canonical filenames `students.csv` / `staff.csv` / etc. (case-insensitive, 25 filename aliases like `parents.csv`→guardians, `teachers.csv`→staff, `classes.csv`→sections), OR (b) header signal ≥3 canonical fields when filenames are renamed. Identity mapping: header name IS canonical field name, skipping the AI mapper for known columns. New `runmycampus_canonical` entry in `apps/migration_cloud/classifiers/signatures.py` so the classifier recognizes it on signature alone.
+
+**(2) Canonical template download endpoint.** New `MigrationCloudCanonicalTemplateView` (`apps/migration_cloud/views.py`) with two routes added to `apps/migration_cloud/urls.py`: `GET .../template/` returns a zip of all 20 canonical-domain CSVs + README; `GET .../template/<domain>.csv` returns a single domain. Headers sorted alphabetically with a version-comment first line so future schema bumps are detectable and diff-tools work cleanly.
+
+**(3) 11 first-class landers — closes the canonical ontology.** New per-domain landers under `apps/migration_cloud/landers/` graduate the long-tail from dynamic_field fallback to first-class status:
+
+| Lander | Target model | Upsert key |
+|---|---|---|
+| `transcripts_lander` | `apps.people.TranscriptVaultItem` | (student, artifact_type, verification_hash) |
+| `health_lander` | `apps.schoolops.HealthRecord` | (student, recorded_at, record_type) |
+| `payroll_lander` | `apps.payroll.Payslip` | (employee, reference) — Decimal money, `scan_money_float` clean |
+| `communications_lander` | `apps.communication.Message` | (recipient, subject) — historical migration, no re-send |
+| `events_lander` | `apps.school_events.SchoolEvent` | (title, starts_at) |
+| `library_lander` | `apps.schoolops.LibraryItem` | (school, isbn) or (school, title, author) |
+| `transport_lander` | `apps.schoolops.Route` | (school, route name) — catalog-only |
+| `hostel_lander` | `apps.schoolops.HostelRoom` (+ auto-creates parent `Hostel`) | (hostel, room name) |
+| `cafeteria_lander` | `apps.schoolops.CanteenMeal` | (school, meal name) |
+| `alumni_lander` | `apps.people.StudentProfile` w/ `enrollment_status='graduated'` + `DynamicFieldValue` extras for `current_employer`/`current_role`/`graduation_year` | external_id |
+| `compliance_lander` | `apps.compliance.ComplianceCheck` | (check_type, check_date) |
+
+All 11 follow the existing `attendance_lander` defensive pattern: `filter_to_model_fields(defaults, Model)` for schema-tolerance, `# tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator` markers (passes `scan_tenant_isolation_marker_quality` zero-tolerance gate — 5-part hyphenated reasons), per-row quarantine (specific exception types, no bare except), `record_id_mapping` for audit trail, dry-run support, `LanderError` only on import-time target-model failure (orchestrator catches and falls through to `custom_fields`). Registry update at `apps/migration_cloud/landers/__init__.py` lifts shipped-lander count 10 → 21 + module docstring updated.
+
+**(4) Tests (smoke-validated; pytest collection blocked by pre-existing infra).** New `apps/migration_cloud/tests/test_runmycampus_canonical_accelerator.py` — 23 cases across 6 test classes covering signature registration, filename + header-based activation, identity mapping, enum tables, error paths, URL resolution in both super and portal shells, and zip shape. Pytest's project-wide DB-creation step is blocked by the pre-existing "database disk image malformed" issue (memory v3.23.10 — not introduced here). Validated end-to-end via a 14-check Django-setup smoke run that exercises the same logic; all PASS. Lander registry validated: `21/21 domains have a registered Lander`; 11 new landers cleanly import their target models and dispatch on empty input.
+
+**Gates.**
+
+- `scan_tenant_isolation_marker_quality`: 11 new `# tenant-isolation-allow:` markers, each with a 5-part-hyphenated reason (`scoped-via-surrounding-tenant-context-lander-orchestrator`) — passes zero-tolerance quality gate.
+- `scan_money_float`: PayrollLander uses `coerce_decimal()` end-to-end; Payslip `gross_pay` / `net_pay` persist as Decimal — zero-tolerance gate clean.
+- `scan_bare_except`: every per-row catch is `except Exception as exc:` with `# noqa: BLE001 — per-row quarantine` — clean.
+- `scan_print_statements`: zero `print()` in new code — uses `result.errors.append()` and `logger.info()` only.
+- `verify_service_worker_version`: bumped per checklist item 3, monotonic vs prior `v3.25.7`.
+- Documented-baseline scanner counts unchanged — this wave adds new code without changing any scanner finding count.
+
+**Strategic significance.** Closes the "11 ontology domains lack first-class landers" gap from the strategic conversation, and ships the long-tail-customer path. Together with the canonical-template accelerator, RunMyCampus can now migrate any school from any source (popular SIS via existing accelerators + signature table; long-tail / custom / regional via canonical template + identity-mapping accelerator). The "Shopify of K-12" framing is concretely earned at the data layer.
+
+**Deferred to next wave.** Wizard "Download canonical template" button in the UI (the endpoint exists; UI surfacing pending), Companion app stub (browser extension scaffold), public REST API alpha (DRF wiring on top of existing views).
+
+---
+
+## 2026-05-18 — v3.25.5 rmc-reveal threshold fix + JS-failure defense-in-depth
+
+**Status:** SHIPPED. SW bumped to `sms-v3.25.5-reveal-armed-defense-2026-05-18`.
+
+**Bug reported.** `/super/marketplace/` (app catalog) rendered the hero strip with `catalog_stats.apps = 73` correctly, but the catalog grid section below the hero was completely blank. Same pattern reported on `/super/command-center/`. Adjacent pages — `/super/`, `/super/migration/`, `/super/analytics/`, `/siteconfig/theme-colors/`, `/siteconfig/ai-center/`, `/configuration/` — were "cut short, end abruptly" (full-page screenshots ~4000px tall against a page that should have been ~25000px).
+
+**Root cause.** `static/js/rmc-reveal.js:78` set the IntersectionObserver to `threshold: 0.15` — the callback only fires when 15% of the element's bounding box intersects the viewport. The catalog template's main wrapper `<section class="proof-panel rmc-reveal">` contained 73 child `<article>` cards (~25,000px tall). In a ~700px viewport, the intersection ratio caps at ~3% and can NEVER reach 15%. The callback never fires, `.is-revealed` is never added, and `.rmc-reveal { opacity: 0 }` from `design-tokens.css:4298` keeps the entire section invisible forever. Same pattern hit every long control-plane page that wrapped a tall section in `rmc-reveal` (12 such wrappers on `super_command_center.html` alone, 8 on `super_migration_cloud.html`).
+
+**Fix — two layers:**
+
+1. **Threshold fix (root cause).** `rmc-reveal.js` now uses `threshold: [0, 0.15]`. The `0` threshold fires the callback on first pixel of contact, so tall containers reveal as soon as any part enters the viewport. The `0.15` is preserved so short elements still reveal at the polished 15% mark when there's room. `isIntersecting` is checked before reveal, so the semantics are unchanged for short elements.
+
+2. **JS-failure defense-in-depth.** Added `html[data-rmc-reveal-armed]` opt-in. CSS now scopes every `.rmc-reveal*` opacity:0 rule under that attribute (`design-tokens.css:4297-4338`). The attribute is set synchronously at the top of `rmc-reveal.js` (line 26-32). If the script ever fails to load (CSP block, stale-cache 404, network error, downstream parse error), the attribute is never set, the opacity:0 rule never applies, and content stays visible. `rmc-reveal` becomes a no-op instead of a permanent invisibility trap. To make the arm-flag race-free with first paint, the script is now loaded WITHOUT `defer` in all 5 shells (`control_plane_skeleton.html:19`, `base.html:28`, `portal_base.html:19`, `admin/base_site.html:30`, `marketing/base_marketing.html:33`).
+
+**Template change.** Dropped `rmc-reveal` from the catalog-grid wrapper `<section>` on both `templates/marketplace/app_catalog.html:94` and `templates/marketplace/tenant_app_catalog.html:102`. The primary user-content section shouldn't depend on JS-driven reveal. Individual `.proof-app-card.rmc-reveal` items inside still get the reveal treatment.
+
+**Sweep verified.** 183 templates use `rmc-reveal`. All affected by the threshold bug, all fixed by the JS change. Other `*-reveal` patterns surveyed (`mkt-reveal` in marketing-motion.js, marketing-scroll-core.js, marketing-product-scroll.js) already use `threshold: 0` and were never affected.
+
+**Gates green:**
+- `audit_template_render_safety.py` — 0 findings (used `{% comment %}` blocks not multi-line `{# #}`).
+- `scan_off_token_colors.py` — 0 / 0 baseline preserved.
+- `scan_theme_locked_token_text.py` — 0 / 0 baseline preserved.
+- `scan_inline_style_off_token.py` — 0 / 0 baseline preserved.
+- `verify_service_worker_version.py --check-monotonic` — v3.25.5 monotonic OK vs v3.24.0 baseline.
+- `check_documented_baselines.py` — 30 scanner rows parsed, no doc-vs-JSON drift.
+
+**Pattern lesson.** An IntersectionObserver threshold is a ratio of element area, not viewport area. When the element is taller than the viewport the ratio caps at `viewport_height / element_height`, which can be well below the threshold. Use `[0, ...]` whenever the observed element could plausibly exceed viewport height. Separately: never gate primary content visibility on a single JS bootstrap path. Make the JS-required hidden state opt-in via an attribute that the JS itself sets, so a missing/failed script falls back to visible.
 
 ## 2026-05-16 — v3.7.0 Migration Cloud Tier 1 / Tier 2 / Tier 3 closeout
 

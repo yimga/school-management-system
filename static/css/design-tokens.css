@@ -4294,8 +4294,12 @@ main#main-content {
 .rmc-breath-lg { padding-block: var(--space-breath-lg); }
 .rmc-breath-xl { padding-block: var(--space-breath-xl); }
 
-/* Scroll reveal grammar (paired with static/js/rmc-reveal.js). */
-.rmc-reveal {
+/* Scroll reveal grammar (paired with static/js/rmc-reveal.js).
+   Hidden state is opt-in via html[data-rmc-reveal-armed], set synchronously at
+   the top of rmc-reveal.js. If that script fails to load, the flag is never
+   set, opacity stays at 1, and content is visible — the rmc-reveal class
+   becomes a no-op instead of a permanent invisibility trap. */
+html[data-rmc-reveal-armed] .rmc-reveal {
   opacity: 0;
   transform: translate3d(0, var(--reveal-distance), 0);
   transition:
@@ -4303,37 +4307,37 @@ main#main-content {
     transform var(--reveal-duration) var(--reveal-ease);
   will-change: opacity, transform;
 }
-.rmc-reveal.is-revealed {
+html[data-rmc-reveal-armed] .rmc-reveal.is-revealed {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
-.rmc-reveal-stagger > .rmc-reveal {
+html[data-rmc-reveal-armed] .rmc-reveal-stagger > .rmc-reveal {
   transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger));
 }
-.rmc-reveal--from-left  { transform: translate3d(calc(-1 * var(--reveal-distance)), 0, 0); }
-.rmc-reveal--from-right { transform: translate3d(var(--reveal-distance), 0, 0); }
-.rmc-reveal--from-left.is-revealed,
-.rmc-reveal--from-right.is-revealed { transform: translate3d(0, 0, 0); }
-.rmc-reveal--scale {
+html[data-rmc-reveal-armed] .rmc-reveal--from-left  { transform: translate3d(calc(-1 * var(--reveal-distance)), 0, 0); }
+html[data-rmc-reveal-armed] .rmc-reveal--from-right { transform: translate3d(var(--reveal-distance), 0, 0); }
+html[data-rmc-reveal-armed] .rmc-reveal--from-left.is-revealed,
+html[data-rmc-reveal-armed] .rmc-reveal--from-right.is-revealed { transform: translate3d(0, 0, 0); }
+html[data-rmc-reveal-armed] .rmc-reveal--scale {
   opacity: 0;
   transform: scale(0.96);
   transition:
     opacity var(--reveal-duration) var(--reveal-ease),
     transform var(--reveal-duration) var(--ease-emphasis-out);
 }
-.rmc-reveal--scale.is-revealed { opacity: 1; transform: scale(1); }
+html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed { opacity: 1; transform: scale(1); }
 
 /* Accessibility: respect reduced motion. */
 @media (prefers-reduced-motion: reduce) {
-  .rmc-reveal,
-  .rmc-reveal--scale,
-  .rmc-reveal--from-left,
-  .rmc-reveal--from-right {
+  html[data-rmc-reveal-armed] .rmc-reveal,
+  html[data-rmc-reveal-armed] .rmc-reveal--scale,
+  html[data-rmc-reveal-armed] .rmc-reveal--from-left,
+  html[data-rmc-reveal-armed] .rmc-reveal--from-right {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
   }
-  .rmc-reveal-stagger > .rmc-reveal { transition-delay: 0ms !important; }
+  html[data-rmc-reveal-armed] .rmc-reveal-stagger > .rmc-reveal { transition-delay: 0ms !important; }
 }
 
 /* Hairline divider grammar (retina-aware). */

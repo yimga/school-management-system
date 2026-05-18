@@ -27,6 +27,56 @@
   {% if no_publisher %}
   <div class="alert alert-info">
     {% trans "POST a draft manifest to " %}<code>/api/v1/marketplace/submissions/</code>{% trans " to create your first app — your publisher record is provisioned automatically on first submission." %}
+    <a href="/marketplace/publisher/signup/" class="btn btn-sm btn-outline-primary ms-2">{% trans "Self-serve signup" %}</a>
+  </div>
+  {% endif %}
+
+  {% if metrics_summary %}
+  <div class="row g-3 mb-3" data-region="publisher-metrics-summary">
+    <div class="col-6 col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="text-muted small">{% trans "Apps" %}</div>
+        <div class="h4 mb-0">{{ metrics_summary.app_count }}</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="text-muted small">{% trans "Active installs" %}</div>
+        <div class="h4 mb-0">{{ metrics_summary.installs_active }}</div>
+        <div class="small text-muted">{{ metrics_summary.installs_lifetime }} {% trans "lifetime" %}</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="text-muted small">{% trans "MRR" %}</div>
+        <div class="h4 mb-0">${{ metrics_summary.mrr_cents|floatformat:0|slice:":-2" }}.{{ metrics_summary.mrr_cents|stringformat:"03d"|slice:"-2:" }}</div>
+        <div class="small text-muted">{{ metrics_summary.mrr_currency }}</div>
+      </div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="text-muted small">{% trans "Churn (30d)" %}</div>
+        <div class="h4 mb-0">{{ metrics_summary.churn_30d_pct }}%</div>
+      </div></div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="text-muted small">{% trans "Publisher payout share (30d / lifetime)" %}</div>
+        <div class="h5 mb-0">${{ metrics_summary.publisher_share_30d }} / ${{ metrics_summary.publisher_share_lifetime }}</div>
+      </div></div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="text-muted small">{% trans "Webhook health (24h)" %}</div>
+        <div class="small">
+          {% trans "Endpoints" %}: <strong>{{ metrics_summary.webhook_health.endpoints }}</strong>
+          · {% trans "ok" %}: <strong class="text-success">{{ metrics_summary.webhook_health.succeeded }}</strong>
+          · {% trans "failed" %}: <strong class="text-warning">{{ metrics_summary.webhook_health.failed }}</strong>
+          · {% trans "abandoned" %}: <strong class="text-danger">{{ metrics_summary.webhook_health.abandoned }}</strong>
+        </div>
+        <div class="mt-1"><a href="{% url 'super:marketplace_publisher_webhook_log' %}" class="small">{% trans "Open delivery log →" %}</a></div>
+      </div></div>
+    </div>
   </div>
   {% endif %}
 

@@ -17,6 +17,7 @@ WAVE_SCRIPTS = (
     "verify_studio_nav_uniqueness.py",
     "verify_studio_command_deck.py",
     "verify_studio_os_playwright_scaffold.py",
+    "verify_manager_admin_cp_layout.py",
     "verify_phase5_studio_os_conformance.py",
 )
 
@@ -28,8 +29,11 @@ def main() -> int:
         if not path.is_file():
             failed.append(f"missing {name}")
             continue
+        cmd = [sys.executable, str(path)]
+        if name == "verify_manager_admin_cp_layout.py":
+            cmd.append("--css-only")
         proc = subprocess.run(
-            [sys.executable, str(path)],
+            cmd,
             cwd=str(ROOT),
             capture_output=True,
             text=True,

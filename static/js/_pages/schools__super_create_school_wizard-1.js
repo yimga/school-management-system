@@ -27,7 +27,7 @@
         var progressEl = document.getElementById('wizard-progress-text');
         if (progressEl) progressEl.textContent = 'Step ' + (i + 1) + ' of ' + totalSteps;
         if (i === 1 && typeof fetchPlansConfigurator === 'function') {
-          var cc = document.getElementById('country_code') && document.getElementById('country_code').value;
+          var cc = document.getElementById('country_code') && document.getElementById('country_code')?.value;
           fetchPlansConfigurator(cc || '');
         }
       }
@@ -39,27 +39,27 @@
       var skipBranding = document.getElementById('skip-branding');
       var skipDomain = document.getElementById('skip-domain');
       if (skipBranding) skipBranding.addEventListener('click', function () { showStep(3); });
-      if (skipDomain) skipDomain.addEventListener('click', function () { document.getElementById('btn-submit').focus(); });
+      if (skipDomain) skipDomain.addEventListener('click', function () { document.getElementById('btn-submit')?.focus(); });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         successEl.classList.add('d-none');
         errorEl.classList.add('d-none');
-        var name = document.getElementById('name').value.trim();
-        var slug = document.getElementById('slug').value.trim().toLowerCase().replace(/\s+/g, '-');
-        var subdomain = document.getElementById('subdomain').value.trim().toLowerCase() || slug;
-        var contact_email = document.getElementById('contact_email').value.trim();
-        var country_code = document.getElementById('country_code').value.trim().toUpperCase();
-        var city_id = document.getElementById('city_id').value.trim();
-        var region_code = document.getElementById('region_code').value.trim();
-        var sub_system = document.getElementById('sub_system').value;
-        var subdivision_id = (document.getElementById('subdivision_id') && document.getElementById('subdivision_id').value) ? document.getElementById('subdivision_id').value.trim() : '';
-        var education_profile_code = document.getElementById('education_profile_code').value.trim();
-        var primary_color = document.getElementById('primary_color').value;
-        var accent_color = document.getElementById('accent_color').value;
-        var theme_choice = (document.getElementById('theme_choice') && document.getElementById('theme_choice').value) ? document.getElementById('theme_choice').value : 'UNFOLD';
-        var custom_domain = (document.getElementById('custom_domain') && document.getElementById('custom_domain').value) ? document.getElementById('custom_domain').value.trim() : '';
-        var plan_id = (document.getElementById('plan_id') && document.getElementById('plan_id').value) ? document.getElementById('plan_id').value.trim() : '';
+        var name = document.getElementById('name')?.value.trim();
+        var slug = document.getElementById('slug')?.value.trim().toLowerCase().replace(/\s+/g, '-');
+        var subdomain = document.getElementById('subdomain')?.value.trim().toLowerCase() || slug;
+        var contact_email = document.getElementById('contact_email')?.value.trim();
+        var country_code = document.getElementById('country_code')?.value.trim().toUpperCase();
+        var city_id = document.getElementById('city_id')?.value.trim();
+        var region_code = document.getElementById('region_code')?.value.trim();
+        var sub_system = document.getElementById('sub_system')?.value;
+        var subdivision_id = (document.getElementById('subdivision_id') && document.getElementById('subdivision_id')?.value) ? document.getElementById('subdivision_id')?.value.trim() : '';
+        var education_profile_code = document.getElementById('education_profile_code')?.value.trim();
+        var primary_color = document.getElementById('primary_color')?.value;
+        var accent_color = document.getElementById('accent_color')?.value;
+        var theme_choice = (document.getElementById('theme_choice') && document.getElementById('theme_choice')?.value) ? document.getElementById('theme_choice')?.value : 'UNFOLD';
+        var custom_domain = (document.getElementById('custom_domain') && document.getElementById('custom_domain')?.value) ? document.getElementById('custom_domain')?.value.trim() : '';
+        var plan_id = (document.getElementById('plan_id') && document.getElementById('plan_id')?.value) ? document.getElementById('plan_id')?.value.trim() : '';
         var education_system_ids = [];
         var education_level_codes = [];
         var education_system_type_codes = [];
@@ -118,7 +118,7 @@
         if (addons.length) payload.addons = addons;
         var parentSchoolIdEl = document.getElementById('parent_school_id');
         if (parentSchoolIdEl && parentSchoolIdEl.value) payload.parent_school_id = parentSchoolIdEl.value.trim();
-        var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
         fetch(((window.__RMC_PAGE_DATA__["schools__super_create_school_wizard-1"] || {})["url_super_api_create_school"]), {
           method: 'POST',
           headers: {
@@ -162,10 +162,10 @@
           });
       });
 
-      document.getElementById('name').addEventListener('input', function () {
+      document.getElementById('name')?.addEventListener('input', function () {
         var s = this.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-        if (!document.getElementById('slug').value) document.getElementById('slug').value = s;
-        if (!document.getElementById('subdomain').value) document.getElementById('subdomain').value = s;
+        if (!document.getElementById('slug')?.value) document.getElementById('slug').value = s;
+        if (!document.getElementById('subdomain')?.value) document.getElementById('subdomain').value = s;
       });
 
       var countrySelect = document.getElementById('country_code');
@@ -322,8 +322,8 @@
           if (el) el.textContent = 'Select country and plan to see estimated price.';
           return;
         }
-        var planId = (document.getElementById('plan_id') && document.getElementById('plan_id').value) || '';
-        var students = parseInt(document.getElementById('estimated_students') && document.getElementById('estimated_students').value, 10) || 0;
+        var planId = (document.getElementById('plan_id') && document.getElementById('plan_id')?.value) || '';
+        var students = parseInt(document.getElementById('estimated_students') && document.getElementById('estimated_students')?.value, 10) || 0;
         var mul = plansConfig.country_multiplier != null ? plansConfig.country_multiplier : 1;
         var total = 0;
         var plan = (plansConfig.plans || []).filter(function (p) { return String(p.id) === planId; })[0];
@@ -345,8 +345,8 @@
       if (planSelect) {
         planSelect.addEventListener('change', updateEstimatedPrice);
       }
-      document.getElementById('estimated_students').addEventListener('input', updateEstimatedPrice);
-      document.getElementById('addons-list').addEventListener('change', updateEstimatedPrice);
+      document.getElementById('estimated_students')?.addEventListener('input', updateEstimatedPrice);
+      document.getElementById('addons-list')?.addEventListener('change', updateEstimatedPrice);
 
       function renderEducationProfiles(profiles) {
         var select = document.getElementById('education_profile_code');

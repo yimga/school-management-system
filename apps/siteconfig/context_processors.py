@@ -35,6 +35,24 @@ OPTIONAL_CONTEXT_ERRORS = (
 )
 OPTIONAL_STORAGE_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
 
+_LEGACY_MISSING_PLATFORM_LOGO_FRAGMENTS = (
+    "runmycampus-logo-mark.png",
+    "runmycampus-logo-lockup.png",
+    "runmycampus-icon.png",
+)
+_PLATFORM_LOGO_MARK_STATIC = "images/brand/runmycampus-logo-mark.svg"
+_PLATFORM_FAVICON_STATIC = "images/runmycampus-icon-bell.svg"
+
+
+def _resolve_public_brand_logo_url(url: str, *, default_static: str) -> str:
+    """Remap env/DB URLs that still point at PNG assets removed from the tree."""
+    candidate = (url or "").strip()
+    if candidate and not any(
+        fragment in candidate for fragment in _LEGACY_MISSING_PLATFORM_LOGO_FRAGMENTS
+    ):
+        return candidate
+    return static(default_static)
+
 
 def _safe_site_attr(site, name: str, default=None):
     """Phase B: slim tenant settings row — virtual keys use __getattr__ and may raise AttributeError."""
@@ -862,26 +880,18 @@ def site_settings(request):
                             ).strip()
         except OPTIONAL_CONTEXT_ERRORS:
             pass
-        _platform_logo_default = static("images/brand/runmycampus-logo-mark.png")
-        _platform_logo_dark_default = static("images/brand/runmycampus-logo-mark.png")
-        _platform_icon_default = static("images/brand/runmycampus-logo-mark.png")
-        ctx["PUBLIC_BRAND_LOGO_LOCKUP_URL"] = static(
-            "images/brand/runmycampus-logo-lockup.png"
+        ctx["PUBLIC_BRAND_LOGO_LOCKUP_URL"] = static(_PLATFORM_LOGO_MARK_STATIC)
+        ctx["PUBLIC_BRAND_LOGO_URL"] = _resolve_public_brand_logo_url(
+            _rd_logo or os.getenv("PUBLIC_BRAND_LOGO_URL", "").strip(),
+            default_static=_PLATFORM_LOGO_MARK_STATIC,
         )
-        ctx["PUBLIC_BRAND_LOGO_URL"] = (
-            _rd_logo
-            or os.getenv("PUBLIC_BRAND_LOGO_URL", "").strip()
-            or _platform_logo_default
+        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = _resolve_public_brand_logo_url(
+            _rd_logo_dark or os.getenv("PUBLIC_BRAND_LOGO_DARK_URL", "").strip(),
+            default_static=_PLATFORM_LOGO_MARK_STATIC,
         )
-        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = (
-            _rd_logo_dark
-            or os.getenv("PUBLIC_BRAND_LOGO_DARK_URL", "").strip()
-            or _platform_logo_dark_default
-        )
-        ctx["PUBLIC_BRAND_FAVICON_URL"] = (
-            _rd_favicon
-            or os.getenv("PUBLIC_BRAND_FAVICON_URL", "").strip()
-            or _platform_icon_default
+        ctx["PUBLIC_BRAND_FAVICON_URL"] = _resolve_public_brand_logo_url(
+            _rd_favicon or os.getenv("PUBLIC_BRAND_FAVICON_URL", "").strip(),
+            default_static=_PLATFORM_FAVICON_STATIC,
         )
         ctx["SITE_FAVICON_URL"] = ctx["PUBLIC_BRAND_FAVICON_URL"]
     else:
@@ -1180,15 +1190,22 @@ def ai_copilot_settings(request):
         "VICE_PRINCIPAL",
         "DEAN",
         "IT_ADMIN",
+        "SUPERADMIN",
     }
-    is_admin_like = bool(
-        _user
-        and (
+    is_admin_like = False
+    if _user and getattr(_user, "is_authenticated", False):
+        is_admin_like = (
             getattr(_user, "is_superuser", False)
             or getattr(_user, "is_staff", False)
             or user_role in admin_roles
         )
-    )
+        if not is_admin_like:
+            try:
+                from apps.schools.control_plane import user_has_control_plane_access
+
+                is_admin_like = user_has_control_plane_access(_user)
+            except ImportError:
+                pass
 
     # Determine AI permissions based on role
     ai_permissions = {

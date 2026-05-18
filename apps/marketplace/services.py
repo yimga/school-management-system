@@ -572,6 +572,7 @@ def install_app(
     install_phase="active",
     skip_compatibility=False,
     grant_scope_codes=None,
+    target_version: str | None = None,
 ):
     """
     Install an app for a school. Creates AppInstallation, optionally runs schema patches,
@@ -598,6 +599,21 @@ def install_app(
     listing = _assert_app_installable(app)
     phase = install_phase if install_phase in ("sandbox", "active") else "active"
 
+    # Resolve the target AppVersion (semver picker). If unset, latest stable.
+    resolved_version_str = app.version
+    try:
+        from apps.marketplace.app_versions import resolve_install_version
+
+        av = resolve_install_version(app, requested=target_version)
+        if target_version and av is None:
+            raise ValueError(
+                f"Version {target_version!r} not available for app {app.slug!r}."
+            )
+        if av is not None:
+            resolved_version_str = av.version
+    except ImportError:
+        pass
+
     def _merged_install_config(user_cfg, *, prior_config=None):
         merged = dict(user_cfg or {})
         old_cv = (prior_config or {}).get("installed_catalog_version")
@@ -615,8 +631,11 @@ def install_app(
             "installed_by": installed_by,
             "config": _merged_install_config(config, prior_config=None),
             "widget_config": app.manifest.get("widgets", {}),
+            "installed_version": resolved_version_str,
         },
     )
+    if not created and resolved_version_str and installation.installed_version != resolved_version_str:
+        installation.installed_version = resolved_version_str
     if not created:
         installation.status = AppInstallation.Status.ACTIVE
         installation.install_phase = phase
@@ -632,7 +651,7 @@ def install_app(
         installation.config = merged_cfg
         installation.widget_config = app.manifest.get("widgets", {})
         installation.save(
-            update_fields=["status", "install_phase", "config", "widget_config"]
+            update_fields=["status", "install_phase", "config", "widget_config", "installed_version"]
         )
     if run_schema_patches:
         run_schema_patches_for_installation(installation)

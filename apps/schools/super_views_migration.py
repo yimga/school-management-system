@@ -18,6 +18,33 @@ from .models import School
 from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
 
 
+def migration_data_quality_meter(summary: dict) -> dict:
+    """Derive migration cloud meter from live quarantine / failure counts."""
+    from django.utils.translation import gettext_lazy as _
+
+    quarantine = int(summary.get("quarantine_pending") or 0)
+    failed = int(summary.get("failed_last_30d") or 0)
+    open_exc = int(summary.get("exception_runs_open") or 0)
+    if quarantine == 0 and failed == 0 and open_exc == 0:
+        return {
+            "value": 100,
+            "status": "ready",
+            "status_label": str(_("Ready to apply")),
+        }
+    if quarantine > 0 or open_exc > 0:
+        score = max(35, 100 - quarantine * 8 - open_exc * 5)
+        return {
+            "value": score,
+            "status": "needs-review",
+            "status_label": str(_("Quarantine review")),
+        }
+    return {
+        "value": max(50, 100 - failed * 10),
+        "status": "partial",
+        "status_label": str(_("Recent failures")),
+    }
+
+
 def super_migration_cloud(request):
     """Migration cloud pillar: control-plane governance for profiles, runs, parity, and rollback."""
     from apps.accounts.migration_services import compute_parity
@@ -113,11 +140,13 @@ def super_migration_cloud(request):
     operator_migration_cloud_links = list(
         PlatformOperatorMigrationCloudLink.objects.order_by("sort_order", "slug")
     )
+    data_quality_meter = migration_data_quality_meter(summary)
     return render(
         request,
         "schools/super_migration_cloud.html",
         {
             "summary": summary,
+            "data_quality_meter": data_quality_meter,
             "profiles": profiles,
             "recent_runs": recent_runs,
             "rollback_candidates": rollback_candidates[:10],

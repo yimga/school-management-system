@@ -69,6 +69,14 @@ class SuperAdminSurfaceParityTests(TestCase):
             self.assertIn("data-rmc-admin-cp-unified", html, path)
             self.assertIn("data-shell-nav-bridge=\"manager-operator\"", html, path)
 
+    def test_manager_admin_index_renders_backoffice_content(self):
+        response = self.client.get("/admin/", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn("cp-admin-index", html)
+        self.assertIn("Platform Backoffice", html)
+        self.assertIn('id="cp-main-content"', html)
+
     def test_manager_super_and_admin_share_operator_topbar(self):
         super_resp = self.client.get("/super/", HTTP_HOST=self.host)
         admin_resp = self.client.get("/admin/", HTTP_HOST=self.host)

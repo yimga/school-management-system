@@ -23,13 +23,20 @@ VISUAL_PASSWORD="${VISUAL_QA_PASSWORD:-VisualQaPass123!}"
 mkdir -p "$ARTIFACT_DIR" artifacts
 rm -f artifacts/manager-playwright-auth.json
 
+# Verifiers use Django test client against the default DB — migrate first.
+"${PYTHON_CMD}" manage.py migrate --noinput
+
 if [[ ! -f "node_modules/playwright/cli.js" ]]; then
   echo "run_manager_surface_parity: run npm ci first." >&2
   exit 1
 fi
 
 "${PYTHON_CMD}" scripts/verify_theme_visibility_platform.py
+"${PYTHON_CMD}" scripts/verify_manager_admin_cp_layout.py
 "${PYTHON_CMD}" scripts/verify_super_admin_surface_parity.py --write
+"${PYTHON_CMD}" manage.py test \
+  apps.schools.tests.test_super_admin_surface_parity.SuperAdminSurfaceParityTests.test_manager_admin_index_renders_backoffice_content \
+  --verbosity=1 --no-input
 
 seed_qa_user() {
   "${PYTHON_CMD}" - <<PY
@@ -99,4 +106,8 @@ export PLAYWRIGHT_HOST_RULES="MAP ${MANAGER_HOST} 127.0.0.1"
 
 node scripts/seed_manager_playwright_auth.js
 
-node node_modules/playwright/cli.js test tests/e2e/manager-surface-parity.spec.js tests/e2e/manager-theme-visibility.spec.js --workers=1 --reporter=line
+node node_modules/playwright/cli.js test \
+  tests/e2e/manager-surface-parity.spec.js \
+  tests/e2e/manager-theme-visibility.spec.js \
+  tests/e2e/studio-os-manager-ux.spec.js \
+  --workers=1 --reporter=line

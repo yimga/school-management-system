@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Check your email" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:640px;" data-page="marketplace-publisher-signup-submitted">
+  <h1 class="h3">{% trans "Application received" %}</h1>
+  <p>
+    {% blocktrans with email=signup.contact_email %}
+    We've sent a verification link to <strong>{{ email }}</strong>. Click the link to confirm your address, then an RMC operator will review your application within a few business days.
+    {% endblocktrans %}
+  </p>
+  <p class="text-muted small">
+    {% trans "Didn't receive the email? Check your spam folder or contact support." %}
+  </p>
+</div>
+{% endblock %}

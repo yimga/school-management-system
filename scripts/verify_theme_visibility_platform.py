@@ -150,12 +150,60 @@ def check_render_smoke() -> list[str]:
     return errors
 
 
+def check_attention_flag_accuracy() -> list[str]:
+    """Catch known false-positive warning/danger/needs-attention patterns."""
+    errors: list[str] = []
+    for rel, needle in (
+        ("templates/schools/super_dashboard.html", "default:'warning'"),
+        ("templates/schools/super_command_center.html", 'default:"warning"'),
+    ):
+        path = REPO_ROOT / rel
+        if path.is_file() and needle in _read(path):
+            errors.append(f"{rel}: platform_health must not default to warning")
+
+    config_migration = _read(
+        REPO_ROOT / "templates/platform_runtime/configuration_module_detail.html"
+    )
+    if 'value="72" status="needs-review"' in config_migration:
+        errors.append(
+            "configuration_module_detail.html: migration meter must use module readiness, not hardcoded 72/needs-review"
+        )
+
+    try:
+        import django
+
+        django.setup()
+        from apps.siteconfig.forms import build_theme_contrast_report
+
+        brand = {
+            "primary_color": "#002147",
+            "accent_color": "#d4af37",
+            "header_bg_color": "#002147",
+            "footer_bg_color": "#002147",
+            "success_color": "#198754",
+            "warning_color": "#ffc107",
+            "danger_color": "#dc3545",
+        }
+        report = build_theme_contrast_report(brand)
+        if report["status"] != "ok":
+            errors.append(
+                "platform brand palette must pass theme contrast report (best readable foreground)"
+            )
+    except Exception as exc:  # pragma: no cover
+        errors.append(f"theme contrast brand check skipped/failed: {exc}")
+
+    return errors
+
+
 def main() -> int:
     errors = check_shell_css()
+    errors.extend(check_attention_flag_accuracy())
     try:
         errors.extend(check_render_smoke())
     except Exception as exc:  # pragma: no cover - env without DB
-        errors.append(f"render smoke skipped/failed: {exc}")
+        errors.append(
+            f"render smoke failed: {exc} (run manage.py migrate --noinput on the target DB)"
+        )
 
     if errors:
         print("FAIL theme visibility platform:")

@@ -21,7 +21,7 @@
   }
 
   function syncJsonFromGraph() {
-    const trig = document.getElementById('wf-trigger').value;
+    const trig = document.getElementById('wf-trigger')?.value;
     let conditions = [];
     let actions = [];
     try {
@@ -122,7 +122,7 @@
     inner.appendChild(el);
     graphState.nodes.push({ id: id, kind: kind, actionType: nodeType, x: left, y: top });
 
-    if (document.getElementById('auto-chain').checked && lastCanvasNodeId) {
+    if (document.getElementById('auto-chain')?.checked && lastCanvasNodeId) {
       graphState.edges.push({ from: lastCanvasNodeId, to: id });
     }
     lastCanvasNodeId = id;
@@ -160,17 +160,17 @@
     });
   });
 
-  document.getElementById('btn-connect-mode').addEventListener('click', function() {
+  document.getElementById('btn-connect-mode')?.addEventListener('click', function() {
     connectMode = !connectMode;
     this.textContent = connectMode ? ((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["trans_connect_mode_on"]) : ((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["trans_connect_mode_off"]);
     connectFromId = null;
     inner.querySelectorAll('.workflow-node-card.selected').forEach(function(x) { x.classList.remove('selected'); });
   });
 
-  document.getElementById('btn-redraw-edges').addEventListener('click', drawEdges);
+  document.getElementById('btn-redraw-edges')?.addEventListener('click', drawEdges);
   window.addEventListener('resize', drawEdges);
 
-  document.getElementById('wf-trigger').addEventListener('change', syncJsonFromGraph);
+  document.getElementById('wf-trigger')?.addEventListener('change', syncJsonFromGraph);
 
   function csrf() {
     const m = document.cookie.match(/csrftoken=([^;]+)/);
@@ -191,11 +191,11 @@
   }
 
   let lastSavedWorkflowId = null;
-  document.getElementById('btn-save').addEventListener('click', async function() {
+  document.getElementById('btn-save')?.addEventListener('click', async function() {
     let extra = {};
     try { extra = JSON.parse(wfJson.value || '{}'); } catch (e) { alert('Invalid JSON'); return; }
-    const name = document.getElementById('wf-name').value || 'Untitled';
-    const trigger = document.getElementById('wf-trigger').value;
+    const name = document.getElementById('wf-name')?.value || 'Untitled';
+    const trigger = document.getElementById('wf-trigger')?.value;
     const body = Object.assign({
       name: name,
       trigger: trigger,
@@ -209,18 +209,18 @@
     document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
   });
 
-  document.getElementById('btn-publish').addEventListener('click', async function() {
+  document.getElementById('btn-publish')?.addEventListener('click', async function() {
     if (!lastSavedWorkflowId) { alert('Save draft first'); return; }
     const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_publish_api"]), { id: lastSavedWorkflowId });
     document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
   });
 
-  document.getElementById('btn-simulate').addEventListener('click', async function() {
+  document.getElementById('btn-simulate')?.addEventListener('click', async function() {
     let dsl = {};
     try {
       const extra = JSON.parse(wfJson.value || '{}');
       dsl = {
-        trigger: document.getElementById('wf-trigger').value,
+        trigger: document.getElementById('wf-trigger')?.value,
         conditions: extra.conditions || [],
         actions: extra.actions || []
       };
@@ -232,7 +232,7 @@
     document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
   });
 
-  document.getElementById('btn-load-logs').addEventListener('click', async function() {
+  document.getElementById('btn-load-logs')?.addEventListener('click', async function() {
     let url = ((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_execution_logs_api"]);
     if (lastSavedWorkflowId) url += '?workflow_id=' + lastSavedWorkflowId;
     const r = await fetch(url, { credentials: 'same-origin' });
@@ -248,7 +248,7 @@
     document.getElementById('wf-output').textContent = JSON.stringify(data, null, 2);
   });
 
-  document.getElementById('btn-retry-log').addEventListener('click', async function() {
+  document.getElementById('btn-retry-log')?.addEventListener('click', async function() {
     const sel = document.getElementById('exec-log-pick');
     const logId = sel.value;
     if (!logId) { alert('Load logs and pick an entry'); return; }

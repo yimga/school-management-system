@@ -4,7 +4,11 @@
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["schools__super_dashboard-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 (function() {
   var layoutUrl = ((window.__RMC_PAGE_DATA__["schools__super_dashboard-1"] || {})["var_super_dashboard_layout_url_escapejs"]);
-  var sectionOrder = JSON.parse(document.getElementById('cp-section-order-json').textContent || '[]');
+  var sectionOrderEl = document.getElementById('cp-section-order-json');
+  var sectionOrder = [];
+  if (sectionOrderEl) {
+    try { sectionOrder = JSON.parse(sectionOrderEl.textContent || '[]'); } catch (_e) {}
+  }
   var sectionLabels = {
     'cp-action-queue': 'Action queue',
     'cp-fleet-health': 'Fleet health',
@@ -16,7 +20,7 @@
   var listEl = document.getElementById('cp-layout-sortable');
   var saveBtn = document.getElementById('cp-layout-save');
   var customizeBtn = document.getElementById('cp-customize-layout-btn');
-  if (!modal || !listEl || !layoutUrl) return;
+  if (!modal || !listEl || !saveBtn || !customizeBtn || !layoutUrl) return;
 
   function renderList(order) {
     listEl.innerHTML = order.map(function(id) {
@@ -52,7 +56,7 @@
   saveBtn.addEventListener('click', function() {
     var order = getOrder();
     saveBtn.disabled = true;
-    var csrf = (document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]').value) || (function() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; })();
+    var csrf = (document.querySelector('[name=csrfmiddlewaretoken]') && document.querySelector('[name=csrfmiddlewaretoken]')?.value) || (function() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; })();
     fetch(layoutUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },

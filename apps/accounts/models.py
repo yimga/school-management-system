@@ -161,6 +161,41 @@ class User(AbstractUser):
             "(e.g. 'en', 'es', 'pt-br', 'zh-hans'). Empty string = inherit."
         ),
     )
+    # Migration-cloud "password preservation moat": foreign-vendor hash
+    # carried over so the user can sign in with their existing password
+    # after a migration from PowerSchool / Blackbaud / Veracross / FACTS /
+    # Skyward / Alma. Verified lazily on first login by
+    # apps.accounts.auth_backends_legacy.LegacyHashUpgradeBackend, which
+    # re-hashes to native Argon2 and clears all three fields atomically.
+    legacy_password_hash = models.CharField(
+        max_length=512,
+        blank=True,
+        default="",
+        help_text=(
+            "Foreign-vendor password hash carried over by the migration "
+            "cloud. Verified on first login, then cleared and re-hashed "
+            "via PASSWORD_HASHERS. Never log, display, or expose."
+        ),
+    )
+    legacy_hash_algorithm = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=(
+            "Slug registered in apps.accounts.legacy_hashes (e.g. "
+            "'pbkdf2_sha512', 'bcrypt', 'veracross_bcrypt', 'alma_bcrypt', "
+            "'facts_auto', 'skyward_auto'). Empty = standard Django auth."
+        ),
+    )
+    legacy_hash_params = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Algorithm-specific parameters (salt, iterations, etc.) "
+            "needed to verify legacy_password_hash. Cleared on first "
+            "successful login alongside the hash."
+        ),
+    )
 
     def has_feature_permission(self, code: str) -> bool:
         if self.is_superuser:

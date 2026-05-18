@@ -567,16 +567,29 @@ def kb_article_submit(request):
 
 
 def kb_search(request):
-    """Search knowledge base"""
+    """Search knowledge base (Move 4 — ranked results via kb_search service)."""
     query = request.GET.get("q", "")
     if not query:
         return redirect("kb:kb_home")
-    articles = _published_kb_for_request(request).filter(
-        Q(title__icontains=query)
-        | Q(summary__icontains=query)
-        | Q(content__icontains=query)
-        | Q(tags__icontains=query)
-    )
+    from apps.portal.kb_search import search_kb_articles
+
+    base_qs = _published_kb_for_request(request)
+    ranked = search_kb_articles(base_qs, query, limit=100)
+    # Preserve the legacy QuerySet API for the existing template / paginator,
+    # but order by relevance.
+    if ranked:
+        ids = [a.pk for a, _score in ranked]
+        # Postgres `preserve order` trick: use Case/When; cross-db, use a Python sort post-fetch.
+        articles = list(base_qs.filter(pk__in=ids))
+        position = {pk: i for i, pk in enumerate(ids)}
+        articles.sort(key=lambda a: position.get(a.pk, 10_000))
+    else:
+        articles = base_qs.filter(
+            Q(title__icontains=query)
+            | Q(summary__icontains=query)
+            | Q(content__icontains=query)
+            | Q(tags__icontains=query)
+        )
 
     faqs = _approved_faq_for_request(request).filter(
         Q(question__icontains=query)

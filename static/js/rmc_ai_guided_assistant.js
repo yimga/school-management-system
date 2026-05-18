@@ -19,10 +19,17 @@
   }
 
   function getCsrf() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) {
+      return meta.content;
+    }
     return getCookie("csrftoken") || getCookie("rmc_manager_csrftoken") || "";
   }
 
   function friendlyError(data, status) {
+    if (status === 403 && data && data.error === "auth") {
+      return "Request blocked (CSRF or session). Refresh the page and try again.";
+    }
     if (status === 401 || status === 403) {
       return "Session expired or permission denied. Refresh the page and sign in again.";
     }

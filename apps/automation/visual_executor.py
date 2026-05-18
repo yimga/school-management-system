@@ -34,6 +34,46 @@ _SOFT = (
 MAX_WORKFLOW_DEPTH = 5
 
 
+def _emit_visual_step_events(run_log, events):
+    """Move 2 instrumentation — append a batch of WorkflowStepEvent rows.
+
+    `events` is a list of tuples ``(event_type, node_external_id, payload, error_message)``.
+    Safe to call when run_log is None or the model isn't available.
+    """
+
+    if not run_log:
+        return
+    try:
+        from apps.automation.workflow_graph_models import WorkflowStepEvent
+    except Exception:
+        return
+    try:
+        # Bind run to current version if not already (best-effort).
+        from apps.automation import visual_workflow_versioning as vwv
+
+        vwv.bind_run_to_current_version(run_log)
+    except Exception:
+        pass
+    seq = 0
+    rows = []
+    for event_type, node_id, payload, error in events:
+        seq += 1
+        rows.append(
+            WorkflowStepEvent(
+                run=run_log,
+                sequence_number=seq,
+                event_type=event_type,
+                node_external_id=(node_id or "")[:64],
+                payload=payload or {},
+                error_message=(error or "")[:5000],
+            )
+        )
+    try:
+        WorkflowStepEvent.objects.bulk_create(rows)
+    except Exception as exc:
+        logger.warning("WorkflowStepEvent bulk_create failed: %s", exc)
+
+
 def run_workflow(
     workflow_id: int,
     event_payload: dict[str, Any],
@@ -167,6 +207,14 @@ def run_workflow(
                     status=WorkflowRunLog.Status.SKIPPED,
                     triggered_by=user,
                 )
+                _emit_visual_step_events(
+                    log,
+                    [
+                        ("triggered", "", None, ""),
+                        ("condition_evaluated", "", {"passed": False}, ""),
+                        ("completed", "", {"reason": "conditions_not_met"}, ""),
+                    ],
+                )
             except _SOFT as e:
                 logger.warning("WorkflowRunLog skip write failed: %s", e)
             _emit_platform_workflow_completed(log, conditions_passed=False)
@@ -203,6 +251,23 @@ def run_workflow(
                 error_message=(failed[0].get("error", "")[:2000] if failed else ""),
                 triggered_by=user,
             )
+            # Move 2 instrumentation: emit per-action step events on the run.
+            events = [
+                ("triggered", "", None, ""),
+                ("condition_evaluated", "", {"passed": True}, ""),
+            ]
+            for r in actions_run:
+                if not isinstance(r, dict):
+                    continue
+                action_name = str(r.get("type") or r.get("action") or "action")
+                err = r.get("error") or ""
+                events.append(("action_started", action_name, None, ""))
+                if err:
+                    events.append(("action_failed", action_name, {}, str(err)[:2000]))
+                else:
+                    events.append(("action_succeeded", action_name, r, ""))
+            events.append(("failed" if failed else "completed", "", None, ""))
+            _emit_visual_step_events(log, events)
         except _SOFT as e:
             logger.warning("WorkflowRunLog write failed: %s", e)
 

@@ -1,4 +1,4 @@
-document.getElementById('photoLinkCopyBtn').addEventListener('click', function() {
+document.getElementById('photoLinkCopyBtn')?.addEventListener('click', function() {
   var input = document.getElementById('photoLinkUrl');
   var btn = document.getElementById('photoLinkCopyBtn');
   var orig = btn.innerHTML;

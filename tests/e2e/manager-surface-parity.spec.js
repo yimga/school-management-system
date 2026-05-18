@@ -141,6 +141,14 @@ test.describe('manager surface parity (authenticated)', () => {
         await expect(page.locator('#cpSidebarNav').first()).toBeAttached({ timeout: 30000 });
       }
 
+      if (probe.path === '/admin/') {
+        const index = page.locator('.cp-admin-index');
+        await expect(index).toBeVisible({ timeout: 30000 });
+        await expect(index).toContainText(/Platform Backoffice/i);
+        const box = await index.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThan(120);
+      }
+
       if (probe.expect_paired) {
         const paired = page.locator('.rmc-operator-surface-strip__pill--paired');
         await expect(paired.first()).toBeVisible();

@@ -84,7 +84,7 @@ function updateSignatureData() {
 }
 
 // Handle typed signature
-document.getElementById('typedSignature').addEventListener('input', function() {
+document.getElementById('typedSignature')?.addEventListener('input', function() {
   const typedName = this.value.trim();
   if (typedName) {
     // Clear canvas and use typed name
@@ -100,9 +100,9 @@ document.getElementById('typedSignature').addEventListener('input', function() {
 });
 
 // Form submission
-document.getElementById('signatureForm').addEventListener('submit', function(e) {
-  const signatureData = document.getElementById('signatureData').value;
-  const typedSignature = document.getElementById('typedSignature').value.trim();
+document.getElementById('signatureForm')?.addEventListener('submit', function(e) {
+  const signatureData = document.getElementById('signatureData')?.value;
+  const typedSignature = document.getElementById('typedSignature')?.value.trim();
   
   if (!signatureData && !typedSignature) {
     e.preventDefault();

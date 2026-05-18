@@ -99,7 +99,7 @@
     {# Brand seal moment — large editorial wordmark over the legal strip. #}
     <div class="mkt-footer-seal mt-5 pt-4 border-top">
       <div class="mkt-footer-seal__mark">
-        <img src="{% if PUBLIC_BRAND_LOGO_URL %}{{ PUBLIC_BRAND_LOGO_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.png' %}{% endif %}" alt="" width="40" height="40" decoding="async" loading="lazy" class="mkt-footer-seal__logo">
+        <img src="{% if PUBLIC_BRAND_LOGO_URL %}{{ PUBLIC_BRAND_LOGO_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.svg' %}{% endif %}" alt="" width="40" height="40" decoding="async" loading="lazy" class="mkt-footer-seal__logo">
         <span class="mkt-footer-seal__wordmark mkt-footer-seal__wordmark--platform" aria-hidden="true"><span class="rmc-brand-word--navy">RUN</span><span class="rmc-brand-word--gold">MY</span><span class="rmc-brand-word--navy">CAMPUS</span></span>
       </div>
       <p class="mkt-footer-seal__tagline">{% trans "One quiet system, behind everything your school does." %}</p>

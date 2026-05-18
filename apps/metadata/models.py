@@ -275,6 +275,38 @@ class FieldCatalogEntry(models.Model):
         blank=True,
         help_text="Where this field came from (e.g. model, dynamic_field, pack:finance_core_v1).",
     )
+    # Move 3: sensitivity tier drives field-level RLS / DLP. The PDP compares
+    # the requester's clearance against this and either returns the value or
+    # redacts it.
+    SENSITIVITY_PUBLIC = "public"
+    SENSITIVITY_INTERNAL = "internal"
+    SENSITIVITY_RESTRICTED = "restricted"
+    SENSITIVITY_CONFIDENTIAL = "confidential"
+    SENSITIVITY_SECRET = "secret"
+    SENSITIVITY_CHOICES = [
+        (SENSITIVITY_PUBLIC, "Public"),
+        (SENSITIVITY_INTERNAL, "Internal"),
+        (SENSITIVITY_RESTRICTED, "Restricted"),
+        (SENSITIVITY_CONFIDENTIAL, "Confidential"),
+        (SENSITIVITY_SECRET, "Secret / regulated"),
+    ]
+    sensitivity_tier = models.CharField(
+        max_length=20,
+        choices=SENSITIVITY_CHOICES,
+        default=SENSITIVITY_INTERNAL,
+        db_index=True,
+        help_text="Move 3: drives field-level RLS at query/serializer/export time.",
+    )
+    compliance_tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Tags like ['pii','ferpa','gdpr_special'] consumed by DLP rules.",
+    )
+    dlp_redaction_strategy = models.CharField(
+        max_length=20,
+        default="null",
+        help_text="One of 'null', 'mask', 'hash', 'tokenize'. How to redact when access is denied.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -284,6 +316,9 @@ class FieldCatalogEntry(models.Model):
         verbose_name_plural = "Field Catalog Entries"
         unique_together = [["entity", "field_name"]]
         ordering = ["entity__code", "field_name"]
+        indexes = [
+            models.Index(fields=["sensitivity_tier"], name="md_fc_sens_idx"),
+        ]
 
     def __str__(self) -> str:
         return f"{self.entity.code}.{self.field_name}"

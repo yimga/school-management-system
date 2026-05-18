@@ -99,7 +99,7 @@
 
   {% include "partials/shell_chrome_marketplace_tenant_ops_strip.html" %}
 
-  <section class="proof-panel rmc-reveal">
+  <section class="proof-panel">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
       <div>
         <h2 class="proof-panel-title">{% trans "App catalog" %}</h2>
@@ -108,6 +108,89 @@
       <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-primary">{% trans "Review sandbox installs" %}</a>
     </div>
 
+    {% comment %} Polish (v3.27.x): progressive-enhancement search/facet bar driven by the catalog JSON API. Falls back to server-rendered grid below if JS is off. {% endcomment %}
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3" data-region="catalog-search-bar" data-catalog-api-url="/marketplace/api/v1/catalog/">
+      <input type="search" name="q" placeholder="{% trans 'Search apps' %}" class="form-control form-control-sm" style="max-width:18rem;" data-catalog-search-input>
+      <select class="form-select form-select-sm w-auto" data-catalog-facet="pricing">
+        <option value="">{% trans "Any pricing" %}</option>
+        <option value="free">{% trans "Free" %}</option>
+        <option value="subscription">{% trans "Subscription" %}</option>
+        <option value="usage">{% trans "Usage" %}</option>
+      </select>
+      <select class="form-select form-select-sm w-auto" data-catalog-facet="sort">
+        <option value="popular">{% trans "Most popular" %}</option>
+        <option value="newest">{% trans "Newest" %}</option>
+        <option value="rating">{% trans "Highest rated" %}</option>
+        <option value="name">{% trans "Name (A–Z)" %}</option>
+      </select>
+      <select class="form-select form-select-sm w-auto" data-catalog-facet="min_rating">
+        <option value="">{% trans "Any rating" %}</option>
+        <option value="3">{% trans "3+ stars" %}</option>
+        <option value="4">{% trans "4+ stars" %}</option>
+        <option value="4.5">{% trans "4.5+ stars" %}</option>
+      </select>
+      <span class="small text-muted" data-catalog-result-count></span>
+    </div>
+    <script nonce="{{ csp_nonce }}">
+      (function(){
+        var bar = document.querySelector('[data-region="catalog-search-bar"]');
+        if (!bar) return;
+        var apiUrl = bar.getAttribute('data-catalog-api-url') || '/marketplace/api/v1/catalog/';
+        var grid = document.getElementById('tenant-catalog-grid');
+        var counter = bar.querySelector('[data-catalog-result-count]');
+        if (!grid) return;
+        var serverCards = Array.from(grid.children); // preserved for fallback
+        var debounce = null;
+        function render(apps){
+          grid.innerHTML = '';
+          if (counter) counter.textContent = apps.length + ' result' + (apps.length===1?'':'s');
+          if (apps.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'text-muted small py-3';
+            empty.textContent = 'No apps match your filters.';
+            grid.appendChild(empty);
+            return;
+          }
+          apps.forEach(function(a){
+            var card = document.createElement('a');
+            card.className = 'proof-app-card rmc-reveal';
+            card.href = a.detail_url;
+            card.setAttribute('data-rmc-mkt-app-card-js','1');
+            card.style.textDecoration='none';
+            card.innerHTML =
+              '<div class="proof-app-card-body">' +
+              (a.preview_image_url ? '<img src="'+a.preview_image_url+'" alt="" class="img-fluid mb-2" loading="lazy">' : '') +
+              '<h3 class="h6 mb-1">'+ (a.name||'') +'</h3>' +
+              '<div class="small text-muted mb-1">'+ (a.publisher_name||'') +'</div>' +
+              (a.short_description ? '<p class="small mb-2">'+a.short_description+'</p>' : '') +
+              '<div class="small">★ '+ (a.rating_average||0) +' ('+ (a.rating_count||0) +') · ' +
+              (a.active_installs||0) +' installs · v'+ (a.current_version||'') +'</div>' +
+              '</div>';
+            grid.appendChild(card);
+          });
+        }
+        function refresh(){
+          var q = bar.querySelector('[data-catalog-search-input]').value || '';
+          var pricing = bar.querySelector('[data-catalog-facet="pricing"]').value || '';
+          var sort = bar.querySelector('[data-catalog-facet="sort"]').value || 'popular';
+          var minRating = bar.querySelector('[data-catalog-facet="min_rating"]').value || '';
+          var url = apiUrl + '?q=' + encodeURIComponent(q) + '&pricing=' + encodeURIComponent(pricing) + '&sort=' + encodeURIComponent(sort);
+          if (minRating) url += '&min_rating=' + encodeURIComponent(minRating);
+          fetch(url, { credentials: 'same-origin' })
+            .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+            .then(function(data){ render(data.apps || []); })
+            .catch(function(){
+              // On API failure restore server-rendered cards.
+              grid.innerHTML = '';
+              serverCards.forEach(function(c){ grid.appendChild(c); });
+            });
+        }
+        bar.addEventListener('input', function(){ clearTimeout(debounce); debounce = setTimeout(refresh, 220); });
+        bar.addEventListener('change', refresh);
+        // Don't auto-refresh on initial load — the server-rendered grid is fine
+        // as the first paint; only re-fetch when the user actually filters.
+      })();
+    </script>
     <div class="proof-catalog-grid" id="tenant-catalog-grid">
       {% for listing in listings %}
       <article class="proof-app-card rmc-reveal" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">

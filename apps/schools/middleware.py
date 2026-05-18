@@ -786,7 +786,15 @@ class TenantMiddleware(MiddlewareMixin):
             except DatabaseError as e:
                 logger.debug("Could not set app.current_school_id: %s", e)
         else:
-            request.session.pop("school_id", None)
+            normalized_host = (host or "").strip().lower()
+            host_kind = getattr(request, "public_host_kind", None) or public_host_kind(
+                host
+            )
+            on_manager_host = (
+                host_kind == "manager" or normalized_host.startswith("manager.")
+            )
+            if not on_manager_host:
+                request.session.pop("school_id", None)
 
         return None
 

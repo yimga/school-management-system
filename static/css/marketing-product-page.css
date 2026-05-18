@@ -51,7 +51,7 @@
     position: sticky;
     top: clamp(4rem, 10vw, 6rem);
     border-radius: var(--mkt-product-radius);
-    overflow: hidden;
+    overflow: hidden; /* sticky-overflow-allow: border-radius-frame-clip-single-image */
     background: var(--mkt-product-surface);
     box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
   }
@@ -284,7 +284,7 @@
     position: sticky;
     top: clamp(4rem, 10vw, 6rem);
     border-radius: var(--mkt-product-radius);
-    overflow: hidden;
+    overflow: hidden; /* sticky-overflow-allow: border-radius-frame-clip-single-image */
     background: var(--mkt-product-surface);
     box-shadow: 0 18px 48px rgba(0, 0, 0, 0.3);
   }

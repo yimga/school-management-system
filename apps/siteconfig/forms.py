@@ -110,22 +110,33 @@ THEME_PUBLISH_GUARDED_FIELDS = frozenset(
 
 
 THEME_COLOR_CONTRAST_TARGETS = {
-    "primary_color": {"label": "Primary color", "target": "#ffffff", "min_ratio": 4.5},
-    "accent_color": {"label": "Accent color", "target": "#ffffff", "min_ratio": 3.0},
-    "header_bg_color": {
-        "label": "Header background",
-        "target": "#ffffff",
-        "min_ratio": 4.5,
-    },
-    "footer_bg_color": {
-        "label": "Footer background",
-        "target": "#ffffff",
-        "min_ratio": 4.5,
-    },
-    "success_color": {"label": "Success color", "target": "#ffffff", "min_ratio": 3.0},
-    "warning_color": {"label": "Warning color", "target": "#0f172a", "min_ratio": 3.0},
-    "danger_color": {"label": "Danger color", "target": "#ffffff", "min_ratio": 3.0},
+    "primary_color": {"label": "Primary color", "min_ratio": 4.5},
+    "accent_color": {"label": "Accent color", "min_ratio": 3.0},
+    "header_bg_color": {"label": "Header background", "min_ratio": 4.5},
+    "footer_bg_color": {"label": "Footer background", "min_ratio": 4.5},
+    "success_color": {"label": "Success color", "min_ratio": 3.0},
+    "warning_color": {"label": "Warning color", "min_ratio": 3.0},
+    "danger_color": {"label": "Danger color", "min_ratio": 3.0},
 }
+
+
+def _best_readable_text_contrast(background: str) -> tuple[float, str]:
+    """Return the highest WCAG ratio and matching token-aligned foreground."""
+    from apps.siteconfig.contrast_guard import DARK_TEXT, LIGHT_TEXT
+
+    dark_ratio = contrast_ratio(background, DARK_TEXT)
+    light_ratio = contrast_ratio(background, LIGHT_TEXT)
+    if dark_ratio >= light_ratio:
+        return dark_ratio, DARK_TEXT
+    return light_ratio, LIGHT_TEXT
+
+
+def theme_contrast_targets_for_client() -> dict[str, dict[str, float]]:
+    """Min ratios for live theme-colors badge (mirrors THEME_COLOR_CONTRAST_TARGETS)."""
+    return {
+        field_name: {"min_ratio": float(config["min_ratio"])}
+        for field_name, config in THEME_COLOR_CONTRAST_TARGETS.items()
+    }
 
 
 def build_theme_contrast_report(values: dict) -> dict:
@@ -137,14 +148,14 @@ def build_theme_contrast_report(values: dict) -> dict:
         color = str(source).strip() if source else ""
         if not color:
             continue
-        ratio = contrast_ratio(color, config["target"])
+        ratio, target = _best_readable_text_contrast(color)
         min_ratio = min(min_ratio, ratio)
         passed = ratio >= config["min_ratio"]
         check = {
             "field": field_name,
             "label": config["label"],
             "ratio": ratio,
-            "target": config["target"],
+            "target": target,
             "min_ratio": config["min_ratio"],
             "passed": passed,
         }
@@ -1449,7 +1460,8 @@ class ThemeColorsForm(forms.ModelForm):
                 field_name,
                 (
                     f"{failure['label']} needs stronger contrast ({failure['ratio']:.1f}:1). "
-                    f"Minimum {failure['min_ratio']:.1f}:1 against {failure['target']}."
+                    f"Minimum {failure['min_ratio']:.1f}:1 with readable text "
+                    f"({failure['target']})."
                 ),
             )
 

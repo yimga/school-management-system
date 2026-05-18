@@ -9,7 +9,9 @@ from apps.studio_os.services import get_studio_mode_hero_context, get_studio_ope
 
 
 @override_settings(
-    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"]
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    ROOT_URLCONF="config.manager_urls",
 )
 class StudioOperatorToolbarTests(TestCase):
     databases = {"default"}

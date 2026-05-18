@@ -26,6 +26,13 @@
 
   if (typeof document === "undefined") return;
 
+  // Defense-in-depth: arm the reveal-hides-content CSS only when this script
+  // actually parsed. If the file fails to load (CSP block, stale-cache 404,
+  // network error), the html flag is never set, design-tokens.css skips the
+  // opacity:0 rule, and content stays visible instead of becoming permanently
+  // hidden — the failure mode that produced the blank-app-catalog bug.
+  try { document.documentElement.setAttribute("data-rmc-reveal-armed", "1"); } catch (_e) {}
+
   var SELECTOR = ".rmc-reveal:not(.is-revealed)";
   var STAGGER_PARENT_SELECTOR = ".rmc-reveal-stagger";
 
@@ -76,7 +83,9 @@
       },
       {
         rootMargin: "0px 0px -80px 0px",
-        threshold: 0.15,
+        // [0, 0.15] so tall containers (catalog grids, long sections) that can
+        // never reach the 15% ratio still reveal on first pixel of contact.
+        threshold: [0, 0.15],
       }
     );
   }

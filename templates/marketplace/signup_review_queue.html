@@ -1,0 +1,65 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Publisher signups" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="marketplace-signup-review-queue">
+  <h1 class="h3 mb-3">{% trans "Publisher signup queue" %}</h1>
+  {% if messages %}
+    {% for m in messages %}<div class="alert alert-info">{{ m }}</div>{% endfor %}
+  {% endif %}
+  {% if pending %}
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "Organization" %}</th>
+            <th>{% trans "Contact" %}</th>
+            <th>{% trans "Country" %}</th>
+            <th>{% trans "Submitted" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Action" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in pending %}
+          <tr>
+            <td>
+              <strong>{{ s.organization_name }}</strong>
+              {% if s.website_url %}<br><small><a href="{{ s.website_url }}" rel="noopener" target="_blank">{{ s.website_url }}</a></small>{% endif %}
+              {% if s.intent %}<details><summary class="small">{% trans "Intent" %}</summary><div class="small">{{ s.intent|linebreaksbr }}</div></details>{% endif %}
+            </td>
+            <td>{{ s.contact_name }}<br><small>{{ s.contact_email }}</small></td>
+            <td>{{ s.country_code|default:"—" }}</td>
+            <td><small>{{ s.created_at|date:"Y-m-d H:i" }}</small></td>
+            <td>
+              {% if s.status == 'email_pending' %}
+                <span class="badge bg-warning text-dark">{% trans "Email pending" %}</span>
+              {% else %}
+                <span class="badge bg-info text-dark">{% trans "Email verified" %}</span>
+              {% endif %}
+            </td>
+            <td>
+              <form method="post" action="{% url 'super:marketplace_signup_decide' signup_id=s.id %}" class="d-inline">
+                {% csrf_token %}
+                <input type="text" name="notes" placeholder="{% trans 'Notes' %}" class="form-control form-control-sm d-inline-block" style="width:9rem;">
+                <button name="action" value="approve" class="btn btn-sm btn-success"
+                        {% if s.status != 'email_verified' %}disabled title="{% trans 'Email must be verified first' %}"{% endif %}>
+                  {% trans "Approve" %}
+                </button>
+                <button name="action" value="reject" class="btn btn-sm btn-outline-danger">{% trans "Reject" %}</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+    <p class="text-muted">{% trans "Nothing pending." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{
+  "finding_count": 0,
+  "by_invariant": {
+    "css_armed_scoping": 0,
+    "js_arms_at_parse": 0,
+    "shells_load_sync": 0,
+    "no_duplicate_class_attrs": 0
+  },
+  "note": "Zero-tolerance gate from day 1 (v3.25.6 2026-05-18). Locks the rmc-reveal armed-attribute defense and the no-duplicate-class-attrs invariant. See docs/CSS_RETIREMENT_DOCKET.md v3.25.5 entry for the failure-mode story."
+}

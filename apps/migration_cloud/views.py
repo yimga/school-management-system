@@ -2134,3 +2134,278 @@ class MigrationCloudMergeBundlesView(LoginRequiredMixin, View):
             return JsonResponse({"error": "one or more bundles not found"}, status=404)
         parent = merge_bundles(bundles=bundles, label=str(payload.get("label") or ""))
         return JsonResponse({"merged_bundle_id": parent.pk, "merged_from": bundle_ids})
+
+
+class MigrationCloudCanonicalTemplateView(LoginRequiredMixin, View):
+    """GET endpoint: download the RunMyCampus canonical-template CSV(s).
+
+    The "Shopify CSV import" front door for the long tail. Operators with
+    data in Excel / Google Sheets / MS Access / in-house apps / any
+    vendor not signature-matched download these empty templates, fill
+    them in with what they have, and upload through the standard intake
+    wizard. The accelerator at
+    ``apps.migration_cloud.accelerators.runmycampus_canonical`` then
+    short-circuits classification + mapping for the resulting bundle.
+
+    Two routes:
+        GET /…/template/                — zip of all 20 canonical-domain CSVs
+        GET /…/template/<domain>.csv    — single domain CSV (headers only)
+
+    No tenant data is touched — this is a static template generator. Auth
+    is required to gate against scraping the canonical schema.
+    """
+
+    def get(self, request, domain: str | None = None, shell: str = "super"):
+        from .accelerators.runmycampus_canonical import DOMAIN_CANONICAL_HEADERS
+
+        if domain is not None:
+            domain_key = domain.strip().lower()
+            headers = DOMAIN_CANONICAL_HEADERS.get(domain_key)
+            if headers is None:
+                return JsonResponse(
+                    {"error": f"unknown canonical domain {domain_key!r}",
+                     "known_domains": sorted(DOMAIN_CANONICAL_HEADERS.keys())},
+                    status=404,
+                )
+            csv_text = _canonical_template_csv(domain_key, headers)
+            resp = HttpResponse(csv_text, content_type="text/csv; charset=utf-8")
+            resp["Content-Disposition"] = f'attachment; filename="{domain_key}.csv"'
+            return resp
+
+        import io
+        import zipfile
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            for domain_key, headers in sorted(DOMAIN_CANONICAL_HEADERS.items()):
+                zf.writestr(f"{domain_key}.csv", _canonical_template_csv(domain_key, headers))
+            zf.writestr("README.txt", _canonical_template_readme())
+        buf.seek(0)
+        resp = HttpResponse(buf.read(), content_type="application/zip")
+        resp["Content-Disposition"] = 'attachment; filename="runmycampus-canonical-template.zip"'
+        return resp
+
+
+class MigrationCloudCanonicalTemplatePickerView(LoginRequiredMixin, View):
+    """GET endpoint: full-page canonical-template picker.
+
+    Surfaces every canonical domain with header count, required-field
+    summary, and a 1-row sample so operators can preview what the
+    template expects before downloading. Pairs with
+    ``MigrationCloudCanonicalTemplateView`` (the actual CSV/zip
+    download endpoint) — this view is pure UI discovery, no tenant data
+    touched. Auth-gated to match the download endpoint.
+
+    Routed at:
+        GET /super/migration/template/picker/        (operator shell)
+        GET /portal/configure/migration/template/picker/   (tenant shell)
+    """
+
+    template_name = "migration_cloud/canonical_template_picker.html"
+
+    def get(self, request, shell: str = "super"):
+        from .accelerators.runmycampus_canonical import DOMAIN_CANONICAL_HEADERS
+
+        domains: list[dict[str, Any]] = []
+        for slug, headers in sorted(DOMAIN_CANONICAL_HEADERS.items()):
+            sorted_headers = sorted(headers)
+            required = _canonical_required_fields(slug)
+            sample_row = _canonical_sample_row(slug, sorted_headers)
+            domains.append({
+                "slug": slug,
+                "headers": sorted_headers,
+                "header_count": len(sorted_headers),
+                "required": required,
+                "sample_row": sample_row,
+            })
+        ctx = {
+            "shell": shell,
+            "domains": domains,
+            "page_title": "Canonical template picker",
+        }
+        return render(request, self.template_name, ctx)
+
+
+# Per-domain required-field summary — mirrors the README contract in
+# ``_canonical_template_readme()`` so the picker UI and the zip's README
+# stay in lockstep. Domains absent from this map have no strictly
+# required fields (operator fills in what they have).
+_CANONICAL_REQUIRED_FIELDS: dict[str, tuple[str, ...]] = {
+    "students": ("external_id", "first_name", "last_name"),
+    "staff": ("staff_external_id", "first_name", "last_name"),
+    "guardians": ("guardian_external_id", "first_name", "last_name", "student_external_id"),
+    "enrollment": ("student_external_id",),
+    "attendance": ("student_external_id", "date"),
+    "grades": ("student_external_id", "subject_code", "term"),
+    "finance": ("reference",),
+}
+
+
+def _canonical_required_fields(domain: str) -> list[str]:
+    return list(_CANONICAL_REQUIRED_FIELDS.get(domain, ()))
+
+
+# Plausible sample values for canonical headers. Kept generic and
+# culturally-neutral: a different given name per domain, ISO-format
+# dates, three-letter currency, neutral subject/section codes. The point
+# is to communicate the SHAPE of each row, not to model a specific
+# school. Operators replace these with their own data.
+_CANONICAL_SAMPLE_VALUES: dict[str, dict[str, str]] = {
+    "students": {
+        "external_id": "STD-001", "first_name": "Maria", "last_name": "Garcia",
+        "middle_name": "Elena", "date_of_birth": "2010-04-12", "gender": "F",
+        "email": "maria.garcia@example.edu", "phone": "+1-555-0101",
+        "grade_level": "9", "enrollment_status": "active",
+        "admission_number": "ADM-2026-001", "address": "12 Oak Lane",
+    },
+    "staff": {
+        "staff_external_id": "STF-001", "first_name": "Aiden", "last_name": "Okonkwo",
+        "email": "aiden.okonkwo@example.edu", "role": "teacher",
+        "department": "Mathematics", "phone": "+1-555-0102",
+    },
+    "guardians": {
+        "guardian_external_id": "GRD-001", "first_name": "Priya", "last_name": "Sharma",
+        "email": "priya.sharma@example.com", "phone": "+1-555-0103",
+        "relationship": "mother", "is_primary": "true",
+        "student_external_id": "STD-001",
+    },
+    "enrollment": {
+        "student_external_id": "STD-001", "grade_level": "9",
+        "enrollment_status": "active", "enrollment_date": "2026-08-19",
+        "exit_date": "", "section": "9A",
+    },
+    "sections": {
+        "section_external_id": "SEC-9A-MATH", "subject_code": "MATH101",
+        "subject_name": "Algebra I", "term": "fall", "academic_year": "2026-2027",
+        "teacher_external_id": "STF-001",
+    },
+    "attendance": {
+        "student_external_id": "STD-001", "date": "2026-08-19",
+        "status": "present", "code": "P", "notes": "",
+    },
+    "grades": {
+        "student_external_id": "STD-001", "subject_code": "MATH101",
+        "term": "fall", "score": "87", "letter_grade": "B+", "comments": "Strong on linear systems",
+    },
+    "behavior": {
+        "student_external_id": "STD-001", "date": "2026-09-04",
+        "category": "tardy", "description": "Late to homeroom",
+        "action_taken": "verbal reminder",
+    },
+    "finance": {
+        "reference": "INV-2026-0001", "student_external_id": "STD-001",
+        "amount": "1250.00", "currency": "USD", "issued_date": "2026-08-01",
+        "due_date": "2026-08-31", "status": "open",
+        "description": "Tuition — Fall 2026",
+    },
+    "transcripts": {
+        "student_external_id": "STD-001", "academic_year": "2025-2026",
+        "term": "spring", "subject_code": "ENG081", "final_grade": "A-",
+        "credits_earned": "1.0",
+    },
+    "health": {
+        "student_external_id": "STD-001", "record_date": "2026-08-15",
+        "category": "immunization", "description": "Tdap booster",
+        "provider": "City Health Clinic", "follow_up": "",
+    },
+    "payroll": {
+        "staff_external_id": "STF-001", "pay_period": "2026-09",
+        "gross_amount": "4500.00", "net_amount": "3420.00",
+        "currency": "USD", "issued_date": "2026-09-30",
+    },
+    "communications": {
+        "recipient_external_id": "GRD-001", "channel": "email",
+        "subject": "Welcome to the new school year",
+        "body": "We're delighted to have you back…",
+        "sent_at": "2026-08-12T09:00:00Z", "status": "delivered",
+    },
+    "events": {
+        "title": "Open House", "category": "community",
+        "starts_at": "2026-09-12T17:00:00Z",
+        "ends_at": "2026-09-12T19:00:00Z",
+        "location": "Main Auditorium",
+        "description": "Tour the campus and meet teachers",
+    },
+    "library": {
+        "item_external_id": "LIB-00451", "title": "A Brief History of Time",
+        "author": "Stephen Hawking", "isbn": "978-0553380163",
+        "category": "non-fiction", "status": "available",
+    },
+    "transport": {
+        "student_external_id": "STD-001", "route": "Route 4",
+        "stop": "Oak Lane & Main", "pickup_time": "07:25",
+        "dropoff_time": "15:40", "vehicle": "Bus 12",
+    },
+    "hostel": {
+        "student_external_id": "STD-001", "room": "B-204", "bed": "1",
+        "checkin_date": "2026-08-18", "checkout_date": "",
+    },
+    "cafeteria": {
+        "student_external_id": "STD-001", "meal_plan": "standard",
+        "balance": "85.00", "currency": "USD", "dietary_notes": "vegetarian",
+    },
+    "alumni": {
+        "external_id": "ALM-2018-042", "first_name": "Yusuf", "last_name": "Adeyemi",
+        "graduation_year": "2018", "email": "yusuf.adeyemi@example.com",
+        "phone": "+1-555-0104", "current_employer": "Atlas Labs",
+        "current_role": "Software Engineer",
+    },
+    "compliance": {
+        "subject_external_id": "STF-001", "category": "background_check",
+        "status": "complete", "due_date": "2026-07-15",
+        "completed_date": "2026-07-08", "notes": "Renewed",
+    },
+}
+
+
+def _canonical_sample_row(domain: str, sorted_headers: list[str]) -> str:
+    """Render a single CSV sample row for the given domain.
+
+    Header order matches the CSV download (alphabetical), so the sample
+    lines up column-by-column with the empty template the operator
+    downloads. Missing values render as empty cells.
+    """
+    values = _CANONICAL_SAMPLE_VALUES.get(domain, {})
+    row = [values.get(h, "") for h in sorted_headers]
+    return ",".join(sorted_headers) + "\n" + ",".join(row)
+
+
+def _canonical_template_csv(domain: str, headers: set[str]) -> str:
+    """Render a single canonical-domain CSV (headers only, no data rows).
+
+    Headers are sorted alphabetically for stability across releases so
+    diff-tools work cleanly when operators version their filled-in
+    templates. A leading commented row carries the canonical-template
+    contract version so future schema bumps are detectable.
+    """
+    sorted_headers = sorted(headers)
+    return (
+        f"# runmycampus-canonical-template: domain={domain} version=1.0\n"
+        + ",".join(sorted_headers) + "\n"
+    )
+
+
+def _canonical_template_readme() -> str:
+    return (
+        "RunMyCampus canonical migration template\n"
+        "========================================\n"
+        "\n"
+        "One CSV per canonical domain. Fill in the rows you have; leave\n"
+        "columns blank where you don't. Save and upload through the\n"
+        "Migration Cloud wizard. Files keep their canonical names so the\n"
+        "accelerator pre-classifies them automatically — do not rename.\n"
+        "\n"
+        "Required fields per domain (rows missing these will quarantine):\n"
+        "  students:   external_id, first_name, last_name\n"
+        "  staff:      staff_external_id, first_name, last_name\n"
+        "  guardians:  guardian_external_id, first_name, last_name,\n"
+        "              student_external_id\n"
+        "  enrollment: student_external_id\n"
+        "  attendance: student_external_id, date\n"
+        "  grades:     student_external_id, subject_code, term\n"
+        "  finance:    reference\n"
+        "\n"
+        "Extra columns past the canonical header set are preserved and\n"
+        "land as DynamicFieldValues on the matching record. Re-uploading\n"
+        "the same external_id updates the existing record (idempotent).\n"
+    )

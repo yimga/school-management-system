@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Verification result" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:640px;" data-page="marketplace-publisher-signup-verified">
+  {% if found and signup %}
+    <h1 class="h3">{% trans "Email verified" %}</h1>
+    <p>
+      {% blocktrans with org=signup.organization_name %}Thanks — we'll review the application for <strong>{{ org }}</strong> shortly.{% endblocktrans %}
+    </p>
+  {% else %}
+    <h1 class="h3">{% trans "Token not recognized" %}</h1>
+    <p>
+      {% trans "That verification link is no longer valid. If you've already verified, you can ignore this. Otherwise, please submit a new application." %}
+    </p>
+    <a href="/marketplace/publisher/signup/" class="btn btn-outline-primary">{% trans "Start again" %}</a>
+  {% endif %}
+</div>
+{% endblock %}

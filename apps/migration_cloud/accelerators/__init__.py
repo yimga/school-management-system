@@ -33,6 +33,7 @@ from . import blackbaud  # noqa: F401
 from . import facts  # noqa: F401
 from . import oneroster_v1p2  # noqa: F401
 from . import powerschool  # noqa: F401
+from . import runmycampus_canonical  # noqa: F401  — long-tail canonical-template path
 from . import skyward  # noqa: F401
 from . import veracross  # noqa: F401  — side-effect registration
 

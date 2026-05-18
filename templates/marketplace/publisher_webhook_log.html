@@ -1,0 +1,63 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Webhook log" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-page="marketplace-publisher-webhook-log">
+  <h1 class="h3 mb-3">{% trans "Webhook delivery log" %}</h1>
+
+  <section class="mb-4" aria-labelledby="endpoints-hdr">
+    <h2 id="endpoints-hdr" class="h5">{% trans "Endpoints" %}</h2>
+    {% if endpoints %}
+    <table class="table table-sm">
+      <thead class="table-light">
+        <tr><th>{% trans "App" %}</th><th>{% trans "URL" %}</th><th>{% trans "Topics" %}</th><th>{% trans "Active" %}</th><th>{% trans "Failures" %}</th><th>{% trans "Last success" %}</th></tr>
+      </thead>
+      <tbody>
+      {% for e in endpoints %}
+        <tr>
+          <td>{{ e.app.name }}</td>
+          <td><code>{{ e.url }}</code></td>
+          <td><small>{{ e.topics|join:", " }}</small></td>
+          <td>{% if e.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-danger">{% trans "Disabled" %}</span>{% endif %}</td>
+          <td>{{ e.consecutive_failures }}</td>
+          <td><small>{{ e.last_success_at|default:"—"|date:"Y-m-d H:i" }}</small></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="text-muted">{% trans "No endpoints registered." %}</p>{% endif %}
+  </section>
+
+  <section aria-labelledby="deliveries-hdr">
+    <h2 id="deliveries-hdr" class="h5">{% trans "Recent deliveries" %}</h2>
+    {% if deliveries %}
+    <table class="table table-sm align-middle">
+      <thead class="table-light">
+        <tr><th>{% trans "Created" %}</th><th>{% trans "App" %}</th><th>{% trans "Topic" %}</th><th>{% trans "Status" %}</th><th>{% trans "Attempts" %}</th><th>{% trans "HTTP" %}</th><th>{% trans "Latency" %}</th><th>{% trans "Error" %}</th></tr>
+      </thead>
+      <tbody>
+      {% for d in deliveries %}
+        <tr>
+          <td><small>{{ d.created_at|date:"Y-m-d H:i:s" }}</small></td>
+          <td>{{ d.app.slug }}</td>
+          <td><code>{{ d.topic }}</code></td>
+          <td>
+            {% if d.status == 'succeeded' %}<span class="badge bg-success">{{ d.get_status_display }}</span>
+            {% elif d.status == 'abandoned' %}<span class="badge bg-danger">{{ d.get_status_display }}</span>
+            {% elif d.status == 'failed' %}<span class="badge bg-warning text-dark">{{ d.get_status_display }}</span>
+            {% else %}<span class="badge bg-secondary">{{ d.get_status_display }}</span>{% endif %}
+          </td>
+          <td>{{ d.attempt_count }}/{{ d.max_attempts }}</td>
+          <td>{{ d.response_status_code|default:"—" }}</td>
+          <td><small>{% if d.duration_ms %}{{ d.duration_ms }}ms{% else %}—{% endif %}</small></td>
+          <td><small>{{ d.error_message|default:"" }}</small></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="text-muted">{% trans "No deliveries yet." %}</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

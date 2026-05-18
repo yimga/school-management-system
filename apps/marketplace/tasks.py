@@ -49,3 +49,16 @@ def marketplace_health_check(status: str = "ok"):
             )
     logger.info("marketplace_health_check updated %s installations", updated)
     return updated
+
+
+@shared_task(name="marketplace.webhook_deliver_due", bind=True)
+def webhook_deliver_due(self, limit: int = 50) -> int:
+    """Move 1 — drain due WebhookDelivery rows with exponential-backoff retry."""
+
+    try:
+        from apps.marketplace.webhooks import deliver_due
+
+        return deliver_due(limit=int(limit))
+    except Exception as exc:
+        logging.getLogger(__name__).warning("webhook_deliver_due failed: %s", exc)
+        return 0

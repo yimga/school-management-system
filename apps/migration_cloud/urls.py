@@ -13,7 +13,7 @@ Example mount in ``config/urls.py``::
 
 from __future__ import annotations
 
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
@@ -59,4 +59,10 @@ urlpatterns = [
     path("<int:bundle_id>/rollout/", views.MigrationCloudRolloutPlanView.as_view(), name="bundle_rollout"),
     path("<int:bundle_id>/sla-targets/", views.MigrationCloudSlaTargetsView.as_view(), name="bundle_sla_targets"),
     path("merge/", views.MigrationCloudMergeBundlesView.as_view(), name="merge_bundles"),
+    # Long-tail canonical template — the "Shopify CSV" path for any custom source.
+    path("template/", views.MigrationCloudCanonicalTemplateView.as_view(), name="canonical_template_zip"),
+    path("template/<str:domain>.csv", views.MigrationCloudCanonicalTemplateView.as_view(), name="canonical_template_csv"),
+    path("template/picker/", views.MigrationCloudCanonicalTemplatePickerView.as_view(), name="canonical_template_picker"),
+    # v3.27 — Migration Cloud public REST API alpha (DRF viewsets, OpenAPI-covered).
+    path("api/v1/", include("apps.migration_cloud.api.urls")),
 ]

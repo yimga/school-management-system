@@ -31,6 +31,7 @@ class OperatorControlPlaneShellTests(TestCase):
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-os-shell="control-plane"', body)
         self.assertIn('id="cp-main-content"', body)
+        self.assertIn('meta name="csrf-token"', body)
 
     def test_ai_center_manager_shell(self):
         self._assert_cp_shell("siteconfig:ai_center")

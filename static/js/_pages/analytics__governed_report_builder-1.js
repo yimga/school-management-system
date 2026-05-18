@@ -20,7 +20,7 @@
     ds.appendChild(o);
   });
   function parseFilters(){
-    var raw = document.getElementById('gr-filters').value.trim();
+    var raw = document.getElementById('gr-filters')?.value.trim();
     if (!raw) return {};
     var o = JSON.parse(raw);
     if (typeof o !== 'object' || o === null || Array.isArray(o)) throw new Error('Filters must be a JSON object');
@@ -28,16 +28,16 @@
   }
   function payload(){
     var dsId = ds.value;
-    var fieldsRaw = document.getElementById('gr-fields').value || '';
+    var fieldsRaw = document.getElementById('gr-fields')?.value || '';
     var fields = fieldsRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
     if (!fields.length && catalog[dsId]) {
       fields = catalog[dsId].fields.slice(0, 12);
     }
     var filters = parseFilters();
-    var gbRaw = document.getElementById('gr-groupby').value.trim();
+    var gbRaw = document.getElementById('gr-groupby')?.value.trim();
     var group_by = gbRaw ? gbRaw.split(',').map(function(s){ return s.trim(); }).filter(Boolean) : null;
-    var aggFn = document.getElementById('gr-agg-fn').value.trim();
-    var aggField = document.getElementById('gr-agg-field').value.trim();
+    var aggFn = document.getElementById('gr-agg-fn')?.value.trim();
+    var aggField = document.getElementById('gr-agg-field')?.value.trim();
     var aggregate = null;
     if (group_by && group_by.length && aggFn) {
       aggregate = { fn: aggFn, field: aggField || 'id' };
@@ -48,7 +48,7 @@
       filters: filters,
       group_by: group_by,
       aggregate: aggregate,
-      limit: parseInt(document.getElementById('gr-limit').value, 10) || 100
+      limit: parseInt(document.getElementById('gr-limit')?.value, 10) || 100
     };
   }
   function refreshSaved(){
@@ -70,7 +70,7 @@
       })
       .catch(function(e){ document.getElementById('gr-output').textContent = String(e); });
   }
-  document.getElementById('gr-preview').addEventListener('click', function(){
+  document.getElementById('gr-preview')?.addEventListener('click', function(){
     try {
       var body = JSON.stringify(payload());
       fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_preview_url"]), {
@@ -91,7 +91,7 @@
     a.download = name;
     a.click();
   }
-  document.getElementById('gr-export-csv').addEventListener('click', function(){
+  document.getElementById('gr-export-csv')?.addEventListener('click', function(){
     try {
       fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_export_csv_url"]), {
         method: 'POST',
@@ -104,7 +104,7 @@
       document.getElementById('gr-output').textContent = e.message || String(e);
     }
   });
-  document.getElementById('gr-export-json').addEventListener('click', function(){
+  document.getElementById('gr-export-json')?.addEventListener('click', function(){
     try {
       fetch(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["var_export_json_url"]), {
         method: 'POST',
@@ -118,8 +118,8 @@
       document.getElementById('gr-output').textContent = e.message || String(e);
     }
   });
-  document.getElementById('gr-save').addEventListener('click', function(){
-    var name = (document.getElementById('gr-save-name').value || '').trim();
+  document.getElementById('gr-save')?.addEventListener('click', function(){
+    var name = (document.getElementById('gr-save-name')?.value || '').trim();
     if (!name) { alert(((window.__RMC_PAGE_DATA__["analytics__governed_report_builder-1"] || {})["trans_enter_a_report_name"])); return; }
     try {
       var def = payload();
@@ -136,9 +136,9 @@
       document.getElementById('gr-output').textContent = e.message || String(e);
     }
   });
-  document.getElementById('gr-saved-refresh').addEventListener('click', refreshSaved);
-  document.getElementById('gr-saved-run').addEventListener('click', function(){
-    var id = document.getElementById('gr-saved-list').value;
+  document.getElementById('gr-saved-refresh')?.addEventListener('click', refreshSaved);
+  document.getElementById('gr-saved-run')?.addEventListener('click', function(){
+    var id = document.getElementById('gr-saved-list')?.value;
     if (!id) return;
     var url = runUrlTpl.split(RUN_MAGIC).join(id);
     fetch(url, {

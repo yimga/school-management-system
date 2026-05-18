@@ -4,6 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     {% include "partials/rmc_theme_meta.html" %}
     {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
        v2.47 (2026-05-15): Control plane defaults to LIGHT — manager-aesthetic-polish.css
@@ -15,7 +16,8 @@
     <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
     <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
-    <script src="{% static 'js/rmc-reveal.js' %}" defer></script>
+    {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
+    <script src="{% static 'js/rmc-reveal.js' %}"></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
@@ -27,7 +29,7 @@
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
-    <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.png' %}{% endif %}" type="image/png">
+    <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon-bell.svg' %}{% endif %}" type="image/svg+xml">
     {% if not PUBLIC_BRAND_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
     {% block extrahead %}{% endblock %}
 

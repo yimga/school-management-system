@@ -91,7 +91,7 @@
     redraw();
   }
 
-  document.getElementById("wf-palette").addEventListener("dragstart", function(ev){
+  document.getElementById("wf-palette")?.addEventListener("dragstart", function(ev){
     var k = ev.target.getAttribute("data-kind");
     if(k) ev.dataTransfer.setData("kind", k);
   });
@@ -106,10 +106,10 @@
     pushNode(kind, x, y);
   });
 
-  document.getElementById("wf-add-node").addEventListener("click", function(){
-    var kind = document.getElementById("wf-add-kind").value;
-    var x = parseInt(document.getElementById("wf-add-x").value, 10) || 0;
-    var y = parseInt(document.getElementById("wf-add-y").value, 10) || 0;
+  document.getElementById("wf-add-node")?.addEventListener("click", function(){
+    var kind = document.getElementById("wf-add-kind")?.value;
+    var x = parseInt(document.getElementById("wf-add-x")?.value, 10) || 0;
+    var y = parseInt(document.getElementById("wf-add-y")?.value, 10) || 0;
     pushNode(kind, x, y);
   });
 
@@ -122,11 +122,11 @@
     }).then(function(r){ return r.json().then(function(j){ return { okHttp: r.ok, status: r.status, j: j }; }); });
   }
 
-  document.getElementById("wf-save").addEventListener("click", function(){
+  document.getElementById("wf-save")?.addEventListener("click", function(){
     var payload = {
-      workflow_id: document.getElementById("wf-id").value || null,
-      name: document.getElementById("wf-name").value || "Flow",
-      trigger_event: document.getElementById("wf-trigger").value,
+      workflow_id: document.getElementById("wf-id")?.value || null,
+      name: document.getElementById("wf-name")?.value || "Flow",
+      trigger_event: document.getElementById("wf-trigger")?.value,
       nodes: nodes,
       edges: edges
     };
@@ -138,16 +138,16 @@
     }).catch(function(e){ alert(e); });
   });
 
-  document.getElementById("wf-validate").addEventListener("click", function(){
-    var wid = document.getElementById("wf-id").value;
+  document.getElementById("wf-validate")?.addEventListener("click", function(){
+    var wid = document.getElementById("wf-id")?.value;
     if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_the_graph_first_workflow_id_required"])); return; }
     postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_validate_graph_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       document.getElementById("wf-validate-out").textContent = JSON.stringify(r.j, null, 2);
     });
   });
 
-  document.getElementById("wf-publish").addEventListener("click", function(){
-    var wid = document.getElementById("wf-id").value;
+  document.getElementById("wf-publish")?.addEventListener("click", function(){
+    var wid = document.getElementById("wf-id")?.value;
     if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_the_graph_first_workflow_id_required_2"])); return; }
     postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_publish_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       var j = r.j;
@@ -160,8 +160,8 @@
     }).catch(function(e){ alert(e); });
   });
 
-  document.getElementById("wf-rollback").addEventListener("click", function(){
-    var wid = document.getElementById("wf-id").value;
+  document.getElementById("wf-rollback")?.addEventListener("click", function(){
+    var wid = document.getElementById("wf-id")?.value;
     if(!wid){ return; }
     postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_rollback_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       var j = r.j;
@@ -169,8 +169,8 @@
     }).catch(function(e){ alert(e); });
   });
 
-  document.getElementById("wf-sim").addEventListener("click", function(){
-    var wid = document.getElementById("wf-id").value;
+  document.getElementById("wf-sim")?.addEventListener("click", function(){
+    var wid = document.getElementById("wf-id")?.value;
     if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_first_or_enter_workflow_id"])); return; }
     postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_simulate_url"]), {
       workflow_id: parseInt(wid,10),

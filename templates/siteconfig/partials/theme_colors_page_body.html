@@ -246,6 +246,7 @@
   </form>
 </div>
 
+{{ theme_contrast_targets|json_script:"theme-contrast-targets" }}
 <script type="application/json" id="page-data-siteconfig__partials__theme_colors_page_body-1">{
   "url_siteconfig_preview_from_form": "{% url "siteconfig:preview_from_form" %}",
   "trans_draft_changes_pending": "{% trans "Draft changes pending" %}",
@@ -259,5 +260,9 @@
   "trans_source_manual_edit": "{% trans "Source: manual edit" %}",
   "trans_preview_failed": "{% trans "Preview failed" %}",
   "trans_preview_opened_in_new_tab": "{% trans "Preview opened in new tab" %}",
-  "trans_preview_failed_2": "{% trans "Preview failed" %}"
-}</script><script src="{% static 'js/_pages/siteconfig__partials__theme_colors_page_body-1.js' %}"></script>
+  "trans_preview_failed_2": "{% trans "Preview failed" %}",
+  "trans_contrast_pass": "{% trans "Contrast safety: pass" %}",
+  "trans_contrast_needs_attention": "{% trans "Contrast safety: needs attention" %}",
+  "trans_source_saved_values": "{% trans "Source: saved values" %}",
+  "trans_source_draft_values": "{% trans "Source: draft values" %}"
+}</script><script src="{% static 'js/contrast-guard.js' %}"></script><script src="{% static 'js/_pages/siteconfig__partials__theme_colors_page_body-1.js' %}"></script>

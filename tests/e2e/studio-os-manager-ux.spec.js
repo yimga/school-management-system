@@ -7,7 +7,7 @@
  *   npx playwright test tests/e2e/studio-os-manager-ux.spec.js --workers=1
  */
 const { test, expect } = require('@playwright/test');
-const { loginManager, ensureManagerHost } = require('./helpers/manager-login');
+const { ensureManagerHost, AUTH_STATE_PATH } = require('./helpers/manager-login');
 
 const MANAGER_HOST = process.env.VISUAL_QA_MANAGER_HOST || 'manager.runmycampus.com';
 const MANAGER_PORT = process.env.VISUAL_QA_PORT || '8012';
@@ -22,8 +22,13 @@ test.use({
 });
 
 test.describe('Studio OS manager UX', () => {
+  test.describe.configure({ mode: 'serial', timeout: 120000 });
+
+  test.use({
+    storageState: AUTH_STATE_PATH,
+  });
+
   test.beforeEach(async ({ page }) => {
-    await loginManager(page);
     await ensureManagerHost(page);
   });
 

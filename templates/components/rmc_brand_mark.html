@@ -43,7 +43,7 @@ why the manager topbar shipped without a real logo.
 {% comment %}Resolve the effective light + dark logo URLs through the cascade.
    `firstof` returns the first non-empty value; an explicit empty string at
    a higher layer correctly defers to the next layer below.{% endcomment %}
-{% static 'images/brand/runmycampus-logo-mark.png' as bm_platform_logo_default %}
+{% static 'images/brand/runmycampus-logo-mark.svg' as bm_platform_logo_default %}
 {% firstof logo_url SITE_LOGO_URL PUBLIC_BRAND_LOGO_URL bm_platform_logo_default "" as bm_logo_url %}
 {% firstof logo_dark_url SITE_LOGO_DARK_URL PUBLIC_BRAND_LOGO_DARK_URL bm_logo_url bm_platform_logo_default "" as bm_logo_dark_url %}
 {% if href %}<a href="{{ href }}" class="rmc-brand-mark-link" aria-label="{{ label|default:SITE.site_name|default:'RunMyCampus' }}">{% endif %}

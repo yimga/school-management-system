@@ -2124,17 +2124,6 @@ def studio_set_operator_school(request):
 
     if not user_has_control_plane_access(getattr(request, "user", None)):
         return redirect(reverse("accounts:backend_dashboard"))
-    from apps.schools.host_routing import public_host_kind
-
-    host = (request.get_host() or "").split(":")[0].lower()
-    on_manager = (
-        use_control_plane_shell(request)
-        or public_host_kind(host) == "manager"
-        or host.startswith("manager.")
-        or host in ("manager.localhost",)
-    )
-    if not on_manager:
-        return redirect(reverse("studio_os:shell"))
 
     fallback = reverse("studio_os:shell")
     next_url = (request.POST.get("next") or fallback).strip()

@@ -10,14 +10,14 @@ document.addEventListener('DOMContentLoaded', function() {
   loadStats();
 
   // Update country info when country changes
-  document.getElementById('country_code').addEventListener('change', loadCountryInfo);
+  document.getElementById('country_code')?.addEventListener('change', loadCountryInfo);
 
   // Update terms when academic year changes
-  document.getElementById('academic_year').addEventListener('change', loadTerms);
+  document.getElementById('academic_year')?.addEventListener('change', loadTerms);
 });
 
 function loadCountryInfo() {
-  const countryCode = document.getElementById('country_code').value;
+  const countryCode = document.getElementById('country_code')?.value;
   const infoDiv = document.getElementById('country-info');
 
   fetch(`/emis/api/compliance/${countryCode}/`)
@@ -102,7 +102,7 @@ function loadStats() {
 }
 
 function loadTerms() {
-  const academicYearId = document.getElementById('academic_year').value;
+  const academicYearId = document.getElementById('academic_year')?.value;
   const termSelect = document.getElementById('term');
 
   if (!academicYearId) {

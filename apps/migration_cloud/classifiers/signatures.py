@@ -17,6 +17,19 @@ knowledge override per-tenant via the ``RuntimeDefaults`` overlay key
 from __future__ import annotations
 
 SOURCE_HEADER_SIGNATURES: dict[str, dict[str, list[str]]] = {
+    # The canonical RunMyCampus template — the "Shopify CSV" path for the
+    # long tail (Excel / Google Sheets / MS Access / in-house apps / any
+    # vendor not yet signature-matched). Headers ARE the canonical field
+    # names, so the accelerator skips the AI mapper entirely. Operators
+    # download the template from the wizard, fill in what they have,
+    # upload. Highest-fidelity migration for any custom source.
+    "runmycampus_canonical": {
+        "required": ["external_id", "first_name", "last_name"],
+        "suggested": [
+            "middle_name", "date_of_birth", "gender", "email", "phone",
+            "grade_level", "enrollment_status", "admission_number", "address",
+        ],
+    },
     "powerschool": {
         "required": ["Student_Number", "LastFirst", "Enroll_Status"],
         "suggested": [

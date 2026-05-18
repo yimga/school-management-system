@@ -142,12 +142,13 @@ def _increment_usage_metrics(user, allowed: bool, request=None):
         _cache_incr_or_set(_k("ai_copilot_usage_denied_total"))
 
 
-def get_ai_permissions(user):
-    """
-    Determine what AI copilot features are available for the user's role.
-    Returns a dict of available features and scopes.
-    """
-    role = get_user_role(user) or "USER"
+def _is_copilot_admin_like(user) -> bool:
+    """Platform operators (manager SUPERADMIN) get admin copilot scope."""
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+        return True
+    role = (get_user_role(user) or "").upper()
     admin_roles = {
         "ADMIN",
         "LEADERSHIP",
@@ -155,9 +156,25 @@ def get_ai_permissions(user):
         "VICE_PRINCIPAL",
         "DEAN",
         "IT_ADMIN",
+        "SUPERADMIN",
     }
-    admin_roles | {"BURSAR"}
-    is_admin_like = user.is_superuser or user.is_staff or role in admin_roles
+    if role in admin_roles:
+        return True
+    try:
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        return user_has_control_plane_access(user)
+    except ImportError:
+        return False
+
+
+def get_ai_permissions(user):
+    """
+    Determine what AI copilot features are available for the user's role.
+    Returns a dict of available features and scopes.
+    """
+    role = get_user_role(user) or "USER"
+    is_admin_like = _is_copilot_admin_like(user)
 
     permissions = {
         "can_access_ai": user.is_authenticated,

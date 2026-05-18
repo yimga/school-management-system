@@ -2594,11 +2594,9 @@ textarea:focus {
   .theme-experience-left,
   .theme-experience-right {
     min-width: 0;
-    overflow: hidden;
-  }
-  .theme-experience-right {
-    position: sticky;
-    top: 0.75rem;
+    /* overflow:hidden + position:sticky on .theme-experience-right was clipping
+       the lower half of the right column on tall pages. min-width:0 alone is
+       enough for grid children to shrink correctly. */
   }
   .theme-state-strip {
     position: sticky;

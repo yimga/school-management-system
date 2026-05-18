@@ -650,6 +650,17 @@ MARKSHEET_OCR_COMMAND = os.getenv("MARKSHEET_OCR_COMMAND", "")
 
 AUTH_USER_MODEL = "accounts.User"
 
+# --- Authentication backends ---
+# LegacyHashUpgradeBackend runs FIRST so that users migrated in from
+# PowerSchool / Blackbaud / Veracross / FACTS / Skyward / Alma can sign
+# in with their existing passwords. On first match it re-hashes to the
+# native PASSWORD_HASHERS chain and clears the foreign hash atomically.
+# The standard ModelBackend stays in the list to handle native users.
+AUTHENTICATION_BACKENDS = [
+    "apps.accounts.auth_backends_legacy.LegacyHashUpgradeBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 # --- Password hashing ---
 # Argon2 first (memory-hard, OWASP-recommended for new deployments).
 # PBKDF2 + BCrypt remain in the list so existing hashes verify; Django auto-
@@ -1144,6 +1155,14 @@ OBSERVABILITY_API_KEY = os.getenv("OBSERVABILITY_API_KEY", "")
 # --- Policy / Marketplace (Phase 7, 24.12) — non-negotiable, always on ---
 # When True, get_effective_policy merges from TenantBlueprint.active_bundle.policy_snapshot when set. Required; default on.
 POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "1") in ("1", "true", "yes")
+# Move 3 follow-up: PDP runtime enforcement mode.
+#   "off"      — PDP decorators short-circuit; no log, no block.
+#   "advisory" — every PDP-decorated view calls decide() and writes a
+#                PolicyDecisionLog row but never raises. Safe default; use
+#                this to collect would-be denies before flipping to enforce.
+#   "enforce"  — pdp_enforce decorators block on deny / implicit_deny;
+#                pdp_advisory still logs.
+POLICY_PDP_ENFORCEMENT_MODE = os.getenv("POLICY_PDP_ENFORCEMENT_MODE", "advisory")
 # Per-tenant policy cache TTL in seconds. Required for scale; default 300 (5 min). Set POLICY_CACHE_TTL=0 to disable for debugging.
 _raw_ttl = os.getenv("POLICY_CACHE_TTL", "300").strip()
 POLICY_CACHE_TTL = int(_raw_ttl) if _raw_ttl.isdigit() else 300
@@ -1226,6 +1245,33 @@ if RUNNING_TESTS:
 # Celery Beat schedule for periodic tasks
 # Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
 CELERY_BEAT_SCHEDULE = {
+    # Move 2 — orchestration runner: drain pending runs every minute.
+    "orchestration-process-due-runs": {
+        "task": "orchestration.process_due_runs",
+        "schedule": 60.0,
+        "kwargs": {"limit": 50},
+        "options": {"expires": 50},
+    },
+    # Move 2 — orchestration SLO aggregator: roll up the last hour every 5 minutes.
+    "orchestration-aggregate-slos": {
+        "task": "orchestration.aggregate_slos",
+        "schedule": 300.0,
+        "kwargs": {"window_minutes": 60},
+        "options": {"expires": 240},
+    },
+    # Move 1 — marketplace webhook delivery: drain due webhook deliveries.
+    "marketplace-webhook-deliver-due": {
+        "task": "marketplace.webhook_deliver_due",
+        "schedule": 30.0,
+        "kwargs": {"limit": 50},
+        "options": {"expires": 25},
+    },
+    # Move 4 — close help-center loop: evaluate AutoTicketRules every 10 minutes.
+    "customersuccess-run-auto-ticket-rules": {
+        "task": "customersuccess.run_auto_ticket_rules",
+        "schedule": 600.0,
+        "options": {"expires": 540},
+    },
     "compliance-mark-sla-breaches": {
         "task": "compliance.mark_sla_breaches",
         "schedule": 3600.0,  # Hourly — GDPR Art. 12(3) one-month SLA, hourly granularity is fine

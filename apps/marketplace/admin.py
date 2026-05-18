@@ -13,6 +13,11 @@ from .models import (
     AppAuditLog,
     AppVersionCompat,
     CapabilityRegistry,
+    AppVersion,
+    AppRating,
+    WebhookEndpoint,
+    WebhookDelivery,
+    PublisherSignupRequest,
 )
 
 
@@ -153,3 +158,59 @@ class AppAuditLogAdmin(admin.ModelAdmin):
 @admin.register(AppVersionCompat, site=platform_admin_site)
 class AppVersionCompatAdmin(admin.ModelAdmin):
     list_display = ("app", "platform_min_version", "app_version_min", "app_version_max")
+
+
+@admin.register(AppVersion, site=platform_admin_site)
+class AppVersionAdmin(admin.ModelAdmin):
+    list_display = ("app", "version", "channel", "is_published", "is_yanked", "published_at")
+    list_filter = ("channel", "is_published", "is_yanked")
+    search_fields = ("app__slug", "version")
+    raw_id_fields = ("app", "published_by")
+
+
+@admin.register(AppRating, site=platform_admin_site)
+class AppRatingAdmin(admin.ModelAdmin):
+    list_display = ("app", "school", "stars", "verified_install", "status", "created_at")
+    list_filter = ("stars", "status", "verified_install")
+    search_fields = ("app__slug", "headline", "body")
+    raw_id_fields = ("app", "school", "author")
+
+
+@admin.register(WebhookEndpoint, site=platform_admin_site)
+class WebhookEndpointAdmin(admin.ModelAdmin):
+    list_display = ("app", "url", "is_active", "consecutive_failures", "last_success_at")
+    list_filter = ("is_active",)
+    search_fields = ("app__slug", "url")
+    raw_id_fields = ("app",)
+
+
+@admin.register(WebhookDelivery, site=platform_admin_site)
+class WebhookDeliveryAdmin(admin.ModelAdmin):
+    list_display = (
+        "endpoint",
+        "app",
+        "topic",
+        "status",
+        "attempt_count",
+        "response_status_code",
+        "created_at",
+    )
+    list_filter = ("status", "topic")
+    search_fields = ("idempotency_key", "topic", "app__slug")
+    raw_id_fields = ("endpoint", "app", "school")
+    readonly_fields = ("signature", "payload", "response_body_snippet")
+
+
+@admin.register(PublisherSignupRequest, site=platform_admin_site)
+class PublisherSignupRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "organization_name",
+        "contact_email",
+        "status",
+        "created_at",
+        "decided_at",
+    )
+    list_filter = ("status", "country_code")
+    search_fields = ("organization_name", "contact_email")
+    raw_id_fields = ("publisher", "reviewer", "submitted_by")
+    readonly_fields = ("email_verify_token", "email_verified_at", "created_at", "decided_at")

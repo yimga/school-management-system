@@ -370,17 +370,28 @@ html[data-rmc-admin-shell="1"] .rmc-operator-surface-strip__pill {
 
 /* Manager /admin/* — same chrome grid as /super/ (control_plane_sidebar + cp-main-content) */
 body.admin-manager-shell .admin-cp-unified-page {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
   min-height: 100vh;
+  overflow: hidden !important;
   background: var(--cp-bg, var(--surface-canvas));
+}
+
+body.admin-manager-shell .admin-cp-unified-page > header,
+body.admin-manager-shell .admin-cp-unified-page > nav,
+body.admin-manager-shell .admin-cp-unified-page > .preview-cue,
+body.admin-manager-shell .admin-cp-unified-page > a.skip-link-theme {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 
 body.admin-manager-shell .admin-cp-unified-page #cp-sidebar-col {
   max-height: calc(100vh - 4rem);
-  overflow-y: auto;
-}
-
-body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
-  min-height: 0;
   overflow-y: auto;
 }
 
@@ -390,6 +401,34 @@ body.admin-manager-shell .admin-cp-unified-page .admin-sidebar-column {
 }
 
 body.admin-manager-shell .admin-cp-unified-page .cp-layout {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.admin-manager-shell .admin-cp-unified-page .cp-layout > .row {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+}
+
+/* Readable muted copy on admin index in both resolved themes */
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-admin-index .text-muted,
+html[data-bs-theme="light"] body.admin-manager-shell .cp-admin-index .text-muted {
+  color: var(--text-secondary, var(--color-base-600)) !important;
+}
+
+html[data-resolved-theme="dark"] body.admin-manager-shell .cp-admin-index .text-muted,
+html[data-bs-theme="dark"] body.admin-manager-shell .cp-admin-index .text-muted {
+  color: var(--text-secondary, var(--color-base-400)) !important;
 }

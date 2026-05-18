@@ -93,7 +93,7 @@
   {% if module.key == "migrations" %}
   <div class="row g-3 mb-4" aria-label="{% trans 'Migration readiness' %}">
     <div class="col-lg-6">
-      {% include "components/apple_class_data_quality_meter.html" with meter_id="configuration-migration-quality" title=_("Data Quality Meter") value="72" status="needs-review" status_label=_("Quarantine review") body=_("Preview, map fields, validate, quarantine invalid rows, and preserve rollback posture before applying migration data.") %}
+      {% include "components/apple_class_data_quality_meter.html" with meter_id="configuration-migration-quality" title=_("Data Quality Meter") value=module.readiness_score status=module.readiness_token status_label=module.readiness_label body=_("Preview, map fields, validate, quarantine invalid rows, and preserve rollback posture before applying migration data.") %}
     </div>
     <div class="col-lg-6">
       {% include "components/apple_class_visual_workflow_path.html" with path_id="configuration-migration-path" title=_("Migration Flow") %}

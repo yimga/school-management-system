@@ -41,13 +41,51 @@
    * @param {string} bgHex - background color hex
    * @returns {string}
    */
+  var DARK_TEXT = '#0f172a';
+  var LIGHT_TEXT = '#f1f5f9';
+
+  function contrastRatioHex(hex1, hex2) {
+    return contrastRatio(luminanceFromHex(hex1), luminanceFromHex(hex2));
+  }
+
+  function bestReadableContrast(backgroundHex) {
+    var darkRatio = contrastRatioHex(backgroundHex, DARK_TEXT);
+    var lightRatio = contrastRatioHex(backgroundHex, LIGHT_TEXT);
+    if (darkRatio >= lightRatio) {
+      return { ratio: darkRatio, target: DARK_TEXT };
+    }
+    return { ratio: lightRatio, target: LIGHT_TEXT };
+  }
+
+  function buildThemeContrastReport(values, targets) {
+    var checks = [];
+    var failures = [];
+    Object.keys(targets || {}).forEach(function(fieldName) {
+      var config = targets[fieldName];
+      var color = String((values && values[fieldName]) || '').trim();
+      if (!color) return;
+      var best = bestReadableContrast(color);
+      var passed = best.ratio >= config.min_ratio;
+      var check = {
+        field: fieldName,
+        ratio: best.ratio,
+        target: best.target,
+        min_ratio: config.min_ratio,
+        passed: passed
+      };
+      checks.push(check);
+      if (!passed) failures.push(check);
+    });
+    return {
+      status: failures.length ? 'warn' : 'ok',
+      checks: checks,
+      failures: failures
+    };
+  }
+
   function textColorForBackground(bgHex) {
-    var Lbg = luminanceFromHex(bgHex);
-    var Lblack = 0;
-    var Lwhite = 1;
-    var onBlack = contrastRatio(Lbg, Lblack);
-    var onWhite = contrastRatio(Lbg, Lwhite);
-    return onBlack >= 4.5 ? '#000000' : '#ffffff';
+    var best = bestReadableContrast(bgHex);
+    return best.target === DARK_TEXT ? '#000000' : '#ffffff';
   }
 
   /**
@@ -84,7 +122,12 @@
   root.ContrastGuard = {
     luminanceFromHex: luminanceFromHex,
     contrastRatio: contrastRatio,
+    contrastRatioHex: contrastRatioHex,
+    bestReadableContrast: bestReadableContrast,
+    buildThemeContrastReport: buildThemeContrastReport,
     textColorForBackground: textColorForBackground,
-    applyContrastFg: applyContrastFg
+    applyContrastFg: applyContrastFg,
+    DARK_TEXT: DARK_TEXT,
+    LIGHT_TEXT: LIGHT_TEXT
   };
 })(typeof window !== 'undefined' ? window : this);

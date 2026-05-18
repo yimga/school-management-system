@@ -11,6 +11,8 @@ on:
       - "static/js/theme-preference-bootstrap.js"
       - "templates/**"
       - "scripts/verify_theme_visibility_platform.py"
+      - "scripts/verify_manager_admin_cp_layout.py"
+      - "tests/e2e/studio-os-manager-ux.spec.js"
       - "scripts/scan_main_content_text_utilities.py"
       - "scripts/burndown_main_content_text_utilities.py"
       - "apps/siteconfig/tests/test_theme_visibility_matrix.py"
@@ -62,6 +64,7 @@ jobs:
       - name: Theme visibility verifier + matrix tests
         run: |
           python scripts/verify_theme_visibility_platform.py
+          python scripts/verify_manager_admin_cp_layout.py
           python scripts/scan_main_content_text_utilities.py
           python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1
 

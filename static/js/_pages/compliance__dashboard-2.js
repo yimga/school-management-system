@@ -5,7 +5,7 @@
                 return v || fallback;
             } catch (_e) { return fallback; }
         };
-        const activityPayload = JSON.parse(document.getElementById('activityData').textContent);
+        const activityPayload = JSON.parse(document.getElementById('activityData')?.textContent);
         const activityCtx = document.getElementById('activityChartCanvas');
         if (activityCtx && activityPayload) {
             new Chart(activityCtx, {
@@ -35,7 +35,7 @@
 
         const heatmapCtx = document.getElementById('heatmapChartCanvas');
         if (heatmapCtx) {
-            const heatmapPayload = JSON.parse(document.getElementById('heatmapData').textContent);
+            const heatmapPayload = JSON.parse(document.getElementById('heatmapData')?.textContent);
             const hours = heatmapPayload.hours || [];
             const counts = heatmapPayload.data || [];
             new Chart(heatmapCtx, {

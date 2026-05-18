@@ -60,3 +60,15 @@ class PlatformBrandHeaderTests(TestCase):
         self.assertIn('data-rmc-platform-header="manager"', body)
         self.assertIn("rmc-control-plane-chrome", body)
         self.assertIn("cpSearchInput", body)
+        self.assertIn("runmycampus-logo-mark.svg", body)
+        self.assertNotIn("runmycampus-logo-mark.png", body)
+
+    def test_legacy_png_logo_env_resolves_to_svg(self):
+        from apps.siteconfig.context_processors import _resolve_public_brand_logo_url
+
+        resolved = _resolve_public_brand_logo_url(
+            "/static/images/brand/runmycampus-logo-mark.png",
+            default_static="images/brand/runmycampus-logo-mark.svg",
+        )
+        self.assertIn("runmycampus-logo-mark.svg", resolved)
+        self.assertNotIn(".png", resolved)

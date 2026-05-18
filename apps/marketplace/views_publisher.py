@@ -37,6 +37,8 @@ def _publisher_for_user(user):
 def publisher_dashboard(request):
     publisher = _publisher_for_user(request.user)
     apps = []
+    summary = None
+    per_app_rows = []
     if publisher is not None:
         try:
             from apps.marketplace.models import MarketplaceApp
@@ -48,6 +50,14 @@ def publisher_dashboard(request):
             )
         except ImportError:
             apps = []
+        try:
+            from apps.marketplace import partner_metrics
+
+            summary = partner_metrics.metrics_for_publisher(publisher)
+            per_app_rows = partner_metrics.per_app_metrics(publisher)
+        except ImportError:
+            summary = None
+            per_app_rows = []
     return render(
         request,
         "marketplace/publisher_dashboard.html",
@@ -55,6 +65,8 @@ def publisher_dashboard(request):
             "publisher": publisher,
             "apps": apps,
             "no_publisher": publisher is None,
+            "metrics_summary": summary,
+            "per_app_metrics": per_app_rows,
         },
     )
 

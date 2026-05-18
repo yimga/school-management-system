@@ -56,6 +56,9 @@ class Workflow(models.Model):
         db_index=True,
     )
     is_active = models.BooleanField(default=True)
+    # Move 2: monotonically-incrementing version. publish_visual_workflow_version()
+    # snapshots nodes+edges into WorkflowVersion and bumps this.
+    current_version = models.PositiveIntegerField(default=1)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -145,6 +148,48 @@ class WorkflowEdge(models.Model):
         return f"{self.source_id}→{self.target_id}"
 
 
+class WorkflowVersion(models.Model):
+    """Frozen snapshot of a visual workflow at publish time.
+
+    Move 2 of the strategic moves: visual workflows must be versioned so an
+    in-flight run is never disrupted by a publisher editing the canvas.
+    Each WorkflowRunLog should point at the specific version that produced it.
+    """
+
+    workflow = models.ForeignKey(
+        Workflow,
+        on_delete=models.CASCADE,
+        related_name="versions",
+    )
+    version_number = models.PositiveIntegerField()
+    graph_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Frozen {nodes: [...], edges: [...]} payload at publish time.",
+    )
+    trigger_event = models.CharField(max_length=48, blank=True)
+    notes = models.TextField(blank=True)
+    is_current = models.BooleanField(default=False, db_index=True)
+    published_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    published_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    class Meta:
+        unique_together = [["workflow", "version_number"]]
+        ordering = ["workflow", "-version_number"]
+        indexes = [
+            models.Index(fields=["workflow", "is_current"], name="auto_wfv_wf_cur_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.workflow_id}@v{self.version_number}"
+
+
 class WorkflowRunLog(models.Model):
     """Execution audit for :func:`apps.automation.visual_executor.run_workflow`."""
 
@@ -157,6 +202,14 @@ class WorkflowRunLog(models.Model):
         Workflow,
         on_delete=models.CASCADE,
         related_name="run_logs",
+    )
+    workflow_version = models.ForeignKey(
+        WorkflowVersion,
+        on_delete=models.PROTECT,
+        related_name="run_logs",
+        null=True,
+        blank=True,
+        help_text="Move 2: pin run to the version that was current at trigger time.",
     )
     trigger_event = models.CharField(max_length=48, blank=True)
     conditions_passed = models.BooleanField(default=False)
@@ -184,3 +237,48 @@ class WorkflowRunLog(models.Model):
 
     def __str__(self) -> str:
         return f"WorkflowRun {self.pk} wf={self.workflow_id}"
+
+
+class WorkflowStepEvent(models.Model):
+    """Append-only event log for a WorkflowRunLog.
+
+    Move 2 of the strategic moves: every condition evaluation and action
+    invocation produces an event so visual workflow runs are auditable end-to-end.
+    """
+
+    class EventType(models.TextChoices):
+        TRIGGERED = "triggered", "Triggered"
+        CONDITION_EVALUATED = "condition_evaluated", "Condition evaluated"
+        ACTION_STARTED = "action_started", "Action started"
+        ACTION_SUCCEEDED = "action_succeeded", "Action succeeded"
+        ACTION_FAILED = "action_failed", "Action failed"
+        DELAY_SCHEDULED = "delay_scheduled", "Delay scheduled"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
+
+    run = models.ForeignKey(
+        WorkflowRunLog,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    sequence_number = models.PositiveIntegerField()
+    event_type = models.CharField(
+        max_length=24,
+        choices=EventType.choices,
+        db_index=True,
+    )
+    node_external_id = models.CharField(max_length=64, blank=True, db_index=True)
+    payload = models.JSONField(default=dict, blank=True)
+    error_message = models.TextField(blank=True)
+    duration_ms = models.PositiveIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        unique_together = [["run", "sequence_number"]]
+        ordering = ["run", "sequence_number"]
+        indexes = [
+            models.Index(fields=["run", "event_type"], name="auto_wfe_run_type_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"run={self.run_id} #{self.sequence_number} {self.event_type}"

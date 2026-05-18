@@ -5,7 +5,7 @@
     <div class="container-fluid px-3 rmc-platform-header__inner">
       {% url 'super:dashboard' as bm_dashboard_url %}
       <div class="rmc-platform-header__brand">
-        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=rmc_shell.control_plane_product_subtitle|default:_("Manager") logo_url=PUBLIC_BRAND_LOGO_URL logo_dark_url=PUBLIC_BRAND_LOGO_DARK_URL %}
+        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
       </div>
       <button class="navbar-toggler border-light d-lg-none flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
         <span class="navbar-toggler-icon"></span>

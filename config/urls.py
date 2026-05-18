@@ -588,6 +588,16 @@ urlpatterns = [
         name="portal_at_risk_labeling",
     ),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
+    # Move 1 (developer platform): public marketplace catalog detail, search API, publisher signup.
+    path(
+        "marketplace/",
+        include(("apps.marketplace.urls_developer_platform", "marketplace_dev"), namespace="marketplace_dev"),
+    ),
+    # Move 2 (workflow engine): orchestration JSON API + workbench.
+    path(
+        "orchestration/",
+        include(("apps.orchestration.urls", "orchestration"), namespace="orchestration"),
+    ),
     # Wave v2.69 (2026-05-16): integrations marketplace hub + OAuth dance for
     # per-school / per-campus external connectors (Zoom, Teams, Meet, Outlook,
     # Gmail, Calendar, Slack, transactional mail providers).

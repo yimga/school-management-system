@@ -33,6 +33,13 @@ class PublisherOrganization(models.Model):
         db_index=True,
     )
     country_code = models.CharField(max_length=2, blank=True, db_index=True)
+    verified_contact_email = models.EmailField(
+        blank=True,
+        db_index=True,
+        help_text="Operator/owner email used to link platform user accounts to this publisher.",
+    )
+    website_url = models.URLField(max_length=500, blank=True)
+    support_email = models.EmailField(blank=True)
     payout_email = models.EmailField(blank=True)
     payout_processor_code = models.CharField(max_length=32, blank=True)
     payout_ref = models.CharField(max_length=120, blank=True, db_index=True)
@@ -879,6 +886,324 @@ class AppVersionCompat(models.Model):
 
     def __str__(self):
         return f"{self.app.slug} {self.app_version_min or '*'}->{self.app_version_max or '*'}"
+
+
+class AppVersion(models.Model):
+    """Published semver release of a MarketplaceApp.
+
+    The single `MarketplaceApp.version` field captures the currently-published
+    version; this table captures the full history so tenants can pin, roll back,
+    and upgrade between specific versions (Salesforce/Shopify parity).
+    """
+
+    class Channel(models.TextChoices):
+        STABLE = "stable", "Stable"
+        BETA = "beta", "Beta"
+        ALPHA = "alpha", "Alpha"
+        DEPRECATED = "deprecated", "Deprecated"
+
+    app = models.ForeignKey(
+        MarketplaceApp, on_delete=models.CASCADE, related_name="versions"
+    )
+    version = models.CharField(
+        max_length=32,
+        db_index=True,
+        help_text="Semantic version, e.g. 1.4.2 or 2.0.0-beta.1.",
+    )
+    channel = models.CharField(
+        max_length=16, choices=Channel.choices, default=Channel.STABLE, db_index=True
+    )
+    manifest_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Frozen copy of the app manifest at the moment this version was published.",
+    )
+    changelog = models.TextField(
+        blank=True,
+        help_text="Markdown release notes for this version.",
+    )
+    migration_ref = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Optional schema migration id required to run this version.",
+    )
+    is_published = models.BooleanField(default=False, db_index=True)
+    is_yanked = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="True if this version was yanked post-publish (security/bug).",
+    )
+    yanked_reason = models.CharField(max_length=255, blank=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    published_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "App version"
+        verbose_name_plural = "App versions"
+        unique_together = [["app", "version"]]
+        ordering = ["app", "-published_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["app", "channel", "is_published"], name="mkt_ver_app_ch_pub_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.app.slug}@{self.version}"
+
+
+class AppRating(models.Model):
+    """Tenant-submitted rating + review for a MarketplaceApp.
+
+    One rating per (school, app). Only tenants with an AppInstallation may rate
+    (verified_install=True); operators may post unverified reviews flagged as such.
+    """
+
+    class Status(models.TextChoices):
+        PUBLISHED = "published", "Published"
+        HIDDEN = "hidden", "Hidden"
+        FLAGGED = "flagged", "Flagged"
+
+    app = models.ForeignKey(
+        MarketplaceApp, on_delete=models.CASCADE, related_name="ratings"
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="marketplace_app_ratings",
+    )
+    author = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    stars = models.PositiveSmallIntegerField(db_index=True)
+    headline = models.CharField(max_length=120, blank=True)
+    body = models.TextField(blank=True)
+    verified_install = models.BooleanField(default=False, db_index=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PUBLISHED,
+        db_index=True,
+    )
+    publisher_reply = models.TextField(blank=True)
+    publisher_replied_at = models.DateTimeField(null=True, blank=True)
+    helpful_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "App rating"
+        verbose_name_plural = "App ratings"
+        unique_together = [["app", "school"]]
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(stars__gte=1) & models.Q(stars__lte=5),
+                name="mkt_rating_stars_1_5",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.app.slug} {self.stars}★ by {self.school_id}"
+
+
+class WebhookEndpoint(models.Model):
+    """Publisher-declared webhook endpoint for a MarketplaceApp.
+
+    The platform delivers events (install, uninstall, scope_granted, etc.) to
+    this URL signed with `secret`. WebhookDelivery rows track every attempt and
+    surface delivery health in the partner dashboard.
+    """
+
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.CASCADE,
+        related_name="webhook_endpoints",
+    )
+    url = models.URLField(max_length=500)
+    description = models.CharField(max_length=255, blank=True)
+    secret = models.CharField(
+        max_length=128,
+        help_text="HMAC-SHA256 secret; sent as X-RMC-Signature header.",
+    )
+    topics = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Subscribed event topics, e.g. ['install', 'uninstall', 'scope_granted'].",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    consecutive_failures = models.PositiveIntegerField(default=0)
+    last_success_at = models.DateTimeField(null=True, blank=True)
+    last_failure_at = models.DateTimeField(null=True, blank=True)
+    last_failure_reason = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Webhook endpoint"
+        verbose_name_plural = "Webhook endpoints"
+        ordering = ["app", "-created_at"]
+
+    def __str__(self):
+        return f"{self.app.slug} → {self.url}"
+
+
+class WebhookDelivery(models.Model):
+    """Single delivery attempt of an event to a WebhookEndpoint.
+
+    Status machine: pending → in_flight → succeeded | failed | abandoned.
+    Failed rows are retried with exponential backoff up to max_attempts.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        IN_FLIGHT = "in_flight", "In flight"
+        SUCCEEDED = "succeeded", "Succeeded"
+        FAILED = "failed", "Failed (will retry)"
+        ABANDONED = "abandoned", "Abandoned (max attempts)"
+
+    endpoint = models.ForeignKey(
+        WebhookEndpoint,
+        on_delete=models.CASCADE,
+        related_name="deliveries",
+    )
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.CASCADE,
+        related_name="webhook_deliveries",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="marketplace_webhook_deliveries",
+        help_text="Originating tenant, if event was tenant-scoped.",
+    )
+    topic = models.CharField(max_length=64, db_index=True)
+    payload = models.JSONField(default=dict)
+    signature = models.CharField(max_length=128, blank=True)
+    idempotency_key = models.CharField(max_length=190, db_index=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    attempt_count = models.PositiveSmallIntegerField(default=0)
+    max_attempts = models.PositiveSmallIntegerField(default=6)
+    next_attempt_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    response_status_code = models.IntegerField(null=True, blank=True)
+    response_body_snippet = models.TextField(blank=True)
+    duration_ms = models.PositiveIntegerField(null=True, blank=True)
+    error_message = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Webhook delivery"
+        verbose_name_plural = "Webhook deliveries"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["endpoint", "idempotency_key"],
+                name="mkt_webhook_delivery_unique_endpoint_idempotency",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["status", "next_attempt_at"], name="mkt_wh_dlv_status_next_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.endpoint_id} {self.topic} {self.status}"
+
+
+class PublisherSignupRequest(models.Model):
+    """Self-serve publisher registration request awaiting RMC operator review.
+
+    Anyone can submit this form; on submit we send an email-verify token to
+    `contact_email`. After verification an operator approves → a
+    PublisherOrganization is created and linked to the requester's user.
+    """
+
+    class Status(models.TextChoices):
+        EMAIL_PENDING = "email_pending", "Email verification pending"
+        EMAIL_VERIFIED = "email_verified", "Email verified, awaiting review"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        WITHDRAWN = "withdrawn", "Withdrawn"
+
+    organization_name = models.CharField(max_length=255)
+    legal_name = models.CharField(max_length=255, blank=True)
+    country_code = models.CharField(max_length=2, blank=True)
+    website_url = models.URLField(max_length=500, blank=True)
+    contact_email = models.EmailField(db_index=True)
+    contact_name = models.CharField(max_length=120, blank=True)
+    intent = models.TextField(
+        blank=True,
+        help_text="Why the applicant wants to publish; what they intend to build.",
+    )
+    email_verify_token = models.CharField(
+        max_length=64,
+        unique=True,
+        help_text="One-time token sent to contact_email.",
+    )
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.EMAIL_PENDING,
+        db_index=True,
+    )
+    reviewer = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    reviewer_notes = models.TextField(blank=True)
+    publisher = models.ForeignKey(
+        PublisherOrganization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="signup_requests",
+        help_text="Created PublisherOrganization once the request is approved.",
+    )
+    submitted_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text="Authenticated user who submitted, if any.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Publisher signup request"
+        verbose_name_plural = "Publisher signup requests"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.organization_name} ({self.status})"
 
 
 class CapabilityRegistry(models.Model):

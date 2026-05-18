@@ -108,14 +108,14 @@ body[data-dashboard-page] #content .container {
   background: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
 }
 
-/* Critical: sidebar left of main (rem layout). */
-#page {
+/* Critical: sidebar left of main (rem layout). Manager unified admin uses column chrome. */
+#page:not(.admin-cp-unified-page) {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
 }
 
-#page .admin-sidebar-column {
+#page:not(.admin-cp-unified-page) .admin-sidebar-column {
   flex: 0 0 18rem !important;
   width: 18rem !important;
   max-width: min(18rem, 100%) !important;
@@ -128,7 +128,7 @@ body[data-dashboard-page] #content .container {
 }
 
 @media (max-width: 1279px) {
-  #page .admin-sidebar-column {
+  #page:not(.admin-cp-unified-page) .admin-sidebar-column {
     flex: 0 0 0 !important;
     width: 0 !important;
     min-width: 0 !important;

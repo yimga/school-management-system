@@ -14,6 +14,7 @@ from apps.platform_runtime.onboarding import (
     get_school_onboarding_progress,
     get_school_onboarding_steps,
     mark_school_onboarding_step_complete,
+    onboarding_import_quality_display,
 )
 
 _T_HOST = "onb-eng.runmycampus.com"
@@ -41,6 +42,13 @@ class OnboardingServiceTests(TestCase):
             school=cls.school, name="Core", code="onbcore"
         )
 
+    def test_import_quality_token_tracks_percent(self):
+        self.assertEqual(onboarding_import_quality_display(0)["token"], "needs-review")
+        self.assertEqual(onboarding_import_quality_display(100)["token"], "ready")
+        prog = get_school_onboarding_progress(self.school)
+        self.assertIn("import_quality_token", prog)
+        self.assertIn("import_quality_label", prog)
+
     def test_empty_school_has_low_progress(self):
         s = School.objects.create(
             name="Empty", slug="onb-empty", subdomain="onb-e", is_active=True
@@ -48,6 +56,7 @@ class OnboardingServiceTests(TestCase):
         prog = get_school_onboarding_progress(s)
         self.assertEqual(prog["total"], 11)
         self.assertLessEqual(prog["percent"], 30)
+        self.assertEqual(prog["import_quality_token"], "needs-review")
 
     def test_configured_school_higher_progress(self):
         from datetime import date

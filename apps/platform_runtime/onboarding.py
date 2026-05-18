@@ -8,8 +8,21 @@ import logging
 from typing import Any, Optional
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
+
+
+def onboarding_import_quality_display(percent: int) -> dict[str, str]:
+    """Map checklist completion to data-quality meter token + label."""
+    pct = min(100, max(0, int(percent or 0)))
+    if pct >= 100:
+        return {"token": "ready", "label": str(_("Ready"))}
+    if pct >= 80:
+        return {"token": "partial", "label": str(_("Nearly complete"))}
+    if pct > 0:
+        return {"token": "needs-review", "label": str(_("Validate before apply"))}
+    return {"token": "needs-review", "label": str(_("Not started"))}
 
 
 def _reverse_tenant(name: str) -> str:
@@ -302,6 +315,7 @@ def get_school_onboarding_progress(
     """
     steps = get_onboarding_steps(school, user=user)
     if not steps:
+        quality = onboarding_import_quality_display(0)
         return {
             "percent": 0,
             "completed": 0,
@@ -312,6 +326,8 @@ def get_school_onboarding_progress(
             "display_steps": [],
             "next_action": None,
             "persisted_last_step": "",
+            "import_quality_token": quality["token"],
+            "import_quality_label": quality["label"],
         }
 
     weight_total = sum(int(s.get("weight") or 1) for s in steps)
@@ -338,8 +354,10 @@ def get_school_onboarding_progress(
     ordered = [s for s in steps if not s.get("done")] + [s for s in steps if s.get("done")]
     display_steps = ordered[:5]
 
+    pct = min(100, max(0, percent))
+    quality = onboarding_import_quality_display(pct)
     result = {
-        "percent": min(100, max(0, percent)),
+        "percent": pct,
         "completed": completed,
         "total": total,
         "weight_done": weight_done,
@@ -348,6 +366,8 @@ def get_school_onboarding_progress(
         "display_steps": display_steps,
         "next_action": next_action,
         "persisted_last_step": "",
+        "import_quality_token": quality["token"],
+        "import_quality_label": quality["label"],
     }
     if school is not None:
         try:

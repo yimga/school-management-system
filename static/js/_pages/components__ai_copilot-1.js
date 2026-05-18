@@ -55,7 +55,18 @@ document.addEventListener('DOMContentLoaded', function() {
     return cookieValue;
   }
 
-  const csrfTokenEffective = (CSRF_TOKEN && CSRF_TOKEN !== 'NOTPROVIDED') ? CSRF_TOKEN : getCookie('csrftoken');
+  function resolveCsrfToken() {
+    if (CSRF_TOKEN && CSRF_TOKEN !== 'NOTPROVIDED') {
+      return CSRF_TOKEN;
+    }
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) {
+      return meta.content;
+    }
+    return getCookie('csrftoken') || getCookie('rmc_manager_csrftoken') || '';
+  }
+
+  const csrfTokenEffective = resolveCsrfToken();
 
   function buildContextualPrompt(userMessage) {
     const userRole = USER_ROLE;
@@ -210,7 +221,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (!resp.ok || !result || !result.success) {
-          const errText = (result && result.error) || 'An error occurred processing your request.';
+          let errText = (result && result.error) || 'An error occurred processing your request.';
+          if (!result && (resp.status === 403 || resp.status === 401)) {
+            errText = 'Session or CSRF validation failed. Refresh the page and try again.';
+          }
           const isDenied = resp.status === 403 || resp.status === 429;
           loadingMsg.remove();
           const errorMsg = document.createElement('div');

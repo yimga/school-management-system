@@ -250,6 +250,20 @@ class AICenterManagerControlPlaneTests(TestCase):
             body.replace(" ", ""),
         )
 
+    def test_manager_ai_center_exposes_csrf_meta_for_ajax(self):
+        u = User.objects.create_user(
+            username=f"mgr_csrf_{uuid.uuid4().hex[:8]}",
+            password="x" * 8,
+            is_staff=True,
+            is_superuser=True,
+        )
+        c = Client(HTTP_HOST=_MGR_HOST)
+        c.login(username=u.username, password="x" * 8)
+        path = reverse("siteconfig:ai_center", urlconf="config.manager_urls")
+        resp = c.get(path)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('meta name="csrf-token"', resp.content.decode("utf-8", errors="replace"))
+
     @patch("apps.portal.views_ai_gateway.get_embedding_for_text", return_value=None)
     @patch("apps.portal.views_ai_gateway.AIMemoryService.search_similar", return_value=[])
     @patch("services.ai_gateway._call_ollama", return_value=(None, {"error": "unavailable"}))

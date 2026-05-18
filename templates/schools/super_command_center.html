@@ -44,7 +44,7 @@
           {% trans "Drill into the work that blocks revenue, rollout speed, platform health, and operator trust." %}
         </p>
         <div class="cp-chip-row">
-          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'warning' }}">{% blocktrans with s=platform_health.overall_status|default:"warning"|upper %}Platform {{ s }}{% endblocktrans %}</span>
+          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'healthy' }}">{% blocktrans with s=platform_health.overall_status|default:"healthy"|upper %}Platform {{ s }}{% endblocktrans %}</span>
           <span class="cp-chip">{% blocktrans with n=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ n }}{% endblocktrans %}</span>
           <span class="cp-chip">{% blocktrans with n=command_center.provisioning_sla_breaches %}Provisioning breaches {{ n }}{% endblocktrans %}</span>
           <span class="cp-chip">{% blocktrans with n=billing_watchlist|length %}Billing watchlist {{ n }}{% endblocktrans %}</span>
@@ -280,7 +280,7 @@
         <div class="cp-stack-card">
           <div class="cp-stack-row">
             <span>{% trans "Platform health" %}</span>
-            <strong>{{ platform_health.overall_status|default:"warning"|upper }}</strong>
+            <strong>{{ platform_health.overall_status|default:"healthy"|upper }}</strong>
           </div>
           <div class="cp-stack-row">
             <span>{% trans "Database" %}</span>

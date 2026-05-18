@@ -47,7 +47,7 @@ function retryJob(jobId) {
         fetch(`/api/import-jobs/${jobId}/retry/`, { 
             method: 'POST',
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
             }
         })
             .then(response => response.json())

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Become a publisher" %} — {% trans "Marketplace" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:640px;" data-page="marketplace-publisher-signup">
+  <h1 class="h3 mb-3">{% trans "Become a marketplace publisher" %}</h1>
+  <p class="text-muted">
+    {% trans "Apply to publish apps on the RunMyCampus marketplace. Verify your email; an operator will review your application within a few business days." %}
+  </p>
+  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label" for="organization_name">{% trans "Organization name" %} *</label>
+      <input id="organization_name" class="form-control" name="organization_name" required maxlength="255"
+             value="{{ form.organization_name|default:'' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="legal_name">{% trans "Legal entity name (optional)" %}</label>
+      <input id="legal_name" class="form-control" name="legal_name" maxlength="255"
+             value="{{ form.legal_name|default:'' }}">
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-8">
+        <label class="form-label" for="contact_email">{% trans "Contact email" %} *</label>
+        <input id="contact_email" class="form-control" type="email" name="contact_email" required
+               value="{{ form.contact_email|default:'' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="country_code">{% trans "Country" %}</label>
+        <input id="country_code" class="form-control" name="country_code" maxlength="2" placeholder="US"
+               value="{{ form.country_code|default:'' }}">
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="contact_name">{% trans "Your name" %}</label>
+      <input id="contact_name" class="form-control" name="contact_name" maxlength="120"
+             value="{{ form.contact_name|default:'' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="website_url">{% trans "Website" %}</label>
+      <input id="website_url" class="form-control" type="url" name="website_url" placeholder="https://"
+             value="{{ form.website_url|default:'' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="intent">{% trans "What do you intend to build?" %}</label>
+      <textarea id="intent" class="form-control" name="intent" rows="4">{{ form.intent|default:'' }}</textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">{% trans "Submit application" %}</button>
+  </form>
+</div>
+{% endblock %}
