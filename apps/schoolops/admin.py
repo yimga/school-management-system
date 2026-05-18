@@ -10,12 +10,15 @@ from .models import (
     Campus,
     HealthRecord,
     Hostel,
+    HostelAssignment,
     HostelRoom,
     InventoryItem,
     LibraryItem,
     LibraryLoan,
+    MealPlanBalance,
     Route,
     Stop,
+    TransportAssignment,
 )
 
 
@@ -34,10 +37,22 @@ class InventoryItemAdmin(admin.ModelAdmin):
     search_fields = ("name", "location")
 
 
+class TransportAssignmentInline(admin.TabularInline):
+    model = TransportAssignment
+    extra = 0
+    fields = (
+        "student", "pickup_stop", "dropoff_stop",
+        "effective_from", "effective_to", "status",
+    )
+    raw_id_fields = ("student",)
+    show_change_link = True
+
+
 @admin.register(Route, site=tenant_admin_site)
 class RouteAdmin(admin.ModelAdmin):
     list_display = ("name", "school", "is_active")
     list_filter = ("school", "is_active")
+    inlines = [TransportAssignmentInline]
 
 
 @admin.register(Stop, site=tenant_admin_site)
@@ -60,11 +75,34 @@ class HostelAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
+class HostelAssignmentInline(admin.TabularInline):
+    model = HostelAssignment
+    extra = 0
+    fields = (
+        "student", "bed_label",
+        "effective_from", "effective_to", "status",
+    )
+    raw_id_fields = ("student",)
+    show_change_link = True
+
+
 @admin.register(HostelRoom, site=tenant_admin_site)
 class HostelRoomAdmin(admin.ModelAdmin):
     list_display = ("name", "hostel", "capacity")
     list_filter = ("hostel__school",)
     raw_id_fields = ("hostel",)
+    inlines = [HostelAssignmentInline]
+
+
+class MealPlanBalanceInline(admin.TabularInline):
+    model = MealPlanBalance
+    extra = 0
+    fields = (
+        "student", "balance", "currency",
+        "low_balance_threshold", "status",
+    )
+    raw_id_fields = ("student",)
+    show_change_link = True
 
 
 @admin.register(CanteenMeal, site=tenant_admin_site)
@@ -73,6 +111,7 @@ class CanteenMealAdmin(admin.ModelAdmin):
     list_filter = ("school", "is_active")
     search_fields = ("name", "school__name")
     raw_id_fields = ("school",)
+    inlines = [MealPlanBalanceInline]
 
 
 @admin.register(HealthRecord, site=tenant_admin_site)
@@ -134,3 +173,70 @@ class LibraryLoanAdmin(admin.ModelAdmin):
     list_filter = ("school",)
     raw_id_fields = ("school", "item", "borrower")
     date_hierarchy = "checked_out_at"
+
+
+# ---------------------------------------------------------------------------
+# v3.32.0 — First-class per-student assignment admin (Agent 4 wave).
+# Registers list / filter / search pages for the three v3.31 promoted
+# join models. Reverse-relation inlines are wired on the parent admins
+# (Route / HostelRoom / CanteenMeal) above.
+# ---------------------------------------------------------------------------
+
+
+@admin.register(TransportAssignment, site=tenant_admin_site)
+class TransportAssignmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "student", "route", "pickup_stop", "dropoff_stop",
+        "effective_from", "effective_to", "status", "school",
+    )
+    list_filter = ("status", "school", "route")
+    search_fields = (
+        "student__first_name", "student__last_name",
+        "student__admission_number", "student__student_code",
+        "route__name", "pickup_stop", "dropoff_stop",
+    )
+    raw_id_fields = ("student", "route", "school")
+    date_hierarchy = "effective_from"
+
+
+@admin.register(HostelAssignment, site=tenant_admin_site)
+class HostelAssignmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "student", "room", "bed_label",
+        "effective_from", "effective_to", "status", "school",
+    )
+    list_filter = ("status", "school", "room__hostel")
+    search_fields = (
+        "student__first_name", "student__last_name",
+        "student__admission_number", "student__student_code",
+        "room__name", "bed_label",
+    )
+    raw_id_fields = ("student", "room", "school")
+    date_hierarchy = "effective_from"
+
+
+@admin.register(MealPlanBalance, site=tenant_admin_site)
+class MealPlanBalanceAdmin(admin.ModelAdmin):
+    list_display = (
+        "id", "student", "meal_plan", "balance", "currency",
+        "is_low_display", "low_balance_threshold",
+        "last_topup_at", "low_balance_notification_count",
+        "last_low_balance_notification_sent_at", "status",
+    )
+    list_filter = ("status", "school", "meal_plan", "currency")
+    search_fields = (
+        "student__first_name", "student__last_name",
+        "student__admission_number", "student__student_code",
+        "meal_plan__name",
+    )
+    raw_id_fields = ("student", "meal_plan", "school")
+    readonly_fields = (
+        "last_topup_at", "last_topup_amount",
+        "last_low_balance_notification_sent_at",
+        "low_balance_notification_count",
+    )
+
+    def is_low_display(self, obj):
+        return obj.is_low
+    is_low_display.boolean = True
+    is_low_display.short_description = "Low?"

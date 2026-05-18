@@ -1,0 +1,2870 @@
+{
+  "version": "2026-05-18",
+  "count": 477,
+  "operator_count": 302,
+  "admin_changelist_count": 175,
+  "routes": [
+    {
+      "path": "/",
+      "name": "home",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/academics/",
+      "name": "manager_legacy_academics",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/admin/",
+      "name": "index",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/user/",
+      "name": "accounts_user_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/developerapplication/",
+      "name": "apicenter_developerapplication_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/marketplaceextensionsubmission/",
+      "name": "apicenter_marketplaceextensionsubmission_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/oauthauthorizationcode/",
+      "name": "apicenter_oauthauthorizationcode_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/oauthtokenpair/",
+      "name": "apicenter_oauthtokenpair_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/automation/automationapprovalqueue/",
+      "name": "automation_automationapprovalqueue_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/automation/automationexecutionlog/",
+      "name": "automation_automationexecutionlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/automation/migrationplaybook/",
+      "name": "automation_migrationplaybook_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/automation/migrationprofile/",
+      "name": "automation_migrationprofile_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/automation/migrationquarantinerecord/",
+      "name": "automation_migrationquarantinerecord_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/automation/migrationrun/",
+      "name": "automation_migrationrun_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/billingaccount/",
+      "name": "billing_billingaccount_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/billingprocessorsyncevent/",
+      "name": "billing_billingprocessorsyncevent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/entitlement/",
+      "name": "billing_entitlement_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/platformbillingprocessorconfig/",
+      "name": "billing_platformbillingprocessorconfig_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/platformledgerentry/",
+      "name": "billing_platformledgerentry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/quote/",
+      "name": "billing_quote_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/revenuesharepayout/",
+      "name": "billing_revenuesharepayout_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/stripeplanprice/",
+      "name": "billing_stripeplanprice_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/tenantsubscription/",
+      "name": "billing_tenantsubscription_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/usagemeter/",
+      "name": "billing_usagemeter_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/brandprofile/",
+      "name": "brand_experience_brandprofile_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/brandsettings/",
+      "name": "brand_experience_brandsettings_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/designtemplate/",
+      "name": "brand_experience_designtemplate_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/globalbrandregistry/",
+      "name": "brand_experience_globalbrandregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/platformglobalbranding/",
+      "name": "brand_experience_platformglobalbranding_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/themepack/",
+      "name": "brand_experience_themepack_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/auditlog/",
+      "name": "compliance_auditlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/educationsystemprofile/",
+      "name": "global_registries_educationsystemprofile_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/province/",
+      "name": "global_registries_province_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/systemfeature/",
+      "name": "global_registries_systemfeature_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/tenantsystem/",
+      "name": "global_registries_tenantsystem_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/weatherlocation/",
+      "name": "global_registries_weatherlocation_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/appauditlog/",
+      "name": "integrations_marketplace_appauditlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/appbillingledger/",
+      "name": "integrations_marketplace_appbillingledger_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/appinstallation/",
+      "name": "integrations_marketplace_appinstallation_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/appscope/",
+      "name": "integrations_marketplace_appscope_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/appversioncompat/",
+      "name": "integrations_marketplace_appversioncompat_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/capabilityregistry/",
+      "name": "integrations_marketplace_capabilityregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/integration/",
+      "name": "integrations_marketplace_integration_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/marketplaceapp/",
+      "name": "integrations_marketplace_marketplaceapp_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/marketplacelisting/",
+      "name": "integrations_marketplace_marketplacelisting_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/marketplacereview/",
+      "name": "integrations_marketplace_marketplacereview_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/publisherorganization/",
+      "name": "integrations_marketplace_publisherorganization_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/scopegrant/",
+      "name": "integrations_marketplace_scopegrant_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/serviceintegration/",
+      "name": "integrations_marketplace_serviceintegration_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/appauditlog/",
+      "name": "marketplace_appauditlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/appbillingledger/",
+      "name": "marketplace_appbillingledger_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/appinstallation/",
+      "name": "marketplace_appinstallation_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/apppermissionscope/",
+      "name": "marketplace_apppermissionscope_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/apprating/",
+      "name": "marketplace_apprating_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/appscope/",
+      "name": "marketplace_appscope_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/appversion/",
+      "name": "marketplace_appversion_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/appversioncompat/",
+      "name": "marketplace_appversioncompat_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/capabilityregistry/",
+      "name": "marketplace_capabilityregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/marketplaceapp/",
+      "name": "marketplace_marketplaceapp_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/marketplacelisting/",
+      "name": "marketplace_marketplacelisting_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/marketplacereview/",
+      "name": "marketplace_marketplacereview_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/publisherorganization/",
+      "name": "marketplace_publisherorganization_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/publishersignuprequest/",
+      "name": "marketplace_publishersignuprequest_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/scopegrant/",
+      "name": "marketplace_scopegrant_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/webhookdelivery/",
+      "name": "marketplace_webhookdelivery_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/marketplace/webhookendpoint/",
+      "name": "marketplace_webhookendpoint_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/configmutationauditlog/",
+      "name": "metadata_configmutationauditlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/dynamicfielddefinition/",
+      "name": "metadata_dynamicfielddefinition_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/dynamicfieldvalue/",
+      "name": "metadata_dynamicfieldvalue_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/entitycatalogentry/",
+      "name": "metadata_entitycatalogentry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/migration_cloud/migrationartifact/",
+      "name": "migration_cloud_migrationartifact_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/migration_cloud/migrationasset/",
+      "name": "migration_cloud_migrationasset_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/migration_cloud/migrationbundle/",
+      "name": "migration_cloud_migrationbundle_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/migration_cloud/migrationconflict/",
+      "name": "migration_cloud_migrationconflict_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/migration_cloud/migrationidmapping/",
+      "name": "migration_cloud_migrationidmapping_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/migration_cloud/migrationprogressevent/",
+      "name": "migration_cloud_migrationprogressevent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/observability/anomalydetection/",
+      "name": "observability_anomalydetection_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/observability/frictionevent/",
+      "name": "observability_frictionevent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/observability/healthcheckalert/",
+      "name": "observability_healthcheckalert_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/observability/performancetrace/",
+      "name": "observability_performancetrace_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/observability/platformincident/",
+      "name": "observability_platformincident_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/observability/systemhealthmetric/",
+      "name": "observability_systemhealthmetric_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/packages/documentpack/",
+      "name": "packages_documentpack_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/packages/experiencepack/",
+      "name": "packages_experiencepack_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/packages/installedpackage/",
+      "name": "packages_installedpackage_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/packages/packagechangelog/",
+      "name": "packages_packagechangelog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/packages/packageversion/",
+      "name": "packages_packageversion_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/password_change/done/",
+      "name": "password_change_done",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/eventwebhookdelivery/",
+      "name": "platform_runtime_eventwebhookdelivery_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/eventwebhooksubscription/",
+      "name": "platform_runtime_eventwebhooksubscription_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/fleetgovernedchange/",
+      "name": "platform_runtime_fleetgovernedchange_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/pilotdefect/",
+      "name": "platform_runtime_pilotdefect_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformeventlog/",
+      "name": "platform_runtime_platformeventlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformintegrationwebhookevent/",
+      "name": "platform_runtime_platformintegrationwebhookevent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorcommandcenterlink/",
+      "name": "platform_runtime_platformoperatorcommandcenterlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatormigrationcloudlink/",
+      "name": "platform_runtime_platformoperatormigrationcloudlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatororchestrationworkbenchlink/",
+      "name": "platform_runtime_platformoperatororchestrationworkbenchlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorphaseblink/",
+      "name": "platform_runtime_platformoperatorphaseblink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorplatformhublink/",
+      "name": "platform_runtime_platformoperatorplatformhublink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorplaybooklink/",
+      "name": "platform_runtime_platformoperatorplaybooklink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorsuperanalyticsoverviewlink/",
+      "name": "platform_runtime_platformoperatorsuperanalyticsoverviewlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorsuperdashboardlink/",
+      "name": "platform_runtime_platformoperatorsuperdashboardlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorsuperschoolslistlink/",
+      "name": "platform_runtime_platformoperatorsuperschoolslistlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorsupportdashboardlink/",
+      "name": "platform_runtime_platformoperatorsupportdashboardlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatortenanthealthlink/",
+      "name": "platform_runtime_platformoperatortenanthealthlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatortruthhublink/",
+      "name": "platform_runtime_platformoperatortruthhublink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformoperatorworkflowsimulatorlink/",
+      "name": "platform_runtime_platformoperatorworkflowsimulatorlink_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformphasebdomainsnapshot/",
+      "name": "platform_runtime_platformphasebdomainsnapshot_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/platformreportplatformskudefault/",
+      "name": "platform_runtime_platformreportplatformskudefault_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/runtimedefaults/",
+      "name": "platform_runtime_runtimedefaults_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/blueprintcompatibilityrule/",
+      "name": "policies_blueprintcompatibilityrule_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/countryprofile/",
+      "name": "policies_countryprofile_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/policycompatibilityrule/",
+      "name": "policies_policycompatibilityrule_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/academicterminologyregistry/",
+      "name": "registries_academicterminologyregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/calendarsystemregistry/",
+      "name": "registries_calendarsystemregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/countryregistry/",
+      "name": "registries_countryregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/currencyregistry/",
+      "name": "registries_currencyregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/documenttyperegistry/",
+      "name": "registries_documenttyperegistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/educationlevelregistry/",
+      "name": "registries_educationlevelregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/educationsystemtyperegistry/",
+      "name": "registries_educationsystemtyperegistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/feecategoryregistry/",
+      "name": "registries_feecategoryregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/gradescaleregistry/",
+      "name": "registries_gradescaleregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/institutiontyperegistry/",
+      "name": "registries_institutiontyperegistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/localeregistry/",
+      "name": "registries_localeregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/subdivisionregistry/",
+      "name": "registries_subdivisionregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/registries/timezoneregistry/",
+      "name": "registries_timezoneregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/blueprintcompatibilityrule/",
+      "name": "runtime_blueprints_blueprintcompatibilityrule_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/blueprintpack/",
+      "name": "runtime_blueprints_blueprintpack_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardlayout/",
+      "name": "runtime_blueprints_dashboardlayout_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardpack/",
+      "name": "runtime_blueprints_dashboardpack_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardpackassignment/",
+      "name": "runtime_blueprints_dashboardpackassignment_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardtemplate/",
+      "name": "runtime_blueprints_dashboardtemplate_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardwidget/",
+      "name": "runtime_blueprints_dashboardwidget_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/formdraft/",
+      "name": "runtime_blueprints_formdraft_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/superadmindashboardpreference/",
+      "name": "runtime_blueprints_superadmindashboardpreference_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/tenantblueprint/",
+      "name": "runtime_blueprints_tenantblueprint_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowpack/",
+      "name": "runtime_blueprints_workflowpack_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowpackassignment/",
+      "name": "runtime_blueprints_workflowpackassignment_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowtemplate/",
+      "name": "runtime_blueprints_workflowtemplate_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/sales/lead/",
+      "name": "sales_lead_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/sales/pipelinestage/",
+      "name": "sales_pipelinestage_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/school/",
+      "name": "schools_school_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/schoolmembership/",
+      "name": "schools_schoolmembership_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/schoolprovisioningevent/",
+      "name": "schools_schoolprovisioningevent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/tenantapiusage/",
+      "name": "schools_tenantapiusage_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/tenantquotalimit/",
+      "name": "schools_tenantquotalimit_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/aiembeddingstore/",
+      "name": "siteconfig_aiembeddingstore_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/aigatewaymetric/",
+      "name": "siteconfig_aigatewaymetric_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/aimodelregistry/",
+      "name": "siteconfig_aimodelregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/aipromptregistry/",
+      "name": "siteconfig_aipromptregistry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/billingwaiverauditlog/",
+      "name": "siteconfig_billingwaiverauditlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/blogpost/",
+      "name": "siteconfig_blogpost_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/breakglassoverride/",
+      "name": "siteconfig_breakglassoverride_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/broadcastcampaign/",
+      "name": "siteconfig_broadcastcampaign_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/customfeatureticket/",
+      "name": "siteconfig_customfeatureticket_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/customizer/",
+      "name": "",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/customnuance/",
+      "name": "siteconfig_customnuance_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featurecontrolaudit/",
+      "name": "siteconfig_featurecontrolaudit_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featurefragment/",
+      "name": "siteconfig_featurefragment_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featuretogglestate/",
+      "name": "siteconfig_featuretogglestate_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featureusageevent/",
+      "name": "siteconfig_featureusageevent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/globalsupportticket/",
+      "name": "siteconfig_globalsupportticket_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/globalsupportticketreply/",
+      "name": "siteconfig_globalsupportticketreply_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/globalsupportticketwebhookendpoint/",
+      "name": "siteconfig_globalsupportticketwebhookendpoint_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/globalsyllabus/",
+      "name": "siteconfig_globalsyllabus_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/learningpassport/",
+      "name": "siteconfig_learningpassport_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/marketingcontent/",
+      "name": "siteconfig_marketingcontent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/officialreporttemplate/",
+      "name": "siteconfig_officialreporttemplate_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/pendingnuance/",
+      "name": "siteconfig_pendingnuance_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/productfeedback/",
+      "name": "siteconfig_productfeedback_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/regionalaiconfig/",
+      "name": "siteconfig_regionalaiconfig_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/reportcardstyle/",
+      "name": "siteconfig_reportcardstyle_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/reporttemplate/",
+      "name": "siteconfig_reporttemplate_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/revenuesnapshot/",
+      "name": "siteconfig_revenuesnapshot_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/syncconflict/",
+      "name": "siteconfig_syncconflict_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/tourstep/",
+      "name": "siteconfig_tourstep_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/waiverrequest/",
+      "name": "siteconfig_waiverrequest_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/workflowrunlog/",
+      "name": "siteconfig_workflowrunlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/automation/outcomes/",
+      "name": "outcomes_console",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/automation/workflow-template-gallery/",
+      "name": "workflow_template_gallery",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/automation/workflow-template-gallery/dry-run/",
+      "name": "workflow_template_dry_run",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/automation/workflows/designer/",
+      "name": "visual_workflow_designer",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/",
+      "name": "center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/blueprints/",
+      "name": "blueprint_marketplace",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/blueprints/apply/",
+      "name": "blueprint_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/blueprints/impact/",
+      "name": "blueprint_impact",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/blueprints/installations/",
+      "name": "blueprint_installations",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/blueprints/installations/rollback/",
+      "name": "blueprint_rollback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/blueprints/preview/",
+      "name": "blueprint_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/change-requests/",
+      "name": "change_requests",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/change-requests/apply/",
+      "name": "change_request_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/change-requests/approve/",
+      "name": "change_request_approve",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/change-requests/cancel/",
+      "name": "change_request_cancel",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/change-requests/reject/",
+      "name": "change_request_reject",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/change-requests/schedule/",
+      "name": "change_request_schedule",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/dashboard-packs/",
+      "name": "dashboard_packs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/dashboard-packs/apply/",
+      "name": "dashboard_pack_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/dashboard-packs/impact/",
+      "name": "dashboard_pack_impact",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/dashboard-packs/preview/",
+      "name": "dashboard_pack_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/dashboard-packs/simulate/",
+      "name": "dashboard_pack_simulation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/pack-installations/",
+      "name": "pack_installations",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/pack-installations/rollback/",
+      "name": "pack_rollback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/policy-bundles/",
+      "name": "policy_bundles",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/policy-bundles/apply/",
+      "name": "policy_bundle_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/policy-bundles/impact/",
+      "name": "policy_bundle_impact",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/policy-bundles/preview/",
+      "name": "policy_bundle_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/policy-bundles/simulate/",
+      "name": "policy_bundle_simulation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/registries/health/",
+      "name": "registry_health",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/workflow-packs/",
+      "name": "workflow_packs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/workflow-packs/apply/",
+      "name": "workflow_pack_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/workflow-packs/impact/",
+      "name": "workflow_pack_impact",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/workflow-packs/preview/",
+      "name": "workflow_pack_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/workflow-packs/simulate/",
+      "name": "workflow_pack_simulation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/feedback/",
+      "name": "manager_feedback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/help/",
+      "name": "manager_help",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/notifications/",
+      "name": "manager_notifications",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/offline/",
+      "name": "offline",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/offline/sync/",
+      "name": "manager_offline_sync_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/sales/",
+      "name": "pipeline_board",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/sales/first-100/",
+      "name": "first_100_schools_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/sales/leads/",
+      "name": "lead_detail",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/sales/leads/new/",
+      "name": "lead_create",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/sales/leads/stage/",
+      "name": "update_stage",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/act-as/",
+      "name": "set_act_as_role",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/ai-center/",
+      "name": "ai_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/ai/governance/",
+      "name": "ai_governance",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/app-sandbox/",
+      "name": "marketplace_sandbox_embed",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/automation/builder/",
+      "name": "school_automation_builder",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/billing/checkout/start/",
+      "name": "billing_checkout_start",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/billing/plan/",
+      "name": "billing_plan_readonly",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/billing/portal/",
+      "name": "billing_customer_portal",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/compliance/exports/",
+      "name": "compliance_exports",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/compliance/exports/download/",
+      "name": "compliance_export_download",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/configuration/guided/",
+      "name": "guided_configuration_workflows",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/configuration/runtime/",
+      "name": "tenant_runtime_configuration_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/console/",
+      "name": "console_domains_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/console/ai/rag/ingest/",
+      "name": "ai_rag_ingest_policy_docs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/curriculum/templates/",
+      "name": "curriculum_templates",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/customizer/",
+      "name": "legacy_customizer",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/customizer/clear-preview/",
+      "name": "legacy_customizer_clear_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/dashboard-configuration/",
+      "name": "dashboard_configuration_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/dashboard-hub/",
+      "name": "dashboard_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/dev/mascot/",
+      "name": "mascot_storybook",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/domains/",
+      "name": "custom_domain_wizard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/feature-control/",
+      "name": "feature_control_panel",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/feature-control/audit/",
+      "name": "feature_control_audit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/feature-control/ledger/",
+      "name": "feature_control_ledger",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/feature-control/weather-cities/",
+      "name": "feature_control_weather_cities",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/feedback-roadmap/",
+      "name": "feedback_roadmap",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/get-blueprints/",
+      "name": "get_blueprints",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/grading-scales/bands/",
+      "name": "grading_scale_bands",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/grading-scales/region-scales/",
+      "name": "region_grading_scales",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/grading-settings/",
+      "name": "grading_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/guided-onboarding/",
+      "name": "guided_onboarding",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/guided-onboarding/execute-launch/",
+      "name": "execute_launch",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/impersonation-consent/grant/",
+      "name": "grant_impersonation_consent",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/impersonation-consent/revoke/",
+      "name": "revoke_impersonation_consent",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/installed-packages/",
+      "name": "installed_packages_rollback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/maintenance/",
+      "name": "maintenance",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/metadata/config-mutation-audit/",
+      "name": "config_mutation_audit_evidence",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/metadata/dynamic-fields/",
+      "name": "metadata_dynamic_fields_operator",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/metadata/entity-catalog/",
+      "name": "entity_catalog_overview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/metadata/operator-hub/",
+      "name": "metadata_operator_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/modules/",
+      "name": "module_market",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/onboarding/",
+      "name": "onboarding",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/onboarding/step/",
+      "name": "onboarding_step",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/onboarding/step/complete/",
+      "name": "onboarding_step_complete",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/preferences/",
+      "name": "user_preferences",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/preferences/set-default-view/",
+      "name": "set_default_dashboard_view",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/preferences/theme/",
+      "name": "update_theme",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/preview-from-form/",
+      "name": "preview_from_form",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/preview/clear/",
+      "name": "clear_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/preview/toggle/",
+      "name": "toggle_preview_mode",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/regions/comparison/",
+      "name": "region_comparison",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/regions/validation/",
+      "name": "region_validation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/academic-years-setup/",
+      "name": "academic_years_setup_evidence",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/builder/",
+      "name": "reportcard_builder",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/bulk-letters/",
+      "name": "bulk_letters",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/departments-setup/",
+      "name": "departments_setup_evidence",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/download/",
+      "name": "report_download",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/embed-preview/",
+      "name": "reportcard_style_embed_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/live-preview/",
+      "name": "reportcard_style_live_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/northstar-ai/draft/",
+      "name": "northstar_ai_draft",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/output-history-evidence/",
+      "name": "report_output_history_evidence",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/preview/",
+      "name": "reportcard_style_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/preview/pdf/",
+      "name": "reportcard_style_pdf",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/report-templates-catalog/",
+      "name": "report_templates_catalog_evidence",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/scheduled/",
+      "name": "scheduled_reports_delivery_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/tenant-schedules-evidence/",
+      "name": "tenant_report_schedules_evidence",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/reports/term-publish-status/",
+      "name": "term_publish_status_evidence",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/request-custom-requirement/",
+      "name": "request_custom_requirement",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/request-waiver/",
+      "name": "request_waiver",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/school-theme/",
+      "name": "school_theme_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/schools/group-hierarchy/",
+      "name": "school_group_hierarchy",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/support-copilot/",
+      "name": "support_copilot",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/",
+      "name": "sync_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/resolve/",
+      "name": "sync_center_resolve",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/tag-manager/",
+      "name": "tag_manager",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/template-gallery/",
+      "name": "template_gallery",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/theme-colors/",
+      "name": "theme_colors",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/theme-colors/import-from-url/",
+      "name": "brand_import_from_url",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/theme-experience/",
+      "name": "theme_experience_redirect",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/workflow-gallery/",
+      "name": "workflow_flow_gallery",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/",
+      "name": "shell",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/audit/",
+      "name": "audit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/",
+      "name": "automation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/conflict-detection/",
+      "name": "automation_conflict_detection",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/dependency-graph/",
+      "name": "automation_dependency_graph",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/natural-language-workflow/",
+      "name": "automation_natural_language_workflow",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/replay-rollback/",
+      "name": "automation_replay_rollback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/simulation-engine/",
+      "name": "automation_simulation_engine",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/staged-activation/",
+      "name": "automation_staged_activation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/visual-builder/",
+      "name": "automation_visual_builder",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/automation/workflow-health/",
+      "name": "automation_workflow_health",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/control/",
+      "name": "control",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/control/ai-cleanup/",
+      "name": "ai_cleanup",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/control/impact/",
+      "name": "control_impact",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/control/system-config/",
+      "name": "system_config_console",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/",
+      "name": "experience",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/communication-style-packs/",
+      "name": "experience_communication_style_packs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/compare/",
+      "name": "experience_compare",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/dashboard-visual-packs/",
+      "name": "experience_dashboard_visual_packs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/experience-packs/",
+      "name": "experience_packs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/portal-shell-layouts/",
+      "name": "experience_portal_shell_layouts",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/recommendations/",
+      "name": "experience_recommendations",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/school-website-blocks/",
+      "name": "experience_school_website_blocks",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/theme-tokens/",
+      "name": "experience_theme_tokens",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/hubs/approvals/",
+      "name": "approval_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/hubs/import/",
+      "name": "import_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/hubs/workflow/",
+      "name": "workflow_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/launch/",
+      "name": "launch",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/launch/select-plan/",
+      "name": "launch_select_plan",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/operator-school/",
+      "name": "set_operator_school",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/output/",
+      "name": "output",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/output/branding-inheritance/",
+      "name": "output_branding_inheritance",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/output/dependency-graph/",
+      "name": "output_dependency_graph",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/output/policy-registry/",
+      "name": "output_policy_registry",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/preview/",
+      "name": "preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/publish/",
+      "name": "publish",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/recommendations/",
+      "name": "recommendations",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/rollback/",
+      "name": "rollback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/save-draft/",
+      "name": "save_draft",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/search/",
+      "name": "global_search",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/version-history/",
+      "name": "version_history",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/",
+      "name": "dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/",
+      "name": "admin_bridge",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/ai-model-registry/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/fleet-governed-changes/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/global-brand-registry/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/integrations-marketplace/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/marketplace-apps/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/packages/experience-packs/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/packages/installed/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/admin-bridge/runtime-defaults/",
+      "name": "",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/advancement/",
+      "name": "advancement_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/advancement/phase2/",
+      "name": "advancement_phase2_placeholder",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/ai-gateway-console/",
+      "name": "ai_gateway_console",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/ai-model-hub/",
+      "name": "ai_model_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/analytics/",
+      "name": "analytics_overview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/backlog-unlock-center/",
+      "name": "backlog_unlock_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/billing-accounts/",
+      "name": "billing_accounts_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/billing/",
+      "name": "billing_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/blueprints/",
+      "name": "blueprints_catalog",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/command-center/",
+      "name": "command_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/compliance/",
+      "name": "compliance_overview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/",
+      "name": "config_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/country-multipliers/",
+      "name": "country_multipliers_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/country-multipliers/add/",
+      "name": "country_multiplier_add",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/country-multipliers/delete/",
+      "name": "country_multiplier_delete",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/country-multipliers/edit/",
+      "name": "country_multiplier_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/feature-toggles/",
+      "name": "feature_toggles_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/feature-toggles/add/",
+      "name": "feature_toggle_add",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/feature-toggles/delete/",
+      "name": "feature_toggle_delete",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/feature-toggles/edit/",
+      "name": "feature_toggle_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/grading/",
+      "name": "grading_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/grading/add/",
+      "name": "grading_add",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/grading/delete/",
+      "name": "grading_delete",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/grading/edit/",
+      "name": "grading_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/plan-addons/add/",
+      "name": "plan_addon_add",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/plan-addons/delete/",
+      "name": "plan_addon_delete",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/plan-addons/edit/",
+      "name": "plan_addon_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/plans/",
+      "name": "plans_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/plans/add/",
+      "name": "plan_add",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/plans/delete/",
+      "name": "plan_delete",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/plans/edit/",
+      "name": "plan_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/regions/",
+      "name": "regions_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/regions/add/",
+      "name": "region_add",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/regions/delete/",
+      "name": "region_delete",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/regions/edit/",
+      "name": "region_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/config/site-settings/",
+      "name": "site_settings_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/create/",
+      "name": "create_school_wizard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/curriculum-packs/",
+      "name": "curriculum_packs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/customer-success/",
+      "name": "customer_success_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/dashboard-packs/",
+      "name": "dashboard_packs_catalog",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/district-enterprise/",
+      "name": "district_enterprise",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/education-systems/",
+      "name": "education_systems",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/enterprise-security-command-center/",
+      "name": "enterprise_security_command_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/fleet-governed-changes/",
+      "name": "fleet_governed_changes",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/founder/",
+      "name": "founder_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/geography/",
+      "name": "geography",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/global-ai-version/",
+      "name": "global_ai_version",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/global-ai-version/progress/",
+      "name": "global_ai_version_progress",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/group-campuses/",
+      "name": "group_campuses",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/he-pack/",
+      "name": "he_pack",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/health/",
+      "name": "control_health",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/incidents/",
+      "name": "incidents_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/learning-delivery-packs/",
+      "name": "learning_delivery_packs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace-governance/",
+      "name": "marketplace_governance_alias",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/",
+      "name": "marketplace_governance",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/activate-sandbox/",
+      "name": "marketplace_activate_sandbox",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/apps/",
+      "name": "app_catalog",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/apps/install-impact-preview/",
+      "name": "marketplace_install_impact_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/blueprints/",
+      "name": "blueprint_marketplace",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/compatibility/",
+      "name": "marketplace_compatibility",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/health/",
+      "name": "marketplace_installation_health",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/incidents/",
+      "name": "marketplace_incident_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/package-promote/",
+      "name": "package_promote",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/package-rollout/",
+      "name": "package_rollout",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/publisher/",
+      "name": "marketplace_publisher_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/publisher/apps/versions/",
+      "name": "marketplace_app_versions",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/publisher/apps/webhooks/",
+      "name": "marketplace_webhook_endpoints",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/publisher/apps/webhooks/edit/",
+      "name": "marketplace_webhook_endpoint_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/publisher/webhooks/",
+      "name": "marketplace_publisher_webhook_log",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/ratings/reply/",
+      "name": "marketplace_publisher_reply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/refresh-installation/",
+      "name": "marketplace_refresh_installation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/reviews/action/",
+      "name": "marketplace_review_action",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/sandbox/",
+      "name": "marketplace_sandbox_inspector",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/signups/",
+      "name": "marketplace_signup_review_queue",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/signups/decide/",
+      "name": "marketplace_signup_decide",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/metadata-catalog/",
+      "name": "metadata_catalog",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/metadata-catalog/impact/",
+      "name": "metadata_catalog_field_impact",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration-runs/",
+      "name": "migration_runs_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/",
+      "name": "migration_cloud",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/csv-diff/",
+      "name": "migration_csv_diff",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/exception-ack/",
+      "name": "migration_exception_ack",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/quarantine-waive/",
+      "name": "migration_quarantine_waive",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/registry/",
+      "name": "migration_profile_registry",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/rollback/",
+      "name": "migration_rollback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/ministry-report-stubs/",
+      "name": "ministry_report_stubs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/ministry-stub-pdf/",
+      "name": "ministry_stub_pdf",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/native-roster-connectors/",
+      "name": "native_roster_connectors",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/one-sis-any-lms/",
+      "name": "one_sis_any_lms",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/operator-policy/",
+      "name": "operator_policy",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/orchestration/",
+      "name": "orchestration_workbench",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/orchestration/runs/retry/",
+      "name": "orchestration_retry_run",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/phase-b-snapshot-diff/",
+      "name": "phase_b_snapshot_diff",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/platform-operator-hub/",
+      "name": "platform_operator_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/playbook-operator-hub/",
+      "name": "playbook_operator_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/policies/",
+      "name": "policies_catalog",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/policy-diff/",
+      "name": "policy_diff",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/policy-diff/apply-to-sandbox/",
+      "name": "policy_apply_to_sandbox",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/pulse/",
+      "name": "pulse",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/registries/",
+      "name": "registries_overview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/runtime-inspector/",
+      "name": "runtime_inspector",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/runtime-truth-hub/",
+      "name": "runtime_truth_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/schools/",
+      "name": "schools_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/security/",
+      "name": "security_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/security/command-center/",
+      "name": "security_command_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/security/surface/",
+      "name": "security_surface_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/support/",
+      "name": "support_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/support/assign/",
+      "name": "support_assign_ticket",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/support/csat/",
+      "name": "support_csat_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/support/queue/",
+      "name": "support_queue_fragment",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/support/ticket/",
+      "name": "support_ticket_detail",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/switch-to-tenant/",
+      "name": "switch_to_tenant",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/sync-repair/",
+      "name": "sync_repair",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/tenant-health/",
+      "name": "tenant_health",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/tenants/360/",
+      "name": "tenant_360",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/tools/governed-query/",
+      "name": "governed_data_query",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/tools/legacy-csv-preview/",
+      "name": "legacy_csv_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/trust/",
+      "name": "trust_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/trust/platform-events/",
+      "name": "platform_events",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/usage/",
+      "name": "usage",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/wedge/",
+      "name": "wedge_index",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/workflow-packs/",
+      "name": "workflow_packs_catalog",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/workflow-simulator/",
+      "name": "workflow_simulator",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/support/",
+      "name": "manager_support_request",
+      "tier": "operator",
+      "sweep": true
+    }
+  ]
+}

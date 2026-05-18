@@ -64,6 +64,7 @@ _STEP_ERRORS = (
 # Order chosen so dependents follow their dependencies (packages before
 # experience packs; glossary before entity catalog).
 _PUBLIC_EXTRA_STEPS = [
+    ("seed_studio_os", "Studio OS SetupStepDefinition master rows"),
     ("seed_marketplace_scopes", "Marketplace permission scopes"),
     ("seed_first_party_apps", "First-party PackageVersion records"),
     ("seed_phase9_first_party_packages", "Phase 9 package definitions"),

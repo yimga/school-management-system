@@ -1,0 +1,18 @@
+{% load i18n %}
+{% if results %}
+<div class="rmc-os-finder-result">
+  {% for school in results %}
+  <a href="{{ school.portal_url }}" class="rmc-os-finder-result__item">
+    <span>
+      <span class="fw-semibold d-block">{{ school.name }}</span>
+      <span class="rmc-os-finder-result__slug">{{ school.slug }}{% if school.subdomain %} · {{ school.subdomain }}{% endif %}</span>
+    </span>
+    <span class="fw-semibold">{% trans "Open portal" %} →</span>
+  </a>
+  {% endfor %}
+</div>
+{% elif query %}
+<div class="alert alert-warning mb-0" role="status">{% trans "No matching school found. Check spelling, try a shorter name, or use email discovery." %}</div>
+{% else %}
+<p class="rmc-os-muted-copy mb-0">{% trans "Start typing your school name, slug, or domain fragment." %}</p>
+{% endif %}

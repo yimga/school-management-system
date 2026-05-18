@@ -38,28 +38,6 @@
   var SCROLL_ROOT_SELECTORS =
     "#cp-main-content, #main-content, main[role='main'], main";
 
-  // #region agent log
-  function agentLog(hypothesisId, message, data) {
-    try {
-      fetch("http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "7911e1",
-        },
-        body: JSON.stringify({
-          sessionId: "7911e1",
-          hypothesisId: hypothesisId,
-          location: "rmc-reveal.js",
-          message: message,
-          data: data || {},
-          timestamp: Date.now(),
-        }),
-      }).catch(function () {});
-    } catch (_e) {}
-  }
-  // #endregion
-
   function prefersReducedMotion() {
     try {
       return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -191,68 +169,58 @@
     observeAll(observer, document);
     revealVisibleInRoot(scrollRoot);
 
-    // #region agent log
-    agentLog("H1", "reveal init", {
-      scrollRootId: scrollRoot ? scrollRoot.id || scrollRoot.tagName : null,
-      scrollRootTag: scrollRoot ? scrollRoot.tagName : null,
-      usesIoRoot: !!scrollRoot,
-      mainScrollH: scrollRoot ? scrollRoot.scrollHeight : null,
-      mainClientH: scrollRoot ? scrollRoot.clientHeight : null,
-      reveal: countRevealState(),
-    });
-    // #endregion
-
     if (scrollRoot) {
+      function revealAllInScrollRoot() {
+        scrollRoot
+          .querySelectorAll(".rmc-reveal:not(.is-revealed)")
+          .forEach(revealNow);
+      }
+
       var scrollTimer = null;
-      var scrollRootUnlocked = false;
       function onScrollRootScroll() {
         if (scrollTimer) return;
         scrollTimer = window.setTimeout(function () {
           scrollTimer = null;
-          var before = countRevealState();
-          if (!scrollRootUnlocked && scrollRoot.scrollTop > 0) {
-            scrollRootUnlocked = true;
-            scrollRoot
-              .querySelectorAll(".rmc-reveal:not(.is-revealed)")
-              .forEach(revealNow);
-            // #region agent log
-            agentLog("H3", "scroll-root unlock on first scroll", {
-              path: window.location.pathname,
-              before: before,
-              after: countRevealState(),
-            });
-            // #endregion
-            return;
-          }
           revealVisibleInRoot(scrollRoot);
           var nearEnd =
             scrollRoot.scrollTop + scrollRoot.clientHeight >=
             scrollRoot.scrollHeight - 48;
           if (nearEnd) {
-            scrollRoot
-              .querySelectorAll(".rmc-reveal:not(.is-revealed)")
-              .forEach(revealNow);
-          }
-          var after = countRevealState();
-          if (after.unrevealed < before.unrevealed) {
-            // #region agent log
-            agentLog("H3", "scroll reveal catch-up", {
-              path: window.location.pathname,
-              nearEnd: nearEnd,
-              before: before,
-              after: after,
-            });
-            // #endregion
+            revealAllInScrollRoot();
           }
         }, 48);
       }
+
+      function onFirstUserScrollIntent() {
+        revealAllInScrollRoot();
+      }
+
       scrollRoot.addEventListener("scroll", onScrollRootScroll, { passive: true });
+      scrollRoot.addEventListener("wheel", onFirstUserScrollIntent, {
+        passive: true,
+        once: true,
+      });
+      scrollRoot.addEventListener(
+        "touchstart",
+        onFirstUserScrollIntent,
+        { passive: true, once: true }
+      );
+
       window.requestAnimationFrame(function () {
         window.requestAnimationFrame(function () {
           revealVisibleInRoot(scrollRoot);
           onScrollRootScroll();
         });
       });
+
+      // Never strand below-fold cards when the shell column scrolls (manager
+      // / portal / admin). IO + scroll catch-up can miss headless/programmatic
+      // scroll; this fallback matches user-visible content within one frame budget.
+      window.setTimeout(function () {
+        if (countRevealState().unrevealed > 0) {
+          revealAllInScrollRoot();
+        }
+      }, 400);
     }
 
     // HTMX support: re-scan after content swaps.

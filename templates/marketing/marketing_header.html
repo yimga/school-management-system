@@ -101,10 +101,11 @@
         {% if not PUBLIC_BRAND_MODE %}
         {% include "marketing/components/_theme_toggle.html" %}
         {% endif %}
-        <a class="mkt-status-pill" href="{% url 'marketing_trust_dedicated' %}" data-mkt-status aria-label="{% trans 'Platform status' %}" title="{% trans 'Platform status' %}">
+        <a class="mkt-status-pill" href="{% url 'status' %}" data-mkt-status aria-label="{% trans 'Platform status' %}" title="{% trans 'Platform status' %}">
           <span class="mkt-status-pill__dot" aria-hidden="true"></span>
           <span class="mkt-status-pill__label" data-mkt-status-label>{% trans "All systems operational" %}</span>
         </a>
+        <a class="btn btn-sm btn-outline-light d-none d-lg-inline-flex" href="{% url 'find_school' %}">{% trans "Find campus" %}</a>
         {% if not PUBLIC_BRAND_MODE %}{% include "marketing/components/_language_switcher.html" %}{% endif %}
         <a class="nav-link mkt-nav-utility py-1 px-2 small" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
         <a class="btn btn-cta-primary btn-sm" href="{% url 'marketing_demo' %}" data-cta="demo" data-page="header">{% trans "Book demo" %}</a>

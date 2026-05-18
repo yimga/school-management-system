@@ -53,7 +53,7 @@ _KNOWN_SAFE_LITERALS = (
     "transparent", "currentcolor", "inherit", "initial", "unset",
 )
 _THEME_BLOCK = re.compile(
-    r"(:root\b|\[data-(?:bs-)?theme[^\]]*\]|\[data-rmc-[^\]]*\]|@media\s*\(\s*prefers-color-scheme)",
+    r"(:root\b|\[data-(?:bs-|resolved-)?theme[^\]]*\]|\[data-rmc-[^\]]*\]|@media\s*\(\s*prefers-color-scheme)",
     re.IGNORECASE,
 )
 _ALLOW_MARKER = re.compile(r"/\*\s*off-token-allow:[^*]+\*/")

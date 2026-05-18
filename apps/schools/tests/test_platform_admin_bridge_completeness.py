@@ -59,3 +59,25 @@ class PlatformAdminBridgeCompletenessTests(TestCase):
                 admin_url = PLATFORM_ADMIN_BRIDGES[key]["admin_url"]
                 needle = _admin_changelist_path_tail(str(admin_url))
                 self.assertIn(needle, r.get("Location", "").lower(), msg=key)
+
+    def test_show_in_nav_bridge_keys_redirect(self):
+        """Every show_in_nav registry entry must 302 via super:admin_bridge."""
+        user = User.objects.create_user(
+            username="bridge_show_in_nav",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(user)
+        cache.clear()
+        for key in PLATFORM_ADMIN_BRIDGE_ORDER:
+            meta = PLATFORM_ADMIN_BRIDGES.get(key)
+            if not meta or not meta.get("show_in_nav"):
+                continue
+            with self.subTest(key=key):
+                url = reverse("super:admin_bridge", kwargs={"bridge_key": key})
+                r = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
+                self.assertEqual(r.status_code, 302, key)
+                admin_url = meta["admin_url"]
+                needle = _admin_changelist_path_tail(str(admin_url))
+                self.assertIn(needle, r.get("Location", "").lower(), msg=key)

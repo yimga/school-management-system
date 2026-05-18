@@ -14,9 +14,10 @@
   --vis-link: color-mix(in srgb, var(--school-primary, var(--color-indigo-500)) 72%, var(--vis-text) 28%);
 }
 
+/* v3 (2026-05-18): `data-theme` always carries the effective theme, so the
+   `data-theme="system"+data-resolved-theme=...` compound was retired. */
 html[data-theme="dark"],
 html[data-resolved-theme="dark"],
-html[data-theme="system"][data-resolved-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark,
 body.portal-backend-black,

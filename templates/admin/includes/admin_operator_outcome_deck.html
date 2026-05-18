@@ -27,14 +27,7 @@
   <div class="flex flex-wrap gap-2 mt-3">
     {% for link in admin_outcome_deck.admin_deck_links %}
     <span class="d-inline-flex align-items-center gap-1 flex-wrap">
-      <a href="{{ link.url }}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium hover:bg-base-100 dark:border-base-600 dark:hover:bg-base-700">{{ link.label }}</a>
-      {% if link.stability == "danger" %}
-      <span class="badge text-xs rounded px-1.5 py-0.5 bg-red-600 text-white">{% trans "danger" %}</span>
-      {% elif link.stability == "beta" %}
-      <span class="badge text-xs rounded px-1.5 py-0.5 bg-amber-500 text-base-900">{% trans "beta" %}</span>
-      {% else %}
-      <span class="badge text-xs rounded px-1.5 py-0.5 bg-base-200 text-base-800 dark:bg-base-600 dark:text-base-100">{% trans "stable" %}</span>
-      {% endif %}
+      <a href="{{ link.url }}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium hover:bg-base-100 dark:border-base-600 dark:hover:bg-base-700" data-operator-stability="{{ link.stability }}">{{ link.label }}</a>
     </span>
     {% endfor %}
   </div>

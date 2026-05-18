@@ -130,7 +130,7 @@ urlpatterns = [
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
     # Health endpoint at /status/ (same as tenant/manager). Render can use /health/ or /status/ for healthCheckPath.
-    path("status/", obs_views.public_health, name="status"),
+    path("status/", obs_views.public_status, name="status"),
     path("api/caddy-check/", verify_caddy_domain),
     path("api/v1/auth/check-domain/", verify_caddy_domain),
     path("discover/", global_login_discovery, name="global_login_discovery"),

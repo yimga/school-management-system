@@ -1,0 +1,1407 @@
+{
+  "version": "2026-05-18",
+  "slug": "demo-school",
+  "count": 200,
+  "routes": [
+    {
+      "path": "/t/demo-school/authentication/",
+      "inner": "/authentication/",
+      "name": "root",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend-dashboard/",
+      "inner": "/authentication/backend-dashboard/",
+      "name": "backend_dashboard_alt",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/",
+      "inner": "/authentication/backend/",
+      "name": "backend_dashboard",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/activity-log/",
+      "inner": "/authentication/backend/activity-log/",
+      "name": "tenant_activity_log",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/advancement/donors/",
+      "inner": "/authentication/backend/advancement/donors/",
+      "name": "advancement_donor_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/advancement/donors/add/",
+      "inner": "/authentication/backend/advancement/donors/add/",
+      "name": "advancement_donor_create",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/advancement/donors/edit/",
+      "inner": "/authentication/backend/advancement/donors/edit/",
+      "name": "advancement_donor_edit",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/advancement/gifts/delete/",
+      "inner": "/authentication/backend/advancement/gifts/delete/",
+      "name": "advancement_gift_delete",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/alumni/",
+      "inner": "/authentication/backend/alumni/",
+      "name": "backend_alumni_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/applicants/",
+      "inner": "/authentication/backend/applicants/",
+      "name": "backend_applicant_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/applicants/create/",
+      "inner": "/authentication/backend/applicants/create/",
+      "name": "backend_applicant_create",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/classrooms/",
+      "inner": "/authentication/backend/classrooms/",
+      "name": "backend_classroom_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/classrooms/create/",
+      "inner": "/authentication/backend/classrooms/create/",
+      "name": "backend_classroom_create",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/dismiss-first-login-checklist/",
+      "inner": "/authentication/backend/dismiss-first-login-checklist/",
+      "name": "dismiss_first_login_checklist",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/",
+      "inner": "/authentication/backend/district-lms-interop/",
+      "name": "district_lms_interop",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/advanced/",
+      "inner": "/authentication/backend/district-lms-interop/advanced/",
+      "name": "district_interop_save_advanced",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/native-probe/",
+      "inner": "/authentication/backend/district-lms-interop/native-probe/",
+      "name": "district_interop_native_probe",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/native-vendor/",
+      "inner": "/authentication/backend/district-lms-interop/native-vendor/",
+      "name": "district_interop_save_native_vendor",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/packet/",
+      "inner": "/authentication/backend/district-lms-interop/packet/",
+      "name": "district_interop_packet",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/partner/",
+      "inner": "/authentication/backend/district-lms-interop/partner/",
+      "name": "district_interop_partner",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/rotate-token/",
+      "inner": "/authentication/backend/district-lms-interop/rotate-token/",
+      "name": "district_interop_rotate_token",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/district-lms-interop/synthetic/",
+      "inner": "/authentication/backend/district-lms-interop/synthetic/",
+      "name": "district_interop_toggle_synthetic",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/entities/",
+      "inner": "/authentication/backend/entities/",
+      "name": "backend_entity_console",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/guardians/",
+      "inner": "/authentication/backend/guardians/",
+      "name": "backend_guardian_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/import-hub/",
+      "inner": "/authentication/backend/import-hub/",
+      "name": "import_hub",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/import/",
+      "inner": "/authentication/backend/import/",
+      "name": "backend_entity_import",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/institution-profile/",
+      "inner": "/authentication/backend/institution-profile/",
+      "name": "institution_profile_wizard",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/legacy-data-cleaner/",
+      "inner": "/authentication/backend/legacy-data-cleaner/",
+      "name": "legacy_data_cleaner",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/migration-runs/",
+      "inner": "/authentication/backend/migration-runs/",
+      "name": "migration_run_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/migration-runs/legacy/",
+      "inner": "/authentication/backend/migration-runs/legacy/",
+      "name": "migration_legacy_view",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/migration-runs/rollback/",
+      "inner": "/authentication/backend/migration-runs/rollback/",
+      "name": "migration_rollback",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/migration-wizard/",
+      "inner": "/authentication/backend/migration-wizard/",
+      "name": "migration_wizard",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops-watch/",
+      "inner": "/authentication/backend/ops-watch/",
+      "name": "backend_ops_watch_data",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/",
+      "inner": "/authentication/backend/ops/",
+      "name": "ops_hub",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/canteen/",
+      "inner": "/authentication/backend/ops/canteen/",
+      "name": "ops_canteen",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/clinic/",
+      "inner": "/authentication/backend/ops/clinic/",
+      "name": "ops_clinic",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/facilities/",
+      "inner": "/authentication/backend/ops/facilities/",
+      "name": "ops_facilities",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/inventory/",
+      "inner": "/authentication/backend/ops/inventory/",
+      "name": "ops_inventory",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/library/",
+      "inner": "/authentication/backend/ops/library/",
+      "name": "ops_library",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/pos/",
+      "inner": "/authentication/backend/ops/pos/",
+      "name": "ops_pos",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/substitutes/",
+      "inner": "/authentication/backend/ops/substitutes/",
+      "name": "ops_substitutes",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/timetabling/",
+      "inner": "/authentication/backend/ops/timetabling/",
+      "name": "ops_timetabling",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/transport/",
+      "inner": "/authentication/backend/ops/transport/",
+      "name": "ops_transport",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/ops/visitors/",
+      "inner": "/authentication/backend/ops/visitors/",
+      "name": "ops_visitor_log",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/request-waiver/",
+      "inner": "/authentication/backend/request-waiver/",
+      "name": "request_waiver",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/security-trust/",
+      "inner": "/authentication/backend/security-trust/",
+      "name": "security_trust_hub",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/security-trust/impersonation/",
+      "inner": "/authentication/backend/security-trust/impersonation/",
+      "name": "tenant_impersonation_audit",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/status/fragment/",
+      "inner": "/authentication/backend/status/fragment/",
+      "name": "backend_dashboard_status_fragment",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/students/",
+      "inner": "/authentication/backend/students/",
+      "name": "backend_student_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/students/create/",
+      "inner": "/authentication/backend/students/create/",
+      "name": "backend_student_create",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/teachers/",
+      "inner": "/authentication/backend/teachers/",
+      "name": "backend_teacher_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/teachers/create/",
+      "inner": "/authentication/backend/teachers/create/",
+      "name": "backend_teacher_create",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/tour-complete/",
+      "inner": "/authentication/backend/tour-complete/",
+      "name": "mark_tour_complete",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/certification/",
+      "inner": "/authentication/certification/",
+      "name": "certification_home",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/certification/session/",
+      "inner": "/authentication/certification/session/",
+      "name": "certification_session_detail",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/certification/session/bulk-add/",
+      "inner": "/authentication/certification/session/bulk-add/",
+      "name": "certification_bulk_add_candidates",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/certification/session/export.zip/",
+      "inner": "/authentication/certification/session/export.zip/",
+      "name": "certification_export_zip",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/certification/session/override/",
+      "inner": "/authentication/certification/session/override/",
+      "name": "certification_session_override",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/claim-invite/",
+      "inner": "/authentication/claim-invite/",
+      "name": "claim_invite",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/documentation/",
+      "inner": "/authentication/documentation/",
+      "name": "user_documentation",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/end-impersonation/",
+      "inner": "/authentication/end-impersonation/",
+      "name": "end_impersonation",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/impersonate/",
+      "inner": "/authentication/impersonate/",
+      "name": "impersonate_entry",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/legacy-setup/",
+      "inner": "/authentication/legacy-setup/",
+      "name": "legacy_setup",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/login/",
+      "inner": "/authentication/login/",
+      "name": "login",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/logout/",
+      "inner": "/authentication/logout/",
+      "name": "logout",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/messages/",
+      "inner": "/authentication/messages/",
+      "name": "user_messages",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/messages/direct/",
+      "inner": "/authentication/messages/direct/",
+      "name": "direct_thread",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/messages/direct/compose/",
+      "inner": "/authentication/messages/direct/compose/",
+      "name": "direct_compose",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/mfa/dismiss-banner/",
+      "inner": "/authentication/mfa/dismiss-banner/",
+      "name": "dismiss_mfa_banner",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/mfa/passkey/authentication/options/",
+      "inner": "/authentication/mfa/passkey/authentication/options/",
+      "name": "passkey_authentication_options",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/mfa/passkey/authentication/verify/",
+      "inner": "/authentication/mfa/passkey/authentication/verify/",
+      "name": "passkey_authentication_verify",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/mfa/passkey/registration/options/",
+      "inner": "/authentication/mfa/passkey/registration/options/",
+      "name": "passkey_registration_options",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/mfa/passkey/registration/verify/",
+      "inner": "/authentication/mfa/passkey/registration/verify/",
+      "name": "passkey_registration_verify",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/mfa/setup/",
+      "inner": "/authentication/mfa/setup/",
+      "name": "mfa_setup",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/mfa/verify/",
+      "inner": "/authentication/mfa/verify/",
+      "name": "mfa_verify",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/notifications/",
+      "inner": "/authentication/notifications/",
+      "name": "user_notifications",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/notifications/mark-all-read/",
+      "inner": "/authentication/notifications/mark-all-read/",
+      "name": "mark_all_notifications_read",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/notifications/preferences/",
+      "inner": "/authentication/notifications/preferences/",
+      "name": "notification_preferences",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/oidc/callback/",
+      "inner": "/authentication/oidc/callback/",
+      "name": "oidc_callback",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/oidc/logout/",
+      "inner": "/authentication/oidc/logout/",
+      "name": "oidc_logout",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/oidc/start/",
+      "inner": "/authentication/oidc/start/",
+      "name": "oidc_start",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/",
+      "inner": "/authentication/profile/",
+      "name": "user_profile",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/delegations/",
+      "inner": "/authentication/profile/delegations/",
+      "name": "my_delegations",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/delegations/add/",
+      "inner": "/authentication/profile/delegations/add/",
+      "name": "delegation_add",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/delegations/catch-up/",
+      "inner": "/authentication/profile/delegations/catch-up/",
+      "name": "delegation_catch_up",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/delegations/edit/",
+      "inner": "/authentication/profile/delegations/edit/",
+      "name": "delegation_edit",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/delegations/revoke/",
+      "inner": "/authentication/profile/delegations/revoke/",
+      "name": "delegation_revoke",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/edit/",
+      "inner": "/authentication/profile/edit/",
+      "name": "profile_edit",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/password/",
+      "inner": "/authentication/profile/password/",
+      "name": "password_change",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/password/done/",
+      "inner": "/authentication/profile/password/done/",
+      "name": "password_change_done",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/security/activity/",
+      "inner": "/authentication/profile/security/activity/",
+      "name": "api_security_activity",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/security/lockdown/",
+      "inner": "/authentication/profile/security/lockdown/",
+      "name": "api_security_lockdown",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/security/sessions/",
+      "inner": "/authentication/profile/security/sessions/",
+      "name": "sessions_page",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/security/sessions/revoke/",
+      "inner": "/authentication/profile/security/sessions/revoke/",
+      "name": "sessions_revoke",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/profile/security/strength/",
+      "inner": "/authentication/profile/security/strength/",
+      "name": "api_security_strength",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/rbac/",
+      "inner": "/authentication/rbac/",
+      "name": "rbac",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/redirect/",
+      "inner": "/authentication/redirect/",
+      "name": "redirect",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/saml/acs/",
+      "inner": "/authentication/saml/acs/",
+      "name": "saml_acs",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/saml/metadata/",
+      "inner": "/authentication/saml/metadata/",
+      "name": "saml_metadata",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/saml/start/",
+      "inner": "/authentication/saml/start/",
+      "name": "saml_start",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/school-picker/",
+      "inner": "/authentication/school-picker/",
+      "name": "school_picker",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/switch-portal-role/",
+      "inner": "/authentication/switch-portal-role/",
+      "name": "switch_portal_role",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/",
+      "inner": "/authentication/workflow/",
+      "name": "workflow_center",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/academic-rules/",
+      "inner": "/authentication/workflow/academic-rules/",
+      "name": "academic_rules",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/approvals/",
+      "inner": "/authentication/workflow/approvals/",
+      "name": "approval_workflow_hub",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/automation/",
+      "inner": "/authentication/workflow/automation/",
+      "name": "automation_hub",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/clone-year/",
+      "inner": "/authentication/workflow/clone-year/",
+      "name": "clone_year_setup",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/rollover/",
+      "inner": "/authentication/workflow/rollover/",
+      "name": "rollover_year",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/rollover/prepare/",
+      "inner": "/authentication/workflow/rollover/prepare/",
+      "name": "rollover_prepare",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/rollover/proposal/",
+      "inner": "/authentication/workflow/rollover/proposal/",
+      "name": "rollover_proposal_detail",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/workflow/rollover/queue/",
+      "inner": "/authentication/workflow/rollover/queue/",
+      "name": "rollover_queue",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/",
+      "inner": "/portal/",
+      "name": "home",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/admissions/application-status/",
+      "inner": "/portal/admissions/application-status/",
+      "name": "admissions_application_status",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/ai/draft/parent-message/",
+      "inner": "/portal/ai/draft/parent-message/",
+      "name": "ai_draft_parent_message",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/ai/draft/report-card-comment/",
+      "inner": "/portal/ai/draft/report-card-comment/",
+      "name": "ai_draft_report_card_comment",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/attendance/seating-chart/",
+      "inner": "/portal/attendance/seating-chart/",
+      "name": "seating_chart",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/attendance/student/",
+      "inner": "/portal/attendance/student/",
+      "name": "take_student_attendance",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/attendance/teacher/",
+      "inner": "/portal/attendance/teacher/",
+      "name": "record_teacher_attendance",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/backend/documents/",
+      "inner": "/portal/backend/documents/",
+      "name": "document_library_manage",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/backend/documents/delete/",
+      "inner": "/portal/backend/documents/delete/",
+      "name": "document_delete",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/backend/documents/download/",
+      "inner": "/portal/backend/documents/download/",
+      "name": "document_download",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/backend/documents/download/pdf/",
+      "inner": "/portal/backend/documents/download/pdf/",
+      "name": "document_download_pdf",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/backend/documents/upload/",
+      "inner": "/portal/backend/documents/upload/",
+      "name": "document_upload",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/backend/signatures/",
+      "inner": "/portal/backend/signatures/",
+      "name": "signature_requests_manage",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/backend/signatures/create/",
+      "inner": "/portal/backend/signatures/create/",
+      "name": "signature_request_create",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/badge/verify/",
+      "inner": "/portal/badge/verify/",
+      "name": "badge_verify",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/calendar/",
+      "inner": "/portal/calendar/",
+      "name": "unified_calendar",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/configure/",
+      "inner": "/portal/configure/",
+      "name": "portal_configure",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/console/",
+      "inner": "/portal/console/",
+      "name": "portal_console",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/employer/",
+      "inner": "/portal/employer/",
+      "name": "employer_dashboard",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/employer/confirm/",
+      "inner": "/portal/employer/confirm/",
+      "name": "employer_confirm_hours",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/employer/transcript/",
+      "inner": "/portal/employer/transcript/",
+      "name": "employer_student_transcript",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/features/",
+      "inner": "/portal/features/",
+      "name": "portal_feature",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/home/",
+      "inner": "/portal/home/",
+      "name": "portal_home",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/offline/conflicts/",
+      "inner": "/portal/offline/conflicts/",
+      "name": "offline_sync_conflicts",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/offline/sync-queue/",
+      "inner": "/portal/offline/sync-queue/",
+      "name": "offline_sync_queue",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/",
+      "inner": "/portal/parent/",
+      "name": "parent_dashboard",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/attendance-discipline/",
+      "inner": "/portal/parent/attendance-discipline/",
+      "name": "parent_attendance_discipline",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/child/id/",
+      "inner": "/portal/parent/child/id/",
+      "name": "child_digital_id",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/claim-invite/",
+      "inner": "/portal/parent/claim-invite/",
+      "name": "claim_invite",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/contact-school/",
+      "inner": "/portal/parent/contact-school/",
+      "name": "parent_contact_school",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/feed/",
+      "inner": "/portal/parent/feed/",
+      "name": "parent_feed",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/finance/",
+      "inner": "/portal/parent/finance/",
+      "name": "parent_finance",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/link-child/",
+      "inner": "/portal/parent/link-child/",
+      "name": "link_child",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/link-child/legacy/",
+      "inner": "/portal/parent/link-child/legacy/",
+      "name": "link_child_legacy",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/medal-case/",
+      "inner": "/portal/parent/medal-case/",
+      "name": "parent_medal_case",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/performance/",
+      "inner": "/portal/parent/performance/",
+      "name": "parent_performance",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/results/",
+      "inner": "/portal/parent/results/",
+      "name": "parent_child_results",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/set-active-child/",
+      "inner": "/portal/parent/set-active-child/",
+      "name": "parent_set_active_child",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/signatures/",
+      "inner": "/portal/parent/signatures/",
+      "name": "signature_pending_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/signatures/sign/",
+      "inner": "/portal/parent/signatures/sign/",
+      "name": "signature_sign",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/stats/",
+      "inner": "/portal/parent/stats/",
+      "name": "portal_stats",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/wallet/",
+      "inner": "/portal/parent/wallet/",
+      "name": "parent_wallet",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/parent/workflow/",
+      "inner": "/portal/parent/workflow/",
+      "name": "parent_workflow",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/",
+      "inner": "/portal/photo-upload/",
+      "name": "photo_upload_phone",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/generate-for-profile/",
+      "inner": "/portal/photo-upload/generate-for-profile/",
+      "name": "photo_upload_generate_for_profile",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/generate/",
+      "inner": "/portal/photo-upload/generate/",
+      "name": "photo_upload_generate",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/qr/",
+      "inner": "/portal/photo-upload/qr/",
+      "name": "photo_upload_qr",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/send-link/student/",
+      "inner": "/portal/photo-upload/send-link/student/",
+      "name": "photo_upload_send_link_student",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/send-link/teacher/",
+      "inner": "/portal/photo-upload/send-link/teacher/",
+      "name": "photo_upload_send_link_teacher",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/status/",
+      "inner": "/portal/photo-upload/status/",
+      "name": "photo_upload_status",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/photo-upload/upload/",
+      "inner": "/portal/photo-upload/upload/",
+      "name": "photo_upload_upload",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/preview/communication/",
+      "inner": "/portal/preview/communication/",
+      "name": "preview_communication_test",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/preview/syllabus/",
+      "inner": "/portal/preview/syllabus/",
+      "name": "preview_syllabus",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/staff/cahier/revisions/",
+      "inner": "/portal/staff/cahier/revisions/",
+      "name": "cahier_request_revisions",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/staff/cahier/verify/",
+      "inner": "/portal/staff/cahier/verify/",
+      "name": "cahier_verify_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/staff/cahier/visa/",
+      "inner": "/portal/staff/cahier/visa/",
+      "name": "cahier_visa",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/staff/contact-requests/",
+      "inner": "/portal/staff/contact-requests/",
+      "name": "staff_contact_request_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/staff/discipline/incidents/",
+      "inner": "/portal/staff/discipline/incidents/",
+      "name": "discipline_incidents_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student-portal/grades/",
+      "inner": "/portal/student-portal/grades/",
+      "name": "student_portal_grades",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/360/",
+      "inner": "/portal/student/360/",
+      "name": "student_360_page",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/360/transcript-archive/",
+      "inner": "/portal/student/360/transcript-archive/",
+      "name": "transcript_archive",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/360/transcript-freeze/",
+      "inner": "/portal/student/360/transcript-freeze/",
+      "name": "transcript_freeze",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/grade-outlook/",
+      "inner": "/portal/student/grade-outlook/",
+      "name": "ai_student_grade_outlook",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/onboarding/",
+      "inner": "/portal/student/onboarding/",
+      "name": "student_onboarding",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/passport/",
+      "inner": "/portal/student/passport/",
+      "name": "student_passport_detail",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/risk-drivers/",
+      "inner": "/portal/student/risk-drivers/",
+      "name": "ai_student_risk_drivers",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/student/transcript-vault/",
+      "inner": "/portal/student/transcript-vault/",
+      "name": "student_transcript_vault",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/students/search/",
+      "inner": "/portal/students/search/",
+      "name": "ai_semantic_student_search",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/support/",
+      "inner": "/portal/support/",
+      "name": "support_request",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/support/hub/",
+      "inner": "/portal/support/hub/",
+      "name": "support_help_hub",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/support/ticket/",
+      "inner": "/portal/support/ticket/",
+      "name": "support_ticket_detail",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/syllabus/",
+      "inner": "/portal/syllabus/",
+      "name": "portal_syllabus",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/",
+      "inner": "/portal/teacher/",
+      "name": "teacher_dashboard_alias",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/attendance/",
+      "inner": "/portal/teacher/attendance/",
+      "name": "teacher_attendance",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/bulk-capture/",
+      "inner": "/portal/teacher/bulk-capture/",
+      "name": "teacher_bulk_capture_hub",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/cahier/",
+      "inner": "/portal/teacher/cahier/",
+      "name": "cahier_list",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/disciplinary/",
+      "inner": "/portal/teacher/disciplinary/",
+      "name": "teacher_disciplinary",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/feed/",
+      "inner": "/portal/teacher/feed/",
+      "name": "teacher_feed",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/hr-status/",
+      "inner": "/portal/teacher/hr-status/",
+      "name": "teacher_hr_status",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/leave/",
+      "inner": "/portal/teacher/leave/",
+      "name": "teacher_leave",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/lesson-notes/",
+      "inner": "/portal/teacher/lesson-notes/",
+      "name": "teacher_lesson_notes",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/lesson-notes/add-resource/",
+      "inner": "/portal/teacher/lesson-notes/add-resource/",
+      "name": "teacher_lesson_plan_add_attachment",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/my-id/",
+      "inner": "/portal/teacher/my-id/",
+      "name": "my_digital_id",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/onboarding/",
+      "inner": "/portal/teacher/onboarding/",
+      "name": "teacher_onboarding",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/pay-history/",
+      "inner": "/portal/teacher/pay-history/",
+      "name": "teacher_pay_history",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/timetable/",
+      "inner": "/portal/teacher/timetable/",
+      "name": "teacher_timetable",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/training-log/",
+      "inner": "/portal/teacher/training-log/",
+      "name": "teacher_training_log",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/wellness/",
+      "inner": "/portal/teacher/wellness/",
+      "name": "teacher_wellness",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/workflow/",
+      "inner": "/portal/teacher/workflow/",
+      "name": "teacher_workflow",
+      "slug": "demo-school",
+      "sweep": true
+    }
+  ]
+}

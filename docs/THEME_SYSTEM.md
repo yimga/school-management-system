@@ -2,6 +2,25 @@
 
 This document describes how light/dark theme is applied across the three surfaces: Admin, Backend, and Portal. All theme work should respect this architecture.
 
+## 0. HTML attribute contract (v3, 2026-05-18)
+
+The platform writes four theme-related attributes on `<html>`. CSS rules must read the **effective** attributes, not the preference, or system-preference users with dark OS see white-text-on-white-card across every dashboard.
+
+| Attribute | Value space | What it means | When to read in CSS |
+|---|---|---|---|
+| `data-theme` | `light` \| `dark` | **Effective** theme. Always one of two values. | Use this for all light/dark styling rules. |
+| `data-resolved-theme` | `light` \| `dark` | Same as `data-theme`; kept for sites that adopted it during v2. | Equivalent to `data-theme`. |
+| `data-bs-theme` | `light` \| `dark` | Bootstrap 5 compat. Mirrors effective. | Use for Bootstrap-derived utilities. |
+| `data-theme-preference` | `light` \| `dark` \| `system` | The raw user preference. May be `system`. | **Toggle UI / preference UX only.** Never gate styling on this. |
+
+Bootstrap script: [`static/js/theme-preference-bootstrap.js`](../static/js/theme-preference-bootstrap.js). The legacy `static/js/_pages/base.js` follows the same contract.
+
+CI guard: [`scripts/scan_theme_attribute_contract.py`](../scripts/scan_theme_attribute_contract.py) (zero-tolerance) flags CSS selectors that bind styling to `[data-theme="system"]` (a no-op under v3) and JS callers that write `system` into `data-theme`.
+
+### Why this matters (the v2 → v3 fix)
+
+Under v2, `data-theme` carried the raw preference (`light` / `dark` / `system`). A user with preference="system" + OS=dark got `<html data-theme="system">`, which never matched any `[data-theme="dark"]` rule. Aesthetic-profile dark overrides like `[data-rmc-aesthetic="cool-apple"][data-theme="dark"]` set `--surface-elevated: #1e293b`; under the broken contract these never fired, so cards stayed white. Meanwhile `[data-bs-theme="dark"]` *did* match (Bootstrap path), so `--text-primary` flipped to near-white. Net effect: **white text on white card platform-wide** — the symptom that triggered this fix. v3 collapses `data-theme` to the effective value; 271 CSS sites across 34 files start matching correctly with zero CSS edits.
+
 ## 1. Three surfaces
 
 | Surface | Base template | Theme source | Where theme is applied |

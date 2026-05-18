@@ -1,0 +1,16 @@
+{% load i18n %}
+<nav class="mkt-corporate-os-chrome" aria-label="{% trans 'Corporate OS quick links' %}">
+  <div class="d-flex flex-wrap gap-3 align-items-center">
+    <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+    <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+    <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+    <a href="{% url 'marketing_app_marketplace' %}">{% trans "Marketplace" %}</a>
+    <a href="{% url 'marketing_developers' %}">{% trans "Developers" %}</a>
+    <a href="{% url 'find_school' %}">{% trans "Find campus" %}</a>
+  </div>
+  <div class="mkt-corporate-os-chrome__density" role="group" aria-label="{% trans 'Display density' %}">
+    <button type="button" data-rmc-density-choice="comfortable" aria-pressed="false">{% trans "Comfort" %}</button>
+    <button type="button" data-rmc-density-choice="standard" aria-pressed="true">{% trans "Standard" %}</button>
+    <button type="button" data-rmc-density-choice="compact" aria-pressed="false">{% trans "Compact" %}</button>
+  </div>
+</nav>

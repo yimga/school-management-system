@@ -48,6 +48,107 @@ def _platform_admin_bridge_nav_items():
     return items
 
 
+def _platform_admin_bridge_nav_items_direct(urlconf=None):
+    """
+    Advanced /super/ sidebar: link straight to platform-admin changelists.
+
+    Avoids an extra 302 via ``super:admin_bridge`` (bookmarks and hub tiles still use bridges).
+    """
+    from apps.schools.super_admin_bridge_registry import (
+        PLATFORM_ADMIN_BRIDGE_ORDER,
+        PLATFORM_ADMIN_BRIDGES,
+    )
+
+    items = []
+    for key in PLATFORM_ADMIN_BRIDGE_ORDER:
+        meta = PLATFORM_ADMIN_BRIDGES.get(key)
+        if not meta or not meta.get("show_in_nav"):
+            continue
+        admin_url_name = meta.get("admin_url")
+        if not admin_url_name:
+            continue
+        url = _safe_reverse(str(admin_url_name), urlconf=urlconf)
+        if not url:
+            continue
+        items.append(
+            {
+                "id": meta["nav_id"],
+                "label": str(meta["nav_label"]),
+                "url": url,
+                "icon": meta.get("nav_icon", "bi-box-arrow-up-right"),
+            }
+        )
+    return items
+
+
+def cp_nav_item_is_current(request_path: str, item_url: str) -> bool:
+    """Highlight control-plane sidebar links when path matches or is under changelist."""
+    p = (request_path or "").split("?", 1)[0].rstrip("/") or "/"
+    u = (item_url or "").split("?", 1)[0].rstrip("/")
+    if not u:
+        return False
+    if p == u:
+        return True
+    if u.startswith("/admin/") and p.startswith(u):
+        return True
+    if u.startswith("/studio/") and p.startswith(u):
+        return True
+    if u.startswith("/super/") and p.startswith(u):
+        return True
+    return False
+
+
+def is_manager_platform_admin_path(path: str) -> bool:
+    """True on manager-host Django platform admin routes (/admin/*)."""
+    p = (path or "").split("?", 1)[0]
+    return p == "/admin" or p.startswith("/admin/")
+
+
+def build_manager_platform_admin_nav(request):
+    """
+    Context for manager ``/admin/*`` sidebar (not CONTROL_PLANE_NAV).
+
+    Returns quick cross-links to control plane; model/app tree comes from
+  ``available_apps`` on the admin site ``each_context``.
+    """
+    urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
+    quick_links = []
+    for spec in (
+        {
+            "id": "admin_index",
+            "label": "Dashboard",
+            "url_name": "admin:index",
+            "icon": "bi-grid-3x3-gap",
+        },
+        {
+            "id": "super_dashboard",
+            "label": "Control plane",
+            "url_name": "super:dashboard",
+            "icon": "bi-speedometer2",
+        },
+        {
+            "id": "super_platform_operator_hub",
+            "label": "Platform operator hub",
+            "url_name": "super:platform_operator_hub",
+            "icon": "bi-diagram-3",
+        },
+    ):
+        url = _safe_reverse(spec["url_name"], urlconf=urlconf)
+        if url:
+            quick_links.append(
+                {
+                    "id": spec["id"],
+                    "label": spec["label"],
+                    "url": url,
+                    "icon": spec["icon"],
+                    "is_current": cp_nav_item_is_current(
+                        getattr(request, "path", ""), url
+                    ),
+                }
+            )
+    return {"quick_links": quick_links}
+
+
 def _primary_nav_is_current(request_path: str, item_id: str) -> bool:
     """Return True if request_path should highlight this primary nav pill."""
     p = (request_path or "").split("?", 1)[0]
@@ -356,7 +457,18 @@ def build_control_plane_nav(request):
     (list of dicts: id, label, url, icon). Only includes items whose url resolved.
     """
     urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
+    request_path = getattr(request, "path", "") or ""
     groups = []
+
+    def _finalize_group(label, resolved):
+        if not resolved:
+            return
+        for row in resolved:
+            row["is_current"] = cp_nav_item_is_current(
+                request_path, row.get("url", "")
+            )
+        expanded = any(row.get("is_current") for row in resolved)
+        groups.append({"label": label, "items": resolved, "expanded": expanded})
 
     def add_group(label, items):
         resolved = []
@@ -379,8 +491,10 @@ def build_control_plane_nav(request):
                         "icon": item.get("icon", "bi-circle"),
                     }
                 )
-        if resolved:
-            groups.append({"label": label, "items": resolved})
+        _finalize_group(label, resolved)
+
+    def add_resolved_group(label, resolved):
+        _finalize_group(label, list(resolved))
 
     # Plan §2.1: /super nav groups — Platform Overview, Tenants, Runtime & Governance,
     # Blueprints & Policies, Workflows & Dashboards, Marketplace, Migration Cloud,
@@ -855,26 +969,30 @@ def build_control_plane_nav(request):
         ],
     )
 
-    _advanced = [
-        {
-            "id": "cp_report_library",
-            "label": "Platform Studio · Reports",
-            "url_name": "studio_os:output",
-            "query": "pane=reports",
-            "icon": "bi-journal-text",
-        },
-    ]
-    _advanced.extend(_platform_admin_bridge_nav_items())
-    if getattr(request.user, "is_superuser", False):
-        _advanced.append(
+    _advanced_resolved = []
+    reports_url = _safe_reverse("studio_os:output", urlconf=urlconf)
+    if reports_url:
+        _advanced_resolved.append(
             {
-                "id": "cp_platform_backoffice",
-                "label": "Advanced Django admin",
-                "url_name": "admin:index",
-                "icon": "bi-database",
+                "id": "cp_report_library",
+                "label": "Platform Studio · Reports",
+                "url": f"{reports_url}?pane=reports",
+                "icon": "bi-journal-text",
             }
         )
-    add_group("Advanced", _advanced)
+    _advanced_resolved.extend(_platform_admin_bridge_nav_items_direct(urlconf=urlconf))
+    if getattr(request.user, "is_superuser", False):
+        admin_index = _safe_reverse("admin:index", urlconf=urlconf)
+        if admin_index:
+            _advanced_resolved.append(
+                {
+                    "id": "cp_platform_backoffice",
+                    "label": "Advanced Django admin",
+                    "url": admin_index,
+                    "icon": "bi-database",
+                }
+            )
+    add_resolved_group("Advanced", _advanced_resolved)
 
     return groups
 

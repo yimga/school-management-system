@@ -700,6 +700,8 @@ def site_settings(request):
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
     path = (request.path or "").strip()
     ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager"
+    ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
+    ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
     if ctx["CONTROL_PLANE_SHELL"]:
         try:
             from apps.schools.control_plane_nav import (
@@ -737,7 +739,9 @@ def site_settings(request):
             ctx["PINNED_CONTROL_PLANE_IDS"] = set(pinned_cp_ids)
             try:
                 from apps.schools.control_plane_nav import (
+                    build_manager_platform_admin_nav,
                     build_studio_focus_sidebar,
+                    is_manager_platform_admin_path,
                     is_manager_studio_focus_path,
                 )
 
@@ -747,9 +751,19 @@ def site_settings(request):
                     if ctx["STUDIO_FOCUS_SHELL"]
                     else []
                 )
+                ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = is_manager_platform_admin_path(
+                    path
+                )
+                ctx["MANAGER_PLATFORM_ADMIN_NAV"] = (
+                    build_manager_platform_admin_nav(request)
+                    if ctx["MANAGER_PLATFORM_ADMIN_SHELL"]
+                    else {"quick_links": []}
+                )
             except OPTIONAL_CONTEXT_ERRORS:
                 ctx["STUDIO_FOCUS_SHELL"] = False
                 ctx["STUDIO_FOCUS_SIDEBAR"] = []
+                ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
+                ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
         except OPTIONAL_CONTEXT_ERRORS:
             ctx["CONTROL_PLANE_NAV"] = []
             ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
@@ -757,6 +771,8 @@ def site_settings(request):
             ctx["PINNED_CONTROL_PLANE_IDS"] = set()
             ctx["STUDIO_FOCUS_SHELL"] = False
             ctx["STUDIO_FOCUS_SIDEBAR"] = []
+            ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
+            ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
     else:
         ctx["CONTROL_PLANE_NAV"] = []
         ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
@@ -764,6 +780,8 @@ def site_settings(request):
         ctx["PINNED_CONTROL_PLANE_IDS"] = set()
         ctx["STUDIO_FOCUS_SHELL"] = False
         ctx["STUDIO_FOCUS_SIDEBAR"] = []
+        ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
+        ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
         try:
             from apps.accounts.permissions import tenant_operator_hub_eligible
             from apps.schools.control_plane_nav import build_tenant_operator_primary_nav

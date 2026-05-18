@@ -1,0 +1,73 @@
+/**
+ * RunMyCampus Corporate OS — public marketing + discovery surfaces.
+ * Semantic tokens only; consume via var(--rmc-os-*) in marketing-corporate-os.css.
+ */
+:root,
+.marketing-surface {
+  --rmc-os-bg-canvas: var(--surface-canvas, var(--mkt-surface, #faf7f2));
+  --rmc-os-bg-sunken: var(--surface-sunken, color-mix(in srgb, var(--mkt-surface) 88%, var(--text-primary) 12%));
+  --rmc-os-surface-card: var(--surface-elevated, var(--mkt-surface));
+  --rmc-os-surface-overlay: var(--surface-overlay, color-mix(in srgb, var(--school-primary, var(--mkt-accent)) 6%, transparent));
+  --rmc-os-surface-glass: color-mix(in srgb, var(--surface-elevated, var(--mkt-surface)) 84%, transparent);
+  --rmc-os-text-primary: var(--text-primary, var(--mkt-ink, var(--mkt-text)));
+  --rmc-os-text-secondary: var(--text-secondary, var(--mkt-ink-2, var(--mkt-text-muted)));
+  --rmc-os-text-muted: var(--text-tertiary, var(--mkt-text-muted));
+  --rmc-os-text-interactive: var(--text-link, var(--mkt-accent));
+  --rmc-os-hairline: var(--hairline, color-mix(in srgb, var(--rmc-os-text-primary) 14%, transparent));
+  --rmc-os-hairline-strong: var(--hairline-strong, color-mix(in srgb, var(--rmc-os-text-primary) 22%, transparent));
+  --rmc-os-ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1);
+  --rmc-os-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rmc-os-duration-fast: 160ms;
+  --rmc-os-duration-normal: 240ms;
+  --rmc-os-shadow-card: var(--elev-2, 0 18px 52px color-mix(in srgb, var(--rmc-os-text-primary) 10%, transparent));
+  --rmc-os-shadow-glow: 0 24px 80px color-mix(in srgb, var(--mkt-accent, var(--school-accent)) 16%, transparent);
+  --rmc-os-grid-1: 0.25rem;
+  --rmc-os-grid-2: 0.5rem;
+  --rmc-os-grid-3: 0.75rem;
+  --rmc-os-grid-4: 1rem;
+  --rmc-os-grid-6: 1.5rem;
+  --rmc-os-grid-8: 2rem;
+  --rmc-os-type-body: clamp(0.9375rem, 0.2vw + 0.88rem, 1.0625rem);
+  --rmc-os-type-compact: clamp(0.8125rem, 0.16vw + 0.78rem, 0.9375rem);
+  --rmc-os-type-display: clamp(1.75rem, 2.8vw + 1rem, 2.75rem);
+  --rmc-os-type-metric: clamp(1.35rem, 2vw + 0.75rem, 2.1rem);
+  --rmc-os-lh-body: 1.55;
+  --rmc-os-lh-compact: 1.28;
+  --rmc-os-status-operational: var(--ds-success, #16a34a);
+  --rmc-os-status-degraded: var(--ds-warning, #d97706);
+  --rmc-os-status-outage: var(--ds-danger, #dc2626);
+}
+
+html[data-theme="dark"] .marketing-surface {
+  --rmc-os-bg-canvas: var(--surface-canvas, #0f1419);
+  --rmc-os-bg-sunken: color-mix(in srgb, var(--surface-sunken, #151b22) 88%, var(--mkt-accent) 12%);
+  --rmc-os-surface-glass: color-mix(in srgb, var(--surface-popover, #1a222c) 78%, transparent);
+  --rmc-os-hairline: color-mix(in srgb, var(--text-primary, #e8eaed) 14%, transparent);
+}
+
+html[data-rmc-density="comfortable"] .marketing-surface {
+  --rmc-os-density-gap: var(--rmc-os-grid-4);
+  --rmc-os-density-pad: var(--rmc-os-grid-6);
+}
+
+html[data-rmc-density="standard"] .marketing-surface,
+.marketing-surface:not([data-rmc-density]) {
+  --rmc-os-density-gap: var(--rmc-os-grid-3);
+  --rmc-os-density-pad: var(--rmc-os-grid-4);
+}
+
+html[data-rmc-density="compact"] .marketing-surface {
+  --rmc-os-density-gap: var(--rmc-os-grid-2);
+  --rmc-os-density-pad: var(--rmc-os-grid-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marketing-surface *,
+  .marketing-surface *::before,
+  .marketing-surface *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -77,18 +77,23 @@ html[data-bs-theme="dark"][data-surface="marketing"] {
   --mkt-star-rating: var(--ds-warning);
 }
 
-/* System preference when marketing uses data-theme="system" */
-@media (prefers-color-scheme: dark) {
-  html[data-theme="system"][data-surface="marketing"] {
-    --mkt-text: var(--color-base-100); /* theme-locked-allow: manual-review */
-    --mkt-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
-    --mkt-surface: var(--color-base-900); /* theme-locked-allow: manual-review */
-    --mkt-border: rgba(168, 160, 146, 0.2);
-    --mkt-hero-bg: var(--color-base-900); /* theme-locked-allow: manual-review */
-    --mkt-hero-bg-mid: var(--color-base-800); /* theme-locked-allow: manual-review */
-    --mkt-hero-bg-end: var(--color-base-700); /* theme-locked-allow: manual-review */
-    --mkt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-    --mkt-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-    --mkt-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
-  }
+/* Marketing surface effective-dark token overrides.
+   v3 (2026-05-18): `data-theme` always carries the effective theme. The
+   prior `@media (prefers-color-scheme: dark) html[data-theme="system"]`
+   rule was dead under v3 — replaced with `html[data-theme="dark"]` so
+   the swap fires whenever the marketing surface is rendering dark
+   (OS-preference resolved by either marketing inline bootstrap, marketing
+   toggle JS, or platform `theme-preference-bootstrap.js` — all three
+   write the effective theme into `data-theme` under v3). */
+html[data-theme="dark"][data-surface="marketing"] {
+  --mkt-text: var(--color-base-100); /* theme-locked-allow: manual-review */
+  --mkt-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
+  --mkt-surface: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --mkt-border: rgba(168, 160, 146, 0.2);
+  --mkt-hero-bg: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --mkt-hero-bg-mid: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --mkt-hero-bg-end: var(--color-base-700); /* theme-locked-allow: manual-review */
+  --mkt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --mkt-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --mkt-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
 }

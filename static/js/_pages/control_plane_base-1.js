@@ -6,7 +6,7 @@
   var offcanvas = document.getElementById('cpSidebarOffcanvas');
   if (!offcanvas) return;
   offcanvas.addEventListener('click', function (e) {
-    var link = e.target.closest('a.nav-link');
+    var link = e.target.closest('a.nav-link, a.admin-sidebar-link, a.admin-sidebar-model-link');
     if (link && link.getAttribute('href') && link.getAttribute('href') !== '#') {
       var bs = window.bootstrap;
       if (bs && bs.Offcanvas) {

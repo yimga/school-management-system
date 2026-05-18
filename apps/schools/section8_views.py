@@ -327,6 +327,20 @@ def _lti_rate_limited(request, scope: str):
     return response
 
 
+FIND_SCHOOL_RATE_LIMIT_MAX = 60
+FIND_SCHOOL_RATE_LIMIT_WINDOW = 900
+
+
+def _find_school_rate_limited(request) -> bool:
+    allowed, _retry_after = throttle_ip_request(
+        request,
+        scope="find_school",
+        max_count=FIND_SCHOOL_RATE_LIMIT_MAX,
+        window_seconds=FIND_SCHOOL_RATE_LIMIT_WINDOW,
+    )
+    return not allowed
+
+
 @require_http_methods(["GET", "POST"])
 def global_login_discovery(request):
     """
@@ -339,7 +353,7 @@ def global_login_discovery(request):
     if request.method == "GET":
         return render(
             request,
-            "schools/global_login_discovery.html",
+            "marketing/global_discovery.html",
             {
                 "role_checklists": checklist_cards,
             },
@@ -347,7 +361,7 @@ def global_login_discovery(request):
     if _discovery_rate_limit_exceeded(request):
         return render(
             request,
-            "schools/global_login_discovery.html",
+            "marketing/global_discovery.html",
             {
                 "error": "Too many attempts. Please try again later.",
                 "role_checklists": checklist_cards,
@@ -358,7 +372,7 @@ def global_login_discovery(request):
     if not email:
         return render(
             request,
-            "schools/global_login_discovery.html",
+            "marketing/global_discovery.html",
             {
                 "error": "Please enter your email.",
                 "role_checklists": checklist_cards,
@@ -422,9 +436,10 @@ def find_school(request):
     _record_discovery_funnel_event(request)
     from apps.schools.models import School
 
+    rate_limited = _find_school_rate_limited(request)
     query = (request.GET.get("q") or "").strip()
     results = []
-    if len(query) >= 2:
+    if not rate_limited and len(query) >= 2:
         schools = (
             School.objects.filter(is_active=True)
             .filter(
@@ -439,6 +454,7 @@ def find_school(request):
                 {
                     "name": school.name,
                     "slug": school.slug,
+                    "subdomain": getattr(school, "subdomain", "") or "",
                     "portal_url": _build_school_portal_url(request, school),
                 }
             )
@@ -446,16 +462,17 @@ def find_school(request):
     if request.headers.get("HX-Request", "").lower() == "true":
         return render(
             request,
-            "schools/partials/school_finder_results.html",
+            "marketing/partials/school_finder_results_os.html",
             {"query": query, "results": results},
         )
 
     return render(
         request,
-        "schools/find_school.html",
+        "marketing/find_campus.html",
         {
             "query": query,
             "results": results,
+            "rate_limited": rate_limited,
             "role_checklists": _role_onboarding_checklists(),
         },
     )

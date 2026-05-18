@@ -32,11 +32,10 @@
         {% for link in sec.links %}
         <a href="{{ link.url }}"
            class="btn btn-sm btn-outline-primary rmc-bento__chip"
+           data-operator-stability="{{ link.stability }}"
            {% if request.public_host_kind == 'manager' %}target="_blank" rel="noopener noreferrer"{% endif %}
            {% if link.sources %}title="{% trans 'Sources' %}: {{ link.sources|join:', ' }}"{% endif %}>
           {{ link.label }}
-          {% if link.stability == 'danger' %}<span class="badge text-bg-danger ms-1 cp-outcome-pill">{% trans "danger" %}</span>
-          {% elif link.stability == 'beta' %}<span class="badge text-bg-warning text-dark ms-1 cp-outcome-pill">{% trans "beta" %}</span>{% endif %}
         </a>
         {% endfor %}
       </div>

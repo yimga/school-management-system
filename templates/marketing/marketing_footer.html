@@ -1,103 +1,168 @@
 {% load i18n static %}
 {% load terminology_tags %}
-<footer class="mkt-footer" role="contentinfo">
+<footer class="mkt-footer mkt-corporate-footer" role="contentinfo" data-mkt-footer>
   <div class="container">
-    <div class="row g-4">
-
-      {# Column 1 — Product. Trimmed from 14 platform links to the 7 buyers actually look for. #}
-      <div class="col-md-3 col-6">
-        <div class="mkt-footer-section">
-          <h4>{% trans "Product" %}</h4>
-          <ul class="mkt-footer-links">
-            <li><a href="{% url 'marketing_platform' %}">{% trans "Platform overview" %}</a></li>
-            <li><a href="{% url 'marketing_platform_admissions' %}">{% trans "Admissions" %}</a></li>
-            <li><a href="{% url 'marketing_platform_attendance' %}">{% trans "Attendance & marks" %}</a></li>
-            <li><a href="{% url 'marketing_platform_fees_payments' %}">{% trans "Fees & payments" %}</a></li>
-            <li><a href="{% url 'marketing_platform_parent_portal' %}">{% trans "Parent portal" %}</a></li>
-            <li><a href="{% url 'marketing_platform_teacher_portal' %}">{% trans "Teacher workspace" %}</a></li>
-            <li><a href="{% url 'marketing_platform_analytics' %}">{% trans "Analytics" %}</a></li>
-          </ul>
-        </div>
+    <section class="mkt-footer-command" aria-labelledby="mkt-footer-command-title">
+      <div class="mkt-footer-command__intro">
+        <p class="mkt-footer-eyebrow">{% trans "RunMyCampus corporate gateway" %}</p>
+        <h2 id="mkt-footer-command-title">{% trans "One public hub for buyers, operators, families, developers, and tenant routing." %}</h2>
+        <p>{% trans "Use the footer to verify platform health, review procurement evidence, find the right school portal, or extend the campus operating system safely." %}</p>
       </div>
-
-      {# Column 2 — Customers. Merges old "Solutions" + "By role" (they overlapped). #}
-      <div class="col-md-3 col-6">
-        <div class="mkt-footer-section">
-          <h4>{% trans "Customers" %}</h4>
-          <ul class="mkt-footer-links">
-            <li><a href="{% url 'marketing_solutions' %}">{% trans "Solutions overview" %}</a></li>
-            <li><a href="{% url 'marketing_story_private_schools' %}">{% trans "Private schools" %}</a></li>
-            <li><a href="{% url 'marketing_story_school_networks' %}">{% trans "School networks" %}</a></li>
-            <li><a href="{% url 'marketing_story_offline_first' %}">{% trans "Low-connectivity schools" %}</a></li>
-            <li><a href="{% url 'role_finance' %}">{% trans "For finance teams" %}</a></li>
-            <li><a href="{% url 'role_teachers' %}">{% trans "For teachers" %}</a></li>
-            <li><a href="{% url 'role_parents' %}">{% trans "For parents" %}</a></li>
-          </ul>
-        </div>
+      <div class="mkt-footer-command__actions" aria-label="{% trans 'Primary footer actions' %}">
+        <a class="mkt-footer-action mkt-footer-action--status" href="{% url 'status' %}" data-mkt-status>
+          <span class="mkt-footer-action__dot" aria-hidden="true"></span>
+          <span>
+            <span class="mkt-footer-action__label" data-mkt-status-label>{% trans "All systems operational" %}</span>
+            <span class="mkt-footer-action__meta">{% trans "Live uptime, incidents, and maintenance windows" %}</span>
+          </span>
+        </a>
+        <a class="mkt-footer-action" href="{% url 'find_school' %}">
+          <span class="mkt-footer-action__icon" aria-hidden="true">ID</span>
+          <span>
+            <span class="mkt-footer-action__label">{% trans "Find your campus portal" %}</span>
+            <span class="mkt-footer-action__meta">{% trans "Route parents, students, and staff to their tenant space" %}</span>
+          </span>
+        </a>
       </div>
+    </section>
 
-      {# Column 3 — Resources. Kept; this is the catch-all for content. #}
-      <div class="col-md-3 col-6">
-        <div class="mkt-footer-section">
-          <h4>{% trans "Resources" %}</h4>
-          <ul class="mkt-footer-links">
-            <li><a href="{% url 'marketing_resources' %}">{% trans "Resources hub" %}</a></li>
-            <li><a href="{% url 'marketing_resources_product_tour' %}">{% trans "Product tour" %}</a></li>
-            <li><a href="{% url 'marketing_resources_guides' %}">{% trans "Guides" %}</a></li>
-            <li><a href="{% url 'marketing_resources_case_studies' %}">{% trans "Case studies" %}</a></li>
-            <li><a href="{% url 'marketing_resources_help_center' %}">{% trans "Help center" %}</a></li>
-            <li><a href="{% url 'marketing_resources_blog' %}">{% trans "Blog" %}</a></li>
-            <li><a href="{% url 'marketing_developers' %}">{% trans "Developers" %}</a></li>
-          </ul>
-        </div>
+    <section class="mkt-footer-intelligence" aria-labelledby="mkt-footer-intelligence-title">
+      <div class="mkt-footer-intelligence__copy">
+        <p class="mkt-footer-eyebrow">{% trans "Operational proof, not decorative links" %}</p>
+        <h2 id="mkt-footer-intelligence-title">{% trans "Every path is tuned for the person who landed in the wrong place." %}</h2>
+        <p>{% trans "District buyers can audit compliance, operators can check uptime, families can find their tenant portal, and builders can reach the ecosystem without touching the wrong school domain." %}</p>
       </div>
-
-      {# Column 4 — Company. Merges old Company + the top of Pricing/Demo CTAs. #}
-      <div class="col-md-3 col-6">
-        <div class="mkt-footer-section">
-          <h4>{% trans "Company" %}</h4>
-          <ul class="mkt-footer-links">
-            <li><a href="{% url 'marketing_company' %}">{% trans "About" %}</a></li>
-            <li><a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a></li>
-            <li><a href="{% url 'marketing_contact' %}">{% trans "Contact" %}</a></li>
-            <li><a href="{% url 'marketing_demo' %}" data-cta="demo" data-page="footer">{% trans "Book a demo" %}</a></li>
-          </ul>
-        </div>
+      <div class="mkt-footer-proof-grid" aria-label="{% trans 'Footer operating proof points' %}">
+        <a class="mkt-footer-proof-card" href="{% url 'status' %}">
+          <span class="mkt-footer-proof-card__metric">{% trans "Live" %}</span>
+          <span class="mkt-footer-proof-card__label">{% trans "Status and incident history" %}</span>
+          <span class="mkt-footer-proof-card__meta">{% trans "Public health, maintenance windows, and platform reliability signals." %}</span>
+        </a>
+        <a class="mkt-footer-proof-card" href="{% url 'marketing_procurement_checklist' %}">
+          <span class="mkt-footer-proof-card__metric">{% trans "Ready" %}</span>
+          <span class="mkt-footer-proof-card__label">{% trans "Procurement packet" %}</span>
+          <span class="mkt-footer-proof-card__meta">{% trans "Security, privacy, accessibility, and payment-processing evidence in one route." %}</span>
+        </a>
+        <a class="mkt-footer-proof-card" href="{% url 'marketing_app_marketplace' %}">
+          <span class="mkt-footer-proof-card__metric">{% trans "Open" %}</span>
+          <span class="mkt-footer-proof-card__label">{% trans "Commerce ecosystem" %}</span>
+          <span class="mkt-footer-proof-card__meta">{% trans "Marketplace, hardware, and integration entry points for campus operations." %}</span>
+        </a>
+        <a class="mkt-footer-proof-card" href="{% url 'marketing_security_compliance' %}">
+          <span class="mkt-footer-proof-card__metric">{% trans "AA" %}</span>
+          <span class="mkt-footer-proof-card__label">{% trans "Accessibility and privacy stance" %}</span>
+          <span class="mkt-footer-proof-card__meta">{% trans "FERPA, COPPA, GDPR, and WCAG evidence surfaced for school review." %}</span>
+        </a>
       </div>
+    </section>
 
-    </div>
+    <section class="mkt-footer-route-stack" aria-label="{% trans 'Audience routing shortcuts' %}">
+      <a href="{% url 'marketing_demo' %}" data-cta="demo" data-page="footer-route-stack">
+        <span>{% trans "School leader" %}</span>
+        <strong>{% trans "Book a platform walkthrough" %}</strong>
+      </a>
+      <a href="{% url 'global_login_discovery' %}">
+        <span>{% trans "Existing user" %}</span>
+        <strong>{% trans "Go to portal login" %}</strong>
+      </a>
+      <a href="{% url 'find_school' %}">
+        <span>{% trans "Parent or student" %}</span>
+        <strong>{% trans "Find my campus" %}</strong>
+      </a>
+      <a href="{% url 'marketing_developers' %}">
+        <span>{% trans "Developer" %}</span>
+        <strong>{% trans "Read API documentation" %}</strong>
+      </a>
+    </section>
 
-    {# Newsletter — kept as a single row above the legal strip. #}
-    <div class="row mt-4 pt-3 border-top">
-      <div class="col-lg-5">
-        <h4 class="h6 mb-2">{% trans "Subscribe to product updates" %}</h4>
-        <form method="{% if marketing_newsletter_form_action %}post{% else %}get{% endif %}" action="{% if marketing_newsletter_form_action %}{{ marketing_newsletter_form_action }}{% else %}{% url 'marketing_contact' %}?intent=newsletter{% endif %}" class="d-flex gap-2 flex-wrap" data-form-name="newsletter" {% if marketing_newsletter_form_action %}target="_blank" rel="noopener noreferrer"{% endif %}>
-          {% if marketing_newsletter_form_action %}{% csrf_token %}{% endif %}
-          {# Honeypot — visually hidden; bots that auto-fill every input get silently dropped. #}
-          <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
-            <label for="newsletter-website-url">{% trans "Leave this field empty" %}</label>
-            <input type="text" id="newsletter-website-url" name="website_url" tabindex="-1" autocomplete="off">
-          </div>
-          <input type="email" name="email" class="form-control form-control-sm" placeholder="{% trans 'Your email' %}" required aria-label="{% trans 'Email for newsletter' %}" style="max-width: 240px;">
-          <button type="submit" class="btn btn-sm btn-primary">{% trans "Subscribe" %}</button>
-        </form>
+    <nav class="mkt-footer-grid" aria-label="{% trans 'Footer navigation' %}">
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-platform">
+        <h3 id="mkt-footer-platform">{% trans "Platform Hub" %}</h3>
+        <ul class="mkt-footer-links">
+          <li><a href="{% url 'marketing_company' %}">{% trans "About RunMyCampus" %}</a></li>
+          <li><a href="{% url 'marketing_contact' %}?intent=careers">{% trans "Careers" %}</a></li>
+          <li><a href="{% url 'marketing_contact' %}?intent=brand-assets">{% trans "Brand assets" %}</a></li>
+          <li><a href="{% url 'marketing_app_marketplace' %}">{% trans "App Marketplace" %}</a></li>
+          <li><a href="{% url 'marketing_app_marketplace' %}?category=hardware">{% trans "Hardware Store" %}</a></li>
+          <li><a href="{% url 'marketing_developers' %}">{% trans "Developer APIs" %}</a></li>
+        </ul>
+      </section>
+
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-solutions">
+        <h3 id="mkt-footer-solutions">{% trans "Solutions & Routers" %}</h3>
+        <ul class="mkt-footer-links">
+          <li><a href="{% url 'marketing_solutions_international_schools' %}">{% trans "For higher education" %}</a></li>
+          <li><a href="{% url 'marketing_solutions_k12_schools' %}">{% trans "For K-12 districts" %}</a></li>
+          <li><a href="{% url 'global_login_discovery' %}">{% trans "Portal login" %}</a></li>
+          <li><a href="{% url 'marketing_demo' %}" data-cta="demo" data-page="footer">{% trans "Request a demo" %}</a></li>
+          <li><a href="{% url 'marketing_pricing' %}">{% trans "Pricing matrix" %}</a></li>
+          <li><a href="{% url 'marketing_implementation_assurance' %}">{% trans "Implementation timelines" %}</a></li>
+          <li><a href="{% url 'find_school' %}">{% trans "Find your campus portal" %}</a></li>
+          <li><a href="{% url 'role_teachers' %}">{% trans "Teacher workspace" %}</a></li>
+          <li><a href="{% url 'marketing_resources_guides' %}?audience=educators">{% trans "Training academies" %}</a></li>
+          <li><a href="{% url 'marketing_resources_blog' %}?topic=community">{% trans "Teacher communities" %}</a></li>
+          <li><a href="{% url 'marketing_resources_guides' %}?topic=lesson-planning">{% trans "Lesson planning templates" %}</a></li>
+          <li><a href="{% url 'role_parents' %}">{% trans "Parent access guide" %}</a></li>
+          <li><a href="{% url 'marketing_platform_student_portal' %}">{% trans "Student portal overview" %}</a></li>
+        </ul>
+      </section>
+
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-trust">
+        <h3 id="mkt-footer-trust">{% trans "Trust & Operations" %}</h3>
+        <ul class="mkt-footer-links">
+          <li><a href="{% url 'status' %}">{% trans "System Status (Live)" %}</a></li>
+          <li><a href="{% url 'marketing_trust_dedicated' %}#infrastructure">{% trans "Infrastructure map" %}</a></li>
+          <li><a href="{% url 'marketing_security_compliance' %}">{% trans "Trust & Security Center" %}</a></li>
+          <li><a href="{% url 'marketing_security_compliance' %}#security-matrix">{% trans "Security matrix" %}</a></li>
+          <li><a href="{% url 'marketing_resources_help_center' %}">{% trans "Support knowledge base" %}</a></li>
+          <li><a href="{% url 'marketing_procurement_checklist' %}">{% trans "Procurement docs" %}</a></li>
+        </ul>
+      </section>
+
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-legal">
+        <h3 id="mkt-footer-legal">{% trans "Legal & Compliance" %}</h3>
+        <ul class="mkt-footer-links">
+          <li><a href="{% url 'marketing_security_compliance' %}#ferpa">{% trans "FERPA privacy pledge" %}</a></li>
+          <li><a href="{% url 'marketing_security_compliance' %}#coppa">{% trans "COPPA verification" %}</a></li>
+          <li><a href="{% url 'marketing_privacy' %}#gdpr">{% trans "GDPR / Privacy Policy" %}</a></li>
+          <li><a href="{% url 'marketing_security_compliance' %}#accessibility">{% trans "WCAG accessibility statement" %}</a></li>
+          <li><a href="{% url 'marketing_terms' %}">{% trans "Terms of Service" %}</a></li>
+          <li><a href="{% url 'marketing_cookie_policy' %}">{% trans "Cookie policy" %}</a></li>
+        </ul>
+      </section>
+    </nav>
+
+    <section class="mkt-footer-newsletter" aria-labelledby="mkt-footer-newsletter-title">
+      <div>
+        <h3 id="mkt-footer-newsletter-title">{% trans "Subscribe to product and trust updates" %}</h3>
         {% if marketing_newsletter_blurb_html %}
-        <div class="small text-muted mt-1 mb-0">{{ marketing_newsletter_blurb_html|safe }}</div>
+        <div class="mkt-footer-newsletter__copy">{{ marketing_newsletter_blurb_html|safe }}</div>
         {% else %}
-        <p class="small text-muted mt-1 mb-0">{% trans "Product updates, guides, and platform news. Unsubscribe anytime." %}</p>
+        <p class="mkt-footer-newsletter__copy">{% trans "Release notes, compliance updates, implementation guides, and platform reliability notices. Unsubscribe anytime." %}</p>
         {% endif %}
       </div>
-    </div>
+      <form method="{% if marketing_newsletter_form_action %}post{% else %}get{% endif %}" action="{% if marketing_newsletter_form_action %}{{ marketing_newsletter_form_action }}{% else %}{% url 'marketing_contact' %}?intent=newsletter{% endif %}" class="mkt-footer-newsletter__form" data-form-name="newsletter" {% if marketing_newsletter_form_action %}target="_blank" rel="noopener noreferrer"{% endif %}>
+        {% if marketing_newsletter_form_action %}{% csrf_token %}{% endif %}
+        <div class="visually-hidden" aria-hidden="true">
+          <label for="newsletter-website-url">{% trans "Leave this field empty" %}</label>
+          <input type="text" id="newsletter-website-url" name="website_url" tabindex="-1" autocomplete="off">
+        </div>
+        <label class="visually-hidden" for="mkt-footer-newsletter-email">{% trans "Email for newsletter" %}</label>
+        <input id="mkt-footer-newsletter-email" type="email" name="email" class="form-control form-control-sm mkt-footer-newsletter__input" placeholder="{% trans 'Your email' %}" required autocomplete="email">
+        <button type="submit" class="btn btn-sm btn-primary">{% trans "Subscribe" %}</button>
+      </form>
+    </section>
 
-    <ul class="mkt-footer-trust-badges list-unstyled d-flex flex-wrap gap-2 small text-muted mt-3 mb-0" aria-label="{% trans 'Trust and compliance' %}">
-      <li>{% trans "FERPA" %}</li>
-      <li>{% trans "GDPR" %}</li>
-      <li>{% trans "POPIA" %}</li>
-      <li>{% trans "180 currencies" %}</li>
+    <ul class="mkt-footer-trust-badges" aria-label="{% trans 'Trust and compliance badges' %}">
+      <li>{% trans "FERPA aligned" %}</li>
+      <li>{% trans "COPPA aware" %}</li>
+      <li>{% trans "GDPR / POPIA ready" %}</li>
+      <li>{% trans "WCAG 2.2 AA target" %}</li>
+      <li>{% trans "PCI-DSS via processors" %}</li>
+      <li>{% trans "SOC 2 control mapping" %}</li>
     </ul>
 
-    {# Brand seal moment — large editorial wordmark over the legal strip. #}
-    <div class="mkt-footer-seal mt-5 pt-4 border-top">
+    <div class="mkt-footer-seal">
       <div class="mkt-footer-seal__mark">
         <img src="{% if PUBLIC_BRAND_LOGO_URL %}{{ PUBLIC_BRAND_LOGO_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.svg' %}{% endif %}" alt="" width="40" height="40" decoding="async" loading="lazy" class="mkt-footer-seal__logo">
         <span class="mkt-footer-seal__wordmark mkt-footer-seal__wordmark--platform" aria-hidden="true"><span class="rmc-brand-word--navy">RUN</span><span class="rmc-brand-word--gold">MY</span><span class="rmc-brand-word--navy">CAMPUS</span></span>
@@ -105,10 +170,17 @@
       <p class="mkt-footer-seal__tagline">{% trans "One quiet system, behind everything your school does." %}</p>
     </div>
 
-    {# Legal strip — quiet bottom row. #}
-    <div class="mkt-footer-legal mt-3 pt-3 border-top d-flex flex-wrap gap-3 align-items-center justify-content-between">
+    <div class="mkt-footer-legal">
       <div class="mkt-footer-copy">© <span data-mkt-year>{% now "Y" %}</span> {% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}. {% trans "All rights reserved." %} <span class="mkt-footer-kbd-hint">· {% trans "Press" %} <kbd>?</kbd> {% trans "for keyboard shortcuts" %}</span></div>
-      <ul class="mkt-footer-legal-links list-unstyled d-flex flex-wrap gap-3 m-0 small">
+      <div class="mkt-footer-theme" aria-label="{% trans 'Theme preference' %}">
+        <span class="mkt-footer-theme__label">{% trans "Theme" %}</span>
+        <div class="mkt-footer-theme__control" role="group" aria-label="{% trans 'Choose theme' %}">
+          <button type="button" data-mkt-theme-choice="light" aria-pressed="false">{% trans "Light" %}</button>
+          <button type="button" data-mkt-theme-choice="dark" aria-pressed="false">{% trans "Dark" %}</button>
+          <button type="button" data-mkt-theme-choice="system" aria-pressed="false">{% trans "System" %}</button>
+        </div>
+      </div>
+      <ul class="mkt-footer-legal-links list-unstyled">
         <li><a href="{% url 'marketing_security_compliance' %}">{% trans "Security" %}</a></li>
         <li><a href="{% url 'marketing_trust_center' %}">{% trans "Trust Center" %}</a></li>
         <li><a href="{% url 'marketing_why_switch' %}">{% trans "Why switch" %}</a></li>

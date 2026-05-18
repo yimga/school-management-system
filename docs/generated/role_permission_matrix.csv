@@ -90,6 +90,7 @@ certification/session/<int:session_id>/export.zip,certification_export_zip,apps/
 certification/session/<int:session_id>/bulk-add/,certification_bulk_add_candidates,apps/accounts/urls.py,apps/accounts/views_certification.py,func,login_required | permission_required('settings.manage') | user_passes_test(_is_admin_user),,,,1,0,1,0,0,,0,0
 certification/session/<int:session_id>/override/,certification_session_override,apps/accounts/urls.py,apps/accounts/views_certification.py,func,login_required | permission_required('settings.manage') | user_passes_test(_is_admin_user),,,,1,0,1,0,0,,0,0
 claim-invite/,claim_invite,apps/accounts/urls.py,apps/portal/views_parent.py,func,parent_portal_required | role_required(User.Role.PARENT),,,User.Role.PARENT,1,1,0,0,0,,0,0
+legacy-setup/<uidb64>/<token>/,LegacySetupView.as_view,apps/accounts/urls.py,apps/accounts/views_legacy_setup.py,class,,,PasswordResetConfirmView,,0,0,0,0,0,,1,0
 mfa/setup/,mfa_setup,apps/accounts/urls.py,apps/accounts/views_mfa.py,func,login_required,,,,1,0,0,0,0,,0,0
 mfa/dismiss-banner/,dismiss_mfa_banner,apps/accounts/urls.py,apps/accounts/views_mfa.py,func,login_required,,,,1,0,0,0,0,,0,0
 mfa/verify/,mfa_verify,apps/accounts/urls.py,apps/accounts/views_mfa.py,func,login_required,,,,1,0,0,0,0,,0,0
@@ -433,6 +434,8 @@ dlq/,views_event_ops.event_dlq_console,apps/events/urls.py,apps/events/views_eve
 domain/<uuid:event_id>/,views_console.event_domain_detail,apps/events/urls.py,apps/events/views_console.py,func,never_cache | login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0
 platform/<int:event_pk>/,views_console.event_platform_detail,apps/events/urls.py,apps/events/views_console.py,func,never_cache | login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0
 replay/,views_console.event_replay,apps/events/urls.py,apps/events/views_console.py,func,never_cache | login_required | require_POST,,,,1,0,0,0,0,,0,0
+status/,views_public_status.public_status_page,apps/feedback/urls.py,apps/feedback/views_public_status.py,func,require_GET,,,,0,0,0,0,0,,1,0
+status/api/,views_public_status.public_status_json,apps/feedback/urls.py,apps/feedback/views_public_status.py,func,require_GET,,,,0,0,0,0,0,,1,0
 feedback/,views.school_feedback_center,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
 school/feedback/,views.school_feedback_center,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
 teacher/feedback/,views.role_feedback_center,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
@@ -495,6 +498,19 @@ governance/,views.governance_console,apps/marketplace/urls.py,apps/marketplace/v
 reviews/<int:review_id>/action/,views.marketplace_review_action,apps/marketplace/urls.py,apps/marketplace/views.py,func,login_required | user_passes_test(_control_plane_access) | require_POST,,,,1,0,0,0,0,,0,0
 publisher/,publisher_dashboard,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,,1,1,0,0,0,,0,0
 publisher/<slug:slug>/,publisher_app_detail,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,,1,1,0,0,0,,0,0
+apps/<slug:slug>/,v.public_app_detail,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,require_GET,,,,1,0,0,1,0,,0,0
+apps/<slug:slug>/rate/,v.submit_rating_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,csrf_protect | login_required | require_POST,,,,1,0,0,0,0,,0,0
+api/v1/catalog/,v.public_app_catalog_api,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,,,,,0,0,0,0,0,,1,0
+publisher/signup/,v.publisher_signup_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,"csrf_protect | require_http_methods(['GET', 'POST'])",,,,0,0,0,0,0,,1,0
+publisher/verify-email/,v.verify_email_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,require_GET,,,,0,0,0,0,0,,1,0
+signups/,v.signup_review_queue,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+signups/<int:signup_id>/decide/,v.signup_decide,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
+publisher/metrics.json,v.partner_dashboard_metrics,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+publisher/webhooks/,v.publisher_webhook_log,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+publisher/apps/<slug:app_slug>/webhooks/,v.webhook_endpoints_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,"csrf_protect | login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
+publisher/apps/<slug:app_slug>/webhooks/<int:endpoint_id>/edit/,v.webhook_endpoint_edit_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,csrf_protect | login_required | require_POST,,,,1,0,0,0,0,,0,0
+publisher/apps/<slug:app_slug>/versions/,v.app_versions_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,"csrf_protect | login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
+ratings/<int:rating_id>/reply/,v.publisher_reply_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,csrf_protect | login_required | require_POST,,,,1,0,0,0,0,,0,0
 search/,metadata_search_api,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,,1,1,0,0,0,,0,0
 governance/,metadata_governance_ui,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,,1,1,0,0,0,,0,0
 lineage/,metadata_lineage_api,apps/metadata/urls.py,apps/metadata/views.py,func,require_super_access_with_host | require_http_methods(['GET']),,,,1,1,0,0,0,,0,0
@@ -537,8 +553,31 @@ export/canonical/,views.MigrationCloudExportCanonicalView.as_view,apps/migration
 <int:bundle_id>/rollout/,views.MigrationCloudRolloutPlanView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 <int:bundle_id>/sla-targets/,views.MigrationCloudSlaTargetsView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 merge/,views.MigrationCloudMergeBundlesView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+template/,views.MigrationCloudCanonicalTemplateView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+template/<str:domain>.csv,views.MigrationCloudCanonicalTemplateView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+template/picker/,views.MigrationCloudCanonicalTemplatePickerView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+companion/maa/text/,companion_receiver.maa_text_view,apps/migration_cloud/urls.py,,,,,,,0,0,0,0,0,,0,1
+companion/maa/sign/,companion_receiver.MAASignView.as_view,apps/migration_cloud/urls.py,,,,,,,0,0,0,0,0,,0,1
+companion/upload/,companion_receiver.CompanionUploadView.as_view,apps/migration_cloud/urls.py,,,,,,,0,0,0,0,0,,0,1
+companion/decrypt/<int:bundle_id>/,companion_receiver.CompanionDecryptHookView.as_view,apps/migration_cloud/urls.py,,,,,,,0,0,0,0,0,,0,1
+companion/server-pubkey/,companion_receiver.companion_server_pubkey_view,apps/migration_cloud/urls.py,,,,,,,0,0,0,0,0,,0,1
+companion/keypair/rotate/,companion_receiver.CompanionKeypairRotateView.as_view,apps/migration_cloud/urls.py,,,,,,,0,0,0,0,0,,0,1
+operator/tokens/,views_token_admin.MigrationCloudTokenListView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_token_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
+operator/tokens/mint/,views_token_admin.MigrationCloudTokenMintView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_token_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
+operator/tokens/<int:token_id>/revoke/,views_token_admin.MigrationCloudTokenRevokeView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_token_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
+operator/tokens/<int:token_id>/rotate/,views_token_admin.MigrationCloudTokenRotateView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_token_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
+operator/webhooks/,views_webhook_admin.MigrationCloudWebhookListView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_webhook_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
+operator/webhooks/subscribe/,views_webhook_admin.MigrationCloudWebhookSubscribeView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_webhook_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
+operator/webhooks/deliveries/,views_webhook_admin.MigrationCloudWebhookDeliveryLogView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_webhook_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
+operator/webhooks/deliveries/<int:delivery_id>/retry/,views_webhook_admin.MigrationCloudWebhookRetryView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_webhook_admin.py,class,staff_member_required,,View,,1,0,0,0,0,staff-only-operator-token-and-webhook-management,0,0
 workbench/,views.operator_workbench,apps/orchestration/urls.py,apps/orchestration/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 runs/<int:run_id>/retry/,views.retry_run,apps/orchestration/urls.py,apps/orchestration/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
+api/runs/,api.runs_list_or_create,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
+api/runs/<int:run_id>/,api.run_detail,apps/orchestration/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
+api/runs/<int:run_id>/events/,api.run_events,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
+api/runs/<int:run_id>/cancel/,api.run_cancel,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
+api/runs/<int:run_id>/retry/,api.run_retry,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
+api/slo/,api.slo_snapshot,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
 ,dashboard,apps/payroll/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 runs/create/,create_run,apps/payroll/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 runs/<int:run_id>/,run_detail,apps/payroll/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
@@ -785,6 +824,7 @@ impersonation-consent/revoke/,revoke_impersonation_consent,apps/siteconfig/urls.
 feedback-roadmap/,feedback_roadmap,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,login_required | staff_member_required,,,,1,0,0,0,0,,0,0
 console/ai/rag/ingest/,ai_rag_ingest_policy_docs,apps/siteconfig/urls.py,apps/siteconfig/views_console_ai_rag.py,func,require_POST | csrf_protect | staff_member_required,,,,1,0,0,0,0,,0,0
 ,studio_shell,apps/studio_os/urls.py,apps/studio_os/views.py,func,never_cache | require_http_methods(['GET']) | login_required,,,,1,0,0,0,0,,0,0
+operator-school/,studio_set_operator_school,apps/studio_os/urls.py,apps/studio_os/views.py,func,never_cache | require_http_methods(['POST']) | login_required,,,,1,0,0,0,0,,0,0
 hubs/approvals/,approval_workflow_hub,apps/studio_os/urls.py,apps/accounts/views_workflow.py,func,login_required | user_passes_test(_can_access_approval_hub),,,,1,0,0,0,0,,0,0
 hubs/workflow/,workflow_center,apps/studio_os/urls.py,apps/accounts/views_workflow.py,func,permission_required('settings.manage'),,,,1,0,1,0,0,,0,0
 hubs/import/,import_hub,apps/studio_os/urls.py,apps/accounts/views_workflow.py,func,login_required | user_passes_test(_is_admin_user),,,,1,0,0,0,0,,0,0
@@ -827,3 +867,5 @@ rollback/,studio_rollback,apps/studio_os/urls.py,apps/studio_os/views.py,func,"n
 api/school-infrastructure/preview/,school_infrastructure_preview_api,apps/studio_os/urls.py,apps/studio_os/views.py,func,never_cache | require_http_methods(['GET']) | login_required,,,,1,0,0,0,0,,0,0
 api/school-infrastructure/validate/,school_infrastructure_validate_api,apps/studio_os/urls.py,apps/studio_os/views.py,func,"never_cache | require_http_methods(['GET', 'POST']) | login_required",,,,1,0,0,0,0,,0,0
 api/school-infrastructure/apply/,school_infrastructure_apply_api,apps/studio_os/urls.py,apps/studio_os/views.py,func,never_cache | require_http_methods(['POST']) | login_required,,,,1,0,0,0,0,,0,0
+schema/,MigrationCloudSchemaView.as_view,apps/migration_cloud/api/urls.py,,,,,,,0,0,0,0,0,,0,1
+docs/,MigrationCloudRedocView.as_view,apps/migration_cloud/api/urls.py,,,,,,,0,0,0,0,0,,0,1

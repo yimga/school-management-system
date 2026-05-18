@@ -1,17 +1,29 @@
 /**
  * Theme preference bootstrap — runs before <body> to avoid flash-of-wrong-theme.
- * v2 (2026-05-12): three-mode contract.
  *
- *   <html data-theme="light|dark|system">   ← the user's *preference*
- *   <html data-resolved-theme="light|dark"> ← the *effective* theme (always set)
- *   <html data-bs-theme="light|dark">       ← Bootstrap 5 compat (mirrors resolved)
+ * v3 (2026-05-18) attribute contract — `data-theme` carries the EFFECTIVE
+ * theme, never the literal preference string. This is the contract every
+ * CSS rule across 34 files (271 selectors) expects, and the contract that
+ * sibling scripts (`_pages/backend_base-1.js`) already follow:
  *
- * When preference is "system" we listen for OS theme changes and live-update
- * data-resolved-theme + data-bs-theme so the UI flips without a reload.
+ *   <html data-theme="light|dark">             ← effective (== resolved)
+ *   <html data-resolved-theme="light|dark">    ← effective (kept for sites that opted in)
+ *   <html data-bs-theme="light|dark">          ← Bootstrap 5 compat
+ *   <html data-theme-preference="light|dark|system">  ← raw preference (toggle UI only)
  *
- * The toggle in user_dropdown.html writes to localStorage[KEY] and dispatches
- * a `rmc:theme-change` CustomEvent; this bootstrap listens for that too so the
- * three buttons (Light / Dark / System) can re-apply without a page refresh.
+ * Why v3 reverts the v2 "preference in data-theme" idea: when a user picked
+ * "System" + OS=dark, v2 wrote `data-theme="system"`, which never matched
+ * any `[data-theme="dark"]` CSS selector. Aesthetic-profile dark overrides
+ * (e.g. `[data-rmc-aesthetic="cool-apple"][data-theme="dark"]` setting
+ * `--surface-elevated: #1e293b`) silently skipped, while `[data-bs-theme="dark"]`
+ * still flipped `--text-primary` to near-white. Result: white text on white
+ * cards across every card/table on the platform whenever the operator's OS
+ * was in dark mode and they had not explicitly picked Dark. v3 fixes it
+ * at the source: `data-theme` is always light|dark.
+ *
+ * Toggle UI reads the preference via `RMCTheme.get()` (which still hits
+ * localStorage), so the three buttons (Light / Dark / System) keep working.
+ * Anything that needs the raw preference can read `data-theme-preference`.
  *
  * Externalised from portal_base.html for CSP friendliness (no inline scripts).
  */
@@ -37,7 +49,13 @@
   function apply(pref) {
     var resolved = resolve(pref);
     var root = document.documentElement;
-    root.setAttribute("data-theme", pref);
+    /* v3 contract (2026-05-18): data-theme carries the EFFECTIVE theme so
+       every `[data-theme="dark"]` selector across the platform fires when
+       the page is rendering dark, regardless of whether the user picked
+       Dark explicitly or System-with-dark-OS. The raw preference moves to
+       data-theme-preference for the toggle UI / any code that needs it. */
+    root.setAttribute("data-theme", resolved);
+    root.setAttribute("data-theme-preference", pref);
     root.setAttribute("data-resolved-theme", resolved);
     root.setAttribute("data-bs-theme", resolved);
     /* Hook for native browser UI (scrollbars, form controls) — only meaningful

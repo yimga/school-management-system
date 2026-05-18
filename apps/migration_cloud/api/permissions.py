@@ -57,3 +57,79 @@ class MigrationCloudAPIPermission(BasePermission):
             return False
         school = getattr(request, "school", None) or getattr(request, "tenant", None)
         return getattr(school, "pk", None) == bundle_school_id
+
+
+class ScopedAPIPermission(MigrationCloudAPIPermission):
+    """Tenant gate + per-action scope gate for ``MigrationCloudAPIToken`` callers.
+
+    If the request was authenticated via a scoped token, ``request.auth``
+    is the :class:`apps.migration_cloud.models.MigrationCloudAPIToken`
+    row. We map ``(view.basename, action_name)`` to a required scope via
+    :data:`apps.migration_cloud.api.scoped_tokens.ACTION_SCOPE_REQUIREMENTS`
+    and reject the call if the token's ``scopes`` list doesn't include
+    it.
+
+    For callers using session / DRF authtoken auth (where
+    ``request.auth`` is not one of our scoped rows), the parent class's
+    staff-or-tenant-match check applies — scopes are not enforced.
+    """
+
+    def has_permission(self, request, view) -> bool:
+        if not super().has_permission(request, view):
+            return False
+        return self._scope_ok(request, view)
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if not super().has_object_permission(request, view, obj):
+            return False
+        # Object-level scope check is the same as view-level — we don't
+        # vary scope per object; tenant_scope on the token row handles
+        # cross-tenant denial separately below.
+        return self._scope_ok(request, view, obj=obj)
+
+    def _scope_ok(self, request, view, *, obj=None) -> bool:
+        # Lazy import — keeps module load order safe.
+        from .scoped_tokens import ACTION_SCOPE_REQUIREMENTS
+        from apps.migration_cloud.models import MigrationCloudAPIToken
+
+        token = getattr(request, "auth", None)
+        if not isinstance(token, MigrationCloudAPIToken):
+            # Not a scoped-token request — fall through (parent already OK'd).
+            return True
+
+        # Enforce token's tenant_scope if set.
+        if token.tenant_scope_id is not None:
+            target_school_id = None
+            if obj is not None:
+                target_school_id = getattr(obj, "school_id", None) or getattr(
+                    obj, "tenant_id", None,
+                )
+            if target_school_id is None:
+                school = getattr(request, "school", None) or getattr(
+                    request, "tenant", None,
+                )
+                target_school_id = getattr(school, "pk", None)
+            if (
+                target_school_id is not None
+                and target_school_id != token.tenant_scope_id
+            ):
+                self.message = "scoped token bound to a different tenant"
+                return False
+
+        basename = getattr(view, "basename", None) or getattr(view, "_basename", None)
+        action_name = getattr(view, "action", None)
+        if not basename or not action_name:
+            # Unknown view shape — fail closed.
+            return False
+        required = ACTION_SCOPE_REQUIREMENTS.get((basename, action_name))
+        if required is None:
+            # No scope mapping — fail closed; every action must be cataloged.
+            self.message = (
+                f"action {basename}.{action_name} has no scope mapping; refused"
+            )
+            return False
+        scopes = list(token.scopes or [])
+        if required not in scopes:
+            self.message = f"missing required scope '{required}'"
+            return False
+        return True

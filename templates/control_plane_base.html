@@ -87,7 +87,9 @@ Targets the existing #cp-main-content landmark (line ~76 below).
       {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#cp-main-content" %}
       {% endblock %}
       {% endif %}
+      <div class="cp-page-body" data-rmc-cp-page-body="1">
       {% block cp_content %}<h1 class="visually-hidden">{% trans "Control plane" %}</h1>{% endblock %}
+      </div>
       {% block cp_sticky_action_bar %}{# Page-level sticky actions (override in child templates) #}{% endblock %}
     </main>
   </div>

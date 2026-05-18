@@ -4,6 +4,7 @@
   State: getQuickAccessState() for overview/setup/content; allAppsOpen false unless current path in app list.
 {% endcomment %}
 <div id="nav-sidebar-apps" class="admin-sidebar-apps h-0 grow overflow-auto d-flex flex-column" role="navigation" aria-label="{% trans 'Applications' %}">
+  {% if not platform_admin_sidebar_embed %}
   <div class="admin-sidebar-nav-block" id="admin-sidebar-pinned-wrap">
     <h2 class="admin-sidebar-section-title admin-sidebar-section-title--muted">{% trans "Pinned" %}</h2>
     <ul class="admin-sidebar-quick-list admin-sidebar-pinned-list" id="admin-sidebar-pinned-list" style="list-style: none; margin: 0; padding: 0;"></ul>
@@ -124,9 +125,10 @@
     </ul>
     {% endif %}
   </div>
+  {% endif %}
 
   {% if app_list %}
-  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: false }" role="group" aria-label="{% trans 'Apps' %}">
+  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: {% if platform_admin_sidebar_embed %}true{% else %}false{% endif %} }" role="group" aria-label="{% trans 'Apps' %}">
     <h2 class="admin-sidebar-section-title admin-sidebar-section-title--secondary">
       <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle Apps' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen" @keydown.space.prevent="allAppsOpen = !allAppsOpen">
         <span>{% trans "Apps" %}</span>
@@ -143,6 +145,7 @@
         {% elif app.section == 'financial' %}{% trans "Financial" %}
         {% elif app.section == 'operations' %}{% trans "Operations" %}
         {% elif app.section == 'system' %}{% trans "System & configuration" %}
+        {% elif app.section %}{{ app.section }}
         {% else %}{% trans "Other" %}{% endif %}
       </h2>
     {% endifchanged %}

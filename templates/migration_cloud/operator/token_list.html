@@ -1,0 +1,83 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Migration Cloud — scoped API tokens" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-tokens" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Scoped API tokens" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Operator surface for Migration Cloud REST API authentication. Plaintext is never recoverable — only the preview suffix is shown." %}
+    </p>
+    <div class="rmc-page__actions">
+      <a class="rmc-btn rmc-btn--primary" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_mint' %}{% else %}{% url 'migration_cloud_super:operator_token_mint' %}{% endif %}">{% trans "Mint new token" %}</a>
+    </div>
+  </header>
+
+  <form method="get" class="rmc-toolbar" role="search" aria-label="{% trans 'Filter tokens' %}">
+    <label class="rmc-form__label">{% trans "Tenant ID" %}
+      <input class="rmc-input" type="text" name="tenant_id" value="{{ filter_tenant_id }}" inputmode="numeric">
+    </label>
+    <label class="rmc-form__label">{% trans "User ID" %}
+      <input class="rmc-input" type="text" name="user_id" value="{{ filter_user_id }}" inputmode="numeric">
+    </label>
+    <button class="rmc-btn rmc-btn--ghost" type="submit">{% trans "Filter" %}</button>
+  </form>
+
+  {% if rows %}
+  <table class="rmc-data-table rmc-data-table--tokens">
+    <thead>
+      <tr>
+        <th>{% trans "ID" %}</th>
+        <th>{% trans "Name" %}</th>
+        <th>{% trans "Preview" %}</th>
+        <th>{% trans "User" %}</th>
+        <th>{% trans "Tenant" %}</th>
+        <th>{% trans "Scopes" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Actions" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.name }}</td>
+        <td><code class="rmc-kbd">{{ r.preview }}</code></td>
+        <td>{{ r.user_label }}</td>
+        <td>{{ r.tenant_id|default:"—" }}</td>
+        <td>
+          {% for s in r.scopes %}<code class="rmc-kbd">{{ s }}</code>{% if not forloop.last %} {% endif %}{% endfor %}
+        </td>
+        <td>
+          {% if r.is_active %}
+            <span class="rmc-pill rmc-pill--success">{% trans "active" %}</span>
+          {% elif r.grace_until %}
+            <span class="rmc-pill rmc-pill--warn">{% trans "rotated (grace)" %}</span>
+          {% else %}
+            <span class="rmc-pill rmc-pill--muted">{% trans "revoked" %}</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_rotate' token_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_token_rotate' token_id=r.id %}{% endif %}" class="rmc-form--inline">
+            {% csrf_token %}
+            <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Rotate" %}</button>
+          </form>
+          <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_revoke' token_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_token_revoke' token_id=r.id %}{% endif %}" class="rmc-form--inline">
+            {% csrf_token %}
+            <button class="rmc-btn rmc-btn--ghost rmc-btn--sm rmc-btn--danger" type="submit" aria-label="{% trans 'Revoke token' %}">{% trans "Revoke" %}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="rmc-empty">
+    <h2 class="rmc-h2">{% trans "No tokens yet" %}</h2>
+    <p>{% trans "Mint your first token to get started." %}</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

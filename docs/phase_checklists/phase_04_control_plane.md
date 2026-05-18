@@ -11,7 +11,7 @@
 
 ## Templates
 
-- [x] `templates/siteconfig/console_domains_hub_control_plane.html`
+- [x] `templates/siteconfig/partials/console_domains_hub_manager_body.html`
 - [x] `templates/siteconfig/partials/configuration_control_center_operator_model.html` (and `configuration_control_center_outcomes.html`)
 - [x] `templates/studio_os/partials/control_mode_canvas.html`
 - [x] `templates/studio_os/modes/control.html`
@@ -23,8 +23,9 @@
 ## Validation
 
 - [x] `python -m pytest apps/siteconfig/tests/test_control_outcome_center.py`
+- [x] `python scripts/verify_operator_surface_maturity.py`
 - [x] `python scripts/verify_admin_tenant_change_form_product_links.py` (tenant Unfold `change_form` product escape links — wired in `verify_phases_3_11_gates.py` + `test_tenant_settings_lint`)
 
 ## Acceptance
 
-- [x] Outcome grouping (9 groups) + operator model (6 steps) + why-enabled + stability badges
+- [x] Outcome grouping (9 groups) + operator model (6 steps) + why-enabled + earned-stable maturity metadata (no visible stability badge noise)

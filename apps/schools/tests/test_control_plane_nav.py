@@ -1,9 +1,16 @@
 """Control plane sidebar must expose admin-sidebar parity links (manager host)."""
 
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, SimpleTestCase
+from django.test import Client, RequestFactory, SimpleTestCase, override_settings
 
-from apps.schools.control_plane_nav import build_control_plane_nav
+from apps.schools.control_plane_nav import (
+    build_control_plane_nav,
+    build_manager_platform_admin_nav,
+)
+from apps.schools.super_admin_bridge_registry import (
+    PLATFORM_ADMIN_BRIDGE_ORDER,
+    PLATFORM_ADMIN_BRIDGES,
+)
 
 
 class ControlPlaneNavParityTests(SimpleTestCase):
@@ -73,3 +80,82 @@ class ControlPlaneNavParityTests(SimpleTestCase):
         ids = {it["id"] for it in support_group.get("items") or []}
         self.assertIn("super_support", ids)
         self.assertIn("super_support_csat", ids)
+
+    def test_advanced_group_uses_direct_admin_urls(self):
+        request = RequestFactory().get("/super/")
+        request.urlconf = "config.manager_urls"
+        User = get_user_model()
+        request.user = User(is_superuser=True, username="nav_advanced")
+        groups = build_control_plane_nav(request)
+        advanced = next((g for g in groups if g.get("label") == "Advanced"), None)
+        self.assertIsNotNone(advanced)
+        for item in advanced.get("items") or []:
+            self.assertTrue(item.get("url"), msg=item.get("id"))
+            self.assertNotIn("/super/admin-bridge/", item["url"], msg=item.get("id"))
+        bridge_ids = {
+            meta["nav_id"]
+            for key in PLATFORM_ADMIN_BRIDGE_ORDER
+            if (meta := PLATFORM_ADMIN_BRIDGES.get(key)) and meta.get("show_in_nav")
+        }
+        nav_ids = {it["id"] for it in advanced.get("items") or []}
+        self.assertTrue(bridge_ids.issubset(nav_ids), bridge_ids - nav_ids)
+
+    def test_advanced_group_expands_when_admin_changelist_active(self):
+        request = RequestFactory().get("/admin/integrations_marketplace/integration/")
+        request.urlconf = "config.manager_urls"
+        User = get_user_model()
+        request.user = User(is_superuser=True, username="nav_advanced_expand")
+        groups = build_control_plane_nav(request)
+        advanced = next((g for g in groups if g.get("label") == "Advanced"), None)
+        self.assertIsNotNone(advanced)
+        self.assertTrue(advanced.get("expanded"))
+        current = [it for it in advanced.get("items") or [] if it.get("is_current")]
+        self.assertTrue(current, msg="expected a current Advanced nav item on admin path")
+
+    def test_manager_platform_admin_nav_quick_links(self):
+        request = RequestFactory().get("/admin/")
+        request.urlconf = "config.manager_urls"
+        User = get_user_model()
+        request.user = User(is_superuser=True, username="nav_mgr_admin")
+        nav = build_manager_platform_admin_nav(request)
+        ids = {row["id"] for row in nav.get("quick_links") or []}
+        self.assertIn("admin_index", ids)
+        self.assertIn("super_dashboard", ids)
+        self.assertIn("super_platform_operator_hub", ids)
+
+
+@override_settings(ALLOWED_HOSTS=["*"], ROOT_URLCONF="config.manager_urls")
+class ControlPlaneAdvancedNavHttpTests(SimpleTestCase):
+    databases = {"default"}
+
+    def test_advanced_nav_items_return_ok_on_manager_host(self):
+        User = get_user_model()
+        user = User(is_superuser=True, is_staff=True, username="adv_http")
+        client = Client()
+        client.force_login(user)
+        request = RequestFactory().get("/super/")
+        request.urlconf = "config.manager_urls"
+        request.user = user
+        advanced = next(
+            (
+                g
+                for g in build_control_plane_nav(request)
+                if g.get("label") == "Advanced"
+            ),
+            None,
+        )
+        self.assertIsNotNone(advanced)
+        sample = list(advanced.get("items") or [])[:3]
+        self.assertGreaterEqual(len(sample), 2)
+        for item in sample:
+            with self.subTest(nav_id=item.get("id")):
+                response = client.get(
+                    item["url"],
+                    HTTP_HOST="manager.runmycampus.com",
+                    follow=False,
+                )
+                self.assertIn(
+                    response.status_code,
+                    (200, 302),
+                    msg=f"{item.get('id')} -> {item.get('url')}",
+                )

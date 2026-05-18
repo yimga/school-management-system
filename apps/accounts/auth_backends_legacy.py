@@ -35,6 +35,7 @@ from typing import Optional
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.db import DatabaseError
+from django.utils import timezone
 
 from .legacy_hashes import verify as verify_legacy_hash
 
@@ -98,6 +99,23 @@ class LegacyHashUpgradeBackend(ModelBackend):
         legacy_algo = getattr(user, "legacy_hash_algorithm", "") or ""
 
         if legacy_hash and legacy_algo:
+            # v3.29: defensive backfill of legacy_hash_created_at for
+            # rows imported before the field existed. The sunset task
+            # falls back to date_joined when this is NULL, so a missing
+            # value isn't load-bearing — but stamping it here gives the
+            # 12-month clock an honest anchor relative to "first sight"
+            # of the foreign hash rather than the account-creation
+            # timestamp (which can predate the migration by years).
+            if getattr(user, "legacy_hash_created_at", None) is None:
+                try:
+                    user.legacy_hash_created_at = timezone.now()
+                    user.save(update_fields=("legacy_hash_created_at",))
+                except DatabaseError:
+                    # Non-fatal — the sunset job tolerates NULL anchors.
+                    logger.info(
+                        "legacy_hash_created_at_backfill_failed",
+                        extra={"user_id": user.pk, "result": "save_failed"},
+                    )
             legacy_params = getattr(user, "legacy_hash_params", {}) or {}
             matched = verify_legacy_hash(
                 legacy_algo, legacy_params, legacy_hash, password

@@ -1,0 +1,19 @@
+{% load i18n static unfold %}
+<nav class="cp-sidebar-nav cp-sidebar-platform-admin" id="{% firstof sidebar_nav_id 'cpSidebarNav' %}" aria-label="{% trans 'Platform backoffice navigation' %}" data-sidebar-nav="true" data-shell-nav-family="platform-admin" data-rmc-platform-admin-sidebar="1">
+  {% if MANAGER_PLATFORM_ADMIN_NAV and MANAGER_PLATFORM_ADMIN_NAV.quick_links %}
+  <p class="cp-nav-section-label rmc-type-eyebrow mb-2 mt-0">{% trans "Start" %}</p>
+  <ul class="nav flex-column gap-1 mb-3 ps-0">
+    {% for item in MANAGER_PLATFORM_ADMIN_NAV.quick_links %}
+    <li class="nav-item">
+      <a class="nav-link text-white d-flex align-items-center {% if item.is_current %}active{% endif %}" href="{{ item.url }}">
+        <i class="bi {{ item.icon }} me-2 cp-nav-icon" aria-hidden="true"></i>
+        <span class="cp-nav-label">{{ item.label }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <div class="cp-platform-admin-app-tree min-h-0 overflow-auto">
+    {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False platform_admin_sidebar_embed=True %}
+  </div>
+</nav>

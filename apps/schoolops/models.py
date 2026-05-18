@@ -534,3 +534,242 @@ class PosSaleLine(models.Model):
     def grand_total(self):
         """Line net (pre-tax) + stored tax snapshot."""
         return self.line_total + (self.tax_amount or Decimal("0"))
+
+
+# ---------------------------------------------------------------------------
+# v3.29.0 — First-class per-student assignment models. These promote the
+# three v3.28 landers (transport / hostel / cafeteria) off the
+# ``apps.metadata.DynamicFieldValue`` fallback they used while no
+# schoolops-side join row existed. The landers now write to these models
+# when both ends of the join resolve and gracefully fall back to
+# DynamicFieldValue when the catalog side hasn't landed yet (out-of-order
+# bundle). The v3.29.0 migration is pure ``CreateModel`` — no live-model
+# imports — and the registry docstring update is in
+# ``apps/migration_cloud/landers/__init__.py``.
+# ---------------------------------------------------------------------------
+
+
+_TRANSPORT_ASSIGNMENT_STATUS_CHOICES = (
+    ("active", "Active"),
+    ("paused", "Paused"),
+    ("ended", "Ended"),
+)
+
+_HOSTEL_ASSIGNMENT_STATUS_CHOICES = (
+    ("active", "Active"),
+    ("checked_out", "Checked Out"),
+    ("ended", "Ended"),
+)
+
+_MEAL_PLAN_BALANCE_STATUS_CHOICES = (
+    ("active", "Active"),
+    ("suspended", "Suspended"),
+    ("closed", "Closed"),
+)
+
+
+class TransportAssignment(models.Model):
+    """A student's join to a transport Route (with stops + effective window).
+
+    v3.29.0 promotion: replaces the ``DynamicFieldValue`` fallback that the
+    ``transport_assignment_lander`` used in v3.28. Catalog row lives in
+    :class:`Route`; this row says "this student rides that route".
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="transport_assignments",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        db_constraint=False,
+        related_name="transport_assignments",
+    )
+    route = models.ForeignKey(
+        "schoolops.Route",
+        on_delete=models.PROTECT,
+        related_name="assignments",
+    )
+    pickup_stop = models.CharField(max_length=128, blank=True)
+    dropoff_stop = models.CharField(max_length=128, blank=True)
+    effective_from = models.DateField()
+    effective_to = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=_TRANSPORT_ASSIGNMENT_STATUS_CHOICES,
+        default="active",
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_transportassignment"
+        ordering = ["-effective_from", "-created_at"]
+        unique_together = [("student", "route", "effective_from")]
+        indexes = [
+            models.Index(fields=["student", "status"]),
+            models.Index(fields=["route", "effective_from"]),
+            models.Index(fields=["school", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.student_id} -> {self.route_id} ({self.status})"
+
+
+class HostelAssignment(models.Model):
+    """A student's join to a HostelRoom (with bed label + effective window).
+
+    v3.29.0 promotion: replaces the ``DynamicFieldValue`` fallback that the
+    ``hostel_assignment_lander`` used in v3.28. Catalog rows live in
+    :class:`Hostel` + :class:`HostelRoom`.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="hostel_assignments",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        db_constraint=False,
+        related_name="hostel_assignments",
+    )
+    room = models.ForeignKey(
+        "schoolops.HostelRoom",
+        on_delete=models.PROTECT,
+        related_name="assignments",
+    )
+    bed_label = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text='e.g. "Bed 1", "Top Bunk"',
+    )
+    effective_from = models.DateField()
+    effective_to = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=_HOSTEL_ASSIGNMENT_STATUS_CHOICES,
+        default="active",
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_hostelassignment"
+        ordering = ["-effective_from", "-created_at"]
+        unique_together = [("student", "room", "effective_from")]
+        indexes = [
+            models.Index(fields=["student", "status"]),
+            models.Index(fields=["room", "status"]),
+            models.Index(fields=["school", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.student_id} -> {self.room_id} ({self.status})"
+
+
+class MealPlanBalance(models.Model):
+    """A student's running cafeteria balance for a meal plan (or generic credit).
+
+    v3.29.0 promotion: replaces the ``DynamicFieldValue`` fallback that the
+    ``cafeteria_assignment_lander`` used in v3.28. ``meal_plan`` is nullable
+    — a null value represents a generic / uncategorized canteen credit. All
+    money fields are :class:`Decimal` to satisfy ``scan_money_float``.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="meal_plan_balances",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        db_constraint=False,
+        related_name="meal_plan_balances",
+    )
+    meal_plan = models.ForeignKey(
+        "schoolops.CanteenMeal",
+        on_delete=models.PROTECT,
+        related_name="balances",
+        null=True,
+        blank=True,
+        help_text="Null = generic / uncategorized canteen credit.",
+    )
+    balance = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    currency = models.CharField(
+        max_length=3,
+        default="USD",
+        help_text="ISO 4217 currency code.",
+    )
+    last_topup_at = models.DateTimeField(null=True, blank=True)
+    last_topup_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    low_balance_threshold = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("5.00"),
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=_MEAL_PLAN_BALANCE_STATUS_CHOICES,
+        default="active",
+    )
+    # v3.32.0 — low-balance notification tracking (Agent 4 wave). The signal
+    # at :mod:`apps.schoolops.signals` reads these to enforce a 7-day
+    # cooldown between repeat notifications; the Celery sweep at
+    # :func:`apps.schoolops.tasks.sweep_low_meal_plan_balances` uses them
+    # to find rows the signal missed (e.g. low at app-startup time).
+    last_low_balance_notification_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp of the most recent low-balance notification "
+                  "delivery; used by the cooldown gate.",
+    )
+    low_balance_notification_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Lifetime count of low-balance notifications dispatched "
+                  "for this row (analytics + spam-detection).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_mealplanbalance"
+        ordering = ["-updated_at"]
+        unique_together = [("student", "meal_plan")]
+        indexes = [
+            models.Index(fields=["student", "status"]),
+            models.Index(fields=["school", "status"]),
+        ]
+
+    def __str__(self):
+        plan_token = self.meal_plan_id if self.meal_plan_id else "generic"
+        return f"{self.student_id} / {plan_token}: {self.balance} {self.currency}"
+
+    @property
+    def is_low(self) -> bool:
+        """True when balance has dropped to or below the configured threshold."""
+        bal = self.balance if self.balance is not None else Decimal("0")
+        thr = (
+            self.low_balance_threshold
+            if self.low_balance_threshold is not None
+            else Decimal("0")
+        )
+        return bal <= thr

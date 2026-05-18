@@ -597,7 +597,7 @@ urlpatterns = [
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
-    path("status/", obs_views.public_health, name="status"),
+    path("status/", obs_views.public_status, name="status"),
     path("api/health/", obs_views.api_health, name="api_health"),
     path(
         "api/control-plane-preferences/",

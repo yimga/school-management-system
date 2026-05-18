@@ -628,9 +628,12 @@
 }
 
 /* Dark theme: one place for all token overrides. Applies to portal (data-theme/data-bs-theme) and backend/admin (body.portal-backend-dark).
-   v2 (2026-05-12): Apple semantic surface tokens override first, then admin/portal aliases inherit. */
+   v2 (2026-05-12): Apple semantic surface tokens override first, then admin/portal aliases inherit.
+   v3 (2026-05-18): data-theme contract — see docs/THEME_SYSTEM.md §0. data-theme now always
+   carries the EFFECTIVE theme, so the old `data-theme="system" + data-resolved-theme="dark"`
+   compound is no longer needed and has been retired. */
 html[data-theme="dark"],
-html[data-theme="system"][data-resolved-theme="dark"],
+html[data-resolved-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
   /* Apple semantic surfaces — dark */
@@ -767,43 +770,14 @@ body[data-rmc-neutral="warm"].portal-backend-dark {
 }
 
 /* ============================================================
-   v2 theme system — System (auto) mode.
-   When data-theme="system" and the OS reports dark mode, mirror
-   the dark overrides above. The JS bootstrap sets
-   data-resolved-theme="dark|light" on <html> for non-CSS code
-   (charts, JS UI) to read, but CSS can match prefers-color-scheme
-   directly here so the swap happens before JS runs.
+   v3 theme system — pre-JS fallback for system preference.
+   The JS bootstrap (theme-preference-bootstrap.js) runs synchronously
+   in <head>, so by first paint `data-theme` already carries the
+   resolved value and the `html[data-theme="dark"]` block above fires.
+   Under the v3 contract `data-theme` is never the literal "system",
+   so the prior `@media (prefers-color-scheme: dark) html[data-theme="system"]`
+   fallback became unreachable and was removed (2026-05-18).
    ============================================================ */
-@media (prefers-color-scheme: dark) {
-  html[data-theme="system"]:not([data-resolved-theme="light"]) {
-    --surface-bg: #000000;
-    --surface-canvas: #1c1c1e;
-    --surface-elevated: #2c2c2e;
-    --surface-popover: color-mix(in oklab, #2c2c2e 88%, transparent);
-    --surface-overlay: rgba(255, 255, 255, 0.06);
-    --surface-sunken: #0a0a0c;
-    --hairline: rgba(255, 255, 255, 0.10);
-    --hairline-strong: rgba(255, 255, 255, 0.16);
-    --text-primary: #f5f5f7;
-    --text-secondary: #ebebf5;
-    --text-tertiary: #aeaeb2;
-    --text-muted: #8e8e93;
-    --elev-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
-    --elev-2: 0 4px 12px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
-    --elev-3: 0 20px 40px rgba(0, 0, 0, 0.6), 0 6px 12px rgba(0, 0, 0, 0.4);
-    --admin-content-bg: var(--surface-canvas);
-    --admin-content-surface: var(--surface-elevated);
-    --admin-content-text: var(--text-primary);
-    --admin-content-text-muted: var(--text-tertiary);
-    --admin-content-border: var(--hairline);
-    --admin-content-card-bg: var(--surface-elevated);
-    --portal-bg: var(--surface-bg);
-    --portal-text: var(--text-primary);
-    --portal-text-muted: var(--text-tertiary);
-    --portal-border: var(--hairline);
-    --portal-border-strong: var(--hairline-strong);
-  }
-}
 
 /* Smooth theme transitions — Apple-fluid, applied only to non-decorative props
    so charts and animations are not affected. Skipped when user requests reduced motion. */

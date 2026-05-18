@@ -5,11 +5,16 @@ from django.test import RequestFactory, SimpleTestCase
 from django.urls import reverse
 
 from apps.siteconfig.control_outcome_center import (
+    OPERATOR_MATURITY_CRITERIA,
+    OPERATOR_SURFACE_MATURITY_PROOFS,
     OUTCOME_GROUP_SPECS,
+    STABLE_OPERATOR_SURFACE,
     build_control_studio_rail_sections,
+    build_ccc_staging_publish_links_for_request,
     build_feature_control_operator_quick_links,
     build_operator_control_model_for_request,
     build_outcome_groups_for_request,
+    validate_operator_surface_maturity_proofs,
 )
 
 
@@ -93,6 +98,52 @@ class ControlOutcomeCenterTests(SimpleTestCase):
         self.assertEqual(sections, full)
         for sec in sections:
             self.assertTrue(sec.get("links"))
+
+    def test_all_operator_links_expose_earned_stable_state(self):
+        rf = RequestFactory().get("/studio/control/")
+        rf.urlconf = "config.manager_urls"
+        rf.public_host_kind = "manager"
+        rf.user = AnonymousUser()
+
+        self.assertEqual(validate_operator_surface_maturity_proofs(), [])
+
+        groups = build_outcome_groups_for_request(rf)
+        for group in groups:
+            for link in group["links"]:
+                self.assertEqual(link["stability"], STABLE_OPERATOR_SURFACE)
+                self.assertTrue(link.get("maturity_key"))
+
+        for link in build_feature_control_operator_quick_links(rf):
+            self.assertEqual(link["stability"], STABLE_OPERATOR_SURFACE)
+
+        for link in build_ccc_staging_publish_links_for_request(rf):
+            self.assertEqual(link["stability"], STABLE_OPERATOR_SURFACE)
+
+        for step in build_operator_control_model_for_request(rf):
+            self.assertEqual(step["primary"]["stability"], STABLE_OPERATOR_SURFACE)
+            for related in step.get("related") or ():
+                self.assertEqual(related["stability"], STABLE_OPERATOR_SURFACE)
+
+    def test_maturity_proofs_cover_graduated_operator_surfaces(self):
+        expected_keys = {
+            "platform_incidents_console",
+            "super:pulse",
+            "super:workflow_simulator",
+            "siteconfig:feature_control_panel",
+            "studio_os:rollback",
+            "super:package_rollout",
+            "studio_os:automation_staged_activation",
+            "super:admin_bridge:fleet_governed_changes",
+            "super:fleet_governed_changes",
+            "super:analytics_overview",
+            "super:policy_diff",
+        }
+        self.assertLessEqual(expected_keys, set(OPERATOR_SURFACE_MATURITY_PROOFS))
+        required = set(OPERATOR_MATURITY_CRITERIA)
+        for key in expected_keys:
+            row = OPERATOR_SURFACE_MATURITY_PROOFS[key]
+            self.assertEqual(set(row["criteria"]), required)
+            self.assertTrue(row["proofs"])
 
     def test_tenant_request_still_resolves_super_via_manager_fallback(self):
         """Outcome registry uses manager urlconf fallback when tenant resolver lacks super: names."""

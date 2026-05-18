@@ -60,6 +60,44 @@ def check_css() -> list[str]:
         errors.append("templates/admin/base.html missing admin-cp-unified-page class")
     if "data-rmc-admin-cp-unified" not in admin_base:
         errors.append("templates/admin/base.html missing data-rmc-admin-cp-unified marker")
+    if "manager_platform_admin_sidebar.html" not in admin_base:
+        errors.append("templates/admin/base.html must include manager_platform_admin_sidebar")
+    if "control_plane_sidebar.html" in admin_base:
+        errors.append(
+            "templates/admin/base.html must not include control_plane_sidebar on manager admin"
+        )
+    parity_css = (REPO_ROOT / "static/css/admin-cp-parity.css").read_text(encoding="utf-8")
+    if ".cp-sidebar-platform-admin" not in parity_css:
+        errors.append("admin-cp-parity.css missing .cp-sidebar-platform-admin styles")
+    return errors
+
+
+def check_nav_builders() -> list[str]:
+    import django
+
+    django.setup()
+    from django.contrib.auth import get_user_model
+    from django.test import RequestFactory
+
+    from apps.schools.control_plane_nav import build_control_plane_nav
+
+    errors: list[str] = []
+    request = RequestFactory().get("/super/")
+    request.urlconf = "config.manager_urls"
+    request.user = get_user_model()(is_superuser=True, username="nav_verify")
+    advanced = next(
+        (g for g in build_control_plane_nav(request) if g.get("label") == "Advanced"),
+        None,
+    )
+    if not advanced:
+        errors.append("control plane nav missing Advanced group")
+        return errors
+    for item in advanced.get("items") or []:
+        url = item.get("url") or ""
+        if "/super/admin-bridge/" in url:
+            errors.append(
+                f"Advanced nav must use direct admin URLs, not bridge: {item.get('id')}"
+            )
     return errors
 
 
@@ -90,7 +128,9 @@ def check_render() -> list[str]:
                 "cp-admin-index",
                 "Platform Backoffice",
                 'id="cp-main-content"',
-                'id="cpSidebarNav"',
+                'data-shell-nav-family="platform-admin"',
+                "data-rmc-platform-admin-sidebar",
+                "admin-sidebar-all-apps",
             ),
         ),
         (
@@ -98,7 +138,15 @@ def check_render() -> list[str]:
             (
                 "admin-cp-unified-page",
                 'id="cp-main-content"',
+                'data-shell-nav-family="platform-admin"',
                 "results",
+            ),
+        ),
+        (
+            "/super/",
+            (
+                'data-shell-nav-family="control-plane"',
+                "Advanced",
             ),
         ),
     )
@@ -129,6 +177,7 @@ def main() -> int:
     errors = check_css()
     if not args.css_only:
         try:
+            errors.extend(check_nav_builders())
             errors.extend(check_render())
         except Exception as exc:  # pragma: no cover
             errors.append(f"render smoke failed: {exc}")

@@ -1,0 +1,65 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Register webhook subscription" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-webhook-subscribe" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
+    <h1 class="rmc-h1">{% trans "Register webhook subscription" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Outbound deliveries POST canonical-JSON payloads to your endpoint with an HMAC-SHA256 signature header. The secret is returned ONCE on the result page." %}
+    </p>
+  </header>
+
+  {% if result %}
+  <section class="rmc-card rmc-card--webhook-result">
+    <header class="rmc-card__header">
+      <h2 class="rmc-h2">{% trans "Subscription created" %}</h2>
+    </header>
+    <div class="rmc-card__body">
+      <p class="rmc-lede rmc-lede--warn" role="alert">
+        <strong>{% trans "This secret will not be shown again." %}</strong>
+        {% trans "Copy it now. Use it to verify the X-Migration-Cloud-Signature header on incoming deliveries." %}
+      </p>
+      <pre class="rmc-code rmc-code--secret" id="webhook-secret-block"><code>{{ result.plaintext }}</code></pre>
+      <button class="rmc-btn rmc-btn--ghost rmc-copy" type="button" data-rmc-copy-target="#webhook-secret-block">
+        {% trans "Copy to clipboard" %}
+      </button>
+      <dl class="rmc-defs">
+        <div class="rmc-defs__row"><dt>{% trans "ID" %}</dt><dd>{{ result.row.id }}</dd></div>
+        <div class="rmc-defs__row"><dt>{% trans "Tenant" %}</dt><dd>{{ result.row.tenant_id }}</dd></div>
+        <div class="rmc-defs__row"><dt>{% trans "URL" %}</dt><dd><code class="rmc-kbd">{{ result.row.url }}</code></dd></div>
+        <div class="rmc-defs__row"><dt>{% trans "Event types" %}</dt><dd>
+          {% for e in result.row.event_types %}<code class="rmc-kbd">{{ e }}</code>{% if not forloop.last %} {% endif %}{% empty %}<span class="rmc-muted">{% trans "all" %}</span>{% endfor %}
+        </dd></div>
+      </dl>
+    </div>
+    <footer class="rmc-card__footer">
+      <a class="rmc-btn rmc-btn--primary" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "Done — back to subscriptions" %}</a>
+    </footer>
+  </section>
+  {% else %}
+  <form method="post" class="rmc-form rmc-form--webhook" novalidate>
+    {% csrf_token %}
+    <fieldset class="rmc-form__fieldset">
+      <legend class="rmc-form__legend">{% trans "Subscription details" %}</legend>
+      <label class="rmc-form__label">{% trans "Tenant ID" %} <span class="rmc-form__required" aria-hidden="true">*</span>
+        <input class="rmc-input" name="tenant_id" type="text" inputmode="numeric" required>
+        <small class="rmc-form__help">{% trans "Which school's events should this endpoint receive." %}</small>
+      </label>
+      <label class="rmc-form__label">{% trans "URL (https only)" %} <span class="rmc-form__required" aria-hidden="true">*</span>
+        <input class="rmc-input" name="url" type="url" required pattern="https://.*">
+      </label>
+      <label class="rmc-form__label">{% trans "Event types (comma-separated, blank = all)" %}
+        <input class="rmc-input" name="event_types" type="text" placeholder="bundle.advanced, bundle.completed">
+      </label>
+    </fieldset>
+    <div class="rmc-form__actions">
+      <button class="rmc-btn rmc-btn--primary" type="submit">{% trans "Register subscription" %}</button>
+    </div>
+  </form>
+  {% endif %}
+</main>
+{% endblock %}

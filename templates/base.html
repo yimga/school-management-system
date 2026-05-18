@@ -2,11 +2,18 @@
 <!doctype html>
 <html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1"
       {% if HIGH_CONTRAST_MODE or REDUCED_MOTION %}class="{% if HIGH_CONTRAST_MODE %}pref-high-contrast{% endif %}{% if REDUCED_MOTION %} pref-reduced-motion{% endif %}"{% endif %}
-      data-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}{% endif %}"
+      {% comment %} v3 (2026-05-18) attribute contract: data-theme is always EFFECTIVE
+         (light|dark), never "system". Raw preference lives in
+         data-theme-preference. SSR pins data-theme to "light" by default;
+         theme-preference-bootstrap.js runs synchronously in <head> and
+         flips data-theme to "dark" before first paint when the user's
+         resolved theme is dark. data-admin-theme follows the same rule. {% endcomment %}
+      data-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif USER_THEME_PREFERENCE == 'dark' or SITE.theme_brightness == 'dark' %}dark{% else %}light{% endif %}"
+      data-theme-preference="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}{% endif %}"
       data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}"
       data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"
       data-rmc-aesthetic="{% if PUBLIC_BRAND_MODE %}marketing{% else %}v2{% endif %}"
-      data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ SITE.theme_brightness|default:'system'|lower }}{% endif %}"
+      data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif SITE.theme_brightness == 'dark' %}dark{% else %}light{% endif %}"
       data-simple-mode="{% if simple_mode %}true{% else %}false{% endif %}"
       data-surface="{% if request and request.path|slice:':14' == '/setup-studio/' or request and request.path|slice:':9' == '/onboard/' or request and request.path|slice:':8' == '/onboard' %}onboarding{% elif PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>

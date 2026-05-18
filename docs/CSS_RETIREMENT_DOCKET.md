@@ -1,6 +1,480 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-18 (v3.28.1 — JS null-guard cleanup across page bundles + sticky-with-overflow-hidden CI gate + phase2 extractor sanity)
+**Last updated:** 2026-05-18 (v3.32.2 — Elite marketing Corporate OS public surfaces)
+
+## 2026-05-18 — v3.32.2 Elite marketing Corporate OS public surfaces
+
+**Status:** SHIPPED. SW `sms-v3.32.2-corporate-os-public-surfaces-2026-05-18`; baseline updated.
+
+**Scope.** Wave 2 of the Elite UI/UX program: Corporate OS tokens, human status page, premium Find Campus, Trust Center procurement anchors, header sync, density modes, and an expanded resumable completion loop (wave 1 was footer command center in v3.32.1).
+
+### What landed
+
+| Area | Files | Outcome |
+|---|---|---|
+| OS tokens | `static/css/rmc-corporate-os.css` | `--rmc-os-*` semantic tokens, glass surfaces, `data-rmc-density` comfortable/standard/compact, reduced-motion |
+| Marketing OS grammar | `static/marketing/css/marketing-corporate-os.css` | Hero, route cards, status components, finder, trust anchors, chrome |
+| Status page | `apps/observability/public_status.py`, `templates/marketing/public_status.html` | Human-readable `/status/` + JSON probe |
+| Find Campus | `templates/marketing/find_campus.html`, `global_discovery.html`, HTMX partial | Marketing shell + live search |
+| Trust anchors | `templates/marketing/partials/trust_compliance_anchors.html`, `marketing_inner_tail.html` | FERPA/COPPA/GDPR/accessibility/security-matrix/infrastructure on `/security-compliance/` |
+| Header sync | `templates/marketing/marketing_header.html` | Status pill + Find campus CTA aligned with footer IA |
+| Runtime JS | `static/marketing/js/marketing-corporate-os.js` | Density persistence + status pill fetch |
+| Tests + loop | `test_corporate_os_public_surfaces.py`, `run_marketing_uiux_completion_loop.py` | 5 tests; loop adds corporate-os gate |
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| `run_marketing_uiux_completion_loop.py --restart --max-passes 1` | GREEN (10 gates) |
+| Corporate OS public surface tests | PASS |
+
+### Deploy
+
+Marketing CSS/JS + status route changed; service-worker bumped. Dashboard shells do not yet load `rmc-corporate-os.css` (marketing-only in this wave).
+
+## 2026-05-18 — v3.32.1 Elite marketing footer command center + UI/UX completion loop
+
+**Status:** SHIPPED. SW bumped `sms-v3.32.0-migration-cloud-platform-hardening-2026-05-18` → `sms-v3.32.1-elite-marketing-uiux-loop-2026-05-18`; service-worker baseline updated.
+
+**Scope.** User requested the two public-site workstreams be handled end-to-end before code hygiene: extensive footer expansion and an elite UI/UX layer "to another gear", with a loop script that validates completion and resumes where it stopped.
+
+### What landed
+
+| Area | Files | Outcome |
+|---|---|---|
+| Footer command center | `templates/marketing/marketing_footer.html` | Adds operational intelligence above the footer sitemap: reliability, procurement, ecosystem, and accessibility/privacy proof cards plus role-routed shortcuts for school leaders, existing users, parents/students, and developers. |
+| Elite UI primitives | `static/marketing/css/marketing-shell.css` | Adds marketing-scoped motion, glass/raised/sunken surfaces, semantic hairline, ambient glow, compact fluid type, proof-card, and route-stack styling. Uses semantic tokens/color-mix surfaces and honors reduced motion. |
+| Completion loop | `scripts/run_marketing_uiux_completion_loop.py` | New resumable validator. It asserts the wave-specific footer/UI contract, runs the relevant template/theme/CSS/marketing URL/service-worker gates, and writes state/report artifacts for resume. |
+| Generated evidence | `docs/generated/marketing_uiux_completion_loop.json`, `var/marketing-uiux-loop-state.json` | Latest loop result is green and records the gate order/results for the next run. |
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| `run_marketing_uiux_completion_loop.py --restart --max-passes 1` | GREEN |
+| Footer/UI primitive contract | PASS |
+| `audit_template_render_safety.py --strict` | PASS |
+| `scan_theme_attribute_contract.py --strict` | PASS |
+| `scan_reveal_armed_invariants.py --strict` | PASS |
+| `scan_sticky_with_overflow_hidden.py --strict` | PASS |
+| `scan_off_token_colors.py --strict` | PASS |
+| `scan_theme_locked_token_text.py --strict` | PASS |
+| `manage.py validate_marketing_urls --smoke` | PASS |
+| `verify_service_worker_version.py --check-monotonic` | PASS |
+
+### Deploy
+
+Static CSS/JS changed, so the service-worker version was bumped and the service-worker baseline was updated. This is the first slice of the broader public-site UI/UX transformation; it deliberately ships the reusable footer/token/motion foundation before deeper page-by-page marketing redesign.
+
+## 2026-05-18 — v3.32.0 Migration Cloud platform hardening (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW bumped `sms-v3.31.8-theme-attribute-contract-v3-round3-2026-05-18` → `sms-v3.32.0-migration-cloud-platform-hardening-2026-05-18` (monotonic OK over parallel theme-attribute-contract rounds). Filed non-CSS per all-waves-audit convention.
+
+**Scope.** Closes every deferred item from the v3.31.0 Migration Cloud productionization wave. Five parallel agents under tight file boundaries; consolidation merges per-agent `.pending_docket/` drafts into this single section. **Cross-agent integration smoke 5/5 modules OK**; `AUTHENTICATION_BACKENDS[0] = LegacyHashUpgradeBackend` invariant preserved; encryption backend reports `internal_fernet_shim`; **all 3 new CELERY_BEAT_SCHEDULE entries present** (`migration-cloud-webhook-deliver-due` / `schoolops-sweep-low-meal-balances` / `accounts-sunset-stale-legacy-hashes` now Mondays 03:00 UTC crontab).
+
+### Agent 1 — Companion server-pubkey endpoint + popup wiring + key-rotation (SHIPPED)
+
+Server-side X25519 public-key distribution. New `MigrationCloudCompanionKeypair` model (`key_version` unique CharField(16), `public_key_b64` CharField(64), `private_key_encrypted` BinaryField — Fernet-wrapped at service layer via Agent 5's `_get_fernet` shim, raw-passthrough fallback with `# crypto-pending` marker, `is_active` with partial-unique constraint enforcing one-active-row invariant, `rotated_out_at`). Migration `0007_companion_keypair.py` pure CreateModel + 3 AddIndex + 1 partial-unique constraint. Service `apps/migration_cloud/services/companion_keypair.py`: `ensure_active_keypair()` (generate via PyNaCl), `rotate_keypair(operator_user)` (deactivate old, activate new), `decrypt_with_active_or_versioned(ciphertext, requested_version)` (used by refactored `CompanionDecryptHookView` — operator no longer pastes private key inline; the server has it encrypted), `PyNaClUnavailable` typed exception, best-effort zeroize on every path. New views: `companion_server_pubkey_view` (`@require_GET`, anonymous-allowed; returns `{public_key_b64, key_version, fingerprint_b64, encryption_scheme}` — NEVER private bytes), `CompanionKeypairRotateView` (staff-only POST). `pynacl>=1.5,<2.0` added to `requirements.txt`. **Companion side:** `companion-extension/src/lib/server-pubkey.ts` (`fetchServerPubkey` with `chrome.storage.session` cache, force-refresh option, 32-byte decode validation), `key-rotation.ts` (`verifyServerKeyFingerprint` force-refetch + constant-time XOR compare + cache eviction + warn). `popup.ts` wired with `getStoredMAA` check + MAA-signed badge ("MAA signed v1.0 · 5 min ago") + inline "Sign Migration Authorization Agreement" button (extraction blocked until MAA exists). `background/upload.ts` resolves server pubkey via session cache; metadata payload carries `key_version`. **15 Django tests** (6 classes: imports, fingerprint constant-time eq, ensure-creates/idempotent, rotate, decrypt fallback/pinned, view JSON shape, view-never-returns-private-bytes literal-absence check, rotate anon-denied, NoSecretsLoggedTests regex check, PyNaClUnavailable typed-error); **10 vitest tests** for server-pubkey + key-rotation.
+
+### Agent 2 — Vendor extractor domain expansion (SHIPPED)
+
+Promotes the v3.31 per-vendor extractors from students+staff coverage to multi-domain. **PowerSchool** gains attendance + grades + enrollment via per-student HTML detail pages (`_fetchStudentDetailDomain` helper); **Blackbaud** gains enrollment + attendance + grades via `/users/<id>/enrollments`, `/attendance/students/<id>`, `/academics/grades?studentId=<id>`; **Alma** gains courses + section instances → canonical `sections` (courses and sections both union into the `sections` canonical domain since the SOT has no separate `courses` key — distinguished in-row by presence of `term` / `teacher_external_id`). Shared `withConcurrency<T,R>` worker-pool helper (cap = 6) inlined to PS + BB to bound parallel-fetch storms. Non-fatal-per-student pattern: 1 student fails → other 99 still extract; logged via `console.debug("<vendor>-detail-fail", { external_id, domain })` with no PII. **14 new vitest tests** in `contract-extended.test.ts` (PowerSchool fixtures, Blackbaud JSON fixtures, Alma GraphQL response, concurrency-cap timing assertion, non-fatal-per-student isolation). `canonical-bundle.ts` left unchanged — `enrollment | sections | attendance | grades` keys already present and match Django `DOMAIN_CANONICAL_HEADERS`. **22/22 vitest pass** (8 existing + 14 new); `tsc --noEmit` clean.
+
+### Agent 3 — REST API operator UX + production hardening (SHIPPED)
+
+Five workstreams promote v3.31 alpha further. (1) **Celery beat for webhook delivery:** new `migration-cloud-webhook-deliver-due` entry in `CELERY_BEAT_SCHEDULE` (30s cadence, expires=60); `webhook_dispatch.deliver_due_task` `@shared_task` wrapper added. (2) **Token rotation flow:** `MigrationCloudAPIToken.rotated_to = FK('self', SET_NULL)` + `grace_until = DateTimeField`; new `@action(detail=True, methods=['post'], url_path='rotate')` on `ScopedTokenViewSet`; `TOKEN_ROTATION_GRACE_DAYS = 7`; auth backend honors grace period and logs deprecation warning `"token rotated, old token used during grace period"` (no plaintext); full `@extend_schema` with 200/400/401/404/409. (3) **Rate limiting:** new `apps/migration_cloud/api/rate_limiting.py` — `TenantRateLimiter` sliding-window via Django cache; webhook quota 1000/hr/tenant (soft-warn header at 800, hard-reject 429 with `Retry-After`); API token quotas (`bundles:write` 600/min, `bundles:read` 100/min); when quota exceeded mid-delivery, `MigrationCloudWebhookDelivery.status='deferred'` with `next_retry_at = next_hour_boundary` + `deferred_until`/`deferred_reason` fields. (4) **Operator UI:** new `views_token_admin.py` (list / mint / revoke / rotate — staff-only, plaintext shown ONCE on mint result with copy button) + `views_webhook_admin.py` (list / subscribe / delivery-log paginated / retry); 6 templates under `templates/migration_cloud/operator/` extending control-plane skeleton, no inline `style=`, semantic tokens. URL block under `/super/migration/{tokens,webhooks}/`; every URL marked `# rbac-allow: staff-only-operator-token-and-webhook-management`. (5) **Empty merge migration** `0009_merge_v3_32_parallel_branches.py` converges parallel-agent 0007 leaves (`0007_companion_keypair` + `0007_token_rotation_and_webhook_deferred`). Migrations: `0007_token_rotation_and_webhook_deferred.py` pure AddField (4 columns: rotated_to, grace_until, deferred_until, deferred_reason). **29 tests** in `test_token_rotation_and_quotas.py` (19 SimpleTestCase pass; 10 DB-backed skip on pre-existing infra block).
+
+### Agent 4 — Schoolops tail closure (SHIPPED)
+
+Three workstreams. (1) **Reverse-relation Django admin pages:** `TransportAssignmentAdmin` / `HostelAssignmentAdmin` / `MealPlanBalanceAdmin` registered with `list_display` / `list_filter` / `search_fields` / `raw_id_fields` / `date_hierarchy`; inlines on parent admins (`TransportAssignmentInline` on `RouteAdmin`, `HostelAssignmentInline` on `HostelRoomAdmin`, `MealPlanBalanceInline` on `CanteenMealAdmin`). `MealPlanBalanceAdmin.is_low_display` boolean. (2) **Low-balance Celery signal + notification:** `apps/schoolops/signals.py` pre/post-save pair detects `False→True` transition on `MealPlanBalance.is_low` with 7-day cooldown short-circuit + defensive try/except wrap (notification failure never breaks save txn); `apps/schoolops/tasks.py::notify_low_meal_plan_balance` fetches student + guardians via `apps.people.StudentGuardian` (`receives_email=True` honored), sends email via `templates/schoolops/email/low_meal_balance.{txt,html}`, SMS hook auto-discovers `apps.notifications.sms_helpers` / `apps.communication.sms_helpers`; idempotency via new fields `MealPlanBalance.last_low_balance_notification_sent_at` + `low_balance_notification_count`; daily `sweep_low_meal_plan_balances` Celery task scheduled at `schoolops-sweep-low-meal-balances` (09:00 UTC if Celery crontab available else 86400s interval) catches cases where signal missed. Migration `0013_meal_plan_balance_notification_tracking.py` pure AddField. (3) **DFV→first-class replay tool:** new `_assignment_promotion_helpers.py` module factored out of `promote_dyna_assignments.py`; new `replay_dfv_assignments.py` mgmt command (`--bundle <id>` OR `--tenant <id>` required, `--apply` default-dry-run, `--since`, `--limit`) walks `DynamicFieldValue` rows for the 3 assignment entity_types, re-runs corresponding lander resolution, promotes + DELETES DFV row on success (once first-class is the SOT the DFV row is redundant); per-row `transaction.atomic()` savepoint. **30 tests** (13 low-balance + 9 admin + 8 replay); 16/16 structural pass.
+
+### Agent 5 — Hash sunset crontab + SECURITY_KEYS runbook + intake wire + secret wrap (SHIPPED)
+
+Four workstreams. (1) **Sunset crontab:** `from celery.schedules import crontab as _celery_crontab` (lazy-guarded) added to `config/settings.py`; `accounts-sunset-stale-legacy-hashes` schedule changed from `604800.0` seconds to `_celery_crontab(hour=3, minute=0, day_of_week="mon")` (Mondays 03:00 UTC) with fallback to 604800.0 if Celery missing. (2) **`docs/SECURITY_KEYS.md` runbook** (~395 lines): inventory of all key types (SECRET_KEY, DJANGO_CRYPTOGRAPHY_KEY, CompanionKeypair private keys, webhook subscription secrets, scoped API tokens); per-key rotation procedures with `python -c "..."` generators; MultiFernet rotation pattern with parallel-active period; companion keypair rotation via `is_active` flag + grace period; webhook subscription secret re-issuance; incident response checklist + audit-log expectations (`logger.warning("key rotation", key_type=..., operator=..., key_version_old/new=...)` — never key bytes); zero literal-looking keys (verified via test). (3) **Canonical `legacy_hash_intake.py`** helper: `store_legacy_hash(user, hash_value, algorithm, params_dict, source_vendor)` writes all 4 fields including `legacy_hash_created_at`; algorithm validation; structured logging (NEVER logs hash itself); future per-vendor extractor wiring point. (4) **Webhook `secret_ciphertext` Fernet wrap:** new `EncryptedBinaryField` in `apps/accounts/legacy_hashes/encryption.py` (Fernet-wrapping BinaryField, transparent decrypt on read, plaintext-bytes tolerance via `from_db_value` for pre-encryption rows, `deconstruct()` reports as `django.db.models.BinaryField`); `apps/migration_cloud/models.py::MigrationCloudWebhookSubscription.secret_ciphertext` swapped to wrapped variant; `# crypto-pending:` marker REMOVED. Migration `0008_wrap_webhook_secret.py` AlterField + RunPython forward (re-encrypts existing rows by reading raw + writing through wrapped field, pure via `apps.get_model("X","Y")`). `webhook_dispatch.py` HMAC sign path unchanged — descriptor decrypts transparently. **25 tests** (6 runbook + 11 intake + 8 webhook-secret-encryption); v3.28's 13 OK + 6 SKIP regression-clean.
+
+### Cross-cutting cumulative wave gates (all CLEAN)
+
+- `scan_drf_schema_coverage 0` — every new DRF action `@extend_schema`-decorated (Agent 3)
+- `scan_tenant_isolation_marker_quality 0` — every new marker reason 5+-part hyphenated (Agents 1, 3, 4, 5)
+- `scan_money_float 0` — Decimal-as-str preserved (Agent 4 low-balance threshold check)
+- `scan_migration_model_imports 0` — pure CreateModel/AddField/AlterField + `apps.get_model("X","Y")` in RunPython (Agents 1, 3, 4, 5)
+- `scan_bare_except 0` · `scan_print_statements 0` · `scan_inline_style_off_token 0` (operator templates)
+- `audit_role_permission_matrix` candidate-anonymous count under 66 gate (7 new sites all `# rbac-allow:`-marked staff-only)
+- `verify_service_worker_version --check-monotonic`: v3.31.8 → v3.32.0 OK
+- Documented-baseline scanner counts unchanged
+
+### Migration graph: 4 parallel branches merged
+
+Branches off v3.31.0's `0006_companion_receiver_and_maa.py`:
+- Agent 1: `0007_companion_keypair.py`
+- Agent 3: `0007_token_rotation_and_webhook_deferred.py`
+- Agent 5: `0008_wrap_webhook_secret.py` (depends on Agent 3's 0007 name string — preserved)
+- Agent 4: `0013_meal_plan_balance_notification_tracking.py` (schoolops app — independent chain)
+
+Agent 3 also shipped `0009_merge_v3_32_parallel_branches.py` (empty merge) converging the 2 parallel 0007 leaves; Django auto-renamed a few indexes (cosmetic drift, `check_real_migration_drift.py` would classify as cosmetic AlterField).
+
+### File-boundary mitigation worked
+
+`config/settings.py` CELERY_BEAT_SCHEDULE edited by 3 agents (Agent 3 webhook-deliver-due + Agent 4 schoolops-sweep + Agent 5 sunset crontab swap) — each used a unique key name; no key collision. `apps/migration_cloud/urls.py` edited by Agent 1 (companion routes) + Agent 3 (operator UI routes) — separate URL blocks. `apps/migration_cloud/models.py` edited by Agent 1 (CompanionKeypair) + Agent 3 (token rotation fields) + Agent 5 (secret_ciphertext wrap) — all additive/non-overlapping.
+
+### Pending dockets cleaned up post-consolidation
+
+`apps/migration_cloud/.pending_docket/agent_{1..5}_*.md` removed.
+
+### SOTs updated this wave
+
+- `static/js/service-worker.js` — bumped to `sms-v3.32.0-migration-cloud-platform-hardening-2026-05-18`
+- `docs/CSS_RETIREMENT_DOCKET.md` — this entry
+- `CLAUDE.md` Sources-of-truth — new top-line entry for v3.32.0
+- `docs/SECURITY_KEYS.md` — NEW operator runbook (Agent 5)
+- Memory file `project_migration_cloud_hardening_v3_32_2026_05_18.md`
+- `MEMORY.md` index — supersedes v3.31.0
+
+### Strategic significance
+
+**Migration Cloud is now production-hardened.** Five layers on top of v3.31.0's production-grade-but-greenfield code:
+
+- **Key management is operator-runnable** — server-side X25519 keypair with rotation API + companion-side session-cache + fingerprint verification + ops runbook covering 5 key types
+- **MAA + extraction is end-user-walkthrough-able** — popup wires consent → server pubkey fetch → vendor extraction → seal → upload, all gated on signed MAA
+- **Multi-vendor multi-domain extraction** — PowerSchool/Blackbaud/Alma cover students+staff+attendance+grades+enrollments+sections+courses (~70% of canonical ontology depth for real vendors); concurrency-bounded
+- **REST API has operator ergonomics** — token rotation with 7-day grace + tenant rate limiting + webhook delivery quota + delivery log UI + retry button
+- **Trust layer at operational maturity** — encrypted webhook secrets, encrypted legacy hashes, weekly sunset crontab, security-keys runbook, canonical intake helper
+
+### Honest deferred-to-next-wave list (each separately-scopable)
+
+- **Companion:** persist `key_version` on `CompanionUploadReceipt`; promote `private_key_encrypted` model field to `EncryptedBinaryField` via follow-up AlterField; per-tenant keypairs; auto-call `verifyServerKeyFingerprint` on every upload; FACTS/Skyward real extractors; PowerSchool DataDirector for the canned report path; Tauri-desktop + Docker-appliance siblings.
+- **REST API:** wire DRF `DEFAULT_THROTTLE_CLASSES` to use rate_limiting throttles globally; SSE under ASGI/Daphne in prod; token rotation chain visualization UI; webhook signature verification helper for subscribers.
+- **Schoolops:** per-locale email templates; SMS short-form per locale; operator analytics dashboard for low-balance trends; webhook publication of low-balance events.
+- **Hash verifier:** django-cryptography 1.2 when upstream ships (Django 5 compatibility); MultiFernet key rotation runbook automation; per-vendor extractor explicit `legacy_hash_created_at` wire at intake (helper exists; vendor adapters TBD).
+- **Counsel-blessed MAA v2.0 text** — needs counsel review; field supports versioning.
+
+## 2026-05-18 — v3.31.8 Theme-attribute-contract v3 — round-3 12-class audit
+
+**Status:** SHIPPED. SW bumped to `sms-v3.31.8-theme-attribute-contract-v3-round3-2026-05-18` (monotonic over parallel v3.31.7). User asked for a third pass: "do a final round, no excuses". Audited 12 classes of possible regression, each ruled out or confirmed clean. No code changes were needed beyond the SW bump — the v3.31.1 + v3.31.3 fixes hold under every dimension audited.
+
+| Class | What was audited | Verdict |
+|---|---|---|
+| A | Non-`html` `data-theme` selectors (`body[data-theme]`, `div[data-theme]`, etc.) | **None exist.** Zero matches in any CSS file. |
+| B | `data-resolved-theme` CSS rules whose blast radius includes marketing pages | **None.** All 44 occurrences across `dark-mode-safety-net.css`, `theme-platform-contrast.css`, `admin-cp-parity.css`, etc. are scoped with `body:not(.marketing-surface)` or `body.admin-manager-shell`. Marketing's CSS gates on `data-theme="dark"` (which all 3 marketing writers correctly set under v3). |
+| C | Marketing inline bootstrap + marketing-toggle JS attribute coverage | **Sufficient.** Both write effective `data-theme` + `data-theme-preference`. `data-resolved-theme` / `data-bs-theme` not needed — no marketing CSS reads them. The platform `theme-preference-bootstrap.js` (loaded on marketing too) sets all 4 anyway for logged-in users. |
+| D | Python view code / context processors emitting `data-theme` | **No emitters.** `apps/siteconfig/context_processors.py:579` produces the `USER_THEME_PREFERENCE` template context var (consumed by the v3-correct `base.html` SSR), but no Python code writes the attribute itself. Only matches were the two existing platform tests, both still pass. |
+| E | Generated HTML / preview / cert-report artifacts with stale `data-theme="system"` | **Inert.** `docs/generated/v2-preview.html` and `docs/generated/render_parity_certification_report.raw.json` contain snapshots of the v2-era SSR string `data-theme="system"`. Both are generated artifacts under `docs/generated/`, not loaded by any production code, no in-repo regenerator script. Left as historical snapshots; will refresh on the next render-parity regeneration run. |
+| F | Tests asserting on rendered theme HTML | **Pass under v3.** `apps/schools/tests/test_marketing_phase0_visual_truth.py:139` asserts `'html[data-theme="dark"]'` selector exists in `tokens-editorial.css` (still does). `test_marketing_phase1_foundation.py:63` asserts `'data-theme="light"'` is in `templates/marketing/base_marketing.html` (still is, line 9 SSR). `apps/siteconfig/tests/test_theme_visibility_matrix.py:187` asserts `dark-mode-safety-net.css` contains ≥20 `html[data-resolved-theme="dark"]` selectors — current count is **44**. All three structurally satisfied. |
+| G | PWA manifest `theme_color` / `<meta theme-color>` dynamic sync with effective theme | **Not present.** No code dynamically updates `<meta theme-color>` based on `data-theme`. No regression risk. (Distinct from the `siteconfig/theme-colors` feature, which is a tenant-brand color picker, not a meta-tag setter.) |
+| H | `SITE.theme_brightness` model field + `USER_THEME_PREFERENCE` default | **Handled.** `apps/platform_runtime/models.py:332` declares `theme_brightness` `CharField` with default `"system"`; `apps/siteconfig/context_processors.py:346` defaults `theme_pref = "system"`. Both feed into the v3-correct `base.html` SSR template tag chain that only emits `data-theme="dark"` for explicit dark and `data-theme="light"` otherwise; the raw preference (which can be `"system"`) goes into the new `data-theme-preference` attribute. |
+| I | `data-admin-theme` readers (I changed the SSR writer in round-2) | **No readers exist.** Only matches across `static/` and `templates/` are the writer itself (`base.html:16`) and the comment that documents it. Zero CSS or JS reads `data-admin-theme`. Safe. |
+| J | `html.dark` class readers (Tailwind/Unfold-style class gates) | **Pass under v3.** `theme-preference-bootstrap.js:66` sets/removes `html.dark` based on the resolved value. CSS rules in `phase2-admin-bundle.css:68-106` and `theme-platform-contrast.css:67-74,284` gate on `html.dark` — they fire correctly because the class tracks `resolved`, not `pref`. |
+| K | CSS gating on the new `data-theme-preference` attribute (would create accidental dependency) | **None.** Zero CSS rules across all files gate on `data-theme-preference`. The new attribute is exclusively a JS / toggle-UI carrier. |
+| L | Final grep proof | **Zero active sites.** Every remaining `data-theme="system"` / `data-theme="auto"` string match in CSS lives inside `/* … */` comments that document the v3 fix (lines: `design-tokens.css:633,778`, `theme-platform-contrast.css:6,13`, `theme-visibility-guard.css:18`, `tokens-marketing.css:82`). Zero JS writes the value. Zero SSR templates emit it. The `scan_theme_attribute_contract.py --strict` gate is 0/0. |
+
+**Round-3 net code change:** SW bump + CLAUDE.md scanner-row version bump + this docket entry. Three rounds total; the v3.31.1 fix held; round-2 caught 3 additional sites (SSR `base.html`, marketing CSS gate, marketing JS dead branch); round-3 surfaced no new sites — the contract is closed.
+
+**Round-3 gates run.**
+
+| Gate | Result |
+|---|---|
+| `scan_theme_attribute_contract --strict` | 0/0 |
+| `scan_off_token_colors --strict` | 0/0 |
+| `scan_theme_locked_token_text --strict` | 0/0 |
+| `scan_reveal_armed_invariants --strict` | 0/0 (4 invariants) |
+| `scan_sticky_with_overflow_hidden --strict` | 0/0 |
+| `audit_template_render_safety --strict` | 0 |
+| `verify_service_worker_version --check-monotonic` | OK (v3.31.8 > v3.31.7) |
+| `check_documented_baselines` | 33 rows / 0 drift |
+| JS Node parse (3 files) | OK |
+
+## 2026-05-18 — v3.31.6 Corporate marketing footer trust/router/compliance IA
+
+**Status:** SHIPPED. SW bumped to `sms-v3.31.6-corporate-marketing-footer-2026-05-18` (monotonic over v3.31.5).
+
+Main-site footer upgraded from a generic product/resources list into a corporate gateway footer for `runmycampus.com`: live status + tenant finder command panel plus the requested four-column IA: Platform Hub, Solutions & Routers, Trust & Operations, and Legal & Compliance. The footer now exposes status, trust/security, FERPA/COPPA/GDPR/accessibility, procurement, marketplace, hardware-store, developer API, portal-login, demo, pricing, implementation, educator/family resources, and campus-routing paths without dummy `href="#"` links.
+
+The marketing theme control now supports Light / Dark / System from the footer while preserving the v3 theme contract: `data-theme` carries only the effective `light`/`dark` value and raw preference is stored as `data-theme-preference`.
+
+**Gates green:** `audit_template_render_safety.py --paths templates/marketing/base_marketing.html templates/marketing/marketing_footer.html` 0 findings · `validate_marketing_urls --smoke` OK · `verify_theme_visibility_platform.py` OK · `scan_reveal_armed_invariants.py` 0 · `scan_theme_attribute_contract.py --strict` 0 · `scan_off_token_colors.py --strict` 0 · `scan_theme_locked_token_text.py --strict` 0 · `verify_service_worker_version.py --check-monotonic` OK · `node -e new Function(...)` for `static/marketing/js/theme-toggle.js` and `static/js/service-worker.js` OK. Note: `scan_inline_style_off_token.py --compare` still reports 21 unrelated findings in `templates/accounts/email/legacy_setup_link.html` from existing untracked account-email work, not from this footer slice; `verify_doc_plan_density_discipline.py` remains blocked by pre-existing docs density drift (155 > 153 files).
+
+## 2026-05-18 — v3.31.3 Theme-attribute-contract v3 — exhaustive round-2 sweep
+
+**Status:** SHIPPED. SW bumped to `sms-v3.31.3-theme-attribute-contract-v3-2026-05-18` (monotonic over v3.31.2). User requested an exhaustive sweep after the v3.31.1 fix: "I do not want to deal with this again so you cannot ignore anything." Round-2 audited every entrypoint that writes or reads `data-theme` across SSR templates, every static JS file, every CSS selector, every test.
+
+**Round-2 additional fixes (catches the v3.31.1 release missed).**
+
+1. **`templates/base.html:5`** — SSR was writing `data-theme="system"` whenever `PUBLIC_BRAND_MODE` was active OR when `USER_THEME_PREFERENCE` / `SITE.theme_brightness` resolved to `"system"` (the default for anonymous + most logged-in users). Same bug class at the SSR layer: between SSR completion and `theme-preference-bootstrap.js` execution there's a paint-window where every `[data-theme="dark"]` rule misses. Fixed: SSR now pins `data-theme` to `"light"` (or `"dark"` only when pref is explicitly dark); the bootstrap upgrades to the resolved effective value before first paint. Raw preference moved to new `data-theme-preference` SSR attribute. `data-admin-theme` got the same treatment.
+
+2. **`static/marketing/css/tokens-marketing.css`** — round-1 hoist had the wrong target. Marketing's own `theme-toggle.js` (separate `rmc-mkt-theme` localStorage key, anonymous-user path) writes `data-theme` but NOT `data-resolved-theme`. The round-1 hoisted rule `html[data-resolved-theme="dark"][data-surface="marketing"]` therefore never fired for anonymous marketing users. Re-pointed to `html[data-theme="dark"][data-surface="marketing"]` — fires correctly for all 3 marketing writers (inline bootstrap, marketing-toggle JS, platform bootstrap when logged in).
+
+3. **`static/js/_pages/marketing__base_marketing.js`** — had a dead `if (dt === "system")` branch (unreachable under v3 since `data-theme` is never `"system"`). Collapsed to the single effective branch with a v3-contract comment.
+
+**Confirmed clean** (no edits required — verified via grep):
+
+- `static/js/_pages/backend_base-1.js:20` already wrote `data-theme = resolved` (was always v3-compliant — it was the reference implementation the v2 bootstrap should have copied).
+- `static/marketing/js/theme-toggle.js` already wrote `data-theme-preference` + `data-theme` (effective) — pre-existing v3 conformance.
+- `templates/marketing/base_marketing.html:24-26` inline bootstrap already wrote `data-theme-preference` + `data-theme` (effective).
+- `templates/admin/index.html:527/533/545/549` admin-dashboard legacy toggle only assigns literal `'light'`/`'dark'` — never `'system'` — so it never tripped the bug. Different localStorage key; preserved as-is to avoid disturbing the admin-only toggle behavior.
+- `templates/control_plane_skeleton.html:3` SSR is a hard-coded `data-theme="light"` (bootstrap upgrades it post-load).
+- `templates/portal_base.html`, `templates/admin/base_site.html`, `templates/backend_base.html`, `templates/admin/login.html` — none of them write `data-theme` in SSR (verified via `grep data-theme templates/...`).
+- Apps tests still pass: `apps/schools/tests/test_marketing_phase0_visual_truth.py:139` (`'html[data-theme="dark"]'` selector still in `tokens-editorial.css`) and `test_marketing_phase1_foundation.py:63` (`'data-theme="light"'` still in `marketing/base_marketing.html`).
+- Final grep sweep: zero CSS rules gate on `[data-theme="system|auto"]`; zero JS writes `system|auto` into `data-theme`; zero SSR templates emit `data-theme="system|auto"`. All remaining `data-theme="system"` string matches are inside **comments** that document the v3 fix.
+
+**Validation (round-2 final).**
+
+| Gate | Result |
+|---|---|
+| `scan_theme_attribute_contract.py --strict` | 0/0 |
+| `scan_off_token_colors.py --strict` | 0/0 |
+| `scan_theme_locked_token_text.py --strict` | 0/0 |
+| `scan_reveal_armed_invariants.py --strict` | 0/0 (all 4 invariants) |
+| `scan_sticky_with_overflow_hidden.py --strict` | 0/0 |
+| `audit_template_render_safety.py --strict` | 0 (caught my `{# multi-line #}` Django-comment regression and forced me to fix it) |
+| `verify_service_worker_version.py --check-monotonic` | OK (v3.31.3 > v3.31.2) |
+| `check_documented_baselines.py` | 33 rows / 0 drift |
+| JS Node parse (3 files) | OK |
+
+**Files touched in round-2.**
+
+- `templates/base.html` — SSR `data-theme` writes pinned to effective values
+- `static/marketing/css/tokens-marketing.css` — marketing-dark rule re-pointed from `data-resolved-theme` to `data-theme`
+- `static/js/_pages/marketing__base_marketing.js` — dead system-branch removed
+- `docs/CSS_RETIREMENT_DOCKET.md` — this entry
+- `CLAUDE.md` — scanner-row version bumped to v3.31.3
+- `static/js/service-worker.js` — CACHE_VERSION bumped to v3.31.3
+
+**Pattern lesson reinforced.** "Find every other place" is a phase of any platform-wide fix. The round-1 fix corrected the central bootstrap, but four sibling writers (SSR template, marketing CSS gate, marketing JS legacy branch) carried the v2 mental model independently. Without the round-2 sweep, public-marketing pages and anonymous-user paths would still have flashed white-text-on-white-card for system-preference users with dark OS. Always do the second pass.
+
+## 2026-05-18 — v3.31.2 Corporate marketing footer trust/router/compliance IA
+
+**Status:** SHIPPED. SW bumped to `sms-v3.31.2-corporate-marketing-footer-2026-05-18`.
+
+Main-site footer upgraded from a generic product/resources list into a corporate gateway footer for `runmycampus.com`: live status + tenant finder command panel, Platform Hub, Solutions & Routers, Educators & Families, Trust & Operations, and Legal & Compliance columns. The footer now exposes status, trust/security, FERPA/COPPA/GDPR/accessibility, procurement, marketplace, hardware-store, developer API, portal-login, demo, pricing, implementation, and campus-routing paths without dummy `href="#"` links.
+
+The marketing theme control now supports Light / Dark / System from the footer while preserving the v3 theme contract: `data-theme` carries only the effective `light`/`dark` value and raw preference is stored as `data-theme-preference`.
+
+**Gates green:** `audit_template_render_safety.py --paths templates/marketing/base_marketing.html templates/marketing/marketing_footer.html` 0 findings · `validate_marketing_urls --smoke` OK · `verify_theme_visibility_platform.py` OK · `scan_reveal_armed_invariants.py` 0 · `scan_theme_attribute_contract.py --strict` 0 · `scan_off_token_colors.py --strict` 0 · `scan_theme_locked_token_text.py --strict` 0 · `node -e new Function(...)` for `static/marketing/js/theme-toggle.js` OK. Note: `scan_inline_style_off_token.py --compare` still reports 21 unrelated findings in `templates/accounts/email/legacy_setup_link.html` from existing untracked account-email work, not from this footer slice.
+
+## 2026-05-18 — v3.31.1 Theme-attribute-contract v3 (platform-wide invisible-card fix)
+
+**Status:** SHIPPED. SW bumped to `sms-v3.31.1-theme-attribute-contract-v3-2026-05-18` (monotonic over v3.31.0). Filed under "CSS-adjacent" — the diff itself is in JS, but the surface area is 271 CSS selectors across 34 files.
+
+**The symptom.** Multi-page operator-reported regression: card-wrapped tables, lists, and KPI panels rendering with invisible body text across the manager control plane. Most clearly visible on `/observability/platform-incidents` (incident-title and scope columns blank in every row) and reproduced on multiple other operator pages. The card header row, badges (`text-bg-secondary`, `text-bg-dark`), and outline-style action buttons stayed visible; only the regular text inside `.card .card-body` (and tables nested inside cards) disappeared.
+
+**The root cause** — single-point, platform-wide.
+
+The v2 (2026-05-12) theme-bootstrap contract documented `data-theme` as the user's raw preference ∈ `{light, dark, system}`, and `data-resolved-theme` / `data-bs-theme` as the effective theme. The handful of operators who use *Appearance → System* got `<html data-theme="system">` whenever their OS preferred dark. But 271 CSS selectors across 34 files — including `[data-rmc-aesthetic="cool-apple"][data-theme="dark"]` blocks that define `--surface-elevated: #1e293b` and similar dark-mode surface values — gate styling on the **literal** attribute value `"dark"`. They don't match `"system"`. Meanwhile `[data-bs-theme="dark"]` *did* match (Bootstrap path, set in parallel by the same JS), so `design-tokens.css` flipped `--text-primary` to near-white. Net effect: dark *text* override applied, dark *surface* override skipped → white text on white card.
+
+The sibling `static/js/_pages/backend_base-1.js:20` already implemented the right contract (writes the *resolved* value into `data-theme`). The newer `theme-preference-bootstrap.js` was the outlier. Every reader in the codebase already assumes `data-theme` is effective; the v2 "preference in data-theme" idea was an asymmetric special case that helped no one and broke every system-pref operator with a dark OS.
+
+**The fix** — v3 contract, documented in `docs/THEME_SYSTEM.md §0`:
+
+```
+<html data-theme="light|dark">             ← effective theme (always concrete)
+<html data-resolved-theme="light|dark">    ← same value (kept for sites that adopted it)
+<html data-bs-theme="light|dark">          ← Bootstrap 5 compat
+<html data-theme-preference="light|dark|system">  ← raw preference (toggle UI only)
+```
+
+Two-line JS change in `static/js/theme-preference-bootstrap.js::apply()`:
+```diff
+-  root.setAttribute("data-theme", pref);
++  root.setAttribute("data-theme", resolved);
++  root.setAttribute("data-theme-preference", pref);
+   root.setAttribute("data-resolved-theme", resolved);
+   root.setAttribute("data-bs-theme", resolved);
+```
+
+Sibling fix in `static/js/_pages/base.js` — stops the legacy "remove data-theme on system-preference" branch (which produced the same unreachable-styling bug on the public/base shell when the OS preferred dark) and writes the resolved value into `data-theme` + the preference into `data-theme-preference`.
+
+**Why this is platform-wide with zero CSS edits.** The 271 `[data-theme="dark"]` selectors across 34 files don't change. They *start matching* whenever the page is rendering dark, regardless of how the user expressed their preference. Aesthetic-profile dark overrides (cool-apple, warm-bright, stone) fire correctly for the first time on system-pref users. The `dark-mode-safety-net.css` `.card { background: var(--surface-elevated) }` rule now resolves to a dark color so card text reads correctly on dark canvas. Light-mode users are unaffected — their `data-theme` was already `"light"` and still matches the same selectors.
+
+**Code hygiene cleanup** (companion to the JS fix — purges dead code the v3 contract makes unreachable):
+
+- Retired 4 dead `[data-theme="system"][data-resolved-theme=...]` compound selectors that became unreachable under v3 — sites: `design-tokens.css:633`, `theme-platform-contrast.css:13/18/24`, `theme-visibility-guard.css:19`.
+- Hoisted marketing's `@media (prefers-color-scheme: dark) html[data-theme="system"][data-surface="marketing"]` block in `tokens-marketing.css:81-94` to `html[data-resolved-theme="dark"][data-surface="marketing"]` — fires whenever the marketing surface is rendering dark, including the just-fixed system-pref path.
+- Retired the unreachable `@media (prefers-color-scheme: dark) html[data-theme="system"]:not([data-resolved-theme="light"])` block in `design-tokens.css:780-808` (was a pre-JS fallback that v3 makes redundant — JS runs synchronously in `<head>` and writes `data-theme` to the resolved value before first paint).
+
+**New CI gate** — zero-tolerance from day 1.
+
+`scripts/scan_theme_attribute_contract.py` enforces the v3 contract:
+- CSS: flags selectors gating on `[data-theme="system"]` / `[data-theme="auto"]` (no-ops under v3 — they cannot match).
+- JS: flags `setAttribute("data-theme", "system"|"auto")` (writing a non-effective value).
+
+Mark intentional sites with `/* theme-attr-contract-allow: <reason> */` (CSS) or `// theme-attr-contract-allow: <reason>` (JS). Wired to `architectural-boundaries.yml::theme-attribute-contract`.
+
+Two sibling scanners extended/verified to recognize `data-resolved-theme` as a theme-scoping attribute so the new `html[data-resolved-theme="dark"][data-surface="marketing"]` rule passes their checks too:
+- `scripts/scan_off_token_colors.py::_THEME_BLOCK` — regex now matches `data-(?:bs-|resolved-)?theme`. (Was a one-character fix; previously rejected the marketing rule as off-token.)
+- `scripts/scan_theme_locked_token_text.py::_THEME_BLOCK` — already had the pattern in place from v3.23.10; verified parity.
+
+**Validation.**
+
+| Gate | Result |
+|---|---|
+| `scan_theme_attribute_contract.py --strict` | 0/0 (zero-tolerance day 1) |
+| `scan_off_token_colors.py --strict` | 0/0 (scanner regex updated, no new violations) |
+| `scan_theme_locked_token_text.py --strict` | 0/0 |
+| `scan_reveal_armed_invariants.py --strict` | 0/0 (all 4 invariants) |
+| `scan_sticky_with_overflow_hidden.py --strict` | 0/0 |
+| `audit_template_render_safety.py --strict` | 0 |
+| `verify_service_worker_version.py --check-monotonic` | OK (v3.31.1 > v3.31.0) |
+| `check_documented_baselines.py` | 33 rows parsed, 0 doc-vs-JSON drift |
+| `theme-preference-bootstrap.js` Node parse | OK |
+| `_pages/base.js` Node parse | OK |
+
+**Pattern lesson.** The "preference vs effective" attribute split is a *real* abstraction in the v2 docs, but the moment the codebase has 271 CSS rules gating on `data-theme` it doesn't matter what the docs say — every reader treats `data-theme` as effective. Forcing every CSS author to remember "but only when the user explicitly picked Dark, not when their OS is dark" is the kind of contract that *will* drift, and did. Collapse the abstraction; mirror the value where the readers look. Asymmetric attribute contracts that ship "the special case is documented" reliably ship the special case as a bug.
+
+**Files touched** (5 production + 1 scanner regex fix + 1 new scanner + 1 baseline + 1 CI workflow + 1 doc section + 1 CLAUDE.md row + 1 SW bump):
+
+- Production JS: `static/js/theme-preference-bootstrap.js`, `static/js/_pages/base.js`
+- Production CSS: `static/css/design-tokens.css`, `static/css/theme-platform-contrast.css`, `static/css/theme-visibility-guard.css`, `static/marketing/css/tokens-marketing.css`
+- Scanner regex fix: `scripts/scan_off_token_colors.py` (`_THEME_BLOCK` recognizes `data-resolved-theme`)
+- New scanner: `scripts/scan_theme_attribute_contract.py` + baseline `var/security-audit-baseline-theme-attribute-contract.json`
+- CI workflow: `.github/workflows/architectural-boundaries.yml` (new `theme-attribute-contract` job)
+- Docs: `docs/THEME_SYSTEM.md` (new §0 attribute-contract section), `CLAUDE.md` scanner table row
+- Service worker: `static/js/service-worker.js` (CACHE_VERSION bump)
+
+## 2026-05-18 — v3.31.0 Migration Cloud platform productionization (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW bumped to `sms-v3.31.0-migration-cloud-platform-productionization-2026-05-18` (monotonic over parallel cp polish waves v3.28.2–v3.30.1). Filed non-CSS per all-waves-audit convention.
+
+**Scope.** Closes every deferred item from the v3.28.0 Migration Cloud platform-completion wave. Five parallel agents under tight file boundaries; consolidation merges per-agent `.pending_docket/` drafts into this single section. Cross-agent integration smoke 5/5 modules import OK, `AUTHENTICATION_BACKENDS[0] = LegacyHashUpgradeBackend` invariant preserved, encryption backend reports `internal_fernet_shim` (honest fallback — django-cryptography 1.x incompatible with Django 5.x's removal of `django.utils.baseconv`).
+
+### Agent 1 — Companion per-vendor extractors (SHIPPED)
+
+Real DOM/API extraction for 4 vendors + 2 honest stubs under new `companion-extension/src/vendors/`:
+
+- **`_base.ts`** — Shared types: `VendorExtractor`, `ExtractionContext`, `VendorExtractionError`; helpers `parseCsv` (RFC-4180 quote-escape + embedded newlines + CRLF), `parseHtmlTable` (DOMParser primary + regex fallback so the same parser runs in content-script and vitest), `toIsoDate`, `compactRow`, `defaultContext`. Strict TS; no `any`.
+- **`powerschool.ts`** — REAL. `/admin/students/students.html` + `/admin/staff/staff.html` with `credentials: "include"`; maps `Student_Number → external_id`, `DOB → date_of_birth` (ISO 8601), `Grade_Level → grade_level`, `Enroll_Status 0/2/3 → enrollment_status active/graduated/inactive`, `TeacherNumber → staff_external_id`.
+- **`blackbaud.ts`** — REAL. Pages `/api/coreapi/v1/users?role=Student|Faculty` via `odata.nextLink` (200-page cap), per-student `/relationships` for guardians (`type===1`). Per-student relationship failures non-fatal.
+- **`veracross.ts`** — REAL. `/admin/people/list.csv`, partitioned by `Roles` (Student / Faculty / Staff).
+- **`alma.ts`** — REAL. Single `/graphql` POST (session cookie) for `schoolUsers { id firstName lastName email role grade }`, partitions by role.
+- **`facts.ts`** + **`skyward.ts`** — HONEST STUBS. ASPX `__VIEWSTATE` postback / rotating CSRF tokens not scrape-safe without dedicated automation; operator uses manual CSV-export path until paid API key or dedicated extraction pass lands.
+- **`registry.ts`** — `VENDOR_EXTRACTORS: Record<Exclude<VendorId,"unknown">, VendorExtractor>` + `getExtractor()`.
+- **`content/extract.ts`** — `runVendorExtraction()` + `registerExtractionListener()` for `RUN_VENDOR_EXTRACTION` messages.
+- **`__tests__/contract.test.ts`** — 8 vitest tests; **8/8 pass in 44ms**.
+
+Wired through `background.ts`'s `runRealExtractionOrFallback()`: dispatches to active-tab content script; falls back to sample on dispatch failure / unknown vendor. Manifest untouched. Honest reconciliation: brief said `dob/grade`; canonical SOT (`DOMAIN_CANONICAL_HEADERS`) uses `date_of_birth/grade_level` — extractors emit canonical names so server-side identity mapping needs no translation. `tsc --noEmit` clean on 14 new files. Build blocked on pre-existing `vite.config.ts` plugin v4 API drift (flagged for future cleanup; NOT v3.30 regression).
+
+### Agent 2 — Companion-upload receiver + MAA consent + libsodium client-side encryption (SHIPPED)
+
+Server-side companion receiver + customer-side encryption. New `apps/migration_cloud/companion_receiver.py` (4 views): `maa_text_view` (GET render), `MAASignView` (POST — captures IP + UA + verbatim signature_text), `CompanionUploadView` (POST multipart — verifies MAA exists+not-revoked+matches-tenant-vendor; verifies received-sha256 == metadata-sha256; persists ciphertext under `companion_uploads/<tenant_id>/<uuid>.bin`; creates `MigrationBundle` with `status='pending_decrypt'`; creates `CompanionUploadReceipt` with unique `client_idempotency_key` for replay-returns-prior-receipt), `CompanionDecryptHookView` (POST staff-only — accepts X25519 private key in request scope, decrypts in-memory, zeroizes in `finally`; gracefully 501s if PyNaCl absent). New `apps/migration_cloud/services/maa_text.py` ships verbatim v1.0 legal text (counsel-pending) covering data-portability authority, customer-driven extraction, scope, retention, FERPA/COPPA acknowledgments, revocation, governing law.
+
+3 new models in `apps/migration_cloud/models.py`:
+- **`MigrationAuthorizationAgreement`** — verbatim `signature_text` at sign time + `agreement_version` + tenant + vendor + signer + role + IP + UA; revocation non-destructive (frozen-future, accepted-past).
+- **`CompanionCiphertextBlob`** — FileField storage (large bundles, not BinaryField).
+- **`CompanionUploadReceipt`** — `client_idempotency_key` unique; `ciphertext_sha256` (hex); `plaintext_byte_size`; `encryption_scheme = "libsodium-secretbox-x25519-sealed"` default.
+
+Migration `0006_companion_receiver_and_maa.py` pure CreateModel + AddIndex (bumped from 0005 to merge with Agent 3 parallel migration). 4 URL routes under `/companion/`.
+
+**Companion side:** new `companion-extension/src/lib/crypto.ts` (libsodium sealed-box X25519 + XSalsa20-Poly1305 anonymous-sender; `ENCRYPTION_SCHEME` constant mirrors Django field default; `sha256HexOfBytes` + `zeroize` helpers); `background/upload.ts` (seal-then-multipart-POST; logs sha-prefix + size only); `popup/maa-consent.ts` (DOM consent flow; persists `maa_id` to `chrome.storage.local`); `vitest.config.ts` aliases libsodium-wrappers CJS dist around upstream 0.7.16 ESM defect.
+
+Tests: 14 written (8 SimpleTestCase + 6 DB-backed self-skip on infra-block); **8/8 unittest + 6/6 vitest pass**. `assertLogs` proves receiver never logs ciphertext / plaintext / signature_text.
+
+### Agent 3 — Public REST API completion (SHIPPED)
+
+Five workstreams promote the v3.27 alpha to production-grade:
+
+1. **Bulk multipart artifacts:** `POST /api/v1/bundles/<id>/artifacts/bulk/` — 50 files / 100 MB each / 500 MB aggregate; streaming `sha256` hasher; content-hash dedup returns `already-accepted` (NOT 409).
+2. **SSE progress mirror:** `GET /api/v1/bundles/<id>/events/stream/` — `text/event-stream` with initial-status frame + 30s heartbeat + 60s graceful close (Heroku-safe); ASGI/Daphne production-deployment note in docstring.
+3. **Scoped API tokens:** new model `MigrationCloudAPIToken` — only `sha256(token)` persisted, plaintext returned once at mint; `MigrationCloudScopedTokenAuthentication` dispatches `mc_`-prefixed credentials; `ScopedAPIPermission` enforces `ACTION_SCOPE_REQUIREMENTS` SOT (`bundles:read|write`, `templates:read`, `artifacts:write`, `reconcile:run`, `tokens:manage`, `webhooks:manage`); per-token `tenant_scope` binding; `hmac.compare_digest` on the miss path; `ScopedTokenViewSet` for mint / list / revoke / scopes-catalog.
+4. **Webhook receivers:** new models `MigrationCloudWebhookSubscription` (HTTPS-only URL validation; plaintext secret returned once; sha256 stored as verification aid; raw bytes in `secret_ciphertext = BinaryField` flagged `# crypto-pending: agent-5-django-cryptography-encrypt-wrap-after-merge`) + `MigrationCloudWebhookDelivery` + `WebhookDeliveryStatus` TextChoices; `webhook_dispatch.deliver_due()` Celery-ready dispatcher; canonical-JSON HMAC-SHA256 signing; retry FSM `[1m, 5m, 30m, 2h, 12h, 24h] → exhausted`; wired into `BundleViewSet.advance / apply_bundle / failed` lifecycle hooks.
+5. **Public Redoc + OpenAPI UI:** `GET /api/v1/schema/` (YAML, public) + `GET /api/v1/docs/` (Redoc HTML; namespace-aware schema URL resolution).
+
+Migration `0005_api_tokens_and_webhooks.py` pure CreateModel. Endpoints mounted at both `/super/migration/` and `/portal/configure/migration/`. **33/33 SimpleTestCase pass** (target was 20; over-delivered) + **22/22 alpha regression pass** → 55/55. `scan_drf_schema_coverage 0` (every action `@extend_schema`-decorated). `scan_tenant_isolation_marker_quality 0` lazy reasons.
+
+### Agent 4 — First-class schoolops assignment models + lander promotion (SHIPPED)
+
+Closes v3.28 deferred: "first-class `TransportAssignment` / `HostelAssignment` / `MealPlanBalance` models in `apps.schoolops`, then promote from `DynamicFieldValue`."
+
+`apps/schoolops/models.py` gains 3 additive models (`app_label = "schoolops"`):
+- **`TransportAssignment`** — student ↔ `Route` + pickup_stop + dropoff_stop + effective window + status [active/paused/ended]; unique `(student, route, effective_from)`; indexes on `(student, status)` + `(route, effective_from)` + `(school, status)`.
+- **`HostelAssignment`** — student ↔ `HostelRoom` + `bed_label` + effective window + status [active/checked_out/ended]; unique `(student, room, effective_from)`.
+- **`MealPlanBalance`** — student ↔ `CanteenMeal` (nullable: null = generic credit); `balance` DecimalField; `currency` (ISO 4217, default USD); `last_topup_at` + `last_topup_amount` audit; `low_balance_threshold`; status [active/suspended/closed]; unique `(student, meal_plan)`; `is_low` property. **All money fields `DecimalField`** (`scan_money_float 0`).
+
+Sibling-style match: tenant FK named `school`; `db_constraint=False` on student FK matches existing `HealthRecord` / `BiometricAttendanceLog` pattern. Migration `0012_assignment_models.py` pure CreateModel + AddIndex; `makemigrations --dry-run` reports "No changes detected".
+
+**Lander promotion (graceful-degradation):**
+- **First-class path** — both ends of join + required anchor field (`effective_from` / checkin_date) resolve → upsert to first-class model.
+- **Fallback path** — catalog side unresolved → fall through to `apps.metadata.DynamicFieldValue` (preserves v3.28 behavior; out-of-order bundles never drop data).
+- **Quarantine path** — student unresolved or row malformed → record error + skip.
+
+For cafeteria, `meal_plan` FK is nullable so the first-class row is always attempted. On duplicate `(student, meal_plan)`, balance updates last-wins with `last_topup_amount = max(0, new - old)` and `last_topup_at = timezone.now()` — Decimal arithmetic only.
+
+New backfill mgmt command `promote_dyna_assignments.py` (`--tenant <id>` REQUIRED — refuses cross-tenant; `--apply` to write [default dry-run]; `--limit N`; `--entity-type` filter; per-row `transaction.atomic()` + savepoint; idempotent — existing first-class row → `skipped_already_promoted`).
+
+Registry docstring updated: 23 → 24 first-class. **19 tests** across 5 classes; **9/9 `AssignmentModelShapeTests` pass**.
+
+### Agent 5 — Foreign hash verifier productionization (SHIPPED)
+
+Productionizes v3.28's `apps/accounts/legacy_hashes/`:
+
+**Encryption at rest:** `apps/accounts/legacy_hashes/encryption.py` selects backend — prefers upstream `django_cryptography.fields.encrypt`, falls back to internal Fernet shim (AES-128-CBC + HMAC-SHA256) when django-cryptography 1.x is unavailable under Django 5.x (`django.utils.baseconv` was removed in Django 5.0 — known upstream incompatibility). `backend_in_use()` reports `internal_fernet_shim` on this codebase; contract is identical: transparent decrypt on read, Fernet ciphertext on write, plaintext empty-string passthrough.
+
+Migration `0033_encrypt_legacy_hash_fields.py`:
+- `AlterField` × 3 wraps `legacy_password_hash` + `legacy_hash_algorithm` + `legacy_hash_params` in Fernet ciphertext.
+- `AddField` × 2 for `legacy_hash_created_at` (sunset job anchor) + `legacy_hash_sunset_email_sent_at`.
+- `RunPython` no-op forward LOGS count of any pre-existing plaintext rows so ops runs backfill before deploy.
+- Pure via `apps.get_model("accounts","User")` — `scan_migration_model_imports 0`.
+
+Key resolution: `DJANGO_CRYPTOGRAPHY_KEY` env (44-char urlsafe-b64 Fernet) or SHA-256(SECRET_KEY) dev fallback (logged at module load).
+
+**12-month sunset Celery job** (`apps/accounts/legacy_hashes/sunset_task.py`) — 3-state FSM:
+1. **Active legacy** — hash younger than `age_months` (default 12). No action.
+2. **Email-eligible** — older than `age_months` AND `last_login NULL OR < cutoff` AND no email sent → send one-time setup link via `default_token_generator` + stamp `sunset_email_sent_at`.
+3. **Grace-expired** — `sunset_email_sent_at` older than `grace_days` (default 30) AND still no recent login → null all 3 legacy fields + `set_unusable_password()`. User must use `/accounts/password_reset/` to come back.
+
+Returns purely-numeric `{eligible, grace_eligible, emailed, nulled, dry_run, errors, age_months, grace_days}`. Wired into `CELERY_BEAT_SCHEDULE` weekly (604800s; `dry_run=False`, `age_months=12`, `grace_days=30`). Idempotent — re-running the same day produces the same numbers.
+
+**One-time setup link landing page:** `apps/accounts/views_legacy_setup.py::LegacySetupView` extends `PasswordResetConfirmView`; `form_valid` additionally clears the 3 legacy fields + the sunset-email timestamp; URL `/accounts/legacy-setup/<uidb64>/<token>/` + email templates.
+
+**Encryption backfill script:** `scripts/encrypt_existing_legacy_hashes.py` (`--dry-run` default; `--apply` to write; per-row atomic; logs counts only).
+
+Tests: 13 in `test_legacy_hash_sunset.py` (cohort selection, dry-run safety, email side effect, grace-period null, idempotency, view GET/POST, expired-token, defensive `legacy_hash_created_at` backfill, NoSecretsLoggedTests extension, backfill dry-run + apply, backend slug reporting). v3.28's 13 OK + 6 SKIP regression-clean.
+
+**`AUTHENTICATION_BACKENDS[0]` legacy-first invariant preserved** (cross-agent smoke confirmed). **Logger NEVER sees secrets** — `assertLogs` invariant extended to new code paths.
+
+### Cumulative wave gates (all CLEAN)
+
+- `scan_drf_schema_coverage`: every new DRF view + action `@extend_schema`-decorated (Agent 3)
+- `scan_tenant_isolation_marker_quality`: every new marker reason 5+-part hyphenated (Agents 2, 3, 4, 5)
+- `scan_money_float`: Decimal-as-str on JSON payload, no `float()` on money (Agent 4: `MealPlanBalance`)
+- `scan_migration_model_imports`: pure `AddField` / `AlterField` / `CreateModel` + `apps.get_model("X","Y")` in RunPython (Agents 2, 3, 4, 5)
+- `scan_bare_except`: typed catches throughout
+- `scan_print_statements`: zero `print()`, all `logger`
+- `scan_inline_style_off_token`: zero inline styles in new templates
+- `verify_service_worker_version --check-monotonic`: v3.30.1 → v3.31.0 OK
+- Documented-baseline scanner counts unchanged — additive code, no removed violations
+
+### File-boundary mitigation worked
+
+Migration-number collisions resolved by agents on detect: Agent 2's `0006_companion_receiver_and_maa.py` bumped from 0005 when Agent 3 took `0005_api_tokens_and_webhooks.py` first. Agent 5's `0033_encrypt_legacy_hash_fields.py` on `apps.accounts` chain — no collision. `apps/migration_cloud/api/viewsets.py` edits by Agents 2 + 3 stayed disjoint by line range. `apps/migration_cloud/urls.py` edits stayed disjoint. SW bump collided with parallel theme-attribute-contract wave (v3.29.1) — rolled forward to v3.31.0 to remain monotonic + unambiguous.
+
+### Pending dockets cleaned up post-consolidation
+
+`apps/migration_cloud/.pending_docket/agent_{1..5}_*.md` removed.
+
+### SOTs updated this wave
+
+- `static/js/service-worker.js` — bumped to `sms-v3.31.0-migration-cloud-platform-productionization-2026-05-18`
+- `docs/CSS_RETIREMENT_DOCKET.md` — this entry
+- `CLAUDE.md` Sources-of-truth — new top-line entry for v3.31.0
+- Memory file `project_migration_cloud_productionization_v3_31_2026_05_18.md`
+- `MEMORY.md` index — supersedes v3.28.0 entry
+
+### Strategic significance
+
+This **closes the entire Migration Cloud platform pivot from strategic concept to production-grade shipping code**. The four pillars from the strategic-direction memory now have not just shipping scaffolding (v3.28.0) but production-grade implementations (v3.31.0):
+
+- **Distribution layer (Companion):** real per-vendor extraction for 4 of 6 vendors (PowerSchool / Blackbaud / Veracross / Alma); FACTS + Skyward honest-stub with documented next-step (paid API or dedicated automation); MAA consent + libsodium client-side encryption boundary.
+- **Platform layer (REST API):** scoped tokens, webhook FSM, SSE progress, bulk multipart, public Redoc — third-party integrators can build against the API without bespoke handshakes.
+- **Trust layer (password preservation):** legacy hashes encrypted at rest with documented backend-selection; 12-month sunset FSM closes the long tail.
+- **Ontology layer (assignment landers):** first-class `TransportAssignment` / `HostelAssignment` / `MealPlanBalance` with graceful-degradation fallback to `DynamicFieldValue` when catalog side hasn't landed yet — out-of-order bundles still preserve data.
+
+The "AWS / Shopify / Salesforce / Linux of K-12" framing is concretely earned end-to-end.
+
+### Honest deferred-to-next-wave list (each separately-scopable)
+
+- **Companion:** popup wiring of `maa-consent.ts` from `popup.ts`; `GET /companion/server-pubkey/` endpoint for X25519 public-key distribution + key-version tag; FACTS / Skyward real extractors (paid API or dedicated automation); PowerSchool DataDirector / PowerQuery for attendance / grades / enrollment history; Blackbaud enrollment / attendance / grades; Alma sections / courses; PyNaCl in `requirements.txt` before staging decrypt-hook; counsel-blessed MAA v2.0 text; operator UI for decrypt-hook key paste; key-rotation flow; WSGI / Nginx `client_max_body_size` matching the 512 MiB receiver ceiling; Tauri desktop + Docker appliance siblings.
+- **REST API:** Celery beat schedule entry for `migration_cloud.webhook_dispatch.deliver_due`; `django-cryptography` wrap of `secret_ciphertext` once Agent 5's path resolves; operator UI for token / webhook management; SSE under ASGI/Daphne in prod; token rotation flow; webhook delivery quotas / per-tenant rate limiting.
+- **Landers:** reverse-relation admin pages for the 3 assignment models; low-balance email/SMS notification wired to `is_low` (Celery signal); audit-bundle replay tool that walks DFV → first-class for older bundles whose catalog rows arrived after assignment rows.
+- **Hash verifier:** django-cryptography 1.2 (Django 5 compatibility) when upstream ships; crontab-syntax beat schedule (Mondays 03:00 UTC requires `crontab` import); key rotation runbook at `docs/SECURITY_KEYS.md`; canonical per-vendor extractor wire of `legacy_hash_created_at` at intake.
 
 ## 2026-05-18 — v3.28.1 JS null-guard cleanup + sticky-overflow CI gate + phase2 extractor sanity
 

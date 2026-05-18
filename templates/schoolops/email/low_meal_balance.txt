@@ -1,0 +1,17 @@
+Hello,
+
+This is a courtesy notice that {{ student_first_name }} {{ student_last_name }}'s
+meal plan balance is now at or below the configured low-balance threshold.
+
+  Plan:      {{ plan_label }}
+  Balance:   {{ balance_display }}
+  Threshold: {{ threshold_display }}
+
+Please consider topping up the balance to avoid service interruption.
+
+You are receiving this notification because you are registered as a
+guardian for this student. To adjust notification preferences, visit
+the parent portal.
+
+Thank you,
+RunMyCampus

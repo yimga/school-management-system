@@ -10,12 +10,12 @@
            aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
         <div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column">
             <div class="row g-2 flex-grow-1 min-h-0">
-                <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col" aria-label="{% trans 'Control plane navigation' %}" data-shell-sidebar="control-plane" data-shell-sidebar-mount="desktop">
+                <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
                     <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
-                        {% include "partials/control_plane_sidebar.html" %}
+                        {% include "partials/manager_platform_admin_sidebar.html" %}
                     </div>
                 </aside>
-                <div id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main d-flex flex-column min-w-0 flex-grow-1 bg-white dark:bg-base-900" role="main" data-shell-main="control-plane" data-authenticated-surface="manager-control-plane" data-rmc-shell-main="django-admin">
+                <div id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main d-flex flex-column min-w-0 flex-grow-1 bg-white dark:bg-base-900" role="main" data-shell-main="platform-admin" data-authenticated-surface="manager-control-plane" data-rmc-shell-main="django-admin">
         {% else %}
         {% if not is_popup and not is_manager_host %}
             {% block nav-sidebar %}

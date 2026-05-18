@@ -15,7 +15,12 @@ from __future__ import annotations
 
 from django.urls import include, path
 
-from . import views
+from . import (
+    companion_receiver,
+    views,
+    views_token_admin,
+    views_webhook_admin,
+)
 
 app_name = "migration_cloud"
 
@@ -65,4 +70,23 @@ urlpatterns = [
     path("template/picker/", views.MigrationCloudCanonicalTemplatePickerView.as_view(), name="canonical_template_picker"),
     # v3.27 — Migration Cloud public REST API alpha (DRF viewsets, OpenAPI-covered).
     path("api/v1/", include("apps.migration_cloud.api.urls")),
+    # v3.29 — Companion-extension upload receiver + MAA consent.
+    path("companion/maa/text/", companion_receiver.maa_text_view, name="companion_maa_text"),
+    path("companion/maa/sign/", companion_receiver.MAASignView.as_view(), name="companion_maa_sign"),
+    path("companion/upload/", companion_receiver.CompanionUploadView.as_view(), name="companion_upload"),
+    path("companion/decrypt/<int:bundle_id>/", companion_receiver.CompanionDecryptHookView.as_view(), name="companion_decrypt"),
+    # v3.32 — Companion server-side X25519 keypair distribution + rotation.
+    path("companion/server-pubkey/", companion_receiver.companion_server_pubkey_view, name="companion_server_pubkey"),
+    path("companion/keypair/rotate/", companion_receiver.CompanionKeypairRotateView.as_view(), name="companion_keypair_rotate"),
+    # v3.32.0 — operator UI: scoped-API-token + outbound-webhook administration.
+    # Staff-only. Each path carries `rbac-allow` so audit_role_permission_matrix
+    # records the intentional staff-only gate.
+    path("operator/tokens/", views_token_admin.MigrationCloudTokenListView.as_view(), name="operator_token_list"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/tokens/mint/", views_token_admin.MigrationCloudTokenMintView.as_view(), name="operator_token_mint"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/tokens/<int:token_id>/revoke/", views_token_admin.MigrationCloudTokenRevokeView.as_view(), name="operator_token_revoke"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/tokens/<int:token_id>/rotate/", views_token_admin.MigrationCloudTokenRotateView.as_view(), name="operator_token_rotate"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/webhooks/", views_webhook_admin.MigrationCloudWebhookListView.as_view(), name="operator_webhook_list"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/webhooks/subscribe/", views_webhook_admin.MigrationCloudWebhookSubscribeView.as_view(), name="operator_webhook_subscribe"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/webhooks/deliveries/", views_webhook_admin.MigrationCloudWebhookDeliveryLogView.as_view(), name="operator_webhook_delivery_log"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/webhooks/deliveries/<int:delivery_id>/retry/", views_webhook_admin.MigrationCloudWebhookRetryView.as_view(), name="operator_webhook_delivery_retry"),  # rbac-allow: staff-only-operator-token-and-webhook-management
 ]

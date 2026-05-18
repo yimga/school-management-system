@@ -1,0 +1,87 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Webhook delivery log" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-delivery-log" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
+    <h1 class="rmc-h1">{% trans "Webhook delivery log" %}</h1>
+    <p class="rmc-lede">
+      {% if subscription_id %}
+      {% blocktrans %}Showing deliveries for subscription #{{ subscription_id }}.{% endblocktrans %}
+      {% else %}
+      {% trans "Showing all deliveries across every subscription." %}
+      {% endif %}
+    </p>
+  </header>
+
+  {% if rows %}
+  <table class="rmc-data-table rmc-data-table--deliveries">
+    <thead>
+      <tr>
+        <th>{% trans "ID" %}</th>
+        <th>{% trans "Sub" %}</th>
+        <th>{% trans "Event" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Attempts" %}</th>
+        <th>{% trans "Last HTTP" %}</th>
+        <th>{% trans "Next retry" %}</th>
+        <th>{% trans "Deferred" %}</th>
+        <th>{% trans "Created" %}</th>
+        <th>{% trans "Actions" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.subscription_id }}</td>
+        <td><code class="rmc-kbd">{{ r.event_type }}</code></td>
+        <td>
+          {% if r.status == "delivered" %}<span class="rmc-pill rmc-pill--success">{{ r.status }}</span>
+          {% elif r.status == "exhausted" %}<span class="rmc-pill rmc-pill--danger">{{ r.status }}</span>
+          {% elif r.status == "failed" %}<span class="rmc-pill rmc-pill--warn">{{ r.status }}</span>
+          {% else %}<span class="rmc-pill rmc-pill--muted">{{ r.status }}</span>{% endif %}
+        </td>
+        <td>{{ r.attempt_count }}</td>
+        <td>{{ r.last_response_code|default:"—" }}</td>
+        <td>{% if r.next_retry_at %}{{ r.next_retry_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+        <td>
+          {% if r.deferred_reason %}
+            <code class="rmc-kbd">{{ r.deferred_reason }}</code>
+            {% if r.deferred_until %}<br><small>{{ r.deferred_until|date:"Y-m-d H:i" }}</small>{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          {% if r.status != "delivered" %}
+          <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_retry' delivery_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_retry' delivery_id=r.id %}{% endif %}" class="rmc-form--inline">
+            {% csrf_token %}
+            <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Retry" %}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <nav class="rmc-pagination" aria-label="{% trans 'Pagination' %}">
+    {% if page_obj.has_previous %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_obj.previous_page_number }}{% if subscription_id %}&subscription_id={{ subscription_id }}{% endif %}">{% trans "← Previous" %}</a>
+    {% endif %}
+    <span class="rmc-pagination__page">{% blocktrans with cur=page_obj.number total=page_obj.paginator.num_pages %}Page {{ cur }} of {{ total }}{% endblocktrans %}</span>
+    {% if page_obj.has_next %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_obj.next_page_number }}{% if subscription_id %}&subscription_id={{ subscription_id }}{% endif %}">{% trans "Next →" %}</a>
+    {% endif %}
+  </nav>
+  {% else %}
+  <div class="rmc-empty">
+    <h2 class="rmc-h2">{% trans "No deliveries yet" %}</h2>
+    <p>{% trans "Deliveries appear as events fire on bundle lifecycle transitions." %}</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

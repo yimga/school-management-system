@@ -63,9 +63,15 @@ def main(argv: list[str] | None = None) -> int:
 
     errors: list[str] = []
 
-    ccc_tenant = root / "templates" / "siteconfig" / "console_domains_hub.html"
+    ccc_tenant = (
+        root / "templates" / "siteconfig" / "partials" / "console_domains_hub_body.html"
+    )
     ccc_manager = (
-        root / "templates" / "siteconfig" / "console_domains_hub_control_plane.html"
+        root
+        / "templates"
+        / "siteconfig"
+        / "partials"
+        / "console_domains_hub_manager_body.html"
     )
     outcomes_partial = (
         root
@@ -112,7 +118,7 @@ def main(argv: list[str] | None = None) -> int:
     if "Sources" not in outcomes_text and "sources" not in outcomes_text:
         errors.append("configuration_control_center_outcomes.html missing source tracing display.")
 
-    # Operator model partial: must render operator_control_model and stability labels.
+    # Operator model partial: must render operator_control_model and carry earned stability metadata.
     operator_text = _read(operator_partial)
     if "{% if operator_control_model %}" not in operator_text:
         errors.append("configuration_control_center_operator_model.html missing operator model guard.")
@@ -151,6 +157,8 @@ def main(argv: list[str] | None = None) -> int:
         "Runtime inspector",
         "Rollback (Control)",
         "Package rollout",
+        "validate_operator_surface_maturity_proofs",
+        "_earned_stability",
     ):
         if required not in registry_text:
             errors.append(f"control_outcome_center.py missing operator model token: {required}")

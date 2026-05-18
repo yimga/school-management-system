@@ -8,20 +8,20 @@
  * - Light-mode main canvas readability on control-plane + admin-manager shells
  */
 
-/* ----- System mode: mirror dark/light hooks on resolved theme ----- */
-html[data-resolved-theme="dark"],
-html[data-theme="system"][data-resolved-theme="dark"] {
+/* ----- Effective theme: color-scheme + muted-text contrast ----- */
+/* v3 (2026-05-18): `data-theme` always carries the effective theme, so the
+   old `data-theme="system"+data-resolved-theme=...` compound selectors were
+   retired. See docs/THEME_SYSTEM.md §0. */
+html[data-resolved-theme="dark"] {
   color-scheme: dark;
 }
 
-html[data-resolved-theme="light"],
-html[data-theme="system"][data-resolved-theme="light"] {
+html[data-resolved-theme="light"] {
   color-scheme: light;
 }
 
 html[data-resolved-theme="dark"] body:not(.marketing-surface) .text-muted,
-html[data-resolved-theme="dark"] body:not(.marketing-surface) .small.text-muted,
-html[data-theme="system"][data-resolved-theme="dark"] body:not(.marketing-surface) .text-muted {
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .small.text-muted {
   color: var(--text-secondary) !important;
 }
 

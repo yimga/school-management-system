@@ -1,0 +1,73 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Find your campus" %} — RunMyCampus{% endblock %}
+{% block marketing_main_extra_classes %}container py-4 rmc-os-page rmc-os-page--find-campus{% endblock %}
+{% block content %}
+{% include "marketing/partials/corporate_os_chrome.html" %}
+<article data-rmc-os-find-campus="1">
+  <header class="rmc-os-hero">
+    <p class="rmc-os-eyebrow">{% trans "Tenant routing" %}</p>
+    <h1>{% trans "Find your campus portal" %}</h1>
+    <p class="rmc-os-hero__lead">{% trans "Search by school name, slug, or domain. Parents, students, and staff should land on their school tenant—not the corporate marketing site." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-primary btn-sm" href="{% url 'global_login_discovery' %}">{% trans "Find by email" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'status' %}">{% trans "System status" %}</a>
+    </div>
+  </header>
+
+  {% if rate_limited %}
+  <div class="alert alert-warning" role="alert">{% trans "Too many searches. Please wait a moment and try again." %}</div>
+  {% endif %}
+
+  <section class="rmc-os-card rmc-os-finder rmc-reveal">
+    <form method="get" action="{% url 'find_school' %}" class="mb-0"
+          hx-get="{% url 'find_school' %}"
+          hx-target="#find-campus-results"
+          hx-trigger="submit">
+      <label class="form-label fw-semibold" for="find-campus-q">{% trans "School name, code, or domain" %}</label>
+      <div class="input-group input-group-lg">
+        <input id="find-campus-q" name="q" type="search" class="form-control"
+               value="{{ query|default:'' }}"
+               placeholder="{% trans 'e.g. St Marys or st-marys' %}"
+               autocomplete="off" data-1p-ignore="true" data-lpignore="true"
+               hx-get="{% url 'find_school' %}"
+               hx-target="#find-campus-results"
+               hx-trigger="keyup changed delay:300ms, search">
+        <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
+      </div>
+    </form>
+    <div id="find-campus-results" class="rmc-os-finder-result">
+      {% include "marketing/partials/school_finder_results_os.html" with query=query results=results %}
+    </div>
+  </section>
+
+  <section class="rmc-os-grid-4 mt-4 rmc-reveal" aria-label="{% trans 'Role routing' %}">
+    <a class="rmc-os-route-card" href="{% url 'global_login_discovery' %}">
+      <span>{% trans "Have an email?" %}</span>
+      <strong>{% trans "Email discovery login" %}</strong>
+    </a>
+    <a class="rmc-os-route-card" href="{% url 'role_parents' %}">
+      <span>{% trans "Parent" %}</span>
+      <strong>{% trans "Parent access guide" %}</strong>
+    </a>
+    <a class="rmc-os-route-card" href="{% url 'role_teachers' %}">
+      <span>{% trans "Teacher" %}</span>
+      <strong>{% trans "Teacher workspace overview" %}</strong>
+    </a>
+    <a class="rmc-os-route-card" href="{% url 'marketing_demo' %}">
+      <span>{% trans "New school" %}</span>
+      <strong>{% trans "Request a platform demo" %}</strong>
+    </a>
+  </section>
+
+  {% if role_checklists %}
+  <section class="mt-4 rmc-reveal">
+    {% include "schools/partials/role_onboarding_checklists.html" with role_checklists=role_checklists %}
+  </section>
+  {% endif %}
+</article>
+{% endblock %}
+{% block extrajs %}
+{{ block.super }}
+<script src="{% static 'js/htmx.min.js' %}" defer></script>
+{% endblock %}

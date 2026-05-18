@@ -1078,6 +1078,26 @@ class TenantSettingsLintTests(SimpleTestCase):
             f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}",
         )
 
+    def test_verify_operator_surface_maturity_passes(self):
+        """Phase 4 gate: operator surfaces expose only earned-stable maturity labels."""
+        root = repo_root()
+        script = root / "scripts" / "verify_operator_surface_maturity.py"
+        if not script.is_file():
+            self.skipTest("scripts/verify_operator_surface_maturity.py not found")
+        result = subprocess.run(
+            [sys.executable, str(script), "--base", str(root)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            "verify_operator_surface_maturity failed.\n"
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}",
+        )
+
     def test_verify_phase5_studio_os_conformance_passes(self):
         """Phase 5 gate: Studio mode/redirect/native-output contracts."""
         root = repo_root()

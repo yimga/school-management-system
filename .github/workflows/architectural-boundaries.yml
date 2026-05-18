@@ -423,6 +423,20 @@ jobs:
         run: |
           python scripts/scan_reveal_armed_invariants.py --strict
 
+  theme-attribute-contract:
+    name: "Theme attribute contract (data-theme = effective, never preference)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run theme-attribute-contract scanner --strict
+        run: |
+          python scripts/scan_theme_attribute_contract.py --strict
+
   sentry-alert-rule-drift:
     name: "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
     runs-on: ubuntu-latest

@@ -48,6 +48,8 @@ body > .topbar {
   min-height: 0 !important;
   min-width: 0 !important;
   max-width: 100% !important;
+  max-height: none !important;
+  align-self: stretch !important;
   overflow-y: auto !important;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -100,6 +102,16 @@ body.portal-backend-dark .portal-layout-wrap .portal-main-col::-webkit-scrollbar
 body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
 }
+/* Long-page end rhythm — every portal child page (portal_base wrapper). */
+.portal-layout-wrap #main-content .portal-page-body {
+  min-width: 0;
+  padding-bottom: clamp(1.5rem, 3vh, 2.75rem);
+}
+.portal-layout-wrap #main-content .portal-page-body > .container-fluid:last-child,
+.portal-layout-wrap #main-content .portal-page-body > section:last-child {
+  margin-bottom: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .portal-layout-wrap .portal-main-col,
   .portal-layout-wrap #main-content,

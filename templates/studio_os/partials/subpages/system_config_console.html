@@ -21,18 +21,8 @@
       <p class="small text-muted mb-2">{{ group.subtitle }}</p>
       {% for link in group.links %}
       <div class="outcome-link-row">
-        <a class="primary-link" href="{{ link.url }}">{{ link.label }}</a>
-        {% if link.stability == 'danger' %}
-        <span class="badge bg-danger sysconf-badge">{% trans "danger" %}</span>
-        {% elif link.stability == 'beta' %}
-        <span class="badge bg-warning text-dark sysconf-badge">{% trans "beta" %}</span>
-        {% else %}
-        <span class="badge bg-secondary sysconf-badge">{% trans "stable" %}</span>
-        {% endif %}
+        <a class="primary-link" href="{{ link.url }}" data-operator-stability="{{ link.stability }}" {% if link.sources %}title="{% trans 'Sources' %}: {{ link.sources|join:', ' }}"{% endif %}>{{ link.label }}</a>
       </div>
-      {% if link.sources %}
-      <div class="hint mb-1">{% trans "Sources" %}: {{ link.sources|join:", " }}</div>
-      {% endif %}
       {% endfor %}
     </div>
     {% endfor %}

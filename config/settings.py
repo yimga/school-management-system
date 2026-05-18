@@ -673,6 +673,18 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.ScryptPasswordHasher",
 ]
 
+# --- Migration-cloud "password preservation moat" encryption key ---
+# Used by apps.accounts.legacy_hashes.encryption to encrypt the three
+# legacy_* User columns at rest. In production set DJANGO_CRYPTOGRAPHY_KEY
+# to a freshly generated Fernet key (Python: ``from cryptography.fernet
+# import Fernet; print(Fernet.generate_key().decode())``). If unset, the
+# encryption helper derives a key deterministically from SECRET_KEY
+# (development convenience; rotating SECRET_KEY breaks decryption of
+# existing rows — production deployments must set the env var
+# explicitly). The CRYPTOGRAPHY_KEY name is also what the upstream
+# django-cryptography 1.x reads when its conf is initialized.
+CRYPTOGRAPHY_KEY = os.environ.get("DJANGO_CRYPTOGRAPHY_KEY") or SECRET_KEY
+
 # --- Static / Media ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -1242,6 +1254,15 @@ if RUNNING_TESTS:
 # Optional: run celery beat with: celery -A config beat -l info
 # Add periodic tasks in Django admin (django_celery_beat) or define CELERY_BEAT_SCHEDULE (see Celery docs).
 
+# v3.32.0 — celery crontab schedule helper for entries that need a
+# specific wall-clock time (e.g. Mondays 03:00 UTC for the legacy-hash
+# sunset job). Imported lazily-guarded so a lightweight CI lane without
+# Celery installed still imports settings.py cleanly.
+try:
+    from celery.schedules import crontab as _celery_crontab  # type: ignore[import-not-found]
+except ImportError:  # pragma: no cover - celery is in requirements.txt
+    _celery_crontab = None  # type: ignore[assignment]
+
 # Celery Beat schedule for periodic tasks
 # Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
 CELERY_BEAT_SCHEDULE = {
@@ -1276,6 +1297,19 @@ CELERY_BEAT_SCHEDULE = {
         "task": "compliance.mark_sla_breaches",
         "schedule": 3600.0,  # Hourly — GDPR Art. 12(3) one-month SLA, hourly granularity is fine
         "options": {"expires": 300},
+    },
+    # v3.32.0 Agent 4 — daily sweep for low MealPlanBalance rows the
+    # post_save signal missed (e.g. rows already low at app-startup).
+    # Crontab 09:00 local CELERY_TIMEZONE when crontab is importable;
+    # otherwise a 24-hour interval fallback. Task self-enforces a
+    # 7-day cooldown per row, so an extra invocation is a safe no-op.
+    "schoolops-sweep-low-meal-balances": {
+        "task": "schoolops.sweep_low_meal_plan_balances",
+        "schedule": (
+            _celery_crontab(hour=9, minute=0)
+            if _celery_crontab is not None else 86400.0
+        ),
+        "options": {"expires": 3600},
     },
     # Pass 13.E: nightly per-tenant policy/handbook RAG ingestion. No-op for
     # tenants that haven't set `school.settings["policy_doc_root"]`.
@@ -1324,6 +1358,31 @@ CELERY_BEAT_SCHEDULE = {
         "task": "accounts.expire_past_delegations",
         "schedule": 86400.0,  # Daily; respects SiteSettings.delegation_auto_revoke
         "options": {"expires": 600},
+    },
+    # v3.29 migration-cloud "password preservation moat" sunset job.
+    # Find users with a foreign-vendor legacy_password_hash older than
+    # 12 months who never completed first login; email a one-time setup
+    # link; after the 30-day grace expires, null the legacy fields and
+    # force a password reset. Weekly cadence is sufficient — the
+    # operator runs the task with dry_run=True first on each cadence
+    # via `python manage.py shell` to verify cohort size before
+    # consenting to writes; production beat schedule below uses
+    # dry_run=False so the cycle actually progresses.
+    "accounts-sunset-stale-legacy-hashes": {
+        "task": "accounts.sunset_stale_legacy_hashes",
+        # v3.32.0 — upgraded to crontab form: Mondays 03:00 UTC. The
+        # legacy-hash sunset job is non-urgent batch work; running it at
+        # a predictable low-traffic wall-clock time makes the cohort
+        # size easier for the on-call operator to spot-check. Falls
+        # back to the previous 7-day interval when celery isn't
+        # installed in the CI lane (kept identical cadence).
+        "schedule": (
+            _celery_crontab(hour=3, minute=0, day_of_week="mon")
+            if _celery_crontab is not None
+            else 604800.0
+        ),
+        "kwargs": {"dry_run": False, "age_months": 12, "grace_days": 30},
+        "options": {"queue": "default", "expires": 3600},
     },
     "update-invoice-statuses": {
         "task": "finance.update_invoice_statuses",
@@ -1397,6 +1456,16 @@ CELERY_BEAT_SCHEDULE = {
         "task": "integrations_marketplace.fetch_due_mailboxes",
         "schedule": 300.0,  # Every 5 minutes — tunable per provider quota.
         "options": {"expires": 240},
+    },
+    # v3.32.0 — Migration Cloud REST API webhook dispatcher. Drains due
+    # MigrationCloudWebhookDelivery rows (status=pending,
+    # next_retry_at <= now) every 30s. Per-tenant hourly quota enforced
+    # in the task body (1000/hr default); over-quota rows are deferred
+    # to the next hour boundary instead of attempted.
+    "migration-cloud-webhook-deliver-due": {
+        "task": "apps.migration_cloud.api.webhook_dispatch.deliver_due_task",
+        "schedule": 30.0,  # seconds
+        "options": {"queue": "default", "expires": 60},
     },
 }
 # Public demo refresh: set ENSURE_DEMO_CRON_SLUG (e.g. demo-school) and run Celery beat.

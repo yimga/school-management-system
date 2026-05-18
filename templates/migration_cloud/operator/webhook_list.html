@@ -1,0 +1,70 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Migration Cloud — webhook subscriptions" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-webhooks" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Webhook subscriptions" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Outbound HTTPS endpoints partners register to receive bundle-lifecycle events. The HMAC secret is never returned after creation." %}
+    </p>
+    <div class="rmc-page__actions">
+      <a class="rmc-btn rmc-btn--primary" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_subscribe' %}{% else %}{% url 'migration_cloud_super:operator_webhook_subscribe' %}{% endif %}">{% trans "Register new subscription" %}</a>
+      <a class="rmc-btn rmc-btn--ghost" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}">{% trans "Delivery log" %}</a>
+    </div>
+  </header>
+
+  <form method="get" class="rmc-toolbar" role="search" aria-label="{% trans 'Filter webhooks' %}">
+    <label class="rmc-form__label">{% trans "Tenant ID" %}
+      <input class="rmc-input" type="text" name="tenant_id" value="{{ filter_tenant_id }}" inputmode="numeric">
+    </label>
+    <button class="rmc-btn rmc-btn--ghost" type="submit">{% trans "Filter" %}</button>
+  </form>
+
+  {% if rows %}
+  <table class="rmc-data-table rmc-data-table--webhooks">
+    <thead>
+      <tr>
+        <th>{% trans "ID" %}</th>
+        <th>{% trans "Tenant" %}</th>
+        <th>{% trans "URL" %}</th>
+        <th>{% trans "Event types" %}</th>
+        <th>{% trans "Active" %}</th>
+        <th>{% trans "Last status" %}</th>
+        <th>{% trans "Secret preview" %}</th>
+        <th>{% trans "Created" %}</th>
+        <th>{% trans "Actions" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.tenant_id }}</td>
+        <td><code class="rmc-kbd">{{ r.url }}</code></td>
+        <td>
+          {% for e in r.event_types %}<code class="rmc-kbd">{{ e }}</code>{% if not forloop.last %} {% endif %}{% empty %}<span class="rmc-muted">{% trans "all events" %}</span>{% endfor %}
+        </td>
+        <td>
+          {% if r.active %}<span class="rmc-pill rmc-pill--success">{% trans "yes" %}</span>{% else %}<span class="rmc-pill rmc-pill--muted">{% trans "no" %}</span>{% endif %}
+        </td>
+        <td>{{ r.last_delivery_status|default:"—" }}</td>
+        <td><code class="rmc-kbd">{{ r.preview|default:"—" }}</code></td>
+        <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}?subscription_id={{ r.id }}">{% trans "Deliveries" %}</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="rmc-empty">
+    <h2 class="rmc-h2">{% trans "No webhook subscriptions" %}</h2>
+    <p>{% trans "Register a subscription to receive bundle-lifecycle events." %}</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

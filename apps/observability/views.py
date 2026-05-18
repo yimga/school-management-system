@@ -30,6 +30,9 @@ from apps.siteconfig.config_service import get_effective_site_settings
 
 logger = logging.getLogger(__name__)
 
+# Load-balancer probe + human status page live in public_status.py.
+from apps.observability.public_status import public_health, public_status  # noqa: E402
+
 # Reduced external API traffic: longer TTL; enable weather per-tenant where needed.
 WEATHER_CACHE_TTL_SECONDS = 900
 WEATHER_STALE_CACHE_TTL_SECONDS = 3600
@@ -433,16 +436,6 @@ def client_event_capture(request):
         logger.warning("client_event_capture: sentry_sdk forward failed: %s", message)
 
     return HttpResponse(status=204)
-
-
-@require_GET
-def public_health(request):
-    """Public health endpoint for load balancers and uptime checks.
-
-    This endpoint intentionally does not require observability auth and avoids
-    DB/cache dependencies so cold starts and platform probes stay reliable.
-    """
-    return JsonResponse({"status": "healthy"})
 
 
 def _safe_version_value(*names: str, default: str = "unknown") -> str:

@@ -1,0 +1,72 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n static %}
+{% block title %}{% trans "System status" %} — RunMyCampus{% endblock %}
+{% block extrastyle %}{{ block.super }}{% endblock %}
+{% block marketing_main_extra_classes %}container py-4 rmc-os-page rmc-os-page--status{% endblock %}
+{% block content %}
+{% include "marketing/partials/corporate_os_chrome.html" %}
+<article class="rmc-os-page__inner" data-rmc-os-status-page="1">
+  <header class="rmc-os-hero">
+    <p class="rmc-os-eyebrow">{% trans "Trust & operations" %}</p>
+    <h1>{% trans "RunMyCampus platform status" %}</h1>
+    <p class="rmc-os-hero__lead">{% trans "Live component health, maintenance posture, and escalation paths for schools evaluating or operating on the platform." %}</p>
+    <p class="rmc-os-status-overall rmc-os-status-overall--{{ status_payload.overall_status }}" data-mkt-status>
+      <span class="rmc-os-status-overall__dot" aria-hidden="true"></span>
+      <span data-mkt-status-label>{{ status_payload.overall_label }}</span>
+    </p>
+    <p class="small mb-0 rmc-os-muted-copy">
+      {% trans "Updated" %} <time datetime="{{ status_payload.generated_at }}">{{ status_payload.generated_at }}</time>
+      · <a href="{% url 'status' %}?format=json">{% trans "JSON probe" %}</a>
+    </p>
+  </header>
+
+  <section class="rmc-os-grid-3 rmc-reveal" aria-labelledby="status-components-title">
+    <h2 id="status-components-title" class="visually-hidden">{% trans "Component health" %}</h2>
+    {% for component in status_payload.components %}
+    <article class="rmc-os-card rmc-os-component">
+      <span class="rmc-os-component__label">{{ component.label }}</span>
+      <span class="rmc-os-component__state rmc-os-component__state--{{ component.status }}">{{ component.status|title }}</span>
+      <span class="rmc-os-component__meta">{{ component.detail }}</span>
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="rmc-os-grid-2 mt-4 rmc-reveal" aria-labelledby="status-ops-title">
+    <h2 id="status-ops-title" class="h4">{% trans "Operations" %}</h2>
+    <article class="rmc-os-card">
+      <h3 class="h6">{% trans "Incidents" %}</h3>
+      {% if status_payload.incidents %}
+      <ul class="mb-0">
+        {% for incident in status_payload.incidents %}
+        <li>{{ incident.title }} — {{ incident.summary }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mb-0">{% trans "No active public incidents." %}</p>
+      {% endif %}
+    </article>
+    <article class="rmc-os-card">
+      <h3 class="h6">{% trans "Scheduled maintenance" %}</h3>
+      {% if status_payload.maintenance %}
+      <ul class="mb-0">
+        {% for window in status_payload.maintenance %}
+        <li>{{ window.title }} — {{ window.window }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mb-0">{% trans "No maintenance windows published." %}</p>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="rmc-os-card mt-4 rmc-reveal">
+    <h2 class="h5">{% trans "Need help?" %}</h2>
+    <p class="mb-3">{% trans "If your school portal is unreachable, use the campus finder or contact support with your school name and role." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-primary" href="{% url 'find_school' %}">{% trans "Find your campus" %}</a>
+      <a class="btn btn-outline-primary" href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust center" %}</a>
+      <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}">{% trans "Support hub" %}</a>
+    </div>
+  </section>
+</article>
+{% endblock %}

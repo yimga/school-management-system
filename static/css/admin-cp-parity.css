@@ -432,3 +432,56 @@ html[data-resolved-theme="dark"] body.admin-manager-shell .cp-admin-index .text-
 html[data-bs-theme="dark"] body.admin-manager-shell .cp-admin-index .text-muted {
   color: var(--text-secondary, var(--color-base-400)) !important;
 }
+
+/* Manager /admin/ — platform-admin sidebar inside control-plane chrome */
+.cp-sidebar-platform-admin .cp-nav-section-label {
+  color: color-mix(in srgb, var(--text-on-brand, #fff) 72%, transparent);
+}
+
+.cp-sidebar-platform-admin .nav-link {
+  color: color-mix(in srgb, var(--text-on-brand, #fff) 92%, transparent);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.35rem 0.5rem;
+}
+
+.cp-sidebar-platform-admin .nav-link:hover,
+.cp-sidebar-platform-admin .nav-link:focus-visible {
+  color: var(--text-on-brand, #fff);
+  background: color-mix(in srgb, var(--text-on-brand, #fff) 10%, transparent);
+}
+
+.cp-sidebar-platform-admin .nav-link.active {
+  color: var(--text-on-brand, #fff);
+  background: color-mix(in srgb, var(--brand-success, #22c55e) 22%, transparent);
+}
+
+.cp-sidebar-platform-admin .admin-sidebar-section-title,
+.cp-sidebar-platform-admin .admin-sidebar-section-heading,
+.cp-sidebar-platform-admin .admin-sidebar-app-title,
+.cp-sidebar-platform-admin .admin-sidebar-quick-group-title {
+  color: color-mix(in srgb, var(--text-on-brand, #fff) 78%, transparent);
+}
+
+.cp-sidebar-platform-admin .admin-sidebar-link,
+.cp-sidebar-platform-admin .admin-sidebar-model-link {
+  color: color-mix(in srgb, var(--text-on-brand, #fff) 90%, transparent);
+}
+
+.cp-sidebar-platform-admin .admin-sidebar-link:hover,
+.cp-sidebar-platform-admin .admin-sidebar-model-link:hover,
+.cp-sidebar-platform-admin .admin-sidebar-link.active,
+.cp-sidebar-platform-admin .admin-sidebar-model-link.active {
+  color: var(--text-on-brand, #fff);
+  background: color-mix(in srgb, var(--text-on-brand, #fff) 8%, transparent);
+}
+
+.cp-sidebar-platform-admin .admin-sidebar-apps {
+  max-height: none;
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cp-sidebar-platform-admin .cp-platform-admin-app-tree {
+  max-height: calc(100vh - 14rem);
+}

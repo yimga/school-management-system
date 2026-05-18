@@ -415,7 +415,9 @@
             {% endif %}
             {% endblock %}
 
+            <div class="portal-page-body" data-rmc-portal-page-body="1">
             {% block content %}{% endblock %}
+            </div>
             {% block rmc_os_context_rail %}
             {% include "components/rmc_os_context_rail.html" %}
             {% endblock %}

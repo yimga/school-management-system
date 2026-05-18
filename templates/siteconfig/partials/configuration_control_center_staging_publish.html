@@ -13,14 +13,7 @@
   <div class="d-flex flex-wrap align-items-center gap-2">
     {% for item in ccc_staging_links %}
     <span class="d-inline-flex align-items-center gap-1 flex-wrap">
-      <a href="{{ item.url }}" class="btn btn-sm {% if ccc_outcome_compact %}btn-outline-primary{% else %}btn-outline-light{% endif %}">{{ item.label }}</a>
-      {% if item.stability == 'danger' %}
-      <span class="badge text-bg-danger">{% trans "danger" %}</span>
-      {% elif item.stability == 'beta' %}
-      <span class="badge text-bg-warning">{% trans "beta" %}</span>
-      {% else %}
-      <span class="badge text-bg-secondary">{% trans "stable" %}</span>
-      {% endif %}
+      <a href="{{ item.url }}" class="btn btn-sm {% if ccc_outcome_compact %}btn-outline-primary{% else %}btn-outline-light{% endif %}" data-operator-stability="{{ item.stability }}">{{ item.label }}</a>
     </span>
     {% endfor %}
   </div>

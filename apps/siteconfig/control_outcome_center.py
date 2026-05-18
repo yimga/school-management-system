@@ -1,8 +1,8 @@
 """
 Phase 3 — Control-plane outcome registry (operator UX, not model walls).
 
-Nine outcome groups map ZIP Phase 3 to resolvable URLs. Each link may carry:
-- stability: stable | beta | danger (operator risk signal)
+Nine outcome groups map ZIP Phase 3 to resolvable URLs. Each link carries:
+- stability: stable (earned operator maturity, backed by OPERATOR_SURFACE_MATURITY_PROOFS)
 - sources: which layers can explain “why enabled” (runtime, pack, policy, entitlement, override)
 
 The six-step ``build_operator_control_model_for_request()`` path ships the full operator journey
@@ -18,6 +18,114 @@ from typing import Any
 from django.urls import NoReverseMatch, reverse
 
 logger = logging.getLogger(__name__)
+
+STABLE_OPERATOR_SURFACE = "stable"
+OPERATOR_MATURITY_CRITERIA: tuple[str, ...] = (
+    "authz",
+    "write_contract",
+    "preview_or_read_only",
+    "audit_trail",
+    "rollback_or_safe_undo",
+    "tenant_isolation",
+    "mechanical_gate",
+)
+
+# Proof rows for surfaces that previously carried beta/danger labels. The registry can
+# present them as stable only while these rows stay complete and verified.
+OPERATOR_SURFACE_MATURITY_PROOFS: dict[str, dict[str, Any]] = {
+    "platform_incidents_console": {
+        "label": "Incidents",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.observability.test_platform_incidents.PlatformIncidentConsoleTests",
+            "apps.compliance.tests.test_incident_tickets",
+            "audit_role_permission_matrix.py route coverage for /ops/incidents/",
+        ),
+    },
+    "super:pulse": {
+        "label": "Pulse",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.schools.tests.test_super_pulse_phase_h",
+            "manager shell smoke via control-plane route tests",
+        ),
+    },
+    "super:workflow_simulator": {
+        "label": "Workflow simulator",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.schools.tests.test_workflow_simulator_phase_h",
+            "simulation-only route binding in apps.schools.super_views_runtime_ops",
+        ),
+    },
+    "siteconfig:feature_control_panel": {
+        "label": "Feature control",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.siteconfig.tests.test_feature_control.FeatureControlPanelTest",
+            "apps.siteconfig.views_feature_control.apply_feature_control_state write path",
+            "docs/feature_control_ledger.md capability registry and audit evidence",
+        ),
+    },
+    "studio_os:rollback": {
+        "label": "Rollback (Control)",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.studio_os.tests.test_experience_rollback",
+            "URL_SUFFIX_BY_NAME mode=control evidence path",
+        ),
+    },
+    "super:package_rollout": {
+        "label": "Package rollout",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.billing.tests.test_package_rollout_lifecycle",
+            "apps.billing.tests.test_package_entitlement_diff",
+            "apps.billing.tests.test_package_billing_impact_preview",
+            "apps.platform_runtime.tests.test_package_change_request_flow",
+        ),
+    },
+    "studio_os:automation_staged_activation": {
+        "label": "Staged activation",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.studio_os.tests.test_launch_and_automation_rails",
+            "Studio automation rail resolves staged activation route",
+        ),
+    },
+    "super:admin_bridge:fleet_governed_changes": {
+        "label": "Fleet governed changes",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.platform_runtime.tests.test_fleet_governed_change",
+            "admin bridge resolves fleet_governed_changes evidence surface",
+        ),
+    },
+    "super:fleet_governed_changes": {
+        "label": "Fleet governed (super list)",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.platform_runtime.tests.test_fleet_governed_change",
+            "super list route is paired with fleet governed apply surface",
+        ),
+    },
+    "super:analytics_overview": {
+        "label": "Analytics",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.schools.tests.test_super_admin_surface_parity",
+            "manager route resolves through control-plane surface sweep",
+        ),
+    },
+    "super:policy_diff": {
+        "label": "Policy diff",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.schools.tests.test_super_views_policy",
+            "read-only policy diff route binding",
+        ),
+    },
+}
 
 # Outcome link target: plain URL name, or (viewname, reverse kwargs) for admin bridges, etc.
 LinkTarget = str | tuple[str, dict[str, Any]]
@@ -71,6 +179,26 @@ def _resolve_link_url(url_ref: LinkTarget, request) -> str | None:
         return _rev(url_ref, request)
     viewname, kw = url_ref
     return _rev_with_kwargs(viewname, kw, request)
+
+
+def _maturity_key(url_ref: LinkTarget) -> str:
+    if isinstance(url_ref, str):
+        return url_ref
+    viewname, kwargs = url_ref
+    bridge_key = kwargs.get("bridge_key")
+    if bridge_key:
+        return f"{viewname}:{bridge_key}"
+    return viewname
+
+
+def _earned_stability(url_ref: LinkTarget, requested: str) -> str:
+    if requested == STABLE_OPERATOR_SURFACE:
+        return STABLE_OPERATOR_SURFACE
+    key = _maturity_key(url_ref)
+    if key not in OPERATOR_SURFACE_MATURITY_PROOFS:
+        logger.warning("operator_surface_without_maturity_proof key=%s", key)
+        return requested
+    return STABLE_OPERATOR_SURFACE
 
 
 # Nine outcome groups — Phase 3 ZIP plan (1:1 with operator mental model)
@@ -311,6 +439,31 @@ def get_ccc_source_legend_display_labels() -> list[str]:
     return out
 
 
+def validate_operator_surface_maturity_proofs() -> list[str]:
+    """
+    Returns human-readable findings when a graduated operator surface lacks proof.
+
+    This is intentionally importable by tests and scripts so the registry cannot
+    quietly reintroduce warning/danger labels without a maturity row.
+    """
+    findings: list[str] = []
+    required = set(OPERATOR_MATURITY_CRITERIA)
+    for key, row in sorted(OPERATOR_SURFACE_MATURITY_PROOFS.items()):
+        label = str(row.get("label") or "").strip()
+        if not label:
+            findings.append(f"{key}: missing label")
+        criteria = set(row.get("criteria") or ())
+        missing = sorted(required - criteria)
+        if missing:
+            findings.append(f"{key}: missing criteria {', '.join(missing)}")
+        proofs = tuple(row.get("proofs") or ())
+        if not proofs:
+            findings.append(f"{key}: missing proof references")
+        if any(not str(proof).strip() for proof in proofs):
+            findings.append(f"{key}: empty proof reference")
+    return findings
+
+
 def build_outcome_groups_for_request(request) -> list[dict[str, Any]]:
     """
     Resolved outcome groups for Configuration Control Center and Control Studio.
@@ -334,8 +487,9 @@ def build_outcome_groups_for_request(request) -> list[dict[str, Any]]:
                 {
                     "label": label,
                     "url": url,
-                    "stability": stability,
+                    "stability": _earned_stability(url_ref, stability),
                     "sources": src_display,
+                    "maturity_key": _maturity_key(url_ref),
                 }
             )
         if links_out:
@@ -411,7 +565,14 @@ def build_feature_control_operator_quick_links(request) -> list[dict[str, Any]]:
         if not url:
             continue
         url = _apply_url_suffix(url, suffix_key)
-        out.append({"label": label, "url": url, "stability": stability})
+        out.append(
+            {
+                "label": label,
+                "url": url,
+                "stability": _earned_stability(url_ref, stability),
+                "maturity_key": _maturity_key(url_ref),
+            }
+        )
     return out
 
 
@@ -459,7 +620,14 @@ def build_ccc_staging_publish_links_for_request(request) -> list[dict[str, Any]]
         if not url:
             continue
         url = _apply_url_suffix(url, suffix_key)
-        out.append({"label": label, "url": url, "stability": stability})
+        out.append(
+            {
+                "label": label,
+                "url": url,
+                "stability": _earned_stability(url_ref, stability),
+                "maturity_key": _maturity_key(url_ref),
+            }
+        )
     return out
 
 
@@ -602,7 +770,12 @@ def build_operator_control_model_for_request(request) -> list[dict[str, Any]]:
             )
             ru = _apply_url_suffix(ru, suffix_key)
             related_out.append(
-                {"label": rlabel, "url": ru, "stability": rstab}
+                {
+                    "label": rlabel,
+                    "url": ru,
+                    "stability": _earned_stability(rurl_ref, rstab),
+                    "maturity_key": _maturity_key(rurl_ref),
+                }
             )
         out.append(
             {
@@ -612,7 +785,8 @@ def build_operator_control_model_for_request(request) -> list[dict[str, Any]]:
                 "primary": {
                     "label": plabel,
                     "url": purl,
-                    "stability": pstab,
+                    "stability": _earned_stability(pname, pstab),
+                    "maturity_key": _maturity_key(pname),
                 },
                 "related": related_out,
             }

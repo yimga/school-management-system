@@ -856,6 +856,17 @@ body.control-plane-shell .cp-navbar {
 #cp-main-content > .d-flex {
   min-height: 0;
 }
+
+/* Long-page end rhythm — every control-plane child page (control_plane_base wrapper). */
+#cp-main-content .cp-page-body {
+  min-width: 0;
+  padding-bottom: clamp(1.5rem, 3vh, 2.75rem);
+}
+#cp-main-content .cp-page-body > .container-fluid:last-child,
+#cp-main-content .cp-page-body > section:last-child,
+#cp-main-content .operator-siteconfig-cp-body {
+  margin-bottom: 0;
+}
 .cp-main-col::-webkit-scrollbar,
 #cp-main-content::-webkit-scrollbar {
   width: 8px;

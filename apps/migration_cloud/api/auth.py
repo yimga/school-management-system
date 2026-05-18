@@ -28,14 +28,50 @@ logger = logging.getLogger(__name__)
 class MigrationCloudTokenAuthentication(TokenAuthentication):
     """Token auth for the Migration Cloud public REST API.
 
-    Inherits the standard ``rest_framework.authtoken`` model lookup.
-    Scoping (capability + tenant binding) is currently enforced by the
-    companion permission class; future work moves that down into a
-    scoped-token model so capability checks are O(1) and audit logs
-    carry the scope identifier.
+    Recognizes BOTH:
+
+      * Legacy DRF ``authtoken`` rows (single-scope, per-user) for
+        backwards compatibility with v3.27 alpha clients.
+      * v3.29 ``MigrationCloudAPIToken`` scoped tokens (prefix ``mc_``)
+        — delegated to
+        :class:`apps.migration_cloud.api.scoped_tokens.MigrationCloudScopedTokenAuthentication`.
+
+    Scoped tokens are recognized by the ``mc_`` prefix on the credential
+    string; anything else falls through to the legacy DRF authtoken
+    lookup. The scoped-token branch sets ``request.auth`` to the
+    ``MigrationCloudAPIToken`` row so
+    :class:`apps.migration_cloud.api.permissions.ScopedAPIPermission`
+    can read ``request.auth.scopes`` and gate the action.
     """
 
     # The marker string is read by the OpenAPI bearer auth scheme to
     # produce a clean ``securitySchemes`` entry instead of the default
     # "Token" label, which can collide with other Token-style schemes.
     keyword = "Token"
+
+    def authenticate(self, request):
+        # Dual-path: scoped tokens carry an ``mc_`` prefix.
+        header = self.get_authorization_header_value(request)
+        if header and header.startswith("mc_"):
+            # Delegate to the scoped-token backend — lazy import keeps
+            # the module-level cycle clean during Django app load.
+            from .scoped_tokens import MigrationCloudScopedTokenAuthentication
+            return MigrationCloudScopedTokenAuthentication().authenticate(request)
+        return super().authenticate(request)
+
+    @staticmethod
+    def get_authorization_header_value(request) -> str:
+        """Return the credential portion of the Authorization header, or ''.
+
+        Handles both ``Token <x>`` and ``Bearer <x>`` forms. Returns the
+        empty string when the header is absent or malformed.
+        """
+        from rest_framework.authentication import get_authorization_header
+
+        raw = get_authorization_header(request).decode("latin-1")
+        if not raw:
+            return ""
+        parts = raw.split()
+        if len(parts) != 2:
+            return ""
+        return parts[1]

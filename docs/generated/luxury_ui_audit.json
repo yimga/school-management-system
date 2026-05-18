@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-05-18T02:31:52.523364+00:00",
-  "high_impact_templates_total": 210,
+  "generated_at": "2026-05-18T18:02:40.810263+00:00",
+  "high_impact_templates_total": 214,
   "inline_styles": {
-    "count": 48,
-    "needs_review_count": 48,
+    "count": 47,
+    "needs_review_count": 47,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -101,7 +101,6 @@
       "templates/studio_os/components/card.html",
       "templates/studio_os/components/loading_empty_states.html",
       "templates/studio_os/partials/control_mode_canvas.html",
-      "templates/studio_os/partials/shell_main_content.html",
       "templates/studio_os/partials/subpages/experience_experience_packs.html",
       "templates/studio_os/shell.html"
     ],
@@ -111,8 +110,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 90,
-    "needs_review_count": 90,
+    "count": 92,
+    "needs_review_count": 92,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -184,7 +183,6 @@
       "templates/siteconfig/workflow_hub.html",
       "templates/studio_os/components/action_bar.html",
       "templates/studio_os/components/loading_empty_states.html",
-      "templates/studio_os/modes/experience.html",
       "templates/studio_os/partials/_mode_hero.html",
       "templates/studio_os/partials/automation_mode_canvas.html",
       "templates/studio_os/partials/automation_overview_body.html",
@@ -197,6 +195,9 @@
       "templates/studio_os/partials/output_mode_canvas.html",
       "templates/studio_os/partials/output_reports_library_body.html",
       "templates/studio_os/partials/shell_main_content.html",
+      "templates/studio_os/partials/studio_experience_mode_body.html",
+      "templates/studio_os/partials/studio_operator_toolbar.html",
+      "templates/studio_os/partials/studio_overview_deck.html",
       "templates/studio_os/partials/subpages/automation_simulation_engine.html",
       "templates/studio_os/partials/subpages/automation_visual_builder.html",
       "templates/studio_os/partials/workspace/automation_canvas.html",
@@ -798,8 +799,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 48,
-      "needs_review_count": 48,
+      "count": 47,
+      "needs_review_count": 47,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -846,7 +847,6 @@
         "templates/studio_os/components/card.html",
         "templates/studio_os/components/loading_empty_states.html",
         "templates/studio_os/partials/control_mode_canvas.html",
-        "templates/studio_os/partials/shell_main_content.html",
         "templates/studio_os/partials/subpages/experience_experience_packs.html",
         "templates/studio_os/shell.html"
       ],

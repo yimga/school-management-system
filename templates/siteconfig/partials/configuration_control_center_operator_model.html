@@ -10,23 +10,13 @@
       <div class="fw-semibold">{{ step.title }}</div>
       <p class="small {% if compact %}text-muted{% else %}text-secondary{% endif %} mb-0">{{ step.description }}</p>
       <div class="d-flex flex-wrap align-items-center gap-2">
-        <a href="{{ step.primary.url }}" class="btn btn-sm {% if compact %}btn-primary{% else %}btn-outline-light{% endif %}">{{ step.primary.label }}</a>
-        {% if step.primary.stability == 'danger' %}
-        <span class="badge text-bg-danger">{% trans "danger" %}</span>
-        {% elif step.primary.stability == 'beta' %}
-        <span class="badge text-bg-warning">{% trans "beta" %}</span>
-        {% else %}
-        <span class="badge text-bg-secondary">{% trans "stable" %}</span>
-        {% endif %}
+        <a href="{{ step.primary.url }}" class="btn btn-sm {% if compact %}btn-primary{% else %}btn-outline-light{% endif %}" data-operator-stability="{{ step.primary.stability }}">{{ step.primary.label }}</a>
       </div>
       {% if step.related %}
       <div class="small {% if compact %}text-muted{% else %}text-secondary{% endif %}">
         <span class="fw-medium">{% trans "Also" %}:</span>
         {% for r in step.related %}
-        <a href="{{ r.url }}" class="{% if compact %}link-primary{% else %}link-light{% endif %} ms-1">{{ r.label }}</a>
-        {% if r.stability == 'danger' %}<span class="badge text-bg-danger ms-1">{% trans "danger" %}</span>
-        {% elif r.stability == 'beta' %}<span class="badge text-bg-warning ms-1">{% trans "beta" %}</span>
-        {% else %}<span class="badge text-bg-secondary ms-1">{% trans "stable" %}</span>{% endif %}
+        <a href="{{ r.url }}" class="{% if compact %}link-primary{% else %}link-light{% endif %} ms-1" data-operator-stability="{{ r.stability }}">{{ r.label }}</a>
         {% if not forloop.last %}<span class="text-muted">·</span>{% endif %}
         {% endfor %}
       </div>

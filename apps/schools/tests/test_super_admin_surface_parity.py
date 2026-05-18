@@ -59,7 +59,7 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertContains(response, "rmc-operator-surface-strip")
         self.assertContains(response, "Open operator view")
 
-    def test_manager_admin_uses_control_plane_sidebar_chrome(self):
+    def test_manager_admin_uses_platform_admin_sidebar(self):
         for path in ("/admin/", reverse("admin:schools_school_changelist")):
             response = self.client.get(path, HTTP_HOST=self.host)
             self.assertEqual(response.status_code, 200, path)
@@ -67,7 +67,11 @@ class SuperAdminSurfaceParityTests(TestCase):
             self.assertIn('id="cpSidebarNav"', html, path)
             self.assertIn("admin-cp-unified-page", html, path)
             self.assertIn("data-rmc-admin-cp-unified", html, path)
-            self.assertIn("data-shell-nav-bridge=\"manager-operator\"", html, path)
+            self.assertIn('data-shell-nav-family="platform-admin"', html, path)
+            self.assertIn("data-rmc-platform-admin-sidebar", html, path)
+            self.assertIn("admin-sidebar-all-apps", html, path)
+            self.assertNotIn("cp-nav-group-toggle", html, path)
+            self.assertNotIn('data-shell-nav-family="control-plane"', html, path)
 
     def test_manager_admin_index_renders_backoffice_content(self):
         response = self.client.get("/admin/", HTTP_HOST=self.host)

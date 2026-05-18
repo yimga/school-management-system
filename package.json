@@ -13,7 +13,10 @@
     "check:images": "python scripts/check_image_dimensions.py",
     "perf": "npm run check:images -- && echo 'Lighthouse: run in Chrome DevTools (Lighthouse tab) or npm run lighthouse. See docs/PERFORMANCE_BUDGET.md'",
     "lighthouse": "npx @lhci/cli@0.13.x autorun --config=lighthouserc.js",
-    "vendor:dexie": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true})\" && npx copyfiles -f node_modules/dexie/dist/dexie.min.js static/js/vendor/"
+    "vendor:dexie": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true})\" && npx copyfiles -f node_modules/dexie/dist/dexie.min.js static/js/vendor/",
+    "sweep:abrupt-end:routes": "python scripts/generate_control_plane_sweep_routes.py --write && python scripts/generate_portal_tenant_sweep_routes.py --write",
+    "sweep:abrupt-end": "bash scripts/run_platform_abrupt_end_sweep.sh",
+    "sweep:abrupt-end:node": "node scripts/verify_platform_abrupt_end_sweep.mjs"
   },
   "dependencies": {
     "dexie": "^4.0.10"

@@ -1,5 +1,63 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1278 elite marketing Corporate OS public surfaces (2026-05-18)
+
+**A. Scope:** Complete the deferred Elite UI/UX wave 2 on the public marketing surface: platform `--rmc-os-*` tokens, header/footer IA sync, premium Find Campus, procurement-grade Trust Center anchors, human status page, density modes, and an expanded resumable completion loop.
+
+**B. Implementation:** `static/css/rmc-corporate-os.css` + `static/marketing/css/marketing-corporate-os.css` ship semantic OS tokens, glass surfaces, density modes (`comfortable`/`standard`/`compact`), and reduced-motion fallbacks. `apps/observability/public_status.py` powers HTML + `?format=json` at `/status/` via `templates/marketing/public_status.html`. Find Campus and global discovery use the marketing shell (`templates/marketing/find_campus.html`, `global_discovery.html`, HTMX results partial). Trust anchors (`templates/marketing/partials/trust_compliance_anchors.html`) render on `/security-compliance/` through `marketing_inner_tail.html`. Header sync: status pill + Find campus CTA in `marketing_header.html`; `marketing-corporate-os.js` persists density and refreshes the status pill.
+
+**C. Tests:** `apps/schools/tests/test_corporate_os_public_surfaces.py` (status HTML/JSON, find campus, discovery, trust anchors).
+
+**D. Loop:** `scripts/run_marketing_uiux_completion_loop.py` extended with Corporate OS contract snippets + `corporate-os-tests` gate.
+
+**E. Gates:** `python scripts/run_marketing_uiux_completion_loop.py --restart --max-passes 1` **GREEN** (all 10 gates including corporate OS tests and marketing URL smoke).
+
+**F. SW:** `sms-v3.32.2-corporate-os-public-surfaces-2026-05-18`; service-worker baseline updated.
+
+**G. Verdict:** **BATCH 1278 DONE** — Corporate OS public surfaces and expanded UI/UX loop are shipped and green.
+
+## Slice - batch 1277 elite marketing footer command center + UI/UX loop (2026-05-18)
+
+**A. Scope:** Push the public `runmycampus.com` footer/UI wave beyond a static corporate sitemap into a premium trust/router command surface, and add the requested resumable validation loop before exit.
+
+**B. Implementation:** `marketing_footer.html` now includes an operational-intelligence block, four proof cards (status, procurement, ecosystem, accessibility/privacy), and audience route-stack shortcuts. `marketing-shell.css` adds elite surface/motion/type tokens plus theme-aware glass, raised, sunken, hairline, glow, proof-card, and route-stack styling with responsive behavior.
+
+**C. Loop:** `scripts/run_marketing_uiux_completion_loop.py` validates the footer/UI primitive contract and then runs the relevant template/theme/CSS/marketing URL/service-worker gates. It writes resumable state to `var/marketing-uiux-loop-state.json` and a generated report to `docs/generated/marketing_uiux_completion_loop.json`.
+
+**D. Gates:** `python scripts/run_marketing_uiux_completion_loop.py --restart --max-passes 1` **GREEN** — contract, template safety, theme attribute contract, reveal invariants, sticky overflow, off-token colors, theme-locked token text, marketing URL smoke, and service-worker monotonicity all passed.
+
+**E. SW:** `sms-v3.32.1-elite-marketing-uiux-loop-2026-05-18`; service-worker baseline updated.
+
+**F. Verdict:** **BATCH 1277 DONE** — footer expansion and first elite UI/UX layer are shipped with a resumable completion loop.
+
+## Slice - batch 1276 earned-stable operator surface maturity + proper outcome labels (2026-05-18)
+
+**A. Scope:** Convert Control Plane outcome stability from visible warning/danger badge noise into proof-backed earned-stable operator maturity, without merely relabeling high-risk links.
+
+**B. Implementation:** `control_outcome_center.py` now has `STABLE_OPERATOR_SURFACE`, maturity criteria, proof rows for previously beta/danger surfaces, `_earned_stability()`, and `validate_operator_surface_maturity_proofs()`. `verify_operator_surface_maturity.py` verifies outcome groups, Feature Control quick links, CCC staging links, and operator model all expose earned `stable`. Wired the gate into `verify_phases_3_11_gates.py` and `test_tenant_settings_lint.py`.
+
+**C. UI:** CCC outcomes, operator model, staging/publish strip, operator console strip, admin outcome deck, and Studio system config console now show the actual tool labels first; stability is retained as `data-operator-stability`, and sources move to hover/legend context instead of inline `danger · Sources` copy.
+
+**D. Tests:** `test_control_outcome_center.py` adds earned-stable and maturity-proof coverage assertions.
+
+**E. Gates:** `run_sqlite_memory_tests.py apps.siteconfig.tests.test_control_outcome_center --verbosity=2 --keepdb` **9 OK**; `verify_operator_surface_maturity.py` **OK**; `verify_phase4_control_plane_decision_console.py` **PASS**; `audit_template_render_safety.py` **0 findings**. Direct `test_tenant_settings_lint` method execution is blocked before tests by unrelated existing `migration_cloud` leaf conflict (`0007_companion_keypair` / `0008_wrap_webhook_secret`); the underlying scripts pass directly.
+
+**F. Verdict:** **BATCH 1276 DONE** — operator surfaces no longer display warning/danger labels unless a future surface lacks maturity proof; proper tool labels are the visible UI.
+
+## Slice - batch 1275 manager platform admin sidebar + Advanced nav (2026-05-18)
+
+**A. Scope:** Dedicated manager `/admin/*` sidebar (platform backoffice IA); fix `/super/` Advanced collapsible links (direct admin URLs, auto-expand active group).
+
+**B. Implementation:** `control_plane_nav.py` — `_platform_admin_bridge_nav_items_direct`, `cp_nav_item_is_current`, `build_manager_platform_admin_nav`; `manager_platform_admin_sidebar.html`; `admin/base.html` + offcanvas; `admin-cp-parity.css` platform-admin sidebar tokens; `app_list.html` embed mode; context processor `MANAGER_PLATFORM_ADMIN_NAV`.
+
+**C. Tests:** `test_advanced_group_*`, `test_manager_platform_admin_nav_quick_links`, `test_manager_admin_uses_platform_admin_sidebar`, `test_show_in_nav_bridge_keys_redirect`; nav builder unit script OK.
+
+**D. Gates:** `verify_manager_admin_cp_layout` OK; `verify_studio_os_ux_waves` OK.
+
+**E. SW:** `sms-v3.28.7-manager-admin-sidebar-advanced-nav-2026-05-18`.
+
+**F. Verdict:** **BATCH 1275 DONE** — admin sidebar no longer mirrors full control-plane IA; Advanced nav links resolve to changelists without bridge hop.
+
 ## Slice - batch 1274 manager admin layout fix + Studio UX QA sweep (2026-05-18)
 
 **A. Scope:** Fix blank manager `/admin/` main content; QA pass on Studio OS waves + admin CP parity; mechanical gates + regression tests.

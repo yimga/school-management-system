@@ -60,6 +60,7 @@ from .views_certification import (
     certification_bulk_add_candidates,
     certification_session_override,
 )
+from .views_legacy_setup import LegacySetupView
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
 from .views_passkey import (
     passkey_registration_options,
@@ -398,6 +399,15 @@ urlpatterns = [
         name="certification_session_override",
     ),
     path("claim-invite/", claim_invite, name="claim_invite"),
+    # v3.29 migration-cloud sunset job: one-time setup link landing page for
+    # users emailed by accounts.sunset_stale_legacy_hashes. Token-validated
+    # by Django's PasswordResetConfirmView parent; view additionally clears
+    # the three legacy_* fields atomically on form_valid.
+    path(
+        "legacy-setup/<uidb64>/<token>/",
+        LegacySetupView.as_view(),
+        name="legacy_setup",
+    ),  # rbac-allow: token-authenticated setup link, must be anonymous-reachable
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),
     path("mfa/verify/", mfa_verify, name="mfa_verify"),

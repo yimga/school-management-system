@@ -7,6 +7,7 @@
       data-rmc-page-type="{{ marketing_page_type|default:'marketing' }}"
       data-rmc-page-slug="{{ marketing_page_slug|default:'marketing' }}"
       data-theme="light"
+      data-rmc-density="standard"
       data-mkt-schoolhouse="true"
       {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:platform_palette.warning }};"{% endif %}>
 <head>
@@ -20,8 +21,10 @@
     (function () {
       try {
         var stored = localStorage.getItem('rmc-mkt-theme');
-        if (stored === 'dark' || stored === 'light') {
-          document.documentElement.setAttribute('data-theme', stored);
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (stored === 'dark' || stored === 'light' || stored === 'system') {
+          document.documentElement.setAttribute('data-theme-preference', stored);
+          document.documentElement.setAttribute('data-theme', stored === 'system' ? (prefersDark ? 'dark' : 'light') : stored);
         }
       } catch (_) { /* ignore */ }
     })();
@@ -86,6 +89,8 @@
   <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-corporate-os.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-corporate-os.css' %}">
   {% block extrastyle %}{% endblock %}
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-accessibility-hardening.css' %}">
 </head>
@@ -113,6 +118,7 @@
   <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-motion.js' %}" defer></script>
   <script src="{% static 'marketing/js/theme-toggle.js' %}" defer></script>
+  <script src="{% static 'marketing/js/marketing-corporate-os.js' %}" defer></script>
   <script src="{% static 'marketing/js/scroll-narrative.js' %}" defer></script>
   <script src="{% static 'marketing/js/rotating-headline.js' %}" defer></script>
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>

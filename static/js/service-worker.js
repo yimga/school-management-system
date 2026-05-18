@@ -1,4 +1,8 @@
 // Service worker for portal PWA + offline write-behind queue.
+// Bumped 2026-05-18 (v3.32.2): Corporate OS wave — status, find campus, trust anchors, density.
+// Bumped 2026-05-18 (v3.32.1): Elite marketing footer command center + UI/UX loop gate.
+// Bumped 2026-05-18 (v3.31.7): Abrupt-end sweep tooling (portal tenant routes JSON, retries).
+// Bumped 2026-05-18 (v3.31.6): Corporate marketing footer trust/router/compliance IA.
 // Bumped 2026-05-13 (v2.6.0): Shell polish + breadth adoption.
 //   - Progress bar, OG/Twitter meta, safe-area mobile guards, keyboard
 //     cheat sheet, marketing dark-mode tokens, and native form-validation
@@ -56,7 +60,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.28.6-studio-launch-manager-canvas-2026-05-18";
+const CACHE_VERSION = "sms-v3.32.2-corporate-os-public-surfaces-2026-05-18";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

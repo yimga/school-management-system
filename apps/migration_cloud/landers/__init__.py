@@ -9,9 +9,10 @@ models. Everything upstream (intake, profiler, classifier, mapper,
 transformers) operates on canonical, tenant-agnostic data. This keeps
 the dangerous code (tenant writes) in one tightly-audited surface.
 
-Landers shipped (23 first-class + 1 catch-all fallback, v3.27 —
-up from 20 first-class in v3.26 with the three per-student
-assignment landers below):
+Landers shipped (24 first-class + 1 catch-all fallback, v3.29 —
+up from 23 first-class in v3.27 with the three per-student
+assignment landers below now promoted to first-class schoolops
+models, with DFV fallback retained for out-of-order bundles):
 
     * ``students``               → ``apps.people.StudentProfile``      (upsert on external_id)
     * ``guardians``              → ``apps.people.StudentGuardian``     (linked via student_external_id)
@@ -31,9 +32,9 @@ assignment landers below):
     * ``transport``              → ``apps.schoolops.Route``            (upsert on school+route name)
     * ``hostel``                 → ``apps.schoolops.HostelRoom``       (upsert on hostel+room name)
     * ``cafeteria``              → ``apps.schoolops.CanteenMeal``      (upsert on school+meal name)
-    * ``transport_assignments``  → ``apps.metadata.DynamicFieldValue`` (upsert on student+route; v3.27 — first-class assignment model not yet shipped in schoolops)
-    * ``hostel_assignments``     → ``apps.metadata.DynamicFieldValue`` (upsert on student+room+checkin_date; v3.27 — same rationale)
-    * ``cafeteria_assignments``  → ``apps.metadata.DynamicFieldValue`` (upsert on student+meal_plan; v3.27 — same rationale; balance held as Decimal-str to satisfy scan_money_float)
+    * ``transport_assignments``  → ``apps.schoolops.TransportAssignment`` (v3.29 — upsert on student+route+effective_from; falls back to ``apps.metadata.DynamicFieldValue`` when the Route catalog row hasn't landed yet so out-of-order bundles never drop data)
+    * ``hostel_assignments``     → ``apps.schoolops.HostelAssignment`` (v3.29 — upsert on student+room+effective_from; same DFV fallback when HostelRoom hasn't landed)
+    * ``cafeteria_assignments``  → ``apps.schoolops.MealPlanBalance`` (v3.29 — upsert on student+meal_plan, meal_plan FK nullable for generic credit; last-wins balance with ``last_topup_amount/_at`` audit trail; Decimal end-to-end to satisfy scan_money_float)
     * ``alumni``                 → ``apps.people.StudentProfile`` w/ enrollment_status='graduated'
     * ``compliance``             → ``apps.compliance.ComplianceCheck`` (upsert on check_type+check_date)
     * ``custom_fields`` (fallback) → ``apps.metadata.DynamicFieldValue``
@@ -80,9 +81,11 @@ from . import library_lander  # noqa: F401
 from . import payroll_lander  # noqa: F401
 from . import transcripts_lander  # noqa: F401
 from . import transport_lander  # noqa: F401
-# v3.27 — per-student assignment landers paired with the v3.26 catalog landers.
-# Lands into apps.metadata.DynamicFieldValue until first-class assignment
-# models ship in apps.schoolops.
+# v3.27 — per-student assignment landers paired with the v3.26 catalog
+# landers. v3.29 — promoted to first-class apps.schoolops models
+# (TransportAssignment / HostelAssignment / MealPlanBalance) with DFV
+# fallback retained for out-of-order bundles where the catalog row
+# hasn't landed yet.
 from . import cafeteria_assignment_lander  # noqa: F401
 from . import hostel_assignment_lander  # noqa: F401
 from . import transport_assignment_lander  # noqa: F401

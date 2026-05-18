@@ -1,0 +1,43 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Mint a Migration Cloud API token" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-token-mint" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_list' %}{% else %}{% url 'migration_cloud_super:operator_token_list' %}{% endif %}">{% trans "← Back to tokens" %}</a>
+    <h1 class="rmc-h1">{% trans "Mint a scoped API token" %}</h1>
+    <p class="rmc-lede">
+      {% trans "The plaintext token is returned ONCE on the next page. The server stores only sha256(token) — there is no recovery." %}
+    </p>
+  </header>
+
+  <form method="post" class="rmc-form rmc-form--mint-token" novalidate>
+    {% csrf_token %}
+    <fieldset class="rmc-form__fieldset">
+      <legend class="rmc-form__legend">{% trans "Token details" %}</legend>
+      <label class="rmc-form__label">{% trans "Name" %} <span class="rmc-form__required" aria-hidden="true">*</span>
+        <input class="rmc-input" name="name" type="text" maxlength="128" required>
+        <small class="rmc-form__help">{% trans "How operators will identify this token in the table." %}</small>
+      </label>
+      <label class="rmc-form__label">{% trans "Tenant scope (optional)" %}
+        <input class="rmc-input" name="tenant_scope_id" type="text" inputmode="numeric" placeholder="—">
+        <small class="rmc-form__help">{% trans "School ID. Leave blank to allow this token to act across every tenant the user can see." %}</small>
+      </label>
+    </fieldset>
+    <fieldset class="rmc-form__fieldset">
+      <legend class="rmc-form__legend">{% trans "Scopes" %} <span class="rmc-form__required" aria-hidden="true">*</span></legend>
+      {% for s in known_scopes %}
+      <label class="rmc-form__check">
+        <input type="checkbox" name="scopes" value="{{ s }}">
+        <code class="rmc-kbd">{{ s }}</code>
+      </label>
+      {% endfor %}
+    </fieldset>
+    <div class="rmc-form__actions">
+      <button class="rmc-btn rmc-btn--primary" type="submit">{% trans "Mint token" %}</button>
+    </div>
+  </form>
+</main>
+{% endblock %}

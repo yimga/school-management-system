@@ -5,6 +5,18 @@ from django.db.models import Q
 from django.db.transaction import TransactionManagementError
 from django.utils import timezone
 
+# v3.29 migration-cloud "password preservation moat": Fernet-encrypted
+# field descriptors for the three legacy_* User columns. The helper
+# selects between the upstream django-cryptography wrapper and an
+# internal Fernet shim — both expose the same constructor surface and
+# both transparently decrypt at read time. Imported here (not as a
+# late lazy import) so makemigrations resolves the deconstructed field
+# correctly during schema generation.
+from apps.accounts.legacy_hashes.encryption import (
+    encrypt_charfield as _legacy_encrypt_charfield,
+    encrypt_jsonfield as _legacy_encrypt_jsonfield,
+)
+
 
 # User UI/UX preferences (background logo, opacity, etc.)
 # Note: theme preference (light/dark/system) lives on DashboardUserPreference —
@@ -167,33 +179,65 @@ class User(AbstractUser):
     # Skyward / Alma. Verified lazily on first login by
     # apps.accounts.auth_backends_legacy.LegacyHashUpgradeBackend, which
     # re-hashes to native Argon2 and clears all three fields atomically.
-    legacy_password_hash = models.CharField(
+    #
+    # v3.29: the three legacy_* columns are now encrypted at rest via
+    # apps.accounts.legacy_hashes.encryption. The helper picks between
+    # the upstream django-cryptography encrypt() decorator and an
+    # internal Fernet shim depending on Django-version compatibility.
+    # Reads transparently decrypt; writes transparently encrypt — no
+    # caller change required.
+    legacy_password_hash = _legacy_encrypt_charfield(
         max_length=512,
         blank=True,
         default="",
         help_text=(
             "Foreign-vendor password hash carried over by the migration "
-            "cloud. Verified on first login, then cleared and re-hashed "
-            "via PASSWORD_HASHERS. Never log, display, or expose."
+            "cloud, ENCRYPTED AT REST via Fernet. Verified on first "
+            "login, then cleared and re-hashed via PASSWORD_HASHERS. "
+            "Never log, display, or expose the decrypted value."
         ),
     )
-    legacy_hash_algorithm = models.CharField(
+    legacy_hash_algorithm = _legacy_encrypt_charfield(
         max_length=64,
         blank=True,
         default="",
         help_text=(
             "Slug registered in apps.accounts.legacy_hashes (e.g. "
             "'pbkdf2_sha512', 'bcrypt', 'veracross_bcrypt', 'alma_bcrypt', "
-            "'facts_auto', 'skyward_auto'). Empty = standard Django auth."
+            "'facts_auto', 'skyward_auto'). Encrypted at rest. Empty = "
+            "standard Django auth path."
         ),
     )
-    legacy_hash_params = models.JSONField(
+    legacy_hash_params = _legacy_encrypt_jsonfield(
         default=dict,
         blank=True,
         help_text=(
             "Algorithm-specific parameters (salt, iterations, etc.) "
-            "needed to verify legacy_password_hash. Cleared on first "
-            "successful login alongside the hash."
+            "needed to verify legacy_password_hash. Encrypted at rest. "
+            "Cleared on first successful login alongside the hash."
+        ),
+    )
+    # v3.29 productionization: anchor + sunset-email timestamp for the
+    # 12-month sunset job in apps.accounts.legacy_hashes.sunset_task.
+    # Both fields default to NULL; the sunset job falls back to
+    # date_joined when legacy_hash_created_at is NULL.
+    legacy_hash_created_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Timestamp when the foreign-vendor legacy hash was imported. "
+            "Anchor for the 12-month sunset task. NULL = imported before "
+            "v3.29; sunset job falls back to User.date_joined."
+        ),
+    )
+    legacy_hash_sunset_email_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Set by sunset_stale_legacy_hashes when a one-time setup "
+            "link is mailed. Drives the 30-day grace clock before the "
+            "legacy fields are nulled and the user is forced through "
+            "password reset."
         ),
     )
 

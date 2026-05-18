@@ -240,7 +240,7 @@ urlpatterns = [
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
-    path("status/", obs_views.public_health, name="status"),
+    path("status/", obs_views.public_status, name="status"),
     path("metrics/", obs_views.metrics, name="metrics"),
     path(
         "api/observability/copilot-metrics/",

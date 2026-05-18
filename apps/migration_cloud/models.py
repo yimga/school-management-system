@@ -14,9 +14,18 @@ wizard, and reconciliation dashboard.
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
+
+# v3.32.0 — encrypted-at-rest BinaryField for the webhook subscription
+# secret_ciphertext column. Shares the Fernet key with the User-model
+# legacy_* columns so a single key rotation covers both surfaces — see
+# docs/SECURITY_KEYS.md.
+from apps.accounts.legacy_hashes.encryption import (
+    encrypt_binaryfield as _webhook_encrypt_binaryfield,
+)
 
 User = get_user_model()
 
@@ -600,3 +609,469 @@ class MigrationConflict(models.Model):
 
 class FinancialMismatchError(Exception):
     """Raised by the financial guardrail when expected totals diverge from observed."""
+
+
+# ─── v3.29 REST API completion — scoped tokens + outbound webhooks ──────────
+
+
+class MigrationCloudAPIToken(models.Model):
+    """Opaque scoped API token for the Migration Cloud REST API.
+
+    Plaintext is generated server-side and returned **once** in the mint
+    response body. We persist only ``sha256(token)`` so a database leak
+    cannot replay a token (constant-time compare on lookup defends
+    against timing oracles).
+
+    Scopes follow the ``<resource>:<action>`` convention:
+        bundles:read / bundles:write / templates:read /
+        artifacts:write / reconcile:run / tokens:manage / webhooks:manage.
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="migration_cloud_api_tokens",
+        help_text="User this token authenticates as.",
+    )
+    token_hash = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text="sha256 hex digest of the opaque token; plaintext returned ONCE at mint.",
+    )
+    name = models.CharField(
+        max_length=128,
+        help_text="Operator/partner-supplied label for token identification in the UI.",
+    )
+    scopes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of scope strings, e.g. ['bundles:read', 'bundles:write'].",
+    )
+    tenant_scope = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="migration_cloud_api_tokens",
+        help_text="Optional tenant-binding. Null = all tenants the user can access.",
+    )
+    expires_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    last_used_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    revoked_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    # v3.32.0 — token rotation: link a revoked token to its successor + 7-day grace.
+    rotated_to = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="rotated_from",
+        help_text=(
+            "When this token was rotated, points to the new successor row. "
+            "Audit trail only; does not affect auth decisions."
+        ),
+    )
+    grace_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text=(
+            "When set, the (revoked) token still authenticates until this "
+            "instant — operator's 7-day client-rollout window."
+        ),
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Migration Cloud API token"
+        verbose_name_plural = "Migration Cloud API tokens"
+
+    def __str__(self) -> str:
+        return f"{self.name} (user={self.user_id})"
+
+    @property
+    def is_active(self) -> bool:
+        """Return True when neither revoked nor expired."""
+        if self.revoked_at is not None:
+            return False
+        if self.expires_at is not None:
+            return self.expires_at > timezone.now()
+        return True
+
+
+class MigrationCloudWebhookSubscription(models.Model):
+    """Partner-registered outbound webhook endpoint.
+
+    Tenant-scoped: every subscription belongs to one school; webhook
+    dispatch fans out across (tenant, event_type) tuples so an event
+    on Bundle A in School X doesn't reach School Y's listeners.
+    """
+
+    tenant = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="migration_cloud_webhook_subscriptions",
+    )
+    url = models.URLField(
+        max_length=512,
+        help_text="HTTPS endpoint the platform POSTs delivery payloads to.",
+    )
+    secret_hash = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="sha256 hex digest of the HMAC secret (verification aid only).",
+    )
+    # Encrypted-at-rest via apps.accounts.legacy_hashes.encryption.EncryptedBinaryField (v3.32.0)
+    secret_ciphertext = _webhook_encrypt_binaryfield(
+        null=True,
+        blank=True,
+        help_text=(
+            "HMAC secret material used to sign outbound webhook "
+            "deliveries. Encrypted at rest via the Fernet shim; reads "
+            "transparently decrypt at the dispatcher. NEVER log."
+        ),
+    )
+    event_types = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of event-type strings, e.g. ['bundle.advanced'].",
+    )
+    active = models.BooleanField(default=True, db_index=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="migration_cloud_webhook_subscriptions",
+    )
+    last_delivery_status = models.CharField(max_length=32, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Migration Cloud webhook subscription"
+        verbose_name_plural = "Migration Cloud webhook subscriptions"
+
+    def __str__(self) -> str:
+        return f"{self.url} [{'active' if self.active else 'inactive'}]"
+
+
+class WebhookDeliveryStatus(models.TextChoices):
+    PENDING = "pending", "Pending"
+    DELIVERED = "delivered", "Delivered"
+    FAILED = "failed", "Failed"
+    EXHAUSTED = "exhausted", "Exhausted"
+
+
+class MigrationCloudWebhookDelivery(models.Model):
+    """Append-only delivery log for outbound webhooks.
+
+    FSM: ``pending`` → (HTTP 2xx) ``delivered``
+                     → (transient failure + retries remain) ``failed`` /
+                       still ``pending`` for next attempt at ``next_retry_at``
+                     → (retries exhausted) ``exhausted``.
+
+    Retry schedule: 1m → 5m → 30m → 2h → 12h → 24h then ``exhausted``.
+    """
+
+    subscription = models.ForeignKey(
+        MigrationCloudWebhookSubscription,
+        on_delete=models.CASCADE,
+        related_name="deliveries",
+    )
+    event_type = models.CharField(max_length=64, db_index=True)
+    payload_json = models.JSONField(default=dict)
+    request_signature = models.CharField(
+        max_length=128,
+        blank=True,
+        help_text="hex HMAC-SHA256(secret, payload_json_canonical_bytes).",
+    )
+    attempt_count = models.PositiveIntegerField(default=0)
+    next_retry_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    status = models.CharField(
+        max_length=32,
+        choices=WebhookDeliveryStatus.choices,
+        default=WebhookDeliveryStatus.PENDING,
+        db_index=True,
+    )
+    last_response_code = models.PositiveSmallIntegerField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    # v3.32.0 — per-tenant delivery quotas. When the tenant's hourly quota
+    # is exhausted, dispatcher defers the row to the next-hour boundary
+    # instead of attempting + counting it against the retry FSM.
+    deferred_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text=(
+            "When the dispatcher skipped this row due to a per-tenant rate "
+            "limit, the wall-clock instant it becomes eligible again. The "
+            "row's status remains 'pending' — attempt_count is NOT bumped."
+        ),
+    )
+    deferred_reason = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="Short code: 'tenant-quota-exhausted', 'tenant-quota-warning', etc.",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Migration Cloud webhook delivery"
+        verbose_name_plural = "Migration Cloud webhook deliveries"
+
+    def __str__(self) -> str:
+        return f"{self.event_type} → sub={self.subscription_id} [{self.status}]"
+
+
+# ─── Companion receiver + MAA (v3.29 Agent 2) ────────────────────────────
+#
+# Companion browser-extension uploads canonical bundles from inside the
+# customer's authenticated competitor-SIS session. Two trust primitives
+# gate every upload:
+#   1. MigrationAuthorizationAgreement — operator's signed consent that
+#      they have legal authority over the source data (vendor data-
+#      portability authorization).
+#   2. CompanionUploadReceipt — append-only record of every accepted
+#      upload (bundle FK + MAA FK + ciphertext sha256 + idempotency key).
+# Defense in depth: bundles are CLIENT-SIDE encrypted by the extension
+# (libsodium sealed-box, X25519 + XSalsa20-Poly1305) before leaving the
+# browser. The server stores ciphertext until a staff-driven decrypt
+# hook runs in-memory with the private-key half (NEVER persisted).
+
+
+class MigrationAuthorizationAgreement(models.Model):
+    """Operator-signed authorization that they have legal right to migrate
+    the source-vendor data. Required BEFORE any companion upload is
+    accepted; revocation freezes future uploads for the same tenant +
+    vendor pair but does NOT retroactively invalidate accepted bundles.
+    """
+
+    tenant = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="migration_authorization_agreements",
+        help_text="Tenant the agreement covers. Matches CompanionUploadReceipt.tenant.",
+    )
+    signed_by_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="migration_authorization_agreements_signed",
+    )
+    signed_by_role = models.CharField(
+        max_length=128,
+        help_text="Operator-supplied role (e.g. 'Head of School', 'IT Director').",
+    )
+    vendor_source = models.CharField(
+        max_length=64,
+        db_index=True,
+        help_text="Source-vendor id (matches Companion canonical-bundle 'source' field).",
+    )
+    vendor_account_holder_name = models.CharField(
+        max_length=256,
+        help_text="Human with legal authority over the source data at the vendor.",
+    )
+    signed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    agreement_version = models.CharField(max_length=32, default="v1.0")
+    signature_text = models.TextField(
+        help_text="Verbatim text the operator agreed to; rendered at sign time.",
+    )
+    client_ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=512, blank=True, default="")
+
+    class Meta:
+        app_label = "migration_cloud"
+        ordering = ["-signed_at"]
+        indexes = [
+            models.Index(fields=["tenant", "-signed_at"]),
+            models.Index(fields=["tenant", "vendor_source"]),
+            models.Index(fields=["vendor_source", "-signed_at"]),
+        ]
+        verbose_name = "Migration authorization agreement"
+        verbose_name_plural = "Migration authorization agreements"
+
+    def __str__(self) -> str:
+        state = "revoked" if self.revoked_at else "active"
+        return f"MAA[{self.agreement_version}] {self.vendor_source} ({state})"
+
+    @property
+    def is_active(self) -> bool:
+        return self.revoked_at is None
+
+
+class CompanionCiphertextBlob(models.Model):
+    """Encrypted bundle bytes received from a Companion upload.
+
+    Stored as a Django ``FileField`` (default storage) rather than
+    ``BinaryField`` so very large bundles don't bloat the DB row. Bytes
+    are NEVER logged; only sha256 + size appear in logs.
+    """
+
+    tenant = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="companion_ciphertext_blobs",
+    )
+    blob_file = models.FileField(
+        upload_to="companion_uploads/",
+        help_text="Encrypted bundle bytes; layout: companion_uploads/<tenant_id>/<uuid>.bin",
+    )
+    ciphertext_sha256 = models.CharField(max_length=64, db_index=True)
+    byte_size = models.PositiveBigIntegerField(default=0)
+    received_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    decrypted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        app_label = "migration_cloud"
+        ordering = ["-received_at"]
+        indexes = [
+            models.Index(fields=["tenant", "-received_at"]),
+            models.Index(fields=["ciphertext_sha256"]),
+        ]
+        verbose_name = "Companion ciphertext blob"
+        verbose_name_plural = "Companion ciphertext blobs"
+
+    def __str__(self) -> str:
+        return f"Blob[{self.ciphertext_sha256[:12]}] {self.byte_size}B"
+
+
+class CompanionUploadReceipt(models.Model):
+    """Append-only record of every accepted Companion upload.
+
+    Links a ``MigrationBundle`` (the wizard-pipeline handle) to its
+    ``MigrationAuthorizationAgreement`` (legal consent) and the
+    ``CompanionCiphertextBlob`` storing the encrypted payload. Replays
+    of the same ``client_idempotency_key`` return the previous receipt
+    rather than creating a new bundle.
+    """
+
+    tenant = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="companion_upload_receipts",
+    )
+    bundle = models.ForeignKey(
+        MigrationBundle,
+        on_delete=models.CASCADE,
+        related_name="companion_receipts",
+    )
+    maa = models.ForeignKey(
+        MigrationAuthorizationAgreement,
+        on_delete=models.PROTECT,
+        related_name="companion_receipts",
+    )
+    ciphertext_blob = models.ForeignKey(
+        CompanionCiphertextBlob,
+        on_delete=models.PROTECT,
+        related_name="receipts",
+    )
+    client_idempotency_key = models.CharField(max_length=128, unique=True)
+    ciphertext_sha256 = models.CharField(max_length=64, db_index=True)
+    plaintext_byte_size = models.PositiveIntegerField(
+        default=0,
+        help_text="Client-reported plaintext size (post-decrypt, pre-compression).",
+    )
+    received_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    encryption_scheme = models.CharField(
+        max_length=32,
+        default="libsodium-secretbox-x25519-sealed",
+        help_text="Encryption scheme tag; matches companion-extension/src/lib/crypto.ts.",
+    )
+
+    class Meta:
+        app_label = "migration_cloud"
+        ordering = ["-received_at"]
+        indexes = [
+            models.Index(fields=["tenant", "-received_at"]),
+            models.Index(fields=["bundle"]),
+            models.Index(fields=["received_at"]),
+        ]
+        verbose_name = "Companion upload receipt"
+        verbose_name_plural = "Companion upload receipts"
+
+    def __str__(self) -> str:
+        return f"Receipt[{self.client_idempotency_key[:12]}] bundle={self.bundle_id}"
+
+
+class MigrationCloudCompanionKeypair(models.Model):
+    """Server-side X25519 keypair used to seal/open Companion bundles.
+
+    The Companion fetches the public half via
+    ``GET /companion/server-pubkey/`` and seals the canonical bundle
+    against it (libsodium ``crypto_box_seal`` — see
+    ``companion-extension/src/lib/crypto.ts``). The encrypted bytes ride
+    multipart to ``/companion/upload/`` and are decrypted in-process by
+    ``CompanionDecryptHookView`` using the matching private half kept
+    HERE.
+
+    Exactly one row carries ``is_active=True`` at any time (enforced by
+    the unique partial constraint). Rotation cycles the active flag and
+    stamps ``rotated_out_at`` on the previous row so older ciphertext
+    blobs can still be decrypted by version. Operator UX is invisible:
+    the popup re-fetches per-session and switches keys automatically.
+
+    Security invariants:
+
+    * ``private_key_encrypted`` is wrapped via Agent 5's
+      ``EncryptedCharField`` shim when importable; otherwise it stores
+      raw bytes with a ``# crypto-pending`` marker (Agent 5 wraps in a
+      follow-up migration). Either way, the private bytes NEVER appear
+      in a response, in logs, or in admin list_display.
+    * Constant-time compare is used for any external fingerprint check.
+    * Public-key fingerprint is sha256(public_key_b64)[:16] bytes,
+      base64-encoded — never the full hash (truncation prevents
+      accidental disclosure of the full pubkey to logging sinks that
+      don't carry the public_key_b64 itself).
+    """
+
+    KEY_VERSION_MAX_LEN = 16
+    PUBLIC_KEY_B64_MAX_LEN = 64
+
+    key_version = models.CharField(
+        max_length=KEY_VERSION_MAX_LEN,
+        unique=True,
+        db_index=True,
+        help_text="Monotonic version tag, e.g. 'v1', 'v2'.",
+    )
+    public_key_b64 = models.CharField(
+        max_length=PUBLIC_KEY_B64_MAX_LEN,
+        help_text="Base64 of the 32-byte X25519 public key; safe to return.",
+    )
+    # ``BinaryField`` rather than CharField — the encrypted private bytes
+    # are not human-readable. When Agent 5's EncryptedCharField shim is
+    # importable, the bytes are stored Fernet-wrapped; otherwise they
+    # are raw NaCl PrivateKey.encode() bytes.
+    private_key_encrypted = models.BinaryField(
+        help_text="Encrypted X25519 private key. Never returned in responses.",
+        # crypto-pending: wrap-after-cross-agent-merge
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    rotated_out_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        app_label = "migration_cloud"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["is_active"]),
+            models.Index(fields=["key_version"]),
+            models.Index(fields=["-created_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["is_active"],
+                condition=models.Q(is_active=True),
+                name="migrationcloud_companion_keypair_one_active",
+            ),
+        ]
+        verbose_name = "Migration Cloud companion keypair"
+        verbose_name_plural = "Migration Cloud companion keypairs"
+
+    def __str__(self) -> str:
+        flag = "active" if self.is_active else "retired"
+        return f"CompanionKeypair[{self.key_version}] ({flag})"

@@ -175,6 +175,14 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [
             py,
+            _script_path("verify_operator_surface_maturity.py"),
+            *base_args,
+        ],
+        "Phase 4: earned-stable operator surface maturity",
+    )
+    run(
+        [
+            py,
             _script_path("verify_admin_tenant_change_form_product_links.py"),
             *base_args,
         ],

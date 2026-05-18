@@ -1,0 +1,48 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Token minted" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-token-mint-result" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">
+      {% if rotated_from_id %}{% trans "Token rotated" %}{% else %}{% trans "Token minted" %}{% endif %}
+    </h1>
+    <p class="rmc-lede rmc-lede--warn" role="alert">
+      <strong>{% trans "This token will not be shown again." %}</strong>
+      {% trans "Copy it now and store it in your secret vault. The server only retains sha256(token); there is no recovery path." %}
+      {% if rotated_from_id %}
+      <br>{% blocktrans with grace=grace_until|date:"Y-m-d H:i" id=rotated_from_id %}The old token (#{{ id }}) keeps authenticating until {{ grace }} so clients can roll out. After that, only this new token works.{% endblocktrans %}
+      {% endif %}
+    </p>
+  </header>
+
+  <section class="rmc-card rmc-card--token-result">
+    <header class="rmc-card__header">
+      <h2 class="rmc-h2">{% trans "Plaintext token" %}</h2>
+    </header>
+    <div class="rmc-card__body">
+      <pre class="rmc-code rmc-code--secret" id="plaintext-token-block"><code>{{ plaintext }}</code></pre>
+      <button class="rmc-btn rmc-btn--ghost rmc-copy" type="button" data-rmc-copy-target="#plaintext-token-block">
+        {% trans "Copy to clipboard" %}
+      </button>
+    </div>
+    <footer class="rmc-card__footer">
+      <dl class="rmc-defs">
+        <div class="rmc-defs__row"><dt>{% trans "ID" %}</dt><dd>{{ row.id }}</dd></div>
+        <div class="rmc-defs__row"><dt>{% trans "Name" %}</dt><dd>{{ row.name }}</dd></div>
+        <div class="rmc-defs__row"><dt>{% trans "Preview" %}</dt><dd><code class="rmc-kbd">{{ row.preview }}</code></dd></div>
+        <div class="rmc-defs__row"><dt>{% trans "Scopes" %}</dt><dd>
+          {% for s in row.scopes %}<code class="rmc-kbd">{{ s }}</code>{% if not forloop.last %} {% endif %}{% endfor %}
+        </dd></div>
+        <div class="rmc-defs__row"><dt>{% trans "Tenant scope" %}</dt><dd>{{ row.tenant_id|default:"—" }}</dd></div>
+      </dl>
+    </footer>
+  </section>
+
+  <p class="rmc-page__actions">
+    <a class="rmc-btn rmc-btn--primary" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_list' %}{% else %}{% url 'migration_cloud_super:operator_token_list' %}{% endif %}">{% trans "Done — back to tokens" %}</a>
+  </p>
+</main>
+{% endblock %}

@@ -48,14 +48,45 @@ from apps.migration_cloud.views import (
     MigrationCloudReconcileView,
 )
 
+from .bulk_artifacts import bulk_artifacts_action_factory
 from .helpers import delegate_to_view, shell_for_request
 from .permissions import MigrationCloudAPIPermission
 from .serializers import (
     MigrationArtifactSerializer,
     MigrationBundleSerializer,
 )
+from .sse import events_stream_action_factory
 
 logger = logging.getLogger(__name__)
+
+
+def _enqueue_lifecycle_webhooks(bundle, event_type: str, payload: dict) -> None:
+    """Best-effort: enqueue webhook deliveries for a bundle-lifecycle event.
+
+    Called inline after the wizard delegation returns. Wrapped in a
+    broad try/except so a webhook subsystem hiccup never breaks the
+    primary API response — failures are logged for ops.
+    """
+    try:
+        # Local imports — avoid app-load cycles during Django startup.
+        from apps.migration_cloud.api.webhook_dispatch import enqueue
+        from apps.migration_cloud.models import (
+            MigrationCloudWebhookSubscription,
+        )
+
+        if not bundle or not getattr(bundle, "school_id", None):
+            return
+        # tenant-isolation-allow: webhook-lifecycle-enqueue-scoped-via-bundle-school-id
+        subs = MigrationCloudWebhookSubscription.objects.filter(
+            tenant_id=bundle.school_id, active=True,
+        )
+        for sub in subs:
+            enqueue(sub, event_type, payload)
+    except Exception:
+        logger.exception(
+            "migration_cloud_webhook_lifecycle_enqueue_failed bundle_id=%s event=%s",
+            getattr(bundle, "pk", None), event_type,
+        )
 
 
 @extend_schema_view(
@@ -230,13 +261,30 @@ class BundleViewSet(viewsets.ModelViewSet):
         gets its own 24h replay window distinct from the wizard view's;
         ``@safe_500`` ensures any uncaught exception in the delegation
         boundary itself emits a structured envelope with a request_id.
+
+        After the wizard returns successfully, lifecycle webhooks for
+        ``bundle.advanced`` are enqueued best-effort.
         """
-        return delegate_to_view(
+        response = delegate_to_view(
             MigrationCloudAdvanceView,
             request,
             bundle_id=int(pk),
             shell=shell_for_request(request),
         )
+        try:
+            if 200 <= getattr(response, "status_code", 500) < 300:
+                bundle = MigrationBundle.objects.filter(pk=int(pk)).first()  # tenant-isolation-allow: webhook-enqueue-lookup-bundle-already-validated-by-delegated-view
+                _enqueue_lifecycle_webhooks(
+                    bundle,
+                    "bundle.advanced",
+                    {
+                        "bundle_id": int(pk),
+                        "status": getattr(bundle, "status", None),
+                    },
+                )
+        except Exception:
+            logger.exception("migration_cloud_advance_webhook_hook_failed bundle_id=%s", pk)
+        return response
 
     # ─── apply ─────────────────────────────────────────────────────────────
     @extend_schema(
@@ -285,13 +333,37 @@ class BundleViewSet(viewsets.ModelViewSet):
         still routes it at ``/apply/`` per the wizard contract.
         Reliability decorators (idempotency, 500 envelope) wrap the
         delegation boundary.
+
+        Enqueues ``bundle.applied`` / ``bundle.failed`` lifecycle
+        webhooks based on the delegated response status code.
         """
-        return delegate_to_view(
+        response = delegate_to_view(
             MigrationCloudApplyView,
             request,
             bundle_id=int(pk),
             shell=shell_for_request(request),
         )
+        try:
+            sc = getattr(response, "status_code", 500)
+            bundle = MigrationBundle.objects.filter(pk=int(pk)).first()  # tenant-isolation-allow: webhook-enqueue-lookup-bundle-already-validated-by-delegated-view
+            if 200 <= sc < 300:
+                _enqueue_lifecycle_webhooks(
+                    bundle,
+                    "bundle.applied",
+                    {
+                        "bundle_id": int(pk),
+                        "status": getattr(bundle, "status", None),
+                    },
+                )
+            elif sc >= 500:
+                _enqueue_lifecycle_webhooks(
+                    bundle,
+                    "bundle.failed",
+                    {"bundle_id": int(pk), "status_code": sc},
+                )
+        except Exception:
+            logger.exception("migration_cloud_apply_webhook_hook_failed bundle_id=%s", pk)
+        return response
 
     # ─── reconcile ─────────────────────────────────────────────────────────
     @extend_schema(
@@ -350,6 +422,15 @@ class BundleViewSet(viewsets.ModelViewSet):
         qs = bundle.artifacts.all()  # tenant-isolation-allow: api-layer-already-tenant-scoped-via-get-object
         serializer = MigrationArtifactSerializer(qs, many=True)
         return Response(serializer.data)
+
+    # ─── bulk artifacts (v3.29) ───────────────────────────────────────────
+    # Constructed via factory in `apps.migration_cloud.api.bulk_artifacts`
+    # so the viewset module stays compact and the action's @extend_schema /
+    # @idempotent_post / @safe_500 stack lives next to the action's logic.
+    bulk_artifacts = bulk_artifacts_action_factory()
+
+    # ─── SSE progress stream (v3.29) ──────────────────────────────────────
+    events_stream = events_stream_action_factory()
 
 
 @extend_schema_view(
