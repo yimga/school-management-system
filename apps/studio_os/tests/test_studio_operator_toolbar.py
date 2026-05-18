@@ -40,9 +40,9 @@ class StudioOperatorToolbarTests(TestCase):
         resp = self.client.post(
             url,
             {"school_id": str(self.school.pk), "next": studio},
-            follow=True,
+            follow=False,
         )
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 302)
         self.assertEqual(
             self.client.session.get("school_id"),
             str(self.school.pk),

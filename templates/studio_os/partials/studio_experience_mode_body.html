@@ -1,8 +1,16 @@
 {% load i18n static %}
 {% if use_experience_in_page and form %}
-{% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=not experience_context_tool_links workspace_aria_label=_("Experience sections") workspace_rail_template="studio_os/partials/workspace/experience_inpage_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_inpage_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
+{% if experience_workspace_two_col %}
+{% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=1 workspace_aria_label=_("Experience sections") workspace_rail_template="studio_os/partials/workspace/experience_inpage_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_inpage_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
+{% else %}
+{% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_aria_label=_("Experience sections") workspace_rail_template="studio_os/partials/workspace/experience_inpage_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_inpage_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
+{% endif %}
 {% elif experience_left_rail %}
-{% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=not experience_context_tool_links workspace_aria_label=_("Experience") workspace_rail_template="studio_os/partials/workspace/experience_iframe_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_iframe_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
+{% if experience_workspace_two_col %}
+{% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=1 workspace_aria_label=_("Experience") workspace_rail_template="studio_os/partials/workspace/experience_iframe_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_iframe_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
+{% else %}
+{% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_aria_label=_("Experience") workspace_rail_template="studio_os/partials/workspace/experience_iframe_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_iframe_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
+{% endif %}
 <script src="{% static 'js/_pages/studio_os__modes__experience.js' %}" defer></script>
 {% elif embed_url %}
 <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Theme & Experience' %}"></iframe>

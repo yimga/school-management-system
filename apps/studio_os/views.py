@@ -1397,6 +1397,8 @@ def studio_shell(request, mode=None):
             context["use_experience_in_page"] = False
             context["studio_version_history"] = []
             context["studio_audit"] = []
+            context["experience_context_tool_links"] = []
+            context["experience_workspace_two_col"] = True
         experience_rail = []
         for label, vn in (
             ("Theme & colors", "siteconfig:theme_colors"),
@@ -1442,6 +1444,7 @@ def studio_shell(request, mode=None):
             except NoReverseMatch:
                 pass
         context["experience_context_tool_links"] = experience_context_tool_links
+        context["experience_workspace_two_col"] = not bool(experience_context_tool_links)
 
     if mode == "launch" and school:
         try:
@@ -2121,7 +2124,11 @@ def studio_set_operator_school(request):
 
     if not user_has_control_plane_access(getattr(request, "user", None)):
         return redirect(reverse("accounts:backend_dashboard"))
-    if not use_control_plane_shell(request):
+    from apps.schools.host_routing import public_host_kind
+
+    host = (request.get_host() or "").split(":")[0].lower()
+    on_manager = use_control_plane_shell(request) or public_host_kind(host) == "manager"
+    if not on_manager:
         return redirect(reverse("studio_os:shell"))
 
     fallback = reverse("studio_os:shell")
