@@ -1,0 +1,28 @@
+{% load i18n %}
+{% if automation_environment %}
+{% include "studio_os/partials/automation_environment_banner.html" %}
+{% endif %}
+{% if automation_pane == 'overview' %}
+  {% include "studio_os/partials/automation_overview_body.html" with graph=automation_dependency_graph pack_count=automation_health_summary.pack_count|default:0 template_count=automation_health_summary.template_count|default:0 workflow_center_pane_url=automation_workflow_center_pane_url simulation_pane_url=automation_simulation_pane_url|default:"" %}
+{% elif automation_pane == 'dependency' %}
+  <h2 class="h6 text-muted mb-2">{% trans "Dependency graph" %}</h2>
+  {% include "studio_os/partials/automation_dependency_graph_body.html" with graph=automation_dependency_graph %}
+{% elif automation_pane == 'health' %}
+  <h2 class="h6 text-muted mb-2">{% trans "Workflow health metrics" %}</h2>
+  {% include "studio_os/partials/automation_workflow_health_body.html" with pack_count=automation_health_summary.pack_count|default:0 template_count=automation_health_summary.template_count|default:0 workflow_center_pane_url=automation_workflow_center_pane_url %}
+{% elif automation_explainer %}
+  {% include "studio_os/partials/automation_explainer_in_canvas.html" with title=automation_explainer.title subtitle=automation_explainer.subtitle body=automation_explainer.body workflow_pane_url=automation_explainer.workflow_pane_url workflow_hint=automation_explainer.workflow_hint %}
+{% elif automation_iframe_src %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Automation view options' %}">
+  <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
+  <a id="studio-automation-open-full" class="btn btn-sm btn-outline-primary"
+     href="{{ automation_iframe_src }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
+</div>
+<iframe id="studio-automation-iframe" class="studio-os-iframe" title="{% trans 'Automation' %}"
+        src="{{ automation_iframe_src }}"></iframe>
+{% else %}
+<div class="studio-os__card">
+  <p class="text-muted mb-2">{% trans "This automation pane could not be loaded. Use the rail or open Workflow center." %}</p>
+  {% if legacy_urls.workflow_center %}<a href="{{ legacy_urls.workflow_center }}" class="btn btn-primary btn-sm">{% trans "Workflow center" %}</a>{% endif %}
+</div>
+{% endif %}

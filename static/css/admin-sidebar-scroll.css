@@ -199,11 +199,11 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
 /* ----- Quick access ----- */
 .admin-sidebar-quick-access {
   padding: 0 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--color-base-200, rgba(0, 0, 0, 0.08));
+  border-bottom: 1px solid var(--hairline, var(--color-base-200, rgba(0, 0, 0, 0.08))); /* theme-locked-allow: manual-review */
 }
 
 .dark .admin-sidebar-quick-access {
-  border-bottom-color: var(--color-base-800, rgba(255, 255, 255, 0.08));
+  border-bottom-color: var(--hairline, var(--color-base-800, rgba(255, 255, 255, 0.08)));
 }
 
 .admin-sidebar-section-title {
@@ -211,7 +211,7 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-base-500, #857c70);
+  color: var(--text-secondary, var(--color-base-500, #857c70));
   margin: 0.75rem 1rem 0.25rem 1rem;
   padding: 0 0.5rem;
 }
@@ -234,7 +234,7 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
   padding: 0.6rem 0.75rem;
   border-radius: 6px;
   font-size: var(--type-size-caption);
-  color: var(--color-base-700, #2c241d);
+  color: var(--text-primary, var(--color-base-700, #2c241d));
   text-decoration: none;
   transition: background 0.15s, color 0.15s;
 }
@@ -268,18 +268,18 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
   font-size: var(--type-size-body-l);
   flex-shrink: 0;
   transition: transform 0.2s;
-  color: var(--color-base-400, #a8a092);
+  color: var(--text-tertiary, var(--color-base-400, #a8a092));
 }
 
 .admin-sidebar-app-title:hover .admin-sidebar-chevron {
-  color: var(--color-primary-600, var(--color-primary));
+  color: var(--color-primary-600, var(--color-primary)); /* theme-locked-allow: brand-token */
 }
 
 /* ----- Active state (pill style, matches backend) ----- */
 #nav-sidebar .current-model a,
 #nav-sidebar .module li a[aria-current="page"] {
-  background: var(--color-primary-100, rgba(37, 99, 235, 0.12)) !important;
-  color: var(--color-primary-600, var(--color-primary)) !important;
+  background: var(--color-primary-100, rgba(37, 99, 235, 0.12)) !important; /* theme-locked-allow: brand-token */
+  color: var(--color-primary-600, var(--color-primary)) !important; /* theme-locked-allow: brand-token */
   font-weight: 600;
   border-radius: 8px;
 }
@@ -287,17 +287,17 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
 .dark #nav-sidebar .current-model a,
 .dark #nav-sidebar .module li a[aria-current="page"] {
   background: rgba(96, 165, 250, 0.15) !important; /* off-token-allow: info-blue-overlay */
-  color: var(--color-primary-400, #60a5fa) !important;
+  color: var(--color-primary-400, #60a5fa) !important; /* theme-locked-allow: brand-token */
 }
 
 #nav-sidebar .current-app h2 a,
 .admin-sidebar-app-group.current-app .admin-sidebar-app-title a {
-  color: var(--color-primary-600, var(--color-primary)) !important;
+  color: var(--color-primary-600, var(--color-primary)) !important; /* theme-locked-allow: brand-token */
 }
 
 .dark #nav-sidebar .current-app h2 a,
 .dark .admin-sidebar-app-group.current-app .admin-sidebar-app-title a {
-  color: var(--color-primary-400, #60a5fa) !important;
+  color: var(--color-primary-400, #60a5fa) !important; /* theme-locked-allow: brand-token */
 }
 
 /* ----- Focus states ----- */
@@ -306,7 +306,7 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
 .admin-sidebar-model-link:focus-visible,
 #nav-sidebar a:focus-visible,
 #nav-sidebar button:focus-visible {
-  outline: 2px solid var(--color-primary-500, var(--color-primary));
+  outline: 2px solid var(--color-primary-500, var(--color-primary)); /* theme-locked-allow: brand-token */
   outline-offset: 2px;
 }
 
@@ -315,7 +315,7 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
 }
 
 .admin-sidebar-app-title:focus-visible {
-  outline: 2px solid var(--color-primary-500, var(--color-primary));
+  outline: 2px solid var(--color-primary-500, var(--color-primary)); /* theme-locked-allow: brand-token */
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -355,8 +355,8 @@ body:not(.portal-backend-dark) #page > #main::-webkit-scrollbar-thumb:hover {
   position: absolute;
   left: -9999px;
   z-index: 999;
-  padding: 0.5rem 1rem;
-  background: var(--color-primary-600, var(--color-primary));
+  padding: 0.5rem 1rem; /* theme-locked-allow: brand-token */
+  background: var(--color-primary-600, var(--color-primary)); /* theme-locked-allow: brand-token */
   color: white;
   border-radius: 4px;
   font-size: var(--type-size-caption);

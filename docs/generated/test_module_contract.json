@@ -1,10 +1,11 @@
 {
   "extension_registry_present": true,
-  "generated_at": "2026-05-15T12:09:39.702293+00:00",
+  "generated_at": "2026-05-18T01:41:57.364083+00:00",
   "map_rows": 4,
   "missing_map_targets": [],
   "ok": true,
   "sot_preflight_unresolved": [
+    "apps.api.tests.test_per_tenant_rate_limit",
     "apps.customersuccess.tests.test_super_api_filters",
     "apps.customersuccess.tests.test_tenant_views",
     "apps.marketplace.tests.test_app_rollback",

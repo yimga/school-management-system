@@ -166,6 +166,11 @@ def collect_undefined() -> list[dict]:
             continue
         if cls[0].isdigit():
             continue
+        # BEM-separator residue from template substitution like
+        # `studio-os__{{ workspace_mode }}-rail` -> `studio-os__` after stripping
+        # `{{ ... }}`. Real BEM classes never end on a bare separator.
+        if cls.endswith(("__", "--")):
+            continue
         # Drop Tailwind / Unfold / email-only utilities — too noisy and not the
         # bug class this scanner is for. Only project-prefixed classes here.
         if not _is_intentional_project_class(cls):

@@ -59,6 +59,25 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertContains(response, "rmc-operator-surface-strip")
         self.assertContains(response, "Open operator view")
 
+    def test_manager_admin_uses_control_plane_sidebar_chrome(self):
+        for path in ("/admin/", reverse("admin:schools_school_changelist")):
+            response = self.client.get(path, HTTP_HOST=self.host)
+            self.assertEqual(response.status_code, 200, path)
+            html = response.content.decode()
+            self.assertIn('id="cpSidebarNav"', html, path)
+            self.assertIn("admin-cp-unified-page", html, path)
+            self.assertIn("data-rmc-admin-cp-unified", html, path)
+            self.assertIn("data-shell-nav-bridge=\"manager-operator\"", html, path)
+
+    def test_manager_super_and_admin_share_operator_topbar(self):
+        super_resp = self.client.get("/super/", HTTP_HOST=self.host)
+        admin_resp = self.client.get("/admin/", HTTP_HOST=self.host)
+        self.assertEqual(super_resp.status_code, 200)
+        self.assertEqual(admin_resp.status_code, 200)
+        for marker in ("id=\"cpSearchInput\"", "cp-topbar-theme-toggle", "data-shell-nav-bridge=\"manager-operator\""):
+            self.assertIn(marker, super_resp.content.decode())
+            self.assertIn(marker, admin_resp.content.decode())
+
     def test_configuration_center_shows_surface_strip(self):
         response = self.client.get(
             reverse("configuration:center"), HTTP_HOST=self.host

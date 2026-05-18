@@ -43,6 +43,40 @@
     /* Hook for native browser UI (scrollbars, form controls) — only meaningful
        value is light|dark, so we mirror the resolved value. */
     root.style.colorScheme = resolved;
+    /* Unfold / Tailwind dark: utilities require .dark on <html> (data-bs-theme alone is not enough). */
+    if (resolved === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+    syncPortalBackendBodyPalette(resolved);
+  }
+
+  var PORTAL_BACKEND_PALETTES = [
+    "portal-backend-dark",
+    "portal-backend-light",
+    "portal-backend-sand",
+    "portal-backend-snow",
+    "portal-backend-cream",
+    "portal-backend-lavender",
+    "portal-backend-black",
+    "portal-backend-ink",
+    "portal-backend-onyx",
+    "portal-backend-charcoal",
+    "portal-backend-midnight",
+  ];
+
+  function syncPortalBackendBodyPalette(resolved) {
+    if (!document.body) {
+      return;
+    }
+    var i;
+    for (i = 0; i < PORTAL_BACKEND_PALETTES.length; i++) {
+      document.body.classList.remove(PORTAL_BACKEND_PALETTES[i]);
+    }
+    document.body.classList.add(
+      resolved === "dark" ? "portal-backend-dark" : "portal-backend-light"
+    );
   }
 
   /* Theme v2 (2026-05-12, Phase J end-to-end): propagate the tenant's neutral
@@ -134,6 +168,11 @@
   }
 
   apply(readPreference());
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      apply(readPreference());
+    });
+  }
 
   /* Live OS theme response — only relevant when preference is "system". */
   if (mql && typeof mql.addEventListener === "function") {

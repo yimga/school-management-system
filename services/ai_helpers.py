@@ -30,7 +30,7 @@ from typing import Any
 
 from services.ai_gateway import TaskType  # public re-export for app-level callers
 
-__all__ = ["TaskType", "invoke_with_request", "normalize_gateway_metadata", "record_feedback", "is_ai_available"]
+__all__ = ["TaskType", "invoke_with_request", "normalize_gateway_metadata", "record_feedback", "is_ai_available", "looks_like_pii", "redact_pii"]
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +138,29 @@ def looks_like_pii(*chunks: str) -> bool:
             if pattern.search(chunk):
                 return True
     return False
+
+
+_REDACT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\d{3}-\d{2}-\d{4}"), "[REDACTED-SSN]"),
+    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "[REDACTED-EMAIL]"),
+    (re.compile(r"\+?\d[\d\s().-]{6,}\d"), "[REDACTED-PHONE]"),
+)
+
+
+def redact_pii(text: str) -> str:
+    """Replace obvious PII shapes with marker tokens.
+
+    Counterpart to ``looks_like_pii``: that one classifies, this one masks.
+    Used by callers who want to send the prompt to a lower-sensitivity model
+    tier or log the prompt for audit without leaking real PII. Heuristic —
+    not exhaustive — covers email, US-shape SSN, and phone-like sequences.
+    """
+    if not text:
+        return text
+    out = text
+    for pattern, replacement in _REDACT_PATTERNS:
+        out = pattern.sub(replacement, out)
+    return out
 
 
 _JSON_RE = re.compile(r"\{.*\}", re.DOTALL)

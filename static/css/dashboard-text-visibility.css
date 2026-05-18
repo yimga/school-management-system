@@ -56,9 +56,9 @@ button[title]:not([aria-label]) .visually-hidden {
 /* ===== 3. Admin sidebar: tooltip when shown = high contrast (no white-on-white) ===== */
 .sidebar-tooltip,
 #nav-sidebar .sidebar-tooltip {
-  background: var(--color-base-800) !important;
-  color: var(--color-base-50) !important;
-  border: 1px solid var(--color-base-700);
+  background: var(--surface-canvas, var(--color-base-800)) !important;
+  color: var(--text-tertiary, var(--color-base-50)) !important;
+  border: 1px solid var(--hairline, var(--color-base-700)); /* theme-locked-allow: manual-review */
   font-weight: 500;
 }
 .sidebar a:hover .sidebar-tooltip,
@@ -76,7 +76,7 @@ button[title]:not([aria-label]) .visually-hidden {
 }
 #nav-sidebar .admin-sidebar-link:hover,
 #nav-sidebar .admin-sidebar-model-link:hover {
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 #nav-sidebar .admin-sidebar-heading,
 #nav-sidebar .module h2,
@@ -94,10 +94,10 @@ button[title]:not([aria-label]) .visually-hidden {
 .topbar.text-white,
 .topbar .text-white,
 .navbar-dark .navbar-brand {
-  color: var(--color-base-50) !important;
+  color: var(--text-tertiary, var(--color-base-50)) !important;
 }
 .topbar .btn-link.text-white:hover {
-  color: var(--color-base-0) !important;
+  color: var(--text-on-brand, var(--color-base-0)) !important;
   opacity: 1;
 }
 
@@ -138,7 +138,7 @@ button[title]:not([aria-label]) .visually-hidden {
 }
 body.portal-backend-dark .dashboard-chart-export,
 body.portal-backend-dark .btn[title="Download as PNG"] {
-  color: var(--color-base-200);
+  color: var(--text-tertiary, var(--color-base-200));
 }
 
 /* ===== 8. Meta tags / secondary labels in cards ===== */
@@ -183,7 +183,7 @@ html[data-bs-theme="dark"] {
   --portal-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
 }
 body.portal-backend-dark {
-  --portal-text-muted: var(--color-base-400);
+  --portal-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
 }
 
 /* Portal sidebar: nav and section labels visible */

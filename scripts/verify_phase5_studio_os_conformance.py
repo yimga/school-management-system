@@ -74,8 +74,16 @@ def main(argv: list[str] | None = None) -> int:
     output_mode_tpl = (
         root / "templates" / "studio_os" / "partials" / "output_mode_canvas.html"
     )
+    output_canvas_tpl = (
+        root
+        / "templates"
+        / "studio_os"
+        / "partials"
+        / "workspace"
+        / "output_canvas.html"
+    )
 
-    for p in (views_py, urls_py, deep_links_py, shell_main_tpl, output_mode_tpl):
+    for p in (views_py, urls_py, deep_links_py, shell_main_tpl, output_mode_tpl, output_canvas_tpl):
         if not p.is_file():
             errors.append(f"Missing required file: {p.relative_to(root).as_posix()}")
     if errors:
@@ -88,7 +96,8 @@ def main(argv: list[str] | None = None) -> int:
     urls_text = _read(urls_py)
     deep_links_text = _read(deep_links_py)
     shell_text = _read(shell_main_tpl)
-    output_text = _read(output_mode_tpl)
+    output_text = _read(output_canvas_tpl)
+    output_shell_text = _read(output_mode_tpl)
 
     # 1) Mode contracts from STUDIO_MODES literal.
     try:
@@ -164,7 +173,9 @@ def main(argv: list[str] | None = None) -> int:
             errors.append(f"output_mode_canvas.html missing native pane branch: {marker}")
 
     if "output_iframe_src" not in output_text:
-        errors.append("output_mode_canvas.html missing fallback iframe contract.")
+        errors.append("output_canvas.html missing fallback iframe contract.")
+    if "workspace_layout.html" not in output_shell_text:
+        errors.append("output_mode_canvas.html must include workspace_layout.html")
     if "data-studio-output-native=\"reports\"" not in _read(
         root
         / "templates"

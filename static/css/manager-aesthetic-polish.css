@@ -30,14 +30,14 @@
 #cp-main-content .rmc-acx-glass-panel,
 #cp-main-content .rmc-acx-metric-card,
 #cp-main-content .studio-os__card {
-  background-color: var(--color-base-0);
+  background-color: var(--surface-elevated, var(--color-base-0));
   border-color: rgba(26, 22, 18, 0.08); /* off-token-allow: always-dark-warm-bg */
 }
 
 #cp-main-content .card-header {
   background-color: rgba(26, 22, 18, 0.03); /* off-token-allow: always-dark-warm-bg */
   border-bottom-color: rgba(26, 22, 18, 0.08); /* off-token-allow: always-dark-warm-bg */
-  color: var(--color-base-900);
+  color: var(--text-primary, var(--color-base-900));
 }
 
 /* === Studio toolbar (top of the canvas) ================================== */
@@ -54,7 +54,7 @@
 .studio-os__page-title {
   font-weight: 700;
   letter-spacing: -0.015em;
-  color: var(--color-base-900);
+  color: var(--text-primary, var(--color-base-900));
   margin: 0;
 }
 
@@ -66,7 +66,7 @@
 /* === Studio mode rail ==================================================== */
 
 #cp-main-content .studio-os__rail {
-  background: var(--color-base-0);
+  background: var(--surface-elevated, var(--color-base-0));
   border: 1px solid rgba(26, 22, 18, 0.08); /* off-token-allow: rgba-decorative */
   border-radius: 12px;
   padding: 0.5rem;
@@ -102,7 +102,7 @@
 
 #cp-main-content .studio-os__rail a.active {
   background: linear-gradient(135deg, var(--school-primary, var(--color-indigo-600)), var(--school-accent, var(--color-emerald-500)));
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   font-weight: 600;
   box-shadow: 0 6px 14px -4px rgba(79, 70, 229, 0.35);
 }
@@ -138,13 +138,13 @@
 .cp-sidebar-col .cp-sidebar-inner .nav-link:hover,
 .cp-sidebar-col .cp-sidebar-inner a:hover {
   background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 
 .cp-sidebar-col .cp-sidebar-inner .nav-link.active,
 .cp-sidebar-col .cp-sidebar-inner a[aria-current="page"] {
   background: linear-gradient(135deg, rgba(79, 70, 229, 0.85), rgba(16, 185, 129, 0.85)); /* off-token-allow: decorative-gradient */
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   font-weight: 600;
 }
 
@@ -186,13 +186,13 @@
   font-size: var(--type-size-micro);
   letter-spacing: 0.08em;
   color: rgba(26, 22, 18, 0.55) !important; /* off-token-allow: always-dark-warm-bg */
-}
+} /* theme-locked-allow: decorative-tint-mix */
 
 #cp-main-content .rmc-os-page-header__title {
   font-size: var(--type-size-headline-m);
   font-weight: 700;
   letter-spacing: -0.015em;
-  color: var(--color-base-900) !important;
+  color: var(--text-primary, var(--color-base-900)) !important;
 }
 
 /* === Spacing rhythm ====================================================== */
@@ -210,14 +210,14 @@
 
 /* Top navbar — make the brand text + chips coherent */
 .cp-navbar.statement-header {
-  background: linear-gradient(180deg, var(--cp-ink-sidebar) 0%, var(--color-base-900) 100%);
+  background: linear-gradient(180deg, var(--cp-ink-sidebar) 0%, var(--color-base-900) 100%); /* theme-locked-allow: decorative-gradient */
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding-block: 0.5rem;
 }
 
 .cp-navbar .navbar-brand,
 .cp-navbar [data-rmc-shell-title] {
-  color: var(--color-base-0);
+  color: var(--color-base-0); /* theme-locked-allow: manual-review */
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -227,7 +227,7 @@
 .cp-navbar input[type="search"] {
   background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   border: 1px solid rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 
 .cp-navbar input.form-control::placeholder,
@@ -240,7 +240,7 @@
   background: rgba(255, 255, 255, 0.1); /* off-token-allow: white-overlay */
   border-color: rgba(129, 140, 248, 0.65); /* off-token-allow: rgba-decorative */
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 
 /* Chip buttons in top navbar (Shortcuts / Studio / Config center / admin) */
@@ -257,7 +257,7 @@
 .cp-navbar .dropdown-toggle:hover {
   background: rgba(255, 255, 255, 0.1); /* off-token-allow: white-overlay */
   border-color: rgba(255, 255, 255, 0.18); /* off-token-allow: white-overlay */
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 
 /* === Primary nav pills (Home / Operations / Marketplace / …) ============= */
@@ -288,7 +288,7 @@
 .cp-primary-nav__pill:hover {
   background: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
   border-color: rgba(255, 255, 255, 0.14); /* off-token-allow: white-overlay */
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 
 .cp-primary-nav__pill:active {
@@ -299,7 +299,7 @@
 .cp-primary-nav__pill[aria-current="page"] {
   background: linear-gradient(135deg, var(--school-primary, var(--color-indigo-600)), var(--school-accent, var(--color-emerald-500)));
   border-color: transparent;
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   font-weight: 600;
   box-shadow: 0 6px 16px -6px rgba(79, 70, 229, 0.5),
     0 1px 0 rgba(255, 255, 255, 0.12) inset;
@@ -307,7 +307,7 @@
 
 .cp-primary-nav__pill--active:hover {
   filter: brightness(1.06);
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 
 .cp-primary-nav__pill i {
@@ -354,7 +354,7 @@
 }
 
 .cp-sidebar-col .cp-sidebar-inner details summary:hover {
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   background: rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
 }
 

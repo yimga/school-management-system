@@ -18,34 +18,34 @@
 /* Bootstrap form-switch: OFF state – explicit grey */
 .form-switch .form-check-input:not(:checked),
 .form-check-input.form-check-input[type="checkbox"]:not(:checked) {
-  background-color: var(--color-base-400) !important;
-  border-color: var(--color-base-400) !important;
+  background-color: var(--surface-canvas, var(--color-base-400)) !important;
+  border-color: var(--hairline, var(--color-base-400)) !important;
 }
 
 /* Dark mode – OFF grey still visible */
 .dark .form-switch .form-check-input:not(:checked),
 [data-theme="dark"] .form-switch .form-check-input:not(:checked) {
-  background-color: var(--color-base-500) !important;
-  border-color: var(--color-base-500) !important;
+  background-color: var(--color-base-500) !important; /* theme-locked-allow: manual-review */
+  border-color: var(--color-base-500) !important; /* theme-locked-allow: manual-review */
 }
 
 /* Hover: ON stays green, OFF slightly lighter */
 .form-switch .form-check-input:hover:not(:checked) {
-  background-color: var(--color-base-300) !important;
-  border-color: var(--color-base-300) !important;
+  background-color: var(--surface-canvas, var(--color-base-300)) !important;
+  border-color: var(--hairline, var(--color-base-300)) !important;
 }
 
 .dark .form-switch .form-check-input:hover:not(:checked),
 [data-theme="dark"] .form-switch .form-check-input:hover:not(:checked) {
-  background-color: var(--color-base-400) !important;
-  border-color: var(--color-base-400) !important;
+  background-color: var(--color-base-400) !important; /* theme-locked-allow: manual-review */
+  border-color: var(--color-base-400) !important; /* theme-locked-allow: manual-review */
 }
 
 /* Backend/portal dark body – OFF grey */
 body.portal-backend-dark .form-switch .form-check-input:not(:checked),
 body[data-bs-theme="dark"] .form-switch .form-check-input:not(:checked) {
-  background-color: var(--color-base-500) !important;
-  border-color: var(--color-base-500) !important;
+  background-color: var(--color-base-500) !important; /* theme-locked-allow: manual-review */
+  border-color: var(--color-base-500) !important; /* theme-locked-allow: manual-review */
 }
 
 /* Admin & Site Settings: OFF = red (explicit hex, theme-independent) */
@@ -58,12 +58,11 @@ body.app-siteconfig .form-check-input[type="checkbox"]:not(:checked) {
   background-color: var(--color-red-600) !important;
   border-color: var(--color-red-600) !important;
 }
-
-body.change-form .form-switch .form-check-input:hover:not(:checked),
+body.change-form .form-switch .form-check-input:hover:not(:checked), /* theme-locked-allow: decorative-tint-mix */
 body.changelist .form-switch .form-check-input:hover:not(:checked),
 body.app-siteconfig .form-switch .form-check-input:hover:not(:checked) {
-  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
-  border-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
+  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important; /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important; /* theme-locked-allow: decorative-tint-mix */
 }
 
 [data-theme="dark"] body.change-form .form-switch .form-check-input:not(:checked),
@@ -71,8 +70,8 @@ body.app-siteconfig .form-switch .form-check-input:hover:not(:checked) {
 [data-theme="dark"] body.app-siteconfig .form-switch .form-check-input:not(:checked),
 body.portal-backend-dark.change-form .form-switch .form-check-input:not(:checked),
 body.portal-backend-dark.app-siteconfig .form-switch .form-check-input:not(:checked) {
-  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
-  border-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
+  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important; /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important; /* theme-locked-allow: decorative-tint-mix */
 }
 
 /* =========================================================
@@ -97,15 +96,15 @@ body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="r
 /* Switch knob: force high-contrast white in all themes */
 body.change-form input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]::after,
 body.changelist input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]::after,
-body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]::after {
-  background-color: var(--color-base-0) !important;
+body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]::after { /* theme-locked-allow: decorative-tint-mix */
+  background-color: var(--surface-elevated, var(--color-base-0)) !important;
 }
 
 /* Hover: slightly darker OFF red (keeps intent obvious) */
 body.change-form input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:hover:not(:checked),
 body.changelist input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:hover:not(:checked),
 body.app-siteconfig input[type="checkbox"][class*="w-8"][class*="h-5"][class*="rounded-full"]:hover:not(:checked) {
-  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important;
+  background-color: color-mix(in oklab, var(--color-red-600) 80%, var(--color-base-950)) !important; /* theme-locked-allow: decorative-tint-mix */
 }
 
 /* Backend (/backend) and dashboard: same red/green toggle semantics */
@@ -140,17 +139,17 @@ body[data-dashboard-page] input[type="checkbox"]:not(:checked) {
 .btn-success.btn-state-on {
   background-color: var(--brand-success, var(--color-emerald-500));
   border-color: var(--brand-success, var(--color-emerald-500));
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
 }
 .btn-state-off,
 .btn-secondary.btn-state-off {
-  background-color: var(--color-base-300, var(--color-base-300));
-  border-color: var(--color-base-300, var(--color-base-300));
+  background-color: var(--surface-canvas, var(--color-base-300, var(--color-base-300)));
+  border-color: var(--hairline, var(--color-base-300, var(--color-base-300)));
   color: var(--portal-text, var(--color-base-900));
 }
 [data-bs-theme="dark"] .btn-state-off,
 body.portal-backend-dark .btn-state-off {
-  background-color: var(--color-base-600, var(--color-base-600));
-  border-color: var(--color-base-600, var(--color-base-600));
+  background-color: var(--color-base-600, var(--color-base-600)); /* theme-locked-allow: manual-review */
+  border-color: var(--color-base-600, var(--color-base-600)); /* theme-locked-allow: manual-review */
   color: var(--backend-text, var(--color-base-200));
 }

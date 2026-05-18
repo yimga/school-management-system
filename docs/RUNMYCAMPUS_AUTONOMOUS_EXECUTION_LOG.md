@@ -1,5 +1,33 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1272 Studio OS manager UX waves 1–6 (2026-05-17)
+
+**A. Scope:** World-class manager Studio OS UX — six waves, each closed before the next: focus layout, embed chrome, unified workspace, inline feature control density, nav dedupe, verification + SOT.
+
+**B. Implementation:** Wave 1 `studio-focus-layout.css`, `build_studio_focus_sidebar()`, `shell_control_plane.html`. Wave 2 `embed_render.py`, `studio_embed_minimal.html`. Wave 3 `workspace_layout.html`, `studio-workspace.css`, `partials/workspace/*`. Wave 4 `studio_inline` on feature control + `studio-control-inline.css`. Wave 5 `verify_studio_nav_uniqueness.py`. Wave 6 `verify_studio_os_ux_waves.py` meta-runner; `verify_phase5_studio_os_conformance` output canvas contract.
+
+**C. Tests:** `test_studio_focus_layout`, `test_studio_embed_chrome`, `test_studio_workspace_layout`, `test_studio_control_inline`, `test_experience_workbench` (manager host).
+
+**D. Gates:** `verify_studio_os_ux_waves` OK; `audit_template_render_safety` 0; `verify_phase5_studio_os_conformance` OK.
+
+**E. SW:** `sms-v3.24.3-studio-workspace-wave3-2026-05-17`.
+
+**F. Verdict:** **BATCH 1272 DONE** — Studio OS manager UX waves 1–6 repo-closed.
+
+## Slice - batch 1273 platform brand header (2026-05-17)
+
+**A. Scope:** Platform-wide official logo + proper manager/marketing header (user-provided shield lockup).
+
+**B. Implementation:** Brand PNGs under `static/images/brand/`; `rmc_brand_mark` platform wordmark + badge; `manager_operator_topbar` header IA (brand / command search / utilities); `rmc-platform-header.css`; marketing header + footer unified; admin manager favicon; context processor navy/gold + logo defaults; `.env.staging.example` PUBLIC_BRAND_*.
+
+**C. Tests:** `apps.siteconfig.tests.test_platform_brand_header.PlatformBrandHeaderTests` **2/2 OK** (`--keepdb` on `.django_test_dbs/default.sqlite3`).
+
+**D. Gates:** `audit_template_render_safety` **0** on 1026 templates; manager `/super/` HTTP smoke for brand markers.
+
+**E. SW:** `sms-v3.24.4-platform-brand-header-2026-05-17`.
+
+**F. Verdict:** **BATCH 1273 DONE** — platform brand header closed end-to-end (renumbered from provisional 1261 to avoid collision with 12-pillar batch 1261).
+
 ## Slice - batch 1262 operator siteconfig CP stem completion (2026-05-17)
 
 **A. Scope:** End-to-end closeout of the four siteconfig pages still on plain `render()` (maintenance preview, region validation, region comparison, region grading matrix) — no verifier allowlist bypass.

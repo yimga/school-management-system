@@ -4,7 +4,7 @@
 {% block title %}Bulk Grade Import - Upload & Validate{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css"> <!-- sri-allow: dropzone-css-pinned-v5.9.3-cdnjs -->
 
 {% endblock %}
 
@@ -253,7 +253,7 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script> <!-- sri-allow: dropzone-js-pinned-v5.9.3-cdnjs -->
 <script type="application/json" id="page-data-evals__grade_import_upload_v2-1">{
   "url_evals_grade_import_apply_api": "{% url "evals:grade_import_apply_api" %}",
   "var_csrf_token": "{{ csrf_token|escapejs }}"

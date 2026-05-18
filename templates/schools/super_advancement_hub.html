@@ -16,15 +16,15 @@
 {% block cp_content %}
 <div class="container-fluid py-3 content-max-960" data-page-archetype="catalog">
   <header class="mb-4 pb-3 border-bottom border-secondary">
-    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Advancement" %}</h1>
-    <p class="text-white-50 small mb-0">{% trans "One identity graph: student, family, alumni, donor. Phase 1: alumni directory, campaigns, and aid. Phase 2: in-product donor CRM, gifts, and receipts—use tenant backend links below; platform quick-add for cross-tenant ops." %}</p>
+    <h1 class="h4 mb-1 fw-bold">{% trans "Advancement" %}</h1>
+    <p class="small mb-0">{% trans "One identity graph: student, family, alumni, donor. Phase 1: alumni directory, campaigns, and aid. Phase 2: in-product donor CRM, gifts, and receipts—use tenant backend links below; platform quick-add for cross-tenant ops." %}</p>
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
   <div class="card border-secondary mb-3" role="region" aria-label="{% trans 'Identity graph' %}">
     <div class="card-body py-2">
       <h6 class="card-title mb-1">{% trans "One identity graph" %}</h6>
-      <p class="small text-white-50 mb-0">{% trans "Students, families, alumni, and donors in one graph; same platform, no second CRM. Identity and giving data in one place." %}</p>
+      <p class="small mb-0">{% trans "Students, families, alumni, and donors in one graph; same platform, no second CRM. Identity and giving data in one place." %}</p>
     </div>
   </div>
   <div class="row g-3 rmc-reveal-stagger">
@@ -63,7 +63,7 @@
       <div class="card h-100 border-success border-opacity-50">
         <div class="card-body">
           <h6 class="card-title">{% trans "Tenant donor CRM (staff)" %}</h6>
-          <p class="small text-white-50 mb-2">{% trans "Each school: open backend on the school subdomain, then:" %} <code class="text-info">{{ tenant_donor_crm_path }}</code></p>
+          <p class="small mb-2">{% trans "Each school: open backend on the school subdomain, then:" %} <code class="text-info">{{ tenant_donor_crm_path }}</code></p>
           <p class="small mb-0">{% trans "List/edit donors, record gifts, campaigns (labels). Platform super form below remains for cross-tenant ops." %}</p>
         </div>
       </div>
@@ -74,7 +74,7 @@
       <div class="card h-100 border-secondary">
         <div class="card-body">
           <h6 class="card-title">{% trans "Platform donor quick-add" %}</h6>
-          <p class="small text-white-50 mb-2">{% trans "Super-only cross-tenant entry by school ID (operations console)." %}</p>
+          <p class="small mb-2">{% trans "Super-only cross-tenant entry by school ID (operations console)." %}</p>
           <a href="{{ phase2_placeholder_url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
         </div>
       </div>

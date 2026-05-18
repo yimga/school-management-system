@@ -1,0 +1,45 @@
+{% comment %}
+Unified Studio OS workspace: section rail | primary canvas | optional context column.
+
+Usage:
+  {% include "studio_os/components/workspace_layout.html" with
+       workspace_mode="launch"
+       workspace_aria_label=_("Launch")
+       workspace_rail_template="studio_os/partials/workspace/launch_rail.html"
+       workspace_canvas_template="studio_os/partials/workspace/launch_canvas.html" %}
+
+Experience (three-pane):
+  workspace_three_col=1 workspace_context_template="studio_os/partials/experience_workbench_context.html"
+
+Output (mobile tabs):
+  workspace_mobile_tabs_template="studio_os/partials/workspace/output_mobile_tabs.html"
+  workspace_rail_hide_mobile=1
+{% endcomment %}
+{% load i18n %}
+<div class="rmc-studio-workspace rmc-studio-workspace--{{ workspace_mode }}{% if workspace_three_col %} rmc-studio-workspace--three-col{% elif workspace_two_col %} rmc-studio-workspace--two-col{% endif %}"
+     data-studio-workspace-mode="{{ workspace_mode }}"
+     data-rmc-studio-workspace="1">
+  {% if workspace_rail_template %}
+  <nav class="rmc-studio-workspace__rail studio-os__{{ workspace_mode }}-rail flex-shrink-0 mb-2 mb-lg-0{% if workspace_rail_hide_mobile %} d-none d-lg-block{% endif %}"
+       aria-label="{{ workspace_aria_label }}"
+       {% if workspace_rail_id %}id="{{ workspace_rail_id }}"{% endif %}>
+    {% include workspace_rail_template %}
+  </nav>
+  {% endif %}
+  <div class="rmc-studio-workspace__main flex-grow-1 min-w-0" data-rmc-studio-workspace-main="1">
+    {% if workspace_mobile_tabs_template %}
+    <div class="rmc-studio-workspace__mobile-tabs d-lg-none" data-rmc-studio-workspace-tabs="1">
+      {% include workspace_mobile_tabs_template %}
+    </div>
+    {% endif %}
+    {% if workspace_canvas_template %}
+    {% include workspace_canvas_template %}
+    {% endif %}
+  </div>
+  {% if workspace_context_template %}
+  <aside class="rmc-studio-workspace__context studio-os__{{ workspace_mode }}-context flex-shrink-0 mb-2 mb-lg-0"
+         aria-label="{% trans 'Related tools' %}">
+    {% include workspace_context_template %}
+  </aside>
+  {% endif %}
+</div>

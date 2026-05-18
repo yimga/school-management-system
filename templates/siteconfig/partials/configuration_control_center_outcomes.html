@@ -10,11 +10,11 @@
 
 {% if ccc_source_legend %}
 <details class="mb-3 {% if ccc_outcome_compact %}border rounded p-3 bg-body-secondary bg-opacity-10{% else %}border border-secondary border-opacity-25 rounded p-3 bg-dark bg-opacity-25{% endif %}">
-  <summary class="small {% if ccc_outcome_compact %}text-body-secondary{% else %}text-white-50{% endif %} cursor-pointer" >{% trans "Source labels (trace why enabled)" %}</summary>
-  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-white-50{% endif %} mt-2 mb-2">{% trans "Each outcome link lists sources — these are the platform layers that can explain effective behavior." %}</p>
+  <summary class="small {% if ccc_outcome_compact %}text-body-secondary{% else %}text-secondary{% endif %} cursor-pointer" >{% trans "Source labels (trace why enabled)" %}</summary>
+  <p class="small {% if ccc_outcome_compact %}text-muted{% else %}text-secondary{% endif %} mt-2 mb-2">{% trans "Each outcome link lists sources — these are the platform layers that can explain effective behavior." %}</p>
   <ul class="list-unstyled small row row-cols-1 row-cols-sm-2 g-1 mb-0">
     {% for label in ccc_source_legend %}
-    <li class="col">{% if ccc_outcome_compact %}<span class="text-body">{{ label }}</span>{% else %}<span class="text-white-50">{{ label }}</span>{% endif %}</li>
+    <li class="col">{% if ccc_outcome_compact %}<span class="text-body">{{ label }}</span>{% else %}<span >{{ label }}</span>{% endif %}</li>
     {% endfor %}
   </ul>
 </details>
@@ -43,7 +43,7 @@
                 {% if link.stability == 'danger' %}
                 <span class="badge text-bg-danger">{% trans "danger" %}</span>
                 {% elif link.stability == 'beta' %}
-                <span class="badge text-bg-warning text-dark">{% trans "beta" %}</span>
+                <span class="badge text-bg-warning">{% trans "beta" %}</span>
                 {% else %}
                 <span class="badge text-bg-secondary">{% trans "stable" %}</span>
                 {% endif %}
@@ -58,22 +58,22 @@
       </div>
       {% else %}
       <div class="border border-secondary rounded p-3 h-100 bg-dark bg-opacity-25">
-        <div class="rmc-type-headline-m fw-semibold text-white mb-1">{{ group.title }}</div>
+        <div class="rmc-type-headline-m fw-semibold mb-1">{{ group.title }}</div>
         <p class="rmc-type-caption mb-2">{{ group.subtitle }}</p>
         <ul class="list-unstyled small mb-0">
           {% for link in group.links %}
           <li class="mb-2 pb-2 {% if not forloop.last %}border-bottom border-secondary border-opacity-25{% endif %}">
-            <a href="{{ link.url }}" class="text-white text-decoration-none fw-semibold">{{ link.label }}</a>
+            <a href="{{ link.url }}" class="text-decoration-none fw-semibold">{{ link.label }}</a>
             <div class="mt-1">
               {% if link.stability == 'danger' %}
               <span class="badge text-bg-danger">{% trans "danger" %}</span>
               {% elif link.stability == 'beta' %}
-              <span class="badge text-bg-warning text-dark">{% trans "beta" %}</span>
+              <span class="badge text-bg-warning">{% trans "beta" %}</span>
               {% else %}
               <span class="badge text-bg-secondary">{% trans "stable" %}</span>
               {% endif %}
               {% if link.sources %}
-              <span class="text-white-50 ms-1">· {% trans "Sources" %}: {{ link.sources|join:", " }}</span>
+              <span class="ms-1">· {% trans "Sources" %}: {{ link.sources|join:", " }}</span>
               {% endif %}
             </div>
           </li>

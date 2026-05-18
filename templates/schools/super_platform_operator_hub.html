@@ -70,7 +70,7 @@
         </a>
       </div>
       {% empty %}
-      <p class="text-white-50 small px-1">{% trans "No super links resolved (check URLconf)." %}</p>
+      <p class="small px-1">{% trans "No super links resolved (check URLconf)." %}</p>
       {% endfor %}
     </div>
   </section>
@@ -83,7 +83,7 @@
       {% endif %}
     </summary>
     <div class="cpoh-advanced-body">
-      <p class="small text-white-50 mb-3">
+      <p class="small mb-3">
         {% trans "Models still registered on the platform admin site. Prefer operator surfaces above; use these for deep maintenance only." %}
       </p>
       {% if admin_app_list %}
@@ -106,7 +106,7 @@
         </div>
       {% endfor %}
       {% else %}
-      <p class="text-white-50 small">{% trans "No admin applications (empty registry or permissions)." %}</p>
+      <p class="small">{% trans "No admin applications (empty registry or permissions)." %}</p>
       {% endif %}
     </div>
   </details>

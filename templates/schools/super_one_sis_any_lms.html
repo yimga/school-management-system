@@ -15,33 +15,33 @@
 {% block cp_content %}
 <div class="container-fluid py-3 content-max-960" data-page-archetype="catalog">
   <header class="mb-4 pb-3 border-bottom border-secondary">
-    <h1 class="h4 mb-1 fw-bold text-white">{% trans "One SIS, any LMS" %}</h1>
-    <p class="text-white-50 small mb-0">{% trans "We're the spine: configure integration → SSO → roster sync (OneRoster) → grade passback (LTI). Google, Microsoft, Canvas, D2L, Moodle, Blackboard." %}</p>
+    <h1 class="h4 mb-1 fw-bold">{% trans "One SIS, any LMS" %}</h1>
+    <p class="small mb-0">{% trans "We're the spine: configure integration → SSO → roster sync (OneRoster) → grade passback (LTI). Google, Microsoft, Canvas, D2L, Moodle, Blackboard." %}</p>
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
   <ol class="list-group list-group-numbered list-group-flush">
-    <li class="list-group-item bg-dark border-secondary text-white">
+    <li class="list-group-item bg-dark border-secondary">
       <strong>{% trans "Configure integration" %}</strong>
-      <p class="small text-white-50 mb-0">{% trans "Add your LMS in Integrations; set SSO (OIDC/SAML) and roster export." %}</p>
+      <p class="small mb-0">{% trans "Add your LMS in Integrations; set SSO (OIDC/SAML) and roster export." %}</p>
       {% if integration_url %}<a href="{{ integration_url }}" class="btn btn-outline-light btn-sm mt-2">{% trans "Integrations" %}</a>{% endif %}
     </li>
-    <li class="list-group-item bg-dark border-secondary text-white">
+    <li class="list-group-item bg-dark border-secondary">
       <strong>{% trans "SSO" %}</strong>
-      <p class="small text-white-50 mb-0">{% trans "Single sign-on: users log in once; we support OIDC and SAML." %}</p>
+      <p class="small mb-0">{% trans "Single sign-on: users log in once; we support OIDC and SAML." %}</p>
     </li>
-    <li class="list-group-item bg-dark border-secondary text-white">
+    <li class="list-group-item bg-dark border-secondary">
       <strong>{% trans "Roster sync (OneRoster)" %}</strong>
-      <p class="small text-white-50 mb-0">{% trans "Export classes and enrollments via OneRoster so your LMS has the same roster." %}</p>
+      <p class="small mb-0">{% trans "Export classes and enrollments via OneRoster so your LMS has the same roster." %}</p>
     </li>
-    <li class="list-group-item bg-dark border-secondary text-white">
+    <li class="list-group-item bg-dark border-secondary">
       <strong>{% trans "Grade passback (LTI 1.3 AGS)" %}</strong>
-      <p class="small text-white-50 mb-0">{% trans "Grades flow back into the LMS via LTI Assignment and Grade Services." %}</p>
+      <p class="small mb-0">{% trans "Grades flow back into the LMS via LTI Assignment and Grade Services." %}</p>
     </li>
   </ol>
   {% if lms_certification %}
   <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'LMS certification status' %}">
-    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Certification status" %}</h2>
+    <h2 class="h6 mb-2 fw-bold">{% trans "Certification status" %}</h2>
     <div class="table-responsive">
       <table class="table table-dark table-sm table-striped">
         <caption class="visually-hidden">{% trans "Certification status" %}</caption>
@@ -57,7 +57,7 @@
           <tr>
             <td>{{ row.name }}</td>
             <td><span class="badge {{ row.badge_class }}">{{ row.status }}</span></td>
-            <td class="small text-white-50">{{ row.api_surface }}</td>
+            <td class="small">{{ row.api_surface }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -66,27 +66,27 @@
   </section>
   {% endif %}
   <section class="mt-4 pt-3 border-top border-secondary rmc-reveal" aria-label="{% trans 'Native roster APIs' %}">
-    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Native district roster (Clever / ClassLink)" %}</h2>
-    <p class="small text-white-50 mb-2">{% trans "End-to-end HTTP clients ship in-repo; district tokens activate live calls." %}</p>
+    <h2 class="h6 mb-2 fw-bold">{% trans "Native district roster (Clever / ClassLink)" %}</h2>
+    <p class="small mb-2">{% trans "End-to-end HTTP clients ship in-repo; district tokens activate live calls." %}</p>
     <div class="d-flex flex-wrap gap-2">
       {% if native_roster_connectors_url %}<a href="{{ native_roster_connectors_url }}" class="btn btn-outline-info btn-sm">{% trans "Native roster console (super)" %}</a>{% endif %}
       {% if wedge_44_url %}<a href="{{ wedge_44_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Wedge 44 operator page" %}</a>{% endif %}
     </div>
   </section>
   <section class="mt-4 pt-3 border-top border-secondary rmc-reveal" aria-label="{% trans 'Related catalogs' %}">
-    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Tenant operators" %}</h2>
-    <p class="small text-white-50 mb-2">{% trans "Each school: Backend → District & LMS interop — OneRoster URLs, token rotate, CSV roster exports, SSO/LTI discovery." %}</p>
-    <p class="small text-white-50 mb-0">{% trans "Learning modes & institution types (23–43):" %} <a href="{% url 'super:learning_delivery_packs' %}" class="link-light">{% trans "Learning delivery & institution types" %}</a></p>
+    <h2 class="h6 mb-2 fw-bold">{% trans "Tenant operators" %}</h2>
+    <p class="small mb-2">{% trans "Each school: Backend → District & LMS interop — OneRoster URLs, token rotate, CSV roster exports, SSO/LTI discovery." %}</p>
+    <p class="small mb-0">{% trans "Learning modes & institution types (23–43):" %} <a href="{% url 'super:learning_delivery_packs' %}" class="link-light">{% trans "Learning delivery & institution types" %}</a></p>
   </section>
   <section class="mt-4 pt-3 border-top border-secondary rmc-reveal" aria-label="{% trans 'Platform spine' %}">
-    <h2 class="h6 mb-2 fw-bold text-white">{% trans "Platform spine" %}</h2>
+    <h2 class="h6 mb-2 fw-bold">{% trans "Platform spine" %}</h2>
     <div class="d-flex flex-wrap gap-2">
       {% if curriculum_packs_url %}<a href="{{ curriculum_packs_url }}" class="btn btn-outline-light btn-sm">{% trans "Curriculum & region packs" %}</a>{% endif %}
       {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Geography (7–13)" %}</a>{% endif %}
       {% if migration_cloud_url %}<a href="{{ migration_cloud_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration cloud" %}</a>{% endif %}
       {% if trust_center_url %}<a href="{{ trust_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Trust center" %}</a>{% endif %}
     </div>
-    <p class="small text-white-50 mt-3 mb-0"><strong>{% trans "SLA & observability" %}:</strong> {% trans "Repository doc" %} <code class="text-info">docs/LMS_ROSTER_GRADEPASSBACK_SLA.md</code> — {% trans "roster sync and grade passback targets for operators." %}</p>
+    <p class="small mt-3 mb-0"><strong>{% trans "SLA & observability" %}:</strong> {% trans "Repository doc" %} <code class="text-info">docs/LMS_ROSTER_GRADEPASSBACK_SLA.md</code> — {% trans "roster sync and grade passback targets for operators." %}</p>
   </section>
   {% if onboarding_url %}<a href="{{ onboarding_url }}" class="btn btn-primary mt-3">{% trans "Setup Studio" %}</a>{% endif %}
 </div>

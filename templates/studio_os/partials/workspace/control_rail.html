@@ -1,0 +1,14 @@
+{% load i18n %}
+<div class="studio-os__card py-2">
+  <div class="h6 mb-2">{% trans "Governance" %}</div>
+  <ul class="list-unstyled small mb-0" id="control-rail-list">
+    {% for item in control_left_rail %}
+    <li class="mb-1">
+      <a href="{{ item.url }}" class="control-rail-link {% if forloop.first %}active{% endif %}"
+         {% if item.embed %}data-embed="1"{% endif %}
+         {% if item.external %}data-external="1" target="_blank" rel="noopener noreferrer"{% endif %}
+         {% if control_panel_html and forloop.first %}data-panel="1"{% endif %}>{{ item.label }}{% if item.external %} <span class="visually-hidden">{% trans "(opens in new tab)" %}</span>{% endif %}</a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

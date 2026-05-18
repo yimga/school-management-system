@@ -37,7 +37,7 @@
 .offcanvas.cp-context-drawer {
   --bs-offcanvas-width: min(22rem, 92vw);
   background: var(--cp-panel-bg, rgba(8, 16, 30, 0.98));
-  color: var(--color-base-100, var(--color-base-100));
+  color: var(--text-tertiary, var(--color-base-100, var(--color-base-100)));
   border-left: 1px solid rgba(125, 152, 187, 0.25);
 }
 
@@ -46,7 +46,7 @@
 }
 
 .offcanvas.cp-context-drawer .list-unstyled a {
-  color: var(--color-base-200, var(--color-base-200));
+  color: var(--text-tertiary, var(--color-base-200, var(--color-base-200)));
 }
 
 /* Manager /admin/: sticky action slot — hidden when block is empty */

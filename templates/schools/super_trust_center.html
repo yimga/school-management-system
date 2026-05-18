@@ -55,7 +55,7 @@
           <p class="card-text small text-secondary">
             {% blocktrans with t=sso_health.integrations_tracked ok=sso_health.ok_last_7d fl=sso_health.fail_last_7d %}Federation integrations tracked: {{ t }}. Successful logins (7d): {{ ok }}. Failures (7d): {{ fl }}.{% endblocktrans %}
           </p>
-          <span class="badge bg-info text-dark">{% trans "Live" %}</span>
+          <span class="badge bg-info">{% trans "Live" %}</span>
         </div>
       </div>
     </div>

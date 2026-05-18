@@ -1,0 +1,18 @@
+{% load i18n %}
+<div class="studio-os__card py-2">
+  <div class="h6 mb-2">{% trans "Workflows" %}</div>
+  <ul class="list-unstyled small mb-0" id="automation-rail-list">
+    {% for item in automation_left_rail %}
+    <li class="mb-1">
+      <a href="{{ item.url }}"
+         class="automation-rail-link {% if item.pane == automation_pane %}active{% endif %}">{{ item.label }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="small text-muted mt-2 mb-0">{{ automation_simulation_summary }}</p>
+  {% if automation_conflict_pane_url and automation_pane != "conflict" %}
+  <p class="small mb-0 mt-2">
+    <a href="{{ automation_conflict_pane_url }}">{% trans "Review conflict detection" %}</a>
+  </p>
+  {% endif %}
+</div>

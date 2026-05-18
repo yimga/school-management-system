@@ -15,8 +15,8 @@
 {% block cp_content %}
 <div class="container-fluid py-3 content-max-960" data-page-archetype="catalog">
   <header class="mb-4 pb-3 border-bottom border-secondary">
-    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Learning delivery & institution types" %}</h1>
-    <p class="text-white-50 small mb-2">{% trans "Wedges 23–30 (delivery) and 31–43 (institution types): catalog of modes and suggested pack slugs. Enable via marketplace / plan addons." %}</p>
+    <h1 class="h4 mb-1 fw-bold">{% trans "Learning delivery & institution types" %}</h1>
+    <p class="small mb-2">{% trans "Wedges 23–30 (delivery) and 31–43 (institution types): catalog of modes and suggested pack slugs. Enable via marketplace / plan addons." %}</p>
     <div class="d-flex flex-wrap gap-2">
       {% if curriculum_packs_url %}<a href="{{ curriculum_packs_url }}" class="btn btn-outline-light btn-sm">{% trans "Curriculum packs" %}</a>{% endif %}
       {% if education_systems_url %}<a href="{{ education_systems_url }}" class="btn btn-outline-light btn-sm">{% trans "Education systems" %}</a>{% endif %}
@@ -28,7 +28,7 @@
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
 
-  <h2 class="h6 text-white mb-2">{% trans "Learning delivery modes" %}</h2>
+  <h2 class="h6 mb-2">{% trans "Learning delivery modes" %}</h2>
   <div class="table-responsive mb-4">
     <table class="table table-dark table-sm table-striped">
       <caption class="visually-hidden">{% trans "Learning delivery modes" %}</caption>
@@ -36,18 +36,18 @@
       <tbody>
         {% for row in delivery_modes %}
         <tr>
-          <td class="text-white-50">{{ row.wedge }}</td>
+          <td >{{ row.wedge }}</td>
           <td><code>{{ row.code }}</code></td>
           <td>{{ row.label }}</td>
-          <td class="small text-white-50">{{ row.pack_slugs }}</td>
-          <td class="small text-white-50">{{ row.notes }}</td>
+          <td class="small">{{ row.pack_slugs }}</td>
+          <td class="small">{{ row.notes }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <h2 class="h6 text-white mb-2">{% trans "Institution types → packs" %}</h2>
+  <h2 class="h6 mb-2">{% trans "Institution types → packs" %}</h2>
   <div class="table-responsive">
     <table class="table table-dark table-sm table-striped">
       <caption class="visually-hidden">{% trans "Institution types → packs" %}</caption>
@@ -55,10 +55,10 @@
       <tbody>
         {% for row in institution_types %}
         <tr>
-          <td class="text-white-50">{{ row.wedge }}</td>
+          <td >{{ row.wedge }}</td>
           <td><code>{{ row.code }}</code></td>
           <td>{{ row.label }}</td>
-          <td class="small text-white-50">{{ row.pack_slugs }}</td>
+          <td class="small">{{ row.pack_slugs }}</td>
         </tr>
         {% endfor %}
       </tbody>

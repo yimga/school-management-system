@@ -23,6 +23,23 @@ body.control-plane-shell .btn {
   border-radius: 999px;
 }
 
+body.control-plane-shell .btn-outline-secondary,
+body.control-plane-shell .btn-outline-primary,
+#cp-main-content .btn-outline-secondary,
+#cp-main-content .btn-outline-primary {
+  color: var(--text-primary);
+  border-color: var(--hairline, rgba(157, 181, 214, 0.32));
+}
+
+body.control-plane-shell .btn-outline-secondary:hover,
+body.control-plane-shell .btn-outline-primary:hover,
+#cp-main-content .btn-outline-secondary:hover,
+#cp-main-content .btn-outline-primary:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border-color: var(--text-secondary);
+}
+
 .cp-hero {
   position: relative;
   overflow: hidden;

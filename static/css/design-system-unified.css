@@ -12,7 +12,7 @@
   --rmc-lit-9ef378ee07: 0.5rem 1rem;
   --rmc-lit-9f2cb2c47e: var(--spacing-xs);
   --rmc-lit-b37a5f0e0e: var(--spacing-sm) !important;
-  --rmc-lit-bc77032159: 0 1px 0 0 var(--bs-border-color, var(--color-base-200));
+  --rmc-lit-bc77032159: 0 1px 0 0 var(--bs-border-color, var(--color-base-200)); /* theme-locked-allow: manual-review */
   --rmc-lit-ea4d3684b6: var(--spacing-lg) !important;
   --rmc-lit-ef12b23bea: var(--lux-radius-lg, var(--radius-lg));
   --rmc-lit-f245eab363: 0.35rem 0.5rem;
@@ -33,7 +33,7 @@
      ============================================ */
   --color-primary: var(--school-primary);
   --color-primary-light: var(--school-primary-light);
-  --color-primary-dark: color-mix(in srgb, var(--school-primary) 72%, var(--color-base-900));
+  --color-primary-dark: color-mix(in srgb, var(--school-primary) 72%, var(--color-base-900)); /* theme-locked-allow: decorative-tint-mix */
   
   /* Secondary: Purple */
   --color-secondary: var(--color-indigo-400);
@@ -46,14 +46,14 @@
   --color-accent-dark: var(--color-teal-500);
   
   /* Text & Background */
-  --color-text-primary: var(--color-base-900);
-  --color-text-secondary: var(--color-base-800);
-  --color-text-muted: var(--color-base-500);
+  --color-text-primary: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --color-text-secondary: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --color-text-muted: var(--color-base-500); /* theme-locked-allow: manual-review */
   
-  --color-bg-primary: var(--color-base-0);
-  --color-bg-light: var(--color-base-50);
-  --color-bg-lighter: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50));
-  --color-bg-dark: color-mix(in oklab, var(--color-indigo-900) 50%, var(--color-base-950));
+  --color-bg-primary: var(--color-base-0); /* theme-locked-allow: manual-review */
+  --color-bg-light: var(--color-base-50); /* theme-locked-allow: manual-review */
+  --color-bg-lighter: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50)); /* theme-locked-allow: decorative-tint-mix */
+  --color-bg-dark: color-mix(in oklab, var(--color-indigo-900) 50%, var(--color-base-950)); /* theme-locked-allow: decorative-tint-mix */
   
   /* Borders */
   --color-border: rgba(26, 22, 18, 0.08);
@@ -69,7 +69,7 @@
   --color-danger: var(--color-red-500);
   --color-danger-light: rgba(239, 68, 68, 0.1);
   
-  --color-info: var(--color-primary-500);
+  --color-info: var(--color-primary-500); /* theme-locked-allow: brand-token */
   --color-info-light: rgba(59, 130, 246, 0.1);
   
   /* ============================================
@@ -169,12 +169,12 @@
    ============================================ */
 :root[data-theme="light"],
 html[data-bs-theme="light"] {
-  --color-text-primary: var(--color-base-900);
-  --color-text-secondary: var(--color-base-800);
-  --color-text-muted: var(--color-base-600); /* Stronger contrast on light bg (WCAG AA) */
-  --color-bg-primary: var(--color-base-0);
-  --color-bg-light: var(--color-base-50);
-  --color-bg-lighter: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50));
+  --color-text-primary: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --color-text-secondary: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --color-text-muted: var(--color-base-600); /* theme-locked-allow: manual-review */ /* Stronger contrast on light bg (WCAG AA) */
+  --color-bg-primary: var(--color-base-0); /* theme-locked-allow: manual-review */
+  --color-bg-light: var(--color-base-50); /* theme-locked-allow: manual-review */
+  --color-bg-lighter: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50)); /* theme-locked-allow: decorative-tint-mix */
   --color-border: rgba(26, 22, 18, 0.08);
   --color-border-light: rgba(26, 22, 18, 0.04);
   --color-success-light: rgba(16, 185, 129, 0.1);
@@ -186,17 +186,17 @@ html[data-bs-theme="light"] {
 :root[data-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
-  --color-text-primary: var(--color-base-100);
-  --color-text-secondary: var(--color-base-200);
-  --color-text-muted: var(--color-base-400);
-  --color-bg-primary: var(--color-base-900);
-  --color-bg-light: var(--color-base-800);
-  --color-bg-lighter: var(--color-base-700);
+  --color-text-primary: var(--color-base-100); /* theme-locked-allow: manual-review */
+  --color-text-secondary: var(--color-base-200); /* theme-locked-allow: manual-review */
+  --color-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
+  --color-bg-primary: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --color-bg-light: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --color-bg-lighter: var(--color-base-700); /* theme-locked-allow: manual-review */
   --color-border: rgba(168, 160, 146, 0.25);
   --color-border-light: rgba(168, 160, 146, 0.12);
   /* Dark: brand tints from school primary (one product family) */
-  --color-primary: color-mix(in srgb, var(--school-primary) 70%, var(--color-base-0));
-  --color-primary-light: color-mix(in srgb, var(--school-primary) 45%, var(--color-base-0));
+  --color-primary: color-mix(in srgb, var(--school-primary) 70%, var(--color-base-0)); /* theme-locked-allow: decorative-tint-mix */
+  --color-primary-light: color-mix(in srgb, var(--school-primary) 45%, var(--color-base-0)); /* theme-locked-allow: decorative-tint-mix */
   --color-primary-dark: var(--school-primary);
   --color-secondary: var(--color-indigo-400);
   --color-secondary-light: var(--color-indigo-300);
@@ -207,7 +207,7 @@ body.portal-backend-dark {
   --color-success: var(--color-emerald-400);
   --color-warning: var(--color-amber-400);
   --color-danger: var(--color-red-400);
-  --color-info: var(--color-primary-400);
+  --color-info: var(--color-primary-400); /* theme-locked-allow: brand-token */
   --color-success-light: rgba(16, 185, 129, 0.2);
   --color-warning-light: rgba(245, 158, 11, 0.2);
   --color-danger-light: rgba(239, 68, 68, 0.2);
@@ -220,13 +220,13 @@ body.portal-backend-dark {
    ============================================ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-text-primary: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50));
-    --color-text-secondary: var(--color-base-300);
-    --color-text-muted: var(--color-base-400);
+    --color-text-primary: color-mix(in oklab, var(--color-base-200) 50%, var(--color-base-50)); /* theme-locked-allow: decorative-tint-mix */
+    --color-text-secondary: var(--color-base-300); /* theme-locked-allow: manual-review */
+    --color-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
     
-    --color-bg-primary: color-mix(in oklab, var(--color-indigo-900) 50%, var(--color-base-950));
-    --color-bg-light: var(--color-base-800);
-    --color-bg-lighter: var(--color-base-700);
+    --color-bg-primary: color-mix(in oklab, var(--color-indigo-900) 50%, var(--color-base-950)); /* theme-locked-allow: decorative-tint-mix */
+    --color-bg-light: var(--color-base-800); /* theme-locked-allow: manual-review */
+    --color-bg-lighter: var(--color-base-700); /* theme-locked-allow: manual-review */
     
     --color-border: rgba(240, 244, 248, 0.1);
     --color-border-light: rgba(240, 244, 248, 0.05);
@@ -312,22 +312,22 @@ textarea {
   left: 0.5rem;
   padding: var(--rmc-lit-9ef378ee07);
   background: var(--color-primary, var(--school-primary));
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   text-decoration: none;
-  outline: 2px solid var(--color-base-0);
+  outline: 2px solid var(--hairline, var(--color-base-0)); /* theme-locked-allow: manual-review */
   outline-offset: 2px;
 }
 
 /* Selection */
 ::selection {
   background-color: var(--color-primary);
-  color: var(--color-base-50);
+  color: var(--text-tertiary, var(--color-base-50));
 }
 /* Selection – dark mode: desaturated primary, off-white text */
 :root[data-theme="dark"] ::selection,
 html[data-bs-theme="dark"] ::selection {
   background-color: var(--color-primary);
-  color: var(--color-base-100);
+  color: var(--color-base-100); /* theme-locked-allow: manual-review */
 }
 
 /* Scrollbar for webkit browsers */
@@ -741,7 +741,6 @@ html[data-bs-theme="dark"] ::selection {
   background-color: var(--color-bg-light, var(--color-base-50));
   color: var(--color-text-primary, var(--color-base-900));
 }
-
 /* Phase 15.4: Condensed table view (smaller padding and font) */
 .table-condensed th,
 .table-condensed td {

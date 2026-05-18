@@ -31349,3 +31349,94 @@ msgstr "selected"
 
 msgid "start with a blank form"
 msgstr "start with a blank form"
+
+msgid "Fleet-wide grading scale matrix for cross-region operator triage."
+msgstr "Fleet-wide grading scale matrix for cross-region operator triage."
+
+msgid "Maintenance preview"
+msgstr "Maintenance preview"
+
+msgid ""
+"No school context. Open a school from the control plane, then return to this"
+" page."
+msgstr ""
+"No school context. Open a school from the control plane, then return to this"
+" page."
+
+msgid "No school context. Switch to a school to manage dashboard layouts."
+msgstr "No school context. Switch to a school to manage dashboard layouts."
+
+msgid "No school context. Switch to a school to manage dashboards."
+msgstr "No school context. Switch to a school to manage dashboards."
+
+msgid "Quick capture"
+msgstr "Quick capture"
+
+msgid "Region grading matrix"
+msgstr "Region grading matrix"
+
+msgid ""
+"Regional configuration completeness and validation checks for operators."
+msgstr ""
+"Regional configuration completeness and validation checks for operators."
+
+msgid "Run all visible API cards"
+msgstr "Run all visible API cards"
+
+msgid "Runs each card in the open accordion sections (sequential)."
+msgstr "Runs each card in the open accordion sections (sequential)."
+
+msgid ""
+"Side-by-side comparison of core regional settings across fleet regions."
+msgstr ""
+"Side-by-side comparison of core regional settings across fleet regions."
+
+msgid ""
+"Staff preview of the maintenance page shown to users when maintenance mode "
+"is on."
+msgstr ""
+"Staff preview of the maintenance page shown to users when maintenance mode "
+"is on."
+
+msgid ""
+"Staff preview — end users see this page when maintenance mode is enabled "
+"site-wide."
+msgstr ""
+"Staff preview — end users see this page when maintenance mode is enabled "
+"site-wide."
+
+msgid "Student note"
+msgstr "Student note"
+
+msgid "Student notes"
+msgstr "Student notes"
+
+msgid "Full control plane"
+msgstr "Full control plane"
+
+msgid "Leave Studio"
+msgstr "Leave Studio"
+
+msgid "Studio overview"
+msgstr "Studio overview"
+
+msgid "Studio shortcuts"
+msgstr "Studio shortcuts"
+
+msgid "Config"
+msgstr "Config"
+
+msgid "Platform manager header"
+msgstr "Platform manager header"
+
+msgid "Search schools and incidents"
+msgstr "Search schools and incidents"
+
+msgid "Search…"
+msgstr "Search…"
+
+msgid "Studio workspace"
+msgstr "Studio workspace"
+
+msgid "active"
+msgstr "active"

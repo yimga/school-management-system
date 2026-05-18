@@ -56,7 +56,7 @@
 
   {% if operator_links %}
   <div class="card shadow-sm border-0 mb-3">
-    <div class="card-header bg-secondary text-white">{% trans "Curated operator links" %}</div>
+    <div class="card-header bg-secondary">{% trans "Curated operator links" %}</div>
     <div class="card-body">
       <ul class="list-unstyled mb-0">
         {% for link in operator_links %}
@@ -140,7 +140,7 @@
             {% for log in recent_logs %}
             <tr>
               <td class="small text-nowrap">{{ log.started_at }}</td>
-              <td><span class="badge bg-light text-dark">{{ log.status }}</span></td>
+              <td><span class="badge bg-light">{{ log.status }}</span></td>
               <td class="small">{% if log.playbook_slug_short %}<code class="small">{{ log.playbook_slug_short }}</code>{% else %}—{% endif %}</td>
               <td class="small">{{ log.display_school }}</td>
               <td class="small"><code>{{ log.schema_name|default:"—" }}</code></td>

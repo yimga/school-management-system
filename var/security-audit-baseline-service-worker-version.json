@@ -1,12 +1,12 @@
 {
   "date": "2026-05-17",
-  "generated_at": "2026-05-17T20:51:53+00:00",
+  "generated_at": "2026-05-17T22:55:54+00:00",
   "major": 3,
-  "minor": 23,
-  "patch": 1,
-  "raw": "sms-v3.23.1-bug-and-hygiene-sweep-2026-05-17",
+  "minor": 24,
+  "patch": 0,
+  "raw": "sms-v3.24.0-theme-visibility-closure-2026-05-17",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "bug-and-hygiene-sweep",
+  "slug": "theme-visibility-closure",
   "valid": true
 }

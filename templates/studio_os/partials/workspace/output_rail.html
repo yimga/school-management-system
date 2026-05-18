@@ -1,0 +1,13 @@
+{% load i18n %}
+<div class="studio-os__card py-2">
+  <div class="h6 mb-2">{% trans "Outputs" %}</div>
+  <ul class="list-unstyled small mb-0" id="output-rail-list">
+    {% for item in output_left_rail %}
+    <li class="mb-1">
+      <a href="{{ item.url }}"
+         class="output-rail-link {% if item.pane == output_pane %}active{% endif %}">{{ item.label }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="small text-muted mt-2 mb-0">{% trans "All rail panes render natively: pack graph, report library & letters, documents, report card builder, IDs & certificates, branding, policy. Builder live preview still uses an iframe embed by design." %}</p>
+</div>

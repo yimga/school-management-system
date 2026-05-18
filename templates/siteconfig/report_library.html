@@ -38,7 +38,7 @@
                   <div class="d-flex justify-content-between align-items-center">
                     <div>
                       <div class="fw-semibold">{{ pack.name }}</div>
-                      <div class="small {% if selected_report_pack and selected_report_pack.pk == pack.pk %}text-white-50{% else %}text-muted{% endif %}">{{ pack.description|default:"Seeded preview pack"|truncatewords:12 }}</div>
+                      <div class="small {% if selected_report_pack and selected_report_pack.pk == pack.pk %}text-secondary{% else %}text-muted{% endif %}">{{ pack.description|default:"Seeded preview pack"|truncatewords:12 }}</div>
                     </div>
                     <span class="badge {% if selected_report_pack and selected_report_pack.pk == pack.pk %}text-bg-light{% else %}text-bg-secondary{% endif %}">{{ pack.code }}</span>
                   </div>

@@ -1,0 +1,82 @@
+name: Theme visibility platform
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "static/css/theme-platform-contrast.css"
+      - "static/css/theme-visibility-guard.css"
+      - "static/css/dark-mode-safety-net.css"
+      - "static/js/theme-preference-bootstrap.js"
+      - "templates/**"
+      - "scripts/verify_theme_visibility_platform.py"
+      - "scripts/scan_main_content_text_utilities.py"
+      - "scripts/burndown_main_content_text_utilities.py"
+      - "apps/siteconfig/tests/test_theme_visibility_matrix.py"
+      - "tests/e2e/manager-theme-visibility.spec.js"
+      - "scripts/run_manager_surface_parity.sh"
+      - ".github/workflows/theme-visibility-platform.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  theme-visibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      SECRET_KEY: "ci-theme-visibility-not-production-64chars________________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com,manager.runmycampus.com"
+      VISUAL_QA_PORT: "8013"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: beta/school-management-system/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Theme visibility verifier + matrix tests
+        run: |
+          python scripts/verify_theme_visibility_platform.py
+          python scripts/scan_main_content_text_utilities.py
+          python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1
+
+      - name: Manager theme + surface Playwright
+        run: |
+          export MANAGER_SURFACE_FRESH_SERVER=1
+          export VISUAL_QA_PORT="${VISUAL_QA_PORT}"
+          bash scripts/run_manager_surface_parity.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-visibility-artifacts
+          path: |
+            artifacts/manager-surface-parity
+            test-results
+          if-no-files-found: ignore

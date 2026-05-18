@@ -26,7 +26,8 @@
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
-    <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+    <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
+    <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.png' %}{% endif %}" type="image/png">
     {% if not PUBLIC_BRAND_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
     {% block extrahead %}{% endblock %}
 
@@ -37,6 +38,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). #}
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
@@ -73,6 +75,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
   <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>

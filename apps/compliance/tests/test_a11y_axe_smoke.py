@@ -197,3 +197,72 @@ class HomepageAxeSmokeTests(LiveServerTestCase):
                 "axe-core flagged severe violations on authenticated routes:\n\n"
                 + "\n\n".join(f"-- {path} --\n{detail}" for path, detail in failures)
             )
+
+    # 12-pillar audit P2 follow-up (v3.23.4 2026-05-17): WCAG 2.1 SC 1.4.10
+    # (Reflow) requires content to remain usable at 400% zoom without loss of
+    # content / functionality. The two highest-risk surfaces are the finance
+    # invoice table (column-heavy data grid) and the teacher grade entry grid
+    # (sortable column matrix). At 400% on a 1366px viewport the effective
+    # width is ~341px — anything that hard-codes pixel widths or pins horizontal
+    # scroll will lose content here.
+    ZOOM_400_ROUTES = [
+        "/portal/finance/invoices/",
+        "/portal/teacher/",
+    ]
+
+    def test_400_percent_zoom_no_severe_violations(self):
+        self._login_via_session()
+        # 400% zoom on a 1366px window is roughly equivalent to a 341px-wide
+        # viewport at 100%. Re-window the driver and re-scan.
+        self.driver.set_window_size(341, 900)
+        failures = []
+        try:
+            for path in self.ZOOM_400_ROUTES:
+                try:
+                    results = self._axe_scan(path)
+                except Exception as exc:  # noqa: BLE001
+                    failures.append((path, f"scan_failed: {exc}"))
+                    continue
+                severe = self._filter_severe(results)
+                if severe:
+                    failures.append((path, json.dumps(severe, indent=2)[:2000]))
+        finally:
+            # Restore the default window so downstream tests aren't perturbed.
+            self.driver.set_window_size(1366, 900)
+        if failures:
+            self.fail(
+                "axe-core flagged severe violations under 400% zoom (reflow):\n\n"
+                + "\n\n".join(f"-- {path} --\n{detail}" for path, detail in failures)
+            )
+
+    # 12-pillar audit P11 follow-up (v3.23.4 2026-05-17): the Arabic locale
+    # is the only RTL language in LANGUAGES. Without an explicit render check
+    # we can't catch margin/padding bidirectional asset bugs (e.g. a
+    # left-anchored sidebar that doesn't flip), and `verify_rtl_major_templates`
+    # only does template-level lint, not runtime layout.
+    RTL_ROUTES = [
+        "/",
+        "/marketing/",
+        "/portal/",
+    ]
+
+    def test_rtl_arabic_render_no_severe_violations(self):
+        self._login_via_session()
+        # Activate Arabic via the session-persist endpoint; subsequent requests
+        # see `LANGUAGE_BIDI=True` and the body picks up `bidi-rtl`.
+        self.driver.get(self.live_server_url + "/i18n/setlang/persist/?lang=ar")
+        failures = []
+        for path in self.RTL_ROUTES:
+            try:
+                results = self._axe_scan(path)
+            except Exception as exc:  # noqa: BLE001
+                failures.append((path, f"scan_failed: {exc}"))
+                continue
+            severe = self._filter_severe(results)
+            if severe:
+                failures.append((path, json.dumps(severe, indent=2)[:2000]))
+        if failures:
+            self.fail(
+                "axe-core flagged severe violations under RTL (ar) render:\n\n"
+                + "\n\n".join(f"-- {path} --\n{detail}" for path, detail in failures)
+            )

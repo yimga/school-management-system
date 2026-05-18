@@ -12,69 +12,9 @@
     {% include "studio_os/partials/_mode_hero.html" with mode_label=_("Experience") mode_purpose=_("Brand identity, theme packs, layout. Changes propagate through the configurability cascade so the tenant brand wins.") primary_cta_url=legacy_urls.theme_colors primary_cta_label=_("Theme & colors") secondary_cta_url=legacy_urls.customizer secondary_cta_label=_("Customizer") %}
   </div>
   {% if use_experience_in_page and form %}
-  {# Phase 5: three-pane workbench inside canvas — section rail | theme editor | related native tools #}
-  <div class="studio-os__experience-workbench{% if not experience_context_tool_links %} studio-os__experience-workbench--two-col{% endif %}">
-    <nav class="studio-os__experience-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Experience sections' %}" style="width: min(12.5rem, 100%); min-width: 0;">
-      <div class="studio-os__card py-2 mb-2">
-        <div class="h6 mb-1">{% trans "Brand identity" %}</div>
-        <ul class="list-unstyled small mb-0">
-          <li><a href="#theme-colors-form">{% trans "Site name & tagline" %}</a></li>
-          <li><a href="#theme-colors-form">{% trans "Colors & harmony" %}</a></li>
-        </ul>
-      </div>
-      <div class="studio-os__card py-2 mb-2">
-        <div class="h6 mb-1">{% trans "Theme packs" %}</div>
-        <ul class="list-unstyled small mb-0">
-          <li><a href="#theme-colors-form">{% trans "Portal pack" %}</a></li>
-          <li><a href="#theme-colors-form">{% trans "Admin pack" %}</a></li>
-        </ul>
-      </div>
-      {% if experience_left_rail %}
-      <div class="studio-os__card py-2">
-        <div class="h6 mb-1">{% trans "More" %}</div>
-        <ul class="list-unstyled small mb-0">
-          {% for item in experience_left_rail %}
-          <li class="mb-1"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.label }}</a></li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% elif legacy_urls.customizer %}
-      <div class="studio-os__card py-2">
-        <div class="h6 mb-1">{% trans "Layout" %}</div>
-        <ul class="list-unstyled small mb-0">
-          <li><a href="{{ legacy_urls.customizer }}">{% trans "Customizer" %}</a></li>
-        </ul>
-      </div>
-      {% endif %}
-    </nav>
-    <div class="studio-os__experience-primary min-w-0">
-      {% include "siteconfig/partials/theme_colors_content.html" %}
-    </div>
-    {% include "studio_os/partials/experience_workbench_context.html" %}
-  </div>
+  {% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=not experience_context_tool_links workspace_aria_label=_("Experience sections") workspace_rail_template="studio_os/partials/workspace/experience_inpage_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_inpage_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
   {% elif experience_left_rail %}
-  <div class="studio-os__experience-workbench studio-os__experience-wrap{% if not experience_context_tool_links %} studio-os__experience-workbench--two-col{% endif %}">
-    <nav class="studio-os__experience-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Experience' %}" style="width: min(12.5rem, 100%); min-width: 0;">
-      <div class="studio-os__card py-2">
-        <div class="h6 mb-2">{% trans "Experience" %}</div>
-        <ul class="list-unstyled small mb-0" id="experience-rail-list" data-studio-rail="experience">
-          {% for item in experience_left_rail %}
-          <li class="mb-1">
-            <a href="{{ item.url }}" class="experience-rail-link {% if forloop.first %}active{% endif %}"
-               {% if item.embed %}data-embed="1"{% endif %}
-               {% if item.external %}data-external="1" target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.label }}</a>
-          </li>
-          {% endfor %}
-        </ul>
-        <p class="small text-muted mt-2 mb-0">{% trans "Theme, customizer, and school theme." %}</p>
-      </div>
-    </nav>
-    <div class="studio-os__experience-primary flex-grow-1 min-w-0">
-      <iframe id="studio-experience-iframe" class="studio-os-iframe" title="{% trans 'Experience' %}"
-              src="{{ experience_left_rail.0.url }}"></iframe>
-    </div>
-    {% include "studio_os/partials/experience_workbench_context.html" %}
-  </div>
+  {% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=not experience_context_tool_links workspace_aria_label=_("Experience") workspace_rail_template="studio_os/partials/workspace/experience_iframe_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_iframe_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
   <script src="{% static 'js/_pages/studio_os__modes__experience.js' %}"></script>
   {% elif embed_url %}
   <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Theme & Experience' %}"></iframe>

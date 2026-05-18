@@ -877,3 +877,94 @@ def build_control_plane_nav(request):
     add_group("Advanced", _advanced)
 
     return groups
+
+
+def is_manager_studio_focus_path(path: str) -> bool:
+    """True when the request is a manager-host Studio OS route (focus layout)."""
+    p = (path or "").split("?", 1)[0]
+    return p == "/studio" or p.startswith("/studio/")
+
+
+def build_studio_focus_sidebar(request) -> list[dict]:
+    """
+    Compact manager sidebar for /studio/* — high-signal shortcuts without the
+    full super nav accordion (reduces duplicate chrome with Studio mode rail).
+    """
+    from django.utils.translation import gettext as _
+
+    urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
+    specs = [
+        {
+            "id": "studio_overview",
+            "label": _("Studio overview"),
+            "url_name": "studio_os:shell",
+            "icon": "bi-grid-3x3-gap",
+        },
+        {
+            "id": "studio_experience",
+            "label": _("Experience"),
+            "url_name": "studio_os:experience",
+            "icon": "bi-palette",
+        },
+        {
+            "id": "studio_automation",
+            "label": _("Automation"),
+            "url_name": "studio_os:automation",
+            "icon": "bi-diagram-3",
+        },
+        {
+            "id": "studio_output",
+            "label": _("Outputs"),
+            "url_name": "studio_os:output",
+            "icon": "bi-file-earmark-text",
+        },
+        {
+            "id": "studio_launch",
+            "label": _("Launch"),
+            "url_name": "studio_os:launch",
+            "icon": "bi-rocket-takeoff",
+        },
+        {
+            "id": "studio_control",
+            "label": _("Control"),
+            "url_name": "studio_os:control",
+            "icon": "bi-sliders",
+        },
+        {
+            "id": "studio_config_center",
+            "label": _("Config center"),
+            "url_name": "siteconfig:console_domains_hub",
+            "icon": "bi-gear-wide-connected",
+        },
+        {
+            "id": "studio_feature_control",
+            "label": _("Feature control"),
+            "url_name": "siteconfig:feature_control_panel",
+            "icon": "bi-toggles",
+        },
+        {
+            "id": "studio_command_center",
+            "label": _("Command center"),
+            "url_name": "super:command_center",
+            "icon": "bi-terminal",
+        },
+        {
+            "id": "studio_schools",
+            "label": _("Schools"),
+            "url_name": "super:dashboard",
+            "icon": "bi-building",
+        },
+    ]
+    items: list[dict] = []
+    for spec in specs:
+        url = _safe_reverse(spec["url_name"], urlconf=urlconf)
+        if url:
+            items.append(
+                {
+                    "id": spec["id"],
+                    "label": spec["label"],
+                    "url": url,
+                    "icon": spec.get("icon", "bi-circle"),
+                }
+            )
+    return items

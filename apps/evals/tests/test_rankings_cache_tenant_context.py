@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from django.test import TestCase, tag
 
-from apps.evals.caching import get_rankings
+from apps.evals.caching import get_cached_rankings
 
 
 @tag("tenants_rls")
@@ -24,7 +24,7 @@ class RankingsCacheTenantContextTests(TestCase):
 
         with patch("apps.evals.caching.Evaluation.objects") as mock_eval:
             mock_eval.filter.return_value.values.return_value.annotate.return_value.order_by.return_value = []
-            get_rankings(year_id=1, term_id=1)
+            get_cached_rankings(year_id=1, term_id=1)
 
         mock_get_settings.assert_called()
         mock_cache_set.assert_called()

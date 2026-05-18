@@ -75,7 +75,10 @@ THEME_CSS = [
 ALL_AUDITED_CSS = GOVERNED_CSS + THEME_CSS
 
 INLINE_STYLE_ATTR = re.compile(r"\sstyle\s*=", re.IGNORECASE)
-INLINE_STYLE_CAPTURE = re.compile(r"style\s*=\s*\"([^\"]*)\"|style\s*=\s*'([^']*)'", re.IGNORECASE)
+INLINE_STYLE_CAPTURE = re.compile(
+    r"(?<![\w-])style\s*=\s*\"([^\"]*)\"|(?<![\w-])style\s*=\s*'([^']*)'",
+    re.IGNORECASE,
+)
 INLINE_STYLE_TAG = re.compile(r"<style\b", re.IGNORECASE)
 SCRIPT_BLOCK = re.compile(r"<script\b[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL)
 ALLOWED_STYLE_TAG_MARKERS = (

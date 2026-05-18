@@ -1,0 +1,32 @@
+{% load i18n %}
+<div class="studio-os__card py-2 mb-2">
+  <div class="h6 mb-1">{% trans "Brand identity" %}</div>
+  <ul class="list-unstyled small mb-0">
+    <li><a href="#theme-colors-form">{% trans "Site name & tagline" %}</a></li>
+    <li><a href="#theme-colors-form">{% trans "Colors & harmony" %}</a></li>
+  </ul>
+</div>
+<div class="studio-os__card py-2 mb-2">
+  <div class="h6 mb-1">{% trans "Theme packs" %}</div>
+  <ul class="list-unstyled small mb-0">
+    <li><a href="#theme-colors-form">{% trans "Portal pack" %}</a></li>
+    <li><a href="#theme-colors-form">{% trans "Admin pack" %}</a></li>
+  </ul>
+</div>
+{% if experience_left_rail %}
+<div class="studio-os__card py-2">
+  <div class="h6 mb-1">{% trans "More" %}</div>
+  <ul class="list-unstyled small mb-0">
+    {% for item in experience_left_rail %}
+    <li class="mb-1"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.label }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+{% elif legacy_urls.customizer %}
+<div class="studio-os__card py-2">
+  <div class="h6 mb-1">{% trans "Layout" %}</div>
+  <ul class="list-unstyled small mb-0">
+    <li><a href="{{ legacy_urls.customizer }}">{% trans "Customizer" %}</a></li>
+  </ul>
+</div>
+{% endif %}

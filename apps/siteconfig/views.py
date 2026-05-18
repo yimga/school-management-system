@@ -1848,6 +1848,15 @@ def theme_colors_page(request):
             theme_settings.get("skip_theme_publish_guard", False)
         ),
     }
+    if request.GET.get("embed") == "1":
+        from apps.studio_os.embed_render import render_studio_embed_body
+
+        return render_studio_embed_body(
+            request,
+            "siteconfig/partials/theme_colors_page_body.html",
+            theme_ctx,
+            title=_("Theme & Experience"),
+        )
     return render_siteconfig_operator_page(
         request,
         portal_template="siteconfig/theme_colors.html",

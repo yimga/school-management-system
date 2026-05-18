@@ -15,6 +15,7 @@
     {% if request.build_absolute_uri %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
     {% with desc=meta_description|default:SITE.meta_description|default:"" %}{% if desc %}<meta name="description" content="{{ desc|truncatewords:50 }}">{% endif %}{% endwith %}
     {% load static %}
+    <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
 
     {% include "partials/rmc_theme_meta.html" %}
     {% include "partials/rmc_social_meta.html" %}
@@ -139,6 +140,7 @@
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
 
@@ -164,7 +166,7 @@
            to "School System" matching the original behavior. {% endcomment %}
         {% if PUBLIC_BRAND_MODE %}
           {% url 'home' as home_url %}
-          {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=home_url label=PUBLIC_BRAND_NAME|default:"RunMyCampus" %}
+          {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=home_url label=PUBLIC_BRAND_NAME|default:"RunMyCampus" wordmark_style="platform" logo_url=PUBLIC_BRAND_LOGO_URL logo_dark_url=PUBLIC_BRAND_LOGO_DARK_URL %}
         {% else %}
           {% url 'home' as home_url %}
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=home_url label=SITE.site_name|default:"School System" %}
@@ -278,7 +280,7 @@
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     {% if SITE and SITE.is_preview %}
     {# preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); folded into design-system-unified.css #}
-    <script type="application/json" id="page-data-base-1">{
+    <script nonce="{{ csp_nonce }}" type="application/json" id="page-data-base-1">{
   "trans_your_changes_affect_this_area": "{% trans "Your changes affect this area" %}",
   "trans_dismiss_highlights": "{% trans "Dismiss highlights" %}"
 }</script><script src="{% static 'js/_pages/base-1.js' %}"></script>

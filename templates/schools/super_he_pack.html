@@ -16,8 +16,8 @@
 <div class="container-fluid py-3 content-max-960" data-page-archetype="catalog" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_he_pack.html" %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
-    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Higher education pack" %}</h1>
-    <p class="text-white-50 small mb-0">{% trans "Catalog, enrollment, degree audit; semester/term; months-not-years implementation. All target continents." %}</p>
+    <h1 class="h4 mb-1 fw-bold">{% trans "Higher education pack" %}</h1>
+    <p class="small mb-0">{% trans "Catalog, enrollment, degree audit; semester/term; months-not-years implementation. All target continents." %}</p>
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
@@ -37,6 +37,6 @@
       {% if plans_url %}<a href="{{ plans_url }}" class="btn btn-outline-primary btn-sm mt-2">{% trans "Plans & addons" %}</a>{% endif %}
     </div>
   </div>
-  <p class="text-white-50 small">{% trans "Implementation in months not years; modern UX; cloud-native." %}</p>
+  <p class="small">{% trans "Implementation in months not years; modern UX; cloud-native." %}</p>
 </div>
 {% endblock %}

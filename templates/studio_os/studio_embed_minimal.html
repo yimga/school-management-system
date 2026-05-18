@@ -1,0 +1,22 @@
+{% load static i18n %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-studio-embed="1" data-page-archetype="studio-embed">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}{{ studio_embed_title|default:"Studio" }}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/studio-embed-minimal.css' %}">
+  {% block studio_embed_extrahead %}{% endblock %}
+</head>
+<body class="studio-embed-body">
+  <main id="studio-embed-main" class="studio-embed-main" role="main" tabindex="-1">
+    {% block studio_embed_content %}{% endblock %}
+  </main>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
+</body>
+</html>

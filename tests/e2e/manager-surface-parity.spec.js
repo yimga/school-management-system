@@ -6,6 +6,7 @@
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
+const { ensureManagerHost, AUTH_STATE_PATH } = require('./helpers/manager-login');
 
 const MANAGER_HOST = process.env.VISUAL_QA_MANAGER_HOST || 'manager.runmycampus.com';
 const MANAGER_PORT = process.env.VISUAL_QA_PORT || '8012';
@@ -74,33 +75,21 @@ function loadProbes() {
   ];
 }
 
-const PROBES = loadProbes();
+/** Super routes first — /admin/ popup flags can poison the shared session for /super/*. */
+const PROBES = loadProbes().sort((a, b) => {
+  const rank = (probe) => {
+    if (probe.path.startsWith('/super/')) return 0;
+    if (probe.slug === 'configuration_center') return 1;
+    if (probe.path.startsWith('/admin/')) return 2;
+    return 1;
+  };
+  return rank(a) - rank(b) || a.slug.localeCompare(b.slug);
+});
 
-test.use({ baseURL: MANAGER_BASE_URL });
-
-async function loginManager(page) {
-  await page.goto('/authentication/login/', {
-    waitUntil: 'domcontentloaded',
-    timeout: 60000,
-  });
-  const roleSelect = page.locator('select[name="role"]');
-  if (await roleSelect.count()) {
-    await roleSelect.selectOption('staff');
-  }
-  await page.locator('input[name="username"]').fill(MANAGER_USERNAME);
-  await page.locator('input[name="password"]').fill(MANAGER_PASSWORD);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForURL((url) => !/\/authentication\/login\/?$/i.test(url.pathname), {
-    timeout: 60000,
-  });
-
-  if (/\/authentication\/login\/?$/i.test(new URL(page.url()).pathname)) {
-    const errorText = await page.locator('body').textContent();
-    throw new Error(
-      `Manager login failed for ${MANAGER_USERNAME}. Page text: ${(errorText || '').slice(0, 240)}`
-    );
-  }
-}
+test.use({
+  baseURL: MANAGER_BASE_URL,
+  viewport: { width: 1400, height: 900 },
+});
 
 test('version endpoint returns JSON commit_sha', async ({ playwright }) => {
   const ctx = await playwright.request.newContext({
@@ -122,10 +111,14 @@ test('version endpoint returns JSON commit_sha', async ({ playwright }) => {
 });
 
 test.describe('manager surface parity (authenticated)', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({ mode: 'serial', timeout: 120000 });
+
+  test.use({
+    storageState: AUTH_STATE_PATH,
+  });
 
   test.beforeEach(async ({ page }) => {
-    await loginManager(page);
+    await ensureManagerHost(page);
   });
 
   for (const probe of PROBES) {
@@ -134,12 +127,18 @@ test.describe('manager surface parity (authenticated)', () => {
         waitUntil: 'domcontentloaded',
         timeout: 60000,
       });
+      await ensureManagerHost(page);
       expect(response?.status(), probe.path).toBeLessThan(400);
 
       if (probe.expect_strip) {
         await expect(page.locator('[data-rmc-operator-surface-strip]')).toBeVisible({
           timeout: 20000,
         });
+      }
+
+      if (probe.path.startsWith('/admin/')) {
+        await expect(page.locator('.admin-cp-unified-page')).toBeAttached({ timeout: 30000 });
+        await expect(page.locator('#cpSidebarNav').first()).toBeAttached({ timeout: 30000 });
       }
 
       if (probe.expect_paired) {

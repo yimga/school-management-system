@@ -30,8 +30,8 @@
      Inter is loaded via vendor/inter.css; honor it on print so output matches the digital
      report-card style. font-feature-settings enables slashed zero (cv11) for clean numerals. */
   body {
-    background: var(--color-base-0);
-    color: var(--color-base-900);
+    background: var(--surface-elevated, var(--color-base-0));
+    color: var(--text-primary, var(--color-base-900));
     font-size: 11pt;
     font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
     font-feature-settings: "cv11", "tnum";
@@ -65,13 +65,13 @@
   .report-card-paper {
     --rc-primary: var(--school-primary, var(--school-primary));
     --rc-accent: var(--school-accent, var(--school-accent));
-    --rc-ink: var(--color-base-900);
-    --rc-muted: var(--color-base-600);
-    --rc-hairline: var(--color-base-200);
-    --rc-soft-bg: var(--color-base-50);
+    --rc-ink: var(--color-base-900); /* theme-locked-allow: manual-review */
+    --rc-muted: var(--color-base-600); /* theme-locked-allow: manual-review */
+    --rc-hairline: var(--color-base-200); /* theme-locked-allow: manual-review */
+    --rc-soft-bg: var(--color-base-50); /* theme-locked-allow: manual-review */
     color: var(--rc-ink);
     box-shadow: none !important;
-    background: var(--color-base-0) !important;
+    background: var(--surface-elevated, var(--color-base-0)) !important;
     border-radius: 0 !important;
     padding: 0 !important;
     max-width: none !important;
@@ -222,7 +222,7 @@
     width: 64pt; height: 64pt;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
-    color: var(--color-base-0);
+    color: var(--text-on-brand, var(--color-base-0));
     display: flex; align-items: center; justify-content: center;
     font-weight: 700;
     font-size: 18pt;
@@ -255,7 +255,7 @@
     width: 42pt; height: 42pt;
     border-radius: 10pt;
     background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
-    color: var(--color-base-0);
+    color: var(--text-on-brand, var(--color-base-0));
     display: flex; align-items: center; justify-content: center;
     font-weight: 700;
     font-size: 14pt;

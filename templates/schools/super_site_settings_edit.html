@@ -20,9 +20,9 @@
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>
-        <div class="h6 text-uppercase text-white-50 mb-1">{% trans "Platform configuration" %}</div>
-        <h1 class="h4 mb-1 fw-bold text-white">{% trans "Edit site settings" %}</h1>
-        <p class="text-white-50 small mb-0">
+        <div class="h6 text-uppercase mb-1">{% trans "Platform configuration" %}</div>
+        <h1 class="h4 mb-1 fw-bold">{% trans "Edit site settings" %}</h1>
+        <p class="small mb-0">
           {% trans "Maintenance on SiteSettings; theme packs and default report styles on Platform global branding. Site name, colors, and flags live in Runtime Defaults and Feature Control." %}
         </p>
       </div>
@@ -37,19 +37,19 @@
       {{ branding_form.non_field_errors }}
       {% for field in site_form %}
       <div class="mb-3">
-        <label for="{{ field.id_for_label }}" class="form-label text-white">{{ field.label }}</label>
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
-        {% if field.help_text %}<div class="form-text text-white-50">{{ field.help_text }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
       </div>
       {% endfor %}
-      <div class="text-uppercase text-white-50 small mb-2 mt-4">{% trans "Platform branding" %}</div>
+      <div class="text-uppercase small mb-2 mt-4">{% trans "Platform branding" %}</div>
       {% for field in branding_form %}
       <div class="mb-3">
-        <label for="{{ field.id_for_label }}" class="form-label text-white">{{ field.label }}</label>
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
-        {% if field.help_text %}<div class="form-text text-white-50">{{ field.help_text }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
       </div>
       {% endfor %}
       <div class="d-flex gap-2 pt-2">

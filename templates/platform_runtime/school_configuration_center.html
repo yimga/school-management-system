@@ -28,7 +28,7 @@
         <div class="card-body">
           <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
             <h1 class="h5 mb-0">{{ section.name }}</h1>
-            <span class="badge bg-light text-dark border">{{ section.status }}</span>
+            <span class="badge bg-light border">{{ section.status }}</span>
           </div>
           {% include "components/world_class_readiness_meter.html" with title=_("School readiness score") value="74" caption=_("This section is tenant-safe and excludes platform-wide registry controls.") %}
           <dl class="row small mb-3">

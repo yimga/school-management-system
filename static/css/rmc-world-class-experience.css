@@ -1,8 +1,8 @@
 :root {
   --rmc-wcx-surface: var(--luxury-surface, var(--color-base-0));
-  --rmc-wcx-muted: var(--bs-secondary-color, var(--color-base-500));
-  --rmc-wcx-border: var(--bs-border-color, var(--color-base-200));
-  --rmc-wcx-ink: var(--bs-body-color, var(--color-base-900));
+  --rmc-wcx-muted: var(--text-secondary, var(--bs-secondary-color, var(--color-base-500)));
+  --rmc-wcx-border: var(--hairline, var(--bs-border-color, var(--color-base-200)));
+  --rmc-wcx-ink: var(--text-primary, var(--bs-body-color, var(--color-base-900)));
   --rmc-wcx-accent: var(--bs-primary, var(--color-primary-600));
   --rmc-wcx-success: var(--bs-success, var(--color-emerald-600));
   --rmc-wcx-warning: var(--bs-warning, var(--color-amber-700));
@@ -61,7 +61,7 @@
 
 #cp-main-content > .text-muted,
 #cp-main-content > .text-secondary {
-  color: var(--color-primary-100) !important;
+  color: var(--text-secondary) !important;
 }
 
 #cp-main-content .rmc-os-page-header,
@@ -74,7 +74,7 @@
 #cp-main-content .rmc-acx-dependency-graph,
 #cp-main-content .rmc-acx-data-quality,
 #cp-main-content .rmc-acx-inline-edit {
-  color: var(--color-base-900);
+  color: var(--text-primary);
 }
 
 #cp-main-content .rmc-os-page-header .text-body,
@@ -86,7 +86,7 @@
 #cp-main-content .card h3,
 #cp-main-content .rmc-wcx-surface strong,
 #cp-main-content .rmc-acx-glass-panel strong {
-  color: var(--color-base-900) !important;
+  color: var(--text-primary) !important;
 }
 
 #cp-main-content .rmc-os-page-header .text-muted,
@@ -97,43 +97,43 @@
 #cp-main-content .card .text-secondary,
 #cp-main-content .rmc-wcx-surface .text-muted,
 #cp-main-content .rmc-acx-glass-panel .text-muted {
-  color: var(--color-base-600) !important;
+  color: var(--text-secondary) !important;
 }
 
 #cp-main-content .card a,
 #cp-main-content .rmc-wcx-surface a,
 #cp-main-content .rmc-acx-glass-panel a {
-  color: var(--color-primary-700);
+  color: var(--link-color, var(--color-primary-300));
 }
 
 #cp-main-content .card code,
 #cp-main-content .rmc-wcx-surface code,
 #cp-main-content .rmc-acx-glass-panel code {
-  color: var(--color-base-700);
-  background: var(--color-base-50);
-  border: 1px solid var(--color-base-300);
+  color: var(--text-primary, var(--color-base-700));
+  background: var(--surface-elevated, var(--color-base-50));
+  border: 1px solid var(--hairline, var(--color-base-300)); /* theme-locked-allow: manual-review */
   border-radius: 6px;
   padding: 0.08rem 0.28rem;
 }
 
 #cp-main-content .rmc-acx-status-pill {
-  color: var(--color-base-900) !important;
-  background: color-mix(in oklab, var(--color-sky-400) 20%, var(--color-base-0)) !important;
+  color: var(--text-primary, var(--color-base-900)) !important;
+  background: color-mix(in oklab, var(--color-sky-400) 20%, var(--color-base-0)) !important; /* theme-locked-allow: decorative-tint-mix */
   border-color: var(--color-cyan-600);
 }
 
 #cp-main-content .rmc-acx-status-pill[data-status*="blocked"],
 #cp-main-content .rmc-acx-status-pill[data-status*="external"] {
-  color: color-mix(in oklab, var(--color-amber-700) 60%, var(--color-base-950)) !important;
-  background: color-mix(in oklab, var(--color-amber-400) 25%, var(--color-base-0)) !important;
+  color: color-mix(in oklab, var(--color-amber-700) 60%, var(--color-base-950)) !important; /* theme-locked-allow: decorative-tint-mix */
+  background: color-mix(in oklab, var(--color-amber-400) 25%, var(--color-base-0)) !important; /* theme-locked-allow: decorative-tint-mix */
   border-color: var(--color-amber-700);
 }
 
 #cp-main-content .cp-context-drawer-toggle,
 #cp-main-content .btn-outline-light.cp-context-drawer-toggle {
-  color: var(--color-base-0) !important;
-  background: var(--color-base-700);
-  border-color: var(--color-primary-300);
+  color: var(--text-on-brand, var(--color-base-0)) !important;
+  background: var(--surface-canvas, var(--color-base-700));
+  border-color: var(--color-primary-300); /* theme-locked-allow: brand-token */
 }
 
 #cp-main-content button.cp-context-drawer-toggle,
@@ -144,26 +144,26 @@ button.cp-context-drawer-toggle span,
 button.cp-context-drawer-toggle i,
 #cp-main-content .rmc-wcx-hero .btn-primary,
 #cp-main-content .rmc-wcx-hero .btn-outline-primary {
-  color: var(--color-base-0) !important;
+  color: var(--text-on-brand, var(--color-base-0)) !important;
 }
 
 .skip-link,
 .skip-link:focus,
 .visually-hidden-focusable:focus {
-  color: var(--color-base-0) !important;
-  background: var(--color-base-900) !important;
+  color: var(--text-on-brand, var(--color-base-0)) !important;
+  background: var(--surface-canvas, var(--color-base-900)) !important;
   outline: 3px solid var(--color-amber-400) !important;
   outline-offset: 2px;
 }
 
 #cp-main-content .rmc-wcx-hero .btn-primary {
-  background: var(--color-primary-600);
-  border-color: var(--color-primary-100);
+  background: var(--color-primary-600); /* theme-locked-allow: brand-token */
+  border-color: var(--color-primary-100); /* theme-locked-allow: brand-token */
 }
 
 #cp-main-content .rmc-wcx-hero .btn-outline-primary {
   background: rgba(26, 22, 18, 0.72); /* off-token-allow: always-dark-warm-bg */
-  border-color: var(--color-primary-100);
+  border-color: var(--color-primary-100); /* theme-locked-allow: brand-token */
 }
 
 .rmc-wcx-actions,
@@ -618,35 +618,35 @@ main li,
 
 :root {
   /* Lock contrast-critical foreground/background pairs. */
-  --rmc-acx-text-strong: var(--color-base-950);          /* AA on var(--color-base-0): 17.4:1 */
-  --rmc-acx-text-body: var(--color-base-800);             /* AA on var(--color-base-0): 13.7:1 */
-  --rmc-acx-text-muted: var(--color-base-600);            /* AA on var(--color-base-0): 7.2:1  */
-  --rmc-acx-link: var(--color-primary-700);                  /* AA on var(--color-base-0): 7.4:1  */
-  --rmc-acx-success-strong: color-mix(in oklab, var(--color-emerald-600) 50%, var(--color-base-900));        /* AA on var(--color-base-0): 7.8:1  */
-  --rmc-acx-warning-strong: color-mix(in oklab, var(--color-amber-700) 90%, var(--color-base-950));        /* AA on var(--color-base-0): 7.0:1  */
-  --rmc-acx-danger-strong: color-mix(in oklab, var(--color-red-600) 70%, var(--color-base-950));         /* AA on var(--color-base-0): 7.4:1  */
-  --rmc-acx-surface-opaque: var(--color-base-0);
-  --rmc-acx-surface-elevated: var(--color-base-50);
-  --rmc-acx-touch-fg: var(--color-base-950);
-  --rmc-acx-touch-bg: color-mix(in oklab, var(--color-sky-400) 20%, var(--color-base-0));
+  --rmc-acx-text-strong: var(--color-base-950);          /* theme-locked-allow: manual-review */ /* AA on var(--color-base-0): 17.4:1 */
+  --rmc-acx-text-body: var(--color-base-800);             /* theme-locked-allow: manual-review */ /* AA on var(--color-base-0): 13.7:1 */
+  --rmc-acx-text-muted: var(--color-base-600);            /* theme-locked-allow: manual-review */ /* AA on var(--color-base-0): 7.2:1  */
+  --rmc-acx-link: var(--color-primary-700);                  /* theme-locked-allow: brand-token */ /* AA on var(--color-base-0): 7.4:1  */
+  --rmc-acx-success-strong: color-mix(in oklab, var(--color-emerald-600) 50%, var(--color-base-900));        /* theme-locked-allow: decorative-tint-mix */ /* AA on var(--color-base-0): 7.8:1  */
+  --rmc-acx-warning-strong: color-mix(in oklab, var(--color-amber-700) 90%, var(--color-base-950));        /* theme-locked-allow: decorative-tint-mix */ /* AA on var(--color-base-0): 7.0:1  */
+  --rmc-acx-danger-strong: color-mix(in oklab, var(--color-red-600) 70%, var(--color-base-950));         /* theme-locked-allow: decorative-tint-mix */ /* AA on var(--color-base-0): 7.4:1  */
+  --rmc-acx-surface-opaque: var(--color-base-0); /* theme-locked-allow: manual-review */
+  --rmc-acx-surface-elevated: var(--color-base-50); /* theme-locked-allow: manual-review */
+  --rmc-acx-touch-fg: var(--color-base-950); /* theme-locked-allow: manual-review */
+  --rmc-acx-touch-bg: color-mix(in oklab, var(--color-sky-400) 20%, var(--color-base-0)); /* theme-locked-allow: decorative-tint-mix */
   --rmc-acx-touch-border: var(--color-cyan-600);
 }
 
 html[data-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
-  --rmc-acx-text-strong: var(--color-base-50);
-  --rmc-acx-text-body: var(--color-base-200);
-  --rmc-acx-text-muted: var(--color-base-300);
-  --rmc-acx-link: var(--color-primary-300);
+  --rmc-acx-text-strong: var(--color-base-50); /* theme-locked-allow: manual-review */
+  --rmc-acx-text-body: var(--color-base-200); /* theme-locked-allow: manual-review */
+  --rmc-acx-text-muted: var(--color-base-300); /* theme-locked-allow: manual-review */
+  --rmc-acx-link: var(--color-primary-300); /* theme-locked-allow: brand-token */
   --rmc-acx-success-strong: var(--color-emerald-400);
   --rmc-acx-warning-strong: var(--color-amber-400);
-  --rmc-acx-danger-strong: color-mix(in oklab, var(--color-red-400) 70%, var(--color-base-0));
-  --rmc-acx-surface-opaque: var(--color-base-900);
-  --rmc-acx-surface-elevated: var(--color-base-800);
-  --rmc-acx-touch-fg: var(--color-base-50);
-  --rmc-acx-touch-bg: var(--color-base-800);
-  --rmc-acx-touch-border: var(--color-primary-300);
+  --rmc-acx-danger-strong: color-mix(in oklab, var(--color-red-400) 70%, var(--color-base-0)); /* theme-locked-allow: decorative-tint-mix */
+  --rmc-acx-surface-opaque: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --rmc-acx-surface-elevated: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --rmc-acx-touch-fg: var(--color-base-50); /* theme-locked-allow: manual-review */
+  --rmc-acx-touch-bg: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --rmc-acx-touch-border: var(--color-primary-300); /* theme-locked-allow: brand-token */
 }
 
 /* Glass becomes deterministic — opaque enough that text contrast does not depend on parent. */

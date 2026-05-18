@@ -55,7 +55,7 @@
           <td class="text-nowrap">{{ y.start_date|default:"—" }}</td>
           <td class="text-nowrap">{{ y.end_date|default:"—" }}</td>
           <td>{% if y.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
-          <td>{% if y.is_locked %}<span class="badge bg-warning text-dark">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
+          <td>{% if y.is_locked %}<span class="badge bg-warning">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
         </tr>
         {% empty %}
         <tr><td colspan="5" class="text-muted">{% trans "No academic years for this school yet." %}</td></tr>

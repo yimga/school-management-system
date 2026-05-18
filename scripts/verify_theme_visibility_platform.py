@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+"""Platform theme visibility gate: shell CSS wiring + manager render smoke."""
+
+from __future__ import annotations
+
+import os
+import re
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
+SHELL_BASES = (
+    "templates/base.html",
+    "templates/portal_base.html",
+    "templates/control_plane_skeleton.html",
+    "templates/admin/base_site.html",
+    "templates/admin/login.html",
+)
+
+REQUIRED_CSS = (
+    "theme-visibility-guard.css",
+    "dark-mode-safety-net.css",
+    "theme-platform-contrast.css",
+)
+
+FORBIDDEN_JS = re.compile(
+    r"portal-backend-dark['\"]?\s*\)",
+    re.MULTILINE,
+)
+
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def check_shell_css() -> list[str]:
+    errors: list[str] = []
+    for rel in SHELL_BASES:
+        path = REPO_ROOT / rel
+        if not path.is_file():
+            errors.append(f"missing shell: {rel}")
+            continue
+        content = _read(path)
+        for css in REQUIRED_CSS:
+            if css not in content:
+                errors.append(f"{rel}: missing {css}")
+    admin_site = _read(REPO_ROOT / "templates/admin/base_site.html")
+    if "portal-backend-dark" in admin_site and "classList.add('control-plane-shell'" in admin_site:
+        if "portal-backend-dark" in admin_site.split("classList.add('control-plane-shell'")[1][:400]:
+            errors.append("admin/base_site.html still hardcodes portal-backend-dark on manager shell")
+    bootstrap = _read(REPO_ROOT / "static/js/theme-preference-bootstrap.js")
+    if "classList.add(\"dark\")" not in bootstrap and "classList.add('dark')" not in bootstrap:
+        errors.append("theme-preference-bootstrap.js must sync html.dark for Unfold")
+    if "syncPortalBackendBodyPalette" not in bootstrap:
+        errors.append("theme-preference-bootstrap.js must sync portal-backend-* body palette")
+    safety = _read(REPO_ROOT / "static/css/dark-mode-safety-net.css")
+    if safety.count('html[data-resolved-theme="dark"]') < 20:
+        errors.append("dark-mode-safety-net.css needs html[data-resolved-theme=dark] mirrors for System mode")
+    contrast = _read(REPO_ROOT / "static/css/theme-platform-contrast.css")
+    if "#cp-main-content .module" not in contrast:
+        errors.append("theme-platform-contrast.css must cover Django admin .module forms")
+    if ".admin-login-card" not in contrast:
+        errors.append("theme-platform-contrast.css must cover manager/admin login cards")
+    marketing_base = _read(REPO_ROOT / "templates/marketing/base_marketing.html")
+    if 'data-mkt-edition="editorial"' not in marketing_base:
+        errors.append("marketing/base_marketing.html must set data-mkt-edition=editorial (schoolhouse palette)")
+    if "tokens-schoolhouse.css" not in marketing_base and "tokens-editorial.css" not in marketing_base:
+        errors.append("marketing base must load editorial/schoolhouse token CSS")
+    smashed = re.compile(r"(?:\.[\w-]+|#\w[\w-]*)\s+html\[data-")
+    for lineno, line in enumerate(safety.splitlines(), start=1):
+        if smashed.search(line):
+            errors.append(
+                f"dark-mode-safety-net.css:{lineno}: corrupted selector (class before html[...])"
+            )
+    return errors
+
+
+def check_render_smoke() -> list[str]:
+    import django
+
+    django.setup()
+    from django.contrib.auth import get_user_model
+    from django.test import Client
+
+    User = get_user_model()
+    user, _ = User.objects.get_or_create(
+        username="theme_platform_verify",
+        defaults={"is_staff": True, "is_superuser": True},
+    )
+    if not user.check_password("verify-pass"):
+        user.set_password("verify-pass")
+        user.save(update_fields=["password"])
+
+    client = Client()
+    client.force_login(user)
+    host = "manager.runmycampus.com"
+    # Mirrors docs/generated/THEME_VALIDATION_URLS.md (manager host).
+    probes: tuple[tuple[str, tuple[str, ...]], ...] = (
+        ("/super/", ("theme-platform-contrast.css", "theme-preference-bootstrap.js")),
+        ("/super/schools/", ("theme-platform-contrast.css", "theme-preference-bootstrap.js")),
+        (
+            "/admin/",
+            (
+                "theme-platform-contrast.css",
+                "theme-preference-bootstrap.js",
+                'id="cpSidebarNav"',
+                "admin-cp-unified-page",
+            ),
+        ),
+        (
+            "/admin/schools/school/",
+            (
+                "theme-platform-contrast.css",
+                "theme-preference-bootstrap.js",
+                'id="cpSidebarNav"',
+                'id="cp-main-content"',
+            ),
+        ),
+        (
+            "/admin/schools/school/add/",
+            (
+                "theme-platform-contrast.css",
+                "theme-preference-bootstrap.js",
+                'id="cp-main-content"',
+            ),
+        ),
+        (
+            "/configuration/",
+            ("theme-platform-contrast.css", "theme-preference-bootstrap.js", 'id="cp-main-content"'),
+        ),
+        ("/studio/", ("theme-platform-contrast.css", "theme-preference-bootstrap.js")),
+    )
+    errors: list[str] = []
+    for path, needles in probes:
+        response = client.get(path, HTTP_HOST=host)
+        if response.status_code != 200:
+            errors.append(f"{path}: HTTP {response.status_code}")
+            continue
+        html = response.content.decode("utf-8", errors="replace")
+        for needle in needles:
+            if needle not in html:
+                errors.append(f"{path}: missing {needle} in HTML")
+        if "theme-preference-bootstrap" not in html:
+            errors.append(f"{path}: no theme-preference-bootstrap.js in HTML")
+    return errors
+
+
+def main() -> int:
+    errors = check_shell_css()
+    try:
+        errors.extend(check_render_smoke())
+    except Exception as exc:  # pragma: no cover - env without DB
+        errors.append(f"render smoke skipped/failed: {exc}")
+
+    if errors:
+        print("FAIL theme visibility platform:")
+        for err in errors:
+            print(f"  - {err}")
+        return 1
+    print("OK theme visibility platform (shell CSS + manager smoke)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

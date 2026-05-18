@@ -1,0 +1,27 @@
+{% load i18n %}
+<nav class="cp-sidebar-nav cp-sidebar-studio-focus" id="cpSidebarNav" aria-label="{% trans 'Studio shortcuts' %}" data-sidebar-nav="true" data-shell-nav-family="studio-focus" data-rmc-os-nav="1" data-rmc-studio-focus-sidebar="1">
+  <p class="cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Studio" %}</p>
+  <ul class="nav flex-column gap-1 mb-3">
+    {% for item in STUDIO_FOCUS_SIDEBAR %}
+      <li class="nav-item">
+        <a class="nav-link text-white d-flex align-items-center {% if request.path == item.url %}active{% endif %}" href="{{ item.url }}">
+          <i class="bi {{ item.icon }} me-2 cp-nav-icon" aria-hidden="true"></i>
+          <span class="cp-nav-label">{{ item.label }}</span>
+        </a>
+      </li>
+    {% empty %}
+      <li class="nav-item">
+        <a class="nav-link text-white" href="{% url 'studio_os:shell' %}">{% trans "Studio" %}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  <p class="cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Leave Studio" %}</p>
+  <ul class="nav flex-column gap-1">
+    <li class="nav-item">
+      <a class="nav-link text-white-50 d-flex align-items-center small" href="{% url 'super:dashboard' %}">
+        <i class="bi bi-arrow-left-circle me-2" aria-hidden="true"></i>
+        <span>{% trans "Full control plane" %}</span>
+      </a>
+    </li>
+  </ul>
+</nav>

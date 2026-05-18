@@ -62,7 +62,7 @@
 /* Hero mode: transparent with light logo (add .statement-header--hero to header on hero pages) */
 .statement-header--hero {
   background: transparent;
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   box-shadow: none;
 }
 .statement-header--hero .navbar-brand,
@@ -71,7 +71,7 @@
 .statement-header--hero .statement-logo-wordmark {
   color: inherit;
 }
-.statement-header--hero .statement-logo-wordmark { color: var(--color-base-0); }
+.statement-header--hero .statement-logo-wordmark { color: var(--text-on-brand, var(--color-base-0)); }
 .statement-header--hero.is-solid {
   background: var(--statement-header-bg, var(--color-base-0));
   color: var(--statement-header-fg, var(--color-base-950));

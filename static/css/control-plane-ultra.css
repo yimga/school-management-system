@@ -99,7 +99,7 @@ body.cp-surface .cp-navbar.statement-header {
 body.control-plane-shell .cp-navbar .navbar-brand,
 body.cp-surface .cp-navbar .navbar-brand {
   background: transparent !important;
-  color: var(--color-base-0) !important;
+  color: var(--text-on-brand, var(--color-base-0)) !important;
 }
 
 /* ---- Login (manager + admin): full-viewport ultra ---- */
@@ -210,8 +210,8 @@ body.control-plane-shell .admin-login-card::before {
   border-radius: var(--rmc-lit-2a07851a9d);
   padding: var(--rmc-lit-4baf8f49ed);
   background: linear-gradient(160deg, rgba(16, 185, 129, 0.15), transparent 40%, transparent 70%, rgba(16, 185, 129, 0.05)); /* off-token-allow: decorative-gradient */
-  -webkit-mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0);
-  mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0);
+  -webkit-mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0); /* theme-locked-allow: decorative-gradient */
+  mask: linear-gradient(var(--color-base-0) 0 0) content-box, linear-gradient(var(--color-base-0) 0 0); /* theme-locked-allow: decorative-gradient */
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;

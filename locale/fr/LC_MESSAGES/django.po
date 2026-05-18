@@ -410,7 +410,7 @@ msgid "Add-on deleted."
 msgstr ""
 
 msgid "Add-ons"
-msgstr ""
+msgstr "Extensions"
 
 msgid "Add-ons catalog"
 msgstr ""
@@ -1400,13 +1400,13 @@ msgid "Book a Demo"
 msgstr ""
 
 msgid "Book a demo"
-msgstr ""
+msgstr "Réserver une démo"
 
 msgid "Book architecture call"
 msgstr ""
 
 msgid "Book demo"
-msgstr ""
+msgstr "Réserver une démo"
 
 msgid "Book launch walkthrough"
 msgstr ""
@@ -1979,7 +1979,7 @@ msgid "Compact mode"
 msgstr ""
 
 msgid "Company"
-msgstr ""
+msgstr "Société"
 
 msgid "Compare"
 msgstr ""
@@ -2152,7 +2152,7 @@ msgid ""
 msgstr ""
 
 msgid "Contact"
-msgstr ""
+msgstr "Contact"
 
 msgid "Contact School"
 msgstr ""
@@ -2280,7 +2280,7 @@ msgid "Countries:"
 msgstr ""
 
 msgid "Country"
-msgstr ""
+msgstr "Pays"
 
 msgid "Country (optional)"
 msgstr ""
@@ -2840,7 +2840,7 @@ msgid "Developer public API"
 msgstr ""
 
 msgid "Developers"
-msgstr ""
+msgstr "Développeurs"
 
 msgid "Device / session"
 msgstr ""
@@ -3554,7 +3554,7 @@ msgid "Extract"
 msgstr ""
 
 msgid "FAQ"
-msgstr ""
+msgstr "FAQ"
 
 msgid "FAQ Approved"
 msgstr ""
@@ -5246,7 +5246,7 @@ msgid "Log out"
 msgstr ""
 
 msgid "Login"
-msgstr ""
+msgstr "Connexion"
 
 msgid "Login Activity"
 msgstr ""
@@ -5294,7 +5294,7 @@ msgid ""
 msgstr ""
 
 msgid "Main navigation"
-msgstr ""
+msgstr "Navigation principale"
 
 msgid "Maintenance mode"
 msgstr ""
@@ -5479,7 +5479,7 @@ msgid "Merge letters to classrooms (full window)."
 msgstr ""
 
 msgid "Message"
-msgstr ""
+msgstr "Message"
 
 msgid "Message groups"
 msgstr ""
@@ -5539,7 +5539,7 @@ msgid "Migration CSV diff (BR-04)"
 msgstr ""
 
 msgid "Migration Cloud"
-msgstr ""
+msgstr "Migration Cloud"
 
 msgid "Migration Cloud (CSV schema mapping)"
 msgstr ""
@@ -5668,7 +5668,7 @@ msgid "Modules"
 msgstr ""
 
 msgid "More"
-msgstr ""
+msgstr "Plus"
 
 msgid "Motion"
 msgstr ""
@@ -7032,7 +7032,7 @@ msgid "Page context & shortcuts"
 msgstr ""
 
 msgid "Page not found"
-msgstr ""
+msgstr "Page introuvable"
 
 msgid "Page sections"
 msgstr ""
@@ -7056,7 +7056,7 @@ msgid "Pan by dragging; zoom with the mouse wheel."
 msgstr ""
 
 msgid "Parent"
-msgstr ""
+msgstr "Parent"
 
 msgid "Parent & contact"
 msgstr ""
@@ -7125,7 +7125,7 @@ msgid "Pattern"
 msgstr ""
 
 msgid "Pay"
-msgstr ""
+msgstr "Payer"
 
 msgid "Pay grade"
 msgstr ""
@@ -7457,7 +7457,7 @@ msgid "Platform outcomes"
 msgstr ""
 
 msgid "Platform overview"
-msgstr ""
+msgstr "Aperçu de la plateforme"
 
 msgid "Platform records — full edit in control plane (not admin)"
 msgstr ""
@@ -7754,7 +7754,7 @@ msgid "Price"
 msgstr ""
 
 msgid "Pricing"
-msgstr ""
+msgstr "Tarifs"
 
 msgid "Primary"
 msgstr ""
@@ -7797,7 +7797,7 @@ msgid "Priority items"
 msgstr ""
 
 msgid "Privacy"
-msgstr ""
+msgstr "Confidentialité"
 
 msgid "Privacy Policy"
 msgstr ""
@@ -7833,7 +7833,7 @@ msgid "Processor-linked accounts without a recent sync heartbeat."
 msgstr ""
 
 msgid "Product"
-msgstr ""
+msgstr "Produit"
 
 msgid "Product feedback (platform admin)"
 msgstr ""
@@ -8581,7 +8581,7 @@ msgid "Resolved"
 msgstr ""
 
 msgid "Resources"
-msgstr ""
+msgstr "Ressources"
 
 msgid "Resources hub"
 msgstr ""
@@ -8823,7 +8823,7 @@ msgid "Rules:"
 msgstr ""
 
 msgid "Run"
-msgstr ""
+msgstr "Gérer"
 
 msgid "Run #%(run_id)s — %(migration_type)s. This view is read-only."
 msgstr ""
@@ -9230,7 +9230,7 @@ msgid "School membership (platform admin)"
 msgstr ""
 
 msgid "School name"
-msgstr ""
+msgstr "Nom de l’école"
 
 msgid "School or organization"
 msgstr ""
@@ -9256,7 +9256,7 @@ msgid "School that verified this document."
 msgstr ""
 
 msgid "School type"
-msgstr ""
+msgstr "Type d’école"
 
 msgid "School website blocks"
 msgstr ""
@@ -9855,7 +9855,7 @@ msgid "Slug"
 msgstr ""
 
 msgid "Solutions"
-msgstr ""
+msgstr "Solutions"
 
 msgid "Solutions by segment"
 msgstr ""
@@ -10016,7 +10016,7 @@ msgid "Starter stack"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "Statut"
 
 msgid "Status & Publishing"
 msgstr ""
@@ -10466,7 +10466,7 @@ msgid ""
 msgstr ""
 
 msgid "Teacher"
-msgstr ""
+msgstr "Enseignant"
 
 msgid "Teacher / staff digital ID"
 msgstr ""
@@ -10906,7 +10906,7 @@ msgid "Toggle compact sidebar"
 msgstr ""
 
 msgid "Toggle navigation"
-msgstr ""
+msgstr "Afficher / masquer la navigation"
 
 msgid "Toggle sidebar"
 msgstr ""
@@ -11013,7 +11013,7 @@ msgid "Trust Center"
 msgstr ""
 
 msgid "Trust center"
-msgstr ""
+msgstr "Centre de confiance"
 
 msgid "Trust first"
 msgstr ""
@@ -14727,7 +14727,7 @@ msgid ""
 msgstr ""
 
 msgid "Phone"
-msgstr ""
+msgstr "Téléphone"
 
 msgid "Sales pipeline"
 msgstr ""
@@ -16116,7 +16116,7 @@ msgid "Diff / readiness"
 msgstr ""
 
 msgid "Enterprise"
-msgstr ""
+msgstr "Entreprise"
 
 msgid "Export delivery hints (apps)"
 msgstr ""
@@ -16398,7 +16398,7 @@ msgid "Connect mode: on"
 msgstr ""
 
 msgid "Contact support"
-msgstr ""
+msgstr "Contacter le support"
 
 msgid "Create record"
 msgstr ""
@@ -16433,7 +16433,7 @@ msgid "Go to dashboard"
 msgstr ""
 
 msgid "Go to homepage"
-msgstr ""
+msgstr "Aller à la page d’accueil"
 
 msgid "Guided configuration"
 msgstr ""
@@ -16786,7 +16786,7 @@ msgid ""
 msgstr ""
 
 msgid "Demo"
-msgstr ""
+msgstr "Démo"
 
 msgid "Demo complete"
 msgstr ""
@@ -16885,7 +16885,7 @@ msgid "HTTP mutation audit for /super/ is ON (ENTERPRISE_SUPER_HTTP_AUDIT)."
 msgstr ""
 
 msgid "Help center"
-msgstr ""
+msgstr "Centre d’aide"
 
 msgid "I took attendance"
 msgstr ""
@@ -18210,7 +18210,7 @@ msgid "Growing school networks"
 msgstr ""
 
 msgid "Growth"
-msgstr ""
+msgstr "Croissance"
 
 msgid "Guides"
 msgstr ""
@@ -18337,7 +18337,7 @@ msgid "Start trial"
 msgstr ""
 
 msgid "Starter"
-msgstr ""
+msgstr "Démarrage"
 
 msgid ""
 "Starter through Enterprise mapped to admissions depth, finance "
@@ -18847,7 +18847,7 @@ msgid "Implementation & operations"
 msgstr ""
 
 msgid "Implementation assurance"
-msgstr ""
+msgstr "Assurance de mise en œuvre"
 
 msgid "Implementation command center"
 msgstr ""
@@ -19186,7 +19186,7 @@ msgid ""
 msgstr ""
 
 msgid "Request security packet"
-msgstr ""
+msgstr "Demander le dossier sécurité"
 
 msgid ""
 "Resolve divergences between your offline edits and the latest server record "
@@ -19431,7 +19431,7 @@ msgid "Why teams standardize here"
 msgstr ""
 
 msgid "Work email"
-msgstr ""
+msgstr "E-mail professionnel"
 
 msgid "Workflow / automation"
 msgstr ""
@@ -19449,7 +19449,7 @@ msgid ""
 msgstr ""
 
 msgid "Your name"
-msgstr ""
+msgstr "Votre nom"
 
 msgid "e.g. CIO, DPO, procurement lead"
 msgstr ""
@@ -19902,7 +19902,7 @@ msgid "Your finance workspace at a glance"
 msgstr ""
 
 msgid "Header primary action: Book demo"
-msgstr ""
+msgstr "Action principale de l’en-tête : réserver une démo"
 
 msgid ""
 "App review policy and publishing checklist for marketplace readiness. "
@@ -20330,7 +20330,7 @@ msgid "1,204 sent today · 99.8% delivered"
 msgstr ""
 
 msgid "180 currencies"
-msgstr ""
+msgstr "180 devises"
 
 msgid "2 of 3 instalments cleared"
 msgstr ""
@@ -20348,7 +20348,7 @@ msgid "27 students · risk plan filed"
 msgstr ""
 
 msgid "29 languages"
-msgstr ""
+msgstr "29 langues"
 
 msgid "3 absent"
 msgstr ""
@@ -20644,7 +20644,7 @@ msgid "All integrity checks passed."
 msgstr ""
 
 msgid "All major SIS imports"
-msgstr ""
+msgstr "Importation depuis tous les SIS majeurs"
 
 msgid "All rights reserved."
 msgstr ""
@@ -20653,7 +20653,7 @@ msgid "All set."
 msgstr ""
 
 msgid "All systems operational"
-msgstr ""
+msgstr "Tous les systèmes sont opérationnels"
 
 msgid "All systems quiet"
 msgstr ""
@@ -21170,7 +21170,7 @@ msgid "Collection rate"
 msgstr ""
 
 msgid "Coming from somewhere else?"
-msgstr ""
+msgstr "Vous venez d’ailleurs ?"
 
 msgid "Command Center"
 msgstr ""
@@ -21349,7 +21349,7 @@ msgid "Curriculum"
 msgstr ""
 
 msgid "Custom"
-msgstr ""
+msgstr "Sur mesure"
 
 msgid "Custom report card packs + branding"
 msgstr ""
@@ -21785,7 +21785,7 @@ msgid "FERPA §99.32 disclosure record"
 msgstr ""
 
 msgid "FERPA · GDPR · POPIA aligned"
-msgstr ""
+msgstr "Aligné FERPA · RGPD · POPIA"
 
 msgid ""
 "FERPA, GDPR, POPIA-aligned defaults with a public trust centre and live "
@@ -22120,7 +22120,7 @@ msgid ""
 msgstr ""
 
 msgid "How a migration actually goes →"
-msgstr ""
+msgstr "Comment se déroule vraiment une migration →"
 
 msgid "How heads of school describe a Tuesday."
 msgstr ""
@@ -22226,7 +22226,7 @@ msgid "Incident Response Resources"
 msgstr ""
 
 msgid "Incident response"
-msgstr ""
+msgstr "Réponse aux incidents"
 
 msgid "Incidents triaged by severity so the ones that need you surface first."
 msgstr ""
@@ -22443,7 +22443,7 @@ msgid "Legal basis"
 msgstr ""
 
 msgid "Less software. More school."
-msgstr ""
+msgstr "Moins de logiciels. Plus d’école."
 
 msgid "Letter grade"
 msgstr ""
@@ -22490,7 +22490,7 @@ msgid "Loading content"
 msgstr ""
 
 msgid "Localisation surfaces"
-msgstr ""
+msgstr "Surfaces de localisation"
 
 msgid "Logged in as {{ name }}"
 msgstr ""
@@ -22765,7 +22765,7 @@ msgid "Multi-school view (3 min)"
 msgstr ""
 
 msgid "Multi-tenant, region-aware"
-msgstr ""
+msgstr "Multi-établissement, adapté à chaque région"
 
 msgid ""
 "Multi-tenant, region-aware, offline-tolerant. One platform across every "
@@ -23123,7 +23123,7 @@ msgid "Offline-first for low-connectivity classrooms"
 msgstr ""
 
 msgid "Offline-first where the network drops"
-msgstr ""
+msgstr "Mode hors-ligne d’abord, là où le réseau lâche"
 
 msgid "Offline-ready education operating system"
 msgstr ""
@@ -23171,6 +23171,8 @@ msgid ""
 "One quiet system behind admissions, classrooms, fees, and the message you "
 "send a parent at 8:14 a.m."
 msgstr ""
+"Un seul système discret derrière les admissions, les salles de classe, les "
+"frais, et le message que vous envoyez à un parent à 8 h 14."
 
 msgid "One quiet system, behind everything your school does."
 msgstr ""
@@ -23571,7 +23573,7 @@ msgid "Platform readiness blockers and quick edits"
 msgstr ""
 
 msgid "Platform status"
-msgstr ""
+msgstr "Statut de la plateforme"
 
 msgid "Platform {{ s }}"
 msgstr ""
@@ -23728,7 +23730,7 @@ msgid "Quick access to activation, import, and runtime configuration."
 msgstr ""
 
 msgid "Quick proof points"
-msgstr ""
+msgstr "Preuves rapides"
 
 msgid "Quiz"
 msgstr ""
@@ -24050,6 +24052,9 @@ msgid ""
 "country actually uses. No forks. No regional plug-ins. One platform that "
 "bends to each campus."
 msgstr ""
+"Fonctionne à l’heure locale, dans la bonne langue, avec la structure "
+"scolaire réellement utilisée dans votre pays. Aucun fork. Aucune extension "
+"régionale. Une plateforme qui s’adapte à chaque établissement."
 
 msgid "Run your school the way your school actually runs."
 msgstr ""
@@ -24232,7 +24237,7 @@ msgid "See full pricing →"
 msgstr ""
 
 msgid "See it live"
-msgstr ""
+msgstr "Voir en direct"
 
 msgid "See the full product tour →"
 msgstr ""
@@ -24688,7 +24693,7 @@ msgid "Take attendance in seconds, on phone or laptop"
 msgstr ""
 
 msgid "Talk to a human →"
-msgstr ""
+msgstr "Parler à un humain →"
 
 msgid "Talk to solutions →"
 msgstr ""
@@ -24735,10 +24740,10 @@ msgid "Term and annual results for {{ name }}."
 msgstr ""
 
 msgid "Terms"
-msgstr ""
+msgstr "Conditions"
 
 msgid "That page isn't here."
-msgstr ""
+msgstr "Cette page n’est pas ici."
 
 msgid "The kitchen counts 412 hot meals."
 msgstr ""
@@ -24756,6 +24761,8 @@ msgid ""
 "The link may be old, scoped to a different host, or missing required "
 "context. Try one of the stable entry points below."
 msgstr ""
+"Le lien est peut-être obsolète, lié à un autre hôte, ou il manque un "
+"contexte requis. Essayez l’un des points d’entrée stables ci-dessous."
 
 msgid "The numbers competitors don't show."
 msgstr ""
@@ -25302,6 +25309,8 @@ msgid ""
 "We've moved schools off PowerSchool, Blackbaud, Infinite Campus, and a "
 "folder full of spreadsheets."
 msgstr ""
+"Nous avons déjà fait migrer des écoles depuis PowerSchool, Blackbaud, "
+"Infinite Campus, et un dossier rempli de feuilles de calcul."
 
 msgid "Weak subject focus"
 msgstr ""
@@ -25406,7 +25415,7 @@ msgid "Who & when"
 msgstr ""
 
 msgid "Why switch"
-msgstr ""
+msgstr "Pourquoi changer"
 
 msgid "Why this mapping"
 msgstr ""
@@ -25570,6 +25579,8 @@ msgstr ""
 
 msgid "Your school's hour. Your school's currency. Your school's calendar."
 msgstr ""
+"L’heure de votre école. La monnaie de votre école. Le calendrier de votre "
+"école."
 
 msgid ""
 "Your session expired or you signed out. Sign in again to pick up where you "
@@ -25687,7 +25698,7 @@ msgid "to fully switch from legacy"
 msgstr ""
 
 msgid "to fully switch from legacy SIS"
-msgstr ""
+msgstr "pour migrer entièrement depuis votre ancien SIS"
 
 msgid "version"
 msgstr ""
@@ -25921,7 +25932,7 @@ msgid ""
 msgstr ""
 
 msgid "All solutions →"
-msgstr ""
+msgstr "Toutes les solutions →"
 
 msgid "All-campuses rollup"
 msgstr ""
@@ -26038,7 +26049,7 @@ msgid "Between the bells"
 msgstr ""
 
 msgid "Between the bells · Sent by RunMyCampus"
-msgstr ""
+msgstr "Entre deux sonneries · Envoyé par RunMyCampus"
 
 msgid "Binary assets"
 msgstr ""
@@ -26053,7 +26064,7 @@ msgid "Blackbaud"
 msgstr ""
 
 msgid "Book a demo →"
-msgstr ""
+msgstr "Réserver une démo →"
 
 msgid "Book a migration consult"
 msgstr ""
@@ -26081,7 +26092,7 @@ msgid "Bundle surfaces"
 msgstr ""
 
 msgid "Bursar"
-msgstr ""
+msgstr "Économe"
 
 msgid "Bursar receipts captured without waiting for fibre."
 msgstr ""
@@ -26120,7 +26131,7 @@ msgid "Choose an assistant on the left to begin."
 msgstr ""
 
 msgid "Choose language"
-msgstr ""
+msgstr "Choisir la langue"
 
 msgid ""
 "Choose one or more channels. Critical alerts always send via App regardless "
@@ -26201,10 +26212,10 @@ msgid ""
 msgstr ""
 
 msgid "Common questions"
-msgstr ""
+msgstr "Questions fréquentes"
 
 msgid "Communicate"
-msgstr ""
+msgstr "Communiquer"
 
 msgid "Compliance and audit entry points"
 msgstr ""
@@ -26249,7 +26260,7 @@ msgid "Consent required for {n} more scope(s) before install can proceed."
 msgstr ""
 
 msgid "Contact sales →"
-msgstr ""
+msgstr "Contacter les ventes →"
 
 msgid "Conversational column rebind"
 msgstr ""
@@ -26358,7 +26369,7 @@ msgid ""
 msgstr ""
 
 msgid "Dry-run"
-msgstr ""
+msgstr "Test à blanc"
 
 msgid "Early-warning panels before crises land in email."
 msgstr ""
@@ -26398,7 +26409,7 @@ msgid "Enter and review marks for your classes."
 msgstr ""
 
 msgid "Enterprise SLA, operator command center access."
-msgstr ""
+msgstr "SLA entreprise, accès au centre de commande opérateur."
 
 msgid "Escalations route to the right role before the bell rings."
 msgstr ""
@@ -26532,7 +26543,7 @@ msgid "Five roles"
 msgstr ""
 
 msgid "Five roles. Five Tuesdays."
-msgstr ""
+msgstr "Cinq rôles. Cinq mardis."
 
 msgid ""
 "Five steps from a capability to a shipped change: family → grouped controls "
@@ -26658,7 +26669,7 @@ msgid "Governed apps and integration depth."
 msgstr ""
 
 msgid "Governed partner tiles — activate per campus."
-msgstr ""
+msgstr "Tuiles partenaires gouvernées — activables par établissement."
 
 msgid "Grade approval"
 msgstr ""
@@ -26676,7 +26687,7 @@ msgid "Grades and comments without leaving the class view."
 msgstr ""
 
 msgid "Grow"
-msgstr ""
+msgstr "Faire grandir"
 
 msgid "Guided setup for academics, people, and go-live readiness."
 msgstr ""
@@ -26688,7 +26699,7 @@ msgid "Head"
 msgstr ""
 
 msgid "Head of school"
-msgstr ""
+msgstr "Chef d’établissement"
 
 msgid "Head-to-head"
 msgstr ""
@@ -26731,7 +26742,7 @@ msgid "IT"
 msgstr ""
 
 msgid "IT lead"
-msgstr ""
+msgstr "Responsable informatique"
 
 msgid ""
 "IT sees an SSO blip before staff feels it — and rolls back without a ticket."
@@ -26913,7 +26924,7 @@ msgid "Lowers risk"
 msgstr ""
 
 msgid "Map your data"
-msgstr ""
+msgstr "Cartographier vos données"
 
 msgid "Mark all notifications as read"
 msgstr ""
@@ -26928,7 +26939,7 @@ msgid "Marked %(count)d notifications as read."
 msgstr ""
 
 msgid "Marketplace apps"
-msgstr ""
+msgstr "Applications du marketplace"
 
 msgid ""
 "Marketplace recommendations and trust/compliance assistant — advisory only."
@@ -26974,7 +26985,7 @@ msgid "Migration dry-run sandbox"
 msgstr ""
 
 msgid "Migration timeline"
-msgstr ""
+msgstr "Chronologie de la migration"
 
 msgid "Model version"
 msgstr ""
@@ -27372,6 +27383,7 @@ msgstr ""
 
 msgid "Phased cutover, dry-run sandbox, dedicated migration lead."
 msgstr ""
+"Bascule par phases, environnement de test à blanc, chef de migration dédié."
 
 msgid ""
 "Phased go-live bell by bell — the staffroom should not feel the day it "
@@ -27437,7 +27449,7 @@ msgid "Platform modules"
 msgstr ""
 
 msgid "Platform scale"
-msgstr ""
+msgstr "Échelle de la plateforme"
 
 msgid "Platforms schools migrate from"
 msgstr ""
@@ -27466,7 +27478,7 @@ msgid "Preference"
 msgstr ""
 
 msgid "Premium support"
-msgstr ""
+msgstr "Support premium"
 
 msgid "Preserve"
 msgstr ""
@@ -27591,7 +27603,7 @@ msgid "Related"
 msgstr ""
 
 msgid "Release notes"
-msgstr ""
+msgstr "Notes de version"
 
 msgid "Reminders in the family's channel."
 msgstr ""
@@ -27957,7 +27969,7 @@ msgid "Take photo"
 msgstr ""
 
 msgid "Talk to us"
-msgstr ""
+msgstr "Parler avec nous"
 
 msgid "Target school ID"
 msgstr ""
@@ -27966,7 +27978,7 @@ msgid "Target school ID (optional)"
 msgstr ""
 
 msgid "Teach"
-msgstr ""
+msgstr "Enseigner"
 
 msgid ""
 "Tell us about your school and we'll schedule a walkthrough within one "
@@ -28118,7 +28130,7 @@ msgid "Trust pillars"
 msgstr ""
 
 msgid "Tuesday · Cedar Ridge Academy"
-msgstr ""
+msgstr "Mardi · Cedar Ridge Academy"
 
 msgid ""
 "Type a name, classroom, or describe what you're looking for. Results are "
@@ -28197,6 +28209,8 @@ msgid ""
 "We document posture honestly — certifications and live PSP rails only when "
 "externally verified."
 msgstr ""
+"Nous documentons notre posture honnêtement — certifications et flux PSP en "
+"production uniquement après vérification externe."
 
 msgid ""
 "We inventory SIS fields, fee ledgers, and comms history — nothing re-keyed "
@@ -28213,7 +28227,7 @@ msgid "Welcoming aesthetic"
 msgstr ""
 
 msgid "What changes for everyone in the building"
-msgstr ""
+msgstr "Ce qui change pour chacun dans l’établissement"
 
 msgid ""
 "What we say we ship vs what's demonstrably wired up. Every shipped row must "
@@ -28386,7 +28400,7 @@ msgid "total"
 msgstr ""
 
 msgid "was: Platform"
-msgstr ""
+msgstr "auparavant : Plateforme"
 
 msgid "workspace"
 msgstr ""
@@ -28885,4 +28899,87 @@ msgid "selected"
 msgstr ""
 
 msgid "start with a blank form"
+msgstr ""
+
+msgid "Fleet-wide grading scale matrix for cross-region operator triage."
+msgstr ""
+
+msgid "Maintenance preview"
+msgstr ""
+
+msgid ""
+"No school context. Open a school from the control plane, then return to this"
+" page."
+msgstr ""
+
+msgid "No school context. Switch to a school to manage dashboard layouts."
+msgstr ""
+
+msgid "No school context. Switch to a school to manage dashboards."
+msgstr ""
+
+msgid "Quick capture"
+msgstr ""
+
+msgid "Region grading matrix"
+msgstr ""
+
+msgid ""
+"Regional configuration completeness and validation checks for operators."
+msgstr ""
+
+msgid "Run all visible API cards"
+msgstr ""
+
+msgid "Runs each card in the open accordion sections (sequential)."
+msgstr ""
+
+msgid ""
+"Side-by-side comparison of core regional settings across fleet regions."
+msgstr ""
+
+msgid ""
+"Staff preview of the maintenance page shown to users when maintenance mode "
+"is on."
+msgstr ""
+
+msgid ""
+"Staff preview — end users see this page when maintenance mode is enabled "
+"site-wide."
+msgstr ""
+
+msgid "Student note"
+msgstr ""
+
+msgid "Student notes"
+msgstr ""
+
+msgid "Full control plane"
+msgstr ""
+
+msgid "Leave Studio"
+msgstr ""
+
+msgid "Studio overview"
+msgstr ""
+
+msgid "Studio shortcuts"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Platform manager header"
+msgstr ""
+
+msgid "Search schools and incidents"
+msgstr ""
+
+msgid "Search…"
+msgstr ""
+
+msgid "Studio workspace"
+msgstr ""
+
+msgid "active"
 msgstr ""

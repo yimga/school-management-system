@@ -6,23 +6,23 @@
   display: block;
   padding: 0.35rem 0.5rem;
   border-radius: var(--token-radius-sm, 0.375rem);
-  color: var(--color-base-700, #2c241d);
+  color: var(--text-primary, var(--color-base-700, #2c241d));
   text-decoration: none;
 }
 
 .studio-os__control-rail a.control-rail-link:hover {
-  background: var(--color-base-100, #f5eedd);
-  color: var(--color-base-900, #1a1612);
+  background: var(--surface-elevated, var(--color-base-100, #f5eedd));
+  color: var(--text-primary, var(--color-base-900, #1a1612));
 }
 
 .studio-os__control-rail a.control-rail-link.active {
-  background: var(--color-primary-50, #eff6ff);
-  color: var(--color-primary-700, #a06814);
+  background: var(--color-primary-50, #eff6ff); /* theme-locked-allow: brand-token */
+  color: var(--color-primary-700, #a06814); /* theme-locked-allow: brand-token */
   font-weight: 500;
 }
 
 .studio-os__control-rail a.control-rail-link:focus-visible {
-  outline: 2px solid var(--color-primary-500, #c47f1c);
+  outline: 2px solid var(--color-primary-500, #c47f1c); /* theme-locked-allow: brand-token */
   outline-offset: 2px;
 }
 
@@ -48,41 +48,8 @@
    header — user reported this in the v2.62 retro as a "Governance dropdown
    floating wrong." Grid keeps the rail locked side-by-side until the
    viewport narrows below the breakpoint, then falls back to stacked. */
-.studio-os__control-wrap {
-  display: grid;
-  grid-template-columns: minmax(180px, 13rem) minmax(0, 1fr);
-  gap: 1rem;
-  align-items: start;
-}
-@media (max-width: 991px) {
-  /* Below the lg breakpoint: stack the rail above the panel. The rail
-     becomes a compact horizontal-scroll chip row at this size so it
-     doesn't dominate vertical space. */
-  .studio-os__control-wrap {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .studio-os__control-rail--sized {
-    width: 100%;
-  }
-  .studio-os__control-rail .studio-os__card {
-    overflow-x: auto;
-  }
-  .studio-os__control-rail #control-rail-list {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 0.4rem;
-  }
-  .studio-os__control-rail #control-rail-list li {
-    flex: 0 0 auto;
-    margin: 0;
-  }
-}
-
-/* Desktop: rail sticks to viewport top-edge so as the user scrolls
-   through the long capability list, governance links remain reachable. */
-@media (min-width: 992px) {
-  .studio-os__control-rail--sized {
-    position: sticky;
-    top: 1rem;
-  }
+/* Control workspace grid lives in studio-workspace.css (.rmc-studio-workspace--control). */
+.studio-os__control-wrap,
+.rmc-studio-workspace--control {
+  /* legacy alias for grammar + older templates */
 }

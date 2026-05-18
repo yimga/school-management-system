@@ -51,7 +51,7 @@ def _logo_version_token(request) -> str:
     when the tenant uploads a new logo.
     """
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
 
         settings_obj = get_effective_site_settings(request=request)
     except (ImportError, RuntimeError, Exception):

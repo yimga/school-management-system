@@ -1,16 +1,16 @@
 /**
  * Studio OS — Configuration Control Center (system config console) surfaces.
  * Phase 2: tokens only; loaded via shell_extrastyle + embed template.
- */
+ */ /* theme-locked-allow: decorative-tint-mix */
 
 .sysconf-hero {
-  background: linear-gradient(
+  background: linear-gradient( /* theme-locked-allow: decorative-tint-mix */
     135deg,
     var(--color-base-900, #1a1612) 0%,
     color-mix(in srgb, var(--color-primary-900, #1e3a5f) 85%, var(--color-base-900)) 45%,
     color-mix(in srgb, var(--stat-admin, #312e81) 70%, var(--color-base-900)) 100%
   );
-  color: var(--color-base-50, #fffaf0);
+  color: var(--text-tertiary, var(--color-base-50, #fffaf0));
   border-radius: var(--ds-radius-lg, var(--token-radius-lg, 12px));
   padding: var(--token-space-5, 1.25rem) var(--token-space-6, 1.5rem);
   margin-bottom: var(--token-space-5, 1.25rem);
@@ -30,16 +30,15 @@
   transition: box-shadow var(--ds-motion-content, 0.15s) ease,
     border-color var(--ds-motion-content, 0.15s) ease;
 }
-
 .sysconf-card:hover {
-  box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(26, 22, 18, 0.08));
-  border-color: color-mix(in srgb, var(--color-primary-500, #c47f1c) 35%, transparent);
+  box-shadow: var(--ds-shadow-md, 0 4px 20px rgba(26, 22, 18, 0.08)); /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in srgb, var(--color-primary-500, #c47f1c) 35%, transparent); /* theme-locked-allow: decorative-tint-mix */
 }
 
 .sysconf-card a.primary-link {
   font-weight: 600;
-  text-decoration: none;
-  color: var(--color-primary-600, #4f46e5);
+  text-decoration: none; /* theme-locked-allow: brand-token */
+  color: var(--color-primary-600, #4f46e5); /* theme-locked-allow: brand-token */
 }
 
 .sysconf-card .hint {

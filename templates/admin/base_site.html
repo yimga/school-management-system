@@ -3,6 +3,7 @@
 
 {% block extrastyle %}
   {{ block.super }}
+  <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
@@ -13,7 +14,7 @@
   runs synchronously in <head>, before paint, so no FOUC. The Unfold skeleton
   template owns the <html> tag (third-party), so we toggle the attribute here.
   {% endcomment %}
-  <script>document.documentElement.setAttribute('data-rmc-aesthetic','cool-apple');
+  <script nonce="{{ csp_nonce }}">document.documentElement.setAttribute('data-rmc-aesthetic','cool-apple');
     // v2.6 viewport-fit=cover parity — Unfold's skeleton.html owns the viewport
     // meta; patch it here so safe-area-inset utilities behave on notched devices.
     (function(){var m=document.querySelector('meta[name="viewport"]');if(m&&!/viewport-fit/.test(m.getAttribute('content')||'')){m.setAttribute('content',(m.getAttribute('content')||'width=device-width, initial-scale=1')+', viewport-fit=cover');}})();
@@ -75,6 +76,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-cp-parity.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
+  <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
   <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
@@ -85,7 +87,8 @@
   <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
   <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
-  <script>(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
+  <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
+  <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {# Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). #}
   <style id="admin-brand-resolved-tokens">
     :root {
@@ -99,10 +102,9 @@
 {% block extrahead %}
   {{ block.super }}
   <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
-  {% if is_manager_host %}<link rel="icon" href="{% static 'images/runmycampus-icon.png' %}" type="image/png">
-  <link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
+  {% if is_manager_host %}<link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/brand/runmycampus-logo-mark.png' %}{% endif %}" type="image/png">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
   {# Configuration Engine: premium shell on all hosts – manager gets navy/gold, tenant gets same UX with school theme #}
-  <script>
+  <script nonce="{{ csp_nonce }}">
     (function () {
       var h = document.documentElement;
       h.setAttribute('data-rmc-route-family', '{{ rmc_shell.route_family|escapejs }}');
@@ -112,23 +114,20 @@
       h.setAttribute('data-rmc-main-region', '{{ rmc_shell.main_region|escapejs }}');
     })();
   </script>
-  <script>
+  <script nonce="{{ csp_nonce }}">
     (function(){
       var isManager = {{ is_manager_host|yesno:"true,false" }};
       function applyAdminShell() {
         if (isManager) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-          document.documentElement.setAttribute('data-bs-theme', 'dark');
           document.documentElement.setAttribute('data-surface', 'control-plane');
-          document.documentElement.setAttribute('data-shell-layout', 'admin');
+          document.documentElement.setAttribute('data-shell-layout', 'admin-control-plane-unified');
           document.documentElement.setAttribute('data-rmc-admin-html', 'unfold');
-          document.documentElement.classList.add('dark');
           if (document.body) {
             document.body.setAttribute('data-rmc-admin-shell', '1');
             document.body.setAttribute('data-rmc-shell-root', 'django-admin');
             document.body.setAttribute('data-rmc-shell-main', 'admin-main');
             document.body.setAttribute('data-rmc-nav-bridge-host', 'manager');
-            document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface', 'portal-backend-dark');
+            document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface');
           }
         } else {
           document.documentElement.setAttribute('data-surface', 'tenant');
@@ -139,9 +138,10 @@
             document.body.setAttribute('data-rmc-shell-root', 'django-admin');
             document.body.setAttribute('data-rmc-shell-main', 'admin-main');
             document.body.setAttribute('data-rmc-nav-bridge-host', 'tenant');
-            document.body.classList.add('admin-premium-shell', 'portal-backend-dark');
+            document.body.classList.add('admin-premium-shell');
           }
         }
+        /* Body palette (portal-backend-*) is synced by theme-preference-bootstrap.js from resolved theme. */
       }
       if (document.body) applyAdminShell(); else document.addEventListener('DOMContentLoaded', applyAdminShell);
     })();
@@ -190,7 +190,7 @@
 {% endblock %}
 
 {% block nav-global %}
-  <a href="#content" class="skip-link">{% trans "Skip to main content" %}</a>
+  <a href="{% if is_manager_host %}#cp-main-content{% else %}#content{% endif %}" class="skip-link">{% trans "Skip to main content" %}</a>
 {% endblock %}
 
 {% block footer %}
@@ -213,7 +213,7 @@
   {% if is_manager_host %}
   {% include "partials/cp_context_drawer_shell.html" %}
   <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function () {
     var gPending = false;
     var gTimeout = null;
@@ -262,7 +262,7 @@
   })();
   </script>
   {% endif %}
-  <script>
+  <script nonce="{{ csp_nonce }}">
   (function() {
     function announceAdminSidebar(msg) {
       var el = document.getElementById('admin-sidebar-live');

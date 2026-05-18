@@ -75,6 +75,14 @@ from apps.schools.signup_views import (
 )
 from apps.siteconfig.views_tour import tour_steps_public_api
 from apps.siteconfig.views_verify import verify_student_id
+from apps.siteconfig.views_manifest import (
+    platform_manifest as _platform_manifest,
+    portal_manifest as _portal_manifest,
+)
+from apps.siteconfig.views_manifest_icon import (
+    icon_any as _manifest_icon_any,
+    icon_maskable as _manifest_icon_maskable,
+)
 from apps.schools.marketing_views_v2 import marketing_landing_v2
 
 
@@ -92,6 +100,21 @@ urlpatterns = [
     path("", home, name="marketing_home"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("offline/", offline_page, name="offline"),
+    # PWA manifest endpoints (mirrored from config/urls.py so templates that emit
+    # `{% url 'pwa_manifest_platform' %}` work under the public urlconf when
+    # UrlConfSwitcherMiddleware swaps in this module for marketing hosts).
+    path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),
+    path("manifest-portal.json", _portal_manifest, name="pwa_manifest_portal"),
+    path(
+        "manifest/icon-<int:size>.png",
+        _manifest_icon_any,
+        name="pwa_manifest_icon_any",
+    ),
+    path(
+        "manifest/icon-<int:size>-maskable.png",
+        _manifest_icon_maskable,
+        name="pwa_manifest_icon_maskable",
+    ),
     path("-/version/", obs_views.public_version, name="public_version"),
     path(
         "authentication/",

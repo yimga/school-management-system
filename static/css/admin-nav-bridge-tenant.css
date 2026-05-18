@@ -66,7 +66,7 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   background: rgba(255, 255, 255, 0.95); /* off-token-allow: white-overlay */
-  color: var(--color-base-900);
+  color: var(--text-primary, var(--color-base-900));
   border: none;
   border-radius: 999px;
   min-height: 2.05rem;
@@ -82,7 +82,7 @@
   background: var(--admin-content-bg);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  color: var(--color-base-900);
+  color: var(--text-primary, var(--color-base-900));
   text-decoration: none;
 }
 

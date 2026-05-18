@@ -1,0 +1,334 @@
+/**
+ * Platform-wide theme contrast (light / dark / system-resolved).
+ * Load AFTER dark-mode-safety-net.css on authenticated shells.
+ *
+ * Fixes:
+ * - System preference: rules keyed on data-resolved-theme (not data-theme="system")
+ * - Unfold admin (Tailwind text-base-* / dark:*) on manager #cp-main-content
+ * - Light-mode main canvas readability on control-plane + admin-manager shells
+ */
+
+/* ----- System mode: mirror dark/light hooks on resolved theme ----- */
+html[data-resolved-theme="dark"],
+html[data-theme="system"][data-resolved-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-resolved-theme="light"],
+html[data-theme="system"][data-resolved-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .text-muted,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .small.text-muted,
+html[data-theme="system"][data-resolved-theme="dark"] body:not(.marketing-surface) .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+html[data-resolved-theme="light"] body:not(.marketing-surface) .text-muted,
+html[data-resolved-theme="light"] body:not(.marketing-surface) .small.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* ----- Manager / admin main column (Unfold + Django admin) ----- */
+html[data-resolved-theme="light"] #cp-main-content,
+html[data-resolved-theme="light"] body.admin-manager-shell #main,
+html[data-bs-theme="light"] #cp-main-content,
+html[data-bs-theme="light"] body.admin-manager-shell #main {
+  background-color: var(--surface-canvas, var(--color-base-50));
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="dark"] #cp-main-content,
+html[data-resolved-theme="dark"] body.admin-manager-shell #main,
+html[data-bs-theme="dark"] #cp-main-content,
+html[data-bs-theme="dark"] body.admin-manager-shell #main {
+  background-color: var(--surface-canvas, var(--color-base-900));
+  color: var(--text-primary, var(--color-base-100));
+}
+
+/* Unfold utility text (static grays fail when html.dark is missing or bg flips) */
+#cp-main-content .text-base-600,
+#cp-main-content .text-base-700,
+body.admin-manager-shell #main .text-base-600,
+body.admin-manager-shell #main .text-base-700 {
+  color: var(--text-secondary) !important;
+}
+
+#cp-main-content .text-base-800,
+#cp-main-content .text-base-900,
+body.admin-manager-shell #main .text-base-800,
+body.admin-manager-shell #main .text-base-900,
+#cp-main-content .breadcrumb .active,
+body.admin-manager-shell #main .breadcrumb .active {
+  color: var(--text-primary) !important;
+}
+
+html.dark #cp-main-content .dark\:text-base-400,
+html.dark body.admin-manager-shell #main .dark\:text-base-400,
+html[data-bs-theme="dark"] #cp-main-content .text-base-600,
+html[data-bs-theme="dark"] body.admin-manager-shell #main .text-base-600 {
+  color: var(--text-secondary) !important;
+}
+
+html.dark #cp-main-content .dark\:text-base-200,
+html[data-bs-theme="dark"] #cp-main-content .text-base-800,
+html[data-bs-theme="dark"] #cp-main-content .breadcrumb .active {
+  color: var(--text-primary) !important;
+}
+
+#cp-main-content a:not(.btn):not(.nav-link),
+body.admin-manager-shell #main a:not(.btn):not(.nav-link) {
+  color: var(--school-accent, var(--brand-primary, var(--color-indigo-500)));
+}
+
+#cp-main-content .results table th,
+#cp-main-content .results table td,
+#cp-main-content #result_list th,
+#cp-main-content #result_list td,
+body.admin-manager-shell #content .results table th,
+body.admin-manager-shell #content .results table td {
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+#cp-main-content label,
+#cp-main-content .form-row label,
+body.admin-manager-shell #content label {
+  color: var(--text-primary);
+}
+
+/* Operator surface strip + breadcrumbs stay readable in both modes */
+.rmc-operator-surface-strip__label,
+.rmc-operator-surface-strip__paired-label {
+  color: var(--text-secondary);
+}
+
+.rmc-operator-surface-strip__pill {
+  color: var(--text-primary);
+}
+
+/* Sidebar nav: text-white is correct on dark chrome only */
+html[data-resolved-theme="light"] .cp-sidebar-inner .cp-nav-label,
+html[data-resolved-theme="light"] .cp-sidebar-nav .nav-link.text-white {
+  color: var(--text-primary, var(--color-base-100));
+}
+
+html[data-resolved-theme="light"] .cp-sidebar-inner {
+  color: var(--text-primary);
+}
+
+/* Prevent dark-only body class from forcing dark vis tokens in light mode */
+html[data-resolved-theme="light"] body.portal-backend-dark {
+  /* palette class may linger briefly during toggle; resolved theme wins */
+}
+
+html[data-resolved-theme="light"] body.portal-backend-light .text-dark,
+html[data-resolved-theme="light"] body.control-plane-shell .text-dark,
+html[data-resolved-theme="light"] #cp-main-content .text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* ----- Django admin forms (changelist actions, waive subscription, custom templates) ----- */
+body.admin-manager-shell #content .module,
+body.admin-manager-shell #content .module h2,
+body.admin-manager-shell #content .module p,
+body.admin-manager-shell #content .module li,
+body.admin-manager-shell #content .form-row label,
+body.admin-manager-shell #content fieldset.module,
+body.admin-manager-shell #content .submit-row,
+body.admin-premium-shell #content .module,
+body.admin-premium-shell #content .module h2,
+body.admin-premium-shell #content .module p,
+#cp-main-content .module,
+#cp-main-content .module h2,
+#cp-main-content .module p,
+#cp-main-content .module li {
+  color: var(--text-primary);
+}
+
+body.admin-manager-shell #content .module a,
+body.admin-premium-shell #content .module a,
+#cp-main-content .module a,
+body.admin-manager-shell #content .submit-row a.button,
+body.admin-manager-shell #content .cancel-link {
+  color: var(--school-accent, var(--brand-primary, var(--color-indigo-500)));
+}
+
+body.admin-manager-shell #content textarea,
+body.admin-manager-shell #content input[type="text"],
+body.admin-manager-shell #content input[type="number"],
+body.admin-manager-shell #content select,
+body.admin-premium-shell #content textarea,
+body.admin-premium-shell #content input,
+body.admin-premium-shell #content select,
+#cp-main-content textarea,
+#cp-main-content input,
+#cp-main-content select {
+  background-color: var(--surface-elevated, var(--color-base-0));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-resolved-theme="dark"] body.admin-manager-shell #content textarea,
+html[data-resolved-theme="dark"] body.admin-manager-shell #content input,
+html[data-resolved-theme="dark"] body.admin-manager-shell #content select,
+html[data-resolved-theme="dark"] #cp-main-content textarea,
+html[data-resolved-theme="dark"] #cp-main-content input,
+html[data-resolved-theme="dark"] #cp-main-content select {
+  background-color: var(--surface-elevated, var(--color-base-800));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+/* Changelist filter sidebar (Unfold) */
+#cp-main-content #changelist-filter,
+body.admin-manager-shell #changelist-filter {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+#cp-main-content #changelist-filter h2,
+#cp-main-content #changelist-filter h3,
+#cp-main-content #changelist-filter label,
+body.admin-manager-shell #changelist-filter h2,
+body.admin-manager-shell #changelist-filter label {
+  color: var(--text-primary);
+}
+
+/* Admin messages */
+body.admin-manager-shell .messagelist li,
+#cp-main-content .messagelist li,
+body.admin-premium-shell .messagelist li {
+  color: var(--text-primary);
+}
+
+/* Main content scope (manager super, admin, config center, tenant backend) */
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #content,
+    body.admin-premium-shell #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ),
+html[data-bs-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #content,
+    body.admin-premium-shell #content,
+    [data-rmc-shell-main]
+  ) {
+  background-color: var(--surface-canvas, var(--color-base-50));
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #content,
+    body.admin-premium-shell #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ),
+html[data-bs-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #content,
+    body.admin-premium-shell #content,
+    [data-rmc-shell-main]
+  ) {
+  background-color: var(--surface-canvas, var(--color-base-900));
+  color: var(--text-primary, var(--color-base-100));
+}
+
+/* text-white utilities on light main canvas (legacy templates + Unfold) */
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, body.admin-manager-shell #content, body.admin-premium-shell #content, [data-rmc-shell-main]) .text-white:not(.btn):not(.nav-link):not(.badge):not(.bg-dark):not(.bg-secondary):not(.card-header),
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) :is(h1, h2, h3, h4, h5, h6).text-white,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, body.admin-manager-shell #content, [data-rmc-shell-main]) .text-white-50,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, body.admin-manager-shell #content, [data-rmc-shell-main]) .text-white-75 {
+  color: var(--text-primary) !important;
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, body.admin-manager-shell #content, [data-rmc-shell-main]) .text-white-50,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, body.admin-manager-shell #content, [data-rmc-shell-main]) .text-white-75,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) th.text-white-50,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, body.admin-manager-shell #content, [data-rmc-shell-main]) .text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* Dark cards on light canvas keep intentional contrast */
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .bg-dark .text-white,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .bg-secondary.text-white,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .card.bg-dark,
+html[data-resolved-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .card-header.bg-secondary {
+  color: var(--color-base-50, #f8fafc);
+}
+
+/* Keep white text on dark chrome (navbar / sidebar / offcanvas headers) */
+html[data-resolved-theme="light"] .cp-navbar .text-white,
+html[data-resolved-theme="light"] .cp-navbar .text-white-50,
+html[data-resolved-theme="light"] .cp-sidebar-nav .nav-link.text-white,
+html[data-resolved-theme="light"] .cp-sidebar-offcanvas .offcanvas-title.text-white,
+html[data-resolved-theme="light"] .statement-header .text-white {
+  color: var(--color-base-50, #f8fafc) !important;
+}
+
+/* Tenant + manager: flip Bootstrap .text-dark in dark resolved mode */
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .text-dark,
+html.dark body:not(.marketing-surface) .text-dark {
+  color: var(--text-primary) !important;
+}
+
+/* Popups / related admin windows */
+body.admin-manager-shell.popup #content,
+body.admin-premium-shell.popup #content {
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+}
+
+/* Unfold tabs and paginator */
+#cp-main-content .tab-wrapper,
+#cp-main-content nav[aria-label*="pagination"],
+body.admin-manager-shell #content .paginator {
+  color: var(--text-secondary);
+}
+
+#cp-main-content .tab-wrapper a.selected,
+body.admin-manager-shell #content .paginator a {
+  color: var(--text-primary);
+}
+
+/* Manager / admin login cards (control_plane_skeleton + admin/login) */
+html[data-resolved-theme="light"] .admin-login-card h1.text-white,
+html[data-resolved-theme="light"] .admin-login-card .text-white:not(.btn),
+html[data-resolved-theme="light"] .cp-ultra-login .admin-login-card,
+html[data-resolved-theme="light"] body.admin-login #content {
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="light"] .admin-login-card {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="light"] .admin-login-card .form-control,
+html[data-resolved-theme="light"] .admin-login-card label {
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] .admin-login-card,
+html[data-resolved-theme="dark"] .cp-ultra-login .admin-login-card {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] .admin-login-card h1.text-white,
+html[data-resolved-theme="dark"] .admin-login-card .text-white:not(.btn) {
+  color: var(--text-primary) !important;
+}

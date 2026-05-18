@@ -189,7 +189,7 @@ def resolve_shell_contract(request) -> dict[str, Any]:
         # "RunMyCampus" (title) + "Manager" (uppercase eyebrow). Both consume
         # SITE-level overrides via the resolver so a tenant rebrand stays
         # honored; defaults below keep the platform baseline.
-        "control_plane_product_title": "RunMyCampus",
+        "control_plane_product_title": "RunMyCampus Manager",
         "control_plane_product_subtitle": "Manager",
         # HTML / sidebar tokens (1011; descriptive only, safe template fallbacks)
         "portal_shell_root": "portal",

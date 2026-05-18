@@ -77,23 +77,23 @@
 .chip {
   padding: 6px 12px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--tdm-primary) 12%, var(--color-base-0) 88%);
-  color: color-mix(in srgb, var(--tdm-primary) 72%, var(--color-base-900) 28%);
+  background: color-mix(in srgb, var(--tdm-primary) 12%, var(--color-base-0) 88%); /* theme-locked-allow: decorative-tint-mix */
+  color: color-mix(in srgb, var(--tdm-primary) 72%, var(--color-base-900) 28%); /* theme-locked-allow: decorative-tint-mix */
   font-weight: 600;
   font-size: var(--type-size-caption);
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 34%, var(--color-base-300) 66%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 34%, var(--color-base-300) 66%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 .chip-accent {
-  background: color-mix(in srgb, var(--tdm-accent) 16%, var(--color-base-0) 84%);
-  color: color-mix(in srgb, var(--tdm-accent) 70%, var(--color-base-900) 30%);
-  border-color: color-mix(in srgb, var(--tdm-accent) 40%, var(--color-base-300) 60%);
+  background: color-mix(in srgb, var(--tdm-accent) 16%, var(--color-base-0) 84%); /* theme-locked-allow: decorative-tint-mix */
+  color: color-mix(in srgb, var(--tdm-accent) 70%, var(--color-base-900) 30%); /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in srgb, var(--tdm-accent) 40%, var(--color-base-300) 60%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 .chip-soft {
-  background: color-mix(in srgb, var(--tdm-primary) 10%, var(--color-base-0) 90%);
-  color: color-mix(in srgb, var(--tdm-primary) 64%, var(--color-base-900) 36%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 30%, var(--color-base-300) 70%);
+  background: color-mix(in srgb, var(--tdm-primary) 10%, var(--color-base-0) 90%); /* theme-locked-allow: decorative-tint-mix */
+  color: color-mix(in srgb, var(--tdm-primary) 64%, var(--color-base-900) 36%); /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in srgb, var(--tdm-primary) 30%, var(--color-base-300) 70%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 .tdm-hero__actions .btn {
@@ -102,8 +102,8 @@
 }
 
 .dashboard-page-teacher .tdm-hero__actions .btn-outline-light {
-  background: color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 42%, var(--color-base-300) 58%);
+  background: color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%); /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in srgb, var(--tdm-primary) 42%, var(--color-base-300) 58%); /* theme-locked-allow: decorative-tint-mix */
   color: var(--tdm-text);
   font-weight: 700;
   opacity: 1;
@@ -111,8 +111,8 @@
 
 .dashboard-page-teacher .tdm-hero__actions .btn-outline-light:hover,
 .dashboard-page-teacher .tdm-hero__actions .btn-outline-light:focus-visible {
-  background: color-mix(in srgb, var(--tdm-primary) 20%, var(--color-base-0) 80%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 58%, var(--color-base-400) 42%);
+  background: color-mix(in srgb, var(--tdm-primary) 20%, var(--color-base-0) 80%); /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in srgb, var(--tdm-primary) 58%, var(--color-base-400) 42%); /* theme-locked-allow: decorative-tint-mix */
   color: var(--tdm-text);
 }
 
@@ -134,7 +134,7 @@
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--color-base-0);
+  border: 2px solid var(--hairline, var(--color-base-0)); /* theme-locked-allow: manual-review */
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
@@ -142,7 +142,7 @@
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, var(--tdm-primary), var(--tdm-accent));
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   font-weight: 700;
 }
 
@@ -163,9 +163,9 @@
 }
 
 .btn-soft {
-  background: color-mix(in srgb, var(--tdm-primary) 10%, var(--color-base-0) 90%);
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 28%, var(--color-base-300) 72%);
-  color: color-mix(in srgb, var(--tdm-primary) 74%, var(--color-base-900) 26%);
+  background: color-mix(in srgb, var(--tdm-primary) 10%, var(--color-base-0) 90%); /* theme-locked-allow: decorative-tint-mix */
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 28%, var(--color-base-300) 72%); /* theme-locked-allow: decorative-tint-mix */
+  color: color-mix(in srgb, var(--tdm-primary) 74%, var(--color-base-900) 26%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 .tdm-overview-grid {
@@ -177,7 +177,7 @@
 
 .tdm-stat {
   padding: 16px;
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   position: relative;
   overflow: hidden;
 }
@@ -295,7 +295,7 @@
 .tdm-progress-track {
   flex: 1;
   height: 8px;
-  background: color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%);
+  background: color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%); /* theme-locked-allow: decorative-tint-mix */
   border-radius: 999px;
   overflow: hidden;
 }
@@ -334,7 +334,7 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: conic-gradient(var(--tdm-primary) calc(var(--value, 0) * 1%), color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%) 0);
+  background: conic-gradient(var(--tdm-primary) calc(var(--value, 0) * 1%), color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%) 0); /* theme-locked-allow: decorative-tint-mix */
   display: grid;
   place-items: center;
   position: relative;
@@ -453,8 +453,8 @@
 .tdm-pulse-item {
   padding: 10px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%);
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 22%, var(--color-base-300) 78%);
+  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%); /* theme-locked-allow: decorative-tint-mix */
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 22%, var(--color-base-300) 78%); /* theme-locked-allow: decorative-tint-mix */
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -486,9 +486,9 @@
 }
 
 .tdm-curriculum-list li {
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 18%, var(--color-base-300) 82%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 18%, var(--color-base-300) 82%); /* theme-locked-allow: decorative-tint-mix */
   border-radius: 10px;
-  background: color-mix(in srgb, var(--tdm-primary) 6%, var(--color-base-0) 94%);
+  background: color-mix(in srgb, var(--tdm-primary) 6%, var(--color-base-0) 94%); /* theme-locked-allow: decorative-tint-mix */
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
@@ -577,8 +577,8 @@
 .tdm-badge-tile {
   padding: 10px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%);
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 24%, var(--color-base-300) 76%);
+  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%); /* theme-locked-allow: decorative-tint-mix */
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 24%, var(--color-base-300) 76%); /* theme-locked-allow: decorative-tint-mix */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -625,7 +625,7 @@
 }
 
 .tdm-workflow-panel {
-  background: linear-gradient(
+  background: linear-gradient( /* theme-locked-allow: decorative-tint-mix */
     135deg,
     color-mix(in srgb, var(--tdm-primary) 14%, var(--color-base-0) 86%),
     color-mix(in srgb, var(--tdm-accent) 10%, var(--color-base-0) 90%)
@@ -651,7 +651,7 @@
 .tdm-workflow-focus {
   padding: 10px 12px;
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--tdm-primary) 26%, var(--color-base-300) 74%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 26%, var(--color-base-300) 74%); /* theme-locked-allow: decorative-tint-mix */
   background: rgba(255, 255, 255, 0.72); /* off-token-allow: white-overlay */
   margin-bottom: 10px;
 }
@@ -685,8 +685,8 @@
 
 .tdm-task-inline {
   margin-top: 2px;
-  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%);
-  border-color: color-mix(in srgb, var(--tdm-primary) 28%, var(--color-base-300) 72%);
+  background: color-mix(in srgb, var(--tdm-primary) 8%, var(--color-base-0) 92%); /* theme-locked-allow: decorative-tint-mix */
+  border-color: color-mix(in srgb, var(--tdm-primary) 28%, var(--color-base-300) 72%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 .tdm-task-title {

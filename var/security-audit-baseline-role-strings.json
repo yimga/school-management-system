@@ -7,7 +7,7 @@
   "excluded_tails": [
     "management/commands"
   ],
-  "finding_count": 271,
+  "finding_count": 268,
   "findings": [
     {
       "line": 44,
@@ -1100,21 +1100,6 @@
       "role": "PARENT"
     },
     {
-      "line": 1154,
-      "path": "apps/siteconfig/context_processors.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 1200,
-      "path": "apps/siteconfig/context_processors.py",
-      "role": "TEACHER"
-    },
-    {
-      "line": 1208,
-      "path": "apps/siteconfig/context_processors.py",
-      "role": "PARENT"
-    },
-    {
       "line": 41,
       "path": "apps/siteconfig/dashboard_views.py",
       "role": "ADMIN"
@@ -1365,7 +1350,7 @@
       "role": "ADMIN"
     }
   ],
-  "generated_at": "2026-05-17T20:50:56+00:00",
+  "generated_at": "2026-05-17T22:29:58+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

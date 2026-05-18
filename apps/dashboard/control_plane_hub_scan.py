@@ -106,10 +106,15 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "siteconfig/region_comparison.html",
         "siteconfig/region_grading_scales_matrix.html",
         "siteconfig/region_validation_dashboard.html",
-        "siteconfig/theme_colors_control_plane.html",
+        "siteconfig/theme_colors.html",
         "studio_os/shell_control_plane.html",
         # Founder North Star: CP shell + bespoke metric strips (distinct from Phase 7 DE strips).
         "super/founder_dashboard.html",
+        # Feedback / VoC hubs — operator-facing intake/roadmap surfaces, not Phase 7 DE strips.
+        "feedback/product_roadmap.html",
+        "feedback/voice_of_customer.html",
+        # Manager operator control-plane page wrapper (CRUD-shaped; not a dashboard).
+        "siteconfig/operator_control_plane_page.html",
     }
 )
 

@@ -409,6 +409,14 @@ def main(argv: list[str] | None = None) -> int:
         [py, _script_path("verify_ui_wiring_audit.py"), *base_args],
         "UI wiring: template {% url %} literals vs urlconf union + href hazard scan",
     )
+    run(
+        [py, _script_path("verify_theme_visibility_platform.py"), *base_args],
+        "Theme visibility: shell CSS wiring + manager render smoke",
+    )
+    run(
+        [py, _script_path("scan_main_content_text_utilities.py"), *base_args],
+        "Theme visibility: main-content text-white/text-dark baseline",
+    )
     print("verify_phases_3_11_gates: all non-DB gates passed.")
     return 0
 

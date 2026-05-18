@@ -15,9 +15,9 @@
 {% block cp_content %}
 <div class="container-fluid py-4 content-max-960" data-page-archetype="reference">
   <header class="mb-4">
-    <p class="text-uppercase small text-white-50 mb-1">{% trans "Control plane" %}</p>
-    <h1 class="h2 text-white mb-2">{% trans "Operator policy & governance" %}</h1>
-    <p class="text-white-50 mb-0">
+    <p class="text-uppercase small mb-1">{% trans "Control plane" %}</p>
+    <h1 class="h2 mb-2">{% trans "Operator policy & governance" %}</h1>
+    <p class="mb-0">
       {% blocktrans %}Single execution reference: repository file{% endblocktrans %}
       <code class="user-select-all">docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md</code>
       §2.1.1
@@ -67,7 +67,7 @@
         {% trans "Machine-readable list of every admin bridge (for scripts, doc generation, Terraform hooks):" %}
         <code class="user-select-all">GET {{ bridge_manifest_path }}</code>
       </p>
-      <p class="small text-white-50 mb-0">
+      <p class="small mb-0">
         {% trans "Requires control-plane authentication (superuser or SUPERADMIN role), not tenant staff." %}
       </p>
     </div>
@@ -85,7 +85,7 @@
     </div>
   </div>
 
-  <p class="small text-white-50 mb-0">
+  <p class="small mb-0">
     <a href="{{ system_config_url }}" class="link-secondary">{% trans "Config center" %}</a>
     ·
     <a href="{% url 'super:platform_operator_hub' %}" class="link-secondary">{% trans "Platform operator hub" %}</a>

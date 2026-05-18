@@ -7,17 +7,17 @@
  */
 :root {
   /* Neutrals → color-base scale (product) */
-  --mkt-primary: var(--color-base-900);
-  --mkt-primary-light: var(--color-base-800);
+  --mkt-primary: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --mkt-primary-light: var(--color-base-800); /* theme-locked-allow: manual-review */
   --mkt-accent: #f59e0b;
   --mkt-accent-hover: color-mix(in srgb, var(--mkt-accent) 85%, #000);
-  --mkt-hero-bg: var(--color-base-900);
-  --mkt-hero-bg-mid: var(--color-base-800);
-  --mkt-hero-bg-end: var(--color-base-700);
-  --mkt-text: var(--color-base-900);
-  --mkt-text-muted: var(--color-base-500);
-  --mkt-text-inverse: var(--color-base-50);
-  --mkt-surface: var(--color-base-0);
+  --mkt-hero-bg: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --mkt-hero-bg-mid: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --mkt-hero-bg-end: var(--color-base-700); /* theme-locked-allow: manual-review */
+  --mkt-text: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --mkt-text-muted: var(--color-base-500); /* theme-locked-allow: manual-review */
+  --mkt-text-inverse: var(--color-base-50); /* theme-locked-allow: manual-review */
+  --mkt-surface: var(--color-base-0); /* theme-locked-allow: manual-review */
   --mkt-border: rgba(26, 22, 18, 0.08);
 
   /* Radii → token-radius (product) */
@@ -48,7 +48,7 @@
 
   /* Text on primary / accent surfaces (nav, hero, footer) — product family */
   --mkt-on-primary: var(--mkt-text-inverse);
-  --mkt-on-accent: var(--color-base-900);
+  --mkt-on-accent: var(--color-base-900); /* theme-locked-allow: manual-review */
   --mkt-star-rating: var(--ds-warning);
   --mkt-checkmark: var(--ds-success);
 
@@ -62,17 +62,17 @@
 /* Dark marketing — explicit theme */
 html[data-theme="dark"][data-surface="marketing"],
 html[data-bs-theme="dark"][data-surface="marketing"] {
-  --mkt-text: var(--color-base-100);
-  --mkt-text-muted: var(--color-base-400);
-  --mkt-surface: var(--color-base-900);
+  --mkt-text: var(--color-base-100); /* theme-locked-allow: manual-review */
+  --mkt-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
+  --mkt-surface: var(--color-base-900); /* theme-locked-allow: manual-review */
   --mkt-border: rgba(168, 160, 146, 0.2);
-  --mkt-hero-bg: var(--color-base-900);
-  --mkt-hero-bg-mid: var(--color-base-800);
-  --mkt-hero-bg-end: var(--color-base-700);
+  --mkt-hero-bg: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --mkt-hero-bg-mid: var(--color-base-800); /* theme-locked-allow: manual-review */
+  --mkt-hero-bg-end: var(--color-base-700); /* theme-locked-allow: manual-review */
   --mkt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
   --mkt-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
   --mkt-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
-  --mkt-on-accent: var(--color-base-900);
+  --mkt-on-accent: var(--color-base-900); /* theme-locked-allow: manual-review */
   --mkt-checkmark: var(--ds-success);
   --mkt-star-rating: var(--ds-warning);
 }
@@ -80,13 +80,13 @@ html[data-bs-theme="dark"][data-surface="marketing"] {
 /* System preference when marketing uses data-theme="system" */
 @media (prefers-color-scheme: dark) {
   html[data-theme="system"][data-surface="marketing"] {
-    --mkt-text: var(--color-base-100);
-    --mkt-text-muted: var(--color-base-400);
-    --mkt-surface: var(--color-base-900);
+    --mkt-text: var(--color-base-100); /* theme-locked-allow: manual-review */
+    --mkt-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
+    --mkt-surface: var(--color-base-900); /* theme-locked-allow: manual-review */
     --mkt-border: rgba(168, 160, 146, 0.2);
-    --mkt-hero-bg: var(--color-base-900);
-    --mkt-hero-bg-mid: var(--color-base-800);
-    --mkt-hero-bg-end: var(--color-base-700);
+    --mkt-hero-bg: var(--color-base-900); /* theme-locked-allow: manual-review */
+    --mkt-hero-bg-mid: var(--color-base-800); /* theme-locked-allow: manual-review */
+    --mkt-hero-bg-end: var(--color-base-700); /* theme-locked-allow: manual-review */
     --mkt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
     --mkt-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
     --mkt-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);

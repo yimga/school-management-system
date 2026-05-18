@@ -318,6 +318,7 @@ from apps.siteconfig.views_manifest_icon import (  # noqa: E402
     icon_any as _manifest_icon_any,
     icon_maskable as _manifest_icon_maskable,
 )
+from apps.siteconfig.views_tour import tour_steps_public_api  # noqa: E402
 from apps.schools.marketing_views_v2 import marketing_landing_v2  # noqa: E402
 
 urlpatterns = [
@@ -352,6 +353,10 @@ urlpatterns = [
         manager_offline_sync_root_fallback,
         name="manager_offline_sync_center",
     ),
+    # Public tour-steps endpoint (registered here so marketing/trust templates
+    # `{% url 'tour_steps_public_api' %}` resolve under the default urlconf in
+    # tests that don't go through UrlConfSwitcherMiddleware).
+    path("api/tour-steps/public/", tour_steps_public_api, name="tour_steps_public_api"),
     path("-/version/", obs_views.public_version, name="public_version"),
     # CSP violation report sink (browsers POST here per Content-Security-Policy-Report-Only).
     path("security/csp-report/", csp_violation_report, name="csp_violation_report"),

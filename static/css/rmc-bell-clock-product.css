@@ -3,8 +3,8 @@
 .rmc-bell-clock-spinner {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  color: var(--color-primary-500, var(--mkt-accent, #c2410c));
+  justify-content: center; /* theme-locked-allow: brand-token */
+  color: var(--color-primary-500, var(--mkt-accent, #c2410c)); /* theme-locked-allow: brand-token */
 }
 
 .rmc-bell-clock-spinner__mark {

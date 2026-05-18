@@ -363,7 +363,7 @@
               {% block rmc_os_shell_primary_action %}{% endblock %}
             </div>
             {% endif %}
-            {% if request.user.is_authenticated and request.resolver_match.namespace|default:'' != 'studio_os' %}
+            {% if request.user.is_authenticated and request.resolver_match and request.resolver_match.namespace|default:'' != 'studio_os' %}
               {% if request.user|tenant_operator_hub_visible %}
                 {% include "partials/tenant_studio_product_strip.html" %}
                 <div class="mb-3">
@@ -460,7 +460,7 @@
     by sms-offline-config-loader.js. Replaces the previous Django-interpolated
     inline executable script.
     {% endcomment %}
-    <script type="application/json" id="sms-offline-config">{
+    <script nonce="{{ csp_nonce }}" type="application/json" id="sms-offline-config">{
       "enabled": {{ OFFLINE_ENABLED_FOR_CURRENT_SCHOOL|yesno:"true,false" }},
       "pwaEnabled": {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
       "formQueueEnabled": {{ SITE.backend_feature_flags.enable_offline_form_queue|default:"1"|yesno:"true,false" }},
@@ -486,6 +486,7 @@
     <script src="{% static 'js/sms-offline-config-loader.js' %}"></script>
 
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     {% if SHOW_OFFLINE_STATUS_BAR %}
     <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
     <script src="{% static 'js/vendor/dexie.min.js' %}"></script>
@@ -510,7 +511,7 @@
     <script src="{% static 'js/sw-error-sentry-bridge.js' %}" defer></script>
     {% if request.user.is_authenticated %}
     {% if click_tracking_ingest_url %}
-    <script type="application/json" id="rmc-click-ingest-config">{
+    <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-click-ingest-config">{
       "ingestUrl": "{{ click_tracking_ingest_url|escapejs }}",
       "phase": "{{ click_measurement_phase|default:'current'|escapejs }}"
     }</script>
@@ -524,7 +525,7 @@
     PWA Service Worker registration. SW URL is emitted as a JSON data island so
     the registration JS can be a static, CSP-friendly file.
     {% endcomment %}
-    <script type="application/json" id="rmc-service-worker-url">{
+    <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-service-worker-url">{
       "url": "{% static 'js/service-worker.js' %}"
     }</script>
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
@@ -576,7 +577,7 @@
 
     {% if SITE and SITE.is_preview %}
     {# preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); rules folded into design-system-unified.css #}
-    <script type="application/json" id="rmc-preview-labels">{
+    <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-preview-labels">{
       "default": "{% trans 'Your changes affect this area' %}",
       "dismiss": "{% trans 'Dismiss highlights' %}"
     }</script>

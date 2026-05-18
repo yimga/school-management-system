@@ -1,0 +1,101 @@
+name: coverage-gate
+
+# 12-pillar audit P12 follow-up — strict-by-default polarity (v3.23.9 2026-05-17).
+# Was opt-in via vars.COVERAGE_GATE_STRICT (v3.23.4 introduction); now strict
+# is the default, with an explicit emergency-override via
+# `vars.COVERAGE_GATE_OVERRIDE=1` for cases where coverage data is genuinely
+# unavailable (e.g. CI flake on a deps-only change). Flipping the polarity
+# means a PR that lowers per-app coverage below threshold now blocks merge
+# unless the operator explicitly waves the gate.
+#
+# Thresholds (declared in pytest.ini):
+#   apps.analytics  >= 80
+#   apps.finance    >= 85
+#   apps.security   >= 90
+#   apps.api        >= 75
+#   (others)        >= 60   — applied implicitly via the platform-wide floor
+#                              when a future app-coverage step is added.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/**/*.py'
+      - 'services/**/*.py'
+      - 'pytest.ini'
+      - '.github/workflows/coverage-gate.yml'
+  workflow_dispatch: {}
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings_freshdb
+      # OVERRIDE is the escape hatch — set vars.COVERAGE_GATE_OVERRIDE=1 in the
+      # repo settings to skip the cov-fail-under threshold for a specific PR's
+      # merge. Document the reason in the PR description; the gate is
+      # strict-by-default after v3.23.9 to prevent silent coverage rot.
+      COVERAGE_GATE_OVERRIDE: ${{ vars.COVERAGE_GATE_OVERRIDE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install coverage pytest-cov
+
+      # Strict-by-default: each app's --cov-fail-under is enforced unless the
+      # operator explicitly sets COVERAGE_GATE_OVERRIDE=1. Same command line
+      # in both modes; only the exit-code policy differs (--cov-fail-under
+      # vs. plain --cov reporting).
+      - name: Analytics coverage (target >= 80%)
+        run: |
+          if [[ "$COVERAGE_GATE_OVERRIDE" == "1" ]]; then
+            echo "::warning::COVERAGE_GATE_OVERRIDE=1 — analytics coverage gate waived for this run"
+            pytest apps/analytics/tests/ --cov=apps.analytics --cov-report=term-missing
+          else
+            pytest apps/analytics/tests/ --cov=apps.analytics --cov-fail-under=80 --cov-report=term-missing
+          fi
+
+      - name: Finance coverage (target >= 85%)
+        run: |
+          if [[ "$COVERAGE_GATE_OVERRIDE" == "1" ]]; then
+            echo "::warning::COVERAGE_GATE_OVERRIDE=1 — finance coverage gate waived for this run"
+            pytest apps/finance/tests/ --cov=apps.finance --cov-report=term-missing
+          else
+            pytest apps/finance/tests/ --cov=apps.finance --cov-fail-under=85 --cov-report=term-missing
+          fi
+
+      - name: Security coverage (target >= 90%)
+        run: |
+          if [[ "$COVERAGE_GATE_OVERRIDE" == "1" ]]; then
+            echo "::warning::COVERAGE_GATE_OVERRIDE=1 — security coverage gate waived for this run"
+            pytest apps/security/tests/ --cov=apps.security --cov-report=term-missing
+          else
+            pytest apps/security/tests/ --cov=apps.security --cov-fail-under=90 --cov-report=term-missing
+          fi
+
+      - name: API coverage (target >= 75%)
+        run: |
+          if [[ "$COVERAGE_GATE_OVERRIDE" == "1" ]]; then
+            echo "::warning::COVERAGE_GATE_OVERRIDE=1 — api coverage gate waived for this run"
+            pytest apps/api/tests/ --cov=apps.api --cov-report=term-missing
+          else
+            pytest apps/api/tests/ --cov=apps.api --cov-fail-under=75 --cov-report=term-missing
+          fi
+
+      - name: Coverage gate summary
+        if: always()
+        run: |
+          echo "## Coverage gate" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$COVERAGE_GATE_OVERRIDE" == "1" ]]; then
+            echo "**Mode:** OVERRIDE — gate explicitly waived via \`vars.COVERAGE_GATE_OVERRIDE=1\`." >> "$GITHUB_STEP_SUMMARY"
+            echo "Document the reason in the PR description before merging." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**Mode:** STRICT (default after v3.23.9) — under-threshold per-app reports fail the gate." >> "$GITHUB_STEP_SUMMARY"
+            echo "To waive: set repository variable \`COVERAGE_GATE_OVERRIDE=1\` (emergency only)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "Per-app thresholds: analytics 80% / finance 85% / security 90% / api 75% / others 60% (declared in pytest.ini)." >> "$GITHUB_STEP_SUMMARY"

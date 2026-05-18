@@ -159,14 +159,14 @@ body.admin-manager-shell button[type="submit"].primary, body.admin-premium-shell
 body.admin-manager-shell a.btn-primary , body.admin-premium-shell a.btn-primary {
   background: linear-gradient(135deg, var(--school-accent), var(--color-amber-600)) !important;
   border-color: var(--school-accent) !important;
-  color: var(--color-base-950) !important;
+  color: var(--text-primary, var(--color-base-950)) !important;
 }
 
 body.admin-manager-shell .btn-primary:hover, body.admin-premium-shell .btn-primary:hover,
 body.admin-manager-shell button[type="submit"].primary:hover , body.admin-premium-shell button[type="submit"].primary:hover {
   background: linear-gradient(135deg, var(--color-amber-500), var(--school-accent)) !important;
   border-color: var(--color-amber-500) !important;
-  color: var(--color-base-950) !important;
+  color: var(--text-primary, var(--color-base-950)) !important;
 }
 
 /* Preview cues / banners in admin */
@@ -234,7 +234,7 @@ body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link , body.admin-pre
 body.admin-manager-shell #nav-sidebar .admin-sidebar-link:hover, body.admin-premium-shell #nav-sidebar .admin-sidebar-link:hover,
 body.admin-manager-shell #nav-sidebar .admin-sidebar-model-link:hover , body.admin-premium-shell #nav-sidebar .admin-sidebar-model-link:hover {
   background: rgba(16, 185, 129, 0.12) !important; /* off-token-allow: success-emerald-overlay */
-  color: var(--color-base-100) !important;
+  color: var(--text-tertiary, var(--color-base-100)) !important;
 }
 body.admin-manager-shell #nav-sidebar .admin-sidebar-app-title , body.admin-premium-shell #nav-sidebar .admin-sidebar-app-title {
   margin: 0.5rem 0 0.2rem !important;

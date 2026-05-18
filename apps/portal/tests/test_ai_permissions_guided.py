@@ -31,7 +31,8 @@ class GuidedAssistantPermissionsTests(SimpleTestCase):
         self.assertFalse(get_ai_permission_for_user(u, "interop_assistant", object()))
 
     def test_observability_requires_staff(self):
-        u = self._user(role="ADMIN")
+        # Use TEACHER — ADMIN may be listed in CONTROL_PLANE_OPERATOR_ROLES on some hosts.
+        u = self._user(role="TEACHER")
         self.assertFalse(get_ai_permission_for_user(u, "observability_assistant", object()))
         u2 = self._user(is_staff=True, role="TEACHER")
         self.assertTrue(get_ai_permission_for_user(u2, "observability_assistant", None))
@@ -47,3 +48,12 @@ class GuidedAssistantPermissionsTests(SimpleTestCase):
     def test_billing_teacher_denied(self):
         u = self._user(role="TEACHER")
         self.assertFalse(get_ai_permission_for_user(u, "billing_usage_explain", object()))
+
+    def test_superadmin_control_plane_without_staff_ok(self):
+        """Manager operators: role=SUPERADMIN, not necessarily is_staff."""
+        u = self._user(role="SUPERADMIN", is_staff=False)
+        self.assertTrue(get_ai_permission_for_user(u, "interop_assistant", None))
+        self.assertTrue(get_ai_permission_for_user(u, "runtime_config_explain", None))
+        self.assertTrue(get_ai_permission_for_user(u, "observability_assistant", None))
+        self.assertTrue(get_ai_permission_for_user(u, "trust_compliance_assistant", None))
+        self.assertTrue(get_ai_permission_for_user(u, "billing_usage_explain", None))

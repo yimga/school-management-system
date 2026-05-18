@@ -136,9 +136,9 @@
         <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.created_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
-          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
           <td>
-            <span class="badge bg-info text-dark">{{ row.get_status_display }}</span>
+            <span class="badge bg-info">{{ row.get_status_display }}</span>
           </td>
           <td>{{ row.retry_count }}</td>
           <td class="small text-break">
@@ -172,7 +172,7 @@
         <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.updated_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
-          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
           <td><span class="badge bg-secondary">{{ row.get_status_display }}</span></td>
           <td>{{ row.retry_count }}</td>
           <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
@@ -204,7 +204,7 @@
         <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.created_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
-          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
           <td><span class="badge bg-danger">{{ row.get_status_display }}</span></td>
           <td>{{ row.retry_count }}</td>
           <td class="small text-break">{{ row.conflict_reason|truncatechars:160|default:"—" }}</td>
@@ -237,7 +237,7 @@
         <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.updated_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
-          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
           <td><span class="badge bg-warning text-dark">{{ row.get_status_display }}</span></td>
           <td>{{ row.retry_count }}</td>
           <td class="small text-break">{{ row.conflict_reason|truncatechars:200|default:"—" }}</td>
@@ -272,7 +272,7 @@
         <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.updated_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
-          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
           <td><span class="badge bg-success">{{ row.get_status_display }}</span></td>
           <td class="small text-break font-monospace">{% if row.idempotency_key %}{{ row.idempotency_key|truncatechars:40 }}{% else %}—{% endif %}</td>
         </tr>
@@ -303,7 +303,7 @@
         <tr data-rmc-offline-row="{{ row.pk }}">
           <td class="text-nowrap small">{{ row.created_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
-          <td><span class="badge bg-secondary-subtle text-dark">{{ row.get_action_type_display }}</span></td>
+          <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
           <td>
             <span class="badge {% if row.status == 'synced' %}bg-success{% elif row.status == 'failed' %}bg-danger{% elif row.status == 'conflict' %}bg-warning text-dark{% elif row.status == 'queued' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
               {{ row.get_status_display }}

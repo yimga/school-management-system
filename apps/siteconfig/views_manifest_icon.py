@@ -51,7 +51,7 @@ _MASKABLE_PADDING_RATIO: float = 0.125
 def _resolve_effective_settings(request):
     """Wrap the canonical resolver with a defensive fallback."""
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.siteconfig.config_service import get_effective_site_settings
 
         return get_effective_site_settings(request=request)
     except (ImportError, RuntimeError, Exception):  # pragma: no cover - defensive

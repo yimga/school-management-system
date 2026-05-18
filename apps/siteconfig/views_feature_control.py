@@ -1472,6 +1472,15 @@ def feature_control_panel(request):
         return _feature_control_panel_redirect_response(request)
 
     ctx = get_feature_control_panel_context(request)
+    if request.GET.get("embed") == "1":
+        from apps.studio_os.embed_render import render_studio_embed_body
+
+        return render_studio_embed_body(
+            request,
+            "siteconfig/feature_control_panel_content.html",
+            ctx,
+            title=_("Feature control"),
+        )
     return render_siteconfig_operator_page(
         request,
         portal_template="siteconfig/feature_control_panel.html",

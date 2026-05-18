@@ -2,7 +2,7 @@
 {# Operator checklist (wedges 1–45): manager URLs + tenant path hints; optional ?wedge= switcher. #}
 {% if operator_wedge_switcher %}
 <nav class="mb-2" aria-label="{% trans 'Operator checklist wedge' %}">
-  <span class="small text-white-50 me-2">{% trans "Checklist wedge" %}:</span>
+  <span class="small text-secondary me-2">{% trans "Checklist wedge" %}:</span>
   {% for l in operator_wedge_switcher %}
   <a href="{{ l.href }}" class="badge me-1 mb-1 text-decoration-none {% if l.active %}bg-primary{% else %}bg-secondary{% endif %}">{{ l.label }}</a>
   {% endfor %}
@@ -15,12 +15,12 @@
       <h2 class="h6 mb-0">{% blocktrans with w=beachhead_wedge_id %}Operator checklist (wedge {{ w }}){% endblocktrans %}</h2>
     </div>
     <div class="card-body">
-      <p class="small text-white-50 mb-3">{% trans "Shipped surfaces and APIs — execute in order where applicable; tenant paths require school host + admin session." %}</p>
+      <p class="small text-secondary mb-3">{% trans "Shipped surfaces and APIs — execute in order where applicable; tenant paths require school host + admin session." %}</p>
       <ul class="list-group list-group-flush">
         {% for row in beachhead_checklist %}
         <li class="list-group-item bg-dark text-white border-secondary">
           <div class="fw-semibold">{{ row.label }}</div>
-          <div class="small text-white-50">{{ row.detail }}</div>
+          <div class="small text-secondary">{{ row.detail }}</div>
           <div class="mt-2">
             {% if row.url %}<a href="{{ row.url }}" class="btn btn-outline-light btn-sm me-1">{% trans "Open" %}</a>{% endif %}
             {% if row.path_doc %}<code class="small text-info">{{ row.path_doc }}</code>{% endif %}
@@ -40,12 +40,12 @@
       <h2 class="h6 mb-0">{% blocktrans with w=secondary_operator_wedge_id %}Operator checklist (wedge {{ w }}){% endblocktrans %}</h2>
     </div>
     <div class="card-body">
-      <p class="small text-white-50 mb-3">{% trans "Related wedge — same execution rules as above." %}</p>
+      <p class="small text-secondary mb-3">{% trans "Related wedge — same execution rules as above." %}</p>
       <ul class="list-group list-group-flush">
         {% for row in secondary_operator_checklist %}
         <li class="list-group-item bg-dark text-white border-secondary">
           <div class="fw-semibold">{{ row.label }}</div>
-          <div class="small text-white-50">{{ row.detail }}</div>
+          <div class="small text-secondary">{{ row.detail }}</div>
           <div class="mt-2">
             {% if row.url %}<a href="{{ row.url }}" class="btn btn-outline-light btn-sm me-1">{% trans "Open" %}</a>{% endif %}
             {% if row.path_doc %}<code class="small text-info">{{ row.path_doc }}</code>{% endif %}

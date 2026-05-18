@@ -20,8 +20,8 @@
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>
-        <div class="h6 text-uppercase text-white-50 mb-1">{% trans "Platform configuration" %}</div>
-        <h1 class="h4 mb-1 fw-bold text-white">{{ page_title }}</h1>
+        <div class="h6 text-uppercase mb-1">{% trans "Platform configuration" %}</div>
+        <h1 class="h4 mb-1 fw-bold">{{ page_title }}</h1>
       </div>
       <a href="{{ back_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
     </div>
@@ -33,10 +33,10 @@
       {{ form.non_field_errors }}
       {% for field in form %}
       <div class="mb-3">
-        <label for="{{ field.id_for_label }}" class="form-label text-white">{{ field.label }}</label>
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
-        {% if field.help_text %}<div class="form-text text-white-50">{{ field.help_text }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
       </div>
       {% endfor %}
       <div class="d-flex flex-wrap gap-2 pt-2">
@@ -49,7 +49,7 @@
 
   {% if delete_url %}
   <div class="cp-overview-card border border-secondary border-opacity-50 rounded p-4 mt-4">
-    <p class="small text-white-50 text-uppercase mb-2">{% trans "Danger zone" %}</p>
+    <p class="small text-uppercase mb-2">{% trans "Danger zone" %}</p>
     <a href="{{ delete_url }}" class="btn btn-outline-danger btn-sm">{% trans "Delete this record…" %}</a>
   </div>
   {% endif %}

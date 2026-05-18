@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-15T12:09:40.420646+00:00",
+  "generated_at": "2026-05-18T01:28:30.921140+00:00",
   "max_score": 75,
-  "rating": "DOMINANT",
+  "rating": "ELITE",
   "sections": {
     "ai_readiness": {
       "rubric": "AI provider + workflow bridge + registry + deterministic safety tests.",
@@ -75,16 +75,16 @@
     },
     "ux_quality": {
       "rubric": "verify_design_system_phase2.py + audit_luxury_ui_surface.py (>= 13/15 + severe integration)",
-      "score": 5
+      "score": 1
     }
   },
-  "total_score": 75,
+  "total_score": 71,
   "verifiers": {
     "audit_admin_gravity_strict": {
       "exit_code": 0
     },
     "audit_luxury_ui_surface": {
-      "exit_code": 0
+      "exit_code": 1
     },
     "audit_post_surface": {
       "exit_code": 0
@@ -111,7 +111,7 @@
       "exit_code": 0
     },
     "verify_doc_plan_density_discipline": {
-      "exit_code": 0
+      "exit_code": 1
     },
     "verify_rtl_major_templates": {
       "exit_code": 0

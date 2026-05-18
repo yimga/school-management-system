@@ -2029,6 +2029,7 @@ def studio_shell(request, mode=None):
 
                 ctrl_ctx = get_feature_control_panel_context(request)
                 ctrl_ctx["control_next_url"] = reverse("studio_os:control")
+                ctrl_ctx["studio_inline"] = True
                 context["control_panel_html"] = render_to_string(
                     "siteconfig/feature_control_panel_partial.html",
                     ctrl_ctx,

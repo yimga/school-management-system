@@ -458,10 +458,10 @@ PHASE8_DECLARATIONS: dict[str, dict[str, str]] = {
         "main_question": "Which configuration outcome unblocks the operator request I have?",
         "main_action": "Open the matching outcome card or jump into Studio OS for publish/preview.",
     },
-    "siteconfig/console_domains_hub_control_plane.html": {
+    "siteconfig/partials/console_domains_hub_manager_body.html": {
         "dashboard_type": "configuration_command",
-        "jtbd": "Run the Configuration Control Center with outcomes, Studio links, and domain shortcuts.",
-        "main_question": "Which outcome group or shortcut closes this configuration request?",
+        "jtbd": "Embed the Configuration Control Center body inside the manager shell without duplicating chrome.",
+        "main_question": "Which outcome group or shortcut closes this manager-side configuration request?",
         "main_action": "Open Studio OS or the matching outcome partial.",
     },
     "siteconfig/feature_control_panel.html": {

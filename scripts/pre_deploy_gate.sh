@@ -258,6 +258,10 @@ run_django_tests "${TARGETED_HARDENING_TESTS[@]}"
 echo "[pre_deploy_gate] AI blueprint contract"
 python scripts/verify_ai_blueprint_completion.py
 
+echo "[pre_deploy_gate] Theme visibility platform (shell CSS + manager render smoke + utility baseline)"
+python scripts/verify_theme_visibility_platform.py
+python scripts/scan_main_content_text_utilities.py
+
 echo "[pre_deploy_gate] Theme stress matrix"
 run_django_tests apps.siteconfig.tests.test_theme_visibility_matrix
 

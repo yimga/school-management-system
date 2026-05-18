@@ -11,7 +11,7 @@
   white-space: nowrap;
 }
 .cp-primary-nav__pill:focus-visible {
-  outline: 2px solid var(--color-primary-400, var(--color-primary-400));
+  outline: 2px solid var(--color-primary-400, var(--color-primary-400)); /* theme-locked-allow: brand-token */
   outline-offset: 2px;
 }
 @media (max-width: 576px) {

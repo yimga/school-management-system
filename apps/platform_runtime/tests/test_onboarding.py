@@ -211,10 +211,12 @@ class OnboardingTemplateMarkersTests(TestCase):
         root = Path(__file__).resolve().parent.parent.parent.parent
         p = root / "templates" / "accounts" / "school_onboarding_card.html"
         t = p.read_text(encoding="utf-8", errors="replace")
-        p2 = (
-            root / "templates" / "siteconfig" / "onboarding.html"
-        ).read_text(encoding="utf-8", errors="replace")
-        self.assertIn("data-rmc-onboarding-engine", p2)
+        onboarding_dir = root / "templates" / "siteconfig"
+        p2 = (onboarding_dir / "onboarding.html").read_text(encoding="utf-8", errors="replace")
+        p2_body = (onboarding_dir / "partials" / "onboarding_body.html").read_text(
+            encoding="utf-8", errors="replace"
+        )
+        self.assertIn("data-rmc-onboarding-engine", p2 + p2_body)
         for needle in (
             'data-rmc-onboarding="school-activation"',
             "data-rmc-onboarding-progress=",

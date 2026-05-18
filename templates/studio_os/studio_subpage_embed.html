@@ -1,14 +1,9 @@
-{% extends "portal_base.html" %}
-{% load i18n static %}
+{% extends "studio_os/studio_embed_minimal.html" %}
+{% load i18n %}
 
 {% block title %}{{ studio_embed_title }}{% endblock %}
 
-{% block extrastyle %}
-{{ block.super }}
-{% if studio_subpage_extra_css %}<link rel="stylesheet" href="{% static studio_subpage_extra_css %}">{% endif %}
-{% endblock %}
-
-{% block content %}
+{% block studio_embed_content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ studio_embed_title }}</h1>
-{% include studio_subpage_canvas_partial %}
+  {% include studio_subpage_canvas_partial %}
 {% endblock %}

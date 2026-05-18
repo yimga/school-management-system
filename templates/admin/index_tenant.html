@@ -11,7 +11,7 @@
   <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div><strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}</div>
     <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
+      <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
       <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
     </div>
   </div>
@@ -19,14 +19,14 @@
   <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div><strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}</div>
     <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
+      <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
     </div>
   </div>
   {% endif %}
   {% if FINANCE_REQUEST_ALERT_COUNT %}
   <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div><strong>{{ FINANCE_REQUEST_ALERT_COUNT }} pending finance access request{% if FINANCE_REQUEST_ALERT_COUNT != 1 %}s{% endif %}</strong></div>
-    <div class="d-flex gap-2 mt-2 mt-sm-0"><a class="btn btn-sm btn-light text-dark" href="{{ FINANCE_REQUEST_LINK }}">Open finance inbox</a></div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0"><a class="btn btn-sm btn-light" href="{{ FINANCE_REQUEST_LINK }}">Open finance inbox</a></div>
   </div>
   {% endif %}
 

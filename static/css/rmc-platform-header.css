@@ -1,0 +1,243 @@
+/**
+ * Platform header grammar — manager, marketing, and shared statement headers.
+ * Pairs with templates/partials/manager_operator_topbar.html and rmc_brand_mark.
+ */
+
+:root {
+  --rmc-brand-navy: #002147;
+  --rmc-brand-gold: #d4af37;
+  --rmc-manager-header-height: 64px;
+  --rmc-platform-header-pad-x: 1.25rem;
+}
+
+/* === Unified control-plane chrome (topbar + primary nav) ================= */
+
+.rmc-control-plane-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  flex-shrink: 0;
+}
+
+.rmc-control-plane-chrome .cp-navbar.statement-header {
+  min-height: var(--rmc-manager-header-height);
+  padding: 0.625rem var(--rmc-platform-header-pad-x);
+  border-bottom: 1px solid color-mix(in oklab, var(--color-base-0) 8%, transparent);
+}
+
+.rmc-control-plane-chrome .cp-primary-nav {
+  padding-block: 0.5rem;
+}
+
+.rmc-control-plane-chrome__top {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+/* === Manager topbar layout ================================================= */
+
+.rmc-platform-header {
+  display: block;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.rmc-platform-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  width: 100%;
+}
+
+.rmc-platform-header__brand {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.rmc-platform-header__command {
+  flex: 1 1 12rem;
+  max-width: 28rem;
+  min-width: 10rem;
+}
+
+@media (min-width: 992px) {
+  .rmc-platform-header__command {
+    flex: 1 1 18rem;
+    max-width: 36rem;
+    margin-inline: auto;
+  }
+}
+
+.rmc-platform-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem 0.5rem;
+  margin-left: auto;
+}
+
+@media (min-width: 992px) {
+  .rmc-platform-header__actions {
+    margin-left: 0;
+  }
+}
+
+/* Command search — primary surface */
+.cp-navbar .cp-header-search.cp-topbar-search-wrap {
+  width: 100%;
+}
+
+.cp-navbar .cp-topbar-search-input {
+  min-height: 2.25rem;
+  padding-right: 3.25rem;
+  border-radius: 10px;
+  font-size: var(--type-size-body-sm, 0.875rem);
+}
+
+.cp-navbar .cp-search-kbd {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+/* Icon-only utility cluster */
+.rmc-platform-header__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.rmc-platform-header__icon-btn .bi {
+  font-size: 1.05rem;
+}
+
+.rmc-platform-header__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: 10px;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* === Platform wordmark (RUN + MY + CAMPUS) ================================= */
+
+.rmc-brand-mark__title--platform {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.rmc-brand-word--navy {
+  color: var(--rmc-brand-navy, #002147);
+}
+
+.rmc-brand-word--gold {
+  color: var(--rmc-brand-gold, #d4af37);
+}
+
+.cp-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy,
+.cp-navbar .rmc-brand-mark__title--platform .rmc-brand-word--gold,
+.mkt-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy,
+.mkt-navbar .rmc-brand-mark__title--platform .rmc-brand-word--gold {
+  color: inherit;
+}
+
+.cp-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy,
+[data-resolved-theme="dark"] .cp-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy {
+  color: color-mix(in oklab, var(--color-base-0) 95%, var(--rmc-brand-navy));
+}
+
+.cp-navbar .rmc-brand-mark__title--platform .rmc-brand-word--gold,
+[data-resolved-theme="dark"] .cp-navbar .rmc-brand-mark__title--platform .rmc-brand-word--gold {
+  color: var(--rmc-brand-gold);
+}
+
+.mkt-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy {
+  color: var(--rmc-brand-navy);
+}
+
+.mkt-navbar .rmc-brand-mark__title--platform .rmc-brand-word--gold {
+  color: var(--rmc-brand-gold);
+}
+
+html[data-resolved-theme="dark"] .mkt-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy {
+  color: color-mix(in oklab, var(--color-base-0) 92%, var(--rmc-brand-navy));
+}
+
+/* Surface badge (Manager / Portal / etc.) */
+.rmc-brand-mark__badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: 0.2em;
+  padding: 0.12em 0.45em;
+  border-radius: 4px;
+  font-size: calc(var(--rmc-bm-size, 32px) * 0.28);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  background: color-mix(in oklab, var(--rmc-brand-gold) 22%, transparent);
+  color: var(--rmc-brand-gold);
+  border: 1px solid color-mix(in oklab, var(--rmc-brand-gold) 45%, transparent);
+}
+
+.cp-navbar .rmc-brand-mark__badge {
+  background: rgba(212, 175, 55, 0.18); /* off-token-allow: brand-gold-tint */
+  color: var(--rmc-brand-gold);
+  border-color: rgba(212, 175, 55, 0.35); /* off-token-allow: brand-gold-tint */
+}
+
+/* Logo image in squircle — full shield reads cleanly */
+.rmc-brand-mark--has-image .rmc-brand-mark__squircle {
+  padding: calc(var(--rmc-bm-size, 32px) * 0.06);
+}
+
+.rmc-brand-mark--has-image .rmc-brand-mark__tenant-logo {
+  object-fit: contain;
+}
+
+/* Marketing header brand alignment */
+.mkt-navbar .rmc-brand-mark--lockup {
+  gap: 0.75rem;
+}
+
+.mkt-platform-header .mkt-navbar.statement-header {
+  background: linear-gradient(
+    180deg,
+    var(--rmc-brand-navy, #002147) 0%,
+    color-mix(in oklab, var(--rmc-brand-navy, #002147) 88%, #000) 100%
+  ); /* theme-locked-allow: brand-navy-gradient */
+}
+
+/* Marketing footer seal — platform wordmark on cream surface */
+.mkt-footer-seal__wordmark--platform {
+  display: inline-flex;
+  align-items: baseline;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.mkt-footer-seal__logo {
+  object-fit: contain;
+}

@@ -717,16 +717,35 @@ def site_settings(request):
                 by_id[pid] for pid in pinned_cp_ids if pid in by_id
             ]
             ctx["PINNED_CONTROL_PLANE_IDS"] = set(pinned_cp_ids)
+            try:
+                from apps.schools.control_plane_nav import (
+                    build_studio_focus_sidebar,
+                    is_manager_studio_focus_path,
+                )
+
+                ctx["STUDIO_FOCUS_SHELL"] = is_manager_studio_focus_path(path)
+                ctx["STUDIO_FOCUS_SIDEBAR"] = (
+                    build_studio_focus_sidebar(request)
+                    if ctx["STUDIO_FOCUS_SHELL"]
+                    else []
+                )
+            except OPTIONAL_CONTEXT_ERRORS:
+                ctx["STUDIO_FOCUS_SHELL"] = False
+                ctx["STUDIO_FOCUS_SIDEBAR"] = []
         except OPTIONAL_CONTEXT_ERRORS:
             ctx["CONTROL_PLANE_NAV"] = []
             ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
             ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
             ctx["PINNED_CONTROL_PLANE_IDS"] = set()
+            ctx["STUDIO_FOCUS_SHELL"] = False
+            ctx["STUDIO_FOCUS_SIDEBAR"] = []
     else:
         ctx["CONTROL_PLANE_NAV"] = []
         ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
         ctx["PINNED_CONTROL_PLANE_ITEMS"] = []
         ctx["PINNED_CONTROL_PLANE_IDS"] = set()
+        ctx["STUDIO_FOCUS_SHELL"] = False
+        ctx["STUDIO_FOCUS_SIDEBAR"] = []
         try:
             from apps.accounts.permissions import tenant_operator_hub_eligible
             from apps.schools.control_plane_nav import build_tenant_operator_primary_nav
@@ -792,10 +811,10 @@ def site_settings(request):
     except OPTIONAL_CONTEXT_ERRORS:
         pass
     ctx["PUBLIC_BRAND_PRIMARY_COLOR"] = _primary or os.getenv(
-        "PUBLIC_BRAND_PRIMARY_COLOR", "#0f172a"
+        "PUBLIC_BRAND_PRIMARY_COLOR", "#002147"
     )
     ctx["PUBLIC_BRAND_ACCENT_COLOR"] = _accent or os.getenv(
-        "PUBLIC_BRAND_ACCENT_COLOR", "#f59e0b"
+        "PUBLIC_BRAND_ACCENT_COLOR", "#d4af37"
     )
     if public_brand_mode:
         ctx["SITE_LOGO_URL"] = ""
@@ -843,9 +862,12 @@ def site_settings(request):
                             ).strip()
         except OPTIONAL_CONTEXT_ERRORS:
             pass
-        _platform_logo_default = static("images/runmycampus-icon.png")
-        _platform_logo_dark_default = static("images/runmycampus-icon.png")
-        _platform_icon_default = static("images/runmycampus-icon.png")
+        _platform_logo_default = static("images/brand/runmycampus-logo-mark.png")
+        _platform_logo_dark_default = static("images/brand/runmycampus-logo-mark.png")
+        _platform_icon_default = static("images/brand/runmycampus-logo-mark.png")
+        ctx["PUBLIC_BRAND_LOGO_LOCKUP_URL"] = static(
+            "images/brand/runmycampus-logo-lockup.png"
+        )
         ctx["PUBLIC_BRAND_LOGO_URL"] = (
             _rd_logo
             or os.getenv("PUBLIC_BRAND_LOGO_URL", "").strip()
@@ -866,6 +888,7 @@ def site_settings(request):
         ctx["PUBLIC_BRAND_LOGO_URL"] = ""
         ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = ""
         ctx["PUBLIC_BRAND_FAVICON_URL"] = ""
+        ctx["PUBLIC_BRAND_LOGO_LOCKUP_URL"] = ""
     # Offline: global Feature Control must be on; in multi-tenant, school must have offline_mode via Policy Registry.
     if school:
         try:
@@ -1151,7 +1174,7 @@ def ai_copilot_settings(request):
         user_role = (getattr(_user, "role", "USER") or "").upper()
 
     admin_roles = {
-        "ADMIN",
+        "ADMIN",  # role-string-allow: ai-copilot-rbac-role-set-against-user.role
         "LEADERSHIP",
         "PRINCIPAL",
         "VICE_PRINCIPAL",
@@ -1197,7 +1220,7 @@ def ai_copilot_settings(request):
                 "scope": "finance",
             }
         )
-    elif user_role == "TEACHER":
+    elif user_role == "TEACHER":  # role-string-allow: ai-copilot-rbac-compare-against-user.role
         ai_permissions.update(
             {
                 "can_access_grades": True,
@@ -1205,7 +1228,7 @@ def ai_copilot_settings(request):
                 "scope": "teacher",
             }
         )
-    elif user_role == "PARENT":
+    elif user_role == "PARENT":  # role-string-allow: ai-copilot-rbac-compare-against-user.role
         ai_permissions.update(
             {
                 "can_access_grades": True,  # Only their child's

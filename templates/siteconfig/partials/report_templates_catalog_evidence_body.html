@@ -47,7 +47,7 @@
           <td><code>{{ t.slug }}</code></td>
           <td>{% if t.template_family %}{{ t.template_family }}{% else %}<span class="text-muted">{% trans "Any" %}</span>{% endif %}</td>
           <td>{{ t.get_preferred_format_display }}</td>
-          <td>{% if row.has_export_handler %}<span class="badge bg-info text-dark">{% trans "Registered" %}</span>{% else %}<span class="text-muted">{% trans "None" %}</span>{% endif %}</td>
+          <td>{% if row.has_export_handler %}<span class="badge bg-info">{% trans "Registered" %}</span>{% else %}<span class="text-muted">{% trans "None" %}</span>{% endif %}</td>
         </tr>
         {% endwith %}
         {% empty %}

@@ -112,7 +112,7 @@ body.setup-studio-page #main-content {
   position: absolute;
   inset: 8px;
   border-radius: 50%;
-  background: var(--color-base-0);
+  background: var(--surface-elevated, var(--color-base-0));
 }
 
 .setup-studio-health-ring strong {
@@ -140,7 +140,7 @@ body.setup-studio-page #main-content {
 
 .setup-studio-health-badge.is-progress {
   background: rgba(59, 130, 246, 0.12); /* off-token-allow: info-blue-overlay */
-  color: var(--color-primary-700);
+  color: var(--color-primary-700); /* theme-locked-allow: brand-token */
 }
 
 .setup-studio-health-badge.is-risk {
@@ -233,7 +233,7 @@ body.setup-studio-page #main-content {
 }
 
 .setup-studio-muted {
-  color: var(--bs-secondary-color);
+  color: var(--text-secondary, var(--bs-secondary-color));
   font-size: 0.9rem;
 }
 

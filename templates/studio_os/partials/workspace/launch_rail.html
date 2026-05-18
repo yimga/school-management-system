@@ -1,0 +1,22 @@
+{% load i18n %}
+<div class="studio-os__card py-2">
+  <div class="h6 mb-2">{% trans "Launch" %}</div>
+  <ul class="list-unstyled small mb-0" id="launch-rail-list">
+    {% for item in launch_left_rail %}
+    <li class="mb-1">
+      <a href="{{ item.url }}"
+         class="launch-rail-link {% if item.pane == launch_pane %}active{% endif %}">{{ item.label }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if launch_payload %}
+  <hr class="my-2">
+  <div class="h6 mb-1 small">{% trans "Progress" %}</div>
+  <p class="small mb-1"><strong>{% trans "Health:" %} {{ launch_payload.health_score|default:0 }}%</strong></p>
+  {% if launch_payload.launch_ready %}
+  <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+  {% elif launch_payload.launch_blockers %}
+  <p class="small text-warning mb-1">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
+  {% endif %}
+  {% endif %}
+</div>

@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-05-15T12:09:37.924872+00:00",
+  "generated_at": "2026-05-18T01:28:28.395617+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -87,9 +87,87 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py",
+      "line": "214",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py",
+      "line": "234",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py",
+      "line": "258",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/rebuild_pgvector_index.py",
+      "line": "58",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/rebuild_pgvector_index.py",
+      "line": "95",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/rebuild_pgvector_index.py",
+      "line": "109",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/verify_ai_ml_readiness.py",
+      "line": "162",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/verify_pgvector_index.py",
+      "line": "105",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/verify_pgvector_index.py",
+      "line": "126",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/verify_pgvector_index.py",
+      "line": "140",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/verify_pgvector_index.py",
+      "line": "162",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/management/commands/verify_pgvector_index.py",
+      "line": "190",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "migration_safe",
       "file": "apps/analytics/migrations/0014_add_ml_model_and_risk_model_version.py",
       "line": "19",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "reporting_safe",
+      "file": "apps/analytics/semantic_search.py",
+      "line": "65",
       "pattern": "connection_cursor"
     },
     {
@@ -497,7 +575,7 @@
     {
       "classification": "migration_safe",
       "file": "apps/portal/migrations/0023_portal_feature_item_school_tenant_upload.py",
-      "line": "14",
+      "line": "34",
       "pattern": "connection_cursor"
     },
     {
@@ -723,6 +801,18 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "needs_review",
+      "file": "apps/schools/rls_readiness.py",
+      "line": "125",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/schools/rls_readiness.py",
+      "line": "140",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "test_safe",
       "file": "apps/schools/tests/test_tenant_isolation_rls_mode.py",
       "line": "42",
@@ -911,6 +1001,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 151
+    "hits": 166
   }
 }

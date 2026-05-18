@@ -39,7 +39,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--bs-secondary-color, #857c70);
+  color: var(--text-secondary, var(--bs-secondary-color, #857c70));
 }
 
 .rmc-nas-hint {

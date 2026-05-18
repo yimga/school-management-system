@@ -59,8 +59,22 @@ def _user_is_finance_role(user: Any) -> bool:
     }
 
 
+def _control_plane_operator(user: Any) -> bool:
+    try:
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        return user_has_control_plane_access(user)
+    except ImportError:
+        return False
+
+
 def _staff_or_super(user: Any) -> bool:
     return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+
+
+def _staff_super_or_control_plane(user: Any) -> bool:
+    """Manager operators may be SUPERADMIN without is_staff; align with control_plane.py."""
+    return _staff_or_super(user) or _control_plane_operator(user)
 
 
 def get_ai_permission_for_user(
@@ -76,18 +90,18 @@ def get_ai_permission_for_user(
         return False
     task = (task_type or "").strip().lower()
     if task in STAFF_ONLY_TASKS:
-        if not getattr(user, "is_staff", False):
+        if not _staff_super_or_control_plane(user):
             return False
     if task in TENANT_STUDIO_AI_TASKS:
-        if _staff_or_super(user):
+        if _staff_super_or_control_plane(user):
             return True
         if school is not None and _user_is_tenant_config_role(user):
             return True
         return False
     if task in FLEET_STAFF_AI_TASKS:
-        return _staff_or_super(user)
+        return _staff_super_or_control_plane(user)
     if task in BILLING_USAGE_AI_TASKS:
-        if _staff_or_super(user):
+        if _staff_super_or_control_plane(user):
             return True
         if school is not None and _user_is_finance_role(user):
             return True

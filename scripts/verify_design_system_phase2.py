@@ -34,6 +34,7 @@ REQUIRED_STATIC = [
     # theme_toggle.html) were orphans after portal_base.html migrated to the
     # rich user_dropdown.html which has its own embedded theme toggle.
     "static/css/studio-mode-rail.css",
+    "static/css/studio-workspace.css",
     "static/css/studio-shell-layout.css",
     "static/css/studio-system-config-console.css",
     "static/css/control-plane-skeleton-root.css",

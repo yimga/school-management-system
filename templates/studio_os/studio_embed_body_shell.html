@@ -1,0 +1,10 @@
+{% extends "studio_os/studio_embed_minimal.html" %}
+
+{% block title %}{{ studio_embed_title|default:"Studio" }}{% endblock %}
+
+{% block studio_embed_content %}
+  {% if studio_embed_title %}
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ studio_embed_title }}</h1>
+  {% endif %}
+  {% include studio_embed_body_template %}
+{% endblock %}

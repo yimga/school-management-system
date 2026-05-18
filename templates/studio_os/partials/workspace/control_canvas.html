@@ -1,0 +1,20 @@
+{% load i18n static %}
+{% if control_panel_html %}
+<div class="studio-os__control-in-shell" id="control-panel-wrap">{{ control_panel_html|safe }}</div>
+{% endif %}
+{% if control_left_rail %}
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__control-native-fallback" role="region" aria-label="{% trans 'Control view options' %}">
+  <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
+  <a id="studio-control-open-full" class="btn btn-sm btn-outline-primary" href="{% if control_left_rail %}{{ control_left_rail.0.url }}{% endif %}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
+</div>
+<iframe id="studio-control-iframe" class="studio-os-iframe" title="{% trans 'Control' %}"
+        style="{% if control_panel_html %}display: none;{% endif %}"
+        src="{% if not control_panel_html and control_left_rail %}{{ control_left_rail.0.url }}{% endif %}"></iframe>
+{% elif embed_url %}
+<iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Control' %}"></iframe>
+{% else %}
+<div class="studio-os__card">
+  <p class="text-muted mb-0">{% trans "Load feature control in the canvas." %}</p>
+  {% if legacy_urls.feature_control %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm mt-2">{% trans "Feature control" %}</a>{% endif %}
+</div>
+{% endif %}

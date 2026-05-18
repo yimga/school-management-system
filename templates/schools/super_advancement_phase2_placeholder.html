@@ -17,8 +17,8 @@
 {% block cp_content %}
 <div class="container-fluid py-3 content-max-960" data-page-archetype="setup-flow">
   <header class="mb-4 pb-3 border-bottom border-secondary">
-    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Phase 2: Donors & gifts (CRM v1)" %}</h1>
-    <p class="text-white-50 small mb-0">{% trans "Per-school donors and gift lines; campaigns/receipts workflow next." %}</p>
+    <h1 class="h4 mb-1 fw-bold">{% trans "Phase 2: Donors & gifts (CRM v1)" %}</h1>
+    <p class="small mb-0">{% trans "Per-school donors and gift lines; campaigns/receipts workflow next." %}</p>
   </header>
   {% if messages %}
   <ul class="list-unstyled mb-3">{% for m in messages %}<li class="alert alert-{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>
@@ -26,7 +26,7 @@
 
   <div class="row g-3 mb-4 rmc-reveal-stagger">
     <div class="col-md-6 rmc-reveal">
-      <div class="card border-secondary bg-dark text-white">
+      <div class="card border-secondary bg-dark">
         <div class="card-header">{% trans "Add donor" %}</div>
         <div class="card-body">
           <form method="post" class="small">{% csrf_token %}
@@ -44,7 +44,7 @@
       </div>
     </div>
     <div class="col-md-6 rmc-reveal">
-      <div class="card border-secondary bg-dark text-white">
+      <div class="card border-secondary bg-dark">
         <div class="card-header">{% trans "Record gift" %}</div>
         <div class="card-body">
           <form method="post" class="small">{% csrf_token %}
@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  <h6 class="text-white">{% trans "Recent donors" %}</h6>
+  <h6 >{% trans "Recent donors" %}</h6>
   <div class="table-responsive mb-4">
     <table class="table table-sm table-dark">
       <caption class="visually-hidden">{% trans "Recent donors" %}</caption>
@@ -68,7 +68,7 @@
       <tbody>{% for d in donors %}<tr><td>{{ d.pk }}</td><td>{{ d.school.slug }}</td><td>{{ d.display_name }}</td><td>{{ d.email }}</td></tr>{% empty %}<tr><td colspan="4">—</td></tr>{% endfor %}</tbody>
     </table>
   </div>
-  <h6 class="text-white">{% trans "Recent gifts" %}</h6>
+  <h6 >{% trans "Recent gifts" %}</h6>
   <div class="table-responsive mb-3">
     <table class="table table-sm table-dark">
       <caption class="visually-hidden">{% trans "Recent gifts" %}</caption>

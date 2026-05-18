@@ -41,8 +41,8 @@
   grid-area: wide;
   padding: 0.85rem 1rem;
   border-radius: 1.15rem;
-  border: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.08));
-  background: var(--bs-body-bg, #fff);
+  border: 1px solid var(--hairline, var(--bs-border-color, rgba(0, 0, 0, 0.08)));
+  background: var(--surface-canvas, var(--bs-body-bg, #fff));
   cursor: pointer;
   transition: box-shadow 0.2s ease;
 }
@@ -64,7 +64,7 @@
 .backend-bento-drill-panel {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px dashed var(--bs-border-color);
+  border-top: 1px dashed var(--hairline, var(--bs-border-color));
 }
 .backend-bento-drill-panel table {
   font-size: var(--type-size-caption);

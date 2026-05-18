@@ -27,7 +27,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between gap-2 mb-2">
             <h2 class="h5 mb-0">{{ blueprint.name }}</h2>
-            <span class="badge bg-light text-dark border">{{ blueprint.status }}</span>
+            <span class="badge bg-light border">{{ blueprint.status }}</span>
           </div>
           <dl class="row small">
             <dt class="col-sm-4">{% trans_term "Modules" key="module" plural=True %}</dt><dd class="col-sm-8">{{ blueprint.modules|join:", " }}</dd>
@@ -62,7 +62,7 @@
           <td>{{ pack.target }}</td>
           <td class="small">{{ pack.included_items|join:", " }}{% if pack.trigger %}<br>{% trans "Trigger" %}: {{ pack.trigger }}; {% trans "Condition" %}: {{ pack.condition }}; {% trans "Action" %}: {{ pack.action }}; {% trans "Owner" %}: {{ pack.owner }}{% endif %}{% if pack.widgets %}<br>{% trans "Widgets" %}: {{ pack.widgets|join:", " }}; {% trans "Metrics" %}: {{ pack.metrics|join:", " }}; {% trans "Mobile" %}: {{ pack.mobile_status }}{% endif %}{% if pack.rules %}<br>{% trans "Rules" %}: {{ pack.rules|join:", " }}; {% trans "Approvals" %}: {{ pack.approval_flows|join:", " }}; {% trans "Tenant scope" %}: {{ pack.tenant_scope }}{% endif %}</td>
           <td>{{ pack.owner }}</td>
-          <td><span class="badge bg-light text-dark border">{{ pack.status }}</span></td>
+          <td><span class="badge bg-light border">{{ pack.status }}</span></td>
           <td><a href="{{ pack.preview_url }}">{% trans "Preview" %}</a>{% if pack.simulation_url %}<br><a href="{{ pack.simulation_url }}">{% trans "Simulation" %}</a>{% endif %}</td>
         </tr>
       {% endfor %}

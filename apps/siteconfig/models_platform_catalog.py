@@ -895,7 +895,12 @@ class ServiceIntegration(models.Model):
 
     class Meta:
         ordering = ["school", "service_name"]
-        unique_together = [("school", "service_name")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "campus", "service_name"],
+                name="serviceintegration_school_campus_service_uniq",
+            ),
+        ]
         verbose_name = "Service integration"
         verbose_name_plural = "Service integrations"
 

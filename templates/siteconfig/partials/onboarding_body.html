@@ -67,10 +67,10 @@
         {% if row.done %}
         <span class="badge text-bg-success">{% trans "Done" %}</span>
         {% if row.manually_completed %}
-        <span class="badge text-bg-info text-dark">{% trans "Recorded" %}</span>
+        <span class="badge text-bg-info">{% trans "Recorded" %}</span>
         {% endif %}
         {% else %}
-        <span class="badge text-bg-warning text-dark">{% trans "Pending" %}</span>
+        <span class="badge text-bg-warning">{% trans "Pending" %}</span>
         {% endif %}
         {% if row.link %}
         <a class="btn btn-sm btn-outline-secondary" href="{{ row.link }}">{% trans "Open" %}</a>

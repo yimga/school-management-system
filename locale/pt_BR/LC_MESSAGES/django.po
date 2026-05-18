@@ -27467,3 +27467,86 @@ msgstr ""
 
 msgid "start with a blank form"
 msgstr ""
+
+msgid "Fleet-wide grading scale matrix for cross-region operator triage."
+msgstr ""
+
+msgid "Maintenance preview"
+msgstr ""
+
+msgid ""
+"No school context. Open a school from the control plane, then return to this"
+" page."
+msgstr ""
+
+msgid "No school context. Switch to a school to manage dashboard layouts."
+msgstr ""
+
+msgid "No school context. Switch to a school to manage dashboards."
+msgstr ""
+
+msgid "Quick capture"
+msgstr ""
+
+msgid "Region grading matrix"
+msgstr ""
+
+msgid ""
+"Regional configuration completeness and validation checks for operators."
+msgstr ""
+
+msgid "Run all visible API cards"
+msgstr ""
+
+msgid "Runs each card in the open accordion sections (sequential)."
+msgstr ""
+
+msgid ""
+"Side-by-side comparison of core regional settings across fleet regions."
+msgstr ""
+
+msgid ""
+"Staff preview of the maintenance page shown to users when maintenance mode "
+"is on."
+msgstr ""
+
+msgid ""
+"Staff preview — end users see this page when maintenance mode is enabled "
+"site-wide."
+msgstr ""
+
+msgid "Student note"
+msgstr ""
+
+msgid "Student notes"
+msgstr ""
+
+msgid "Full control plane"
+msgstr ""
+
+msgid "Leave Studio"
+msgstr ""
+
+msgid "Studio overview"
+msgstr ""
+
+msgid "Studio shortcuts"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Platform manager header"
+msgstr ""
+
+msgid "Search schools and incidents"
+msgstr ""
+
+msgid "Search…"
+msgstr ""
+
+msgid "Studio workspace"
+msgstr ""
+
+msgid "active"
+msgstr ""

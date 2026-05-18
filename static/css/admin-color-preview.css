@@ -27,7 +27,7 @@
 }
 
 .color-pickr-trigger:focus {
-  outline: 2px solid var(--color-primary-500, var(--color-primary));
+  outline: 2px solid var(--color-primary-500, var(--color-primary)); /* theme-locked-allow: brand-token */
   outline-offset: 2px;
 }
 

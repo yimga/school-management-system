@@ -7,6 +7,17 @@
 {{ block.super }}
 {% include "studio_os/partials/shell_extrastyle.html" %}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
+<link rel="stylesheet" href="{% static 'css/studio-focus-layout.css' %}">
+{% endblock %}
+
+{% block cp_layout_attrs %}data-rmc-studio-focus="1"{% endblock %}
+
+{% block control_plane_sidebar %}
+  {% include "partials/control_plane_sidebar_studio_focus.html" %}
+{% endblock %}
+
+{% block control_plane_sidebar_mobile %}
+  {% include "partials/control_plane_sidebar_studio_focus.html" %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -18,13 +29,14 @@
 </nav>
 {% endblock %}
 
-{% comment %} v2.63 (Wave B1): Studio renders its own h1 page title + toolbar inside
-   the canvas (see studio_os/partials/shell_main_content.html). The CP
-   workspace header would duplicate that information — suppress it. {% endcomment %}
 {% block cp_workspace_header %}{% endblock %}
 
+{% block cp_status_strip %}{% endblock %}
+
+{% block rmc_zero_click_strip %}{% endblock %}
+
 {% block cp_content %}
-<div class="studio-os-cp-wrap flex-grow-1 min-h-0 d-flex flex-column" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'control-plane' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="control-plane-shell">
+<div class="studio-os-cp-wrap flex-grow-1 min-h-0 d-flex flex-column" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'control-plane' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="control-plane-shell" data-rmc-studio-focus="1">
 {% include "studio_os/partials/shell_main_content.html" %}
 </div>
 {% endblock %}

@@ -15,8 +15,8 @@
 {% block cp_content %}
 <div class="container-fluid py-3 content-max-960" data-page-archetype="catalog">
   <header class="mb-4 pb-3 border-bottom border-secondary">
-    <h1 class="h4 mb-1 fw-bold text-white">{% trans "Curriculum & region packs" %}</h1>
-    <p class="text-white-50 small mb-0">{% trans "Starter and region packs: installable via Create School or Setup Studio. One record per entity (Veracross-style)." %}</p>
+    <h1 class="h4 mb-1 fw-bold">{% trans "Curriculum & region packs" %}</h1>
+    <p class="small mb-0">{% trans "Starter and region packs: installable via Create School or Setup Studio. One record per entity (Veracross-style)." %}</p>
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
@@ -27,7 +27,7 @@
   <div class="row g-3 rmc-reveal-stagger">
     <div class="col-md-6 rmc-reveal">
       <div class="card h-100 border-secondary">
-        <div class="card-header text-white">{% trans "Curriculum templates" %}</div>
+        <div class="card-header">{% trans "Curriculum templates" %}</div>
         <div class="card-body">
           <ul class="list-unstyled mb-0">
             {% for item in curriculum_list %}
@@ -42,7 +42,7 @@
     </div>
     <div class="col-md-6 rmc-reveal">
       <div class="card h-100 border-secondary">
-        <div class="card-header text-white">{% trans "Region packs" %}</div>
+        <div class="card-header">{% trans "Region packs" %}</div>
         <div class="card-body">
           <ul class="list-unstyled mb-0">
             {% for item in region_list %}
@@ -63,7 +63,7 @@
   <div class="card border-secondary mt-3">
     <div class="card-body">
       <h6 class="card-title">{% trans "Go-live in under 2 weeks" %}</h6>
-      <p class="small text-white-50 mb-2">{% trans "Create school → Setup Studio → Launch checklist. Proven path; verify in staging per launch_studio_checklist." %}</p>
+      <p class="small mb-2">{% trans "Create school → Setup Studio → Launch checklist. Proven path; verify in staging per launch_studio_checklist." %}</p>
       <a href="{{ launch_studio_url }}" class="btn btn-outline-light btn-sm">{% trans "Launch Studio" %}</a>
     </div>
   </div>
@@ -72,7 +72,7 @@
   <div class="card border-secondary mt-3" role="region" aria-label="{% trans 'Beachhead marketplace blueprints' %}">
     <div class="card-body">
       <h6 class="card-title">{% trans "Phase 3 beachhead — installable blueprint packs" %}</h6>
-      <p class="small text-white-50 mb-2">{% trans "Seed targets (manage.py seed_blueprint_policy_packs). Install from Blueprints catalog on manager host." %}</p>
+      <p class="small mb-2">{% trans "Seed targets (manage.py seed_blueprint_policy_packs). Install from Blueprints catalog on manager host." %}</p>
       <ul class="list-unstyled small mb-2">
         {% for bp in beachhead_blueprint_packs %}
         <li class="mb-1"><code class="text-info">{{ bp.slug }}</code> — {{ bp.label }}</li>
@@ -85,7 +85,7 @@
   <div class="card border-secondary mt-3" role="region" aria-label="{% trans 'Related operator surfaces' %}">
     <div class="card-body">
       <h6 class="card-title">{% trans "Close the loop (wedges 1–10)" %}</h6>
-      <p class="small text-white-50 mb-2">{% trans "Trust, migration, LMS spine, and learning catalog — same shell, no dead ends." %}</p>
+      <p class="small mb-2">{% trans "Trust, migration, LMS spine, and learning catalog — same shell, no dead ends." %}</p>
       <div class="d-flex flex-wrap gap-2">
         {% if one_sis_url %}<a href="{{ one_sis_url }}" class="btn btn-outline-light btn-sm">{% trans "One SIS, any LMS" %}</a>{% endif %}
         {% if migration_cloud_url %}<a href="{{ migration_cloud_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Migration cloud" %}</a>{% endif %}
@@ -98,7 +98,7 @@
   <div class="card border-secondary mt-3">
     <div class="card-body">
       <h6 class="card-title">{% trans "UK statutory pack" %}</h6>
-      <p class="small text-white-50 mb-0">{% trans "Ofsted-style reports + GBR region pack. Full UK statutory/MIS report pack available via Reports and region selection." %}</p>
+      <p class="small mb-0">{% trans "Ofsted-style reports + GBR region pack. Full UK statutory/MIS report pack available via Reports and region selection." %}</p>
       {% if uk_statutory_reports_url %}<a href="{{ uk_statutory_reports_url }}" class="btn btn-outline-light btn-sm mt-2">{% trans "Reports" %}</a>{% endif %}
     </div>
   </div>

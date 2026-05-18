@@ -56,6 +56,7 @@ SCANNER_BASELINE_MAP: dict[str, str | None] = {
     "scan_subprocess_shell_true.py": "security-audit-baseline-subprocess-shell.json",
     "scan_inline_style_off_token.py": "security-audit-baseline-inline-style-off-token.json",
     "scan_undefined_css_classes.py": "security-audit-baseline-undefined-css-classes.json",
+    "scan_theme_locked_token_text.py": "security-audit-baseline-theme-locked-token-text.json",
     "scan_rls_bypass.py": "security-audit-baseline-rls-bypass.json",
     "scan_money_float.py": "security-audit-baseline-money-float.json",
     "scan_tenant_isolation_marker_quality.py": "security-audit-baseline-tenant-isolation-marker-quality.json",

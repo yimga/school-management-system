@@ -1,0 +1,144 @@
+{
+  "_comment": "Per-locale native-speaker review state. SOT for i18n_review_status mgmt cmd.",
+  "_schema": "review_status in {production-ready, needs-native-review, unreviewed, stub}; reviewer/reviewed_at/notes recorded when an operator runs i18n_review_status --mark-reviewed.",
+  "_runbook": "docs/I18N_RTL_AUDIT.md + docs/i18n/TRANSLATION_REQUEST_PACKETS.md",
+  "_generated_at": "2026-05-17",
+  "locales": {
+    "en": {
+      "review_status": "production-ready",
+      "kind": "source",
+      "reviewer": "n/a (source locale)",
+      "reviewed_at": "2026-05-17",
+      "translated_target_strings": 0,
+      "notes": "English is the source locale; all other locales translate from this."
+    },
+    "es": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 111,
+      "notes": "AI-drafted in batch v3.10 (memory: marketing_mascot_and_locales_v3_10). Native Spanish speaker review pending."
+    },
+    "pt-br": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 111,
+      "notes": "AI-drafted in batch v3.10 (memory: marketing_mascot_and_locales_v3_10). Native Brazilian Portuguese speaker review pending."
+    },
+    "fr": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 96,
+      "notes": "AI-drafted in batch v3.23.9 (memory: i18n-translations-coverage-finish-v3-23-9). LLM-supplied French at editorial register; native-speaker review pending before production deploy. 15 msgids absent from current catalog were skipped."
+    },
+    "de": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 49,
+      "notes": "AI-drafted in batch v3.11. Native German speaker review pending."
+    },
+    "it": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 49,
+      "notes": "AI-drafted in batch v3.12. Native Italian speaker review pending."
+    },
+    "ru": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 37,
+      "notes": "AI-drafted in batch v3.13. Native Russian speaker review pending."
+    },
+    "tr": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 37,
+      "notes": "AI-drafted in batch v3.13. Native Turkish speaker review pending."
+    },
+    "ja": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 38,
+      "notes": "AI-drafted in batch v3.13. Native Japanese speaker review pending. Honorific register (です/ます) consistency must be verified."
+    },
+    "zh-hans": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 39,
+      "notes": "AI-drafted in batch v3.13. Native Simplified Chinese speaker review pending."
+    },
+    "zh-hant": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 37,
+      "notes": "AI-drafted in batch v3.13. Native Traditional Chinese speaker review pending (Taiwan / Hong Kong audience)."
+    },
+    "hi": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 39,
+      "notes": "AI-drafted in batch v3.13. Native Hindi speaker review pending. Devanagari script + technical-term register need verification."
+    },
+    "ar": {
+      "review_status": "needs-native-review",
+      "kind": "ai-draft",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 38,
+      "notes": "AI-drafted in batch v3.11. Native Arabic speaker review pending. RTL render verified separately via verify_rtl_major_templates.py + test_a11y_axe_smoke.py::test_rtl_arabic_render."
+    },
+    "yo": {
+      "review_status": "stub",
+      "kind": "translation-request-packet-ready",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 0,
+      "notes": "0% translated. Operator workflow: hand docs/i18n/translation_requests/yo.md to a native Yoruba translator. Falls back to English in production until populated."
+    },
+    "ha": {
+      "review_status": "stub",
+      "kind": "translation-request-packet-ready",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 0,
+      "notes": "0% translated. Operator workflow: hand docs/i18n/translation_requests/ha.md to a native Hausa translator. Falls back to English in production until populated."
+    },
+    "sw": {
+      "review_status": "stub",
+      "kind": "translation-request-packet-ready",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 0,
+      "notes": "0% translated. Operator workflow: hand docs/i18n/translation_requests/sw.md to a native Swahili translator (Kiswahili sanifu register). Falls back to English in production until populated."
+    },
+    "pid": {
+      "review_status": "stub",
+      "kind": "translation-request-packet-ready",
+      "reviewer": null,
+      "reviewed_at": null,
+      "translated_target_strings": 0,
+      "notes": "0% translated. Operator workflow: hand docs/i18n/translation_requests/pid.md to a translator familiar with written Nigerian Pidgin (newspaper register, not street usage). Falls back to English in production until populated."
+    }
+  }
+}

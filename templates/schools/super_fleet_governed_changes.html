@@ -16,9 +16,9 @@
 <div class="container-fluid py-4 content-max-1200" data-page-archetype="operational-workbench">
   <header class="mb-4 d-flex flex-wrap align-items-start justify-content-between gap-3">
     <div class="min-w-0">
-      <p class="text-uppercase small text-white-50 mb-1">{% trans "Control plane" %}</p>
-      <h1 class="h2 text-white mb-2">{% trans "Fleet governed changes" %}</h1>
-      <p class="text-white-50 mb-0">
+      <p class="text-uppercase small mb-1">{% trans "Control plane" %}</p>
+      <h1 class="h2 mb-2">{% trans "Fleet governed changes" %}</h1>
+      <p class="mb-0">
         {% blocktrans %}Draft → approval → apply spine (§2.1). Execution stays on existing rollout/staging UIs; use the apply path on each row, then update status in platform admin.{% endblocktrans %}
       </p>
     </div>
@@ -53,18 +53,18 @@
         <tr>
           <td class="text-nowrap">{{ row.pk }}</td>
           <td>
-            <div class="fw-semibold text-white">{{ row.title|default:row.change_type }}</div>
-            <div class="small text-white-50">{{ row.change_type }}</div>
+            <div class="fw-semibold">{{ row.title|default:row.change_type }}</div>
+            <div class="small">{{ row.change_type }}</div>
           </td>
           <td><span class="badge bg-secondary">{{ row.status }}</span></td>
           <td class="small">
             {% if row.apply_surface_url %}
             <a class="link-light text-break" href="{{ row.apply_surface_url }}">{{ row.apply_surface_url|truncatechars:48 }}</a>
             {% else %}
-            <span class="text-white-50">—</span>
+            <span >—</span>
             {% endif %}
           </td>
-          <td class="text-nowrap small text-white-50">{{ row.created_at }}</td>
+          <td class="text-nowrap small">{{ row.created_at }}</td>
           <td class="text-nowrap">
             <a class="btn btn-sm btn-outline-light" href="{% url 'admin:platform_runtime_fleetgovernedchange_change' row.pk %}">{% trans "Advanced: edit in Admin" %}</a>
           </td>

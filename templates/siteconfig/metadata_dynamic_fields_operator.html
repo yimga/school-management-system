@@ -27,19 +27,19 @@
 {% endblock %}
 {% block cp_content %}
 <div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="metadata-dynamic-fields-operator" data-admin-replacement-category="metadata_dynamic_field_operator">
-  <h1 class="h4 text-white mb-2">{% trans "Dynamic field definitions" %}</h1>
-  <p class="text-white-50 small mb-2">
+  <h1 class="h4 mb-2">{% trans "Dynamic field definitions" %}</h1>
+  <p class="small mb-2">
     {% trans "Read-only list of EAV / dynamic field definitions and aggregate value counts. Create and edit rows in Django admin; prefer this view for triage and coverage." %}
   </p>
-  <div class="row g-2 text-white-50 small mb-4">
-    <div class="col-auto"><span class="text-white">{% trans "Definitions" %}</span>: {{ total_definitions }}</div>
-    <div class="col-auto"><span class="text-white">{% trans "Active" %}</span>: {{ active_definitions }}</div>
-    <div class="col-auto"><span class="text-white">{% trans "Stored values (rows)" %}</span>: {{ total_values }}</div>
+  <div class="row g-2 small mb-4">
+    <div class="col-auto"><span >{% trans "Definitions" %}</span>: {{ total_definitions }}</div>
+    <div class="col-auto"><span >{% trans "Active" %}</span>: {{ active_definitions }}</div>
+    <div class="col-auto"><span >{% trans "Stored values (rows)" %}</span>: {{ total_values }}</div>
   </div>
   {% for section in operator_sections %}
   <section class="mb-4" data-entity-type="{{ section.entity_type|escape }}">
-    <h2 class="h6 text-uppercase text-white-50 mb-2">{{ section.entity_type }} <span class="badge bg-secondary">{% trans "Value rows" %}: {{ section.value_row_count }}</span></h2>
-    <p class="small text-white-50 mb-0">{% trans "Per-entity value row counts include only keys matching this entity type." %}</p>
+    <h2 class="h6 text-uppercase mb-2">{{ section.entity_type }} <span class="badge bg-secondary">{% trans "Value rows" %}: {{ section.value_row_count }}</span></h2>
+    <p class="small mb-0">{% trans "Per-entity value row counts include only keys matching this entity type." %}</p>
     <div class="table-responsive mt-2">
       <table class="table table-sm table-dark table-bordered">
         <caption class="visually-hidden">{{ section.entity_type }} {% trans "Value rows" %}: {{ section.value_row_count }}</caption>
@@ -71,7 +71,7 @@
     </div>
   </section>
   {% empty %}
-  <p class="text-white-50">{% trans "No dynamic field definitions found." %}</p>
+  <p >{% trans "No dynamic field definitions found." %}</p>
   {% endfor %}
 </div>
 {% endblock %}

@@ -37,6 +37,8 @@ on:
       - "beta/school-management-system/scripts/scan_inline_style_off_token.py"
       - "beta/school-management-system/scripts/scan_undefined_css_classes.py"
       - "beta/school-management-system/scripts/scan_off_token_colors.py"
+      - "beta/school-management-system/scripts/scan_theme_locked_token_text.py"
+      - "beta/school-management-system/var/security-audit-baseline-theme-locked-token-text.json"
       - "beta/school-management-system/templates/**/*.html"
       - "beta/school-management-system/static/css/**/*.css"
       - "beta/school-management-system/static/marketing/css/**/*.css"
@@ -71,6 +73,12 @@ on:
       - "beta/school-management-system/scripts/audit_role_permission_matrix.py"
       - "beta/school-management-system/scripts/scan_bell_clock_consistency.py"
       - "beta/school-management-system/scripts/check_marketing_assets_claimed_vs_present.py"
+      - "beta/school-management-system/scripts/verify_theme_visibility_platform.py"
+      - "beta/school-management-system/scripts/scan_main_content_text_utilities.py"
+      - "beta/school-management-system/var/security-audit-baseline-main-content-text-utilities.json"
+      - "beta/school-management-system/static/css/theme-platform-contrast.css"
+      - "beta/school-management-system/static/css/dark-mode-safety-net.css"
+      - "beta/school-management-system/static/js/theme-preference-bootstrap.js"
       - "beta/school-management-system/apps/**/urls*.py"
       - ".github/workflows/architectural-boundaries.yml"
   workflow_dispatch: {}
@@ -386,6 +394,20 @@ jobs:
         run: |
           python scripts/scan_pwa_manifest_coverage.py --compare
 
+  plan-deliverables-12-pillar:
+    name: "12-pillar plan deliverables (all P0-P12 artifacts present)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run 12-pillar deliverables verifier --strict
+        run: |
+          python scripts/verify_plan_deliverables_12_pillar.py --strict
+
   sentry-alert-rule-drift:
     name: "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
     runs-on: ubuntu-latest
@@ -469,6 +491,27 @@ jobs:
         # NEW violation while the burndown wave reduces the existing 897.
         run: |
           python scripts/scan_off_token_colors.py --strict
+
+  theme-locked-token-text:
+    name: "Theme-locked token references in CSS (subtle invisibility bugs)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        # Companion to off-token-colors. That scanner catches raw hex literals;
+        # this one catches the more subtle bug where the literal hides behind a
+        # token reference (var(--color-base-900) etc.) that's defined once in
+        # :root and never theme-overridden — same dark-on-dark / light-on-light
+        # bug class. Drift-detection: baseline allows existing debt, CI fails
+        # on any NEW occurrence. Mark intentional sites with
+        # /* theme-locked-allow: <reason> */ on the declaration line.
+        run: |
+          python scripts/scan_theme_locked_token_text.py --strict
 
   undefined-css-classes:
     name: "Undefined CSS classes (typos & silent layout bugs)"
@@ -663,3 +706,25 @@ jobs:
           python-version: "3.12"
       - name: Run marketing asset parity scanner
         run: python scripts/check_marketing_assets_claimed_vs_present.py
+
+  theme-visibility-platform:
+    name: "Theme visibility: shell wiring + main-content utility baseline"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Theme visibility gates
+        env:
+          SECRET_KEY: "ci-theme-visibility-arch-boundary-not-production-64chars"
+          ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
+        run: |
+          python manage.py migrate --noinput
+          python scripts/verify_theme_visibility_platform.py
+          python scripts/scan_main_content_text_utilities.py
+          python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1

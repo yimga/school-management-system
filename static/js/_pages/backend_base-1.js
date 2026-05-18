@@ -9,17 +9,18 @@
     }
     var darkThemes = ['dark', 'black', 'charcoal', 'graphite', 'midnight', 'ocean', 'steel', 'slate', 'forest', 'indigo', 'amber'];
     var lightThemes = ['light', 'sand', 'snow', 'cream', 'lavender'];
+    var resolved = darkThemes.indexOf(theme) >= 0 ? 'dark' : 'light';
     if (darkThemes.indexOf(theme) >= 0) {
       document.body.classList.add('portal-backend-dark');
       document.body.classList.add('portal-backend-' + theme);
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.documentElement.setAttribute('data-bs-theme', 'dark');
     } else {
       document.body.classList.add('portal-backend-light');
       document.body.classList.add('portal-backend-' + theme);
-      document.documentElement.setAttribute('data-theme', 'light');
-      document.documentElement.setAttribute('data-bs-theme', 'light');
     }
+    document.documentElement.setAttribute('data-theme', resolved);
+    document.documentElement.setAttribute('data-resolved-theme', resolved);
+    document.documentElement.setAttribute('data-bs-theme', resolved);
+    document.documentElement.classList.toggle('dark', resolved === 'dark');
     // Load recent activity into left sidebar when present (desktop + mobile sidebars)
     (function() {
       var lists = document.querySelectorAll('.recent-activity-list');

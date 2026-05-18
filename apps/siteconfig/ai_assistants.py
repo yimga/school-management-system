@@ -169,4 +169,11 @@ def user_may_use_assistant(user, required_permission: str) -> bool:
         return False
     if getattr(user, "is_superuser", False):
         return True
+    try:
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        if user_has_control_plane_access(user):
+            return True
+    except ImportError:
+        pass
     return user.has_feature_permission(required_permission)

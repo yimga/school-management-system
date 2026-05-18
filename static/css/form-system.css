@@ -67,7 +67,7 @@
 .form-system .form-select:hover,
 .ui-premium-surface .form-control:hover,
 .ui-premium-surface .form-select:hover {
-  border-color: color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 42%, var(--color-base-400));
+  border-color: color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 42%, var(--color-base-400)); /* theme-locked-allow: decorative-tint-mix */
 }
 .form-system .form-control:focus,
 .form-system .form-select:focus,

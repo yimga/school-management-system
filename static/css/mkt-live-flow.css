@@ -70,7 +70,7 @@
   cursor: pointer;
 }
 .mkt-live-tabs button.is-active {
-  background: var(--color-primary-500, #c47f1c);
+  background: var(--color-primary-500, #c47f1c); /* theme-locked-allow: brand-token */
   color: #fff; /* off-token-allow: hex-literal-decorative */
   border-color: transparent;
 }

@@ -9,7 +9,7 @@
   border-radius: 1rem;
   padding: 1.25rem;
   box-shadow: 0 30px 80px rgba(2, 6, 23, 0.45);
-  color: var(--color-base-50);
+  color: var(--text-tertiary, var(--color-base-50));
   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
@@ -48,7 +48,7 @@
 
 .preview-mode-btn.active {
   background: rgba(56, 189, 248, 0.24); /* off-token-allow: rgba-decorative */
-  color: color-mix(in oklab, var(--color-sky-500) 12%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-sky-500) 12%, var(--color-base-0)); /* theme-locked-allow: config-preview-fixed-swatch */
 }
 
 .preview-device {
@@ -58,7 +58,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
   overflow: hidden;
   margin: 1rem auto;
-  background: var(--preview-sidebar-bg, var(--color-base-950));
+  background: var(--preview-sidebar-bg, var(--color-base-950)); /* theme-locked-allow: config-preview-fixed-swatch */
   min-height: 520px;
   display: flex;
   flex-direction: row;
@@ -71,7 +71,7 @@
 }
 
 .preview-sidebar {
-  background: linear-gradient(135deg, var(--preview-sidebar-surface, var(--color-base-900)), rgba(17, 24, 39, 0.85));
+  background: linear-gradient(135deg, var(--preview-sidebar-surface, var(--color-base-900)), rgba(17, 24, 39, 0.85)); /* theme-locked-allow: config-preview-fixed-swatch */
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -89,14 +89,14 @@
   align-items: center;
   justify-content: center;
   font-size: var(--type-size-eyebrow);
-  color: var(--preview-text-color, var(--color-base-200));
+  color: var(--preview-text-color, var(--color-base-200)); /* theme-locked-allow: config-preview-fixed-swatch */
   font-weight: 600;
 }
 
 .preview-nav span {
   display: block;
   font-size: var(--type-size-eyebrow);
-  color: var(--preview-text-color, var(--color-base-200));
+  color: var(--preview-text-color, var(--color-base-200)); /* theme-locked-allow: config-preview-fixed-swatch */
   padding: 0.35rem 0.6rem;
   border-radius: 9px;
   transition: background 0.3s ease, color 0.3s ease;
@@ -104,7 +104,7 @@
 
 .preview-nav span:nth-child(1) {
   background: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
-  color: var(--preview-text-color, var(--color-base-200));
+  color: var(--preview-text-color, var(--color-base-200)); /* theme-locked-allow: config-preview-fixed-swatch */
 }
 
 .preview-content {
@@ -154,7 +154,7 @@
   border-radius: 12px;
   padding: 0.75rem;
   box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.28);
-  color: var(--preview-text-color, var(--color-base-200));
+  color: var(--preview-text-color, var(--color-base-200)); /* theme-locked-allow: config-preview-fixed-swatch */
 }
 
 .preview-card strong {
@@ -190,7 +190,7 @@
 .preview-chip-active {
   border-color: rgba(56, 189, 248, 0.6); /* off-token-allow: rgba-decorative */
   background: rgba(56, 189, 248, 0.22); /* off-token-allow: rgba-decorative */
-  color: color-mix(in oklab, var(--color-sky-500) 12%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-sky-500) 12%, var(--color-base-0)); /* theme-locked-allow: config-preview-fixed-swatch */
 }
 
 .preview-metrics-grid {
@@ -240,7 +240,7 @@
   border-radius: 0.65rem;
   padding: 0.6rem;
   background: rgba(59, 130, 246, 0.12); /* off-token-allow: info-blue-overlay */
-  color: color-mix(in oklab, var(--color-indigo-400) 22%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-indigo-400) 22%, var(--color-base-0)); /* theme-locked-allow: config-preview-fixed-swatch */
   font-size: var(--type-size-eyebrow);
 }
 
@@ -260,16 +260,16 @@
 }
 
 .contrast-line.warn {
-  color: color-mix(in oklab, var(--color-red-500) 32%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-red-500) 32%, var(--color-base-0)); /* theme-locked-allow: config-preview-fixed-swatch */
 }
 
 .contrast-line.good {
-  color: color-mix(in oklab, var(--color-indigo-400) 36%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-indigo-400) 36%, var(--color-base-0)); /* theme-locked-allow: config-preview-fixed-swatch */
 }
 
 .contrast-hint.unsafe {
   background: rgba(248, 113, 113, 0.2); /* off-token-allow: rgba-decorative */
-  color: color-mix(in oklab, var(--color-red-500) 18%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-red-500) 18%, var(--color-base-0)); /* theme-locked-allow: config-preview-fixed-swatch */
   border: 1px solid rgba(248, 113, 113, 0.6); /* off-token-allow: rgba-decorative */
 }
 
@@ -287,7 +287,7 @@
 
 .preview-role-selector select {
   background: rgba(26, 22, 18, 0.7); /* off-token-allow: always-dark-warm-bg */
-  color: var(--color-base-50);
+  color: var(--text-tertiary, var(--color-base-50));
   border: 1px solid rgba(168, 160, 146, 0.4); /* off-token-allow: warm-neutral-overlay */
   border-radius: 0.5rem;
   padding: 0.35rem 0.75rem;

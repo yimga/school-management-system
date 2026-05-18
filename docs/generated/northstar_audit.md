@@ -1,6 +1,6 @@
 # North Star audit
 
-**Total:** 75 / 75 — **DOMINANT**
+**Total:** 71 / 75 — **ELITE**
 
 | Section | Score |
 | --- | ---: |
@@ -12,7 +12,7 @@
 | architecture_quality | 5 |
 | performance | 5 |
 | business_value | 5 |
-| ux_quality | 5 |
+| ux_quality | 1 |
 | reliability | 5 |
 | observability | 5 |
 | extensibility | 5 |

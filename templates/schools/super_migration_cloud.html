@@ -147,7 +147,7 @@
               {% for profile in profiles %}
               <a href="?profile={{ profile.slug }}{% if selected_school %}&school_id={{ selected_school.id }}{% endif %}" class="list-group-item list-group-item-action {% if selected_profile and selected_profile.id == profile.id %}active{% endif %}">
                 <div class="fw-semibold">{{ profile.name }}</div>
-                <div class="small {% if selected_profile and selected_profile.id == profile.id %}text-white-50{% else %}text-muted{% endif %}">
+                <div class="small {% if selected_profile and selected_profile.id == profile.id %}text-secondary{% else %}text-muted{% endif %}">
                   {{ profile.slug }} | {{ profile.domain }} | {{ profile.format }}
                 </div>
               </a>

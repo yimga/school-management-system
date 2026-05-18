@@ -1,0 +1,54 @@
+/**
+ * Manager Studio focus layout — Wave 1.
+ * /studio/* on manager: compact sidebar, wide canvas, less operator chrome noise.
+ */
+
+.cp-layout[data-rmc-studio-focus="1"] {
+  --studio-focus-sidebar-width: 11.5rem;
+}
+
+.cp-layout[data-rmc-studio-focus="1"] .cp-sidebar-col {
+  flex: 0 0 var(--studio-focus-sidebar-width);
+  max-width: var(--studio-focus-sidebar-width);
+}
+
+.cp-layout[data-rmc-studio-focus="1"] .cp-main-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+}
+
+.cp-layout[data-rmc-studio-focus="1"] .cp-sidebar-inner--surface {
+  padding: 0.5rem 0.35rem;
+}
+
+.cp-sidebar-studio-focus .cp-nav-label {
+  font-size: var(--type-size-caption, 0.8125rem);
+  line-height: 1.3;
+}
+
+.cp-sidebar-studio-focus .nav-link {
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--token-radius-sm, 0.375rem);
+}
+
+.cp-sidebar-studio-focus .nav-link.active {
+  background: color-mix(in srgb, var(--brand-primary, var(--color-primary-500)) 18%, transparent); /* theme-locked-allow: decorative-tint-mix */
+  font-weight: 600;
+}
+
+.cp-layout[data-rmc-studio-focus="1"] .cp-page-header {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.cp-layout[data-rmc-studio-focus="1"] .studio-os-cp-wrap {
+  min-height: min(72vh, calc(100dvh - 12rem));
+}
+
+@media (max-width: 991.98px) {
+  .cp-layout[data-rmc-studio-focus="1"] .cp-sidebar-col {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

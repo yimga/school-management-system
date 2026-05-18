@@ -2,15 +2,16 @@
 {% if request.user.is_authenticated %}
 {% url 'feedback:contextual' as voc_contextual_url %}
 {% if voc_contextual_url %}
+{% with rmatch=request.resolver_match %}
 <link rel="stylesheet" href="{% static 'css/voc-widget.css' %}">
-<div class="voc-widget" data-open="false" data-module="{{ request.resolver_match.app_name|default:'' }}">
+<div class="voc-widget" data-open="false" data-module="{% if rmatch %}{{ rmatch.app_name|default:'' }}{% endif %}">
   <div class="voc-widget__panel" role="dialog" aria-label="Page feedback">
     <form method="post" action="{{ voc_contextual_url }}">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
       <input type="hidden" name="route" value="{{ request.path }}">
-      <input type="hidden" name="page_title" value="{{ title|default:request.resolver_match.url_name|default:'' }}">
-      <input type="hidden" name="module" value="{{ request.resolver_match.app_name|default:'' }}">
+      <input type="hidden" name="page_title" value="{% if title %}{{ title }}{% elif rmatch %}{{ rmatch.url_name|default:'' }}{% endif %}">
+      <input type="hidden" name="module" value="{% if rmatch %}{{ rmatch.app_name|default:'' }}{% endif %}">
       <div class="voc-widget__actions mb-2">
         <button class="btn btn-sm btn-outline-primary text-start" name="title" value="Was this page helpful?" type="submit">
           <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i> Was this page helpful?
@@ -33,5 +34,6 @@
   </button>
 </div>
 <script src="{% static 'js/voc-widget.js' %}"></script>
+{% endwith %}
 {% endif %}
 {% endif %}

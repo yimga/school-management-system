@@ -29,8 +29,9 @@ class ExperienceStudioWorkbenchTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("studio_os:experience"))
         self.assertEqual(response.status_code, 200)
-        if b"studio-os__experience-workbench" in response.content:
-            self.assertIn(b"studio-os__experience-primary", response.content)
+        if b"data-rmc-studio-workspace" in response.content:
+            self.assertIn(b'data-studio-workspace-mode="experience"', response.content)
+            self.assertIn(b"data-rmc-studio-workspace-main", response.content)
 
     def test_automation_rail_surfaces_conflict_detection_link(self):
         self.client.force_login(self.user)

@@ -11,12 +11,21 @@ on:
       - "apps/schools/tests/test_super_admin_surface_parity.py"
       - "templates/components/rmc_operator_surface_strip.html"
       - "templates/control_plane_base.html"
+      - "templates/partials/control_plane_sidebar.html"
+      - "templates/admin/manager_cp_offcanvas.html"
+      - "templates/admin/base.html"
       - "templates/admin/base_site.html"
       - "static/css/admin-cp-parity.css"
       - "scripts/verify_super_admin_surface_parity.py"
       - "scripts/verify_manager_render_parity.py"
       - "scripts/run_manager_surface_parity.sh"
       - "tests/e2e/manager-surface-parity.spec.js"
+      - "tests/e2e/manager-theme-visibility.spec.js"
+      - "static/css/theme-platform-contrast.css"
+      - "static/css/dark-mode-safety-net.css"
+      - "static/js/theme-preference-bootstrap.js"
+      - "scripts/verify_theme_visibility_platform.py"
+      - "scripts/scan_main_content_text_utilities.py"
       - ".github/workflows/manager-surface-parity.yml"
       - "config/manager_urls.py"
 
@@ -59,6 +68,8 @@ jobs:
       - name: Migrate and verify matrix
         run: |
           python manage.py migrate --noinput
+          python scripts/verify_theme_visibility_platform.py
+          python scripts/scan_main_content_text_utilities.py
           python scripts/verify_manager_render_parity.py --write-matrix
 
       - name: Django surface parity tests

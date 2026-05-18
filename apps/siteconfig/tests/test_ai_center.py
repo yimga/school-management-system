@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import uuid
 from unittest.mock import patch
@@ -224,3 +225,54 @@ class AICenterManagerControlPlaneTests(TestCase):
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-api-url="/api/ai/', body)
         self.assertNotIn('data-api-url=""', body)
+
+    def test_manager_superadmin_role_without_django_superuser_can_use_assistants(self):
+        """Control-plane operators often have role=SUPERADMIN but is_superuser=False."""
+        u = User.objects.create_user(
+            username=f"mgr_superadmin_{uuid.uuid4().hex[:8]}",
+            password="x" * 8,
+            is_staff=True,
+            is_superuser=False,
+            role=User.Role.SUPERADMIN,
+        )
+        c = Client(HTTP_HOST=_MGR_HOST)
+        c.login(username=u.username, password="x" * 8)
+        path = reverse("siteconfig:ai_center", urlconf="config.manager_urls")
+        resp = c.get(path)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-api-url="/api/ai/', body)
+        self.assertNotIn("No backend bound", body)
+        self.assertNotIn("Permission required", body)
+        self.assertNotIn('placeholder="Pick an assistant on the left first."', body)
+        self.assertNotIn(
+            'data-rmc-ai-run\n                      disabled',
+            body.replace(" ", ""),
+        )
+
+    @patch("apps.portal.views_ai_gateway.get_embedding_for_text", return_value=None)
+    @patch("apps.portal.views_ai_gateway.AIMemoryService.search_similar", return_value=[])
+    @patch("services.ai_gateway._call_ollama", return_value=(None, {"error": "unavailable"}))
+    def test_manager_superadmin_can_post_guided_assistant(
+        self, _mock_ollama, _mock_search, _mock_emb
+    ):
+        u = User.objects.create_user(
+            username=f"mgr_post_{uuid.uuid4().hex[:8]}",
+            password="x" * 8,
+            is_staff=False,
+            is_superuser=False,
+            role=User.Role.SUPERADMIN,
+        )
+        c = Client(HTTP_HOST=_MGR_HOST)
+        c.login(username=u.username, password="x" * 8)
+        url = reverse("api:ai-interop-assistant", urlconf="config.manager_urls")
+        resp = c.post(
+            url,
+            data=json.dumps({"query": "Where is district interop configured?"}),
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content[:500])
+        payload = resp.json()
+        self.assertTrue(payload.get("success"), payload)
+        summary = (payload.get("guided") or {}).get("summary") or ""
+        self.assertGreater(len(summary), 20, summary)

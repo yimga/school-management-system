@@ -8,7 +8,7 @@
         <div class="flex flex-col-reverse gap-3 items-center mx-auto lg:flex-row-reverse container lg:h-[64px]">
             {% block submit-row %}
                 {% if show_save %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_save" class="bg-primary-600 block border border-transparent cursor-pointer font-medium px-3 py-2 rounded-default text-white w-full lg:w-auto">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_save" class="bg-primary-600 block border border-transparent cursor-pointer font-medium px-3 py-2 rounded-default w-full lg:w-auto">
                         {% translate 'Save' %}
                     </button>
                 {% endif %}
@@ -26,7 +26,7 @@
                 {% endfor %}
 
                 {% if show_save_and_continue %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_continue" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700  dark:hover:text-base-200 dark:hover:bg-base-900">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_continue" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900">
                         {% if can_change %}
                             {% translate 'Save and continue editing' %}
                         {% else %}
@@ -65,20 +65,20 @@
                 </script>
 
                 {% if show_save_and_add_another %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_addanother" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700  dark:hover:text-base-200 dark:hover:bg-base-900">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_addanother" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900">
                         {% translate 'Save and add another' %}
                     </button>
                 {% endif %}
 
                 {% if show_save_as_new %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_saveasnew" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700  dark:hover:text-base-200 dark:hover:bg-base-900">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_saveasnew" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900">
                         {% translate 'Save as new' %}
                     </button>
                 {% endif %}
 
                 <div class="flex flex-col gap-3 mr-auto w-full lg:flex-row lg:w-auto">
                     {% if show_close or adminform.model_admin.change_form_show_cancel_button %}
-                        <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700  dark:hover:text-base-200 dark:hover:bg-base-900 js-return-to-origin" data-fallback="{% add_preserved_filters changelist_url %}">
+                        <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-return-to-origin" data-fallback="{% add_preserved_filters changelist_url %}">
                             {% translate 'Close' %}
                         </a>
                     {% endif %}
@@ -86,7 +86,7 @@
                     {% if show_delete_link and original %}
                         {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
 
-                        <a href="{% add_preserved_filters delete_url %}" class="bg-red-600 cursor-pointer flex items-center justify-center font-medium h-[38px] ml-auto px-3 py-2 rounded-default text-center text-white w-full lg:w-auto dark:bg-red-500/20 dark:text-red-500">
+                        <a href="{% add_preserved_filters delete_url %}" class="bg-red-600 cursor-pointer flex items-center justify-center font-medium h-[38px] ml-auto px-3 py-2 rounded-default text-center w-full lg:w-auto dark:bg-red-500/20 dark:text-red-500">
                             {% translate "Delete" %} {{ opts.verbose_name }}
                         </a>
                     {% endif %}

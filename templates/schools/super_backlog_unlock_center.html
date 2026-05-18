@@ -17,12 +17,12 @@
   {% phase8_dashboard_declaration "schools/super_backlog_unlock_center.html" %}
   <header class="mb-4 d-flex flex-wrap align-items-start justify-content-between gap-3">
     <div class="min-w-0">
-      <p class="text-uppercase small text-white-50 mb-1">{% trans "Control plane" %}</p>
-      <h1 class="h2 text-white mb-2">{% trans "Backlog unlock center" %}</h1>
-      <p class="text-white-50 mb-0">
+      <p class="text-uppercase small mb-1">{% trans "Control plane" %}</p>
+      <h1 class="h2 mb-2">{% trans "Backlog unlock center" %}</h1>
+      <p class="mb-0">
         {% blocktrans %}Machine-evaluated gates and explicit program/external rows. Refresh after merges or CI so ready items surface without relying on memory.{% endblocktrans %}
       </p>
-      <p class="text-white-50 small mb-0 mt-2">
+      <p class="small mb-0 mt-2">
         {% trans "Viewing profile" %}:
         <span class="badge bg-secondary">{{ evaluation_profile }}</span>
         {% if evaluation %}
@@ -41,7 +41,7 @@
       {% endif %}
       <form method="post" class="d-flex flex-wrap align-items-center gap-2">
         {% csrf_token %}
-        <label for="id_profile_select" class="text-white-50 small mb-0">{% trans "Refresh profile" %}</label>
+        <label for="id_profile_select" class="small mb-0">{% trans "Refresh profile" %}</label>
         <select name="profile" id="id_profile_select" class="form-select form-select-sm" style="width: auto;">
           <option value="{{ profile_smoke }}" {% if evaluation_profile == profile_smoke %}selected{% endif %}>{% trans "smoke (faster subset)" %}</option>
           <option value="{{ profile_full }}" {% if evaluation_profile == profile_full %}selected{% endif %}>{% trans "full matrix" %}</option>
@@ -69,11 +69,11 @@
   </div>
 
   {% if evaluation_profiles_help %}
-  <details class="mb-3 small text-white-50">
-    <summary class="text-white-50">{% trans "What smoke vs full includes" %}</summary>
+  <details class="mb-3 small">
+    <summary >{% trans "What smoke vs full includes" %}</summary>
     <dl class="row mb-0 mt-2 small">
       {% for k, v in evaluation_profiles_help.items %}
-      <dt class="col-sm-2 text-white">{{ k }}</dt>
+      <dt class="col-sm-2">{{ k }}</dt>
       <dd class="col-sm-10 mb-2">{{ v }}</dd>
       {% endfor %}
     </dl>
@@ -85,18 +85,18 @@
     {% blocktrans %}No cached snapshot for this profile yet. Run Refresh above or use the management command. If you expected data, try the other profile (smoke and full use separate cache keys).{% endblocktrans %}
   </div>
   {% else %}
-  <p class="text-white-50 small mb-3">
-    {% trans "Evaluated at" %} <strong class="text-white">{{ evaluation.evaluated_at }}</strong>
+  <p class="small mb-3">
+    {% trans "Evaluated at" %} <strong >{{ evaluation.evaluated_at }}</strong>
     — {% trans "registry version" %} {{ evaluation.registry_version }}
     {% if evaluation.evaluation_profile %}
-    — {% trans "profile" %} <strong class="text-white">{{ evaluation.evaluation_profile }}</strong>
+    — {% trans "profile" %} <strong >{{ evaluation.evaluation_profile }}</strong>
     {% endif %}
   </p>
 
   <div class="d-flex flex-wrap gap-2 mb-4">
     <span class="badge bg-success">{% trans "Ready" %}: {{ evaluation.summary.ready }}</span>
-    <span class="badge bg-info text-dark">{% trans "Attention" %}: {{ evaluation.summary.ready_attention }}</span>
-    <span class="badge bg-warning text-dark">{% trans "Waiting" %}: {{ evaluation.summary.waiting }}</span>
+    <span class="badge bg-info">{% trans "Attention" %}: {{ evaluation.summary.ready_attention }}</span>
+    <span class="badge bg-warning">{% trans "Waiting" %}: {{ evaluation.summary.waiting }}</span>
     <span class="badge bg-secondary">{% trans "External" %}: {{ evaluation.summary.blocked_external }}</span>
     {% if evaluation.sla_summary %}
     <span class="badge {% if evaluation.sla_summary.breached_waiting or evaluation.sla_summary.breached_ready_attention %}bg-danger{% else %}bg-dark border border-secondary{% endif %}">
@@ -104,7 +104,7 @@
       {% trans "waiting" %} {{ evaluation.sla_summary.breached_waiting|default:0 }},
       {% trans "attention" %} {{ evaluation.sla_summary.breached_ready_attention|default:0 }}
     </span>
-    <span class="badge bg-dark border border-secondary text-white-50">
+    <span class="badge bg-dark border border-secondary">
       {% trans "SLA defaults (days)" %}:
       {{ evaluation.sla_summary.default_max_days_in_waiting }} /
       {{ evaluation.sla_summary.default_max_days_in_ready_attention }}
@@ -114,19 +114,19 @@
 
   {% for sec in evaluation_sections %}
   <section class="mb-4" aria-labelledby="sec-{{ sec.status_key }}">
-    <h2 id="sec-{{ sec.status_key }}" class="h5 text-white mb-3">
+    <h2 id="sec-{{ sec.status_key }}" class="h5 mb-3">
       <span class="badge bg-{{ sec.badge }} me-2">{{ sec.title }}</span>
     </h2>
     {% if not sec.items %}
-    <p class="text-white-50 small">{% trans "None in this bucket." %}</p>
+    <p class="small">{% trans "None in this bucket." %}</p>
     {% else %}
     <div class="list-group list-group-flush border border-secondary rounded overflow-hidden">
       {% for item in sec.items %}
       <div class="list-group-item list-group-item-dark border-secondary py-3">
         <div class="d-flex flex-wrap justify-content-between gap-2">
           <div class="min-w-0">
-            <p class="mb-1 fw-semibold text-white">{{ item.title }}</p>
-            <p class="mb-1 small text-white-50">
+            <p class="mb-1 fw-semibold">{{ item.title }}</p>
+            <p class="mb-1 small">
               <span class="text-uppercase">{{ item.category }}</span>
               {% if item.kind %}· {{ item.kind }}{% endif %}
               {% if item.display_status == "waiting" and item.days_in_waiting is not None %}
@@ -147,7 +147,7 @@
         </div>
         {% if item.criterion_results %}
         <details class="mt-2 small">
-          <summary class="text-white-50">{% trans "Criterion details" %}</summary>
+          <summary >{% trans "Criterion details" %}</summary>
           <ul class="mb-0 mt-2">
             {% for c in item.criterion_results %}
             <li class="{% if c.ok %}text-success{% else %}text-warning{% endif %}">
@@ -171,7 +171,7 @@
 
   {% if recent_unlock_events %}
   <section class="mt-5 rmc-reveal" aria-labelledby="recent-unlock-h">
-    <h2 id="recent-unlock-h" class="h5 text-white mb-3">{% trans "Recent dependency-met events" %}</h2>
+    <h2 id="recent-unlock-h" class="h5 mb-3">{% trans "Recent dependency-met events" %}</h2>
     <div class="table-responsive">
       <table class="table table-dark table-sm table-bordered border-secondary">
         <caption class="visually-hidden">{% trans "Recent dependency-met events" %}</caption>
@@ -188,7 +188,7 @@
             <td class="text-nowrap">{{ ev.created_at }}</td>
             <td>
               <strong>{{ ev.payload.title|default:ev.payload.item_id }}</strong>
-              <div class="small text-white-50">{{ ev.payload.item_id }}</div>
+              <div class="small">{{ ev.payload.item_id }}</div>
             </td>
             <td>{{ ev.payload.display_status }}</td>
           </tr>

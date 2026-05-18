@@ -1,88 +1,18 @@
 {% load i18n %}
-  {% if output_left_rail %}
-  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap studio-os__output-wrap">
-    {# v2.68: rail is the primary nav on lg+; tabs below take over on small screens. #}
-    <nav class="studio-os__output-rail flex-shrink-0 mb-2 mb-lg-0 d-none d-lg-block" aria-label="{% trans 'Outputs' %}" style="width: min(12.5rem, 100%); min-width: 0;">
-      <div class="studio-os__card py-2">
-        <div class="h6 mb-2">{% trans "Outputs" %}</div>
-        <ul class="list-unstyled small mb-0" id="output-rail-list">
-          {% for item in output_left_rail %}
-          <li class="mb-1">
-            <a href="{{ item.url }}"
-               class="output-rail-link {% if item.pane == output_pane %}active{% endif %}">{{ item.label }}</a>
-          </li>
-          {% endfor %}
-        </ul>
-        <p class="small text-muted mt-2 mb-0">{% trans "All rail panes render natively: pack graph, report library & letters, documents, report card builder, IDs & certificates, branding, policy. Builder live preview still uses an iframe embed by design." %}</p>
-      </div>
-    </nav>
-    <div class="flex-grow-1 min-w-0">
-      <nav class="studio-os__output-tabs mb-2 d-lg-none" aria-label="{% trans 'Output sections' %}">
-        <ul class="nav nav-tabs flex-nowrap overflow-x-auto pb-0" style="scrollbar-width: thin;">
-          {% for item in output_left_rail %}
-          <li class="nav-item text-nowrap">
-            <a href="{{ item.url }}"
-               class="nav-link py-2 px-3 {% if item.pane == output_pane %}active{% endif %}">{{ item.label }}</a>
-          </li>
-          {% endfor %}
-        </ul>
-      </nav>
-      {% if output_pane == 'dependency' %}
-        {% include "studio_os/partials/output_dependency_graph_body.html" with graph=output_dependency_graph pack_preview_cards=output_pack_preview_cards focus_pack_code=output_focus_pack_code %}
-      {% elif output_pane == 'documents' and output_doc_library %}
-        {% include "studio_os/partials/output_documents_native_wrapper.html" %}
-      {% elif output_pane == 'documents' and output_documents_denied %}
-        <div class="studio-os__card ds-card p-3" role="alert">
-          <p class="mb-2 fw-semibold">{% trans "Document library" %}</p>
-          <p class="text-muted small mb-0">{% trans "You need permission to manage site settings to use the document library here." %}</p>
-        </div>
-      {% elif output_pane == 'reports' and output_reports_native %}
-        {% include "studio_os/partials/output_reports_library_body.html" with page_title=output_reports_native.page_title page_subtitle=output_reports_native.page_subtitle dependency_pane_url=output_reports_native.dependency_pane_url bulk_letters_url=output_reports_native.bulk_letters_url builder_pane_url=output_reports_native.builder_pane_url credentials_pane_url=output_reports_native.credentials_pane_url action_url=output_reports_native.action_url action_text=output_reports_native.action_text pack_preview_cards=output_pack_preview_cards %}
-      {% elif output_pane == 'reports' and output_reports_denied %}
-        <div class="studio-os__card ds-card p-3" role="alert">
-          <p class="mb-2 fw-semibold">{% trans "Report library & letters" %}</p>
-          <p class="text-muted small mb-0">{% trans "You need permission to manage site settings to open bulk letters and pack tooling from this hub." %}</p>
-        </div>
-      {% elif output_pane == 'credentials' and output_credentials_native %}
-        {% include "studio_os/partials/output_credentials_body.html" with page_title=output_credentials_native.page_title page_subtitle=output_credentials_native.page_subtitle staff_id_url=output_credentials_native.staff_id_url backend_students_url=output_credentials_native.backend_students_url action_url=output_credentials_native.action_url action_text=output_credentials_native.action_text %}
-      {% elif output_pane == 'branding' and output_branding_native %}
-        {% include "studio_os/partials/output_branding_inheritance_body.html" with page_title=output_branding_native.page_title page_subtitle=output_branding_native.page_subtitle theme_colors_url=output_branding_native.theme_colors_url action_url=output_branding_native.action_url action_text=output_branding_native.action_text %}
-      {% elif output_pane == 'policy' and output_policy_native %}
-        {% include "studio_os/partials/output_policy_registry_body.html" with page_title=output_policy_native.page_title page_subtitle=output_policy_native.page_subtitle report_library_url=output_policy_native.report_library_url blueprints_url=output_policy_native.blueprints_url lineage_url=output_policy_native.lineage_url action_url=output_policy_native.action_url action_text=output_policy_native.action_text %}
-      {% elif output_pane == 'builder' and output_reportcard_builder %}
-        {% include "studio_os/partials/output_reportcard_builder_wrapper.html" %}
-      {% elif output_pane == 'builder' and output_builder_denied %}
-        <div class="studio-os__card ds-card p-3" role="alert">
-          <p class="mb-2 fw-semibold">{% trans "Report card builder" %}</p>
-          <p class="text-muted small mb-0">{% trans "You need permission to manage site settings to use the report card builder here." %}</p>
-        </div>
-      {% elif output_iframe_src %}
-      <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Output view options' %}">
-        <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
-        <a id="studio-output-open-full" class="btn btn-sm btn-outline-primary"
-           href="{{ output_iframe_src }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
-      </div>
-      <iframe id="studio-output-iframe" class="studio-os-iframe" title="{% trans 'Outputs' %}"
-              src="{{ output_iframe_src }}"></iframe>
-      {% else %}
-      <div class="studio-os__card">
-        <p class="text-muted mb-0">{% trans "This output pane could not be loaded. Use the rail or open in a full window from Site settings." %}</p>
-      </div>
-      {% endif %}
+{% if output_left_rail %}
+{% include "studio_os/components/workspace_layout.html" with workspace_mode="output" workspace_aria_label=_("Outputs") workspace_rail_hide_mobile=1 workspace_rail_template="studio_os/partials/workspace/output_rail.html" workspace_mobile_tabs_template="studio_os/partials/workspace/output_mobile_tabs.html" workspace_canvas_template="studio_os/partials/workspace/output_canvas.html" %}
+{% else %}
+<div class="rmc-studio-workspace rmc-studio-workspace--output" data-studio-workspace-mode="output" data-rmc-studio-workspace="1">
+  <div class="rmc-studio-workspace__main flex-grow-1 min-w-0" data-rmc-studio-workspace-main="1">
+    {% if embed_url %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Output view options' %}">
+      <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
+      <a class="btn btn-sm btn-outline-primary" href="{{ embed_url }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
     </div>
+    <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Outputs' %}"></iframe>
+    {% else %}
+    <div class="studio-os__card"><a href="{% url 'studio_os:output' %}?pane=dependency" class="btn btn-primary btn-sm">{% trans "Open Outputs" %}</a></div>
+    {% endif %}
   </div>
-  {% else %}
-  <div class="d-flex gap-3 flex-wrap flex-lg-nowrap">
-    <div class="flex-grow-1 min-w-0">
-      {% if embed_url %}
-      <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Output view options' %}">
-        <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
-        <a class="btn btn-sm btn-outline-primary" href="{{ embed_url }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
-      </div>
-      <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Outputs' %}"></iframe>
-      {% else %}
-      <div class="studio-os__card"><a href="{% url 'studio_os:output' %}?pane=dependency" class="btn btn-primary btn-sm">{% trans "Open Outputs" %}</a></div>
-      {% endif %}
-    </div>
-  </div>
-  {% endif %}
+</div>
+{% endif %}

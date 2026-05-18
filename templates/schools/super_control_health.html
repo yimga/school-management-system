@@ -26,7 +26,7 @@
         {% for link in links %}
         <li class="list-group-item d-flex justify-content-between align-items-center border-secondary" style="background: transparent;">
           <div>
-            <a href="{{ link.url }}" class="fw-semibold text-white">{{ link.label }}</a>
+            <a href="{{ link.url }}" class="fw-semibold">{{ link.label }}</a>
             {% if link.description %}<span class="text-secondary small d-block">{{ link.description }}</span>{% endif %}
           </div>
           <a href="{{ link.url }}" class="btn btn-sm btn-outline-light">{% trans "Open" %}</a>

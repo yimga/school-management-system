@@ -20,13 +20,15 @@ RUNSERVER_LOG="${ARTIFACT_DIR}/runserver.log"
 VISUAL_USERNAME="${VISUAL_QA_USERNAME:-visualqa_admin}"
 VISUAL_PASSWORD="${VISUAL_QA_PASSWORD:-VisualQaPass123!}"
 
-mkdir -p "$ARTIFACT_DIR"
+mkdir -p "$ARTIFACT_DIR" artifacts
+rm -f artifacts/manager-playwright-auth.json
 
 if [[ ! -f "node_modules/playwright/cli.js" ]]; then
   echo "run_manager_surface_parity: run npm ci first." >&2
   exit 1
 fi
 
+"${PYTHON_CMD}" scripts/verify_theme_visibility_platform.py
 "${PYTHON_CMD}" scripts/verify_super_admin_surface_parity.py --write
 
 seed_qa_user() {
@@ -95,4 +97,6 @@ export VISUAL_QA_USERNAME="$VISUAL_USERNAME"
 export VISUAL_QA_PASSWORD="$VISUAL_PASSWORD"
 export PLAYWRIGHT_HOST_RULES="MAP ${MANAGER_HOST} 127.0.0.1"
 
-node node_modules/playwright/cli.js test tests/e2e/manager-surface-parity.spec.js --reporter=line
+node scripts/seed_manager_playwright_auth.js
+
+node node_modules/playwright/cli.js test tests/e2e/manager-surface-parity.spec.js tests/e2e/manager-theme-visibility.spec.js --workers=1 --reporter=line

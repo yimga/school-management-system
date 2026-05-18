@@ -5,16 +5,18 @@
 
 :root {
   --vis-surface: var(--admin-surface, var(--admin-content-surface, var(--color-base-0)));
-  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 90%, var(--color-base-900) 10%);
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 90%, var(--color-base-900) 10%); /* theme-locked-allow: decorative-tint-mix */
   --vis-text: var(--admin-text, var(--admin-content-text, var(--color-base-900)));
   --vis-text-muted: var(--admin-content-text-muted, var(--color-base-600));
   --vis-border: var(--admin-border, var(--admin-content-border, rgba(26, 22, 18, 0.14)));
-  --vis-heading: color-mix(in srgb, var(--vis-text) 92%, var(--color-base-900) 8%);
-  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 96%, var(--color-base-900) 4%);
+  --vis-heading: color-mix(in srgb, var(--vis-text) 92%, var(--color-base-900) 8%); /* theme-locked-allow: decorative-tint-mix */
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 96%, var(--color-base-900) 4%); /* theme-locked-allow: decorative-tint-mix */
   --vis-link: color-mix(in srgb, var(--school-primary, var(--color-indigo-500)) 72%, var(--vis-text) 28%);
 }
 
 html[data-theme="dark"],
+html[data-resolved-theme="dark"],
+html[data-theme="system"][data-resolved-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark,
 body.portal-backend-black,
@@ -23,13 +25,13 @@ body.portal-backend-onyx,
 body.portal-backend-charcoal,
 body.portal-backend-midnight {
   --vis-surface: var(--admin-surface, var(--admin-content-surface, var(--color-base-800)));
-  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 88%, var(--color-base-50) 12%);
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 88%, var(--color-base-50) 12%); /* theme-locked-allow: decorative-tint-mix */
   --vis-text: var(--admin-text, var(--admin-content-text, var(--color-base-100)));
   --vis-text-muted: var(--admin-content-text-muted, var(--color-base-400));
   --vis-border: var(--admin-border, var(--admin-content-border, rgba(168, 160, 146, 0.28)));
-  --vis-heading: color-mix(in srgb, var(--vis-text) 94%, var(--color-base-50) 6%);
-  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 97%, var(--color-base-50) 3%);
-  --vis-link: color-mix(in srgb, var(--school-primary, var(--color-indigo-400)) 62%, var(--color-base-50) 38%);
+  --vis-heading: color-mix(in srgb, var(--vis-text) 94%, var(--color-base-50) 6%); /* theme-locked-allow: decorative-tint-mix */
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 97%, var(--color-base-50) 3%); /* theme-locked-allow: decorative-tint-mix */
+  --vis-link: color-mix(in srgb, var(--school-primary, var(--color-indigo-400)) 62%, var(--color-base-50) 38%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 /* Site Settings / Theme pack catalog hardening */

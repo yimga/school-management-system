@@ -18,7 +18,15 @@ from apps.siteconfig.models_platform_catalog import ServiceIntegration
 
 
 def _make_school(name: str, parent: School | None = None) -> School:
-    return School.objects.create(name=name, parent_school=parent)
+    import uuid
+
+    slug = f"{name.lower()}-{uuid.uuid4().hex[:8]}"
+    return School.objects.create(
+        name=name,
+        slug=slug,
+        subdomain=slug,
+        parent_school=parent,
+    )
 
 
 def _make_si(*, school, campus=None, slug: str, config: dict, scopes=None, active=True):

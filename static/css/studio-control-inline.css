@@ -1,0 +1,31 @@
+/**
+ * Feature control panel when inlined in Studio OS Control mode (no duplicate page chrome).
+ */
+
+.feature-control-studio-inline {
+  display: block;
+  width: 100%;
+}
+
+.feature-control-studio-inline--active .feature-control-card {
+  box-shadow: none;
+  border: 1px solid var(--hairline, var(--color-base-200, #e8e0d4));
+}
+
+.feature-control-studio-inline--active .feature-control-card .card-body {
+  padding-top: 0.75rem;
+}
+
+.feature-control-studio-inline--active .rmc-segmented {
+  margin-bottom: 0.75rem;
+}
+
+.studio-os__control-in-shell .feature-control-studio-inline--active {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+[data-studio-density="control-compact"] .studio-os__control-in-shell .feature-control-studio-inline--active .form-label {
+  margin-bottom: 0.25rem;
+}

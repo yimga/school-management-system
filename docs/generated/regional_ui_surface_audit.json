@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-15T12:09:25.379827+00:00",
+  "generated_at": "2026-05-18T01:28:17.643700+00:00",
   "rows": [
     {
       "bucket": "shell",
@@ -29,10 +29,8 @@
     },
     {
       "bucket": "high_impact",
-      "classification": "needs_review",
-      "notes": [
-        "physical LTR/RTR class hints: 1 (sample: ['ps-'])"
-      ],
+      "classification": "rtl_ready",
+      "notes": [],
       "path": "templates/siteconfig/compliance_exports.html"
     },
     {
@@ -52,8 +50,8 @@
   ],
   "schema_version": 1,
   "summary": {
-    "needs_review": 3,
-    "rtl_ready": 4,
+    "needs_review": 2,
+    "rtl_ready": 5,
     "terminology_ready": 0,
     "violation": 0
   }

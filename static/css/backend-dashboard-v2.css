@@ -3,7 +3,7 @@
 /* Pixel-match pass: top bar proportions + polish for backend dashboard */
 body[data-dashboard-page="backend"] #portalHeader.topbar.topbar-sticky {
   min-height: 74px;
-  border-bottom: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 20%, var(--admin-border, var(--color-base-300)) 80%);
+  border-bottom: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 20%, var(--admin-border, var(--color-base-300)) 80%); /* theme-locked-allow: decorative-tint-mix */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 6px 18px rgba(2, 6, 23, 0.18);
@@ -34,8 +34,8 @@ body[data-dashboard-page="backend"] #portalHeader .topbar-search.header-search-c
 body[data-dashboard-page="backend"] #portalHeader .topbar-search-input {
   min-height: 42px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 30%, rgba(255, 255, 255, 0.3) 70%);
-  background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 74%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 30%, rgba(255, 255, 255, 0.3) 70%); /* theme-locked-allow: decorative-tint-mix */
+  background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 74%, transparent); /* theme-locked-allow: decorative-tint-mix */
   font-size: var(--type-size-body);
 }
 
@@ -57,15 +57,15 @@ body[data-dashboard-page="backend"] #portalHeader .topbar-icon-btn {
   justify-content: center;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.22); /* off-token-allow: white-overlay */
-  background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 80%, transparent);
+  background: color-mix(in srgb, var(--admin-surface, var(--color-base-900)) 80%, transparent); /* theme-locked-allow: decorative-tint-mix */
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 body[data-dashboard-page="backend"] #portalHeader .topbar-icon-btn:hover,
 body[data-dashboard-page="backend"] #portalHeader .topbar-icon-btn:focus-visible {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 54%, rgba(255, 255, 255, 0.38) 46%);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 22%, transparent);
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 54%, rgba(255, 255, 255, 0.38) 46%); /* theme-locked-allow: decorative-tint-mix */
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))) 22%, transparent); /* theme-locked-allow: decorative-tint-mix */
 }
 
 /* Compactness: tighten spacing between header row and Overview/Admin (Phase 0) */
@@ -108,7 +108,7 @@ body[data-dashboard-page="backend"] .backend-dtw-and-calendar {
   flex-wrap: wrap;
   margin-top: var(--dash-gap);
   margin-bottom: var(--dash-gap);
-  border-top: 1px solid var(--admin-border, var(--color-base-300));
+  border-top: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   padding-top: var(--dash-gap);
 }
 body[data-dashboard-page="backend"] .backend-dtw-and-calendar__dtw {
@@ -162,7 +162,7 @@ body[data-dashboard-page="backend"] .backend-v2-overview,
 body[data-dashboard-page="backend"] .backend-v2-welcome,
 body[data-dashboard-page="backend"] .backend-v2-side-card {
   background: var(--admin-surface, var(--dashboard-surface, var(--color-base-0)));
-  border: 1px solid var(--admin-border, var(--dashboard-border, var(--color-base-300)));
+  border: 1px solid var(--admin-border, var(--dashboard-border, var(--color-base-300))); /* theme-locked-allow: manual-review */
   border-radius: 16px;
   box-shadow: var(--admin-shadow, var(--dashboard-shadow-soft, 0 4px 14px rgba(2, 6, 23, 0.08)));
 }
@@ -206,7 +206,7 @@ body[data-dashboard-page="backend"] .backend-intent-pill {
   font-size: var(--type-size-eyebrow);
   font-weight: 600;
   border-radius: 999px;
-  border: 1px solid var(--admin-border, var(--color-base-300));
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   background: var(--admin-surface, var(--color-base-0));
   color: var(--admin-muted, var(--color-base-500));
   text-decoration: none;
@@ -215,14 +215,14 @@ body[data-dashboard-page="backend"] .backend-intent-pill {
 
 body[data-dashboard-page="backend"] .backend-intent-pill:hover,
 body[data-dashboard-page="backend"] .backend-intent-pill:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 10%, var(--admin-surface, var(--color-base-0)) 90%);
+  background: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 10%, var(--admin-surface, var(--color-base-0)) 90%); /* theme-locked-allow: decorative-tint-mix */
   color: var(--admin-text, var(--color-base-900));
-  border-color: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 40%, var(--admin-border, var(--color-base-300)) 60%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--school-primary)) 40%, var(--admin-border, var(--color-base-300)) 60%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-intent-pill.active {
   background: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
-  color: var(--color-base-0);
+  color: var(--text-on-brand, var(--color-base-0));
   border-color: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
 }
 
@@ -241,17 +241,17 @@ body[data-dashboard-page="backend"] .backend-v2-cta {
   border-radius: 999px;
   padding: var(--dash-pad-chip-lg);
   font-weight: 700;
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, var(--color-base-300)) 72%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, var(--color-base-300)) 72%); /* theme-locked-allow: decorative-tint-mix */
   color: var(--admin-text, var(--color-base-900));
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, var(--color-base-0)) 92%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, var(--color-base-0)) 92%); /* theme-locked-allow: decorative-tint-mix */
   text-decoration: none;
   transition: all 0.18s ease;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-cta:hover,
 body[data-dashboard-page="backend"] .backend-v2-cta:focus-visible {
-  color: var(--color-base-0);
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 75%, var(--color-base-900) 25%);
+  color: var(--text-on-brand, var(--color-base-0));
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 75%, var(--color-base-900) 25%); /* theme-locked-allow: decorative-tint-mix */
   background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))), var(--brand-accent, var(--dashboard-theme-accent, var(--school-accent))));
 }
 
@@ -269,9 +269,9 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-strip {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi {
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 24%, var(--admin-border, var(--color-base-300)) 76%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 24%, var(--admin-border, var(--color-base-300)) 76%); /* theme-locked-allow: decorative-tint-mix */
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, var(--color-base-0)) 92%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 8%, var(--admin-surface, var(--color-base-0)) 92%); /* theme-locked-allow: decorative-tint-mix */
   padding: var(--dash-pad-cta);
   min-width: 0;
   box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, transparent);
@@ -305,11 +305,11 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-meta {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi.is-warn {
-  border-color: color-mix(in srgb, var(--brand-warning, var(--color-amber-500)) 50%, var(--admin-border, var(--color-base-300)) 50%);
+  border-color: color-mix(in srgb, var(--brand-warning, var(--color-amber-500)) 50%, var(--admin-border, var(--color-base-300)) 50%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi.is-danger {
-  border-color: color-mix(in srgb, var(--brand-danger, var(--color-red-500)) 50%, var(--admin-border, var(--color-base-300)) 50%);
+  border-color: color-mix(in srgb, var(--brand-danger, var(--color-red-500)) 50%, var(--admin-border, var(--color-base-300)) 50%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-v2-kpi.is-danger .backend-v2-kpi-value {
@@ -317,9 +317,9 @@ body[data-dashboard-page="backend"] .backend-v2-kpi.is-danger .backend-v2-kpi-va
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric {
-  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, var(--color-base-300)) 72%);
+  border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 28%, var(--admin-border, var(--color-base-300)) 72%); /* theme-locked-allow: decorative-tint-mix */
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, var(--color-base-0)) 90%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, var(--color-base-0)) 90%); /* theme-locked-allow: decorative-tint-mix */
   padding: var(--dash-pad-cta);
   min-width: 0;
   box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 15%, transparent);
@@ -416,8 +416,8 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
   min-height: 30px;
   border-radius: 999px;
   padding: var(--dash-pad-chip);
-  border: 1px solid var(--admin-border, var(--color-base-300));
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 6%, var(--admin-surface, var(--color-base-0)) 94%);
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 6%, var(--admin-surface, var(--color-base-0)) 94%); /* theme-locked-allow: decorative-tint-mix */
   color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-size: var(--type-size-caption);
@@ -426,8 +426,8 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
 
 body[data-dashboard-page="backend"] .backend-v2-chip:hover,
 body[data-dashboard-page="backend"] .backend-v2-chip:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 48%, var(--admin-border, var(--color-base-300)) 52%);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, var(--admin-surface, var(--color-base-0)) 86%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 48%, var(--admin-border, var(--color-base-300)) 52%); /* theme-locked-allow: decorative-tint-mix */
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 14%, var(--admin-surface, var(--color-base-0)) 86%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-v2-action-grid {
@@ -445,8 +445,8 @@ body[data-dashboard-page="backend"] .backend-v2-action {
   min-height: 32px;
   border-radius: 8px;
   padding: var(--dash-pad-chip-sm);
-  border: 1px solid var(--admin-border, var(--color-base-300));
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, var(--color-base-0)) 95%);
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, var(--color-base-0)) 95%); /* theme-locked-allow: decorative-tint-mix */
   color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-size: var(--type-size-eyebrow);
@@ -456,8 +456,8 @@ body[data-dashboard-page="backend"] .backend-v2-action {
 
 body[data-dashboard-page="backend"] .backend-v2-action:hover,
 body[data-dashboard-page="backend"] .backend-v2-action:focus-visible {
-  color: var(--color-base-0);
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 65%, var(--color-base-900) 35%);
+  color: var(--text-on-brand, var(--color-base-0));
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 65%, var(--color-base-900) 35%); /* theme-locked-allow: decorative-tint-mix */
   background: linear-gradient(135deg, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))), var(--brand-accent, var(--dashboard-theme-accent, var(--school-accent))));
 }
 
@@ -476,7 +476,7 @@ body[data-dashboard-page="backend"] .backend-v2-side-card {
 body.backend-theme-warm[data-dashboard-page="backend"] .backend-v2-overview,
 body.backend-theme-warm[data-dashboard-page="backend"] .backend-v2-welcome,
 body.backend-theme-warm[data-dashboard-page="backend"] .backend-v2-side-card {
-  background:
+  background: /* theme-locked-allow: decorative-tint-mix */
     linear-gradient(
       145deg,
       color-mix(in srgb, color-mix(in oklab, var(--color-orange-400) 18%, var(--color-base-0)) 20%, var(--admin-surface, var(--color-base-0)) 80%),
@@ -495,7 +495,7 @@ body.backend-theme-depth[data-dashboard-page="backend"] .backend-v2-rail-card {
 body.backend-theme-high-depth[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-card::after,
 body.backend-theme-high-depth[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel::after,
 body.backend-theme-high-depth[data-dashboard-page="backend"] .backend-v2-rail-card::after {
-  background:
+  background: /* theme-locked-allow: decorative-tint-mix */
     radial-gradient(
       360px 160px at 108% -20%,
       color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500)))) 20%, transparent),
@@ -536,7 +536,7 @@ body[data-dashboard-page="backend"] .backend-v2-rank-ribbon {
   margin-top: 0.22rem;
   height: 0.24rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--admin-border, var(--color-base-300)) 70%, transparent);
+  background: color-mix(in srgb, var(--admin-border, var(--color-base-300)) 70%, transparent); /* theme-locked-allow: decorative-tint-mix */
   overflow: hidden;
 }
 
@@ -545,7 +545,7 @@ body[data-dashboard-page="backend"] .backend-v2-rank-ribbon > span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))), var(--dashboard-theme-accent, var(--brand-accent, var(--color-emerald-500))));
+  background: linear-gradient(90deg, var(--dashboard-theme-primary, var(--brand-primary, var(--color-primary-500))), var(--dashboard-theme-accent, var(--brand-accent, var(--color-emerald-500)))); /* theme-locked-allow: decorative-gradient */
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-head {
@@ -574,10 +574,10 @@ body[data-dashboard-page="backend"] .backend-v2-side-grid {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-mini {
-  border: 1px solid var(--admin-border, var(--color-base-300));
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   border-radius: 10px;
   padding: var(--dash-pad-mini);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, var(--color-base-0)) 95%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 5%, var(--admin-surface, var(--color-base-0)) 95%); /* theme-locked-allow: decorative-tint-mix */
   min-width: 0;
 }
 
@@ -594,7 +594,7 @@ body[data-dashboard-page="backend"] .backend-v2-mini strong {
 
 body[data-dashboard-page="backend"] .backend-v2-side-time {
   margin-top: var(--dash-block-spacing);
-  border-top: 1px solid var(--admin-border, var(--color-base-300));
+  border-top: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   padding-top: var(--dash-block-spacing);
   display: flex;
   justify-content: space-between;
@@ -612,10 +612,10 @@ body[data-dashboard-page="backend"] .backend-ops-item {
   align-items: center;
   justify-content: space-between;
   gap: var(--dash-gap-2xl);
-  border: 1px solid var(--admin-border, var(--color-base-300));
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   border-radius: 12px;
   padding: var(--dash-pad-list);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item-left {
@@ -681,11 +681,11 @@ body[data-dashboard-page="backend"] .backend-quick-link {
   align-items: center;
   justify-content: space-between;
   gap: var(--dash-block-spacing);
-  border: 1px solid var(--admin-border, var(--color-base-300));
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   border-radius: 12px;
   min-width: 0;
   padding: var(--dash-pad-tight);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%); /* theme-locked-allow: decorative-tint-mix */
   color: var(--admin-text, var(--color-base-900));
   text-decoration: none;
   font-weight: 600;
@@ -701,7 +701,7 @@ body[data-dashboard-page="backend"] .backend-quick-link > span:first-child {
 
 body[data-dashboard-page="backend"] .backend-quick-link:hover,
 body[data-dashboard-page="backend"] .backend-quick-link:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, var(--color-base-300)) 55%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, var(--color-base-300)) 55%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-palette {
@@ -727,7 +727,7 @@ body[data-dashboard-page="backend"] .backend-cmd-box {
   margin: 9vh auto 0;
   width: min(760px, calc(100vw - 2rem));
   border-radius: 14px;
-  border: 1px solid var(--admin-border, var(--color-base-300));
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   background: var(--admin-surface, var(--color-base-0));
   box-shadow: var(--shadow-lg, 0 20px 60px rgba(2, 6, 23, 0.28));
   overflow: hidden;
@@ -736,7 +736,7 @@ body[data-dashboard-page="backend"] .backend-cmd-box {
 body[data-dashboard-page="backend"] .backend-cmd-input {
   width: 100%;
   border: none;
-  border-bottom: 1px solid var(--admin-border, var(--color-base-300));
+  border-bottom: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   background: transparent;
   color: var(--admin-text, var(--color-base-900));
   font-size: var(--type-size-body);
@@ -757,29 +757,29 @@ body[data-dashboard-page="backend"] .backend-cmd-item {
   align-items: center;
   justify-content: space-between;
   gap: var(--dash-gap-2xl);
-  border: 1px solid var(--admin-border, var(--color-base-300));
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   border-radius: 10px;
   padding: var(--dash-gap) var(--dash-block-spacing);
   text-decoration: none;
   color: var(--admin-text, var(--color-base-900));
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 4%, var(--admin-surface, var(--color-base-0)) 96%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item:hover,
 body[data-dashboard-page="backend"] .backend-cmd-item:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, var(--color-base-300)) 55%);
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, var(--color-base-0)) 90%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 45%, var(--admin-border, var(--color-base-300)) 55%); /* theme-locked-allow: decorative-tint-mix */
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 10%, var(--admin-surface, var(--color-base-0)) 90%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected,
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:hover,
 body[data-dashboard-page="backend"] .backend-cmd-item.backend-cmd-item--selected:focus-visible {
   border-color: var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary)));
-  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 18%, var(--admin-surface, var(--color-base-0)) 82%);
+  background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--school-primary))) 18%, var(--admin-surface, var(--color-base-0)) 82%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 body[data-dashboard-page="backend"] .backend-cmd-item kbd {
-  border: 1px solid var(--admin-border, var(--color-base-300));
+  border: 1px solid var(--admin-border, var(--color-base-300)); /* theme-locked-allow: manual-review */
   border-radius: 6px;
   background: var(--admin-surface, var(--color-base-0));
   color: var(--admin-muted, var(--color-base-500));
@@ -800,15 +800,15 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-ops-item,
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-quick-link,
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-cmd-item {
-  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--color-primary-400))) 28%, var(--color-base-600) 72%);
+  border-color: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, var(--color-primary-400))) 28%, var(--color-base-600) 72%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-ops-item.is-warn strong {
-  color: color-mix(in oklab, var(--color-amber-400) 50%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-amber-400) 50%, var(--color-base-0)); /* theme-locked-allow: decorative-tint-mix */
 }
 
 :root[data-theme="dark"] body[data-dashboard-page="backend"] .backend-ops-item.is-danger strong {
-  color: color-mix(in oklab, var(--color-red-400) 50%, var(--color-base-0));
+  color: color-mix(in oklab, var(--color-red-400) 50%, var(--color-base-0)); /* theme-locked-allow: decorative-tint-mix */
 }
 
 @supports not (color: color-mix(in srgb, white 50%, black 50%)) {
@@ -926,8 +926,8 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   background:
     linear-gradient(135deg, var(--backend-role-home-glass-start, rgba(255,255,255,0.16)), var(--backend-role-home-glass-end, rgba(255,255,255,0.04))),
     radial-gradient(circle at top right, var(--backend-role-home-radial, rgba(255,255,255,0.22)), transparent 40%),
-    linear-gradient(135deg, var(--backend-role-home-accent-start, var(--brand-primary, var(--color-indigo-600))), var(--backend-role-home-accent-end, var(--brand-accent, var(--color-emerald-500))));
-  color: var(--backend-role-home-copy-fg, var(--color-base-0));
+    linear-gradient(135deg, var(--backend-role-home-accent-start, var(--brand-primary, var(--color-indigo-600))), var(--backend-role-home-accent-end, var(--brand-accent, var(--color-emerald-500)))); /* theme-locked-allow: manual-review */
+  color: var(--backend-role-home-copy-fg, var(--color-base-0)); /* theme-locked-allow: manual-review */
   box-shadow: 0 24px 60px var(--backend-role-home-copy-shadow, rgba(26, 22, 18, 0.18));
 }
 .backend-role-home-eyebrow {
@@ -994,7 +994,7 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 }
 .backend-role-home-command-hint {
   font-size: var(--type-size-eyebrow);
-  color: var(--bs-secondary-color);
+  color: var(--text-secondary, var(--bs-secondary-color));
 }
 .backend-role-home-primary {
   display: flex;

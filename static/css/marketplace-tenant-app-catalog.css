@@ -57,7 +57,7 @@
   gap: 0.5rem;
   margin-top: 0.15rem;
   padding-top: 0.5rem;
-  border-top: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.08));
+  border-top: 1px solid var(--hairline, var(--bs-border-color, rgba(0, 0, 0, 0.08)));
 }
 
 .rmc-mkt-app-actions .btn-sm {

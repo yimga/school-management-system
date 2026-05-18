@@ -2,53 +2,7 @@
 <!-- Admin Navigation Bridge: on manager host use same navbar as /super/ for unified high-end UX -->
 
 {% if is_manager_host %}
-<nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface admin-cp-navbar-unified" data-shell-nav-bridge="manager-admin" data-rmc-authenticated-shell="admin-unified-nav">
-  <div class="container-fluid px-3">
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white" href="{% url 'super:dashboard' %}">
-      {% if PUBLIC_BRAND_FAVICON_URL %}
-        <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" decoding="async" class="cp-navbar-brand-img">
-      {% else %}
-        <img src="{% static 'images/runmycampus-icon.png' %}" alt="" width="32" height="32" decoding="async" class="cp-navbar-brand-img">
-      {% endif %}
-      <span>RunMyCampus Manager</span>
-    </a>
-    <button class="navbar-toggler border-light d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#adminCpNavbarContent" aria-controls="adminCpNavbarContent" aria-label="{% trans 'Open menu' %}">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="adminCpNavbarContent">
-      <div class="d-flex align-items-center gap-3 ms-lg-auto">
-        <div class="cp-header-search d-none d-md-block position-relative">
-          <input type="search" class="form-control form-control-sm bg-dark border-secondary text-white cp-topbar-search-input" placeholder="{% trans 'Search schools, incidents…' %} (Ctrl+K)" aria-label="{% trans 'Search' %} (Ctrl+K)" id="cpSearchInputAdmin" autocomplete="off">
-          <div id="cpSearchResultsAdmin" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel--sized" aria-label="Search results"></div>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-light d-inline-flex align-items-center flex-shrink-0" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts (?)' %}"><span aria-hidden="true">?</span><span class="ms-1 d-none d-lg-inline">{% trans "Shortcuts" %}</span></button>
-        {% if request.user.is_authenticated %}
-          <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Configuration Control Center – platform settings and domains' %}">
-            <i class="bi bi-gear-wide-connected"></i>
-            <span class="d-none d-lg-inline">{% trans "Config center" %}</span>
-          </a>
-          <a href="{% url 'super:platform_operator_hub' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Platform operator hub' %}">
-            <i class="bi bi-grid"></i>
-            <span class="d-none d-lg-inline">{% trans "Operator hub" %}</span>
-          </a>
-          <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" title="{% trans 'Control plane' %}">
-            <i class="bi bi-speedometer2"></i>
-            <span class="d-none d-lg-inline">{% trans "Control plane" %}</span>
-          </a>
-          <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" target="_blank" rel="noopener noreferrer" title="{% trans 'Public site' %}">
-            <i class="bi bi-box-arrow-up-right"></i>
-            <span class="d-none d-lg-inline">{% trans "Public site" %}</span>
-          </a>
-          {% comment %} Phase D (2026-05-12): rich user_dropdown (avatar, role, theme toggle, sectioned menu)
-             replaces the minimal cpUserDropdownAdmin for parity across portal / control plane / admin. {% endcomment %}
-          {% include "components/user_dropdown.html" %}
-        {% else %}
-          <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</nav>
+{% include "partials/manager_operator_topbar.html" %}
 {% else %}
 <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}">
 
@@ -56,7 +10,7 @@
     <div class="admin-nav-bridge__row">
         <div class="admin-nav-bridge__brand">
             <div class="admin-nav-bridge__brand-icon">
-                {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
+                {% if request.resolver_match and request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 20px; height: 20px; color: white;">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -72,7 +26,7 @@
                 <div class="admin-nav-bridge__location">
                     {% if is_manager_host %}
                         RunMyCampus Manager — {% trans "System &amp; data" %}
-                    {% elif request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
+                    {% elif request.resolver_match and request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
                         {% trans "Platform Backoffice" %}
                     {% else %}
                         Backend - Operations &amp; Workflows
@@ -87,7 +41,7 @@
                 <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
             {% else %}
                 <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">{% trans "Portal Home" %}</a>
-                {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
+                {% if request.resolver_match and request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
                     <a href="{% url 'accounts:backend_dashboard' %}" class="admin-nav-bridge__switch-btn btn btn-sm btn-back-outline">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                         <span>{% trans "Back to Backend" %}</span>
