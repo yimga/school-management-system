@@ -38,6 +38,7 @@ from .views import (
     studio_recommendations_api,
     studio_rollback,
     studio_save_draft_api,
+    studio_set_operator_school,
     studio_shell,
     studio_version_history_api,
 )
@@ -46,6 +47,11 @@ app_name = "studio_os"
 
 urlpatterns = [
     path("", studio_shell, name="shell"),
+    path(
+        "operator-school/",
+        studio_set_operator_school,
+        name="set_operator_school",
+    ),
     path("hubs/approvals/", approval_workflow_hub, name="approval_hub"),
     path("hubs/workflow/", workflow_center, name="workflow_center"),
     path("hubs/import/", import_hub, name="import_hub"),

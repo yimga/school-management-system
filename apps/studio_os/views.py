@@ -18,14 +18,19 @@ from apps.platform_runtime.structured_logging import (
     request_context_for_log,
 )
 from apps.schools.control_plane import (
+    log_control_plane_action,
     use_control_plane_shell,
     user_can_access_studio_on_request,
+    user_has_control_plane_access,
 )
 from .services import (
     get_studio_activity_feed,
     get_studio_compare_context,
     get_automation_dependency_graph,
     get_studio_global_search,
+    get_studio_mode_hero_context,
+    get_studio_operator_toolbar,
+    get_studio_overview_deck,
     get_studio_preview_context,
     get_studio_preview_url,
     get_studio_publish_audit,
@@ -1353,6 +1358,15 @@ def studio_shell(request, mode=None):
         "studio_rollback_url": "",
     }
 
+    if not mode:
+        context["studio_overview_deck"] = get_studio_overview_deck(
+            request,
+            modes=STUDIO_MODES,
+            recommendations=recommendations,
+            activity_feed=activity_feed,
+            legacy_urls=legacy_urls,
+        )
+
     school = getattr(request, "school", None)
     if mode == "experience":
         try:
@@ -2077,10 +2091,83 @@ def studio_shell(request, mode=None):
     context["studio_bottom_bar_actions"] = bottom_bar_actions
 
     if use_control_plane_shell(request):
+        context["studio_operator_toolbar"] = get_studio_operator_toolbar(
+            request, current_mode=mode
+        )
+        if mode in ("experience", "launch"):
+            context["studio_mode_hero"] = get_studio_mode_hero_context(
+                mode,
+                request,
+                legacy_urls=legacy_urls,
+                launch_payload=context.get("launch_payload"),
+                theme_contrast_report=context.get("theme_contrast_report"),
+            )
         template = "studio_os/shell_control_plane.html"
     else:
         template = f"studio_os/modes/{mode}.html" if mode else "studio_os/shell.html"
     return render(request, template, context)
+
+
+@never_cache
+@require_http_methods(["POST"])
+@login_required
+def studio_set_operator_school(request):
+    """Set or clear manager-host Studio preview tenant via session school_id (not impersonation)."""
+    from django.contrib import messages
+    from django.utils.http import url_has_allowed_host_and_scheme
+    from django.utils.translation import gettext as _
+
+    from apps.schools.models import School
+
+    if not user_has_control_plane_access(getattr(request, "user", None)):
+        return redirect(reverse("accounts:backend_dashboard"))
+    if not use_control_plane_shell(request):
+        return redirect(reverse("studio_os:shell"))
+
+    fallback = reverse("studio_os:shell")
+    next_url = (request.POST.get("next") or fallback).strip()
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = fallback
+
+    school_id = (request.POST.get("school_id") or "").strip()
+    if school_id:
+        school = School.objects.filter(pk=school_id, is_active=True).first()
+        if school is None:
+            messages.error(request, _("School not found or inactive."))
+            return redirect(next_url)
+        request.session["school_id"] = str(school.pk)
+        request.session.modified = True
+        messages.success(
+            request,
+            _("Preview context set to %(name)s.") % {"name": school.name},
+        )
+        log_control_plane_action(
+            request,
+            "studio_set_operator_school",
+            "School",
+            str(school.pk),
+            object_repr=school.name,
+            reason="Studio operator preview context",
+            sensitivity="MEDIUM",
+        )
+    else:
+        request.session.pop("school_id", None)
+        request.session.modified = True
+        messages.info(request, _("Cleared Studio preview tenant."))
+        log_control_plane_action(
+            request,
+            "studio_clear_operator_school",
+            "School",
+            "",
+            object_repr="(cleared)",
+            reason="Studio operator preview context cleared",
+            sensitivity="LOW",
+        )
+    return redirect(next_url)
 
 
 @never_cache

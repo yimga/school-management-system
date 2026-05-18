@@ -51,11 +51,17 @@ def main() -> int:
         if "workspace_layout.html" not in text and "data-rmc-studio-workspace" not in text:
             findings.append(f"{name} must use workspace_layout or data-rmc-studio-workspace")
 
+    experience_body = ROOT / "templates/studio_os/partials/studio_experience_mode_body.html"
     experience = ROOT / "templates/studio_os/modes/experience.html"
+    exp_sources = []
     if experience.is_file():
-        text = experience.read_text(encoding="utf-8", errors="replace")
-        if "workspace_layout.html" not in text:
-            findings.append("experience.html must use workspace_layout.html")
+        exp_sources.append(experience.read_text(encoding="utf-8", errors="replace"))
+    if experience_body.is_file():
+        exp_sources.append(experience_body.read_text(encoding="utf-8", errors="replace"))
+    if exp_sources and not any("workspace_layout.html" in t for t in exp_sources):
+        findings.append(
+            "experience mode must use workspace_layout.html (modes/experience or studio_experience_mode_body)"
+        )
 
     workspace_dir = ROOT / "templates/studio_os/partials/workspace"
     for stem in ("launch_rail", "launch_canvas", "output_rail", "output_canvas", "control_rail", "control_canvas"):

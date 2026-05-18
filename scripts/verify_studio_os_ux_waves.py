@@ -15,6 +15,7 @@ WAVE_SCRIPTS = (
     "verify_studio_workspace_layout.py",
     "verify_studio_control_inline.py",
     "verify_studio_nav_uniqueness.py",
+    "verify_studio_command_deck.py",
     "verify_studio_os_playwright_scaffold.py",
     "verify_phase5_studio_os_conformance.py",
 )

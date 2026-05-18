@@ -318,6 +318,245 @@ def get_studio_role_preview_entries(request: Any) -> list[dict[str, Any]]:
     ]
 
 
+STUDIO_MODE_DECK_META: dict[str, dict[str, str]] = {
+    "experience": {"icon": "bi-palette2", "url_name": "studio_os:experience"},
+    "automation": {"icon": "bi-diagram-3", "url_name": "studio_os:automation"},
+    "output": {"icon": "bi-file-earmark-richtext", "url_name": "studio_os:output"},
+    "launch": {"icon": "bi-rocket-takeoff", "url_name": "studio_os:launch"},
+    "control": {"icon": "bi-sliders2", "url_name": "studio_os:control"},
+}
+
+
+def get_studio_overview_deck(
+    request: Any,
+    *,
+    modes: list[dict[str, Any]],
+    recommendations: list[dict[str, Any]] | None = None,
+    activity_feed: list[dict[str, Any]] | None = None,
+    legacy_urls: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """
+    Studio home (/studio/) command deck: mode cards, tenant context, quick stats, hub links.
+    """
+    from django.urls import NoReverseMatch, reverse
+    from django.utils.translation import gettext as _
+
+    from apps.schools.control_plane import use_control_plane_shell
+
+    legacy_urls = legacy_urls or {}
+    recommendations = recommendations or []
+    activity_feed = activity_feed or []
+
+    mode_cards: list[dict[str, Any]] = []
+    for index, mode in enumerate(modes, start=1):
+        mode_id = (mode.get("id") or "").strip().lower()
+        meta = STUDIO_MODE_DECK_META.get(mode_id, {})
+        url = ""
+        url_name = meta.get("url_name") or ""
+        if url_name:
+            try:
+                url = reverse(url_name)
+            except NoReverseMatch:
+                from apps.studio_os.deep_links import studio_resolve_url
+
+                url = studio_resolve_url(url_name) or ""
+        mode_cards.append(
+            {
+                "id": mode_id,
+                "label": mode.get("label", ""),
+                "description": mode.get("description", ""),
+                "url": url,
+                "icon": meta.get("icon", "bi-box"),
+                "shortcut_digit": str(index) if index <= 5 else "",
+            }
+        )
+
+    tenant_banner = None
+    tenant_context = None
+    if use_control_plane_shell(request) and not getattr(request, "school", None):
+        try:
+            schools_url = reverse("super:schools_list")
+        except NoReverseMatch:
+            try:
+                schools_url = reverse("super:dashboard")
+            except NoReverseMatch:
+                schools_url = ""
+        tenant_banner = {
+            "title": _("Pick a tenant for live preview"),
+            "detail": _(
+                "Theme, launch, and experience embeds need a selected school. "
+                "Browse tenants, open one, then return to Studio."
+            ),
+            "cta_url": schools_url,
+            "cta_label": _("Browse tenants"),
+        }
+    else:
+        school = getattr(request, "school", None)
+        if school is not None:
+            tenant_context = {
+                "name": getattr(school, "name", "") or str(school),
+                "slug": getattr(school, "slug", "") or "",
+            }
+
+    hub_specs = (
+        ("approval_hub", _("Approval hub"), "bi-check2-circle"),
+        ("workflow_center", _("Workflow center"), "bi-bezier2"),
+        ("import_hub", _("Import hub"), "bi-box-arrow-in-down"),
+        ("document_library", _("Document library"), "bi-folder2-open"),
+        ("report_library", _("Report library"), "bi-journal-text"),
+        ("rbac", _("RBAC & permissions"), "bi-shield-lock"),
+        ("feature_control", _("Feature control"), "bi-toggles"),
+        ("communication_groups", _("Message groups"), "bi-chat-dots"),
+    )
+    operational_hubs: list[dict[str, str]] = []
+    for key, label, icon in hub_specs:
+        url = legacy_urls.get(key) or ""
+        if url:
+            operational_hubs.append({"label": label, "url": url, "icon": icon})
+
+    return {
+        "mode_cards": mode_cards,
+        "tenant_banner": tenant_banner,
+        "tenant_context": tenant_context,
+        "quick_stats": [
+            {"label": _("Work modes"), "value": str(len(modes))},
+            {"label": _("Suggestions"), "value": str(len(recommendations))},
+            {"label": _("Recent items"), "value": str(len(activity_feed))},
+        ],
+        "operational_hubs": operational_hubs,
+        "show_command_hint": True,
+    }
+
+
+def get_studio_operator_toolbar(request: Any, *, current_mode: str | None = None) -> dict[str, Any] | None:
+    """
+    Manager Studio toolbar: in-shell tenant switcher + live preview strip (session school_id).
+    """
+    from django.urls import NoReverseMatch, reverse
+    from django.utils.translation import gettext as _
+
+    from apps.schools.control_plane import use_control_plane_shell
+    from apps.schools.models import School
+    from apps.schools.tenant_url import build_tenant_backend_url
+
+    if not use_control_plane_shell(request):
+        return None
+
+    try:
+        set_school_url = reverse("studio_os:set_operator_school")
+    except NoReverseMatch:
+        set_school_url = ""
+
+    schools: list[dict[str, Any]] = []
+    try:
+        for row in School.objects.filter(is_active=True).order_by("name").values(
+            "id", "name", "slug"
+        )[:80]:
+            schools.append(
+                {
+                    "id": str(row["id"]),
+                    "name": row["name"] or "",
+                    "slug": row["slug"] or "",
+                }
+            )
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.debug("Studio operator toolbar schools: %s", e)
+
+    school = getattr(request, "school", None)
+    selected_id = str(school.pk) if school is not None else ""
+    live_preview = None
+    mode_key = (current_mode or "").strip().lower()
+    if school is not None:
+        portal_url = ""
+        try:
+            portal_url = build_tenant_backend_url(request, school, "/authentication/backend/")
+        except (TypeError, ValueError, AttributeError):
+            portal_url = ""
+        embed_preview_url = get_studio_preview_url(mode_key, request) if mode_key else ""
+        live_preview = {
+            "school_name": getattr(school, "name", "") or str(school),
+            "school_slug": getattr(school, "slug", "") or "",
+            "portal_url": portal_url,
+            "embed_preview_url": embed_preview_url,
+            "mode": mode_key,
+            "has_embed": bool(embed_preview_url),
+        }
+
+    return {
+        "set_school_url": set_school_url,
+        "schools": schools,
+        "selected_school_id": selected_id,
+        "live_preview": live_preview,
+        "return_path": (getattr(request, "path", None) or "/studio/"),
+    }
+
+
+def get_studio_mode_hero_context(
+    mode: str,
+    request: Any,
+    *,
+    legacy_urls: dict[str, str] | None = None,
+    launch_payload: dict[str, Any] | None = None,
+    theme_contrast_report: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Template kwargs for studio_os/partials/_mode_hero.html on manager + tenant shells."""
+    from django.utils.translation import gettext as _
+
+    from apps.schools.control_plane import use_control_plane_shell
+
+    legacy_urls = legacy_urls or {}
+    mode_key = (mode or "").strip().lower()
+    school = getattr(request, "school", None)
+    needs_tenant = use_control_plane_shell(request) and school is None
+
+    if mode_key == "experience":
+        hero: dict[str, Any] = {
+            "mode_label": _("Experience"),
+            "mode_purpose": _(
+                "Brand identity, theme packs, and portal layout. "
+                "Changes flow through the configurability cascade so the tenant brand wins."
+            ),
+            "primary_cta_url": legacy_urls.get("theme_colors") or "",
+            "primary_cta_label": _("Theme & colors"),
+            "secondary_cta_url": legacy_urls.get("customizer") or "",
+            "secondary_cta_label": _("Customizer"),
+        }
+        if theme_contrast_report:
+            ok = theme_contrast_report.get("status") == "ok"
+            hero["mode_health_label"] = (
+                _("Contrast: pass") if ok else _("Contrast: check")
+            )
+            hero["mode_health_status"] = "ok" if ok else "warn"
+        elif needs_tenant:
+            hero["mode_health_label"] = _("Select tenant for live theme")
+            hero["mode_health_status"] = "warn"
+        return hero
+
+    if mode_key == "launch":
+        hero = {
+            "mode_label": _("Launch"),
+            "mode_purpose": _(
+                "Plan, role-preview, and infrastructure for going live. "
+                "Guided onboarding is the fastest path."
+            ),
+            "primary_cta_url": legacy_urls.get("guided_onboarding") or "",
+            "primary_cta_label": _("Guided onboarding"),
+        }
+        payload = launch_payload if isinstance(launch_payload, dict) else {}
+        if payload:
+            score = payload.get("health_score", 0)
+            hero["mode_health_label"] = f"{score}% ready"
+            hero["mode_health_status"] = (
+                "ok" if payload.get("launch_ready") else "warn"
+            )
+        elif needs_tenant:
+            hero["mode_health_label"] = _("Select tenant for launch data")
+            hero["mode_health_status"] = "warn"
+        return hero
+
+    return {}
+
+
 def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]]:
     """
     Next-best-action recommendations for the shell. Mode-specific when current_mode is set.

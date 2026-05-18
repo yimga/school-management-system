@@ -1,0 +1,95 @@
+{% load i18n %}
+{% comment %}
+  Studio OS home command deck — mode grid, tenant context, operational hubs.
+  Requires studio_overview_deck from get_studio_overview_deck().
+{% endcomment %}
+<div class="studio-command-deck" data-studio-command-deck="1">
+  <header class="studio-command-deck__hero mb-4">
+    <p class="studio-command-deck__eyebrow rmc-type-eyebrow mb-2">{% trans "RunMyCampus Studio" %}</p>
+    <h2 class="h4 mb-2 studio-command-deck__title">{% trans "One workspace for how your campus looks, runs, and launches" %}</h2>
+    <p class="text-muted mb-0 studio-command-deck__lede">
+      {% trans "Experience, automation, outputs, launch, and control — unified preview, publish, and rollback." %}
+    </p>
+    {% if studio_overview_deck.show_command_hint %}
+    <p class="small text-muted mt-2 mb-0 studio-command-deck__hints">
+      <span class="studio-command-deck__hint">
+        <kbd class="rmc-kbd">{% trans "Commands" %}</kbd>
+        {% trans "opens the Studio palette" %}
+      </span>
+      <span class="studio-command-deck__hint-divider" aria-hidden="true">·</span>
+      <span class="studio-command-deck__hint">
+        {% trans "Press" %} <kbd class="rmc-kbd">1</kbd>–<kbd class="rmc-kbd">5</kbd> {% trans "on this page to jump to a mode" %}
+      </span>
+    </p>
+    {% endif %}
+  </header>
+
+  {% if studio_overview_deck.tenant_banner %}
+  <div class="alert alert-info d-flex flex-wrap align-items-center gap-3 mb-4 studio-command-deck__tenant-banner" role="status">
+    <div class="flex-grow-1 min-w-0">
+      <div class="fw-semibold">{{ studio_overview_deck.tenant_banner.title }}</div>
+      <div class="small mb-0">{{ studio_overview_deck.tenant_banner.detail }}</div>
+    </div>
+    {% if studio_overview_deck.tenant_banner.cta_url %}
+    <a href="{{ studio_overview_deck.tenant_banner.cta_url }}" class="btn btn-sm btn-primary text-nowrap">
+      {{ studio_overview_deck.tenant_banner.cta_label }}
+    </a>
+    {% endif %}
+  </div>
+  {% elif studio_overview_deck.tenant_context %}
+  <div class="studio-command-deck__tenant-pill mb-4" role="status">
+    <i class="bi bi-building me-2" aria-hidden="true"></i>
+    <span class="fw-semibold">{{ studio_overview_deck.tenant_context.name }}</span>
+    {% if studio_overview_deck.tenant_context.slug %}
+    <span class="text-muted small ms-2">{{ studio_overview_deck.tenant_context.slug }}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if studio_overview_deck.quick_stats %}
+  <ul class="studio-command-deck__metrics list-unstyled d-flex flex-wrap gap-3 mb-4" aria-label="{% trans 'Studio overview metrics' %}">
+    {% for stat in studio_overview_deck.quick_stats %}
+    <li class="studio-command-deck__metric">
+      <span class="studio-command-deck__metric-value">{{ stat.value }}</span>
+      <span class="studio-command-deck__metric-label">{{ stat.label }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <div class="row g-3 mb-4" data-studio-mode-grid="1">
+    {% for card in studio_overview_deck.mode_cards %}
+    <div class="col-md-6 col-lg-4">
+      <a href="{{ card.url }}" class="studio-command-deck__mode-card h-100 text-decoration-none" data-studio-mode-id="{{ card.id }}"{% if card.shortcut_digit %} data-studio-shortcut="{{ card.shortcut_digit }}"{% endif %}>
+        <div class="studio-command-deck__mode-card-inner h-100">
+          <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+            <span class="studio-command-deck__mode-icon" aria-hidden="true"><i class="bi {{ card.icon }}"></i></span>
+            {% if card.shortcut_digit %}
+            <kbd class="rmc-kbd studio-command-deck__mode-kbd">{{ card.shortcut_digit }}</kbd>
+            {% endif %}
+          </div>
+          <h3 class="h6 mb-1 studio-command-deck__mode-title">{{ card.label }}</h3>
+          <p class="small text-muted mb-0">{{ card.description }}</p>
+          <span class="studio-command-deck__mode-cta small fw-semibold mt-3 d-inline-flex align-items-center gap-1">
+            {% trans "Open" %} <i class="bi bi-arrow-right-short" aria-hidden="true"></i>
+          </span>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if studio_overview_deck.operational_hubs %}
+  <section class="studio-command-deck__hubs" aria-labelledby="studio-operational-hubs-heading">
+    <h3 id="studio-operational-hubs-heading" class="h6 mb-2">{% trans "Operational hubs" %}</h3>
+    <p class="small text-muted mb-3">{% trans "Approvals, workflow, import, documents, RBAC, and communications — without leaving Studio." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% for hub in studio_overview_deck.operational_hubs %}
+      <a href="{{ hub.url }}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+        <i class="bi {{ hub.icon }}" aria-hidden="true"></i>{{ hub.label }}
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>

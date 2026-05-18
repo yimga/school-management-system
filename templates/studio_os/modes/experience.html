@@ -11,18 +11,6 @@
   <div id="studio-experience-hero">
     {% include "studio_os/partials/_mode_hero.html" with mode_label=_("Experience") mode_purpose=_("Brand identity, theme packs, layout. Changes propagate through the configurability cascade so the tenant brand wins.") primary_cta_url=legacy_urls.theme_colors primary_cta_label=_("Theme & colors") secondary_cta_url=legacy_urls.customizer secondary_cta_label=_("Customizer") %}
   </div>
-  {% if use_experience_in_page and form %}
-  {% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=not experience_context_tool_links workspace_aria_label=_("Experience sections") workspace_rail_template="studio_os/partials/workspace/experience_inpage_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_inpage_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
-  {% elif experience_left_rail %}
-  {% include "studio_os/components/workspace_layout.html" with workspace_mode="experience" workspace_three_col=1 workspace_two_col=not experience_context_tool_links workspace_aria_label=_("Experience") workspace_rail_template="studio_os/partials/workspace/experience_iframe_rail.html" workspace_canvas_template="studio_os/partials/workspace/experience_iframe_canvas.html" workspace_context_template="studio_os/partials/experience_workbench_context.html" %}
-  <script src="{% static 'js/_pages/studio_os__modes__experience.js' %}"></script>
-  {% elif embed_url %}
-  <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Theme & Experience' %}"></iframe>
-  {% else %}
-  <div class="studio-os__card">
-    <p class="text-muted mb-0">{% trans "Load theme & experience in the canvas." %}</p>
-    {% if legacy_urls.theme_colors %}<a href="{{ legacy_urls.theme_colors }}" class="btn btn-primary btn-sm mt-2">{% trans "Theme & colors" %}</a>{% endif %}
-  </div>
-  {% endif %}
+  {% include "studio_os/partials/studio_experience_mode_body.html" %}
 </section>
 {% endblock %}

@@ -50,6 +50,26 @@ test.describe('Studio OS manager UX', () => {
     }
   });
 
+  test('studio home renders command deck with tenant banner', async ({ page }) => {
+    await page.goto('/studio/', { waitUntil: 'domcontentloaded', timeout: 90000 });
+    await ensureManagerHost(page);
+
+    await expect(page.locator('[data-studio-command-deck="1"]')).toHaveCount(1);
+    await expect(page.locator('[data-studio-mode-grid="1"] a')).toHaveCount(5);
+    await expect(page.locator('[data-studio-operator-toolbar="1"]')).toHaveCount(1);
+  });
+
+  test('experience mode renders hero and tenant switcher', async ({ page }) => {
+    await page.goto('/studio/experience/', {
+      waitUntil: 'domcontentloaded',
+      timeout: 90000,
+    });
+    await ensureManagerHost(page);
+
+    await expect(page.locator('#studio-experience-hero')).toHaveCount(1);
+    await expect(page.locator('[data-studio-operator-toolbar="1"]')).toHaveCount(1);
+  });
+
   test('feature control embed is minimal body chrome', async ({ page }) => {
     await page.goto('/siteconfig/feature-control/?embed=1', {
       waitUntil: 'domcontentloaded',

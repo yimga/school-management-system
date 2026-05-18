@@ -1,0 +1,40 @@
+/**
+ * Manager Studio — in-toolbar tenant switcher + live preview strip.
+ */
+
+.studio-operator-toolbar {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--token-radius-md, 0.5rem);
+  border: 1px solid var(--hairline, var(--color-base-200));
+  background: var(--surface-elevated, var(--color-base-50));
+}
+
+.studio-operator-toolbar__select {
+  min-width: min(18rem, 100%);
+  max-width: 24rem;
+}
+
+.studio-live-preview-strip__inner {
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--token-radius-sm, 0.375rem);
+  background: color-mix(
+    in srgb,
+    var(--brand-primary, var(--color-primary-500)) 10%,
+    var(--surface-elevated, var(--color-base-0))
+  ); /* theme-locked-allow: decorative-tint-mix */
+  border: 1px solid var(--hairline, var(--color-base-200));
+}
+
+html[data-theme="dark"] .studio-operator-toolbar,
+html[data-resolved-theme="dark"] .studio-operator-toolbar,
+html[data-bs-theme="dark"] .studio-operator-toolbar {
+  background: var(--color-base-800);
+  border-color: var(--color-base-700);
+}
+
+html[data-theme="dark"] .studio-live-preview-strip__inner,
+html[data-resolved-theme="dark"] .studio-live-preview-strip__inner,
+html[data-bs-theme="dark"] .studio-live-preview-strip__inner {
+  background: color-mix(in srgb, var(--color-primary-400) 14%, var(--color-base-900));
+  border-color: var(--color-base-700);
+}

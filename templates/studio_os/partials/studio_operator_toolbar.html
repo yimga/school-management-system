@@ -1,0 +1,37 @@
+{% load i18n static %}
+{% if studio_operator_toolbar %}
+<div class="studio-operator-toolbar mb-3" data-studio-operator-toolbar="1">
+  <form method="post" action="{{ studio_operator_toolbar.set_school_url }}" class="studio-operator-toolbar__school-form d-flex flex-wrap align-items-center gap-2">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ studio_operator_toolbar.return_path }}">
+    <label class="small text-muted mb-0" for="studio-operator-school-select">{% trans "Preview tenant" %}</label>
+    <select id="studio-operator-school-select" name="school_id" class="form-select form-select-sm studio-operator-toolbar__select" data-studio-school-select="1" aria-label="{% trans 'Select school for Studio preview' %}">
+      <option value="">{% trans "— No tenant —" %}</option>
+      {% for s in studio_operator_toolbar.schools %}
+      <option value="{{ s.id }}"{% if s.id == studio_operator_toolbar.selected_school_id %} selected{% endif %}>{{ s.name }}{% if s.slug %} ({{ s.slug }}){% endif %}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">{% trans "Apply" %}</button>
+  </form>
+
+  {% if studio_operator_toolbar.live_preview %}
+  <div class="studio-live-preview-strip mt-2" data-studio-live-preview="1" role="region" aria-label="{% trans 'Live preview' %}">
+    <div class="studio-live-preview-strip__inner d-flex flex-wrap align-items-center gap-2">
+      <span class="studio-live-preview-strip__label rmc-type-eyebrow mb-0">{% trans "Live preview" %}</span>
+      <span class="fw-semibold small">{{ studio_operator_toolbar.live_preview.school_name }}</span>
+      {% if studio_operator_toolbar.live_preview.portal_url %}
+      <a href="{{ studio_operator_toolbar.live_preview.portal_url }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">
+        <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{% trans "Open tenant backend" %}
+      </a>
+      {% endif %}
+      {% if studio_operator_toolbar.live_preview.embed_preview_url %}
+      <a href="{{ studio_operator_toolbar.live_preview.embed_preview_url }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-eye me-1" aria-hidden="true"></i>{% trans "Mode preview" %}
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<script src="{% static 'js/_pages/studio_os__operator_toolbar.js' %}" defer></script>
+{% endif %}
