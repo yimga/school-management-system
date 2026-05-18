@@ -35,6 +35,30 @@
 
   var SELECTOR = ".rmc-reveal:not(.is-revealed)";
   var STAGGER_PARENT_SELECTOR = ".rmc-reveal-stagger";
+  var SCROLL_ROOT_SELECTORS =
+    "#cp-main-content, #main-content, main[role='main'], main";
+
+  // #region agent log
+  function agentLog(hypothesisId, message, data) {
+    try {
+      fetch("http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "7911e1",
+        },
+        body: JSON.stringify({
+          sessionId: "7911e1",
+          hypothesisId: hypothesisId,
+          location: "rmc-reveal.js",
+          message: message,
+          data: data || {},
+          timestamp: Date.now(),
+        }),
+      }).catch(function () {});
+    } catch (_e) {}
+  }
+  // #endregion
 
   function prefersReducedMotion() {
     try {
@@ -66,11 +90,72 @@
     el.classList.add("is-revealed");
   }
 
-  function setupObserver() {
+  /** Shell scroll container (#cp-main-content / #main-content) when overflow-y scrolls. */
+  function resolveScrollRoot() {
+    var nodes = document.querySelectorAll(SCROLL_ROOT_SELECTORS);
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var oy = window.getComputedStyle(el).overflowY;
+      if (oy === "auto" || oy === "scroll" || oy === "overlay") {
+        return el;
+      }
+    }
+    return null;
+  }
+
+  /** Reveal nodes already visible inside the scroll root (IO viewport-root miss). */
+  function revealVisibleInRoot(scrollRoot) {
+    var bounds;
+    if (scrollRoot) {
+      bounds = scrollRoot.getBoundingClientRect();
+    } else {
+      bounds = {
+        top: 0,
+        left: 0,
+        bottom: window.innerHeight,
+        right: window.innerWidth,
+      };
+    }
+    document.querySelectorAll(SELECTOR).forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (
+        r.bottom > bounds.top &&
+        r.top < bounds.bottom &&
+        r.right > bounds.left &&
+        r.left < bounds.right
+      ) {
+        revealNow(el);
+      }
+    });
+  }
+
+  function countRevealState() {
+    var nodes = document.querySelectorAll(".rmc-reveal");
+    var hidden = 0;
+    var unrevealed = 0;
+    nodes.forEach(function (el) {
+      if (!el.classList.contains("is-revealed")) unrevealed += 1;
+      if (parseFloat(window.getComputedStyle(el).opacity) < 0.05) hidden += 1;
+    });
+    return { total: nodes.length, unrevealed: unrevealed, hiddenOpacity: hidden };
+  }
+
+  function setupObserver(scrollRoot) {
     if (typeof IntersectionObserver === "undefined") {
       // No IO support — reveal everything immediately. Older Safari/legacy.
       document.querySelectorAll(SELECTOR).forEach(revealNow);
       return null;
+    }
+    var opts = {
+      // Viewport-root: inset top so reveal fires after the element is in-frame.
+      // Scroll-root (#cp-main-content / #main-content): zero margin — negative
+      // margins shrink the root rect and strand below-fold cards at opacity:0
+      // (abrupt page end on manager/configuration + /super/*).
+      rootMargin: scrollRoot ? "0px" : "0px 0px -80px 0px",
+      threshold: scrollRoot ? [0] : [0, 0.15],
+    };
+    if (scrollRoot) {
+      opts.root = scrollRoot;
     }
     return new IntersectionObserver(
       function (entries, observer) {
@@ -81,12 +166,7 @@
           }
         });
       },
-      {
-        rootMargin: "0px 0px -80px 0px",
-        // [0, 0.15] so tall containers (catalog grids, long sections) that can
-        // never reach the 15% ratio still reveal on first pixel of contact.
-        threshold: [0, 0.15],
-      }
+      opts
     );
   }
 
@@ -104,15 +184,82 @@
       return;
     }
     assignStaggerIndexes(document);
-    var observer = setupObserver();
+    var scrollRoot = resolveScrollRoot();
+    var observer = setupObserver(scrollRoot);
     if (!observer) return; // already revealed above
 
     observeAll(observer, document);
+    revealVisibleInRoot(scrollRoot);
+
+    // #region agent log
+    agentLog("H1", "reveal init", {
+      scrollRootId: scrollRoot ? scrollRoot.id || scrollRoot.tagName : null,
+      scrollRootTag: scrollRoot ? scrollRoot.tagName : null,
+      usesIoRoot: !!scrollRoot,
+      mainScrollH: scrollRoot ? scrollRoot.scrollHeight : null,
+      mainClientH: scrollRoot ? scrollRoot.clientHeight : null,
+      reveal: countRevealState(),
+    });
+    // #endregion
+
+    if (scrollRoot) {
+      var scrollTimer = null;
+      var scrollRootUnlocked = false;
+      function onScrollRootScroll() {
+        if (scrollTimer) return;
+        scrollTimer = window.setTimeout(function () {
+          scrollTimer = null;
+          var before = countRevealState();
+          if (!scrollRootUnlocked && scrollRoot.scrollTop > 0) {
+            scrollRootUnlocked = true;
+            scrollRoot
+              .querySelectorAll(".rmc-reveal:not(.is-revealed)")
+              .forEach(revealNow);
+            // #region agent log
+            agentLog("H3", "scroll-root unlock on first scroll", {
+              path: window.location.pathname,
+              before: before,
+              after: countRevealState(),
+            });
+            // #endregion
+            return;
+          }
+          revealVisibleInRoot(scrollRoot);
+          var nearEnd =
+            scrollRoot.scrollTop + scrollRoot.clientHeight >=
+            scrollRoot.scrollHeight - 48;
+          if (nearEnd) {
+            scrollRoot
+              .querySelectorAll(".rmc-reveal:not(.is-revealed)")
+              .forEach(revealNow);
+          }
+          var after = countRevealState();
+          if (after.unrevealed < before.unrevealed) {
+            // #region agent log
+            agentLog("H3", "scroll reveal catch-up", {
+              path: window.location.pathname,
+              nearEnd: nearEnd,
+              before: before,
+              after: after,
+            });
+            // #endregion
+          }
+        }, 48);
+      }
+      scrollRoot.addEventListener("scroll", onScrollRootScroll, { passive: true });
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          revealVisibleInRoot(scrollRoot);
+          onScrollRootScroll();
+        });
+      });
+    }
 
     // HTMX support: re-scan after content swaps.
     document.addEventListener("htmx:afterSwap", function (evt) {
       assignStaggerIndexes(evt.target || document);
       observeAll(observer, evt.target || document);
+      revealVisibleInRoot(scrollRoot);
     });
 
     // Live-region support: any node mutation under <main> that adds

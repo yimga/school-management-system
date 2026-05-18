@@ -3,10 +3,23 @@
  */
 
 .studio-operator-toolbar {
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--token-radius-md, 0.5rem);
   border: 1px solid var(--hairline, var(--color-base-200));
   background: var(--surface-elevated, var(--color-base-50));
+}
+
+.studio-operator-toolbar__row {
+  width: 100%;
+}
+
+.studio-operator-toolbar__field {
+  min-width: min(14rem, 100%);
+}
+
+.studio-operator-toolbar__hint {
+  flex: 1 1 12rem;
+  padding: 0.35rem 0;
 }
 
 .studio-operator-toolbar__select {

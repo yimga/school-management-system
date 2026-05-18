@@ -1,0 +1,34 @@
+/**
+ * Studio OS mode hero — purpose line + health pill + CTAs (all modes on manager).
+ */
+
+.studio-mode-hero-shell {
+  padding: 0.85rem 1rem;
+  border-radius: var(--token-radius-md, 0.5rem);
+  border: 1px solid var(--hairline, var(--color-base-200));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--brand-primary, var(--color-primary-500)) 6%, var(--surface-elevated, var(--color-base-0))),
+    var(--surface-elevated, var(--color-base-0))
+  ); /* theme-locked-allow: decorative-gradient */
+}
+
+.studio-mode-hero__title {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.studio-mode-hero__purpose {
+  max-width: 42rem;
+}
+
+html[data-theme="dark"] .studio-mode-hero-shell,
+html[data-resolved-theme="dark"] .studio-mode-hero-shell,
+html[data-bs-theme="dark"] .studio-mode-hero-shell {
+  border-color: var(--color-base-700);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--color-primary-400) 12%, var(--color-base-900)),
+    var(--color-base-900)
+  ); /* theme-locked-allow: decorative-gradient */
+}

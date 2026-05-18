@@ -1,5 +1,5 @@
 {% load i18n %}
-{% if output_left_rail %}
+{% if output_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="output" workspace_aria_label=_("Outputs") workspace_rail_hide_mobile=1 workspace_rail_template="studio_os/partials/workspace/output_rail.html" workspace_mobile_tabs_template="studio_os/partials/workspace/output_mobile_tabs.html" workspace_canvas_template="studio_os/partials/workspace/output_canvas.html" %}
 {% else %}
 <div class="rmc-studio-workspace rmc-studio-workspace--output" data-studio-workspace-mode="output" data-rmc-studio-workspace="1">

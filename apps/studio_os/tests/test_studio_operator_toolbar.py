@@ -1,11 +1,35 @@
 """Manager Studio operator toolbar — tenant switcher + mode heroes."""
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.backends.db import SessionStore
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.schools.models import School
 from apps.studio_os.services import get_studio_mode_hero_context, get_studio_operator_toolbar
+
+
+def _manager_session(client) -> SessionStore:
+    """
+    Session state after manager-host requests lives on MANAGER_SESSION_COOKIE_NAME
+    (ManagerCookieIsolationMiddleware rewrites sessionid on the response).
+    """
+    cookie_name = getattr(settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid")
+    manager_cookie = client.cookies.get(cookie_name)
+    if manager_cookie:
+        store = SessionStore(session_key=manager_cookie.value)
+        store.load()
+        return store
+    return client.session
+
+
+def _set_manager_session_school_id(client, school_id: str) -> None:
+    store = _manager_session(client)
+    store["school_id"] = school_id
+    store.save()
+    cookie_name = getattr(settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid")
+    client.cookies[cookie_name] = store.session_key
 
 
 @override_settings(
@@ -46,7 +70,7 @@ class StudioOperatorToolbarTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(
-            self.client.session.get("school_id"),
+            _manager_session(self.client).get("school_id"),
             str(self.school.pk),
         )
 
@@ -56,7 +80,7 @@ class StudioOperatorToolbarTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("data-studio-operator-toolbar", body)
-        self.assertIn("studio-experience-hero", body)
+        self.assertIn("studio-mode-hero-shell", body)
         self.assertIn("Brand identity", body)
 
     def test_launch_renders_mode_hero(self):
@@ -64,13 +88,11 @@ class StudioOperatorToolbarTests(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn("studio-launch-hero", body)
+        self.assertIn("studio-mode-hero-shell", body)
         self.assertIn("Guided onboarding", body)
 
     def test_live_preview_when_session_school(self):
-        session = self.client.session
-        session["school_id"] = str(self.school.pk)
-        session.save()
+        _set_manager_session_school_id(self.client, str(self.school.pk))
         request = self.client.get("/studio/experience/").wsgi_request
         request.urlconf = "config.manager_urls"
         toolbar = get_studio_operator_toolbar(request, current_mode="experience")

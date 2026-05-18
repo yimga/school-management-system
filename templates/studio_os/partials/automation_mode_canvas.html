@@ -1,6 +1,6 @@
 {% load i18n %}
 {# Shared: tenant shell + control-plane shell_main_content #}
-{% if automation_left_rail %}
+{% if automation_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="automation" workspace_aria_label=_("Automation") workspace_rail_template="studio_os/partials/workspace/automation_rail.html" workspace_canvas_template="studio_os/partials/workspace/automation_canvas.html" %}
 {% else %}
 <div class="rmc-studio-workspace rmc-studio-workspace--automation" data-studio-workspace-mode="automation" data-rmc-studio-workspace="1">

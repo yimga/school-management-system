@@ -1,5 +1,5 @@
 {% load i18n %}
-{% if launch_left_rail %}
+{% if launch_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="launch" workspace_aria_label=_("Launch") workspace_rail_template="studio_os/partials/workspace/launch_rail.html" workspace_canvas_template="studio_os/partials/workspace/launch_canvas.html" %}
 {% elif launch_payload %}
 <div class="rmc-studio-workspace rmc-studio-workspace--launch" data-studio-workspace-mode="launch" data-rmc-studio-workspace="1">

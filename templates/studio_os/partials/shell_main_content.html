@@ -33,8 +33,9 @@
   {% include "components/ai_guided_assistant_card.html" with assistant_key="studio_os_assistant" card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Experience, Automation, Outputs, Launch, and Control. Publishing still requires explicit preview and human confirmation.") %}
   {% endif %}
 
-  <div class="studio-os"{% if current_mode == 'control' and request.public_host_kind == 'manager' %} data-studio-density="control-compact"{% endif %}>
-    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation">
+  <div class="studio-os"{% if current_mode == 'control' and request.public_host_kind == 'manager' %} data-studio-density="control-compact"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-studio-focus-canvas="1"{% endif %}>
+    {% if request.public_host_kind != 'manager' %}
+    <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation" data-shell-sidebar="{{ rmc_shell.studio_os_sidebar_token|default:'studio-rail' }}" data-shell-sidebar-mount="rail">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
       <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}>{% trans "Overview" %}</a>
       <a href="{% url 'studio_os:experience' %}" class="{% if current_mode == 'experience' %}active{% endif %}" {% if current_mode == 'experience' %}aria-current="page"{% endif %}>{% trans "Experience" %}</a>
@@ -43,6 +44,7 @@
       <a href="{% url 'studio_os:launch' %}" class="{% if current_mode == 'launch' %}active{% endif %}" {% if current_mode == 'launch' %}aria-current="page"{% endif %}>{% trans "Launch" %}</a>
       <a href="{% url 'studio_os:control' %}" class="{% if current_mode == 'control' %}active{% endif %}" {% if current_mode == 'control' %}aria-current="page"{% endif %}>{% trans "Control" %}</a>
     </nav>
+    {% endif %}
 
     <main class="studio-os__canvas rmc-shell-main" id="studio-canvas" role="main" tabindex="-1" data-rmc-shell-main="studio-os">
         {% if studio_native_canvas_partial %}
@@ -55,27 +57,28 @@
           <p class="text-muted mb-3">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</p>
           {% endif %}
         {% elif current_mode == 'experience' %}
-          <section data-page-archetype="studio-os-experience" aria-labelledby="studio-experience-hero">
-            {% if studio_mode_hero %}
-            <div id="studio-experience-hero">
-              {% include "studio_os/partials/_mode_hero.html" with mode_label=studio_mode_hero.mode_label mode_purpose=studio_mode_hero.mode_purpose primary_cta_url=studio_mode_hero.primary_cta_url primary_cta_label=studio_mode_hero.primary_cta_label secondary_cta_url=studio_mode_hero.secondary_cta_url secondary_cta_label=studio_mode_hero.secondary_cta_label mode_health_label=studio_mode_hero.mode_health_label mode_health_status=studio_mode_hero.mode_health_status %}
-            </div>
-            {% endif %}
+          <section data-page-archetype="studio-os-experience" aria-labelledby="studio-mode-hero-heading">
+            {% include "studio_os/partials/mode_hero_shell.html" %}
             {% include "studio_os/partials/studio_experience_mode_body.html" %}
           </section>
         {% elif current_mode == 'control' %}
-          {% include "studio_os/partials/control_mode_canvas.html" %}
+          <section data-page-archetype="studio-os-control" aria-labelledby="studio-mode-hero-heading">
+            {% include "studio_os/partials/mode_hero_shell.html" %}
+            {% include "studio_os/partials/control_mode_canvas.html" %}
+          </section>
         {% elif current_mode == 'automation' %}
-          {% include "studio_os/partials/automation_mode_canvas.html" %}
+          <section data-page-archetype="studio-os-automation" aria-labelledby="studio-mode-hero-heading">
+            {% include "studio_os/partials/mode_hero_shell.html" %}
+            {% include "studio_os/partials/automation_mode_canvas.html" %}
+          </section>
         {% elif current_mode == 'output' %}
-          {% include "studio_os/partials/output_mode_canvas.html" %}
+          <section data-page-archetype="studio-os-output" aria-labelledby="studio-mode-hero-heading">
+            {% include "studio_os/partials/mode_hero_shell.html" %}
+            {% include "studio_os/partials/output_mode_canvas.html" %}
+          </section>
         {% elif current_mode == 'launch' %}
-          <section data-page-archetype="studio-os-launch" aria-labelledby="studio-launch-hero">
-            {% if studio_mode_hero %}
-            <div id="studio-launch-hero">
-              {% include "studio_os/partials/_mode_hero.html" with mode_label=studio_mode_hero.mode_label mode_purpose=studio_mode_hero.mode_purpose primary_cta_url=studio_mode_hero.primary_cta_url primary_cta_label=studio_mode_hero.primary_cta_label mode_health_label=studio_mode_hero.mode_health_label mode_health_status=studio_mode_hero.mode_health_status %}
-            </div>
-            {% endif %}
+          <section data-page-archetype="studio-os-launch" aria-labelledby="studio-mode-hero-heading">
+            {% include "studio_os/partials/mode_hero_shell.html" %}
             {% include "studio_os/partials/launch_mode_canvas.html" %}
           </section>
         {% elif embed_url %}
@@ -99,6 +102,7 @@
         {% endif %}
     </main>
 
+    {% if request.public_host_kind != 'manager' %}
     <aside class="studio-os__right" aria-label="{% trans 'Impact and actions' %}">
       {% if studio_role_preview_entries %}
       <div class="studio-os__card">
@@ -212,6 +216,7 @@
         {% endif %}
       </div>
     </aside>
+    {% endif %}
   </div>
 
   {% if studio_show_bottom_bar and studio_bottom_bar_actions %}

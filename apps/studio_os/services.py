@@ -463,6 +463,13 @@ def get_studio_operator_toolbar(request: Any, *, current_mode: str | None = None
         logger.debug("Studio operator toolbar schools: %s", e)
 
     school = getattr(request, "school", None)
+    if school is None:
+        session_sid = (getattr(request, "session", None) or {}).get("school_id")
+        if session_sid:
+            try:
+                school = School.objects.filter(pk=session_sid, is_active=True).first()
+            except (TypeError, ValueError, DatabaseError):
+                school = None
     selected_id = str(school.pk) if school is not None else ""
     live_preview = None
     mode_key = (current_mode or "").strip().lower()
@@ -552,6 +559,57 @@ def get_studio_mode_hero_context(
         elif needs_tenant:
             hero["mode_health_label"] = _("Select tenant for launch data")
             hero["mode_health_status"] = "warn"
+        return hero
+
+    if mode_key == "automation":
+        hero = {
+            "mode_label": _("Automation"),
+            "mode_purpose": _(
+                "Workflows, approvals, simulation, and staged activation. "
+                "Run outcomes in the canvas; use the sidebar to jump between tools."
+            ),
+            "primary_cta_url": legacy_urls.get("workflow_hub") or "",
+            "primary_cta_label": _("Workflow center"),
+            "secondary_cta_url": legacy_urls.get("workflow_flow_gallery") or "",
+            "secondary_cta_label": _("Flow gallery"),
+        }
+        if needs_tenant:
+            hero["mode_health_label"] = _("Select tenant for workflow context")
+            hero["mode_health_status"] = "warn"
+        return hero
+
+    if mode_key == "output":
+        hero = {
+            "mode_label": _("Outputs"),
+            "mode_purpose": _(
+                "Reports, documents, credentials, and branding inheritance. "
+                "Everything publishes through governed output packs."
+            ),
+            "primary_cta_url": legacy_urls.get("report_library") or "",
+            "primary_cta_label": _("Report library"),
+            "secondary_cta_url": legacy_urls.get("document_library") or "",
+            "secondary_cta_label": _("Document library"),
+        }
+        if needs_tenant:
+            hero["mode_health_label"] = _("Select tenant for output preview")
+            hero["mode_health_status"] = "warn"
+        return hero
+
+    if mode_key == "control":
+        hero = {
+            "mode_label": _("Control"),
+            "mode_purpose": _(
+                "Capabilities, feature flags, audit, and platform governance. "
+                "Review impact before rollback."
+            ),
+            "primary_cta_url": legacy_urls.get("feature_control") or "",
+            "primary_cta_label": _("Feature control"),
+            "secondary_cta_url": legacy_urls.get("rbac") or "",
+            "secondary_cta_label": _("RBAC & permissions"),
+        }
+        if needs_tenant:
+            hero["mode_health_label"] = _("Platform-wide control plane")
+            hero["mode_health_status"] = "ok"
         return hero
 
     return {}

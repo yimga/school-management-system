@@ -1,0 +1,6 @@
+{% load i18n %}
+{% if studio_mode_hero %}
+<section class="studio-mode-hero-shell mb-3" aria-labelledby="studio-mode-hero-heading" data-studio-mode-hero="1">
+  {% include "studio_os/partials/_mode_hero.html" with mode_label=studio_mode_hero.mode_label mode_purpose=studio_mode_hero.mode_purpose primary_cta_url=studio_mode_hero.primary_cta_url primary_cta_label=studio_mode_hero.primary_cta_label secondary_cta_url=studio_mode_hero.secondary_cta_url secondary_cta_label=studio_mode_hero.secondary_cta_label mode_health_label=studio_mode_hero.mode_health_label mode_health_status=studio_mode_hero.mode_health_status %}
+</section>
+{% endif %}

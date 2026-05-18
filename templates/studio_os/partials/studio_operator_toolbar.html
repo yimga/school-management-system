@@ -1,37 +1,42 @@
 {% load i18n static %}
 {% if studio_operator_toolbar %}
 <div class="studio-operator-toolbar mb-3" data-studio-operator-toolbar="1">
-  <form method="post" action="{{ studio_operator_toolbar.set_school_url }}" class="studio-operator-toolbar__school-form d-flex flex-wrap align-items-center gap-2">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ studio_operator_toolbar.return_path }}">
-    <label class="small text-muted mb-0" for="studio-operator-school-select">{% trans "Preview tenant" %}</label>
-    <select id="studio-operator-school-select" name="school_id" class="form-select form-select-sm studio-operator-toolbar__select" data-studio-school-select="1" aria-label="{% trans 'Select school for Studio preview' %}">
-      <option value="">{% trans "— No tenant —" %}</option>
-      {% for s in studio_operator_toolbar.schools %}
-      <option value="{{ s.id }}"{% if s.id == studio_operator_toolbar.selected_school_id %} selected{% endif %}>{{ s.name }}{% if s.slug %} ({{ s.slug }}){% endif %}</option>
-      {% endfor %}
-    </select>
-    <button type="submit" class="btn btn-sm btn-primary">{% trans "Apply" %}</button>
-  </form>
-
-  {% if studio_operator_toolbar.live_preview %}
-  <div class="studio-live-preview-strip mt-2" data-studio-live-preview="1" role="region" aria-label="{% trans 'Live preview' %}">
-    <div class="studio-live-preview-strip__inner d-flex flex-wrap align-items-center gap-2">
-      <span class="studio-live-preview-strip__label rmc-type-eyebrow mb-0">{% trans "Live preview" %}</span>
-      <span class="fw-semibold small">{{ studio_operator_toolbar.live_preview.school_name }}</span>
-      {% if studio_operator_toolbar.live_preview.portal_url %}
-      <a href="{{ studio_operator_toolbar.live_preview.portal_url }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{% trans "Open tenant backend" %}
-      </a>
-      {% endif %}
-      {% if studio_operator_toolbar.live_preview.embed_preview_url %}
-      <a href="{{ studio_operator_toolbar.live_preview.embed_preview_url }}" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-eye me-1" aria-hidden="true"></i>{% trans "Mode preview" %}
-      </a>
-      {% endif %}
+  <div class="studio-operator-toolbar__row d-flex flex-wrap align-items-end gap-3">
+    <form method="post" action="{{ studio_operator_toolbar.set_school_url }}" class="studio-operator-toolbar__school-form d-flex flex-wrap align-items-end gap-2 flex-grow-1 min-w-0">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ studio_operator_toolbar.return_path }}">
+      <div class="studio-operator-toolbar__field flex-grow-1 min-w-0">
+        <label class="form-label small text-muted mb-1" for="studio-operator-school-select">{% trans "Preview tenant" %}</label>
+        <select id="studio-operator-school-select" name="school_id" class="form-select form-select-sm studio-operator-toolbar__select w-100" data-studio-school-select="1" aria-label="{% trans 'Select school for Studio preview' %}">
+          <option value="">{% trans "— No tenant —" %}</option>
+          {% for s in studio_operator_toolbar.schools %}
+          <option value="{{ s.id }}"{% if s.id == studio_operator_toolbar.selected_school_id %} selected{% endif %}>{{ s.name }}{% if s.slug %} ({{ s.slug }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-sm btn-primary studio-operator-toolbar__apply" data-studio-school-apply="1">{% trans "Apply" %}</button>
+    </form>
+    {% if studio_operator_toolbar.live_preview %}
+    <div class="studio-live-preview-strip flex-grow-1 min-w-0" data-studio-live-preview="1" role="region" aria-label="{% trans 'Live preview' %}">
+      <div class="studio-live-preview-strip__inner d-flex flex-wrap align-items-center gap-2 h-100">
+        <span class="studio-live-preview-strip__label rmc-type-eyebrow mb-0">{% trans "Live preview" %}</span>
+        <span class="fw-semibold small text-truncate">{{ studio_operator_toolbar.live_preview.school_name }}</span>
+        {% if studio_operator_toolbar.live_preview.portal_url %}
+        <a href="{{ studio_operator_toolbar.live_preview.portal_url }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">
+          <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{% trans "Tenant backend" %}
+        </a>
+        {% endif %}
+        {% if studio_operator_toolbar.live_preview.embed_preview_url %}
+        <a href="{{ studio_operator_toolbar.live_preview.embed_preview_url }}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-eye me-1" aria-hidden="true"></i>{% trans "Mode preview" %}
+        </a>
+        {% endif %}
+      </div>
     </div>
+    {% else %}
+    <p class="small text-muted mb-0 studio-operator-toolbar__hint">{% trans "Select a tenant to unlock live theme, launch, and experience previews." %}</p>
+    {% endif %}
   </div>
-  {% endif %}
 </div>
 <script src="{% static 'js/_pages/studio_os__operator_toolbar.js' %}" defer></script>
 {% endif %}

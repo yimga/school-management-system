@@ -39,6 +39,15 @@ def main() -> int:
         findings.append("missing static/css/studio-focus-layout.css")
     elif "[data-rmc-studio-focus=" not in css.read_text(encoding="utf-8"):
         findings.append("studio-focus-layout.css missing focus selectors")
+    else:
+        css_text = css.read_text(encoding="utf-8")
+        for needle in (
+            "data-rmc-studio-focus-canvas",
+            ".studio-os__rail",
+            ".rmc-studio-workspace__rail",
+        ):
+            if needle not in css_text:
+                findings.append(f"studio-focus-layout.css missing {needle!r}")
 
     partial = ROOT / "templates/partials/control_plane_sidebar_studio_focus.html"
     if not partial.is_file():

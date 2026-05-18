@@ -79,7 +79,7 @@
 </details>
 {% endif %}
 
-{% if control_left_rail %}
+{% if control_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="control" workspace_aria_label=_("Control") workspace_rail_template="studio_os/partials/workspace/control_rail.html" workspace_canvas_template="studio_os/partials/workspace/control_canvas.html" %}
 {% else %}
 <div class="rmc-studio-workspace rmc-studio-workspace--control" data-studio-workspace-mode="control" data-rmc-studio-workspace="1">
@@ -88,6 +88,6 @@
   </div>
 </div>
 {% endif %}
-{% if control_left_rail %}
+{% if control_left_rail and request.public_host_kind != 'manager' %}
 <script src="{% static 'js/_pages/studio_os__partials__control_mode_canvas.js' %}"></script>
 {% endif %}

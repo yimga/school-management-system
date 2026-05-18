@@ -47,6 +47,33 @@ class StudioFocusLayoutTests(TestCase):
         item_labels = [it["label"] for it in items]
         self.assertEqual(len(item_labels), len(set(item_labels)))
 
+    def test_build_studio_focus_sidebar_control_includes_governance(self):
+        request = self.client.get("/studio/control/").wsgi_request
+        request.urlconf = "config.manager_urls"
+        items = build_studio_focus_sidebar(request)
+        labels = [it["label"] for it in items]
+        self.assertIn("Feature control", labels)
+        self.assertIn("Audit log", labels)
+        self.assertNotIn("Command center", labels)
+
+    def test_build_studio_focus_sidebar_launch_includes_panes(self):
+        request = self.client.get("/studio/launch/?pane=onboarding").wsgi_request
+        request.urlconf = "config.manager_urls"
+        items = build_studio_focus_sidebar(request)
+        labels = [it["label"] for it in items]
+        self.assertIn("Guided onboarding", labels)
+        active = [it for it in items if it.get("active")]
+        self.assertTrue(any(it.get("label") == "Guided onboarding" for it in active))
+
+    def test_automation_mode_renders_hero_and_single_rail(self):
+        url = reverse("studio_os:automation", urlconf="config.manager_urls")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn("studio-mode-hero-shell", body)
+        self.assertIn("Workflow center", body)
+        self.assertNotIn('id="studio-rail-label"', body)
+
     def test_control_mode_renders_focus_markers(self):
         url = reverse("studio_os:control", urlconf="config.manager_urls")
         resp = self.client.get(url)
@@ -57,6 +84,9 @@ class StudioFocusLayoutTests(TestCase):
         self.assertIn("studio-focus-layout.css", body)
         self.assertNotIn("Curriculum &amp; region", body)
         self.assertNotIn("Curriculum & region", body)
+        self.assertNotIn('id="studio-rail-label"', body)
+        self.assertNotIn('id="control-rail-list"', body)
+        self.assertIn("Governance", body)
 
     def test_experience_mode_renders_focus_markers(self):
         url = reverse("studio_os:experience", urlconf="config.manager_urls")
