@@ -95,3 +95,14 @@ class StudioFocusLayoutTests(TestCase):
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-studio-focus="1"', body)
         self.assertIn("data-rmc-studio-focus-sidebar", body)
+
+    def test_launch_mode_renders_workspace_without_surface_strip(self):
+        url = reverse("studio_os:launch", urlconf="config.manager_urls")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-studio-workspace="1"', body)
+        self.assertIn("data-rmc-studio-workspace-main", body)
+        self.assertIn("studio-mode-hero-shell", body)
+        self.assertNotIn('data-rmc-operator-surface-strip', body)
+        self.assertNotIn('id="studio-rail-label"', body)

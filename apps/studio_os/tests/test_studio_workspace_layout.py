@@ -43,3 +43,11 @@ class StudioWorkspaceLayoutTests(TestCase):
 
     def test_launch_mode_workspace(self):
         self._assert_workspace("studio_os:launch")
+
+    def test_launch_mode_workspace_with_pane(self):
+        url = reverse("studio_os:launch", urlconf=self.urlconf)
+        resp = self.client.get(f"{url}?pane=onboarding")
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-studio-workspace="1"', body)
+        self.assertIn("Guided onboarding", body)

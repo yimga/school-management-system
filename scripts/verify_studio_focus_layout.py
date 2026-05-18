@@ -68,6 +68,20 @@ def main() -> int:
     if base.is_file() and "block cp_layout_attrs" not in base.read_text(encoding="utf-8"):
         findings.append("control_plane_base.html missing cp_layout_attrs block")
 
+    shell_cp_text = (
+        shell_cp.read_text(encoding="utf-8", errors="replace") if shell_cp.is_file() else ""
+    )
+    if shell_cp_text and "rmc_operator_surface_strip" not in shell_cp_text:
+        findings.append(
+            "shell_control_plane.html must override rmc_operator_surface_strip (empty block)"
+        )
+
+    launch_canvas = ROOT / "templates/studio_os/partials/launch_mode_canvas.html"
+    if launch_canvas.is_file():
+        lc = launch_canvas.read_text(encoding="utf-8", errors="replace")
+        if "public_host_kind == 'manager'" not in lc:
+            findings.append("launch_mode_canvas.html missing manager canvas-only branch")
+
     if findings:
         print(f"verify_studio_focus_layout: {len(findings)} finding(s)\n")
         for item in findings:

@@ -50,6 +50,17 @@ def main() -> int:
         text = path.read_text(encoding="utf-8", errors="replace")
         if "workspace_layout.html" not in text and "data-rmc-studio-workspace" not in text:
             findings.append(f"{name} must use workspace_layout or data-rmc-studio-workspace")
+        if "public_host_kind != 'manager'" not in text:
+            findings.append(
+                f"{name} must gate tenant workspace rails with public_host_kind != 'manager'"
+            )
+        if name == "launch_mode_canvas.html":
+            if "public_host_kind == 'manager'" not in text:
+                findings.append(
+                    "launch_mode_canvas.html must render canvas-only workspace on manager"
+                )
+            if "launch_canvas.html" not in text:
+                findings.append("launch_mode_canvas.html must include launch_canvas.html")
 
     experience_body = ROOT / "templates/studio_os/partials/studio_experience_mode_body.html"
     experience = ROOT / "templates/studio_os/modes/experience.html"

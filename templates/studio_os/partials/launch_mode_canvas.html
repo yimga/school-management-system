@@ -1,7 +1,13 @@
 {% load i18n %}
 {% if launch_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="launch" workspace_aria_label=_("Launch") workspace_rail_template="studio_os/partials/workspace/launch_rail.html" workspace_canvas_template="studio_os/partials/workspace/launch_canvas.html" %}
-{% elif launch_payload %}
+{% elif launch_left_rail and request.public_host_kind == 'manager' %}
+<div class="rmc-studio-workspace rmc-studio-workspace--launch" data-studio-workspace-mode="launch" data-rmc-studio-workspace="1">
+  <div class="rmc-studio-workspace__main flex-grow-1 min-w-0" data-rmc-studio-workspace-main="1">
+    {% include "studio_os/partials/workspace/launch_canvas.html" %}
+  </div>
+</div>
+{% elif launch_payload and request.public_host_kind != 'manager' %}
 <div class="rmc-studio-workspace rmc-studio-workspace--launch" data-studio-workspace-mode="launch" data-rmc-studio-workspace="1">
   <nav class="rmc-studio-workspace__rail studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}">
     <div class="studio-os__card py-2">
