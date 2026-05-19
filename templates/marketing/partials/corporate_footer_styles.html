@@ -1,7 +1,8 @@
 {% load static %}
 {% comment %}
-  Login / tenant base.html footer chrome only — NOT included on marketing/base_marketing.html
-  (public marketing uses marketing-critical.min.css + marketing-enhanced.min.css).
+  Legacy marketing footer CSS bundle (mega-footer). Prefer marketing-critical.min.css on
+  base_marketing.html. Do NOT include on manager control plane, tenant portal, or base.html —
+  operator surfaces use rmc-footer-surfaces.css + rmc_operator_footer_compact.html instead.
 {% endcomment %}
 <link rel="stylesheet" href="{% static 'marketing/css/tokens-marketing.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/tokens-editorial.css' %}">

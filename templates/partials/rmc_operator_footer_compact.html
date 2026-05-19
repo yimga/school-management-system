@@ -1,0 +1,61 @@
+{% load i18n static marketing_public_urls %}
+{# Canonical compact operator gateway footer — manager login + authenticated control plane. NOT the marketing mega-footer. #}
+<footer class="rmc-manager-login-footer" role="contentinfo" data-rmc-footer-surface="operator-compact" aria-label="{% trans 'Platform gateway links' %}">
+  <div class="rmc-manager-login-footer__shell">
+    <div class="rmc-manager-login-footer__bar">
+      <div class="rmc-manager-login-footer__brand">
+        <p class="rmc-manager-login-footer__eyebrow">{% trans "RunMyCampus Manager" %}</p>
+        <p class="rmc-manager-login-footer__tagline">{% trans "Corporate gateway · operator sign-in" %}</p>
+      </div>
+      <div class="rmc-manager-login-footer__actions" aria-label="{% trans 'Quick links' %}">
+        <a class="rmc-manager-login-footer__pill rmc-manager-login-footer__pill--status" href="{% marketing_public_href 'status' %}" data-mkt-status>
+          <span class="rmc-manager-login-footer__pill-dot" aria-hidden="true"></span>
+          <span class="rmc-manager-login-footer__pill-label" data-mkt-status-label>{% trans "Platform status" %}</span>
+        </a>
+        <a class="rmc-manager-login-footer__pill" href="{% url 'accounts:login' %}?next=/super/">
+          <i class="bi bi-shield-lock" aria-hidden="true"></i>
+          <span>{% trans "Control plane" %}</span>
+        </a>
+        <a class="rmc-manager-login-footer__pill" href="{% marketing_public_href 'find_school' %}">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <span>{% trans "Find campus" %}</span>
+        </a>
+        <a class="rmc-manager-login-footer__pill" href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer">
+          <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+          <span>{% trans "Public site" %}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="rmc-manager-login-footer__proof" aria-label="{% trans 'Trust and routing' %}">
+      <a class="rmc-manager-login-footer__proof-card" href="{% marketing_public_href 'status' %}">
+        <span class="rmc-manager-login-footer__proof-kicker">{% trans "Live" %}</span>
+        <span class="rmc-manager-login-footer__proof-title">{% trans "Uptime & incidents" %}</span>
+      </a>
+      <a class="rmc-manager-login-footer__proof-card" href="{% marketing_public_href 'marketing_procurement_checklist' %}">
+        <span class="rmc-manager-login-footer__proof-kicker">{% trans "Ready" %}</span>
+        <span class="rmc-manager-login-footer__proof-title">{% trans "Procurement" %}</span>
+      </a>
+      <a class="rmc-manager-login-footer__proof-card" href="{% marketing_public_href 'marketing_security_compliance' %}">
+        <span class="rmc-manager-login-footer__proof-kicker">{% trans "Trust" %}</span>
+        <span class="rmc-manager-login-footer__proof-title">{% trans "Security center" %}</span>
+      </a>
+      <a class="rmc-manager-login-footer__proof-card" href="{% marketing_public_href 'global_login_discovery' %}">
+        <span class="rmc-manager-login-footer__proof-kicker">{% trans "Portal" %}</span>
+        <span class="rmc-manager-login-footer__proof-title">{% trans "Tenant login" %}</span>
+      </a>
+    </div>
+
+    <div class="rmc-manager-login-footer__legal">
+      <p class="rmc-manager-login-footer__copy">
+        © <span data-mkt-year>{% now "Y" %}</span> {% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}
+      </p>
+      <ul class="rmc-manager-login-footer__legal-links">
+        <li><a href="{% marketing_public_href 'marketing_security_compliance' %}">{% trans "Security" %}</a></li>
+        <li><a href="{% marketing_public_href 'marketing_privacy' %}">{% trans "Privacy" %}</a></li>
+        <li><a href="{% marketing_public_href 'marketing_terms' %}">{% trans "Terms" %}</a></li>
+        <li><a href="{% marketing_public_href 'marketing_cookie_policy' %}">{% trans "Cookies" %}</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>

@@ -8,6 +8,7 @@
 <div
   data-rmc-tenant-overview
   data-tenant-id="{{ tenant_id|default:'platform-overview' }}"
+  {% if ANALYTICS_VIZ_USE_SEEDER %}data-use-seeder="1"{% endif %}
   {% if ANALYTICS_VIZ_API_URL %}data-api-url="{{ ANALYTICS_VIZ_API_URL }}"{% endif %}
   data-bundle-src="{% static 'js/dist/rmc-analytics-dashboard.iife.js' %}"
   class="rmc-viz-root"

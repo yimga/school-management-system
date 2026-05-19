@@ -75,9 +75,13 @@ def main() -> int:
     add(
         "manager",
         "skeleton_footer",
-        "control_plane_skeleton includes corporate footer bundle",
+        "control_plane_skeleton uses compact operator footer (not marketing bundle)",
         _contains("templates/control_plane_skeleton.html", "cp-corporate-footer")
         and _contains(
+            "templates/control_plane_skeleton.html",
+            "rmc_operator_footer_compact.html",
+        )
+        and _not_contains(
             "templates/control_plane_skeleton.html",
             "corporate_footer_bundle.html",
         ),
@@ -90,6 +94,16 @@ def main() -> int:
         _contains("templates/auth/manager_login.html", "block manager_corporate_footer")
         and _contains("templates/auth/admin_login.html", "block manager_corporate_footer"),
         "manager_login + admin_login",
+    )
+    add(
+        "manager",
+        "login_compact_footer",
+        "Sign-in uses compact operator footer (not full marketing mega-footer)",
+        _contains("templates/partials/rmc_operator_footer_compact.html", "rmc-manager-login-footer")
+        and _contains("templates/auth/manager_login.html", "manager_login_footer.html")
+        and _not_contains("templates/auth/manager_login.html", "corporate_footer_bundle.html")
+        and _exists("static/css/rmc-footer-surfaces.css"),
+        "rmc_operator_footer_compact.html + rmc-footer-surfaces.css",
     )
     add(
         "manager",
@@ -155,12 +169,30 @@ def main() -> int:
     add(
         "manager",
         "skeleton_footer_contract_test",
-        "Template contract: skeleton emits corporate footer when flagged",
+        "Template contract: skeleton emits compact operator footer when flagged",
         _contains(
             "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-            "test_control_plane_skeleton_wires_corporate_footer",
+            "test_control_plane_skeleton_wires_compact_operator_footer",
         ),
         "test_manager_portal_chrome_contract",
+    )
+    footer_gate_code, footer_gate_tail = _run(
+        [py, "scripts/verify_footer_surface_contract.py", "--write"],
+        timeout=120,
+    )
+    add(
+        "platform",
+        "footer_surface_gate",
+        "Platform footer surface contract (59-check template sweep)",
+        footer_gate_code == 0,
+        footer_gate_tail or "verify_footer_surface_contract.py",
+    )
+    add(
+        "platform",
+        "footer_surface_tests_module",
+        "Footer surface Django contract tests present",
+        _exists("apps/siteconfig/tests/test_footer_surface_contract.py"),
+        "test_footer_surface_contract.py",
     )
 
     # --- Tenant isolation ---
@@ -250,11 +282,20 @@ def main() -> int:
                 "apps.schools.tests.test_horizontal_nav_rail",
                 "apps.siteconfig.tests.test_portal_chrome",
                 "apps.siteconfig.tests.test_manager_portal_chrome_contract",
+                "apps.siteconfig.tests.test_footer_surface_contract",
+                "apps.schools.tests.test_super_admin_surface_parity.SuperAdminSurfaceParityTests.test_manager_admin_login_public_chrome",
+                "apps.schools.tests.test_super_admin_surface_parity.SuperAdminSurfaceParityTests.test_super_dashboard_includes_horizontal_nav_rail_stylesheet",
                 "--verbosity=1",
             ],
             timeout=900,
         )
-        add("proof", "django_tests", "Nav rail + manager/portal chrome test subset", code == 0, tail or "ok")
+        add(
+            "proof",
+            "django_tests",
+            "Nav rail + footer surface + manager HTTP chrome tests",
+            code == 0,
+            tail or "ok",
+        )
 
     failed = [r for r in rows if r.status == "FAIL"]
     payload = {

@@ -171,23 +171,31 @@ def marketing_pricing_packages_clarity(request):
 
 @require_GET
 def marketing_procurement_checklist(request):
+    from apps.schools.marketing_personality import marketing_personality_context
+
     ctx = {
         "seo_title": "Procurement checklist — diligence without vanity claims",
         "trust_url": reverse("marketing_trust_dedicated"),
         "security_packet_url": reverse("marketing_security_packet_request"),
         "implementation_assurance_url": reverse("marketing_implementation_assurance"),
         "contact_url": reverse("marketing_contact"),
+        "marketing_page_slug": "procurement-docs",
+        **marketing_personality_context("procurement-docs"),
     }
     return render(request, "marketing/procurement_checklist.html", ctx)
 
 
 @require_GET
 def marketing_implementation_assurance(request):
+    from apps.schools.marketing_personality import marketing_personality_context
+
     ctx = {
         "seo_title": "Implementation assurance — in-product factory depth",
         "trust_url": reverse("marketing_trust_dedicated"),
         "procurement_url": reverse("marketing_procurement_checklist"),
         "security_packet_url": reverse("marketing_security_packet_request"),
+        "marketing_page_slug": "implementation-timelines",
+        **marketing_personality_context("implementation-timelines"),
     }
     return render(request, "marketing/implementation_assurance.html", ctx)
 

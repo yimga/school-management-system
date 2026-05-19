@@ -1,0 +1,21 @@
+{% load i18n %}
+<section class="mkt-edt-container mkt-trust-regulatory rmc-reveal" aria-labelledby="trust-regulatory-heading" data-mkt-trust-regulatory="1">
+  <h2 id="trust-regulatory-heading" class="mkt-v3-section-headline">{% trans "Regulatory & accessibility readiness" %}</h2>
+  <p class="mkt-v3-lead">{% trans "Deep dives for counsel, DPO, and accessibility reviewers—linked from one grid." %}</p>
+  <div class="mkt-trust-regulatory-grid">
+    {% for card in trust_regulatory_cards %}
+    <article class="mkt-trust-regulatory-card" data-trust-regulatory="{{ card.id }}">
+      <h3 class="mkt-trust-regulatory-card__title">{{ card.title }}</h3>
+      <p class="mkt-trust-regulatory-card__summary">{{ card.summary }}</p>
+      <a href="{% url card.url_name %}" class="mkt-edt-link">{{ card.deep_dive_label }} →</a>
+    </article>
+    {% endfor %}
+  </div>
+  <p class="mkt-trust-regulatory-footnote small text-muted mb-0">
+    <a href="{% url 'marketing_privacy' %}">{% trans "Privacy policy" %}</a>
+    ·
+    <a href="{% url 'marketing_trust_gdpr' %}">{% trans "GDPR pack" %}</a>
+    ·
+    <a href="{% url 'marketing_trust_incidents' %}">{% trans "Incident response" %}</a>
+  </p>
+</section>

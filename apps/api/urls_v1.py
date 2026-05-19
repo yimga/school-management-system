@@ -16,6 +16,13 @@ from apps.api.views_migration_jobs import (
     MigrationJobErrorsCsvView,
     MigrationJobStatusView,
 )
+from apps.social_media.api_views import (
+    SocialAnalyticsPulseAPI,
+    SocialAttributionAPI,
+    SocialFeedAPI,
+    SocialModerationAPI,
+    SocialPublishAPI,
+)
 
 app_name = "api_v1"
 
@@ -321,5 +328,28 @@ urlpatterns = [
         "reports/emis/<int:id>/submit",
         views_v1.EMISSubmitView.as_view(),
         name="reports-emis-submit",
+    ),
+    # Social media integration (dual-tier feed + publish + moderation)
+    path("social/feed/", SocialFeedAPI.as_view(), name="social-feed"),
+    path("social/publish/", SocialPublishAPI.as_view(), name="social-publish"),
+    path(
+        "social/moderation/",
+        SocialModerationAPI.as_view(),
+        name="social-moderation-list",
+    ),
+    path(
+        "social/moderation/<uuid:item_id>/",
+        SocialModerationAPI.as_view(),
+        name="social-moderation-action",
+    ),
+    path(
+        "social/analytics/pulse/",
+        SocialAnalyticsPulseAPI.as_view(),
+        name="social-analytics-pulse",
+    ),
+    path(
+        "social/attribution/",
+        SocialAttributionAPI.as_view(),
+        name="social-attribution",
     ),
 ]

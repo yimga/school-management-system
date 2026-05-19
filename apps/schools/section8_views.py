@@ -351,11 +351,15 @@ def global_login_discovery(request):
     _record_discovery_funnel_event(request)
     checklist_cards = _role_onboarding_checklists()
     if request.method == "GET":
+        from apps.schools.marketing_personality import marketing_personality_context
+
         return render(
             request,
             "marketing/global_discovery.html",
             {
                 "role_checklists": checklist_cards,
+                "marketing_page_slug": "portal-login",
+                **marketing_personality_context("portal-login"),
             },
         )
     if _discovery_rate_limit_exceeded(request):
@@ -466,6 +470,8 @@ def find_school(request):
             {"query": query, "results": results},
         )
 
+    from apps.schools.marketing_personality import marketing_personality_context
+
     return render(
         request,
         "marketing/find_campus.html",
@@ -474,6 +480,8 @@ def find_school(request):
             "results": results,
             "rate_limited": rate_limited,
             "role_checklists": _role_onboarding_checklists(),
+            "marketing_page_slug": "find-campus",
+            **marketing_personality_context("find-campus"),
         },
     )
 

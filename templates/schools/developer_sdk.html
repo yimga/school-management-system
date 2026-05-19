@@ -5,8 +5,9 @@
   <meta name="description" content="RunMyCampus SDK and API reference: authentication, base URL, and API endpoints for integrations.">
 {% endblock %}
 {% block content %}
-<div class="developer-sdk">
-  <header class="detail-hero" style="margin-bottom: 1.5rem;">
+<section class="proof-page developer-surface">
+  {% include "developer/_nav.html" %}
+  <header class="detail-hero rmc-reveal" style="margin-bottom: 1.5rem;">
     <p class="detail-eyebrow">Developers</p>
     <h1 class="detail-headline">{{ headline }}</h1>
     <p class="detail-subheadline">{{ subheadline }}</p>
@@ -40,7 +41,7 @@
     <h2 class="section-heading">SDK repo</h2>
     <p class="section-lead">Minimal client and auth helpers.</p>
     <p><a href="{{ links.sdk_repo }}" target="_blank" rel="noopener noreferrer">RunMyCampus SDK (GitHub)</a></p>
-    <p><a href="{{ links.portal }}">Back to Developer portal</a> · <a href="{{ links.sandbox }}">Sandbox</a></p>
+    <p><a href="{{ links.developer_portal }}">Back to Developer portal</a> · <a href="{{ links.sandbox }}">Sandbox</a></p>
   </section>
-</div>
+</section>
 {% endblock %}

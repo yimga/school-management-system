@@ -57,3 +57,15 @@ class PortalChromeResolverTests(SimpleTestCase):
             dashboard_template=_Template(),
         )
         self.assertEqual(out["PORTAL_HEADER_VARIANT"], "minimal")
+
+    def test_rejects_marketing_footer_partial_override(self):
+        class _Template:
+            config_schema = {
+                "chrome": {
+                    "footer_partial": "marketing/marketing_footer.html",
+                }
+            }
+
+        out = resolve_portal_chrome(site_theme=None, dashboard_template=_Template())
+        self.assertEqual(out["PORTAL_FOOTER_PARTIAL"], "components/footer.html")
+        self.assertNotIn("marketing", out["PORTAL_FOOTER_PARTIAL"])

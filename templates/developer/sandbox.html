@@ -1,0 +1,56 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{% trans "App sandbox" %} – RunMyCampus{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{% trans 'RunMyCampus app sandbox: preview marketplace extensions in a restricted iframe before publish.' %}">
+{% endblock %}
+{% block content %}
+<section class="proof-page developer-surface">
+  {% include "developer/_nav.html" %}
+  <header class="proof-hero rmc-reveal">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-box"></i> {% trans "Sandbox" %}</div>
+        <h1 class="proof-hero-title">{{ headline }}</h1>
+        <p class="proof-hero-copy">{{ subheadline }}</p>
+        <div class="proof-hero-actions">
+          <a href="{{ links.developer_hub }}" class="btn btn-outline-light">{% trans "Developer hub" %}</a>
+          <a href="{{ links.publisher_signup }}" class="btn btn-light">{% trans "Publisher signup" %}</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="proof-panel rmc-reveal">
+    <h2 class="proof-panel-title">{% trans "Local tenant sandbox" %}</h2>
+    <p class="proof-panel-copy">
+      {% trans "Provision a demo school for API and OAuth work. Full steps live in docs/developer/SANDBOX_QUICKSTART.md." %}
+    </p>
+    <pre class="developer-code-slab"><code>python manage.py ensure_demo_environment --school-slug={{ demo_school_slug }}</code></pre>
+    <p class="proof-panel-copy small mb-0">
+      {% trans "Point the SDK at your tenant host after tokens are issued." %}
+      <a href="{{ links.sdk }}">{% trans "SDK reference" %}</a>
+    </p>
+  </section>
+
+  <section class="proof-panel rmc-reveal">
+    <h2 class="proof-panel-title">{% trans "App preview frame" %}</h2>
+    <p class="proof-panel-copy">
+      {% trans "Third-party apps load here with iframe sandbox restrictions (no top navigation, no form posts to parent). Paste an app preview URL when your publisher console provides one." %}
+    </p>
+    <div class="proof-preview-frame developer-sandbox-frame-wrap">
+      <iframe
+        id="developer-app-sandbox-frame"
+        title="{% trans 'App sandbox preview' %}"
+        src="about:blank"
+        sandbox="allow-scripts allow-same-origin"
+        referrerpolicy="no-referrer"
+      ></iframe>
+    </div>
+    <p class="proof-panel-copy small mt-2 mb-0">
+      {% trans "Marketplace install lifecycle and governed review:" %}
+      <a href="{{ links.developer_portal }}">{% trans "Developer portal" %}</a>
+    </p>
+  </section>
+</section>
+{% endblock %}

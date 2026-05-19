@@ -4,11 +4,8 @@
 {% block marketing_page_stack_class %} mkt-page-type-resources{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-page mkt-v3-page--resources">
-  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
-    <p class="mkt-v3-eyebrow">{% trans "Resources" %}</p>
-    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
-    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-  </header>
+  {% include "marketing/components/_personality_hero.html" with eyebrow=_("Resources & guides") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
   {% if page.segments %}
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
     <div class="mkt-v3-segment-grid">

@@ -24,6 +24,7 @@
     "verify:six-pillar": "python scripts/verify_six_pillar_global_dominance.py --write --run-tests",
     "verify:tenant-sovereignty": "python scripts/verify_tenant_sovereignty_pillar.py --write",
     "verify:manager-chrome": "python scripts/verify_manager_portal_chrome_completion.py --write --run-tests",
+    "verify:footer-surface": "python scripts/verify_footer_surface_contract.py --write",
     "verify:marketplace-chromatic": "python scripts/verify_marketplace_proof_surface_dark.py",
     "verify:platform-chromatic": "python scripts/verify_platform_chromatic_compliance.py",
     "build:marketing-css": "python scripts/build_marketing_css_bundles.py",
@@ -39,7 +40,9 @@
     "verify:analytics": "npm run build:analytics && npm run audit:analytics-viz && npm run test:analytics && python scripts/verify_analytics_viz_prompt_completion.py && python scripts/verify_analytics_viz_gear_up.py",
     "verify:analytics:full": "python scripts/verify_analytics_viz_full_completion.py",
     "seed:analytics": "tsx src/database/seeds/run-analytics-seed.ts",
-    "verify:analytics-viz-prompt": "python scripts/verify_analytics_viz_prompt_completion.py"
+    "verify:analytics-viz-prompt": "python scripts/verify_analytics_viz_prompt_completion.py",
+    "test:social": "vitest run src/components/social",
+    "verify:social": "python scripts/verify_social_media_engine.py --write --run-tests"
   },
   "dependencies": {
     "dexie": "^4.0.10",

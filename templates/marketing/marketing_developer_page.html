@@ -9,7 +9,8 @@
 {% endblock %}
 
 {% block content %}
-<section class="proof-page">
+<section class="proof-page developer-surface">
+  {% if developer_nav %}{% include "developer/_nav.html" %}{% endif %}
   <section class="proof-hero rmc-reveal">
     <div class="proof-hero-grid">
       <div>
@@ -17,7 +18,8 @@
         <h1 class="proof-hero-title">{{ page.headline }}</h1>
         <p class="proof-hero-copy">{{ page.subheadline }}</p>
         <div class="proof-hero-actions">
-          <a href="{% url 'developer_portal' %}" class="btn btn-light">{% trans "Developer portal" %}</a>
+          <a href="{% url 'developer_hub' %}" class="btn btn-light">{% trans "Developer hub" %}</a>
+          <a href="{% url 'developer_portal' %}" class="btn btn-outline-light">{% trans "Developer portal" %}</a>
           <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-outline-light">{% trans "Marketplace story" %}</a>
         </div>
         <div class="proof-strip">

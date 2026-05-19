@@ -1,18 +1,19 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-trust-compliance.css' %}">
+{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-trust-center{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-page mkt-v3-page--trust-center" data-mkt-trust-center="1" data-world-class-trust-page="1" data-apple-class-trust-page="1">
-  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
-    <p class="mkt-v3-eyebrow">{% trans "Trust" %}</p>
-    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
-    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-    <div class="mkt-v3-archetype__ctas">
-      <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta" data-cta="security-packet">{% trans "Request security packet" %}</a>
-      <a href="{% url 'marketing_procurement_checklist' %}" class="mkt-edt-link">{% trans "Procurement checklist →" %}</a>
-    </div>
-  </header>
+  {% include "marketing/components/_personality_hero.html" with eyebrow=_("Trust & compliance") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
+  <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
+    <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta" data-cta="security-packet">{% trans "Request security packet" %}</a>
+    <a href="{% url 'marketing_procurement_checklist' %}" class="mkt-edt-link">{% trans "Procurement checklist →" %}</a>
+  </div>
 
   {% if page.segments %}
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="trust-pillars-heading">
@@ -68,10 +69,22 @@
     <h2 id="trust-deep-dives-heading" class="mkt-v3-section-headline">{% trans "Compliance deep dives" %}</h2>
     <ul class="mkt-v3-link-list">
       <li><a href="{% url 'marketing_trust_ferpa' %}">{% trans "FERPA & student records" %}</a></li>
+      <li><a href="{% url 'marketing_trust_coppa' %}">{% trans "COPPA & under-13 accounts" %}</a></li>
       <li><a href="{% url 'marketing_trust_gdpr' %}">{% trans "GDPR & UK GDPR" %}</a></li>
+      <li><a href="{% url 'marketing_trust_accessibility' %}">{% trans "Accessibility (WCAG)" %}</a></li>
       <li><a href="{% url 'marketing_trust_retention' %}">{% trans "Retention schedules" %}</a></li>
       <li><a href="{% url 'marketing_trust_incidents' %}">{% trans "Incident response" %}</a></li>
     </ul>
+  </section>
+
+  {% include "marketing/partials/trust_compliance_command_center.html" %}
+  {% include "marketing/partials/trust_compliance_control_framework.html" %}
+  {% include "marketing/partials/trust_compliance_regulatory_grid.html" %}
+  {% include "marketing/partials/trust_compliance_external_honesty.html" %}
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="trust-matrix-embed-heading">
+    <h2 id="trust-matrix-embed-heading" class="mkt-v3-section-headline">{% trans "Compliance reference" %}</h2>
+    {% include "marketing/partials/trust_compliance_anchors.html" %}
   </section>
 
   <section class="mkt-edt-container mkt-v3-page__close mkt-v3-page__close--with-advisor rmc-reveal">

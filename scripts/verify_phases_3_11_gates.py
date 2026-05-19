@@ -222,6 +222,10 @@ def main(argv: list[str] | None = None) -> int:
         "Marketing header: primary nav count / overflow handling (pre-deploy parity)",
     )
     run(
+        [py, _script_path("verify_developer_public_surface.py"), *base_args],
+        "Public developer section: runmycampus.com routes, nav, discovery APIs",
+    )
+    run(
         [py, _script_path("verify_doc_plan_density_discipline.py"), *base_args],
         "Docs discipline: single-source plan density non-growth",
     )

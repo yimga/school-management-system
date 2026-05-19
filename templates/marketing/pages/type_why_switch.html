@@ -4,16 +4,12 @@
 {% block marketing_page_stack_class %} mkt-page-type-why-switch{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-page mkt-v3-page--why-switch">
-  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
-    <p class="mkt-v3-eyebrow">{% trans "Why switch" %}</p>
-    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
-    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-    <p class="mkt-v3-page__platforms">{% trans "Coming from PowerSchool · Blackbaud · Veracross · Infinite Campus · spreadsheets" %}</p>
-    <div class="mkt-v3-archetype__ctas">
-      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a migration consult" %}</a>
-      <a href="{% url 'marketing_pricing' %}" class="mkt-edt-link">{% trans "See pricing →" %}</a>
-    </div>
-  </header>
+  {% include "marketing/components/_personality_hero.html" with eyebrow=_("Why switch") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+  <p class="mkt-edt-container mkt-v3-page__platforms">{% trans "Coming from PowerSchool · Blackbaud · Veracross · Infinite Campus · spreadsheets" %}</p>
+  <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
+    <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a migration consult" %}</a>
+    <a href="{% url 'marketing_pricing' %}" class="mkt-edt-link">{% trans "See pricing →" %}</a>
+  </div>
 
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="why-compare-heading">
     <h2 id="why-compare-heading" class="mkt-v3-section-headline">{% trans "Head-to-head" %}</h2>

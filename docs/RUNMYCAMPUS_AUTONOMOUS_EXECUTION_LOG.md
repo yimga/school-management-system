@@ -1,5 +1,73 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1304 V3.41 developer + trust public-surface closeout (2026-05-19)
+
+**A. Scope:** Proceed after V3.40 in the same 5-agent lane format: developer public pages/APIs, trust/security-compliance marketing surfaces, public URL aliases, footer/trust contracts, and marketing view-layer proof.
+
+**B. Changes:** Added root developer public routes for the developer marketing pages; made the developer public-surface verifier host/HTTPS aware; added public marketing aliases for procurement, implementation, portal-login, and find-campus-portal routes; preserved the trust/compliance and footer/social evidence lanes below.
+
+**C. Proof:** `python scripts/verify_developer_public_surface.py` **OK** (12 pages, 6 APIs, 8 reverses); `python scripts/verify_trust_compliance_surfaces.py` **OK**; `python scripts/verify_marketing_view_layer_complete.py` **OK** (16 pages, 4 aliases); `python scripts/verify_service_worker_version.py --check-monotonic` **OK** with SW `sms-v3.41.6-developer-surface-closeout-2026-05-19`.
+
+**D. SOT:** Section 11.4 batch **1304** is **DONE**.
+
+**E. Boundary:** No external certification, hosted browser proof, counsel attestation, or live deployment proof claimed.
+
+---
+
+## Slice - batch 1303 V3.40 closure recovery (2026-05-19)
+
+**A. Scope:** Promote V3.40 from evidence-boundary to repo-scope closure after fixing the forensic/six-pillar blockers and confirming Migration Cloud has no pending migration work.
+
+**B. Changes:** Fixed DOM-budget host routing for `/authentication/backend/`; made manager theme-visibility verification tolerate SSL redirect settings; aligned tracked-root allowlist entries; removed a no-print scanner false positive from `auth_backends_legacy.py`; kept Migration Cloud at applied `0021_audit_event_root_key_signature` with an empty migration plan.
+
+**C. Proof:** `python manage.py makemigrations migration_cloud --check --dry-run --verbosity 1` clean; `python manage.py migrate migration_cloud --plan` empty; global `python manage.py makemigrations --check --dry-run --verbosity 1` clean; `python scripts/verify_forensic_master_prompt_completion.py` **FORENSIC_MASTER_PROMPT_PASS** (24 pass / 0 fail); `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` **SIX_PILLAR_GLOBAL_DOMINANCE_PASS** (10/10); companion Docker/Tauri signed-release preflights **OK**.
+
+**D. SOT:** Section 11.4 batch **1303** is **DONE**.
+
+**E. Boundary:** The broad umbrella `python scripts/verify_phases_3_11_gates.py` now reaches Ruff and stops on 250 repo-wide `F401/F841` findings. That is tracked as a separate hygiene phase, not a Migration Cloud/V3.40 functional blocker. No external deployment, Render parity, live production, live provider posting, or external compliance certification claim.
+
+---
+
+## Slice - batch 1302 marketing personality/media/trust compliance closeout (2026-05-19)
+
+**A. Scope:** Promote batch **1302** from PARTIAL to **DONE** after the marketing URL-name smoke blocker was cleared. View-layer pages use named routes, and direct RequestFactory renders now receive session state.
+
+**B. Proof:** `verify_marketing_personality_distinction.py` **OK**; `verify_marketing_view_layer_complete.py` **OK** (16 pages, 4 aliases); `verify_trust_compliance_surfaces.py` **OK**; gear2/impact/homepage verifiers **OK**; marketing personality/media/validation Django slice **18/18 OK**; footer/trust Django slice **19/19 OK**.
+
+**C. SOT:** Section 11.4 batch **1302** is **DONE** (pairs with batch **1304** trust/developer closeout).
+
+**D. Boundary:** No hosted Playwright sweep or external compliance certification in this row.
+
+---
+
+## Slice - batch 1301 social media engine repo gate (2026-05-19)
+
+**A. Scope:** Repo-local evidence for the new multi-tenant social media engine lane: app registration, tenant-scoped integrations, feed aggregation, throttling, publishing/emergency routing, API v1 endpoints, React components, and isolation tests.
+
+**B. Proof:** `python scripts/verify_social_media_engine.py --write --run-tests` → **SOCIAL_MEDIA_ENGINE_PASS (10/10)** and `docs/generated/social_media_engine_audit.json`.
+
+**C. Test evidence:** Django fast social isolation/emergency tests **3 OK**; Vitest social component suite **1 file / 2 tests passed**.
+
+**D. SOT:** §11.4 batch **1301**.
+
+**E. Boundary:** No live provider OAuth tokens, external cross-post delivery, webhook callback verification, production moderation proof, or live deployment proof claimed.
+
+---
+
+## Slice - batch 1300 manager compact footer surface contract (2026-05-19)
+
+**A. Scope:** Close the manager/portal/footer evidence gap after the chrome lane changed from full marketing footer reuse to compact operator footer surfaces.
+
+**B. Implementation inspected:** `control_plane_skeleton.html`, `templates/auth/manager_login.html`, `templates/auth/admin_login.html`, `templates/base.html`, `templates/portal_base.html`, `partials/rmc_operator_footer_compact.html`, `partials/manager_login_footer.html`, `static/css/rmc-footer-surfaces.css`, `context_processors.py`, and `portal_chrome.py`.
+
+**C. Proof:** `python scripts/verify_footer_surface_contract.py --write` → **FOOTER_SURFACE_CONTRACT 59/59 PASS** (1,009+ non-marketing templates); `python scripts/verify_manager_portal_chrome_completion.py --write --run-tests` → **MANAGER_PORTAL_CHROME_PASS (21 checks)** including live footer-gate subprocess + Django/HTTP proof (`test_super_dashboard_*` footer assertions + login chrome); `docs/generated/footer_surface_contract_audit.json` + `docs/generated/manager_portal_chrome_audit.json`. **SW:** `sms-v3.41.1-footer-surface-contract-2026-05-19`.
+
+**D. SOT:** §11.4 batch **1300**.
+
+**E. Boundary:** Repo/template contract only; deployed hosts still need collectstatic + cache refresh. No live manager-host proof claimed.
+
+---
+
 ## Slice - batch 1299 platform chromatic audit closeout (2026-05-19)
 
 **A. Scope:** Close audit gaps after 1298 — triple-theme `.bg-light`, `text-bg-light`, pre/card-body slabs, dark table contrast block.

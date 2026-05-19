@@ -1,23 +1,40 @@
 {% extends "marketing/base_marketing.html" %}
 {% load i18n %}
-{% block title %}Developer public API — RunMyCampus{% endblock %}
+{% block title %}{% trans "Developer public API" %} — RunMyCampus{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{% trans 'Versioned API discovery, rate limits, OpenAPI after login, sandbox.' %}">
+{% endblock %}
 {% block content %}
-<div class="container py-5">
-  <h1 class="h3">{% trans "Developer public API" %}</h1>
-  <p class="text-secondary">{% trans "Versioned discovery, OneRoster, OpenAPI (staff), sandbox." %}</p>
-  <ul>
-    <li><strong>GET</strong> <a href="{{ manifest_url }}">{{ manifest_url }}</a> — {% trans "manifest (JSON)" %}</li>
-    <li><strong>OpenAPI</strong> — {{ schema_note }}</li>
-    <li><strong>{% trans "Sandbox" %}</strong> — {% trans "Site config → App sandbox after login." %}</li>
-  </ul>
-  <h2 class="h5 mt-4">{% trans "Rate limits (HTTP 429)" %}</h2>
-  <p class="text-secondary small">{% trans "Many JSON endpoints return a machine-readable backoff hint. Prefer Retry-After header; body may include:" %}</p>
-  <pre class="bg-light p-3 rounded small mb-0"><code>{
+<section class="proof-page developer-surface">
+  {% include "developer/_nav.html" %}
+  <header class="proof-hero rmc-reveal">
+    <div class="proof-hero-grid">
+      <div>
+        <div class="proof-kicker"><i class="bi bi-braces"></i> {% trans "Public API" %}</div>
+        <h1 class="proof-hero-title">{% trans "Developer public API" %}</h1>
+        <p class="proof-hero-copy">{% trans "Versioned discovery, OneRoster, OpenAPI (staff), sandbox." %}</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="proof-panel rmc-reveal">
+    <h2 class="proof-panel-title">{% trans "Discovery" %}</h2>
+    <ul class="proof-bullet-list">
+      <li><strong>GET</strong> <a href="{{ manifest_url }}">{{ manifest_url }}</a> — {% trans "manifest (JSON)" %}</li>
+      <li><strong>GET</strong> <a href="{{ links.v2_manifest }}">{{ links.v2_manifest }}</a> — {% trans "v2 manifest + OAuth URLs" %}</li>
+      <li><strong>{% trans "OpenAPI" %}</strong> — {{ schema_note }}</li>
+    </ul>
+  </section>
+
+  <section class="proof-panel rmc-reveal">
+    <h2 class="proof-panel-title">{% trans "Rate limits (HTTP 429)" %}</h2>
+    <p class="proof-panel-copy">{% trans "Many JSON endpoints return a machine-readable backoff hint. Prefer Retry-After header; body may include:" %}</p>
+    <pre class="developer-code-slab"><code>{
   "error": "Too many requests",
   "message": "Human-readable guidance",
   "retry_after": 30
 }</code></pre>
-  <p class="small text-muted mt-2">{% trans "OneRoster, EdFi, CEDS, SCIM, and JWT token endpoints follow this pattern where applicable. SCIM uses SCIM Error schema with detail + Retry-After." %}</p>
-  <p class="small text-muted">{% trans "Repository: docs/DEVELOPER_PUBLIC_API.md" %}</p>
-</div>
+    <p class="small proof-panel-copy">{% trans "Repository: docs/DEVELOPER_PUBLIC_API.md" %}</p>
+  </section>
+</section>
 {% endblock %}

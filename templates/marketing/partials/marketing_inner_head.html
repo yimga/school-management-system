@@ -19,6 +19,10 @@
     </nav>
     {% endif %}
 
+    {% if marketing_personality and not page_extras.suppress_personality_viz %}
+    {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+    {% include "marketing/components/_personality_viz_panel.html" %}
+    {% else %}
     <section class="detail-hero">
       <p class="detail-eyebrow">runmycampus.com | {{ page.label }}</p>
       <h1 class="detail-headline">{{ page.headline }}</h1>
@@ -29,6 +33,7 @@
         <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
       </div>
     </section>
+    {% endif %}
 
     <div class="trust-strip">
       {% for item in page_extras.trust_strip|default:trust_badges %}

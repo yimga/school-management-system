@@ -95,6 +95,10 @@ class SuperAdminSurfaceParityTests(TestCase):
         response = self.client.get("/super/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "rmc-horizontal-nav-rail.css")
+        self.assertContains(response, 'data-rmc-footer-surface="operator-compact"')
+        self.assertContains(response, "rmc-manager-login-footer")
+        self.assertNotContains(response, "mkt-footer-command")
+        self.assertNotContains(response, "mkt-footer-newsletter")
 
     def test_super_schools_list_shows_admin_bridge_chip(self):
         response = self.client.get(
@@ -117,11 +121,12 @@ class SuperAdminSurfaceParityTests(TestCase):
     def test_manager_admin_login_public_chrome(self):
         response = Client().get("/authentication/login/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "mkt-footer-command")
-        self.assertContains(response, "manager-login-corporate-footer")
+        self.assertContains(response, "data-rmc-footer-surface=\"operator-compact\"")
+        self.assertContains(response, "rmc-manager-login-footer")
+        self.assertNotContains(response, "mkt-footer-command")
         self.assertContains(response, "Platform status")
         self.assertContains(response, "Find campus")
-        self.assertContains(response, "rmc-corporate-os.css")
+        self.assertContains(response, "rmc-footer-surfaces.css")
 
     def test_admin_waive_subscription_hides_workspace_strip(self):
         school = School.objects.create(

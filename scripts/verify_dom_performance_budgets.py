@@ -27,14 +27,14 @@ import django
 django.setup()
 
 from django.contrib.auth import get_user_model
-from django.test import Client
+from django.test import Client, override_settings
 
-# label, path, max_element_nodes
+# label, path, max_element_nodes, host
 DOM_BUDGETS = (
-    ("/siteconfig/zero-ticket/", 2800),
-    ("/siteconfig/zero-ticket/permissions/", 2200),
-    ("/siteconfig/zero-ticket/workflows/", 2400),
-    ("/authentication/backend/", 3500),
+    ("/siteconfig/zero-ticket/", 2800, "manager.runmycampus.com"),
+    ("/siteconfig/zero-ticket/permissions/", 2200, "manager.runmycampus.com"),
+    ("/siteconfig/zero-ticket/workflows/", 2400, "manager.runmycampus.com"),
+    ("/authentication/backend/", 3500, "dom-budget.runmycampus.com"),
 )
 
 
@@ -51,17 +51,31 @@ def main() -> int:
             password="Test1234",
             email="dom_budget@example.com",
         )
-    client = Client()
-    client.force_login(user)
+    from apps.schools.models import School
+
+    School.objects.get_or_create(
+        slug="dom-budget",
+        defaults={
+            "name": "DOM Budget School",
+            "subdomain": "dom-budget",
+            "is_active": True,
+        },
+    )
     failures: list[str] = []
-    for path, max_nodes in DOM_BUDGETS:
-        resp = client.get(path, follow=True)
-        if resp.status_code not in (200,):
-            failures.append(f"{path}: HTTP {resp.status_code}")
-            continue
-        count = _count_elements(resp.content.decode("utf-8", errors="replace"))
-        if count > max_nodes:
-            failures.append(f"{path}: {count} elements > max {max_nodes}")
+    with override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["*"]):
+        for path, max_nodes, host in DOM_BUDGETS:
+            client = Client(HTTP_HOST=host, raise_request_exception=False)
+            client.force_login(user)
+            session = client.session
+            session["mfa_verified"] = True
+            session.save()
+            resp = client.get(path, follow=True)
+            if resp.status_code not in (200,):
+                failures.append(f"{path}: HTTP {resp.status_code}")
+                continue
+            count = _count_elements(resp.content.decode("utf-8", errors="replace"))
+            if count > max_nodes:
+                failures.append(f"{path}: {count} elements > max {max_nodes}")
     if failures:
         print("verify_dom_performance_budgets: FAIL", file=sys.stderr)
         for line in failures:

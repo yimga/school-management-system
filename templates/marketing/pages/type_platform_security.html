@@ -5,6 +5,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-security.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-trust-compliance.css' %}">
 {% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-security mkt-platform-theme--platform-security{% endblock %}
 {% block marketing_page_inner %}
@@ -119,6 +120,10 @@
     </div>
   </section>
 
+  {% include "marketing/partials/trust_compliance_command_center.html" %}
+  {% include "marketing/partials/trust_compliance_control_framework.html" %}
+  {% include "marketing/partials/trust_compliance_regulatory_grid.html" %}
+  {% include "marketing/partials/trust_compliance_external_honesty.html" %}
   {% include "marketing/partials/trust_compliance_anchors.html" %}
 
   {% if page.segments %}

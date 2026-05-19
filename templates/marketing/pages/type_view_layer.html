@@ -1,0 +1,26 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-view-layer mkt-view-layer--{{ marketing_personality_id|default:page.slug|slugify }}{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-page mkt-view-layer-page">
+  {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
+  {% if page.segments %}
+  <section class="mkt-edt-container mkt-v3-page__segments rmc-reveal" data-mkt-reveal>
+    <div class="mkt-v3-segment-grid">
+      {% for seg in page.segments %}
+      <article class="mkt-v3-segment-card">
+        <h2 class="h5">{{ seg.title }}</h2>
+        <p>{{ seg.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  <div class="mkt-edt-container mkt-v3-page__ctas rmc-reveal" data-mkt-reveal>
+    <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+    <a href="{% url 'marketing_trust_dedicated' %}" class="mkt-edt-link">{% trans "Trust center →" %}</a>
+  </div>
+</article>
+{% endblock %}

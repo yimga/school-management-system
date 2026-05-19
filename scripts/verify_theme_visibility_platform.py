@@ -120,7 +120,7 @@ def check_render_smoke() -> list[str]:
 
     django.setup()
     from django.contrib.auth import get_user_model
-    from django.test import Client
+    from django.test import Client, override_settings
 
     User = get_user_model()
     user, _ = User.objects.get_or_create(
@@ -131,8 +131,6 @@ def check_render_smoke() -> list[str]:
         user.set_password("verify-pass")
         user.save(update_fields=["password"])
 
-    client = Client()
-    client.force_login(user)
     host = "manager.runmycampus.com"
     # Mirrors docs/generated/THEME_VALIDATION_URLS.md (manager host).
     probes: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -210,17 +208,20 @@ def check_render_smoke() -> list[str]:
         ),
     )
     errors: list[str] = []
-    for path, needles in probes:
-        response = client.get(path, HTTP_HOST=host)
-        if response.status_code != 200:
-            errors.append(f"{path}: HTTP {response.status_code}")
-            continue
-        html = response.content.decode("utf-8", errors="replace")
-        for needle in needles:
-            if needle not in html:
-                errors.append(f"{path}: missing {needle} in HTML")
-        if "theme-preference-bootstrap" not in html:
-            errors.append(f"{path}: no theme-preference-bootstrap.js in HTML")
+    with override_settings(ALLOWED_HOSTS=["*"]):
+        client = Client(HTTP_HOST=host, raise_request_exception=False)
+        client.force_login(user)
+        for path, needles in probes:
+            response = client.get(path, HTTP_HOST=host, secure=True)
+            if response.status_code != 200:
+                errors.append(f"{path}: HTTP {response.status_code}")
+                continue
+            html = response.content.decode("utf-8", errors="replace")
+            for needle in needles:
+                if needle not in html:
+                    errors.append(f"{path}: missing {needle} in HTML")
+            if "theme-preference-bootstrap" not in html:
+                errors.append(f"{path}: no theme-preference-bootstrap.js in HTML")
     return errors
 
 

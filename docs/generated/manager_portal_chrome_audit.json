@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-05-19T11:12:00.389395+00:00",
+  "generated_at": "2026-05-19T14:12:29.686006+00:00",
   "verdict": "MANAGER_PORTAL_CHROME_PASS",
-  "passed": 19,
+  "passed": 21,
   "failed": 0,
   "rows": [
     {
       "area": "manager",
       "check_id": "skeleton_footer",
-      "description": "control_plane_skeleton includes corporate footer bundle",
+      "description": "control_plane_skeleton uses compact operator footer (not marketing bundle)",
       "status": "PASS",
       "proof": "control_plane_skeleton.html"
     },
@@ -17,6 +17,13 @@
       "description": "Login pages suppress duplicate skeleton footer",
       "status": "PASS",
       "proof": "manager_login + admin_login"
+    },
+    {
+      "area": "manager",
+      "check_id": "login_compact_footer",
+      "description": "Sign-in uses compact operator footer (not full marketing mega-footer)",
+      "status": "PASS",
+      "proof": "rmc_operator_footer_compact.html + rmc-footer-surfaces.css"
     },
     {
       "area": "manager",
@@ -63,9 +70,23 @@
     {
       "area": "manager",
       "check_id": "skeleton_footer_contract_test",
-      "description": "Template contract: skeleton emits corporate footer when flagged",
+      "description": "Template contract: skeleton emits compact operator footer when flagged",
       "status": "PASS",
       "proof": "test_manager_portal_chrome_contract"
+    },
+    {
+      "area": "platform",
+      "check_id": "footer_surface_gate",
+      "description": "Platform footer surface contract (59-check template sweep)",
+      "status": "PASS",
+      "proof": "porate_footer_styles: No non-marketing template includes corporate_footer_styles.html\n[PASS] marketing_base_uses_full_footer: Marketing shell includes full marketing_footer.html (not bundle wrapper)\n[PASS] login_suppresses_skeleton_duplicate: Manager login pages override skeleton footer block\n[PASS] footer_surfaces_css: Platform footer surface stylesheet exists\n\nFOOTER_SURFACE_CONTRACT: 59/59 PASS"
+    },
+    {
+      "area": "platform",
+      "check_id": "footer_surface_tests_module",
+      "description": "Footer surface Django contract tests present",
+      "status": "PASS",
+      "proof": "test_footer_surface_contract.py"
     },
     {
       "area": "tenant",
@@ -129,13 +150,6 @@
       "description": "Corporate marketing footer gated off tenant schools",
       "status": "PASS",
       "proof": "SHOW_CORPORATE_MARKETING_FOOTER gate"
-    },
-    {
-      "area": "proof",
-      "check_id": "django_tests",
-      "description": "Nav rail + manager/portal chrome test subset",
-      "status": "PASS",
-      "proof": "- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n..............\n----------------------------------------------------------------------\nRan 14 tests in 0.373s\n\nOK"
     }
   ]
 }

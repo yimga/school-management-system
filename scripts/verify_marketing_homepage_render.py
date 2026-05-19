@@ -31,6 +31,10 @@ MARKERS = (
     "data-mkt-day-role",
     "mkt-edt-globe__map--interactive",
     "marketing-gear2-home.css",
+    "marketing-edge-layout.css",
+    "mkt-edt-hero--edge",
+    "marketing-page-personality.css",
+    'data-mkt-personality="home"',
 )
 
 

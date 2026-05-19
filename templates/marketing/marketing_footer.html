@@ -81,10 +81,10 @@
         <h3 id="mkt-footer-platform">{% trans "Platform Hub" %}</h3>
         <ul class="mkt-footer-links">
           <li><a href="{% marketing_public_href 'marketing_company' %}">{% trans "About RunMyCampus" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_contact' '?intent=careers' %}">{% trans "Careers" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_contact' '?intent=brand-assets' %}">{% trans "Brand assets" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_careers' %}">{% trans "Careers" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_brand_assets' %}">{% trans "Brand assets" %}</a></li>
           <li><a href="{% marketing_public_href 'marketing_app_marketplace' %}">{% trans "App Marketplace" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_app_marketplace' '?category=hardware' %}">{% trans "Hardware Store" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_hardware_store' %}">{% trans "Hardware Store" %}</a></li>
           <li><a href="{% marketing_public_href 'marketing_developers' %}">{% trans "Developer APIs" %}</a></li>
         </ul>
       </section>
@@ -92,17 +92,17 @@
       <section class="mkt-footer-section" aria-labelledby="mkt-footer-solutions">
         <h3 id="mkt-footer-solutions">{% trans "Solutions & Routers" %}</h3>
         <ul class="mkt-footer-links">
-          <li><a href="{% marketing_public_href 'marketing_solutions_international_schools' %}">{% trans "For higher education" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_solutions_k12_schools' %}">{% trans "For K-12 districts" %}</a></li>
-          <li><a href="{% marketing_public_href 'global_login_discovery' %}">{% trans "Portal login" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_solutions_higher_ed' %}">{% trans "For higher education" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_solutions_k12_districts' %}">{% trans "For K-12 districts" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_portal_login' %}">{% trans "Portal login" %}</a></li>
           <li><a href="{% marketing_public_href 'marketing_demo' %}" data-cta="demo" data-page="footer">{% trans "Request a demo" %}</a></li>
           <li><a href="{% marketing_public_href 'marketing_pricing' %}">{% trans "Pricing matrix" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_implementation_assurance' %}">{% trans "Implementation timelines" %}</a></li>
-          <li><a href="{% marketing_public_href 'find_school' %}">{% trans "Find your campus portal" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_implementation_timelines' %}">{% trans "Implementation timelines" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_find_campus_portal' %}">{% trans "Find your campus portal" %}</a></li>
           <li><a href="{% marketing_public_href 'role_teachers' %}">{% trans "Teacher workspace" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_resources_guides' '?audience=educators' %}">{% trans "Training academies" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_resources_blog' '?topic=community' %}">{% trans "Teacher communities" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_resources_guides' '?topic=lesson-planning' %}">{% trans "Lesson planning templates" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_training_academies' %}">{% trans "Training academies" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_teacher_communities' %}">{% trans "Teacher communities" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_lesson_planning' %}">{% trans "Lesson planning templates" %}</a></li>
           <li><a href="{% marketing_public_href 'role_parents' %}">{% trans "Parent access guide" %}</a></li>
           <li><a href="{% marketing_public_href 'marketing_platform_student_portal' %}">{% trans "Student portal overview" %}</a></li>
         </ul>
@@ -112,23 +112,23 @@
         <h3 id="mkt-footer-trust">{% trans "Trust & Operations" %}</h3>
         <ul class="mkt-footer-links">
           <li><a href="{% marketing_public_href 'status' %}">{% trans "System Status (Live)" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_trust_dedicated' '#infrastructure' %}">{% trans "Infrastructure map" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_infrastructure_map' %}">{% trans "Infrastructure map" %}</a></li>
           <li><a href="{% marketing_public_href 'marketing_security_compliance' %}">{% trans "Trust & Security Center" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_security_compliance' '#security-matrix' %}">{% trans "Security matrix" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_security_matrix' %}">{% trans "Security matrix" %}</a></li>
           <li><a href="{% marketing_public_href 'marketing_resources_help_center' %}">{% trans "Support knowledge base" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_procurement_checklist' %}">{% trans "Procurement docs" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_procurement_docs' %}">{% trans "Procurement docs" %}</a></li>
         </ul>
       </section>
 
       <section class="mkt-footer-section" aria-labelledby="mkt-footer-legal">
         <h3 id="mkt-footer-legal">{% trans "Legal & Compliance" %}</h3>
         <ul class="mkt-footer-links">
-          <li><a href="{% marketing_public_href 'marketing_security_compliance' '#ferpa' %}">{% trans "FERPA privacy pledge" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_security_compliance' '#coppa' %}">{% trans "COPPA verification" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_privacy' '#gdpr' %}">{% trans "GDPR / Privacy Policy" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_security_compliance' '#accessibility' %}">{% trans "WCAG accessibility statement" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_terms' %}">{% trans "Terms of Service" %}</a></li>
-          <li><a href="{% marketing_public_href 'marketing_cookie_policy' %}">{% trans "Cookie policy" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_legal_ferpa' %}">{% trans "FERPA privacy pledge" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_legal_coppa' %}">{% trans "COPPA verification" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_legal_gdpr' %}">{% trans "GDPR / Privacy Policy" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_legal_wcag' %}">{% trans "WCAG accessibility statement" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_legal_terms' %}">{% trans "Terms of Service" %}</a></li>
+          <li><a href="{% marketing_public_href 'marketing_legal_cookie' %}">{% trans "Cookie policy" %}</a></li>
         </ul>
       </section>
     </nav>

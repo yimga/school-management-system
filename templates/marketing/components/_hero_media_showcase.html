@@ -1,0 +1,8 @@
+{% load i18n static %}
+{% comment %}Hero right column — product video + live analytics showcase.{% endcomment %}
+<div class="mkt-hero-showcase" data-mkt-hero-showcase>
+  <div class="mkt-hero-showcase__video">
+    {% include "marketing/components/_video_portal.html" with portal_id="mkt-hero-portal" portal_label=_("Campus operations preview") video_src="marketing/video/hero-home.mp4" poster_src="marketing/img/hero-home-poster.svg" %}
+  </div>
+  {% include "marketing/components/_hero_live_campus_pulse.html" %}
+</div>

@@ -25,6 +25,7 @@ from django.views.decorators.csrf import csrf_protect
 
 from apps.schools.domain_resolution_service import get_canonical_base_domain
 from apps.schools.marketing_institution_premium import INSTITUTION_PREMIUM_LAYER
+from apps.schools.marketing_personality import marketing_personality_context
 from apps.schools.marketing_page_definitions import (
     COMPARE_PAGE_DEFINITIONS,
     GETTING_STARTED_SIMULATOR_STEPS,
@@ -35,6 +36,11 @@ from apps.schools.marketing_page_definitions import (
     MIGRATION_SIMULATOR_SOURCES,
     ROLE_PAGE_DEFINITIONS,
     TOPICAL_LANDING_DEFINITIONS,
+)
+from apps.schools.marketing_view_layer_pages import VIEW_LAYER_MARKETING_PAGE_SLUGS
+from apps.schools.trust_center_evidence import (
+    TRUST_COMPLIANCE_ANCHOR_SLUGS,
+    build_trust_compliance_context,
 )
 from apps.siteconfig.brand_registry import resolve_global_brand_context
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
@@ -59,6 +65,7 @@ _MARKETING_PAGE_TYPE_TEMPLATES: dict[str, str] = {
     "demo": "marketing/pages/type_demo.html",
     "book-demo": "marketing/pages/type_demo.html",
     "trust-center": "marketing/pages/type_trust_center.html",
+    "security-compliance": "marketing/pages/type_security_compliance.html",
 }
 # Differentiated platform capability pages (buyer-specific layouts + self-hosted mockups).
 _MARKETING_PLATFORM_DIFFERENTIATED_TEMPLATES: dict[str, str] = {
@@ -89,6 +96,8 @@ def _marketing_page_type_template(slug: str) -> str | None:
     s = (slug or "").strip().lower()
     if s in _MARKETING_PAGE_TYPE_TEMPLATES:
         return _MARKETING_PAGE_TYPE_TEMPLATES[s]
+    if s in VIEW_LAYER_MARKETING_PAGE_SLUGS or s.startswith("legal-"):
+        return "marketing/pages/type_view_layer.html"
     if s in _MARKETING_PLATFORM_DIFFERENTIATED_TEMPLATES:
         return _MARKETING_PLATFORM_DIFFERENTIATED_TEMPLATES[s]
     if s.startswith("platform-") and s != "platform":
@@ -1472,7 +1481,7 @@ def _marketing_context(
         "title": "Developer platform",
         "summary": "APIs, webhooks, and SDKs to integrate RunMyCampus with your LMS, SIS, and internal tools.",
         "cta_label": "Developer docs",
-        "cta_path": _safe_reverse("marketing_developers") or "/developers/",
+        "cta_path": _safe_reverse("developer_hub") or "/developer/",
     }
 
     category_claim = (
@@ -1986,6 +1995,11 @@ def _marketing_context(
         "marketing_analytics_endpoint_url": marketing_analytics_endpoint_url,
         "marketing_page_type": "WebSite",
         "marketing_page_slug": "home",
+        **marketing_personality_context("home"),
+        # Public marketing: illustrative analytics without authenticated API.
+        "ENABLE_UNIFIED_ANALYTICS_VIZ": True,
+        "ANALYTICS_VIZ_USE_SEEDER": True,
+        "ANALYTICS_VIZ_API_URL": "",
         "marketing_analytics_preconnect_origin": marketing_analytics_preconnect_origin,
         "SHOW_HEADER_CONTEXT_STRIP": False,
         "marketing_show_chapter_indicator": False,
@@ -2427,6 +2441,7 @@ def marketing_page(request, page_slug: str):
         "active_nav_slug": page_slug,
         "marketing_page_type": page_copy.get("schema_type") or "WebPage",
         "marketing_page_slug": page_slug,
+        **marketing_personality_context(page_slug),
         "blog_posts": blog_posts,
         "blog_list_intro_html": blog_list_intro_html,
         "powerhouse_highlights": [
@@ -2453,6 +2468,20 @@ def marketing_page(request, page_slug: str):
         from apps.schools.marketing_v3_surfaces import marketing_solutions_personas
 
         ctx["solutions_personas"] = marketing_solutions_personas()
+    if normalized_slug in TRUST_COMPLIANCE_ANCHOR_SLUGS:
+        trust_ctx = build_trust_compliance_context()
+        if normalized_slug in (
+            "security-compliance",
+            "trust-center",
+            "platform-security",
+        ):
+            trust_ctx["trust_compliance_anchor_mode"] = "reference_only"
+        ctx.update(trust_ctx)
+    if normalized_slug == "developers":
+        from apps.schools.developer_surface import developer_nav_items
+
+        ctx["developer_nav"] = developer_nav_items(request)
+        ctx["active_developer_nav"] = "marketing_developers"
     # Product page: product-led storytelling (micro-demos, scroll-driven dark-mode, outcome-focused, developer-centric)
     if normalized_slug == "product":
         return render(request, "schools/marketing_product_page.html", ctx)
@@ -2503,6 +2532,7 @@ def marketing_solutions_persona(request, persona_slug: str):
         "active_nav_slug": "solutions",
         "marketing_page_type": "WebPage",
         "marketing_page_slug": f"solutions-{persona['slug']}",
+        **marketing_personality_context(f"solutions-{persona['slug']}"),
     }
     return render(request, "marketing/pages/type_solutions_persona.html", ctx)
 
@@ -3386,6 +3416,8 @@ def developer_marketing_page(request, section_slug: str):
         description=page_copy.get("seo_description") or "",
         path=canonical_path,
     )
+    from apps.schools.developer_surface import developer_nav_items
+
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -3394,6 +3426,14 @@ def developer_marketing_page(request, section_slug: str):
         "structured_data_json": json.dumps(structured_data),
         "page": page_copy,
         "active_nav_slug": "solutions",
+        "developer_nav": developer_nav_items(request),
+        "active_developer_nav": {
+            "api": "developer_api",
+            "webhooks": "developer_webhooks",
+            "integrations": "developer_integrations",
+            "sdk": "developer_sdk_page",
+            "app-building": "developer_app_building",
+        }.get(section_slug, "marketing_developers"),
     }
     return render(request, "marketing/marketing_developer_page.html", ctx)
 
@@ -3665,42 +3705,34 @@ def marketing_sitemap_xml(request):
     return HttpResponse("\n".join(chunks), content_type="application/xml")
 
 
+def _developer_page_context(request, *, active_nav: str, **extra):
+    from apps.schools.developer_surface import developer_link_context, developer_nav_items
+
+    links = developer_link_context(request)
+    return {
+        **_marketing_base_context(request),
+        "developer_nav": developer_nav_items(request),
+        "active_developer_nav": active_nav,
+        "links": links,
+        **extra,
+    }
+
+
 @require_GET
 def developer_hub(request):
     """
     Canonical /developer/ hub: OAuth, API v2 manifest, API Center, test console entry points.
     """
-    base = request.build_absolute_uri("/").rstrip("/")
-    base_ctx = _marketing_base_context(request)
     return render(
         request,
         "developer/hub.html",
-        {
-            **base_ctx,
-            "page_slug": "developer-hub",
-            "headline": "RunMyCampus for developers",
-            "subheadline": "Register apps, connect APIs, and ship integrations safely.",
-            "links": {
-                "v2_manifest": f"{base}/api/v2/manifest.json",
-                "v1_manifest": f"{base}/api/v1/manifest.json",
-                "v2_ping": f"{base}/api/v2/ping/",
-                "oauth_token": f"{base}/api/v1/oauth/token/",
-                "oauth_authorize": f"{base}/api/v1/oauth/authorize/",
-                "api_center": request.build_absolute_uri("/api-center/"),
-                "developer_portal": request.build_absolute_uri(reverse("developer_portal")),
-                "developer_console": request.build_absolute_uri(
-                    reverse("developer_console")
-                ),
-                "sdk": request.build_absolute_uri(reverse("developer_sdk")),
-                "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),
-                "public_api_docs": request.build_absolute_uri(
-                    reverse("developer_public_api_docs")
-                ),
-                "admin_developer_applications": f"{base}/admin/apicenter/developerapplication/",
-                "admin_marketplace_apps": f"{base}/admin/marketplace/marketplaceapp/",
-                "admin_tenant_subscriptions": f"{base}/admin/billing/tenantsubscription/",
-            },
-        },
+        _developer_page_context(
+            request,
+            active_nav="developer_hub",
+            page_slug="developer-hub",
+            headline="RunMyCampus for developers",
+            subheadline="Register apps, connect APIs, and ship integrations safely.",
+        ),
     )
 
 
@@ -3709,33 +3741,16 @@ def developer_console(request):
     """
     Developer console: app registration, versions, keys, webhooks, logs entry points.
     """
-    base_ctx = _marketing_base_context(request)
     return render(
         request,
         "developer/console.html",
-        {
-            **base_ctx,
-            "page_slug": "developer-console",
-            "headline": "Developer console",
-            "subheadline": "Register apps, ship semver versions, manage keys and webhooks.",
-            "links": {
-                "hub": request.build_absolute_uri(reverse("developer_hub")),
-                "oauth_authorize": request.build_absolute_uri(
-                    reverse("oauth:authorize")
-                ),
-                "oauth_token": request.build_absolute_uri(reverse("oauth:token")),
-                "api_center": request.build_absolute_uri("/api-center/"),
-                "integration_context": request.build_absolute_uri(
-                    reverse("api_v1:platform-integration-context")
-                ),
-                "scoped_ping": request.build_absolute_uri(
-                    reverse("api_v1:platform-scoped-ping")
-                ),
-                "public_api_docs": request.build_absolute_uri(
-                    reverse("developer_public_api_docs")
-                ),
-            },
-        },
+        _developer_page_context(
+            request,
+            active_nav="developer_console",
+            page_slug="developer-console",
+            headline="Developer console",
+            subheadline="Register apps, ship semver versions, manage keys and webhooks.",
+        ),
     )
 
 
@@ -3747,35 +3762,25 @@ def developer_portal(request):
     """
     base = get_canonical_base_domain() or request.get_host().split(":")[0]
     scheme = "https" if request.is_secure() else "http"
-    # Interop and API schema live under tenant/school URL space; document paths.
-    links = {
+    links_extra = {
         "api_schema_path": "/api/schema/ui/",
         "api_schema_note": "Available after login at your school subdomain (e.g. yourschool.runmycampus.com/api/schema/ui/).",
-        "interop_oneroster": request.build_absolute_uri("/api/interop/oneroster/"),
-        "interop_lti13": request.build_absolute_uri("/api/interop/lti13/"),
-        "interop_edfi": request.build_absolute_uri("/api/interop/edfi/"),
-        "interop_ceds": request.build_absolute_uri("/api/interop/ceds/"),
         "webhooks_doc": f"{scheme}://docs.{base}/webhooks/"
         if base != "localhost"
         else request.build_absolute_uri("/docs/webhooks/"),
         "app_lifecycle_anchor": request.build_absolute_uri(
             reverse("developer_portal") + "#app-lifecycle"
         ),
-        "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),
-        "sdk_repo": "https://github.com/runmycampus/sdk",
     }
-    base_ctx = _marketing_base_context(request)
-    return render(
+    ctx = _developer_page_context(
         request,
-        "schools/developer_portal.html",
-        {
-            **base_ctx,
-            "page_slug": "developer-portal",
-            "headline": "Developer Portal",
-            "subheadline": "APIs, webhooks, LTI, OneRoster, and app extensions.",
-            "links": links,
-        },
+        active_nav="developer_portal",
+        page_slug="developer-portal",
+        headline="Developer Portal",
+        subheadline="APIs, webhooks, LTI, OneRoster, and app extensions.",
     )
+    ctx["links"] = {**ctx["links"], **links_extra}
+    return render(request, "schools/developer_portal.html", ctx)
 
 
 @require_GET
@@ -3783,58 +3788,58 @@ def developer_sdk(request):
     """
     SDK documentation page (Section 6): auth, base URL, and API reference pointers.
     """
-    _base = get_canonical_base_domain() or request.get_host().split(":")[0]
-    _scheme = "https" if request.is_secure() else "http"
-    links = {
-        "portal": request.build_absolute_uri(reverse("developer_portal")),
-        "sandbox": request.build_absolute_uri(reverse("developer_sandbox")),
-        "sdk_repo": "https://github.com/runmycampus/sdk",
+    links_extra = {
         "api_schema_note": "After login at your school subdomain: /api/schema/ui/ for OpenAPI.",
         "auth_token": "POST /api/auth/token/ with username/password; use access token in Authorization: Bearer.",
         "auth_refresh": "POST /api/auth/token/refresh/ with refresh token.",
         "interop_edfi": "/api/interop/edfi/ (readiness); /api/interop/edfi/students/, .../studentSchoolAssociations/, .../grades/.",
         "interop_ceds": "/api/interop/ceds/ (readiness); /api/interop/ceds/students/, .../enrollments/, .../grades/.",
     }
-    base_ctx = _marketing_base_context(request)
-    return render(
+    ctx = _developer_page_context(
         request,
-        "schools/developer_sdk.html",
-        {
-            **base_ctx,
-            "page_slug": "developer-sdk",
-            "headline": "SDK & API reference",
-            "subheadline": "Authentication, base URL, and API endpoints for RunMyCampus integrations.",
-            "links": links,
-        },
+        active_nav="developer_sdk",
+        page_slug="developer-sdk",
+        headline="SDK & API reference",
+        subheadline="Authentication, base URL, and API endpoints for RunMyCampus integrations.",
     )
+    ctx["links"] = {**ctx["links"], **links_extra}
+    return render(request, "schools/developer_sdk.html", ctx)
 
 
 @require_GET
 def developer_public_api_docs(request):
     """Public developer API summary (§0.3); full detail in docs/DEVELOPER_PUBLIC_API.md."""
-    base_ctx = _marketing_base_context(request)
     return render(
         request,
         "schools/developer_public_api_docs.html",
-        {
-            **base_ctx,
-            "manifest_url": request.build_absolute_uri("/api/v1/manifest.json"),
-            "schema_note": "/api/schema/ and /api/schema/ui/ after staff login on tenant host.",
-        },
+        _developer_page_context(
+            request,
+            active_nav="developer_public_api_docs",
+            page_slug="developer-public-api",
+            manifest_url=request.build_absolute_uri("/api/v1/manifest.json"),
+            schema_note="/api/schema/ and /api/schema/ui/ after staff login on tenant host.",
+        ),
     )
 
 
 @require_GET
 def developer_sandbox(request):
     """
-    App sandbox (Section 6): iframe container with CSP for third-party app preview.
-    Sandbox attribute restricts script/origin; placeholder content for now.
+    App sandbox (Section 6): proof-page shell + restricted iframe for third-party preview.
     """
-    html = """<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sandbox</title></head>
-<body><p>App sandbox placeholder. Third-party apps run in an iframe with restricted permissions (CSP, sandbox attribute).</p></body></html>"""
-    response = HttpResponse(html, content_type="text/html; charset=utf-8")
-    response["Content-Security-Policy"] = (
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'self'"
+    response = render(
+        request,
+        "developer/sandbox.html",
+        _developer_page_context(
+            request,
+            active_nav="developer_sandbox",
+            page_slug="developer-sandbox",
+            headline="App sandbox",
+            subheadline=(
+                "Preview marketplace extensions in a restricted iframe before publish."
+            ),
+            demo_school_slug="demo-school",
+        ),
     )
     response["X-Frame-Options"] = "SAMEORIGIN"
     return response

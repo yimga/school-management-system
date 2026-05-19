@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-05-19T10:51:05.985793+00:00",
+  "generated_at": "2026-05-19T14:22:37.680169+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 902,
-  "views_indexed": 1730,
+  "row_count": 908,
+  "views_indexed": 1736,
   "summary": {
-    "login_gated": 861,
+    "login_gated": 867,
     "role_gated": 74,
     "permission_gated": 98,
     "has_inline_auth_check": 55,
@@ -3270,7 +3270,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/payroll/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -7768,6 +7768,149 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "social/feed/",
+      "view_symbol": "SocialFeedAPI.as_view",
+      "urls_file": "apps/api/urls_v1.py",
+      "view_file": "apps/social_media/api_views.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [
+        "IsAuthenticated"
+      ],
+      "bases": [
+        "APIView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "social/publish/",
+      "view_symbol": "SocialPublishAPI.as_view",
+      "urls_file": "apps/api/urls_v1.py",
+      "view_file": "apps/social_media/api_views.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [
+        "IsAuthenticated",
+        "IsAdminUser"
+      ],
+      "bases": [
+        "APIView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "social/moderation/",
+      "view_symbol": "SocialModerationAPI.as_view",
+      "urls_file": "apps/api/urls_v1.py",
+      "view_file": "apps/social_media/api_views.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [
+        "IsAuthenticated",
+        "IsAdminUser"
+      ],
+      "bases": [
+        "APIView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "social/moderation/<uuid:item_id>/",
+      "view_symbol": "SocialModerationAPI.as_view",
+      "urls_file": "apps/api/urls_v1.py",
+      "view_file": "apps/social_media/api_views.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [
+        "IsAuthenticated",
+        "IsAdminUser"
+      ],
+      "bases": [
+        "APIView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "social/analytics/pulse/",
+      "view_symbol": "SocialAnalyticsPulseAPI.as_view",
+      "urls_file": "apps/api/urls_v1.py",
+      "view_file": "apps/social_media/api_views.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [
+        "IsAuthenticated",
+        "IsAdminUser"
+      ],
+      "bases": [
+        "APIView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "social/attribution/",
+      "view_symbol": "SocialAttributionAPI.as_view",
+      "urls_file": "apps/api/urls_v1.py",
+      "view_file": "apps/social_media/api_views.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [
+        "IsAuthenticated",
+        "IsAdminUser"
+      ],
+      "bases": [
+        "APIView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "ping/",
       "view_symbol": "views_v2.ApiV2PingView.as_view",
       "urls_file": "apps/api/urls_v2.py",
@@ -10409,7 +10552,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/payroll/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -13306,7 +13449,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/payroll/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"

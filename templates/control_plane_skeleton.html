@@ -88,7 +88,7 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     {% block extrastyle %}{% endblock %}
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
-    {% include "marketing/partials/corporate_footer_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
   </head>
@@ -99,8 +99,8 @@
     {% block content %}{% endblock %}
     {% block manager_corporate_footer %}
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
-    <footer class="cp-corporate-footer" role="contentinfo" data-rmc-manager-corporate-footer data-mkt-footer>
-      {% include "marketing/partials/corporate_footer_bundle.html" %}
+    <footer class="cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
+      {% include "partials/rmc_operator_footer_compact.html" %}
     </footer>
     {% endif %}
     {% endblock %}

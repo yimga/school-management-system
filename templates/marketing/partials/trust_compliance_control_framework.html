@@ -1,0 +1,33 @@
+{% load i18n %}
+<section id="security-matrix" class="mkt-edt-container mkt-trust-control-framework rmc-reveal" aria-labelledby="trust-framework-title" data-mkt-trust-control-framework="1">
+  <h2 id="trust-framework-title" class="mkt-v3-section-headline">{% trans "Control framework" %}</h2>
+  <p class="mkt-v3-lead">{% trans "How each control is implemented in the product—and what evidence procurement can request." %}</p>
+  <div class="mkt-trust-matrix-wrap mkt-trust-matrix-wrap--framework">
+    <table class="mkt-trust-matrix mkt-trust-matrix--framework">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Control" %}</th>
+          <th scope="col">{% trans "Mechanism" %}</th>
+          <th scope="col">{% trans "Posture" %}</th>
+          <th scope="col">{% trans "Evidence" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in trust_matrix_rows %}
+        <tr data-trust-control="{{ row.id }}">
+          <td data-label="{% trans 'Control' %}">{{ row.control }}</td>
+          <td data-label="{% trans 'Mechanism' %}">{{ row.mechanism }}</td>
+          <td data-label="{% trans 'Posture' %}">{{ row.posture }}</td>
+          <td data-label="{% trans 'Evidence' %}">
+            {% if row.label %}
+            <span class="mkt-trust-evidence-chip mkt-trust-evidence-chip--{{ row.status }}">{{ row.label }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">{% trans "Control evidence loading…" %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

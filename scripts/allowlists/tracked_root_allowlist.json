@@ -2,13 +2,16 @@
   "last_reviewed": "2026-04-08",
   "allowed": [
     "AGENTS.md",
+    ".coveragerc",
     ".gitattributes",
     ".cursorrules",
     ".env.example",
+    ".env.staging.example",
     ".gitignore",
     ".pa11yci.json",
     ".python-version",
     "build.sh",
+    "CLAUDE.md",
     "conftest.py",
     "CONTRIBUTING.md",
     "deploy.sh",
@@ -20,11 +23,16 @@
     "package.json",
     "playwright.config.js",
     "Procfile",
+    "pytest.ini",
     "push-all.sh",
     "QUICK_START.md",
+    "requirements_optional.txt",
     "render.yaml",
     "requirements.txt",
     "runtime.txt",
-    "SECURITY.md"
+    "SECURITY.md",
+    "tsconfig.json",
+    "vite.analytics.config.ts",
+    "vitest.config.ts"
   ]
 }

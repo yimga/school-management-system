@@ -1,0 +1,261 @@
+/**
+ * Per-page marketing personalities — driven by [data-mkt-personality] on <html>.
+ * Python registry: apps/schools/marketing_personality.py
+ */
+
+/* ── Shared personality tokens (overridden per id below) ── */
+html[data-mkt-personality] {
+  --mkt-personality-accent: var(--mkt-edt-accent, #c2410c);
+  --mkt-personality-accent-ink: var(--mkt-personality-accent);
+  --mkt-personality-accent-soft: rgba(194, 65, 12, 0.08);
+  --mkt-personality-hero-wash: transparent;
+  --mkt-personality-hero-border: var(--mkt-edt-rule, #e5e0d8);
+  --mkt-edt-accent: var(--mkt-personality-accent);
+  --mkt-edt-signature: var(--mkt-personality-accent);
+  --mkt-edt-signature-soft: var(--mkt-personality-accent-soft);
+}
+
+html[data-mkt-personality="home"] {
+  --mkt-personality-accent: #c2410c;
+  --mkt-personality-accent-soft: rgba(194, 65, 12, 0.08);
+  --mkt-personality-hero-wash: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(194, 65, 12, 0.07), transparent 55%);
+}
+html[data-mkt-personality="platform-hub"] {
+  --mkt-personality-accent: #4f46e5;
+  --mkt-personality-accent-soft: rgba(79, 70, 229, 0.1);
+  --mkt-personality-hero-wash: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, transparent 48%);
+}
+html[data-mkt-personality="solutions-hub"] {
+  --mkt-personality-accent: #059669;
+  --mkt-personality-accent-soft: rgba(5, 150, 105, 0.1);
+  --mkt-personality-hero-wash: linear-gradient(160deg, rgba(5, 150, 105, 0.08), transparent 50%);
+}
+html[data-mkt-personality="solutions-persona"] {
+  --mkt-personality-accent: #7c3aed;
+  --mkt-personality-accent-soft: rgba(124, 58, 237, 0.1);
+  --mkt-personality-hero-wash: radial-gradient(circle at 100% 0%, rgba(124, 58, 237, 0.09), transparent 45%);
+}
+html[data-mkt-personality="pricing"] {
+  --mkt-personality-accent: #d97706;
+  --mkt-personality-accent-soft: rgba(217, 119, 6, 0.12);
+  --mkt-personality-hero-wash: repeating-linear-gradient(
+    -12deg,
+    rgba(217, 119, 6, 0.04) 0,
+    rgba(217, 119, 6, 0.04) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+}
+html[data-mkt-personality="trust"] {
+  --mkt-personality-accent: #0369a1;
+  --mkt-personality-accent-soft: rgba(3, 105, 161, 0.1);
+  --mkt-personality-hero-wash: linear-gradient(180deg, rgba(3, 105, 161, 0.07), transparent 42%);
+}
+html[data-mkt-personality="migrate"],
+html[data-mkt-personality="platform-migration-cloud"] {
+  --mkt-personality-accent: #0d9488;
+  --mkt-personality-accent-soft: rgba(13, 148, 136, 0.1);
+  --mkt-personality-hero-wash: linear-gradient(90deg, rgba(13, 148, 136, 0.08), transparent 55%);
+}
+html[data-mkt-personality="compare"] {
+  --mkt-personality-accent: #64748b;
+  --mkt-personality-accent-soft: rgba(100, 116, 139, 0.12);
+}
+html[data-mkt-personality="company"] {
+  --mkt-personality-accent: #92400e;
+  --mkt-personality-accent-soft: rgba(146, 64, 14, 0.08);
+  --mkt-personality-hero-wash: radial-gradient(ellipse at 20% 100%, rgba(146, 64, 14, 0.06), transparent 50%);
+}
+html[data-mkt-personality="resources"] {
+  --mkt-personality-accent: #4338ca;
+  --mkt-personality-accent-soft: rgba(67, 56, 202, 0.1);
+}
+html[data-mkt-personality="developers"] {
+  --mkt-personality-accent: #0891b2;
+  --mkt-personality-accent-soft: rgba(8, 145, 178, 0.12);
+  --mkt-personality-hero-wash: linear-gradient(180deg, rgba(15, 23, 42, 0.04) 0%, transparent 38%);
+}
+html[data-mkt-personality="demo"] {
+  --mkt-personality-accent: #ea580c;
+  --mkt-personality-accent-soft: rgba(234, 88, 12, 0.1);
+}
+html[data-mkt-personality="contact"] {
+  --mkt-personality-accent: #1f2937;
+  --mkt-personality-accent-soft: rgba(31, 41, 55, 0.06);
+}
+html[data-mkt-personality="lane-academics"],
+html[data-mkt-personality="platform-student-information-system"],
+html[data-mkt-personality="platform-attendance"],
+html[data-mkt-personality="platform-teacher-portal"] {
+  --mkt-personality-accent: #059669;
+  --mkt-personality-accent-soft: rgba(5, 150, 105, 0.1);
+}
+html[data-mkt-personality="lane-admissions"],
+html[data-mkt-personality="platform-admissions"] {
+  --mkt-personality-accent: #4f46e5;
+  --mkt-personality-accent-soft: rgba(79, 70, 229, 0.1);
+}
+html[data-mkt-personality="lane-finance"],
+html[data-mkt-personality="platform-fees-payments"] {
+  --mkt-personality-accent: #d97706;
+  --mkt-personality-accent-soft: rgba(217, 119, 6, 0.12);
+}
+html[data-mkt-personality="platform-analytics"] {
+  --mkt-personality-accent: #c47f1c;
+  --mkt-personality-accent-soft: rgba(196, 127, 28, 0.12);
+}
+html[data-mkt-personality="platform-security"] {
+  --mkt-personality-accent: #be185d;
+  --mkt-personality-accent-soft: rgba(190, 24, 93, 0.1);
+}
+html[data-mkt-personality="platform-parent-portal"] {
+  --mkt-personality-accent: #7c3aed;
+  --mkt-personality-accent-soft: rgba(124, 58, 237, 0.1);
+}
+html[data-mkt-personality="platform-marketplace"] {
+  --mkt-personality-accent: #8b5cf6;
+  --mkt-personality-accent-soft: rgba(139, 92, 246, 0.12);
+}
+
+/* ── Personality shell — top accent + page atmosphere ── */
+.mkt-personality-shell {
+  position: relative;
+}
+.mkt-personality-shell::before {
+  content: "";
+  display: block;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
+  margin: 0 0 1.25rem;
+  background: linear-gradient(
+    90deg,
+    var(--mkt-personality-accent),
+    color-mix(in srgb, var(--mkt-personality-accent) 40%, transparent)
+  );
+}
+
+/* ── Hero bands (archetype + v3 pages + admissions cinematic) ── */
+.marketing-surface .mkt-personality-hero,
+.marketing-surface .mkt-v3-page__hero.mkt-personality-hero,
+.marketing-surface .mkt-v3-archetype__hero.mkt-personality-hero,
+.marketing-surface .mkt-v3-platform-overview__hero.mkt-personality-hero,
+.marketing-surface .mkt-admissions-hero.mkt-personality-hero {
+  position: relative;
+  margin-inline: calc(-1 * clamp(1rem, 4vw, 2.5rem));
+  padding: clamp(1.75rem, 3vw, 2.75rem) clamp(1rem, 4vw, 2.5rem);
+  margin-bottom: 2rem;
+  border-block-end: 1px solid var(--mkt-personality-hero-border);
+  background: var(--mkt-personality-hero-wash), var(--mkt-edt-bg, #faf7f2);
+  overflow: hidden;
+}
+
+.marketing-surface .mkt-personality-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -10% -40% auto;
+  width: min(28rem, 55vw);
+  height: min(28rem, 55vw);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--mkt-personality-accent-soft), transparent 68%);
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.marketing-surface .mkt-personality-hero__eyebrow,
+.mkt-personality-viz__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--mkt-edt-type-micro, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mkt-personality-accent-ink, var(--mkt-personality-accent));
+}
+.marketing-surface .mkt-personality-hero__eyebrow::before {
+  content: "";
+  width: 1.5rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--mkt-personality-accent);
+}
+
+/* ── Segment / plan cards pick up personality chrome ── */
+html[data-mkt-personality] .mkt-v3-segment-card,
+html[data-mkt-personality] .mkt-v3-pricing-plan {
+  border-color: color-mix(in srgb, var(--mkt-personality-accent) 22%, var(--mkt-edt-rule));
+}
+html[data-mkt-personality] .mkt-v3-segment-card:hover,
+html[data-mkt-personality] .mkt-v3-pricing-plan:hover {
+  border-color: color-mix(in srgb, var(--mkt-personality-accent) 45%, var(--mkt-edt-rule));
+}
+
+html[data-mkt-personality="developers"] .mkt-v3-page--developers .mkt-v3-segment-card {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 0.9rem;
+  background: color-mix(in srgb, var(--mkt-edt-bg) 92%, #0f172a 8%);
+}
+
+html[data-mkt-personality="pricing"] .mkt-v3-pricing-plan[data-mkt-plan="growth"] {
+  border-width: 2px;
+  border-color: var(--mkt-personality-accent);
+  box-shadow: 0 12px 32px -12px color-mix(in srgb, var(--mkt-personality-accent) 35%, transparent);
+}
+
+html[data-mkt-personality="trust"] .mkt-v3-page--trust-center .mkt-v3-segment-card {
+  border-left: 3px solid var(--mkt-personality-accent);
+}
+
+html[data-mkt-personality="lane-finance"] .mkt-lane-finance__bar,
+html[data-mkt-personality="platform-fees-payments"] .mkt-lane-finance__bar {
+  background: linear-gradient(180deg, var(--mkt-personality-accent), color-mix(in srgb, var(--mkt-personality-accent) 55%, #fff));
+}
+
+html[data-mkt-personality="lane-academics"] .mkt-lane-academics__cell--present,
+html[data-mkt-personality="platform-student-information-system"] .mkt-lane-academics__cell--present {
+  background: color-mix(in srgb, var(--mkt-personality-accent) 88%, #fff);
+}
+
+html[data-mkt-personality="lane-admissions"] .mkt-lane-admissions__step.is-active .mkt-lane-admissions__step-btn,
+html[data-mkt-personality="platform-admissions"] .mkt-lane-admissions__step.is-active .mkt-lane-admissions__step-btn {
+  border-color: var(--mkt-personality-accent);
+  color: var(--mkt-personality-accent);
+}
+
+/* Admissions cinematic hero keeps dark band but personality stripe */
+html[data-mkt-personality="platform-admissions"] .mkt-admissions-hero.mkt-personality-hero {
+  color: #f8fafc;
+  background:
+    var(--mkt-personality-hero-wash),
+    linear-gradient(125deg, #0f172a 0%, #1e293b 48%, #312e81 100%); /* off-token-allow: decorative-gradient */
+}
+html[data-mkt-personality="platform-admissions"] .mkt-admissions-hero .mkt-personality-hero__eyebrow,
+html[data-mkt-personality="platform-admissions"] .mkt-admissions-hero .detail-eyebrow {
+  color: #a5b4fc;
+}
+
+/* Platform hub module rail accent */
+html[data-mkt-personality="platform-hub"] .mkt-v3-module-rail__item.is-active {
+  border-color: var(--mkt-personality-accent);
+  background: var(--mkt-personality-accent-soft);
+}
+
+/* Solutions persona tabs */
+html[data-mkt-personality="solutions-hub"] .mkt-v3-persona-tabs__btn[aria-selected="true"] {
+  border-color: var(--mkt-personality-accent);
+  color: var(--mkt-personality-accent);
+  background: var(--mkt-personality-accent-soft);
+}
+
+/* Home root — personality on editorial shell */
+#mkt-edt-root[data-mkt-personality="home"] {
+  --mkt-edt-accent: var(--mkt-personality-accent);
+}
+
+@media (max-width: 47.99rem) {
+  .marketing-surface .mkt-personality-hero,
+  .marketing-surface .mkt-v3-page__hero.mkt-personality-hero,
+  .marketing-surface .mkt-admissions-hero.mkt-personality-hero {
+    margin-inline: 0;
+  }
+}

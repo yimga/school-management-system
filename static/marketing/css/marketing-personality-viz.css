@@ -1,0 +1,144 @@
+/**
+ * Per-page personality viz panels — charts driven by marketing_personality_seeds.py
+ */
+
+.mkt-personality-viz {
+  margin: 0 0 2rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--mkt-personality-accent) 22%, var(--mkt-edt-rule, #e5e0d8));
+  border-radius: 12px;
+  background:
+    var(--mkt-personality-hero-wash, transparent),
+    var(--mkt-edt-bg-elevated, #fffefb);
+}
+
+.mkt-personality-viz__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mkt-personality-accent);
+}
+
+.mkt-personality-viz__caption {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--mkt-edt-ink-muted, #57534e);
+}
+
+.mkt-personality-viz__grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 48rem) {
+  .mkt-personality-viz__grid {
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 2fr);
+    align-items: stretch;
+  }
+}
+
+.mkt-personality-viz__metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.mkt-personality-viz__metric {
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: var(--mkt-personality-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--mkt-personality-accent) 18%, transparent);
+}
+
+.mkt-personality-viz__metric-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mkt-edt-ink-muted);
+}
+
+.mkt-personality-viz__metric-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mkt-edt-ink, #1c1917);
+}
+
+.mkt-personality-viz__metric-delta {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--mkt-personality-accent);
+}
+
+.mkt-personality-viz__chart {
+  width: 100%;
+  height: auto;
+  min-height: 7.5rem;
+}
+
+.mkt-personality-viz__spark {
+  stroke-dasharray: 6 4;
+  animation: mkt-viz-spark 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes mkt-viz-spark {
+  from { stroke-dashoffset: 0; opacity: 0.8; }
+  to { stroke-dashoffset: 18; opacity: 1; }
+}
+
+.mkt-personality-viz__timeline {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mkt-personality-viz__timeline-step {
+  flex: 1;
+  position: relative;
+  padding-top: 1.25rem;
+  font-size: 0.6875rem;
+  color: var(--mkt-edt-ink-muted);
+}
+
+.mkt-personality-viz__timeline-step::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--mkt-personality-accent) calc(var(--step-pct, 0) * 1%), #e5e0d8);
+}
+
+/* OS matrix chrome */
+html[data-mkt-personality-os="run"] .mkt-personality-viz {
+  font-variant-numeric: tabular-nums;
+}
+html[data-mkt-personality-os="teach"] .mkt-personality-viz {
+  border-radius: 16px;
+}
+html[data-mkt-personality-os="pay"] .mkt-personality-viz__metric-value {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+html[data-mkt-personality-os="communicate"] .mkt-personality-viz {
+  border-left: 3px solid var(--mkt-personality-accent);
+}
+
+/* Developers — dark terminal band */
+html[data-mkt-personality="developers"] .mkt-personality-viz {
+  background: color-mix(in srgb, #0f172a 92%, var(--mkt-edt-bg) 8%); /* off-token-allow: decorative-gradient */
+  color: #e2e8f0;
+}
+html[data-mkt-personality="developers"] .mkt-personality-viz__metric-value,
+html[data-mkt-personality="developers"] .mkt-personality-viz__caption {
+  color: #f1f5f9;
+}

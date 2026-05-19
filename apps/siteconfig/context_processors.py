@@ -720,11 +720,11 @@ def site_settings(request):
     )
     user = getattr(request, "user", None)
     is_authenticated = bool(user and getattr(user, "is_authenticated", False))
-    # Corporate marketing footer: manager host login only (never on tenant school surfaces).
+    # Compact operator gateway footer on manager host login via base.html (never full marketing bundle).
     ctx["SHOW_CORPORATE_MARKETING_FOOTER"] = (
         public_host_kind == "manager" and not school and not is_authenticated
     )
-    # Authenticated + anonymous manager pages use control_plane_base / manager_login includes.
+    # Manager control-plane shell: compact operator footer (rmc_operator_footer_compact), not marketing mega-footer.
     ctx["SHOW_MANAGER_CORPORATE_FOOTER"] = public_host_kind == "manager"
     ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
     ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}

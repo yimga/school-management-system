@@ -1,0 +1,55 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-trust-compliance.css' %}">
+{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-security-compliance mkt-page-trust-command{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-page mkt-v3-page--security-compliance" data-mkt-security-compliance="1" data-world-class-trust-page="1" data-apple-class-trust-page="1">
+  {% include "marketing/components/_personality_hero.html" with eyebrow=_("Security & compliance") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+  <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
+    <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta" data-cta="security-packet">{% trans "Request security packet" %}</a>
+    <a href="{% url 'marketing_procurement_checklist' %}" class="mkt-edt-cta mkt-edt-cta--secondary">{% trans "Procurement checklist" %}</a>
+    <a href="{% url 'marketing_trust_center' %}" class="mkt-edt-link">{% trans "Trust center →" %}</a>
+  </div>
+
+  {% include "marketing/partials/trust_compliance_command_center.html" %}
+
+  {% if page.segments %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="sec-pillars-heading">
+    <h2 id="sec-pillars-heading" class="mkt-v3-section-headline">{% trans "Built into daily operations" %}</h2>
+    <div class="mkt-v3-segment-grid">
+      {% for seg in page.segments %}
+      <article class="mkt-v3-segment-card">
+        <h3 class="h5">{{ seg.title }}</h3>
+        <p class="mb-0">{{ seg.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% include "marketing/partials/trust_compliance_control_framework.html" %}
+  {% include "marketing/partials/trust_compliance_regulatory_grid.html" %}
+  {% include "marketing/partials/trust_compliance_external_honesty.html" %}
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="sec-deep-matrix-heading">
+    <h2 id="sec-deep-matrix-heading" class="mkt-v3-section-headline">{% trans "Full compliance reference" %}</h2>
+    <p class="mkt-v3-lead">{% trans "Infrastructure, regulatory pledges, and procurement paths in one place for security reviewers." %}</p>
+    {% include "marketing/partials/trust_compliance_anchors.html" %}
+  </section>
+
+  <section class="mkt-edt-container mkt-v3-page__close mkt-v3-page__close--with-advisor rmc-reveal">
+    <div class="mkt-v3-page__close-copy text-center">
+      <p class="mkt-v3-lead">{% trans "Ready for your security questionnaire? We ship evidence from the repo—not marketing adjectives." %}</p>
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
+        <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta">{% trans "Request security packet" %}</a>
+        <a href="{% url 'marketing_implementation_assurance' %}" class="mkt-edt-cta mkt-edt-cta--secondary">{% trans "Implementation assurance" %}</a>
+        <a href="{% url 'marketing_demo' %}" class="mkt-edt-link">{% trans "Book demo →" %}</a>
+      </div>
+    </div>
+  </section>
+</article>
+{% endblock %}

@@ -5,8 +5,9 @@
   <meta name="description" content="RunMyCampus developer portal: APIs, webhooks, LTI, OneRoster, Ed-Fi, CEDS, app install lifecycle, and SDK.">
 {% endblock %}
 {% block content %}
-<div class="developer-portal">
-  <header class="detail-hero" style="margin-bottom: 1.5rem;">
+<section class="proof-page developer-surface">
+  {% include "developer/_nav.html" %}
+  <header class="proof-hero rmc-reveal" style="margin-bottom: 1.5rem;">
     <p class="detail-eyebrow">Developers</p>
     <h1 class="detail-headline">{{ headline }}</h1>
     <p class="detail-subheadline">{{ subheadline }}</p>
@@ -52,5 +53,5 @@
     <p><a href="{% url 'developer_sdk' %}">SDK &amp; API reference</a> – Auth, base URL, and endpoint summary.</p>
     <p><a href="{{ links.sdk_repo }}" target="_blank" rel="noopener noreferrer">RunMyCampus SDK (GitHub)</a> – README and minimal module (e.g. auth helper or API client stub).</p>
   </section>
-</div>
+</section>
 {% endblock %}

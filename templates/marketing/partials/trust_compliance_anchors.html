@@ -1,64 +1,117 @@
-{% load i18n %}
-<section id="infrastructure" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-infra-title">
-  <h2 id="trust-infra-title">{% trans "Infrastructure map" %}</h2>
-  <p>{% trans "RunMyCampus separates public marketing, manager control plane, and tenant school subdomains. Each school receives an isolated tenant context with dedicated portal, backend, and configuration surfaces." %}</p>
-  <ul>
-    <li>{% trans "Public gateway: runmycampus.com for procurement, trust, and campus discovery." %}</li>
-    <li>{% trans "Manager host: operator workflows, Studio OS, and platform administration." %}</li>
-    <li>{% trans "Tenant hosts: school subdomains (and verified custom domains when configured)." %}</li>
-  </ul>
-</section>
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-trust-compliance.css' %}">
 
-<section id="security-matrix" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-matrix-title">
-  <h2 id="trust-matrix-title">{% trans "Security matrix" %}</h2>
-  <div class="table-responsive rmc-os-table-density">
-    <table class="table table-sm align-middle">
-      <thead>
-        <tr>
-          <th scope="col">{% trans "Control" %}</th>
-          <th scope="col">{% trans "Posture" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>{% trans "Tenant isolation" %}</td><td>{% trans "School-scoped data paths and operator boundaries" %}</td></tr>
-        <tr><td>{% trans "Authentication" %}</td><td>{% trans "Role-based access with MFA-ready patterns" %}</td></tr>
-        <tr><td>{% trans "Audit trails" %}</td><td>{% trans "Sensitive admin actions logged for review" %}</td></tr>
-        <tr><td>{% trans "Encryption" %}</td><td>{% trans "TLS in transit; encrypted storage for sensitive fields" %}</td></tr>
-        <tr><td>{% trans "Payments" %}</td><td>{% trans "PCI scope minimized via processor-hosted flows" %}</td></tr>
-      </tbody>
-    </table>
+<div class="mkt-trust-compliance" data-mkt-trust-compliance="1" data-world-class-trust-matrix="1">
+  <nav class="mkt-trust-compliance__nav" aria-label="{% trans 'Trust sections' %}">
+    <a href="#infrastructure">{% trans "Infrastructure" %}</a>
+    <a href="#security-matrix">{% trans "Security matrix" %}</a>
+    <a href="#ferpa">{% trans "FERPA" %}</a>
+    <a href="#coppa">{% trans "COPPA" %}</a>
+    <a href="#gdpr">{% trans "GDPR" %}</a>
+    <a href="#accessibility">{% trans "Accessibility" %}</a>
+    <a href="#trust-procurement">{% trans "Procurement" %}</a>
+  </nav>
+
+  {% if trust_proof_badges and trust_compliance_anchor_mode != "reference_only" %}
+  <div class="mkt-trust-proof-strip rmc-reveal" role="list" aria-label="{% trans 'Repository proof posture' %}">
+    {% for badge in trust_proof_badges %}
+    <div class="mkt-trust-proof-badge mkt-trust-proof-badge--{{ badge.status }}" role="listitem">
+      <span class="mkt-trust-proof-badge__label">{{ badge.label }}</span>
+      <span class="mkt-trust-proof-badge__value">{{ badge.value }}</span>
+    </div>
+    {% endfor %}
   </div>
-</section>
+  {% if trust_evidence_as_of %}
+  <p class="mkt-trust-proof-meta rmc-os-muted-copy">
+    {{ trust_evidence_as_of }}{% if trust_proof_artifact_count %} · {% blocktrans count counter=trust_proof_artifact_count %}{{ counter }} artifact{% plural %}{{ counter }} artifacts{% endblocktrans %}{% endif %}
+    — {% trans "External SOC 2 / PCI attestations only when published." %}
+  </p>
+  {% endif %}
+  {% endif %}
 
-<section id="ferpa" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-ferpa-title">
-  <h2 id="trust-ferpa-title">{% trans "FERPA privacy pledge" %}</h2>
-  <p>{% trans "Schools remain the data controller for education records. RunMyCampus provides access controls, auditability, and disclosure safeguards aligned to common FERPA operational practices." %}</p>
-  <p><a href="{% url 'marketing_trust_ferpa' %}">{% trans "FERPA deep dive →" %}</a></p>
-</section>
+  <section id="infrastructure" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-infra-title">
+    <h2 id="trust-infra-title">{% trans "Infrastructure map" %}</h2>
+    <p>{% trans "RunMyCampus separates public marketing, manager control plane, and tenant school subdomains. Each school receives an isolated tenant context with dedicated portal, backend, and configuration surfaces." %}</p>
+    <ul>
+      <li>{% trans "Public gateway: runmycampus.com for procurement, trust, and campus discovery." %}</li>
+      <li>{% trans "Manager host: operator workflows, Studio OS, and platform administration." %}</li>
+      <li>{% trans "Tenant hosts: school subdomains (and verified custom domains when configured)." %}</li>
+    </ul>
+  </section>
 
-<section id="coppa" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-coppa-title">
-  <h2 id="trust-coppa-title">{% trans "COPPA verification" %}</h2>
-  <p>{% trans "Accounts for learners under 13 should be provisioned by the school with parental consent workflows appropriate to the institution's jurisdiction and policies." %}</p>
-</section>
+  {% if trust_compliance_anchor_mode != "reference_only" %}
+  <section id="security-matrix" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-matrix-title">
+    <h2 id="trust-matrix-title">{% trans "Security matrix" %}</h2>
+    <div class="mkt-trust-matrix-wrap">
+      <table class="mkt-trust-matrix">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Control" %}</th>
+            <th scope="col">{% trans "Posture" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if trust_matrix_rows %}
+          {% for row in trust_matrix_rows %}
+          <tr data-trust-control="{{ row.id }}">
+            <td data-label="{% trans 'Control' %}">{{ row.control }}</td>
+            <td data-label="{% trans 'Posture' %}">
+              {{ row.posture }}
+              {% if row.label %}
+              <span class="mkt-trust-evidence-chip mkt-trust-evidence-chip--{{ row.status }}">{{ row.label }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          {% else %}
+          <tr><td>{% trans "Tenant isolation" %}</td><td>{% trans "School-scoped data paths and operator boundaries" %}</td></tr>
+          <tr><td>{% trans "Authentication" %}</td><td>{% trans "Role-based access with MFA-ready patterns" %}</td></tr>
+          <tr><td>{% trans "Audit trails" %}</td><td>{% trans "Sensitive admin actions logged for review" %}</td></tr>
+          <tr><td>{% trans "Encryption" %}</td><td>{% trans "TLS in transit; encrypted storage for sensitive fields" %}</td></tr>
+          <tr><td>{% trans "Payments" %}</td><td>{% trans "PCI scope minimized via processor-hosted flows" %}</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
 
-<section id="gdpr" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-gdpr-title">
-  <h2 id="trust-gdpr-title">{% trans "GDPR / privacy" %}</h2>
-  <p>{% trans "Data processing supports school-owned records, regional compliance profiles, and data-subject request workflows documented in our privacy materials." %}</p>
-  <p><a href="{% url 'marketing_privacy' %}#gdpr">{% trans "Privacy policy →" %}</a> · <a href="{% url 'marketing_trust_gdpr' %}">{% trans "GDPR pack →" %}</a></p>
-</section>
+  <section id="ferpa" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-ferpa-title">
+    <h2 id="trust-ferpa-title">{% trans "FERPA privacy pledge" %}</h2>
+    <p>{% trans "Schools remain the data controller for education records. RunMyCampus provides access controls, auditability, and disclosure safeguards aligned to common FERPA operational practices." %}</p>
+    <p><a href="{% url 'marketing_trust_ferpa' %}" class="mkt-edt-link">{% trans "FERPA deep dive →" %}</a></p>
+  </section>
 
-<section id="accessibility" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-a11y-title">
-  <h2 id="trust-a11y-title">{% trans "WCAG accessibility statement" %}</h2>
-  <p>{% trans "We target WCAG 2.2 AA across public and tenant surfaces, with AAA contrast goals for high-stakes administrative data such as grades and financial ledgers." %}</p>
-  <p>{% trans "Theme tokens, focus-visible rings, skip links, and reduced-motion fallbacks are enforced in the marketing and dashboard shells." %}</p>
-</section>
+  <section id="coppa" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-coppa-title">
+    <h2 id="trust-coppa-title">{% trans "COPPA verification" %}</h2>
+    <p>{% trans "Accounts for learners under 13 should be provisioned by the school with parental consent workflows appropriate to the institution's jurisdiction and policies." %}</p>
+    <p><a href="{% url 'marketing_trust_coppa' %}" class="mkt-edt-link">{% trans "COPPA deep dive →" %}</a></p>
+  </section>
 
-<section class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-procurement-title">
-  <h2 id="trust-procurement-title">{% trans "Procurement & subprocessors" %}</h2>
-  <p>{% trans "SOC 2 control mapping and certification language are presented honestly—we document readiness and control design unless an external attestation is published." %}</p>
-  <div class="d-flex flex-wrap gap-2">
-    <a class="btn btn-primary btn-sm" href="{% url 'marketing_procurement_checklist' %}">{% trans "Procurement checklist" %}</a>
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'marketing_security_packet_request' %}">{% trans "Request security packet" %}</a>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'status' %}">{% trans "Live status" %}</a>
-  </div>
-</section>
+  <section id="gdpr" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-gdpr-title">
+    <h2 id="trust-gdpr-title">{% trans "GDPR / privacy" %}</h2>
+    <p>{% trans "Data processing supports school-owned records, regional compliance profiles, and data-subject request workflows documented in our privacy materials." %}</p>
+    <p>
+      <a href="{% url 'marketing_privacy' %}#gdpr" class="mkt-edt-link">{% trans "Privacy policy →" %}</a>
+      ·
+      <a href="{% url 'marketing_trust_gdpr' %}" class="mkt-edt-link">{% trans "GDPR pack →" %}</a>
+    </p>
+  </section>
+
+  <section id="accessibility" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-a11y-title">
+    <h2 id="trust-a11y-title">{% trans "WCAG accessibility statement" %}</h2>
+    <p>{% trans "We target WCAG 2.2 AA across public and tenant surfaces, with AAA contrast goals for high-stakes administrative data such as grades and financial ledgers." %}</p>
+    <p>{% trans "Theme tokens, focus-visible rings, skip links, and reduced-motion fallbacks are enforced in the marketing and dashboard shells." %}</p>
+    <p><a href="{% url 'marketing_trust_accessibility' %}" class="mkt-edt-link">{% trans "Accessibility deep dive →" %}</a></p>
+  </section>
+
+  <section id="trust-procurement" class="rmc-os-trust-anchor rmc-reveal" aria-labelledby="trust-procurement-title">
+    <h2 id="trust-procurement-title">{% trans "Procurement & subprocessors" %}</h2>
+    <p>{% trans "SOC 2 control mapping and certification language are presented honestly—we document readiness and control design unless an external attestation is published." %}</p>
+    <div class="mkt-trust-procurement-cta">
+      <a class="btn btn-primary btn-sm" href="{% url 'marketing_procurement_checklist' %}">{% trans "Procurement checklist" %}</a>
+      <a class="btn btn-outline-primary btn-sm" href="{% url 'marketing_security_packet_request' %}">{% trans "Request security packet" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'status' %}">{% trans "Live status" %}</a>
+    </div>
+  </section>
+</div>

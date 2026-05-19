@@ -1210,6 +1210,50 @@ MARKETING_PAGE_DEFINITIONS = {
             },
         ],
     },
+    "trust-center-coppa": {
+        "label": "COPPA & under-13 accounts",
+        "seo_title": "RunMyCampus COPPA — school-directed consent for learners under 13",
+        "seo_description": "How schools provision under-13 accounts with parental consent workflows appropriate to their jurisdiction.",
+        "headline": "COPPA-aligned school-directed provisioning.",
+        "subheadline": "RunMyCampus is built for institutions to control when and how learner accounts are created—not for direct child sign-up without school direction.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "School as gatekeeper",
+                "body": "Accounts for learners under 13 should be created by the school (or designated staff) using your consent and directory policies—not open self-registration.",
+            },
+            {
+                "title": "Parental consent workflows",
+                "body": "Your institution selects notice and consent patterns appropriate to jurisdiction; RunMyCampus supports role-scoped access and auditability for those workflows.",
+            },
+            {
+                "title": "Data minimization",
+                "body": "Collect only fields required for education operations; restrict staff roles to minimum necessary access for each workflow.",
+            },
+        ],
+    },
+    "trust-center-accessibility": {
+        "label": "Accessibility (WCAG)",
+        "seo_title": "RunMyCampus accessibility — WCAG 2.2 AA target",
+        "seo_description": "WCAG 2.2 AA across public and tenant surfaces; AAA contrast goals for grades and financial ledgers.",
+        "headline": "Accessibility statement.",
+        "subheadline": "Semantic tokens, focus-visible rings, skip links, and reduced-motion fallbacks across marketing and dashboard shells.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "WCAG 2.2 AA target",
+                "body": "We target AA conformance on public marketing and tenant operational surfaces, with ongoing scanner and contrast-guard enforcement in CI.",
+            },
+            {
+                "title": "High-stakes AAA contrast",
+                "body": "Grades, balances, and ledger views prioritize AAA-readable contrast via theme tokens and contrast remediation tooling.",
+            },
+            {
+                "title": "Keyboard & motion",
+                "body": "Skip links, focus-visible rings, and prefers-reduced-motion fallbacks ship in all primary shells.",
+            },
+        ],
+    },
     "trust-center-retention": {
         "label": "Retention & deletion",
         "seo_title": "RunMyCampus — data retention and deletion",
@@ -3003,3 +3047,10 @@ COMPARE_PAGE_DEFINITIONS = {
         ],
     },
 }
+
+# Advisory-board view-layer pages (personality + viz); see marketing_view_layer_pages.py
+from apps.schools.marketing_view_layer_pages import (  # noqa: E402
+    VIEW_LAYER_MARKETING_PAGE_DEFINITIONS,
+)
+
+MARKETING_PAGE_DEFINITIONS.update(VIEW_LAYER_MARKETING_PAGE_DEFINITIONS)

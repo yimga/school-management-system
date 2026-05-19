@@ -8,6 +8,10 @@ on:
       - "beta/school-management-system/templates/schools/marketing_*"
       - "beta/school-management-system/static/marketing/**"
       - "beta/school-management-system/scripts/*marketing*"
+      - "beta/school-management-system/apps/schools/trust_center_evidence.py"
+      - "beta/school-management-system/apps/schools/marketing_view_layer_pages.py"
+      - "beta/school-management-system/apps/schools/tests/test_trust_compliance_anchors.py"
+      - "beta/school-management-system/apps/schools/tests/test_marketing_personality_validation.py"
       - "beta/school-management-system/scripts/marketing_css_bundle_manifest.json"
       - "beta/school-management-system/tests/e2e/marketing-*.spec.js"
       - "beta/school-management-system/.github/workflows/marketing-gates.yml"
@@ -42,6 +46,9 @@ jobs:
           python scripts/verify_marketing_impact_layer.py
           python scripts/verify_marketing_sweep2.py
           python scripts/verify_marketing_gear2_completion.py
+          python scripts/verify_marketing_personality_distinction.py
+          python scripts/verify_marketing_view_layer_complete.py
+          python scripts/verify_trust_compliance_surfaces.py
           python scripts/verify_marketing_homepage_render.py
           python scripts/audit_marketing_frontend_100.py
 

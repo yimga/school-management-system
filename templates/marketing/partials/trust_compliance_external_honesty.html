@@ -1,0 +1,53 @@
+{% load i18n %}
+<section class="mkt-edt-container mkt-trust-external-honesty rmc-reveal" aria-labelledby="trust-external-heading" data-mkt-trust-external-honesty="1">
+  <h2 id="trust-external-heading" class="mkt-v3-section-headline">{% trans "External dependencies & attestations" %}</h2>
+  <p class="mkt-v3-lead">{% trans "We never imply SOC 2, PCI, or live payment settlement until externally verified and published." %}</p>
+
+  {% if trust_certification_honesty %}
+  <div class="mkt-trust-cert-grid" role="list" aria-label="{% trans 'Certification honesty' %}">
+    {% for item in trust_certification_honesty %}
+    <article class="mkt-trust-cert-card mkt-trust-cert-card--{{ item.status }}" role="listitem">
+      <h3 class="mkt-trust-cert-card__label">{{ item.label }}</h3>
+      <p class="mkt-trust-cert-card__status">
+        {% if item.status == "published" %}{% trans "Published attestation" %}{% else %}{% trans "Not published" %}{% endif %}
+      </p>
+      <p class="mkt-trust-cert-card__detail small mb-0">{{ item.detail }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if trust_external_dependencies %}
+  <h3 class="h6 mt-4">{% trans "Dependencies requiring external action" %}</h3>
+  <div class="mkt-trust-external-table-wrap">
+    <table class="mkt-trust-external-table">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Dependency" %}</th>
+          <th scope="col">{% trans "Blocking" %}</th>
+          <th scope="col">{% trans "Repo readiness" %}</th>
+          <th scope="col">{% trans "External action" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in trust_external_dependencies %}
+        <tr>
+          <td data-label="{% trans 'Dependency' %}">{{ row.name }}</td>
+          <td data-label="{% trans 'Blocking' %}"><span class="mkt-trust-blocking mkt-trust-blocking--{{ row.blocking_level }}">{{ row.blocking_level }}</span></td>
+          <td data-label="{% trans 'Repo readiness' %}">{{ row.repo_readiness }}</td>
+          <td data-label="{% trans 'External action' %}">{{ row.external_action }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if trust_governance_summary %}
+  <p class="small text-muted mt-3 mb-0">
+    {% blocktrans with total=trust_governance_summary.total_findings violations=trust_governance_summary.product_violations high=trust_governance_summary.high_risk %}
+    Security surface register: {{ total }} classified findings · {{ violations }} product violations · {{ high }} high-risk (allowlisted or hardened).
+    {% endblocktrans %}
+  </p>
+  {% endif %}
+</section>

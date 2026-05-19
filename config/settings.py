@@ -227,6 +227,7 @@ INSTALLED_APPS = [
     "apps.plans_entitlements.apps.PlansEntitlementsConfig",
     "apps.global_registries.apps.GlobalRegistriesConfig",
     "apps.integrations_marketplace.apps.IntegrationsMarketplaceConfig",
+    "apps.social_media.apps.SocialMediaConfig",
     "apps.setup_studio.apps.SetupStudioConfig",
     "apps.studio_os.apps.StudioOsConfig",
     "apps.orchestration.apps.OrchestrationConfig",  # Phase 10 — 4.1 long-running process support

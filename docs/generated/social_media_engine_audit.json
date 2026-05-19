@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-05-19T13:52:27.395103+00:00",
+  "status": "SOCIAL_MEDIA_ENGINE_PASS",
+  "pass_count": 10,
+  "total": 10,
+  "rows": [
+    {
+      "check_id": "app_registered",
+      "description": "social_media app in INSTALLED_APPS",
+      "status": "PASS",
+      "proof": "settings.py"
+    },
+    {
+      "check_id": "integration_model",
+      "description": "SocialMediaIntegration model + encrypted tokens",
+      "status": "PASS",
+      "proof": "models.py"
+    },
+    {
+      "check_id": "aggregator_service",
+      "description": "Per-tenant feed aggregator with cache fallback",
+      "status": "PASS",
+      "proof": "aggregator.py"
+    },
+    {
+      "check_id": "throttle_isolation",
+      "description": "Leaky-bucket throttle per tenant scope",
+      "status": "PASS",
+      "proof": "throttle.py"
+    },
+    {
+      "check_id": "publisher_emergency",
+      "description": "Cross-post publisher + emergency router",
+      "status": "PASS",
+      "proof": "publisher + emergency"
+    },
+    {
+      "check_id": "api_routes",
+      "description": "API v1 social endpoints wired",
+      "status": "PASS",
+      "proof": "urls_v1.py"
+    },
+    {
+      "check_id": "react_components",
+      "description": "SocialFeedGrid + SocialModerationQueue",
+      "status": "PASS",
+      "proof": "src/components/social/"
+    },
+    {
+      "check_id": "isolation_tests",
+      "description": "Adversarial isolation test modules",
+      "status": "PASS",
+      "proof": "tests/"
+    },
+    {
+      "check_id": "django_tests_fast",
+      "description": "Social media fast isolation tests green",
+      "status": "PASS",
+      "proof": "t\n...WARNING 2026-05-19 09:52:06,868 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- social_emergency_broadcast\n.\n----------------------------------------------------------------------\nRan 4 tests in 0.284s\n\nOK"
+    },
+    {
+      "check_id": "vitest_social",
+      "description": "Social React component tests green",
+      "status": "PASS",
+      "proof": "ists pending moderation tiles \u001b[33m1020\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m   Start at \u001b[22m 09:52:13\n\u001b[2m   Duration \u001b[22m 13.76s\u001b[2m (transform 585ms, setup 706ms, collect 902ms, tests 1.37s, environment 5.39s, prepare 2.53s)\u001b[22m\n\n\u001b[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.\u001b[39m"
+    }
+  ]
+}

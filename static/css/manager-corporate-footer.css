@@ -1,6 +1,6 @@
 /**
- * RunMyCampus Manager — corporate gateway footer on authenticated control-plane pages.
- * Login pages use manager-login.css; this styles the footer below cp-shell-content.
+ * RunMyCampus Manager — compact operator footer wrapper on authenticated control-plane pages.
+ * Footer chrome lives in rmc-footer-surfaces.css; login layout in manager-login.css.
  */
 
 .cp-corporate-footer {
@@ -11,7 +11,7 @@
   background: var(--surface-canvas, #0a0a0f);
 }
 
-.cp-corporate-footer .mkt-footer.mkt-corporate-footer {
+.cp-corporate-footer .rmc-manager-login-footer {
   margin-top: 0;
 }
 

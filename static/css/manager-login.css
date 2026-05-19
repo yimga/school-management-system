@@ -14,8 +14,26 @@ body {
 
 .manager-login-landing,
 .admin-login-landing {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  padding: 2rem 0 4rem;
+  min-height: 100dvh;
+  padding: 0;
+}
+
+.manager-login-landing__stage {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.25rem, 4vw, 2.5rem) 1rem clamp(1rem, 2vw, 1.5rem);
+  width: 100%;
+}
+
+.manager-login-landing__signin {
+  width: 100%;
+  max-width: min(720px, 100%);
+  margin-inline: auto;
 }
 
 /* Desktop: use full container width so layout doesn't look like mobile */
@@ -235,30 +253,4 @@ body {
   text-decoration: underline;
 }
 
-/* Corporate marketing footer on manager sign-in (cream card on navy ground) */
-.manager-login-corporate-footer {
-  margin: 0 auto 2rem;
-  max-width: min(960px, 100%);
-  padding: 0 0.75rem;
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--mkt-surface-cream, var(--rmc-os-bg-canvas, #faf8f5));
-  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.45);
-}
-
-.manager-login-corporate-footer .mkt-footer {
-  margin: 0;
-}
-
-.manager-login-footer a,
-.admin-login-footer a {
-  color: rgba(245, 238, 221, 0.92);
-  text-decoration: none;
-  font-size: var(--type-size-caption);
-}
-
-.manager-login-footer a:hover,
-.admin-login-footer a:hover {
-  color: var(--school-accent, var(--school-primary));
-  text-decoration: underline;
-}
+/* Compact operator footer styles: static/css/rmc-footer-surfaces.css */

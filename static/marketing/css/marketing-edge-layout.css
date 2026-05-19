@@ -1,0 +1,99 @@
+/**
+ * Marketing edge layout — reduce centered-column gutters on wide viewports.
+ * Pairs with editorial tokens; home v2 sections opt in via --edge / --bleed modifiers.
+ */
+
+/* Slightly wider readable column for media-heavy homepage sections */
+[data-mkt-edition="editorial"] .mkt-edt-container--wide {
+  max-width: min(var(--mkt-edt-container-wide, 96rem), 100%);
+}
+
+/* Full-width shell with viewport-edge padding (hero, day|role, product proof) */
+[data-mkt-edition="editorial"] .mkt-edt-container--edge {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+}
+
+/* ── Hero: copy anchors left; artifact stretches toward the right edge ── */
+@media (min-width: 64rem) {
+  [data-mkt-edition="editorial"] .mkt-edt-hero--edge .mkt-edt-hero__grid {
+    grid-template-columns: minmax(18rem, 40vw) minmax(0, 1fr);
+    gap: clamp(1.25rem, 3vw, 3.5rem);
+    align-items: center;
+    padding-inline: clamp(1.25rem, 4vw, 2.5rem) clamp(0.5rem, 1.5vw, 1rem);
+  }
+
+  [data-mkt-edition="editorial"] .mkt-edt-hero--edge .mkt-edt-hero__artifact {
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
+  }
+}
+
+@media (min-width: 90rem) {
+  [data-mkt-edition="editorial"] .mkt-edt-hero--edge .mkt-edt-hero__grid {
+    grid-template-columns: minmax(20rem, 36vw) minmax(0, 1.15fr);
+  }
+}
+
+/* ── Trust carousel: edge-to-edge marquee ── */
+.mkt-edt-trust-carousel--bleed {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+/* ── Product proof: three-up grid uses full container width ── */
+.mkt-v3-product-proof--edge .mkt-v3-product-proof__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 63.99rem) {
+  .mkt-v3-product-proof--edge .mkt-v3-product-proof__grid {
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+}
+
+.mkt-v3-product-proof--edge .mkt-v3-dashboard-frame {
+  max-width: none;
+  margin-inline: 0;
+  width: 100%;
+}
+
+/* ── Day|role bell clock + persona: frames fill their grid cells ── */
+.mkt-day-role-story--edge .mkt-v3-dashboard-frame--impact {
+  max-width: none;
+  margin-inline: 0;
+  width: 100%;
+}
+
+@media (min-width: 64rem) {
+  .mkt-day-role-story--edge .mkt-v3-bell-clock--impact {
+    grid-template-columns: minmax(10rem, 12rem) minmax(0, 1.2fr) minmax(16rem, 1.35fr);
+  }
+}
+
+/* ── Walkthrough + portal: cinematic strip spans container ── */
+.mkt-edt-walkthrough--edge .mkt-edt-walkthrough__poster,
+.mkt-edt-walkthrough--edge .mkt-edt-walkthrough__portal-wrap {
+  max-width: none;
+  margin-inline: 0;
+  width: 100%;
+}
+
+/* ── ROI stats band: intro stays readable; grid spans full wide container ── */
+.mkt-edt-roi--edge .mkt-edt-roi__grid {
+  width: 100%;
+}
+
+/* ── Globe: intro left-aligned on wide screens (map already full-bleed) ── */
+@media (min-width: 64rem) {
+  [data-mkt-edition="editorial"] .mkt-edt-globe--fullbleed .mkt-edt-globe__intro {
+    margin-inline: 0;
+    margin-left: clamp(1.25rem, 4vw, 2.5rem);
+    max-width: min(42rem, 50vw);
+  }
+}

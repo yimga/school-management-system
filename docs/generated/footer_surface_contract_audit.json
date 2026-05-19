@@ -1,0 +1,361 @@
+{
+  "generated_at": "2026-05-19T14:12:29.458506+00:00",
+  "pass": true,
+  "templates_scanned": 1011,
+  "rows": [
+    {
+      "check_id": "forbid_bundle_templates_control_plane_skeleton.html",
+      "description": "templates/control_plane_skeleton.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_control_plane_base.html",
+      "description": "templates/control_plane_base.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/control_plane_base.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_portal_base.html",
+      "description": "templates/portal_base.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_backend_base_manager.html",
+      "description": "templates/backend_base_manager.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/backend_base_manager.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_backend_base_tenant.html",
+      "description": "templates/backend_base_tenant.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/backend_base_tenant.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_backend_base.html",
+      "description": "templates/backend_base.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/backend_base.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_auth_manager_login.html",
+      "description": "templates/auth/manager_login.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/auth/manager_login.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_auth_admin_login.html",
+      "description": "templates/auth/admin_login.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/auth/admin_login.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_auth_login.html",
+      "description": "templates/auth/login.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/auth/login.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_auth_school_picker.html",
+      "description": "templates/auth/school_picker.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/auth/school_picker.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_components_dashboard_footer.html",
+      "description": "templates/components/dashboard_footer.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/components/dashboard_footer.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_components_footer.html",
+      "description": "templates/components/footer.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/components/footer.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_components_portal_footers_minimal.html",
+      "description": "templates/components/portal_footers/minimal.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/components/portal_footers/minimal.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_base.html",
+      "description": "templates/base.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "forbid_bundle_templates_admin_base_site.html",
+      "description": "templates/admin/base_site.html must not include marketing corporate footer bundle",
+      "status": "PASS",
+      "proof": "templates/admin/base_site.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_control_plane_skeleton.html",
+      "description": "templates/control_plane_skeleton.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_control_plane_base.html",
+      "description": "templates/control_plane_base.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/control_plane_base.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_portal_base.html",
+      "description": "templates/portal_base.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_backend_base_manager.html",
+      "description": "templates/backend_base_manager.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/backend_base_manager.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_backend_base_tenant.html",
+      "description": "templates/backend_base_tenant.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/backend_base_tenant.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_backend_base.html",
+      "description": "templates/backend_base.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/backend_base.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_auth_manager_login.html",
+      "description": "templates/auth/manager_login.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/auth/manager_login.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_auth_admin_login.html",
+      "description": "templates/auth/admin_login.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/auth/admin_login.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_auth_login.html",
+      "description": "templates/auth/login.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/auth/login.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_auth_school_picker.html",
+      "description": "templates/auth/school_picker.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/auth/school_picker.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_components_dashboard_footer.html",
+      "description": "templates/components/dashboard_footer.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/components/dashboard_footer.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_components_footer.html",
+      "description": "templates/components/footer.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/components/footer.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_components_portal_footers_minimal.html",
+      "description": "templates/components/portal_footers/minimal.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/components/portal_footers/minimal.html"
+    },
+    {
+      "check_id": "forbid_mkt_command_templates_admin_base_site.html",
+      "description": "templates/admin/base_site.html must not embed marketing mega-footer markup",
+      "status": "PASS",
+      "proof": "templates/admin/base_site.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_control_plane_skeleton.html",
+      "description": "templates/control_plane_skeleton.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_control_plane_base.html",
+      "description": "templates/control_plane_base.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/control_plane_base.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_portal_base.html",
+      "description": "templates/portal_base.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_backend_base_manager.html",
+      "description": "templates/backend_base_manager.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/backend_base_manager.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_backend_base_tenant.html",
+      "description": "templates/backend_base_tenant.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/backend_base_tenant.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_backend_base.html",
+      "description": "templates/backend_base.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/backend_base.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_auth_manager_login.html",
+      "description": "templates/auth/manager_login.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/auth/manager_login.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_auth_admin_login.html",
+      "description": "templates/auth/admin_login.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/auth/admin_login.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_auth_login.html",
+      "description": "templates/auth/login.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/auth/login.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_auth_school_picker.html",
+      "description": "templates/auth/school_picker.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/auth/school_picker.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_components_dashboard_footer.html",
+      "description": "templates/components/dashboard_footer.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/components/dashboard_footer.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_components_footer.html",
+      "description": "templates/components/footer.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/components/footer.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_components_portal_footers_minimal.html",
+      "description": "templates/components/portal_footers/minimal.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/components/portal_footers/minimal.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_base.html",
+      "description": "templates/base.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "forbid_mkt_styles_templates_admin_base_site.html",
+      "description": "templates/admin/base_site.html must not pull marketing-shell footer CSS bundle",
+      "status": "PASS",
+      "proof": "templates/admin/base_site.html"
+    },
+    {
+      "check_id": "require_rmc_operator_footer__templates_control_plane_skeleton.html",
+      "description": "templates/control_plane_skeleton.html wires 'rmc_operator_footer_compact.html'",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "require_data-rmc-footer-surf_templates_control_plane_skeleton.html",
+      "description": "templates/control_plane_skeleton.html wires 'data-rmc-footer-surface=\"operator-compact\"'",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "require_rmc-footer-surfaces._templates_base.html",
+      "description": "templates/base.html wires 'rmc-footer-surfaces.css'",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "require_rmc_operator_footer__templates_base.html",
+      "description": "templates/base.html wires 'rmc_operator_footer_compact.html'",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "require_PORTAL_FOOTER_PARTIA_templates_portal_base.html",
+      "description": "templates/portal_base.html wires 'PORTAL_FOOTER_PARTIAL'",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "require_rmc-footer-surfaces._templates_portal_base.html",
+      "description": "templates/portal_base.html wires 'rmc-footer-surfaces.css'",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "require_operator-compact_static_css_rmc-footer-surfaces.css",
+      "description": "static/css/rmc-footer-surfaces.css wires 'operator-compact'",
+      "status": "PASS",
+      "proof": "static/css/rmc-footer-surfaces.css"
+    },
+    {
+      "check_id": "require_tenant-standard_static_css_rmc-footer-surfaces.css",
+      "description": "static/css/rmc-footer-surfaces.css wires 'tenant-standard'",
+      "status": "PASS",
+      "proof": "static/css/rmc-footer-surfaces.css"
+    },
+    {
+      "check_id": "require_\"marketing\"_not_in_f_apps_siteconfig_portal_chrome.py",
+      "description": "apps/siteconfig/portal_chrome.py wires '\"marketing\" not in fp.lower()'",
+      "status": "PASS",
+      "proof": "apps/siteconfig/portal_chrome.py"
+    },
+    {
+      "check_id": "sweep_non_marketing_no_bundle",
+      "description": "No non-marketing template includes corporate_footer_bundle.html",
+      "status": "PASS",
+      "proof": "1011 templates scanned"
+    },
+    {
+      "check_id": "sweep_non_marketing_no_mkt_command",
+      "description": "No non-marketing template embeds mkt-footer-command",
+      "status": "PASS",
+      "proof": "clean"
+    },
+    {
+      "check_id": "sweep_non_marketing_no_corporate_footer_styles",
+      "description": "No non-marketing template includes corporate_footer_styles.html",
+      "status": "PASS",
+      "proof": "clean"
+    },
+    {
+      "check_id": "marketing_base_uses_full_footer",
+      "description": "Marketing shell includes full marketing_footer.html (not bundle wrapper)",
+      "status": "PASS",
+      "proof": "templates/marketing/base_marketing.html"
+    },
+    {
+      "check_id": "login_suppresses_skeleton_duplicate",
+      "description": "Manager login pages override skeleton footer block",
+      "status": "PASS",
+      "proof": "manager_login + admin_login"
+    },
+    {
+      "check_id": "footer_surfaces_css",
+      "description": "Platform footer surface stylesheet exists",
+      "status": "PASS",
+      "proof": "static/css/rmc-footer-surfaces.css"
+    }
+  ]
+}

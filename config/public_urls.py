@@ -26,7 +26,9 @@ from apps.schools.marketing_views import (
     compare_marketing_page,
     developer_marketing_page,
     developer_hub,
+    developer_console,
     developer_portal,
+    developer_public_api_docs,
     developer_sdk,
     developer_sandbox,
     institution_marketing_page,
@@ -84,6 +86,9 @@ from apps.siteconfig.views_manifest_icon import (
     icon_maskable as _manifest_icon_maskable,
 )
 from apps.schools.marketing_views_v2 import marketing_landing_v2
+from apps.marketplace.urls_developer_platform import (
+    public_urlpatterns as marketplace_dev_public_urlpatterns,
+)
 
 
 def home(request):
@@ -133,6 +138,18 @@ urlpatterns = [
     path("status/", obs_views.public_status, name="status"),
     path("api/caddy-check/", verify_caddy_domain),
     path("api/v1/auth/check-domain/", verify_caddy_domain),
+    # Developer discovery API (parity with config.urls — manifests, oauth, interop hub)
+    path("api/", include(("apps.api.urls", "api"), namespace="api")),
+    path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
+    path(
+        "api/v1/oauth/",
+        include(("apps.apicenter.oauth_urls", "oauth"), namespace="oauth"),
+    ),
+    path("api/v2/", include(("apps.api.urls_v2", "api_v2"), namespace="api_v2")),
+    path(
+        "api-center/",
+        include(("apps.apicenter.urls", "apicenter"), namespace="apicenter"),
+    ),
     path("discover/", global_login_discovery, name="global_login_discovery"),
     path("find/", find_school, name="find_school"),
     path("verify/", public_verify_hub, name="public_verify_hub"),
@@ -504,9 +521,33 @@ urlpatterns = [
         name="marketing_procurement_checklist",
     ),
     path(
+        "procurement-docs/",
+        RedirectView.as_view(
+            pattern_name="marketing_procurement_checklist", permanent=False
+        ),
+        name="marketing_procurement_docs",
+    ),
+    path(
         "implementation-assurance/",
         marketing_implementation_assurance,
         name="marketing_implementation_assurance",
+    ),
+    path(
+        "implementation-timelines/",
+        RedirectView.as_view(
+            pattern_name="marketing_implementation_assurance", permanent=False
+        ),
+        name="marketing_implementation_timelines",
+    ),
+    path(
+        "portal-login/",
+        RedirectView.as_view(pattern_name="global_login_discovery", permanent=False),
+        name="marketing_portal_login",
+    ),
+    path(
+        "find-campus-portal/",
+        RedirectView.as_view(pattern_name="find_school", permanent=False),
+        name="marketing_find_campus_portal",
     ),
     path(
         "security-packet/",
@@ -779,9 +820,23 @@ urlpatterns = [
         name="developer_app_building",
     ),
     path("developer/", developer_hub, name="developer_hub"),
+    path("developer/console/", developer_console, name="developer_console"),
+    path(
+        "developers/api-docs/",
+        developer_public_api_docs,
+        name="developer_public_api_docs",
+    ),
     path("developer-portal/", developer_portal, name="developer_portal"),
     path("developer-portal/sdk/", developer_sdk, name="developer_sdk"),
     path("developer-portal/sandbox/", developer_sandbox, name="developer_sandbox"),
+    # Marketplace developer platform (catalog API, publisher signup) before marketing /marketplace/ root.
+    path(
+        "marketplace/",
+        include(
+            (marketplace_dev_public_urlpatterns, "marketplace_dev"),
+            namespace="marketplace_dev",
+        ),
+    ),
     path("marketplace/", marketplace_marketing_page, name="marketplace_marketing_page"),
     path(
         "marketplace/apps/",
@@ -927,6 +982,18 @@ urlpatterns = [
         marketing_page,
         {"page_slug": "trust-center-breach"},
         name="marketing_trust_incidents",
+    ),
+    path(
+        "trust-center/coppa/",
+        marketing_page,
+        {"page_slug": "trust-center-coppa"},
+        name="marketing_trust_coppa",
+    ),
+    path(
+        "trust-center/accessibility/",
+        marketing_page,
+        {"page_slug": "trust-center-accessibility"},
+        name="marketing_trust_accessibility",
     ),
     path(
         "app-marketplace/",

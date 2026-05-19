@@ -3,6 +3,10 @@
 {% block title %}{{ seo_title }}{% endblock %}
 {% block content %}
 <div class="container py-5">
+  {% if marketing_personality %}
+  {% include "marketing/components/_personality_hero.html" with eyebrow=marketing_personality.label headline=marketing_personality.label subheadline=seo_title extra_class="mkt-v3-page__hero mb-4" %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
+  {% endif %}
   <header class="mb-4">
     <h1 class="h2">{% trans "Buyer procurement checklist" %}</h1>
     <p class="lead text-muted mb-0">

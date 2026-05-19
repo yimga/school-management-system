@@ -1,6 +1,20 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-19 (v3.40.5 — Platform chromatic audit closeout, batch 1299)
+**Last updated:** 2026-05-19 (v3.41.1 — Footer surface contract, batch 1300)
+
+## 2026-05-19 — v3.41.1 Footer surface contract (batch 1300)
+
+**Status:** SHIPPED. SW `sms-v3.41.1-footer-surface-contract-2026-05-19`.
+
+| Surface | Footer partial / CSS | Marketing mega-footer |
+|---------|----------------------|------------------------|
+| Manager login + `/super/` | `rmc_operator_footer_compact.html` + `rmc-footer-surfaces.css` | Blocked (template + CSS guard) |
+| Tenant portal | `PORTAL_FOOTER_PARTIAL` → school dashboard/minimal footer | Never included |
+| runmycampus.com marketing | `marketing_footer.html` via `base_marketing.html` | Full footer (intentional) |
+
+**Gates:** `verify_footer_surface_contract.py` **59/59** (1,009+ templates); `verify_manager_portal_chrome_completion.py` **21/21**; Django contract tests **12 OK**; HTTP login + `/super/` footer assertions in `test_super_admin_surface_parity`.
+
+**Deploy:** `collectstatic` + hard refresh on manager host.
 
 ## 2026-05-19 — v3.40.5 Platform chromatic audit closeout (batch 1299)
 

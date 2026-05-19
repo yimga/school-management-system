@@ -5,6 +5,9 @@
 {% block content %}
 {% include "marketing/partials/corporate_os_chrome.html" %}
 <article data-rmc-os-discovery="1">
+  {% if marketing_personality %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
+  {% endif %}
   <header class="rmc-os-hero">
     <p class="rmc-os-eyebrow">{% trans "Email discovery" %}</p>
     <h1>{% trans "Find your school login" %}</h1>

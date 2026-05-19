@@ -9,13 +9,16 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-landing-v2.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-impact.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-home.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-edge-layout.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-page-personality.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-media-viz.css' %}">
   {% include "partials/rmc_analytics_viz_assets.html" %}
 {% endblock %}
 {% block extrajs %}
   {{ block.super }}
-  <script src="{% static 'marketing/js/mkt-hero-video.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-live-campus-pulse.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-video-portal.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-walkthrough-play.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-day-role-toggle.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-globe-tooltips.js' %}" defer></script>
   {% include "partials/rmc_analytics_viz_bundle.html" %}
@@ -32,11 +35,11 @@
 {% block marketing_main_extra_classes %}container-fluid px-0 py-0{% endblock %}
 
 {% block content %}
-<div data-mkt-edition="editorial" data-mkt-schoolhouse="true" class="mkt-edt-root mkt-v3-root" id="mkt-edt-root" data-marketing-tour-context="marketing_home">
+<div data-mkt-edition="editorial" data-mkt-schoolhouse="true" data-mkt-personality="home" class="mkt-edt-root mkt-v3-root mkt-personality-shell mkt-personality-shell--home" id="mkt-edt-root" data-marketing-tour-context="marketing_home">
 
   {# ───────── 1. HERO ───────── #}
-  <section class="mkt-edt-section mkt-edt-hero" aria-labelledby="hero-headline" data-tour="mkt-hero">
-    <div class="mkt-edt-container mkt-edt-hero__grid">
+  <section class="mkt-edt-section mkt-edt-hero mkt-edt-hero--edge" aria-labelledby="hero-headline" data-tour="mkt-hero">
+    <div class="mkt-edt-hero__grid mkt-edt-container--edge">
       <div class="mkt-edt-hero__copy rmc-arrival">
         <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Tuesday · Cedar Ridge Academy" %}</p>
         {% include "marketing/components/_hero_geo_subline.html" %}
@@ -75,8 +78,7 @@
       </div>
 
       <div class="mkt-edt-hero__artifact rmc-reveal rmc-reveal--scale" data-mkt-parallax="0.06">
-        {% include "marketing/components/_hero_live_campus_pulse.html" %}
-        {% include "marketing/components/_hero_home_video.html" %}
+        {% include "marketing/components/_hero_media_showcase.html" %}
       </div>
     </div>
   </section>
@@ -86,7 +88,7 @@
   <hr class="mkt-edt-rule">
 
   {% if marketing_carousel_items %}
-  <section class="mkt-edt-container mkt-edt-trust-carousel rmc-reveal" data-mkt-reveal aria-label="{% trans 'Illustrative campuses' %}">
+  <section class="mkt-edt-trust-carousel mkt-edt-trust-carousel--bleed rmc-reveal" data-mkt-reveal aria-label="{% trans 'Illustrative campuses' %}">
     {% include "marketing/components/_logo_carousel.html" with carousel_items=marketing_carousel_items %}
   </section>
   <hr class="mkt-edt-rule">
@@ -97,8 +99,8 @@
   <hr class="mkt-edt-rule">
 
   {# ───────── 2.5  "WHAT CHANGES" — ROI PANEL ───────── #}
-  <section class="mkt-edt-section mkt-edt-roi rmc-reveal" aria-labelledby="roi-headline" data-mkt-reveal data-tour="mkt-roi">
-    <div class="mkt-edt-container">
+  <section class="mkt-edt-section mkt-edt-roi mkt-edt-roi--edge rmc-reveal" aria-labelledby="roi-headline" data-mkt-reveal data-tour="mkt-roi">
+    <div class="mkt-edt-container mkt-edt-container--wide">
       <header class="mkt-edt-roi__intro">
         <p class="mkt-edt-eyebrow">{% trans "What changes when you switch" %}</p>
         <h2 id="roi-headline" class="mkt-edt-section-headline">
@@ -145,8 +147,8 @@
   </div>
 
   {# ───────── 2.97  60-SECOND WALKTHROUGH VIDEO ───────── #}
-  <section class="mkt-edt-section mkt-edt-walkthrough mkt-v3-cinematic rmc-reveal" aria-labelledby="walkthrough-headline" data-mkt-reveal data-mkt-section="walkthrough" data-tour="mkt-walkthrough">
-    <div class="mkt-edt-container">
+  <section class="mkt-edt-section mkt-edt-walkthrough mkt-edt-walkthrough--edge mkt-v3-cinematic rmc-reveal" aria-labelledby="walkthrough-headline" data-mkt-reveal data-mkt-section="walkthrough" data-tour="mkt-walkthrough">
+    <div class="mkt-edt-container mkt-edt-container--wide">
       <header class="mkt-edt-walkthrough__intro">
         <p class="mkt-edt-eyebrow">{% trans "Sixty seconds" %}</p>
         <h2 id="walkthrough-headline" class="mkt-edt-section-headline">
@@ -167,7 +169,7 @@
         {% include "marketing/components/_video_portal.html" with portal_id="mkt-walkthrough-portal" portal_label=_("60-second walkthrough") video_src="marketing/video/hero-home.mp4" poster_src="marketing/img/hero-home-poster.svg" %}
       </div>
 
-      <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-walkthrough__poster mkt-edt-walkthrough__poster--secondary" aria-label="{% trans 'Watch the 60-second walkthrough' %}" data-mkt-tactile>
+      <button type="button" class="mkt-edt-walkthrough__poster mkt-edt-walkthrough__poster--secondary" aria-label="{% trans 'Play the 60-second walkthrough' %}" data-mkt-walkthrough-play data-mkt-tactile>
         <figure class="mkt-edt-walkthrough__stage" aria-hidden="true">
           {% comment %} Poster intentionally omitted — the inlined SVG reel
              at .mkt-edt-walkthrough__reel below provides the visual fallback
@@ -196,8 +198,9 @@
         <div class="mkt-edt-walkthrough__caption">
           <span class="mkt-edt-walkthrough__chapter">{% trans "5 scenes · 0:60 total" %}</span>
           <span class="mkt-edt-walkthrough__chapter-title">{% trans "Morning bell → stand-up → lunch → dismissal → close" %}</span>
+          <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-walkthrough__tour-link">{% trans "Full product tour" %} →</a>
         </div>
-      </a>
+      </button>
 
       <ul class="mkt-edt-walkthrough__index" aria-label="{% trans 'Walkthrough chapters' %}">
         <li><strong>02</strong> · {% trans "Migration weeks (4 min)" %}</li>

@@ -51,6 +51,7 @@ from apps.schools.marketing_views import (
     topical_marketing_landing,
     blog_post_detail,
     buyer_toolkit_download,
+    developer_marketing_page,
     developer_portal,
     developer_sdk,
     developer_sandbox,
@@ -1116,6 +1117,126 @@ urlpatterns = [
         name="marketing_procurement_checklist",
     ),
     path(
+        "procurement-docs/",
+        RedirectView.as_view(
+            pattern_name="marketing_procurement_checklist", permanent=False
+        ),
+        name="marketing_procurement_docs",
+    ),
+    path(
+        "implementation-timelines/",
+        RedirectView.as_view(
+            pattern_name="marketing_implementation_assurance", permanent=False
+        ),
+        name="marketing_implementation_timelines",
+    ),
+    path(
+        "portal-login/",
+        RedirectView.as_view(pattern_name="global_login_discovery", permanent=False),
+        name="marketing_portal_login",
+    ),
+    path(
+        "find-campus-portal/",
+        RedirectView.as_view(pattern_name="find_school", permanent=False),
+        name="marketing_find_campus_portal",
+    ),
+    path(
+        "careers/",
+        marketing_page,
+        {"page_slug": "careers"},
+        name="marketing_careers",
+    ),
+    path(
+        "brand-assets/",
+        marketing_page,
+        {"page_slug": "brand-assets"},
+        name="marketing_brand_assets",
+    ),
+    path(
+        "hardware-store/",
+        marketing_page,
+        {"page_slug": "hardware-store"},
+        name="marketing_hardware_store",
+    ),
+    path(
+        "training-academies/",
+        marketing_page,
+        {"page_slug": "training-academies"},
+        name="marketing_training_academies",
+    ),
+    path(
+        "teacher-communities/",
+        marketing_page,
+        {"page_slug": "teacher-communities"},
+        name="marketing_teacher_communities",
+    ),
+    path(
+        "lesson-planning/",
+        marketing_page,
+        {"page_slug": "lesson-planning"},
+        name="marketing_lesson_planning",
+    ),
+    path(
+        "infrastructure-map/",
+        marketing_page,
+        {"page_slug": "infrastructure-map"},
+        name="marketing_infrastructure_map",
+    ),
+    path(
+        "security-matrix/",
+        marketing_page,
+        {"page_slug": "security-matrix"},
+        name="marketing_security_matrix",
+    ),
+    path(
+        "solutions/higher-ed/",
+        marketing_page,
+        {"page_slug": "solutions-higher-ed"},
+        name="marketing_solutions_higher_ed",
+    ),
+    path(
+        "solutions/k12-districts/",
+        marketing_page,
+        {"page_slug": "solutions-k12-districts"},
+        name="marketing_solutions_k12_districts",
+    ),
+    path(
+        "legal-compliance/ferpa/",
+        marketing_page,
+        {"page_slug": "legal-ferpa"},
+        name="marketing_legal_ferpa",
+    ),
+    path(
+        "legal-compliance/coppa/",
+        marketing_page,
+        {"page_slug": "legal-coppa"},
+        name="marketing_legal_coppa",
+    ),
+    path(
+        "legal-compliance/gdpr/",
+        marketing_page,
+        {"page_slug": "legal-gdpr"},
+        name="marketing_legal_gdpr",
+    ),
+    path(
+        "legal-compliance/wcag/",
+        marketing_page,
+        {"page_slug": "legal-wcag"},
+        name="marketing_legal_wcag",
+    ),
+    path(
+        "legal-compliance/terms/",
+        marketing_page,
+        {"page_slug": "legal-terms"},
+        name="marketing_legal_terms",
+    ),
+    path(
+        "legal-compliance/cookie-policy/",
+        marketing_page,
+        {"page_slug": "legal-cookie"},
+        name="marketing_legal_cookie",
+    ),
+    path(
         "implementation-assurance/",
         marketing_implementation_assurance,
         name="marketing_implementation_assurance",
@@ -1315,6 +1436,18 @@ urlpatterns = [
         name="marketing_trust_incidents",
     ),
     path(
+        "trust-center/coppa/",
+        marketing_page,
+        {"page_slug": "trust-center-coppa"},
+        name="marketing_trust_coppa",
+    ),
+    path(
+        "trust-center/accessibility/",
+        marketing_page,
+        {"page_slug": "trust-center-accessibility"},
+        name="marketing_trust_accessibility",
+    ),
+    path(
         "compare/replacement/",
         marketing_page,
         {"page_slug": "compare-replacement"},
@@ -1325,6 +1458,36 @@ urlpatterns = [
         marketing_page,
         {"page_slug": "developers"},
         name="marketing_developers",
+    ),
+    path(
+        "developers/api/",
+        developer_marketing_page,
+        {"section_slug": "api"},
+        name="developer_api",
+    ),
+    path(
+        "developers/webhooks/",
+        developer_marketing_page,
+        {"section_slug": "webhooks"},
+        name="developer_webhooks",
+    ),
+    path(
+        "developers/integrations/",
+        developer_marketing_page,
+        {"section_slug": "integrations"},
+        name="developer_integrations",
+    ),
+    path(
+        "developers/sdk/",
+        developer_marketing_page,
+        {"section_slug": "sdk"},
+        name="developer_sdk_page",
+    ),
+    path(
+        "developers/app-building/",
+        developer_marketing_page,
+        {"section_slug": "app-building"},
+        name="developer_app_building",
     ),
     path(
         "developers/api-docs/",

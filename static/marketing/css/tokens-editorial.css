@@ -78,8 +78,9 @@
   --mkt-edt-space-6: 3.75rem;    /* 60px */
   --mkt-edt-section-gap: clamp(2.5rem, 3.5vw + 1rem, 4.25rem);
 
-  /* Container — wider than Bootstrap default so asymmetric layouts breathe */
-  --mkt-edt-container: 76rem;          /* 1216px */
+  /* Container — wide enough for Stripe-like edge layouts on 1440px+ displays */
+  --mkt-edt-container: 90rem;          /* 1440px */
+  --mkt-edt-container-wide: 96rem;     /* 1536px — media-heavy homepage sections */
   --mkt-edt-container-narrow: 44rem;   /* 704px — for prose-only sections */
 
   /* Radii — soft, not pill. Editorial avoids rounded chips. */

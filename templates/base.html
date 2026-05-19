@@ -83,13 +83,15 @@
     {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css — folded into dashboard-theme-sync.css. #}
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     {% if not PUBLIC_BRAND_MODE %}
     {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
     {% endif %}
     {% if SHOW_CORPORATE_MARKETING_FOOTER %}
-    {% include "marketing/partials/corporate_footer_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
+    <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
     <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
@@ -255,7 +257,9 @@
 
     {% block footer %}
     {% if SHOW_CORPORATE_MARKETING_FOOTER %}
-      {% include "marketing/partials/corporate_footer_bundle.html" %}
+      <footer class="cp-corporate-footer" role="contentinfo" data-rmc-footer-surface="operator-compact">
+        {% include "partials/rmc_operator_footer_compact.html" %}
+      </footer>
     {% elif PUBLIC_BRAND_MODE %}
       <footer class="container text-center text-muted small pt-3 pb-5 rmc-shell-footer" data-rmc-shell-footer="base">
         <p class="mb-1">

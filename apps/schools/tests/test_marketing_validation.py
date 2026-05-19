@@ -48,6 +48,11 @@ MARKETING_URL_NAMES = [
     "signup_school",
     "global_login_discovery",
     "marketing_trust_dedicated",
+    "marketing_security_compliance",
+    "marketing_trust_center",
+    "marketing_platform_security",
+    "marketing_trust_coppa",
+    "marketing_trust_accessibility",
     "marketing_pricing_packages_clarity",
     "marketing_story_implementation",
     "marketing_story_offline_first",
@@ -68,7 +73,15 @@ SMOKE_URL_NAMES = [
     "marketing_integrations",
     "marketing_app_marketplace",
     "marketing_developers",
+    "developer_hub",
+    "developer_console",
+    "developer_public_api_docs",
     "marketing_trust_dedicated",
+    "marketing_security_compliance",
+    "marketing_trust_center",
+    "marketing_platform_security",
+    "marketing_trust_coppa",
+    "marketing_trust_accessibility",
     "marketing_pricing_packages_clarity",
     "marketing_procurement_checklist",
     "marketing_implementation_assurance",
@@ -681,6 +694,71 @@ class MarketingInstitutionPremiumVisualTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "/static/images/marketing/module-academics.svg")
         self.assertContains(resp, 'alt="Illustration of K–12 academics')
+
+
+class DeveloperHubPublicUrlconfTests(TestCase):
+    """Developer hub must render on runmycampus.com (config.public_urls), not 500 on reverse()."""
+
+    def test_developer_hub_reverses_and_renders_on_public_host(self):
+        from django.test import Client
+        from django.urls import reverse
+
+        with patch.dict(
+            os.environ,
+            {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+            clear=False,
+        ):
+            for name in ("developer_hub", "developer_console", "developer_public_api_docs"):
+                path = reverse(name, urlconf="config.public_urls")
+                self.assertTrue(path.startswith("/"), msg=path)
+            resp = Client().get("/developer/", HTTP_HOST="runmycampus.com")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "RunMyCampus for developers")
+        self.assertContains(resp, "developer-section-nav")
+
+    def test_developer_manifest_json_on_public_host(self):
+        with patch.dict(
+            os.environ,
+            {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+            clear=False,
+        ):
+            resp = Client().get("/api/v2/manifest.json", HTTP_HOST="runmycampus.com")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp["Content-Type"], "application/json")
+
+    def test_all_developer_pages_render_with_section_nav(self):
+        paths = (
+            "/developer/",
+            "/developer/console/",
+            "/developer-portal/",
+            "/developer-portal/sdk/",
+            "/developer-portal/sandbox/",
+            "/developers/",
+            "/developers/api/",
+            "/developers/webhooks/",
+            "/developers/api-docs/",
+        )
+        with patch.dict(
+            os.environ,
+            {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+            clear=False,
+        ):
+            client = Client()
+            for path in paths:
+                resp = client.get(path, HTTP_HOST="runmycampus.com")
+                self.assertEqual(resp.status_code, 200, msg=path)
+                self.assertContains(resp, "developer-section-nav", msg_prefix=path)
+
+    def test_developer_sandbox_renders_preview_frame(self):
+        with patch.dict(
+            os.environ,
+            {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+            clear=False,
+        ):
+            resp = Client().get("/developer-portal/sandbox/", HTTP_HOST="runmycampus.com")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "developer-app-sandbox-frame")
+        self.assertContains(resp, "ensure_demo_environment")
 
 
 class ExperienceControlMarketingRegistryTests(SimpleTestCase):

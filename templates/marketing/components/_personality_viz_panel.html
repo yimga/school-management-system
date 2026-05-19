@@ -1,0 +1,53 @@
+{% load i18n static %}
+{# Interactive viz panel — seeded per personality; see marketing_personality_seeds.py #}
+<section
+  class="mkt-personality-viz rmc-reveal"
+  data-mkt-reveal
+  data-mkt-personality-viz
+  data-mkt-viz-engine="{{ marketing_viz_engine|default:'sparkline-generic' }}"
+  data-mkt-personality-os="{{ marketing_personality_os|default:'neutral' }}"
+  {% if marketing_personality_seed_json %}data-mkt-personality-seed="{{ marketing_personality_seed_json|escapejs }}"{% endif %}
+  aria-label="{% trans 'Live data preview' %}"
+>
+  <div class="mkt-personality-viz__head">
+    <p class="mkt-personality-viz__eyebrow">{% trans "Live preview" %} · {{ marketing_personality.label|default:"RunMyCampus" }}</p>
+    <p class="mkt-personality-viz__caption">{% trans "Illustrative campus data — updates with this workspace personality." %}</p>
+  </div>
+  <div class="mkt-personality-viz__grid">
+    <div class="mkt-personality-viz__metrics" data-mkt-viz-metrics>
+      {% for m in marketing_personality_seed.metrics %}
+      <article class="mkt-personality-viz__metric">
+        <span class="mkt-personality-viz__metric-label">{{ m.label }}</span>
+        <span class="mkt-personality-viz__metric-value">{{ m.value }}</span>
+        {% if m.delta %}<span class="mkt-personality-viz__metric-delta">{{ m.delta }}</span>{% endif %}
+      </article>
+      {% empty %}
+      <article class="mkt-personality-viz__metric">
+        <span class="mkt-personality-viz__metric-label">{% trans "Signal" %}</span>
+        <span class="mkt-personality-viz__metric-value">—</span>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="mkt-personality-viz__chart-wrap">
+      <svg class="mkt-personality-viz__chart" data-mkt-viz-chart viewBox="0 0 320 120" role="img" aria-hidden="true">
+        <defs>
+          <linearGradient id="mkt-viz-grad-{{ marketing_personality_id|default:'default' }}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--mkt-personality-accent)" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="var(--mkt-personality-accent)" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <g data-mkt-viz-bars></g>
+        <path class="mkt-personality-viz__spark" data-mkt-viz-spark fill="none" stroke="var(--mkt-personality-accent)" stroke-width="2"/>
+      </svg>
+      {% if marketing_personality_seed.timeline %}
+      <ol class="mkt-personality-viz__timeline" data-mkt-viz-timeline>
+        {% for step in marketing_personality_seed.timeline %}
+        <li class="mkt-personality-viz__timeline-step" style="--step-pct: {{ step.pct|default:0 }}">
+          <span class="mkt-personality-viz__timeline-label">{{ step.label|default:step.year }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+    </div>
+  </div>
+</section>

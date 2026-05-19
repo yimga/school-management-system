@@ -4,18 +4,8 @@
 {% block marketing_page_stack_class %} mkt-page-type-company{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-page mkt-v3-page--company">
-  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
-    <p class="mkt-v3-eyebrow">{% trans "Company" %}</p>
-    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
-    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-    {% if page_extras.trust_strip %}
-    <ul class="mkt-v3-trust-strip">
-      {% for item in page_extras.trust_strip %}
-      <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-  </header>
+  {% include "marketing/components/_personality_hero.html" with eyebrow=_("Company") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
   {% if page_extras.trust_strip %}
   <section class="mkt-edt-container rmc-reveal">
     {% include "marketing/components/_logo_carousel.html" with carousel_items=page_extras.trust_strip %}

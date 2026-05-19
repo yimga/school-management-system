@@ -10,6 +10,11 @@ REPO = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = (
     "apps/schools/marketing_geo.py",
     "static/marketing/css/marketing-gear2-home.css",
+    "static/marketing/css/marketing-edge-layout.css",
+    "static/marketing/css/marketing-page-personality.css",
+    "apps/schools/marketing_personality.py",
+    "static/marketing/js/mkt-page-personality.js",
+    "templates/marketing/components/_personality_hero.html",
     "static/marketing/css/marketing-gear2-lanes.css",
     "static/marketing/js/mkt-day-role-toggle.js",
     "static/marketing/js/mkt-globe-tooltips.js",
@@ -27,6 +32,11 @@ REQUIRED_FILES = (
 
 LANDING_SNIPPETS = (
     "marketing-gear2-home.css",
+    "marketing-edge-layout.css",
+    "mkt-edt-hero--edge",
+    "marketing-page-personality.css",
+    "data-mkt-personality",
+    "mkt-personality-shell",
     "_hero_geo_subline.html",
     "_day_role_story.html",
     "mkt-edt-globe__map--interactive",

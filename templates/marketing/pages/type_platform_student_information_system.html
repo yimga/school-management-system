@@ -4,15 +4,11 @@
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-sis{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-archetype" data-mkt-archetype="student-information-system">
-  <header class="mkt-v3-archetype__hero mkt-edt-container">
-    <p class="mkt-v3-eyebrow">{% trans "Student information system" %}</p>
-    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
-    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-    <div class="mkt-v3-archetype__ctas">
-      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
-      <a href="{% url 'marketing_teach_hub' %}" class="mkt-edt-link">{% trans "Back to Teach →" %}</a>
-    </div>
-  </header>
+  {% include "marketing/components/_personality_hero.html" with eyebrow=_("Student information · academics lane") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-archetype__hero" %}
+  <div class="mkt-edt-container mkt-v3-archetype__ctas">
+    <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
+    <a href="{% url 'marketing_teach_hub' %}" class="mkt-edt-link">{% trans "Back to Teach →" %}</a>
+  </div>
   {% include "marketing/components/_dashboard_frame.html" with frame_title="Learner spine" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" frame_extra_class="mkt-v3-dashboard-frame--lane-academics" %}
   <div class="mkt-edt-container">
     {% include "marketing/components/_lane_academics_matrix.html" %}

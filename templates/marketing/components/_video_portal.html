@@ -1,11 +1,10 @@
 {% load i18n static %}
 {% comment %}
-  Accessible video portal — glass frame, muted loop, custom play/pause.
-  Pass: portal_id, portal_label, video_src (static path), poster_src (optional).
+  Accessible video portal — glass frame, muted loop, overlay + chrome controls.
 {% endcomment %}
 {% static poster_src|default:"marketing/img/hero-home-poster.svg" as portal_poster_url %}
 {% static video_src|default:"marketing/video/hero-home.mp4" as portal_video_url %}
-<figure class="mkt-video-portal" data-mkt-video-portal id="{{ portal_id|default:'mkt-video-portal' }}">
+<figure class="mkt-video-portal is-paused" data-mkt-video-portal data-autoplay-in-view="1" id="{{ portal_id|default:'mkt-video-portal' }}">
   <video
     class="mkt-video-portal__media"
     width="1280"
@@ -15,11 +14,17 @@
     muted
     loop
     playsinline
+    webkit-playsinline
     disablepictureinpicture
+    controlslist="nodownload noplaybackrate"
     aria-label="{% if portal_label %}{{ portal_label }}{% else %}{% trans 'Product walkthrough' %}{% endif %}"
   >
     <source src="{{ portal_video_url }}" type="video/mp4">
   </video>
+  <button type="button" class="mkt-video-portal__overlay" data-mkt-video-overlay aria-label="{% trans 'Play video' %}">
+    <span class="mkt-video-portal__overlay-icon" aria-hidden="true">▶</span>
+    <span class="mkt-video-portal__overlay-text">{% trans "Play preview" %}</span>
+  </button>
   <figcaption class="mkt-video-portal__chrome">
     <p class="mkt-video-portal__label">{% if portal_label %}{{ portal_label }}{% else %}{% trans "Product walkthrough" %}{% endif %}</p>
     <button type="button" class="mkt-video-portal__toggle" data-mkt-video-toggle aria-pressed="false" aria-label="{% trans 'Play video' %}">

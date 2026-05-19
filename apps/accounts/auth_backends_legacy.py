@@ -25,7 +25,7 @@ Security invariants enforced by tests:
 * Logger receives only ``user_id`` + ``result`` + ``algorithm``; never the
   password, the stored hash, or the salt.
 * Bare ``except:`` is forbidden (CLAUDE.md ``scan_bare_except`` gate).
-* No ``print()`` (CLAUDE.md ``scan_print_statements`` gate).
+* No stdout debugging (CLAUDE.md ``scan_print_statements`` gate).
 """
 from __future__ import annotations
 

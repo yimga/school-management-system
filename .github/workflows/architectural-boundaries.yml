@@ -851,6 +851,7 @@ jobs:
           python scripts/verify_five_pillar_platform_completion.py --write
           python scripts/verify_tenant_sovereignty_pillar.py --write
           python scripts/verify_six_pillar_global_dominance.py --write
+          python scripts/verify_footer_surface_contract.py --write
           python scripts/verify_manager_portal_chrome_completion.py --write
           python manage.py migrate --noinput
           python manage.py backfill_search_indexes --only all

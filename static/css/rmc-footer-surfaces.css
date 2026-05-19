@@ -1,0 +1,269 @@
+/**
+ * RunMyCampus — platform footer surface contract.
+ * - operator-compact: manager login + control plane (never full marketing mega-footer)
+ * - tenant: school-scoped portal/dashboard footers
+ * - marketing-full: runmycampus.com only (marketing_footer.html)
+ */
+
+/* --- Control-plane shell: main grows, footer stays compact at bottom --- */
+html[data-surface="control-plane"] body.control-plane-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+html[data-surface="control-plane"] body.control-plane-shell > main,
+html[data-surface="control-plane"] body.control-plane-shell > .manager-login-landing,
+html[data-surface="control-plane"] body.control-plane-shell > .admin-login-landing,
+html[data-surface="control-plane"] body.control-plane-shell > .cp-shell-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Block marketing mega-footer from leaking into manager / tenant shells */
+html[data-surface="control-plane"] .mkt-footer-command,
+html[data-surface="control-plane"] .mkt-footer.mkt-corporate-footer,
+html[data-surface="tenant"] .mkt-footer-command,
+html[data-surface="tenant"] .mkt-footer.mkt-corporate-footer,
+[data-rmc-shell-footer="portal"] .mkt-footer-command,
+[data-rmc-shell-footer="portal"] .mkt-corporate-footer {
+  display: none !important;
+}
+
+/* Legacy hook: hide full marketing bundle if ever included on operator surfaces */
+.manager-login-corporate-footer,
+.cp-corporate-footer .mkt-footer.mkt-corporate-footer {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Operator compact footer (login + authenticated manager)
+   -------------------------------------------------------------------------- */
+
+.rmc-manager-login-footer {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: auto;
+  padding: 0 clamp(0.75rem, 3vw, 1.25rem) clamp(1rem, 2.5vw, 1.5rem);
+  border-top: 1px solid rgba(168, 160, 146, 0.12); /* off-token-allow: warm-neutral-overlay */
+}
+
+.cp-corporate-footer > .rmc-manager-login-footer {
+  padding-inline: clamp(0.75rem, 3vw, 1.25rem);
+  border-top: none;
+}
+
+.rmc-manager-login-footer__shell {
+  max-width: min(960px, 100%);
+  margin-inline: auto;
+  padding: 1rem 1.15rem 0.85rem;
+  border-radius: 14px;
+  background: linear-gradient(155deg, rgba(26, 22, 18, 0.72), rgba(11, 17, 32, 0.82)); /* off-token-allow: decorative-gradient */
+  border: 1px solid rgba(168, 160, 146, 0.16); /* off-token-allow: warm-neutral-overlay */
+  box-shadow: 0 0 0 1px rgba(168, 160, 146, 0.06), 0 10px 28px -14px rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+          backdrop-filter: saturate(150%) blur(16px);
+  position: relative;
+  overflow: hidden;
+}
+
+.rmc-manager-login-footer__shell::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--school-primary), var(--school-accent));
+}
+
+.rmc-manager-login-footer__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.rmc-manager-login-footer__eyebrow {
+  margin: 0;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(241, 245, 249, 0.88); /* off-token-allow: rgba-decorative */
+}
+
+.rmc-manager-login-footer__tagline {
+  margin: 0.2rem 0 0;
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: rgba(241, 245, 249, 0.62); /* off-token-allow: rgba-decorative */
+}
+
+.rmc-manager-login-footer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.rmc-manager-login-footer__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 160, 146, 0.22); /* off-token-allow: warm-neutral-overlay */
+  background: rgba(11, 17, 32, 0.45); /* off-token-allow: rgba-decorative */
+  color: rgba(245, 238, 221, 0.94); /* off-token-allow: rgba-decorative */
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.rmc-manager-login-footer__pill:hover {
+  border-color: color-mix(in oklab, var(--school-primary) 55%, transparent);
+  background: color-mix(in oklab, var(--school-primary) 18%, rgba(11, 17, 32, 0.55));
+  color: #fff; /* off-token-allow: hex-literal-decorative */
+}
+
+.rmc-manager-login-footer__pill-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #22c55e; /* off-token-allow: status-green-decorative */
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.22); /* off-token-allow: rgba-decorative */
+}
+
+.rmc-manager-login-footer__proof {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.rmc-manager-login-footer__proof-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(168, 160, 146, 0.14); /* off-token-allow: warm-neutral-overlay */
+  background: rgba(11, 17, 32, 0.35); /* off-token-allow: rgba-decorative */
+  text-decoration: none;
+  transition: border-color 150ms ease, transform 100ms ease;
+}
+
+.rmc-manager-login-footer__proof-card:hover {
+  border-color: color-mix(in oklab, var(--school-primary) 40%, transparent);
+  transform: translateY(-1px);
+}
+
+.rmc-manager-login-footer__proof-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--school-accent, var(--school-primary));
+}
+
+.rmc-manager-login-footer__proof-title {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(241, 245, 249, 0.86); /* off-token-allow: rgba-decorative */
+  line-height: 1.25;
+}
+
+.rmc-manager-login-footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(168, 160, 146, 0.1); /* off-token-allow: warm-neutral-overlay */
+}
+
+.rmc-manager-login-footer__copy {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(241, 245, 249, 0.5); /* off-token-allow: rgba-decorative */
+}
+
+.rmc-manager-login-footer__legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmc-manager-login-footer__legal-links a {
+  font-size: 0.72rem;
+  color: rgba(241, 245, 249, 0.62); /* off-token-allow: rgba-decorative */
+  text-decoration: none;
+}
+
+.rmc-manager-login-footer__legal-links a:hover {
+  color: var(--school-primary);
+  text-decoration: underline;
+}
+
+@media (max-width: 767.98px) {
+  .rmc-manager-login-footer__bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rmc-manager-login-footer__actions {
+    justify-content: flex-start;
+  }
+
+  .rmc-manager-login-footer__proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 399.98px) {
+  .rmc-manager-login-footer__proof {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Tenant portal / dashboard footers: school-scoped, never viewport-dominating --- */
+
+[data-rmc-shell-footer="portal"] {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+[data-rmc-shell-footer="portal"] .dashboard-footer,
+[data-rmc-footer-surface="tenant-standard"] {
+  flex-shrink: 0;
+  max-height: none;
+  min-height: 0;
+}
+
+[data-rmc-shell-footer="portal"] .dashboard-footer--minimal,
+[data-rmc-footer-surface="tenant-minimal"] {
+  max-height: 6rem;
+}
+
+html[data-surface="tenant"] body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+html[data-surface="tenant"] body > .portal-shell,
+html[data-surface="tenant"] body > .portal-layout,
+html[data-surface="tenant"] body > main {
+  flex: 1 1 auto;
+  min-height: 0;
+}

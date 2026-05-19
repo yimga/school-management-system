@@ -6,10 +6,12 @@
       data-rmc-page-purpose="public-story"
       data-rmc-page-type="{{ marketing_page_type|default:'marketing' }}"
       data-rmc-page-slug="{{ marketing_page_slug|default:'marketing' }}"
+      data-mkt-personality="{{ marketing_personality_id|default:'home' }}"
+      data-mkt-personality-os="{{ marketing_personality_os|default:'neutral' }}"
       data-theme="light"
       data-rmc-density="standard"
       data-mkt-schoolhouse="true"
-      {% if PUBLIC_BRAND_MODE %}style="--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:platform_palette.warning }};"{% endif %}>
+      style="{% if marketing_personality_accent_ink %}--mkt-personality-accent-ink: {{ marketing_personality_accent_ink }};{% endif %}{% if PUBLIC_BRAND_MODE %}--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:platform_palette.warning }};{% endif %}">
 <head>
   <meta charset="utf-8">
   {% include "partials/rmc_theme_meta.html" %}
@@ -43,6 +45,8 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-critical.min.css' %}">
   <link rel="prefetch" href="{% static 'marketing/css/marketing-enhanced.min.css' %}" as="style">
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-enhanced.min.css" %}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-page-personality.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-viz.css' %}">
   {% block extrastyle %}{% endblock %}
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
@@ -70,6 +74,8 @@
   <script src="{% static 'marketing/js/theme-toggle.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-corporate-os.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-lane-chrome.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-page-personality.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-personality-viz.js' %}" defer></script>
   <script src="{% static 'marketing/js/scroll-narrative.js' %}" defer></script>
   <script src="{% static 'marketing/js/rotating-headline.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-video-portal.js' %}" defer></script>

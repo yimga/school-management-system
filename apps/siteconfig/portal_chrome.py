@@ -77,7 +77,7 @@ def resolve_portal_chrome(
             header_variant = hv
             footer_partial = FOOTER_PARTIALS[hv]
         fp = str(chrome.get("footer_partial") or "").strip()
-        if fp in FOOTER_PARTIALS.values():
+        if fp in FOOTER_PARTIALS.values() and "marketing" not in fp.lower():
             footer_partial = fp
 
     return {

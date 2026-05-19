@@ -5,76 +5,69 @@
 
 {% block extrastyle %}
   {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
   <link rel="stylesheet" href="{% static 'css/manager-login.css' %}">
-  {% include "marketing/partials/corporate_footer_styles.html" %}
 {% endblock %}
 
 {% block manager_corporate_footer %}{% endblock %}
 
 {% block content %}
 <main class="manager-login-landing cp-surface cp-ultra-login" id="cp-main-content" role="main" aria-label="{% trans 'Control plane sign-in' %}">
-<section aria-labelledby="manager-login-heading">
-  <div class="container py-4 mx-auto cp-login-container">
-    <div class="manager-login-hero mx-auto">
-      <div class="hero-logo" aria-hidden="true">
-        {% if PUBLIC_BRAND_FAVICON_URL %}
-          <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" style="object-fit: contain;">
-        {% else %}
-          <span>R</span>
-        {% endif %}
-      </div>
-      <div>
-        <strong>RunMyCampus Manager</strong>
-        <small id="manager-login-subtitle">{% trans "Control plane sign-in" %}</small>
-        <small>{% trans "Sign in with your platform operator account." %}</small>
-      </div>
-    </div>
-
-    <div class="row justify-content-center">
-      <div class="col-md-10 col-lg-6">
-        <div class="card border-0 manager-login-card">
-          <div class="card-body p-4">
-            <h1 class="h5 mb-4 text-white" id="manager-login-heading">{% trans "Sign in" %}</h1>
-
-            {% if messages %}
-              {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'danger' }} mb-3 manager-login-alert" role="alert">{{ message }}</div>
-              {% endfor %}
+  <div class="manager-login-landing__stage">
+    <section class="manager-login-landing__signin" aria-labelledby="manager-login-heading">
+      <div class="container py-3 py-md-4 mx-auto cp-login-container">
+        <div class="manager-login-hero mx-auto">
+          <div class="hero-logo" aria-hidden="true">
+            {% if PUBLIC_BRAND_FAVICON_URL %}
+              <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="32" height="32" style="object-fit: contain;">
+            {% else %}
+              <span>R</span>
             {% endif %}
+          </div>
+          <div>
+            <strong>RunMyCampus Manager</strong>
+            <small id="manager-login-subtitle">{% trans "Control plane sign-in" %}</small>
+            <small>{% trans "Sign in with your platform operator account." %}</small>
+          </div>
+        </div>
 
-            <form method="post" action="" novalidate aria-labelledby="manager-login-heading" aria-describedby="manager-login-subtitle">
-              {% csrf_token %}
-              {% if request.GET.next %}
-                <input type="hidden" name="next" value="{{ request.GET.next }}">
-              {% elif request.POST.next %}
-                <input type="hidden" name="next" value="{{ request.POST.next }}">
-              {% endif %}
-              <div class="mb-3">
-                <label class="form-label" for="id_username">{% trans "Username" %}</label>
-                <input class="form-control" type="text" name="username" id="id_username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus aria-required="true">
-              </div>
-              <div class="mb-3">
-                <label class="form-label" for="id_password">{% trans "Password" %}</label>
-                <input class="form-control" type="password" name="password" id="id_password" autocomplete="current-password" required aria-required="true">
-              </div>
-              <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
-            </form>
+        <div class="row justify-content-center">
+          <div class="col-md-10 col-lg-6">
+            <div class="card border-0 manager-login-card">
+              <div class="card-body p-4">
+                <h1 class="h5 mb-4 text-white" id="manager-login-heading">{% trans "Sign in" %}</h1>
 
-            <div class="manager-login-footer mt-3 d-flex flex-wrap justify-content-center gap-2">
-              <a href="{% marketing_public_href 'status' %}">{% trans "Platform status" %}</a>
-              <span class="text-white-50" aria-hidden="true">·</span>
-              <a href="{% marketing_public_href 'find_school' %}">{% trans "Find campus" %}</a>
-              <span class="text-white-50" aria-hidden="true">·</span>
-              <a href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
+                {% if messages %}
+                  {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'danger' }} mb-3 manager-login-alert" role="alert">{{ message }}</div>
+                  {% endfor %}
+                {% endif %}
+
+                <form method="post" action="" novalidate aria-labelledby="manager-login-heading" aria-describedby="manager-login-subtitle">
+                  {% csrf_token %}
+                  {% if request.GET.next %}
+                    <input type="hidden" name="next" value="{{ request.GET.next }}">
+                  {% elif request.POST.next %}
+                    <input type="hidden" name="next" value="{{ request.POST.next }}">
+                  {% endif %}
+                  <div class="mb-3">
+                    <label class="form-label" for="id_username">{% trans "Username" %}</label>
+                    <input class="form-control" type="text" name="username" id="id_username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus aria-required="true">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="id_password">{% trans "Password" %}</label>
+                    <input class="form-control" type="password" name="password" id="id_password" autocomplete="current-password" required aria-required="true">
+                  </div>
+                  <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
-</section>
-<div class="manager-login-corporate-footer" data-manager-login-public-footer>
-  {% include "marketing/partials/corporate_footer_bundle.html" %}
-</div>
+
+  {% include "partials/manager_login_footer.html" %}
 </main>
 {% endblock %}
