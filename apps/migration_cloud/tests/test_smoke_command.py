@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import hashlib
 import io
-import os
 import unittest
 from pathlib import Path
 from unittest import mock

@@ -34,3 +34,25 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertNotIn("corporate_footer_bundle.html", text)
         self.assertNotIn("marketing_footer.html", text)
         self.assertIn("PORTAL_FOOTER_PARTIAL", text)
+
+    def test_control_plane_skeleton_document_scroll_contract(self):
+        text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")
+        self.assertIn('data-rmc-cp-scroll="document"', text)
+        self.assertIn("authenticated-shell-manager.js", text)
+
+    def test_ai_guided_assistant_card_semantic_surface(self):
+        text = Path("templates/components/ai_guided_assistant_card.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("rmc-ai-guided-assistant-card", text)
+        self.assertNotIn('class="card ', text)
+
+    def test_manager_topbar_uses_unified_control_row_toolbar(self):
+        text = Path("templates/partials/manager_operator_topbar.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('data-rmc-platform-header="manager"', text)
+        self.assertIn("rmc-platform-header__toolbar", text)
+        self.assertIn('lockup_layout="inline"', text)
+        self.assertIn("rmc-platform-header__command", text)
+        self.assertIn("rmc-platform-header__actions", text)

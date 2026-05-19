@@ -344,6 +344,21 @@ class KBArticle(models.Model):
         default=HelpAudience.BOTH,
         help_text=_("TENANT: school-facing hosts. OPERATOR: manager host help center. BOTH: all."),
     )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="kb_articles",
+        help_text=_("Optional school scope. Blank = platform-wide within this tenant schema."),
+    )
+    is_global_article = models.BooleanField(
+        _("Global article"),
+        default=True,
+        help_text=_(
+            "When true, visible to all schools on this tenant. When false, only the linked school may see it."
+        ),
+    )
 
     # Regional metadata: filter help content by tenant or GeoIP region (e.g. Cameroon vs Canada)
     country_code = models.CharField(
@@ -387,6 +402,7 @@ class KBArticle(models.Model):
             models.Index(fields=["-published_at"]),
             models.Index(fields=["country_code"]),
             models.Index(fields=["help_audience", "status"]),
+            models.Index(fields=["school", "is_global_article", "status"]),
         ]
 
     def __str__(self):

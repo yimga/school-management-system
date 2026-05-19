@@ -4,7 +4,7 @@
 {% block title %}{% trans "Start consent campaign" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
 
 {% block content %}
-<main class="container py-4" id="main">
+<main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface>
   <header class="mb-4">
     <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to migration status" %}</a>
     <h1 class="h2 mb-1 mt-2">{% trans "Start guardian consent campaign" %}</h1>

@@ -35,13 +35,11 @@ Coverage:
 """
 from __future__ import annotations
 
-import logging
-from io import StringIO
 
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.test import Client, SimpleTestCase, TestCase, override_settings
-from django.urls import NoReverseMatch, reverse
+from django.test import SimpleTestCase, TestCase
+from django.urls import reverse
 
 
 User = get_user_model()
@@ -284,7 +282,6 @@ class CustomerViewDBTests(TestCase):
     def test_advance_persists_state(self):
         from apps.migration_cloud.models_intake import (
             MigrationIntakeState,
-            MigrationIntakeStateError,
         )
         intake = self._make_intake(self.school_a, self.user_a)
         intake.advance(

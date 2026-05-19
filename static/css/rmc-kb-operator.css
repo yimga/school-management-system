@@ -1,0 +1,64 @@
+/* Operator KB + Help Center — matches control-plane /super/ density */
+.rmc-kb-operator__hero {
+  background: var(--surface-elevated, var(--cp-surface-elevated, #1e293b));
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
+}
+
+.rmc-kb-operator__hub-card:hover {
+  border-color: var(--brand-primary, #6366f1);
+}
+
+.rmc-kb-operator__article-body {
+  color: var(--text-primary, inherit);
+  background: var(--surface-canvas, transparent);
+}
+
+.rmc-kb-operator .card,
+.rmc-kb-ai-panel {
+  background: var(--surface-elevated, var(--cp-surface-elevated, #1e293b));
+  color: var(--text-primary, inherit);
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
+}
+
+.rmc-kb-operator .breadcrumb-item a {
+  color: var(--text-secondary, inherit);
+}
+
+.rmc-kb-operator .breadcrumb-item.active {
+  color: var(--text-primary, inherit);
+}
+
+.rmc-kb-ai-panel__answer {
+  color: var(--text-primary, inherit);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: min(50vh, 24rem);
+  overflow-y: auto;
+}
+
+.rmc-kb-operator__article-body img {
+  max-width: 100%;
+  height: auto;
+}
+
+.rmc-kb-ai-panel textarea {
+  resize: vertical;
+  min-height: 3rem;
+}
+
+.rmc-help-center__search .form-control {
+  min-height: var(--rmc-header-control-height, 2.5rem);
+}
+
+.rmc-help-center__metrics .card {
+  transition: border-color var(--motion-fast, 0.15s ease);
+}
+
+.rmc-help-center__metrics .card:hover {
+  border-color: var(--brand-primary, #6366f1);
+}
+
+.rmc-help-center section + section {
+  padding-top: var(--space-2, 0.5rem);
+  border-top: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
+}

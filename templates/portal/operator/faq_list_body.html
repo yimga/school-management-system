@@ -1,0 +1,18 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator">
+  <form method="get" class="input-group mb-3" role="search">
+    <input type="search" name="q" class="form-control" value="{{ search_query|default:'' }}" placeholder="{% trans 'Search FAQs…' %}">
+    <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
+  </form>
+  <ul class="list-group">
+    {% for faq in page_obj %}
+    <li class="list-group-item">
+      <a href="{% url 'kb:faq_detail' faq.id %}">{{ faq.question }}</a>
+      <p class="small text-tertiary mb-0 mt-1">{{ faq.answer|truncatewords:30 }}</p>
+    </li>
+    {% empty %}
+    <li class="list-group-item text-tertiary">{% trans "No FAQs match." %}</li>
+    {% endfor %}
+  </ul>
+</div>

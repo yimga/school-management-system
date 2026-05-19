@@ -62,6 +62,23 @@ def _user_role_codes(request) -> frozenset[str]:
         return frozenset()
 
 
+def filter_kb_articles_by_school(queryset: QuerySet, request) -> QuerySet:
+    """
+    School-scoped manuals: global rows OR rows for the active school only.
+    Never expose another school's private articles on the same tenant schema.
+    """
+    school = getattr(request, "school", None)
+    if school is None:
+        return queryset.filter(
+            Q(is_global_article=True) | Q(school__isnull=True)
+        )
+    return queryset.filter(
+        Q(is_global_article=True)
+        | Q(school__isnull=True)
+        | Q(school_id=getattr(school, "pk", None))
+    )
+
+
 def filter_by_target_roles(queryset: QuerySet, request) -> QuerySet:
     """
     If model has target_roles JSON list, empty => visible to all.
@@ -95,6 +112,7 @@ def kb_categories_for_request(request, country_code: str, plan_tier: str):
     arts = KBArticle.objects.filter(status="PUBLISHED")
     arts = filter_kb_articles_for_host(arts, is_operator=is_op)
     arts = filter_kb_articles_by_region(arts, country_code, plan_tier)
+    arts = filter_kb_articles_by_school(arts, request)
     arts = filter_by_target_roles(arts, request)
     cat_ids = arts.values_list("category_id", flat=True).distinct()
     cats = KBCategory.objects.filter(is_active=True, parent=None, pk__in=cat_ids)

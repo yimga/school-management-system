@@ -1,0 +1,16 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator">
+  <h2 class="h5">{{ faq.question }}</h2>
+  <div class="rmc-kb-operator__article-body mb-4">{{ faq.answer|linebreaks }}</div>
+  {% if related_faqs %}
+  <h3 class="h6 text-uppercase text-tertiary">{% trans "Related" %}</h3>
+  <ul class="list-group">
+    {% for related in related_faqs %}
+    <li class="list-group-item">
+      <a href="{% url 'kb:faq_detail' related.id %}">{{ related.question }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>

@@ -295,7 +295,13 @@ def main() -> int:
         "header_account_menu",
         "Manager header search alignment + account dropdown routes",
         _contains("static/css/rmc-platform-header.css", "--rmc-header-control-height")
+        and _contains("templates/partials/manager_operator_topbar.html", "rmc-platform-header__toolbar")
+        and _contains("templates/partials/manager_operator_topbar.html", 'lockup_layout="inline"')
+        and _contains("templates/components/ai_guided_assistant_card.html", "rmc-ai-guided-assistant-card")
+        and _exists("static/css/rmc-ai-guided-assistant-card.css")
+        and _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="document"')
         and _contains("apps/schools/middleware.py", "/authentication/documentation/")
+        and _contains("templates/components/user_dropdown.html", "manager_help_center")
         and _contains("templates/components/user_dropdown.html", "kb:kb_home")
         and _exists("apps/accounts/operator_account_render.py"),
         "rmc-platform-header + middleware + user_dropdown + operator_account_render",

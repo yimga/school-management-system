@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T15:48:55.227042+00:00",
+  "generated_at": "2026-05-19T20:52:33.290759+00:00",
   "verdict": "MANAGER_PORTAL_CHROME_PASS",
-  "passed": 23,
+  "passed": 24,
   "failed": 0,
   "rows": [
     {
@@ -93,7 +93,7 @@
       "check_id": "footer_surface_gate",
       "description": "Platform footer surface contract (59-check template sweep)",
       "status": "PASS",
-      "proof": "porate_footer_styles: No non-marketing template includes corporate_footer_styles.html\n[PASS] marketing_base_uses_full_footer: Marketing shell includes full marketing_footer.html (not bundle wrapper)\n[PASS] login_suppresses_skeleton_duplicate: Manager login pages override skeleton footer block\n[PASS] footer_surfaces_css: Platform footer surface stylesheet exists\n\nFOOTER_SURFACE_CONTRACT: 59/59 PASS"
+      "proof": "porate_footer_styles: No non-marketing template includes corporate_footer_styles.html\n[PASS] marketing_base_uses_full_footer: Marketing shell includes full marketing_footer.html (not bundle wrapper)\n[PASS] login_suppresses_skeleton_duplicate: Manager login pages override skeleton footer block\n[PASS] footer_surfaces_css: Platform footer surface stylesheet exists\n\nFOOTER_SURFACE_CONTRACT: 62/62 PASS"
     },
     {
       "area": "platform",
@@ -164,6 +164,13 @@
       "description": "Corporate marketing footer gated off tenant schools",
       "status": "PASS",
       "proof": "SHOW_CORPORATE_MARKETING_FOOTER gate"
+    },
+    {
+      "area": "manager",
+      "check_id": "header_account_menu",
+      "description": "Manager header search alignment + account dropdown routes",
+      "status": "PASS",
+      "proof": "rmc-platform-header + middleware + user_dropdown + operator_account_render"
     }
   ]
 }

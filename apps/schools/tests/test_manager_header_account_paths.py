@@ -20,6 +20,7 @@ class ManagerHeaderAccountPathTests(SimpleTestCase):
             "/authentication/profile/edit/",
             "/kb/",
             "/feedback-loop/",
+            "/help-center/",
         ):
             self.assertTrue(
                 any(path.startswith(prefix) for prefix in MANAGER_HOST_ALLOWED_PREFIXES),
@@ -47,13 +48,14 @@ class ManagerHeaderAccountPathTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/")
 
-    def test_manager_help_redirects_to_kb(self):
+    @override_settings(ROOT_URLCONF="config.manager_urls")
+    def test_manager_help_redirects_to_help_center(self):
         from config.manager_urls import manager_help
 
         request = RequestFactory().get("/help/", HTTP_HOST="manager.runmycampus.com")
         response = manager_help(request)
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/kb/", response["Location"])
+        self.assertIn("/help-center", response["Location"])
 
     def test_allowlist_covers_password_and_mfa_paths(self):
         for path in (

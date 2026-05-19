@@ -27,6 +27,8 @@ from services.ai.token_optimizer import ContextTokenCompressor
 
 logger = logging.getLogger(__name__)
 
+_MAX_USER_QUERY_CHARS = 8000
+
 
 def _engine_room_enabled() -> bool:
     if not bool(getattr(settings, "AI_GATEWAY_ENABLED", True)):
@@ -176,6 +178,8 @@ def process_platform_query(
 ) -> dict[str, Any]:
     started = time.perf_counter()
     query = (user_query or "").strip()
+    if len(query) > _MAX_USER_QUERY_CHARS:
+        query = query[:_MAX_USER_QUERY_CHARS]
     active = (active_url or "/").strip() or "/"
 
     out: dict[str, Any] = {
@@ -238,18 +242,25 @@ def process_platform_query(
     )
 
     if not knowledge_lines:
-        out["success"] = True
-        out["response"] = _escalation_for_scope(scope.tier)
-        out["escalation_required"] = True
-        out["meta"].update(
-            {
-                "outcome": "escalation_no_docs",
-                "tier": scope.tier.value,
-                "skipped_model": True,
-                "latency_ms": round((time.perf_counter() - started) * 1000, 2),
-            }
-        )
-        return out
+        from services.ai.code_oracle import build_route_manual_outline
+
+        outline = build_route_manual_outline(active)
+        if outline:
+            knowledge_lines = [outline]
+            rag_snippets = [{"scope": "topology", "metadata": {"source": "code_oracle"}}]
+        else:
+            out["success"] = True
+            out["response"] = _escalation_for_scope(scope.tier)
+            out["escalation_required"] = True
+            out["meta"].update(
+                {
+                    "outcome": "escalation_no_docs",
+                    "tier": scope.tier.value,
+                    "skipped_model": True,
+                    "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+                }
+            )
+            return out
 
     system_prompt = (
         PLATFORM_SRE_SYSTEM

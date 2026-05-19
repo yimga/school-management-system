@@ -1,59 +1,63 @@
 {% load i18n static %}
-{# Manager operator header — platform brand, command search, utility cluster. #}
+{# Manager operator header — platform brand, command search, utility cluster (one control row). #}
 <header class="rmc-platform-header rmc-control-plane-chrome__top" role="banner" data-rmc-platform-header="manager">
   <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0 w-100" data-rmc-shell-header="control-plane" data-shell-nav-bridge="manager-operator" aria-label="{% trans 'Platform manager header' %}">
     <div class="container-fluid px-3 rmc-platform-header__inner">
       {% url 'super:dashboard' as bm_dashboard_url %}
       <div class="rmc-platform-header__brand">
-        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
+        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
       </div>
       <button class="navbar-toggler border-light d-lg-none flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="rmc-platform-header__command d-none d-md-block" id="cpNavbarContent">
-        <div class="cp-header-search cp-topbar-search-wrap position-relative w-100">
-          <label class="visually-hidden" for="cpSearchInput">{% trans "Search schools and incidents" %}</label>
-          <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search schools, incidents…' %}" id="cpSearchInput" autocomplete="off">
-          <kbd class="cp-search-kbd" aria-hidden="true" data-rmc-hide-when-focused>{% trans "Ctrl K" %}</kbd>
-          <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" aria-label="{% trans 'Search results' %}"></div>
+      <div class="rmc-platform-header__toolbar" id="cpNavbarToolbar">
+        <div class="rmc-platform-header__command d-none d-md-flex" id="cpNavbarContent">
+          <div class="cp-header-search cp-topbar-search-wrap position-relative w-100">
+            <label class="visually-hidden" for="cpSearchInput">{% trans "Search schools and incidents" %}</label>
+            <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search schools, incidents…' %}" id="cpSearchInput" autocomplete="off">
+            <kbd class="cp-search-kbd" aria-hidden="true" data-rmc-hide-when-focused>{% trans "Ctrl K" %}</kbd>
+            <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" aria-label="{% trans 'Search results' %}"></div>
+          </div>
         </div>
-      </div>
-      <div class="rmc-platform-header__actions w-100 w-lg-auto mt-2 mt-lg-0" id="cpNavbarActions">
-        <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 mb-2 mb-md-0 w-100">
-          <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1">
-        </div>
-        {% if request.user.is_authenticated %}
-          <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
-            <i class="bi bi-command" aria-hidden="true"></i>
-          </button>
-          <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-xl-inline-flex" title="{% trans 'Studio workspace' %}">
-            <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
-            <span>{% trans "Studio" %}</span>
-          </a>
-          <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-xl-inline-flex" title="{% trans 'Configuration Control Center' %}">
-            <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
-            <span>{% trans "Config" %}</span>
-          </a>
-          {% include "components/rmc_operator_workspace_dropdown.html" %}
-          {% if platform_incidents_url %}
-            <a href="{{ platform_incidents_url }}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% blocktrans count count=platform_incidents|length %}{{ count }} open incident{% plural %}{{ count }} open incidents{% endblocktrans %}" title="{% trans 'Open incident console' %}">
-              <i class="bi bi-bell" aria-hidden="true"></i>
-              {% if platform_incidents|length %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ platform_incidents|length }}</span>{% endif %}
+        <div class="rmc-platform-header__actions" id="cpNavbarActions">
+          <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 w-100">
+            <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1">
+          </div>
+          {% if request.user.is_authenticated %}
+            <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
+              <i class="bi bi-command" aria-hidden="true"></i>
+            </button>
+            <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-xl-inline-flex" title="{% trans 'Studio workspace' %}">
+              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+              <span>{% trans "Studio" %}</span>
             </a>
+            {% if not rmc_shell.manager_header_hide_config_chip %}
+            <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-lg-inline-flex" title="{% trans 'Configuration Control Center' %}" data-rmc-header-config-chip="1">
+              <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
+              <span class="d-none d-xl-inline">{% trans "Config" %}</span>
+            </a>
+            {% endif %}
+            {% include "components/rmc_operator_workspace_dropdown.html" %}
+            {% if platform_incidents_url %}
+              <a href="{{ platform_incidents_url }}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% blocktrans count count=platform_incidents|length %}{{ count }} open incident{% plural %}{{ count }} open incidents{% endblocktrans %}" title="{% trans 'Open incident console' %}">
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                {% if platform_incidents|length %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ platform_incidents|length }}</span>{% endif %}
+              </a>
+            {% else %}
+              <a href="{% url 'super:command_center' %}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}">
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
+              </a>
+            {% endif %}
+            <button type="button" class="cp-topbar-theme-toggle rmc-platform-header__icon-btn" data-rmc-theme-cycle aria-label="{% trans 'Toggle light and dark mode' %}" title="{% trans 'Toggle theme' %}">
+              <i class="bi bi-moon-stars" aria-hidden="true"></i>
+              <i class="bi bi-sun-fill" aria-hidden="true"></i>
+            </button>
+            {% include "components/user_dropdown.html" %}
           {% else %}
-            <a href="{% url 'super:command_center' %}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}">
-              <i class="bi bi-bell" aria-hidden="true"></i>
-              {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
-            </a>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
           {% endif %}
-          <button type="button" class="cp-topbar-theme-toggle rmc-platform-header__icon-btn" data-rmc-theme-cycle aria-label="{% trans 'Toggle light and dark mode' %}" title="{% trans 'Toggle theme' %}">
-            <i class="bi bi-moon-stars" aria-hidden="true"></i>
-            <i class="bi bi-sun-fill" aria-hidden="true"></i>
-          </button>
-          {% include "components/user_dropdown.html" %}
-        {% else %}
-          <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
-        {% endif %}
+        </div>
       </div>
     </div>
   </nav>

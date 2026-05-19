@@ -1,0 +1,265 @@
+/* Migration Cloud UI repair layer.
+   Loaded late and scoped to Migration Cloud surfaces so generic card/detail
+   rules cannot clip intake controls or flatten the migration workbench. */
+
+:where(
+  .rmc-page--migration-cloud,
+  .rmc-page--migration-cloud-intake,
+  .rmc-page--migration-cloud-detail,
+  .rmc-page--migration-cloud-review,
+  .rmc-page--migration-cloud-conflicts,
+  .rmc-page--migration-cloud-progress,
+  .rmc-page--migration-cloud-assets,
+  .rmc-page--migration-cloud-handoff,
+  .rmc-page--migration-cloud-attach,
+  .rmc-page--migration-cloud-bind,
+  .rmc-page--migration-cloud-customer,
+  [data-rmc-migration-cloud-surface]
+) {
+  --mc-panel: color-mix(in srgb, var(--surface-elevated, #ffffff) 96%, var(--school-primary, #4f46e5) 4%);
+  --mc-panel-soft: color-mix(in srgb, var(--surface-canvas, #f8fafc) 94%, var(--school-primary, #4f46e5) 6%);
+  --mc-panel-strong: color-mix(in srgb, var(--surface-elevated, #ffffff) 88%, var(--school-accent, #0f766e) 12%);
+  --mc-border: color-mix(in srgb, var(--hairline, rgba(15, 23, 42, 0.16)) 76%, var(--school-primary, #4f46e5) 24%);
+  --mc-border-strong: color-mix(in srgb, var(--hairline-strong, rgba(15, 23, 42, 0.28)) 62%, var(--school-accent, #0f766e) 38%);
+  --mc-shadow: 0 18px 44px rgba(15, 23, 42, 0.10);
+  --mc-shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.07);
+  inline-size: min(100%, 92rem);
+  max-inline-size: 92rem;
+  gap: 1.25rem;
+}
+
+:where(
+  .rmc-page--migration-cloud,
+  .rmc-page--migration-cloud-intake,
+  .rmc-page--migration-cloud-detail,
+  .rmc-page--migration-cloud-review,
+  .rmc-page--migration-cloud-conflicts,
+  .rmc-page--migration-cloud-progress,
+  .rmc-page--migration-cloud-assets,
+  .rmc-page--migration-cloud-handoff,
+  .rmc-page--migration-cloud-attach,
+  .rmc-page--migration-cloud-bind,
+  .rmc-page--migration-cloud-customer,
+  [data-rmc-migration-cloud-surface]
+) :is(.rmc-h1, h1, .h1, .h2, .h3, .h4, .h5, .display-6) {
+  letter-spacing: 0;
+}
+
+.rmc-page--migration-cloud-intake {
+  padding-block: 1.25rem 2rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-hero,
+.rmc-page--migration-cloud-intake .rmc-intake-panel,
+.rmc-page--migration-cloud-intake .rmc-card,
+.rmc-page--migration-cloud-intake details,
+.rmc-page--migration-cloud-intake .rmc-form__section,
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.rmc-card, .card, details) {
+  overflow: visible;
+  min-block-size: auto;
+  border: 1px solid var(--mc-border);
+  border-radius: 0.75rem;
+  background: var(--mc-panel);
+  color: var(--text-primary, #111827);
+  box-shadow: var(--mc-shadow-soft);
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-hero {
+  align-items: center;
+  padding: 1.5rem;
+  background:
+    linear-gradient(135deg, var(--mc-panel), var(--mc-panel-soft)),
+    var(--mc-panel);
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-hero .rmc-h1 {
+  font-size: 3.65rem;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.rmc-page--migration-cloud-intake .rmc-lede,
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.rmc-lede, p, .text-secondary, .text-muted, .form-text, small) {
+  color: var(--text-secondary, #475569);
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-panel {
+  padding: 1.15rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-panel__head {
+  align-items: flex-start;
+  gap: 1rem;
+  margin-block-end: 0.95rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-panel__head .rmc-h2,
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) .h5 {
+  font-size: 1rem;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-panel--source-id {
+  background:
+    linear-gradient(135deg, var(--mc-panel-strong), var(--mc-panel)),
+    var(--mc-panel);
+  border-color: var(--mc-border-strong);
+}
+
+.rmc-intake-source-id__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.9fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.rmc-intake-source-id__actions,
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) .d-flex {
+  min-width: 0;
+}
+
+.rmc-intake-source-id__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-method-card,
+.rmc-page--migration-cloud-intake .rmc-intake-dropzone,
+.rmc-page--migration-cloud-intake .rmc-intake-live-source,
+.rmc-page--migration-cloud-intake .rmc-intake-file-list li,
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.alert, .list-group-item) {
+  overflow: visible;
+  border: 1px solid var(--mc-border);
+  background: var(--mc-panel-soft);
+  color: var(--text-primary, #111827);
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-dropzone {
+  min-block-size: 7.5rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-method-card {
+  min-block-size: 7rem;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-method-card:hover,
+.rmc-page--migration-cloud-intake .rmc-intake-method-card:focus-visible {
+  border-color: var(--mc-border-strong);
+  transform: translateY(-1px);
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-method-card[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 11%, var(--mc-panel));
+  border-color: var(--mc-border-strong);
+}
+
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-intake, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(
+  .rmc-input,
+  .form-control,
+  .form-select,
+  select,
+  textarea
+) {
+  min-block-size: 2.75rem;
+  border: 1px solid var(--mc-border);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--surface-canvas, #ffffff) 92%, transparent);
+  color: var(--text-primary, #111827);
+}
+
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-intake, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) input[type="checkbox"],
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-intake, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) input[type="radio"] {
+  min-block-size: auto;
+}
+
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-intake, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.rmc-btn, .btn) {
+  min-block-size: 2.5rem;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  line-height: 1.2;
+}
+
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-intake, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.btn-primary, .rmc-btn--primary) {
+  border-color: transparent;
+  background: var(--brand-gradient, var(--school-primary, #4f46e5));
+  color: var(--text-on-brand, #ffffff);
+}
+
+.rmc-page--migration-cloud-intake details,
+.rmc-page--migration-cloud-intake details.rmc-card,
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) details {
+  padding: 0;
+  overflow: visible;
+}
+
+.rmc-page--migration-cloud-intake details > summary,
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) details > summary {
+  min-block-size: 3.25rem;
+  padding: 0.9rem 1rem;
+  align-items: center;
+  line-height: 1.35;
+  white-space: normal;
+  overflow: visible;
+  color: var(--text-primary, #111827);
+}
+
+.rmc-page--migration-cloud-intake details > :not(summary),
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) details > :not(summary) {
+  padding-inline: 1rem;
+}
+
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.table, .rmc-data-table) {
+  color: var(--text-primary, #111827);
+  border-color: var(--mc-border);
+}
+
+:where(.rmc-page--migration-cloud, .rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.table-responsive, .rmc-data-table) {
+  overflow-x: auto;
+}
+
+:where(.rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) .card-body {
+  color: var(--text-primary, #111827);
+}
+
+:where(.rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) .badge {
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+}
+
+:where(.rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) .row {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .rmc-intake-source-id__grid,
+  .rmc-intake-source-id__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .rmc-page--migration-cloud-intake,
+  :where(.rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) {
+    padding-inline: 1rem;
+  }
+
+  .rmc-page--migration-cloud-intake .rmc-intake-hero {
+    padding: 1rem;
+  }
+
+  .rmc-page--migration-cloud-intake .rmc-intake-hero .rmc-h1 {
+    font-size: 2.35rem;
+  }
+
+  .rmc-page--migration-cloud-intake .rmc-intake-panel,
+  :where(.rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) :is(.card, .rmc-card) {
+    padding: 1rem;
+  }
+}

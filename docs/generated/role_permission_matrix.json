@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-19T17:25:18.961077+00:00",
+  "generated_at": "2026-05-19T20:09:05.613874+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 922,
-  "views_indexed": 1774,
+  "row_count": 925,
+  "views_indexed": 1785,
   "summary": {
-    "login_gated": 877,
+    "login_gated": 880,
     "role_gated": 74,
     "permission_gated": 98,
     "has_inline_auth_check": 55,
     "auth_mixin_gated": 74,
-    "rbac_allow_reason": 64,
+    "rbac_allow_reason": 67,
     "candidate_anonymous": 13,
     "unresolved": 28
   },
@@ -13302,6 +13302,75 @@
       ],
       "roles_required": [],
       "rbac_allow_reason": "super-staff-migration-cloud-command-center",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "smoke/trigger/",
+      "view_symbol": "views_smoke_trigger.SmokeRunTriggerView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_smoke_trigger.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-migration-cloud-smoke-on-demand-trigger",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "dsar/runbook/",
+      "view_symbol": "views_dsar_admin.DSARRunbookView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_dsar_admin.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-dsar-runbook-view-record",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "smoke/history/",
+      "view_symbol": "views_smoke_history.SmokeRunHistoryView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_smoke_history.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-migration-cloud-smoke-history",
       "unresolved": false,
       "login_gated": true,
       "role_gated": false,

@@ -1741,13 +1741,359 @@
   white-space: pre-wrap;
 }
 
+/* AI guided assistant CTA (templates/components/ai_guided_assistant_card.html) */
+.rmc-ai-guided-assistant-card,
+.rmc-ai-guided-assistant-card__body,
+.rmc-ai-guided-assistant-card__copy,
+.rmc-ai-guided-assistant-card__title,
+.rmc-ai-guided-assistant-card__hint,
+.rmc-ai-guided-assistant-card__cta,
+.rmc-ai-guided-assistant-card__icon {
+  display: block;
+}
+
 /* Migration Cloud intake form — BEM block used by templates/migration_cloud/intake_new.html.
  * Token-driven, theme-aware. Page extends control_plane_skeleton.html so tokens resolve
  * to the dark CP palette by default; portal shell tokens reflow automatically. */
 .rmc-page--migration-cloud-intake {
   padding: 1.5rem clamp(1rem, 4vw, 2.5rem);
-  max-width: 60rem;
+  max-width: 86rem;
   margin-inline: auto;
+}
+
+.rmc-intake-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
+  gap: var(--space-5, 1.25rem);
+  align-items: end;
+}
+
+.rmc-intake-hero__copy,
+.rmc-intake-hero__metrics,
+.rmc-intake-workbench,
+.rmc-intake-sidecar,
+.rmc-intake-panel,
+.rmc-intake-method-card,
+.rmc-intake-dropzone,
+.rmc-intake-savebar {
+  min-width: 0;
+}
+
+.rmc-intake-hero__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.rmc-intake-metric {
+  padding: 0.75rem;
+  border: 1px solid var(--hairline, rgba(0,0,0,0.08));
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--surface-elevated, #fff);
+}
+
+.rmc-intake-metric strong {
+  display: block;
+  font-size: var(--type-size-h3, 1.15rem);
+  line-height: 1.1;
+  color: var(--text-primary, inherit);
+}
+
+.rmc-intake-metric span {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-secondary, #555);
+  font-size: var(--type-size-micro, 0.72rem);
+}
+
+.rmc-intake-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: var(--space-5, 1.25rem);
+  align-items: start;
+}
+
+.rmc-intake-sidecar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.rmc-intake-panel {
+  border: var(--border-width-hairline, 1px) solid var(--hairline, rgba(255,255,255,0.08));
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 1.1rem 1.25rem;
+  background: var(--surface-elevated, transparent);
+  box-shadow: var(--elev-1, 0 1px 2px rgba(0,0,0,0.04));
+}
+
+.rmc-intake-panel--side {
+  padding: 1rem;
+}
+
+.rmc-intake-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rmc-intake-eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: var(--type-size-micro, 0.72rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary, #777);
+  font-weight: 700;
+}
+
+.rmc-intake-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.rmc-intake-method-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 7rem;
+  padding: 0.9rem;
+  border: 1px solid var(--hairline, rgba(0,0,0,0.1));
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--surface-canvas, transparent);
+  color: var(--text-primary, inherit);
+  text-align: start;
+  cursor: pointer;
+}
+
+.rmc-intake-method-card[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--school-primary, #4f46e5) 45%, var(--hairline));
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 8%, var(--surface-elevated, #fff));
+}
+
+.rmc-intake-method-card i {
+  font-size: 1.35rem;
+  color: var(--school-primary, currentColor);
+}
+
+.rmc-intake-method-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rmc-intake-method-card__body small {
+  color: var(--text-secondary, #555);
+}
+
+.rmc-intake-method-select {
+  margin-bottom: 1rem;
+}
+
+.rmc-intake-source-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rmc-intake-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px dashed var(--hairline-strong, rgba(0,0,0,0.24));
+  border-radius: var(--radius-lg, 0.75rem);
+  background: var(--surface-canvas, transparent);
+  cursor: pointer;
+}
+
+.rmc-intake-dropzone[data-mc-dragging="1"] {
+  border-color: var(--school-primary, currentColor);
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 8%, var(--surface-elevated, #fff));
+}
+
+.rmc-intake-dropzone__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 3rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 12%, transparent);
+  color: var(--school-primary, currentColor);
+  font-size: 1.35rem;
+}
+
+.rmc-intake-dropzone__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--text-primary, inherit);
+}
+
+.rmc-intake-dropzone__copy small,
+.rmc-intake-file-summary,
+.rmc-intake-live-source p {
+  color: var(--text-secondary, #555);
+}
+
+.rmc-intake-dropzone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rmc-intake-file-list,
+.rmc-intake-checklist,
+.rmc-intake-pipeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rmc-intake-file-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.rmc-intake-file-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--hairline, rgba(0,0,0,0.08));
+  border-radius: var(--radius-sm, 0.375rem);
+  background: var(--surface-canvas, transparent);
+}
+
+.rmc-intake-file-list li[data-mc-file-warning="oversized"] {
+  border-color: var(--color-warning, #b26a00);
+}
+
+.rmc-intake-live-source {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--surface-canvas, transparent);
+  border: 1px solid var(--hairline, rgba(0,0,0,0.08));
+}
+
+.rmc-intake-live-source i {
+  color: var(--school-primary, currentColor);
+  font-size: 1.3rem;
+}
+
+.rmc-intake-checks,
+.rmc-intake-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rmc-intake-checklist li {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  color: var(--text-secondary, #555);
+}
+
+.rmc-intake-checklist i {
+  color: var(--school-primary, currentColor);
+  margin-top: 0.15rem;
+}
+
+.rmc-intake-pipeline {
+  display: grid;
+  gap: 0.75rem;
+  counter-reset: mc-pipeline;
+}
+
+.rmc-intake-pipeline li {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.rmc-intake-pipeline li::before {
+  counter-increment: mc-pipeline;
+  content: counter(mc-pipeline);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 12%, transparent);
+  color: var(--school-primary, currentColor);
+  font-weight: 700;
+}
+
+.rmc-intake-pipeline strong,
+.rmc-intake-pipeline span {
+  grid-column: 2;
+}
+
+.rmc-intake-pipeline span {
+  color: var(--text-secondary, #555);
+  font-size: var(--type-size-small, 0.875rem);
+}
+
+.rmc-intake-savebar {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--hairline-strong, rgba(0,0,0,0.16));
+  border-radius: var(--radius-lg, 0.75rem);
+  background: color-mix(in srgb, var(--surface-elevated, #fff) 94%, transparent);
+  box-shadow: var(--elev-2, 0 8px 24px rgba(0,0,0,0.08));
+  backdrop-filter: blur(12px);
+}
+
+.rmc-intake-savebar p {
+  margin: 0.15rem 0 0;
+  color: var(--text-secondary, #555);
+  font-size: var(--type-size-small, 0.875rem);
+}
+
+@media (max-width: 1100px) {
+  .rmc-intake-layout,
+  .rmc-intake-hero {
+    grid-template-columns: 1fr;
+  }
+  .rmc-intake-sidecar,
+  .rmc-intake-savebar {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .rmc-intake-hero__metrics,
+  .rmc-intake-method-grid {
+    grid-template-columns: 1fr;
+  }
+  .rmc-intake-savebar {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 
 .rmc-form--intake {

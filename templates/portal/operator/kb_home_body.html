@@ -1,0 +1,46 @@
+{% load i18n static region_format %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator" data-rmc-page="kb-home">
+  {% include "portal/partials/kb_ai_assistant_panel.html" %}
+  <div class="rmc-kb-operator__hero card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h4 mb-1"><i class="bi bi-journal-text me-2"></i>{% trans "Knowledge base" %}</h2>
+      <p class="text-tertiary mb-0">{% trans "Operator guides, runbooks, and platform how-tos." %}</p>
+    </div>
+  </div>
+  <form method="get" action="{% url 'kb:kb_search' %}" class="input-group mb-4" role="search">
+    <input type="search" name="q" class="form-control" placeholder="{% trans 'Search articles and FAQs…' %}" value="{{ query|default:'' }}" aria-label="{% trans 'Search' %}">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> {% trans "Search" %}</button>
+  </form>
+  {% if featured_articles %}
+  <h3 class="h6 text-uppercase text-tertiary">{% trans "Featured" %}</h3>
+  <div class="row g-3 mb-4">
+    {% for article in featured_articles %}
+    <div class="col-md-6 col-lg-4">
+      <a href="{% url 'kb:kb_article' article.slug %}" class="card h-100 text-decoration-none">
+        <div class="card-body">
+          <h4 class="h6 mb-1">{{ article.title }}</h4>
+          <p class="small text-tertiary mb-0">{{ article.summary|truncatewords:20 }}</p>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <h3 class="h6 text-uppercase text-tertiary">{% trans "Categories" %}</h3>
+  <div class="row g-3">
+    {% for category in categories %}
+    <div class="col-md-6 col-lg-4">
+      <a href="{% url 'kb:kb_category' category.slug %}" class="card h-100 text-decoration-none">
+        <div class="card-body">
+          <h4 class="h6">{{ category.name }}</h4>
+          <span class="badge text-bg-secondary">{{ category.article_count }} {% trans "articles" %}</span>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <p class="text-tertiary">{% trans "No categories yet. Run seed_kb_articles." %}</p>
+    {% endfor %}
+  </div>
+</div>
+<script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>

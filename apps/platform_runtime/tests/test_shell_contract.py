@@ -5,7 +5,11 @@ import unittest
 from django.test import RequestFactory
 
 from apps.platform_runtime.context_processors import shell_contract_context
-from apps.platform_runtime.shell_contract import resolve_shell_dataclass
+from apps.platform_runtime.shell_contract import (
+    manager_header_hide_config_chip,
+    resolve_shell_contract,
+    resolve_shell_dataclass,
+)
 
 
 class ShellContractResolverTests(unittest.TestCase):
@@ -57,6 +61,7 @@ class ShellContractResolverTests(unittest.TestCase):
             "tenant_portal_breadcrumb_surface",
             "control_plane_breadcrumb_surface",
             "studio_os_sidebar_token",
+            "manager_header_hide_config_chip",
         ):
             self.assertIn(key, ctx["rmc_shell"], f"rmc_shell must include {key!r} for shell inventory")
         self.assertEqual(ctx["rmc_shell"]["host_kind"], "school")
@@ -74,6 +79,24 @@ class ShellContractResolverTests(unittest.TestCase):
         self.assertEqual(ctx["rmc_shell"]["tenant_portal_breadcrumb_surface"], "tenant-portal")
         self.assertEqual(ctx["rmc_shell"]["control_plane_breadcrumb_surface"], "control-plane")
         self.assertEqual(ctx["rmc_shell"]["studio_os_sidebar_token"], "studio-rail")
+
+    def test_manager_header_hides_config_on_studio_and_operations(self):
+        self.assertTrue(manager_header_hide_config_chip("/studio/"))
+        self.assertTrue(manager_header_hide_config_chip("/studio/experience/"))
+        self.assertTrue(manager_header_hide_config_chip("/super/command-center/"))
+        self.assertFalse(manager_header_hide_config_chip("/super/dashboard/"))
+        self.assertFalse(manager_header_hide_config_chip("/siteconfig/console/domains/"))
+
+    def test_manager_shell_context_config_chip_flag(self):
+        rf = RequestFactory()
+        req = rf.get("/studio/")
+        req.public_host_kind = "manager"
+        ctx = resolve_shell_contract(req)
+        self.assertTrue(ctx["manager_header_hide_config_chip"])
+        req2 = rf.get("/super/dashboard/")
+        req2.public_host_kind = "manager"
+        ctx2 = resolve_shell_contract(req2)
+        self.assertFalse(ctx2["manager_header_hide_config_chip"])
 
     def test_manager_portal_wrap_markers(self):
         rf = RequestFactory()

@@ -31,7 +31,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any, Optional
+from typing import Optional
 from uuid import UUID
 
 from django.conf import settings
@@ -41,12 +41,10 @@ from django.http import (
     HttpRequest,
     HttpResponse,
     HttpResponseBadRequest,
-    JsonResponse,
     StreamingHttpResponse,
 )
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect

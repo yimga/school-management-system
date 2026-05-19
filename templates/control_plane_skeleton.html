@@ -45,6 +45,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). #}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
@@ -87,13 +88,14 @@
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
+    <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
     {% block extrastyle %}{% endblock %}
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
   </head>
-  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
+  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="document" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -130,6 +132,9 @@
       <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% endif %}
     {% include "partials/rmc_interaction_shell_scripts.html" %}
+    {% if request.user.is_authenticated %}
+    <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
+    {% endif %}
     <script src="{% static 'js/rmc-dashboard-widget-boundary.js' %}" defer></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>

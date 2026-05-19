@@ -1,0 +1,111 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator rmc-help-center" data-rmc-page="help-center" data-page-archetype="decision-console">
+  <div class="rmc-kb-operator__hero card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+        <div>
+          <h2 class="h4 mb-1"><i class="bi bi-life-preserver me-2" aria-hidden="true"></i>{% trans "Help center" %}</h2>
+          <p class="text-tertiary mb-0 small">
+            {% trans "One front door for operator support — search, AI, live signals, and readiness registers. The knowledge base is a section here, not the whole experience." %}
+          </p>
+        </div>
+        {% if feedback_loop_url %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ feedback_loop_url }}">
+          <i class="bi bi-activity me-1"></i>{% trans "Live feedback loop" %}
+        </a>
+        {% endif %}
+      </div>
+      {% if kb_search_url %}
+      <form method="get" action="{{ kb_search_url }}" class="input-group rmc-help-center__search" role="search" id="rmc-help-center-search">
+        <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+        <input type="search" name="q" class="form-control" placeholder="{% trans 'Search articles, FAQs, and runbooks…' %}" aria-label="{% trans 'Search help' %}" autocomplete="off" data-rmc-help-search-input>
+        <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
+      </form>
+      <p class="small text-tertiary mt-2 mb-0"><kbd>?</kbd> {% trans "focus search" %} · <kbd>Ctrl</kbd>+<kbd>K</kbd> {% trans "command palette" %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4 rmc-help-center__metrics">
+    <div class="col-6 col-md-3">
+      <div class="card h-100 border-0">
+        <div class="card-body py-3">
+          <div class="small text-tertiary">{% trans "Friction (7d)" %}</div>
+          <div class="h4 mb-0">{{ signals.friction.count_7d }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100 border-0">
+        <div class="card-body py-3">
+          <div class="small text-tertiary">{% trans "Feedback (7d)" %}</div>
+          <div class="h4 mb-0">{{ signals.feedback.count_7d }}</div>
+          {% if signals.feedback.critical_open %}
+          <span class="badge text-bg-danger mt-1">{{ signals.feedback.critical_open }} {% trans "critical open" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100 border-0">
+        <div class="card-body py-3">
+          <div class="small text-tertiary">{% trans "AI copilot (7d)" %}</div>
+          <div class="h4 mb-0">{{ signals.ai.interactions_7d|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100 border-0">
+        <div class="card-body py-3">
+          <div class="small text-tertiary">{% trans "KB articles" %}</div>
+          <div class="h4 mb-0">{{ signals.kb.article_count|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "portal/partials/kb_ai_assistant_panel.html" %}
+
+  {% if signals.kb.featured %}
+  <section class="mb-4" aria-labelledby="rmc-help-featured-heading">
+    <h3 id="rmc-help-featured-heading" class="h6 text-uppercase text-tertiary">{% trans "Featured runbooks" %}</h3>
+    <div class="row g-2">
+      {% for article in signals.kb.featured %}
+      <div class="col-md-4">
+        <a class="card h-100 text-decoration-none rmc-kb-operator__hub-card" href="{% url 'kb:kb_article' article.slug %}">
+          <div class="card-body py-3">
+            <h4 class="h6 mb-1">{{ article.title }}</h4>
+            <p class="small text-tertiary mb-0">{{ article.summary|truncatewords:14 }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% for section in help_sections %}
+  <section class="mb-4" aria-labelledby="rmc-help-section-{{ section.id }}">
+    <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">
+      <h3 id="rmc-help-section-{{ section.id }}" class="h5 mb-0">{{ section.title }}</h3>
+      <p class="small text-tertiary mb-0">{{ section.description }}</p>
+    </div>
+    <div class="row g-3">
+      {% for card in section.cards %}
+      <div class="col-md-6 col-xl-4">
+        <a class="card h-100 text-decoration-none rmc-kb-operator__hub-card" href="{{ card.url }}">
+          <div class="card-body">
+            <i class="bi {{ card.icon }} fs-3 text-primary mb-2" aria-hidden="true"></i>
+            <h4 class="h6 mb-1">{{ card.title }}</h4>
+            <p class="small text-tertiary mb-0">{{ card.description }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+<script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>
+<script src="{% static 'js/rmc-operator-help-center.js' %}" defer></script>

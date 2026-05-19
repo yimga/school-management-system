@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-05-19T20:52:31.719973+00:00",
+  "verdict": "PLATFORM_SURFACE_LAYOUT_PASS",
+  "passed": 12,
+  "failed": 0,
+  "rows": [
+    {
+      "check_id": "ai_guided_assistant_semantic",
+      "description": "AI guided assistant uses rmc-ai-guided-assistant-card (not Bootstrap .card)",
+      "status": "PASS",
+      "proof": "ai_guided_assistant_card.html"
+    },
+    {
+      "check_id": "ai_guided_assistant_stylesheet",
+      "description": "AI assistant stylesheet linked on control-plane skeleton",
+      "status": "PASS",
+      "proof": "control_plane_skeleton.html"
+    },
+    {
+      "check_id": "document_scroll_skeleton",
+      "description": "Control-plane skeleton uses document scroll contract",
+      "status": "PASS",
+      "proof": "control_plane_skeleton.html"
+    },
+    {
+      "check_id": "document_scroll_admin_manager",
+      "description": "Manager Unfold admin shell sets data-rmc-cp-scroll=document",
+      "status": "PASS",
+      "proof": "admin/base_site.html"
+    },
+    {
+      "check_id": "document_scroll_portal_manager_bridge",
+      "description": "Manager portal bridge body sets data-rmc-cp-scroll=document",
+      "status": "PASS",
+      "proof": "portal_base.html"
+    },
+    {
+      "check_id": "no_viewport_height_trap_css",
+      "description": "manager-control-plane.css scopes layout to document scroll (no global 100vh trap)",
+      "status": "PASS",
+      "proof": "manager-control-plane.css"
+    },
+    {
+      "check_id": "studio_os_min_height_released",
+      "description": "Studio OS control-compact min-height trap released under document scroll",
+      "status": "PASS",
+      "proof": "manager-control-plane.css"
+    },
+    {
+      "check_id": "config_chip_topology",
+      "description": "Config chip hidden in Studio / Operations via shell_contract + topbar",
+      "status": "PASS",
+      "proof": "shell_contract + manager_operator_topbar.html"
+    },
+    {
+      "check_id": "ctrl_k_palette_ownership",
+      "description": "authenticated-shell-manager.js does not bind Ctrl+K (palette owns it)",
+      "status": "PASS",
+      "proof": "authenticated-shell-manager.js"
+    },
+    {
+      "check_id": "shell_search_idempotent",
+      "description": "Header search wiring is idempotent (no duplicate listeners)",
+      "status": "PASS",
+      "proof": "authenticated-shell-manager.js"
+    },
+    {
+      "check_id": "skeleton_shell_manager_script",
+      "description": "authenticated-shell-manager.js loaded once from skeleton",
+      "status": "PASS",
+      "proof": "skeleton only"
+    },
+    {
+      "check_id": "django_contract_tests",
+      "description": "Django contract tests for surface layout",
+      "status": "PASS",
+      "proof": "Found 18 test(s).\nSystem check identified no issues (0 silenced).\n"
+    }
+  ]
+}

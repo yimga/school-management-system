@@ -1,0 +1,134 @@
+{
+  "generated_at": "2026-05-19T21:26:29.298772+00:00",
+  "verdict": "OPERATOR_HELP_CENTER_PASS",
+  "pass_count": 21,
+  "fail_count": 0,
+  "rows": [
+    {
+      "id": "help-center-module",
+      "label": "manager_help_center view module",
+      "status": "PASS",
+      "proof": "manager_help_center.py"
+    },
+    {
+      "id": "help-center-url",
+      "label": "manager_urls registers help-center + manager_help redirect",
+      "status": "PASS",
+      "proof": "manager_urls.py"
+    },
+    {
+      "id": "middleware-help-center",
+      "label": "Manager allowlist includes /help-center/",
+      "status": "PASS",
+      "proof": "middleware.py"
+    },
+    {
+      "id": "dropdown-help-center",
+      "label": "User dropdown Help uses manager_help_center on manager",
+      "status": "PASS",
+      "proof": "user_dropdown.html"
+    },
+    {
+      "id": "kb-operator-render",
+      "label": "Operator KB render helper",
+      "status": "PASS",
+      "proof": "operator_kb_render.py"
+    },
+    {
+      "id": "partial-kb_home_body",
+      "label": "Template exists: templates/portal/operator/kb_home_body.html",
+      "status": "PASS",
+      "proof": "templates/portal/operator/kb_home_body.html"
+    },
+    {
+      "id": "partial-kb_article_body",
+      "label": "Template exists: templates/portal/operator/kb_article_body.html",
+      "status": "PASS",
+      "proof": "templates/portal/operator/kb_article_body.html"
+    },
+    {
+      "id": "partial-kb_category_body",
+      "label": "Template exists: templates/portal/operator/kb_category_body.html",
+      "status": "PASS",
+      "proof": "templates/portal/operator/kb_category_body.html"
+    },
+    {
+      "id": "partial-kb_search_body",
+      "label": "Template exists: templates/portal/operator/kb_search_body.html",
+      "status": "PASS",
+      "proof": "templates/portal/operator/kb_search_body.html"
+    },
+    {
+      "id": "partial-office_list_body",
+      "label": "Template exists: templates/portal/operator/office_list_body.html",
+      "status": "PASS",
+      "proof": "templates/portal/operator/office_list_body.html"
+    },
+    {
+      "id": "partial-faq_list_body",
+      "label": "Template exists: templates/portal/operator/faq_list_body.html",
+      "status": "PASS",
+      "proof": "templates/portal/operator/faq_list_body.html"
+    },
+    {
+      "id": "partial-manager_help_center_body",
+      "label": "Template exists: templates/schools/partials/manager_help_center_body.html",
+      "status": "PASS",
+      "proof": "templates/schools/partials/manager_help_center_body.html"
+    },
+    {
+      "id": "partial-manager_feedback_loop_body",
+      "label": "Template exists: templates/schools/partials/manager_feedback_loop_body.html",
+      "status": "PASS",
+      "proof": "templates/schools/partials/manager_feedback_loop_body.html"
+    },
+    {
+      "id": "kb-ai-panel",
+      "label": "KB AI assistant panel + JS",
+      "status": "PASS",
+      "proof": "kb_ai_assistant"
+    },
+    {
+      "id": "kb-views-wired",
+      "label": "KB views use render_kb_if_operator",
+      "status": "PASS",
+      "proof": "views_kb.py"
+    },
+    {
+      "id": "report-pages-cp-base",
+      "label": "Operator report pages extend control_plane_base",
+      "status": "PASS",
+      "proof": "manager report templates"
+    },
+    {
+      "id": "feedback-loop-render",
+      "label": "Feedback loop uses render_manager_report_page",
+      "status": "PASS",
+      "proof": "manager_feedback_loop.py"
+    },
+    {
+      "id": "help-signals-module",
+      "label": "Shared operator help signals module",
+      "status": "PASS",
+      "proof": "operator_help_signals.py"
+    },
+    {
+      "id": "help-center-v2-ui",
+      "label": "Help hub search + AI + metrics + grouped sections",
+      "status": "PASS",
+      "proof": "manager_help_center_body.html"
+    },
+    {
+      "id": "faq-detail-operator",
+      "label": "FAQ detail uses operator control-plane shell",
+      "status": "PASS",
+      "proof": "views_kb.py faq_detail"
+    },
+    {
+      "id": "tests",
+      "label": "Operator help center + manager path tests",
+      "status": "PASS",
+      "proof": "st_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired\nINFO 2026-05-19 17:26:26,099 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n.........\n----------------------------------------------------------------------\nRan 9 tests in 0.626s\n\nOK"
+    }
+  ]
+}

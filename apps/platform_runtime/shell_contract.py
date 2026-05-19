@@ -158,6 +158,19 @@ def _studio_os_data_shell_host(host_kind: str) -> str:
     return "control-plane" if (host_kind or "school").strip().lower() == "manager" else "tenant"
 
 
+def manager_header_hide_config_chip(path: str) -> bool:
+    """
+    Hide the CCC Config shortcut in the manager topbar when the operator is in
+    Studio or Operations primary-nav zones (topology separation).
+    """
+    from apps.schools.control_plane_nav import _primary_nav_is_current
+
+    p = path or "/"
+    return _primary_nav_is_current(p, "primary_studio") or _primary_nav_is_current(
+        p, "primary_operations"
+    )
+
+
 def resolve_shell_contract(request) -> dict[str, Any]:
     """
     Build a template-friendly dict for the ``rmc_shell`` context variable.
@@ -207,6 +220,10 @@ def resolve_shell_contract(request) -> dict[str, Any]:
         "cp_layout_authenticated_shell": "manager-control-plane",
         # Studio OS data-* hooks (``shell.html`` / ``shell_control_plane.html``)
         "shell_data_studio_host": _studio_os_data_shell_host(host_kind),
+        # Manager topbar: suppress Config chip in Studio / Operations work zones.
+        "manager_header_hide_config_chip": (
+            host_kind == "manager" and manager_header_hide_config_chip(path)
+        ),
     }
 
 

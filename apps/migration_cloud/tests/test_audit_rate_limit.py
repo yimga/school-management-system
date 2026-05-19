@@ -9,7 +9,6 @@ meta-event per tenant per hour on limit-hit, raises a typed
 """
 from __future__ import annotations
 
-import logging
 from unittest import mock
 
 from django.test import TestCase, override_settings

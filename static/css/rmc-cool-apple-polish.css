@@ -221,6 +221,10 @@
   gap: 0.65rem;
 }
 
+.rmc-brand-mark--lockup-inline {
+  gap: 0.65rem;
+}
+
 .rmc-brand-mark__squircle {
   display: inline-flex;
   align-items: center;
@@ -362,20 +366,17 @@
   flex-grow: 1;
 }
 
-/* Search wrap: claim more of the corridor so the placeholder isn't cramped.
-   The previous narrow width was the reason "(⌘K)" was getting clipped. */
-.cp-navbar .cp-topbar-search-wrap {
+/* Manager / platform header search + kbd: canonical rules in rmc-platform-header.css
+   ([data-rmc-platform-header="manager"] toolbar row). Legacy cp-navbar rules below
+   apply only outside the manager platform header. */
+.cp-navbar:not([data-rmc-shell-header="control-plane"]) .cp-topbar-search-wrap {
   flex-grow: 1;
   max-width: 520px;
   min-width: 240px;
   margin-right: auto;
 }
 
-/* Search input — apple style: rounded pill, subtle border, light/dark aware.
-   Right padding reserves space for the trailing "Ctrl K" kbd chip; the
-   previous 2.75rem was too tight on Latin builds and the chip bled under
-   the placeholder ("Search schools, incidentctrl Ks" in 2026-05-15 shots). */
-.cp-navbar .cp-topbar-search-input {
+.cp-navbar:not([data-rmc-shell-header="control-plane"]) .cp-topbar-search-input {
   border-radius: 999px;
   padding: 0 4.25rem 0 1rem;
   background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
@@ -386,11 +387,11 @@
   box-sizing: border-box;
 }
 
-.cp-navbar .cp-topbar-search-input::placeholder {
+.cp-navbar:not([data-rmc-shell-header="control-plane"]) .cp-topbar-search-input::placeholder {
   color: rgba(255, 255, 255, 0.55); /* off-token-allow: white-overlay */
 }
 
-.cp-navbar .cp-topbar-search-input:focus {
+.cp-navbar:not([data-rmc-shell-header="control-plane"]) .cp-topbar-search-input:focus {
   background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
   border-color: rgba(129, 140, 248, 0.55); /* off-token-allow: rgba-decorative */
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
@@ -398,9 +399,7 @@
   color: #ffffff; /* off-token-allow: hex-literal-decorative */
 }
 
-/* Trailing keyboard-shortcut hint inside the search field (replaces the
-   "(⌘K)" suffix that was being clipped from the placeholder). */
-.cp-topbar-search-wrap .cp-search-kbd {
+.cp-navbar:not([data-rmc-shell-header="control-plane"]) .cp-topbar-search-wrap .cp-search-kbd {
   position: absolute;
   right: 0.5rem;
   top: 50%;
@@ -421,7 +420,7 @@
   transition: opacity 120ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
 }
 
-.cp-topbar-search-wrap .cp-topbar-search-input:focus ~ .cp-search-kbd {
+.cp-navbar:not([data-rmc-shell-header="control-plane"]) .cp-topbar-search-wrap .cp-topbar-search-input:focus ~ .cp-search-kbd {
   opacity: 0;
 }
 
@@ -458,7 +457,7 @@
 /* NOTIFICATION BELL + INLINE THEME TOGGLE — v2.56                             */
 /* ========================================================================== */
 
-.cp-topbar-bell {
+.cp-topbar-bell:not(.rmc-platform-header__icon-btn) {
   position: relative;
   display: inline-flex;
   align-items: center;

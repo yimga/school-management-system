@@ -1,12 +1,12 @@
 {
   "date": "2026-05-19",
-  "generated_at": "2026-05-19T15:48:55+00:00",
+  "generated_at": "2026-05-19T20:26:27+00:00",
   "major": 3,
-  "minor": 41,
-  "patch": 9,
-  "raw": "sms-v3.41.9-manager-shell-platform-wide-2026-05-19",
+  "minor": 42,
+  "patch": 11,
+  "raw": "sms-v3.42.11-migration-cloud-ui-repair-2026-05-19",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "manager-shell-platform-wide",
+  "slug": "migration-cloud-ui-repair",
   "valid": true
 }

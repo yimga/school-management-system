@@ -37,6 +37,7 @@ def _contains(rel: str, needle: str) -> bool:
 
 
 def _run_tests(labels: list[str]) -> tuple[bool, str]:
+    gate_db = ROOT / ".django_test_dbs" / "manager_header_account_gate.sqlite3"
     cmd = [
         sys.executable,
         "scripts/run_sqlite_memory_tests.py",
@@ -44,7 +45,11 @@ def _run_tests(labels: list[str]) -> tuple[bool, str]:
         "--verbosity=1",
         "--no-input",
     ]
-    env = {**os.environ, "PYTHONWARNINGS": "ignore"}
+    env = {
+        **os.environ,
+        "PYTHONWARNINGS": "ignore",
+        "DJANGO_TEST_DB_FILE": str(gate_db),
+    }
     try:
         proc = subprocess.run(
             cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=300, env=env
@@ -110,6 +115,7 @@ def main() -> int:
         "/authentication/notifications/",
         "/kb/",
         "/feedback-loop/",
+        "/help-center/",
     ):
         add(
             f"allow-{path.strip('/')}",
@@ -152,17 +158,17 @@ def main() -> int:
 
     dropdown = _read("templates/components/user_dropdown.html")
     add(
-        "dropdown-kb",
-        "User dropdown Help uses kb:kb_home",
-        "kb:kb_home" in dropdown and 'href="#"' not in dropdown,
+        "dropdown-help-center",
+        "User dropdown Help uses manager_help_center on manager",
+        "manager_help_center" in dropdown and 'href="#"' not in dropdown,
         "user_dropdown.html",
     )
 
     manager_urls_src = _read("config/manager_urls.py")
     add(
-        "manager-help-kb",
-        "manager_help redirects to kb:kb_home",
-        'reverse("kb:kb_home")' in manager_urls_src,
+        "manager-help-hub",
+        "manager_help redirects to manager_help_center",
+        'reverse("manager_help_center")' in manager_urls_src,
         "manager_urls.py",
     )
     add(
@@ -236,7 +242,8 @@ def main() -> int:
 
     tests_ok, tail = _run_tests(
         [
-            "apps.schools.tests.test_manager_header_account_paths",
+            "apps.schools.tests.test_manager_header_account_paths.ManagerHeaderAccountPathTests",
+            "apps.schools.tests.test_operator_help_center.OperatorHelpCenterAllowlistTests",
             "apps.siteconfig.tests.test_interaction_integrity_contract",
         ]
     )

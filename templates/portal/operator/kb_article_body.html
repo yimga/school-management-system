@@ -1,0 +1,37 @@
+{% load i18n static region_format %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator" data-rmc-page="kb-article">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'manager_help_center' %}">{% trans "Help center" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">{% trans "Knowledge base" %}</a></li>
+      {% if article.category %}
+      <li class="breadcrumb-item"><a href="{% url 'kb:kb_category' article.category.slug %}">{{ article.category.name }}</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active" aria-current="page">{{ article.title|truncatewords:8 }}</li>
+    </ol>
+  </nav>
+  {% include "portal/partials/kb_ai_assistant_panel.html" with kb_article_slug=article.slug kb_article_title=article.title %}
+  <article class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h1 class="h3 mb-3" id="kb-article-heading">{{ article.title }}</h1>
+      {% if article.summary %}<p class="lead text-tertiary">{{ article.summary }}</p>{% endif %}
+      <div class="rmc-kb-operator__article-body">
+        {% if article.content_html %}
+          {{ article.content_html|safe }}
+        {% else %}
+          {{ article.content|linebreaks }}
+        {% endif %}
+      </div>
+    </div>
+  </article>
+  {% if related_articles %}
+  <h2 class="h6 mt-4">{% trans "Related" %}</h2>
+  <ul class="list-group">
+    {% for rel in related_articles %}
+    <li class="list-group-item"><a href="{% url 'kb:kb_article' rel.slug %}">{{ rel.title }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+<script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>

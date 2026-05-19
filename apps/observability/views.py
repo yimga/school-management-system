@@ -31,7 +31,10 @@ from apps.siteconfig.config_service import get_effective_site_settings
 logger = logging.getLogger(__name__)
 
 # Load-balancer probe + human status page live in public_status.py.
-from apps.observability.public_status import public_health, public_status  # noqa: E402
+from apps.observability.public_status import (  # noqa: E402
+    public_health as public_health,
+    public_status as public_status,
+)
 
 # Reduced external API traffic: longer TTL; enable weather per-tenant where needed.
 WEATHER_CACHE_TTL_SECONDS = 900

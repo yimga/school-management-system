@@ -701,23 +701,17 @@ a.cp-queue-card-header:hover {
   }
 }
 
-/* ========== Layout: fixed sidebar + scrollable main only ========== */
-/* Body does NOT scroll; only #cp-main-content scrolls so sidebar stays visible on all pages */
-/* v2.66 (2026-05-15): tightened to `height: 100vh` + `max-height: 100vh` from
-   just `min-height: 100vh`. The minimum was being overridden when child
-   elements forced the body taller (some hidden modals/offcanvases were in
-   normal flow under specific viewport widths). Pinning to exactly viewport
-   height with explicit max-height + overflow:hidden is the only contract
-   that survives browser-extension or hidden-element height pushes. Real
-   users see one viewport with internal scroll on #cp-main-content. */
-body.control-plane-shell {
+/* ========== Layout: document scroll + sticky sidebar (v3.42.7) ========== */
+/* Natural page height — footer follows content; no black void above footer when
+   main column content is shorter than the viewport. Sidebar sticks while body scrolls. */
+body.control-plane-shell[data-rmc-cp-scroll="document"] {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   min-height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
+  height: auto;
+  max-height: none;
   overflow-x: clip;
+  overflow-y: auto;
   max-width: 100vw;
 }
 body.control-plane-shell .cp-shell-content,
@@ -737,11 +731,11 @@ body.control-plane-shell .skip-link {
   margin: -1px;
   padding: 0;
 }
-body.control-plane-shell .cp-shell-content {
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-shell-content {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -749,18 +743,18 @@ body.control-plane-shell .cp-navbar {
   flex-shrink: 0;
   z-index: 1030;
 }
-.cp-layout {
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout {
   flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  min-height: auto;
+  overflow: visible;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
-.cp-layout .row {
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row {
   flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  min-height: auto;
+  overflow: visible;
   /* v2.66 (2026-05-15): was `align-items: stretch` which forced both
      columns to match the row's height. When the sidebar had 15 group
      headers (~1000px) and the main content was shorter, the main column
@@ -786,6 +780,13 @@ body.control-plane-shell .cp-navbar {
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+  }
+  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    max-height: 100vh;
+    overflow: visible !important;
   }
 }
 .cp-sidebar-col .cp-sidebar-inner {
@@ -830,18 +831,15 @@ body.control-plane-shell .cp-navbar {
 .cp-sidebar-col::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.45); /* off-token-allow: white-overlay */
 }
-/* Main content column: ONLY this area scrolls; sidebar stays fixed (min-height: 0 enables flex child to scroll) */
-.cp-main-col,
-#cp-main-content {
+/* Main column grows with content; document/body scrolls (no trapped viewport void). */
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-main-col,
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content {
   flex: 1 1 auto !important;
   min-width: 0 !important;
-  min-height: 0 !important;
-  align-self: stretch !important;
-  /* Flex chain (body → cp-shell-content → cp-layout → row) caps height; do not
-     use calc(100vh - 56px) — topbar + primary nav + operator strip exceed 56px
-     and clip long pages (abrupt end on /configuration/, /super/*). */
+  min-height: auto !important;
+  align-self: flex-start !important;
   max-height: none !important;
-  overflow-y: auto !important;
+  overflow-y: visible !important;
   overflow-x: hidden;
   overflow-wrap: break-word;
   padding-bottom: 2.5rem; /* breathing room so last section is not flush */
@@ -1077,4 +1075,74 @@ body.control-plane-shell .cp-navbar.cp-navbar--surface {
 /* Manager admin nav bridge (components/admin_nav_bridge.html) */
 .admin-cp-navbar-unified .cp-header-search .cp-topbar-search-input {
   min-width: min(100%, 220px);
+}
+
+/* ========== Manager platform header — control-row alignment (v3.42.6) ========== */
+/* Wins over rmc-cool-apple-polish for [data-rmc-platform-header="manager"]. */
+
+[data-rmc-platform-header="manager"] .cp-topbar-bell,
+[data-rmc-platform-header="manager"] .cp-topbar-theme-toggle {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+}
+
+[data-rmc-platform-header="manager"] .cp-topbar-bell:hover,
+[data-rmc-platform-header="manager"] .cp-topbar-bell:focus-visible,
+[data-rmc-platform-header="manager"] .cp-topbar-theme-toggle:hover,
+[data-rmc-platform-header="manager"] .cp-topbar-theme-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
+}
+
+[data-rmc-platform-header="manager"] .rmc-platform-header__toolbar .btn-outline-light {
+  height: var(--rmc-header-control-height, 2.375rem);
+  min-height: var(--rmc-header-control-height, 2.375rem);
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--rmc-header-control-radius, 999px);
+}
+
+[data-rmc-platform-header="manager"] .cp-topbar-search-wrap .cp-search-kbd[data-rmc-hide-when-focused] {
+  transition: opacity 120ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+/* Studio OS on manager: drop fixed viewport traps under document-scroll shell. */
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content .studio-os-cp-wrap,
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content .studio-os-cp-wrap > .rmc-shell-content-grid {
+  min-height: auto !important;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content .studio-os[data-studio-density="control-compact"] {
+  min-height: auto !important;
+  max-height: none !important;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content .studio-os[data-studio-density="control-compact"] .studio-os__control-in-shell {
+  max-height: none !important;
+}
+
+/* Dark manager shell: Bootstrap .card must not force white surfaces. */
+html[data-surface="control-plane"][data-resolved-theme="dark"] #cp-main-content .card:not(.bg-transparent),
+html[data-surface="control-plane"][data-bs-theme="dark"] #cp-main-content .card:not(.bg-transparent),
+body.control-plane-shell.cp-surface[data-bs-theme="dark"] #cp-main-content .card:not(.bg-transparent) {
+  background-color: color-mix(
+    in oklab,
+    var(--surface-elevated, var(--color-base-900)) 88%,
+    transparent
+  ) !important;
+  border-color: var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-surface="control-plane"][data-resolved-theme="dark"] #cp-main-content .card .text-muted,
+html[data-surface="control-plane"][data-bs-theme="dark"] #cp-main-content .card .text-muted,
+body.control-plane-shell.cp-surface[data-bs-theme="dark"] #cp-main-content .card .text-muted {
+  color: var(--text-secondary) !important;
+}
+
+html[data-surface="control-plane"][data-resolved-theme="dark"] #cp-main-content .card .text-primary,
+html[data-surface="control-plane"][data-bs-theme="dark"] #cp-main-content .card .text-primary,
+body.control-plane-shell.cp-surface[data-bs-theme="dark"] #cp-main-content .card .text-primary {
+  color: var(--school-primary, var(--school-accent)) !important;
 }

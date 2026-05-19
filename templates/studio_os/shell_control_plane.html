@@ -38,7 +38,7 @@
 {% block rmc_operator_surface_strip %}{% endblock %}
 
 {% block cp_content %}
-<div class="studio-os-cp-wrap flex-grow-1 min-h-0 d-flex flex-column" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'control-plane' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="control-plane-shell" data-rmc-studio-focus="1">
+<div class="studio-os-cp-wrap flex-grow-1 d-flex flex-column" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'control-plane' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="control-plane-shell" data-rmc-studio-focus="1">
 {% include "studio_os/partials/shell_main_content.html" %}
 </div>
 {% endblock %}

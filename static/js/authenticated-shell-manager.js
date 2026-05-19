@@ -15,6 +15,8 @@
       document.getElementById("cpSearchResults") ||
       document.getElementById("cpSearchResultsAdmin");
     if (!input || !results) return;
+    if (input.getAttribute("data-rmc-shell-search-wired") === "1") return;
+    input.setAttribute("data-rmc-shell-search-wired", "1");
 
     var debounce = null;
     function esc(value) {
@@ -93,13 +95,8 @@
         results.classList.remove("show");
       }
     });
-    document.addEventListener("keydown", function (e) {
-      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        input.focus();
-        if (String(input.value || "").trim().length >= 2) search();
-      }
-    });
+    /* Ctrl+K is owned by rmc-command-palette.js on authenticated shells.
+       Header search focuses on click; palette opens on Ctrl+K (Spotlight model). */
   }
 
   function wireManagerRecentNav() {

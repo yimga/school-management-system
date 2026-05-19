@@ -446,6 +446,7 @@ urlpatterns = [
     path(
         "requests/", include(("apps.requests.urls", "requests"), namespace="requests")
     ),
+    path("", include(("apps.feedback.urls", "feedback"), namespace="feedback")),
     path(
         "organization/network/",
         parent_tenant_dashboard,

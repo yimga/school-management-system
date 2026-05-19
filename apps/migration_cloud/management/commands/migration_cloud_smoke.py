@@ -49,7 +49,6 @@ import json
 import logging
 import os
 import secrets
-import socket
 import sys
 import threading
 import time

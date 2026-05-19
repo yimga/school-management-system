@@ -1,0 +1,23 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator">
+  {% include "portal/partials/kb_ai_assistant_panel.html" %}
+  <p class="text-tertiary mb-3">{% trans "Results for" %} <strong>{{ query }}</strong></p>
+  <h3 class="h6">{% trans "Articles" %}</h3>
+  <ul class="list-group mb-4">
+    {% for article in articles_page %}
+    <li class="list-group-item"><a href="{% url 'kb:kb_article' article.slug %}">{{ article.title }}</a></li>
+    {% empty %}
+    <li class="list-group-item text-tertiary">{% trans "No articles." %}</li>
+    {% endfor %}
+  </ul>
+  <h3 class="h6">{% trans "FAQs" %}</h3>
+  <ul class="list-group">
+    {% for faq in faqs_page %}
+    <li class="list-group-item"><strong>{{ faq.question }}</strong><br>{{ faq.answer|truncatewords:40 }}</li>
+    {% empty %}
+    <li class="list-group-item text-tertiary">{% trans "No FAQs." %}</li>
+    {% endfor %}
+  </ul>
+</div>
+<script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>

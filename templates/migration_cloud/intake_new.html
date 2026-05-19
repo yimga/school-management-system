@@ -1,22 +1,38 @@
-{% extends "control_plane_skeleton.html" %}{# Migration Cloud — intake wizard. Routed at /super/migration/new/ and /portal/configure/migration/new/. Source-hint is optional; unknown vendors and custom products land via unknown_custom + custom_fields.*. #}
-{% load i18n %}
+{% extends "control_plane_skeleton.html" %}
+{% load i18n static %}
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block cp_shell_page %}
 <main class="rmc-page rmc-page--migration-cloud-intake" id="main">
-  <header class="rmc-page__header">
-    <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
-       class="rmc-back">{% trans "← All migrations" %}</a>
-    <h1 class="rmc-h1">{% trans "Start a new migration" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Any platform, any size. Known competitors auto-detect; unknown vendors and custom in-house products route through the universal intake — unmappable fields land in custom_fields.* and stay queryable." %}
-    </p>
+  <header class="rmc-page__header rmc-intake-hero" data-mc-intake-command-center>
+    <div class="rmc-intake-hero__copy">
+      <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
+         class="rmc-back">{% trans "Back to all migrations" %}</a>
+      <h1 class="rmc-h1">{% trans "Start a new migration" %}</h1>
+      <p class="rmc-lede">
+        {% trans "Land the export, fingerprint every artifact, map fields into the canonical model, and put guardrails in place before anyone can apply data to a tenant." %}
+      </p>
+    </div>
+    <div class="rmc-intake-hero__metrics" aria-label="{% trans 'Migration intake capabilities' %}">
+      <div class="rmc-intake-metric">
+        <strong>{{ intake_methods|length }}</strong>
+        <span>{% trans "intake methods" %}</span>
+      </div>
+      <div class="rmc-intake-metric">
+        <strong>{{ max_upload_mb }}</strong>
+        <span>{% trans "MB per file cap" %}</span>
+      </div>
+      <div class="rmc-intake-metric">
+        <strong>{% trans "SHA-256" %}</strong>
+        <span>{% trans "dedupe key" %}</span>
+      </div>
+    </div>
   </header>
 
   {% if errors %}
   <div class="rmc-banner rmc-banner--error" role="alert">
-    <strong>{% trans "We couldn't start the migration:" %}</strong>
+    <strong>{% trans "We could not start the migration:" %}</strong>
     <ul>
       {% for err in errors %}<li>{{ err }}</li>{% endfor %}
     </ul>
@@ -24,216 +40,325 @@
   {% endif %}
 
   {% if prefill_from_onboarding %}
-  {% comment %}v3.17 (2026-05-17) — onboarding hand-off pre-filled the form. Surface
-     the provenance so the operator can either continue with the pre-filled
-     values or reset to a blank form via the inline link.{% endcomment %}
   <div class="rmc-banner rmc-banner--info" role="status" data-rmc-prefill-source="onboarding">
-    <strong>{% trans "Pre-filled from your onboarding choice." %}</strong>
-    {% trans "Adjust anything below before you create the bundle, or" %}
+    <strong>{% trans "Pre-filled from onboarding." %}</strong>
+    {% trans "Review the source, guardrails, and safety options before creating the bundle, or" %}
     <a href="?">{% trans "start with a blank form" %}</a>.
   </div>
   {% endif %}
 
-  <details class="rmc-card rmc-ai-disclosure" id="mc-vendor-from-image">
-    <summary>{% trans "Not sure of the source platform? Upload a screenshot." %}</summary>
-    <p class="rmc-form__help">
-      {% trans "OCR runs locally; only the extracted text is sent to the AI gateway. Returns a vendor guess + confidence you can drop into the source-hint field below." %}
-    </p>
-    <form class="rmc-form rmc-form--inline" enctype="multipart/form-data"
-          data-mc-vendor-from-image-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:ai_vendor_from_image' %}{% else %}{% url 'migration_cloud_super:ai_vendor_from_image' %}{% endif %}"
-          data-mc-vendor-csrf="{{ csrf_token }}">
-      <input type="file" name="image" accept="image/*,.pdf" class="rmc-input rmc-input--file" required>
-      <button type="submit" class="rmc-btn rmc-btn--primary rmc-btn--sm">{% trans "Identify vendor" %}</button>
-    </form>
-    <p class="rmc-mapping__status" data-mc-vendor-from-image-result role="status" aria-live="polite"></p>
-  </details>
+  <div class="rmc-intake-layout">
+    <form method="post"
+          action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}"
+          enctype="multipart/form-data"
+          class="rmc-form rmc-form--intake rmc-intake-workbench"
+          id="mc-intake-form"
+          data-mc-intake-form
+          data-mc-max-upload-bytes="{{ max_upload_bytes }}">
+      {% csrf_token %}
 
-  <script>
-    (function () {
-      var card = document.getElementById("mc-vendor-from-image");
-      if (!card) return;
-      var form = card.querySelector("form");
-      var status = card.querySelector("[data-mc-vendor-from-image-result]");
-      if (!form || !status) return;
-      var url = form.getAttribute("data-mc-vendor-from-image-url");
-      var csrf = form.getAttribute("data-mc-vendor-csrf");
-      var hintInput = document.querySelector("input[name=source_hint]");
+      <section class="rmc-intake-panel rmc-intake-panel--source-id"
+               id="mc-vendor-from-image"
+               data-mc-source-identify-panel
+               data-mc-vendor-from-image-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:ai_vendor_from_image' %}{% else %}{% url 'migration_cloud_super:ai_vendor_from_image' %}{% endif %}"
+               data-mc-vendor-csrf="{{ csrf_token }}"
+               aria-labelledby="mc-source-id-title">
+        <div class="rmc-intake-panel__head">
+          <div>
+            <p class="rmc-intake-eyebrow">{% trans "Source intelligence" %}</p>
+            <h2 class="rmc-h2" id="mc-source-id-title">{% trans "Not sure what exported the data?" %}</h2>
+          </div>
+          <span class="rmc-pill">{% trans "Optional" %}</span>
+        </div>
+        <div class="rmc-intake-source-id__grid">
+          <p class="rmc-form__help">
+            {% trans "Upload a screenshot or PDF from the old system. OCR runs first, then the source hint is filled when the vendor is clear." %}
+          </p>
+          <div class="rmc-intake-source-id__actions">
+            <input type="file"
+                   name="image"
+                   accept="image/*,.pdf"
+                   class="rmc-input rmc-input--file"
+                   data-mc-vendor-image-input>
+            <button type="button" class="rmc-btn rmc-btn--primary rmc-btn--sm" data-mc-vendor-image-submit>
+              {% trans "Identify source" %}
+            </button>
+          </div>
+        </div>
+        <p class="rmc-mapping__status" data-mc-vendor-from-image-result role="status" aria-live="polite"></p>
+      </section>
 
-      form.addEventListener("submit", function (ev) {
-        ev.preventDefault();
-        var fd = new FormData(form);
-        status.textContent = "Running OCR + AI…";
-        fetch(url, {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "X-CSRFToken": csrf, Accept: "application/json" },
-          body: fd,
-        })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (data.ai_available && data.vendor) {
-              status.innerHTML =
-                "<strong>" + data.vendor + "</strong> (confidence " +
-                Math.round((data.confidence || 0) * 100) + "%). " +
-                (data.reasoning ? "<em>" + data.reasoning + "</em>" : "");
-              if (hintInput) hintInput.value = data.vendor;
-            } else {
-              status.textContent =
-                "Could not identify a vendor. OCR returned " +
-                (data.ocr_chars || 0) + " chars. Try a different screenshot, " +
-                "or leave the source-hint blank — the classifier handles unknown vendors.";
-            }
-          })
-          .catch(function (err) {
-            status.textContent = "Failed: " + (err && err.message);
-          });
-      });
-    })();
-  </script>
+      <section class="rmc-intake-panel" aria-labelledby="mc-source-path-title">
+        <div class="rmc-intake-panel__head">
+          <div>
+            <p class="rmc-intake-eyebrow">{% trans "Step 1" %}</p>
+            <h2 class="rmc-h2" id="mc-source-path-title">{% trans "Choose the source path" %}</h2>
+          </div>
+          <span class="rmc-pill">{% trans "Universal intake" %}</span>
+        </div>
 
-  <form method="post"
-        action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}"
-        enctype="multipart/form-data"
-        class="rmc-form rmc-form--intake"
-        id="mc-intake-form">
-    {% csrf_token %}
+        <div class="rmc-intake-method-grid" role="list" aria-label="{% trans 'Intake method families' %}">
+          {% for group in intake_method_groups %}
+          <button type="button"
+                  class="rmc-intake-method-card"
+                  data-mc-method-card="{{ group.key }}"
+                  aria-pressed="false">
+            <i class="bi {{ group.icon }}" aria-hidden="true"></i>
+            <span class="rmc-intake-method-card__body">
+              <strong>{{ group.label }}</strong>
+              <small>{{ group.summary }}</small>
+            </span>
+          </button>
+          {% endfor %}
+        </div>
 
-    <fieldset class="rmc-form__section">
-      <legend class="rmc-form__legend">{% trans "1. How is the data arriving?" %}</legend>
-      <p class="rmc-form__help">
-        {% trans "Pick the shape that matches what the source platform can export. We accept everything; choose 'Direct file upload' if you're unsure." %}
-      </p>
-      <select name="intake_method" id="mc-intake-method" class="rmc-input rmc-input--select" required>
-        {% for m in intake_methods %}
-          <option value="{{ m.value }}"
-                  data-kind="{{ m.kind }}"
-                  {% if form.intake_method == m.value or not form.intake_method and m.value == default_intake_method %}selected{% endif %}>
-            {{ m.label }}{% if m.kind == 'pending' %} — {% trans "stages bundle for follow-up" %}{% endif %}
-          </option>
-        {% endfor %}
-      </select>
-    </fieldset>
-
-    <fieldset class="rmc-form__section" data-mc-intake-kind="upload">
-      <legend class="rmc-form__legend">{% trans "2. Upload file(s)" %}</legend>
-      <p class="rmc-form__help">
-        {% trans "Multiple files allowed. CSV, TSV, XLSX, JSON, XML, SQL dumps, PDFs, archives — drop what you have." %}
-      </p>
-      <input type="file" name="artifacts" multiple class="rmc-input rmc-input--file">
-    </fieldset>
-
-    <fieldset class="rmc-form__section" data-mc-intake-kind="url" hidden>
-      <legend class="rmc-form__legend">{% trans "2. Paste the remote location" %}</legend>
-      <p class="rmc-form__help">
-        {% trans "Accepted schemes: http://, https://, sftp://user:pass@host/path, s3://bucket/key." %}
-      </p>
-      <input type="text" name="intake_source_uri"
-             value="{{ form.intake_source_uri|default:'' }}"
-             placeholder="https://exports.oldsis.example.com/2026-school-year.zip"
-             class="rmc-input rmc-input--text"
-             autocomplete="off">
-    </fieldset>
-
-    <fieldset class="rmc-form__section" data-mc-intake-kind="pending" hidden>
-      <legend class="rmc-form__legend">{% trans "2. Stage the bundle for follow-up" %}</legend>
-      <p class="rmc-form__help">
-        {% trans "Live database, OAuth folder, mailbox, and vendor API methods require operator-supplied credentials. We'll create an empty bundle now; attach the source from the bundle detail page once credentials are exchanged." %}
-      </p>
-    </fieldset>
-
-    {% include "migration_cloud/_canonical_template_panel.html" %}
-
-    <fieldset class="rmc-form__section">
-      <legend class="rmc-form__legend">{% trans "3. Tell the classifier what it's looking at (optional)" %}</legend>
-      <div class="rmc-form__grid">
-        <label class="rmc-form__field">
-          <span class="rmc-form__label">{% trans "Label (operator-visible)" %}</span>
-          <input type="text" name="label"
-                 value="{{ form.label|default:'' }}"
-                 placeholder="{% trans 'Sept 2026 cutover from custom SIS' %}"
-                 class="rmc-input rmc-input--text" maxlength="200">
-        </label>
-
-        <label class="rmc-form__field">
-          <span class="rmc-form__label">{% trans "Source-system hint" %}</span>
-          <input type="text" name="source_hint"
-                 value="{{ form.source_hint|default:'' }}"
-                 placeholder="{% trans 'powerschool / blackbaud / custom / leave blank' %}"
-                 class="rmc-input rmc-input--text" maxlength="200"
-                 list="mc-source-suggestions">
-          <datalist id="mc-source-suggestions">
-            <option value="powerschool">
-            <option value="blackbaud">
-            <option value="veracross">
-            <option value="infinite_campus">
-            <option value="facts">
-            <option value="skyward">
-            <option value="alma">
-            <option value="unknown_custom">
-          </datalist>
-          <small class="rmc-form__help">
-            {% trans "Leave blank for in-house / unknown platforms — the classifier auto-detects known competitors and falls back to 'unknown_custom' with AI-assisted column mapping." %}
-          </small>
-        </label>
-
-        <label class="rmc-form__field">
-          <span class="rmc-form__label">{% trans "Size / SLA tier" %}</span>
-          <select name="sla_tier" class="rmc-input rmc-input--select">
-            {% for value, label in sla_tiers %}
-              <option value="{{ value }}"
-                      {% if form.sla_tier == value or not form.sla_tier and value == default_sla_tier %}selected{% endif %}>
-                {{ label }}
+        <label class="rmc-form__field rmc-intake-method-select">
+          <span class="rmc-form__label">{% trans "Exact intake method" %}</span>
+          <select name="intake_method" id="mc-intake-method" class="rmc-input rmc-input--select" required>
+            {% for m in intake_methods %}
+              <option value="{{ m.value }}"
+                      data-kind="{{ m.kind }}"
+                      {% if form.intake_method == m.value or not form.intake_method and m.value == default_intake_method %}selected{% endif %}>
+                {{ m.label }}{% if m.kind == 'pending' %} - {% trans "stage for follow-up" %}{% endif %}
               </option>
             {% endfor %}
           </select>
         </label>
 
-        {% if is_super_shell %}
-        <label class="rmc-form__field">
-          <span class="rmc-form__label">{% trans "Target school ID (optional)" %}</span>
-          <input type="text" name="school_id"
-                 value="{{ form.school_id|default:'' }}"
-                 placeholder="{% trans 'blank = pre-tenant staging' %}"
-                 class="rmc-input rmc-input--text"
-                 inputmode="numeric" pattern="[0-9]*">
-          <small class="rmc-form__help">
-            {% trans "Operator-only. Bind the bundle to a specific school now, or leave blank and bind from the detail page after the school is provisioned." %}
-          </small>
-        </label>
-        {% endif %}
+        <div class="rmc-intake-source-section" data-mc-intake-kind="upload">
+          <label class="rmc-intake-dropzone"
+                 for="mc-artifacts"
+                 data-mc-upload-dropzone>
+            <span class="rmc-intake-dropzone__icon"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i></span>
+            <span class="rmc-intake-dropzone__copy">
+              <strong>{% trans "Drop exports here or browse files" %}</strong>
+              <small>{% blocktrans with cap=max_upload_mb %}CSV, TSV, XLSX, JSON, XML, SQL, PDFs, Access DB, and archives. {{ cap }} MB max per file.{% endblocktrans %}</small>
+            </span>
+            <input id="mc-artifacts"
+                   type="file"
+                   name="artifacts"
+                   multiple
+                   class="rmc-input rmc-input--file rmc-intake-dropzone__input"
+                   data-mc-upload-input>
+          </label>
+          <div class="rmc-intake-file-summary" data-mc-upload-summary aria-live="polite">
+            {% trans "No files selected yet." %}
+          </div>
+          <ul class="rmc-intake-file-list" data-mc-upload-list></ul>
+        </div>
+
+        <div class="rmc-intake-source-section" data-mc-intake-kind="url" hidden>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Remote source URI" %}</span>
+            <input type="text"
+                   name="intake_source_uri"
+                   value="{{ form.intake_source_uri|default:'' }}"
+                   placeholder="https://exports.example.edu/sis-export.zip"
+                   class="rmc-input rmc-input--text"
+                   autocomplete="off">
+            <small class="rmc-form__help">{% trans "Supported schemes: http://, https://, sftp://, and s3://." %}</small>
+          </label>
+        </div>
+
+        <div class="rmc-intake-source-section" data-mc-intake-kind="pending" hidden>
+          <div class="rmc-intake-live-source">
+            <i class="bi bi-diagram-3" aria-hidden="true"></i>
+            <div>
+              <strong>{% trans "Stage a live-source bundle" %}</strong>
+              <p>{% trans "Create the bundle now, then attach database credentials, OAuth access, mailbox rules, or vendor API details from the bundle detail page." %}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="rmc-intake-panel" aria-labelledby="mc-classifier-title">
+        <div class="rmc-intake-panel__head">
+          <div>
+            <p class="rmc-intake-eyebrow">{% trans "Step 2" %}</p>
+            <h2 class="rmc-h2" id="mc-classifier-title">{% trans "Give the classifier context" %}</h2>
+          </div>
+        </div>
+
+        <div class="rmc-form__grid">
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Label" %}</span>
+            <input type="text"
+                   name="label"
+                   value="{{ form.label|default:'' }}"
+                   placeholder="{% trans 'Sept 2026 cutover from legacy SIS' %}"
+                   class="rmc-input rmc-input--text"
+                   maxlength="200">
+          </label>
+
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Source-system hint" %}</span>
+            <input type="text"
+                   name="source_hint"
+                   value="{{ form.source_hint|default:'' }}"
+                   placeholder="{% trans 'powerschool / blackbaud / custom / blank' %}"
+                   class="rmc-input rmc-input--text"
+                   maxlength="200"
+                   list="mc-source-suggestions">
+            <datalist id="mc-source-suggestions">
+              <option value="powerschool">
+              <option value="blackbaud">
+              <option value="veracross">
+              <option value="infinite_campus">
+              <option value="facts">
+              <option value="skyward">
+              <option value="alma">
+              <option value="unknown_custom">
+            </datalist>
+            <small class="rmc-form__help">{% trans "Leave blank for unknown or in-house systems; unmapped fields stay queryable under custom_fields.*." %}</small>
+          </label>
+
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Size / SLA tier" %}</span>
+            <select name="sla_tier" class="rmc-input rmc-input--select">
+              {% for value, label in sla_tiers %}
+                <option value="{{ value }}"
+                        {% if form.sla_tier == value or not form.sla_tier and value == default_sla_tier %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+
+          {% if is_super_shell %}
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Target school ID" %}</span>
+            <input type="text"
+                   name="school_id"
+                   value="{{ form.school_id|default:'' }}"
+                   placeholder="{% trans 'blank = pre-tenant staging' %}"
+                   class="rmc-input rmc-input--text"
+                   inputmode="numeric"
+                   pattern="[0-9]*">
+            <small class="rmc-form__help">{% trans "Bind now if the tenant exists, or leave blank and bind after provisioning." %}</small>
+          </label>
+          {% endif %}
+        </div>
+      </section>
+
+      {% include "migration_cloud/_canonical_template_panel.html" %}
+
+      <section class="rmc-intake-panel" aria-labelledby="mc-guardrails-title">
+        <div class="rmc-intake-panel__head">
+          <div>
+            <p class="rmc-intake-eyebrow">{% trans "Step 3" %}</p>
+            <h2 class="rmc-h2" id="mc-guardrails-title">{% trans "Set validation guardrails" %}</h2>
+          </div>
+          <span class="rmc-pill">{% trans "Before apply" %}</span>
+        </div>
+
+        <div class="rmc-form__grid">
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Expected students" %}</span>
+            <input type="text" name="expected_students_count" value="{{ form.expected_students_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="1240">
+          </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Expected guardians" %}</span>
+            <input type="text" name="expected_guardians_count" value="{{ form.expected_guardians_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="2480">
+          </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Expected invoices" %}</span>
+            <input type="text" name="expected_invoice_count" value="{{ form.expected_invoice_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="860">
+          </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Expected invoice total" %}</span>
+            <input type="text" name="expected_invoice_total_amount" value="{{ form.expected_invoice_total_amount|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="125000.00">
+          </label>
+        </div>
+        <p class="rmc-form__help">{% trans "These totals are stored on the bundle and checked before live apply. Leave fields blank when the source does not provide reliable totals." %}</p>
+      </section>
+
+      <section class="rmc-intake-panel" aria-labelledby="mc-safety-title">
+        <div class="rmc-intake-panel__head">
+          <div>
+            <p class="rmc-intake-eyebrow">{% trans "Step 4" %}</p>
+            <h2 class="rmc-h2" id="mc-safety-title">{% trans "Choose run safety" %}</h2>
+          </div>
+        </div>
+
+        <div class="rmc-form__grid">
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Ingest mode" %}</span>
+            <select name="diff_mode" class="rmc-input rmc-input--select" data-mc-diff-mode>
+              <option value="full" {% if form.diff_mode != 'since' %}selected{% endif %}>{% trans "Full re-ingest" %}</option>
+              <option value="since" {% if form.diff_mode == 'since' %}selected{% endif %}>{% trans "Only rows changed since date" %}</option>
+            </select>
+          </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Changed since" %}</span>
+            <input type="date" name="diff_since" value="{{ form.diff_since|default:'' }}" class="rmc-input rmc-input--text" data-mc-diff-since>
+          </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Rollback if parity falls below" %}</span>
+            <input type="text" name="parity_drift_rollback_pct" value="{{ form.parity_drift_rollback_pct|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="98.5">
+          </label>
+        </div>
+
+        <div class="rmc-intake-checks">
+          <label class="rmc-form__checkbox">
+            <input type="checkbox" name="apply_atomic" value="1" {% if form.apply_atomic %}checked{% endif %}>
+            <span>{% trans "Use all-or-nothing live apply when supported" %}</span>
+          </label>
+          <label class="rmc-form__checkbox">
+            <input type="checkbox" name="auto_advance" value="1" {% if form.auto_advance %}checked{% endif %}>
+            <span>{% trans "Run profile, classify, and map immediately after intake" %}</span>
+          </label>
+        </div>
+      </section>
+
+      <div class="rmc-intake-savebar">
+        <div>
+          <strong>{% trans "Ready to create the bundle" %}</strong>
+          <p data-mc-submit-summary>{% trans "The source will be fingerprinted, staged, and opened in the mapping workspace." %}</p>
+        </div>
+        <div class="rmc-form__actions">
+          <button type="submit" class="rmc-btn rmc-btn--primary" data-mc-submit-label>{% trans "Create bundle and start" %}</button>
+          <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
+             class="rmc-btn rmc-btn--ghost">{% trans "Cancel" %}</a>
+        </div>
       </div>
-    </fieldset>
+    </form>
 
-    <fieldset class="rmc-form__section">
-      <label class="rmc-form__checkbox">
-        <input type="checkbox" name="auto_advance" value="1"
-               {% if form.auto_advance is None or form.auto_advance %}checked{% endif %}>
-        <span>{% trans "Run profile → classify → map immediately after intake (recommended)" %}</span>
-      </label>
-    </fieldset>
+    <aside class="rmc-intake-sidecar" aria-label="{% trans 'Intake readiness' %}">
+      <section class="rmc-intake-panel rmc-intake-panel--side">
+        <h2 class="rmc-h2">{% trans "Source readiness" %}</h2>
+        <ul class="rmc-intake-checklist">
+          {% for item in source_playbooks %}
+            <li><i class="bi bi-check2-circle" aria-hidden="true"></i><span>{{ item }}</span></li>
+          {% endfor %}
+        </ul>
+      </section>
 
-    <div class="rmc-form__actions">
-      <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Create bundle and start" %}</button>
-      <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
-         class="rmc-btn rmc-btn--ghost">{% trans "Cancel" %}</a>
-    </div>
-  </form>
+      <section class="rmc-intake-panel rmc-intake-panel--side">
+        <h2 class="rmc-h2">{% trans "Pipeline preview" %}</h2>
+        <ol class="rmc-intake-pipeline">
+          {% for step in pipeline_steps %}
+            <li>
+              <strong>{{ step.label }}</strong>
+              <span>{{ step.detail }}</span>
+            </li>
+          {% endfor %}
+        </ol>
+      </section>
+
+      <section class="rmc-intake-panel rmc-intake-panel--side">
+        <h2 class="rmc-h2">{% trans "Upload guardrails" %}</h2>
+        <ul class="rmc-intake-checklist">
+          {% for item in upload_guardrails %}
+            <li><i class="bi bi-shield-check" aria-hidden="true"></i><span>{{ item }}</span></li>
+          {% endfor %}
+        </ul>
+      </section>
+    </aside>
+  </div>
 </main>
+{% endblock %}
 
-<script>
-  (function () {
-    var sel = document.getElementById('mc-intake-method');
-    if (!sel) return;
-    var sections = document.querySelectorAll('[data-mc-intake-kind]');
-    function refresh() {
-      var opt = sel.options[sel.selectedIndex];
-      var kind = opt ? opt.getAttribute('data-kind') : 'upload';
-      sections.forEach(function (s) {
-        s.hidden = s.getAttribute('data-mc-intake-kind') !== kind;
-      });
-    }
-    sel.addEventListener('change', refresh);
-    refresh();
-  })();
-</script>
+{% block extrajs %}
+  {{ block.super }}
+  <script src="{% static 'js/migration-cloud-intake.js' %}" defer></script>
 {% endblock %}

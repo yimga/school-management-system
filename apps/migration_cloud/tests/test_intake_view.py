@@ -16,10 +16,12 @@ from __future__ import annotations
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.migration_cloud.models import BundleStatus, IntakeMethod, MigrationBundle
+
+HOST = "manager.runmycampus.com"
 
 
 def _operator(email: str = "ops@example.com"):
@@ -33,11 +35,12 @@ def _operator(email: str = "ops@example.com"):
     return user
 
 
+@override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["*"])
 class IntakeWizardGetTests(TestCase):
     def setUp(self) -> None:
         cache.clear()
         self.user = _operator()
-        self.client = Client()
+        self.client = Client(HTTP_HOST=HOST)
         self.client.force_login(self.user)
 
     def test_get_renders_wizard(self) -> None:
@@ -48,13 +51,19 @@ class IntakeWizardGetTests(TestCase):
         self.assertContains(resp, 'name="intake_method"')
         # Source-hint must be explicitly optional with a "leave blank" affordance.
         self.assertContains(resp, "source_hint")
+        self.assertContains(resp, "data-mc-intake-command-center")
+        self.assertContains(resp, "data-mc-source-identify-panel")
+        self.assertContains(resp, "data-mc-upload-dropzone")
+        self.assertContains(resp, 'name="expected_students_count"')
+        self.assertContains(resp, 'name="apply_atomic"')
 
 
+@override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["*"])
 class IntakeWizardUploadPostTests(TestCase):
     def setUp(self) -> None:
         cache.clear()
         self.user = _operator()
-        self.client = Client()
+        self.client = Client(HTTP_HOST=HOST)
         self.client.force_login(self.user)
         self.url = reverse("migration_cloud_super:bundle_new")
 
@@ -80,6 +89,40 @@ class IntakeWizardUploadPostTests(TestCase):
         self.assertEqual(bundle.intake_method, IntakeMethod.FILE_UPLOAD)
         self.assertEqual(bundle.artifacts.count(), 1)
         self.assertEqual(bundle.status, BundleStatus.INGESTING)
+
+    def test_upload_stores_control_totals_and_safety_rails(self) -> None:
+        file_obj = SimpleUploadedFile("students.csv", b"id,name\n1,Ada\n", content_type="text/csv")
+        resp = self._post(
+            artifacts=file_obj,
+            expected_students_count="1,240",
+            expected_guardians_count="2",
+            expected_invoice_count="3",
+            expected_invoice_total_amount="$125000.50",
+            diff_mode="since",
+            diff_since="2026-05-01",
+            apply_atomic="1",
+            parity_drift_rollback_pct="98.5",
+        )
+        self.assertEqual(resp.status_code, 302)
+        bundle = MigrationBundle.objects.get()
+        self.assertEqual(bundle.expected_totals["students.count"], "1240")
+        self.assertEqual(bundle.expected_totals["guardians.count"], "2")
+        self.assertEqual(bundle.expected_totals["finance.invoice_count"], "3")
+        self.assertEqual(bundle.expected_totals["finance.invoice_total_amount"], "125000.50")
+        self.assertEqual(bundle.diff_mode, "since")
+        self.assertIsNotNone(bundle.diff_since)
+        self.assertTrue(bundle.apply_atomic)
+        self.assertEqual(bundle.parity_drift_rollback_pct, 98.5)
+
+    def test_invalid_control_total_rejected(self) -> None:
+        file_obj = SimpleUploadedFile("students.csv", b"id,name\n1,Ada\n", content_type="text/csv")
+        resp = self._post(
+            artifacts=file_obj,
+            expected_students_count="twelve",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertContains(resp, "Expected students must be a whole number.", status_code=400)
+        self.assertEqual(MigrationBundle.objects.count(), 0)
 
     def test_double_submit_collapses_to_one_bundle(self) -> None:
         """Same operator + same payload twice → one bundle row.
@@ -115,11 +158,12 @@ class IntakeWizardUploadPostTests(TestCase):
         self.assertEqual(MigrationBundle.objects.count(), 0)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["*"])
 class IntakeWizardUrlAndPendingPostTests(TestCase):
     def setUp(self) -> None:
         cache.clear()
         self.user = _operator()
-        self.client = Client()
+        self.client = Client(HTTP_HOST=HOST)
         self.client.force_login(self.user)
         self.url = reverse("migration_cloud_super:bundle_new")
 
@@ -159,6 +203,7 @@ class IntakeWizardUrlAndPendingPostTests(TestCase):
         self.assertEqual(bundle.artifacts.count(), 0)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["*"])
 class ApplyDryRunGateTests(TestCase):
     """The /apply/ endpoint must default to dry-run unless ?confirm=1 is set.
 
@@ -170,7 +215,7 @@ class ApplyDryRunGateTests(TestCase):
     def setUp(self) -> None:
         cache.clear()
         self.user = _operator()
-        self.client = Client()
+        self.client = Client(HTTP_HOST=HOST)
         self.client.force_login(self.user)
         # Create a MAPPED bundle to exercise the apply gate.
         self.bundle = MigrationBundle.objects.create(
@@ -200,6 +245,7 @@ class ApplyDryRunGateTests(TestCase):
         self.assertFalse(data.get("dry_run"))
 
 
+@override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["*"])
 class IntakeWizardCustomSourceHintTests(TestCase):
     """The user's primary scenario: migrating from a custom in-house
     product not present in the classifier's known-vendor list."""
@@ -207,7 +253,7 @@ class IntakeWizardCustomSourceHintTests(TestCase):
     def setUp(self) -> None:
         cache.clear()
         self.user = _operator()
-        self.client = Client()
+        self.client = Client(HTTP_HOST=HOST)
         self.client.force_login(self.user)
 
     def test_custom_source_hint_lands_cleanly(self) -> None:

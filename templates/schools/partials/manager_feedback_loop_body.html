@@ -1,0 +1,54 @@
+{% load i18n %}
+<div data-rmc-page="feedback-loop" data-page-archetype="operator-report">
+  <header class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <p class="text-tertiary mb-0">
+      {% trans "Live consumption view of friction events, feedback submissions, and AI assistant interactions." %}
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="badge text-bg-secondary">{{ total_signal_7d }} {% trans "signals (7d)" %}</span>
+      {% if feedback.critical_open %}
+      <span class="badge text-bg-danger">{{ feedback.critical_open }} {% trans "critical open" %}</span>
+      {% endif %}
+    </div>
+  </header>
+  {% if is_empty %}
+  <div class="alert alert-light border" role="status">{% trans "No live signal yet — harness is listening." %}</div>
+  {% endif %}
+  <div class="row g-3">
+    <section class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header fw-semibold small">{% trans "Friction events" %}</div>
+        <div class="card-body small">
+          <p class="mb-1"><strong>{{ friction.count_7d }}</strong> / {{ friction.count_30d }}</p>
+          {% for row in friction.by_view %}
+          <div class="small"><code>{{ row.view_name }}</code> · {{ row.kind }} · {{ row.n }}</div>
+          {% empty %}
+          <p class="text-tertiary mb-0">{% trans "None in 7d." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    <section class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header fw-semibold small">{% trans "Feedback" %}</div>
+        <div class="card-body small">
+          <p class="mb-1"><strong>{{ feedback.count_7d }}</strong> / {{ feedback.count_30d }}</p>
+          {% for row in feedback.by_category %}
+          <div class="small">{{ row.category }} · {{ row.n }}</div>
+          {% empty %}
+          <p class="text-tertiary mb-0">{% trans "None in 7d." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+    <section class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header fw-semibold small">{% trans "AI assistant" %}</div>
+        <div class="card-body small">
+          <p class="mb-2"><strong>{{ ai.interactions_7d }}</strong> {% trans "7d" %}</p>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:ai_center' %}">{% trans "AI Center" %}</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

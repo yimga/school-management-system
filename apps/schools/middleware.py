@@ -64,6 +64,7 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     # authenticated users to the control-plane dashboard.
     "/authentication/backend/",
     "/help/",
+    "/help-center/",
     "/support/",
     "/feedback/",
     "/feedback-loop/",
@@ -97,6 +98,7 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
 MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     *MANAGER_AUTH_ALLOWED_PREFIXES,
     "/help/",
+    "/help-center/",
     "/support/",
     "/feedback/",
     "/notifications/",

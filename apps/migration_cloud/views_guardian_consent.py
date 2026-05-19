@@ -39,7 +39,6 @@ from django.http import (
 )
 from django.shortcuts import render
 from django.template.loader import select_template, TemplateDoesNotExist
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.cache import never_cache

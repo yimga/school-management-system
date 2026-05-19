@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static marketing_public_urls %}
 {% with finder_dom_id=finder_id|default:"school-finder-results" input_dom_id=input_id|default:"school-finder-input" %}
 <div class="card border-0 shadow-sm rounded-4">
   <div class="card-body p-4">
@@ -15,9 +15,9 @@
 
     <form
       method="get"
-      action="{% url 'find_school' %}"
+      action="{% marketing_public_href 'find_school' %}"
       class="mb-3"
-      hx-get="{% url 'find_school' %}"
+      hx-get="{% marketing_public_href 'find_school' %}"
       hx-target="#{{ finder_dom_id }}"
       hx-trigger="submit"
     >
@@ -37,7 +37,7 @@
           data-1p-ignore="true"
           data-lpignore="true"
           data-form-type="other"
-          hx-get="{% url 'find_school' %}"
+          hx-get="{% marketing_public_href 'find_school' %}"
           hx-target="#{{ finder_dom_id }}"
           hx-trigger="keyup changed delay:250ms, search"
         >

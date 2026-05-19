@@ -1,0 +1,16 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator">
+  <h2 class="h5 mb-3">{{ category.name }}</h2>
+  <div class="row g-3">
+    {% for article in page_obj %}
+    <div class="col-md-6">
+      <a class="card text-decoration-none h-100" href="{% url 'kb:kb_article' article.slug %}">
+        <div class="card-body"><h3 class="h6">{{ article.title }}</h3></div>
+      </a>
+    </div>
+    {% empty %}
+    <p class="text-tertiary">{% trans "No articles in this category." %}</p>
+    {% endfor %}
+  </div>
+</div>

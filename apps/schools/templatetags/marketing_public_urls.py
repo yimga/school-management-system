@@ -21,15 +21,17 @@ def marketing_public_href(context, url_name: str, *suffix_parts: str) -> str:
     request = context.get("request")
     host_kind = getattr(request, "public_host_kind", None) if request else None
 
+    base = (getattr(settings, "PUBLIC_SITE_URL", "") or "").rstrip("/")
     try:
-        if host_kind == "manager":
-            try:
-                return reverse(url_name) + suffix
-            except NoReverseMatch:
-                path = reverse(url_name, urlconf=_PUBLIC_URLCONF)
-                base = (getattr(settings, "PUBLIC_SITE_URL", "") or "").rstrip("/")
-                return f"{base}{path}{suffix}"
         return reverse(url_name) + suffix
     except NoReverseMatch:
-        base = (getattr(settings, "PUBLIC_SITE_URL", "") or "").rstrip("/")
-        return f"{base}/{suffix.lstrip('/')}" if host_kind == "manager" else "#"
+        pass
+    try:
+        path = reverse(url_name, urlconf=_PUBLIC_URLCONF)
+        if host_kind in ("manager", "tenant") and base:
+            return f"{base}{path}{suffix}"
+        return path + suffix
+    except NoReverseMatch:
+        if base and host_kind in ("manager", "tenant"):
+            return f"{base}/{suffix.lstrip('/')}"
+        return "#"

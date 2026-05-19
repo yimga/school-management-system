@@ -45,8 +45,6 @@ Coverage matrix (18 tests):
 """
 from __future__ import annotations
 
-import logging
-import re
 from unittest import mock
 
 from django.test import SimpleTestCase, override_settings

@@ -57,7 +57,6 @@ import logging
 import os
 import sys
 import time
-from typing import Any
 
 from django.conf import settings
 from django.core.management import call_command

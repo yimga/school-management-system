@@ -14,10 +14,8 @@ Coverage:
 from __future__ import annotations
 
 import json
-import re
 import tempfile
 from pathlib import Path
-from unittest import mock
 
 from django.test import SimpleTestCase, override_settings
 
@@ -80,7 +78,7 @@ class SignalRegistrationTests(SimpleTestCase):
     def test_register_is_idempotent(self):
         # Reset the module-level guard so we can exercise both branches.
         archival_module._SIGNAL_WIRED = False
-        first = archival_module.register_smoke_archival_signal()
+        archival_module.register_smoke_archival_signal()
         second = archival_module.register_smoke_archival_signal()
         # First call returns True (or False if celery isn't installed
         # in this lane); the second call MUST return False either way.

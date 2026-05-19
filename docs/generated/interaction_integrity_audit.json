@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T18:03:34.645501+00:00",
+  "generated_at": "2026-05-19T20:57:03.486126+00:00",
   "verdict": "INTERACTION_INTEGRITY_FAIL",
   "pass_count": 15,
   "fail_count": 1,
@@ -68,7 +68,7 @@
       "id": "11",
       "label": "Manager header account menu gate",
       "status": "PASS",
-      "proof": "middleware + manager_urls + CSS + operator_account_render"
+      "proof": "middleware + manager_help_center + CSS + operator_account_render"
     },
     {
       "id": "12",
@@ -98,7 +98,7 @@
       "id": "16",
       "label": "Contract tests green",
       "status": "FAIL",
-      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'scripts/run_sqlite_memory_tests.py', '--fresh', 'apps.siteconfig.tests.test_interaction_integrity_contract', 'apps.feedback.tests.test_feedback_help_center_contracts', 'apps.schools.tests.test_manager_header_account_paths']' timed out after 600 seconds"
+      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'scripts/run_sqlite_memory_tests.py', 'apps.siteconfig.tests.test_interaction_integrity_contract', 'apps.schools.tests.test_manager_header_account_paths.ManagerHeaderAccountPathTests', 'apps.schools.tests.test_operator_help_center.OperatorHelpCenterAllowlistTests', 'apps.feedback.tests.test_feedback_help_center_contracts', '--verbosity=1', '--no-input', '--fresh']' timed out after 900 seconds"
     }
   ]
 }

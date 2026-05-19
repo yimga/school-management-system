@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 
@@ -23,6 +24,7 @@ from apps.portal.kb_context import (
     filter_faqs_by_region,
     filter_faqs_for_host,
     filter_kb_articles_by_region,
+    filter_kb_articles_by_school,
     filter_kb_articles_for_host,
     is_operator_help_request,
     kb_categories_for_request,
@@ -95,6 +97,7 @@ def _published_kb_for_request(request):
     qs = KBArticle.objects.filter(status="PUBLISHED")
     qs = filter_kb_articles_for_host(qs, is_operator=is_op)
     qs = filter_kb_articles_by_region(qs, country, plan)
+    qs = filter_kb_articles_by_school(qs, request)
     qs = filter_by_target_roles(qs, request)
     return qs
 
@@ -148,7 +151,15 @@ def faq_list(request):
         "search_query": search_query,
         "pagination_extra_query": pagination_extra_query,
     }
-    return render(request, "portal/faq_list.html", context)
+    from apps.portal.operator_kb_render import render_kb_if_operator
+
+    return render_kb_if_operator(
+        request,
+        portal_template="portal/faq_list.html",
+        operator_body_template="portal/operator/faq_list_body.html",
+        context=context,
+        page_title="FAQ",
+    )
 
 
 def faq_detail(request, faq_id):
@@ -165,14 +176,30 @@ def faq_detail(request, faq_id):
         "related_faqs": related_faqs,
         "is_operator_help": is_operator_help_request(request),
     }
-    return render(request, "portal/faq_detail.html", context)
+    from apps.portal.operator_kb_render import render_kb_if_operator
+
+    return render_kb_if_operator(
+        request,
+        portal_template="portal/faq_detail.html",
+        operator_body_template="portal/operator/faq_detail_body.html",
+        context=context,
+        page_title=faq.question[:80],
+        breadcrumb_tail=[
+            {
+                "label": "FAQ",
+                "url": reverse("kb:faq_list"),
+                "active": False,
+            },
+            {"label": faq.question[:60], "url": None, "active": True},
+        ],
+    )
 
 
 @require_POST
 @login_required
 def faq_vote(request, faq_id):
     """Vote on FAQ helpfulness"""
-    faq = get_object_or_404(FAQ, id=faq_id)
+    faq = get_object_or_404(_approved_faq_for_request(request), id=faq_id)
     vote_type = request.POST.get("vote")  # 'helpful' or 'unhelpful'
 
     if vote_type == "helpful":
@@ -263,7 +290,15 @@ def kb_home(request):
         "categories": categories,
         "is_operator_help": is_operator_help_request(request),
     }
-    return render(request, "portal/kb_home.html", context)
+    from apps.portal.operator_kb_render import render_kb_if_operator
+
+    return render_kb_if_operator(
+        request,
+        portal_template="portal/kb_home.html",
+        operator_body_template="portal/operator/kb_home_body.html",
+        context=context,
+        page_title="Knowledge base",
+    )
 
 
 def kb_category(request, category_slug):
@@ -295,7 +330,15 @@ def kb_category(request, category_slug):
         "pagination_extra_query": pagination_extra_query,
         "is_operator_help": is_operator_help_request(request),
     }
-    return render(request, "portal/kb_category.html", context)
+    from apps.portal.operator_kb_render import render_kb_if_operator
+
+    return render_kb_if_operator(
+        request,
+        portal_template="portal/kb_category.html",
+        operator_body_template="portal/operator/kb_category_body.html",
+        context=context,
+        page_title=category.name,
+    )
 
 
 def kb_article(request, article_slug):
@@ -327,7 +370,15 @@ def kb_article(request, article_slug):
         "related_articles": related_articles,
         "is_operator_help": is_operator_help_request(request),
     }
-    return render(request, "portal/kb_article.html", context)
+    from apps.portal.operator_kb_render import render_kb_if_operator
+
+    return render_kb_if_operator(
+        request,
+        portal_template="portal/kb_article.html",
+        operator_body_template="portal/operator/kb_article_body.html",
+        context=context,
+        page_title=article.title,
+    )
 
 
 def kb_article_download_odt(request, article_slug):
@@ -405,7 +456,7 @@ def kb_article_download_docx(request, article_slug):
 
 def kb_article_download_pdf(request, article_slug):
     """Download KB article as PDF (converted from ODT via LibreOffice headless). Same visibility as article."""
-    article = get_object_or_404(KBArticle, slug=article_slug, status="PUBLISHED")
+    article = get_object_or_404(_published_kb_for_request(request), slug=article_slug)
     if not article.odt_file:
         return redirect("kb:kb_article", article_slug=article_slug)
     import tempfile
@@ -450,7 +501,7 @@ def kb_article_download_pdf(request, article_slug):
 @login_required
 def kb_article_vote(request, article_slug):
     """Vote on article helpfulness"""
-    article = get_object_or_404(KBArticle, slug=article_slug)
+    article = get_object_or_404(_published_kb_for_request(request), slug=article_slug)
     vote_type = request.POST.get("vote")
 
     if vote_type == "helpful":
@@ -484,7 +535,7 @@ def kb_article_vote(request, article_slug):
 @login_required
 def kb_comment_add(request, article_slug):
     """Add a comment to an article"""
-    article = get_object_or_404(KBArticle, slug=article_slug, status="PUBLISHED")
+    article = get_object_or_404(_published_kb_for_request(request), slug=article_slug)
     comment_text = request.POST.get("comment")
     parent_id = request.POST.get("parent_id")
 
@@ -614,7 +665,15 @@ def kb_search(request):
         "faqs_page": faqs_page,
         "is_operator_help": is_operator_help_request(request),
     }
-    return render(request, "portal/kb_search.html", context)
+    from apps.portal.operator_kb_render import render_kb_if_operator
+
+    return render_kb_if_operator(
+        request,
+        portal_template="portal/kb_search.html",
+        operator_body_template="portal/operator/kb_search_body.html",
+        context=context,
+        page_title="Search",
+    )
 
 
 @login_required

@@ -39,14 +39,13 @@ Migration
 from __future__ import annotations
 
 import hashlib
-import io
 import logging
 from datetime import timedelta
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, SimpleTestCase, TestCase, override_settings
+from django.test import Client, SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 

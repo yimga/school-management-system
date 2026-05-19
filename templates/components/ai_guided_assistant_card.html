@@ -1,25 +1,24 @@
 {% load i18n static %}
 {% comment %}
   Compact CTA that opens the unified AI Center pre-focused on the right assistant.
-  Replaces the prior in-place chat card. The AI Center is the single canonical
-  chat shell so per-page noise / broken-on-some-roles cards go away.
+  Semantic surface tokens only — no Bootstrap .card (white leak in dark control-plane).
 
   Required: card_title. Optional: card_hint, assistant_key (deep-links).
-  Backwards-compat: api_url, studio_mode, field_id are accepted but ignored.
 {% endcomment %}
 {% url 'siteconfig:ai_center' as rmc_ai_center_url %}
 {% if rmc_ai_center_url %}
 <a
-  class="card border-0 shadow-sm mb-3 text-decoration-none d-block"
+  class="rmc-ai-guided-assistant-card text-decoration-none d-block"
   href="{{ rmc_ai_center_url }}{% if assistant_key %}?focus={{ assistant_key }}{% endif %}"
   data-rmc-ai-center-link
+  data-rmc-ai-guided-assistant-card="1"
 >
-  <div class="card-body small d-flex align-items-start gap-3">
-    <i class="bi bi-stars text-primary fs-5 mt-1" aria-hidden="true"></i>
-    <div class="flex-grow-1">
-      <div class="fw-semibold">{{ card_title }}</div>
-      {% if card_hint %}<div class="text-muted mt-1">{{ card_hint }}</div>{% endif %}
-      <div class="text-primary small mt-2">{% trans "Open in AI Center" %} →</div>
+  <div class="rmc-ai-guided-assistant-card__body">
+    <i class="bi bi-stars rmc-ai-guided-assistant-card__icon" aria-hidden="true"></i>
+    <div class="rmc-ai-guided-assistant-card__copy">
+      <div class="rmc-ai-guided-assistant-card__title">{{ card_title }}</div>
+      {% if card_hint %}<p class="rmc-ai-guided-assistant-card__hint">{{ card_hint }}</p>{% endif %}
+      <span class="rmc-ai-guided-assistant-card__cta">{% trans "Open in AI Center" %} →</span>
     </div>
   </div>
 </a>

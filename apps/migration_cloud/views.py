@@ -25,12 +25,14 @@ URL grammar (one router, two mount points):
 from __future__ import annotations
 
 import logging
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.utils.dateparse import parse_date, parse_datetime
 from django.views import View
 
 from .ai_bridge import AIProposal, record_operator_feedback, remember_mapping_decision
@@ -173,6 +175,14 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
                 "intake_source_uri": "",
                 "school_id": prefill["school_id"] or "",
                 "auto_advance": True,
+                "apply_atomic": True,
+                "diff_mode": "full",
+                "diff_since": "",
+                "parity_drift_rollback_pct": "",
+                "expected_students_count": "",
+                "expected_guardians_count": "",
+                "expected_invoice_count": "",
+                "expected_invoice_total_amount": "",
             }
 
         ctx = self._context(request=request, shell=shell, errors=None, form=form)
@@ -205,6 +215,24 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
             "intake_source_uri": (request.POST.get("intake_source_uri") or "").strip(),
             "school_id": (request.POST.get("school_id") or "").strip(),
             "auto_advance": request.POST.get("auto_advance") in ("1", "on", "true"),
+            "apply_atomic": request.POST.get("apply_atomic") in ("1", "on", "true"),
+            "diff_mode": (request.POST.get("diff_mode") or "full").strip().lower(),
+            "diff_since": (request.POST.get("diff_since") or "").strip(),
+            "parity_drift_rollback_pct": (
+                request.POST.get("parity_drift_rollback_pct") or ""
+            ).strip(),
+            "expected_students_count": (
+                request.POST.get("expected_students_count") or ""
+            ).strip(),
+            "expected_guardians_count": (
+                request.POST.get("expected_guardians_count") or ""
+            ).strip(),
+            "expected_invoice_count": (
+                request.POST.get("expected_invoice_count") or ""
+            ).strip(),
+            "expected_invoice_total_amount": (
+                request.POST.get("expected_invoice_total_amount") or ""
+            ).strip(),
         }
         errors: list[str] = []
 
@@ -231,6 +259,8 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
                 school_id = int(form["school_id"])
             except ValueError:
                 errors.append("school_id must be an integer (or blank).")
+
+        intake_options = self._clean_intake_options(form=form, errors=errors)
 
         # Build handle per kind.
         handle: Any = None
@@ -313,8 +343,10 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
                     "source_hint": form["source_hint"],
                     "sla_tier": form["sla_tier"],
                     "triggered_by_id": getattr(request.user, "pk", None),
+                    **intake_options,
                 },
             )
+            self._apply_intake_options(bundle=bundle, values=intake_options)
             bundle_id = bundle.pk
             messages.info(
                 request,
@@ -339,6 +371,8 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
             try:
                 result = BundleIngestionService().ingest(spec)
                 bundle_id = result.bundle_id
+                bundle = MigrationBundle.objects.get(pk=bundle_id)
+                self._apply_intake_options(bundle=bundle, values=intake_options)
             except Exception as exc:  # noqa: BLE001 — surface intake failures inline
                 logger.exception("migration_cloud.views: intake failed for method=%s", method)
                 cache.delete(lock_key)
@@ -378,20 +412,186 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
         return redirect(detail_url)
 
     def _context(self, *, request, shell: str, errors, form):
+        defaults = {
+            "intake_method": "",
+            "label": "",
+            "source_hint": "",
+            "sla_tier": "",
+            "intake_source_uri": "",
+            "school_id": "",
+            "auto_advance": True,
+            "apply_atomic": True,
+            "diff_mode": "full",
+            "diff_since": "",
+            "parity_drift_rollback_pct": "",
+            "expected_students_count": "",
+            "expected_guardians_count": "",
+            "expected_invoice_count": "",
+            "expected_invoice_total_amount": "",
+        }
+        form_data = {**defaults, **(form or {})}
+        max_upload_bytes = self._max_upload_bytes()
+        intake_methods = [
+            {"value": value, "kind": kind, "label": label}
+            for value, kind, label in _INTAKE_WIZARD_METHODS
+        ]
+        method_groups = [
+            {
+                "key": "upload",
+                "label": "Upload files",
+                "summary": "CSV, XLSX, JSON, XML, SQL, PDFs, Access DB, or archives.",
+                "icon": "bi-cloud-arrow-up",
+                "methods": [m for m in intake_methods if m["kind"] == "upload"],
+            },
+            {
+                "key": "url",
+                "label": "Pull from a location",
+                "summary": "HTTP(S), SFTP, and S3 sources without local re-upload.",
+                "icon": "bi-link-45deg",
+                "methods": [m for m in intake_methods if m["kind"] == "url"],
+            },
+            {
+                "key": "pending",
+                "label": "Stage a live source",
+                "summary": "Database, OAuth folder, mailbox, or vendor API handoff.",
+                "icon": "bi-diagram-3",
+                "methods": [m for m in intake_methods if m["kind"] == "pending"],
+            },
+        ]
         return {
             "shell": shell,
             "page_title": "Start a new migration",
-            "intake_methods": [
-                {"value": value, "kind": kind, "label": label}
-                for value, kind, label in _INTAKE_WIZARD_METHODS
-            ],
+            "intake_methods": intake_methods,
+            "intake_method_groups": method_groups,
             "sla_tiers": list(SlaTier.choices),
             "default_intake_method": IntakeMethod.FILE_UPLOAD,
             "default_sla_tier": SlaTier.SMALL,
             "errors": errors or [],
-            "form": form or {},
+            "form": form_data,
             "is_super_shell": shell != "portal",
+            "max_upload_bytes": max_upload_bytes,
+            "max_upload_mb": max(1, round(max_upload_bytes / (1024 * 1024))),
+            "upload_guardrails": [
+                "Per-file cap is enforced before storage.",
+                "SHA-256 idempotency prevents double-submit duplicates.",
+                "Archives preserve folder lineage and child artifacts.",
+                "Unmapped fields remain queryable under custom_fields.*.",
+            ],
+            "pipeline_steps": [
+                {"label": "Land", "detail": "Save and fingerprint every artifact."},
+                {"label": "Profile", "detail": "Read headers, rows, encodings, and formats."},
+                {"label": "Classify", "detail": "Detect source system and domains."},
+                {"label": "Map", "detail": "Bind columns to canonical fields with AI recall."},
+                {"label": "Validate", "detail": "Run totals, conflict, and rollback guardrails."},
+                {"label": "Apply", "detail": "Dry-run first; live apply requires confirmation."},
+            ],
+            "source_playbooks": [
+                "Student roster, guardians, enrollments, sections, attendance, grades, invoices.",
+                "Export one ZIP when possible; folder structure is preserved.",
+                "Include a row-count or financial control total when the source provides one.",
+                "Use remote URL/SFTP/S3 for exports that exceed browser upload limits.",
+            ],
         }
+
+    def _clean_intake_options(self, *, form: dict[str, Any], errors: list[str]) -> dict[str, Any]:
+        expected_totals: dict[str, str] = {}
+
+        def clean_count(field: str, key: str, label: str) -> None:
+            raw = str(form.get(field) or "").replace(",", "").strip()
+            if not raw:
+                return
+            try:
+                value = int(raw)
+            except ValueError:
+                errors.append(f"{label} must be a whole number.")
+                return
+            if value < 0:
+                errors.append(f"{label} cannot be negative.")
+                return
+            expected_totals[key] = str(value)
+
+        def clean_money(field: str, key: str, label: str) -> None:
+            raw = str(form.get(field) or "").replace(",", "").replace("$", "").strip()
+            if not raw:
+                return
+            try:
+                value = Decimal(raw)
+            except (InvalidOperation, ValueError):
+                errors.append(f"{label} must be a valid amount.")
+                return
+            if value < Decimal("0"):
+                errors.append(f"{label} cannot be negative.")
+                return
+            expected_totals[key] = format(value, "f")
+
+        clean_count("expected_students_count", "students.count", "Expected students")
+        clean_count("expected_guardians_count", "guardians.count", "Expected guardians")
+        clean_count("expected_invoice_count", "finance.invoice_count", "Expected invoices")
+        clean_money(
+            "expected_invoice_total_amount",
+            "finance.invoice_total_amount",
+            "Expected invoice total",
+        )
+
+        diff_mode = str(form.get("diff_mode") or "full").lower()
+        if diff_mode not in ("full", "since"):
+            errors.append("Diff mode must be full or since.")
+            diff_mode = "full"
+
+        diff_since = None
+        diff_since_raw = str(form.get("diff_since") or "").strip()
+        if diff_since_raw:
+            parsed = parse_datetime(diff_since_raw)
+            if parsed is None:
+                parsed_date = parse_date(diff_since_raw)
+                if parsed_date is not None:
+                    from datetime import datetime, time
+
+                    parsed = datetime.combine(parsed_date, time.min)
+            if parsed is None:
+                errors.append("Diff since must be a valid date or ISO timestamp.")
+            else:
+                if timezone.is_naive(parsed):
+                    parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+                diff_since = parsed
+                diff_mode = "since"
+
+        rollback_pct = 0.0
+        rollback_raw = str(form.get("parity_drift_rollback_pct") or "").strip()
+        if rollback_raw:
+            try:
+                rollback_pct = float(rollback_raw)
+            except ValueError:
+                errors.append("Rollback parity threshold must be a number.")
+                rollback_pct = 0.0
+            else:
+                if rollback_pct < 0 or rollback_pct > 100:
+                    errors.append("Rollback parity threshold must be between 0 and 100.")
+                    rollback_pct = 0.0
+
+        return {
+            "expected_totals": expected_totals,
+            "diff_mode": diff_mode,
+            "diff_since": diff_since,
+            "apply_atomic": bool(form.get("apply_atomic")),
+            "parity_drift_rollback_pct": rollback_pct,
+        }
+
+    def _apply_intake_options(self, *, bundle: MigrationBundle, values: dict[str, Any]) -> None:
+        update_fields: list[str] = []
+        for field in (
+            "expected_totals",
+            "diff_mode",
+            "diff_since",
+            "apply_atomic",
+            "parity_drift_rollback_pct",
+        ):
+            if getattr(bundle, field) != values.get(field):
+                setattr(bundle, field, values.get(field))
+                update_fields.append(field)
+        if update_fields:
+            update_fields.append("updated_at")
+            bundle.save(update_fields=update_fields)
 
     def _persist_uploads(self, files) -> tuple[list[str], list[str]]:
         """Stream uploaded files to durable MEDIA storage under a per-day prefix.

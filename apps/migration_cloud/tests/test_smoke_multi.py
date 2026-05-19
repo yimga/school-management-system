@@ -230,7 +230,6 @@ class MultiTenantSmokeCommandTests(TestCase):
         captured: list[dict] = []
         from apps.migration_cloud.models_audit import AuditEventManager
 
-        real_record = AuditEventManager.record
 
         def fake_record(self, tenant_slug, event_type, **kwargs):
             captured.append({

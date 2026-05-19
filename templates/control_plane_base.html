@@ -13,6 +13,7 @@
    Loaded last so it wins specificity ties without needing !important everywhere. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
 {% endblock %}
 
 {% block cp_shell_content_attrs %} data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}{% endblock %}
@@ -103,7 +104,6 @@ Targets the existing #cp-main-content landmark (line ~76 below).
 
 {% include "partials/cp_context_drawer_shell.html" %}
 
-<script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
 <script type="application/json" id="page-data-control_plane_base-1">{
   "url_siteconfig_console_domains_hub": "{% url "siteconfig:console_domains_hub" %}"
 }</script><script src="{% static 'js/_pages/control_plane_base-1.js' %}"></script>

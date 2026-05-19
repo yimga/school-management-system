@@ -58,10 +58,10 @@ def manager_offline_sync_center(request):
 
 
 def manager_help(request):
-    """Operator help stays on the manager host (KB), not a cross-host public redirect."""
+    """Operator Help Center hub (KB is one section, not the whole center)."""
     from django.urls import reverse
 
-    return redirect(reverse("kb:kb_home"))
+    return redirect(reverse("manager_help_center"))
 
 
 def manager_support_request(request):
@@ -565,6 +565,13 @@ urlpatterns = [
     path("api/ai-copilot/validate/", _ai_copilot_query, name="ai_copilot_query"),
     path("-/version/", obs_views.public_version, name="public_version"),
     path("help/", manager_help, name="manager_help"),
+    path(
+        "help-center/",
+        __import__(
+            "config.manager_help_center", fromlist=["manager_help_center"]
+        ).manager_help_center,
+        name="manager_help_center",
+    ),
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),

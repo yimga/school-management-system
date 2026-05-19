@@ -65,8 +65,9 @@ class InteractionIntegrityContractTests(SimpleTestCase):
         self.assertIn("--rmc-header-control-height", css)
         self.assertIn(".cp-navbar .user-dropdown-trigger", css)
 
-    def test_user_dropdown_points_to_kb(self):
+    def test_user_dropdown_points_to_help_surfaces(self):
         text = (ROOT / "templates/components/user_dropdown.html").read_text(encoding="utf-8")
+        self.assertIn("manager_help_center", text)
         self.assertIn("kb:kb_home", text)
 
     def test_manager_admin_footer_wired(self):

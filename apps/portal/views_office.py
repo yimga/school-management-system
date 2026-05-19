@@ -83,14 +83,19 @@ def office_document_list(request):
             qs = qs.filter(school__in=[school, None])
         else:
             qs = qs.filter(school__isnull=True)
-    return render(
+    from apps.portal.operator_kb_render import render_kb_if_operator
+
+    ctx = {
+        "documents": qs[:100],
+        "is_operator_help": is_op,
+        "collabora_enabled": bool(_collabora_base_url()),
+    }
+    return render_kb_if_operator(
         request,
-        "portal/office_document_list.html",
-        {
-            "documents": qs[:100],
-            "is_operator_help": is_op,
-            "collabora_enabled": bool(_collabora_base_url()),
-        },
+        portal_template="portal/office_document_list.html",
+        operator_body_template="portal/operator/office_list_body.html",
+        context=ctx,
+        page_title="Office documents",
     )
 
 

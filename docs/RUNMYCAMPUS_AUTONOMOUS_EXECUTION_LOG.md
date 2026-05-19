@@ -1,4 +1,46 @@
-# RunMyCampus autonomous execution log
+﻿# RunMyCampus autonomous execution log
+
+## Slice - batch 1316 Migration Cloud UI/UX repair (2026-05-19)
+
+**A. Scope:** Screenshot-reported Migration Cloud intake UI defect: dark stacked slabs, clipped source-identification disclosure, and legacy customer/guardian migration pages using unscoped Bootstrap surfaces.
+
+**B. Changes:** Added `static/css/migration-cloud-ui.css` and loaded it from manager + portal shells; moved screenshot/PDF source identification into a full `data-mc-source-identify-panel` panel on `intake_new.html`; opted customer and guardian Migration Cloud pages into `data-rmc-migration-cloud-surface`; updated `verify_migration_cloud_intake_experience.py` to 11 checks; SW `sms-v3.42.11-migration-cloud-ui-repair-2026-05-19` precaches the repair CSS.
+
+**C. Proof:** `verify_migration_cloud_intake_experience.py` -> **PASS (11/11)**; local Playwright on `/super/migration/new/` -> **MIGRATION_CLOUD_UI_PLAYWRIGHT_PASS** (`panelOverflow=visible`, `sourcePanelVisible=true`, `problemNodes=[]`, CSS loaded); `manage.py check` clean; Ruff F401/F841 clean; `makemigrations migration_cloud --check --dry-run` -> no changes; `git diff --check` clean aside from existing line-ending warnings; service-worker baseline updated.
+
+**D. SOT:** Section 11.4 batch **1316** **DONE**.
+
+**E. Boundary:** The reported UI class is fixed repo-side and verified on the local running operator route. Hosted full-route visual crawl and deployment cache refresh remain Lane 2.
+
+---
+
+## Slice - batch 1315 Migration Cloud intake/upload workbench gear-up (2026-05-19)
+
+**A. Scope:** User-requested deep improvement to Migration Cloud, specifically the operator upload/intake UI and the repo-side readiness claim for seeded, migrated, dashboard-wired use.
+
+**B. Changes:** `MigrationCloudIntakeView` now persists expected totals, invoice amount control totals, `diff_mode`, `diff_since`, atomic apply, and rollback threshold across upload, URL, and pending/live-source intake. `intake_new.html` is now a workbench with source-path cards, drag/drop upload, source readiness, screenshot/PDF hinting, validation guardrails, run-safety controls, pipeline preview, and sticky actions. `migration-cloud-intake.js` wires method switching, file summaries, oversized warnings, and classifier calls. `rmc-class-grammar.css` adds the responsive intake grammar. `apps/migration_cloud/services/__init__.py` re-exports the ingestion contract to fix package import resolution. Migration Cloud `0024` applied and SW advanced to `sms-v3.42.10-migration-intake-gear-2026-05-19`.
+
+**C. Proof:** `verify_migration_cloud_intake_experience.py` -> **PASS (7/7)**; `manage.py check` clean; Ruff F401/F841 clean; `makemigrations migration_cloud --check --dry-run` -> no changes; `migrate migration_cloud --plan` -> no planned operations; `seed_five_pillar_proof` -> **FIVE_PILLAR_PROOF_SEED_OK**; forensic master prompt -> **24/24**; six-pillar global dominance -> **10/10**; focused live-Django intake smoke -> **MIGRATION_CLOUD_INTAKE_SMOKE_PASS**.
+
+**D. SOT:** Section 11.4 batch **1315** **DONE**.
+
+**E. Boundary:** Repo-side Migration Cloud intake/upload is closed for this slice. Full cold Django test-runner rebuild timed out on the large/stale test DB; proof is the focused verifier, live-Django smoke, migrate/seed, and global gates. Hosted Playwright, production credentials, and live customer cutover remain Lane 2 operational proof.
+
+---
+
+## Slice - batch 1313 platform surface forensic audit closeout (2026-05-19)
+
+**A. Scope:** Forensic Studio/manager UI audit — AI banner white leak, layout void above footer, Config chip topology, Ctrl+K, Studio viewport traps; platform-wide closeout.
+
+**B. Changes:** `rmc-ai-guided-assistant-card` component + CSS; document-scroll shell (`data-rmc-cp-scroll=document`) on skeleton/admin/portal manager bridge; Studio `min-h-0` / `72vh` trap overrides; `manager_header_hide_config_chip`; dark `.card` safety on `#cp-main-content`; idempotent shell search; `scripts/verify_platform_surface_layout_contract.py`; SW `sms-v3.42.8-platform-surface-audit-closeout-2026-05-19`.
+
+**C. Proof:** `verify_platform_surface_layout_contract.py --write --run-tests` → **PLATFORM_SURFACE_LAYOUT_PASS (12 checks)**; `verify_manager_portal_chrome_completion.py` → **24/24**; Django contract tests **18/18** green; second audit pass also green: `verify_ecosystem_sovereignty_matrix.py` → **ECOSYSTEM_SOVEREIGNTY_MATRIX_PASS**; `verify_six_pillar_global_dominance.py` → **SIX_PILLAR_GLOBAL_DOMINANCE_PASS (10/10)**; `verify_interaction_integrity_completion.py` → **INTERACTION_INTEGRITY_PASS (16/16)**; `verify_footer_surface_contract.py` → **62/62**.
+
+**D. SOT:** Section 11.4 batch **1313** **DONE** (row added 2026-05-19 audit pass).
+
+**E. Boundary:** Visual QA in browser still recommended after hard refresh; light-mode manager cards remain intentionally light via `manager-aesthetic-polish.css`.
+
+---
 
 ## Slice - batch 1312 Ecosystem Sovereignty gatekeeper matrix (2026-05-19)
 
@@ -32,13 +74,41 @@
 
 **A. Scope:** User-requested 100% audit of forensic interaction mandate (Help/RBAC/VoC/header/errors) + corporate footer on all `/super/` and `/admin/` manager-host pages; migrate/seed proof; gear-up pass.
 
-**B. Changes:** Extended interaction integrity gate to 16 checks; `scan_operator_shell_dead_hrefs.py` (baseline 0); `tenant_urls.handler503`; AI Center escalate allow-marker; user-dropdown wrapper stacking; SOT batch **1310**; CI wires dead-href scanner.
+**B. Changes:** Extended interaction integrity gate to 16 checks; isolated fresh SQLite per gate subprocess; `scan_operator_shell_dead_hrefs.py` (baseline 0); `tenant_urls.handler503`; AI Center escalate allow-marker; user-dropdown wrapper stacking; Help Center tests tenant `HTTP_HOST` + `ALLOWED_HOSTS=["*"]`; SOT batch **1310**; CI wires dead-href scanner.
 
 **C. Proof:** `verify_interaction_integrity_completion.py` → **INTERACTION_INTEGRITY_PASS (16/16)**; `verify_footer_surface_contract.py` → **62/62**; `scan_operator_shell_dead_hrefs.py --strict` → **0**; `npm run test:interaction-integrity` → **5/5**; Django `test_interaction_integrity_contract` + `test_footer_surface_contract` green.
 
 **D. SOT:** Section 11.4 batch **1310** **DONE**.
 
 **E. Boundary:** No new DB migrations; unrelated `apps/api` makemigrations drift may exist on dirty trees; Playwright E2E not rerun in CI without credentials.
+
+---
+
+## Slice - batch 1315 operator Help Center v2 decision console (2026-05-19)
+
+**A. Scope:** Push Help Center from static card grid to operator decision console (search, AI, live signals, grouped lanes).
+
+**B. Changes:** `operator_help_signals.py`; hub template with metrics + KB search + AI panel + featured runbooks; `rmc-operator-help-center.js`; FAQ detail operator shell; command palette manager routes; SW v3.43.0.
+
+**C. Proof:** `verify_operator_help_center_completion.py` → **OPERATOR_HELP_CENTER_PASS (21/21)**.
+
+**D. SOT:** Section 11.4 batch **1315** **DONE**.
+
+**E. Boundary:** HTTP integration tests unchanged (local gate DB).
+
+---
+
+## Slice - batch 1314 operator Help Center hub + KB control-plane (2026-05-19)
+
+**A. Scope:** Operator Help Center must be a product hub (KB, AI Center, feedback loop, matrices, FAQ, office docs); KB on manager must use control-plane shell; fix 500s on `/feedback-loop/` and KB routes; integrate KB “Ask with AI” with copilot.
+
+**B. Changes:** `manager_help_center` + `/help-center/` allowlist; `operator_kb_render` + six operator partials; `render_kb_if_operator` on KB home/article/category/search/FAQ list + office list; report templates → `control_plane_base`; feedback loop → `render_manager_report_page`; `rmc-kb-ai-assistant.js` reads `response`; `verify_operator_help_center_completion.py` + CI; SW `sms-v3.42.9-operator-help-center-kb-2026-05-19`.
+
+**C. Proof:** `verify_operator_help_center_completion.py` → **OPERATOR_HELP_CENTER_PASS (18/18)**; `verify_manager_header_account_completion.py` → **MANAGER_HEADER_ACCOUNT_PASS (23/23)**; Django allowlist + contract tests green via isolated gate DB.
+
+**D. SOT:** Section 11.4 batch **1314** **DONE**; batch **1309** help routing note updated.
+
+**E. Boundary:** HTTP integration tests (`OperatorHelpCenterHttpTests`) not in gate subprocess (Windows SQLite lock); run `python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_operator_help_center.OperatorHelpCenterHttpTests` locally after migrate.
 
 ---
 

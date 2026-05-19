@@ -219,7 +219,11 @@
         <i class="bi bi-question-circle"></i> {% trans "Help & Support" %}
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'kb:kb_home' %}">
+        {% if request.public_host_kind == 'manager' %}
+        <a class="dropdown-item" href="{% url 'manager_help_center' %}">
+        {% else %}
+        <a class="dropdown-item" href="{% url 'feedback:help_center' %}">
+        {% endif %}
           <i class="bi bi-life-preserver"></i>
           <span>{% trans "Help Center" %}</span>
           <kbd>?</kbd>
@@ -297,7 +301,7 @@ JSON data island so the inline executable script can be removed
   "profileUrl": "{% url 'accounts:user_profile' %}",
   "preferencesUrl": "{% url 'siteconfig:user_preferences' %}",
   "logoutUrl": "{% url 'accounts:logout' %}",
-  "helpUrl": "{% url 'kb:kb_home' %}"
+  "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' %}{% endif %}"
 }</script>
 <script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
 <script src="{% static 'js/rmc-theme-toggle.js' %}"></script>

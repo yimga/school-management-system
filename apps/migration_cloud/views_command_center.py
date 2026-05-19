@@ -43,7 +43,7 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
@@ -124,7 +124,6 @@ def _section_audit_chain() -> dict[str, Any]:
     try:
         from apps.migration_cloud.models_audit import (
             MigrationCloudAuditEvent,
-            MigrationCloudAuditEventType,
         )
     except Exception as exc:  # broad-by-design — section degrades gracefully
         return {"error": type(exc).__name__}

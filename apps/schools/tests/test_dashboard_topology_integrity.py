@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from apps.accounts.models import User
 from apps.schools.dashboard_rbac import (

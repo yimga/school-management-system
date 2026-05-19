@@ -1,0 +1,107 @@
+/**
+ * AI guided assistant CTA — platform-wide (control-plane + tenant).
+ * Replaces Bootstrap .card to prevent white-surface leak in dark manager shells.
+ */
+
+.rmc-ai-guided-assistant-card {
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--hairline, color-mix(in oklab, var(--text-primary) 12%, transparent));
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, var(--color-base-900)) 72%,
+    transparent
+  );
+  color: var(--text-primary);
+  box-shadow: var(--elev-1, 0 1px 2px rgba(0, 0, 0, 0.12));
+  -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
+  transition:
+    border-color 140ms var(--ease-apple, ease),
+    background 140ms var(--ease-apple, ease),
+    box-shadow 140ms var(--ease-apple, ease);
+}
+
+.rmc-ai-guided-assistant-card:hover,
+.rmc-ai-guided-assistant-card:focus-visible {
+  border-color: color-mix(in oklab, var(--school-primary, #4f46e5) 45%, transparent);
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, var(--color-base-900)) 88%,
+    var(--school-primary, #4f46e5) 8%
+  );
+  color: var(--text-primary);
+  box-shadow: var(--elev-2, 0 4px 14px rgba(0, 0, 0, 0.18));
+  outline: none;
+}
+
+.rmc-ai-guided-assistant-card__body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+}
+
+.rmc-ai-guided-assistant-card__icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  margin-top: 0.1rem;
+  color: var(--school-primary, #4f46e5);
+}
+
+.rmc-ai-guided-assistant-card__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rmc-ai-guided-assistant-card__title {
+  font-size: var(--type-size-body-sm, 0.875rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.rmc-ai-guided-assistant-card__hint {
+  margin: 0.35rem 0 0;
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.rmc-ai-guided-assistant-card__cta {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 600;
+  color: var(--school-primary, #4f46e5);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.rmc-ai-guided-assistant-card:hover .rmc-ai-guided-assistant-card__cta,
+.rmc-ai-guided-assistant-card:focus-visible .rmc-ai-guided-assistant-card__cta {
+  color: color-mix(in oklab, var(--school-primary, #4f46e5) 85%, var(--text-primary));
+}
+
+/* Control-plane / dark manager shells */
+html[data-surface="control-plane"] .rmc-ai-guided-assistant-card,
+[data-bs-theme="dark"] .rmc-ai-guided-assistant-card,
+.cp-surface .rmc-ai-guided-assistant-card {
+  background: color-mix(in oklab, var(--color-base-900, #0b1120) 55%, transparent);
+  border-color: rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="control-plane"] .rmc-ai-guided-assistant-card__title,
+.cp-surface .rmc-ai-guided-assistant-card__title {
+  color: var(--text-primary, rgba(255, 255, 255, 0.95)); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="control-plane"] .rmc-ai-guided-assistant-card__hint,
+.cp-surface .rmc-ai-guided-assistant-card__hint {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72)); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="control-plane"] .rmc-ai-guided-assistant-card__cta,
+.cp-surface .rmc-ai-guided-assistant-card__cta {
+  color: var(--school-accent, var(--school-primary, #818cf8));
+}
