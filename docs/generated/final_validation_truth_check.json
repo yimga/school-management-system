@@ -4,52 +4,52 @@
     {
       "artifact": "security_exception_register.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:55.321723+00:00"
+      "mtime_utc": "2026-05-19T09:03:42.566346+00:00"
     },
     {
       "artifact": "graphql_security_review.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:55.322718+00:00"
+      "mtime_utc": "2026-05-19T09:03:42.569491+00:00"
     },
     {
       "artifact": "end_to_end_app_route_inventory.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:55.368555+00:00"
+      "mtime_utc": "2026-05-19T09:03:42.631690+00:00"
     },
     {
       "artifact": "end_to_end_action_integrity_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:55.370551+00:00"
+      "mtime_utc": "2026-05-19T09:03:42.633964+00:00"
     },
     {
       "artifact": "architecture_certification_scorecard.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:58.498766+00:00"
+      "mtime_utc": "2026-05-19T09:03:47.957189+00:00"
     },
     {
       "artifact": "first_school_operating_proof_readiness.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:58.501898+00:00"
+      "mtime_utc": "2026-05-19T09:03:47.960505+00:00"
     },
     {
       "artifact": "studio_os_end_to_end_ux_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:58.495112+00:00"
+      "mtime_utc": "2026-05-19T09:03:47.951713+00:00"
     },
     {
       "artifact": "api_center_open_usable_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:58.496291+00:00"
+      "mtime_utc": "2026-05-19T09:03:47.955102+00:00"
     },
     {
       "artifact": "system_closure_map.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:52.740133+00:00"
+      "mtime_utc": "2026-05-19T09:03:37.525786+00:00"
     },
     {
       "artifact": "category_scope_review.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:52.835675+00:00"
+      "mtime_utc": "2026-05-19T09:03:37.674461+00:00"
     },
     {
       "artifact": "render_parity_certification_report.json",
@@ -64,42 +64,42 @@
     {
       "artifact": "navigation_simplification_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:59.490103+00:00"
+      "mtime_utc": "2026-05-19T09:03:49.209696+00:00"
     },
     {
       "artifact": "navigation_simplification_audit.md",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:59.491101+00:00"
+      "mtime_utc": "2026-05-19T09:03:49.210722+00:00"
     },
     {
       "artifact": "end_to_end_feature_gap_register.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:55.371816+00:00"
+      "mtime_utc": "2026-05-19T09:03:42.635000+00:00"
     },
     {
       "artifact": "end_to_end_ux_quality_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:55.373318+00:00"
+      "mtime_utc": "2026-05-19T09:03:42.637910+00:00"
     },
     {
       "artifact": "role_permission_experience_matrix.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:52.631806+00:00"
+      "mtime_utc": "2026-05-19T09:03:37.352506+00:00"
     },
     {
       "artifact": "public_to_product_promise_matrix.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:52.634372+00:00"
+      "mtime_utc": "2026-05-19T09:03:37.355611+00:00"
     },
     {
       "artifact": "forms_validation_quality_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:52.640096+00:00"
+      "mtime_utc": "2026-05-19T09:03:37.362185+00:00"
     },
     {
       "artifact": "proof_integrity_review.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T06:55:52.647824+00:00"
+      "mtime_utc": "2026-05-19T09:03:37.373779+00:00"
     }
   ],
   "category_scope_verdict": "CATEGORY DEFINING \u2014 REPO SCOPE",
@@ -119,9 +119,15 @@
     "render_parity_certified": false,
     "soc2_pci_certified": false
   },
-  "generated_at": "2026-05-19T07:11:48.706905+00:00",
+  "generated_at": "2026-05-19T09:09:35.176539+00:00",
   "kill_test_result": "PASS",
   "latest_sot_batches": [
+    {
+      "batch_id": "1292",
+      "date": "2026-05-19",
+      "status": "DONE (Agent 5, docs/evidence lane only)",
+      "title": "Migration Cloud V3.37-V3.40 SOT/evidence ledger"
+    },
     {
       "batch_id": "1291",
       "date": "2026-05-19",
@@ -163,12 +169,6 @@
       "date": "2026-05-18",
       "status": "DONE (Lane 1, repo-scope)",
       "title": "Batch 1280 certification closeout \u2014 Apple-class Playwright + parity"
-    },
-    {
-      "batch_id": "1284",
-      "date": "2026-05-18",
-      "status": "DONE (Lane 1, repo-scope)",
-      "title": "Forensic phase-3 \u2014 Playwright perf + theme builder + vector delete + dark preview"
     }
   ],
   "render_sha_match": false,

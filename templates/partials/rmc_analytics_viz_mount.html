@@ -1,0 +1,17 @@
+{% load static i18n %}
+{% comment %}
+  Unified analytics viz mount — requires {% include "partials/rmc_analytics_viz_assets.html" %} in extrastyle
+  and {% include "partials/rmc_analytics_viz_bundle.html" %} in extrajs when ENABLE_UNIFIED_ANALYTICS_VIZ.
+  Pass tenant_id (slug) and optional min_height (default 24rem).
+{% endcomment %}
+{% if ENABLE_UNIFIED_ANALYTICS_VIZ %}
+<div
+  data-rmc-tenant-overview
+  data-tenant-id="{{ tenant_id|default:'platform-overview' }}"
+  {% if ANALYTICS_VIZ_API_URL %}data-api-url="{{ ANALYTICS_VIZ_API_URL }}"{% endif %}
+  data-bundle-src="{% static 'js/dist/rmc-analytics-dashboard.iife.js' %}"
+  class="rmc-viz-root"
+  style="min-height: {{ min_height|default:'24rem' }};"
+  aria-label="{% trans 'Tenant analytics dashboard' %}"
+></div>
+{% endif %}

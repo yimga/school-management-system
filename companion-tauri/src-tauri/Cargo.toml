@@ -1,0 +1,42 @@
+[package]
+name = "runmycampus-companion-tauri"
+version = "3.39.0"
+description = "RunMyCampus Migration Cloud Tauri companion (RMC platform handshake + canonical-CSV ingest). NO third-party SIS automation."
+edition = "2021"
+license = "Proprietary"
+
+[lib]
+name = "runmycampus_companion_tauri_lib"
+path = "src/lib.rs"
+
+[dependencies]
+# Tauri 2.x - desktop app shell.
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+# RMC platform HTTP (RustTLS only; NO cookie jar — bearer-token only).
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "multipart", "stream"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs", "io-util"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# CSV parsing (canonical-CSV ingest only).
+csv = "1.3"
+# Sealed-box mirror of companion-extension/src/lib/crypto.ts (libsodium X25519+XSalsa20).
+sodiumoxide = "0.2"
+base64 = "0.22"
+# Zeroize secrets (passwords + tokens).
+zeroize = { version = "1", features = ["derive"] }
+# Constant-time compare for MAA signature_text echo + tokens.
+subtle = "2"
+# SHA256 for ciphertext integrity + receipt-id chain.
+sha2 = "0.10"
+# Errors.
+thiserror = "1"
+# Logging — IDs + status codes ONLY; never secrets.
+log = "0.4"
+tempfile = "3"
+
+[dev-dependencies]
+mockito = "1"
+
+[features]
+default = []

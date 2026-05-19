@@ -1,0 +1,31 @@
+{% load i18n %}
+<section class="mkt-lane-academics rmc-reveal" data-mkt-reveal aria-labelledby="lane-academics-headline">
+  <h2 id="lane-academics-headline" class="mkt-lane-academics__title">{% trans "Week at a glance" %}</h2>
+  <p class="mkt-lane-academics__lead">{% trans "Attendance, marks, and interventions in one timetable — not three spreadsheets." %}</p>
+  <div class="mkt-lane-academics__grid" role="table" aria-label="{% trans 'Sample week schedule' %}">
+    <div class="mkt-lane-academics__corner" aria-hidden="true"></div>
+    <div class="mkt-lane-academics__day" role="columnheader">{% trans "Mon" %}</div>
+    <div class="mkt-lane-academics__day" role="columnheader">{% trans "Tue" %}</div>
+    <div class="mkt-lane-academics__day" role="columnheader">{% trans "Wed" %}</div>
+    <div class="mkt-lane-academics__day" role="columnheader">{% trans "Thu" %}</div>
+    <div class="mkt-lane-academics__day" role="columnheader">{% trans "Fri" %}</div>
+    <div class="mkt-lane-academics__period" role="rowheader">{% trans "P1" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--present" data-status="present">{% trans "Algebra II" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--present">{% trans "Biology" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--late">{% trans "History" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--present">{% trans "English" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--absent">{% trans "PE" %}</div>
+    <div class="mkt-lane-academics__period" role="rowheader">{% trans "P2" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--present">{% trans "Lab" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--present">{% trans "Studio" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--present">{% trans "Music" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--intervention">{% trans "Tutor block" %}</div>
+    <div class="mkt-lane-academics__cell mkt-lane-academics__cell--present">{% trans "Advisory" %}</div>
+  </div>
+  <ul class="mkt-lane-academics__legend">
+    <li><span class="mkt-lane-academics__swatch mkt-lane-academics__swatch--present"></span>{% trans "Present / on track" %}</li>
+    <li><span class="mkt-lane-academics__swatch mkt-lane-academics__swatch--late"></span>{% trans "Late / needs follow-up" %}</li>
+    <li><span class="mkt-lane-academics__swatch mkt-lane-academics__swatch--absent"></span>{% trans "Absent flagged" %}</li>
+    <li><span class="mkt-lane-academics__swatch mkt-lane-academics__swatch--intervention"></span>{% trans "Intervention scheduled" %}</li>
+  </ul>
+</section>

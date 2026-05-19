@@ -160,7 +160,7 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
         description=(
             "Returns the HMAC secret **only in this response**. Future "
             "delivery payloads are signed with this secret; the receiver "
-            "verifies via ``X-Migration-Cloud-Signature: sha256=<hex>``. "
+            "verifies via ``X-RunMyCampus-Signature: sha256=<hex>``. "
             "Copy the secret into your secret store immediately."
         ),
         request=_WebhookCreateSerializer,
@@ -220,7 +220,7 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
         payload["secret"] = plaintext
         payload["warning"] = (
             "This secret will not be shown again. Copy it now. "
-            "Use it to verify the X-Migration-Cloud-Signature header on "
+            "Use it to verify the X-RunMyCampus-Signature header on "
             "incoming webhook deliveries."
         )
         return Response(payload, status=status.HTTP_201_CREATED)
@@ -237,6 +237,7 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        was_active = bool(instance.active)
         instance.active = False
         instance.updated_at = timezone.now()
         instance.save(update_fields=["active", "updated_at"])
@@ -244,4 +245,45 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
             "migration_cloud_webhook_deactivated user_id=%s sub_id=%s",
             request.user.pk, instance.pk,
         )
+        # v3.39.0 Agent 2 — emit reserved ``webhook.subscription.deleted``.
+        # Best-effort; never breaks the API path. We hash the subscription
+        # id into the payload prefix instead of writing the raw integer so
+        # the audit log never accumulates raw FK identifiers.
+        try:
+            from apps.migration_cloud.models_audit import (
+                MigrationCloudAuditEvent as _AuditEvent,
+            )
+
+            def _slug_for_tenant_id(tenant_id) -> str:
+                if tenant_id in (None, ""):
+                    return ""
+                try:
+                    from apps.schools.models import School
+                    # tenant-isolation-allow: audit-slug-lookup-cross-tenant-staff-view
+                    school = School.objects.filter(
+                        pk=tenant_id,
+                    ).only("slug").first()
+                    return getattr(school, "slug", "") or ""
+                except Exception:  # broad-by-design — audit must never fail caller
+                    return ""
+
+            _AuditEvent.objects.record(
+                _slug_for_tenant_id(instance.tenant_id) or "",
+                "webhook.subscription.deleted",
+                actor=request.user if request.user.is_authenticated else None,
+                subject=str(instance.pk),
+                payload_summary={
+                    "action": "deactivated",
+                    "subscription_id_hash_prefix": hashlib.sha256(
+                        str(instance.pk).encode("utf-8")
+                    ).hexdigest()[:12],
+                    "was_active": was_active,
+                    "via": "api",
+                },
+            )
+        except Exception as exc:  # broad-by-design
+            logger.error(
+                "migration_cloud.audit: emit failed event_type=%s err=%s",
+                "webhook.subscription.deleted", type(exc).__name__,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)

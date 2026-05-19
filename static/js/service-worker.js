@@ -1,4 +1,9 @@
 // Service worker for portal PWA + offline write-behind queue.
+// v3.39.0: Migration Cloud platform trust wave — weekly audit-chain verifier Celery beat + counsel-pending retention purge command (meta-audit on apply), webhook.subscription.deleted + legacy_hash.decrypt audit emit sites + root_key_signature HMAC-SHA512 field w/ HSM-pluggable backend selector (migration 0021), zero-tolerance scan_companion_canonical_headers_drift.py scanner + companion-extension/icons/ PNGs (placeholders), apps/observability/metrics.py Prometheus/StatsD/structured-log/noop pluggable bridge + label sanitization + /metrics/ scrape endpoint, signed-appliance release workflows (Tauri macOS notarization + Windows Authenticode + Docker Cosign keyless OIDC) + preflight + verifier scripts. See docs/CSS_RETIREMENT_DOCKET.md § v3.39.0.
+// v3.38.0: Migration Cloud v3.37.0 honest-deferred closeout — companion-extension scaffolding reconstructed (MV3 manifest + vite + vitest + tsconfig), per-vendor CSV pre-processors in Tauri+Docker extractors (PowerSchool/Blackbaud/Veracross/Alma/FACTS/Skyward — pure data transform, no network — architectural boundary preserved per feedback memory), webhook verifier SDKs bumped to 1.0.0-rc.1 with STABILITY.md + CHANGELOG + MIGRATION_TO_1_0 + tag-only release workflows + LEGACY_HEADER_DEPRECATION_DATE aligned to 2026-08-18 everywhere, Migration Cloud metrics module (6 typed helpers + 6 emission sites wired) + /super/migration/health/ operator status dashboard, MigrationCloudAuditEvent append-only model with hash-chained integrity + /super/migration/audit/ + JSONL export + verify_audit_chain mgmt command (migration 0020). See docs/CSS_RETIREMENT_DOCKET.md § v3.38.0.
+// v3.37.2: Marketing gear-up items 1–7 (lane layouts, day|role toggle, geo hero, globe pins, proof quote) — docs/CSS_RETIREMENT_DOCKET.md § v3.37.2.
+// v3.37.1: Marketing impact layer (bell/persona/globe/hero/lanes) — docs/CSS_RETIREMENT_DOCKET.md § v3.37.1.
+// v3.37.0: Migration Cloud v3.34.0 honest-deferred closeout — companion-extension tenant switcher + key fingerprint UI, webhook header dual-emit verifier SDK API (`accept_legacy=`), MAA v2.0 promotion dashboard + counsel attestation + dry-run re-sign campaign, Tauri/Docker RMC handshake + canonical CSV file ingest (vendor extractors remain honest-stub — boundary documented in feedback memory), webhook subscription audit view + manual replay + idempotency-key collision guard. See docs/CSS_RETIREMENT_DOCKET.md § v3.37.0.
 // v3.35.3: Marketing frontend completion (CSS bundles, self-hosted fonts, hero media, theme/LCP gates) — docs/CSS_RETIREMENT_DOCKET.md § v3.35.3.
 // Bumped 2026-05-18 (v3.34.0): Migration Cloud deferred-item closeout — per-tenant CompanionKeypair, companion siblings (Tauri+Docker), webhook verifier SDK packaging (PyPI+npm), per-vendor legacy_hash_created_at + FACTS/Skyward counsel docket, MAA v2.0 promotion plumbing + upstream watch.
 // Bumped 2026-05-18 (v3.32.4): AAA theme auto-remediate, RBAC matrix zero anonymous, finance/compliance verifiers.
@@ -64,7 +69,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.36.0-glocal-closeout-1291-2026-05-19";
+const CACHE_VERSION = "sms-v3.40.5-platform-chromatic-1299-2026-05-19";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

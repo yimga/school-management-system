@@ -76,6 +76,52 @@
     });
   }
 
+  function activePageUrl(card) {
+    if (card) {
+      var override = card.getAttribute("data-active-url-override");
+      if (override) return override;
+    }
+    if (typeof window === "undefined" || !window.location) return "";
+    return (window.location.pathname || "") + (window.location.search || "");
+  }
+
+  function renderEngineRoom(out, data, card) {
+    var lines = [];
+    var text = String(data.response || "").trim();
+    if (text) lines.push(text);
+    if (data.meta && data.meta.degraded) {
+      lines.unshift("Degraded mode: using retrieved docs (live model not used).");
+    }
+    if (!lines.join("").trim()) {
+      lines.push("No answer text returned.");
+    }
+    out.textContent = lines.join("\n\n");
+    out.hidden = false;
+    out.classList.remove("d-none");
+
+    var escBar = card.querySelector("[data-rmc-ai-escalation]");
+    var helpUrl = card.getAttribute("data-helpdesk-url") || "";
+    if (escBar) {
+      if (data.escalation_required && helpUrl) {
+        escBar.hidden = false;
+        escBar.classList.remove("d-none");
+        var link = escBar.querySelector("[data-rmc-ai-escalate-link]");
+        if (link) link.setAttribute("href", helpUrl);
+      } else {
+        escBar.hidden = true;
+        escBar.classList.add("d-none");
+      }
+    }
+
+    var fb = card.querySelector("[data-rmc-ai-feedback]");
+    if (fb) {
+      fb.hidden = false;
+      fb.classList.remove("d-none");
+      fb.setAttribute("data-rmc-ai-feedback-tier", (data.meta && data.meta.tier) || "rules");
+      fb.setAttribute("data-rmc-ai-feedback-task", "support_suggest");
+    }
+  }
+
   function renderGuided(out, g, meta, cites) {
     var lines = [];
     if (meta && meta.degraded) {
@@ -156,11 +202,40 @@
         );
         return;
       }
-      var payload = { query: q };
+      var payload = { query: q, active_url: activePageUrl(card) };
       var mode = card.getAttribute("data-studio-mode");
       if (mode) payload.studio_mode = mode;
+      var apiKind = card.getAttribute("data-api-kind") || "";
+      if (apiKind === "import_resolver") {
+        try {
+          var parsed = JSON.parse(q);
+          if (Array.isArray(parsed)) {
+            payload = { errors: parsed, import_kind: "csv" };
+          } else if (parsed && Array.isArray(parsed.errors)) {
+            payload = {
+              errors: parsed.errors,
+              import_kind: parsed.import_kind || "csv",
+            };
+          }
+        } catch (e) {
+          payload = {
+            errors: [{ row: 1, message: q }],
+            import_kind: "csv",
+          };
+        }
+      } else if (apiKind === "guided_tour") {
+        payload = { goal: q, active_url: activePageUrl(card) };
+      } else if (apiKind === "report_generator") {
+        payload = { query: q };
+      }
+
       _setBusy(true);
       _showOut("Thinking…");
+      var escBar = card.querySelector("[data-rmc-ai-escalation]");
+      if (escBar) {
+        escBar.hidden = true;
+        escBar.classList.add("d-none");
+      }
       fetch(url, {
         method: "POST",
         credentials: "same-origin",
@@ -175,13 +250,57 @@
         .then(function (res) {
           _setBusy(false);
           if (!out) return;
-          if (!res.ok || !res.data || !res.data.success) {
+          if (!res.ok || !res.data || res.data.success === false) {
             _showOut(friendlyError(res.data, res.status));
+            return;
+          }
+          if (res.data.response !== undefined && res.data.response !== null) {
+            renderEngineRoom(out, res.data, card);
+            if (card.closest("[data-rmc-ai-center]")) {
+              document.dispatchEvent(
+                new CustomEvent("rmc:ai-guided-answered", {
+                  detail: {
+                    question: q,
+                    answer: String(res.data.response || "").slice(0, 500),
+                  },
+                })
+              );
+            }
             return;
           }
           var g = res.data.guided || {};
           var meta = res.data.meta || {};
           var cites = res.data.citations;
+          if (res.data.recommendations && res.data.recommendations.length) {
+            g = {
+              summary: g.summary || "Report recommendations",
+              actions: res.data.recommendations.map(function (r) {
+                return {
+                  title: r.name || "Report",
+                  detail: (r.description || "") + (r.fit ? " — " + r.fit : ""),
+                };
+              }),
+              cautions: g.cautions || [],
+              references: g.references || [],
+            };
+          }
+          if (res.data.steps && res.data.steps.length) {
+            g = {
+              summary: g.summary || res.data.narrative || "Guided tour",
+              actions: res.data.steps.map(function (s, i) {
+                return {
+                  title: (i + 1) + ". " + (s.title || "Step"),
+                  detail:
+                    (s.execution_path || "") +
+                    (s.url ? " → " + s.url : "") +
+                    " " +
+                    (s.action || ""),
+                };
+              }),
+              cautions: g.cautions || [],
+              references: g.references || [],
+            };
+          }
           renderGuided(out, g, meta, cites);
           if (card.closest("[data-rmc-ai-center]")) {
             document.dispatchEvent(
@@ -209,8 +328,42 @@
     }
   }
 
+  function bindFeedback(card) {
+    var fb = card.querySelector("[data-rmc-ai-feedback]");
+    if (!fb || fb.getAttribute("data-rmc-ai-feedback-bound") === "1") return;
+    fb.setAttribute("data-rmc-ai-feedback-bound", "1");
+    var feedbackUrl = card.getAttribute("data-feedback-url");
+    if (!feedbackUrl) return;
+    fb.querySelectorAll("[data-rmc-ai-feedback-vote]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var accepted = btn.getAttribute("data-vote") === "up";
+        fetch(feedbackUrl, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrf(),
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            task_type: fb.getAttribute("data-rmc-ai-feedback-task") || "support_suggest",
+            tier: fb.getAttribute("data-rmc-ai-feedback-tier") || "rules",
+            accepted: accepted,
+            feature: "engine_room",
+          }),
+        }).catch(function () {});
+        fb.querySelectorAll("[data-rmc-ai-feedback-vote]").forEach(function (b) {
+          b.disabled = true;
+        });
+      });
+    });
+  }
+
   function scan() {
-    document.querySelectorAll("[data-rmc-ai-guided]").forEach(bindCard);
+    document.querySelectorAll("[data-rmc-ai-guided]").forEach(function (card) {
+      bindCard(card);
+      bindFeedback(card);
+    });
   }
 
   window.addEventListener("load", scan);

@@ -41,6 +41,11 @@ on:
       - "beta/school-management-system/var/security-audit-baseline-theme-locked-token-text.json"
       - "beta/school-management-system/scripts/scan_pii_logging_smell.py"
       - "beta/school-management-system/var/security-audit-baseline-pii-logging-smell.json"
+      - "beta/school-management-system/scripts/scan_companion_canonical_headers_drift.py"
+      - "beta/school-management-system/var/security-audit-baseline-canonical-headers-drift.json"
+      - "beta/school-management-system/apps/migration_cloud/accelerators/runmycampus_canonical.py"
+      - "beta/school-management-system/companion-tauri/src-tauri/src/canonical_headers.json"
+      - "beta/school-management-system/companion-docker/app/canonical_headers.json"
       - "beta/school-management-system/templates/**/*.html"
       - "beta/school-management-system/static/css/**/*.css"
       - "beta/school-management-system/static/marketing/css/**/*.css"
@@ -411,6 +416,22 @@ jobs:
         run: |
           python scripts/verify_plan_deliverables_12_pillar.py --strict
 
+  ai-engine-room:
+    name: "AI engine room completeness (tiers 1-5)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: beta/school-management-system
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: verify_ai_engine_room
+        run: python scripts/verify_ai_engine_room.py
+
   reveal-armed-invariants:
     name: "Reveal-armed defense + no-duplicate-class-attrs invariants"
     runs-on: ubuntu-latest
@@ -452,6 +473,29 @@ jobs:
       - name: Run pii-logging-smell scanner --strict
         run: |
           python scripts/scan_pii_logging_smell.py --strict
+
+  canonical-headers-drift:
+    name: "Companion canonical_headers.json drift vs Django SOT"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run canonical-headers drift scanner --strict
+        # v3.39.0 Agent 3 introduction (2026-05-19). Sister gate to the
+        # v3.38.0 per-vendor CSV pre-processors. Asserts the
+        # `DOMAIN_CANONICAL_HEADERS` dict in
+        # apps/migration_cloud/accelerators/runmycampus_canonical.py is
+        # mirrored byte-for-byte (order-sensitive) into both
+        # companion-tauri/src-tauri/src/canonical_headers.json AND
+        # companion-docker/app/canonical_headers.json. Drift = silently
+        # wrong canonical mappings client-side. Stdlib-only; no Django
+        # boot required.
+        run: |
+          python scripts/scan_companion_canonical_headers_drift.py --strict
 
   sentry-alert-rule-drift:
     name: "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
@@ -805,6 +849,9 @@ jobs:
           python scripts/verify_tenant_resolution_cache_keys.py
           python scripts/verify_list_search_adoption.py
           python scripts/verify_five_pillar_platform_completion.py --write
+          python scripts/verify_tenant_sovereignty_pillar.py --write
+          python scripts/verify_six_pillar_global_dominance.py --write
+          python scripts/verify_manager_portal_chrome_completion.py --write
           python manage.py migrate --noinput
           python manage.py backfill_search_indexes --only all
           python scripts/run_sqlite_memory_tests.py \

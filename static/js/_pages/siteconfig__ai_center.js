@@ -52,6 +52,7 @@
     var root = btn.closest("[data-rmc-ai-center]");
     if (!root) return;
     var form = root.querySelector("[data-rmc-ai-guided]");
+    var activeFromUrl = new URLSearchParams(window.location.search || "").get("active_url");
     var label = root.querySelector("[data-rmc-ai-center-label]");
     var hint = root.querySelector("[data-rmc-ai-center-hint]");
 
@@ -59,6 +60,17 @@
     var mode = btn.getAttribute("data-studio-mode") || "";
     if (form) {
       form.setAttribute("data-ai-url", apiUrl);
+      var assistantKey = btn.getAttribute("data-assistant-key") || "";
+      if (assistantKey) {
+        form.setAttribute("data-api-kind", assistantKey);
+      } else {
+        form.removeAttribute("data-api-kind");
+      }
+      if (activeFromUrl) {
+        form.setAttribute("data-active-url-override", activeFromUrl);
+      } else {
+        form.removeAttribute("data-active-url-override");
+      }
       if (mode) {
         form.setAttribute("data-studio-mode", mode);
       } else {
@@ -128,5 +140,36 @@
     document.addEventListener("DOMContentLoaded", syncBrowserOffline);
   } else {
     syncBrowserOffline();
+  }
+
+  function applyDeepLinkFromCmdk() {
+    var params = new URLSearchParams(window.location.search || "");
+    var assistant = (params.get("assistant") || "").trim();
+    var q = (params.get("q") || "").trim();
+    if (!assistant) return;
+    var btn = document.querySelector(
+      '[data-rmc-ai-center-pick][data-assistant-key="' + assistant + '"]'
+    );
+    if (btn && !btn.disabled) {
+      pick(btn);
+    }
+    if (q) {
+      var ta = document.querySelector("[data-rmc-ai-center] [data-rmc-ai-query]");
+      if (ta) {
+        ta.value = q;
+        ta.focus();
+      }
+    }
+    var activeUrl = (params.get("active_url") || "").trim();
+    var form = document.querySelector("[data-rmc-ai-center] [data-rmc-ai-guided]");
+    if (activeUrl && form) {
+      form.setAttribute("data-active-url-override", activeUrl);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyDeepLinkFromCmdk);
+  } else {
+    applyDeepLinkFromCmdk();
   }
 })();

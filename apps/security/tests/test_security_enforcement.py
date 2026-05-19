@@ -9,6 +9,7 @@ from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission as FeaturePermission, User
+from apps.security.tests._helpers import settings_manage_permission
 from apps.people.models import StudentProfile
 from apps.schools.models import School, SchoolMembership
 from apps.schools.tenant_access import (
@@ -38,16 +39,17 @@ def _force_login_verified(client: Client, user: User) -> None:
 )
 class TenantAccessUnitTests(TestCase):
     def setUp(self):
+        suffix = uuid.uuid4().hex[:8]
         self.school_a = School.objects.create(
             name="A",
-            slug="ns-sec1",
-            subdomain="ns-sec1",
+            slug=f"ns-sec1-{suffix}",
+            subdomain=f"ns-sec1-{suffix}",
             is_active=True,
         )
         self.school_b = School.objects.create(
             name="B",
-            slug="other-sec",
-            subdomain="other-sec",
+            slug=f"other-sec-{suffix}",
+            subdomain=f"other-sec-{suffix}",
             is_active=True,
         )
         self.sa = StudentProfile.objects.create(
@@ -73,10 +75,7 @@ class TenantAccessUnitTests(TestCase):
         self.assertEqual(safe_queryset_for_school(StudentProfile.objects.all(), None).count(), 0)
 
     def test_has_school_permission_membership_and_manage(self):
-        perm, _ = FeaturePermission.objects.get_or_create(
-            code="settings.manage",
-            defaults={"name": "Manage settings"},
-        )
+        perm = settings_manage_permission()
         u = User.objects.create_user(
             username=f"m_{uuid.uuid4().hex[:10]}",
             password="y" * 8,
@@ -112,19 +111,17 @@ class TenantAccessUnitTests(TestCase):
     MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
     SESSION_PINNING_ENABLED=False,
 )
-class ComplianceExportEnforcementTests(TestCase):
+class ComplianceExportEnforcementTests(TransactionTestCase):
     databases = {"default"}
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.perm, _ = FeaturePermission.objects.get_or_create(
-            code="settings.manage",
-            defaults={"name": "Manage settings"},
-        )
-        cls.school = School.objects.create(
+    def setUp(self):
+        suffix = uuid.uuid4().hex[:8]
+        self.perm = settings_manage_permission()
+        self.tenant_host = f"ns-sec1-{suffix}.runmycampus.com"
+        self.school = School.objects.create(
             name="Compliance Slice10",
-            slug="ns-sec1",
-            subdomain="ns-sec1",
+            slug=f"ns-sec1-{suffix}",
+            subdomain=f"ns-sec1-{suffix}",
             is_active=True,
         )
 
@@ -136,7 +133,7 @@ class ComplianceExportEnforcementTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm)
-        client = Client(HTTP_HOST=_T_HOST)
+        client = Client(HTTP_HOST=self.tenant_host)
         _force_login_verified(client, u)
         url = reverse("siteconfig:compliance_exports", urlconf="config.tenant_urls")
         # 403: permission gate; 302: auth/MFA redirect still denies the export surface.

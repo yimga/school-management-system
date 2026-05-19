@@ -29,7 +29,15 @@
     </div>
   </div>
 </div>
+{% url 'siteconfig:ai_center' as cmdk_ai_center_global %}
+{% url 'api:ai-command-bar' as cmdk_api_global %}
+{% url 'super:ai_gateway_console' as cmdk_gw %}
+{% url 'feedback:help_center' as cmdk_help_center_global %}
 <script type="application/json" id="rmc-cmdk-data">{
+  "api_url": "{{ cmdk_api_global|default:''|escapejs }}",
+  "ai_center_url": "{{ cmdk_ai_center_global|default:''|escapejs }}",
+  "help_center_url": "{{ cmdk_help_center_global|default:''|escapejs }}",
+  "ai_gateway_console_url": "{{ cmdk_gw|default:''|escapejs }}",
   "shortcuts": {
     "open": ["mod+k", "mod+/"],
     "close": ["escape"]
@@ -61,7 +69,9 @@
       "label": "{% trans 'Actions' %}",
       "items": [
         {"label": "{% trans 'Toggle theme' %}", "action": "rmc:cmdk:toggle-theme", "icon": "bi-circle-half", "keywords": "dark light system appearance"},
-        {"label": "{% trans 'Open AI Copilot' %}", "action": "rmc:cmdk:open-ai", "icon": "bi-stars", "keywords": "assistant chat"}
+        {"label": "{% trans 'Open AI Copilot' %}", "action": "rmc:cmdk:open-ai", "icon": "bi-stars", "keywords": "assistant chat"},
+        {"label": "{% trans 'Open AI Center (all assistants)' %}", "url": "{% url 'siteconfig:ai_center' %}", "icon": "bi-stars", "keywords": "ai center gateway assistants engine room"},
+        {% if cmdk_gw %}{"label": "{% trans 'AI Gateway Console (operators)' %}", "url": "{{ cmdk_gw }}", "icon": "bi-cpu", "keywords": "ai gateway console operator ollama audit metrics"},{% endif %}
       ]
     }
   ]

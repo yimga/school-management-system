@@ -9,7 +9,10 @@
     </div>
     <div class="d-flex gap-2 flex-wrap">
       {% if support_links.kb_home %}<a class="btn btn-outline-secondary" href="{{ support_links.kb_home }}">Knowledge base</a>{% endif %}
+      {% if support_links.faq_list %}<a class="btn btn-outline-secondary" href="{{ support_links.faq_list }}">FAQ</a>{% endif %}
       {% if support_links.portal_help %}<a class="btn btn-outline-secondary" href="{{ support_links.portal_help }}">Support hub</a>{% endif %}
+      {% if support_links.contact_center %}<a class="btn btn-outline-secondary" href="{{ support_links.contact_center }}">Contact us</a>{% endif %}
+      {% if support_links.feature_center %}<a class="btn btn-outline-primary" href="{{ support_links.feature_center }}">Feature center</a>{% endif %}
       <a class="btn btn-outline-primary" href="{% url 'feedback:school_roadmap' %}">Roadmap</a>
     </div>
   </div>
@@ -85,11 +88,13 @@
       <div class="card">
         <div class="card-header fw-semibold">Request Feature</div>
         <div class="card-body">
+          <p class="small text-muted">Feature requests go through discovery and prioritization. For urgent work blockers, use support.</p>
           <form method="post" action="{% url 'feedback:school_feedback' %}">
             {% csrf_token %}
             <input type="hidden" name="form_kind" value="feature">
             {{ feature_form.as_p }}
             <button class="btn btn-primary" type="submit">Submit feature request</button>
+            {% if support_links.feature_center %}<a class="btn btn-outline-secondary ms-2" href="{{ support_links.feature_center }}">Open feature center</a>{% endif %}
           </form>
         </div>
       </div>

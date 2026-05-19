@@ -57,7 +57,48 @@ Live tests **fail** (not skip) when `RMC_AI_REQUIRE_LIVE=1` and Ollama is down. 
 | `OLLAMA_ENDPOINT` | Base URL for Ollama’s generate API (default in code: `http://localhost:11434/api/generate`). |
 | `OLLAMA_MODEL` | Tag pulled in Ollama (default in code: `llama3`). |
 | `AI_GATEWAY_ENABLED` | Default `1` — keep on so all AI goes through `services.ai_gateway`. |
+| `AI_ENGINE_ROOM_SUPPORT` | Default `1` — zero-fluff first-line support on `POST /api/ai/support-assistant/` (`services/ai/`). |
+| `AI_ENGINE_ROOM_TIMEOUT_SECONDS` | Ollama latency cap for support assistant (default `15`). |
+| `AI_ENGINE_ROOM_MAX_INPUT_TOKENS` | Prompt budget for RAG + context (default `6000`). |
 | `AI_PROVIDER_PREFERENCE` | Default `ollama,rules`. Legacy token `gemini` is **ignored**. |
+
+### First-line support engine room
+
+When `AI_ENGINE_ROOM_SUPPORT=1`, support queries use **RAG** (tenant KB/FAQ + `index_ai_knowledge` embeddings), **live URL topology** (`DynamicSystemInspector`), **tenant isolation**, and the **master persona** in `services/ai/prompts.py` (sections: Direct Answer, Execution Path, Action Steps, System Bound). No docs → escalation string with `escalation_required: true` (model skipped).
+
+```bash
+python scripts/verify_ai_engine_room.py
+python manage.py index_ai_knowledge --scope help
+python manage.py engine_room_sync_ollama
+```
+
+API body: `{"query":"…","active_url":"/current/path","history":"optional prior turns"}`.
+
+### Universal command bar (⌘K)
+
+The global palette (`static/js/rmc-command-palette.js`) calls `POST /api/ai/command-bar/` with topology matches from `services/ai/topology_map.py` (`SYSTEM_TOPOLOGY_MAP`). Locked rows show missing permission tokens; **Ask AI** deep-links to AI Center `?assistant=first_line_support&q=…`. React mirror: `src/components/shared/navigation/CommandBar.tsx`.
+
+**Portal header:** `data-rmc-page-help` opens AI Center with `first_line_support` and the current `active_url`.
+
+### Product assistants (tiers 2–4)
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/ai/smart-settings/` | Natural-language SiteSettings / feature-flag guidance (engine room) |
+| `POST /api/ai/import-error-resolver/` | CSV validation errors → fix steps |
+| `POST /api/ai/guardrail-report/` | Permission-aware report library recommendations |
+| `POST /api/ai/guided-tour/` | Onboarding tour steps from topology + engine room narrative |
+
+All are registered in AI Center as assistants (`smart_settings`, `import_resolver`, `report_generator`, `guided_tour`).
+
+### Production beats (recommended)
+
+| Variable | Schedule |
+| --- | --- |
+| `ENABLE_AI_KNOWLEDGE_INDEX_BEAT=1` | Daily RAG re-index (`index_ai_knowledge`) |
+| `ENABLE_OLLAMA_MODEL_SYNC_BEAT=1` | Weekly `sync_ollama_models` + `engine_room_sync_ollama --no-pull` smoke |
+
+Gate: `python scripts/verify_ai_engine_room.py` (also in `release_readiness_check.sh` §4b and `verify_phases_3_11_gates.py`).
 
 Optional: `AI_GATEWAY_TASK_TIERS` overrides per-task backends; do **not** add `gemini` (removed from product).
 

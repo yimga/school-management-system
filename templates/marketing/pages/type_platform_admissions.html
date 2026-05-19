@@ -5,7 +5,9 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-admissions.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-lanes.css' %}">
 {% endblock %}
+{% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/mkt-admissions-steps.js' %}" defer></script>{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-admissions mkt-platform-theme--platform-admissions{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-admissions-page" data-mkt-platform-admissions="1">
@@ -43,6 +45,10 @@
       <img src="{% static 'images/marketing/platform-admissions-pipeline.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
     </div>
   </header>
+
+  <div class="mkt-edt-container">
+    {% include "marketing/components/_lane_admissions_steps.html" %}
+  </div>
 
   <section class="mkt-adm-section rmc-reveal" aria-labelledby="mkt-adm-pipeline-heading">
     <h2 id="mkt-adm-pipeline-heading">{% trans "Pipeline you can run in the open" %}</h2>

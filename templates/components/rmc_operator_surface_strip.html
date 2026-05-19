@@ -1,12 +1,12 @@
 {% load i18n %}
 {% if RMC_OPERATOR_SURFACE_STRIP_VISIBLE and RMC_OPERATOR_SURFACE_SPINE %}
-<nav class="cp-primary-nav rmc-operator-workspace-nav d-flex flex-wrap align-items-center gap-1 gap-md-2 px-3 py-2 border-bottom"
+<nav class="cp-primary-nav rmc-operator-workspace-nav rmc-horizontal-nav-rail rmc-horizontal-nav-rail--secondary px-3 py-2 border-bottom"
      aria-label="{% trans 'Workspace' %}"
      data-rmc-operator-surface-strip
      data-rmc-surface-current="{{ RMC_OPERATOR_SURFACE_CURRENT|default:'' }}">
   {% for link in RMC_OPERATOR_SURFACE_SPINE %}
   <a href="{{ link.url }}"
-     class="cp-primary-nav__pill{% if link.active %} cp-primary-nav__pill--active{% endif %}"
+     class="cp-primary-nav__pill rmc-operator-workspace-nav__spine-item{% if link.active %} cp-primary-nav__pill--active{% endif %}"
      data-rmc-surface="{{ link.surface }}"
      {% if link.active %}aria-current="page"{% endif %}>
     {% if link.icon %}<i class="bi {{ link.icon }}" aria-hidden="true"></i>{% endif %}

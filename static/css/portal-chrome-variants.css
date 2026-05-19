@@ -1,0 +1,28 @@
+/**
+ * Tenant portal chrome variants (header density + footer partial).
+ * Driven by data-portal-header-variant on <html> from ThemePack.layout / DashboardPack chrome config.
+ */
+
+/* Minimal: compact header strip — hide decorative context widgets */
+html[data-portal-header-variant="minimal"] #portalHeader .portal-header-context-strip,
+html[data-portal-header-variant="minimal"] #portalHeader .portal-header-weather,
+html[data-portal-header-variant="minimal"] #portalHeader .portal-header-quote {
+  display: none !important;
+}
+
+html[data-portal-header-variant="minimal"] #portalHeader .statement-header {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+/* Wide: extra horizontal breathing room on main shell */
+html[data-portal-header-variant="wide"] .portal-shell-main,
+html[data-portal-header-variant="wide"] .rmc-shell-main {
+  max-width: 100%;
+}
+
+/* Card: slightly elevated header surface */
+html[data-portal-header-variant="card"] #portalHeader .statement-header {
+  border-radius: var(--elev-2, 12px);
+  margin: 0.5rem 0.75rem 0;
+}

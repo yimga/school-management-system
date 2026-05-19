@@ -125,6 +125,13 @@ class HeaderContractTests(unittest.TestCase):
         with self.assertRaises(UnsupportedAlgorithmError):
             verify_signature_strict(body, bare_hex, SECRET)
 
+    def test_non_ascii_signature_returns_false(self):
+        body = canonicalize(PAYLOAD)
+        bad_header = "sha256=" + ("0" * 63) + "é"
+        self.assertFalse(verify_signature(body, bad_header, SECRET))
+        with self.assertRaises(BadSignatureError):
+            verify_signature_strict(body, bad_header, SECRET)
+
     def test_bytes_header_accepted(self):
         body = canonicalize(PAYLOAD)
         header = _sign(SECRET, body).encode("ascii")

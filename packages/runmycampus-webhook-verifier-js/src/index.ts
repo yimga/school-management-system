@@ -14,15 +14,27 @@ export {
   TIMESTAMP_HEADER,
   EVENT_HEADER,
   VERSION_HEADER,
+  LEGACY_SIGNATURE_HEADER,
+  LEGACY_TIMESTAMP_HEADER,
+  LEGACY_EVENT_HEADER,
+  LEGACY_VERSION_HEADER,
   SUPPORTED_PREFIX,
   DEFAULT_TOLERANCE_SECONDS,
   // Verifier API
   computeSignature,
   verifySignature,
   verifySignatureStrict,
+  verify,
 } from "./verifier";
 
-export type { BytesLike, VerifyOptions } from "./verifier";
+export type {
+  BytesLike,
+  VerifyOptions,
+  VerifyApiOptions,
+  VerifyResult,
+  HeaderMap,
+  HeaderValue,
+} from "./verifier";
 
 export {
   canonicalize,
@@ -39,4 +51,4 @@ export {
   ClockSkewError,
 } from "./errors";
 
-export const VERSION = "0.1.0";
+export const VERSION = "1.0.0-rc.1";

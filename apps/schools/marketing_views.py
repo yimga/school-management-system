@@ -1118,7 +1118,50 @@ def _marketing_context(
         "One truthful picture of enrollment, fees, and learner progress across admissions, "
         "academics, finance, communication, reporting, and daily school operations."
     )
-    _hero_by_country: dict[str, dict[str, str]] = {}
+    _hero_by_country: dict[str, dict[str, str]] = {
+        "US": {
+            "headline": "Offline-ready education operating system for U.S. school districts.",
+            "subheadline": (
+                "Enrollment, fees, and learner progress across admissions, academics, "
+                "finance, and family communication — built for district scale."
+            ),
+        },
+        "CA": {
+            "headline": "The operating system for Canadian K–12 networks.",
+            "subheadline": (
+                "Provincial calendars, bilingual comms, and honest fee posture — "
+                "one stack for every campus."
+            ),
+        },
+        "NG": {
+            "headline": "The operating system for Nigerian school groups.",
+            "subheadline": (
+                "WAEC-aligned academics, mobile money readiness, and offline capture "
+                "when connectivity drops."
+            ),
+        },
+        "CM": {
+            "headline": "The operating system for Francophone school networks.",
+            "subheadline": (
+                "Bilingual portals, regional fee models, and operations your équipe "
+                "can run without spreadsheet drift."
+            ),
+        },
+        "GB": {
+            "headline": "The operating system for UK independent schools.",
+            "subheadline": (
+                "British term structures, guardian comms, and bursar-ready finance — "
+                "without tool sprawl."
+            ),
+        },
+        "GH": {
+            "headline": "The operating system for Ghanaian school networks.",
+            "subheadline": (
+                "Multi-campus visibility, local payment rails, and parent portals "
+                "families actually open."
+            ),
+        },
+    }
     _hero_by_channel = {
         "google": {
             "headline": "Offline-ready education operating system for modern schools.",
@@ -2209,6 +2252,17 @@ def marketing_landing(request):
         language_code=(getattr(request, "LANGUAGE_CODE", "") or "en"),
         regional=False,
     )
+    from apps.schools.marketing_geo import (
+        MARKETING_CAROUSEL_ITEMS,
+        MARKETING_PROOF_QUOTE,
+        marketing_geo_tagline,
+    )
+
+    brand = ctx.get("brand") or {}
+    country_name = str(brand.get("country_name") or "").strip()
+    ctx["marketing_geo_tagline"] = marketing_geo_tagline(geo_country, country_name)
+    ctx["marketing_carousel_items"] = list(MARKETING_CAROUSEL_ITEMS)
+    ctx["marketing_proof_quote"] = dict(MARKETING_PROOF_QUOTE)
     return render(request, "schools/marketing_landing_v2.html", ctx)
 
 

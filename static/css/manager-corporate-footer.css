@@ -1,0 +1,26 @@
+/**
+ * RunMyCampus Manager — corporate gateway footer on authenticated control-plane pages.
+ * Login pages use manager-login.css; this styles the footer below cp-shell-content.
+ */
+
+.cp-corporate-footer {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: auto;
+  border-top: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
+  background: var(--surface-canvas, #0a0a0f);
+}
+
+.cp-corporate-footer .mkt-footer.mkt-corporate-footer {
+  margin-top: 0;
+}
+
+.cp-shell-content--with-public-footer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-shell-content--with-public-footer > .cp-corporate-footer {
+  margin-top: auto;
+}

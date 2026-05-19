@@ -1,0 +1,40 @@
+{% load i18n %}
+<section class="mkt-lane-finance rmc-reveal" data-mkt-reveal aria-labelledby="lane-finance-headline">
+  <h2 id="lane-finance-headline" class="mkt-lane-finance__title">{% trans "Fee posture at a glance" %}</h2>
+  <p class="mkt-lane-finance__lead">{% trans "Invoices, receipts, and arrears in one ledger view — amounts shown as illustrative samples." %}</p>
+  <div class="mkt-lane-finance__chart" role="img" aria-label="{% trans 'Illustrative monthly collections bar chart' %}">
+    <div class="mkt-lane-finance__bar" style="--bar-h: 42%;" data-label="{% trans 'Jan' %}"></div>
+    <div class="mkt-lane-finance__bar" style="--bar-h: 58%;" data-label="{% trans 'Feb' %}"></div>
+    <div class="mkt-lane-finance__bar" style="--bar-h: 71%;" data-label="{% trans 'Mar' %}"></div>
+    <div class="mkt-lane-finance__bar" style="--bar-h: 65%;" data-label="{% trans 'Apr' %}"></div>
+    <div class="mkt-lane-finance__bar" style="--bar-h: 88%;" data-label="{% trans 'May' %}"></div>
+    <div class="mkt-lane-finance__bar" style="--bar-h: 54%;" data-label="{% trans 'Jun' %}"></div>
+  </div>
+  <table class="mkt-lane-finance__ledger">
+    <caption class="visually-hidden">{% trans "Sample ledger rows" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% trans "Family" %}</th>
+        <th scope="col">{% trans "Invoice" %}</th>
+        <th scope="col">{% trans "Status" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{% trans "Okafor family" %}</td>
+        <td>{% trans "Term 2 tuition" %}</td>
+        <td><span class="mkt-lane-finance__pill mkt-lane-finance__pill--paid">{% trans "Paid" %}</span></td>
+      </tr>
+      <tr>
+        <td>{% trans "Nguyen family" %}</td>
+        <td>{% trans "Transport levy" %}</td>
+        <td><span class="mkt-lane-finance__pill mkt-lane-finance__pill--partial">{% trans "Partial" %}</span></td>
+      </tr>
+      <tr>
+        <td>{% trans "Patel family" %}</td>
+        <td>{% trans "Meal plan" %}</td>
+        <td><span class="mkt-lane-finance__pill mkt-lane-finance__pill--due">{% trans "Due" %}</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>

@@ -16,7 +16,7 @@
   </header>
 
   {% if provider_status %}
-  <div class="alert alert-light border d-flex flex-wrap align-items-center gap-2 py-2 mb-3"
+  <div class="alert border d-flex flex-wrap align-items-center gap-2 py-2 mb-3 rmc-surface-muted-panel"
        data-rmc-ai-health-root
        data-health-url="{% url 'ai_health' %}"
        role="status"
@@ -44,12 +44,12 @@
   {% endif %}
 
   {% if show_operator_ollama_setup %}
-  <details class="mb-3 small border rounded p-2 bg-light">
+  <details class="mb-3 small border rounded p-2 rmc-surface-muted-panel">
     <summary class="fw-semibold">{% trans "Operator: connect live Ollama (optional)" %}</summary>
     <p class="text-muted mb-2 mt-2">
       {% trans "Offline-first mode queues attendance and grades on devices; it does not run AI locally. Live answers need Ollama reachable from the app server." %}
     </p>
-    <pre class="small mb-2 bg-white border rounded p-2 mb-0"><code>ollama serve
+    <pre class="small mb-2 border rounded p-2 mb-0 rmc-surface-elevated-pre"><code>ollama serve
 ollama pull llama3
 # .env on the Django host
 AI_GATEWAY_ENABLED=1
@@ -62,7 +62,7 @@ OLLAMA_MODEL=llama3</code></pre>
   <div class="row g-3" data-rmc-ai-center>
     <aside class="col-lg-4" aria-label="{% trans 'Pick an assistant' %}">
       <div class="card border-0 shadow-sm">
-        <div class="card-header bg-light py-2 fw-semibold small">{% trans "Assistants" %}</div>
+        <div class="card-header py-2 rmc-surface-muted-panel fw-semibold small">{% trans "Assistants" %}</div>
         <div class="list-group list-group-flush" role="tablist">
           {% for a in assistants %}
             <button
@@ -107,7 +107,7 @@ OLLAMA_MODEL=llama3</code></pre>
             {% if default_assistant %}{{ default_assistant.hint }}{% else %}{% trans "Choose an assistant on the left to begin." %}{% endif %}
           </p>
 
-          <div class="border rounded p-2 mb-2 bg-light small d-none" data-rmc-ai-transcript-wrap aria-live="polite">
+          <div class="border rounded p-2 mb-2 rmc-surface-muted-panel small d-none" data-rmc-ai-transcript-wrap aria-live="polite">
             <p class="text-muted mb-1 fw-semibold mb-0">{% trans "This session" %}</p>
             <ol class="mb-0 ps-3 mt-1" data-rmc-ai-transcript></ol>
           </div>
@@ -116,6 +116,9 @@ OLLAMA_MODEL=llama3</code></pre>
             class="mb-2"
             data-rmc-ai-guided
             data-ai-url="{{ default_assistant.api_url|default:'' }}"
+            {% if default_assistant %}data-api-kind="{{ default_assistant.assistant_key }}"{% endif %}
+            {% if help_center_url %}data-helpdesk-url="{{ help_center_url }}"{% endif %}
+            {% if ai_feedback_url %}data-feedback-url="{{ ai_feedback_url }}"{% endif %}
             {% if default_assistant.studio_mode %}data-studio-mode="{{ default_assistant.studio_mode }}"{% endif %}
             onsubmit="return false"
           >
@@ -138,11 +141,20 @@ OLLAMA_MODEL=llama3</code></pre>
               </span>
             </div>
             <pre
-              class="small bg-light p-2 mt-2 rounded border mb-0 rmc-ai-guided-out"
+              class="small rmc-surface-muted-panel p-2 mt-2 rounded border mb-0 rmc-ai-guided-out"
               data-rmc-ai-out
               aria-live="polite"
               hidden
             ></pre>
+            <div class="alert alert-warning py-2 px-3 mt-2 small d-none" data-rmc-ai-escalation hidden role="status">
+              {% trans "Documentation gap detected." %}
+              <a href="#" class="alert-link ms-1" data-rmc-ai-escalate-link>{% trans "Escalate to Campus Helpdesk" %}</a>
+            </div>
+            <div class="d-flex gap-2 mt-2 d-none" data-rmc-ai-feedback hidden>
+              <span class="text-muted small align-self-center">{% trans "Was this helpful?" %}</span>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-rmc-ai-feedback-vote data-vote="up" aria-label="{% trans 'Helpful' %}">👍</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-rmc-ai-feedback-vote data-vote="down" aria-label="{% trans 'Not helpful' %}">👎</button>
+            </div>
           </form>
 
           {% if default_assistant.entry_urls %}

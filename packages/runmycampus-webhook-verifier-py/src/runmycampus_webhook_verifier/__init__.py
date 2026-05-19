@@ -24,11 +24,17 @@ from .verifier import (
     TIMESTAMP_HEADER,
     EVENT_HEADER,
     VERSION_HEADER,
+    LEGACY_SIGNATURE_HEADER,
+    LEGACY_TIMESTAMP_HEADER,
+    LEGACY_EVENT_HEADER,
+    LEGACY_VERSION_HEADER,
     SUPPORTED_PREFIX,
     DEFAULT_TOLERANCE_SECONDS,
     compute_signature,
     verify_signature,
     verify_signature_strict,
+    verify,
+    VerifyResult,
 )
 from ._canonical import canonicalize, canonical_sha256_hex
 from .exceptions import (
@@ -39,7 +45,7 @@ from .exceptions import (
     UnsupportedAlgorithmError,
 )
 
-__version__ = "0.1.0"
+__version__ = "1.0.0-rc.1"
 
 __all__ = [
     "__version__",
@@ -47,11 +53,17 @@ __all__ = [
     "TIMESTAMP_HEADER",
     "EVENT_HEADER",
     "VERSION_HEADER",
+    "LEGACY_SIGNATURE_HEADER",
+    "LEGACY_TIMESTAMP_HEADER",
+    "LEGACY_EVENT_HEADER",
+    "LEGACY_VERSION_HEADER",
     "SUPPORTED_PREFIX",
     "DEFAULT_TOLERANCE_SECONDS",
     "compute_signature",
     "verify_signature",
     "verify_signature_strict",
+    "verify",
+    "VerifyResult",
     "canonicalize",
     "canonical_sha256_hex",
     "VerificationError",

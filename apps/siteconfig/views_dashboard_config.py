@@ -230,11 +230,21 @@ def dashboard_configuration_hub(request):
             messages.error(request, "Select a role and a template.")
 
     role_choices = TenantLayoutAssignment.ROLE_CHOICES
-    # List of (role_value, role_label, assignment or None) for table
-    assignment_rows = [
-        (role_val, role_label, assignments.get(role_val))
-        for role_val, role_label in role_choices
-    ]
+    from apps.siteconfig.portal_chrome import describe_portal_chrome_override
+
+    # List of (role_value, role_label, assignment or None, chrome_label) for table
+    assignment_rows = []
+    for role_val, role_label in role_choices:
+        assignment = assignments.get(role_val)
+        template = assignment.template if assignment else None
+        assignment_rows.append(
+            (
+                role_val,
+                role_label,
+                assignment,
+                describe_portal_chrome_override(template),
+            )
+        )
     dashboard_hub_url = reverse("siteconfig:dashboard_hub")
     # §2e row 8 page maturity: studio_os page_header + data-page-archetype (CONTROL_PLANE §5.1)
     return render_siteconfig_stem(

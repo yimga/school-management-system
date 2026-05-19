@@ -24,6 +24,7 @@ New internal views should return:
 |-------------|---------|
 | `internal/teacher-hover/` | Teacher context hover |
 | `internal/insight-anomalies/` | Insight anomalies |
+| `internal/analytics-viz/overview/` | Unified analytics viz `TenantOverview` bundle (`?tenant=&from=&to=&compare=1`; session auth) |
 | `internal/br/slo-targets/` | SLO targets |
 | `internal/br/compliance/validate-enrollment/` | Enrollment validation |
 | `internal/br/compliance/validate-attendance/` | Attendance validation |

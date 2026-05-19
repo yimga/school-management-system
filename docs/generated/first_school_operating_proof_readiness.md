@@ -1,6 +1,6 @@
 # First School Operating Proof Readiness
 
-- Generated: `2026-05-19T06:55:58.498453+00:00`
+- Generated: `2026-05-19T09:03:47.957132+00:00`
 - Regenerate: `python scripts/generate_certification_artifacts.py --write`
 
 - Repo readiness: **94%** (repo-contained steps)

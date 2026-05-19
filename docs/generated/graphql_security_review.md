@@ -1,6 +1,6 @@
 # Graphql Security Review
 
-- Generated: `2026-05-19T06:55:55.320534+00:00`
+- Generated: `2026-05-19T09:03:42.563907+00:00`
 - Regenerate: `python scripts/generate_certification_artifacts.py --write`
 
 ## Verdict

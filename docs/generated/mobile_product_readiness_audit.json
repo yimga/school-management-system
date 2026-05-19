@@ -1,7 +1,7 @@
 {
   "browser_proof": "apple_class_authenticated_browser_report mobile viewports",
   "evidence": "PWA manifest coverage gate + viewport meta on shells",
-  "generated_at": "2026-05-19T07:11:48.736941+00:00",
+  "generated_at": "2026-05-19T09:09:35.203428+00:00",
   "schema_version": 1,
   "status": "partial"
 }

@@ -70,6 +70,7 @@
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
     {# Phase H: overflow containment for this shell is enforced in control-plane-skeleton-root.css (overflow-x: clip on html/body). #}
     <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
@@ -86,18 +87,33 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     {% block extrastyle %}{% endblock %}
+    {% if SHOW_MANAGER_CORPORATE_FOOTER %}
+    {% include "marketing/partials/corporate_footer_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
+    {% endif %}
   </head>
   <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% block content %}{% endblock %}
+    {% block manager_corporate_footer %}
+    {% if SHOW_MANAGER_CORPORATE_FOOTER %}
+    <footer class="cp-corporate-footer" role="contentinfo" data-rmc-manager-corporate-footer data-mkt-footer>
+      {% include "marketing/partials/corporate_footer_bundle.html" %}
+    </footer>
+    {% endif %}
+    {% endblock %}
     {% comment %} Phase E (2026-05-12): AI copilot is mounted on every authenticated shell so
        the ⌘/Ctrl+Shift+? assistant is reachable from /super, /portal, /admin alike. {% endcomment %}
     {% if request.user.is_authenticated %}
       {% include 'components/ai_copilot.html' %}
       {# Phase G: ⌘K command palette + section-nav helper for long control-plane pages. #}
       {% include 'components/rmc_command_palette.html' %}
+      <button type="button" class="btn btn-outline-primary btn-sm position-fixed rmc-page-help-fab" data-rmc-page-help style="z-index:1040; bottom:1rem; right:1rem;" title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
+        <i class="bi bi-question-circle" aria-hidden="true"></i> {% trans "Help" %}
+      </button>
+      <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T03:09:18.769050+00:00",
+  "generated_at": "2026-05-19T10:51:06.020521+00:00",
   "verdict": "FORENSIC_MASTER_PROMPT_PASS",
   "pass_count": 24,
   "fail_count": 0,
@@ -14,7 +14,7 @@
       "id": "1b",
       "mandate": "WCAG visibility + shell sweep",
       "status": "PASS",
-      "proof": "2f4yCvEs', '2026-05-19 09:08:20.590568', 'f2ugw4crjuuxkrlea2udeg4cpfhl37f5'); alias=default\nDEBUG 2026-05-18 23:08:20,599 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.006) COMMIT; args=None; alias=default"
+      "proof": "hm2k3d3E', '2026-05-19 16:48:43.291194', 't2ltjvhnlhjbnfeyfoz55blny238djyi'); alias=default\nDEBUG 2026-05-19 06:48:43,302 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.005) COMMIT; args=None; alias=default"
     },
     {
       "id": "1c",
@@ -56,13 +56,13 @@
       "id": "2e",
       "mandate": "Tenant queryset safety baseline 0",
       "status": "PASS",
-      "proof": "    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 218,\n  \"finding_count\": 0,\n  \"findings_per_app\": {}\n}\n[scanner] tenant-scoped models: 218\n\n[scanner] sample (first 5):"
+      "proof": "quivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 218,\n  \"finding_count\": 1,\n  \"findings_per_app\": {\n    \"feedback\": 1\n  }\n}\n[scanner] tenant-scoped models: 218\n\n[scanner] sample (first 5):\n  apps/feedback/views.py:257  FeatureRequest.objects.all(...)  (objects_all_on_tenant_model)"
     },
     {
       "id": "3a",
       "mandate": "PERF_BUDGET_STRICT smoke",
       "status": "PASS",
-      "proof": "GCzWuYbc', '2026-05-19 03:38:38.734332', 'fu9hhv793e6ggwrrlddmdlpxk4bdosep'); alias=default\nDEBUG 2026-05-18 23:08:38,744 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.006) COMMIT; args=None; alias=default"
+      "proof": "GvmuG4Z4', '2026-05-19 11:19:45.989872', 'ky9fslkz8vsl63se6nrex8kre9pprxbd'); alias=default\nDEBUG 2026-05-19 06:49:46,015 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.022) COMMIT; args=None; alias=default"
     },
     {
       "id": "3b",
@@ -74,7 +74,7 @@
       "id": "3c",
       "mandate": "DOM budget gate (executed)",
       "status": "PASS",
-      "proof": "cz3lscT8', '2026-05-19 03:38:58.468956', 'r2gqil9ycinq1a0gb2yjsbv8o49rkgcc'); alias=default\nDEBUG 2026-05-18 23:08:58,478 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.006) COMMIT; args=None; alias=default"
+      "proof": "sFqonQVQ', '2026-05-19 11:20:32.233867', 'helsze783dgydltef2b3to64x5me3isc'); alias=default\nDEBUG 2026-05-19 06:50:32,246 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.009) COMMIT; args=None; alias=default"
     },
     {
       "id": "4.0",
@@ -146,7 +146,7 @@
       "id": "8",
       "mandate": "RBAC matrix within ceiling",
       "status": "PASS",
-      "proof": "  login-gated:          844\n  role-gated:           74\n  permission-gated:     98\n  inline-auth-check:    55\n  auth-mixin-gated:     65\n  rbac-allow markers:   56\n  candidate-anonymous:  9 (review for public routes)\n  unresolved-view:      28 (view_symbol not found in views*.py)\n  json:                 docs/generated/role_permission_matrix.json\n  csv:                  docs/generated/role_permission_matrix.csv\n\nNOTE: candidate_anonymous count 9 is BELOW gate 66. Consider tightening the gate to 9."
+      "proof": "  login-gated:          861\n  role-gated:           74\n  permission-gated:     98\n  inline-auth-check:    55\n  auth-mixin-gated:     65\n  rbac-allow markers:   63\n  candidate-anonymous:  9 (review for public routes)\n  unresolved-view:      28 (view_symbol not found in views*.py)\n  json:                 docs/generated/role_permission_matrix.json\n  csv:                  docs/generated/role_permission_matrix.csv\n\nNOTE: candidate_anonymous count 9 is BELOW gate 66. Consider tightening the gate to 9."
     }
   ]
 }

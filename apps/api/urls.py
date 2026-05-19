@@ -28,6 +28,7 @@ from apps.api.user_preferences_api import PortalPreferencesAPI
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
 from apps.api.teacher_hover_api import TeacherHoverContextView
 from apps.api.insight_anomalies_api import InsightAnomaliesAPIView
+from apps.api.analytics_viz_api import AnalyticsVizOverviewAPIView
 from apps.academics.api_views import AttendanceViewSet, ScheduleConflictsAPI
 from apps.api.entity_api import (
     ClassroomViewSet,
@@ -83,6 +84,13 @@ from apps.api.offline_replay_views import (
     QueueMetricsAPI,
 )
 from apps.api.sync_delta_api import DeltaSyncAPI
+from apps.portal.views_command_bar import api_command_bar_search
+from apps.portal.views_ai_product import (
+    api_smart_settings_assistant,
+    api_import_error_resolver,
+    api_guardrail_report_generator,
+    api_guided_tour_planner,
+)
 from apps.portal.views_ai_gateway import (
     api_setup_assistant,
     api_workflow_draft,
@@ -378,6 +386,11 @@ urlpatterns = [
         name="api-insight-anomalies",
     ),
     path(
+        "internal/analytics-viz/overview/",
+        AnalyticsVizOverviewAPIView.as_view(),
+        name="api-analytics-viz-overview",
+    ),
+    path(
         "internal/br/slo-targets/",
         SLOTargetsAPIView.as_view(),
         name="api-br-slo-targets",
@@ -494,6 +507,27 @@ urlpatterns = [
         name="ai-dashboard-pack-recommend",
     ),
     path("ai/support-assistant/", api_support_assistant, name="ai-support-assistant"),
+    path("ai/command-bar/", api_command_bar_search, name="ai-command-bar"),
+    path(
+        "ai/smart-settings/",
+        api_smart_settings_assistant,
+        name="ai-smart-settings",
+    ),
+    path(
+        "ai/import-error-resolver/",
+        api_import_error_resolver,
+        name="ai-import-error-resolver",
+    ),
+    path(
+        "ai/guardrail-report/",
+        api_guardrail_report_generator,
+        name="ai-guardrail-report",
+    ),
+    path(
+        "ai/guided-tour/",
+        api_guided_tour_planner,
+        name="ai-guided-tour",
+    ),
     path("ai/tenant-maturity/", api_tenant_maturity, name="ai-tenant-maturity"),
     path(
         "ai/data-quality-assistant/",

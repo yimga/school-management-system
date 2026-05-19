@@ -1,6 +1,14 @@
 {% extends "control_plane_base.html" %}
 {% load i18n static phase8_tags control_console %}
 
+{% block extrastyle %}{{ block.super }}
+{% include "partials/rmc_analytics_viz_assets.html" %}
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+{% include "partials/rmc_analytics_viz_bundle.html" %}
+{% endblock %}
+
 {% block cp_title %}{% trans "Analytics & Observability" %}{% endblock %}
 
 {% block breadcrumbs %}
@@ -41,20 +49,11 @@
       </div>
     </div>
   </div>
-  {# Chart reference: chart-rules.css – container, legend, semantic series colors #}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar">
-    <div class="card-body">
-      <h6 class="card-title">{% trans "Overview (chart reference)" %}</h6>
-      <div class="chart-container" style="min-height: 200px; display: flex; align-items: center; justify-content: center; background: var(--surface-bg-subtle, #fffaf0); border-radius: var(--token-radius-sm, 8px);">
-        <p class="chart-legend chart-legend--muted mb-0">{% trans "Chart area – use chart-rules.css (chart-container, chart-legend, chart-axis-label, chart-color--*) for real charts." %}</p>
-      </div>
-      <div class="chart-legend mt-2 d-flex flex-wrap gap-3" role="list" aria-label="{% trans 'Series legend' %}">
-        <span class="chart-color--primary">● {% trans "Primary" %}</span>
-        <span class="chart-color--success">● {% trans "Success" %}</span>
-        <span class="chart-color--warning">● {% trans "Warning" %}</span>
-        <span class="chart-color--danger">● {% trans "Danger" %}</span>
-        <span class="chart-color--muted">● {% trans "Muted" %}</span>
-      </div>
+    <div class="card-body chart-container">
+      <h6 class="card-title">{% trans "Tenant analytics overview" %}</h6>
+      <p class="small text-secondary mb-3">{% trans "Unified SVG charts — attendance vs. revenue pulse, KPI cards, and budget allocation. Data is tenant-scoped." %}</p>
+      {% include "partials/rmc_analytics_viz_mount.html" with tenant_id="platform-overview" min_height="24rem" %}
     </div>
   </div>
 </div>

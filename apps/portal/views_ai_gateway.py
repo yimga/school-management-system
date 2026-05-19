@@ -1152,17 +1152,61 @@ def api_dashboard_pack_recommend(request):
 @csrf_protect
 @login_required
 def api_support_assistant(request):
-    """POST: { "query": "..." } → support response suggestion with RAG."""
+    """POST: { "query": "...", "active_url": "/optional/path" } → first-line support."""
     rate_err = _gateway_rate_limit(request)
     if rate_err:
         return rate_err
     try:
         body = json.loads(request.body) if request.body else {}
         query = (body.get("query") or "").strip()[:2000]
+        active_url = (body.get("active_url") or body.get("path") or "").strip()[:500]
+        history = (body.get("history") or body.get("interaction_history") or "").strip()[:2000]
         if not query:
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
             )
+        from django.conf import settings as dj_settings
+
+        if getattr(dj_settings, "AI_ENGINE_ROOM_SUPPORT", True):
+            from services.ai.gateway import process_platform_query
+
+            school = getattr(request, "school", None)
+            engine = process_platform_query(
+                request.user,
+                active_url,
+                query,
+                school=school,
+                actor_roles=_actor_roles(request),
+                actor_is_staff=bool(
+                    getattr(request.user, "is_staff", False)
+                ),
+                actor_is_superuser=bool(
+                    getattr(request.user, "is_superuser", False)
+                ),
+                interaction_history=history,
+            )
+            meta = engine.get("meta") or {}
+            if engine.get("error") and not engine.get("success"):
+                return JsonResponse(
+                    {"success": False, "error": engine["error"]},
+                    status=400,
+                )
+            _log_gateway_audit(
+                request,
+                "support_assistant",
+                "support_suggest",
+                "success" if engine.get("success") else "degraded",
+                meta,
+            )
+            return JsonResponse(
+                {
+                    "success": bool(engine.get("success")),
+                    "response": engine.get("response") or "",
+                    "escalation_required": bool(engine.get("escalation_required")),
+                    "meta": meta,
+                }
+            )
+
         context_parts = []
         emb = get_embedding_for_text(query, max_tokens=512)
         if emb:

@@ -388,6 +388,20 @@
     return result;
   }
 
+  /**
+   * Palette aligned with unified SVG analytics (rmc-analytics-viz.css --chart-color-*).
+   * Chart.js dashboards should prefer getUnifiedVizPalette() over hardcoded CHART_COLORS.
+   */
+  function getUnifiedVizPalette() {
+    var out = [];
+    for (var i = 1; i <= 6; i++) {
+      var token = getComputedVar('--chart-color-' + i);
+      if (token) out.push(token);
+    }
+    if (out.length >= 3) return out;
+    return getBackendChartPalette() || buildThemePalette();
+  }
+
   // Expose globally for templates and other scripts
   window.DashboardChartsShared = {
     CHART_COLORS,
@@ -401,5 +415,6 @@
     defaultOptions,
     getBackendChartPalette,
     getBackendChartOptions,
+    getUnifiedVizPalette,
   };
 })();

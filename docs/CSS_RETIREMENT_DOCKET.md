@@ -1,6 +1,198 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-19 (v3.35.3 — Marketing frontend completion, runmycampus.com public surface)
+**Last updated:** 2026-05-19 (v3.40.5 — Platform chromatic audit closeout, batch 1299)
+
+## 2026-05-19 — v3.40.5 Platform chromatic audit closeout (batch 1299)
+
+**Status:** SHIPPED. SW `sms-v3.40.5-platform-chromatic-1299-2026-05-19`.
+
+| Layer | Change |
+|-------|--------|
+| `dark-mode-safety-net.css` | `.bg-light` triple-theme remap; `.text-bg-light`; `pre`/`card-body`/`thead.bg-light`; Unfold `#cp-main-content.bg-white` / `#main.bg-white` |
+| `theme-platform-contrast.css` | Dark canvas table token block (mirrors light §) |
+| Gates | `verify_platform_chromatic_compliance.py` **11/11 PASS** |
+
+**Deploy:** `collectstatic` + hard refresh on manager host.
+
+## 2026-05-19 — v3.39.0 Migration Cloud platform trust wave (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW `sms-v3.39.0-migration-cloud-platform-trust-2026-05-19`. 9th consecutive Migration Cloud fan-out (v3.26 → v3.28 → v3.31 → v3.32 → v3.33 → v3.34 → v3.37 → v3.38 → v3.39) addresses v3.38.0's actionable deferrals while skipping items blocked on counsel signoff or 90-day timers.
+
+### Per-agent deliverables
+
+| Agent | Scope | Files added / modified | Tests |
+|-------|-------|------------------------|-------|
+| 1 | Weekly audit-chain verifier beat + counsel-pending retention purge command | **extended** `apps/migration_cloud/management/commands/verify_audit_chain.py` (`--all-tenants`, `--email-on-broken=<addr>`, 4-tuple walker return); new `apps/migration_cloud/tasks_audit.py::verify_audit_chain_weekly_task` w/ `@shared_task` + Celery beat entry `accounts-verify-audit-chain` `crontab(hour=2, minute=0, day_of_week="mon")` lazy-guarded; new `apps/migration_cloud/management/commands/purge_audit_events_pre_approved.py` (counsel-pending guard via `MIGRATION_CLOUD_AUDIT_PURGE_APPROVAL_TOKEN` env, dry-run default, `--apply` uses raw SQL DELETE bypassing append-only `delete()` then emits meta-audit-event `audit.retention_purge_applied`); new TextChoice `AUDIT_RETENTION_PURGE_APPLIED` in `models_audit.py`; **modified** `config/settings.py` (2 env settings + beat entry); **modified** `docs/MIGRATION_CLOUD_AUDIT_LOG.md` (Weekly verifier beat + Retention purge procedure sections). | 14 Django |
+| 2 | Audit emit-site completeness + per-event `root_key_signature` HMAC-SHA512 w/ HSM-pluggable backend | new migration `0021_audit_event_root_key_signature.py` (pure AddField, nullable CharField(128)); new `apps/migration_cloud/services/audit_root_signing.py` (`compute_root_signature`/`verify_root_signature`; HMAC-SHA512 over same canonical-JSON `integrity_hash` pre-image; backend selector `MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND` defaults to `local-env-key`, 4 reserved HSM values `aws-kms`/`azure-keyvault`/`hashicorp-vault`/`gcp-kms` raise `NotImplementedError`); **modified** `models_audit.py` wires signing into `save()` after `integrity_hash` in same atomic block (legacy events `None`); new `MigrationCloudWebhookDeactivateView` at `/super/migration/operator/webhooks/<sub_id>/deactivate/` emits `webhook.subscription.deleted` via `_safe_audit`; REST `WebhookSubscriptionViewSet.destroy()` also emits w/ `via=api` discriminator; `apps/accounts/auth_backends_legacy.py::LegacyHashUpgradeBackend.authenticate` success path emits `legacy_hash.decrypt` w/ `payload_summary={"vendor": legacy_algo}` (username SHA-256-hashed via manager); **extended** `verify_audit_chain` w/ `--check-root-signature` flag — **exit-code split**: chain broken=1, chain ok + sig mismatch=**2** (backup-restore tamper signal); **extended** `MigrationCloudAuditExportView` w/ `?verify_root_signature=1` adding tri-valued `_root_signature_verified: true|false|null` per JSONL line; **modified** `config/settings.py` (2 env vars via `os.environ.get()` only); **modified** `docs/MIGRATION_CLOUD_AUDIT_LOG.md` (Root-key signature section ~110 lines) + `docs/SECURITY_KEYS.md` (Audit-event root-key signature section ~80 lines). | 17 Django |
+| 3 | `scan_companion_canonical_headers_drift.py` zero-tolerance scanner + `companion-extension/icons/` PNG assets | new `scripts/scan_companion_canonical_headers_drift.py` stdlib-only (AST-parses `DOMAIN_CANONICAL_HEADERS` from Django SOT; compares `companion-tauri/src-tauri/src/canonical_headers.json` + `companion-docker/app/canonical_headers.json` order-sensitive; drift classes `identical`/`missing-in-mirror`/`extra-in-mirror`/`order-mismatch`/`column-set-mismatch`; honors per-domain `_canonical-headers-drift-allow` JSON-native block or `// canonical-headers-drift-allow:` leading comment; flags `--strict`/`--json`/`--update-baseline`); new baseline `var/security-audit-baseline-canonical-headers-drift.json` ({finding_count: 0}); **modified** `.github/workflows/architectural-boundaries.yml` (7 new paths + new job `canonical-headers-drift`); new `scripts/generate_companion_extension_icons.py` (stdlib zlib+struct PNG encoder, solid RMC indigo `#4F46E5`); materialized `companion-extension/icons/icon-{16,48,128}.png` (79/117/259 bytes, valid PNG magic bytes); new `companion-extension/icons/README.md`. | 6 stdlib unittest + 2 Django = 8 |
+| 4 | `apps/observability/metrics.py` Prometheus/StatsD pluggable bridge | new `apps/observability/metrics.py` (~395 lines) — `emit_counter`/`emit_gauge`/`emit_histogram` + `_sanitize_labels` (drops sensitive values incl. `password`/`secret`/`token`/`signature_text`/`private_key`/`email`/`slug`; normalizes keys to `[a-z_][a-z0-9_]*`; truncates values to 64 chars) + 4 backends (`noop` default / `structured-log` / `prometheus-client` lazy-imported w/ auto-fallback + one-time WARNING when lib missing / `statsd` lazy-imported); new `services/observability.py` thin re-export shim for v3.38 introspection contract; **rewritten** `apps/observability/__init__.py`; new `apps/observability/views_metrics.py::PrometheusMetricsView` at `/metrics/` (anonymous-readable, `# rbac-allow: prometheus-scrape-anonymous-firewall-protected`, returns 404 when `prometheus_client` missing); **modified** `config/urls.py` lazy-includes `/metrics/` ONLY when backend == `prometheus-client`; **modified** `config/settings.py` (4 new env settings); new `docs/OBSERVABILITY_METRICS.md` (~140 lines). Backwards-compat: v3.38 introspection of both module paths resolves; legacy `tags=` kwarg accepted alongside canonical `labels=`. | 34 Django |
+| 5 | Tauri macOS+Windows + Docker Cosign signed-appliance release workflows | new `.github/workflows/release-companion-tauri-macos.yml` (tag `companion-tauri-v*`; universal `.dmg` via `cargo tauri build --target universal-apple-darwin`; Developer ID + `xcrun notarytool submit --wait` + `stapler staple`); new `release-companion-tauri-windows.yml` (same tag glob; `signtool verify /pa` per artifact); new `release-companion-docker.yml` (tag `companion-docker-v*`; buildx amd64+arm64; GHCR push; Cosign keyless via `sigstore/cosign-installer` + `cosign sign --yes` + `id-token: write` OIDC + `provenance: true` + `sbom: true`). All 3 carry `workflow_dispatch` w/ `confirm="publish"` gate. New `companion-tauri/scripts/verify_signed_build.sh` + `companion-docker/scripts/verify_signed_image.sh`; new stdlib-only `scripts/preflight_signed_release.py`; new `companion-tauri/CHANGELOG.md` + `companion-docker/CHANGELOG.md` (v3.39.0 entries); version anchors aligned; new `docs/COMPANION_SIBLINGS_SIGNED_RELEASE.md` (~280 lines); **modified** `docs/COMPANION_SIBLINGS.md`. | 12 Python (preflight) + 1 bash harness = 13 |
+
+### Cross-agent verification
+
+- 5/5 modules import OK; `py_compile` + `ast.parse` clean on all touched Python.
+- `AUTHENTICATION_BACKENDS[0] == LegacyHashUpgradeBackend` invariant preserved.
+- `AGREEMENT_VERSIONS == {"v1.0", "v2.0"}` + `MIGRATION_CLOUD_MAA_DEFAULT_VERSION == "v1.0"` + `MAA_TEXT_DRAFT_VERSIONS == {"v2.0"}` — flip still NOT performed (counsel signoff PDF pending).
+- Sole new migration `0021_audit_event_root_key_signature` (Agent 2). `makemigrations --dry-run --check` → "No changes detected".
+- **9 zero-tolerance scanner gates clean** — adds `scan_companion_canonical_headers_drift 0` (Agent 3 new) to the prior 8: `scan_drf_schema_coverage`, `scan_money_float`, `scan_migration_model_imports`, `scan_tenant_isolation_marker_quality`, `scan_pii_logging_smell`, `scan_print_statements`, `scan_bare_except`, `scan_subprocess_shell_true`.
+- 1 new Celery beat (`accounts-verify-audit-chain` Mondays 02:00 UTC).
+- 4 new env settings (`MIGRATION_CLOUD_AUDIT_OPS_EMAIL`, `_PURGE_APPROVAL_TOKEN`, `_SIGNING_KEY`, `_SIGNING_BACKEND`) + 4 new observability settings — all via `os.environ.get(...)` only, no literals.
+- 3 new tag-only release workflows + 1 preflight script + 2 operator verifier scripts (all `confirm="publish"` gated).
+
+### Deploy
+
+1. SW bump (above) — hard refresh after deploy.
+2. Apply migration `0021_audit_event_root_key_signature` (pure AddField, nullable — fast).
+3. Restart Celery workers + beat to pick up `accounts-verify-audit-chain` Monday 02:00 UTC schedule.
+4. (Optional, opt-in) Provision `MIGRATION_CLOUD_AUDIT_SIGNING_KEY=$(openssl rand -base64 32)` in secrets manager — future audit events carry HMAC-SHA512 signatures.
+5. (Optional, opt-in) `OBSERVABILITY_METRICS_BACKEND=prometheus-client` + `pip install prometheus-client` + add `/metrics/` to Prometheus scrape config.
+6. Operator UI smoke: `/super/migration/operator/webhooks/<sub_id>/deactivate/` (Agent 2); `python manage.py verify_audit_chain --all-tenants --check-root-signature` (Agents 1+2 coop).
+7. Companion release smoke: `python scripts/preflight_signed_release.py companion-tauri-v3.39.0` → "OK: pre-flight clean" (Agent 5).
+
+### Honest deferred v3.40+
+
+- Counsel signoff PDF + MAA v2.0 flip (externally blocked).
+- FACTS/Skyward write-path counsel signoff (externally blocked).
+- SDK 1.0.0 graduation after 90-day field test (time-blocked from 2026-05-19).
+- HSM bridge implementation for at least one of `aws-kms`/`azure-keyvault`/`hashicorp-vault`/`gcp-kms`.
+- Reproducible Tauri builds + in-toto attestations layered on Cosign + AzureSignTool for Windows EV.
+- Chrome Web Store / Edge Add-ons / AMO publish pipelines for `companion-extension/`.
+- Per-metric custom Prometheus histogram buckets; `/metrics/` Bearer-token auth; v3.38 byte_size shift from gauge to histogram.
+- Real PNG brand icons replacing v3.39 solid-color placeholders.
+
+---
+
+## 2026-05-19 — v3.37.1 Marketing impact layer (bell / persona / globe / hero / lanes)
+
+**Status:** SHIPPED. SW `sms-v3.37.1-marketing-impact-lanes-2026-05-19`. Closes homepage UX gaps: full-screen dashboard fatigue, illegible world-map labels on cinematic dark, and missing prompt deliverables (live campus pulse, video portal, lane chrome).
+
+### What landed
+
+| Area | Change |
+|------|--------|
+| Bell timeline | Single active panel (`data-mkt-bell-clock-mode="single"`), constrained `mkt-v3-dashboard-frame--impact`, story metric column |
+| Five roles | Impact layout + per-tab metric strip; constrained dashboard frames |
+| Globe | `mkt-world-map` + `currentColor` labels; caption moved to HTML; `marketing-impact.css` cinematic contrast |
+| Hero | `_hero_live_campus_pulse.html` + `mkt-live-campus-pulse.js` (SVG/CSS live stats) |
+| Video | `_video_portal.html` + `mkt-video-portal.js` (glass frame, accessible play/pause) |
+| Lanes | `/academics/` `/admissions/` `/finance/` short routes; `mkt-lane-chrome.js`; lane tokens in `tokens-marketing.css` |
+| Gate | `scripts/verify_marketing_impact_layer.py` wired into `verify_marketing_frontend_completion.py` + `marketing-gates.yml` |
+
+### Deploy
+
+1. SW bump (above) — hard refresh marketing pages.
+2. `python scripts/build_marketing_css_bundles.py` (impact CSS in enhanced bundle).
+3. Smoke: `/marketing/` bell scroll, persona tabs, globe section, walkthrough video portal.
+
+---
+
+## 2026-05-19 — v3.37.2 Marketing gear-up (items 1–7)
+
+**Status:** SHIPPED. SW `sms-v3.40.0-marketing-gear2-2026-05-19`. Completes the seven gear-up items on the existing Django marketing stack (no Next.js fork).
+
+| # | Item | Delivered |
+|---|------|-----------|
+| 1 | Production proof | `scripts/verify_marketing_production_smoke.py` (optional `PRODUCTION_BASE_URL`); Sweep 2 LCP/CLS artifacts unchanged |
+| 2 | Distinct lane layouts | `_lane_academics_matrix.html`, `_lane_admissions_steps.html`, `_lane_finance_ledger.html` + `marketing-gear2-lanes.css` on `/academics/` `/admissions/` `/finance/` |
+| 3 | Homepage motion | Day\|role toggle (`_day_role_story.html`), bell auto-advance (`data-bell-auto-ms`), globe pin tooltips |
+| 4 | Hero geo | `marketing_geo.py` + `_hero_geo_subline.html` + country headlines in `_marketing_context` |
+| 5 | Conversion | Logo carousel strip + `_proof_quote.html` in ROI panel |
+| 6 | i18n/a11y | `tests/e2e/marketing-gear2-a11y.spec.js` (axe + bell keyboard); persona/bell keyboard in `scroll-narrative.js` |
+| 7 | No Next duplicate | N/A — Django templates only |
+
+**Gate:** `scripts/verify_marketing_gear2_completion.py` in `npm run audit:marketing`.
+
+---
+
+## 2026-05-19 — v3.38.0 Migration Cloud operational maturity wave (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW `sms-v3.38.0-migration-cloud-operational-maturity-2026-05-19`. 8th consecutive Migration Cloud fan-out (v3.26 → v3.28 → v3.31 → v3.32 → v3.33 → v3.34 → v3.37 → v3.38) closes every v3.37.0 honest-deferred item end-to-end and adds operational maturity layers (metrics, health dashboard, append-only audit log).
+
+### Per-agent deliverables
+
+| Agent | Scope | Files added / modified | Tests |
+|-------|-------|------------------------|-------|
+| 1 | `companion-extension/` MV3 scaffolding reconstruction (the gap Agent 1 of v3.37.0 flagged) | new `companion-extension/{package.json,manifest.json,tsconfig.json,vite.config.ts,vitest.config.ts,popup.html,.eslintrc.cjs,.prettierrc,README.md}`, new `companion-extension/src/{background/service_worker.ts,content/content_script.ts}`, new `companion-extension/tests/{setup.ts,scaffold_health.v3_38.test.ts}`. Hand-rolled multi-entry rollup config (not @crxjs — stability over vite-major churn). All existing `.ts` files parse cleanly under new tsconfig — no source edits. | 4 vitest scaffold-health + 16 preserved tenant-switcher = 20 |
+| 2 | Per-vendor CSV pre-processors in Tauri + Docker `extractors/` (REAL transforms — architectural boundary preserved: zero network imports, pure functions over already-parsed CSV) | 6 Rust modules in `companion-tauri/src-tauri/src/extractors/{powerschool,blackbaud,veracross,alma,facts,skyward}.rs` + updated `mod.rs` (vendor-signature heuristics + `detect_vendor()` + `preprocess_for_vendor()` dispatcher) + updated `canonical_csv.rs` (`parse_and_preprocess()` wiring); 6 Python mirrors in `companion-docker/app/extractors/*.py` + shared `__init__.py` (`normalize_header`, `detect_vendor`, `preprocess_for_vendor`, typed `ExtractorError`/`InvalidCellValue`/`UnknownVendor`) + updated `canonical_csv.py`; new `companion-docker/tests/test_extractors_v3_38.py`; **modified** `docs/COMPANION_SIBLINGS_HANDSHAKE_AND_CSV_INGEST.md` (new § 8 vendor pre-processor rules). FACTS/Skyward write-path fields routed under `read_only_*` prefix preserving counsel docket. Determinism asserted for PowerSchool + Alma. | 51 Rust inline `#[test]` (8 mod + 8 PS + 7 BB + 7 VC + 7 Alma + 7 FACTS + 7 Skyward) + 56 Python (incl. import-scan test asserting zero `reqwest/httpx/requests/urllib3/aiohttp` in `extractors/`) |
+| 3 | Webhook verifier SDK 0.1.0 → **1.0.0-rc.1** stabilization prep + `LEGACY_HEADER_DEPRECATION_DATE` alignment to `2026-08-18` everywhere | **modified** version strings in `packages/runmycampus-webhook-verifier-py/{pyproject.toml,src/runmycampus_webhook_verifier/__init__.py}` + `packages/runmycampus-webhook-verifier-js/{package.json,src/index.ts}`; new `CHANGELOG.md` + `STABILITY.md` + `MIGRATION_TO_1_0.md` per package (Keep-a-Changelog format; frozen public-API surface; semver + 90-day deprecation policy + 3-tier stability table); **modified** release workflows `release-webhook-verifier-{py,js}.yml` (added `workflow_dispatch` `confirm="publish"` gate; tag glob narrowed `*`→`v*`); Python `verify_signature()` now emits `DeprecationWarning`; JS `verifySignature()` carries `@deprecated` JSDoc; 5 occurrences of `2026-08-17` in Python SDK + 6 in JS SDK + 3 in `WEBHOOK_VERIFICATION.md` updated to `2026-08-18`; new test files in each package + `apps/migration_cloud/tests/test_legacy_deprecation_date_alignment_v3_38.py` | 6 Python + 6 JS SDK + 2 Django (all green; 50/50 Py full suite, 47/47 JS full suite) |
+| 4 | Migration Cloud metrics + operator health dashboard | new `apps/migration_cloud/metrics.py` (typed helpers: `_hash_tenant_id`, `record_companion_upload`, `record_maa_sign`, `record_key_rotation`, `record_webhook_delivery`, `record_token_mint`, `record_legacy_hash_decryption`; introspects `services.observability` / `apps.observability.metrics` for `emit_counter`/`emit_gauge` else falls back to structured-JSON log; metric failure NEVER propagates); new `apps/migration_cloud/views_health.py::MigrationCloudHealthView` at `/super/migration/health/` (staff-only, 6 panels: webhooks 24h, MAA signs 7d, companion uploads 24h tenant-hashed, active keypairs, pending legacy hash sunsets, 8 scanner baselines); new `templates/migration_cloud/super/health.html` (3-col grid, 60s meta-refresh, never renders raw tenant slugs); new `apps/migration_cloud/tests/test_metrics_and_health_v3_38.py`; **modified** 6 emission sites — `companion_receiver.py` (MASignView + CompanionUploadView), `services/companion_keypair.py::rotate_active_keypair`, `api/webhook_dispatch.py::_deliver_one`, `views_token_admin.py::MigrationCloudTokenMintView`, `apps/accounts/auth_backends_legacy.py::LegacyHashUpgradeBackend.authenticate`; **modified** `apps/migration_cloud/urls.py` (added `health/` path with `# rbac-allow: super-staff-migration-cloud-health-status`) | 18 Django (16 green; 2 DB-backed skipped on local stale-DB collision unrelated to this wave) |
+| 5 | Tamper-evident `MigrationCloudAuditEvent` append-only model + audit dashboard + JSONL export + chain verifier | new `apps/migration_cloud/models_audit.py` (UUIDv4 PK; `tenant_id_hash` 12-hex sha256(slug); `event_type` 10-value TextChoices; `actor_id`/`event_subject_hash` sha256-prefixes; `payload_summary` JSONField walked by `_sanitize_payload` rejecting 14 sensitive keys incl. `signature_text`/`private_key`/`email`/`slug`; per-tenant `integrity_hash`/`prev_event_hash` chain w/ canonical-JSON SHA256 + `"genesis"` sentinel; `save()` raises ReadOnly on existing pk; `delete()` always raises; `AuditEventManager.record()` is canonical write path wrapping `transaction.atomic()`); new migration `0020_migration_cloud_audit_event.py` (pure CreateModel + 2 indexes); new `apps/migration_cloud/views_audit_admin.py::MigrationCloudAuditView` at `/super/migration/audit/` + `MigrationCloudAuditExportView` at `/super/migration/audit/export/` (streams `application/x-ndjson` 100-row pages + `?verify_chain=1` adds `_chain_verified` per line via `hmac.compare_digest`); new `apps/migration_cloud/management/commands/verify_audit_chain.py` (`--tenant=` required, `--repair-genesis` raw-SQL-patches missing sentinel only); new `templates/migration_cloud/operator/audit_dashboard.html`; new `docs/MIGRATION_CLOUD_AUDIT_LOG.md` (~190 lines, 7-year FERPA retention, counsel correlation-map notes); 8 emission sites wired with `_safe_audit` try/except (audit failure logs ERROR but never breaks request) — MAA sign + draft attempt, companion upload, key rotation, webhook subscription create + delivery replay, token mint + revoke; **modified** `apps/migration_cloud/{models.py,urls.py,companion_receiver.py,services/companion_keypair.py,views_webhook_admin.py,views_token_admin.py}` | 24 Django (test DB locked by stale Windows processes in sandbox; pure-function smoke + URL resolve + imports all green; AST-parse clean) |
+
+### Cross-agent verification
+
+- **5/5 modules import OK** (`py_compile` clean on all touched Python; Rust/TS structurally discoverable).
+- `AUTHENTICATION_BACKENDS[0] == LegacyHashUpgradeBackend` invariant preserved.
+- `AGREEMENT_VERSIONS == {"v1.0", "v2.0"}` + `MIGRATION_CLOUD_MAA_DEFAULT_VERSION == "v1.0"` + `MAA_TEXT_DRAFT_VERSIONS == {"v2.0"}` — promotion plumbing wired since v3.37.0, flip still NOT performed (awaits counsel signoff PDF).
+- New migration `0020_migration_cloud_audit_event.py` is the sole new leaf this wave; `makemigrations --dry-run --check` → "No changes detected".
+- All 8 zero-tolerance scanner gates clean (`scan_drf_schema_coverage 0`, `scan_money_float 0`, `scan_migration_model_imports 0`, `scan_tenant_isolation_marker_quality 0`, `scan_pii_logging_smell 0`, `scan_print_statements 0`, `scan_bare_except 0`, `scan_subprocess_shell_true 0`).
+- Architectural boundary held: Agent 2 import-scan test programmatically asserts zero `reqwest/httpx/requests/urllib3/aiohttp` in either sibling's `extractors/`; FACTS/Skyward write-path fields preserved as `read_only_*` prefix per counsel docket.
+
+### Deploy
+
+1. SW bump (above) — hard refresh after deploy.
+2. Apply migration `0020_migration_cloud_audit_event` (pure CreateModel + indexes, fast).
+3. Restart Celery workers + beat (no new schedules this wave, but worker code paths now emit metrics + audit events).
+4. Operator UI smoke: `/super/migration/health/` (Agent 4), `/super/migration/audit/` + `/super/migration/audit/export/?tenant=<hash>&verify_chain=1` (Agent 5).
+5. Companion extension toolchain (operator side): `cd companion-extension && npm install && npm run typecheck && npm run test && npm run build` (Agent 1).
+6. Tauri sibling toolchain (operator side): `cd companion-tauri/src-tauri && cargo check && cargo test` (Agent 2's 51 inline Rust tests).
+7. SDK 1.0.0-rc.1 customer signal: monitor `accept_legacy=True` adoption + dual-emit metrics; 1.0.0 graduation after 90 days.
+
+### Honest deferred v3.39+
+
+- Counsel signoff PDF (`docs/legal/maa_v2_signoff.pdf`) + actual MAA v2.0 flip.
+- FACTS/Skyward write-path unblock pending counsel docket signoff (currently `read_only_*` prefix as honest interim).
+- Webhook verifier SDK 1.0.0 graduation after 90-day field-test window from 2026-05-19.
+- Weekly Celery beat `accounts-verify-audit-chain` for all active tenants.
+- Counsel-approved retention purge command for audit log (append-only is real; purge needs documented row-range procedure).
+- `webhook.subscription.deleted` + `legacy_hash.decrypt` audit emit sites (reserved event types; emit-site coordination deferred).
+- HSM-stored root-key signature per audit event for backup-restore tamper detection.
+- Per-tenant CompanionKeypair packaging + signed appliance (Apple notarization + Windows code-signing) for Tauri.
+- CI gate to hash-lock `companion_*/canonical_headers.json` against Django SOT `apps/migration_cloud/accelerators/runmycampus_canonical.py::DOMAIN_CANONICAL_HEADERS`.
+
+---
+
+## 2026-05-19 — v3.37.0 Migration Cloud v3.34.0 honest-deferred closeout (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW `sms-v3.37.0-migration-cloud-deferred-closeout-2026-05-19`. 7th consecutive Migration Cloud fan-out (v3.26 → v3.28 → v3.31 → v3.32 → v3.33 → v3.34 → v3.37) closes the v3.34.0 honest-deferred items end-to-end. (v3.35 / v3.36 were marketing + glocal-closeout — non-MC waves slotted between MC waves on the SW timeline.)
+
+### Critical architectural boundary documented this wave
+
+The v3.35.0 attempted fan-out (later abandoned + rolled into v3.37.0) had its original Agent 4 prompt blocked by the **Anthropic Usage Policy cyber-content classifier** when describing programmatic SIS-vendor login + session cookie capture inside the companion-tauri / companion-docker siblings. Rescoping was applied: **vendor data extraction lives in `companion-extension/` ONLY** (operator's own authenticated browser tab is the security boundary); **companion-tauri + companion-docker handle (a) RMC platform handshake — login to RunMyCampus itself, fetch MAA, sign, sealed-box upload — and (b) canonical-CSV file ingest — operator manually exports CSV from SIS via the SIS's own export UI, drops file into appliance.** Lesson durably documented in the auto-memory at `feedback_companion_siblings_no_programmatic_sis_login.md` so future waves don't relitigate the boundary.
+
+### Per-agent deliverables
+
+| Agent | Scope | Files added / modified | Tests |
+|-------|-------|------------------------|-------|
+| 1 | Companion popup tenant switcher + key fingerprint UI | `companion-extension/src/lib/tenant_switcher.ts`, `companion-extension/src/popup/popup.ts`, `companion-extension/tests/tenant_switcher.test.ts`; **modified** `apps/migration_cloud/companion_receiver.py` (explicit `schema_context` wrap on `?tenant=<slug>` path + `tenant_slug` echo in response and info log; 6-part-hyphenated `tenant-isolation-allow: companion-pubkey-anonymous-fetch-explicit-slug-lookup`); new `apps/migration_cloud/tests/test_companion_pubkey_tenant_param_v3_37.py` | 8 Django + 14 vitest |
+| 2 | Webhook verifier SDK gains `accept_legacy=` API (90-day dual-emit window already shipped in v3.35) | **modified** `packages/runmycampus-webhook-verifier-py/src/runmycampus_webhook_verifier/verifier.py` + `__init__.py`, `packages/runmycampus-webhook-verifier-js/src/verifier.ts` + `index.ts`, `apps/migration_cloud/api/static/WEBHOOK_VERIFICATION.md`, `docs/WEBHOOK_HEADER_MIGRATION_2026.md`; new `apps/migration_cloud/tests/test_webhook_header_migration_v3_37.py`, `packages/runmycampus-webhook-verifier-py/tests/test_legacy_headers_v3_37.py`, `packages/runmycampus-webhook-verifier-js/tests/legacy_headers.v3_37.test.ts` | 6 Django + 4 Python SDK + 4 JS SDK (4/4 Python pass; 4/4 vitest pass; 6/6 Django pass) |
+| 3 | MAA v2.0 promotion dashboard + counsel attestation + dry-run re-sign campaign | new `apps/migration_cloud/views_maa_promotion.py` (`MAA_V2_PromotionDashboardView` at `/super/migration/maa-v2-promotion/`, staff-only, 4-panel: readiness via in-process verifier call (no subprocess, no user input) + draft-status live + counsel attestations + campaign progress), new `templates/migration_cloud/super/maa_v2_promotion.html`, new `apps/migration_cloud/tests/test_maa_v2_promotion_v3_37.py`; **modified** `apps/migration_cloud/urls.py` (added `maa-v2-promotion/` path with `# rbac-allow: super-staff-view-maa-promotion-status`). v3.35.0 verifier script + management command + models + migration `0016_maa_v2_campaign_notification.py` preserved unchanged. | 16 Django |
+| 4 | Tauri/Docker RMC handshake + canonical-CSV file ingest (RESCOPED — no programmatic SIS login) | `companion-tauri/src-tauri/{Cargo.toml,src/{rmc_handshake.rs,canonical_csv.rs,lib.rs,main.rs,canonical_headers.json,extractors/*.rs}}`, `companion-tauri/src-tauri/tests/handshake_and_csv_v3_37.rs`, `companion-tauri/{src/{index.html,main.ts},package.json,README.md}` (4-step wizard: Login → MAA → CSV pick & preview → Upload); `companion-docker/app/{__init__.py,rmc_handshake.py,canonical_csv.py,main.py,canonical_headers.json,extractors/*.py}`, `companion-docker/{tests/{__init__.py,test_handshake_and_csv_v3_37.py},pytest.ini,Dockerfile,requirements.txt,README.md}` (FastAPI `POST /ingest/csv` streaming to `SpooledTemporaryFile`); new `docs/COMPANION_SIBLINGS_HANDSHAKE_AND_CSV_INGEST.md` (~190 lines). `reqwest::Client::builder().cookie_store(false)` explicit; vendor extractors all `// honest-stub:` markers; passwords + tokens + signature_text + cell values never logged. | 8 Rust `#[test]` inline + 10 Rust integration tests + 19 Python (14 pass + 5 skip cleanly when PyNaCl/FastAPI absent in sandbox) |
+| 5 | Webhook subscription audit view + manual replay + idempotency-key collision guard | new `WebhookSubscriptionAuditView` + `WebhookDeliveryReplayView` in `apps/migration_cloud/views_webhook_admin.py` at `/super/migration/operator/webhooks/<sub_id>/audit/` and POST `/super/migration/operator/webhooks/deliveries/<id>/replay/`; new `templates/migration_cloud/operator/webhook_audit.html`; new `apps/migration_cloud/tests/test_webhook_audit_replay_v3_37.py`; **modified** `apps/migration_cloud/urls.py`, `docs/SECURITY_KEYS.md` (new "Webhook Replay & Audit (v3.37.0)" subsection). Audit view never renders signature bytes or payload body content (only `signed: yes/no` pill + `payload_bytes_length` integer); replay row uses `idempotency_key=""` to bypass the 24h guard (deliberate duplicate); migration 0017 + idempotency guard were already in place from a prior wave — additive on top. | 20 Django |
+
+### Cross-agent verification
+
+- **5/5 modules import OK** (Agent 4 Rust + Python tests structurally discoverable; Python passes/skips cleanly; Django agents 1/2/3/5 imports clean per `py_compile`).
+- `AUTHENTICATION_BACKENDS[0] == LegacyHashUpgradeBackend` invariant preserved.
+- `AGREEMENT_VERSIONS == {"v1.0", "v2.0"}`, `MIGRATION_CLOUD_MAA_DEFAULT_VERSION == "v1.0"`, `MAA_TEXT_DRAFT_VERSIONS == {"v2.0"}` — **promotion plumbing wired, flip NOT performed** (one-config-flip ready, awaits counsel signoff PDF).
+- All 8 zero-tolerance scanner gates clean: `scan_drf_schema_coverage 0`, `scan_money_float 0`, `scan_migration_model_imports 0`, `scan_tenant_isolation_marker_quality 0`, `scan_pii_logging_smell 0`, `scan_print_statements 0`, `scan_bare_except 0`, `scan_subprocess_shell_true 0`.
+
+### Deploy
+
+1. SW bump (above) — hard refresh after deploy.
+2. No new Django migrations this wave (v3.35.0's 0016 + the prior wave's 0017 already in place); `makemigrations --dry-run --check` → "No changes detected".
+3. Restart Celery workers + beat so the v3.35.0-era `upstream-watch-django-cryptography` + `accounts-key-rotation-monthly` schedules pick up.
+4. Operator UI smoke: `/super/migration/maa-v2-promotion/` (Agent 3), `/super/migration/operator/webhooks/<sub_id>/audit/` (Agent 5), companion popup multi-tenant dropdown (Agent 1).
+5. Companion sibling toolchain (operator side, not CI): `cargo check` in `companion-tauri/`, `docker build` in `companion-docker/`, `npm install + vite build` in `companion-extension/`.
+
+### Honest deferred v3.38+
+
+- Counsel signoff PDF (`docs/legal/maa_v2_signoff.pdf`) + actual v2.0 flip via `RMC_MAA_DEFAULT_VERSION=v2.0` env + removing `"v2.0"` from `MAA_TEXT_DRAFT_VERSIONS`.
+- FACTS/Skyward write-path unblock (or permanent block) pending counsel signoff in `docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md`.
+- `companion-extension/` scaffolding (manifest.json, vite.config.ts, package.json) reconstruction — Agent 1 reported these absent from current worktree; new `.ts` files drop in once that scaffold is restored.
+- Per-vendor CSV pre-processors in `companion-tauri/src-tauri/src/extractors/` + `companion-docker/app/extractors/` (currently honest-stub by architectural-boundary design).
+- Webhook verifier SDK 0.1.0 → 1.0.0 stabilization after 90 days field-tested against the `X-RunMyCampus-*` header family.
+
+---
 
 ## 2026-05-19 — v3.35.3 Marketing frontend completion (runmycampus.com)
 

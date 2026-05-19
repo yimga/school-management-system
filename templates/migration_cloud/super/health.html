@@ -1,0 +1,218 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{# v3.38.0 Agent 4 — Migration Cloud operator health dashboard.
+
+   Six panels in a 3-col grid for incident response:
+
+     1. Webhook deliveries (last 24h, by status)
+     2. MAA signs (last 7d, by version)
+     3. Companion uploads (last 24h, count + bytes per HASHED tenant)
+     4. Active Companion keypairs (per HASHED tenant)
+     5. Pending legacy hash sunsets (single count)
+     6. Zero-tolerance scanner baselines (8 rows)
+
+   Hard contract: this template NEVER renders raw tenant slugs (only
+   the 12-hex sha256 prefix the view computed), and NEVER renders
+   signature bytes / MAA body / private key material. Auto-refreshes
+   every 60s via meta refresh so an operator can keep it open.
+#}
+
+{% block page_title %}{{ page_title|default:"Migration Cloud — operator health" }}{% endblock %}
+
+{% block extra_head %}
+  {{ block.super }}
+  <meta http-equiv="refresh" content="60">
+{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--migration-cloud-health" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Migration Cloud — operator health" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Real-time platform status. Tenant identifiers shown as 12-hex SHA-256 prefixes — never plaintext slugs. Auto-refreshes every 60 seconds." %}
+    </p>
+  </header>
+
+  <div class="rmc-grid rmc-grid--3col rmc-grid--migration-cloud-health">
+
+    {# ── Panel 1 — Last-24h webhook deliveries ─────────────────────── #}
+    <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-webhooks-heading">
+      <h2 id="health-webhooks-heading" class="rmc-h2">{% trans "Webhook deliveries (24h)" %}</h2>
+      <p class="rmc-metric-ticker">
+        <span class="rmc-metric-ticker__value">{{ webhooks.total }}</span>
+        <span class="rmc-metric-ticker__label">{% trans "total deliveries" %}</span>
+      </p>
+      {% if webhooks.load_error %}
+        <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
+      {% elif webhooks.by_status %}
+        <table class="rmc-data-table rmc-data-table--mc-health">
+          <thead>
+            <tr>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Count" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in webhooks.by_status %}
+              <tr>
+                <td><code class="rmc-kbd">{{ row.status }}</code></td>
+                <td>{{ row.count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="rmc-empty">{% trans "No webhook deliveries in the last 24 hours." %}</p>
+      {% endif %}
+    </section>
+
+    {# ── Panel 2 — Last-7d MAA signs ──────────────────────────────── #}
+    <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-maa-heading">
+      <h2 id="health-maa-heading" class="rmc-h2">{% trans "MAA signs (7d)" %}</h2>
+      <p class="rmc-metric-ticker">
+        <span class="rmc-metric-ticker__value">{{ maa_signs.total }}</span>
+        <span class="rmc-metric-ticker__label">{% trans "total signs" %}</span>
+      </p>
+      {% if maa_signs.load_error %}
+        <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
+      {% elif maa_signs.by_version %}
+        <table class="rmc-data-table rmc-data-table--mc-health">
+          <thead>
+            <tr>
+              <th>{% trans "Version" %}</th>
+              <th>{% trans "Count" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in maa_signs.by_version %}
+              <tr>
+                <td><code class="rmc-kbd">{{ row.version }}</code></td>
+                <td>{{ row.count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="rmc-empty">{% trans "No MAA signs in the last 7 days." %}</p>
+      {% endif %}
+    </section>
+
+    {# ── Panel 3 — Last-24h Companion uploads (count + bytes per HASHED tenant) ── #}
+    <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-uploads-heading">
+      <h2 id="health-uploads-heading" class="rmc-h2">{% trans "Companion uploads (24h)" %}</h2>
+      <p class="rmc-metric-ticker">
+        <span class="rmc-metric-ticker__value">{{ uploads.total }}</span>
+        <span class="rmc-metric-ticker__label">{% trans "uploads" %}</span>
+      </p>
+      <p class="rmc-meta">
+        <span>{% blocktrans with bytes=uploads.bytes_total %}{{ bytes }} bytes total{% endblocktrans %}</span>
+      </p>
+      {% if uploads.load_error %}
+        <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
+      {% elif uploads.by_tenant %}
+        <table class="rmc-data-table rmc-data-table--mc-health">
+          <thead>
+            <tr>
+              <th>{% trans "Tenant (hash)" %}</th>
+              <th>{% trans "Uploads" %}</th>
+              <th>{% trans "Bytes" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in uploads.by_tenant %}
+              <tr>
+                <td><code class="rmc-kbd">{{ row.tenant_id_hash }}</code></td>
+                <td>{{ row.count }}</td>
+                <td>{{ row.bytes_total }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="rmc-empty">{% trans "No Companion uploads in the last 24 hours." %}</p>
+      {% endif %}
+    </section>
+
+    {# ── Panel 4 — Active companion keypairs per HASHED tenant ────── #}
+    <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-keypairs-heading">
+      <h2 id="health-keypairs-heading" class="rmc-h2">{% trans "Active Companion keypairs" %}</h2>
+      <p class="rmc-metric-ticker">
+        <span class="rmc-metric-ticker__value">{{ keypairs.total }}</span>
+        <span class="rmc-metric-ticker__label">{% trans "active rows" %}</span>
+      </p>
+      {% if keypairs.load_error %}
+        <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
+      {% elif keypairs.by_tenant %}
+        <table class="rmc-data-table rmc-data-table--mc-health">
+          <thead>
+            <tr>
+              <th>{% trans "Tenant (hash)" %}</th>
+              <th>{% trans "Active keypairs" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in keypairs.by_tenant %}
+              <tr>
+                <td><code class="rmc-kbd">{{ row.tenant_id_hash }}</code></td>
+                <td>{{ row.count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="rmc-empty">{% trans "No active Companion keypairs." %}</p>
+      {% endif %}
+    </section>
+
+    {# ── Panel 5 — Pending legacy hash sunsets ─────────────────────── #}
+    <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-sunsets-heading">
+      <h2 id="health-sunsets-heading" class="rmc-h2">{% trans "Pending legacy-hash sunsets" %}</h2>
+      <p class="rmc-metric-ticker">
+        <span class="rmc-metric-ticker__value">{{ sunsets.count }}</span>
+        <span class="rmc-metric-ticker__label">{% trans "accounts email-eligible" %}</span>
+      </p>
+      {% if sunsets.load_error %}
+        <p class="rmc-hint">{% trans "User model field unavailable in this environment." %}</p>
+      {% else %}
+        <p class="rmc-hint">
+          {% trans "Accounts whose sunset email was sent but legacy hash has not yet been cleared." %}
+        </p>
+      {% endif %}
+    </section>
+
+    {# ── Panel 6 — Zero-tolerance scanner baselines ────────────────── #}
+    <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-scanners-heading">
+      <h2 id="health-scanners-heading" class="rmc-h2">{% trans "Zero-tolerance scanner status" %}</h2>
+      <table class="rmc-data-table rmc-data-table--mc-health">
+        <thead>
+          <tr>
+            <th>{% trans "Scanner" %}</th>
+            <th>{% trans "Findings" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in scanners.rows %}
+            <tr>
+              <td><code class="rmc-kbd">{{ row.label }}</code></td>
+              <td>
+                {% if row.finding_count == 0 %}
+                  <span class="rmc-badge rmc-badge--success">0</span>
+                {% elif row.finding_count == "unknown" %}
+                  <span class="rmc-badge rmc-badge--info">{% trans "unknown" %}</span>
+                {% else %}
+                  <span class="rmc-badge rmc-badge--warning">{{ row.finding_count }}</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="rmc-hint">
+        {% trans "Counts sourced from var/security-audit-baseline-*.json. Missing files render as 'unknown' (the dashboard never errors)." %}
+      </p>
+    </section>
+
+  </div>
+</main>
+{% endblock %}

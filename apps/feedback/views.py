@@ -213,6 +213,111 @@ def school_roadmap(request):
 
 
 @login_required
+def feature_center(request):
+    """Tenant-facing product discovery surface."""
+    school = get_request_school(request)
+    role = get_user_role(request.user)
+    if role == "STUDENT":
+        messages.info(request, "Use student feedback for safe school-first help.")
+        return redirect("feedback:student_feedback")
+    if role == "PARENT":
+        messages.info(request, "Use parent feedback or Contact Us for parent portal help.")
+        return redirect("feedback:parent_feedback")
+    operator_view = is_operator(request.user) and school is None
+    if request.method == "POST":
+        form = FeatureRequestForm(request.POST)
+        if form.is_valid():
+            submit_feature_request(
+                school=school,
+                user=request.user,
+                affected_roles=[
+                    r.strip().upper()
+                    for r in form.cleaned_data["affected_roles"].split(",")
+                    if r.strip()
+                ],
+                **{k: v for k, v in form.cleaned_data.items() if k != "affected_roles"},
+            )
+            messages.success(request, "Feature request submitted for product discovery.")
+            return redirect("feedback:feature_center")
+    else:
+        form = FeatureRequestForm(
+            initial={
+                "module": request.GET.get("module", ""),
+                "title": request.GET.get("title", ""),
+            }
+        )
+    return render(
+        request,
+        "feedback/feature_center.html",
+        {
+            "school": school,
+            "is_operator_view": operator_view,
+            "feature_form": form,
+            "feature_requests": (
+                FeatureRequest.objects.all()
+                if operator_view
+                else FeatureRequest.objects.filter(school=school)
+            ).order_by("-weighted_score", "-created_at")[:75],
+            "roadmap_items": visible_roadmap_for_user(request.user, school)[:30],
+            "you_said_we_did": generate_you_said_we_did_items(school)[:10],
+            "support_links": support_entry_points(request),
+        },
+    )
+
+
+@login_required
+def contact_us(request):
+    """Authenticated contact router for tenant users and platform operators."""
+    school = get_request_school(request)
+    role = (get_user_role(request.user) or "").lower()
+    links = support_entry_points(request)
+    open_support_count = 0
+    open_contact_count = 0
+    if school is not None:
+        try:
+            from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+            open_support_count = GlobalSupportTicket.objects.filter(
+                school=school,
+                user=request.user,
+                status__in=[
+                    GlobalSupportTicket.Status.OPEN,
+                    GlobalSupportTicket.Status.IN_PROGRESS,
+                    GlobalSupportTicket.Status.WAITING,
+                ],
+            ).count()
+        except Exception:
+            open_support_count = 0
+        try:
+            from apps.communication.models import ContactRequest
+
+            open_contact_count = ContactRequest.objects.filter(
+                school=school,
+                parent=request.user,
+                status__in=[
+                    ContactRequest.Status.OPEN,
+                    ContactRequest.Status.TRIAGED,
+                    ContactRequest.Status.ASSIGNED,
+                    ContactRequest.Status.IN_PROGRESS,
+                ],
+            ).count()
+        except Exception:
+            open_contact_count = 0
+    return render(
+        request,
+        "feedback/contact_us.html",
+        {
+            "school": school,
+            "role": role,
+            "is_operator": is_operator(request.user),
+            "support_links": links,
+            "open_support_count": open_support_count,
+            "open_contact_count": open_contact_count,
+        },
+    )
+
+
+@login_required
 @require_POST
 def vote_feature(request, pk):
     feature = get_object_or_404(FeatureRequest, pk=pk)
@@ -275,6 +380,7 @@ def voice_of_customer(request):
     if not is_operator(request.user):
         return redirect("accounts:redirect")
     qs = FeedbackSubmission.objects.select_related("school", "user", "assigned_to")
+    base_qs = qs
     if request.GET.get("status"):
         qs = qs.filter(status=request.GET["status"])
     if request.GET.get("role"):
@@ -295,6 +401,23 @@ def voice_of_customer(request):
             "pain_points": top_pain_points(),
             "sentiment": module_sentiment_summary(),
             "churn_risk": detect_churn_risk_signals(),
+            "help_sourced_count": base_qs.filter(
+                source_channel__in=[
+                    FeedbackSubmission.SourceChannel.HELP_CENTER,
+                    FeedbackSubmission.SourceChannel.KB_ARTICLE,
+                    FeedbackSubmission.SourceChannel.FAQ,
+                ]
+            ).count(),
+            "support_escalated_count": base_qs.filter(support_escalated=True).count(),
+            "accessibility_count": base_qs.filter(
+                category=FeedbackSubmission.Category.ACCESSIBILITY
+            ).count(),
+            "mobile_offline_count": base_qs.filter(
+                category__in=[
+                    FeedbackSubmission.Category.MOBILE,
+                    FeedbackSubmission.Category.OFFLINE_SYNC,
+                ]
+            ).count(),
         },
     )
 

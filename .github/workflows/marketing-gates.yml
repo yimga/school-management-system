@@ -39,6 +39,11 @@ jobs:
           python scripts/verify_marketing_css_bundles_fresh.py
           python scripts/verify_marketing_public_shell.py
           python scripts/verify_marketing_hero_media.py
+          python scripts/verify_marketing_impact_layer.py
+          python scripts/verify_marketing_sweep2.py
+          python scripts/verify_marketing_gear2_completion.py
+          python scripts/verify_marketing_homepage_render.py
+          python scripts/audit_marketing_frontend_100.py
 
   marketing-playwright-gates:
     name: Marketing LCP/CLS + theme matrix
@@ -94,3 +99,11 @@ jobs:
           MARKETING_BASE_URL: "http://runmycampus.com:8000"
           PLAYWRIGHT_HOST_RULES: "MAP runmycampus.com 127.0.0.1"
         run: npx playwright test tests/e2e/marketing-theme-contrast.spec.js
+      - name: Impact responsive sweep (mobile overflow + lane routes)
+        env:
+          MARKETING_BASE_URL: "http://runmycampus.com:8000"
+          PLAYWRIGHT_HOST_RULES: "MAP runmycampus.com 127.0.0.1"
+        run: |
+          npx playwright test tests/e2e/marketing-impact-responsive.spec.js
+          npx playwright test tests/e2e/marketing-gear2-a11y.spec.js
+          npx playwright test tests/e2e/marketing-pricing-i18n.spec.js

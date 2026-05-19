@@ -154,6 +154,48 @@ class LegacyHashUpgradeBackend(ModelBackend):
                         "result": "upgraded",
                     },
                 )
+                # v3.38.0 — operational metric. Best-effort; never breaks
+                # the auth hot path. Vendor label is the algorithm slug
+                # (e.g. "powerschool_pbkdf2_sha512", "blackbaud_bcrypt").
+                try:
+                    from apps.migration_cloud import metrics as _mc_metrics
+                    _mc_metrics.record_legacy_hash_decryption(
+                        vendor=legacy_algo, success=True,
+                    )
+                except Exception as _metric_exc:  # noqa: BLE001
+                    logger.warning(
+                        "legacy_hash_upgrade_metric_failed err_type=%s",
+                        type(_metric_exc).__name__,
+                    )
+                # v3.39.0 Agent 2 — wire the reserved
+                # ``legacy_hash.decrypt`` audit event. The username is
+                # SHA-256 hashed inside ``record()`` (we pass it as the
+                # actor; the manager hashes the string form). Best-effort
+                # — auth must never break on audit failure.
+                try:
+                    from apps.migration_cloud.models_audit import (
+                        MigrationCloudAuditEvent as _AuditEvent,
+                    )
+                    _AuditEvent.objects.record(
+                        # No tenant slug at auth time — auth is system-
+                        # wide. The audit row will hash an empty slug,
+                        # which is correct: this event is per-user, not
+                        # per-tenant.
+                        "",
+                        "legacy_hash.decrypt",
+                        # ``actor`` is hashed inside record() before the
+                        # row lands; raw username never touches the DB.
+                        actor=str(username),
+                        subject=None,
+                        payload_summary={
+                            "vendor": str(legacy_algo)[:64],
+                        },
+                    )
+                except Exception as _audit_exc:  # noqa: BLE001
+                    logger.warning(
+                        "legacy_hash_upgrade_audit_failed err_type=%s",
+                        type(_audit_exc).__name__,
+                    )
                 return user if self.user_can_authenticate(user) else None
 
             # Legacy hash present but password did not match. Log the

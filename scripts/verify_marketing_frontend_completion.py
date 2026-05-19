@@ -33,6 +33,21 @@ REQUIRED_FILES = (
     "scripts/verify_marketing_seo_shell.py",
     "scripts/generate_marketing_frontend_defect_log.py",
     "docs/generated/marketing_frontend_defect_log.md",
+    "static/marketing/css/marketing-impact.css",
+    "static/marketing/js/mkt-live-campus-pulse.js",
+    "static/marketing/js/mkt-video-portal.js",
+    "static/marketing/js/mkt-lane-chrome.js",
+    "templates/marketing/components/_hero_live_campus_pulse.html",
+    "templates/marketing/components/_video_portal.html",
+    "scripts/verify_marketing_impact_layer.py",
+    "scripts/verify_marketing_sweep2.py",
+    "tests/e2e/marketing-impact-responsive.spec.js",
+    "scripts/verify_marketing_gear2_completion.py",
+    "static/marketing/css/marketing-gear2-home.css",
+    "static/marketing/css/marketing-gear2-lanes.css",
+    "apps/schools/marketing_geo.py",
+    "tests/e2e/marketing-gear2-a11y.spec.js",
+    "tests/e2e/marketing-pricing-i18n.spec.js",
 )
 
 SUBPROCESS_GATES = (
@@ -40,6 +55,9 @@ SUBPROCESS_GATES = (
     "scripts/verify_marketing_css_bundles_fresh.py",
     "scripts/verify_marketing_public_shell.py",
     "scripts/verify_marketing_hero_media.py",
+    "scripts/verify_marketing_impact_layer.py",
+    "scripts/verify_marketing_sweep2.py",
+    "scripts/verify_marketing_gear2_completion.py",
 )
 
 
@@ -78,8 +96,13 @@ def main() -> int:
 
     docket = REPO / "docs" / "CSS_RETIREMENT_DOCKET.md"
     if docket.is_file():
-        if "v3.35.3" not in _read(docket) or "marketing frontend completion" not in _read(docket).lower():
+        docket_text = _read(docket)
+        if "v3.35.3" not in docket_text or "marketing frontend completion" not in docket_text.lower():
             errors.append("CSS_RETIREMENT_DOCKET.md missing v3.35.3 marketing wave section")
+        if "v3.37.1" not in docket_text or "marketing impact" not in docket_text.lower():
+            errors.append("CSS_RETIREMENT_DOCKET.md missing v3.37.1 marketing impact wave section")
+        if "v3.37.2" not in docket_text or "gear-up" not in docket_text.lower():
+            errors.append("CSS_RETIREMENT_DOCKET.md missing v3.37.2 marketing gear-up wave section")
 
     sw = REPO / "static" / "js" / "service-worker.js"
     if sw.is_file():

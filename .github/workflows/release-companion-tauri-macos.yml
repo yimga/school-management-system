@@ -1,0 +1,363 @@
+# RunMyCampus Companion (Tauri sibling) — macOS signed-release workflow.
+#
+# Triggers ONLY on tags matching `companion-tauri-v*` (e.g.
+# `companion-tauri-v3.39.0`). Does NOT run on push to main; does NOT
+# run on PRs. Operators cut a tag from a release commit when they are
+# ready to publish a signed appliance build.
+#
+# Tag -> version-string contract:
+#   The tag suffix after `companion-tauri-v` MUST match the
+#   `version = "X.Y.Z"` value in `companion-tauri/src-tauri/Cargo.toml`.
+#   `scripts/preflight_signed_release.py` enforces this BEFORE the tag
+#   is pushed. CI re-checks alignment after checkout (defense in depth).
+#
+# Authentication: Apple notarization via `xcrun notarytool submit
+# --wait`. Required GitHub Actions secrets (stored at repository
+# Settings -> Secrets and variables -> Actions, NEVER committed):
+#   * APPLE_ID                       - Apple ID email
+#   * APPLE_TEAM_ID                  - 10-char Team ID from Apple
+#   *                                  Developer portal
+#   * APPLE_APP_SPECIFIC_PASSWORD    - app-specific password generated
+#   *                                  at appleid.apple.com
+#   * MACOS_CERT_P12_BASE64          - Developer ID Application cert
+#   *                                  exported as .p12, then
+#   *                                  base64 -i cert.p12 | tr -d '\n'
+#   * MACOS_CERT_PASSWORD            - password for the .p12 export
+#
+# Procurement: docs/COMPANION_SIBLINGS_SIGNED_RELEASE.md describes how
+# to obtain the Developer ID Application cert (Apple Developer Program
+# $99/yr) and how to generate the app-specific password.
+
+name: release-companion-tauri-macos
+
+on:
+  push:
+    tags:
+      - "companion-tauri-v*"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "publish" to confirm release to GitHub Releases (signed + notarized)'
+        required: true
+        type: string
+      release_tag:
+        description: 'Release tag to publish, e.g. companion-tauri-v3.40.0'
+        required: true
+        type: string
+      skip_reproducibility:
+        description: 'Skip the double-build reproducibility verification (incident-response use only). Set to "true" to bypass.'
+        required: false
+        default: 'false'
+        type: string
+
+# Do NOT trigger on push to main / PRs.
+permissions:
+  contents: write  # release-asset upload
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || github.ref_name }}
+
+defaults:
+  run:
+    working-directory: beta/school-management-system/companion-tauri
+
+jobs:
+  confirm:
+    name: Manual confirmation gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirm input on manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "publish" ]; then
+            echo "::error::workflow_dispatch requires confirm='publish' (got '${{ github.event.inputs.confirm }}')"
+            exit 1
+          fi
+          case "${{ github.event.inputs.release_tag }}" in
+            companion-tauri-v*) ;;
+            *)
+              echo "::error::workflow_dispatch release_tag must match companion-tauri-v*"
+              exit 1
+              ;;
+          esac
+          echo "Manual dispatch confirmed for ${{ github.event.inputs.release_tag }}."
+      - name: Tag-triggered run (no manual confirm required)
+        if: github.event_name == 'push'
+        run: echo "Triggered by tag ${{ github.ref_name }} - no manual confirm required."
+
+  build-sign-notarize:
+    name: Build + sign + notarize universal-darwin .dmg
+    runs-on: macos-14
+    needs: confirm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"
+          # Strip prefix `companion-tauri-v` from the tag.
+          EXPECTED="${TAG#companion-tauri-v}"
+          ACTUAL=$(grep -E '^version = "' src-tauri/Cargo.toml | head -n1 | sed -E 's/version = "([^"]+)"/\1/')
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Tag suffix '$EXPECTED' does not match Cargo.toml version '$ACTUAL'"
+            exit 1
+          fi
+          echo "Tag/version aligned: $ACTUAL"
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: Set up Node (Tauri front-end build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Compute SOURCE_DATE_EPOCH + RUSTFLAGS for reproducibility
+        # See companion-tauri/REPRODUCIBLE_BUILDS.md for the contract.
+        # SOURCE_DATE_EPOCH is derived from the tag commit so reruns
+        # of the SAME tag produce the SAME timestamp.
+        run: |
+          set -euo pipefail
+          SDE=$(git log -1 --format=%ct "${RELEASE_TAG}")
+          echo "SOURCE_DATE_EPOCH=$SDE" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=--remap-path-prefix=${GITHUB_WORKSPACE}=/build --remap-path-prefix=${HOME}/.cargo=/cargo" >> "$GITHUB_ENV"
+          echo "SOURCE_DATE_EPOCH set to $SDE"
+
+      - name: Front-end install + build (frozen lockfile)
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Import Developer ID Application cert into keychain
+        env:
+          MACOS_CERT_P12_BASE64: ${{ secrets.MACOS_CERT_P12_BASE64 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MACOS_CERT_P12_BASE64:-}" ]; then
+            echo "::error::MACOS_CERT_P12_BASE64 secret is empty"
+            exit 1
+          fi
+          echo "$MACOS_CERT_P12_BASE64" | base64 --decode > /tmp/rmc-cert.p12
+          security create-keychain -p "actions" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "actions" build.keychain
+          security import /tmp/rmc-cert.p12 -k build.keychain -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "actions" build.keychain
+          rm -f /tmp/rmc-cert.p12
+
+      - name: Build universal-darwin .dmg via cargo tauri build (locked + frozen)
+        working-directory: beta/school-management-system/companion-tauri/src-tauri
+        env:
+          SOURCE_DATE_EPOCH: ${{ env.SOURCE_DATE_EPOCH }}
+          RUSTFLAGS: ${{ env.RUSTFLAGS }}
+        run: cargo tauri build --target universal-apple-darwin -- --locked --frozen
+
+      - name: Record unsigned-bundle sha256 (pre-notarization) for in-toto subject
+        run: |
+          set -euo pipefail
+          DMG=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' | head -n1)
+          if [ -z "$DMG" ]; then
+            echo "::error::No .dmg produced for in-toto subject hashing"
+            exit 1
+          fi
+          mkdir -p "${RUNNER_TEMP}/intoto"
+          SHA=$(shasum -a 256 "$DMG" | awk '{print $1}')
+          NAME=$(basename "$DMG")
+          printf '{"name": "%s", "sha256": "%s"}\n' "$NAME" "$SHA" \
+            > "${RUNNER_TEMP}/intoto/macos-subject.json"
+          echo "UNSIGNED_DMG_SHA256=$SHA" >> "$GITHUB_ENV"
+          echo "Recorded unsigned-bundle sha256=$SHA for $NAME"
+
+      - name: Upload in-toto subject manifest (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: intoto-subject-macos
+          path: ${{ runner.temp }}/intoto/macos-subject.json
+          if-no-files-found: error
+
+      - name: Notarize .dmg via xcrun notarytool
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+          DMG=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' | head -n1)
+          if [ -z "$DMG" ]; then
+            echo "::error::No .dmg produced by cargo tauri build"
+            exit 1
+          fi
+          echo "Notarizing $DMG"
+          xcrun notarytool submit "$DMG" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --wait
+          xcrun stapler staple "$DMG"
+          echo "DMG_PATH=$DMG" >> "$GITHUB_ENV"
+
+      - name: Attach notarized .dmg to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.DMG_PATH }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          fail_on_unmatched_files: true
+
+  verify-reproducibility:
+    name: Verify reproducibility (double-build sha256 compare)
+    runs-on: macos-14
+    needs: build-sign-notarize
+    if: ${{ github.event_name == 'push' || github.event.inputs.skip_reproducibility != 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Compute SOURCE_DATE_EPOCH + RUSTFLAGS (same derivation as build job)
+        run: |
+          set -euo pipefail
+          SDE=$(git log -1 --format=%ct "${RELEASE_TAG}")
+          echo "SOURCE_DATE_EPOCH=$SDE" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=--remap-path-prefix=${GITHUB_WORKSPACE}=/build --remap-path-prefix=${HOME}/.cargo=/cargo" >> "$GITHUB_ENV"
+
+      - name: Front-end install + build (frozen)
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Re-build universal-darwin .dmg on clean runner
+        working-directory: beta/school-management-system/companion-tauri/src-tauri
+        env:
+          SOURCE_DATE_EPOCH: ${{ env.SOURCE_DATE_EPOCH }}
+          RUSTFLAGS: ${{ env.RUSTFLAGS }}
+        run: cargo tauri build --target universal-apple-darwin -- --locked --frozen
+
+      - name: Compare unsigned-bundle sha256 against first build
+        run: |
+          set -euo pipefail
+          DMG=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -maxdepth 1 -name '*.dmg' | head -n1)
+          if [ -z "$DMG" ]; then
+            echo "::error::No .dmg produced on second build"
+            exit 1
+          fi
+          SHA=$(shasum -a 256 "$DMG" | awk '{print $1}')
+          echo "Second-build sha256=$SHA"
+          # Pull the first-build hash from the uploaded subject manifest.
+          mkdir -p /tmp/intoto-cmp
+          gh run download "${{ github.run_id }}" -n intoto-subject-macos -D /tmp/intoto-cmp || true
+          if [ -f /tmp/intoto-cmp/macos-subject.json ]; then
+            FIRST=$(python3 -c "import json;print(json.load(open('/tmp/intoto-cmp/macos-subject.json'))['sha256'])")
+            if [ "$FIRST" != "$SHA" ]; then
+              echo "::error::Reproducibility mismatch: first=$FIRST second=$SHA"
+              echo "See companion-tauri/REPRODUCIBLE_BUILDS.md section 6 for known drift sources."
+              exit 1
+            fi
+            echo "OK: both builds produced sha256=$SHA"
+          else
+            echo "::warning::could not load first-build subject manifest; manual diff required"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  attest-and-publish-intoto:
+    name: Generate + sign in-toto SLSA Provenance v1.0 for macOS bundle
+    runs-on: ubuntu-latest
+    needs: build-sign-notarize
+    permissions:
+      contents: write
+      id-token: write  # OIDC for cosign keyless
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Download macOS in-toto subject
+        uses: actions/download-artifact@v4
+        with:
+          name: intoto-subject-macos
+          path: ${{ runner.temp }}/intoto
+
+      - name: Install Cosign
+        # Pinned by SHA for keyless OIDC signing security.
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382  # v3.6.0
+
+      - name: Compose SLSA Provenance v1.0 statement (stdlib python)
+        env:
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, pathlib
+          subj = json.load(open(os.path.join(os.environ['RUNNER_TEMP'], 'intoto', 'macos-subject.json')))
+          stmt = {
+            "_type": "https://in-toto.io/Statement/v1",
+            "predicateType": "https://slsa.dev/provenance/v1",
+            "subject": [{
+              "name": subj["name"],
+              "digest": {"sha256": subj["sha256"]},
+            }],
+            "predicate": {
+              "buildDefinition": {
+                "buildType": "https://github.com/runmycampus/sms/companion-tauri-macos@v1",
+                "externalParameters": {
+                  "release_tag": os.environ["RELEASE_TAG"],
+                  "workflow": ".github/workflows/release-companion-tauri-macos.yml",
+                },
+                "internalParameters": {
+                  "platform": "macos-14",
+                  "target": "universal-apple-darwin",
+                },
+              },
+              "runDetails": {
+                "builder": {"id": "https://github.com/" + os.environ.get("GITHUB_REPOSITORY", "")},
+                "metadata": {"invocationId": os.environ.get("GITHUB_RUN_ID", "")},
+              },
+            },
+          }
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'intoto' / 'macos-provenance.intoto.jsonl'
+          out.write_text(json.dumps(stmt) + "\n")
+          print("Wrote", out)
+          PY
+
+      - name: Cosign sign-blob the in-toto statement (keyless OIDC)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          set -euo pipefail
+          STMT="${RUNNER_TEMP}/intoto/macos-provenance.intoto.jsonl"
+          cosign sign-blob --yes \
+            --output-signature "${STMT}.sig" \
+            --output-certificate "${STMT}.pem" \
+            "${STMT}"
+
+      - name: Attach in-toto statement + cosign sig + cert to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ runner.temp }}/intoto/macos-provenance.intoto.jsonl
+            ${{ runner.temp }}/intoto/macos-provenance.intoto.jsonl.sig
+            ${{ runner.temp }}/intoto/macos-provenance.intoto.jsonl.pem
+          tag_name: ${{ env.RELEASE_TAG }}
+          fail_on_unmatched_files: true

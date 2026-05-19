@@ -268,8 +268,41 @@ def rotate_active_keypair(tenant, operator_user=None) -> dict[str, Any]:
         "fingerprint=%s",
         tenant_pk, operator_id, old_version, new_row.key_version, fingerprint,
     )
+    # v3.38.0 Agent 5 — append-only audit emission for keypair rotation.
+    try:
+        from apps.migration_cloud.models_audit import (
+            MigrationCloudAuditEvent as _AuditEvent,
+        )
+        _AuditEvent.objects.record(
+            getattr(tenant, "slug", "") or "",
+            "key.rotate",
+            actor=operator_user,
+            subject=str(new_row.pk),
+            payload_summary={
+                "old_version": old_version,
+                "new_version": new_row.key_version,
+                "fingerprint_prefix": fingerprint[:16],
+            },
+        )
+    except Exception as _audit_exc:  # broad-by-design
+        logger.error(
+            "migration_cloud.companion_keypair: audit_emit_failed err=%s",
+            type(_audit_exc).__name__,
+        )
     # Best-effort zero of the in-memory plaintext private bytes.
     priv_bytes = b"\x00" * len(priv_bytes)  # noqa: F841
+    # v3.38.0 — operational metric (best-effort; never breaks the
+    # rotation hot path).
+    try:
+        from apps.migration_cloud import metrics as _mc_metrics
+        _mc_metrics.record_key_rotation(
+            key_type="companion_x25519", success=True,
+        )
+    except Exception as _metric_exc:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud.companion_keypair: rotation_metric_failed err=%s",
+            type(_metric_exc).__name__,
+        )
     return {
         "tenant_pk": str(tenant_pk),
         "old_version": old_version,

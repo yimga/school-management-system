@@ -1,6 +1,6 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-18T23:18:20+00:00",
+  "generated_at": "2026-05-19T08:11:06+00:00",
   "rule": "migrations must use apps.get_model('X', 'Y') instead of importing live models from apps.X.models"
 }

@@ -1,0 +1,264 @@
+# RunMyCampus Companion Extension — Microsoft Edge Add-ons publish workflow.
+#
+# COUNSEL GATE:
+#   This workflow publishes the browser extension to the public
+#   Microsoft Edge Add-ons store. Before flipping `dry_run` to `false`,
+#   counsel MUST review the listing copy and host_permissions
+#   justification. Operator pastes the counsel-signoff PDF URL into the
+#   `counsel_signoff_pdf_url` input; preflight asserts that URL is
+#   non-empty whenever `dry_run=false`. DO NOT remove this gate and DO
+#   NOT default `dry_run` to `false`. Default is and remains
+#   `dry_run=true`.
+#
+# Architectural-boundary note: this extension is the ONLY surface
+# allowed to read SIS DOM. See
+# feedback_companion_siblings_no_programmatic_sis_login.
+#
+# Triggers ONLY on tags matching `companion-extension-v*`. The same
+# Chrome-target zip is consumed (Edge accepts the MV3 build unchanged).
+#
+# Upload mechanism: Microsoft Partner Center API, stdlib-only Python
+# (urllib.request). No new pip deps. The Partner Center API requires:
+#   1. OAuth token from
+#      https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token
+#      (client_credentials grant, scope=https://api.addons.microsoftedge.microsoft.com/.default)
+#   2. POST the zip to
+#      https://api.addons.microsoftedge.microsoft.com/v1/products/<product_id>/submissions/draft/package
+#      with Authorization: Bearer <access_token>
+#
+# Required GitHub Actions secrets:
+#   * EDGE_PRODUCT_ID     - Partner Center product GUID for this listing
+#   * EDGE_CLIENT_ID      - Azure AD app client ID
+#   * EDGE_CLIENT_SECRET  - Azure AD app client secret
+#   * EDGE_TENANT_ID      - Azure AD tenant GUID
+
+name: release-companion-extension-edge
+
+on:
+  push:
+    tags:
+      - "companion-extension-v*"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "publish" to confirm release to Edge Add-ons'
+        required: true
+        type: string
+      release_tag:
+        description: 'Release tag, e.g. companion-extension-v1.2.3'
+        required: true
+        type: string
+      dry_run:
+        description: 'When true (default), exercise OAuth token fetch but DO NOT call the upload endpoint'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      counsel_signoff_pdf_url:
+        description: 'URL to counsel signoff PDF (required if dry_run=false)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || github.ref_name }}
+  DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run || 'true' }}
+
+defaults:
+  run:
+    working-directory: beta/school-management-system/companion-extension
+
+jobs:
+  confirm:
+    name: Manual confirmation gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirm input on manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "publish" ]; then
+            echo "::error::workflow_dispatch requires confirm='publish' (got '${{ github.event.inputs.confirm }}')"
+            exit 1
+          fi
+          case "${{ github.event.inputs.release_tag }}" in
+            companion-extension-v*) ;;
+            *)
+              echo "::error::workflow_dispatch release_tag must match companion-extension-v*"
+              exit 1
+              ;;
+          esac
+      - name: Counsel-signoff gate (only when dry_run=false)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'false'
+        run: |
+          URL='${{ github.event.inputs.counsel_signoff_pdf_url }}'
+          if [ -z "$URL" ]; then
+            echo "::error::dry_run=false requires counsel_signoff_pdf_url to be non-empty."
+            exit 1
+          fi
+          echo "Counsel signoff PDF: $URL"
+      - name: Tag-triggered run defaults to dry_run=true
+        if: github.event_name == 'push'
+        run: echo "Tag-triggered run; DRY_RUN defaults to 'true'."
+
+  build-and-publish:
+    name: Build, validate, and (optionally) publish to Edge Add-ons
+    runs-on: ubuntu-latest
+    needs: confirm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8  # v4.0.2
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d  # v3.0.0
+        with:
+          version: 9
+
+      - name: Verify tag <-> manifest <-> package.json version alignment
+        run: |
+          TAG='${{ env.RELEASE_TAG }}'
+          VERSION="${TAG#companion-extension-v}"
+          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$MANIFEST_VERSION" != "$VERSION" ]; then
+            echo "::error::Tag version '$VERSION' != manifest.json version '$MANIFEST_VERSION'"
+            exit 1
+          fi
+          if [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "::error::Tag version '$VERSION' != package.json version '$PKG_VERSION'"
+            exit 1
+          fi
+
+      - name: Install deps (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Tests (vitest)
+        run: pnpm test
+
+      - name: Build extension
+        run: pnpm run build
+
+      - name: Package extension as zip
+        run: pnpm run package
+
+      - name: Assert required secrets present
+        env:
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_CLIENT_SECRET: ${{ secrets.EDGE_CLIENT_SECRET }}
+          EDGE_TENANT_ID: ${{ secrets.EDGE_TENANT_ID }}
+        run: |
+          missing=""
+          for v in EDGE_PRODUCT_ID EDGE_CLIENT_ID EDGE_CLIENT_SECRET EDGE_TENANT_ID; do
+            if [ -z "${!v}" ]; then
+              missing="$missing $v"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required secrets:$missing"
+            exit 1
+          fi
+          echo "All 4 Edge Add-ons secrets are configured."
+
+      - name: Fetch OAuth token AND (when dry_run=false) upload to Partner Center
+        env:
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_CLIENT_SECRET: ${{ secrets.EDGE_CLIENT_SECRET }}
+          EDGE_TENANT_ID: ${{ secrets.EDGE_TENANT_ID }}
+          DRY_RUN: ${{ env.DRY_RUN }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          python3 - <<'PY'
+          """Edge Add-ons publish — stdlib-only.
+
+          Always exercises the OAuth token fetch (catches secret rot
+          early, even in dry-run). The upload POST is short-circuited
+          when DRY_RUN=true.
+          """
+          import json, os, sys, pathlib, urllib.parse, urllib.request, urllib.error
+
+          product_id = os.environ["EDGE_PRODUCT_ID"]
+          client_id = os.environ["EDGE_CLIENT_ID"]
+          client_secret = os.environ["EDGE_CLIENT_SECRET"]
+          tenant_id = os.environ["EDGE_TENANT_ID"]
+          dry_run = os.environ.get("DRY_RUN", "true").lower() == "true"
+          release_tag = os.environ["RELEASE_TAG"]
+          version = release_tag.removeprefix("companion-extension-v")
+
+          token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+          body = urllib.parse.urlencode({
+              "client_id": client_id,
+              "client_secret": client_secret,
+              "grant_type": "client_credentials",
+              "scope": "https://api.addons.microsoftedge.microsoft.com/.default",
+          }).encode("utf-8")
+          req = urllib.request.Request(
+              token_url, data=body, method="POST",
+              headers={"Content-Type": "application/x-www-form-urlencoded"},
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  payload = json.loads(resp.read())
+          except urllib.error.HTTPError as exc:
+              detail = exc.read().decode("utf-8", errors="replace")[:400]
+              print(f"::error::OAuth token fetch failed: HTTP {exc.code}: {detail}")
+              sys.exit(1)
+          except urllib.error.URLError as exc:
+              print(f"::error::OAuth token fetch network error: {exc}")
+              sys.exit(1)
+          access_token = payload.get("access_token")
+          if not access_token:
+              print("::error::OAuth response missing access_token")
+              sys.exit(1)
+          print(f"OAuth token acquired (expires_in={payload.get('expires_in')}s).")
+
+          if dry_run:
+              print("=" * 60)
+              print("DRY RUN: OAuth OK; skipping upload to Partner Center.")
+              print("(Set dry_run=false to actually upload.)")
+              print("=" * 60)
+              sys.exit(0)
+
+          zip_path = pathlib.Path(f"dist-zip/companion-extension-{version}.zip")
+          if not zip_path.is_file():
+              print(f"::error::Zip missing: {zip_path}")
+              sys.exit(1)
+          upload_url = (
+              f"https://api.addons.microsoftedge.microsoft.com/v1/products/"
+              f"{product_id}/submissions/draft/package"
+          )
+          data = zip_path.read_bytes()
+          req2 = urllib.request.Request(
+              upload_url, data=data, method="POST",
+              headers={
+                  "Authorization": f"Bearer {access_token}",
+                  "Content-Type": "application/zip",
+              },
+          )
+          try:
+              with urllib.request.urlopen(req2, timeout=300) as resp:
+                  print(f"Upload accepted: HTTP {resp.status}")
+                  loc = resp.headers.get("Location")
+                  if loc:
+                      print(f"Operation status URL: {loc}")
+          except urllib.error.HTTPError as exc:
+              detail = exc.read().decode("utf-8", errors="replace")[:800]
+              print(f"::error::Upload failed: HTTP {exc.code}: {detail}")
+              sys.exit(1)
+          except urllib.error.URLError as exc:
+              print(f"::error::Upload network error: {exc}")
+              sys.exit(1)
+          PY

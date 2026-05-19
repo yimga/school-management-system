@@ -1,0 +1,267 @@
+/**
+ * RunMyCampus unified analytics visualization — semantic tokens only.
+ * Load after design-tokens.css + chart-rules.css.
+ */
+
+.rmc-viz-root {
+  color: var(--text-primary);
+  font-family: var(--portal-font, inherit);
+}
+
+.rmc-viz-icon {
+  color: var(--text-secondary);
+  transition: color var(--motion-fast);
+}
+
+.rmc-viz-card {
+  background: var(--surface-elevated);
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  padding: 1rem 1.125rem;
+  min-height: 7.5rem;
+}
+
+.rmc-viz-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.rmc-viz-card__title {
+  font-size: var(--type-size-eyebrow, 0.72rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.rmc-viz-kpi__value {
+  font-size: var(--type-size-headline-m, 1.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.rmc-viz-kpi__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+}
+
+.rmc-viz-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-variant-numeric: tabular-nums;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-pill, 999px);
+}
+
+.rmc-viz-delta--up {
+  color: var(--ds-success);
+  background: var(--ds-success-bg, color-mix(in oklab, var(--ds-success) 12%, transparent));
+}
+
+.rmc-viz-delta--down {
+  color: var(--ds-danger);
+  background: var(--ds-danger-bg, color-mix(in oklab, var(--ds-danger) 12%, transparent));
+}
+
+.rmc-viz-delta--neutral {
+  color: var(--text-tertiary);
+  background: var(--surface-sunken);
+}
+
+.rmc-viz-help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0.5px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  cursor: help;
+  transition:
+    color var(--motion-fast),
+    border-color var(--motion-fast),
+    background var(--motion-fast);
+}
+
+.rmc-viz-help-btn:hover,
+.rmc-viz-help-btn:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--hairline-strong);
+  outline: 2px solid var(--school-primary, #4f46e5);
+  outline-offset: 2px;
+}
+
+.rmc-viz-pulse {
+  position: relative;
+  width: 100%;
+  min-height: 12rem;
+}
+
+.rmc-viz-pulse svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.rmc-viz-pulse__series--attendance {
+  stroke: var(--chart-color-1);
+  fill: url(#rmc-pulse-attendance-gradient);
+}
+
+.rmc-viz-pulse__series--revenue {
+  stroke: var(--chart-color-4);
+  stroke-dasharray: 6 4;
+  fill: url(#rmc-pulse-revenue-gradient);
+}
+
+.rmc-viz-tooltip {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  min-width: 8.5rem;
+  max-width: 14rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--chart-tooltip-bg);
+  border: 0.5px solid var(--chart-tooltip-border);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--chart-tooltip-shadow);
+  color: var(--chart-tooltip-text);
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-viz-tooltip__date {
+  color: var(--chart-tooltip-muted);
+  font-size: var(--type-size-eyebrow, 0.72rem);
+  margin-bottom: 0.25rem;
+}
+
+.rmc-viz-donut {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .rmc-viz-donut {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rmc-viz-donut__center-label {
+  font-size: var(--type-size-caption, 0.8125rem);
+  fill: var(--text-tertiary);
+}
+
+.rmc-viz-donut__center-value {
+  font-size: var(--type-size-title-s, 1.125rem);
+  font-weight: 700;
+  fill: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-viz-donut__legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rmc-viz-donut__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--text-secondary);
+}
+
+.rmc-viz-donut__swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--chart-color-1);
+}
+
+.rmc-viz-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-sunken) 0%,
+    color-mix(in oklab, var(--surface-elevated) 60%, var(--surface-sunken)) 50%,
+    var(--surface-sunken) 100%
+  );
+  background-size: 200% 100%;
+  animation: rmc-viz-shimmer 1.2s ease-in-out infinite;
+  border-radius: var(--radius-sm, 8px);
+}
+
+@keyframes rmc-viz-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.rmc-viz-skeleton--kpi-value {
+  width: 45%;
+  height: 1.75rem;
+}
+
+.rmc-viz-skeleton--sparkline {
+  width: 5rem;
+  height: 1.5rem;
+}
+
+.rmc-viz-skeleton--chart {
+  width: 100%;
+  height: 12rem;
+}
+
+.rmc-viz-skeleton--donut {
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  margin-inline: auto;
+}
+
+.rmc-viz-tenant-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.rmc-viz-tenant-grid__wide {
+  grid-column: 1 / -1;
+}
+
+.rmc-viz-error-fallback {
+  padding: 1rem;
+  border-radius: var(--radius-md, 12px);
+  border: 0.5px solid var(--hairline);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: var(--type-size-caption, 0.8125rem);
+}

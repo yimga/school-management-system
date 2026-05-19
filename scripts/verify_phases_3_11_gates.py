@@ -242,6 +242,10 @@ def main(argv: list[str] | None = None) -> int:
         "Platform: AWS/Shopify/Salesforce/Linux/Google five-pillar completion",
     )
     run(
+        [py, _script_path("verify_six_pillar_global_dominance.py"), "--write", *base_args],
+        "Platform: six-pillar global dominance (sovereignty + five-pillar + AI + forensic)",
+    )
+    run(
         [py, _script_path("verify_path_to_100_plan_discipline.py"), *base_args],
         "Per-app depth: PATH_TO_100 plan Sec 6 spine + SOT pointers (slice vs Sec 12 gate)",
     )
@@ -272,6 +276,10 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [py, _script_path("verify_ai_blueprint_completion.py"), *base_args],
         "AI/provider matrix: gateway + prompts + endpoints + docs",
+    )
+    run(
+        [py, _script_path("verify_ai_engine_room.py"), *base_args],
+        "AI engine room tiers 1-5: prompt + command bar + product assistants",
     )
     run(
         [py, _script_path("verify_siteconfig_decomposition_depth.py"), *base_args],
@@ -444,6 +452,10 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [py, _script_path("verify_glocal_closeout_completion.py"), *base_args],
         "Glocal closeout: G-01..G-22 repo proofs + i18n/money-float sub-gates",
+    )
+    run(
+        [py, _script_path("verify_platform_chromatic_compliance.py")],
+        "Platform chromatic: tables, list-groups, manager light bleed, marketplace proof",
     )
     run(
         [py, _script_path("scan_main_content_text_utilities.py"), *base_args],

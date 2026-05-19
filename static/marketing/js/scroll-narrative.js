@@ -10,26 +10,131 @@
     if (!root) return;
     var steps = root.querySelectorAll('[data-bell-step]');
     var panels = root.querySelectorAll('[data-bell-panel]');
+    var singleMode = root.getAttribute('data-mkt-bell-clock-mode') === 'single';
+    var storyMetric = root.querySelector('[data-bell-story-metric]');
+    var storyLabel = root.querySelector('[data-bell-story-label]');
     if (!steps.length || !panels.length) return;
 
+    function syncStory(stepEl) {
+      if (!stepEl) return;
+      if (storyMetric && stepEl.getAttribute('data-bell-metric')) {
+        storyMetric.textContent = stepEl.getAttribute('data-bell-metric');
+      }
+      if (storyLabel && stepEl.getAttribute('data-bell-story')) {
+        storyLabel.textContent = stepEl.getAttribute('data-bell-story');
+      }
+    }
+
     function setActive(index) {
+      var activeStep = steps[index];
       steps.forEach(function (step, i) {
         var on = i === index;
         step.classList.toggle('is-active', on);
         step.setAttribute('aria-current', on ? 'step' : 'false');
       });
+      syncStory(activeStep);
+
+      if (singleMode && !reduced) {
+        panels.forEach(function (panel, i) {
+          var on = i === index;
+          panel.classList.toggle('is-active', on);
+          panel.hidden = !on;
+        });
+        return;
+      }
+
       if (!reduced) {
         panels.forEach(function (panel, i) {
           panel.hidden = i !== index;
+          panel.classList.toggle('is-active', i === index);
         });
       }
     }
 
     setActive(0);
 
+    steps.forEach(function (step, stepIndex) {
+      step.addEventListener('click', function () {
+        var idx = parseInt(step.getAttribute('data-bell-step'), 10);
+        if (!isNaN(idx)) setActive(idx);
+      });
+      step.addEventListener('keydown', function (ev) {
+        var list = Array.prototype.slice.call(steps);
+        var i = list.indexOf(step);
+        if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') {
+          ev.preventDefault();
+          var next = (i + 1) % list.length;
+          setActive(next);
+          list[next].focus();
+        }
+        if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') {
+          ev.preventDefault();
+          var prev = (i - 1 + list.length) % list.length;
+          setActive(prev);
+          list[prev].focus();
+        }
+        if (ev.key === 'Home') {
+          ev.preventDefault();
+          setActive(0);
+          list[0].focus();
+        }
+        if (ev.key === 'End') {
+          ev.preventDefault();
+          setActive(list.length - 1);
+          list[list.length - 1].focus();
+        }
+      });
+      if (!step.hasAttribute('tabindex')) {
+        step.setAttribute('tabindex', stepIndex === 0 ? '0' : '-1');
+      }
+    });
+
+    var autoMs = parseInt(root.getAttribute('data-bell-auto-ms'), 10);
+    if (autoMs > 0 && !reduced && singleMode) {
+      var autoTimer = null;
+      function startAuto() {
+        if (autoTimer) clearInterval(autoTimer);
+        autoTimer = setInterval(function () {
+          var current = 0;
+          steps.forEach(function (step, i) {
+            if (step.classList.contains('is-active')) current = i;
+          });
+          setActive((current + 1) % steps.length);
+        }, autoMs);
+      }
+      function stopAuto() {
+        if (autoTimer) {
+          clearInterval(autoTimer);
+          autoTimer = null;
+        }
+      }
+      startAuto();
+      root.addEventListener('mouseenter', stopAuto);
+      root.addEventListener('mouseleave', startAuto);
+      root.addEventListener('focusin', stopAuto);
+      root.addEventListener('focusout', function (ev) {
+        if (!root.contains(ev.relatedTarget)) startAuto();
+      });
+    }
+
     if (reduced || typeof IntersectionObserver === 'undefined') return;
 
-    var observer = new IntersectionObserver(
+    if (singleMode) {
+      var observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var idx = parseInt(entry.target.getAttribute('data-bell-step'), 10);
+            if (!isNaN(idx)) setActive(idx);
+          });
+        },
+        { rootMargin: '-40% 0px -50% 0px', threshold: 0.15 }
+      );
+      steps.forEach(function (step) { observer.observe(step); });
+      return;
+    }
+
+    var panelObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
           if (!entry.isIntersecting) return;
@@ -40,24 +145,36 @@
       { rootMargin: '-35% 0px -45% 0px', threshold: 0.2 }
     );
 
-    panels.forEach(function (panel) { observer.observe(panel); });
+    panels.forEach(function (panel) { panelObserver.observe(panel); });
   }
 
   function initPersonaTabs(root) {
     if (!root) return;
     var buttons = root.querySelectorAll('[data-persona-tab]');
     var panels = root.querySelectorAll('[data-persona-panel]');
+    var metricValue = root.querySelector('[data-persona-metric-value]');
+    var metricLabel = root.querySelector('[data-persona-metric-label]');
     if (!buttons.length || !panels.length) return;
 
     function activate(id) {
+      var activeBtn = null;
       buttons.forEach(function (btn) {
         var on = btn.getAttribute('data-persona-tab') === id;
+        if (on) activeBtn = btn;
         btn.setAttribute('aria-selected', on ? 'true' : 'false');
         btn.tabIndex = on ? 0 : -1;
       });
       panels.forEach(function (panel) {
         panel.hidden = panel.getAttribute('data-persona-panel') !== id;
       });
+      if (activeBtn) {
+        if (metricValue && activeBtn.getAttribute('data-persona-metric')) {
+          metricValue.textContent = activeBtn.getAttribute('data-persona-metric');
+        }
+        if (metricLabel && activeBtn.getAttribute('data-persona-metric-label')) {
+          metricLabel.textContent = activeBtn.getAttribute('data-persona-metric-label');
+        }
+      }
     }
 
     buttons.forEach(function (btn) {

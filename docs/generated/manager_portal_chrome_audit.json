@@ -1,0 +1,141 @@
+{
+  "generated_at": "2026-05-19T11:12:00.389395+00:00",
+  "verdict": "MANAGER_PORTAL_CHROME_PASS",
+  "passed": 19,
+  "failed": 0,
+  "rows": [
+    {
+      "area": "manager",
+      "check_id": "skeleton_footer",
+      "description": "control_plane_skeleton includes corporate footer bundle",
+      "status": "PASS",
+      "proof": "control_plane_skeleton.html"
+    },
+    {
+      "area": "manager",
+      "check_id": "login_footer_override",
+      "description": "Login pages suppress duplicate skeleton footer",
+      "status": "PASS",
+      "proof": "manager_login + admin_login"
+    },
+    {
+      "area": "manager",
+      "check_id": "context_flag",
+      "description": "SHOW_MANAGER_CORPORATE_FOOTER on manager host",
+      "status": "PASS",
+      "proof": "context_processors.py"
+    },
+    {
+      "area": "manager",
+      "check_id": "footer_css",
+      "description": "Manager corporate footer stylesheet exists",
+      "status": "PASS",
+      "proof": "manager-corporate-footer.css"
+    },
+    {
+      "area": "manager",
+      "check_id": "horizontal_nav_rail_css",
+      "description": "Platform horizontal nav rail grammar stylesheet",
+      "status": "PASS",
+      "proof": "rmc-horizontal-nav-rail.css"
+    },
+    {
+      "area": "manager",
+      "check_id": "horizontal_nav_rail_wired",
+      "description": "All major shells load horizontal nav rail CSS",
+      "status": "PASS",
+      "proof": "skeleton + portal + base + admin"
+    },
+    {
+      "area": "manager",
+      "check_id": "horizontal_nav_rail_templates",
+      "description": "Primary + workspace nav templates use rail grammar",
+      "status": "PASS",
+      "proof": "primary_nav + surface_strip + paired_surfaces"
+    },
+    {
+      "area": "manager",
+      "check_id": "horizontal_nav_rail_fast_tests",
+      "description": "Fast SimpleTestCase contract module present",
+      "status": "PASS",
+      "proof": "test_horizontal_nav_rail.py"
+    },
+    {
+      "area": "manager",
+      "check_id": "skeleton_footer_contract_test",
+      "description": "Template contract: skeleton emits corporate footer when flagged",
+      "status": "PASS",
+      "proof": "test_manager_portal_chrome_contract"
+    },
+    {
+      "area": "tenant",
+      "check_id": "portal_no_marketing_footer",
+      "description": "portal_base does not include marketing corporate footer",
+      "status": "PASS",
+      "proof": "portal_base.html"
+    },
+    {
+      "area": "tenant",
+      "check_id": "portal_chrome_resolver",
+      "description": "Portal chrome resolver module",
+      "status": "PASS",
+      "proof": "portal_chrome.py"
+    },
+    {
+      "area": "tenant",
+      "check_id": "dashboard_template_chrome_wire",
+      "description": "TenantLayoutAssignment template chrome wired in context processor",
+      "status": "PASS",
+      "proof": "context_processors + portal_chrome"
+    },
+    {
+      "area": "tenant",
+      "check_id": "dashboard_hub_chrome_column",
+      "description": "Dashboard configuration hub shows portal chrome per role",
+      "status": "PASS",
+      "proof": "dashboard_configuration_hub_body.html"
+    },
+    {
+      "area": "tenant",
+      "check_id": "portal_footer_partial",
+      "description": "portal_base uses PORTAL_FOOTER_PARTIAL include",
+      "status": "PASS",
+      "proof": "portal_base.html"
+    },
+    {
+      "area": "tenant",
+      "check_id": "portal_header_variant",
+      "description": "portal_base exposes data-portal-header-variant",
+      "status": "PASS",
+      "proof": "portal_base.html"
+    },
+    {
+      "area": "tenant",
+      "check_id": "portal_chrome_css",
+      "description": "Portal chrome variant CSS",
+      "status": "PASS",
+      "proof": "portal-chrome-variants.css"
+    },
+    {
+      "area": "tenant",
+      "check_id": "minimal_footer_partial",
+      "description": "School-scoped minimal footer partial",
+      "status": "PASS",
+      "proof": "portal_footers/minimal.html"
+    },
+    {
+      "area": "tenant",
+      "check_id": "tenant_no_manager_footer_flag",
+      "description": "Corporate marketing footer gated off tenant schools",
+      "status": "PASS",
+      "proof": "SHOW_CORPORATE_MARKETING_FOOTER gate"
+    },
+    {
+      "area": "proof",
+      "check_id": "django_tests",
+      "description": "Nav rail + manager/portal chrome test subset",
+      "status": "PASS",
+      "proof": "- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n..............\n----------------------------------------------------------------------\nRan 14 tests in 0.373s\n\nOK"
+    }
+  ]
+}

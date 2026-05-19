@@ -1,0 +1,114 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{# v3.37.0 Agent 5 — per-subscription audit view.
+
+   This template renders summary forensics for the last 200 deliveries
+   for ONE subscription. It NEVER renders:
+
+     * signature bytes (only a boolean "signed: yes/no")
+     * HMAC secret material (never reaches the template context)
+     * payload body content (only the byte-length integer)
+
+   The operator support team uses this view to answer "we never got
+   delivery X" — they can see status, attempt count, HTTP response
+   code, and whether the row was signed; they can then click Replay
+   to re-fire the delivery to the partner endpoint.
+#}
+
+{% block page_title %}{{ page_title|default:"Webhook subscription audit" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-webhook-audit" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
+    <h1 class="rmc-h1">{% blocktrans with sub_id=subscription.id %}Audit — webhook subscription #{{ sub_id }}{% endblocktrans %}</h1>
+    <p class="rmc-lede">
+      {% blocktrans with url=subscription.url tenant_id=subscription.tenant_id %}Endpoint <code>{{ url }}</code> · tenant #{{ tenant_id }}{% endblocktrans %}
+    </p>
+  </header>
+
+  <form method="get" class="rmc-filters" aria-label="{% trans 'Audit filters' %}">
+    <label class="rmc-filter">
+      <span>{% trans "Status" %}</span>
+      <select name="status">
+        <option value="">{% trans "All" %}</option>
+        {% for s in valid_statuses %}
+          <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="rmc-filter">
+      <span>{% trans "From" %}</span>
+      <input type="date" name="date_from" value="{{ date_from }}">
+    </label>
+    <label class="rmc-filter">
+      <span>{% trans "To" %}</span>
+      <input type="date" name="date_to" value="{{ date_to }}">
+    </label>
+    <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Apply" %}</button>
+  </form>
+
+  {% if rows %}
+  <table class="rmc-data-table rmc-data-table--webhook-audit">
+    <thead>
+      <tr>
+        <th>{% trans "ID" %}</th>
+        <th>{% trans "Event" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "HTTP" %}</th>
+        <th>{% trans "Attempts" %}</th>
+        <th>{% trans "Last attempted" %}</th>
+        <th>{% trans "Signed" %}</th>
+        <th>{% trans "Payload (bytes)" %}</th>
+        <th>{% trans "Replay of" %}</th>
+        <th>{% trans "Created" %}</th>
+        <th>{% trans "Actions" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td><code class="rmc-kbd">{{ r.event_type }}</code></td>
+        <td>
+          {% if r.status == "delivered" %}<span class="rmc-pill rmc-pill--success">{{ r.status }}</span>
+          {% elif r.status == "exhausted" %}<span class="rmc-pill rmc-pill--danger">{{ r.status }}</span>
+          {% elif r.status == "failed" %}<span class="rmc-pill rmc-pill--warn">{{ r.status }}</span>
+          {% else %}<span class="rmc-pill rmc-pill--muted">{{ r.status }}</span>{% endif %}
+        </td>
+        <td>{{ r.http_status_code|default:"—" }}</td>
+        <td>{{ r.attempt_count }}</td>
+        <td>{% if r.last_attempted_at %}{{ r.last_attempted_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+        <td>{% if r.signature_present %}<span class="rmc-pill rmc-pill--success">{% trans "yes" %}</span>{% else %}<span class="rmc-pill rmc-pill--muted">{% trans "no" %}</span>{% endif %}</td>
+        <td>{{ r.payload_bytes_length }}</td>
+        <td>{% if r.replay_of_id %}<a href="#row-{{ r.replay_of_id }}">#{{ r.replay_of_id }}</a>{% else %}—{% endif %}</td>
+        <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_replay' delivery_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_replay' delivery_id=r.id %}{% endif %}" class="rmc-form--inline">
+            {% csrf_token %}
+            <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Replay" %}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <nav class="rmc-pagination" aria-label="{% trans 'Pagination' %}">
+    {% if page_obj.has_previous %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">{% trans "← Previous" %}</a>
+    {% endif %}
+    <span class="rmc-pagination__page">{% blocktrans with cur=page_obj.number total=page_obj.paginator.num_pages %}Page {{ cur }} of {{ total }}{% endblocktrans %}</span>
+    {% if page_obj.has_next %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">{% trans "Next →" %}</a>
+    {% endif %}
+  </nav>
+  {% else %}
+  <div class="rmc-empty">
+    <h2 class="rmc-h2">{% trans "No deliveries match these filters" %}</h2>
+    <p>{% trans "Try widening the date range or clearing the status filter." %}</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

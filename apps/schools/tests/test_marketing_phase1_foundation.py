@@ -34,6 +34,7 @@ class MarketingPhase1AssetsTest(SimpleTestCase):
 
     def test_core_partials_exist(self) -> None:
         for rel in (
+            "templates/marketing/components/_day_role_story.html",
             "templates/marketing/components/_bell_clock_sticky.html",
             "templates/marketing/components/_persona_tabs.html",
             "templates/marketing/components/_dashboard_frame.html",
@@ -45,13 +46,13 @@ class MarketingPhase1AssetsTest(SimpleTestCase):
 
 
 class MarketingPhase1HomeWiringTest(SimpleTestCase):
-    def test_home_includes_bell_clock_and_persona_tabs(self) -> None:
+    def test_home_includes_day_role_story_shell(self) -> None:
         text = LANDING.read_text(encoding="utf-8")
-        self.assertIn("_bell_clock_sticky.html", text)
-        self.assertIn("_persona_tabs.html", text)
+        self.assertIn("_day_role_story.html", text)
+        self.assertIn("mkt-day-role-toggle.js", text)
         self.assertIn("_rotating_headline.html", text)
-        self.assertIn("_dashboard_frame.html", text)
         self.assertIn("_product_proof_block.html", text)
+        self.assertIn("data-mkt-bell-clock", (REPO_ROOT / "templates/marketing/components/_bell_clock_sticky.html").read_text(encoding="utf-8"))
         self.assertIn("mkt-edt-voices--compact", text)
         assert_no_exact_plan_pound_teasers(self, text)
 

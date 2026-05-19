@@ -1,0 +1,41 @@
+{% load i18n static %}
+{% comment %}Live-campus pulse — CSS/SVG simulated dashboard (no static image placeholders).{% endcomment %}
+<div class="mkt-live-pulse" data-mkt-live-pulse aria-label="{% trans 'Live campus operations preview' %}">
+  <div class="mkt-live-pulse__canvas" role="img" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400" focusable="false">
+      <rect width="640" height="400" fill="var(--mkt-tile, #fffaf0)"/>
+      <text x="24" y="36" font-family="Inter, system-ui, sans-serif" font-size="11" fill="var(--mkt-edt-ink-muted, #64748b)" letter-spacing="0.06em">{% trans "CAMPUS PULSE · LIVE" %}</text>
+      <text x="24" y="64" font-family="Source Serif 4, serif" font-size="20" fill="var(--mkt-edt-ink, #1a1612)">{% trans "Attendance climbing" %}</text>
+      <g transform="translate(24 88)">
+        <rect class="mkt-live-pulse__bar" x="0" y="80" width="28" height="72" fill="var(--mkt-edt-accent, #c2410c)" rx="4" style="animation-delay: 0s"/>
+        <rect class="mkt-live-pulse__bar" x="40" y="48" width="28" height="104" fill="var(--mkt-edt-accent, #c2410c)" rx="4" style="animation-delay: 0.2s"/>
+        <rect class="mkt-live-pulse__bar" x="80" y="24" width="28" height="128" fill="var(--mkt-edt-accent, #c2410c)" rx="4" style="animation-delay: 0.4s"/>
+        <rect class="mkt-live-pulse__bar" x="120" y="56" width="28" height="96" fill="var(--mkt-edt-accent, #c2410c)" rx="4" style="animation-delay: 0.6s"/>
+        <rect class="mkt-live-pulse__bar" x="160" y="32" width="28" height="120" fill="var(--mkt-edt-accent, #c2410c)" rx="4" style="animation-delay: 0.8s"/>
+      </g>
+      <text x="24" y="220" font-family="Inter, system-ui, sans-serif" font-size="11" fill="var(--mkt-edt-ink-muted)" letter-spacing="0.06em">{% trans "BUS ROUTES" %}</text>
+      <circle class="mkt-live-pulse__bus" r="8" fill="var(--accent-principal-emerald, #059669)" stroke="#fff" stroke-width="2"/>
+      <text x="340" y="220" font-family="Inter, system-ui, sans-serif" font-size="11" fill="var(--mkt-edt-ink-muted)" letter-spacing="0.06em">{% trans "GRADE DISTRIBUTION" %}</text>
+      <path d="M 340 320 Q 400 260, 460 300 T 580 280" fill="none" stroke="var(--accent-admissions-indigo, #4f46e5)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="580" cy="280" r="5" fill="var(--accent-admissions-indigo, #4f46e5)"/>
+    </svg>
+  </div>
+  <ul class="mkt-live-pulse__stat-row" aria-label="{% trans 'Live metrics' %}">
+    <li class="mkt-live-pulse__stat">
+      <span class="mkt-live-pulse__stat-value" data-mkt-pulse-stat="attendance">97.2%</span>
+      <span class="mkt-live-pulse__stat-label">{% trans "Present now" %}</span>
+    </li>
+    <li class="mkt-live-pulse__stat">
+      <span class="mkt-live-pulse__stat-value" data-mkt-pulse-stat="buses">12/12</span>
+      <span class="mkt-live-pulse__stat-label">{% trans "Buses on route" %}</span>
+    </li>
+    <li class="mkt-live-pulse__stat">
+      <span class="mkt-live-pulse__stat-value" data-mkt-pulse-stat="grades">B+ avg</span>
+      <span class="mkt-live-pulse__stat-label">{% trans "Term trend" %}</span>
+    </li>
+  </ul>
+  <div class="mkt-live-pulse__interactive mt-3" data-mkt-viz-enhanced>
+    <p class="small text-muted mb-2">{% trans "Interactive campus pulse (unified analytics framework)" %}</p>
+    {% include "partials/rmc_analytics_viz_mount.html" with tenant_id="marketing-demo" min_height="18rem" %}
+  </div>
+</div>

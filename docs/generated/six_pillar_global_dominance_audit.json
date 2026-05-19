@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-05-19T10:51:06.039090+00:00",
+  "verdict": "SIX_PILLAR_GLOBAL_DOMINANCE_PASS",
+  "passed": 10,
+  "failed": 0,
+  "foundational_layer_first": "TENANT_SOVEREIGNTY",
+  "rows": [
+    {
+      "pillar": "WIRING",
+      "gate": "ci_platform_pillar_gates",
+      "status": "PASS",
+      "proof": "architectural-boundaries.yml platform-pillar-gates"
+    },
+    {
+      "pillar": "WIRING",
+      "gate": "phases_gate_bundle",
+      "status": "PASS",
+      "proof": "verify_phases_3_11_gates.py"
+    },
+    {
+      "pillar": "WIRING",
+      "gate": "release_readiness",
+      "status": "PASS",
+      "proof": "release_readiness_check.sh \u00a74c"
+    },
+    {
+      "pillar": "WIRING",
+      "gate": "npm_script",
+      "status": "PASS",
+      "proof": "package.json verify:six-pillar"
+    },
+    {
+      "pillar": "WIRING",
+      "gate": "sot_batch_1296",
+      "status": "PASS",
+      "proof": "SOT \u00a711.4 batch 1296"
+    },
+    {
+      "pillar": "WIRING",
+      "gate": "sot_vectors_json",
+      "status": "PASS",
+      "proof": "tenant_sovereignty_platform_vectors.json"
+    },
+    {
+      "pillar": "TENANT_SOVEREIGNTY",
+      "gate": "verify_tenant_sovereignty_pillar",
+      "status": "PASS",
+      "proof": "verify_tenant_sovereignty_pillar: TENANT_SOVEREIGNTY_PASS (18 checks)"
+    },
+    {
+      "pillar": "AWS_SHOPIFY_SALESFORCE_LINUX_GOOGLE",
+      "gate": "verify_five_pillar_platform_completion",
+      "status": "PASS",
+      "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (24 checks)"
+    },
+    {
+      "pillar": "GOOGLE_AI_ENGINE",
+      "gate": "verify_ai_engine_room",
+      "status": "PASS",
+      "proof": "verify_ai_engine_room: OK (tiers 1-5 engine room + product assistants 100%)"
+    },
+    {
+      "pillar": "FORENSIC_ZERO_EXCEPTION",
+      "gate": "verify_forensic_master_prompt_completion",
+      "status": "PASS",
+      "proof": "verify_forensic_master_prompt_completion: FORENSIC_MASTER_PROMPT_PASS\n  PASS 24 / FAIL 0"
+    }
+  ],
+  "sot_artifacts": [
+    "docs/generated/tenant_sovereignty_platform_vectors.json",
+    "docs/generated/tenant_sovereignty_pillar_audit.json",
+    "docs/generated/five_pillar_platform_audit.json",
+    "docs/generated/forensic_master_prompt_audit.json"
+  ]
+}

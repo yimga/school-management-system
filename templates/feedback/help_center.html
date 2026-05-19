@@ -16,7 +16,7 @@
   </div>
 
   <div class="row g-3 mb-4">
-    <section class="col-md-6 col-lg-3">
+    <section class="col-md-6 col-xl-2">
       <a href="{% url 'kb:kb_home' %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
           <i class="bi bi-book fs-1" aria-hidden="true"></i>
@@ -25,7 +25,16 @@
         </div>
       </a>
     </section>
-    <section class="col-md-6 col-lg-3">
+    <section class="col-md-6 col-xl-2">
+      <a href="{% url 'kb:faq_list' %}" class="card shadow-sm h-100 text-decoration-none">
+        <div class="card-body">
+          <i class="bi bi-patch-question fs-1" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "FAQ" %}</h2>
+          <p class="small text-muted mb-0">{% trans "Fast answers to common questions." %}</p>
+        </div>
+      </a>
+    </section>
+    <section class="col-md-6 col-xl-2">
       <a href="{% url pinned_feedback_route %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
           <i class="bi bi-chat-square-text fs-1" aria-hidden="true"></i>
@@ -34,7 +43,21 @@
         </div>
       </a>
     </section>
-    <section class="col-md-6 col-lg-3">
+    <section class="col-md-6 col-xl-2">
+      <a href="{% if role == 'parent' or role == 'student' %}{% url pinned_feedback_route %}{% else %}{% url 'feedback:feature_center' %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
+        <div class="card-body">
+          <i class="bi bi-lightbulb fs-1" aria-hidden="true"></i>
+          {% if role == "parent" or role == "student" %}
+            <h2 class="h6 mt-2">{% trans "Suggestions" %}</h2>
+            <p class="small text-muted mb-0">{% trans "Share a simple suggestion without roadmap complexity." %}</p>
+          {% else %}
+            <h2 class="h6 mt-2">{% trans "Feature center" %}</h2>
+            <p class="small text-muted mb-0">{% trans "Request improvements and track product decisions." %}</p>
+          {% endif %}
+        </div>
+      </a>
+    </section>
+    <section class="col-md-6 col-xl-2">
       <a href="{% url 'feedback:release_notes_public' %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
           <i class="bi bi-stars fs-1" aria-hidden="true"></i>
@@ -43,8 +66,8 @@
         </div>
       </a>
     </section>
-    <section class="col-md-6 col-lg-3">
-      <a href="{% if support_links.portal_help %}{{ support_links.portal_help }}{% elif support_links.support_request %}{{ support_links.support_request }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
+    <section class="col-md-6 col-xl-2">
+      <a href="{% if support_links.contact_center %}{{ support_links.contact_center }}{% elif support_links.portal_help %}{{ support_links.portal_help }}{% elif support_links.support_request %}{{ support_links.support_request }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
           <i class="bi bi-life-preserver fs-1" aria-hidden="true"></i>
           <h2 class="h6 mt-2">{% trans "Contact support" %}</h2>
@@ -94,8 +117,10 @@
         </div>
       {% endif %}
       <div class="d-flex gap-2 flex-wrap mt-3">
+        {% if support_links.contact_center %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_center }}">{% trans "Contact us" %}</a>{% endif %}
         {% if support_links.support_request %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.support_request }}">{% trans "Open support request" %}</a>{% endif %}
         <a class="btn btn-outline-secondary btn-sm" href="{% url pinned_feedback_route %}?from=help&source=help_center">{% trans "Send product feedback" %}</a>
+        {% if support_links.feature_center and role != "parent" and role != "student" %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.feature_center }}">{% trans "Feature center" %}</a>{% endif %}
         {% if support_links.contact_us %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_us }}">{% trans "Public contact page" %}</a>{% endif %}
       </div>
     </div>

@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -24,7 +26,12 @@ def _utc() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _run(cmd: list[str], timeout: int = 7200) -> tuple[int, str]:
+def _run(
+    cmd: list[str],
+    timeout: int = 7200,
+    *,
+    env: dict[str, str] | None = None,
+) -> tuple[int, str]:
     proc = subprocess.run(
         cmd,
         cwd=REPO,
@@ -33,6 +40,7 @@ def _run(cmd: list[str], timeout: int = 7200) -> tuple[int, str]:
         encoding="utf-8",
         errors="replace",
         timeout=timeout,
+        env=env,
     )
     out = (proc.stdout or "") + (proc.stderr or "")
     return proc.returncode, out.strip()[-1500:]
@@ -41,6 +49,22 @@ def _run(cmd: list[str], timeout: int = 7200) -> tuple[int, str]:
 def _read_json(name: str) -> dict:
     path = GENERATED / name
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def _sqlite_test_env() -> dict[str, str]:
+    """Reuse migrated keepdb file so Phase 15 matches kill_test / local agent runs."""
+    env = os.environ.copy()
+    env.setdefault("RMC_SQLITE_TEST_MEMORY", "1")
+    candidates = (
+        REPO / ".django_test_dbs" / "kill_test_recovery.sqlite3",
+        REPO / ".django_test_dbs" / "ux_factory_reset.sqlite3",
+        REPO / ".django_test_dbs" / "rmc_sqlite_test_runner.sqlite3",
+    )
+    for path in candidates:
+        if path.is_file() and path.stat().st_size > 0:
+            env["DJANGO_TEST_DB_FILE"] = path.relative_to(REPO).as_posix()
+            break
+    return env
 
 
 def main() -> int:
@@ -154,7 +178,11 @@ def main() -> int:
             "--verbosity=0",
             "--keepdb",
         ]
-        code, tail = _run(test_cmd, timeout=3600)
+        test_env = _sqlite_test_env()
+        code, tail = _run(test_cmd, timeout=3600, env=test_env)
+        if code != 0 and "database is locked" in tail.lower():
+            time.sleep(8)
+            code, tail = _run(test_cmd, timeout=3600, env=test_env)
         record("15", code == 0, f"certification subset tests ({tail[-80:]})")
     else:
         record("15", True, "skipped (--skip-tests)")

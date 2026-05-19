@@ -1,0 +1,102 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Contact Us" %}{% endblock %}
+{% block backend_title %}{% trans "Contact Us" %}{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-3" data-page-archetype="contact-routing">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Contact Us" %}</h1>
+      <p class="text-muted mb-0">{% trans "Choose the right lane: school office contact, platform support, product feedback, or operator voice-of-customer triage." %}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if support_links.help_center %}<a class="btn btn-outline-secondary" href="{{ support_links.help_center }}">{% trans "Help center" %}</a>{% endif %}
+      {% if support_links.kb_home %}<a class="btn btn-outline-secondary" href="{{ support_links.kb_home }}">{% trans "Knowledge base" %}</a>{% endif %}
+      {% if support_links.faq_list %}<a class="btn btn-outline-secondary" href="{{ support_links.faq_list }}">{% trans "FAQ" %}</a>{% endif %}
+    </div>
+  </div>
+
+  {% if not school and not is_operator %}
+    <div class="alert alert-info">{% trans "No school context is attached to this session. Use your school portal link for tenant-specific support routing." %}</div>
+  {% endif %}
+
+  <div class="row g-3 mb-4">
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <i class="bi bi-life-preserver fs-2" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Platform support" %}</h2>
+          <p class="small text-muted">{% trans "Use this for login, billing, imports, mobile, accessibility, and anything blocking work." %}</p>
+          {% if open_support_count %}<p class="small text-muted">{{ open_support_count }} {% trans "open platform request(s)." %}</p>{% endif %}
+          {% if support_links.support_request %}
+            <a class="btn btn-primary btn-sm" href="{{ support_links.support_request }}?next={{ request.path|urlencode }}">{% trans "Open support request" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <i class="bi bi-building fs-2" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "School office" %}</h2>
+          {% if role == "parent" %}
+            <p class="small text-muted">{% trans "Reach the school team about student, communication, payment receipt, or office follow-up questions." %}</p>
+            {% if open_contact_count %}<p class="small text-muted">{{ open_contact_count }} {% trans "open school contact request(s)." %}</p>{% endif %}
+            {% if support_links.parent_contact_school %}<a class="btn btn-outline-primary btn-sm" href="{{ support_links.parent_contact_school }}">{% trans "Contact school" %}</a>{% endif %}
+          {% elif support_links.staff_contact_requests and is_operator %}
+            <p class="small text-muted">{% trans "Operator/staff view for parent contact request triage." %}</p>
+            <a class="btn btn-outline-primary btn-sm" href="{{ support_links.staff_contact_requests }}">{% trans "Open contact inbox" %}</a>
+          {% else %}
+            <p class="small text-muted mb-0">{% trans "Parents use this lane for school-specific contact. Staff use their usual school workflows or support queue." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <i class="bi bi-lightbulb fs-2" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Product feedback" %}</h2>
+          <p class="small text-muted">{% trans "Use this for workflow pain, product suggestions, and ideas that should enter triage or roadmap review." %}</p>
+          {% if role == "teacher" and support_links.school_feedback %}
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'feedback:teacher_feedback' %}?source=contact_us">{% trans "Send feedback" %}</a>
+          {% elif role == "parent" %}
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'feedback:parent_feedback' %}?source=contact_us">{% trans "Send feedback" %}</a>
+          {% elif role == "student" %}
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'feedback:student_feedback' %}?source=contact_us">{% trans "Send feedback" %}</a>
+          {% elif support_links.school_feedback %}
+            <a class="btn btn-outline-primary btn-sm" href="{{ support_links.school_feedback }}?source=contact_us">{% trans "Send feedback" %}</a>
+          {% endif %}
+          {% if support_links.feature_center and role != "parent" and role != "student" %}<a class="btn btn-outline-secondary btn-sm ms-1" href="{{ support_links.feature_center }}">{% trans "Request feature" %}</a>{% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <i class="bi bi-megaphone fs-2" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Public contact" %}</h2>
+          <p class="small text-muted">{% trans "Use the public company contact page for partnership, sales, or non-tenant messages." %}</p>
+          {% if support_links.contact_us %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_us }}">{% trans "Open public contact" %}</a>{% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  {% if is_operator %}
+    <section class="card">
+      <div class="card-header fw-semibold">{% trans "Operator lane" %}</div>
+      <div class="card-body d-flex gap-2 flex-wrap">
+        {% if support_links.voice_of_customer %}<a class="btn btn-outline-primary" href="{{ support_links.voice_of_customer }}">{% trans "Voice of Customer" %}</a>{% endif %}
+        {% if support_links.product_roadmap %}<a class="btn btn-outline-primary" href="{{ support_links.product_roadmap }}">{% trans "Product roadmap" %}</a>{% endif %}
+        {% if support_links.portal_help %}<a class="btn btn-outline-secondary" href="{{ support_links.portal_help }}">{% trans "Support hub" %}</a>{% endif %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

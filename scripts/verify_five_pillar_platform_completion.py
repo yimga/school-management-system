@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import os
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
@@ -39,7 +40,11 @@ def _contains(rel: str, needle: str) -> bool:
     return path.is_file() and needle in path.read_text(encoding="utf-8")
 
 
-def _run(cmd: list[str], timeout: int = 600) -> tuple[int, str]:
+def _run(
+    cmd: list[str],
+    timeout: int = 600,
+    env: dict[str, str] | None = None,
+) -> tuple[int, str]:
     try:
         proc = subprocess.run(
             cmd,
@@ -47,6 +52,7 @@ def _run(cmd: list[str], timeout: int = 600) -> tuple[int, str]:
             capture_output=True,
             text=True,
             timeout=timeout,
+            env=env,
         )
         out = ((proc.stdout or "") + (proc.stderr or "")).strip()
         return proc.returncode, out[-400:] if out else ""
@@ -247,6 +253,10 @@ def main() -> int:
     add("Google", "search_adoption_lint", "Hot list views use search helpers", code == 0, tail or "ok")
 
     if args.run_tests:
+        test_env = {
+            **os.environ,
+            "DJANGO_TEST_DB_FILE": str(ROOT / ".django_test_dbs" / "pillar_quick.sqlite3"),
+        }
         code, tail = _run(
             [
                 py,
@@ -269,6 +279,7 @@ def main() -> int:
                 "--verbosity=1",
             ],
             timeout=900,
+            env=test_env,
         )
         add("PROOF", "django_tests", "Pillar Django test subset green", code == 0, tail or "ok")
 

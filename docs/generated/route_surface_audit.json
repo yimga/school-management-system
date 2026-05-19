@@ -4744,7 +4744,7 @@
         },
         {
           "kind": "template_url",
-          "line": 140,
+          "line": 156,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -4753,7 +4753,7 @@
         },
         {
           "kind": "template_url",
-          "line": 344,
+          "line": 360,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -5945,7 +5945,7 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 53,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -6138,7 +6138,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -17021,6 +17021,27 @@
       "view": "apps.portal.views_ai_gateway.api_billing_usage_explain"
     },
     {
+      "name": "api:ai-command-bar",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 33,
+          "name": "api:ai-command-bar",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'api:ai-command-bar' as cmdk_api_global %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/api/ai/command-bar/",
+      "view": "apps.portal.views_command_bar.api_command_bar_search"
+    },
+    {
       "name": "api:ai-control-plane-intelligence",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -25990,7 +26011,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 87,
+          "line": 110,
           "name": "kb:faq_detail",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -25999,7 +26020,7 @@
         },
         {
           "kind": "template_url",
-          "line": 21,
+          "line": 24,
           "name": "kb:faq_detail",
           "path": "templates/feedback/role_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -26008,7 +26029,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 54,
           "name": "kb:faq_detail",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -26095,6 +26116,15 @@
           "raw": "reverse(\"kb:faq_list\")",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 27,
+          "name": "kb:faq_list",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"kb:faq_list\")",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "manager",
@@ -26105,6 +26135,15 @@
           "line": 65,
           "name": "kb:faq_list",
           "path": "templates/components/dashboard_footer.html",
+          "raw": "{% url 'kb:faq_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 29,
+          "name": "kb:faq_list",
+          "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:faq_list' %}",
           "reason": "",
           "status": "OK"
@@ -26382,7 +26421,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 76,
+          "line": 99,
           "name": "kb:kb_article",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -26391,7 +26430,7 @@
         },
         {
           "kind": "template_url",
-          "line": 18,
+          "line": 21,
           "name": "kb:kb_article",
           "path": "templates/feedback/role_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -26400,7 +26439,7 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 41,
           "name": "kb:kb_article",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -26938,7 +26977,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 62,
           "name": "kb:kb_home",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -27515,7 +27554,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 62,
           "name": "manager_help",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'manager_help' %}",
@@ -28866,11 +28905,29 @@
         },
         {
           "kind": "template_url",
-          "line": 54,
+          "line": 32,
+          "name": "siteconfig:ai_center",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'siteconfig:ai_center' as cmdk_ai_center_global %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 60,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' as cmdk_ai_center_url %}",
           "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 71,
+          "name": "siteconfig:ai_center",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'siteconfig:ai_center' %}",
+          "reason": "",
           "status": "OK"
         }
       ],
@@ -29636,7 +29693,7 @@
         },
         {
           "kind": "reverse",
-          "line": 60,
+          "line": 58,
           "name": "siteconfig:compliance_export_download",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\n            \"siteconfig:compliance_export_download\",\n            kwargs={\"export_key\": \"waec_wassce_student_summary\"},\n            urlconf=\"config.tenant_urls\",\n        )",
@@ -29645,7 +29702,7 @@
         },
         {
           "kind": "reverse",
-          "line": 81,
+          "line": 79,
           "name": "siteconfig:compliance_export_download",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\n            \"siteconfig:compliance_export_download\",\n            kwargs={\"export_key\": \"waec_wassce_student_summary\"},\n            urlconf=\"config.tenant_urls\",\n        )",
@@ -29756,7 +29813,7 @@
         },
         {
           "kind": "reverse",
-          "line": 100,
+          "line": 98,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
@@ -29765,7 +29822,7 @@
         },
         {
           "kind": "reverse",
-          "line": 141,
+          "line": 138,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_security_enforcement.py",
           "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
@@ -39325,7 +39382,17 @@
       ],
       "scope": "manager",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 34,
+          "name": "super:ai_gateway_console",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'super:ai_gateway_console' as cmdk_gw %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
       "url_path": "/super/ai-gateway-console/",
       "view": "apps.schools.super_views_ai.super_ai_gateway_console"
     },
@@ -45291,7 +45358,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 39,
+          "line": 47,
           "name": "super:pulse",
           "path": "templates/schools/super_analytics_overview.html",
           "raw": "{% url 'super:pulse' %}",
@@ -46068,7 +46135,7 @@
         },
         {
           "kind": "reverse",
-          "line": 167,
+          "line": 164,
           "name": "super:security_surface_dashboard",
           "path": "apps/security/tests/test_security_enforcement.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -46883,7 +46950,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 40,
+          "line": 48,
           "name": "super:tenant_health",
           "path": "templates/schools/super_analytics_overview.html",
           "raw": "{% url 'super:tenant_health' %}",
@@ -47143,7 +47210,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 46,
           "name": "super:usage",
           "path": "templates/schools/super_analytics_overview.html",
           "raw": "{% url 'super:usage' %}",
@@ -52509,7 +52576,7 @@
         },
         {
           "kind": "template_url",
-          "line": 140,
+          "line": 156,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -52518,7 +52585,7 @@
         },
         {
           "kind": "template_url",
-          "line": 344,
+          "line": 360,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -53710,7 +53777,7 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 53,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -53903,7 +53970,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -65072,7 +65139,7 @@
         },
         {
           "kind": "template_url",
-          "line": 71,
+          "line": 77,
           "name": "analytics:deadlines",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:deadlines' %}",
@@ -65081,7 +65148,7 @@
         },
         {
           "kind": "template_url",
-          "line": 319,
+          "line": 335,
           "name": "analytics:deadlines",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:deadlines' %}",
@@ -65144,7 +65211,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 72,
+          "line": 78,
           "name": "analytics:decision_intelligence_dashboard",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:decision_intelligence_dashboard' %}",
@@ -65530,7 +65597,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 65,
+          "line": 71,
           "name": "analytics:governed_report_builder",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:governed_report_builder' as insights_primary_url %}",
@@ -65755,7 +65822,7 @@
         },
         {
           "kind": "template_url",
-          "line": 70,
+          "line": 76,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' %}",
@@ -65764,7 +65831,7 @@
         },
         {
           "kind": "template_url",
-          "line": 159,
+          "line": 175,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' %}",
@@ -65773,7 +65840,7 @@
         },
         {
           "kind": "template_url",
-          "line": 290,
+          "line": 306,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' as master_url %}",
@@ -65782,7 +65849,7 @@
         },
         {
           "kind": "template_url",
-          "line": 297,
+          "line": 313,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' %}",
@@ -65953,6 +66020,27 @@
       "template_usage": [],
       "url_path": "/api/ai/billing-usage-explain/",
       "view": "apps.portal.views_ai_gateway.api_billing_usage_explain"
+    },
+    {
+      "name": "api:ai-command-bar",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 33,
+          "name": "api:ai-command-bar",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'api:ai-command-bar' as cmdk_api_global %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/api/ai/command-bar/",
+      "view": "apps.portal.views_command_bar.api_command_bar_search"
     },
     {
       "name": "api:ai-control-plane-intelligence",
@@ -74658,7 +74746,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 52,
+          "line": 58,
           "name": "compliance:data_quality_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'compliance:data_quality_center' as cmdk_data_quality_url %}",
@@ -77143,6 +77231,46 @@
       "view": "apps.feedback.views.add_to_roadmap"
     },
     {
+      "name": "feedback:contact_us",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 25,
+          "name": "feedback:contact_us",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:contact_us\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 33,
+          "name": "feedback:contact_us",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:contact_us\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 11,
+          "name": "feedback:contact_us",
+          "path": "templates/feedback/voice_of_customer.html",
+          "raw": "{% url 'feedback:contact_us' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/contact-us/",
+      "view": "apps.feedback.views.contact_us"
+    },
+    {
       "name": "feedback:contextual",
       "permission_requirement": "public",
       "reasons": [],
@@ -77167,7 +77295,7 @@
         },
         {
           "kind": "reverse",
-          "line": 28,
+          "line": 85,
           "name": "feedback:contextual",
           "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
           "raw": "reverse(\"feedback:contextual\")",
@@ -77192,13 +77320,107 @@
       "view": "apps.feedback.views.contextual_feedback"
     },
     {
+      "name": "feedback:feature_center",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 26,
+          "name": "feedback:feature_center",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:feature_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 40,
+          "name": "feedback:feature_center",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:feature_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 45,
+          "name": "feedback:feature_center",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:feature_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 67,
+          "name": "feedback:feature_center",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:feature_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 72,
+          "name": "feedback:feature_center",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:feature_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 78,
+          "name": "feedback:feature_center",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:feature_center\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "feedback:feature_center",
+          "path": "templates/feedback/feature_center.html",
+          "raw": "{% url 'feedback:feature_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 47,
+          "name": "feedback:feature_center",
+          "path": "templates/feedback/help_center.html",
+          "raw": "{% url 'feedback:feature_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 12,
+          "name": "feedback:feature_center",
+          "path": "templates/feedback/voice_of_customer.html",
+          "raw": "{% url 'feedback:feature_center' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/feature-center/",
+      "view": "apps.feedback.views.feature_center"
+    },
+    {
       "name": "feedback:help_center",
       "permission_requirement": "public",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 20,
+          "line": 22,
           "name": "feedback:help_center",
           "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
           "raw": "reverse(\"feedback:help_center\")",
@@ -77283,7 +77505,7 @@
         },
         {
           "kind": "template_url",
-          "line": 48,
+          "line": 54,
           "name": "feedback:help_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'feedback:help_center' as cmdk_help_center_url %}",
@@ -77292,7 +77514,7 @@
         },
         {
           "kind": "template_url",
-          "line": 61,
+          "line": 84,
           "name": "feedback:help_center",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'feedback:help_center' %}",
@@ -77322,7 +77544,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 81,
           "name": "feedback:operator_feedback_action",
           "path": "templates/feedback/voice_of_customer.html",
           "raw": "{% url 'feedback:operator_feedback_action' item.pk %}",
@@ -77338,6 +77560,15 @@
       "permission_requirement": "public",
       "reasons": [],
       "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 74,
+          "name": "feedback:parent_feedback",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:parent_feedback\")",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "reverse",
           "line": 12,
@@ -77359,7 +77590,17 @@
       ],
       "scope": "public",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 68,
+          "name": "feedback:parent_feedback",
+          "path": "templates/feedback/contact_us.html",
+          "raw": "{% url 'feedback:parent_feedback' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "url_path": "/parent/feedback/",
       "view": "apps.feedback.views.role_feedback_center"
     },
@@ -77394,7 +77635,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 11,
+          "line": 13,
           "name": "feedback:product_roadmap",
           "path": "templates/feedback/voice_of_customer.html",
           "raw": "{% url 'feedback:product_roadmap' %}",
@@ -77467,7 +77708,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 56,
           "name": "feedback:release_notes_public",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'feedback:release_notes_public' as cmdk_release_notes_url %}",
@@ -77476,7 +77717,7 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 61,
           "name": "feedback:release_notes_public",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'feedback:release_notes_public' %}",
@@ -77485,7 +77726,7 @@
         },
         {
           "kind": "template_url",
-          "line": 128,
+          "line": 153,
           "name": "feedback:release_notes_public",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'feedback:release_notes_public' %}",
@@ -77497,13 +77738,44 @@
       "view": "apps.feedback.views.release_notes_public"
     },
     {
+      "name": "feedback:school_contact_us",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/school/contact-us/",
+      "view": "apps.feedback.views.contact_us"
+    },
+    {
+      "name": "feedback:school_feature_center",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/school/feature-center/",
+      "view": "apps.feedback.views.feature_center"
+    },
+    {
       "name": "feedback:school_feedback",
       "permission_requirement": "public",
       "reasons": [],
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 22,
+          "line": 28,
+          "name": "feedback:school_feedback",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:school_feedback\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 39,
           "name": "feedback:school_feedback",
           "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
           "raw": "reverse(\"feedback:school_feedback\")",
@@ -77552,7 +77824,7 @@
         },
         {
           "kind": "template_url",
-          "line": 24,
+          "line": 27,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -77561,7 +77833,7 @@
         },
         {
           "kind": "template_url",
-          "line": 70,
+          "line": 73,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -77570,7 +77842,7 @@
         },
         {
           "kind": "template_url",
-          "line": 88,
+          "line": 92,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -77612,7 +77884,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 13,
+          "line": 16,
           "name": "feedback:school_roadmap",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_roadmap' %}",
@@ -77627,10 +77899,30 @@
       "name": "feedback:student_feedback",
       "permission_requirement": "public",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 80,
+          "name": "feedback:student_feedback",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"feedback:student_feedback\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 70,
+          "name": "feedback:student_feedback",
+          "path": "templates/feedback/contact_us.html",
+          "raw": "{% url 'feedback:student_feedback' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "url_path": "/student/feedback/",
       "view": "apps.feedback.views.role_feedback_center"
     },
@@ -77660,7 +77952,17 @@
       ],
       "scope": "public",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 66,
+          "name": "feedback:teacher_feedback",
+          "path": "templates/feedback/contact_us.html",
+          "raw": "{% url 'feedback:teacher_feedback' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "url_path": "/teacher/feedback/",
       "view": "apps.feedback.views.role_feedback_center"
     },
@@ -77693,7 +77995,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 163,
+          "line": 188,
           "name": "feedback:voice_of_customer",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'feedback:voice_of_customer' %}",
@@ -77714,7 +78016,16 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 126,
+          "line": 56,
+          "name": "feedback:vote_feature",
+          "path": "templates/feedback/feature_center.html",
+          "raw": "{% url 'feedback:vote_feature' item.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 131,
           "name": "feedback:vote_feature",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:vote_feature' item.pk %}",
@@ -77925,7 +78236,7 @@
         },
         {
           "kind": "template_url",
-          "line": 141,
+          "line": 157,
           "name": "finance:dashboard",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'finance:dashboard' %}",
@@ -78641,7 +78952,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 343,
+          "line": 359,
           "name": "finance:notifications",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'finance:notifications' %}",
@@ -80568,7 +80879,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 87,
+          "line": 110,
           "name": "kb:faq_detail",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -80577,7 +80888,7 @@
         },
         {
           "kind": "template_url",
-          "line": 21,
+          "line": 24,
           "name": "kb:faq_detail",
           "path": "templates/feedback/role_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -80586,7 +80897,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 54,
           "name": "kb:faq_detail",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -80673,6 +80984,15 @@
           "raw": "reverse(\"kb:faq_list\")",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 27,
+          "name": "kb:faq_list",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"kb:faq_list\")",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "public",
@@ -80683,6 +81003,15 @@
           "line": 65,
           "name": "kb:faq_list",
           "path": "templates/components/dashboard_footer.html",
+          "raw": "{% url 'kb:faq_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 29,
+          "name": "kb:faq_list",
+          "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:faq_list' %}",
           "reason": "",
           "status": "OK"
@@ -80960,7 +81289,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 76,
+          "line": 99,
           "name": "kb:kb_article",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -80969,7 +81298,7 @@
         },
         {
           "kind": "template_url",
-          "line": 18,
+          "line": 21,
           "name": "kb:kb_article",
           "path": "templates/feedback/role_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -80978,7 +81307,7 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 41,
           "name": "kb:kb_article",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -81516,7 +81845,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 62,
           "name": "kb:kb_home",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -82500,7 +82829,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 62,
           "name": "manager_help",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'manager_help' %}",
@@ -82900,7 +83229,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 186,
+          "line": 192,
           "name": "marketing_contact",
           "path": "apps/feedback/services.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -82963,7 +83292,7 @@
         },
         {
           "kind": "reverse",
-          "line": 13,
+          "line": 15,
           "name": "marketing_contact",
           "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -82985,7 +83314,7 @@
         },
         {
           "kind": "template_url",
-          "line": 339,
+          "line": 352,
           "name": "marketing_contact",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_contact' %}",
@@ -82994,7 +83323,7 @@
         },
         {
           "kind": "template_url",
-          "line": 396,
+          "line": 409,
           "name": "marketing_contact",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_contact' %}",
@@ -83304,7 +83633,7 @@
         },
         {
           "kind": "template_url",
-          "line": 39,
+          "line": 44,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -83313,7 +83642,7 @@
         },
         {
           "kind": "template_url",
-          "line": 298,
+          "line": 311,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -83322,7 +83651,7 @@
         },
         {
           "kind": "template_url",
-          "line": 319,
+          "line": 332,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -83331,7 +83660,7 @@
         },
         {
           "kind": "template_url",
-          "line": 393,
+          "line": 406,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -83824,7 +84153,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 240,
+          "line": 253,
           "name": "marketing_grow_migration",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_grow_migration' %}",
@@ -84530,7 +84859,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 39,
           "name": "marketing_platform_parent_portal",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_platform_parent_portal' %}",
@@ -84670,7 +84999,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 33,
+          "line": 34,
           "name": "marketing_platform_teacher_portal",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_platform_teacher_portal' %}",
@@ -84748,7 +85077,7 @@
         },
         {
           "kind": "template_url",
-          "line": 344,
+          "line": 357,
           "name": "marketing_pricing",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_pricing' %}",
@@ -84757,7 +85086,7 @@
         },
         {
           "kind": "template_url",
-          "line": 28,
+          "line": 29,
           "name": "marketing_pricing",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_pricing' %}",
@@ -85263,7 +85592,7 @@
         },
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 47,
           "name": "marketing_resources_product_tour",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_resources_product_tour' %}",
@@ -85272,7 +85601,7 @@
         },
         {
           "kind": "template_url",
-          "line": 152,
+          "line": 161,
           "name": "marketing_resources_product_tour",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_resources_product_tour' %}",
@@ -85757,7 +86086,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 23,
+          "line": 24,
           "name": "marketing_solutions_private_schools",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_solutions_private_schools' %}",
@@ -86021,7 +86350,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 44,
           "name": "marketing_trust_dedicated",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_trust_dedicated' %}",
@@ -86601,6 +86930,38 @@
       ],
       "url_path": "/portal/configure/migration/ai-vendor-from-image/",
       "view": "apps.migration_cloud.views.MigrationCloudAIVendorFromImageView"
+    },
+    {
+      "name": "migration_cloud_portal:audit_dashboard",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/configure/migration/audit/",
+      "view": "apps.migration_cloud.views_audit_admin.MigrationCloudAuditView"
+    },
+    {
+      "name": "migration_cloud_portal:audit_export",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "migration_cloud_portal:audit_export",
+          "path": "templates/migration_cloud/operator/audit_dashboard.html",
+          "raw": "{% url 'migration_cloud_portal:audit_export' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/portal/configure/migration/audit/export/",
+      "view": "apps.migration_cloud.views_audit_admin.MigrationCloudAuditExportView"
     },
     {
       "name": "migration_cloud_portal:bundle_advance",
@@ -87548,6 +87909,17 @@
       "view": "apps.migration_cloud.views.MigrationCloudIdMappingLookupView"
     },
     {
+      "name": "migration_cloud_portal:maa_v2_promotion_dashboard",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/configure/migration/maa-v2-promotion/",
+      "view": "apps.migration_cloud.views_maa_promotion.MAA_V2_PromotionDashboardView"
+    },
+    {
       "name": "migration_cloud_portal:merge_bundles",
       "permission_requirement": "authenticated",
       "reasons": [],
@@ -88088,6 +88460,17 @@
       "view": "apps.migration_cloud.api.urls.webhook_verifier_download"
     },
     {
+      "name": "migration_cloud_portal:migration_cloud_health",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/configure/migration/health/",
+      "view": "apps.migration_cloud.views_health.MigrationCloudHealthView"
+    },
+    {
       "name": "migration_cloud_portal:operator_token_chain",
       "permission_requirement": "authenticated",
       "reasons": [],
@@ -88211,6 +88594,28 @@
       "view": "apps.migration_cloud.views_token_admin.MigrationCloudTokenRotateView"
     },
     {
+      "name": "migration_cloud_portal:operator_webhook_audit",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/configure/migration/operator/webhooks/<int:sub_id>/audit/",
+      "view": "apps.migration_cloud.views_webhook_admin.WebhookSubscriptionAuditView"
+    },
+    {
+      "name": "migration_cloud_portal:operator_webhook_deactivate",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/configure/migration/operator/webhooks/<int:sub_id>/deactivate/",
+      "view": "apps.migration_cloud.views_webhook_admin.MigrationCloudWebhookDeactivateView"
+    },
+    {
       "name": "migration_cloud_portal:operator_webhook_delivery_log",
       "permission_requirement": "authenticated",
       "reasons": [],
@@ -88241,6 +88646,27 @@
       "view": "apps.migration_cloud.views_webhook_admin.MigrationCloudWebhookDeliveryLogView"
     },
     {
+      "name": "migration_cloud_portal:operator_webhook_delivery_replay",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 88,
+          "name": "migration_cloud_portal:operator_webhook_delivery_replay",
+          "path": "templates/migration_cloud/operator/webhook_audit.html",
+          "raw": "{% url 'migration_cloud_portal:operator_webhook_delivery_replay' delivery_id=r.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/portal/configure/migration/operator/webhooks/deliveries/<int:delivery_id>/replay/",
+      "view": "apps.migration_cloud.views_webhook_admin.WebhookDeliveryReplayView"
+    },
+    {
       "name": "migration_cloud_portal:operator_webhook_delivery_retry",
       "permission_requirement": "authenticated",
       "reasons": [],
@@ -88269,6 +88695,15 @@
       "scope": "public",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 24,
+          "name": "migration_cloud_portal:operator_webhook_list",
+          "path": "templates/migration_cloud/operator/webhook_audit.html",
+          "raw": "{% url 'migration_cloud_portal:operator_webhook_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 9,
@@ -88373,6 +88808,58 @@
       ],
       "url_path": "/super/migration/ai-vendor-from-image/",
       "view": "apps.migration_cloud.views.MigrationCloudAIVendorFromImageView"
+    },
+    {
+      "name": "migration_cloud_super:audit_dashboard",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 306,
+          "name": "migration_cloud_super:audit_dashboard",
+          "path": "apps/migration_cloud/tests/test_audit_event_v3_38.py",
+          "raw": "reverse(\"migration_cloud_super:audit_dashboard\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/migration/audit/",
+      "view": "apps.migration_cloud.views_audit_admin.MigrationCloudAuditView"
+    },
+    {
+      "name": "migration_cloud_super:audit_export",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 357,
+          "name": "migration_cloud_super:audit_export",
+          "path": "apps/migration_cloud/tests/test_audit_event_v3_38.py",
+          "raw": "reverse(\"migration_cloud_super:audit_export\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 28,
+          "name": "migration_cloud_super:audit_export",
+          "path": "templates/migration_cloud/operator/audit_dashboard.html",
+          "raw": "{% url 'migration_cloud_super:audit_export' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/migration/audit/export/",
+      "view": "apps.migration_cloud.views_audit_admin.MigrationCloudAuditExportView"
     },
     {
       "name": "migration_cloud_super:bundle_advance",
@@ -89637,6 +90124,27 @@
       "view": "apps.migration_cloud.views.MigrationCloudIdMappingLookupView"
     },
     {
+      "name": "migration_cloud_super:maa_v2_promotion_dashboard",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 470,
+          "name": "migration_cloud_super:maa_v2_promotion_dashboard",
+          "path": "apps/migration_cloud/tests/test_maa_v2_promotion_v3_37.py",
+          "raw": "reverse(\n            \"migration_cloud_super:maa_v2_promotion_dashboard\",\n        )",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/migration/maa-v2-promotion/",
+      "view": "apps.migration_cloud.views_maa_promotion.MAA_V2_PromotionDashboardView"
+    },
+    {
       "name": "migration_cloud_super:merge_bundles",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -90187,6 +90695,36 @@
       "view": "apps.migration_cloud.api.urls.webhook_verifier_download"
     },
     {
+      "name": "migration_cloud_super:migration_cloud_health",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 223,
+          "name": "migration_cloud_super:migration_cloud_health",
+          "path": "apps/migration_cloud/tests/test_metrics_and_health_v3_38.py",
+          "raw": "reverse(\"migration_cloud_super:migration_cloud_health\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 251,
+          "name": "migration_cloud_super:migration_cloud_health",
+          "path": "apps/migration_cloud/tests/test_metrics_and_health_v3_38.py",
+          "raw": "reverse(\"migration_cloud_super:migration_cloud_health\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/migration/health/",
+      "view": "apps.migration_cloud.views_health.MigrationCloudHealthView"
+    },
+    {
       "name": "migration_cloud_super:operator_token_chain",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -90348,6 +90886,56 @@
       "view": "apps.migration_cloud.views_token_admin.MigrationCloudTokenRotateView"
     },
     {
+      "name": "migration_cloud_super:operator_webhook_audit",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 114,
+          "name": "migration_cloud_super:operator_webhook_audit",
+          "path": "apps/migration_cloud/tests/test_webhook_audit_replay_v3_37.py",
+          "raw": "reverse(\n            \"migration_cloud_super:operator_webhook_audit\",\n            kwargs={\"sub_id\": self.sub.pk},\n        )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 160,
+          "name": "migration_cloud_super:operator_webhook_audit",
+          "path": "apps/migration_cloud/tests/test_webhook_audit_replay_v3_37.py",
+          "raw": "reverse(\n            \"migration_cloud_super:operator_webhook_audit\",\n            kwargs={\"sub_id\": self.sub.pk},\n        )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 454,
+          "name": "migration_cloud_super:operator_webhook_audit",
+          "path": "apps/migration_cloud/tests/test_webhook_audit_replay_v3_37.py",
+          "raw": "reverse(\n                    \"migration_cloud_super:operator_webhook_audit\",\n                    kwargs={\"sub_id\": self.sub.pk},\n                )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/migration/operator/webhooks/<int:sub_id>/audit/",
+      "view": "apps.migration_cloud.views_webhook_admin.WebhookSubscriptionAuditView"
+    },
+    {
+      "name": "migration_cloud_super:operator_webhook_deactivate",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/migration/operator/webhooks/<int:sub_id>/deactivate/",
+      "view": "apps.migration_cloud.views_webhook_admin.MigrationCloudWebhookDeactivateView"
+    },
+    {
       "name": "migration_cloud_super:operator_webhook_delivery_log",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -90378,6 +90966,46 @@
       "view": "apps.migration_cloud.views_webhook_admin.MigrationCloudWebhookDeliveryLogView"
     },
     {
+      "name": "migration_cloud_super:operator_webhook_delivery_replay",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 238,
+          "name": "migration_cloud_super:operator_webhook_delivery_replay",
+          "path": "apps/migration_cloud/tests/test_webhook_audit_replay_v3_37.py",
+          "raw": "reverse(\n            \"migration_cloud_super:operator_webhook_delivery_replay\",\n            kwargs={\"delivery_id\": delivery_id},\n        )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 438,
+          "name": "migration_cloud_super:operator_webhook_delivery_replay",
+          "path": "apps/migration_cloud/tests/test_webhook_audit_replay_v3_37.py",
+          "raw": "reverse(\n                    \"migration_cloud_super:operator_webhook_delivery_replay\",\n                    kwargs={\"delivery_id\": self.delivery.pk},\n                )",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 88,
+          "name": "migration_cloud_super:operator_webhook_delivery_replay",
+          "path": "templates/migration_cloud/operator/webhook_audit.html",
+          "raw": "{% url 'migration_cloud_super:operator_webhook_delivery_replay' delivery_id=r.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/migration/operator/webhooks/deliveries/<int:delivery_id>/replay/",
+      "view": "apps.migration_cloud.views_webhook_admin.WebhookDeliveryReplayView"
+    },
+    {
       "name": "migration_cloud_super:operator_webhook_delivery_retry",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -90406,6 +91034,15 @@
       "scope": "public",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 24,
+          "name": "migration_cloud_super:operator_webhook_list",
+          "path": "templates/migration_cloud/operator/webhook_audit.html",
+          "raw": "{% url 'migration_cloud_super:operator_webhook_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 9,
@@ -93144,7 +93781,7 @@
         },
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 155,
           "name": "portal:parent_dashboard",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'portal:parent_dashboard' %}",
@@ -94880,6 +95517,15 @@
           "raw": "reverse(\"portal:support_request\")",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 38,
+          "name": "portal:support_request",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"portal:support_request\")",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "public",
@@ -95178,7 +95824,7 @@
         },
         {
           "kind": "template_url",
-          "line": 320,
+          "line": 336,
           "name": "portal:teacher_attendance",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -96238,7 +96884,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 49,
           "name": "portal_configure",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'portal_configure' as cmdk_portal_configure_url %}",
@@ -96268,7 +96914,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 48,
           "name": "portal_console",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'portal_console' as cmdk_portal_console_url %}",
@@ -96806,7 +97452,7 @@
         },
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 176,
           "name": "reports:publish_term_results",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'reports:publish_term_results' %}",
@@ -97722,11 +98368,29 @@
         },
         {
           "kind": "template_url",
-          "line": 54,
+          "line": 32,
+          "name": "siteconfig:ai_center",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'siteconfig:ai_center' as cmdk_ai_center_global %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 60,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' as cmdk_ai_center_url %}",
           "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 71,
+          "name": "siteconfig:ai_center",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'siteconfig:ai_center' %}",
+          "reason": "",
           "status": "OK"
         }
       ],
@@ -98492,7 +99156,7 @@
         },
         {
           "kind": "reverse",
-          "line": 60,
+          "line": 58,
           "name": "siteconfig:compliance_export_download",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\n            \"siteconfig:compliance_export_download\",\n            kwargs={\"export_key\": \"waec_wassce_student_summary\"},\n            urlconf=\"config.tenant_urls\",\n        )",
@@ -98501,7 +99165,7 @@
         },
         {
           "kind": "reverse",
-          "line": 81,
+          "line": 79,
           "name": "siteconfig:compliance_export_download",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\n            \"siteconfig:compliance_export_download\",\n            kwargs={\"export_key\": \"waec_wassce_student_summary\"},\n            urlconf=\"config.tenant_urls\",\n        )",
@@ -98612,7 +99276,7 @@
         },
         {
           "kind": "reverse",
-          "line": 100,
+          "line": 98,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
@@ -98621,7 +99285,7 @@
         },
         {
           "kind": "reverse",
-          "line": 141,
+          "line": 138,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_security_enforcement.py",
           "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
@@ -108181,7 +108845,17 @@
       ],
       "scope": "public",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 34,
+          "name": "super:ai_gateway_console",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'super:ai_gateway_console' as cmdk_gw %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
       "url_path": "/super/ai-gateway-console/",
       "view": "apps.schools.super_views_ai.super_ai_gateway_console"
     },
@@ -114147,7 +114821,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 39,
+          "line": 47,
           "name": "super:pulse",
           "path": "templates/schools/super_analytics_overview.html",
           "raw": "{% url 'super:pulse' %}",
@@ -114924,7 +115598,7 @@
         },
         {
           "kind": "reverse",
-          "line": 167,
+          "line": 164,
           "name": "super:security_surface_dashboard",
           "path": "apps/security/tests/test_security_enforcement.py",
           "raw": "reverse(\"super:security_surface_dashboard\")",
@@ -115739,7 +116413,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 40,
+          "line": 48,
           "name": "super:tenant_health",
           "path": "templates/schools/super_analytics_overview.html",
           "raw": "{% url 'super:tenant_health' %}",
@@ -115999,7 +116673,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 46,
           "name": "super:usage",
           "path": "templates/schools/super_analytics_overview.html",
           "raw": "{% url 'super:usage' %}",
@@ -121072,7 +121746,7 @@
         },
         {
           "kind": "template_url",
-          "line": 140,
+          "line": 156,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -121081,7 +121755,7 @@
         },
         {
           "kind": "template_url",
-          "line": 344,
+          "line": 360,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -122273,7 +122947,7 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 53,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -122466,7 +123140,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -124212,6 +124886,28 @@
       "view": "apps.schools.marketing_views.marketing_page"
     },
     {
+      "name": "marketing_academics_short",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/academics/",
+      "view": "django.views.generic.base.RedirectView"
+    },
+    {
+      "name": "marketing_admissions_short",
+      "permission_requirement": "public",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/admissions/",
+      "view": "django.views.generic.base.RedirectView"
+    },
+    {
       "name": "marketing_app_marketplace",
       "permission_requirement": "public",
       "reasons": [],
@@ -124558,7 +125254,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 186,
+          "line": 192,
           "name": "marketing_contact",
           "path": "apps/feedback/services.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -124621,7 +125317,7 @@
         },
         {
           "kind": "reverse",
-          "line": 13,
+          "line": 15,
           "name": "marketing_contact",
           "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -124643,7 +125339,7 @@
         },
         {
           "kind": "template_url",
-          "line": 339,
+          "line": 352,
           "name": "marketing_contact",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_contact' %}",
@@ -124652,7 +125348,7 @@
         },
         {
           "kind": "template_url",
-          "line": 396,
+          "line": 409,
           "name": "marketing_contact",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_contact' %}",
@@ -124962,7 +125658,7 @@
         },
         {
           "kind": "template_url",
-          "line": 39,
+          "line": 44,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -124971,7 +125667,7 @@
         },
         {
           "kind": "template_url",
-          "line": 298,
+          "line": 311,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -124980,7 +125676,7 @@
         },
         {
           "kind": "template_url",
-          "line": 319,
+          "line": 332,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -124989,7 +125685,7 @@
         },
         {
           "kind": "template_url",
-          "line": 393,
+          "line": 406,
           "name": "marketing_demo",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -125430,6 +126126,17 @@
       "view": "apps.schools.marketing_views.marketing_page"
     },
     {
+      "name": "marketing_finance_short",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/finance/",
+      "view": "django.views.generic.base.RedirectView"
+    },
+    {
       "name": "marketing_funnel_dashboard",
       "permission_requirement": "authenticated",
       "reasons": [],
@@ -125504,7 +126211,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 240,
+          "line": 253,
           "name": "marketing_grow_migration",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_grow_migration' %}",
@@ -126296,7 +127003,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 39,
           "name": "marketing_platform_parent_portal",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_platform_parent_portal' %}",
@@ -126436,7 +127143,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 33,
+          "line": 34,
           "name": "marketing_platform_teacher_portal",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_platform_teacher_portal' %}",
@@ -126514,7 +127221,7 @@
         },
         {
           "kind": "template_url",
-          "line": 344,
+          "line": 357,
           "name": "marketing_pricing",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_pricing' %}",
@@ -126523,7 +127230,7 @@
         },
         {
           "kind": "template_url",
-          "line": 28,
+          "line": 29,
           "name": "marketing_pricing",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_pricing' %}",
@@ -127040,7 +127747,7 @@
         },
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 47,
           "name": "marketing_resources_product_tour",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_resources_product_tour' %}",
@@ -127049,7 +127756,7 @@
         },
         {
           "kind": "template_url",
-          "line": 152,
+          "line": 161,
           "name": "marketing_resources_product_tour",
           "path": "templates/schools/marketing_landing_v2.html",
           "raw": "{% url 'marketing_resources_product_tour' %}",
@@ -127734,7 +128441,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 23,
+          "line": 24,
           "name": "marketing_solutions_private_schools",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_solutions_private_schools' %}",
@@ -128070,7 +128777,7 @@
         },
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 44,
           "name": "marketing_trust_dedicated",
           "path": "templates/marketing/components/_persona_tabs.html",
           "raw": "{% url 'marketing_trust_dedicated' %}",
@@ -134623,7 +135330,7 @@
         },
         {
           "kind": "template_url",
-          "line": 140,
+          "line": 156,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -134632,7 +135339,7 @@
         },
         {
           "kind": "template_url",
-          "line": 344,
+          "line": 360,
           "name": "accounts:rbac",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'accounts:rbac' %}",
@@ -135824,7 +136531,7 @@
         },
         {
           "kind": "template_url",
-          "line": 47,
+          "line": 53,
           "name": "accounts:user_notifications",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_notifications' %}",
@@ -136017,7 +136724,7 @@
         },
         {
           "kind": "template_url",
-          "line": 46,
+          "line": 52,
           "name": "accounts:user_profile",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'accounts:user_profile' %}",
@@ -151377,7 +152084,7 @@
         },
         {
           "kind": "template_url",
-          "line": 71,
+          "line": 77,
           "name": "analytics:deadlines",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:deadlines' %}",
@@ -151386,7 +152093,7 @@
         },
         {
           "kind": "template_url",
-          "line": 319,
+          "line": 335,
           "name": "analytics:deadlines",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:deadlines' %}",
@@ -151449,7 +152156,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 72,
+          "line": 78,
           "name": "analytics:decision_intelligence_dashboard",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:decision_intelligence_dashboard' %}",
@@ -151835,7 +152542,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 65,
+          "line": 71,
           "name": "analytics:governed_report_builder",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:governed_report_builder' as insights_primary_url %}",
@@ -152060,7 +152767,7 @@
         },
         {
           "kind": "template_url",
-          "line": 70,
+          "line": 76,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' %}",
@@ -152069,7 +152776,7 @@
         },
         {
           "kind": "template_url",
-          "line": 159,
+          "line": 175,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' %}",
@@ -152078,7 +152785,7 @@
         },
         {
           "kind": "template_url",
-          "line": 290,
+          "line": 306,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' as master_url %}",
@@ -152087,7 +152794,7 @@
         },
         {
           "kind": "template_url",
-          "line": 297,
+          "line": 313,
           "name": "analytics:master_sheet",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'analytics:master_sheet' %}",
@@ -152258,6 +152965,27 @@
       "template_usage": [],
       "url_path": "/api/ai/billing-usage-explain/",
       "view": "apps.portal.views_ai_gateway.api_billing_usage_explain"
+    },
+    {
+      "name": "api:ai-command-bar",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 33,
+          "name": "api:ai-command-bar",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'api:ai-command-bar' as cmdk_api_global %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/api/ai/command-bar/",
+      "view": "apps.portal.views_command_bar.api_command_bar_search"
     },
     {
       "name": "api:ai-control-plane-intelligence",
@@ -160908,7 +161636,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 52,
+          "line": 58,
           "name": "compliance:data_quality_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'compliance:data_quality_center' as cmdk_data_quality_url %}",
@@ -163104,7 +163832,7 @@
         },
         {
           "kind": "template_url",
-          "line": 141,
+          "line": 157,
           "name": "finance:dashboard",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'finance:dashboard' %}",
@@ -163820,7 +164548,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 343,
+          "line": 359,
           "name": "finance:notifications",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'finance:notifications' %}",
@@ -164716,7 +165444,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 87,
+          "line": 110,
           "name": "kb:faq_detail",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -164725,7 +165453,7 @@
         },
         {
           "kind": "template_url",
-          "line": 21,
+          "line": 24,
           "name": "kb:faq_detail",
           "path": "templates/feedback/role_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -164734,7 +165462,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 54,
           "name": "kb:faq_detail",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:faq_detail' faq.id %}",
@@ -164821,6 +165549,15 @@
           "raw": "reverse(\"kb:faq_list\")",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 27,
+          "name": "kb:faq_list",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"kb:faq_list\")",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "tenant",
@@ -164831,6 +165568,15 @@
           "line": 65,
           "name": "kb:faq_list",
           "path": "templates/components/dashboard_footer.html",
+          "raw": "{% url 'kb:faq_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 29,
+          "name": "kb:faq_list",
+          "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:faq_list' %}",
           "reason": "",
           "status": "OK"
@@ -165108,7 +165854,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 76,
+          "line": 99,
           "name": "kb:kb_article",
           "path": "templates/feedback/help_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -165117,7 +165863,7 @@
         },
         {
           "kind": "template_url",
-          "line": 18,
+          "line": 21,
           "name": "kb:kb_article",
           "path": "templates/feedback/role_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -165126,7 +165872,7 @@
         },
         {
           "kind": "template_url",
-          "line": 38,
+          "line": 41,
           "name": "kb:kb_article",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
@@ -165664,7 +166410,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 62,
           "name": "kb:kb_home",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -168345,7 +169091,7 @@
         },
         {
           "kind": "template_url",
-          "line": 139,
+          "line": 155,
           "name": "portal:parent_dashboard",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'portal:parent_dashboard' %}",
@@ -170081,6 +170827,15 @@
           "raw": "reverse(\"portal:support_request\")",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 38,
+          "name": "portal:support_request",
+          "path": "apps/feedback/tests/test_feedback_contact_us_integration.py",
+          "raw": "reverse(\"portal:support_request\")",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "scope": "tenant",
@@ -170379,7 +171134,7 @@
         },
         {
           "kind": "template_url",
-          "line": 320,
+          "line": 336,
           "name": "portal:teacher_attendance",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'portal:teacher_attendance' %}",
@@ -171391,7 +172146,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 49,
           "name": "portal_configure",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'portal_configure' as cmdk_portal_configure_url %}",
@@ -171421,7 +172176,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 48,
           "name": "portal_console",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'portal_console' as cmdk_portal_console_url %}",
@@ -171846,7 +172601,7 @@
         },
         {
           "kind": "template_url",
-          "line": 160,
+          "line": 176,
           "name": "reports:publish_term_results",
           "path": "templates/analytics/dashboard.html",
           "raw": "{% url 'reports:publish_term_results' %}",
@@ -172704,11 +173459,29 @@
         },
         {
           "kind": "template_url",
-          "line": 54,
+          "line": 32,
+          "name": "siteconfig:ai_center",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'siteconfig:ai_center' as cmdk_ai_center_global %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 60,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' as cmdk_ai_center_url %}",
           "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 71,
+          "name": "siteconfig:ai_center",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'siteconfig:ai_center' %}",
+          "reason": "",
           "status": "OK"
         }
       ],
@@ -173474,7 +174247,7 @@
         },
         {
           "kind": "reverse",
-          "line": 60,
+          "line": 58,
           "name": "siteconfig:compliance_export_download",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\n            \"siteconfig:compliance_export_download\",\n            kwargs={\"export_key\": \"waec_wassce_student_summary\"},\n            urlconf=\"config.tenant_urls\",\n        )",
@@ -173483,7 +174256,7 @@
         },
         {
           "kind": "reverse",
-          "line": 81,
+          "line": 79,
           "name": "siteconfig:compliance_export_download",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\n            \"siteconfig:compliance_export_download\",\n            kwargs={\"export_key\": \"waec_wassce_student_summary\"},\n            urlconf=\"config.tenant_urls\",\n        )",
@@ -173594,7 +174367,7 @@
         },
         {
           "kind": "reverse",
-          "line": 100,
+          "line": 98,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_absolute_security_enforcement.py",
           "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
@@ -173603,7 +174376,7 @@
         },
         {
           "kind": "reverse",
-          "line": 141,
+          "line": 138,
           "name": "siteconfig:compliance_exports",
           "path": "apps/security/tests/test_security_enforcement.py",
           "raw": "reverse(\"siteconfig:compliance_exports\", urlconf=\"config.tenant_urls\")",
@@ -183559,12 +184332,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2629,
+    "reverse_usages": 2663,
     "risk_count": 0,
-    "routes_audited": 6979,
+    "routes_audited": 7003,
     "status": "ROUTE SYSTEM CERTIFIED",
-    "template_href_action_usages": 247,
-    "template_url_usages": 2207
+    "template_href_action_usages": 252,
+    "template_url_usages": 2226
   },
   "urlconfs": {
     "manager": "config.manager_urls",

@@ -427,6 +427,66 @@ html[data-resolved-theme="light"] :is(
   background-color: var(--surface-elevated, var(--color-base-100));
 }
 
+/* ----- Tables: dark canvas (mirror light block; pairs with safety-net §4b) ----- */
+html[data-resolved-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    body.admin-premium-shell #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.table, .cp-table),
+html[data-bs-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) :is(.table, .cp-table) {
+  --bs-table-color: var(--text-primary);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--hairline);
+  --bs-table-striped-color: var(--text-primary);
+  --bs-table-striped-bg: var(--surface-elevated, var(--surface-canvas));
+  --bs-table-active-color: var(--text-primary);
+  --bs-table-active-bg: var(--surface-elevated, var(--surface-canvas));
+  --bs-table-hover-color: var(--text-primary);
+  --bs-table-hover-bg: var(--surface-popover, var(--surface-elevated));
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.table, .cp-table) :is(th, td, code),
+html[data-bs-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) :is(.table, .cp-table) :is(th, td, code) {
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-resolved-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) .table thead.table-light th,
+html[data-resolved-theme="dark"] :is(
+    #cp-main-content,
+    #main-content,
+    [data-rmc-shell-main]
+  ) .table-light :is(th, td),
+html[data-bs-theme="dark"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .table-light :is(th, td) {
+  color: var(--text-primary);
+  background-color: var(--surface-elevated, var(--surface-canvas));
+}
+
 /* Light main: legacy dark-outline controls on white cards (not inside dark heroes) */
 html[data-resolved-theme="light"] :is(
     #cp-main-content,

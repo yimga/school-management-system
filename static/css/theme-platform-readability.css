@@ -169,6 +169,35 @@ html[data-resolved-theme="dark"] :is(#cp-main-content, [data-rmc-shell-main]) .p
   color: var(--text-secondary);
 }
 
+/* Marketplace / proof catalog — dark surfaces (manager + tenant backend) */
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-app-card,
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-panel,
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-card,
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-compare-table,
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-step,
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-preview {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  border-color: var(--hairline-strong, var(--hairline));
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-app-card :is(h3, strong, p, li, code),
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-panel-title {
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-app-screen {
+  background-color: var(--surface-canvas, var(--surface-elevated));
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-app-card .text-muted,
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-panel .text-muted,
+html[data-resolved-theme="dark"] :is(#cp-main-content, .tenant-app-catalog-wrap) .proof-panel-copy {
+  color: var(--text-secondary) !important;
+  opacity: 1 !important;
+}
+
 /* Kill opacity-only affordances on primary copy in main column */
 html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main])
   :is(p, span, small, td, th, label, a):is(.opacity-50, .opacity-75),

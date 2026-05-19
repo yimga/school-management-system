@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="tenant" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="tenant" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -48,6 +48,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-chrome-variants.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
     <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
@@ -110,6 +111,7 @@
     {% comment %} Phase G (2026-05-12): platform-wide long-page grammar — ⌘K palette, sticky
        section nav, progressive-disclosure collapse, Console/Configure switcher. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
     {# Phase R (2026-05-12): print grammar for report cards / transcripts / invoices. #}
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     {% comment %} Pass B: platform-wide aesthetic discipline — same card grammar / type rhythm / empty-state
@@ -274,6 +276,9 @@
               {% include "partials/language_switcher.html" %}
               {% endif %}
               {% if request.user.is_authenticated %}
+              <button type="button" class="btn btn-link text-white p-0 topbar-icon-btn" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
+                <i class="bi bi-question-circle" aria-hidden="true"></i>
+              </button>
               <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="{% trans 'Messages' %}" aria-label="{% trans 'Open Messages' %}">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
@@ -569,6 +574,7 @@
        Single answer to "long endless nav" — jump to any page or action from any page. {% endcomment %}
     {% if request.user.is_authenticated %}
       {% include 'components/rmc_command_palette.html' %}
+      <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
       {# Phase K (2026-05-12): density toggle for .rmc-data-table tables. #}
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
@@ -590,7 +596,7 @@
     <script src="{% static 'js/tooltips.js' %}"></script>
 
     {# Main Footer with Accreditation and Support #}
-    <div data-rmc-shell-footer="portal">{% include 'components/footer.html' %}</div>
+    <div data-rmc-shell-footer="portal">{% with portal_footer_partial=PORTAL_FOOTER_PARTIAL|default:"components/footer.html" %}{% include portal_footer_partial %}{% endwith %}</div>
 
     {% include 'components/contextual_feedback_widget.html' %}
 

@@ -48,6 +48,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
+from . import metrics as _mc_metrics
 from .models import (
     BundleStatus,
     CompanionCiphertextBlob,
@@ -56,6 +57,8 @@ from .models import (
     MigrationAuthorizationAgreement,
     MigrationBundle,
 )
+# v3.38.0 Agent 5 — append-only audit emissions.
+from .models_audit import MigrationCloudAuditEvent as _AuditEvent
 from .reliability import idempotent_post, safe_500
 from .services import companion_keypair as _companion_keypair
 from .services.maa_text import (
@@ -89,6 +92,24 @@ def _user_agent(request: HttpRequest) -> str:
 def _constant_time_eq(a: str, b: str) -> bool:
     """Constant-time string equality (defence-in-depth for sha digests)."""
     return hmac.compare_digest(a.encode("utf-8"), b.encode("utf-8"))
+
+
+def _safe_audit(tenant_slug: str, event_type: str, **kwargs) -> None:
+    """v3.38.0 — append an audit event; NEVER let failure break production.
+
+    Audit emission is best-effort: a DB-level failure here would
+    otherwise turn a successful sign / upload into a 500. We log at
+    ERROR (audit failure is more serious than metric failure) and
+    swallow the exception. The integrity gap is detectable by the
+    verify_audit_chain command.
+    """
+    try:
+        _AuditEvent.objects.record(tenant_slug, event_type, **kwargs)
+    except Exception as exc:  # broad-by-design: audit must never break flow
+        logger.error(
+            "migration_cloud.audit: emit failed event_type=%s err=%s",
+            event_type, type(exc).__name__,
+        )
 
 
 def _request_school(request: HttpRequest):
@@ -311,6 +332,28 @@ class MAASignView(LoginRequiredMixin, View):
                 "user_id=%s version=%s",
                 getattr(request.user, "pk", None), version,
             )
+            try:
+                _mc_metrics.record_maa_sign(
+                    tenant_id=getattr(school, "pk", None),
+                    version=version,
+                    was_draft_attempt=True,
+                )
+            except Exception as _metric_exc:  # noqa: BLE001
+                logger.warning(
+                    "migration_cloud.companion_receiver: maa_sign_metric_failed err=%s",
+                    type(_metric_exc).__name__,
+                )
+            _safe_audit(
+                getattr(school, "slug", "") or "",
+                "maa.sign_attempt_draft",
+                actor=request.user,
+                subject=None,
+                payload_summary={
+                    "vendor_source": vendor_source[:64],
+                    "agreement_version_attempted": version[:32],
+                    "refused": True,
+                },
+            )
             return _json_error(
                 "agreement_version is a DRAFT — preview only; cannot be signed.",
                 status=400,
@@ -408,6 +451,31 @@ class MAASignView(LoginRequiredMixin, View):
         logger.info(
             "migration_cloud.companion_receiver: maa_signed maa_id=%s tenant_id=%s vendor=%s version=%s",
             maa.pk, school.pk, vendor_source, version,
+        )
+        # v3.38.0 — operational metrics (best-effort; never breaks the
+        # hot path). Helper itself try/excepts internally; the outer
+        # try/except here is defense-in-depth in case import-time
+        # binding ever fails.
+        try:
+            _mc_metrics.record_maa_sign(
+                tenant_id=school.pk, version=version, was_draft_attempt=False,
+            )
+        except Exception as _metric_exc:  # noqa: BLE001
+            logger.warning(
+                "migration_cloud.companion_receiver: maa_sign_metric_failed err=%s",
+                type(_metric_exc).__name__,
+            )
+        # v3.38.0 Agent 5 — append-only audit emission for MAA sign.
+        _safe_audit(
+            getattr(school, "slug", "") or "",
+            "maa.sign",
+            actor=request.user,
+            subject=maa.pk,
+            payload_summary={
+                "vendor_source": vendor_source[:64],
+                "agreement_version": version[:32],
+                "signed_by_role": role[:64],
+            },
         )
         return JsonResponse(
             {
@@ -625,6 +693,32 @@ class CompanionUploadView(LoginRequiredMixin, View):
             receipt.pk, bundle.pk, school.pk, vendor_source, total, observed_sha[:12],
             key_version_tag,
         )
+        # v3.38.0 Agent 5 — append-only audit emission for upload accept.
+        _safe_audit(
+            getattr(school, "slug", "") or "",
+            "companion.upload",
+            actor=request.user,
+            subject=receipt.client_idempotency_key,
+            payload_summary={
+                "byte_count": int(total or 0),
+                "scheme": str(payload.get("encryption_scheme") or "")[:64],
+                "vendor_source": vendor_source[:64],
+                "ciphertext_sha_prefix": observed_sha[:12],
+            },
+        )
+        # v3.38.0 — operational metrics. ``total`` is the integer byte
+        # count of ciphertext, never the bytes themselves.
+        try:
+            _mc_metrics.record_companion_upload(
+                tenant_id=school.pk,
+                byte_size=total,
+                sealed_box_scheme="libsodium-secretbox-x25519-sealed",
+            )
+        except Exception as _metric_exc:  # noqa: BLE001
+            logger.warning(
+                "migration_cloud.companion_receiver: upload_metric_failed err=%s",
+                type(_metric_exc).__name__,
+            )
         return JsonResponse(
             {
                 "ok": True,
@@ -848,6 +942,10 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
     # v3.35.0 — resolve the requested tenant from the query param FIRST,
     # then cross-check against the session tenant. The query-param path
     # supports operators managing multiple tenants from a single browser.
+    # v3.37.0 — echo ``tenant_slug`` back in the response so the popup's
+    # tenant switcher can confirm WHICH tenant the pubkey belongs to
+    # (defense vs. confused-deputy scenarios where the operator thought
+    # they were querying tenant A but the cache returned B).
     explicit_slug = (request.GET.get("tenant") or "").strip()
     session_school = _request_school(request)
 
@@ -855,7 +953,7 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
     if explicit_slug:
         from apps.schools.models import School
         requested_school = (
-            # tenant-isolation-allow: operator-multi-tenant-public-key-lookup
+            # tenant-isolation-allow: companion-pubkey-anonymous-fetch-explicit-slug-lookup
             School.objects.filter(slug=explicit_slug, is_active=True).first()
         )
         if requested_school is None:
@@ -907,8 +1005,29 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
             code="no_tenant",
         )
 
+    # v3.37.0 — when the caller resolved the tenant via ``?tenant=<slug>``
+    # (multi-tenant operator path), wrap the keypair fetch in
+    # ``schema_context(tenant.schema_name)`` so that any future move of
+    # ``MigrationCloudCompanionKeypair`` from SHARED_APPS into TENANT_APPS
+    # keeps working without a view-layer rewrite. For the current
+    # SHARED_APPS placement the wrap is a defense-in-depth no-op (the FK
+    # filter inside the service is the load-bearing isolation).
+    schema_name: str | None = None
+    if explicit_slug:
+        client = getattr(school, "tenant_client", None)
+        schema_name = getattr(client, "schema_name", None) if client else None
+
     try:
-        info = _companion_keypair.get_active_public_key_info(school)
+        if schema_name:
+            try:
+                from django_tenants.utils import schema_context  # type: ignore[import-not-found]
+            except ImportError:
+                info = _companion_keypair.get_active_public_key_info(school)
+            else:
+                with schema_context(schema_name):
+                    info = _companion_keypair.get_active_public_key_info(school)
+        else:
+            info = _companion_keypair.get_active_public_key_info(school)
     except _companion_keypair.PyNaClUnavailable:
         return _json_error(
             "PyNaCl not installed on server; companion keypair unavailable",
@@ -916,13 +1035,18 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
             code="pynacl_missing",
         )
 
+    tenant_slug = getattr(school, "slug", "") or ""
     logger.info(
         "migration_cloud.companion_receiver: server_pubkey_fetched "
-        "tenant_pk=%s key_version=%s fingerprint=%s explicit_query=%s",
-        school.pk, info["key_version"], info["fingerprint_b64"],
+        "tenant_pk=%s tenant_slug=%s key_version=%s fingerprint=%s "
+        "explicit_query=%s",
+        school.pk, tenant_slug, info["key_version"], info["fingerprint_b64"],
         bool(explicit_slug),
     )
-    return JsonResponse({"ok": True, **info}, status=200)
+    return JsonResponse(
+        {"ok": True, "tenant_slug": tenant_slug, **info},
+        status=200,
+    )
 
 
 # ─── Server pubkey rotation (POST) ───────────────────────────────────────

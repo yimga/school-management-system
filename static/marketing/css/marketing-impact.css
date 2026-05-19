@@ -1,0 +1,417 @@
+/**
+ * Marketing impact layer — bell clock / persona focus, globe contrast, lane chrome,
+ * live campus pulse, video portal glass, i18n-safe pricing matrix.
+ */
+
+/* ── Lane accent tokens (header/footer shift via data-mkt-lane on <html>) ── */
+html[data-mkt-lane="academics"] {
+  --mkt-lane-accent: var(--accent-principal-emerald, #059669);
+  --mkt-edt-accent: var(--mkt-lane-accent);
+}
+
+html[data-mkt-lane="admissions"] {
+  --mkt-lane-accent: var(--accent-admissions-indigo, #4f46e5);
+  --mkt-edt-accent: var(--mkt-lane-accent);
+}
+
+html[data-mkt-lane="finance"] {
+  --mkt-lane-accent: var(--accent-finance-gold, #d97706);
+  --mkt-edt-accent: var(--mkt-lane-accent);
+}
+
+html[data-mkt-lane="home"] {
+  --mkt-lane-accent: var(--mkt-accent, #c2410c);
+}
+
+.mkt-navbar[data-mkt-lane-accent] .mkt-edt-cta--primary,
+.mkt-footer[data-mkt-lane-accent] .mkt-footer-action--status .mkt-footer-action__dot {
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+html[data-mkt-lane="academics"] .mkt-navbar .navbar-brand,
+html[data-mkt-lane="admissions"] .mkt-navbar .navbar-brand,
+html[data-mkt-lane="finance"] .mkt-navbar .navbar-brand {
+  --mkt-accent: var(--mkt-lane-accent);
+}
+
+/* ── Dashboard frame — constrained “product window” not full-bleed ── */
+.mkt-v3-dashboard-frame--impact {
+  max-width: min(36rem, 100%);
+  margin-inline: auto;
+}
+
+.mkt-v3-dashboard-frame--impact .mkt-v3-dashboard-frame__surface {
+  max-height: min(22rem, 52vh);
+  overflow: hidden;
+}
+
+.mkt-v3-dashboard-frame--impact .mkt-v3-dashboard-frame__surface svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(22rem, 52vh);
+  aspect-ratio: 16 / 10;
+}
+
+/* ── Bell clock — single active panel + story column ── */
+.mkt-v3-bell-clock--impact {
+  grid-template-columns: minmax(11rem, 14rem) minmax(0, 1.15fr) minmax(14rem, 18rem);
+  align-items: start;
+}
+
+.mkt-v3-bell-clock--impact .mkt-v3-bell-clock__step {
+  cursor: pointer;
+}
+
+.mkt-v3-bell-clock__story {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--mkt-edt-rule);
+  background: color-mix(in srgb, var(--mkt-tile, #fff) 94%, var(--mkt-edt-accent) 6%);
+}
+
+.mkt-v3-bell-clock__story-metric {
+  font-family: var(--mkt-edt-font-display, "Source Serif 4", serif);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--mkt-edt-accent);
+  margin: 0;
+}
+
+.mkt-v3-bell-clock__story-label {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--mkt-edt-ink-muted);
+}
+
+.mkt-v3-bell-clock__viewport {
+  position: relative;
+  min-height: min(22rem, 52vh);
+}
+
+.mkt-v3-bell-clock--impact .mkt-v3-bell-clock__panels {
+  display: block;
+  gap: 0;
+  position: relative;
+  min-height: inherit;
+}
+
+.mkt-v3-bell-clock--impact .mkt-v3-bell-clock__panel {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.5rem);
+  transition:
+    opacity var(--mkt-v3-motion-mid, 320ms ease),
+    transform var(--mkt-v3-motion-mid, 320ms ease);
+  scroll-margin-top: 6rem;
+}
+
+.mkt-v3-bell-clock--impact .mkt-v3-bell-clock__panel.is-active {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.mkt-v3-bell-clock--impact .mkt-v3-bell-clock__panel[hidden] {
+  display: block;
+}
+
+.mkt-v3-bell-clock--impact .mkt-v3-bell-clock__panel:not(.is-active) {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+}
+
+.mkt-v3-bell-clock__panel-copy {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  max-width: 36rem;
+}
+
+/* ── Persona tabs — split story + constrained frame ── */
+.mkt-v3-persona-tabs--impact .mkt-v3-persona-tabs__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+  margin-top: 1rem;
+}
+
+.mkt-v3-persona-tabs__metric-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mkt-v3-persona-tabs__metric {
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--mkt-edt-rule);
+  background: var(--mkt-tile, #fff);
+}
+
+.mkt-v3-persona-tabs__metric strong {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.125rem;
+  color: var(--mkt-edt-accent);
+}
+
+.mkt-v3-persona-tabs__metric span {
+  font-size: 0.8125rem;
+  color: var(--mkt-edt-ink-muted);
+}
+
+.mkt-v3-persona-tabs--impact .mkt-v3-persona-tabs__panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mkt-v3-persona-tabs--impact .mkt-v3-persona-tabs__panel[hidden] {
+  display: none;
+}
+
+/* ── Globe / world map — readable on cinematic dark ── */
+.mkt-edt-globe.mkt-v3-cinematic .mkt-edt-globe__map {
+  color: var(--mkt-ink-inv, #f5f1ea);
+  max-width: min(56rem, 92vw);
+  margin-inline: auto;
+}
+
+.mkt-world-map .mkt-world-map__label {
+  fill: currentColor;
+}
+
+.mkt-world-map .mkt-world-map__meta {
+  fill: color-mix(in srgb, currentColor 62%, transparent);
+}
+
+.mkt-world-map .mkt-world-map__caption {
+  fill: currentColor;
+}
+
+.mkt-edt-globe.mkt-v3-cinematic .mkt-world-map pattern circle {
+  fill: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.mkt-edt-globe__caption-block {
+  text-align: center;
+  max-width: 36rem;
+  margin: 1.25rem auto 0;
+}
+
+.mkt-edt-globe__caption-block .mkt-edt-section-headline {
+  font-size: clamp(1.125rem, 2.5vw, 1.35rem);
+  margin: 0 0 0.35rem;
+}
+
+.mkt-edt-globe__caption-block .mkt-edt-lead {
+  margin: 0;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Live campus pulse hero ── */
+.mkt-live-pulse {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mkt-live-pulse__canvas {
+  position: relative;
+  border-radius: 0.75rem;
+  border: 1px solid var(--mkt-edt-rule);
+  background: var(--mkt-tile, #fff);
+  box-shadow: var(--mkt-shadow-md, 0 8px 24px rgba(15, 27, 45, 0.08));
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  max-height: min(24rem, 56vh);
+}
+
+.mkt-live-pulse__canvas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mkt-live-pulse__stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mkt-live-pulse__stat {
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--mkt-edt-rule);
+  background: color-mix(in srgb, var(--mkt-edt-bg) 90%, var(--mkt-tile));
+}
+
+.mkt-live-pulse__stat-value {
+  display: block;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+}
+
+.mkt-live-pulse__stat-label {
+  font-size: 0.6875rem;
+  color: var(--mkt-edt-ink-muted);
+  letter-spacing: 0.03em;
+}
+
+@keyframes mkt-pulse-bar {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes mkt-pulse-bus {
+  0% {
+    offset-distance: 0%;
+  }
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+.mkt-live-pulse__bar {
+  transform-origin: bottom center;
+  animation: mkt-pulse-bar 2.4s ease-in-out infinite;
+}
+
+.mkt-live-pulse__bus {
+  offset-path: path("M 40 120 Q 120 80, 200 100 T 360 90");
+  animation: mkt-pulse-bus 8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-live-pulse__bar,
+  .mkt-live-pulse__bus {
+    animation: none;
+  }
+}
+
+/* ── Video portal — glass frame + accessible controls ── */
+.mkt-video-portal {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mkt-ink-inv, #fff) 18%, transparent);
+  background: color-mix(in srgb, var(--mkt-surface-deep, #0c1422) 72%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  aspect-ratio: 16 / 9;
+  max-width: min(48rem, 100%);
+}
+
+.mkt-video-portal__media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mkt-video-portal__chrome {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(transparent, rgba(12, 20, 34, 0.85));
+}
+
+.mkt-video-portal__toggle {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mkt-ink-inv) 35%, transparent);
+  background: color-mix(in srgb, var(--mkt-ink-inv) 12%, transparent);
+  color: var(--mkt-ink-inv);
+  cursor: pointer;
+}
+
+.mkt-video-portal__toggle:focus-visible {
+  outline: 2px solid var(--focus-marketing-ring, var(--mkt-accent));
+  outline-offset: 2px;
+}
+
+.mkt-video-portal__label {
+  font-size: 0.8125rem;
+  color: var(--mkt-ink-inv);
+  margin: 0;
+}
+
+.mkt-edt-walkthrough__portal-wrap {
+  margin: 0 auto 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.mkt-edt-walkthrough__poster--secondary {
+  margin-top: 1rem;
+}
+
+/* ── Pricing matrix — i18n expansion safe ── */
+.mkt-v3-pricing-matrix {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.mkt-v3-pricing-matrix th,
+.mkt-v3-pricing-matrix td {
+  padding: 0.75rem 0.85rem;
+  vertical-align: top;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.mkt-v3-pricing-matrix__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .mkt-v3-bell-clock--impact {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-v3-bell-clock__story {
+    order: -1;
+  }
+
+  .mkt-v3-persona-tabs--impact .mkt-v3-persona-tabs__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-live-pulse__stat-row {
+    grid-template-columns: 1fr;
+  }
+}

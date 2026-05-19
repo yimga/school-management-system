@@ -1,0 +1,23 @@
+{% load i18n %}
+<section class="mkt-edt-section mkt-v3-section mkt-day-role-story rmc-reveal" aria-labelledby="day-role-headline" data-mkt-reveal data-mkt-day-role>
+  <div class="mkt-edt-container">
+    <header>
+      <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "One campus. Every role." %}</p>
+      <h2 id="day-role-headline" class="mkt-edt-section-headline mkt-v3-section-headline">
+        {% trans "See the day — or see who changes" %}
+      </h2>
+    </header>
+
+    <div class="mkt-day-role-story__tabs" role="tablist" aria-label="{% trans 'Story mode' %}">
+      <button type="button" class="mkt-day-role-story__tab" role="tab" data-day-role-tab="time" aria-selected="true">{% trans "By time of day" %}</button>
+      <button type="button" class="mkt-day-role-story__tab" role="tab" data-day-role-tab="role" aria-selected="false" tabindex="-1">{% trans "By role" %}</button>
+    </div>
+
+    <div class="mkt-day-role-story__panel" data-day-role-panel="time" role="tabpanel">
+      {% include "marketing/components/_bell_clock_sticky.html" %}
+    </div>
+    <div class="mkt-day-role-story__panel" data-day-role-panel="role" role="tabpanel" hidden>
+      {% include "marketing/components/_persona_tabs.html" %}
+    </div>
+  </div>
+</section>

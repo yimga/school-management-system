@@ -10,7 +10,13 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+{% include "partials/rmc_analytics_viz_assets.html" %}
 <script src="{% static 'js/_pages/analytics__dashboard.js' %}"></script>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+{% include "partials/rmc_analytics_viz_bundle.html" %}
 {% endblock %}
 
 {% block content %}
@@ -19,7 +25,7 @@
 <div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="insights_center" data-rmc-ux-role-dashboard="analytics-insights">
 
 {# Phase G follow-through (2026-05-12): section nav for the 649L insights dashboard. #}
-<nav class="rmc-section-nav rmc-section-nav--horizontal mb-3" aria-label="{% trans 'Insights sections' %}">
+<nav class="rmc-section-nav rmc-section-nav--horizontal rmc-horizontal-nav-rail mb-3" aria-label="{% trans 'Insights sections' %}">
   <ul class="rmc-section-nav__list">
     <li><a href="#insights-main"><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Main" %}</a></li>
     <li><a href="#insights-secondary"><i class="bi bi-graph-up" aria-hidden="true"></i>{% trans "Trends" %}</a></li>
@@ -77,6 +83,16 @@
 {% if phase7_de %}
 {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
 {% endif %}
+
+<section id="insights-secondary" class="card shadow-sm border-0 mb-4 chart-container" aria-labelledby="insights-viz-heading">
+  <div class="card-body">
+    <h2 id="insights-viz-heading" class="h5 mb-2">{% trans "Campus pulse & KPI trends" %}</h2>
+    <p class="small text-muted mb-3">{% trans "Tenant-scoped live metrics (attendance, revenue, allocation)." %}</p>
+    {% with tenant_slug=request.school.slug|default:"tenant-unknown" %}
+    {% include "partials/rmc_analytics_viz_mount.html" with tenant_id=tenant_slug min_height="22rem" %}
+    {% endwith %}
+  </div>
+</section>
 {% with analytics_metrics|default:None as metrics %}
   {% if metrics %}
     {% include "components/rmc_metric_ticker.html" with metrics=metrics %}

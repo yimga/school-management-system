@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>RunMyCampus Companion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* Minimal popup shell. The popup is a fragile context (chrome.action)
+         and a heavy CSS bundle would slow first-paint. Keep this lean. */
+      :root {
+        color-scheme: light dark;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+      }
+      body {
+        min-width: 320px;
+        max-width: 420px;
+        margin: 0;
+        padding: 12px 14px;
+        background: Canvas;
+        color: CanvasText;
+      }
+      h1 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 8px;
+      }
+      .row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+      }
+      select,
+      button {
+        font: inherit;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+      #pubkey-fingerprint {
+        display: block;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        word-break: break-all;
+        padding: 6px 8px;
+        border: 1px solid color-mix(in srgb, CanvasText 20%, transparent);
+        border-radius: 4px;
+        min-height: 1.5em;
+      }
+      .label {
+        font-weight: 500;
+        opacity: 0.75;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>RunMyCampus Companion</h1>
+
+    <div class="row">
+      <span class="label">Tenant:</span>
+      <select id="tenant-select"></select>
+      <button id="tenant-add" type="button">Add</button>
+      <button id="tenant-remove" type="button">Remove</button>
+    </div>
+
+    <div class="row">
+      <span class="label">Fingerprint:</span>
+      <span id="pubkey-key-version"></span>
+    </div>
+    <span id="pubkey-fingerprint"></span>
+
+    <div class="row" style="margin-top: 10px">
+      <button id="pubkey-refresh" type="button">Refresh fingerprint</button>
+      <button id="pubkey-verify" type="button">Verify (operator)</button>
+    </div>
+
+    <script type="module" src="src/popup/popup.ts"></script>
+  </body>
+</html>

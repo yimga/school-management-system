@@ -1,0 +1,10 @@
+{% load i18n %}
+{% if marketing_proof_quote %}
+<blockquote class="mkt-proof-quote rmc-reveal" data-mkt-reveal>
+  <p class="mkt-proof-quote__text">“{{ marketing_proof_quote.quote }}”</p>
+  <footer class="mkt-proof-quote__meta">
+    <cite>{{ marketing_proof_quote.name }}</cite>
+    <span>{{ marketing_proof_quote.role }}</span>
+  </footer>
+</blockquote>
+{% endif %}

@@ -322,6 +322,14 @@ from apps.siteconfig.views_manifest_icon import (  # noqa: E402
 from apps.siteconfig.views_tour import tour_steps_public_api  # noqa: E402
 from apps.schools.marketing_views_v2 import marketing_landing_v2  # noqa: E402
 
+# v3.39.0 Agent 4 — Prometheus HTTP scrape exporter is wired only when
+# the prometheus-client backend is active; every other backend keeps
+# /metrics/ unrouted so a misconfigured deployment never accidentally
+# exposes an empty registry. See apps/observability/metrics.py.
+_OBSERVABILITY_PROM_BACKEND = (
+    getattr(settings, "OBSERVABILITY_METRICS_BACKEND", "noop") == "prometheus-client"
+)
+
 urlpatterns = [
     path("", home, name="home"),
     path("", home, name="marketing_home"),
@@ -1410,6 +1418,14 @@ urlpatterns = [
     # Resolve name for templates that link to operator help (manager host uses config.manager_urls; root needs name for tests/shared templates)
     path("help/", lambda request: redirect("public_support_hub"), name="manager_help"),
 ]
+
+# v3.39.0 Agent 4 — Prometheus scrape endpoint (lazy include).
+if _OBSERVABILITY_PROM_BACKEND:
+    from apps.observability.views_metrics import PrometheusMetricsView  # noqa: E402
+
+    urlpatterns += [
+        path("metrics/", PrometheusMetricsView.as_view(), name="prometheus_metrics"),
+    ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

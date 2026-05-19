@@ -1,12 +1,12 @@
 {
-  "date": "2026-05-18",
-  "generated_at": "2026-05-18T22:05:00+00:00",
+  "date": "2026-05-19",
+  "generated_at": "2026-05-19T10:57:59+00:00",
   "major": 3,
-  "minor": 33,
+  "minor": 40,
   "patch": 2,
-  "raw": "sms-v3.33.2-dual-plane-theme-hub-2026-05-18",
+  "raw": "sms-v3.40.2-manager-portal-chrome-1295-2026-05-19",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "dual-plane-theme-hub",
+  "slug": "manager-portal-chrome-1295",
   "valid": true
 }

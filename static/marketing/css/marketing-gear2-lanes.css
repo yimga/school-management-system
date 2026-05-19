@@ -1,0 +1,154 @@
+/* Gear-up lane layouts — academics matrix, admissions steps, finance ledger */
+.mkt-lane-academics {
+  margin-block: var(--mkt-space-8, 2.5rem);
+}
+.mkt-lane-academics__title {
+  font-size: var(--type-size-xl, 1.5rem);
+  color: var(--mkt-ink, var(--text-primary));
+}
+.mkt-lane-academics__lead {
+  color: var(--mkt-ink-muted, var(--text-secondary));
+  max-width: 42ch;
+}
+.mkt-lane-academics__grid {
+  display: grid;
+  grid-template-columns: 3rem repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: 1.25rem;
+}
+.mkt-lane-academics__day,
+.mkt-lane-academics__period {
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 600;
+  color: var(--mkt-ink-muted, var(--text-secondary));
+}
+.mkt-lane-academics__cell {
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.35rem;
+  font-size: var(--type-size-xs, 0.75rem);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  background: var(--surface-elevated, #fff);
+}
+.mkt-lane-academics__cell--present {
+  border-color: color-mix(in srgb, var(--accent-principal-emerald, #0d9488) 40%, transparent);
+  background: color-mix(in srgb, var(--accent-principal-emerald, #0d9488) 12%, var(--surface-elevated, #fff));
+}
+.mkt-lane-academics__cell--late {
+  border-color: color-mix(in srgb, var(--accent-finance-gold, #d97706) 45%, transparent);
+}
+.mkt-lane-academics__cell--absent {
+  border-color: color-mix(in srgb, #dc2626 35%, transparent);
+}
+.mkt-lane-academics__cell--intervention {
+  border-color: color-mix(in srgb, var(--accent-admissions-indigo, #4f46e5) 40%, transparent);
+}
+.mkt-lane-academics__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: var(--type-size-xs, 0.75rem);
+}
+.mkt-lane-academics__swatch {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 2px;
+  margin-inline-end: 0.35rem;
+  vertical-align: middle;
+}
+.mkt-lane-academics__swatch--present { background: var(--accent-principal-emerald, #0d9488); }
+.mkt-lane-academics__swatch--late { background: var(--accent-finance-gold, #d97706); }
+.mkt-lane-academics__swatch--absent { background: #dc2626; }
+.mkt-lane-academics__swatch--intervention { background: var(--accent-admissions-indigo, #4f46e5); }
+
+.mkt-page-platform-sis .mkt-v3-archetype__wins {
+  border-top: 1px solid var(--hairline);
+  padding-top: 2rem;
+}
+
+.mkt-lane-admissions__title,
+.mkt-lane-finance__title {
+  font-size: var(--type-size-xl, 1.5rem);
+}
+.mkt-lane-admissions__steps {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.mkt-lane-admissions__step-btn {
+  width: 100%;
+  text-align: start;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: 0.5rem;
+  background: var(--surface-elevated, #fff);
+  font-weight: 600;
+  color: var(--accent-admissions-indigo, #4f46e5);
+}
+.mkt-lane-admissions__step.is-active .mkt-lane-admissions__step-btn {
+  background: color-mix(in srgb, var(--accent-admissions-indigo, #4f46e5) 10%, var(--surface-elevated, #fff));
+}
+.mkt-lane-admissions__detail {
+  padding: 0.75rem 1rem 1rem;
+  color: var(--mkt-ink-muted, var(--text-secondary));
+}
+
+.mkt-lane-finance__chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 8rem;
+  margin: 1.25rem 0;
+}
+.mkt-lane-finance__bar {
+  flex: 1;
+  height: var(--bar-h, 50%);
+  border-radius: 0.25rem 0.25rem 0 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-finance-gold, #d97706) 85%, #fff),
+    color-mix(in srgb, var(--accent-finance-gold, #d97706) 35%, transparent)
+  );
+  position: relative;
+}
+.mkt-lane-finance__bar::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -1.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: var(--mkt-ink-muted, var(--text-secondary));
+}
+.mkt-lane-finance__ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-size-sm, 0.875rem);
+}
+.mkt-lane-finance__ledger th,
+.mkt-lane-finance__ledger td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--hairline);
+  text-align: start;
+}
+.mkt-lane-finance__pill {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.mkt-lane-finance__pill--paid {
+  background: color-mix(in srgb, var(--accent-principal-emerald, #0d9488) 18%, transparent);
+}
+.mkt-lane-finance__pill--partial {
+  background: color-mix(in srgb, var(--accent-finance-gold, #d97706) 18%, transparent);
+}
+.mkt-lane-finance__pill--due {
+  background: color-mix(in srgb, #dc2626 12%, transparent);
+}

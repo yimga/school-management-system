@@ -8,7 +8,7 @@
 <div class="container py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
 {% phase8_dashboard_declaration "observability/platform_incidents.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Platform incident console") subtitle=_("Shared control-plane incidents for availability, security, billing, integrations, and data integrity.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
-  <div class="alert alert-light border small mb-3" role="region" aria-label="{% trans 'Operator documentation' %}">
+  <div class="alert border small mb-3 rmc-surface-muted-panel" role="region" aria-label="{% trans 'Operator documentation' %}">
     <strong>{% trans "Runbooks (repository paths for operators)" %}:</strong>
     <code class="d-block mt-1">docs/N24_OBSERVABILITY_AND_ONCALL.md</code>
     <code class="d-block">docs/RUNBOOKS_INDEX.md</code>

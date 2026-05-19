@@ -134,10 +134,44 @@ Every honest-stub function carries a comment naming exactly what's
 missing — search `// honest-stub:` (Rust + TS) and `# honest-stub:`
 (Python) to enumerate the deferred surface.
 
+## Signed-release procedure (v3.39.0)
+
+Trusted distribution of the operator-side Tauri and Docker siblings
+requires signed binaries / images so that customers can verify
+provenance before installing. The signing pipeline lives entirely
+in tag-only GitHub Actions workflows; no signing keys are stored in
+this repository.
+
+| Sibling | Format | Trust anchor |
+|---------|--------|--------------|
+| `companion-tauri/` (macOS) | Notarized `.dmg` | Apple Developer ID Application |
+| `companion-tauri/` (Windows) | Authenticode-signed `.msi` / `.exe` | EV or OV code-signing cert |
+| `companion-docker/` (multi-arch) | Sigstore Cosign keyless signature | Sigstore Fulcio + Rekor + GitHub Actions OIDC |
+
+Full procedure (cert procurement, secret provisioning, tag procedure,
+verifier-script usage, supply-chain trust model, what a signature does
+NOT prove): see [`COMPANION_SIBLINGS_SIGNED_RELEASE.md`](COMPANION_SIBLINGS_SIGNED_RELEASE.md).
+
+Pre-flight check before pushing a release tag:
+
+```bash
+python scripts/preflight_signed_release.py companion-tauri-vX.Y.Z
+python scripts/preflight_signed_release.py companion-docker-vX.Y.Z
+```
+
+Operator-side verifier scripts:
+
+```bash
+companion-tauri/scripts/verify_signed_build.sh <path-to-.dmg-or-.msi>
+companion-docker/scripts/verify_signed_image.sh <tag-or-full-ref>
+```
+
 ## Related docs
 
 - `companion-extension/README.md` — the legal frame (Sony Betamax,
   CFAA, DMCA §1201, ToS-inducement) the whole family inherits.
+- `docs/COMPANION_SIBLINGS_SIGNED_RELEASE.md` — v3.39.0 signed-release
+  procurement, procedure, and trust model (NEW).
 - `docs/SECURITY_KEYS.md` — operator key-rotation runbook.
 - `docs/DPA_TEMPLATE.md` + `docs/DSAR_RUNBOOK.md` — compliance
   posture the Companion family supports.

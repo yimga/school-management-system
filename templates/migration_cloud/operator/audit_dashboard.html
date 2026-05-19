@@ -1,0 +1,105 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{# v3.38.0 Agent 5 — tamper-evident audit log dashboard.
+
+   This template renders the last 200 audit events. It NEVER renders:
+
+     * raw actor emails (only the SHA-256 hex prefix)
+     * raw subject IDs (only the SHA-256 hex prefix)
+     * raw tenant slugs (only the 12-hex tenant_id_hash prefix)
+
+   Payload summaries are re-sanitized in the view before render as
+   defense-in-depth; if any sensitive-keyword key sneaked in, the
+   row's payload column displays {"_error":"payload_rejected_at_render"}.
+#}
+
+{% block page_title %}{{ page_title|default:"Audit log" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-audit-dashboard" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Migration Cloud audit log" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Append-only, hash-chained forensic trail. Hashes truncated to 12 chars for display; full values exposed only through the JSONL export." %}
+    </p>
+    <p class="rmc-actions">
+      <a class="rmc-btn rmc-btn--primary rmc-btn--sm"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:audit_export' %}{% else %}{% url 'migration_cloud_super:audit_export' %}{% endif %}?verify_chain=1">
+        {% trans "Export as JSONL (verify chain)" %}
+      </a>
+    </p>
+  </header>
+
+  <form method="get" class="rmc-filters" aria-label="{% trans 'Audit filters' %}">
+    <label class="rmc-filter">
+      <span>{% trans "Event type" %}</span>
+      <select name="event_type">
+        <option value="">{% trans "All" %}</option>
+        {% for t in valid_types %}
+          <option value="{{ t }}" {% if event_type_filter == t %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="rmc-filter">
+      <span>{% trans "Tenant prefix" %}</span>
+      <input type="text" name="tenant" value="{{ tenant_filter }}" maxlength="12" pattern="[0-9a-f]{1,12}" placeholder="0123abcd">
+    </label>
+    <label class="rmc-filter">
+      <span>{% trans "From" %}</span>
+      <input type="date" name="date_from" value="{{ date_from }}">
+    </label>
+    <label class="rmc-filter">
+      <span>{% trans "To" %}</span>
+      <input type="date" name="date_to" value="{{ date_to }}">
+    </label>
+    <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Apply" %}</button>
+  </form>
+
+  {% if rows %}
+  <table class="rmc-data-table rmc-data-table--audit-events">
+    <thead>
+      <tr>
+        <th>{% trans "Event" %}</th>
+        <th>{% trans "Tenant" %}</th>
+        <th>{% trans "Actor" %}</th>
+        <th>{% trans "Subject" %}</th>
+        <th>{% trans "Payload summary" %}</th>
+        <th>{% trans "Integrity" %}</th>
+        <th>{% trans "Prev" %}</th>
+        <th>{% trans "Created" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><code class="rmc-kbd">{{ r.event_type }}</code></td>
+        <td><code>{{ r.tenant_id_hash }}</code></td>
+        <td>{% if r.actor_id_truncated %}<code>{{ r.actor_id_truncated }}…</code>{% else %}<span class="rmc-pill rmc-pill--muted">system</span>{% endif %}</td>
+        <td>{% if r.event_subject_hash_truncated %}<code>{{ r.event_subject_hash_truncated }}…</code>{% else %}—{% endif %}</td>
+        <td><pre class="rmc-pre rmc-pre--audit-payload">{{ r.payload_json }}</pre></td>
+        <td><code>{{ r.integrity_hash_truncated }}…</code></td>
+        <td><code>{{ r.prev_event_hash_truncated }}…</code></td>
+        <td>{{ r.created_at_iso }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <nav class="rmc-pagination" aria-label="{% trans 'Pagination' %}">
+    {% if page_obj.has_previous %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_obj.previous_page_number }}{% if event_type_filter %}&event_type={{ event_type_filter }}{% endif %}{% if tenant_filter %}&tenant={{ tenant_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">{% trans "← Previous" %}</a>
+    {% endif %}
+    <span class="rmc-pagination__page">{% blocktrans with cur=page_obj.number total=page_obj.paginator.num_pages %}Page {{ cur }} of {{ total }}{% endblocktrans %}</span>
+    {% if page_obj.has_next %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_obj.next_page_number }}{% if event_type_filter %}&event_type={{ event_type_filter }}{% endif %}{% if tenant_filter %}&tenant={{ tenant_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">{% trans "Next →" %}</a>
+    {% endif %}
+  </nav>
+  {% else %}
+  <div class="rmc-empty">
+    <h2 class="rmc-h2">{% trans "No audit events match these filters" %}</h2>
+    <p>{% trans "Try widening the date range or clearing the tenant prefix." %}</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

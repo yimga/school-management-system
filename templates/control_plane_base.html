@@ -21,7 +21,7 @@
   hidden product-title h1 here would create duplicate top-level headings on every
   control-plane page.
 {% endcomment %}
-<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0" data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
+<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}" data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
 <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1">
 {% include "partials/manager_operator_topbar.html" %}
 {% include "partials/control_plane_primary_nav.html" %}

@@ -25,6 +25,49 @@ window pointing at the removal date. See
 [`docs/WEBHOOK_HEADER_MIGRATION_2026.md`](../../../../docs/WEBHOOK_HEADER_MIGRATION_2026.md)
 for the full migration timeline and customer action items.
 
+### SDK `verify(..., accept_legacy=)` parameter (v3.37.0)
+
+Both the Python (`runmycampus-webhook-verifier`) and JavaScript
+(`@runmycampus/webhook-verifier`) SDKs ship a new high-level
+`verify(headers, body, secret, *, accept_legacy=True)` entry point that
+accepts the FULL header map and resolves the correct signature
+automatically:
+
+```python
+# Python — Flask example
+from runmycampus_webhook_verifier import verify
+
+result = verify(request.headers, raw_body, SECRET, accept_legacy=True)
+if not result.valid:
+    abort(401)
+if result.used_legacy_header_family:
+    log.warning("legacy webhook header family in use — migrate before 2026-08-18")
+```
+
+```ts
+// Node — Express example
+import { verify } from "@runmycampus/webhook-verifier";
+
+const result = await verify(req.headers, req.body, SECRET, {
+  acceptLegacy: true,
+});
+if (!result.valid) return res.status(401).end();
+if (result.usedLegacyHeaderFamily) {
+  console.warn("legacy webhook header family in use; migrate before 2026-08-18");
+}
+```
+
+Preference order: the canonical `X-RunMyCampus-Signature` is consulted
+first; the legacy `X-Migration-Cloud-Signature` is the fallback IFF
+`accept_legacy=True` (Python) / `acceptLegacy: true` (JS). Set the
+flag to `False` after the 2026-08-18 cutover to fail-closed on any
+legacy-only deliveries.
+
+The returned result carries non-sensitive diagnostics
+(`used_legacy_header_family` / `usedLegacyHeaderFamily`, a short
+non-sensitive `reason` string on failure) — safe to log. Signature
+bytes and secret material are never echoed.
+
 ## Install (recommended)
 
 Use the official packaged SDKs — they ship typed-error strict mode,

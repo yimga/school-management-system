@@ -251,6 +251,32 @@ def _detect_operator_surface(request) -> str | None:
     return None
 
 
+def _resolver_url_name(request) -> str | None:
+    match = getattr(request, "resolver_match", None)
+    if not match or not match.url_name:
+        return None
+    app_name = getattr(match, "app_name", None) or ""
+    return f"{app_name}:{match.url_name}" if app_name else str(match.url_name)
+
+
+def _operator_spine_link_is_active(request, url_name: str) -> bool:
+    """
+    One active workspace pill per page — URL-accurate, not surface-bucket.
+    (Avoids three /super/ spine links all highlighted on every super view.)
+    """
+    current = _resolver_url_name(request)
+    path = (getattr(request, "path", None) or "").lower().rstrip("/") or "/"
+    if current == url_name:
+        return True
+    if url_name == "super:dashboard":
+        return path in ("/super",)
+    if url_name == "configuration:center":
+        return path.startswith("/configuration")
+    if url_name == "admin:index":
+        return path == "/admin" or path.startswith("/admin/")
+    return False
+
+
 def _safe_reverse(url_name: str, kwargs: dict | None = None) -> str | None:
     try:
         return reverse(url_name, kwargs=kwargs or {})
@@ -347,7 +373,6 @@ def _append_admin_bridge_link(
 
 
 def build_operator_surface_spine(request) -> list[OperatorSurfaceLink]:
-    current = _detect_operator_surface(request)
     links: list[OperatorSurfaceLink] = []
     for surface, url_name, label, icon in OPERATOR_SURFACE_SPINE_SPECS:
         url = _safe_reverse(url_name)
@@ -359,7 +384,7 @@ def build_operator_surface_spine(request) -> list[OperatorSurfaceLink]:
                 label=str(label),
                 url=url,
                 surface=surface,
-                active=current == surface,
+                active=_operator_spine_link_is_active(request, url_name),
                 icon=icon,
             )
         )

@@ -40,14 +40,33 @@
 }
 .table-family thead th {
   font-weight: 600;
-  background: var(--surface-bg-muted, #f5eedd);
-  border-bottom: 1px solid var(--portal-border, rgba(26, 22, 18, 0.08));
+  background: var(--admin-content-thead-bg, var(--surface-bg-muted, var(--surface-elevated)));
+  color: var(--admin-content-text, var(--text-primary));
+  border-bottom: 1px solid var(--portal-border, var(--hairline, rgba(26, 22, 18, 0.08)));
   white-space: normal;
   vertical-align: middle;
   letter-spacing: 0.01em;
 }
 .table-family tbody tr:hover {
   background: var(--surface-bg-subtle, rgba(26, 22, 18, 0.03));
+}
+
+html[data-resolved-theme="dark"] .table-family thead th,
+html[data-bs-theme="dark"] .table-family thead th {
+  background: var(--admin-content-thead-bg, var(--surface-canvas));
+  color: var(--text-primary);
+  border-bottom-color: var(--hairline);
+}
+
+html[data-resolved-theme="dark"] .table-family tbody td,
+html[data-bs-theme="dark"] .table-family tbody td {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] .table-family tbody tr:hover,
+html[data-bs-theme="dark"] .table-family tbody tr:hover {
+  background: var(--surface-popover, var(--surface-elevated));
 }
 .table-family td {
   vertical-align: middle;

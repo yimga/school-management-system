@@ -35,7 +35,7 @@
     "soc2_pci_certified": false
   },
   "final_validation_truth_check": "FINAL VALIDATION READY \u2014 FOCUSED REPO SCOPE",
-  "generated_at": "2026-05-19T07:11:48.740188+00:00",
+  "generated_at": "2026-05-19T09:09:35.209719+00:00",
   "scope": "repo proof integrity cleanup",
   "sot_batch_id_uniqueness": {
     "command": "python scripts/verify_sot_batch_id_uniqueness.py",

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T06:55:58.498453+00:00",
+  "generated_at": "2026-05-19T09:03:47.957132+00:00",
   "harness": "apps.platform_runtime.tests.test_onboarding + test_first_school_operating_proof",
   "live_ready": false,
   "readiness_percent": 94,

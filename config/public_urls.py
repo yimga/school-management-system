@@ -139,6 +139,21 @@ urlpatterns = [
     path("support/", public_support_hub, name="public_support_hub"),
     path("school-not-found/", school_not_found_public, name="school_not_found_public"),
     path("marketing/", marketing_landing, name="marketing_landing"),
+    path(
+        "academics/",
+        RedirectView.as_view(url="/teach/academics/", permanent=False),
+        name="marketing_academics_short",
+    ),
+    path(
+        "admissions/",
+        RedirectView.as_view(url="/run/admissions/", permanent=False),
+        name="marketing_admissions_short",
+    ),
+    path(
+        "finance/",
+        RedirectView.as_view(url="/pay/fees/", permanent=False),
+        name="marketing_finance_short",
+    ),
     path("run/", marketing_verb_hub, {"verb": "run"}, name="marketing_run_hub"),
     path("teach/", marketing_verb_hub, {"verb": "teach"}, name="marketing_teach_hub"),
     path(

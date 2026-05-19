@@ -90,6 +90,19 @@ If you migrate to the packaged SDK, you are done — the SDK reads
 `X-RunMyCampus-Signature` natively, and the dispatcher is already
 emitting that header.
 
+#### v3.37.0 — `verify(..., accept_legacy=True)` belt-and-suspenders helper
+
+As of v3.37.0 the SDKs ship a high-level `verify(headers, body, secret,
+*, accept_legacy=True)` (Python) / `verify(headers, body, secret, {
+acceptLegacy: true })` (JS) function that accepts the full headers map
+and resolves the correct signature automatically. The returned result
+carries a `used_legacy_header_family` flag — subscribers can `warn-log`
+when it flips `True` so they know which receivers still need to migrate
+before the cutover. After 2026-08-18 callers should flip the flag to
+`False` to fail-closed on legacy-only deliveries. See
+[`docs/WEBHOOK_VERIFICATION.md`](../apps/migration_cloud/api/static/WEBHOOK_VERIFICATION.md)
+for the full code samples.
+
 ### Step 2 — Or update your existing verifier code
 
 If you maintain your own verifier (Flask middleware, Express

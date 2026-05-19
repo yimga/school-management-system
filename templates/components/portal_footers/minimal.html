@@ -1,0 +1,14 @@
+{% load static i18n %}
+<footer class="dashboard-footer dashboard-footer--minimal" id="dashboardFooter" data-portal-footer-variant="minimal">
+  <div class="footer-shell footer-shell--minimal" data-rmc-shell-footer="portal-minimal">
+    <div class="footer-meta d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+      <span>&copy; {% now "Y" %} {{ SITE.company_name|default:SITE.site_name|default:"School" }}</span>
+      {% if SITE.footer_support_hours %}
+      <span class="text-muted">{{ SITE.footer_support_hours }}</span>
+      {% endif %}
+      {% if SITE.company_email %}
+      <a href="mailto:{{ SITE.company_email }}" class="text-decoration-none">{% trans "Contact" %}</a>
+      {% endif %}
+    </div>
+  </div>
+</footer>

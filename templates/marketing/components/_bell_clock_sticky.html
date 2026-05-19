@@ -11,35 +11,35 @@
       </p>
     </header>
 
-    <div class="mkt-v3-bell-clock" data-mkt-bell-clock>
+    <div class="mkt-v3-bell-clock mkt-v3-bell-clock--impact" data-mkt-bell-clock data-mkt-bell-clock-mode="single" data-bell-auto-ms="8000">
       <nav class="mkt-v3-bell-clock__rail" aria-label="{% trans 'School day bells' %}">
         <ol class="mkt-v3-bell-clock__steps">
-          <li class="mkt-v3-bell-clock__step is-active" data-bell-step="0" aria-current="step">
+          <li class="mkt-v3-bell-clock__step is-active" data-bell-step="0" data-bell-metric="7:42" data-bell-story="{% trans 'Kitchen opens — today staged' %}" aria-current="step">
             <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
             <span class="mkt-v3-bell-clock__time">7:42</span>
             <span class="mkt-v3-bell-clock__label">{% trans "First light" %}</span>
           </li>
-          <li class="mkt-v3-bell-clock__step" data-bell-step="1">
+          <li class="mkt-v3-bell-clock__step" data-bell-step="1" data-bell-metric="9s" data-bell-story="{% trans 'Year 5B roll marks live' %}">
             <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
             <span class="mkt-v3-bell-clock__time">8:15</span>
             <span class="mkt-v3-bell-clock__label">{% trans "First bell" %}</span>
           </li>
-          <li class="mkt-v3-bell-clock__step" data-bell-step="2">
+          <li class="mkt-v3-bell-clock__step" data-bell-step="2" data-bell-metric="5m" data-bell-story="{% trans 'Permission slips clear' %}">
             <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
             <span class="mkt-v3-bell-clock__time">10:30</span>
             <span class="mkt-v3-bell-clock__label">{% trans "Stand-up" %}</span>
           </li>
-          <li class="mkt-v3-bell-clock__step" data-bell-step="3">
+          <li class="mkt-v3-bell-clock__step" data-bell-step="3" data-bell-metric="{% trans 'Before lunch' %}" data-bell-story="{% trans 'Ledger reconciled' %}">
             <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
             <span class="mkt-v3-bell-clock__time">12:00</span>
             <span class="mkt-v3-bell-clock__label">{% trans "Lunch" %}</span>
           </li>
-          <li class="mkt-v3-bell-clock__step" data-bell-step="4">
+          <li class="mkt-v3-bell-clock__step" data-bell-step="4" data-bell-metric="47" data-bell-story="{% trans 'Buses depart on time' %}">
             <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
             <span class="mkt-v3-bell-clock__time">15:15</span>
             <span class="mkt-v3-bell-clock__label">{% trans "Last bell" %}</span>
           </li>
-          <li class="mkt-v3-bell-clock__step" data-bell-step="5">
+          <li class="mkt-v3-bell-clock__step" data-bell-step="5" data-bell-metric="{% trans 'Ready' %}" data-bell-story="{% trans 'Tomorrow staged overnight' %}">
             <span class="mkt-v3-bell-clock__dot" aria-hidden="true"></span>
             <span class="mkt-v3-bell-clock__time">17:30</span>
             <span class="mkt-v3-bell-clock__label">{% trans "Closed" %}</span>
@@ -47,31 +47,38 @@
         </ol>
       </nav>
 
-      <div class="mkt-v3-bell-clock__panels">
-        <article class="mkt-v3-bell-clock__panel" data-bell-panel="0">
-          <p><strong>{% trans "Olu opens the kitchen window." %}</strong> {% trans "Today's plan is already staged." %}</p>
-          {% include "marketing/components/_dashboard_frame.html" with frame_title="Daily briefing" dashboard_partial="schools/_v2/_artifact_today_briefing.svg.html" %}
-        </article>
-        <article class="mkt-v3-bell-clock__panel" data-bell-panel="1" hidden>
-          <p><strong>{% trans "Year 5B's roll marks in nine seconds." %}</strong></p>
-          {% include "marketing/components/_dashboard_frame.html" with frame_title="Attendance" dashboard_partial="schools/_v2/_artifact_teacher_attendance.svg.html" %}
-        </article>
-        <article class="mkt-v3-bell-clock__panel" data-bell-panel="2" hidden>
-          <p><strong>{% trans "Permission slips clear in five minutes." %}</strong></p>
-          {% include "marketing/components/_dashboard_frame.html" with frame_title="Communications" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" %}
-        </article>
-        <article class="mkt-v3-bell-clock__panel" data-bell-panel="3" hidden>
-          <p><strong>{% trans "The ledger reconciles before lunch." %}</strong></p>
-          {% include "marketing/components/_dashboard_frame.html" with frame_title="Finance" dashboard_partial="schools/_v2/_artifact_finance_dashboard.svg.html" %}
-        </article>
-        <article class="mkt-v3-bell-clock__panel" data-bell-panel="4" hidden>
-          <p><strong>{% trans "Forty-seven buses leave on time." %}</strong></p>
-          {% include "marketing/components/_dashboard_frame.html" with frame_title="Operations" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
-        </article>
-        <article class="mkt-v3-bell-clock__panel" data-bell-panel="5" hidden>
-          <p><strong>{% trans "Tomorrow is already staged." %}</strong></p>
-          {% include "marketing/components/_dashboard_frame.html" with frame_title="IT health" dashboard_partial="schools/_v2/_artifact_it_health.svg.html" %}
-        </article>
+      <div class="mkt-v3-bell-clock__viewport" aria-live="polite">
+        <div class="mkt-v3-bell-clock__panels">
+          <article class="mkt-v3-bell-clock__panel is-active" data-bell-panel="0">
+            <p class="mkt-v3-bell-clock__panel-copy"><strong>{% trans "Olu opens the kitchen window." %}</strong> {% trans "Today's plan is already staged." %}</p>
+            {% include "marketing/components/_dashboard_frame.html" with frame_title="Daily briefing" dashboard_partial="schools/_v2/_artifact_today_briefing.svg.html" frame_extra_class="mkt-v3-dashboard-frame--impact" %}
+          </article>
+          <article class="mkt-v3-bell-clock__panel" data-bell-panel="1" hidden>
+            <p class="mkt-v3-bell-clock__panel-copy"><strong>{% trans "Year 5B's roll marks in nine seconds." %}</strong></p>
+            {% include "marketing/components/_dashboard_frame.html" with frame_title="Attendance" dashboard_partial="schools/_v2/_artifact_teacher_attendance.svg.html" frame_extra_class="mkt-v3-dashboard-frame--impact" %}
+          </article>
+          <article class="mkt-v3-bell-clock__panel" data-bell-panel="2" hidden>
+            <p class="mkt-v3-bell-clock__panel-copy"><strong>{% trans "Permission slips clear in five minutes." %}</strong></p>
+            {% include "marketing/components/_dashboard_frame.html" with frame_title="Communications" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" frame_extra_class="mkt-v3-dashboard-frame--impact" %}
+          </article>
+          <article class="mkt-v3-bell-clock__panel" data-bell-panel="3" hidden>
+            <p class="mkt-v3-bell-clock__panel-copy"><strong>{% trans "The ledger reconciles before lunch." %}</strong></p>
+            {% include "marketing/components/_dashboard_frame.html" with frame_title="Finance" dashboard_partial="schools/_v2/_artifact_finance_dashboard.svg.html" frame_extra_class="mkt-v3-dashboard-frame--impact" %}
+          </article>
+          <article class="mkt-v3-bell-clock__panel" data-bell-panel="4" hidden>
+            <p class="mkt-v3-bell-clock__panel-copy"><strong>{% trans "Forty-seven buses leave on time." %}</strong></p>
+            {% include "marketing/components/_dashboard_frame.html" with frame_title="Operations" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" frame_extra_class="mkt-v3-dashboard-frame--impact" %}
+          </article>
+          <article class="mkt-v3-bell-clock__panel" data-bell-panel="5" hidden>
+            <p class="mkt-v3-bell-clock__panel-copy"><strong>{% trans "Tomorrow is already staged." %}</strong></p>
+            {% include "marketing/components/_dashboard_frame.html" with frame_title="IT health" dashboard_partial="schools/_v2/_artifact_it_health.svg.html" frame_extra_class="mkt-v3-dashboard-frame--impact" %}
+          </article>
+        </div>
+      </div>
+
+      <div class="mkt-v3-bell-clock__story" data-bell-story aria-label="{% trans 'Active bell highlight' %}">
+        <p class="mkt-v3-bell-clock__story-metric" data-bell-story-metric>7:42</p>
+        <p class="mkt-v3-bell-clock__story-label" data-bell-story-label>{% trans "Kitchen opens — today staged" %}</p>
       </div>
     </div>
   </div>

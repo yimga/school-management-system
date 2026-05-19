@@ -1,0 +1,31 @@
+{% load i18n %}
+<section class="mkt-lane-admissions rmc-reveal" data-mkt-reveal data-mkt-admissions-steps aria-labelledby="lane-admissions-headline">
+  <h2 id="lane-admissions-headline" class="mkt-lane-admissions__title">{% trans "Enquiry to enrolled" %}</h2>
+  <p class="mkt-lane-admissions__lead">{% trans "Every stage visible to admissions staff — no shadow spreadsheets." %}</p>
+  <ol class="mkt-lane-admissions__steps" role="list">
+    <li class="mkt-lane-admissions__step is-active" data-admissions-step="1">
+      <button type="button" class="mkt-lane-admissions__step-btn" aria-expanded="true">{% trans "Enquiry" %}</button>
+      <div class="mkt-lane-admissions__detail">
+        <p>{% trans "Capture leads from web forms, walk-ins, and referrals with source attribution." %}</p>
+      </div>
+    </li>
+    <li class="mkt-lane-admissions__step" data-admissions-step="2">
+      <button type="button" class="mkt-lane-admissions__step-btn" aria-expanded="false">{% trans "Application" %}</button>
+      <div class="mkt-lane-admissions__detail" hidden>
+        <p>{% trans "Configurable forms, document uploads, and fee schedules per program." %}</p>
+      </div>
+    </li>
+    <li class="mkt-lane-admissions__step" data-admissions-step="3">
+      <button type="button" class="mkt-lane-admissions__step-btn" aria-expanded="false">{% trans "Review" %}</button>
+      <div class="mkt-lane-admissions__detail" hidden>
+        <p>{% trans "Committee workflows, notes, and decision letters without email chains." %}</p>
+      </div>
+    </li>
+    <li class="mkt-lane-admissions__step" data-admissions-step="4">
+      <button type="button" class="mkt-lane-admissions__step-btn" aria-expanded="false">{% trans "Offer & enroll" %}</button>
+      <div class="mkt-lane-admissions__detail" hidden>
+        <p>{% trans "Acceptance, deposit tracking, and student record creation in one motion." %}</p>
+      </div>
+    </li>
+  </ol>
+</section>

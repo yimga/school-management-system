@@ -1,0 +1,230 @@
+# RunMyCampus Companion (Docker sibling) — keyless-signed-image workflow.
+#
+# Triggers ONLY on tags matching `companion-docker-v*` (e.g.
+# `companion-docker-v3.39.0`). Does NOT run on push to main; does NOT
+# run on PRs.
+#
+# Tag -> version-string contract:
+#   The tag suffix after `companion-docker-v` MUST match
+#   `companion-docker/app/__init__.py::__version__`.
+#   `scripts/preflight_signed_release.py` enforces this before push;
+#   CI re-checks here after checkout.
+#
+# Authentication: Sigstore Cosign keyless OIDC. NO PFX / certificate
+# secrets needed. Cosign mints a short-lived signing cert from
+# Fulcio using the workflow's GitHub OIDC identity, signs the image
+# digest, and publishes the signature to Rekor (the public
+# transparency log). Verifiers later check that the signing cert was
+# issued to THIS repo's GitHub workflow.
+#
+# Required permissions on the job:
+#   * id-token: write   (mint OIDC token for Cosign / Fulcio)
+#   * packages: write   (push to ghcr.io/runmycampus/*)
+#   * contents: read    (checkout)
+#
+# Setup: docs/COMPANION_SIBLINGS_SIGNED_RELEASE.md describes how to
+# enable keyless Cosign signing on the ghcr.io/runmycampus
+# organization, the OIDC identity-regex verifiers should use, and how
+# to rotate access via the GitHub org's Packages settings.
+
+name: release-companion-docker
+
+on:
+  push:
+    tags:
+      - "companion-docker-v*"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "publish" to confirm release to ghcr.io (multi-arch, Cosign-signed)'
+        required: true
+        type: string
+      release_tag:
+        description: 'Release tag to publish, e.g. companion-docker-v3.39.0'
+        required: true
+        type: string
+
+# Do NOT trigger on push to main / PRs.
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || github.ref_name }}
+
+defaults:
+  run:
+    working-directory: beta/school-management-system/companion-docker
+
+jobs:
+  confirm:
+    name: Manual confirmation gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirm input on manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "publish" ]; then
+            echo "::error::workflow_dispatch requires confirm='publish' (got '${{ github.event.inputs.confirm }}')"
+            exit 1
+          fi
+          case "${{ github.event.inputs.release_tag }}" in
+            companion-docker-v*) ;;
+            *)
+              echo "::error::workflow_dispatch release_tag must match companion-docker-v*"
+              exit 1
+              ;;
+          esac
+          echo "Manual dispatch confirmed for ${{ github.event.inputs.release_tag }}."
+      - name: Tag-triggered run (no manual confirm required)
+        if: github.event_name == 'push'
+        run: echo "Triggered by tag ${{ github.ref_name }} - no manual confirm required."
+
+  build-push-sign:
+    name: Build multi-arch, push to GHCR, sign with Cosign
+    runs-on: ubuntu-latest
+    needs: confirm
+    permissions:
+      contents: read
+      packages: write
+      id-token: write  # OIDC for Cosign keyless signing
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+      image_ref: ${{ steps.img.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Verify tag matches app/__init__.py __version__
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"
+          EXPECTED="${TAG#companion-docker-v}"
+          # Extract __version__ value robustly via python (no shell-quoting traps).
+          ACTUAL=$(python -c "import re,sys; t=open('app/__init__.py').read(); m=re.search(r'__version__\s*=\s*\"([^\"]+)\"', t); sys.stdout.write(m.group(1) if m else '')")
+          if [ -z "$ACTUAL" ]; then
+            echo "::error::Cannot read __version__ from app/__init__.py"
+            exit 1
+          fi
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Tag suffix '$EXPECTED' does not match __version__ '$ACTUAL'"
+            exit 1
+          fi
+          echo "Tag/version aligned: $ACTUAL"
+
+      - name: Set up QEMU (multi-arch build)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image reference
+        id: img
+        run: |
+          set -euo pipefail
+          REF="ghcr.io/runmycampus/companion-docker:${RELEASE_TAG}"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "Image ref: $REF"
+
+      - name: Build + push multi-arch image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: beta/school-management-system/companion-docker
+          file: beta/school-management-system/companion-docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.img.outputs.ref }}
+          provenance: true
+          sbom: true
+
+      - name: Install Cosign
+        # Pinned by SHA for keyless OIDC signing security.
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382  # v3.6.0
+
+      - name: Sign image with Cosign (keyless OIDC)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          set -euo pipefail
+          DIGEST="${{ steps.build.outputs.digest }}"
+          REF="${{ steps.img.outputs.ref }}@$DIGEST"
+          echo "Signing $REF"
+          cosign sign --yes "$REF"
+
+      - name: Compose + attach in-toto SLSA Provenance v1.0 attestation
+        # Layered ON TOP of `provenance: true` from build-push-action.
+        # The build-push-action provenance is BuildKit's internal
+        # attestation; this step adds an externally-readable SLSA v1
+        # statement signed with the same keyless OIDC identity.
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+          DIGEST: ${{ steps.build.outputs.digest }}
+          REF: ${{ steps.img.outputs.ref }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > /tmp/slsa-provenance.json
+          import json, os
+          digest = os.environ["DIGEST"]                # sha256:....
+          algo, hexv = digest.split(":", 1)
+          ref = os.environ["REF"].split("@", 1)[0]
+          subj_name = ref.split("/", 1)[-1] if "/" in ref else ref
+          stmt = {
+            "_type": "https://in-toto.io/Statement/v1",
+            "predicateType": "https://slsa.dev/provenance/v1",
+            "subject": [{"name": subj_name, "digest": {algo: hexv}}],
+            "predicate": {
+              "buildDefinition": {
+                "buildType": "https://github.com/runmycampus/sms/companion-docker@v1",
+                "externalParameters": {
+                  "release_tag": os.environ["RELEASE_TAG"],
+                  "workflow": ".github/workflows/release-companion-docker.yml",
+                  "image_ref": os.environ["REF"],
+                },
+                "internalParameters": {
+                  "platforms": "linux/amd64,linux/arm64",
+                  "buildkit_provenance": "true",
+                  "buildkit_sbom": "true",
+                },
+              },
+              "runDetails": {
+                "builder": {"id": "https://github.com/" + os.environ.get("GITHUB_REPOSITORY", "")},
+                "metadata": {"invocationId": os.environ.get("GITHUB_RUN_ID", "")},
+              },
+            },
+          }
+          print(json.dumps(stmt))
+          PY
+          cosign attest --yes \
+            --predicate /tmp/slsa-provenance.json \
+            --type "https://slsa.dev/provenance/v1" \
+            "${REF}@${DIGEST}"
+          echo "Attested SLSA Provenance v1.0 on ${REF}@${DIGEST}"
+
+  slsa-provenance-reusable:
+    name: SLSA reusable provenance generator (in-toto layer)
+    # In-toto SLSA Provenance via the official slsa-github-generator
+    # reusable workflow. PINNED BY SHA per security policy.
+    # Upstream: https://github.com/slsa-framework/slsa-github-generator
+    needs: build-push-sign
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+      packages: write
+    # v1.10.0 commit SHA:
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@5a775b367a56d5bd118a224a811bba288150a563
+    with:
+      image: ghcr.io/runmycampus/companion-docker
+      digest: ${{ needs.build-push-sign.outputs.digest }}
+      registry-username: ${{ github.actor }}
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}

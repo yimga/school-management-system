@@ -1,6 +1,6 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-lanes.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-sis{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-archetype" data-mkt-archetype="student-information-system">
@@ -13,7 +13,10 @@
       <a href="{% url 'marketing_teach_hub' %}" class="mkt-edt-link">{% trans "Back to Teach →" %}</a>
     </div>
   </header>
-  {% include "marketing/components/_dashboard_frame.html" with frame_title="Learner spine" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
+  {% include "marketing/components/_dashboard_frame.html" with frame_title="Learner spine" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" frame_extra_class="mkt-v3-dashboard-frame--lane-academics" %}
+  <div class="mkt-edt-container">
+    {% include "marketing/components/_lane_academics_matrix.html" %}
+  </div>
   <section class="mkt-edt-container mkt-v3-archetype__wins">
     <h2>{% trans "One record, every bell" %}</h2>
     <ul>

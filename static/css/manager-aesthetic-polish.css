@@ -20,21 +20,29 @@
 /* === Card surfaces on the manager content area =========================== */
 
 /* Every card-like component inside the manager's main column gets an
- * unambiguous light surface. The existing rmc-world-class-experience.css
- * sets the text colour; this rule guarantees the background actually
- * contrasts with that text. */
-#cp-main-content .card,
-#cp-main-content .rmc-zero-click,
-#cp-main-content .rmc-os-page-header,
-#cp-main-content .rmc-wcx-surface,
-#cp-main-content .rmc-acx-glass-panel,
-#cp-main-content .rmc-acx-metric-card,
-#cp-main-content .studio-os__card {
+ * unambiguous light surface when the EFFECTIVE theme is light.
+ * v1298: scoped under resolved-light — unconditional rules painted #fff
+ * cards while data-theme=dark flipped text to near-white (white-on-white). */
+html[data-resolved-theme="light"] #cp-main-content .card,
+html[data-bs-theme="light"] #cp-main-content .card,
+html[data-resolved-theme="light"] #cp-main-content .rmc-zero-click,
+html[data-bs-theme="light"] #cp-main-content .rmc-zero-click,
+html[data-resolved-theme="light"] #cp-main-content .rmc-os-page-header,
+html[data-bs-theme="light"] #cp-main-content .rmc-os-page-header,
+html[data-resolved-theme="light"] #cp-main-content .rmc-wcx-surface,
+html[data-bs-theme="light"] #cp-main-content .rmc-wcx-surface,
+html[data-resolved-theme="light"] #cp-main-content .rmc-acx-glass-panel,
+html[data-bs-theme="light"] #cp-main-content .rmc-acx-glass-panel,
+html[data-resolved-theme="light"] #cp-main-content .rmc-acx-metric-card,
+html[data-bs-theme="light"] #cp-main-content .rmc-acx-metric-card,
+html[data-resolved-theme="light"] #cp-main-content .studio-os__card,
+html[data-bs-theme="light"] #cp-main-content .studio-os__card {
   background-color: var(--surface-elevated, var(--color-base-0));
   border-color: rgba(26, 22, 18, 0.08); /* off-token-allow: always-dark-warm-bg */
 }
 
-#cp-main-content .card-header {
+html[data-resolved-theme="light"] #cp-main-content .card-header,
+html[data-bs-theme="light"] #cp-main-content .card-header {
   background-color: rgba(26, 22, 18, 0.03); /* off-token-allow: always-dark-warm-bg */
   border-bottom-color: rgba(26, 22, 18, 0.08); /* off-token-allow: always-dark-warm-bg */
   color: var(--text-primary, var(--color-base-900));
@@ -109,10 +117,9 @@
 
 /* === Studio canvas + content background continuity ======================= */
 
-/* The dark cp-main-col should NOT bleed white below the content. Force the
- * canvas itself to a clean off-white surface so cards land on it without a
- * "hard cut" between dark and light. */
-#cp-main-content {
+/* Light effective theme only — dark canvas is set in the [data-theme="dark"] block. */
+html[data-resolved-theme="light"] #cp-main-content,
+html[data-bs-theme="light"] #cp-main-content {
   background-color: var(--surface-canvas-soft);
 }
 
@@ -417,10 +424,28 @@
 [data-theme="dark"] #cp-main-content .rmc-acx-glass-panel,
 [data-theme="dark"] #cp-main-content .rmc-acx-metric-card,
 [data-theme="dark"] #cp-main-content .rmc-acx-drawer,
-[data-theme="dark"] #cp-main-content .studio-os__card {
+[data-theme="dark"] #cp-main-content .studio-os__card,
+[data-theme="dark"] #cp-main-content .proof-app-card,
+[data-theme="dark"] #cp-main-content .proof-panel,
+[data-theme="dark"] #cp-main-content .proof-card,
+[data-theme="dark"] #cp-main-content .proof-compare-table,
+[data-theme="dark"] #cp-main-content .proof-step,
+[data-theme="dark"] #cp-main-content .proof-preview {
   background-color: var(--surface-elevated, #2c241d);
   border-color: var(--hairline-strong, rgba(245, 220, 180, 0.18));
   color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] #cp-main-content .proof-app-screen {
+  background-color: var(--surface-canvas, #241e18);
+  border-color: var(--hairline-strong, rgba(245, 220, 180, 0.18));
+  color: var(--text-primary, #f5efe3);
+}
+
+[data-theme="dark"] #cp-main-content .proof-app-card .text-muted,
+[data-theme="dark"] #cp-main-content .proof-panel .text-muted,
+[data-theme="dark"] #cp-main-content .proof-panel-copy {
+  color: var(--text-secondary, #d9d0c2) !important;
 }
 
 [data-theme="dark"] #cp-main-content .card-header {

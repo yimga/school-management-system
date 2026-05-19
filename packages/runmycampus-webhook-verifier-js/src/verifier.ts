@@ -26,6 +26,17 @@ export const TIMESTAMP_HEADER = "X-RunMyCampus-Timestamp";
 export const EVENT_HEADER = "X-RunMyCampus-Event";
 export const VERSION_HEADER = "X-RunMyCampus-Version";
 
+/**
+ * v3.37.0 — legacy header aliases for the 2026-05-19 → 2026-08-18
+ * dual-emit migration window. Receivers built against the original
+ * `X-Migration-Cloud-*` family stay supported until they migrate, via
+ * `verify(..., { acceptLegacy: true })`. Default is `true` until 2026-08-18.
+ */
+export const LEGACY_SIGNATURE_HEADER = "X-Migration-Cloud-Signature";
+export const LEGACY_TIMESTAMP_HEADER = "X-Migration-Cloud-Timestamp";
+export const LEGACY_EVENT_HEADER = "X-Migration-Cloud-Event";
+export const LEGACY_VERSION_HEADER = "X-Migration-Cloud-Version";
+
 /** Signature prefix that identifies the digest algorithm. */
 export const SUPPORTED_PREFIX = "sha256=";
 
@@ -290,6 +301,13 @@ export async function verifySignatureStrict(
  *
  * Use this in fail-closed middleware that doesn't need to dispatch
  * on the failure mode.
+ *
+ * @deprecated since 1.0.0-rc.1 — use {@link verify} instead, which
+ *   accepts the full header map and transparently falls back across
+ *   the canonical / legacy header families, returning a
+ *   {@link VerifyResult} with non-sensitive diagnostics.
+ *   `verifySignature` continues to work but will be removed in 2.0.
+ *   See `MIGRATION_TO_1_0.md`.
  */
 export async function verifySignature(
   body: BytesLike,
@@ -305,5 +323,169 @@ export async function verifySignature(
     // Re-throw unexpected errors (e.g. WebCrypto/Node-crypto unavailable).
     // Customer middleware should treat those as a 500, not a 401.
     throw err;
+  }
+}
+
+// ─── v3.37.0 dual-header-family `verify` API ─────────────────────────────
+
+/**
+ * Result of {@link verify} — boolean `valid` plus non-sensitive
+ * diagnostics. NEVER contains secret/signature bytes.
+ */
+export interface VerifyResult {
+  valid: boolean;
+  /**
+   * True iff the signature came from the legacy
+   * `X-Migration-Cloud-Signature` header rather than the canonical
+   * `X-RunMyCampus-Signature`. Subscribers should warn-log when this
+   * flips true so they know to migrate before the dual-emit window
+   * closes on 2026-08-18.
+   */
+  usedLegacyHeaderFamily: boolean;
+  /** Header NAME the verifier consumed. Empty when both were absent. */
+  signatureHeaderName: string;
+  /**
+   * Empty when `valid` is true; a short non-sensitive category otherwise:
+   * `"missing-header" | "unsupported-algorithm" | "bad-signature" |
+   * "clock-skew" | "legacy-rejected"`.
+   */
+  reason: string;
+}
+
+export type HeaderValue = string | Uint8Array | string[] | null | undefined;
+
+export interface HeaderMap {
+  get?(name: string): HeaderValue;
+  [key: string]: any;
+}
+
+export interface VerifyApiOptions {
+  /**
+   * Accept the legacy `X-Migration-Cloud-*` header family as a fallback
+   * when the new family is absent. Default `true` for the 2026-05-19 →
+   * 2026-08-18 migration window. Flip to `false` after the cutover.
+   */
+  acceptLegacy?: boolean;
+  /** Max accepted clock skew (seconds). Default 300. */
+  toleranceSeconds?: number;
+  /** Override for the current unix-time (seconds, float). Useful in tests. */
+  now?: number;
+}
+
+/**
+ * Case-insensitive header lookup. Accepts both Headers-like (with `get`)
+ * and plain-object headers. Returns the first matching value or null.
+ */
+function _getHeader(headers: HeaderMap, name: string): HeaderValue {
+  if (!headers) return null;
+  // Headers-like object (`fetch` Response.headers, Express req.headers
+  // with a custom Headers wrapper, etc.). The Headers `get` is itself
+  // case-insensitive, so any case variant works.
+  if (typeof headers.get === "function") {
+    const v = headers.get(name);
+    if (v !== null && v !== undefined) return v as HeaderValue;
+    return null;
+  }
+  // Plain object — Node usually normalizes to lowercase, but HTTP header
+  // names are case-insensitive and some callers pass mixed-case maps.
+  const candidates = [name, name.toLowerCase(), name.toUpperCase()];
+  for (const cand of candidates) {
+    const v = (headers as Record<string, HeaderValue>)[cand];
+    if (v !== null && v !== undefined) return v;
+  }
+  const target = name.toLowerCase();
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() !== target) continue;
+    const v = (headers as Record<string, HeaderValue>)[key];
+    if (v !== null && v !== undefined) return v;
+  }
+  return null;
+}
+
+/**
+ * v3.37.0 — verify a delivery from EITHER header family.
+ *
+ * Preference order: the canonical `X-RunMyCampus-Signature` is consulted
+ * first; the legacy `X-Migration-Cloud-Signature` is the fallback IFF
+ * `acceptLegacy=true` (the default during the 2026-05-19 → 2026-08-18
+ * dual-emit window). After 2026-08-18 callers should flip
+ * `acceptLegacy=false` to fail-closed on legacy-only deliveries.
+ *
+ * Returned {@link VerifyResult} carries `usedLegacyHeaderFamily` so
+ * subscriber middleware can warn-log without changing fail-closed
+ * posture.
+ *
+ * Constant-time compare is inherited from {@link verifySignatureStrict}
+ * (Node `timingSafeEqual` when available, manual XOR fold otherwise).
+ */
+export async function verify(
+  headers: HeaderMap,
+  body: BytesLike,
+  secret: BytesLike,
+  opts: VerifyApiOptions = {},
+): Promise<VerifyResult> {
+  const acceptLegacy = opts.acceptLegacy !== false; // default true
+  const newSig = _getHeader(headers, SIGNATURE_HEADER);
+  const legacySig = _getHeader(headers, LEGACY_SIGNATURE_HEADER);
+  const newTs = _getHeader(headers, TIMESTAMP_HEADER);
+  const legacyTs = _getHeader(headers, LEGACY_TIMESTAMP_HEADER);
+
+  let signatureValue: HeaderValue;
+  let timestampValue: HeaderValue;
+  let headerName: string;
+  let usedLegacy = false;
+
+  if (newSig !== null && newSig !== undefined && _coerceHeader(newSig)) {
+    signatureValue = newSig;
+    timestampValue = newTs;
+    headerName = SIGNATURE_HEADER;
+  } else if (legacySig !== null && legacySig !== undefined && _coerceHeader(legacySig)) {
+    if (!acceptLegacy) {
+      return {
+        valid: false,
+        usedLegacyHeaderFamily: true,
+        signatureHeaderName: LEGACY_SIGNATURE_HEADER,
+        reason: "legacy-rejected",
+      };
+    }
+    signatureValue = legacySig;
+    timestampValue = legacyTs;
+    headerName = LEGACY_SIGNATURE_HEADER;
+    usedLegacy = true;
+  } else {
+    return {
+      valid: false,
+      usedLegacyHeaderFamily: false,
+      signatureHeaderName: "",
+      reason: "missing-header",
+    };
+  }
+
+  const strictOpts: VerifyOptions = {
+    timestampHeader: timestampValue,
+    toleranceSeconds: opts.toleranceSeconds,
+    now: opts.now,
+  };
+  try {
+    await verifySignatureStrict(body, signatureValue, secret, strictOpts);
+    return {
+      valid: true,
+      usedLegacyHeaderFamily: usedLegacy,
+      signatureHeaderName: headerName,
+      reason: "",
+    };
+  } catch (err) {
+    let reason = "bad-signature";
+    if (err instanceof MissingHeaderError) reason = "missing-header";
+    else if (err instanceof UnsupportedAlgorithmError) reason = "unsupported-algorithm";
+    else if (err instanceof ClockSkewError) reason = "clock-skew";
+    else if (err instanceof BadSignatureError) reason = "bad-signature";
+    else if (!(err instanceof VerificationError)) throw err;
+    return {
+      valid: false,
+      usedLegacyHeaderFamily: usedLegacy,
+      signatureHeaderName: headerName,
+      reason,
+    };
   }
 }

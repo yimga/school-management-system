@@ -1,0 +1,39 @@
+{
+  "name": "@runmycampus/companion-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RunMyCampus Companion — Manifest V3 browser extension for operator-authorized SIS DOM-reading and sealed-box upload to RunMyCampus migration cloud.",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "build:firefox": "cross-env MODE=firefox vite build --mode firefox",
+    "dev": "vite",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "package": "node scripts/package-extension.mjs",
+    "package:firefox": "cross-env MODE=firefox node scripts/package-extension.mjs"
+  },
+  "dependencies": {
+    "libsodium-wrappers": "^0.7.13"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/libsodium-wrappers": "^0.7.14",
+    "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^7.7.0",
+    "@typescript-eslint/parser": "^7.7.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "jsdom": "^24.0.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10",
+    "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

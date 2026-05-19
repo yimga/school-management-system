@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-05-19T11:18:39.380639+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "id": "proof_pages_semantic_surfaces",
+      "status": "PASS",
+      "detail": "proof-pages uses semantic elevated surfaces, not --color-base-0 white mix"
+    },
+    {
+      "id": "proof_app_card_tokens",
+      "status": "PASS",
+      "detail": "proof-app-card avoids --color-base-0 fallback"
+    },
+    {
+      "id": "manager_dark_proof_cards",
+      "status": "PASS",
+      "detail": "manager-aesthetic-polish repaints proof catalog cards in dark mode"
+    },
+    {
+      "id": "readability_dark_tenant_catalog",
+      "status": "PASS",
+      "detail": "theme-platform-readability dark rules cover tenant app catalog"
+    },
+    {
+      "id": "safety_net_proof_surfaces",
+      "status": "PASS",
+      "detail": "dark-mode-safety-net forces elevated slabs on proof surfaces"
+    },
+    {
+      "id": "install_impact_no_bg_white",
+      "status": "PASS",
+      "detail": "install impact modal graph mount does not inject bg-white"
+    }
+  ]
+}

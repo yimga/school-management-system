@@ -402,6 +402,7 @@ TEMPLATES = [
                 "apps.siteconfig.context_processors.region_settings",
                 "apps.siteconfig.context_processors.language_context",
                 "apps.siteconfig.context_processors.lexicon_context",  # Wave A — G1 tenant terminology overrides
+                "apps.siteconfig.context_processors.analytics_viz_context",
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
                 "apps.accounts.context_processors.sidebar_record_context",
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
@@ -1463,6 +1464,23 @@ CELERY_BEAT_SCHEDULE = {
         ),
         "options": {"queue": "default", "expires": 3600},
     },
+    # v3.39.0 Agent 1 — weekly Migration Cloud audit-chain verifier.
+    # Mondays 02:00 UTC. Walks every active tenant's hash-chain via
+    # ``manage.py verify_audit_chain --all-tenants`` and emails the
+    # operator distribution list (``MIGRATION_CLOUD_AUDIT_OPS_EMAIL``)
+    # ONLY when at least one chain is broken. The task NEVER raises
+    # to the worker — verifier exceptions are logged at ERROR and
+    # swallowed. Lazy-guarded so a CI lane without celery installed
+    # still imports settings.py cleanly.
+    "accounts-verify-audit-chain": {
+        "task": "migration_cloud.verify_audit_chain_weekly",
+        "schedule": (
+            _celery_crontab(hour=2, minute=0, day_of_week="mon")
+            if _celery_crontab is not None
+            else 604800.0
+        ),
+        "options": {"queue": "default", "expires": 3600},
+    },
     # v3.34.0 Agent 5 — weekly upstream watch for django-cryptography
     # Django-5 compatibility. Mondays 05:00 UTC. The script ALWAYS exits
     # 0 (it's a watch, not a gate); the task layer parses the audit JSON
@@ -1888,6 +1906,76 @@ MIGRATION_CLOUD_EMIT_LEGACY_HEADERS = (
 )
 MIGRATION_CLOUD_LEGACY_HEADER_DEPRECATION_DATE = "2026-08-18"
 
+# v3.39.0 Agent 1 — Migration Cloud audit-chain verifier ops email.
+# The weekly Celery beat ``accounts-verify-audit-chain`` (Mondays 02:00
+# UTC) invokes ``manage.py verify_audit_chain --all-tenants`` and only
+# emails this address when at least one tenant chain is BROKEN. The
+# body NEVER carries raw hash bytes, payload bytes, or tenant slugs —
+# only tenant_id_hash prefixes, counts, and first-broken-event UUIDs.
+# Empty string disables the email arm (the beat still runs the
+# verifier and logs); operators set the env var per environment.
+MIGRATION_CLOUD_AUDIT_OPS_EMAIL = (
+    os.environ.get("MIGRATION_CLOUD_AUDIT_OPS_EMAIL", "") or ""
+).strip()
+
+# v3.39.0 Agent 1 — Counsel-pending audit retention purge approval
+# token. The ``purge_audit_events_pre_approved`` management command
+# REFUSES to run without ``--counsel-approval-token=<value>`` matching
+# this setting via constant-time compare. Empty string (default) makes
+# the command print a counsel-pending message and exit 1 regardless of
+# the supplied flag — the operator MUST provision the env var only
+# AFTER the counsel signoff PDF is on file (see
+# docs/MIGRATION_CLOUD_AUDIT_LOG.md § Retention purge procedure).
+MIGRATION_CLOUD_AUDIT_PURGE_APPROVAL_TOKEN = (
+    os.environ.get("MIGRATION_CLOUD_AUDIT_PURGE_APPROVAL_TOKEN", "") or ""
+).strip()
+
+# v3.39.0 Agent 2 — Migration Cloud audit-event root-key signature.
+#
+# When ``MIGRATION_CLOUD_AUDIT_SIGNING_KEY`` is set (base64 over >= 32
+# random bytes recommended), every new audit event is signed with
+# HMAC-SHA512 over the SAME canonical-JSON pre-image that
+# ``integrity_hash`` covers. The hex digest is stored on the event's
+# ``root_key_signature`` field and re-verified by:
+#
+#   * ``python manage.py verify_audit_chain --check-root-signature``
+#   * the JSONL export view when ``?verify_root_signature=1`` is set
+#
+# Defends against the "restore-from-tampered-backup" attack: even if
+# every byte of the audit table is altered, an attacker who lacks the
+# signing key cannot regenerate a matching signature. SHA-512 is used
+# (rather than SHA-256, which ``integrity_hash`` already uses) so a
+# single-key compromise cannot collapse both checks at once.
+#
+# Operational guidance — see docs/SECURITY_KEYS.md "Audit-event root-key
+# signature" section. NEVER commit a literal key value here; read from
+# the environment only.
+#
+# ``MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND`` selects the signing surface:
+#   * ``local-env-key`` — default; HMAC with the env-loaded key.
+#   * ``aws-kms`` / ``azure-keyvault`` / ``hashicorp-vault`` / ``gcp-kms``
+#     — reserved; current implementation raises NotImplementedError
+#     with "configure HSM bridge first" message + docs reference.
+MIGRATION_CLOUD_AUDIT_SIGNING_KEY = os.environ.get(
+    "MIGRATION_CLOUD_AUDIT_SIGNING_KEY", ""
+)
+MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND = os.environ.get(
+    "MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND", "local-env-key"
+)
+
+# v3.40.0 Agent 1 — HashiCorp Vault Transit backend dry-run flag.
+#
+# When ``MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND=hashicorp-vault`` and this
+# flag is "1" (the dev default), the vault backend returns deterministic
+# 128-char base64 placeholders instead of calling Vault. Production
+# deployments MUST set this to "0" and provision real Vault transit
+# access. See docs/MIGRATION_CLOUD_HSM_VAULT.md for the operator
+# playbook (VAULT_ADDR, VAULT_TOKEN, MIGRATION_CLOUD_VAULT_TRANSIT_KEY_NAME,
+# MIGRATION_CLOUD_VAULT_NAMESPACE for Enterprise).
+MIGRATION_CLOUD_VAULT_DRY_RUN = os.environ.get(
+    "MIGRATION_CLOUD_VAULT_DRY_RUN", "1"
+) == "1"
+
 # Pass 12: CORS allowlist. Strict by default; SiteConfig can extend per tenant
 # at request time via a middleware (django-cors-headers honors the dynamic list
 # through CORS_ALLOWED_ORIGINS_REGEXES at startup).
@@ -1935,6 +2023,24 @@ SPECTACULAR_SETTINGS = {
     # Hide internal/non-stable endpoints from the public docs by excluding them with
     # the `extend_schema(exclude=True)` decorator on the view.
 }
+
+# --- Observability metrics bridge (v3.39.0 Agent 4) ---
+# Pluggable backend dispatch for platform metric emission. Default is
+# "noop" so dev / test never emit. Production sets one of:
+#   "structured-log"    — JSON line on logging.getLogger("observability.metrics")
+#   "prometheus-client" — wraps prometheus_client (optional dep)
+#   "statsd"            — wraps statsd (optional dep)
+# If the requested backend's library is not installed, the bridge falls
+# back to "structured-log" and logs a one-time WARNING. See
+# apps/observability/metrics.py and docs/OBSERVABILITY_METRICS.md.
+OBSERVABILITY_METRICS_BACKEND = os.getenv("OBSERVABILITY_METRICS_BACKEND", "noop")
+OBSERVABILITY_METRICS_STATSD_HOST = os.getenv("OBSERVABILITY_METRICS_STATSD_HOST", "")
+OBSERVABILITY_METRICS_STATSD_PORT = int(
+    os.getenv("OBSERVABILITY_METRICS_STATSD_PORT", "8125")
+)
+OBSERVABILITY_PROMETHEUS_NAMESPACE = os.getenv(
+    "OBSERVABILITY_PROMETHEUS_NAMESPACE", "runmycampus"
+)
 
 # --- Sentry (error and performance monitoring) ---
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
@@ -2173,6 +2279,14 @@ SUPPORT_AI_KB_CONTEXT = os.getenv("SUPPORT_AI_KB_CONTEXT", "1").strip().lower() 
     "true",
     "yes",
 )
+# First-line support engine room (RAG + topology + constrained Ollama persona).
+AI_ENGINE_ROOM_SUPPORT = os.getenv("AI_ENGINE_ROOM_SUPPORT", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+AI_ENGINE_ROOM_TIMEOUT_SECONDS = int(os.getenv("AI_ENGINE_ROOM_TIMEOUT_SECONDS", "15"))
+AI_ENGINE_ROOM_MAX_INPUT_TOKENS = int(os.getenv("AI_ENGINE_ROOM_MAX_INPUT_TOKENS", "6000"))
 # After portal support form creates a GlobalSupportTicket, enqueue async triage (Celery worker required).
 SUPPORT_AI_AUTO_TRIAGE_ON_CREATE = os.getenv(
     "SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", "0"

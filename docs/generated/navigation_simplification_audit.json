@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T06:55:59.490139+00:00",
+  "generated_at": "2026-05-19T09:03:49.209728+00:00",
   "generated_by": "scripts/audit_navigation_simplification.py",
   "source_file": "apps/schools/control_plane_nav.py",
   "oversize_threshold": 7,

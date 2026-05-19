@@ -1,0 +1,143 @@
+/* Gear-up homepage — geo hero, day|role toggle, globe pins, proof quote */
+.mkt-v3-hero-geo {
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-admissions-indigo, #4f46e5);
+  margin-bottom: 0.5rem;
+}
+
+.mkt-day-role-story__tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin: 1rem 0 1.25rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas, rgba(0, 0, 0, 0.03));
+}
+.mkt-day-role-story__tab {
+  border: 0;
+  background: transparent;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: var(--type-size-sm, 0.875rem);
+  cursor: pointer;
+  color: var(--mkt-ink-muted, var(--text-secondary));
+}
+.mkt-day-role-story__tab[aria-selected="true"] {
+  background: var(--surface-elevated, #fff);
+  color: var(--mkt-ink, var(--text-primary));
+  box-shadow: var(--elev-1, 0 1px 2px rgba(0, 0, 0, 0.06));
+}
+
+.mkt-edt-globe__map--interactive {
+  position: relative;
+}
+.mkt-globe-pins {
+  position: absolute;
+  inset: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+.mkt-globe-pin {
+  position: absolute;
+  left: var(--pin-x);
+  top: var(--pin-y);
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  z-index: 1;
+}
+.mkt-globe-pin:focus-within {
+  z-index: 12;
+}
+.mkt-globe-pin__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  border: 2px solid var(--surface-elevated, #fff);
+  background: var(--accent-principal-emerald, #0d9488);
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-principal-emerald, #0d9488) 35%, transparent);
+  font-size: 0;
+  line-height: 0;
+  overflow: visible;
+}
+.mkt-globe-pin__btn[aria-expanded="true"] {
+  transform: scale(1.25);
+}
+.mkt-globe-pin__card {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.35rem);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.35rem;
+  background: var(--surface-elevated, #fff);
+  border: 1px solid var(--hairline);
+  font-size: 0.7rem;
+  box-shadow: var(--elev-2, 0 4px 12px rgba(0, 0, 0, 0.08));
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.mkt-globe-pin__card strong {
+  font-size: 0.75rem;
+}
+.mkt-globe-pin__card span {
+  color: var(--mkt-ink-muted, var(--text-secondary));
+}
+
+.mkt-proof-quote {
+  margin: 1.5rem 0 0;
+  padding: 1.25rem 1.5rem;
+  border-inline-start: 3px solid var(--accent-finance-gold, #d97706);
+  background: color-mix(in srgb, var(--accent-finance-gold, #d97706) 6%, var(--surface-canvas, #faf9f6));
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+.mkt-proof-quote__text {
+  font-size: var(--type-size-md, 1.05rem);
+  font-style: italic;
+  margin: 0 0 0.75rem;
+}
+.mkt-proof-quote__meta {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--mkt-ink-muted, var(--text-secondary));
+}
+.mkt-proof-quote__meta cite {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--mkt-ink, var(--text-primary));
+}
+
+.mkt-edt-trust-carousel {
+  margin-block: 2rem;
+  overflow: hidden;
+}
+.mkt-edt-trust-carousel .mkt-v3-logo-carousel__track {
+  display: flex;
+  gap: 2rem;
+  animation: mkt-logo-scroll 28s linear infinite;
+}
+@keyframes mkt-logo-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mkt-edt-trust-carousel .mkt-v3-logo-carousel__track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

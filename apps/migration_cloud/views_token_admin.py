@@ -30,6 +30,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 
+from apps.migration_cloud import metrics as _mc_metrics
 from apps.migration_cloud.api.scoped_tokens import (
     KNOWN_SCOPES,
     TOKEN_ROTATION_GRACE_DAYS,
@@ -37,8 +38,36 @@ from apps.migration_cloud.api.scoped_tokens import (
     _hash_token,
 )
 from apps.migration_cloud.models import MigrationCloudAPIToken
+# v3.38.0 Agent 5 — append-only audit log.
+from apps.migration_cloud.models_audit import (
+    MigrationCloudAuditEvent as _AuditEvent,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_audit(tenant_slug: str, event_type: str, **kwargs) -> None:
+    """Best-effort audit emit; never break the view path."""
+    try:
+        _AuditEvent.objects.record(tenant_slug or "", event_type, **kwargs)
+    except Exception as exc:  # broad-by-design
+        logger.error(
+            "migration_cloud.audit: emit failed event_type=%s err=%s",
+            event_type, type(exc).__name__,
+        )
+
+
+def _slug_for_tenant_id(tenant_id) -> str:
+    """Best-effort tenant slug lookup; returns empty on failure."""
+    if tenant_id in (None, ""):
+        return ""
+    try:
+        from apps.schools.models import School
+        # tenant-isolation-allow: audit-slug-lookup-cross-tenant-staff-view
+        row = School.objects.filter(pk=tenant_id).only("slug").first()
+        return getattr(row, "slug", "") or ""
+    except Exception:  # broad-by-design
+        return ""
 
 
 def _token_row_for_table(row: MigrationCloudAPIToken) -> dict:
@@ -141,6 +170,28 @@ class MigrationCloudTokenMintView(View):
             "migration_cloud_operator_token_minted user_id=%s token_id=%s scopes=%s",
             request.user.pk, row.pk, row.scopes,
         )
+        _safe_audit(
+            _slug_for_tenant_id(tenant_scope_pk),
+            "token.mint",
+            actor=request.user,
+            subject=str(row.pk),
+            payload_summary={
+                "scopes_count": len(scopes_raw),
+                "name_length": len(name),
+                "tenant_scoped": bool(tenant_scope_pk),
+            },
+        )
+        # v3.38.0 — operational metric per scope (one counter per scope
+        # the token was minted with). Best-effort; mint hot path is never
+        # broken by metric backend failure.
+        try:
+            for _scope in scopes_raw:
+                _mc_metrics.record_token_mint(scope=_scope, success=True)
+        except Exception as _metric_exc:  # noqa: BLE001
+            logger.warning(
+                "migration_cloud_operator_token_mint_metric_failed err=%s",
+                type(_metric_exc).__name__,
+            )
         context = {
             "page_title": "Token minted",
             "shell": kwargs.get("shell", "super"),
@@ -164,6 +215,15 @@ class MigrationCloudTokenRevokeView(View):
         logger.info(
             "migration_cloud_operator_token_revoked user_id=%s token_id=%s",
             request.user.pk, row.pk,
+        )
+        _safe_audit(
+            _slug_for_tenant_id(row.tenant_scope_id),
+            "token.revoke",
+            actor=request.user,
+            subject=str(row.pk),
+            payload_summary={
+                "scopes_count": len(row.scopes or []),
+            },
         )
         messages.success(request, f"Token #{row.pk} revoked.")
         shell = kwargs.get("shell", "super")

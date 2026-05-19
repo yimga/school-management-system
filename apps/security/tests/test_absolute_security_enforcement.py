@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import uuid
 
-from django.test import Client, TestCase, override_settings
+from django.test import Client, TransactionTestCase, override_settings
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from apps.accounts.models import Permission as FeaturePermission
 from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership
+from apps.security.tests._helpers import settings_manage_permission
 
 _T_HOST = "abs-sec.runmycampus.com"
 
@@ -20,19 +20,17 @@ _T_HOST = "abs-sec.runmycampus.com"
     MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
     SESSION_PINNING_ENABLED=False,
 )
-class AbsoluteSecurityExportTests(TestCase):
+class AbsoluteSecurityExportTests(TransactionTestCase):
     databases = {"default"}
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.perm, _ = FeaturePermission.objects.get_or_create(
-            code="settings.manage",
-            defaults={"name": "Manage settings"},
-        )
-        cls.school = School.objects.create(
+    def setUp(self):
+        suffix = uuid.uuid4().hex[:8]
+        self.perm = settings_manage_permission()
+        self.tenant_host = f"abs-sec-{suffix}.runmycampus.com"
+        self.school = School.objects.create(
             name="Abs Sec",
-            slug="abs-sec",
-            subdomain="abs-sec",
+            slug=f"abs-sec-{suffix}",
+            subdomain=f"abs-sec-{suffix}",
             is_active=True,
         )
 
@@ -55,7 +53,7 @@ class AbsoluteSecurityExportTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm)
-        c = Client(HTTP_HOST=_T_HOST)
+        c = Client(HTTP_HOST=self.tenant_host)
         self._force_login_verified(c, u)
         url = reverse(
             "siteconfig:compliance_export_download",
@@ -76,7 +74,7 @@ class AbsoluteSecurityExportTests(TestCase):
         SchoolMembership.objects.create(
             user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
         )
-        c = Client(HTTP_HOST=_T_HOST)
+        c = Client(HTTP_HOST=self.tenant_host)
         self._force_login_verified(c, u)
         url = reverse(
             "siteconfig:compliance_export_download",
@@ -95,7 +93,7 @@ class AbsoluteSecurityExportTests(TestCase):
         SchoolMembership.objects.create(
             user=u, school=self.school, role=User.Role.PARENT, is_primary=True
         )
-        c = Client(HTTP_HOST=_T_HOST)
+        c = Client(HTTP_HOST=self.tenant_host)
         c.force_login(u)
         url = reverse("siteconfig:compliance_exports", urlconf="config.tenant_urls")
         self.assertIn(c.get(url).status_code, (302, 403))

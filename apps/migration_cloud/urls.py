@@ -18,6 +18,9 @@ from django.urls import include, path
 from . import (
     companion_receiver,
     views,
+    views_audit_admin,
+    views_health,
+    views_maa_promotion,
     views_token_admin,
     views_webhook_admin,
 )
@@ -90,4 +93,19 @@ urlpatterns = [
     path("operator/webhooks/subscribe/", views_webhook_admin.MigrationCloudWebhookSubscribeView.as_view(), name="operator_webhook_subscribe"),  # rbac-allow: staff-only-operator-token-and-webhook-management
     path("operator/webhooks/deliveries/", views_webhook_admin.MigrationCloudWebhookDeliveryLogView.as_view(), name="operator_webhook_delivery_log"),  # rbac-allow: staff-only-operator-token-and-webhook-management
     path("operator/webhooks/deliveries/<int:delivery_id>/retry/", views_webhook_admin.MigrationCloudWebhookRetryView.as_view(), name="operator_webhook_delivery_retry"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    # v3.37.0 Agent 5 — per-subscription audit + manual replay tooling.
+    path("operator/webhooks/<int:sub_id>/audit/", views_webhook_admin.WebhookSubscriptionAuditView.as_view(), name="operator_webhook_audit"),  # rbac-allow: super-staff-webhook-audit-view-deliveries
+    path("operator/webhooks/deliveries/<int:delivery_id>/replay/", views_webhook_admin.WebhookDeliveryReplayView.as_view(), name="operator_webhook_delivery_replay"),  # rbac-allow: super-staff-webhook-manual-replay
+    # v3.39.0 Agent 2 — operator-side subscription deactivate (soft-delete) + emit reserved audit event.
+    path("operator/webhooks/<int:sub_id>/deactivate/", views_webhook_admin.MigrationCloudWebhookDeactivateView.as_view(), name="operator_webhook_deactivate"),  # rbac-allow: super-staff-webhook-subscription-deactivate
+    # v3.35.0 Agent 3 — MAA v2.0 promotion-readiness operator dashboard.
+    path("maa-v2-promotion/", views_maa_promotion.MAA_V2_PromotionDashboardView.as_view(), name="maa_v2_promotion_dashboard"),  # rbac-allow: super-staff-view-maa-promotion-status
+    # v3.38.0 Agent 5 — tamper-evident audit log dashboard + JSONL export.
+    path("audit/", views_audit_admin.MigrationCloudAuditView.as_view(), name="audit_dashboard"),  # rbac-allow: super-staff-audit-event-dashboard
+    path("audit/export/", views_audit_admin.MigrationCloudAuditExportView.as_view(), name="audit_export"),  # rbac-allow: super-staff-audit-event-export
+    # v3.38.0 Agent 4 — Migration Cloud operator health / status dashboard.
+    # Reachable at /super/migration/health/ (operator mount) and the same
+    # relative path under the portal mount; both shells render identically
+    # because the view does not read per-shell tenant scope.
+    path("health/", views_health.MigrationCloudHealthView.as_view(), name="migration_cloud_health"),  # rbac-allow: super-staff-migration-cloud-health-status
 ]

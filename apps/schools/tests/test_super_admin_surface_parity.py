@@ -2,7 +2,11 @@
 Operator surface IA: spine links, super-first pairs, and HTTP strip rendering.
 """
 
-from django.contrib.auth import get_user_model
+import os
+import uuid
+from unittest.mock import patch
+
+from apps.accounts.models import User
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -16,13 +20,25 @@ from apps.schools.super_admin_paired_surfaces import (
 )
 
 
-@override_settings(ALLOWED_HOSTS=["*"], ROOT_URLCONF="config.manager_urls")
+@override_settings(
+    ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+)
 class SuperAdminSurfaceParityTests(TestCase):
     def setUp(self):
+        self._mt_env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self._mt_env.start()
         self.host = "manager.runmycampus.com"
-        User = get_user_model()
         self.user = User.objects.create_user(
-            username="surface_ia_ops",
+            username=f"surface_ia_{uuid.uuid4().hex[:8]}",
             password="testpass123",
             is_staff=True,
             is_superuser=True,
@@ -58,6 +74,27 @@ class SuperAdminSurfaceParityTests(TestCase):
         request.user = self.user
         spine = build_operator_surface_spine(request)
         self.assertTrue(all(link.icon for link in spine))
+
+    def test_workspace_spine_exactly_one_active_on_super_dashboard(self):
+        request = self.client.get("/super/", HTTP_HOST=self.host).wsgi_request
+        request.user = self.user
+        spine = build_operator_surface_spine(request)
+        active = [link for link in spine if link.active]
+        self.assertEqual(len(active), 1)
+        self.assertEqual(active[0].link_id, "super_dashboard")
+
+    def test_workspace_spine_no_spine_active_on_nested_super_list(self):
+        request = self.client.get(
+            reverse("super:schools_list"), HTTP_HOST=self.host
+        ).wsgi_request
+        request.user = self.user
+        spine = build_operator_surface_spine(request)
+        self.assertFalse(any(link.active for link in spine))
+
+    def test_super_dashboard_includes_horizontal_nav_rail_stylesheet(self):
+        response = self.client.get("/super/", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "rmc-horizontal-nav-rail.css")
 
     def test_super_schools_list_shows_admin_bridge_chip(self):
         response = self.client.get(

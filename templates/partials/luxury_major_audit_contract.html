@@ -5,7 +5,7 @@
   {% if subtitle %}
   <p class="text-muted small mb-2 mb-md-3">{{ subtitle }}</p>
   {% endif %}
-  <nav class="action-bar d-flex flex-wrap align-items-center gap-2" role="toolbar" aria-label="{% trans 'Primary actions' %}">
+  <nav class="action-bar rmc-horizontal-nav-rail rmc-horizontal-nav-rail--actions" role="toolbar" aria-label="{% trans 'Primary actions' %}">
     {% if primary_url and primary_label %}
     <a href="{{ primary_url }}" class="btn btn-primary btn-sm ds-btn">{{ primary_label }}</a>
     {% endif %}

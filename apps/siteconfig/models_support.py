@@ -221,6 +221,7 @@ def default_backend_feature_flags():
         "backend_viz_show_trend_ribbons": True,
         "backend_viz_show_progress_rings": True,
         "backend_viz_show_rank_sparklines": True,
+        "enable_unified_analytics_viz": True,
         "backend_module_overview": True,
         "backend_module_admin_portal": True,
         "backend_module_welcome": True,

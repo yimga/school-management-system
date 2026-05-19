@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "RunMyCampus Companion",
+  "version": "3.39.0",
+  "identifier": "com.runmycampus.companion",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "RunMyCampus Companion",
+        "width": 900,
+        "height": 760,
+        "minWidth": 720,
+        "minHeight": 640,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "msi", "nsis"],
+    "publisher": "RunMyCampus",
+    "category": "Business"
+  }
+}

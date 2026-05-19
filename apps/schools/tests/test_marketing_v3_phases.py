@@ -184,8 +184,8 @@ class MarketingHomeNineSectionsTest(SimpleTestCase):
         text = Path("templates/schools/marketing_landing_v2.html").read_text(encoding="utf-8")
         # Hero + ROI + walkthrough + globe + switching + compare + pricing + voices + close
         self.assertIn("mkt-edt-hero", text)
-        self.assertIn("_bell_clock_sticky.html", text)
-        self.assertIn("_persona_tabs.html", text)
+        self.assertIn("_day_role_story.html", text)
+        self.assertIn("mkt-day-role-toggle.js", text)
         self.assertIn("mkt-edt-roi", text)
         self.assertIn("mkt-edt-walkthrough", text)
         self.assertIn("mkt-edt-globe", text)

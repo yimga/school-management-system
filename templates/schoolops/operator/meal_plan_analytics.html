@@ -1,7 +1,15 @@
 {% extends "control_plane_skeleton.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block page_title %}{{ page_title|default:"Meal plan low-balance analytics" }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+{% include "partials/rmc_analytics_viz_assets.html" %}
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+{% include "partials/rmc_analytics_viz_bundle.html" %}
+{% endblock %}
 
 {% block content %}
 <main class="rmc-page rmc-page--operator-meal-plan-analytics" id="main">
@@ -30,6 +38,12 @@
       <div class="rmc-metric__value">{{ cooldown_pct|default:"0.0" }}%</div>
       <p class="rmc-muted">{% trans "Sends / transitions. Lower = the 7-day cooldown is suppressing more repeat sends." %}</p>
     </div>
+  </section>
+
+  <section class="rmc-card chart-container" aria-labelledby="meal-plan-viz-heading">
+    <h2 id="meal-plan-viz-heading" class="rmc-h2">{% trans "Operational KPI visualization" %}</h2>
+    <p class="rmc-lede">{% trans "Platform-wide meal-plan notification trends (deterministic seed preview)." %}</p>
+    {% include "partials/rmc_analytics_viz_mount.html" with tenant_id="platform-meal-ops" min_height="20rem" %}
   </section>
 
   <section class="rmc-card" aria-labelledby="top-tenants-heading">

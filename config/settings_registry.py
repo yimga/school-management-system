@@ -477,6 +477,9 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     # ---- Support / help-desk -----------------------------------------------
     SettingSpec("SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", "bool", "False", "ops", "Run AI triage on every new support ticket."),
     SettingSpec("SUPPORT_AI_KB_CONTEXT", "dict", "{}", "ops", "AI KB context map for support triage."),
+    SettingSpec("AI_ENGINE_ROOM_SUPPORT", "bool", "True", "ai", "RAG-first first-line support via services.ai.gateway."),
+    SettingSpec("AI_ENGINE_ROOM_TIMEOUT_SECONDS", "int", "15", "ai", "Ollama latency cap for engine-room support calls."),
+    SettingSpec("AI_ENGINE_ROOM_MAX_INPUT_TOKENS", "int", "6000", "ai", "Max estimated input tokens for engine-room prompts."),
     SettingSpec("SUPPORT_SLA_RESOLUTION_HOURS", "int", "48", "ops", "SLA resolution target in hours."),
     SettingSpec("SUPPORT_SLA_RESPONSE_HOURS", "int", "8", "ops", "SLA first-response target in hours."),
     SettingSpec("SUPPORT_TICKET_INAPP_FANOUT_OPERATORS", "tuple[str]", "()", "ops", "Operator usernames receiving in-app ticket notifications."),

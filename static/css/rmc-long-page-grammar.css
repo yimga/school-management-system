@@ -109,7 +109,11 @@
   text-align: center;
 }
 .rmc-cmdk__item.is-active .rmc-cmdk__item-icon { color: var(--school-primary); }
-.rmc-cmdk__item-label { flex: 1; }
+.rmc-cmdk__item-label { flex: 1; font-weight: 600; }
+.rmc-cmdk__item-body { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.rmc-cmdk__item-sub { font-size: var(--type-size-caption, 0.8125rem); color: var(--text-tertiary); line-height: 1.3; }
+.rmc-cmdk__item.is-locked { opacity: 0.72; cursor: not-allowed; }
+.rmc-cmdk__item.is-locked .rmc-cmdk__item-icon { color: var(--ds-danger, #ef4444); }
 .rmc-cmdk__item-group {
   font-size: var(--type-size-micro);
   color: var(--text-tertiary);

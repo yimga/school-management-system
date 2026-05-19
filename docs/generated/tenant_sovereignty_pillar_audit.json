@@ -1,0 +1,116 @@
+{
+  "generated_at": "2026-05-19T10:48:05.744719+00:00",
+  "verdict": "TENANT_SOVEREIGNTY_PASS",
+  "passed": 18,
+  "failed": 0,
+  "rows": [
+    {
+      "check_id": "meta_bridge_portal_base",
+      "description": "templates/portal_base.html includes rmc_theme_meta.html",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "meta_bridge_base",
+      "description": "templates/base.html includes rmc_theme_meta.html",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "meta_bridge_control_plane_skeleton",
+      "description": "templates/control_plane_skeleton.html includes rmc_theme_meta.html",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "meta_bridge_base_site",
+      "description": "templates/admin/base_site.html includes rmc_theme_meta.html",
+      "status": "PASS",
+      "proof": "templates/admin/base_site.html"
+    },
+    {
+      "check_id": "meta_bridge_base_marketing",
+      "description": "templates/marketing/base_marketing.html includes rmc_theme_meta.html",
+      "status": "PASS",
+      "proof": "templates/marketing/base_marketing.html"
+    },
+    {
+      "check_id": "bootstrap_sync_portal_base",
+      "description": "templates/portal_base.html loads theme-preference-bootstrap synchronously in head",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "bootstrap_sync_base",
+      "description": "templates/base.html loads theme-preference-bootstrap synchronously in head",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "bootstrap_sync_control_plane_skeleton",
+      "description": "templates/control_plane_skeleton.html loads theme-preference-bootstrap synchronously in head",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "bootstrap_sync_base_site",
+      "description": "templates/admin/base_site.html loads theme-preference-bootstrap synchronously in head",
+      "status": "PASS",
+      "proof": "templates/admin/base_site.html"
+    },
+    {
+      "check_id": "bootstrap_sync_base_marketing",
+      "description": "templates/marketing/base_marketing.html loads theme-preference-bootstrap synchronously in head",
+      "status": "PASS",
+      "proof": "templates/marketing/base_marketing.html"
+    },
+    {
+      "check_id": "marketing_surface_isolation",
+      "description": "Marketing shell declares data-surface=marketing (theme key isolation)",
+      "status": "PASS",
+      "proof": "base_marketing.html"
+    },
+    {
+      "check_id": "v3_effective_theme_contract",
+      "description": "Bootstrap sets data-theme to effective light|dark (v3 contract)",
+      "status": "PASS",
+      "proof": "theme-preference-bootstrap.js"
+    },
+    {
+      "check_id": "brand_guard_module",
+      "description": "WCAG AAA brand guard runtime module",
+      "status": "PASS",
+      "proof": "brand_guard_runtime.py"
+    },
+    {
+      "check_id": "brand_guard_context",
+      "description": "Context processor applies guard_brand_dict before render",
+      "status": "PASS",
+      "proof": "context_processors.py"
+    },
+    {
+      "check_id": "theme_builder_stack",
+      "description": "Shopify-grade theme builder publish/preview/layout APIs",
+      "status": "PASS",
+      "proof": "views_theme_builder.py"
+    },
+    {
+      "check_id": "sot_vectors_json",
+      "description": "Tenant sovereignty SOT platform vectors JSON present",
+      "status": "PASS",
+      "proof": "docs\\generated\\tenant_sovereignty_platform_vectors.json"
+    },
+    {
+      "check_id": "theme_attr_contract",
+      "description": "No regressions on data-theme=system CSS/JS contract",
+      "status": "PASS",
+      "proof": "theme-attribute-contract scan: 0 violation(s)\nbaseline: 0"
+    },
+    {
+      "check_id": "theme_experience_gear",
+      "description": "Theme experience gear-up gate (builder + hub hero)",
+      "status": "PASS",
+      "proof": "verify_theme_experience_gear"
+    }
+  ]
+}

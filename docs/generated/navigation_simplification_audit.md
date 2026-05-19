@@ -1,6 +1,6 @@
 # Navigation Simplification Audit
 
-- Generated: `2026-05-19T06:55:59.491354+00:00`
+- Generated: `2026-05-19T09:03:49.210957+00:00`
 
 - Groups: **16** | Items: **65** | Biggest: **6**
 - Oversize (>7): **0**

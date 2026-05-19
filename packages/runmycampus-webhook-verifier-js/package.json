@@ -1,6 +1,6 @@
 {
   "name": "@runmycampus/webhook-verifier",
-  "version": "0.1.0",
+  "version": "1.0.0-rc.1",
   "description": "Verify RunMyCampus Migration Cloud webhook signatures (HMAC-SHA256, canonical JSON). Zero runtime dependencies; works in Node 16+, modern browsers, and Edge runtimes.",
   "type": "module",
   "main": "./dist/index.cjs",

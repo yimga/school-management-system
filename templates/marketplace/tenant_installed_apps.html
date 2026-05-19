@@ -118,7 +118,7 @@
               </div>
               {% endif %}
               <p class="fw-semibold mb-1">{% trans "Tenant configuration (read-only summary)" %}</p>
-              <pre class="small bg-white border p-2 mb-2" style="max-height:10rem;overflow:auto;">{{ i.config_display_json }}</pre>
+              <pre class="small border p-2 mb-2 rmc-surface-elevated-pre" style="max-height:10rem;overflow:auto;">{{ i.config_display_json }}</pre>
               {% if i.catalog_signals.manifest_ui.configurable and i.tenant_editable_pairs %}
               <form method="post" action="{% url 'tenant_save_installation_config' %}" class="border-top pt-2">
                 {% csrf_token %}

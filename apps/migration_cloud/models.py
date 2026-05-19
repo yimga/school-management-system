@@ -1406,3 +1406,16 @@ class MigrationCloudMAACampaignNotification(models.Model):
             f"agreement={self.agreement_id} "
             f"mode={self.dispatch_mode}"
         )
+
+
+# v3.38.0 Agent 5 — tamper-evident append-only audit log.
+# Implementation lives in ``models_audit`` to keep this file focused on
+# the bundle/artifact/run/api/webhook lifecycle models; re-exported here
+# so Django's app loader and downstream callers can keep importing from
+# ``apps.migration_cloud.models``.
+from apps.migration_cloud.models_audit import (  # noqa: E402, F401
+    MigrationCloudAuditEvent,
+    MigrationCloudAuditEventType,
+    MigrationCloudAuditEventReadOnlyError,
+    AuditEventManager,
+)

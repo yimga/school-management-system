@@ -1,0 +1,45 @@
+# Unified analytics viz: build IIFE, vitest, Django API tests, gear-up verifier.
+name: Analytics viz
+
+on:
+  pull_request:
+    paths:
+      - "beta/school-management-system/src/**"
+      - "beta/school-management-system/apps/api/analytics_viz_api.py"
+      - "beta/school-management-system/apps/analytics/services/**"
+      - "beta/school-management-system/static/js/rmc-analytics-viz-loader.js"
+      - "beta/school-management-system/static/css/rmc-analytics-viz.css"
+      - "beta/school-management-system/scripts/verify_analytics_viz*.py"
+      - "beta/school-management-system/.github/workflows/analytics-viz.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  analytics-viz-gates:
+    name: Analytics viz gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: beta/school-management-system/package-lock.json
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Build analytics IIFE bundle
+        run: npm run build:analytics
+      - name: Vitest + prompt + gear-up verifiers
+        run: |
+          npm run verify:analytics
+          python scripts/verify_analytics_viz_gear_up.py
+      - name: Django analytics viz API tests
+        run: |
+          python manage.py test apps.api.tests.test_analytics_viz_api apps.analytics.tests.test_tenant_overview_viz --no-input -v2

@@ -44,21 +44,29 @@
           <caption class="visually-hidden">{% trans "Configuration Center — dashboards by role" %}</caption>
           <thead>
             <tr>
-              <th>Role</th>
-              <th>Assigned template</th>
+              <th>{% trans "Role" %}</th>
+              <th>{% trans "Assigned template" %}</th>
+              <th>{% trans "Portal chrome" %}</th>
             </tr>
           </thead>
           <tbody>
-            {% for role_val, role_label, assignment in assignment_rows %}
+            {% for role_val, role_label, assignment, chrome_label in assignment_rows %}
               <tr>
                 <td>{{ role_label }}</td>
                 <td>{% if assignment %}{{ assignment.template.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td>
+                  {% if chrome_label == "theme_pack_default" %}
+                    <span class="text-muted">{% trans "From theme pack layout" %}</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary text-capitalize">{{ chrome_label }}</span>
+                  {% endif %}
+                </td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
         </div>
-        <p class="text-muted small mb-0">DashboardLayout and DashboardUserPreference still apply for per-user overrides; the template defines the default layout and theme per role.</p>
+        <p class="text-muted small mb-0">{% trans "DashboardLayout and DashboardUserPreference still apply for per-user overrides. Template config_schema may include a chrome block (header_variant, footer_partial) to override portal header/footer for that role; otherwise the active theme pack layout applies." %}</p>
       {% endif %}
     </div>
   </div>

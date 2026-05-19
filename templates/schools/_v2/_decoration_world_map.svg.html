@@ -1,11 +1,9 @@
 {% load i18n %}
 {% comment %}
 Decorative — stylized world map made of dots, with six labelled school
-markers across continents. Communicates global ambition without claiming
-verified deployments. Each marker is small enough to feel like an
-illustrated map, not a salesy "trusted by 50,000" claim.
+markers across continents. Text uses currentColor for cinematic/dark sections.
 {% endcomment %}
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 460" role="img" aria-labelledby="map-title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 460" role="img" aria-labelledby="map-title" class="mkt-world-map">
   <title id="map-title">{% trans "Stylized world map with school markers representing the range of campuses RunMyCampus is built for" %}</title>
 
   <defs>
@@ -15,93 +13,70 @@ illustrated map, not a salesy "trusted by 50,000" claim.
       <stop offset="100%" stop-color="rgba(234,88,12,0)"/>
     </radialGradient>
     <pattern id="dotmap" patternUnits="userSpaceOnUse" width="12" height="12">
-      <circle cx="6" cy="6" r="1.2" fill="rgba(31,41,55,0.18)"/>
+      <circle cx="6" cy="6" r="1.2" class="mkt-world-map__dot"/>
     </pattern>
   </defs>
 
-  {# Continent silhouettes painted with the dot pattern — softly suggestive #}
-  {# North America #}
   <path d="M 70 100 Q 90 80, 130 90 L 200 95 Q 240 120, 230 170 L 200 220 Q 160 230, 130 210 Q 100 200, 90 180 Q 80 140, 70 100 Z"
-        fill="url(#dotmap)" stroke="rgba(31,41,55,0.12)" stroke-width="0.75"/>
-
-  {# South America #}
+        fill="url(#dotmap)" stroke="currentColor" stroke-opacity="0.12" stroke-width="0.75"/>
   <path d="M 220 240 Q 240 220, 260 230 L 280 270 Q 290 320, 280 360 Q 270 390, 250 380 Q 230 350, 225 310 Q 220 270, 220 240 Z"
-        fill="url(#dotmap)" stroke="rgba(31,41,55,0.12)" stroke-width="0.75"/>
-
-  {# Europe #}
+        fill="url(#dotmap)" stroke="currentColor" stroke-opacity="0.12" stroke-width="0.75"/>
   <path d="M 410 110 Q 440 100, 480 110 L 520 130 Q 540 150, 525 175 Q 510 190, 480 185 Q 450 180, 420 170 Q 400 145, 410 110 Z"
-        fill="url(#dotmap)" stroke="rgba(31,41,55,0.12)" stroke-width="0.75"/>
-
-  {# Africa #}
+        fill="url(#dotmap)" stroke="currentColor" stroke-opacity="0.12" stroke-width="0.75"/>
   <path d="M 440 200 Q 470 195, 500 210 L 530 240 Q 550 290, 530 340 Q 510 380, 480 380 Q 450 370, 440 330 Q 425 270, 440 200 Z"
-        fill="url(#dotmap)" stroke="rgba(31,41,55,0.12)" stroke-width="0.75"/>
-
-  {# Middle East / South Asia / SE Asia #}
+        fill="url(#dotmap)" stroke="currentColor" stroke-opacity="0.12" stroke-width="0.75"/>
   <path d="M 560 170 Q 600 165, 650 180 L 700 210 Q 730 240, 720 270 Q 700 300, 660 295 Q 620 290, 580 270 Q 560 230, 560 170 Z"
-        fill="url(#dotmap)" stroke="rgba(31,41,55,0.12)" stroke-width="0.75"/>
-
-  {# East Asia #}
+        fill="url(#dotmap)" stroke="currentColor" stroke-opacity="0.12" stroke-width="0.75"/>
   <path d="M 720 140 Q 760 130, 810 150 L 850 180 Q 870 210, 840 235 Q 800 245, 760 230 Q 730 210, 720 180 Q 720 160, 720 140 Z"
-        fill="url(#dotmap)" stroke="rgba(31,41,55,0.12)" stroke-width="0.75"/>
-
-  {# Australia / Oceania #}
+        fill="url(#dotmap)" stroke="currentColor" stroke-opacity="0.12" stroke-width="0.75"/>
   <path d="M 780 320 Q 820 315, 860 330 L 880 355 Q 870 380, 830 380 Q 800 375, 785 360 Q 775 340, 780 320 Z"
-        fill="url(#dotmap)" stroke="rgba(31,41,55,0.12)" stroke-width="0.75"/>
-
-  {# Markers — six placements with pulse + label #}
-  {% with mk='font-family="Source Serif 4, Iowan Old Style, serif" font-size="13" fill="#1F2937"' mklbl='font-family="Inter, system-ui, sans-serif" font-size="9" fill="#9CA3AF" letter-spacing="0.08em"' %}
+        fill="url(#dotmap)" stroke="currentColor" stroke-opacity="0.12" stroke-width="0.75"/>
 
   <g transform="translate(168 162)">
     <circle r="14" fill="url(#map-pulse)"/>
     <circle r="5" fill="#EA580C"/>
-    <circle r="5" fill="none" stroke="#FAF7F2" stroke-width="1.5"/>
-    <text x="22" y="-2" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13" fill="#1F2937">Cedar Ridge</text>
-    <text x="22" y="12" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#9CA3AF" letter-spacing="0.08em">K–12 · TORONTO</text>
+    <circle r="5" fill="none" stroke="currentColor" stroke-opacity="0.85" stroke-width="1.5"/>
+    <text x="22" y="-2" class="mkt-world-map__label" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13">Cedar Ridge</text>
+    <text x="22" y="12" class="mkt-world-map__meta" font-family="Inter, system-ui, sans-serif" font-size="9" letter-spacing="0.08em">K–12 · TORONTO</text>
   </g>
 
   <g transform="translate(248 320)">
     <circle r="11" fill="url(#map-pulse)"/>
     <circle r="4" fill="#EA580C"/>
-    <circle r="4" fill="none" stroke="#FAF7F2" stroke-width="1.5"/>
-    <text x="22" y="-2" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13" fill="#1F2937">Riverbend</text>
-    <text x="22" y="12" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#9CA3AF" letter-spacing="0.08em">NETWORK · LIMA</text>
+    <circle r="4" fill="none" stroke="currentColor" stroke-opacity="0.85" stroke-width="1.5"/>
+    <text x="22" y="-2" class="mkt-world-map__label" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13">Riverbend</text>
+    <text x="22" y="12" class="mkt-world-map__meta" font-family="Inter, system-ui, sans-serif" font-size="9" letter-spacing="0.08em">NETWORK · LIMA</text>
   </g>
 
   <g transform="translate(478 150)">
     <circle r="14" fill="url(#map-pulse)"/>
     <circle r="5" fill="#EA580C"/>
-    <circle r="5" fill="none" stroke="#FAF7F2" stroke-width="1.5"/>
-    <text x="22" y="-2" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13" fill="#1F2937">Hollow Creek</text>
-    <text x="22" y="12" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#9CA3AF" letter-spacing="0.08em">PRIVATE · DUBLIN</text>
+    <circle r="5" fill="none" stroke="currentColor" stroke-opacity="0.85" stroke-width="1.5"/>
+    <text x="22" y="-2" class="mkt-world-map__label" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13">Hollow Creek</text>
+    <text x="22" y="12" class="mkt-world-map__meta" font-family="Inter, system-ui, sans-serif" font-size="9" letter-spacing="0.08em">PRIVATE · DUBLIN</text>
   </g>
 
   <g transform="translate(490 296)">
     <circle r="13" fill="url(#map-pulse)"/>
     <circle r="5" fill="#EA580C"/>
-    <circle r="5" fill="none" stroke="#FAF7F2" stroke-width="1.5"/>
-    <text x="22" y="-2" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13" fill="#1F2937">Beacon Heights</text>
-    <text x="22" y="12" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#9CA3AF" letter-spacing="0.08em">DAY · LAGOS</text>
+    <circle r="5" fill="none" stroke="currentColor" stroke-opacity="0.85" stroke-width="1.5"/>
+    <text x="22" y="-2" class="mkt-world-map__label" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13">Beacon Heights</text>
+    <text x="22" y="12" class="mkt-world-map__meta" font-family="Inter, system-ui, sans-serif" font-size="9" letter-spacing="0.08em">DAY · LAGOS</text>
   </g>
 
   <g transform="translate(660 232)">
     <circle r="13" fill="url(#map-pulse)"/>
     <circle r="5" fill="#EA580C"/>
-    <circle r="5" fill="none" stroke="#FAF7F2" stroke-width="1.5"/>
-    <text x="22" y="-2" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13" fill="#1F2937">Sunnyside</text>
-    <text x="22" y="12" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#9CA3AF" letter-spacing="0.08em">INTERNATIONAL · MUMBAI</text>
+    <circle r="5" fill="none" stroke="currentColor" stroke-opacity="0.85" stroke-width="1.5"/>
+    <text x="22" y="-2" class="mkt-world-map__label" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13">Sunnyside</text>
+    <text x="22" y="12" class="mkt-world-map__meta" font-family="Inter, system-ui, sans-serif" font-size="9" letter-spacing="0.08em">INTERNATIONAL · MUMBAI</text>
   </g>
 
   <g transform="translate(820 348)">
     <circle r="12" fill="url(#map-pulse)"/>
     <circle r="5" fill="#EA580C"/>
-    <circle r="5" fill="none" stroke="#FAF7F2" stroke-width="1.5"/>
-    <text x="22" y="-2" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13" fill="#1F2937">Willow Field</text>
-    <text x="22" y="12" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#9CA3AF" letter-spacing="0.08em">COLLEGE · MELBOURNE</text>
+    <circle r="5" fill="none" stroke="currentColor" stroke-opacity="0.85" stroke-width="1.5"/>
+    <text x="22" y="-2" class="mkt-world-map__label" font-family="Source Serif 4, Iowan Old Style, serif" font-size="13">Willow Field</text>
+    <text x="22" y="12" class="mkt-world-map__meta" font-family="Inter, system-ui, sans-serif" font-size="9" letter-spacing="0.08em">COLLEGE · MELBOURNE</text>
   </g>
-
-  {% endwith %}
-
-  {# Bottom captions — quietly editorial #}
-  <text x="480" y="430" text-anchor="middle" font-family="Source Serif 4, Iowan Old Style, serif" font-size="16" fill="#1F2937" letter-spacing="-0.01em">{% trans "Wherever a bell rings, RunMyCampus runs underneath." %}</text>
-  <text x="480" y="448" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#9CA3AF" letter-spacing="0.06em">{% trans "Illustrative campuses — multi-tenant by design, region-aware by default." %}</text>
 </svg>

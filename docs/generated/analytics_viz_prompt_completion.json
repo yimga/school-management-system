@@ -1,0 +1,116 @@
+{
+  "verdict": "ANALYTICS_VIZ_PROMPT_PASS",
+  "pass_count": 18,
+  "fail_count": 0,
+  "generated_at": "2026-05-19T10:36:54.699539+00:00",
+  "rows": [
+    {
+      "phase": "1",
+      "check_id": "core_components",
+      "status": "PASS",
+      "proof": "src/components/shared/analytics/PlatformPulseLineChart.tsx, src/components/shared/analytics/MetricKpiCard.tsx, src/components/shared/analytics/ResourceAllocationDonut.tsx, src/components/shared/analytics/icons/PlatformIcon.tsx, static/css/rmc-analytics-viz.css"
+    },
+    {
+      "phase": "1",
+      "check_id": "icon_aria",
+      "status": "PASS",
+      "proof": "PlatformIcon aria-label + strokeWidth"
+    },
+    {
+      "phase": "2",
+      "check_id": "orchestrator",
+      "status": "PASS",
+      "proof": "src/apps/dashboard/TenantOverview.tsx, src/apps/dashboard/ErrorBoundary.tsx, src/components/shared/analytics/skeletons/AnalyticsSkeletons.tsx"
+    },
+    {
+      "phase": "2",
+      "check_id": "error_boundary",
+      "status": "PASS",
+      "proof": "per-widget VizErrorBoundary"
+    },
+    {
+      "phase": "2",
+      "check_id": "tenant_id",
+      "status": "PASS",
+      "proof": "tenantId prop"
+    },
+    {
+      "phase": "3",
+      "check_id": "seeder_module",
+      "status": "PASS",
+      "proof": "analytics-seeder.ts"
+    },
+    {
+      "phase": "3",
+      "check_id": "seeder_cli",
+      "status": "PASS",
+      "proof": "run-analytics-seed.ts"
+    },
+    {
+      "phase": "3",
+      "check_id": "seeder_cli_run",
+      "status": "PASS",
+      "proof": "SEED OK tenant=audit-tenant revenue=1132464.1 budget=1268359.8 points=273"
+    },
+    {
+      "phase": "4",
+      "check_id": "forensic_audit",
+      "status": "PASS",
+      "proof": "> sms-portal@0.0.1 audit:analytics-viz\n> tsx scripts/audit-analytics-viz.ts\n\nANALYTICS VIZ AUDIT PASS \u2014 17 files, report \u2192 C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\analytics_viz_audit.json"
+    },
+    {
+      "phase": "5",
+      "check_id": "test_ts",
+      "status": "PASS",
+      "proof": "analytics.test.ts"
+    },
+    {
+      "phase": "5",
+      "check_id": "test_tsx",
+      "status": "PASS",
+      "proof": "analytics.test.tsx"
+    },
+    {
+      "phase": "5",
+      "check_id": "vitest",
+      "status": "PASS",
+      "proof": "em\\node_modules\\react-dom\\cjs\\react-dom.development.js:25789:22) {\n  componentStack: '\\n' +\n    '    at PlatformPulseLineChart (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\components\\\\shared\\\\analytics\\\\PlatformPulseLineChart.tsx:11:3)\\n' +\n    '    at VizErrorBoundary (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\apps\\\\dashboard\\\\ErrorBoundary.tsx:6:1)\\n' +\n    '    at div\\n' +\n    '    at div\\n' +\n    '    at div\\n' +\n    '    at TenantOverview (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\apps\\\\dashboard\\\\TenantOverview.tsx:20:3)'\n}"
+    },
+    {
+      "phase": "platform",
+      "check_id": "iife_bundle",
+      "status": "PASS",
+      "proof": "static/js/dist/rmc-analytics-dashboard.iife.js"
+    },
+    {
+      "phase": "platform",
+      "check_id": "surface_control_plane",
+      "status": "PASS",
+      "proof": "templates/schools/super_analytics_overview.html"
+    },
+    {
+      "phase": "platform",
+      "check_id": "surface_tenant_insights",
+      "status": "PASS",
+      "proof": "templates/analytics/dashboard.html"
+    },
+    {
+      "phase": "platform",
+      "check_id": "surface_operator_kpi",
+      "status": "PASS",
+      "proof": "templates/schoolops/operator/meal_plan_analytics.html"
+    },
+    {
+      "phase": "platform",
+      "check_id": "surface_marketing_mockup",
+      "status": "PASS",
+      "proof": "templates/marketing/components/_hero_live_campus_pulse.html"
+    },
+    {
+      "phase": "platform",
+      "check_id": "shared_partials",
+      "status": "PASS",
+      "proof": "rmc_analytics_viz_* partials"
+    }
+  ]
+}

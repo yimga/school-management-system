@@ -173,6 +173,17 @@
                 <small class="text-muted">{% trans "For one look everywhere, set Portal theme and Admin theme to the same pack, or use the button above." %}</small>
               </div>
               {% endif %}
+              <div class="col-12">
+                <small class="text-muted">
+                  {% trans "Portal header and footer follow the selected theme pack layout:" %}
+                  {% if site_settings.theme_pack %}
+                    <strong>{{ site_settings.theme_pack.get_layout_display }}</strong>
+                  {% else %}
+                    {% trans "Standard" %}
+                  {% endif %}
+                  {% trans "— override per role in Dashboard configuration (template config_schema chrome) or choose another theme pack above." %}
+                </small>
+              </div>
               <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
                 <input type="hidden" name="use_dark_mode__present" value="1">
                 <div class="form-check mb-0">{{ form.use_dark_mode }}<label class="form-check-label" for="id_use_dark_mode">{{ form.use_dark_mode.label }}</label></div>

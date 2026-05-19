@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-05-19T11:18:39.400925+00:00",
+  "status": "PASS",
+  "checks": [
+    {
+      "id": "marketplace_proof_surface",
+      "status": "PASS",
+      "detail": "verify_marketplace_proof_surface_dark.py"
+    },
+    {
+      "id": "manager_cards_light_scoped",
+      "status": "PASS",
+      "detail": "manager-aesthetic light card surfaces scoped to resolved-light only"
+    },
+    {
+      "id": "safety_net_table_tbody_floor",
+      "status": "PASS",
+      "detail": "dark-mode-safety-net forces dark tbody cells on control plane"
+    },
+    {
+      "id": "safety_net_list_group",
+      "status": "PASS",
+      "detail": "dark-mode-safety-net covers list-group (AI Center assistants)"
+    },
+    {
+      "id": "table_family_dark_tokens",
+      "status": "PASS",
+      "detail": "table-system.css dark rules for .table-family"
+    },
+    {
+      "id": "ai_center_no_bg_light",
+      "status": "PASS",
+      "detail": "AI Center body dropped bg-light slabs"
+    },
+    {
+      "id": "safety_net_bg_light_triple_theme",
+      "status": "PASS",
+      "detail": "dark-mode-safety-net remaps .bg-light under all dark theme attributes"
+    },
+    {
+      "id": "safety_net_text_bg_light",
+      "status": "PASS",
+      "detail": "dark-mode-safety-net remaps Bootstrap text-bg-light badges"
+    },
+    {
+      "id": "safety_net_pre_cardbody_bg_light",
+      "status": "PASS",
+      "detail": "dark-mode-safety-net covers pre/card-body bg-light slabs"
+    },
+    {
+      "id": "contrast_dark_table_tokens",
+      "status": "PASS",
+      "detail": "theme-platform-contrast dark table token block mirrors light"
+    },
+    {
+      "id": "incidents_no_alert_light",
+      "status": "PASS",
+      "detail": "platform incidents console dropped alert-light"
+    }
+  ]
+}

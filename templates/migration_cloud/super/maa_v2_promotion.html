@@ -1,0 +1,178 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Migration Cloud — MAA v2.0 promotion status" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--maa-v2-promotion" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "MAA v2.0 promotion status" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Operator dashboard for the Migration Authorization Agreement v2.0 promotion path. Read-only — the flip itself is an out-of-band procedure." %}
+      <a class="rmc-link" href="/{{ checklist_doc_path }}">{% trans "Promotion checklist" %}</a>
+    </p>
+  </header>
+
+  {# ── Panel 1 — readiness (pre-flight verifier) ───────────────────────── #}
+  <section class="rmc-card rmc-card--maa-readiness" aria-labelledby="maa-readiness-heading">
+    <h2 id="maa-readiness-heading" class="rmc-h2">{% trans "Readiness (verifier)" %}</h2>
+    <p class="rmc-meta">
+      {% if report.ok %}
+        <span class="rmc-badge rmc-badge--success">{% trans "Ready" %}</span>
+      {% else %}
+        <span class="rmc-badge rmc-badge--warning">{% trans "Not ready" %}</span>
+      {% endif %}
+      <span>
+        {% blocktrans with ok=report.ok_count fail=report.fail_count total=report.total_count %}
+        ok={{ ok }} fail={{ fail }} total={{ total }}
+        {% endblocktrans %}
+      </span>
+      {% if report.generated_at_utc %}
+        <small>{% trans "Generated:" %} {{ report.generated_at_utc }}</small>
+      {% endif %}
+    </p>
+    <ol class="rmc-checklist rmc-checklist--verifier">
+      {% for c in report.checks %}
+      <li class="rmc-checklist__item rmc-checklist__item--{% if c.ok %}ok{% else %}fail{% endif %}">
+        <strong>{{ c.id }}</strong> — {{ c.note }}
+      </li>
+      {% endfor %}
+    </ol>
+    <p class="rmc-hint">
+      {% trans "This panel runs the same checks as scripts/verify_maa_v2_promotion_readiness.py. No subprocess; in-process call only." %}
+    </p>
+  </section>
+
+  {# ── Panel 2 — draft status (settings + draft set) ───────────────────── #}
+  <section class="rmc-card rmc-card--maa-draft-status" aria-labelledby="maa-draft-heading">
+    <h2 id="maa-draft-heading" class="rmc-h2">{% trans "Draft / default state" %}</h2>
+    <dl class="rmc-data-grid">
+      <dt>{% trans "Active default version" %}</dt>
+      <dd>
+        <code class="rmc-kbd">{{ draft_status.default_version }}</code>
+        {% if draft_status.default_is_v1 %}
+          <span class="rmc-badge rmc-badge--info">{% trans "Still v1.0" %}</span>
+        {% elif draft_status.default_is_v2 %}
+          <span class="rmc-badge rmc-badge--success">{% trans "Flipped to v2.0" %}</span>
+        {% endif %}
+      </dd>
+      <dt>{% trans "MAA_TEXT_DRAFT_VERSIONS" %}</dt>
+      <dd>
+        {% for v in draft_status.draft_set %}
+          <code class="rmc-kbd">{{ v }}</code>{% if not forloop.last %}, {% endif %}
+        {% empty %}
+          <em>{% trans "(empty)" %}</em>
+        {% endfor %}
+      </dd>
+      <dt>{% trans "v2.0 still draft?" %}</dt>
+      <dd>
+        {% if draft_status.v2_still_draft %}
+          <span class="rmc-badge rmc-badge--warning">{% trans "yes" %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--success">{% trans "no" %}</span>
+        {% endif %}
+      </dd>
+      <dt>{% trans "Promotion complete?" %}</dt>
+      <dd>
+        {% if draft_status.promotion_complete %}
+          <span class="rmc-badge rmc-badge--success">{% trans "complete" %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--warning">{% trans "pending" %}</span>
+        {% endif %}
+      </dd>
+    </dl>
+  </section>
+
+  {# ── Panel 3 — counsel attestations ──────────────────────────────────── #}
+  <section class="rmc-card rmc-card--maa-counsel" aria-labelledby="maa-counsel-heading">
+    <h2 id="maa-counsel-heading" class="rmc-h2">{% trans "Counsel attestations" %}</h2>
+    {% if attestations.load_error %}
+      <p class="rmc-error">{% trans "Attestation table not loadable — check the migration_cloud app boot." %}</p>
+    {% else %}
+      <p class="rmc-meta">
+        {% blocktrans with t=attestations.total %}Total attestations on record: {{ t }}{% endblocktrans %}
+      </p>
+      {% if attestations.by_type %}
+      <table class="rmc-data-table rmc-data-table--maa-attestation-types">
+        <thead><tr><th>{% trans "Type" %}</th><th>{% trans "Count" %}</th></tr></thead>
+        <tbody>
+          {% for typ, n in attestations.by_type %}
+          <tr><td><code class="rmc-kbd">{{ typ }}</code></td><td>{{ n }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      {% if attestations.recent %}
+      <h3 class="rmc-h3">{% trans "Recent" %}</h3>
+      <table class="rmc-data-table rmc-data-table--maa-attestation-recent">
+        <thead>
+          <tr>
+            <th>{% trans "ID" %}</th>
+            <th>{% trans "Type" %}</th>
+            <th>{% trans "Operator" %}</th>
+            <th>{% trans "Attested at" %}</th>
+            <th>{% trans "Artifact" %}</th>
+            <th>{% trans "Narrative" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in attestations.recent %}
+          <tr>
+            <td>{{ r.id }}</td>
+            <td><code class="rmc-kbd">{{ r.attestation_type }}</code></td>
+            <td>{{ r.operator_label }}</td>
+            <td>{{ r.attested_at|date:"Y-m-d H:i:s" }}</td>
+            <td>{{ r.related_artifact_path|default:"—" }}</td>
+            <td>{{ r.attestation_text|truncatewords:30 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="rmc-empty">{% trans "No attestations recorded yet." %}</p>
+      {% endif %}
+    {% endif %}
+  </section>
+
+  {# ── Panel 4 — campaign progress ─────────────────────────────────────── #}
+  <section class="rmc-card rmc-card--maa-campaign" aria-labelledby="maa-campaign-heading">
+    <h2 id="maa-campaign-heading" class="rmc-h2">{% trans "Re-sign campaign progress" %}</h2>
+    {% if campaign.load_error %}
+      <p class="rmc-error">{% trans "Campaign-notification table not loadable — check the migration_cloud app boot." %}</p>
+    {% else %}
+      <p class="rmc-meta">
+        {% blocktrans with t=campaign.total %}Total notification rows: {{ t }}{% endblocktrans %}
+      </p>
+      {% if campaign.by_campaign %}
+      <table class="rmc-data-table rmc-data-table--maa-campaign-progress">
+        <thead>
+          <tr>
+            <th>{% trans "Campaign" %}</th>
+            <th>{% trans "Dry-run" %}</th>
+            <th>{% trans "Queued" %}</th>
+            <th>{% trans "Distinct agreements" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in campaign.by_campaign %}
+          <tr>
+            <td><code class="rmc-kbd">{{ c.campaign_version }}</code></td>
+            <td>{{ c.dry_run }}</td>
+            <td>{{ c.queued }}</td>
+            <td>{{ c.distinct_agreements }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="rmc-empty">{% trans "No campaign rows recorded yet. Run python manage.py maa_v2_resign_campaign to generate a dry-run plan." %}</p>
+      {% endif %}
+      <p class="rmc-hint">
+        {% trans "Drive new dry-runs from a shell:" %}
+        <code class="rmc-kbd">python manage.py maa_v2_resign_campaign</code>
+        {% trans "(add --apply to actually enqueue email)." %}
+      </p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

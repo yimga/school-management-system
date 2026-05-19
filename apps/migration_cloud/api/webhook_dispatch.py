@@ -204,6 +204,23 @@ def _build_outbound_headers(
     return headers
 
 
+def _get_header_case_insensitive(headers, name: str):
+    """Return a header value from mappings that are not case-normalized."""
+    for candidate in (name, name.lower(), name.upper()):
+        value = headers.get(candidate)
+        if value:
+            return value
+    target = name.lower()
+    try:
+        items = headers.items()
+    except AttributeError:
+        return None
+    for key, value in items:
+        if isinstance(key, str) and key.lower() == target and value:
+            return value
+    return None
+
+
 def parse_inbound_signature_header(
     headers,
 ) -> tuple[str | None, str | None]:
@@ -226,15 +243,17 @@ def parse_inbound_signature_header(
     if headers is None:
         return None, None
     try:
-        new_value = headers.get("X-RunMyCampus-Signature") or headers.get(
-            "x-runmycampus-signature"
+        new_value = _get_header_case_insensitive(
+            headers,
+            "X-RunMyCampus-Signature",
         )
     except AttributeError:
         return None, None
     if new_value:
         return new_value, "new"
-    legacy_value = headers.get("X-Migration-Cloud-Signature") or headers.get(
-        "x-migration-cloud-signature"
+    legacy_value = _get_header_case_insensitive(
+        headers,
+        "X-Migration-Cloud-Signature",
     )
     if legacy_value:
         return legacy_value, "legacy"
@@ -446,6 +465,19 @@ def _deliver_one(row) -> bool:
         "attempt=%s status=%s response_code=%s",
         sub.pk, row.pk, row.attempt_count, row.status, status_code,
     )
+    # v3.38.0 — operational metric (best-effort; never breaks delivery).
+    try:
+        from apps.migration_cloud import metrics as _mc_metrics
+        _mc_metrics.record_webhook_delivery(
+            subscription_id=sub.pk,
+            status=row.status,
+            http_status=status_code,
+        )
+    except Exception as _metric_exc:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud_webhook_delivery_metric_failed err=%s",
+            type(_metric_exc).__name__,
+        )
     return succeeded
 
 

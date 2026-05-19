@@ -1,6 +1,6 @@
 # Final Validation Truth Check
 
-- Generated: `2026-05-19T07:11:48.706905+00:00`
+- Generated: `2026-05-19T09:09:35.176539+00:00`
 - Regenerate: `python scripts/generate_final_validation_truth_check.py --write`
 
 **Verdict:** FINAL VALIDATION READY — FOCUSED REPO SCOPE
@@ -9,6 +9,7 @@
 
 | Batch | Status | Title |
 | --- | --- | --- |
+| 1292 | DONE (Agent 5, docs/evidence lane only) | Migration Cloud V3.37-V3.40 SOT/evidence ledger |
 | 1291 | DONE (Lane 1, repo-scope) | Aggressive glocal closeout — 100% repo gate |
 | 1290 | DONE (Lane 1, repo-scope) | Batch 1285 certification residuals — migration drift + Rende |
 | 1289 | DONE (Lane 1, repo-scope) | Five-pillar platform completion — AWS/Shopify/Salesforce/Lin |
@@ -16,7 +17,6 @@
 | 1287 | DONE (Lane 1, repo-scope) | Marketing frontend completion — runmycampus.com Vercel-grade |
 | 1286 | DONE (Lane 1, repo-scope) | Theme experience gear-up — publish/preview builder + append- |
 | 1285 | DONE (Lane 1, repo-scope) | Batch 1280 certification closeout — Apple-class Playwright + |
-| 1284 | DONE (Lane 1, repo-scope) | Forensic phase-3 — Playwright perf + theme builder + vector  |
 
 ## Artifact freshness
 

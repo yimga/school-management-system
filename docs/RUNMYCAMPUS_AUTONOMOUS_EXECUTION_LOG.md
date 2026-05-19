@@ -1,5 +1,157 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1299 platform chromatic audit closeout (2026-05-19)
+
+**A. Scope:** Close audit gaps after 1298 — triple-theme `.bg-light`, `text-bg-light`, pre/card-body slabs, dark table contrast block.
+
+**B. Implementation:** `dark-mode-safety-net.css` (bg-light triple theme, text-bg-light, pre/card-body/thead, Unfold bg-white main); `theme-platform-contrast.css` dark table tokens; `verify_platform_chromatic_compliance.py` expanded to 11 checks.
+
+**C. Proof:** `python scripts/verify_platform_chromatic_compliance.py` → **PLATFORM_CHROMATIC_COMPLIANCE_PASS (11/11)**; `verify_service_worker_version.py --check-monotonic` OK.
+
+**D. SOT:** §11.4 batch **1299**.
+
+**E. Deploy:** bump SW; `collectstatic` + hard refresh on manager host.
+
+**F. Artifacts:** `docs/generated/platform_chromatic_compliance.json`; SW `sms-v3.40.5-platform-chromatic-1299-2026-05-19`.
+
+---
+
+## Slice - batch 1298 platform chromatic compliance (2026-05-19)
+
+**A. Scope:** Platform-wide white-on-white on control-plane tables (Platform incident console, AI Center assistants) — not only marketplace cards.
+
+**B. Implementation:** Scoped `manager-aesthetic-polish.css` light rules; `dark-mode-safety-net.css` §4b table/list-group floor; `table-system.css` dark `.table-family`; template `bg-light` removal; `verify_platform_chromatic_compliance.py`.
+
+**C. Proof:** `python scripts/verify_platform_chromatic_compliance.py` → **PLATFORM_CHROMATIC_COMPLIANCE_PASS (7/7)**.
+
+**D. SOT:** §11.4 batch **1298**.
+
+**E. Operator residual:** `collectstatic`; verify `/super/.../platform-incidents/` and `/siteconfig/ai-center/` in Dark + System-dark.
+
+**F. Artifacts:** `docs/generated/platform_chromatic_compliance.json`; SW `sms-v3.40.4-platform-chromatic-1298-2026-05-19`.
+
+---
+
+## Slice — platform horizontal nav rail (manager + portal + backend) (2026-05-19)
+
+**A. Scope:** Platform-wide fix for left-clustered dual-row control-plane pills; URL-accurate workspace active state; centered/scrollable nav grammar on all major shells.
+
+**B. Implementation:** `static/css/rmc-horizontal-nav-rail.css`; templates (`control_plane_primary_nav`, `rmc_operator_surface_strip`, tenant studio spine, section navs, action bars); `_operator_spine_link_is_active` in `super_admin_paired_surfaces.py`; `apps/schools/tests/test_horizontal_nav_rail.py` (8 SimpleTestCase); extended `verify_manager_portal_chrome_completion.py`.
+
+**C. Proof:** `python manage.py test apps.schools.tests.test_horizontal_nav_rail` → **8/8 OK**; `python scripts/verify_manager_portal_chrome_completion.py --write --run-tests` → **MANAGER_PORTAL_CHROME_PASS (19/19)**.
+
+**D. SOT:** Extends manager chrome / navigation simplification track (no new §11.4 batch).
+
+**E. Operator residual:** Hard-refresh manager shell after deploy (`rmc-horizontal-nav-rail.css`).
+
+**F. Artifacts:** `docs/generated/manager_portal_chrome_audit.json` (nav-rail checks).
+
+---
+
+## Slice - batch 1297 marketplace chromatic liquidation (2026-05-19)
+
+**A. Scope:** Audit-to-100% for App Catalog / marketplace proof-card white-on-white text masking in dark mode (manager control plane + tenant backend catalog).
+
+**B. Implementation:** Semantic surfaces in `proof-pages.css`; dark repaint extensions in `manager-aesthetic-polish.css`, `theme-platform-readability.css`, `dark-mode-safety-net.css`, `phase2-portal-bundle.css`; removed `bg-white` from install impact modal + marketplace-related templates; `verify_marketplace_proof_surface_dark.py`; `tests/e2e/marketplace-theme-chromatic.spec.js`.
+
+**C. Proof:** `python scripts/verify_marketplace_proof_surface_dark.py` → **MARKETPLACE_PROOF_SURFACE_DARK_PASS (6/6)**; `scan_theme_attribute_contract.py` **0**; `apps.marketplace.tests.test_app_catalog_world_class_ux` + `test_app_catalog_apple_class_ux` **OK**.
+
+**D. SOT:** §11.4 batch **1297**.
+
+**E. Operator residual:** run Playwright with `MARKETPLACE_CHROMATIC_AUTH=1` after deploy; `collectstatic` for CSS/JS.
+
+**F. Artifacts:** `docs/generated/marketplace_proof_surface_dark_completion.json`; SW `sms-v3.40.3-marketplace-chromatic-1297-2026-05-19`; `npm run verify:marketplace-chromatic`.
+
+---
+
+## Slice - batch 1296 six-pillar global dominance validation (2026-05-19)
+
+**A. Scope:** Audit-to-100% for CTO six-pillar mandate; establish Tenant Sovereignty as the first pressure-tested foundational layer; unify mechanical gates.
+
+**B. Implementation:** `verify_tenant_sovereignty_pillar.py` (18 checks: meta bridge, sync bootstrap, marketing isolation, brand guard, theme builder, SOT vectors); `verify_six_pillar_global_dominance.py` orchestrator; `docs/generated/tenant_sovereignty_platform_vectors.json`.
+
+**C. Proof:** `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` → **SIX_PILLAR_GLOBAL_DOMINANCE_PASS (10/10)** (6 wiring + 4 child gates); tenant sovereignty **18/18**, five-pillar **24/24** incl. Django **37 OK**, AI engine room **OK**, forensic **24/24**. Re-audit closeout: wiring regression checks added to orchestrator.
+
+**D. SOT:** §11.4 batch **1296**.
+
+**E. Operator residual:** per vectors JSON — custom-domain TLS, live PSP corridor, SOC 2 sign-off.
+
+**F. CI:** `platform-pillar-gates`, `verify_phases_3_11_gates.py`, `release_readiness_check.sh` §4c, `npm run verify:six-pillar`.
+
+---
+
+## Slice - batch 1295 manager corporate footer + tenant portal chrome (2026-05-19)
+
+**A. Scope:** Audit to 100% for manager.runmycampus.com corporate gateway footer on all pages (including `/super/`) and tenant portal chrome isolation (no platform marketing footer on school surfaces).
+
+**B. Implementation:** `control_plane_skeleton.html` owns `cp-corporate-footer` + `corporate_footer_bundle`; login templates suppress duplicate block; `portal_base.html` school footer partials only; `portal_chrome.py` + variant CSS/partials; Theme & Experience help copy.
+
+**C. Proof:** `python scripts/verify_manager_portal_chrome_completion.py --write --run-tests` **17/17 PASS**; `npm run verify:manager-chrome`; CI `platform-pillar-gates` step added. **Audit closeout:** wired `DashboardTemplate.config_schema.chrome` via `resolve_dashboard_template_for_request` (was incorrectly reading nonexistent `DashboardPack.config_schema`); dashboard hub portal-chrome column + theme pack layout preview.
+
+**D. SOT:** §11.4 batch **1295**.
+
+**E. Operator residual:** `collectstatic` + deploy for live manager host; pick theme pack layout / dashboard pack `config_schema.chrome` in admin.
+
+**F. Artifacts:** `docs/generated/manager_portal_chrome_audit.json`; SW `sms-v3.40.2-manager-portal-chrome-1295-2026-05-19`.
+
+---
+
+## Slice - batch 1294 AI engine room tiers 1-5 audit closeout (2026-05-19)
+
+**A. Scope:** Final audit to 100% for engine room tiers 1–5; close CI + admin shell gaps found on re-audit.
+
+**B. Fixes:** Added `ai-engine-room` job to `architectural-boundaries.yml`; page-help button + `rmc-page-context-help.js` on `admin/base_site.html`; expanded `verify_ai_engine_room.py` (admin shell, GitHub workflow, control-plane script).
+
+**C. Proof:** `python scripts/verify_ai_engine_room.py` **OK**; Django engine-room suite **32/32 OK**.
+
+**D. SOT:** §11.4 batch **1294** (1293 reserved for analytics viz).
+
+**E. Operator:** Ollama live + `index_ai_knowledge` + enable Celery beats on worker host.
+
+---
+
+## Slice - batch 1293 unified analytics viz gear-up 1–6 (2026-05-18)
+
+**A. Scope:** Gear-up items 1–6 after five-phase unified data visualization framework (real API, lazy CI, Chart.js bridge, Playwright a11y, product UX, governance).
+
+**B. Implementation:** `AnalyticsVizOverviewAPIView` + `tenant_overview_viz.py` / `analytics_seeder_py.py`; React `fetchTenantBundle.ts` + toolbar (range, compare, export); `enable_unified_analytics_viz` + `analytics_viz_context`; lazy loader partial; `getUnifiedVizPalette` in `dashboard-charts-shared.js`; `seed_analytics_demo` command; gear-up verifier + CI workflow.
+
+**C. Proof:** `npm run verify:analytics` (build, vitest 12/12, prompt 18/18, gear-up checks); `python scripts/verify_analytics_viz_gear_up.py`; Django tests for API + service.
+
+**D. Residual:** Tenant analytics dashboard route E2E needs `ANALYTICS_VIZ_AUTH=1` with session; marketing mount is loader-only until scroll.
+
+**E. Docs:** SOT §11.4 batch **1293**; this log slice.
+
+**F. Artifacts:** `docs/generated/analytics_viz_gear_up_completion.json`.
+
+---
+
+## Slice - batch 1293 audit closeout (2026-05-18)
+
+**A. Scope:** 100% completion audit after gear-up; fix marketing mount gating + eager IIFE drift.
+
+**B. Fixes:** `analytics_viz_context` uses `default_backend_feature_flags()` when `request.site` is absent; `marketing_landing_v2.html` → lazy `rmc_analytics_viz_bundle.html` partial; `INTERNAL_API_STANDARDS.md` row; `fetchTenantBundle.test.ts` + `test_analytics_viz_context.py`; `verify_analytics_viz_full_completion.py`.
+
+**C. Proof:** `npm run verify:analytics:full` → **ANALYTICS_VIZ_FULL_PASS (4/4)**; gear-up **23/23**; vitest **19/19**.
+
+---
+
+## Slice - batch 1292 Migration Cloud V3.37-V3.40 SOT/evidence ledger (2026-05-19)
+
+**A. Scope:** Agent 5 documentation/evidence lane only. Inspected the named SOT/log docs plus Migration Cloud generated ledgers; no product code was edited.
+
+**B. Findings:** The evidence exists across several docs/tests, but the main SOT/autonomous log did not yet stitch V3.37-V3.39 work into one Migration Cloud story. The V3.40 wording also needed a hard boundary: legacy `X-Migration-Cloud-*` removal is future-dated after **2026-08-18**, not shipped on 2026-05-19.
+
+**C. Evidence narrative:** V3.37 = dual webhook headers, SDK `verify(..., accept_legacy=True)`, MAA v2 promotion, companion `?tenant=<slug>` pubkey flow, webhook audit/replay. V3.38 = append-only tamper-evident audit log, audit dashboard + JSONL export, health/metrics helpers. V3.39 = weekly chain verifier, counsel-gated purge, root-key signature, canonical-header drift scanner, signed-release preflight, observability metrics bridge.
+
+**D. Proof run:** `scan_companion_canonical_headers_drift.py --strict` **PASS** (0 drift). `python -m unittest apps.migration_cloud.tests.test_signed_release_preflight_v3_39 scripts.tests.test_scan_companion_canonical_headers_drift_v3_39` **18/18 OK**.
+
+**E. Blocked proof:** Full Django Migration Cloud V3.37-V3.39 subset did not complete in the shared workspace: first attempt failed during SQLite setup with `database is locked`; dedicated-DB rerun timed out after five minutes and was stopped. Do not record the Django subset as green from this lane.
+
+**F. Docs:** SOT batch **1292** added; `MIGRATION_CLOUD_AUDIT_LOG.md` status/deferred boundary refreshed; `OBSERVABILITY_METRICS.md` got a V3.40 boundary note. Generated ledgers were inspected but not edited.
+
+---
+
 ## Slice - batch 1281 final validation audit closeout (2026-05-19)
 
 **A. Scope:** Re-audit Phases 0–18 (Final Validation master prompt); close repo gaps; document Lane 2 honestly.
@@ -13,6 +165,8 @@
 **E. Artifacts:** `final_validation_phase_audit.json` regenerated; `kill_test_report.json` PASS. Hosted SHA mismatch documented (`611b785` vs `ef295246`) — Lane 2 deploy only.
 
 **F. Lane 2 (not repo):** Deploy Render until live `commit_sha` == `git rev-parse HEAD`; re-run `write_render_parity_local_report.py`; PSP/SOC2 external.
+
+**Re-verify (2026-05-19):** kill test **PASS**; Phase 15 **24/24**; `audit_final_validation_phases.py --write` **`all_phases_ok=true`** after wiring Phase 15 to `kill_test_recovery.sqlite3` in orchestrator (`_sqlite_test_env()`).
 
 ## Slice - batch 1291 aggressive glocal closeout 100% repo gate (2026-05-19)
 

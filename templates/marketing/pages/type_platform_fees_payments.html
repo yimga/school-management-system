@@ -5,6 +5,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-fees-payments.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-lanes.css' %}">
 {% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-fees-payments mkt-platform-theme--platform-fees-payments{% endblock %}
 {% block marketing_page_inner %}
@@ -43,6 +44,10 @@
       <img src="{% static 'images/marketing/platform-fees-payments-dashboard.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
     </div>
   </header>
+
+  <div class="mkt-edt-container">
+    {% include "marketing/components/_lane_finance_ledger.html" %}
+  </div>
 
   <section class="mkt-fees-section rmc-reveal" aria-labelledby="mkt-fees-visual-heading">
     <h2 id="mkt-fees-visual-heading">{% trans "Your finance workspace at a glance" %}</h2>

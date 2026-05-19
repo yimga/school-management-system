@@ -76,8 +76,16 @@ python -m py_compile \
   apps/platform_runtime/tasks.py \
   apps/siteconfig/tasks.py \
   apps/siteconfig/management/commands/ai_quality_scorecard.py \
+  apps/portal/views_ai_product.py \
+  services/ai/product_assistants.py \
   services/ai_gateway.py \
   services/ai_memory.py
+
+echo "== 4b) AI engine room completeness gate =="
+python scripts/verify_ai_engine_room.py
+
+echo "== 4c) Six-pillar global dominance gate =="
+python scripts/verify_six_pillar_global_dominance.py --write --run-tests
 
 echo "== 5) Targeted test suite (strict) =="
 python -m pytest \
@@ -92,6 +100,10 @@ python -m pytest \
   services/tests/test_open_source_ai_enforcement.py \
   apps/portal/tests/test_ai_feedback.py \
   apps/siteconfig/tests/test_index_ai_knowledge_beat_task.py \
+  services/ai/tests/test_prompt_completeness.py \
+  services/ai/tests/test_product_assistants.py \
+  apps/portal/tests/test_command_bar_api.py \
+  apps/portal/tests/test_ai_engine_room_apis.py \
   apps/automation/tests/test_outcomes_console_quarantine.py \
   -q --tb=short
 

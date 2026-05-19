@@ -90,11 +90,70 @@ html[data-resolved-theme="dark"] body:not(.marketing-surface) .text-dark{
 html[data-bs-theme="dark"] body:not(.marketing-surface) .bg-white,
 html[data-theme="dark"] body:not(.marketing-surface) .bg-white,
 html[data-resolved-theme="dark"] body:not(.marketing-surface) .bg-white,
-html[data-bs-theme="dark"] body:not(.marketing-surface) .bg-light{
-  /* Same bug class — ".bg-white" in dark mode leaves a glaring white slab.
+html[data-bs-theme="dark"] body:not(.marketing-surface) .bg-light,
+html[data-theme="dark"] body:not(.marketing-surface) .bg-light,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .bg-light {
+  /* Same bug class — ".bg-white" / ".bg-light" in dark mode leaves a glaring white slab.
      Demote to the elevated surface so it still tone-lifts but stays dark. */
   background-color: var(--surface-elevated, var(--surface-canvas)) !important;
   color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .text-bg-light,
+html[data-theme="dark"] body:not(.marketing-surface) .text-bg-light,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .text-bg-light {
+  background-color: var(--surface-elevated, var(--surface-canvas)) !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    .proof-app-card,
+    .proof-panel,
+    .proof-card,
+    .proof-compare-table,
+    .proof-step,
+    .proof-preview,
+    .rmc-install-impact-graph,
+    .rmc-surface-muted-panel,
+    .rmc-surface-elevated-pre
+  ),
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    .proof-app-card,
+    .proof-panel,
+    .proof-card,
+    .proof-compare-table,
+    .proof-step,
+    .proof-preview,
+    .rmc-install-impact-graph,
+    .rmc-surface-muted-panel,
+    .rmc-surface-elevated-pre
+  ),
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    .proof-app-card,
+    .proof-panel,
+    .proof-card,
+    .proof-compare-table,
+    .proof-step,
+    .proof-preview,
+    .rmc-install-impact-graph,
+    .rmc-surface-muted-panel,
+    .rmc-surface-elevated-pre
+  ) {
+  /* Marketplace catalog cards use token backgrounds but can still resolve to
+     light fallbacks when aesthetic dark overrides miss — force elevated slab. */
+  background-color: var(--surface-elevated, var(--surface-canvas)) !important;
+  color: var(--text-primary);
+  border-color: var(--hairline-strong, var(--hairline));
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .proof-app-card .text-muted,
+html[data-theme="dark"] body:not(.marketing-surface) .proof-app-card .text-muted,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .proof-app-card .text-muted,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .proof-panel .text-muted,
+html[data-theme="dark"] body:not(.marketing-surface) .proof-panel .text-muted,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .proof-panel .text-muted {
+  color: var(--text-secondary) !important;
+  opacity: 1 !important;
 }
 
 /* ====================================================================== */
@@ -157,6 +216,189 @@ html[data-resolved-theme="dark"] body:not(.marketing-surface) .table thead th{
   background-color: var(--surface-elevated, var(--surface-canvas));
   color: var(--text-primary);
   border-bottom-color: var(--hairline);
+}
+
+/* 4b. Platform chromatic floor (v1298) — tables / list-groups / bg-light slabs.
+   Catches incident console, AI Center assistants, and any Bootstrap table
+   that still resolves --bs-table-bg or cell backgrounds to near-white while
+   --text-primary is already in the dark palette. !important is intentional:
+   this file is the last-resort safety net after component CSS. */
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table tbody tr,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table tbody tr,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table tbody tr,
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table tbody td,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table tbody td,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table tbody td,
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table-family tbody td,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table-family tbody td,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .table-family tbody td {
+  background-color: var(--surface-elevated, var(--surface-canvas)) !important;
+  color: var(--text-primary) !important;
+  --bs-table-bg: var(--surface-elevated, var(--surface-canvas));
+  --bs-table-color: var(--text-primary);
+  --bs-table-hover-bg: var(--surface-popover, var(--surface-elevated));
+  --bs-table-hover-color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .table thead.table-light th,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .table thead.table-light th,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .table thead.table-light th,
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .table-family thead th,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .table-family thead th,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .table-family thead th {
+  background-color: var(--surface-canvas, var(--surface-elevated)) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--hairline) !important;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .list-group-item,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .list-group-item,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .list-group-item {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .list-group-item-action:not(.active):hover,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .list-group-item-action:not(.active):hover,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .list-group-item-action:not(.active):hover {
+  background-color: var(--surface-popover, var(--surface-elevated));
+  color: var(--text-primary);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .alert-light,
+html[data-theme="dark"] body:not(.marketing-surface) .alert-light,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .alert-light {
+  background-color: var(--surface-elevated, var(--surface-canvas)) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--hairline) !important;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .card-header.bg-light,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .card-header.bg-light,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ) .card-header.bg-light {
+  background-color: var(--surface-canvas, var(--surface-elevated)) !important;
+  color: var(--text-primary) !important;
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.card-body.bg-light, pre.bg-light, thead.bg-light th),
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.card-body.bg-light, pre.bg-light, thead.bg-light th),
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.card-body.bg-light, pre.bg-light, thead.bg-light th) {
+  background-color: var(--surface-elevated, var(--surface-canvas)) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--hairline);
+}
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ).bg-white,
+html[data-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ).bg-white,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) :is(
+    #cp-main-content,
+    [data-rmc-shell-main]
+  ).bg-white,
+html[data-bs-theme="dark"] body:not(.marketing-surface) #main.bg-white,
+html[data-theme="dark"] body:not(.marketing-surface) #main.bg-white,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) #main.bg-white {
+  background-color: var(--surface-canvas, var(--color-base-900)) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ====================================================================== */

@@ -83,6 +83,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
   <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
   <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
   <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
   {% endif %}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
@@ -203,6 +204,10 @@
   {# Phase G: ⌘K command palette on the admin shell too. #}
   {% if request.user.is_authenticated %}
     {% include 'components/rmc_command_palette.html' %}
+    <button type="button" class="btn btn-outline-primary btn-sm position-fixed rmc-page-help-fab" data-rmc-page-help style="z-index:1040; bottom:1rem; right:1rem;" title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
+      <i class="bi bi-question-circle" aria-hidden="true"></i> {% trans "Help" %}
+    </button>
+    <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
     <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
     <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
     <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>

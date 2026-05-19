@@ -1,6 +1,6 @@
 {% load i18n %}
 {# Same nav language as manager control-plane spine: Studio family on tenant portal (Phase 1 continuity). #}
-<nav class="tenant-studio-spine" role="navigation" aria-label="{% trans 'Studio and configuration shortcuts' %}" data-tenant-studio-spine="1">
+<nav class="tenant-studio-spine rmc-horizontal-nav-rail" role="navigation" aria-label="{% trans 'Studio and configuration shortcuts' %}" data-tenant-studio-spine="1">
   <span class="tenant-studio-spine__label">{% trans "Studio" %}</span>
   <a href="{% url 'studio_os:shell' %}">{% trans "Overview" %}</a>
   <a href="{% url 'studio_os:experience' %}">{% trans "Experience" %}</a>

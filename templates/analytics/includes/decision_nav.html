@@ -1,6 +1,6 @@
 {% load i18n %}
-<nav class="mb-3" aria-label="{% trans 'Decision dashboards' %}">
-  <ul class="nav nav-pills flex-wrap gap-1 small">
+<nav class="rmc-horizontal-nav-rail mb-3" aria-label="{% trans 'Decision dashboards' %}">
+  <ul class="nav nav-pills flex-nowrap gap-1 small mb-0">
     <li class="nav-item">
       <a class="nav-link py-1 px-2 {% if surface_key == 'overview' %}active{% endif %}" href="{% url 'analytics:decision_intelligence_dashboard' %}">{% trans "Overview" %}</a>
     </li>

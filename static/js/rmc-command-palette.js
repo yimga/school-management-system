@@ -1,13 +1,5 @@
 /**
- * RunMyCampus Command Palette (⌘K / Ctrl+K)
- *
- * Apple Spotlight-style palette mounted globally on every authenticated shell.
- * Lets users jump to any page, fire an action, or open the AI copilot — the
- * platform-wide answer to "long, endless nav."
- *
- * Markup contract: templates/components/rmc_command_palette.html
- * Data contract: <script type="application/json" id="rmc-cmdk-data"> defines
- * groups and items. Items have either `url` (navigate) or `action` (CustomEvent name).
+ * RunMyCampus Command Palette (⌘K / Ctrl+K) — topology + engine-room aware.
  */
 (function () {
   "use strict";
@@ -16,11 +8,30 @@
   var INPUT_ID = "rmc-cmdk-input";
   var LIST_ID = "rmc-cmdk-list";
   var DATA_ID = "rmc-cmdk-data";
+  var RECENT_KEY = "rmc-cmdk:recent";
+  var RECENT_MAX = 6;
+
+  var config = { groups: [], api_url: "", ai_center_url: "" };
+  var state = {
+    open: false,
+    query: "",
+    staticItems: [],
+    remoteItems: [],
+    filtered: [],
+    activeIndex: 0,
+    remoteTimer: null,
+    remoteFetchId: 0,
+  };
 
   function readData() {
     var node = document.getElementById(DATA_ID);
     if (!node || !node.textContent) { return { groups: [] }; }
     try { return JSON.parse(node.textContent); } catch (_) { return { groups: [] }; }
+  }
+
+  function csrfToken() {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    return m ? m.getAttribute("content") : "";
   }
 
   function flattenItems(groups) {
@@ -35,69 +46,82 @@
           icon: it.icon || "bi-arrow-right-circle",
           keywords: (it.keywords || "") + " " + (g.label || ""),
           group: g.label || "",
+          locked: false,
         });
       });
     });
     return items;
   }
 
-  /* Improvement C (2026-05-12): Recent list — persists last 6 destinations in
-     localStorage so users land in the same place they did last time. */
-  var RECENT_KEY = "rmc-cmdk:recent";
-  var RECENT_MAX = 6;
   function readRecent() {
     try {
       var raw = localStorage.getItem(RECENT_KEY);
       return raw ? JSON.parse(raw) : [];
     } catch (_) { return []; }
   }
+
   function pushRecent(item) {
-    if (!item || !item.url) { return; }
+    if (!item || !item.url || item.locked) { return; }
     var recent = readRecent().filter(function (r) { return r.url !== item.url; });
     recent.unshift({ label: item.label, url: item.url, icon: item.icon });
     recent = recent.slice(0, RECENT_MAX);
     try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent)); } catch (_) {}
   }
+
   function recentItems() {
     return readRecent().map(function (r) {
-      return Object.assign({}, r, { group: "Recent", keywords: "recent " + (r.label || "") });
+      return Object.assign({}, r, { group: "Recent", keywords: "recent " + (r.label || ""), locked: false });
     });
   }
 
   function score(item, query) {
     if (!query) { return 1; }
     var q = query.toLowerCase().trim();
-    var hay = (item.label + " " + item.keywords).toLowerCase();
+    var hay = (item.label + " " + (item.keywords || "") + " " + (item.path_label || "")).toLowerCase();
     if (hay.indexOf(q) === -1) { return 0; }
-    /* Heavier weight for label prefix, then label contains, then keyword contains. */
-    if (item.label.toLowerCase().indexOf(q) === 0) { return 3; }
-    if (item.label.toLowerCase().indexOf(q) !== -1) { return 2; }
-    return 1;
+    if (item.label.toLowerCase().indexOf(q) === 0) { return 4; }
+    if (item.label.toLowerCase().indexOf(q) !== -1) { return 3; }
+    return 2;
   }
 
-  var state = {
-    open: false,
-    query: "",
-    items: [],
-    filtered: [],
-    activeIndex: 0,
-  };
+  function mapRemote(row) {
+    var isEscalate = row.type === "escalate";
+    return {
+      label: row.label || "",
+      path_label: row.path_label || "",
+      detail: row.detail || "",
+      url: row.url || (isEscalate && config.help_center_url ? config.help_center_url : null),
+      action: row.ask_ai_center ? "rmc:cmdk:ask-ai" : null,
+      icon: row.icon || "bi-arrow-right-circle",
+      keywords: (row.label || "") + " " + (row.path_label || ""),
+      group: isEscalate
+        ? "Support"
+        : row.type === "documentation"
+          ? "How-to"
+          : row.type === "locked"
+            ? "Restricted"
+            : "Topology",
+      locked: row.type === "locked" || !!row.locked,
+      missing_permission: row.missing_permission || "",
+    };
+  }
 
   function askAiItem(query) {
-    /* 2026-05-14: Ask-AI fallback. When the user's query has zero
-       palette matches, surface a single "Ask AI: <query>" row that
-       opens the copilot prepopulated with the query. Avoids the
-       dead-end "No matches" state and keeps ⌘K as the platform-wide
-       answer to "where do I start?". */
     return {
-      label: 'Ask AI: "' + query + '"',
+      label: 'Ask AI Center: "' + query + '"',
       url: null,
       action: "rmc:cmdk:ask-ai",
       icon: "bi-stars",
-      keywords: "ask ai " + query,
+      keywords: "ask ai engine room " + query,
       group: "AI",
-      _askQuery: query,
+      locked: false,
     };
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+    });
   }
 
   function render() {
@@ -107,7 +131,6 @@
     if (!state.filtered.length) {
       var q = (state.query || "").trim();
       if (q) {
-        /* Render the Ask AI fallback as a real item so Enter activates it. */
         state.filtered = [askAiItem(q)];
         state.activeIndex = 0;
       } else {
@@ -117,42 +140,97 @@
     }
     state.filtered.forEach(function (item, idx) {
       var li = document.createElement("li");
-      li.className = "rmc-cmdk__item" + (idx === state.activeIndex ? " is-active" : "");
+      var classes = "rmc-cmdk__item";
+      if (idx === state.activeIndex) { classes += " is-active"; }
+      if (item.locked) { classes += " is-locked"; }
+      li.className = classes;
       li.setAttribute("role", "option");
       li.id = "rmc-cmdk-item-" + idx;
       li.setAttribute("aria-selected", idx === state.activeIndex ? "true" : "false");
       li.dataset.idx = String(idx);
+      var sub = item.path_label || item.detail || "";
+      if (item.locked && item.missing_permission) {
+        sub = "Requires " + item.missing_permission;
+      }
       li.innerHTML =
         '<i class="bi ' + item.icon + ' rmc-cmdk__item-icon" aria-hidden="true"></i>' +
+        '<span class="rmc-cmdk__item-body">' +
         '<span class="rmc-cmdk__item-label">' + escapeHtml(item.label) + '</span>' +
+        (sub ? '<span class="rmc-cmdk__item-sub">' + escapeHtml(sub) + '</span>' : '') +
+        '</span>' +
         '<span class="rmc-cmdk__item-group">' + escapeHtml(item.group) + '</span>';
       list.appendChild(li);
     });
     var input = document.getElementById(INPUT_ID);
-    if (input) {
+    if (input && state.activeIndex >= 0) {
       input.setAttribute("aria-activedescendant", "rmc-cmdk-item-" + state.activeIndex);
     }
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
-    });
+  function allItems() {
+    return recentItems().concat(state.staticItems).concat(state.remoteItems);
   }
 
   function refilter() {
-    var scored = state.items
-      .map(function (it) { return { it: it, s: score(it, state.query) }; })
+    var pool = allItems();
+    var q = state.query || "";
+    var scored = pool
+      .map(function (it) { return { it: it, s: score(it, q) }; })
       .filter(function (x) { return x.s > 0; })
       .sort(function (a, b) { return b.s - a.s; })
       .map(function (x) { return x.it; });
-    state.filtered = scored;
-    state.activeIndex = scored.length ? 0 : -1;
+    state.filtered = scored.slice(0, 16);
+    state.activeIndex = state.filtered.length ? 0 : -1;
     render();
   }
 
+  function fetchRemote(q) {
+    if (!config.api_url || q.length < 2) {
+      state.remoteItems = [];
+      refilter();
+      return;
+    }
+    var fetchId = ++state.remoteFetchId;
+    var activePath =
+      (window.location.pathname || "/") + (window.location.search || "");
+    try {
+      sessionStorage.setItem("rmc:cmdk:active_url", activePath);
+    } catch (_) {}
+    var body = JSON.stringify({
+      q: q,
+      active_url: activePath,
+      include_ai: q.length >= 4 ? "1" : "0",
+    });
+    fetch(config.api_url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: body,
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (payload) {
+        if (fetchId !== state.remoteFetchId) { return; }
+        var rows = (payload && payload.results) || [];
+        state.remoteItems = rows.map(mapRemote);
+        refilter();
+      })
+      .catch(function () {
+        if (fetchId !== state.remoteFetchId) { return; }
+        state.remoteItems = [];
+        refilter();
+      });
+  }
+
+  function scheduleRemote(q) {
+    if (state.remoteTimer) { clearTimeout(state.remoteTimer); }
+    state.remoteTimer = setTimeout(function () { fetchRemote(q); }, 220);
+  }
+
   function activate(item) {
-    if (!item) { return; }
+    if (!item || item.locked) { return; }
     if (item.url) {
       pushRecent(item);
       window.location.href = item.url;
@@ -174,6 +252,7 @@
     if (input) {
       input.value = "";
       state.query = "";
+      state.remoteItems = [];
       refilter();
       setTimeout(function () { input.focus(); }, 0);
     }
@@ -185,10 +264,10 @@
     state.open = false;
     root.hidden = true;
     document.body.classList.remove("rmc-cmdk-open");
+    if (state.remoteTimer) { clearTimeout(state.remoteTimer); }
   }
 
   function onKeydown(e) {
-    /* Global ⌘K / Ctrl+K to open. */
     var isMod = e.metaKey || e.ctrlKey;
     if (isMod && (e.key === "k" || e.key === "K")) {
       e.preventDefault();
@@ -222,26 +301,22 @@
   function onInput(e) {
     state.query = e.target.value || "";
     refilter();
+    scheduleRemote(state.query.trim());
   }
 
   function onListClick(e) {
     var li = e.target.closest && e.target.closest(".rmc-cmdk__item");
-    if (!li) { return; }
+    if (!li || li.classList.contains("is-locked")) { return; }
     var idx = parseInt(li.dataset.idx, 10);
-    if (!isNaN(idx)) {
-      activate(state.filtered[idx]);
-    }
+    if (!isNaN(idx)) { activate(state.filtered[idx]); }
   }
 
   function init() {
-    var data = readData();
-    var base = flattenItems(data.groups);
-    /* Prepend Recent group when present and query is empty — recency-first when
-       the user hasn't typed anything. The filter logic re-sorts on input so
-       Recent doesn't pollute keyword matches. */
-    state.items = recentItems().concat(base);
-    state.filtered = state.items.slice();
+    config = readData();
+    state.staticItems = flattenItems(config.groups);
+    state.filtered = allItems().slice(0, 16);
     render();
+
     document.addEventListener("keydown", onKeydown, false);
     var input = document.getElementById(INPUT_ID);
     if (input) { input.addEventListener("input", onInput); }
@@ -250,7 +325,6 @@
     var backdrop = document.querySelector("[data-rmc-cmdk-dismiss]");
     if (backdrop) { backdrop.addEventListener("click", close); }
 
-    /* Built-in actions */
     window.addEventListener("rmc:cmdk:toggle-theme", function () {
       if (!window.RMCTheme) { return; }
       var pref = window.RMCTheme.get();
@@ -258,26 +332,48 @@
       window.RMCTheme.set(next);
     });
     window.addEventListener("rmc:cmdk:open-ai", function () {
+      if (config.ai_center_url) {
+        window.location.href = config.ai_center_url;
+        return;
+      }
       var t = document.getElementById("aiCopilotTrigger");
       if (t) { t.click(); }
     });
     window.addEventListener("rmc:cmdk:ask-ai", function () {
-      /* Fired by the Ask-AI fallback item. Opens the copilot panel and
-         prepopulates the input with the user's query. */
       var q = (state.query || "").trim();
+      if (config.ai_center_url && q) {
+        var sep = config.ai_center_url.indexOf("?") >= 0 ? "&" : "?";
+        var active = "";
+        try {
+          active = sessionStorage.getItem("rmc:cmdk:active_url") || "";
+        } catch (_) {}
+        if (!active && window.location) {
+          active =
+            (window.location.pathname || "") + (window.location.search || "");
+        }
+        var href =
+          config.ai_center_url +
+          sep +
+          "assistant=first_line_support&q=" +
+          encodeURIComponent(q);
+        if (active) {
+          href += "&active_url=" + encodeURIComponent(active);
+        }
+        window.location.href = href;
+        return;
+      }
       var trigger = document.getElementById("aiCopilotTrigger");
       if (trigger) { trigger.click(); }
       setTimeout(function () {
-        var input = document.getElementById("aiCopilotInput");
-        if (input) {
-          input.value = q;
-          try { input.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
-          input.focus();
+        var copilotInput = document.getElementById("aiCopilotInput");
+        if (copilotInput) {
+          copilotInput.value = q;
+          try { copilotInput.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+          copilotInput.focus();
         }
       }, 80);
     });
 
-    /* Expose for other scripts (e.g. nav buttons). */
     window.RMCCommandPalette = { open: open, close: close };
   }
 

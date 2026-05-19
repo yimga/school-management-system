@@ -75,6 +75,12 @@
   --text-marketing-on-primary: var(--mkt-on-primary);
   --text-marketing-on-accent: var(--mkt-on-accent);
   --focus-marketing-ring: var(--mkt-accent);
+
+  /* Lane personality accents (WCAG AAA 7:1 on --bg-marketing-surface cream) */
+  --text-brand-primary: var(--mkt-primary);
+  --accent-principal-emerald: #047857;
+  --accent-finance-gold: #b45309;
+  --accent-admissions-indigo: #4338ca;
 }
 
 /* PUBLIC_BRAND_MODE inline style in base_marketing still overrides --mkt-primary / --mkt-hero-bg / --mkt-accent */

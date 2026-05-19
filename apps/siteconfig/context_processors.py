@@ -720,9 +720,12 @@ def site_settings(request):
     )
     user = getattr(request, "user", None)
     is_authenticated = bool(user and getattr(user, "is_authenticated", False))
+    # Corporate marketing footer: manager host login only (never on tenant school surfaces).
     ctx["SHOW_CORPORATE_MARKETING_FOOTER"] = (
         public_host_kind == "manager" and not school and not is_authenticated
     )
+    # Authenticated + anonymous manager pages use control_plane_base / manager_login includes.
+    ctx["SHOW_MANAGER_CORPORATE_FOOTER"] = public_host_kind == "manager"
     ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
     ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
     if ctx["CONTROL_PLANE_SHELL"]:
@@ -1001,6 +1004,29 @@ def site_settings(request):
     pinned_list, pinned_ids = _get_pinned_sidebar_items(request, portal_items)
     ctx["PINNED_SIDEBAR_ITEMS"] = pinned_list
     ctx["PINNED_SIDEBAR_IDS"] = pinned_ids
+    school_for_chrome = getattr(request, "school", None)
+    host_kind = getattr(request, "public_host_kind", None) or ""
+    if school_for_chrome and host_kind != "manager":
+        try:
+            from apps.siteconfig.portal_chrome import (
+                resolve_dashboard_pack_for_request,
+                resolve_dashboard_template_for_request,
+                resolve_portal_chrome,
+            )
+
+            ctx.update(
+                resolve_portal_chrome(
+                    site_theme=ctx.get("SITE_THEME"),
+                    dashboard_pack=resolve_dashboard_pack_for_request(request),
+                    dashboard_template=resolve_dashboard_template_for_request(request),
+                )
+            )
+        except OPTIONAL_CONTEXT_ERRORS:
+            ctx.setdefault("PORTAL_HEADER_VARIANT", "statement")
+            ctx.setdefault("PORTAL_FOOTER_PARTIAL", "components/footer.html")
+    else:
+        ctx.setdefault("PORTAL_HEADER_VARIANT", "statement")
+        ctx.setdefault("PORTAL_FOOTER_PARTIAL", "components/footer.html")
     return ctx
 
 
@@ -1373,4 +1399,28 @@ def lexicon_context(request):
     return {
         "rmc_lexicon_meta": payload_json,
         "lexicon": full,
+    }
+
+
+def analytics_viz_context(request):
+    """Unified analytics viz: feature flag + internal overview API URL."""
+    from django.urls import NoReverseMatch, reverse
+
+    from apps.siteconfig.models_support import default_backend_feature_flags
+
+    site = getattr(request, "site", None)
+    if site:
+        flags = _resolve_backend_feature_flags(request, site)
+    else:
+        flags = default_backend_feature_flags()
+    enabled = bool(flags.get("enable_unified_analytics_viz", False))
+    api_url = ""
+    if enabled:
+        try:
+            api_url = reverse("api:api-analytics-viz-overview")
+        except NoReverseMatch:
+            api_url = ""
+    return {
+        "ENABLE_UNIFIED_ANALYTICS_VIZ": enabled,
+        "ANALYTICS_VIZ_API_URL": api_url,
     }

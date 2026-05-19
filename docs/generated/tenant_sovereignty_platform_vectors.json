@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "generated_for": "six-pillar-global-dominance-mandate",
+  "tenant_sovereignty": {
+    "cascade_layers": [
+      "RuntimeDefaults typed column",
+      "migration",
+      "RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES",
+      "EXACT_FIELD_OWNERS",
+      "SiteSettings.brand_payload",
+      "apps.siteconfig.context_processors",
+      "templates/partials/rmc_theme_meta.html",
+      "static/js/theme-preference-bootstrap.js",
+      "CSS var(--*) on html"
+    ],
+    "effective_theme_attributes": {
+      "data_theme": ["light", "dark"],
+      "data_theme_preference": ["light", "dark", "system"],
+      "forbidden_data_theme_values": ["system", "auto"]
+    },
+    "surface_isolation": {
+      "marketing_local_storage_key": "rmc-mkt-theme",
+      "tenant_local_storage_key": "runmycampus-theme-preference",
+      "marketing_html_attribute": "data-surface=marketing"
+    },
+    "brand_guard": {
+      "module": "apps.siteconfig.brand_guard_runtime",
+      "min_contrast_ratio": 7.0,
+      "guarded_fields": ["primary_color", "accent_color"],
+      "persist_hook": "SiteSettings.save via guard_brand_hex_fields",
+      "render_hook": "context_processors via guard_brand_dict"
+    },
+    "shells_requiring_meta_bridge": [
+      "templates/portal_base.html",
+      "templates/base.html",
+      "templates/control_plane_skeleton.html",
+      "templates/admin/base_site.html",
+      "templates/marketing/base_marketing.html"
+    ],
+    "fouc_contract": {
+      "script": "static/js/theme-preference-bootstrap.js",
+      "load_in": "head",
+      "defer_allowed": false,
+      "async_allowed": false
+    },
+    "white_label_controls": {
+      "theme_builder_url_name": "siteconfig:theme_builder",
+      "publish_api": "/siteconfig/theme-experience/builder/api/publish/",
+      "preview_api": "/siteconfig/theme-experience/builder/api/preview/",
+      "custom_domain_setting": "SchoolDomain",
+      "logo_tokens": ["SITE_LOGO_URL", "SITE_LOGO_DARK_URL", "SITE_FAVICON_DARK_URL"]
+    }
+  },
+  "cross_pillar_env": {
+    "tenant_cache_version_env": "RMC_TENANT_RESOLUTION_CACHE_VERSION",
+    "ai_engine_room": "AI_ENGINE_ROOM_SUPPORT",
+    "finance_webhook_dedup": "apps.finance.webhook_ingress.resolve_webhook_dedup_bucket",
+    "search_backfill_cmd": "backfill_search_indexes"
+  },
+  "honest_external_blockers": [
+    "Custom domain TLS + edge CDN provisioning per tenant (operator DNS)",
+    "Live PSP settlement corridor for Shopify-pillar 100% production proof",
+    "SOC 2 / ISO auditor sign-off for trust claims"
+  ]
+}

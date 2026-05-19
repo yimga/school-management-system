@@ -20,7 +20,13 @@ name: release-webhook-verifier-js
 on:
   push:
     tags:
-      - "webhook-verifier-js-*"
+      - "webhook-verifier-js-v*"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "publish" to confirm release to npm'
+        required: true
+        type: string
 
 # Do NOT trigger on push to main / PRs — only on the named tag.
 permissions:
@@ -31,9 +37,26 @@ defaults:
     working-directory: beta/school-management-system/packages/runmycampus-webhook-verifier-js
 
 jobs:
+  confirm:
+    name: Manual confirmation gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirm input on manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "publish" ]; then
+            echo "::error::workflow_dispatch requires confirm='publish' (got '${{ github.event.inputs.confirm }}')"
+            exit 1
+          fi
+          echo "Manual dispatch confirmed."
+      - name: Tag-triggered run (no manual confirm required)
+        if: github.event_name == 'push'
+        run: echo "Triggered by tag ${{ github.ref_name }} — no manual confirm required."
+
   test:
     name: Test before release
     runs-on: ubuntu-latest
+    needs: confirm
     strategy:
       matrix:
         node: ["18", "20", "22"]

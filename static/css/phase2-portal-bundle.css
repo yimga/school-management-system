@@ -640,12 +640,26 @@ code {
   .tenant-app-catalog-wrap .proof-app-card {
     border-radius: 12px;
     border: 1px solid rgba(99, 102, 241, 0.15); /* off-token-allow: rgba-decorative */
+    background: var(--surface-elevated, var(--admin-content-bg, var(--surface-canvas)));
+    color: var(--text-primary);
     transition: transform .15s ease, box-shadow .15s ease;
   }
   .tenant-app-catalog-wrap .proof-app-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(30, 58, 95, 0.12);
   }
+
+html[data-resolved-theme="dark"] .tenant-app-catalog-wrap .proof-app-card,
+html[data-resolved-theme="dark"] .tenant-app-catalog-wrap .proof-panel {
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  border-color: var(--hairline-strong, var(--hairline));
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="dark"] .tenant-app-catalog-wrap .proof-app-card .text-muted {
+  color: var(--text-secondary) !important;
+  opacity: 1 !important;
+}
 
 /* ========== templates/parent/dashboard.html ========== */
 /* Theme: use design tokens only (--school-primary, --dashboard-*, etc.) */

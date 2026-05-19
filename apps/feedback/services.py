@@ -169,13 +169,19 @@ def support_entry_points(request):
     links = {}
     route_names = {
         "help_center": "feedback:help_center",
+        "contact_center": "feedback:contact_us",
+        "feature_center": "feedback:feature_center",
         "kb_home": "kb:kb_home",
         "faq_list": "kb:faq_list",
         "support_request": "portal:support_request",
         "portal_help": "portal:support_help_hub",
+        "parent_contact_school": "portal:parent_contact_school",
+        "staff_contact_requests": "portal:staff_contact_request_list",
         "school_feedback": "feedback:school_feedback",
         "school_roadmap": "feedback:school_roadmap",
         "release_notes": "feedback:release_notes_public",
+        "voice_of_customer": "feedback:voice_of_customer",
+        "product_roadmap": "feedback:product_roadmap",
     }
     for key, name in route_names.items():
         try:

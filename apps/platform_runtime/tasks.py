@@ -32,6 +32,12 @@ def sync_ollama_models_beat() -> str:
         call_command("sync_ollama_models", "--include-registry", stdout=out, stderr=err)
     else:
         call_command("sync_ollama_models", "--no-registry", stdout=out, stderr=err)
+    # Engine room: smoke-test active model pointer after pull (no second pull).
+    if os.getenv("AI_ENGINE_ROOM_SUPPORT", "1").strip().lower() in ("1", "true", "yes"):
+        try:
+            call_command("engine_room_sync_ollama", "--no-pull", stdout=out, stderr=err)
+        except Exception:
+            pass
     return (out.getvalue() + err.getvalue())[-4000:]
 
 

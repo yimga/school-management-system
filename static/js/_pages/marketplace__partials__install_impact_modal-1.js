@@ -122,7 +122,7 @@
     }
     html += "<h4 class=\"h6 mt-3\">" + esc(_t("trans_dependency_graph")) + "</h4>";
     html += "<p class=\"small text-muted mb-1\">" + esc(_t("trans_pan_by_dragging_zoom_with_the_mouse_wheel")) + "</p>";
-    html += "<div id=\"rmcInstallImpactGraph\" class=\"border rounded bg-white rmc-install-impact-graph\"></div>";
+    html += "<div id=\"rmcInstallImpactGraph\" class=\"border rounded rmc-install-impact-graph\"></div>";
     var rb = (d.rollback && d.rollback.sandbox) || "";
     html += "<p class=\"mt-3 small text-muted mb-0\"><strong>" + esc(_t("trans_rollback")) + ":</strong> " + esc(rb) + "</p>";
     bodyEl.innerHTML = html;

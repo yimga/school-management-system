@@ -1,0 +1,28 @@
+{
+  "verdict": "ANALYTICS_VIZ_FULL_PASS",
+  "pass_count": 4,
+  "fail_count": 0,
+  "generated_at": "2026-05-19T10:33:33.666756+00:00",
+  "rows": [
+    {
+      "check_id": "verify_analytics_npm",
+      "status": "PASS",
+      "proof": "s\\react-dom.development.js:26473:7)\n    at recoverFromConcurrentError (C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\node_modules\\react-dom\\cjs\\react-dom.development.js:25889:20)\n    at performConcurrentWorkOnRoot (C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\node_modules\\react-dom\\cjs\\react-dom.development.js:25789:22) {\n  componentStack: '\\n' +\n    '    at PlatformPulseLineChart (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\components\\\\shared\\\\analytics\\\\PlatformPulseLineChart.tsx:11:3)\\n' +\n    '    at VizErrorBoundary (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\apps\\\\dashboard\\\\ErrorBoundary.tsx:6:1)\\n' +\n    '    at div\\n' +\n    '    at div\\n' +\n    '    at div\\n' +\n    '    at TenantOverview (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\apps\\\\dashboard\\\\TenantOverview.tsx:20:3)'\n}"
+    },
+    {
+      "check_id": "prompt_completion",
+      "status": "PASS",
+      "proof": "ANALYTICS_VIZ_PROMPT_PASS (18/18 checks)"
+    },
+    {
+      "check_id": "gear_up",
+      "status": "PASS",
+      "proof": "ANALYTICS_VIZ_GEAR_UP_PASS (23/23 checks)"
+    },
+    {
+      "check_id": "no_eager_iife_templates",
+      "status": "PASS",
+      "proof": "all surfaces lazy"
+    }
+  ]
+}

@@ -306,6 +306,65 @@ effect" race that breaks every in-flight delivery.
   Fernet-wrapped ciphertext. So a DB dump alone (without the Fernet
   key) is not sufficient to forge a delivery.
 
+### Webhook Replay & Audit (v3.37.0)
+
+The operator support team has two staff-only surfaces for closing
+"we never got delivery X" tickets:
+
+* **Per-subscription audit** —
+  `/super/migration/operator/webhooks/<sub_id>/audit/`
+  (view class `WebhookSubscriptionAuditView`,
+  `# rbac-allow: super-staff-webhook-audit-view-deliveries`). Renders
+  the last 200 deliveries for ONE subscription, paginated 50/page,
+  filterable by status (`pending`/`delivered`/`failed`/`exhausted`)
+  and a created-at date range. **The page NEVER includes** signature
+  bytes (only a `signed: yes/no` boolean column), payload body
+  content (only the byte-length integer), or HMAC secret material.
+  Signature material never reaches the template context.
+
+* **Manual replay** —
+  `POST /super/migration/operator/webhooks/deliveries/<id>/replay/`
+  (view class `WebhookDeliveryReplayView`,
+  `# rbac-allow: super-staff-webhook-manual-replay`). Creates a
+  brand-new `MigrationCloudWebhookDelivery` row that copies
+  `event_type`, `subscription`, and `payload_json` from the original;
+  populates `replay_of=<original_id>`, `replayed_by=<staff user>`,
+  `replayed_at=<now>`; resets the FSM (`status=pending`,
+  `attempt_count=0`, `next_retry_at=now`); re-signs the canonical
+  body against the subscription's CURRENT secret (so post-rotation
+  replays sign with the fresh key); triggers an immediate Celery
+  dispatch via `deliver_due_task.delay()`. Returns **HTTP 409
+  Conflict** when the original payload is empty or the original
+  subscription has been deleted.
+
+Both views are staff-only (`@staff_member_required`), audit-logged at
+INFO level with `user_id` + `delivery_id` + `sub_id` + `event_type`
+only — **never** signature bytes, payload bytes, or HMAC secret
+material.
+
+#### Idempotency guarantee (24h collision window)
+
+The dispatcher (`apps.migration_cloud.api.webhook_dispatch.enqueue`)
+accepts an optional `idempotency_key` keyword. When the caller
+supplies one, the dispatcher looks for an existing
+`MigrationCloudWebhookDelivery` row with the same
+`(subscription_id, idempotency_key)` whose `status ∈ {pending,
+delivered}` and `created_at >= now - 24h`. If found, the dispatcher
+**does NOT create a duplicate row** — it returns the existing row
+and logs `migration_cloud_webhook_idempotency_collision` (IDs only;
+the key bytes themselves are never logged). Empty-string keys
+disable the guard so legacy v3.32 enqueue sites that don't pass one
+keep working unchanged.
+
+The composite index `(subscription_id, idempotency_key)` backs the
+24h lookup; `(replay_of_id, created_at)` backs the audit-view
+replay-chain traversal. Both are added in migration `0017`.
+
+Operator replays do NOT inherit the original idempotency key — a
+replay is a deliberate duplicate, not a producer-side double-fire,
+so the 24h collision guard is bypassed for the new row by leaving
+`idempotency_key=""`.
+
 ---
 
 ## 5. `MigrationCloudAPIToken` scoped tokens
@@ -691,5 +750,83 @@ pre-conditions external counsel must sign off on before any
 write path is unblocked. Engineering MUST NOT introduce a
 feature flag (even default-off) as a workaround; the code stubs
 remain literal `// honest-stub:` until sign-off is filed.
+
+---
+
+## Audit-event root-key signature (v3.39.0)
+
+**Env var:** `MIGRATION_CLOUD_AUDIT_SIGNING_KEY`
+**Backend selector:** `MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND`
+**Algorithm:** HMAC-SHA512 (NOT SHA-256 — `integrity_hash` already uses
+SHA-256; using a different algorithm here prevents a single-algorithm
+compromise from breaking both checks)
+**Pre-image:** the same canonical-JSON shape that
+`apps.migration_cloud.models_audit._compute_integrity_hash` covers —
+`{id, tenant_id_hash, event_type, actor_id, event_subject_hash,
+payload_summary, created_at_iso, prev_event_hash}`.
+**Stored on:** `MigrationCloudAuditEvent.root_key_signature`
+(`CharField(128, null=True)`) — 128 hex chars = SHA-512 hex digest;
+NULL means the event was written before the key was provisioned
+("unsigned legacy"; NOT a tamper signal).
+
+### Key type
+
+Random 32 bytes (recommended) base64-encoded into the env var. The
+service module accepts base64, hex, or raw UTF-8 — base64 is the
+preferred form. Generate via:
+
+```
+python -c "import os,base64; print(base64.b64encode(os.urandom(32)).decode())"
+```
+
+### Rotation cadence
+
+**Never reuse a previous key value.** The signing key NEVER rotates
+on a fixed schedule like the data-encryption keys (DJANGO_CRYPTOGRAPHY_KEYS) —
+rotating it would invalidate every previously-signed audit event,
+defeating the backup-restore tamper-detection guarantee. If a key
+compromise is suspected, the response is:
+
+1. Provision a new key.
+2. Mark the old key as compromised in your secret manager (do NOT
+   delete — auditors who hold the export must still be able to
+   re-verify pre-incident events).
+3. New events sign under the new key.
+4. Old events remain verifiable as long as you retain access to the
+   compromised-but-not-deleted prior value.
+
+The verifier in v3.39.0 supports only one active key at a time. Multi-key
+rollover (parallel sign + verify across N keys) is reserved for the
+HSM bridge work.
+
+### Storage
+
+Same secret manager as `DJANGO_CRYPTOGRAPHY_KEYS`, BUT on a different
+IAM principal / access boundary. The threat model assumes a compromise
+of one storage credential does not yield the other.
+
+**NEVER commit a literal key value to the repository.** `settings.py`
+reads:
+
+```
+MIGRATION_CLOUD_AUDIT_SIGNING_KEY = os.environ.get(
+    "MIGRATION_CLOUD_AUDIT_SIGNING_KEY", ""
+)
+```
+
+Empty string disables signing (the audit log still works; new rows
+land with `root_key_signature=NULL`). Operators in lower environments
+(local dev, CI) can run without the key — only production needs it
+provisioned.
+
+### Cross-system trust anchor
+
+The audit-event root key joins the trust-anchor inventory at the top
+of this document. Compromise blast radius: every audit event written
+after the compromise window cannot be trusted to defend against the
+"restore-from-tampered-backup" attack — the chain itself (SHA-256
+integrity hash) still defends against direct row tampering. Recovery:
+provision a new key + retain the old key in cold storage for
+post-incident verification of pre-incident events.
 
 ---

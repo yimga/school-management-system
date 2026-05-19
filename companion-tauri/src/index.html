@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>RunMyCampus Migration Companion (Tauri) — v3.37.0</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2em auto; padding: 0 1em; }
+        section { border: 1px solid #ccc; padding: 1em; border-radius: 8px; margin-bottom: 1em; }
+        label { display: block; margin: 0.5em 0; }
+        input, textarea { width: 100%; padding: 0.4em; box-sizing: border-box; }
+        button { padding: 0.5em 1em; cursor: pointer; }
+        .status { color: #555; margin-top: 0.5em; min-height: 1.2em; }
+        .banner { background: #ffeb3b; padding: 0.5em; border-radius: 4px; margin-bottom: 1em; }
+    </style>
+</head>
+<body>
+    <h1>RunMyCampus Migration Companion</h1>
+    <p class="banner">
+        This appliance handshakes with the RunMyCampus platform and ingests
+        canonical CSV files the operator manually exports from their SIS's
+        own export UI. We do NOT log into PowerSchool / Blackbaud / Veracross
+        / Alma / FACTS / Skyward on your behalf.
+    </p>
+
+    <section id="step-1">
+        <h2>Step 1 — Login to RunMyCampus</h2>
+        <label>Server URL <input id="server_url" value="https://app.runmycampus.com" /></label>
+        <label>Tenant slug <input id="tenant_slug" placeholder="my-school" /></label>
+        <label>Email <input id="email" type="email" autocomplete="username" /></label>
+        <label>Password <input id="password" type="password" autocomplete="current-password" /></label>
+        <button id="login-btn">Log in</button>
+        <div class="status" id="login-status"></div>
+    </section>
+
+    <section id="step-2">
+        <h2>Step 2 — Migration Authorization Agreement</h2>
+        <label>Vendor source <input id="vendor" placeholder="powerschool" /></label>
+        <label>Account holder name <input id="holder" /></label>
+        <label>Your role <input id="role" placeholder="Registrar" /></label>
+        <button id="maa-fetch-btn">Fetch MAA text</button>
+        <label>Agreement version <input id="maa-version" readonly /></label>
+        <label>MAA body
+            <textarea id="maa-text" rows="10" readonly></textarea>
+        </label>
+        <button id="maa-sign-btn">Sign &amp; submit</button>
+        <div class="status" id="maa-status"></div>
+    </section>
+
+    <section id="step-3">
+        <h2>Step 3 — Pick canonical CSV</h2>
+        <p>Open your SIS in your own browser, sign in, and use its export UI
+           to save a CSV to disk. Then pick the file here.</p>
+        <button id="csv-pick-btn">Pick file…</button>
+        <label>CSV file path <input id="csv-path" readonly /></label>
+        <label>Idempotency key (auto if blank) <input id="idem-key" /></label>
+        <button id="csv-ingest-btn">Canonicalize, seal &amp; upload</button>
+        <div class="status" id="ingest-status"></div>
+    </section>
+
+    <section id="step-4">
+        <h2>Step 4 — Done</h2>
+        <p>The migration bundle is queued. Visit the RunMyCampus operator
+           portal to advance through the wizard.</p>
+    </section>
+
+    <script type="module" src="/main.ts"></script>
+</body>
+</html>

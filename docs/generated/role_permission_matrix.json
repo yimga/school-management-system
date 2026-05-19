@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-19T03:09:18.719129+00:00",
+  "generated_at": "2026-05-19T10:51:05.985793+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 885,
-  "views_indexed": 1695,
+  "row_count": 902,
+  "views_indexed": 1730,
   "summary": {
-    "login_gated": 844,
+    "login_gated": 861,
     "role_gated": 74,
     "permission_gated": 98,
     "has_inline_auth_check": 55,
     "auth_mixin_gated": 65,
-    "rbac_allow_reason": 56,
+    "rbac_allow_reason": 63,
     "candidate_anonymous": 9,
     "unresolved": 28
   },
@@ -3270,7 +3270,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/analytics/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -4609,6 +4609,30 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "internal/analytics-viz/overview/",
+      "view_symbol": "AnalyticsVizOverviewAPIView.as_view",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/api/analytics_viz_api.py",
+      "kind": "class",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "internal/br/slo-targets/",
       "view_symbol": "SLOTargetsAPIView.as_view",
       "urls_file": "apps/api/urls.py",
@@ -5342,6 +5366,121 @@
       "view_symbol": "api_support_assistant",
       "urls_file": "apps/api/urls.py",
       "view_file": "apps/portal/views_ai_gateway.py",
+      "kind": "func",
+      "decorators": [
+        "require_http_methods(['POST'])",
+        "csrf_protect",
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "ai/command-bar/",
+      "view_symbol": "api_command_bar_search",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_command_bar.py",
+      "kind": "func",
+      "decorators": [
+        "require_http_methods(['GET', 'POST'])",
+        "csrf_protect",
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "ai/smart-settings/",
+      "view_symbol": "api_smart_settings_assistant",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_ai_product.py",
+      "kind": "func",
+      "decorators": [
+        "require_http_methods(['POST'])",
+        "csrf_protect",
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "ai/import-error-resolver/",
+      "view_symbol": "api_import_error_resolver",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_ai_product.py",
+      "kind": "func",
+      "decorators": [
+        "require_http_methods(['POST'])",
+        "csrf_protect",
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "ai/guardrail-report/",
+      "view_symbol": "api_guardrail_report_generator",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_ai_product.py",
+      "kind": "func",
+      "decorators": [
+        "require_http_methods(['POST'])",
+        "csrf_protect",
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "ai/guided-tour/",
+      "view_symbol": "api_guided_tour_planner",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_ai_product.py",
       "kind": "func",
       "decorators": [
         "require_http_methods(['POST'])",
@@ -9970,6 +10109,90 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "feature-center/",
+      "view_symbol": "views.feature_center",
+      "urls_file": "apps/feedback/urls.py",
+      "view_file": "apps/feedback/views.py",
+      "kind": "func",
+      "decorators": [
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "school/feature-center/",
+      "view_symbol": "views.feature_center",
+      "urls_file": "apps/feedback/urls.py",
+      "view_file": "apps/feedback/views.py",
+      "kind": "func",
+      "decorators": [
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "contact-us/",
+      "view_symbol": "views.contact_us",
+      "urls_file": "apps/feedback/urls.py",
+      "view_file": "apps/feedback/views.py",
+      "kind": "func",
+      "decorators": [
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "school/contact-us/",
+      "view_symbol": "views.contact_us",
+      "urls_file": "apps/feedback/urls.py",
+      "view_file": "apps/feedback/views.py",
+      "kind": "func",
+      "decorators": [
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "feature/<int:pk>/vote/",
       "view_symbol": "views.vote_feature",
       "urls_file": "apps/feedback/urls.py",
@@ -10186,7 +10409,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/analytics/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -12761,6 +12984,167 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "operator/webhooks/<int:sub_id>/audit/",
+      "view_symbol": "views_webhook_admin.WebhookSubscriptionAuditView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_webhook_admin.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-webhook-audit-view-deliveries",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "operator/webhooks/deliveries/<int:delivery_id>/replay/",
+      "view_symbol": "views_webhook_admin.WebhookDeliveryReplayView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_webhook_admin.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-webhook-manual-replay",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "operator/webhooks/<int:sub_id>/deactivate/",
+      "view_symbol": "views_webhook_admin.MigrationCloudWebhookDeactivateView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_webhook_admin.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-webhook-subscription-deactivate",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "maa-v2-promotion/",
+      "view_symbol": "views_maa_promotion.MAA_V2_PromotionDashboardView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_maa_promotion.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-view-maa-promotion-status",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "audit/",
+      "view_symbol": "views_audit_admin.MigrationCloudAuditView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_audit_admin.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-audit-event-dashboard",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "audit/export/",
+      "view_symbol": "views_audit_admin.MigrationCloudAuditExportView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_audit_admin.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-audit-event-export",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "health/",
+      "view_symbol": "views_health.MigrationCloudHealthView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_health.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-migration-cloud-health-status",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "workbench/",
       "view_symbol": "views.operator_workbench",
       "urls_file": "apps/orchestration/urls.py",
@@ -12922,7 +13306,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/analytics/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"

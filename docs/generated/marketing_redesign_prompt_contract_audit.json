@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-05-19T07:29:09.017795+00:00",
+  "prompt_path": "C:\\Users\\yimga\\.claude\\plans\\i-want-you-to-twinkly-spark.md",
+  "status": "PASS",
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "rows": [
+    {
+      "check_id": "prompt.exists",
+      "category": "prompt",
+      "description": "Local execution prompt exists",
+      "status": "PASS",
+      "proof": "C:\\Users\\yimga\\.claude\\plans\\i-want-you-to-twinkly-spark.md"
+    },
+    {
+      "check_id": "structure.required_sections",
+      "category": "structure",
+      "description": "All required contract sections are present",
+      "status": "PASS",
+      "proof": "all required sections present"
+    },
+    {
+      "check_id": "structure.phase_gates",
+      "category": "structure",
+      "description": "Exactly five phases and five ship gates are present",
+      "status": "PASS",
+      "proof": "phases=5; ship_gates=5"
+    },
+    {
+      "check_id": "routes.canonical_modules",
+      "category": "routes",
+      "description": "All eight canonical module routes are specified",
+      "status": "PASS",
+      "proof": "all canonical module routes present"
+    },
+    {
+      "check_id": "contract.exact_requirements",
+      "category": "contract",
+      "description": "Critical exact requirements are present",
+      "status": "PASS",
+      "proof": "all critical exact requirements present"
+    },
+    {
+      "check_id": "language.no_ambiguous_patterns",
+      "category": "language",
+      "description": "No unresolved placeholder, ambiguity, or stale-command patterns remain",
+      "status": "PASS",
+      "proof": "no banned patterns found"
+    },
+    {
+      "check_id": "signoff.rubric",
+      "category": "signoff",
+      "description": "Final scoring rubric totals 100 points and blocks below 100",
+      "status": "PASS",
+      "proof": "rubric_total=100; has_100_stop=True"
+    },
+    {
+      "check_id": "repo.validation_targets",
+      "category": "repo",
+      "description": "Repo-backed scanner and test targets named by the prompt exist",
+      "status": "PASS",
+      "proof": "all repo-backed targets exist"
+    },
+    {
+      "check_id": "sot.revalidation_note",
+      "category": "sot",
+      "description": "SOT records the prompt-complete revalidation boundary",
+      "status": "PASS",
+      "proof": "SOT prompt-complete note present"
+    }
+  ]
+}

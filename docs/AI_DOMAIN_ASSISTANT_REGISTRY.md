@@ -164,7 +164,11 @@ surfaces and are listed here so the registry is exhaustive:
 | RAG ingest (CLI) | `python manage.py ingest_policy_documents --school <uuid> --path <dir>` | 2026-05-14 | Bulk ingest tenant handbook → AIEmbeddingStore |
 | RAG ingest (admin endpoint) | `POST /siteconfig/console/ai/rag/ingest/` → `apps.siteconfig.views_console_ai_rag.ingest_policy_docs` | 2026-05-14 (wave NS-2) | Same as CLI; staff-only HTTP trigger |
 | Anomaly LLM enrichment | `apps.dashboard.services.insight_anomalies._enrich_with_ai_narrative` | 2026-05-14 | One-line model suggestion appended to each anomaly card |
-| ⌘K command palette → Ask AI | `static/js/rmc-command-palette.js` (Ask-AI fallback) | 2026-05-14 (wave NS-2) | When no palette items match, surface "Ask AI: <query>" that opens copilot prepopulated |
+| ⌘K command palette | `POST /api/ai/command-bar/` + `static/js/rmc-command-palette.js` | 2026-05-19 | Topology search, permission locks, Ask AI → AI Center `first_line_support` |
+| First-line support engine room | `POST /api/ai/support-assistant/` → `services/ai/gateway.py` | 2026-05-19 | RAG + zero-fluff persona; `escalation_required` when KB miss |
+| Smart settings / import / report / tour | `POST /api/ai/{smart-settings,import-error-resolver,guardrail-report,guided-tour}/` | 2026-05-19 | Product assistants in `services/ai/product_assistants.py` |
+| Page-context help | `data-rmc-page-help` + `static/js/rmc-page-context-help.js` | 2026-05-19 | Header control → AI Center with `active_url` |
+| Engine room gate | `python scripts/verify_ai_engine_room.py` | 2026-05-19 | CI + release readiness completeness verifier |
 | Bounded-context wrappers | `apps/{migration_cloud,finance,people,automation}/ai_*.py`; `apps/dashboard/services/insight_anomalies.py`; `apps/analytics/ml/` | Various | Per-context AI integration; never imports `services/ai_gateway` directly |
 
 **Platform-wide AI SOT:** [AI_PLATFORM_WIDE_STATUS_2026_05_14.md](AI_PLATFORM_WIDE_STATUS_2026_05_14.md) is the single snapshot covering every surface above plus governance, audit, safety, and operator workflows.

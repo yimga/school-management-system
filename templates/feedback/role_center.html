@@ -6,8 +6,11 @@
   <p class="text-muted">Get help first, then tell the school or product team what is not working.</p>
   <div class="d-flex gap-2 flex-wrap mb-3">
     {% if support_links.kb_home %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.kb_home }}">Help articles</a>{% endif %}
+    {% if support_links.faq_list %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.faq_list }}">FAQ</a>{% endif %}
     {% if support_links.portal_help %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.portal_help }}">Support hub</a>{% endif %}
+    {% if support_links.contact_center %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_center }}">Contact us</a>{% endif %}
     {% if support_links.support_request %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.support_request }}">Contact support</a>{% endif %}
+    {% if role_surface != "student" and support_links.feature_center %}<a class="btn btn-outline-primary btn-sm" href="{{ support_links.feature_center }}">Feature center</a>{% endif %}
   </div>
   {% if help_resources.articles or help_resources.faqs %}
     <section class="card mb-3">
@@ -28,6 +31,13 @@
     <section class="col-lg-7">
       <div class="card">
         <div class="card-body">
+          {% if role_surface == "student" %}
+            <p class="small text-muted">Student feedback stays private to the school workflow unless staff escalate a platform issue.</p>
+          {% elif role_surface == "parent" %}
+            <p class="small text-muted">For student-specific or school-office questions, use Contact us. For platform issues or suggestions, send feedback here.</p>
+          {% else %}
+            <p class="small text-muted">Tell us what is blocking classroom work, what should improve, or what support you need.</p>
+          {% endif %}
           <form method="post">
             {% csrf_token %}
             {{ form.as_p }}

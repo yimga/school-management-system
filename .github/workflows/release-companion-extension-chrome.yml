@@ -1,0 +1,241 @@
+# RunMyCampus Companion Extension — Chrome Web Store publish workflow.
+#
+# COUNSEL GATE:
+#   This workflow publishes the browser extension to the public Chrome
+#   Web Store. Before flipping `dry_run` to `false`, counsel MUST review
+#   the listing copy, the per-vendor host_permissions justification, and
+#   the privacy disclosures. The operator pastes a counsel-signoff PDF
+#   URL into the `counsel_signoff_pdf_url` input; preflight asserts that
+#   URL is non-empty whenever `dry_run=false`. DO NOT remove this gate
+#   and DO NOT default `dry_run` to `false`. Default is and remains
+#   `dry_run=true`.
+#
+# Architectural-boundary note: this extension is the ONLY surface that
+# is allowed to read SIS DOM (operator's already-authenticated tab is
+# the security boundary). Tauri/Docker siblings remain RMC handshake +
+# canonical-CSV ingest only. See feedback_companion_siblings_no_programmatic_sis_login.
+#
+# Triggers ONLY on tags matching `companion-extension-v*` (e.g.
+# `companion-extension-v1.2.3`). Does NOT run on push to main; does NOT
+# run on PRs.
+#
+# Tag -> version-string contract:
+#   The suffix after `companion-extension-v` MUST match the `version`
+#   field in `companion-extension/manifest.json` AND `companion-extension/package.json`.
+#   `scripts/preflight_signed_release.py extension --tag <tag>` enforces this
+#   BEFORE the tag is pushed; CI re-checks alignment after checkout.
+#
+# Upload mechanism: `@plasmohq/bpp` (Browser Platform Publisher).
+#   - We chose bpp over `chrome-webstore-upload-cli` because it accepts
+#     the exact 4-secret tuple as-is via env, ships a tagged stable
+#     release, and is pinned by SHA below. The CLI path is documented
+#     in the README as a manual fallback.
+#
+# Required GitHub Actions secrets (Settings -> Secrets and variables
+# -> Actions; NEVER committed):
+#   * CHROME_EXT_CLIENT_ID         - OAuth client ID for the Chrome
+#                                    Web Store API (Google Cloud project)
+#   * CHROME_EXT_CLIENT_SECRET     - OAuth client secret
+#   * CHROME_EXT_REFRESH_TOKEN     - long-lived refresh token (obtained
+#                                    via the one-time OAuth dance,
+#                                    documented in README)
+#   * CHROME_EXT_ID                - 32-char extension ID assigned by
+#                                    the Chrome Web Store on first upload
+
+name: release-companion-extension-chrome
+
+on:
+  push:
+    tags:
+      - "companion-extension-v*"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "publish" to confirm release to Chrome Web Store'
+        required: true
+        type: string
+      release_tag:
+        description: 'Release tag, e.g. companion-extension-v1.2.3'
+        required: true
+        type: string
+      dry_run:
+        description: 'When true (default), validate zip + secrets + manifest but DO NOT call the upload endpoint'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      counsel_signoff_pdf_url:
+        description: 'URL to counsel signoff PDF (required if dry_run=false)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || github.ref_name }}
+  DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run || 'true' }}
+
+defaults:
+  run:
+    working-directory: beta/school-management-system/companion-extension
+
+jobs:
+  confirm:
+    name: Manual confirmation gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirm input on manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "publish" ]; then
+            echo "::error::workflow_dispatch requires confirm='publish' (got '${{ github.event.inputs.confirm }}')"
+            exit 1
+          fi
+          case "${{ github.event.inputs.release_tag }}" in
+            companion-extension-v*) ;;
+            *)
+              echo "::error::workflow_dispatch release_tag must match companion-extension-v*"
+              exit 1
+              ;;
+          esac
+          echo "Manual dispatch confirmed for ${{ github.event.inputs.release_tag }}."
+      - name: Counsel-signoff gate (only when dry_run=false)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'false'
+        run: |
+          URL='${{ github.event.inputs.counsel_signoff_pdf_url }}'
+          if [ -z "$URL" ]; then
+            echo "::error::dry_run=false requires counsel_signoff_pdf_url to be non-empty (paste the URL to the counsel-signoff PDF)."
+            exit 1
+          fi
+          echo "Counsel signoff PDF: $URL"
+      - name: Tag-triggered run defaults to dry_run=true
+        if: github.event_name == 'push'
+        run: |
+          echo "Tag-triggered run; DRY_RUN defaults to 'true' (see env block above)."
+
+  build-and-publish:
+    name: Build, validate, and (optionally) publish to Chrome Web Store
+    runs-on: ubuntu-latest
+    needs: confirm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8  # v4.0.2
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d  # v3.0.0
+        with:
+          version: 9
+
+      - name: Verify tag <-> manifest <-> package.json version alignment
+        run: |
+          TAG='${{ env.RELEASE_TAG }}'
+          VERSION="${TAG#companion-extension-v}"
+          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$MANIFEST_VERSION" != "$VERSION" ]; then
+            echo "::error::Tag version '$VERSION' != manifest.json version '$MANIFEST_VERSION'"
+            exit 1
+          fi
+          if [ "$PKG_VERSION" != "$VERSION" ]; then
+            echo "::error::Tag version '$VERSION' != package.json version '$PKG_VERSION'"
+            exit 1
+          fi
+          echo "Version alignment OK: $VERSION"
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Tests (vitest)
+        run: pnpm test
+
+      - name: Build extension (Chrome target)
+        run: pnpm run build
+
+      - name: Package extension as zip
+        run: pnpm run package
+
+      - name: Validate zip artifact exists
+        run: |
+          TAG='${{ env.RELEASE_TAG }}'
+          VERSION="${TAG#companion-extension-v}"
+          ZIP_PATH="dist-zip/companion-extension-${VERSION}.zip"
+          if [ ! -f "$ZIP_PATH" ]; then
+            echo "::error::Expected zip not produced: $ZIP_PATH"
+            ls -la dist-zip/ || true
+            exit 1
+          fi
+          echo "Zip OK: $ZIP_PATH ($(stat -c '%s' "$ZIP_PATH") bytes)"
+
+      - name: Validate manifest schema (stdlib JSON parse + required keys)
+        run: |
+          python3 - <<'PY'
+          import json, sys, pathlib
+          mp = pathlib.Path("manifest.json")
+          m = json.loads(mp.read_text())
+          required = ["manifest_version", "name", "version", "permissions",
+                      "host_permissions", "action", "icons"]
+          missing = [k for k in required if k not in m]
+          if missing:
+              print(f"::error::manifest.json missing required keys: {missing}")
+              sys.exit(1)
+          if m.get("manifest_version") != 3:
+              print(f"::error::manifest_version must be 3, got {m.get('manifest_version')}")
+              sys.exit(1)
+          print(f"Manifest OK: {m['name']} v{m['version']}")
+          PY
+
+      - name: Assert required secrets are present (presence-only, never values)
+        env:
+          CHROME_EXT_CLIENT_ID: ${{ secrets.CHROME_EXT_CLIENT_ID }}
+          CHROME_EXT_CLIENT_SECRET: ${{ secrets.CHROME_EXT_CLIENT_SECRET }}
+          CHROME_EXT_REFRESH_TOKEN: ${{ secrets.CHROME_EXT_REFRESH_TOKEN }}
+          CHROME_EXT_ID: ${{ secrets.CHROME_EXT_ID }}
+        run: |
+          missing=""
+          for v in CHROME_EXT_CLIENT_ID CHROME_EXT_CLIENT_SECRET CHROME_EXT_REFRESH_TOKEN CHROME_EXT_ID; do
+            if [ -z "${!v}" ]; then
+              missing="$missing $v"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required secrets:$missing"
+            exit 1
+          fi
+          echo "All 4 Chrome Web Store secrets are configured."
+
+      - name: DRY RUN short-circuit
+        if: env.DRY_RUN == 'true'
+        run: |
+          echo "============================================================"
+          echo "DRY RUN: zip validated, manifest validated, secrets present."
+          echo "Skipping upload to Chrome Web Store (set dry_run=false to publish)."
+          echo "============================================================"
+
+      - name: Publish to Chrome Web Store via @plasmohq/bpp
+        if: env.DRY_RUN == 'false'
+        uses: PlasmoHQ/bpp@v3.7.0
+        with:
+          keys: |
+            {
+              "chrome": {
+                "clientId": "${{ secrets.CHROME_EXT_CLIENT_ID }}",
+                "clientSecret": "${{ secrets.CHROME_EXT_CLIENT_SECRET }}",
+                "refreshToken": "${{ secrets.CHROME_EXT_REFRESH_TOKEN }}",
+                "extId": "${{ secrets.CHROME_EXT_ID }}"
+              }
+            }
+          artifact: beta/school-management-system/companion-extension/dist-zip/companion-extension-${{ env.RELEASE_TAG }}.zip
