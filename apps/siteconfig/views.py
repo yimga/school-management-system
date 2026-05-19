@@ -72,7 +72,7 @@ from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .tenant_config import apply_tenant_settings_overrides
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
-from apps.schools.control_plane import require_super_access_with_host, use_control_plane_shell
+from apps.schools.control_plane import require_super_access_with_host
 from apps.siteconfig.control_plane_render import (
     default_operator_breadcrumbs,
     operator_cp_breadcrumb,

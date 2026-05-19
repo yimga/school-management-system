@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import statistics
 from datetime import timedelta
 
 from django.utils import timezone

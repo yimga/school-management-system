@@ -471,8 +471,9 @@ register_platform_admin(
 
 
 class PlatformOperatorSuperDashboardLinkAdmin(ModelAdmin):
-    list_display = ("slug", "label", "category", "sort_order", "updated_at")
-    list_editable = ("sort_order",)
+    list_display = ("slug", "label", "surface_tier", "category", "sort_order", "updated_at")
+    list_filter = ("surface_tier", "category")
+    list_editable = ("sort_order", "surface_tier")
     ordering = ("sort_order", "slug")
     search_fields = ("slug", "label", "href", "category")
 

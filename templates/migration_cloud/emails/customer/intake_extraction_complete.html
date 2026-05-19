@@ -1,0 +1,16 @@
+{% load i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>{% trans "Migration extraction complete" %}</title>
+</head>
+<body>
+  <h1>{% trans "Migration extraction complete" %}</h1>
+  <p>{% blocktrans with school=school_name vendor=vendor_label %}The extraction from {{ vendor }} for {{ school }} is complete. Validation passes are running now; you'll get another email when validation finishes and the data is ready for your approval to promote.{% endblocktrans %}</p>
+  <p><strong>{% trans "Next action:" %}</strong> {{ next_action }}</p>
+  <p><a href="{{ status_url_path }}">{% trans "Open the status page" %}</a></p>
+  <p>{% trans "Thank you," %}<br>{% trans "The RunMyCampus team" %}</p>
+  <hr>
+  <p><small>{% trans "Intake reference:" %} {{ intake_id }}</small></p>
+</body>
+</html>

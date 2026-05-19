@@ -11,7 +11,6 @@ from typing import Any
 
 from apps.platform_runtime.localization import (
     CALENDAR_BUDDHIST,
-    CALENDAR_GREGORIAN,
     CALENDAR_HIJRI,
     CALENDAR_HEBREW,
     calendar_type_for_school,

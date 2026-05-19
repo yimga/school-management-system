@@ -84,6 +84,9 @@
   <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
   <script src="{% static 'marketing/js/horizontal-carousel.js' %}" defer></script>
+  {% include 'components/toast_notifications.html' %}
+  <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-proof-interactions.js' %}" defer></script>
   {% include 'marketing/partials/marketing_analytics.html' %}
   {% include 'components/rum_beacon.html' %}
   {% include "partials/rmc_tour_bootstrap_marketing.html" %}

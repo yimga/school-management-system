@@ -1,0 +1,24 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Service unavailable" %} – RunMyCampus Manager{% endblock %}
+
+{% block cp_shell_page %}
+<section class="error-page" aria-labelledby="cp-error-503-title">
+  <div>
+    <div class="error-code-display" aria-hidden="true">503</div>
+    <h1 id="cp-error-503-title" class="error-title">{% trans "Platform maintenance in progress." %}</h1>
+    <p class="error-message">
+      {% if message %}
+        {{ message }}
+      {% else %}
+        {% trans "Manager tools are temporarily unavailable. Superuser sessions can still reach /admin/ when enabled. Retry shortly." %}
+      {% endif %}
+    </p>
+    <div class="error-actions">
+      <button class="btn btn-primary" type="button" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Try again" %}</button>
+      <a class="btn btn-outline-secondary" href="{% url 'super:dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Back to Manager" %}</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

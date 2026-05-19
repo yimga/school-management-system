@@ -46,6 +46,9 @@ FORBIDDEN_PATHS = [
 REQUIRED_MARKERS = [
     ("templates/control_plane_skeleton.html", "rmc_operator_footer_compact.html"),
     ("templates/control_plane_skeleton.html", 'data-rmc-footer-surface="operator-compact"'),
+    ("templates/admin/base.html", "rmc_operator_footer_compact.html"),
+    ("templates/admin/base.html", 'data-rmc-footer-surface="operator-compact"'),
+    ("templates/admin/base_site.html", "rmc-footer-surfaces.css"),
     ("templates/base.html", "rmc-footer-surfaces.css"),
     ("templates/base.html", "rmc_operator_footer_compact.html"),
     ("templates/portal_base.html", "PORTAL_FOOTER_PARTIAL"),
@@ -169,8 +172,8 @@ def main() -> int:
     add(
         "login_suppresses_skeleton_duplicate",
         "Manager login pages override skeleton footer block",
-        "block manager_corporate_footer" in _read("templates/auth/manager_login.html")
-        and "block manager_corporate_footer" in _read("templates/auth/admin_login.html"),
+        "block cp_shell_footer" in _read("templates/auth/manager_login.html")
+        and "block cp_shell_footer" in _read("templates/auth/admin_login.html"),
         "manager_login + admin_login",
     )
 

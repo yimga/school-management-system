@@ -18,10 +18,9 @@ from __future__ import annotations
 
 import json
 
-from django.contrib.auth.decorators import login_required
 
 from apps.orchestration.auth_helpers import accept_session_or_jwt
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt

@@ -1,0 +1,17 @@
+{% load i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>{% trans "Migration agreement signed" %}</title>
+</head>
+<body>
+  <h1>{% trans "Migration agreement signed" %}</h1>
+  <p>{% blocktrans with school=school_name vendor=vendor_label %}Thank you. The Migration Authorization Agreement is signed and on file for the {{ vendor }} migration into {{ school }}.{% endblocktrans %}</p>
+  <p>{% trans "Extraction will begin shortly. You can monitor progress on the status page at any time." %}</p>
+  <p><strong>{% trans "Next action:" %}</strong> {{ next_action }}</p>
+  <p><a href="{{ status_url_path }}">{% trans "Open the status page" %}</a></p>
+  <p>{% trans "Thank you," %}<br>{% trans "The RunMyCampus team" %}</p>
+  <hr>
+  <p><small>{% trans "Intake reference:" %} {{ intake_id }}</small></p>
+</body>
+</html>

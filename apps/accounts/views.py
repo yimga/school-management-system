@@ -447,7 +447,15 @@ def user_profile(request):
         context["can_show_pii"] = True
         context["pii_masked_dob"] = None
 
-    return render(request, "accounts/profile.html", context)
+    from apps.accounts.operator_account_render import render_account_page
+
+    return render_account_page(
+        request,
+        portal_template="accounts/profile.html",
+        body_template="accounts/partials/operator_profile_body.html",
+        context=context,
+        page_title=_("My profile"),
+    )
 
 
 @login_required
@@ -464,7 +472,15 @@ def profile_edit(request):
             return redirect("accounts:user_profile")
     else:
         form = UserProfileEditForm(instance=user)
-    return render(request, "accounts/profile_edit.html", {"form": form})
+    from apps.accounts.operator_account_render import render_account_page
+
+    return render_account_page(
+        request,
+        portal_template="accounts/profile_edit.html",
+        body_template="accounts/partials/operator_profile_edit_body.html",
+        context={"form": form},
+        page_title=_("Edit profile"),
+    )
 
 
 @login_required
@@ -499,7 +515,15 @@ def user_notifications(request):
         "status_filter": status_filter,
     }
 
-    return render(request, "accounts/notifications.html", context)
+    from apps.accounts.operator_account_render import render_account_page
+
+    return render_account_page(
+        request,
+        portal_template="accounts/notifications.html",
+        body_template="accounts/partials/notifications_body.html",
+        context=context,
+        page_title=_("Inbox"),
+    )
 
 
 @login_required
@@ -527,16 +551,21 @@ def notification_preferences(request):
         return redirect("accounts:notification_preferences")
 
     enabled_channels = set(pref.notification_channels or [])
-    return render(
+    ctx = {
+        "preference": pref,
+        "channel_choices": [
+            (c.value, c.label, c.value in enabled_channels)
+            for c in UserPreference.NotificationChannel
+        ],
+    }
+    from apps.accounts.operator_account_render import render_account_page
+
+    return render_account_page(
         request,
-        "accounts/notification_preferences.html",
-        {
-            "preference": pref,
-            "channel_choices": [
-                (c.value, c.label, c.value in enabled_channels)
-                for c in UserPreference.NotificationChannel
-            ],
-        },
+        portal_template="accounts/notification_preferences.html",
+        body_template="accounts/partials/operator_notification_preferences_body.html",
+        context=ctx,
+        page_title=_("Notification preferences"),
     )
 
 
@@ -894,7 +923,15 @@ def direct_compose(request):
 @login_required
 def user_documentation(request):
     """Shortcut to role-appropriate documentation/help (RBAC-safe)."""
-    return render(request, "accounts/documentation.html", {})
+    from apps.accounts.operator_account_render import render_account_page
+
+    return render_account_page(
+        request,
+        portal_template="accounts/documentation.html",
+        body_template="accounts/partials/operator_documentation_body.html",
+        context={},
+        page_title=_("Documentation"),
+    )
 
 
 @permission_required("settings.manage")

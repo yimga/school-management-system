@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.api.br_northstar_views import _StaffSchoolMixin, _school_from_request
+from apps.api.br_northstar_views import _StaffSchoolMixin
 
 
 class _StaffSuperuserOnlyMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -124,20 +124,12 @@ class NorthStarUpcomingDeadlinesView(_StaffSchoolMixin, View):
     def get(self, request):
         from apps.academics.services import get_active_year_and_term
         from apps.portal.services import merged_upcoming_events_for_api
-        from apps.schools.models import School
 
-        school = _school_from_request(request)
-        sid_raw = (request.GET.get("school_id") or "").strip()
-        # School.pk is UUID — accept string UUID (and legacy int if ever used).
-        if school is None and sid_raw:
-            school = School.objects.filter(pk=sid_raw).first()
-            if school is None:
-                try:
-                    sid_int = int(sid_raw)
-                except (TypeError, ValueError):
-                    sid_int = None
-                if sid_int is not None:
-                    school = School.objects.filter(pk=sid_int).first()
+        from apps.schools.tenant_api_guards import resolve_school_from_request_param
+
+        school, deny = resolve_school_from_request_param(request)
+        if deny is not None:
+            return deny
         if school is None:
             return JsonResponse(
                 {
@@ -177,16 +169,16 @@ class NorthStarPackageImpactView(_StaffSchoolMixin, View):
             preview_diff,
         )
         from apps.packages.models import InstalledPackage, PackageVersion
-        from apps.schools.models import School
 
         package_id = (request.GET.get("package_id") or "").strip()
         if not package_id:
             return JsonResponse({"error": "package_id required"}, status=400)
 
-        school = _school_from_request(request)
-        sid = request.GET.get("school_id")
-        if school is None and sid:
-            school = School.objects.filter(pk=sid).first()
+        from apps.schools.tenant_api_guards import resolve_school_from_request_param
+
+        school, deny = resolve_school_from_request_param(request)
+        if deny is not None:
+            return deny
         if school is None:
             return JsonResponse(
                 {

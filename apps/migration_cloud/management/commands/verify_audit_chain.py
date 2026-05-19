@@ -45,7 +45,6 @@ event UUID — NEVER hash bytes, NEVER payload bytes, NEVER raw slug.
 """
 from __future__ import annotations
 
-import hashlib
 import hmac
 import logging
 import sys
@@ -55,7 +54,6 @@ from django.core.management.base import BaseCommand, CommandError
 from apps.migration_cloud.models_audit import (
     GENESIS_SENTINEL,
     MigrationCloudAuditEvent,
-    MigrationCloudAuditEventReadOnlyError,
     _hash_tenant_slug,
     _compute_integrity_hash,
 )

@@ -18,7 +18,6 @@ from django.views.decorators.http import require_http_methods
 
 from apps.api.views_v1 import (
     _backend_flag_enabled,
-    _get_school_from_request,
     _require_auth_and_tenant_member,
 )
 from apps.platform_runtime.structured_logging import log_view_exception

@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 
 from apps.feedback.models import FeedbackSubmission
 from apps.feedback.services import submit_feedback, visible_feedback_for_user

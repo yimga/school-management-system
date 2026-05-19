@@ -824,19 +824,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         logger.warning("Invalid timestamp from %s (%s)", provider_slug, client_ip)
         return HttpResponseForbidden("Invalid timestamp.")
 
-    if not validator.validate_idempotency(provider_code, dedup_reference):
-        from apps.finance.webhook_ingress import duplicate_webhook_response
-
-        _create_webhook_log(
-            reference_id=reference_id,
-            signature_valid=True,
-            status=WebhookLog.Status.DUPLICATE,
-            response_status=200,
-            idempotency_bucket=dedup_reference,
-        )
-        logger.info("Duplicate webhook from %s: %s", provider_slug, dedup_reference)
-        return duplicate_webhook_response()
-
     # Dead-letter queue: stop hammering after repeated failures (idempotency-Key still dedupes success path)
     from django.conf import settings as dj_settings
 
@@ -945,13 +932,29 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
 
     try:
         with transaction.atomic():
-            webhook_log = _create_webhook_log(
+            from apps.finance.webhook_ingress import duplicate_webhook_response
+            from apps.finance.webhooks.claim import claim_webhook_processing
+
+            claim_result, webhook_log = claim_webhook_processing(
+                provider=provider_code,
+                bucket=dedup_reference,
                 reference_id=reference_id,
-                signature_valid=True,
-                status=WebhookLog.Status.PROCESSING,
-                invoice=invoice,
-                idempotency_bucket=dedup_reference,
+                client_ip=client_ip,
+                request_body_excerpt=_request_body_excerpt(),
             )
+            if claim_result == "duplicate":
+                _create_webhook_log(
+                    reference_id=reference_id,
+                    signature_valid=True,
+                    status=WebhookLog.Status.DUPLICATE,
+                    response_status=200,
+                    idempotency_bucket=dedup_reference,
+                )
+                logger.info(
+                    "Duplicate webhook from %s: %s", provider_slug, dedup_reference
+                )
+                return duplicate_webhook_response()
+
             payment = record_provider_payment(
                 invoice=invoice,
                 amount=amount,
@@ -960,20 +963,35 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                 external_reference=reference_id,
             )
             if not payment:
-                webhook_log.status = WebhookLog.Status.FAILED
-                webhook_log.error_message = "Failed to create payment record"
-                webhook_log.response_status = 500
-                webhook_log.save(
-                    update_fields=["status", "error_message", "response_status"]
-                )
+                if webhook_log is not None:
+                    webhook_log.status = WebhookLog.Status.FAILED
+                    webhook_log.error_message = "Failed to create payment record"
+                    webhook_log.response_status = 500
+                    webhook_log.save(
+                        update_fields=["status", "error_message", "response_status"]
+                    )
                 logger.error("Failed to record payment for webhook %s", reference_id)
                 return JsonResponse(
                     {"status": "error", "reason": "payment_creation_failed"}
                 )
-            webhook_log.payment = payment
-            webhook_log.status = WebhookLog.Status.PROCESSED
-            webhook_log.response_status = 200
-            webhook_log.save(update_fields=["payment", "status", "response_status"])
+            if webhook_log is not None:
+                webhook_log.invoice = invoice
+                webhook_log.payment = payment
+                webhook_log.status = WebhookLog.Status.PROCESSED
+                webhook_log.response_status = 200
+                webhook_log.save(
+                    update_fields=["invoice", "payment", "status", "response_status"]
+                )
+            else:
+                _create_webhook_log(
+                    reference_id=reference_id,
+                    signature_valid=True,
+                    status=WebhookLog.Status.PROCESSED,
+                    invoice=invoice,
+                    payment=payment,
+                    response_status=200,
+                    idempotency_bucket=dedup_reference,
+                )
             logger.info(
                 "Successfully processed webhook from %s: Invoice %s, Payment %s, Amount %s",
                 provider_slug,

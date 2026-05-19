@@ -15,7 +15,7 @@ Each check is registered in `DATA_QUALITY_CHECKS` so tests can iterate them.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
-from typing import Any, Callable, Iterable, List
+from typing import Any, Callable, Iterable
 
 
 SEVERITY_BLOCKER = "blocker"

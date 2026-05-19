@@ -36,7 +36,6 @@ from __future__ import annotations
 import json as _json
 import time as _time
 from dataclasses import dataclass, field
-from typing import Iterable
 
 from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError

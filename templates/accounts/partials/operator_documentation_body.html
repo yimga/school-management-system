@@ -1,0 +1,15 @@
+{% load i18n %}
+<div class="container-fluid py-3" data-rmc-page="operator-documentation">
+  <h1 class="h4 mb-2">{% trans "Documentation" %}</h1>
+  <p class="text-muted">{% trans "Operator guides, FAQs, and platform runbooks." %}</p>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p class="mb-3">{% trans "Use the knowledge base for searchable articles, release notes, and support workflows." %}</p>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary" href="{% url 'kb:kb_home' %}">{% trans "Open knowledge base" %}</a>
+        <a class="btn btn-outline-secondary" href="{% url 'accounts:user_profile' %}">{% trans "Back to profile" %}</a>
+        <a class="btn btn-outline-secondary" href="{% url 'manager_help' %}">{% trans "Help center" %}</a>
+      </div>
+    </div>
+  </div>
+</div>

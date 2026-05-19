@@ -339,3 +339,9 @@ class BOLAIdorMatrixTests(TestCase):
             url, data=json.dumps({}), content_type="application/json"
         )
         self._assert_denied(resp, "scheduler-generate")
+
+    def test_analytics_viz_foreign_tenant_slug_denied(self):
+        client = _tenant_client(self.school_a, self.admin_a)
+        url = reverse("api:api-analytics-viz-overview")
+        resp = client.get(url, {"tenant": self.school_b.slug})
+        self.assertEqual(resp.status_code, 403, resp.content[:200])

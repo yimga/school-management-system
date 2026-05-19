@@ -101,7 +101,7 @@ class CommunicationsLander(Lander):
                 tp = TeacherProfile.objects.filter(**{staff_lookup: sender_ext}).first()
                 sender = getattr(tp, "user", None) if tp else None
 
-            sent_at = coerce_date(row.get("sent_at"))
+            coerce_date(row.get("sent_at"))
             content_hash = hashlib.sha256(
                 f"{recipient_ext}|{subject}|{body[:500]}".encode("utf-8")
             ).hexdigest()[:32]

@@ -1,0 +1,16 @@
+{% load i18n %}{% trans "Migration agreement signed" %}
+
+{% blocktrans with school=school_name vendor=vendor_label %}Thank you. The Migration Authorization Agreement is signed and on file for the {{ vendor }} migration into {{ school }}.
+
+Extraction will begin shortly. You can monitor progress on the status page at any time.{% endblocktrans %}
+
+{% trans "Next action:" %} {{ next_action }}
+
+{% trans "Open the status page:" %}
+{{ status_url_path }}
+
+{% trans "Thank you," %}
+{% trans "The RunMyCampus team" %}
+
+--
+{% trans "Intake reference:" %} {{ intake_id }}

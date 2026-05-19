@@ -1,0 +1,10 @@
+WARNING 2026-05-19 13:08:25,301 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.
+DEBUG 2026-05-19 13:08:25,347 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)
+INFO 2026-05-19 13:08:25,401 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.262s
+
+OK
+Found 10 test(s).
+System check identified no issues (0 silenced).

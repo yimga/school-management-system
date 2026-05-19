@@ -1,0 +1,75 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{# v3.40.0 Agent 14 — "Run Smoke Now" operator form.
+
+   Renders a small CSRF-protected POST form that dispatches an
+   on-demand Migration Cloud smoke run via Celery. Defaults to the
+   synthetic-tenant slug + powerschool + dry-run.
+
+   No inline <style> blocks. All classes are project design tokens
+   (rmc-*).
+#}
+
+{% block page_title %}{{ page_title|default:"Migration Cloud — Run Smoke Now" }}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--operator-smoke-trigger" id="main">
+  <header class="rmc-page__header">
+    {% if command_center_url %}
+      <a class="rmc-back" href="{{ command_center_url }}">{% trans "← Back to Command Center" %}</a>
+    {% endif %}
+    <h1 class="rmc-h1">{% trans "Run Migration Cloud smoke now" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Kick off an on-demand smoke run against a synthetic tenant. Dry-run by default. The result will appear on the smoke history page once the worker finishes (typically under a minute)." %}
+    </p>
+  </header>
+
+  {% if messages %}
+    <ul class="rmc-messages">
+      {% for m in messages %}
+        <li class="rmc-message rmc-message--{{ m.tags|default:'info' }}">{{ m }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post" class="rmc-form rmc-form--smoke-trigger" novalidate>
+    {% csrf_token %}
+    <fieldset class="rmc-form__fieldset">
+      <legend class="rmc-form__legend">{% trans "Smoke run parameters" %}</legend>
+
+      <label class="rmc-form__label">{% trans "Tenant slug" %} <span class="rmc-form__required" aria-hidden="true">*</span>
+        <input class="rmc-input"
+               name="tenant"
+               type="text"
+               maxlength="128"
+               value="{{ form_tenant|default:'' }}"
+               required>
+        <small class="rmc-form__help">{% trans "Synthetic tenant slug. The smoke command will create it on --apply if absent." %}</small>
+      </label>
+
+      <label class="rmc-form__label">{% trans "Vendor" %} <span class="rmc-form__required" aria-hidden="true">*</span>
+        <select class="rmc-input" name="vendor" required>
+          {% for v in vendor_choices %}
+            <option value="{{ v }}" {% if v == form_vendor %}selected{% endif %}>{{ v }}</option>
+          {% endfor %}
+        </select>
+        <small class="rmc-form__help">{% trans "SIS vendor whose synthetic fixture exercises the pipeline." %}</small>
+      </label>
+
+      <label class="rmc-form__check">
+        <input type="checkbox" name="apply" value="1" {% if form_apply %}checked{% endif %}>
+        <span>{% trans "Apply (mutate)" %}</span>
+        <small class="rmc-form__help">{% trans "Default OFF. Refused against live prod even if checked." %}</small>
+      </label>
+    </fieldset>
+
+    <div class="rmc-form__actions">
+      <button class="rmc-btn rmc-btn--primary" type="submit">{% trans "Run smoke now" %}</button>
+      {% if history_url %}
+        <a class="rmc-btn rmc-btn--ghost" href="{{ history_url }}">{% trans "View smoke history" %}</a>
+      {% endif %}
+    </div>
+  </form>
+</main>
+{% endblock %}

@@ -18,7 +18,6 @@ from __future__ import annotations
 import logging
 import uuid
 from decimal import Decimal
-from unittest import mock
 
 from django.core import mail
 from django.test import SimpleTestCase, TestCase, override_settings

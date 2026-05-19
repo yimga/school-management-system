@@ -12,14 +12,13 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
-from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.analytics import semantic_search
 from apps.analytics.models import RiskFactor
 from apps.people.models import StudentProfile
 from apps.schools.models import School
-from apps.siteconfig.models import AIEmbeddingStore, RegionConfig
+from apps.siteconfig.models import RegionConfig
 
 
 class CosineMathTests(SimpleTestCase):

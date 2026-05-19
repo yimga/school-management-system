@@ -34,21 +34,16 @@ from __future__ import annotations
 
 import datetime as _dt
 import hashlib
-import json
 import tempfile
-from decimal import Decimal
 from pathlib import Path
 
-from django.test import Client, RequestFactory, TestCase
-from django.urls import reverse
+from django.test import TestCase
 from django.utils import timezone
 
 from apps.migration_cloud import diff_mode, network_resilience, preflight, sandbox, tier3
 from apps.migration_cloud.ai_bridge import _tenant_allows_pii, redact_pii_for_prompt
 from apps.migration_cloud.asset_pipeline import register_asset
 from apps.migration_cloud.guardrails import (
-    GuardrailReport,
-    compute_observed_totals,
     enforce_financial_guardrail,
     evaluate_expected_totals,
 )
@@ -58,7 +53,6 @@ from apps.migration_cloud.models import (
     ConflictResolution,
     FinancialMismatchError,
     IntakeMethod,
-    MigrationAsset,
     MigrationBundle,
     MigrationConflict,
     MigrationIdMapping,
@@ -276,6 +270,11 @@ class ProgressTests(TestCase):
         # INGESTING comes before APPLIED → must be done.
         ingest = next(s for s in snapshot["stages"] if s["name"] == "INGESTING")
         self.assertEqual(ingest["status"], "done")
+        self.assertEqual(len(snapshot["graph"]["nodes"]), len(snapshot["stages"]))
+        self.assertEqual(
+            snapshot["graph"]["edges"][0],
+            {"from": "PENDING", "to": "INGESTING", "label": "then"},
+        )
 
     def test_stream_events_since_filters(self):
         bundle = _bundle()

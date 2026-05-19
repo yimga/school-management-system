@@ -1,0 +1,20 @@
+{% load i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>{% trans "Your migration needs attention" %}</title>
+</head>
+<body>
+  <h1>{% trans "Your migration needs attention" %}</h1>
+  <p>{% blocktrans with school=school_name vendor=vendor_label %}The {{ vendor }} migration into {{ school }} encountered a problem and has been paused. No data has been committed to your production tenant.{% endblocktrans %}</p>
+  {% if operator_notes %}
+    <h2>{% trans "Notes from the RunMyCampus team" %}</h2>
+    <p style="white-space: pre-wrap;">{{ operator_notes }}</p>
+  {% endif %}
+  <p><a href="{{ status_url_path }}">{% trans "Open the status page" %}</a></p>
+  <p>{% trans "Reply to this email or write to partner-success@runmycampus.com — we'll work the issue with you and resume when ready." %}</p>
+  <p>{% trans "Thank you for your patience," %}<br>{% trans "The RunMyCampus team" %}</p>
+  <hr>
+  <p><small>{% trans "Intake reference:" %} {{ intake_id }}</small></p>
+</body>
+</html>

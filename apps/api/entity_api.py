@@ -4,7 +4,6 @@ from django.db import transaction
 from django.db.utils import DatabaseError, IntegrityError
 from django.utils.dateparse import parse_datetime
 from drf_spectacular.utils import (
-    OpenApiParameter,
     OpenApiResponse,
     extend_schema,
     extend_schema_view,

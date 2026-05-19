@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T14:22:37.750711+00:00",
+  "generated_at": "2026-05-19T17:25:19.132937+00:00",
   "verdict": "FORENSIC_MASTER_PROMPT_PASS",
   "pass_count": 24,
   "fail_count": 0,
@@ -14,7 +14,7 @@
       "id": "1b",
       "mandate": "WCAG visibility + shell sweep",
       "status": "PASS",
-      "proof": "2026-05-19 10:20:56,072 request_id=5978c6fc-ab22-49b7-becb-8aca0aec2f81 tenant_id=- user_id=28 school_id=- http_method=GET request_path=/siteconfig/ai-center/ remote_addr=127.0.0.1 http_referer=- http_user_agent=- http_host=manager.runmycampus.com content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=HTTP/1.1 request_scheme=https server_name=testserver portal_sidebar_items_fallback"
+      "proof": "2026-05-19 13:23:22,580 request_id=3e79ed46-3728-4d3c-b802-831e7d14b345 tenant_id=- user_id=28 school_id=- http_method=GET request_path=/siteconfig/ai-center/ remote_addr=127.0.0.1 http_referer=- http_user_agent=- http_host=manager.runmycampus.com content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=HTTP/1.1 request_scheme=https server_name=testserver portal_sidebar_items_fallback"
     },
     {
       "id": "1c",
@@ -32,7 +32,7 @@
       "id": "2a",
       "mandate": "BOLA matrix >= 30 cases",
       "status": "PASS",
-      "proof": "test_bola_idor_matrix: 34 tests"
+      "proof": "test_bola_idor_matrix: 35 tests"
     },
     {
       "id": "2b",
@@ -62,7 +62,7 @@
       "id": "3a",
       "mandate": "PERF_BUDGET_STRICT smoke",
       "status": "PASS",
-      "proof": "- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+      "proof": " ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.\nDEBUG 2026-05-19 13:24:00,721 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)"
     },
     {
       "id": "3b",
@@ -74,13 +74,13 @@
       "id": "3c",
       "mandate": "DOM budget gate (executed)",
       "status": "PASS",
-      "proof": "2,535 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=e3e8c0ef-0868-4505-8733-9f37333449d3 surface=tenant_plane steps=13 elapsed_ms=191.48 runtime_trace_id=237fcb96704764ab"
+      "proof": "0,417 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=e3e8c0ef-0868-4505-8733-9f37333449d3 surface=tenant_plane steps=13 elapsed_ms=295.42 runtime_trace_id=3670a2cb185d3c66"
     },
     {
       "id": "4.0",
       "mandate": "Platform vector imports",
       "status": "PASS",
-      "proof": "- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+      "proof": " ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.\nDEBUG 2026-05-19 13:24:56,329 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)"
     },
     {
       "id": "4.1-4.6",
@@ -146,7 +146,7 @@
       "id": "8",
       "mandate": "RBAC matrix within ceiling",
       "status": "PASS",
-      "proof": "  login-gated:          867\n  role-gated:           74\n  permission-gated:     98\n  inline-auth-check:    55\n  auth-mixin-gated:     65\n  rbac-allow markers:   63\n  candidate-anonymous:  9 (review for public routes)\n  unresolved-view:      28 (view_symbol not found in views*.py)\n  json:                 docs/generated/role_permission_matrix.json\n  csv:                  docs/generated/role_permission_matrix.csv\n\nNOTE: candidate_anonymous count 9 is BELOW gate 66. Consider tightening the gate to 9."
+      "proof": "ogin-gated:          877\n  role-gated:           74\n  permission-gated:     98\n  inline-auth-check:    55\n  auth-mixin-gated:     74\n  rbac-allow markers:   64\n  candidate-anonymous:  13 (review for public routes)\n  unresolved-view:      28 (view_symbol not found in views*.py)\n  json:                 docs/generated/role_permission_matrix.json\n  csv:                  docs/generated/role_permission_matrix.csv\n\nNOTE: candidate_anonymous count 13 is BELOW gate 66. Consider tightening the gate to 13."
     }
   ]
 }

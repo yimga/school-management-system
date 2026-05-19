@@ -7,7 +7,7 @@ removal), this test fails — keeping the public-to-product surface honest.
 
 from __future__ import annotations
 
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase
 from django.urls import NoReverseMatch, reverse
 
 from apps.schools.public_product_promise_matrix import (

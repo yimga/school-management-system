@@ -6,7 +6,6 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from apps.siteconfig.control_plane_render import (
     default_operator_breadcrumbs,
     operator_cp_breadcrumb,
@@ -40,17 +39,16 @@ def report_output_history_evidence(request: HttpRequest) -> HttpResponse:
             .distinct()
         )
 
-    report_total = report_q.count()
-    pdf_total = report_q.exclude(pdf_file="").count()
+    report_q.count()
+    report_q.exclude(pdf_file="").count()
     report_ids = report_q.values_list("pk", flat=True)
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    hash_total = ReportDocumentHash.objects.filter(report_card_id__in=report_ids).count()
-    audit_total = ReportCardAudit.objects.filter(report_card_id__in=report_ids).count()
-    recent_reports = list(report_q.order_by("-generated_at")[:100])
+    ReportDocumentHash.objects.filter(report_card_id__in=report_ids).count()
+    ReportCardAudit.objects.filter(report_card_id__in=report_ids).count()
+    list(report_q.order_by("-generated_at")[:100])
 
-    admin_reportcard_changelist_url = None
     if getattr(request.user, "is_superuser", False):
-        admin_reportcard_changelist_url = _safe_reverse(
+        _safe_reverse(
             "admin:reports_reportcard_changelist"
         )
 

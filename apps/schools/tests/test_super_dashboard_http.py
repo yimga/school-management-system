@@ -11,17 +11,30 @@ from apps.accounts.models import User
 from apps.platform_runtime.models import PlatformOperatorSuperDashboardLink
 
 
-@override_settings(ALLOWED_HOSTS=["*"])
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+)
 class SuperDashboardHttpTests(TestCase):
     def setUp(self):
+        self.password = "testpass123"
         self.user = User.objects.create_user(
             username="super_dashboard_h",
-            password="testpass123",
+            password=self.password,
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
         self.host = "manager.runmycampus.com"
+        self.client = Client(HTTP_HOST=self.host)
+        self.assertTrue(
+            self.client.login(
+                username=self.user.username,
+                password=self.password,
+                HTTP_HOST=self.host,
+            )
+        )
+        bind_manager_session(self.client)
         cache.clear()
         self.env = patch.dict(
             os.environ,

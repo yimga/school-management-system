@@ -12,7 +12,6 @@ from apps.api.permissions import IsAdminUser
 from apps.social_media.models import SocialModerationItem
 from apps.social_media.scope import (
     SocialTenantScopeError,
-    queryset_for_scope,
     resolve_feed_scope,
     scope_denied_response,
 )

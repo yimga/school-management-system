@@ -1,0 +1,76 @@
+{% load i18n %}
+<div class="container-fluid py-3" data-rmc-page="operator-profile">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <div class="text-muted small text-uppercase">{% trans "Account" %}</div>
+      <h1 class="h4 mb-0">{% trans "My profile" %}</h1>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:profile_edit' %}">
+        <i class="bi bi-pencil me-1" aria-hidden="true"></i>{% trans "Edit profile" %}
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:password_change' %}">
+        <i class="bi bi-key me-1" aria-hidden="true"></i>{% trans "Change password" %}
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}">
+        <i class="bi bi-sliders me-1" aria-hidden="true"></i>{% trans "Preferences" %}
+      </a>
+      <a class="btn btn-sm btn-primary" href="{% url 'super:dashboard' %}">
+        <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{% trans "Control plane" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width:56px;height:56px;font-weight:700;">
+              {% if request.user.profile_photo %}
+                <img src="{{ request.user.profile_photo.url }}" alt="" width="56" height="56" class="rounded-circle" style="object-fit:cover;" loading="lazy" decoding="async">
+              {% else %}
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+              {% endif %}
+            </div>
+            <div class="min-w-0">
+              <div class="fw-semibold">{{ request.user.get_full_name|default:request.user.username }}</div>
+              <div class="text-muted small">{{ request.user.username }}{% if request.user.role %} · {{ request.user.get_role_display|default:request.user.role }}{% endif %}</div>
+            </div>
+          </div>
+          <dl class="row small mb-0">
+            <dt class="col-5 text-muted">{% trans "Email" %}</dt>
+            <dd class="col-7">{{ request.user.email|default:"—" }}</dd>
+            <dt class="col-5 text-muted">{% trans "Last login" %}</dt>
+            <dd class="col-7">{% if request.user.last_login %}{{ request.user.last_login }}{% else %}—{% endif %}</dd>
+            <dt class="col-5 text-muted">{% trans "Member since" %}</dt>
+            <dd class="col-7">{{ request.user.date_joined|date }}</dd>
+            {% if active_sessions_count is not None %}
+            <dt class="col-5 text-muted">{% trans "Active sessions" %}</dt>
+            <dd class="col-7">{{ active_sessions_count }}</dd>
+            {% endif %}
+            {% if mfa_enabled is not None %}
+            <dt class="col-5 text-muted">{% trans "MFA" %}</dt>
+            <dd class="col-7">
+              {% if mfa_enabled %}{% trans "Enabled" %}{% else %}{% trans "Not set up" %}{% endif %}
+              <a class="ms-1" href="{% url 'accounts:mfa_setup' %}">{% trans "Manage" %}</a>
+            </dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Quick links" %}</h2>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">{% trans "Notifications" %}</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_home' %}">{% trans "Knowledge base" %}</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_documentation' %}">{% trans "Documentation" %}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,95 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{# v3.40.0 Agent 13 — smoke-run history operator view.
+
+   Reads var/smoke-results/*.json (written by the
+   tasks_smoke_archival shim) and renders:
+     * A CSS-only sparkline of sections-passed (bar widths from view).
+     * A filterable table of the last 30 archived runs.
+   No JS chart lib; no remote-served font; pure HTML/CSS.
+#}
+
+{% block page_title %}{{ page_title|default:"Smoke run history" }}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--operator-smoke-history" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
+    <h1 class="rmc-h1">{% trans "Migration Cloud smoke run history" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Archived nightly smoke-task results. Each bar represents the count of sections that passed in one run; left is oldest, right is newest." %}
+    </p>
+    <p class="rmc-meta">{% trans "Showing" %} {{ rows_count }} / {{ total_count }} {% trans "runs archived in" %} <code>var/smoke-results/</code>.</p>
+    {# v3.40.0 Agent 14 — operator "Run Smoke Now" entry point. #}
+    <p class="rmc-page__header-actions">
+      <a class="rmc-btn rmc-btn--primary rmc-btn--sm"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:smoke_run_trigger' %}{% else %}{% url 'migration_cloud_super:smoke_run_trigger' %}{% endif %}">
+        {% trans "Run Smoke Now →" %}
+      </a>
+    </p>
+  </header>
+
+  <form method="get" class="rmc-filters" aria-label="{% trans 'Smoke filters' %}">
+    <label class="rmc-filter">
+      <span>{% trans "Status" %}</span>
+      <select name="status" onchange="this.form.submit()">
+        <option value="">{% trans "All" %}</option>
+        {% for s in distinct_statuses %}
+          <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <noscript><button type="submit" class="rmc-btn rmc-btn--sm">{% trans "Apply" %}</button></noscript>
+  </form>
+
+  <section class="rmc-card" aria-labelledby="sparkline-h2">
+    <h2 id="sparkline-h2" class="rmc-h2">{% trans "Sections-passed sparkline" %}</h2>
+    {% if sparkline %}
+      <div class="rmc-sparkline" role="img" aria-label="{% trans 'Sections-passed counts over time' %}">
+        {% for bar in sparkline %}
+          <span class="rmc-sparkline__bar"
+                style="height: {{ bar.bar_px }}px;"
+                title="{{ bar.filename }} passed={{ bar.passed }} failed={{ bar.failed }}"></span>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="rmc-empty">{% trans "No archived smoke runs yet. The nightly Celery task writes to var/smoke-results/ once enabled." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="rmc-card" aria-labelledby="recent-h2">
+    <h2 id="recent-h2" class="rmc-h2">{% trans "Recent runs" %} <span class="rmc-meta">({{ rows_count }} / {{ max_runs_displayed }})</span></h2>
+    {% if rows %}
+      <table class="rmc-table">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Archived at (UTC)" %}</th>
+            <th scope="col">{% trans "File" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "Exit" %}</th>
+            <th scope="col">{% trans "Passed" %}</th>
+            <th scope="col">{% trans "Failed" %}</th>
+            <th scope="col">{% trans "Skipped" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td><code>{{ row.archived_at_utc_iso }}</code></td>
+              <td><code>{{ row.filename }}</code></td>
+              <td>{{ row.status|default:"-" }}</td>
+              <td>{% if row.exit_code is not None %}{{ row.exit_code }}{% else %}-{% endif %}</td>
+              <td>{{ row.passed }}</td>
+              <td>{% if row.failed %}<span class="rmc-pill rmc-pill--alert">{{ row.failed }}</span>{% else %}0{% endif %}</td>
+              <td>{{ row.skipped }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="rmc-empty">{% trans "No runs match the current filter." %}</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

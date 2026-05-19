@@ -39,7 +39,7 @@ import hmac
 import json
 import logging
 import time
-from typing import Any, Callable
+from typing import Callable
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt

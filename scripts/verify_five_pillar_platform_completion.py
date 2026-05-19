@@ -127,6 +127,15 @@ def main() -> int:
     code, tail = _run([py, "scripts/verify_tenant_resolution_cache_keys.py"])
     add("AWS", "cache_lint", "No legacy tenant:host cache keys", code == 0, tail or "ok")
 
+    code, tail = _run([py, "scripts/verify_internal_tenant_slug_guards.py"])
+    add(
+        "AWS",
+        "internal_tenant_slug_guards",
+        "Internal ?tenant= APIs carry membership guards",
+        code == 0,
+        tail or "ok",
+    )
+
     code, tail = _run([py, "scripts/verify_middleware_stack_order.py"])
     add("AWS", "middleware_order", "Middleware stack order gate", code == 0, tail or "ok")
 
@@ -153,6 +162,29 @@ def main() -> int:
         _contains("apps/finance/views_payments.py", "resolve_webhook_dedup_bucket")
         and _contains("apps/finance/views_payments.py", "duplicate_webhook_response"),
         "views_payments.py",
+    )
+    add(
+        "Shopify",
+        "webhook_atomic_claim",
+        "Webhook claim inside transaction.atomic",
+        _exists("apps/finance/webhooks/claim.py")
+        and _contains("apps/finance/views_payments.py", "claim_webhook_processing"),
+        "webhooks/claim.py",
+    )
+    add(
+        "Shopify",
+        "payment_uniq_ext_ref",
+        "Unique (invoice, external_reference) when ext ref set",
+        _contains("apps/finance/models.py", "finance_payment_uniq_invoice_ext_ref"),
+        "Payment.Meta.constraints",
+    )
+    add(
+        "AWS",
+        "tenant_api_guards",
+        "school_id query param membership guard module",
+        _exists("apps/schools/tenant_api_guards.py")
+        and _contains("apps/api/analytics_viz_api.py", "user_may_access_school_api"),
+        "tenant_api_guards.py",
     )
 
     # --- Salesforce ---
@@ -185,6 +217,13 @@ def main() -> int:
         _contains("apps/automation/apps.py", "register_domain_event_trigger_subscriber"),
         "automation/apps.py",
     )
+    add(
+        "Salesforce",
+        "outbox_school_prefetch",
+        "Outbox batch prefetches schools for domain events",
+        _contains("apps/events/tasks.py", "school_by_id"),
+        "events/tasks.py",
+    )
 
     # --- Linux ---
     add(
@@ -200,6 +239,31 @@ def main() -> int:
         "Extension registry sandbox validator",
         _contains("apps/marketplace/extension_registry.py", "validate_extension_manifest"),
         "extension_registry.py",
+    )
+    add(
+        "Linux",
+        "install_hook_delivery",
+        "Install hooks dispatch via Celery/inline delivery",
+        _exists("apps/marketplace/install_hook_delivery.py")
+        and _contains("apps/marketplace/lifecycle.py", "dispatch_install_hooks"),
+        "install_hook_delivery.py",
+    )
+    add(
+        "Linux",
+        "workflow_hook_registry",
+        "Manifest workflow_hooks runtime registry",
+        _exists("apps/marketplace/workflow_hook_registry.py")
+        and _contains(
+            "apps/automation/domain_event_bridge.py", "fire_manifest_workflow_hooks"
+        ),
+        "workflow_hook_registry.py",
+    )
+    add(
+        "Linux",
+        "governor_workflow_enforced",
+        "Workflow governor limit enforced in run_workflow",
+        _contains("apps/siteconfig/workflow_engine.py", "workflow_run_limit_exceeded"),
+        "workflow_engine.run_workflow",
     )
 
     # --- Google ---
@@ -248,6 +312,89 @@ def main() -> int:
         _exists("apps/people/migrations/0051_studentprofile_search_index.py"),
         "0051_studentprofile_search_index",
     )
+    add(
+        "Google",
+        "search_index_gin",
+        "PostgreSQL GIN index on student search_index",
+        _exists("apps/people/migrations/0052_studentprofile_search_index_gin.py"),
+        "0052_studentprofile_search_index_gin",
+    )
+    add(
+        "Google",
+        "global_search_fts_students",
+        "Global search uses filter_students_by_search for students",
+        _contains("apps/api/search_api.py", "filter_students_by_search"),
+        "search_api.py",
+    )
+    add(
+        "Google",
+        "ai_invoke_pii_redact",
+        "invoke_with_request redacts PII heuristics before gateway",
+        _contains("services/ai_helpers.py", 'md["pii_redacted"]'),
+        "ai_helpers.invoke_with_request",
+    )
+    add(
+        "PROOF",
+        "seed_command",
+        "seed_five_pillar_proof management command",
+        _exists("apps/platform_runtime/management/commands/seed_five_pillar_proof.py"),
+        "seed_five_pillar_proof",
+    )
+    add(
+        "Shopify",
+        "migration_0063",
+        "Payment invoice+ext_ref unique migration",
+        _exists("apps/finance/migrations/0063_payment_uniq_invoice_ext_ref.py"),
+        "0063_payment_uniq_invoice_ext_ref",
+    )
+    add(
+        "Shopify",
+        "migration_0064",
+        "WebhookLog provider+bucket unique migration",
+        _exists("apps/finance/migrations/0064_webhooklog_uniq_provider_bucket.py"),
+        "0064_webhooklog_uniq_provider_bucket",
+    )
+    add(
+        "Shopify",
+        "webhook_concurrent_test",
+        "Parallel webhook claim race test",
+        _exists("apps/finance/tests/test_webhook_claim_concurrent.py")
+        and _contains(
+            "apps/finance/tests/test_webhook_claim_concurrent.py",
+            "test_rapid_sequential_claims_single_row",
+        ),
+        "test_webhook_claim_concurrent",
+    )
+    add(
+        "Shopify",
+        "invoice_serializer_amount_str",
+        "Invoice/Payment serializers use amount_str wire format",
+        _contains("apps/api/serializers.py", "amount_str")
+        and _exists("apps/api/tests/test_invoice_serializer_money_wire.py"),
+        "InvoiceSerializer.to_representation",
+    )
+    add(
+        "Shopify",
+        "json_decimal_api",
+        "Finance invoice summary uses amount_str wire format",
+        _contains("apps/finance/api_views.py", "amount_str"),
+        "InvoiceViewSet.summary",
+    )
+    add(
+        "Shopify",
+        "json_decimal_analytics_api",
+        "Financial analytics API uses amount_str (no float money)",
+        _contains("apps/finance/api_views.py", "FinancialAnalyticsAPI")
+        and _contains("apps/finance/api_views.py", '"total_invoiced": amount_str'),
+        "FinancialAnalyticsAPI.get",
+    )
+    add(
+        "Shopify",
+        "json_decimal_module_tests",
+        "json_decimal unit tests present",
+        _exists("apps/finance/tests/test_json_decimal.py"),
+        "test_json_decimal.py",
+    )
 
     code, tail = _run([py, "scripts/verify_list_search_adoption.py"])
     add("Google", "search_adoption_lint", "Hot list views use search helpers", code == 0, tail or "ok")
@@ -272,8 +419,18 @@ def main() -> int:
                 "apps.automation.tests.test_trigger_dispatcher_depth",
                 "apps.schoolops.tests.test_notification_batch",
                 "apps.finance.tests.test_webhook_ingress",
+                "apps.finance.tests.test_webhook_claim",
+                "apps.finance.tests.test_webhook_claim_concurrent",
+                "apps.finance.tests.test_json_decimal",
+                "apps.api.tests.test_invoice_serializer_money_wire",
+                "apps.finance.tests.test_payment_invoice_ext_ref_unique",
                 "apps.finance.tests.test_views_payments_dedup_bucket",
                 "apps.api.tests.test_me_schools_bola",
+                "apps.api.tests.test_analytics_viz_api",
+                "apps.schools.tests.test_tenant_api_guards",
+                "apps.marketplace.tests.test_workflow_hook_registry",
+                "apps.platform_runtime.tests.test_governor_workflow_limit",
+                "services.tests.test_ai_helpers_pii_redact",
                 "apps.portal.tests.test_document_search",
                 "payment.tests.test_webhook_ingress",
                 "--verbosity=1",

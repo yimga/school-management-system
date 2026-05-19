@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T14:12:29.686006+00:00",
+  "generated_at": "2026-05-19T15:48:55.227042+00:00",
   "verdict": "MANAGER_PORTAL_CHROME_PASS",
-  "passed": 21,
+  "passed": 23,
   "failed": 0,
   "rows": [
     {
@@ -36,6 +36,20 @@
       "area": "manager",
       "check_id": "footer_css",
       "description": "Manager corporate footer stylesheet exists",
+      "status": "PASS",
+      "proof": "manager-corporate-footer.css"
+    },
+    {
+      "area": "manager",
+      "check_id": "platform_shell_wrapper",
+      "description": "Skeleton wraps all manager pages in cp-shell-content + cp_shell_page",
+      "status": "PASS",
+      "proof": "control_plane_skeleton + control_plane_base"
+    },
+    {
+      "area": "manager",
+      "check_id": "footer_inside_shell_css",
+      "description": "Footer layout CSS avoids viewport-shrink (no min-height 100vh on shell)",
       "status": "PASS",
       "proof": "manager-corporate-footer.css"
     },

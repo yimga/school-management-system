@@ -1,0 +1,70 @@
+{
+  "generated_at": "2026-05-19T16:16:00Z",
+  "agent": "Agent 5",
+  "scope": "Second-pass docs/evidence audit for Migration Cloud and pillar completeness claims",
+  "verdict": "PARTIAL_HONEST_RESIDUAL",
+  "migration_cloud": {
+    "verdict": "REPO_LOCAL_MIGRATION_AND_HEADER_EVIDENCE_SUPPORTED",
+    "proof": [
+      {
+        "command": "python manage.py makemigrations migration_cloud --check --dry-run --verbosity 1 --skip-checks",
+        "exit_code": 0,
+        "result": "No changes detected in app 'migration_cloud'"
+      },
+      {
+        "command": "python manage.py migrate migration_cloud --plan --skip-checks",
+        "exit_code": 0,
+        "result": "No planned migration operations"
+      },
+      {
+        "command": "python scripts/scan_companion_canonical_headers_drift.py --strict",
+        "exit_code": 0,
+        "result": "canonical-headers-drift scan: 0 unallowed drift(s)"
+      },
+      {
+        "command": "python -m unittest apps.migration_cloud.tests.test_signed_release_preflight_v3_39 scripts.tests.test_scan_companion_canonical_headers_drift_v3_39",
+        "exit_code": 0,
+        "result": "Ran 19 tests OK"
+      }
+    ],
+    "residuals": [
+      "Normal Django management checks currently fail before Migration Cloud logic because config.urls references missing apps.observability.views.public_health.",
+      "Full Django Migration Cloud v3.37-v3.39 suite was not rerun green in this pass.",
+      "Legacy X-Migration-Cloud-* removal remains a future post-2026-08-18 cutover; customer confirmations, external signing certs, GitHub secrets, real tag push, and HSM bridge remain outside this docs lane."
+    ]
+  },
+  "five_pillar": {
+    "verdict": "CURRENT_GATE_NOT_GREEN",
+    "proof": [
+      {
+        "command": "python scripts/verify_five_pillar_platform_completion.py --write --run-tests",
+        "exit_code": 1,
+        "result": "Fails during Django URL import checks: AttributeError: module 'apps.observability.views' has no attribute 'public_health'"
+      }
+    ],
+    "overclaim": "Do not claim current FIVE_PILLAR_PLATFORM_PASS from this checkout until the URL import blocker is fixed and the gate reruns green."
+  },
+  "six_pillar": {
+    "verdict": "CURRENT_GATE_NOT_GREEN",
+    "proof": [
+      {
+        "command": "python scripts/verify_six_pillar_global_dominance.py --write --run-tests",
+        "exit_code": 1,
+        "result": "SIX_PILLAR_GLOBAL_DOMINANCE_FAIL; five-pillar child gate fails during Django subset with Invoice total must be at least 0.01; Ran 52 tests, 1 error"
+      },
+      {
+        "command": "python scripts/verify_forensic_master_prompt_completion.py",
+        "exit_code": 0,
+        "result": "FORENSIC_MASTER_PROMPT_PASS; PASS 24 / FAIL 0"
+      }
+    ],
+    "overclaim": "Do not claim current SIX_PILLAR_GLOBAL_DOMINANCE_PASS from this checkout until the five-pillar child gate reruns green."
+  },
+  "docs_updated": [
+    "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+    "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
+    "docs/generated/five_pillar_platform_audit.json",
+    "docs/generated/six_pillar_global_dominance_audit.json",
+    "docs/generated/agent5_migration_pillar_second_pass_audit.json"
+  ]
+}

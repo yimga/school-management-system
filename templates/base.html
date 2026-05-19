@@ -298,6 +298,8 @@
     {# AI Copilot - Available on all pages #}
     {% include 'components/ai_copilot.html' %}
 
+    {% include 'components/toast_notifications.html' %}
+    <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>

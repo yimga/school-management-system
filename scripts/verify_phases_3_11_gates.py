@@ -183,6 +183,15 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [
             py,
+            _script_path("verify_dashboard_topology_integrity.py"),
+            "--write",
+            *base_args,
+        ],
+        "Dual-dashboard topology: RBAC, seed, migration, shell contracts",
+    )
+    run(
+        [
+            py,
             _script_path("verify_admin_tenant_change_form_product_links.py"),
             *base_args,
         ],

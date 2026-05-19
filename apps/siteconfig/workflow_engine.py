@@ -747,6 +747,25 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
     if not isinstance(tenant_workflow, TenantWorkflow):
         return {"ok": False, "error": "Invalid TenantWorkflow"}
 
+    school = getattr(tenant_workflow, "school", None)
+    if school is not None:
+        try:
+            from apps.platform_runtime.governor_limits import (
+                record_workflow_run,
+                workflow_run_limit_exceeded,
+            )
+
+            if workflow_run_limit_exceeded(school_id=getattr(school, "pk", None)):
+                return {
+                    "ok": False,
+                    "error": "workflow_run_limit_exceeded",
+                    "conditions_passed": False,
+                    "actions_run": [],
+                }
+            record_workflow_run(school_id=getattr(school, "pk", None))
+        except ImportError:
+            pass
+
     template = getattr(tenant_workflow, "template", None)
     if not template or not template.is_active:
         return {"ok": False, "error": "Template inactive or missing"}
@@ -1131,6 +1150,16 @@ def run_school_workflows_for_trigger(school, trigger_type: str, context: dict) -
         is_active=True,
         status=SchoolAutomationWorkflow.Status.PUBLISHED,
         trigger=trigger_type,
+    ).only(
+        "pk",
+        "school_id",
+        "trigger",
+        "trigger_config",
+        "conditions",
+        "actions",
+        "graph",
+        "is_active",
+        "status",
     )
     results = []
     for wf in qs:

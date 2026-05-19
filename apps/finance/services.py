@@ -277,7 +277,8 @@ def pay_invoice_with_wallet(
         raise ValueError("Amount must be positive.")
     if amount_val > invoice.computed_balance:
         raise ValueError("Amount exceeds invoice balance.")
-    wallet, _ = ParentWallet.objects.get_or_create(
+
+    wallet, _ = ParentWallet.objects.select_for_update().get_or_create(
         school=school,
         user=user,
         defaults={

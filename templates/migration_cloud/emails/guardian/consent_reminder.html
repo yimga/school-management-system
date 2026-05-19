@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Reminder</title></head>
+<body style="font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #222; line-height: 1.5;">
+  <p>Hello {{ guardian_first_name|default:"there" }},</p>
+
+  <p>A short reminder: <strong>{{ school_name }}</strong> is waiting for
+     your response on the migration consent request sent earlier.</p>
+
+  <p>You can review and respond at the link below. (For your privacy and
+     security, this link is freshly generated; any previous link is no
+     longer valid.)</p>
+
+  <p><a href="{{ consent_url }}" style="display:inline-block;padding:10px 18px;background:#0d6efd;color:#fff;text-decoration:none;border-radius:4px;">Review and respond</a></p>
+
+  <p style="font-size: 13px; color: #555;">
+    The link expires on {{ expires_at|date:"Y-m-d" }}.
+  </p>
+
+  <p>If you have already responded, please disregard this message.</p>
+
+  <p>If you have questions, contact your school's office, or write to
+     <a href="mailto:privacy@runmycampus.com">privacy@runmycampus.com</a>.</p>
+
+  <p>— The RunMyCampus team</p>
+</body></html>

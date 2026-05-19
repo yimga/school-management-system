@@ -11,7 +11,6 @@ from __future__ import annotations
 from django.conf import settings
 from django.test import SimpleTestCase, override_settings
 
-from apps.integrations_marketplace import email_backend
 from apps.integrations_marketplace.email_backend import (
     _ANYMAIL_KEY_MAP,
     _active_school,

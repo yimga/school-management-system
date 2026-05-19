@@ -176,6 +176,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     student_id = serializers.CharField(source="student.student_code", read_only=True)
     paid_amount = serializers.SerializerMethodField()
     balance = serializers.SerializerMethodField()
+    _MONEY_WIRE_FIELDS = ("total_amount", "balance_amount", "paid_amount", "balance")
 
     class Meta:
         model = Invoice
@@ -219,6 +220,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
         )
         return obj.total_amount - paid
 
+    def to_representation(self, instance):
+        from apps.finance.json_decimal import amount_str
+
+        data = super().to_representation(instance)
+        for field in self._MONEY_WIRE_FIELDS:
+            if data.get(field) is not None:
+                data[field] = amount_str(data[field])
+        return data
+
 
 class PaymentSerializer(serializers.ModelSerializer):
     """Payment recording serializer aligned to current finance models."""
@@ -241,6 +251,14 @@ class PaymentSerializer(serializers.ModelSerializer):
             "physical_receipt_book_serial",
             "physical_receipt_number",
         ]
+
+    def to_representation(self, instance):
+        from apps.finance.json_decimal import amount_str
+
+        data = super().to_representation(instance)
+        if data.get("amount") is not None:
+            data["amount"] = amount_str(data["amount"])
+        return data
 
 
 # ==================== ACADEMIC SERIALIZERS ====================

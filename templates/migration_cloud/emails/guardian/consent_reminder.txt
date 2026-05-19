@@ -1,0 +1,19 @@
+Hello {{ guardian_first_name|default:"there" }},
+
+A short reminder: {{ school_name }} is waiting for your response on
+the migration consent request sent earlier.
+
+You can review and respond at the link below. (For your privacy and
+security, this link is freshly generated; any previous link is no
+longer valid.)
+
+{{ consent_url }}
+
+The link expires on {{ expires_at|date:"Y-m-d" }}.
+
+If you have already responded, please disregard this message.
+
+If you have questions, contact your school's office, or write to
+privacy@runmycampus.com.
+
+— The RunMyCampus team

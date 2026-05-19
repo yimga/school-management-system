@@ -10,7 +10,7 @@ from django.db import DatabaseError
 from django.db.models import Count, OuterRef, Subquery, Sum
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from apps.platform_runtime.models import PlatformOperatorSuperDashboardLink
 from apps.registries.models import (
@@ -40,6 +40,14 @@ from .super_views_helpers import (
     safe_platform_incidents_url,
     safe_school_timeline_url,
 )
+
+
+def _optional_reverse_for_request(request, name: str) -> str:
+    try:
+        return reverse(name, urlconf=getattr(request, "urlconf", None))
+    except NoReverseMatch:
+        return ""
+
 
 def super_dashboard(request):
     """List all schools with basic stats. Phase E: Financial Bento. Phase H: Registry link, selected education systems."""
@@ -178,7 +186,9 @@ def super_dashboard(request):
                 }
             )
 
-    operator_super_dashboard_links = list(
+    from apps.schools.dashboard_topology_registry import filter_operational_dashboard_links
+
+    operator_super_dashboard_links = filter_operational_dashboard_links(
         PlatformOperatorSuperDashboardLink.objects.order_by("sort_order", "slug")
     )
     return render(
@@ -683,6 +693,50 @@ def super_dashboard_v2(request):
             "tone": "violet" if billing_watchlist else "slate",
         },
     ]
+    migration_start_url = _optional_reverse_for_request(
+        request, "migration_cloud_super:bundle_new"
+    )
+    migration_health_url = _optional_reverse_for_request(
+        request, "migration_cloud_super:migration_cloud_health"
+    )
+    proof_surface_cards = []
+    for card in (
+        {
+            "title": "Public-to-Product matrix",
+            "metric": "Proof",
+            "meta": "Public claims mapped to product routes and delivery proof",
+            "url": _optional_reverse_for_request(
+                request, "manager_public_to_product_matrix"
+            ),
+            "cta": "Open matrix",
+        },
+        {
+            "title": "Feature gap register",
+            "metric": "Gaps",
+            "meta": "Feature status, proof route, model, command, and CI coverage",
+            "url": _optional_reverse_for_request(
+                request, "manager_feature_gap_register"
+            ),
+            "cta": "Review gaps",
+        },
+        {
+            "title": "Feedback loop",
+            "metric": "Live",
+            "meta": "Friction, feedback, and AI-assistant adoption signals",
+            "url": _optional_reverse_for_request(request, "manager_feedback_loop"),
+            "cta": "Inspect signals",
+        },
+        {
+            "title": "Lane-2 readiness",
+            "metric": "External",
+            "meta": "PSP, SOC2 evidence, and pilot readiness in one scoreboard",
+            "url": _optional_reverse_for_request(request, "manager_lane2_readiness"),
+            "cta": "Check readiness",
+        },
+    ):
+        if card["url"]:
+            proof_surface_cards.append(card)
+
     workstream_cards = [
         {
             "title": "Mission queues",
@@ -715,6 +769,13 @@ def super_dashboard_v2(request):
             "cta": "View usage",
         },
         {
+            "title": "Migration Cloud",
+            "metric": "Ready" if migration_start_url else "Summary",
+            "meta": "Intake, profile registry, health, audit, tokens, and webhook operations",
+            "url": migration_start_url or reverse("super:migration_cloud"),
+            "cta": "Open migration",
+        },
+        {
             "title": "Fleet health",
             "metric": str(platform_health.get("overall_status", "unknown")).upper(),
             "meta": f"Webhook drift groups: {webhook_stack.get('unsynced_legacy_groups', 0)}",
@@ -735,7 +796,7 @@ def super_dashboard_v2(request):
             "url": reverse("super:create_school_wizard"),
             "cta": "Open tenant studio",
         },
-    ]
+    ] + proof_surface_cards
     readiness_cards = [
         {
             "label": "Canonical identity",
@@ -762,6 +823,18 @@ def super_dashboard_v2(request):
             "value": f"{impersonation_ready_count}/{school_count}",
             "meta": "JIT consent grants available for audited support access",
             "tone": "neutral",
+        },
+        {
+            "label": "Migration Cloud ops",
+            "value": "Health" if migration_health_url else "Summary",
+            "meta": "Wizard intake, health, audit, tokens, and webhooks are linked from the dashboard",
+            "tone": "success" if migration_health_url else "neutral",
+        },
+        {
+            "label": "Operator proof surfaces",
+            "value": f"{len(proof_surface_cards)}/4",
+            "meta": "Public promises, feature gaps, feedback, and Lane-2 readiness exposed",
+            "tone": "success" if len(proof_surface_cards) == 4 else "warning",
         },
     ]
     platform_health_cards = [
@@ -793,7 +866,9 @@ def super_dashboard_v2(request):
         },
     ]
 
-    operator_super_dashboard_links = list(
+    from apps.schools.dashboard_topology_registry import filter_operational_dashboard_links
+
+    operator_super_dashboard_links = filter_operational_dashboard_links(
         PlatformOperatorSuperDashboardLink.objects.order_by("sort_order", "slug")
     )
     return render(

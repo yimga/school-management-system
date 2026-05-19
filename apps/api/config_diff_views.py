@@ -56,12 +56,25 @@ class ConfigDiffAPI(View):
         compare_policy = {}
         if school_id and compare_school_id:
             try:
-                school_a = School.objects.get(pk=school_id)
-                school_b = School.objects.get(pk=compare_school_id)
-                base_policy = _safe_policy(school_a)
-                compare_policy = _safe_policy(school_b)
+                school_a = School.objects.get(pk=school_id, is_active=True)
+                school_b = School.objects.get(pk=compare_school_id, is_active=True)
             except School.DoesNotExist:
                 return JsonResponse({"detail": "School not found."}, status=404)
+            if not (
+                getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)
+            ):
+                from apps.schools.tenant_switch_security import user_may_access_school_api
+                from apps.schools.tenant_api_guards import session_school_id_from_request
+
+                sid = session_school_id_from_request(request)
+                if not user_may_access_school_api(
+                    user, school_a, session_school_id=sid
+                ) or not user_may_access_school_api(
+                    user, school_b, session_school_id=sid
+                ):
+                    return JsonResponse({"detail": "Forbidden."}, status=403)
+            base_policy = _safe_policy(school_a)
+            compare_policy = _safe_policy(school_b)
         else:
             school = getattr(request, "school", None)
             if school:

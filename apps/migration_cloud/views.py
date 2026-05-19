@@ -35,7 +35,6 @@ from django.views import View
 
 from .ai_bridge import AIProposal, record_operator_feedback, remember_mapping_decision
 from .reliability import (
-    bundle_status_safe,
     idempotent_post,
     safe_500,
     with_progress_fallback,
@@ -44,13 +43,10 @@ from .models import (
     AssetStatus,
     BundleStatus,
     ConflictResolution,
-    FinancialMismatchError,
     IntakeMethod,
-    MigrationAsset,
     MigrationBundle,
     MigrationConflict,
     MigrationIdMapping,
-    MigrationProgressEvent,
     SlaTier,
 )
 
@@ -548,16 +544,17 @@ class MigrationCloudConsoleView(LoginRequiredMixin, View):
         gate = _enforce_portal_entitlement(request, shell)
         if gate is not None:
             return gate
-        bundles = (
+        bundles_qs = (
             MigrationBundle.objects
             .order_by("-created_at")
-            .select_related("school", "triggered_by")[:50]
+            .select_related("school", "triggered_by")
         )
         if shell == "portal":
             # Tenant scope: limit to the active school only.
             school = getattr(request, "school", None) or getattr(request, "tenant", None)
             if school is not None:
-                bundles = bundles.filter(school=school)
+                bundles_qs = bundles_qs.filter(school=school)
+        bundles = bundles_qs[:50]
         return render(
             request,
             self.template_name,
@@ -565,6 +562,7 @@ class MigrationCloudConsoleView(LoginRequiredMixin, View):
                 "shell": shell,
                 "bundles": bundles,
                 "page_title": "Migration Cloud",
+                "is_super_shell": shell != "portal",
             },
         )
 
@@ -1119,7 +1117,6 @@ class MigrationCloudAttachSourceView(LoginRequiredMixin, View):
         errors: list[str] = []
         source_uri = (request.POST.get("intake_source_uri") or "").strip()
         notes = (request.POST.get("notes") or "").strip()
-        config_payload: dict[str, Any] = {}
 
         if not source_uri:
             errors.append("Provide the source URI / endpoint / mailbox address.")

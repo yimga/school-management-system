@@ -13,8 +13,6 @@ Covers:
 from __future__ import annotations
 
 import importlib
-import json
-import sys
 import types
 from unittest.mock import MagicMock, patch
 

@@ -11,6 +11,11 @@ from .services import apply_payment, recalculate_invoice
 logger = logging.getLogger(__name__)
 
 
+def _finance_signals_enabled() -> bool:
+    """Tests set SEND_FINANCE_SIGNALS=False to isolate DB constraint / validation paths."""
+    return getattr(settings, "SEND_FINANCE_SIGNALS", True)
+
+
 def _requires_explicit_rls_context() -> bool:
     return connection.vendor == "postgresql" and not getattr(
         settings, "USE_DJANGO_TENANTS", False
@@ -106,16 +111,22 @@ def ensure_payment_reminder(sender, instance: Invoice, created: bool, **kwargs):
 
 @receiver(post_save, sender=InvoiceLine)
 def sync_invoice_totals(sender, instance: InvoiceLine, created: bool, **kwargs):
+    if not _finance_signals_enabled():
+        return
     recalculate_invoice(instance.invoice)
 
 
 @receiver(post_delete, sender=InvoiceLine)
 def sync_invoice_totals_delete(sender, instance: InvoiceLine, **kwargs):
+    if not _finance_signals_enabled():
+        return
     recalculate_invoice(instance.invoice)
 
 
 @receiver(post_save, sender=Payment)
 def sync_payment(sender, instance: Payment, created: bool, **kwargs):
+    if not _finance_signals_enabled():
+        return
     if not instance.receipt_number:
         receipt = f"RCPT-{instance.id:05d}"
         school_id = getattr(instance, "school_id", None)
@@ -152,6 +163,8 @@ def sync_payment(sender, instance: Payment, created: bool, **kwargs):
 
 @receiver(post_delete, sender=Payment)
 def sync_payment_delete(sender, instance: Payment, **kwargs):
+    if not _finance_signals_enabled():
+        return
     if instance.invoice_id:
         recalculate_invoice(instance.invoice)
 

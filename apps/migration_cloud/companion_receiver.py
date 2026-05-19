@@ -36,17 +36,16 @@ import logging
 import uuid
 from typing import Any
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.base import ContentFile
 from django.db import IntegrityError, transaction
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 
 from . import metrics as _mc_metrics
 from .models import (
@@ -62,7 +61,6 @@ from .models_audit import MigrationCloudAuditEvent as _AuditEvent
 from .reliability import idempotent_post, safe_500
 from .services import companion_keypair as _companion_keypair
 from .services.maa_text import (
-    AGREEMENT_VERSION_CURRENT,
     MAA_TEXT_DRAFT_VERSIONS,
     is_draft_version,
     render_maa_text,

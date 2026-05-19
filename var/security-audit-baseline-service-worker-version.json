@@ -1,12 +1,12 @@
 {
   "date": "2026-05-19",
-  "generated_at": "2026-05-19T10:57:59+00:00",
+  "generated_at": "2026-05-19T15:48:55+00:00",
   "major": 3,
-  "minor": 40,
-  "patch": 2,
-  "raw": "sms-v3.40.2-manager-portal-chrome-1295-2026-05-19",
+  "minor": 41,
+  "patch": 9,
+  "raw": "sms-v3.41.9-manager-shell-platform-wide-2026-05-19",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "manager-portal-chrome-1295",
+  "slug": "manager-shell-platform-wide",
   "valid": true
 }

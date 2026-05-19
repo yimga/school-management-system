@@ -9,7 +9,6 @@ linked to the requester's user account.
 from __future__ import annotations
 
 import secrets
-from typing import Any
 
 from django.db import transaction
 from django.utils import timezone

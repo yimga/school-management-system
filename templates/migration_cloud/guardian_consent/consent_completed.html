@@ -1,0 +1,55 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Migration consent" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main" data-rmc-guardian-consent-completed>
+  <header class="mb-4">
+    <h1 class="h2 mb-1">{% trans "Migration consent" %}</h1>
+  </header>
+
+  {% comment %}
+    Uniform-shape completion page — same template renders all six
+    branches so an attacker cannot distinguish "not found" from
+    "expired" via response-shape differentials. Per-branch copy
+    differs by ``message_key`` only.
+  {% endcomment %}
+
+  {% if message_key == "consented" %}
+    <div class="alert alert-success" role="status">
+      <h2 class="h5">{% trans "Thank you — your consent has been recorded." %}</h2>
+      <p class="mb-0">{% trans "Your school will receive your decision and proceed with the migration. You may close this page." %}</p>
+    </div>
+  {% elif message_key == "declined" %}
+    <div class="alert alert-warning" role="status">
+      <h2 class="h5">{% trans "Your decline has been recorded." %}</h2>
+      <p class="mb-0">{% trans "Your school will be notified that you did not consent to the migration. You may close this page." %}</p>
+    </div>
+  {% elif message_key == "revoked" %}
+    <div class="alert alert-info" role="status">
+      <h2 class="h5">{% trans "Your consent has been withdrawn." %}</h2>
+      <p class="mb-0">{% trans "We have withdrawn your prior consent. Your school will be notified." %}</p>
+    </div>
+  {% elif message_key == "already_decided" %}
+    <div class="alert alert-secondary" role="status">
+      <h2 class="h5">{% trans "This request has already been answered." %}</h2>
+      <p class="mb-0">{% trans "A response was previously recorded for this consent request. If this is unexpected, please contact your school." %}</p>
+    </div>
+  {% elif message_key == "expired" %}
+    <div class="alert alert-secondary" role="status">
+      <h2 class="h5">{% trans "This consent request has expired." %}</h2>
+      <p class="mb-0">{% trans "If you would still like to respond, please contact your school for a new request." %}</p>
+    </div>
+  {% else %}
+    <div class="alert alert-secondary" role="status">
+      <h2 class="h5">{% trans "Nothing to show here." %}</h2>
+      <p class="mb-0">{% trans "This link is no longer active. If you reached this page in error, please contact your school." %}</p>
+    </div>
+  {% endif %}
+
+  <p class="text-muted small mt-4">
+    {% trans "For questions about this consent, contact your school's data-protection officer or privacy@runmycampus.com." %}
+  </p>
+</main>
+{% endblock %}

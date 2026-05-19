@@ -9,11 +9,26 @@
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#migration-cloud-main">{% trans "Skip to migration cloud" %}</a>
   <div id="migration-cloud-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-migration-ux="1">
     {% phase8_dashboard_declaration "schools/super_migration_cloud.html" %}
-    {% include "components/world_class_page_hero.html" with hero_id="migration-cloud-title" role=_("Implementation operators") title=_("Migration Center") subtitle=_("Upload or select a template, preview, map fields, validate, quarantine issues, score data quality, apply, audit, and preserve rollback posture.") purpose=_("Migration and import governance") status=_("Rollback aware") primary_url="/super/migration-cloud/" primary_label=_("Review migration runs") secondary_url="/configuration/" secondary_label=_("Configuration center") visual_title=_("Data quality before import") visual_body=_("Duplicates, invalid rows, quarantine state, and rollback posture are visible before apply.") %}
+    {% with migration_new_url=migration_cloud_operator_urls.new|default:dashboard_url migration_health_url=migration_cloud_operator_urls.health|default:registry_url %}
+    {% include "components/world_class_page_hero.html" with hero_id="migration-cloud-title" role=_("Implementation operators") title=_("Migration Center") subtitle=_("Upload or select a template, preview, map fields, validate, quarantine issues, score data quality, apply, audit, and preserve rollback posture.") purpose=_("Migration and import governance") status=_("Rollback aware") primary_url=migration_new_url primary_label=_("Start migration") secondary_url=migration_health_url secondary_label=_("Operator health") visual_title=_("Data quality before import") visual_body=_("Duplicates, invalid rows, quarantine state, and rollback posture are visible before apply.") %}
+    {% endwith %}
     {% include "components/world_class_guided_stepper.html" %}
     {% include "components/apple_class_data_quality_meter.html" with meter_id="migration-data-quality" title=_("Data Quality Meter") value=data_quality_meter.value status=data_quality_meter.status status_label=data_quality_meter.status_label body=_("Field mapping, duplicate warnings, invalid rows, and rollback posture must pass before apply.") %}
     {% include "components/world_class_summary_strip.html" with readiness=summary.rollback_ready readiness_label=_("Rollback ready") risk=summary.exception_runs_open risk_label=_("Open exceptions") next_step=_("Validate") next_step_label=_("Data quality") blockers=summary.quarantine_pending blockers_label=_("Quarantine pending") %}
     {% include "components/platform_readiness_strip.html" with inline_field_prefix='migration-cloud' %}
+    <div class="card shadow-sm border-0 page-family-content-card mb-3">
+      <div class="card-header bg-dark text-light">{% trans "Migration Cloud operations" %}</div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          {% if migration_cloud_operator_urls.new %}<a class="btn btn-sm btn-primary" href="{{ migration_cloud_operator_urls.new }}">{% trans "Start migration" %}</a>{% endif %}
+          {% if migration_cloud_operator_urls.health %}<a class="btn btn-sm btn-outline-secondary" href="{{ migration_cloud_operator_urls.health }}">{% trans "Health" %}</a>{% endif %}
+          {% if migration_cloud_operator_urls.audit %}<a class="btn btn-sm btn-outline-secondary" href="{{ migration_cloud_operator_urls.audit }}">{% trans "Audit log" %}</a>{% endif %}
+          {% if migration_cloud_operator_urls.tokens %}<a class="btn btn-sm btn-outline-secondary" href="{{ migration_cloud_operator_urls.tokens }}">{% trans "API tokens" %}</a>{% endif %}
+          {% if migration_cloud_operator_urls.webhooks %}<a class="btn btn-sm btn-outline-secondary" href="{{ migration_cloud_operator_urls.webhooks }}">{% trans "Webhooks" %}</a>{% endif %}
+          {% if migration_cloud_operator_urls.maa %}<a class="btn btn-sm btn-outline-secondary" href="{{ migration_cloud_operator_urls.maa }}">{% trans "MAA v2.0" %}</a>{% endif %}
+        </div>
+      </div>
+    </div>
     {% if operator_migration_cloud_links %}
     <div class="card shadow-sm border-0 page-family-content-card mb-3">
       <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>

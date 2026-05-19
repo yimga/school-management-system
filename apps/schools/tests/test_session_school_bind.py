@@ -1,9 +1,8 @@
 """HMAC session school binding."""
 
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 
-from apps.schools.middleware_session_school_bind import SessionSchoolBindingMiddleware
 from apps.schools.models import School, SchoolMembership
 from apps.schools.session_school_bind import (
     sign_session_school_bind,

@@ -39,12 +39,7 @@ Coverage matrix (~13 tests):
 from __future__ import annotations
 
 import base64
-import hashlib
-import hmac
-import io
 import json
-import logging
-import os
 import uuid
 
 from django.test import SimpleTestCase, override_settings
@@ -52,7 +47,6 @@ from django.test import SimpleTestCase, override_settings
 from apps.migration_cloud.services.audit_root_signing import (
     RESERVED_BACKENDS_HSM,
     SIGNING_BACKEND_LOCAL,
-    AuditSigningConfigError,
     compute_root_signature,
     verify_root_signature,
     _canonical_pre_image_bytes,

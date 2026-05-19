@@ -290,12 +290,17 @@ class GlobalSearchAPI(View):
         # Get model dynamically
         if config["model"] == "StudentProfile":
             from apps.people.models import StudentProfile
+            from apps.people.student_search import filter_students_by_search
 
             role = getattr(user, "role", None)
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            base = StudentProfile.objects.filter(q_object, is_active=True)
             if school is not None:
-                base = base.filter(school=school)
+                base = filter_students_by_search(
+                    StudentProfile.objects.filter(is_active=True, school=school),
+                    query,
+                )
+            else:
+                base = StudentProfile.objects.filter(q_object, is_active=True)
             if user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES:
                 items = base[:limit]
             elif role == User.Role.TEACHER:

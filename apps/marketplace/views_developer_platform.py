@@ -20,11 +20,9 @@ from __future__ import annotations
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
-from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -40,7 +38,7 @@ from apps.marketplace.models import (
     WebhookEndpoint,
 )
 from apps.marketplace import partner_metrics, publisher_signup, ratings
-from apps.marketplace.app_versions import list_versions, latest_stable
+from apps.marketplace.app_versions import list_versions
 
 
 # ---------- helpers ----------

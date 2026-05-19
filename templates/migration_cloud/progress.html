@@ -3,7 +3,7 @@
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--migration-cloud-progress" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back"
@@ -47,6 +47,22 @@
       {% endfor %}
     </ol>
     <p class="rmc-muted">{% trans "Snapshot updated" %}: {{ snapshot.updated_at }}</p>
+  </section>
+
+  <section class="rmc-card">
+    <h2 class="rmc-h2">{% trans "Migration graph" %}</h2>
+    <ol class="rmc-stage-list rmc-stage-list--graph" aria-label="{% trans 'Migration graph nodes' %}">
+      {% for node in snapshot.graph.nodes %}
+        <li class="rmc-stage{% if node.status == 'done' %} rmc-stage--done{% elif node.status == 'current' %} rmc-stage--current{% else %} rmc-stage--pending{% endif %}">
+          <strong>{{ node.label }}</strong>
+          <span class="rmc-muted">{{ node.status }}</span>
+          {% if node.pct %}<span class="rmc-muted">- {{ node.pct }}%</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+    <p class="rmc-muted">
+      {% blocktrans count edge_count=snapshot.graph.edges|length %}{{ edge_count }} dependency edge{% plural %}{{ edge_count }} dependency edges{% endblocktrans %}
+    </p>
   </section>
   {% endif %}
 

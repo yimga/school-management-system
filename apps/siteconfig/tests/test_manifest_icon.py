@@ -10,14 +10,12 @@ from __future__ import annotations
 import io
 import unittest
 
-from django.core.exceptions import ValidationError
 from django.test import RequestFactory
 
 from apps.siteconfig.views_manifest_icon import (
     _ALLOWED_SIZES,
     icon_any,
     icon_maskable,
-    manifest_icon_view,
 )
 
 

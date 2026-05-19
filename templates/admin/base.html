@@ -104,6 +104,11 @@
             {% endif %}
 
             {% block footer %}
+            {% if is_manager_host %}
+            <footer class="cp-corporate-footer mt-auto w-100 flex-shrink-0" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
+              {% include "partials/rmc_operator_footer_compact.html" %}
+            </footer>
+            {% endif %}
             {% include 'components/back_to_top.html' %}
             {% endblock %}
 

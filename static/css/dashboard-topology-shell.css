@@ -1,0 +1,60 @@
+/**
+ * Dual-dashboard topology — viewport-stable operational cockpits.
+ * Prevents hidden footer actions and clipped chart panels across breakpoints.
+ */
+
+html[data-rmc-shell-root="control-plane-skeleton"],
+html[data-rmc-shell-root="portal"],
+html[data-rmc-shell-root="backend"],
+html[data-rmc-premium-shell="portal"] {
+  height: 100%;
+}
+
+body.control-plane-shell,
+body.portal-shell-body,
+body.backend-shell-body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cp-shell-content,
+[data-rmc-shell-main-scroll],
+#dashboard-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rmc-dashboard-widget-boundary {
+  min-height: 8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.rmc-dashboard-widget-boundary__error {
+  padding: 1rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.12));
+  background: var(--surface-elevated, #fff);
+}
+
+.rmc-viz-error-fallback__actions {
+  margin-top: 0.75rem;
+}
+
+/* Viewport-safe chrome: profile / theme / logout stay in scrollport */
+[data-rmc-shell-viewport-safe="1"] {
+  max-width: 100%;
+}
+
+@media (max-width: 320px), (min-width: 768px), (min-width: 1440px) {
+  .user-dropdown-wrapper[data-rmc-shell-viewport-safe="1"] .dropdown-menu {
+    max-height: min(70vh, 28rem);
+    overflow-y: auto;
+  }
+}

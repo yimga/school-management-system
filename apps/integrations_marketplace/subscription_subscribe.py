@@ -32,7 +32,6 @@ import time
 import urllib.error
 import urllib.request
 from typing import Any
-from urllib.parse import urlencode
 
 from django.conf import settings
 from django.dispatch import receiver

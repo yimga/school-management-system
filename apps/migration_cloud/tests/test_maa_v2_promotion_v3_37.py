@@ -30,14 +30,13 @@ import hmac
 import io
 import json
 import logging
-import os
 import shutil
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 

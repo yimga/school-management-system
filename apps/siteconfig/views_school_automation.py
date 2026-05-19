@@ -7,7 +7,7 @@ import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from apps.siteconfig.control_plane_render import (
     default_operator_breadcrumbs,
     operator_cp_breadcrumb,
@@ -27,7 +27,6 @@ from .workflow_engine import (
     simulate_dsl,
     validate_school_workflow_dsl,
 )
-from .workflow_registry import SCHOOL_DOMAIN_TRIGGERS, get_workflow_catalog
 
 
 def _school_staff_api(request):
@@ -51,11 +50,11 @@ def school_automation_builder(request):
         messages.warning(request, "No school context.")
         return redirect(reverse("accounts:backend_dashboard"))
 
-    wfs = SchoolAutomationWorkflow.objects.filter(school=school).order_by("-updated_at")
+    SchoolAutomationWorkflow.objects.filter(school=school).order_by("-updated_at")
     try:
-        action_url = reverse("siteconfig:workflow_flow_gallery")
+        reverse("siteconfig:workflow_flow_gallery")
     except Exception:
-        action_url = reverse("accounts:backend_dashboard")
+        reverse("accounts:backend_dashboard")
     return render_siteconfig_stem(
         request,
         "school_automation_builder",

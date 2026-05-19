@@ -8,7 +8,7 @@ from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from apps.accounts.models import Permission as FeaturePermission, User
+from apps.accounts.models import User
 from apps.security.tests._helpers import settings_manage_permission
 from apps.people.models import StudentProfile
 from apps.schools.models import School, SchoolMembership

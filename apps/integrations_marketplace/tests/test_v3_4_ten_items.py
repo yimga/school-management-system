@@ -416,7 +416,7 @@ class ConnectorDeprecationTests(SimpleTestCase):
 
     def test_to_dict_includes_deprecated_field(self):
         from apps.integrations_marketplace.connector_registry import (
-            Connector, get_connector,
+            get_connector,
         )
         d = get_connector("zoom").to_dict()
         self.assertIn("deprecated", d)

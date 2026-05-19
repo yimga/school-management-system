@@ -18,10 +18,9 @@ test DB is in a bad state (the env contention pattern we hit earlier).
 from __future__ import annotations
 
 import json
-from unittest import mock
 
 from django.core.cache import cache
-from django.http import HttpRequest, JsonResponse
+from django.http import JsonResponse
 from django.test import RequestFactory, SimpleTestCase
 
 from apps.migration_cloud.reliability import (

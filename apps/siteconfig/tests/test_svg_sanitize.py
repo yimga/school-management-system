@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import io
 import unittest
 
 from django.core.exceptions import ValidationError

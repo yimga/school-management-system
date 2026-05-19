@@ -15,13 +15,14 @@
 <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block cp_shell_content_attrs %} data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}{% endblock %}
+
+{% block cp_shell_page %}
 {% comment %}
   WCAG 1.3.1 / 2.4.10: child pages own the page h1 (.page-h1 grammar). Injecting a
   hidden product-title h1 here would create duplicate top-level headings on every
   control-plane page.
 {% endcomment %}
-<div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}" data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
 <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1">
 {% include "partials/manager_operator_topbar.html" %}
 {% include "partials/control_plane_primary_nav.html" %}
@@ -51,9 +52,6 @@ Targets the existing #cp-main-content landmark (line ~76 below).
     <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane">
       {% include "partials/shell_chrome_django_messages_control_plane.html" %}
       {% include "partials/shell_chrome_impersonation_session_strip.html" %}
-      {% comment %} Operator-facing disclaimer suppressed by default — every operator already
-         knows this is the manager surface. Re-enable per-page by setting
-         `cp_show_operator_disclaimer = True` in the view context. {% endcomment %}
       {% if cp_show_operator_disclaimer %}
       <p class="text-secondary small mb-2" role="note">
         {% trans "Platform Studio and system tools here are operator-facing. For school workflows and live tenant previews, use Open as school (impersonation) from the dashboard." %}
@@ -65,12 +63,6 @@ Targets the existing #cp-main-content landmark (line ~76 below).
         {% block breadcrumb_actions %}{% endblock %}
       {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
       {% if request.user.is_authenticated %}
-      {% comment %} v2.63 (Wave B1, 2026-05-15): wrapped in a block so child shells can
-         suppress the workspace header when they already render their own
-         page-title chrome. Studio overrides this in shell_control_plane.html
-         to kill the "RunMyCampus workspace / Studio / Super Administrator"
-         strip that duplicated information already in the breadcrumb +
-         studio toolbar. {% endcomment %}
       {% block cp_workspace_header %}
       {% include "components/rmc_os_page_header.html" %}
       {% endblock %}
@@ -93,8 +85,9 @@ Targets the existing #cp-main-content landmark (line ~76 below).
     </main>
   </div>
 </div>
-</div>{# end .cp-shell-content #}
+{% endblock %}
 
+{% block cp_shell_after %}
 {# Mobile sidebar (offcanvas) — same nav as desktop #}
 <div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas cp-sidebar-offcanvas--surface" tabindex="-1" id="cpSidebarOffcanvas" aria-labelledby="cpSidebarOffcanvasLabel">
   <div class="offcanvas-header border-secondary">
@@ -108,7 +101,6 @@ Targets the existing #cp-main-content landmark (line ~76 below).
   </div>
 </div>
 
-{# Contextual drawer (right) — shared partial; override by wrapping extend + replacing block in a future template if needed #}
 {% include "partials/cp_context_drawer_shell.html" %}
 
 <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>

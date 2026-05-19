@@ -433,7 +433,6 @@ def get_studio_operator_toolbar(request: Any, *, current_mode: str | None = None
     Manager Studio toolbar: in-shell tenant switcher + live preview strip (session school_id).
     """
     from django.urls import NoReverseMatch, reverse
-    from django.utils.translation import gettext as _
 
     from apps.schools.control_plane import use_control_plane_shell
     from apps.schools.models import School

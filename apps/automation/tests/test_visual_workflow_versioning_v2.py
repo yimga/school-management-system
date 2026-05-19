@@ -10,7 +10,6 @@ from apps.automation.workflow_graph_models import (
     WorkflowEdge,
     WorkflowNode,
     WorkflowRunLog,
-    WorkflowVersion,
 )
 from apps.schools.models import School
 

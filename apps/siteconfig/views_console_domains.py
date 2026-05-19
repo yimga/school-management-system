@@ -15,7 +15,6 @@ from django.http import HttpRequest, HttpResponse
 from django.utils.translation import gettext as _
 
 from apps.siteconfig.control_plane_render import (
-    default_operator_breadcrumbs,
     operator_cp_breadcrumb,
     render_siteconfig_operator_page,
 )

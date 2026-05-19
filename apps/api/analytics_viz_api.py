@@ -12,7 +12,10 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
-from apps.analytics.services.tenant_overview_viz import build_tenant_overview_bundle
+from apps.analytics.services.tenant_overview_viz import (
+    DEMO_TENANT_SLUGS,
+    build_tenant_overview_bundle,
+)
 
 
 def _parse_iso_date(value: str | None):
@@ -24,18 +27,52 @@ def _parse_iso_date(value: str | None):
         return None
 
 
-def _resolve_school(request, tenant_slug: str):
-    school = getattr(request, "school", None)
-    if school and getattr(school, "slug", None) == tenant_slug:
-        return school
-    if school and not tenant_slug:
-        return school
-    try:
-        from apps.schools.models import School
+def _session_school_id(request) -> str | None:
+    if not hasattr(request, "session"):
+        return None
+    sid = (request.session.get("school_id") or "").strip()
+    return sid or None
 
-        return School.objects.filter(slug=tenant_slug, is_active=True).first()
-    except Exception:
-        return school
+
+def _resolve_school_for_viz(request, tenant_slug: str):
+    """
+    Resolve school for live aggregates, or None for demo slugs.
+
+    Returns (school, error_response). error_response is a JsonResponse when denied.
+    """
+    if tenant_slug in DEMO_TENANT_SLUGS:
+        return None, None
+
+    from apps.schools.models import School
+    from apps.schools.tenant_switch_security import user_may_access_school_api
+
+    host_school = getattr(request, "school", None)
+    if host_school and getattr(host_school, "slug", None) == tenant_slug:
+        school = host_school
+    elif host_school and not tenant_slug:
+        school = host_school
+    else:
+        school = School.objects.filter(slug=tenant_slug, is_active=True).first()
+
+    if school is None:
+        return None, JsonResponse(
+            {"error": "tenant_not_found", "tenant": tenant_slug},
+            status=404,
+        )
+
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return None, JsonResponse({"error": "Authentication required"}, status=401)
+
+    if not user_may_access_school_api(
+        user, school, session_school_id=_session_school_id(request)
+    ):
+        return None, JsonResponse(
+            {"error": "Forbidden", "tenant": tenant_slug},
+            status=403,
+        )
+
+    return school, None
 
 
 @method_decorator(login_required, name="dispatch")
@@ -58,7 +95,10 @@ class AnalyticsVizOverviewAPIView(View):
         to_date = _parse_iso_date(request.GET.get("to"))
         compare = request.GET.get("compare") in ("1", "true", "yes")
 
-        school = _resolve_school(request, tenant_slug)
+        school, deny = _resolve_school_for_viz(request, tenant_slug)
+        if deny is not None:
+            return deny
+
         try:
             bundle = build_tenant_overview_bundle(
                 tenant_id=tenant_slug,

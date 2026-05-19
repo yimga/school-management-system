@@ -1,0 +1,26 @@
+external_id,first_name,last_name,middle_name,date_of_birth,gender,email,phone,grade_level,enrollment_status,admission_number,address
+PS-TEST-001,Test Student 001,Synth,M,2010-01-15,M,test-001@example.invalid,555-0100,5,active,ADM-001,1 Synthetic Way
+PS-TEST-002,Test Student 002,Synth,A,2010-02-12,F,test-002@example.invalid,555-0101,5,active,ADM-002,2 Synthetic Way
+PS-TEST-003,Test Student 003,Synth,L,2010-03-10,M,test-003@example.invalid,555-0102,5,active,ADM-003,3 Synthetic Way
+PS-TEST-004,Test Student 004,Synth,R,2010-04-08,F,test-004@example.invalid,555-0103,6,active,ADM-004,4 Synthetic Way
+PS-TEST-005,Test Student 005,Synth,K,2010-05-06,M,test-005@example.invalid,555-0104,6,active,ADM-005,5 Synthetic Way
+PS-TEST-006,Test Student 006,Synth,J,2010-06-04,F,test-006@example.invalid,555-0105,6,active,ADM-006,6 Synthetic Way
+PS-TEST-007,Test Student 007,Synth,H,2010-07-02,M,test-007@example.invalid,555-0106,7,active,ADM-007,7 Synthetic Way
+PS-TEST-008,Test Student 008,Synth,G,2010-08-01,F,test-008@example.invalid,555-0107,7,active,ADM-008,8 Synthetic Way
+PS-TEST-009,Test Student 009,Synth,F,2010-09-30,M,test-009@example.invalid,555-0108,7,active,ADM-009,9 Synthetic Way
+PS-TEST-010,Test Student 010,Synth,E,2010-10-28,F,test-010@example.invalid,555-0109,8,active,ADM-010,10 Synthetic Way
+PS-TEST-011,Test Student 011,Synth,D,2010-11-26,M,test-011@example.invalid,555-0110,8,active,ADM-011,11 Synthetic Way
+PS-TEST-012,Test Student 012,Synth,C,2010-12-24,F,test-012@example.invalid,555-0111,8,active,ADM-012,12 Synthetic Way
+PS-TEST-013,Test Student 013,Synth,B,2011-01-22,M,test-013@example.invalid,555-0112,9,active,ADM-013,13 Synthetic Way
+PS-TEST-014,Test Student 014,Synth,A,2011-02-20,F,test-014@example.invalid,555-0113,9,active,ADM-014,14 Synthetic Way
+PS-TEST-015,Test Student 015,Synth,Z,2011-03-18,M,test-015@example.invalid,555-0114,9,active,ADM-015,15 Synthetic Way
+PS-TEST-016,Test Student 016,Synth,Y,2011-04-16,F,test-016@example.invalid,555-0115,10,active,ADM-016,16 Synthetic Way
+PS-TEST-017,Test Student 017,Synth,X,2011-05-14,M,test-017@example.invalid,555-0116,10,active,ADM-017,17 Synthetic Way
+PS-TEST-018,Test Student 018,Synth,W,2011-06-12,F,test-018@example.invalid,555-0117,10,active,ADM-018,18 Synthetic Way
+PS-TEST-019,Test Student 019,Synth,V,2011-07-10,M,test-019@example.invalid,555-0118,11,active,ADM-019,19 Synthetic Way
+PS-TEST-020,Test Student 020,Synth,U,2011-08-08,F,test-020@example.invalid,555-0119,11,active,ADM-020,20 Synthetic Way
+PS-TEST-021,Test Student 021,Synth,T,2011-09-06,M,test-021@example.invalid,555-0120,11,withdrawn,ADM-021,21 Synthetic Way
+PS-TEST-022,Test Student 022,Synth,S,2011-10-04,F,test-022@example.invalid,555-0121,12,active,ADM-022,22 Synthetic Way
+PS-TEST-023,Test Student 023,Synth,R,2011-11-02,M,test-023@example.invalid,555-0122,12,active,ADM-023,23 Synthetic Way
+PS-TEST-024,Test Student 024,Synth,Q,2011-12-01,F,test-024@example.invalid,555-0123,12,active,ADM-024,24 Synthetic Way
+PS-TEST-025,Test Student 025,Synth,P,2012-01-30,M,test-025@example.invalid,555-0124,12,graduated,ADM-025,25 Synthetic Way

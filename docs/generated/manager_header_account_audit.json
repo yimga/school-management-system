@@ -1,0 +1,140 @@
+{
+  "generated_at": "2026-05-19T17:33:20.152287+00:00",
+  "verdict": "MANAGER_HEADER_ACCOUNT_PASS",
+  "pass_count": 22,
+  "fail_count": 0,
+  "rows": [
+    {
+      "id": "allow-authentication/documentation",
+      "label": "Manager allowlist includes /authentication/documentation/",
+      "status": "PASS",
+      "proof": "MANAGER_HOST_ALLOWED_PREFIXES"
+    },
+    {
+      "id": "allow-authentication/notifications",
+      "label": "Manager allowlist includes /authentication/notifications/",
+      "status": "PASS",
+      "proof": "MANAGER_HOST_ALLOWED_PREFIXES"
+    },
+    {
+      "id": "allow-kb",
+      "label": "Manager allowlist includes /kb/",
+      "status": "PASS",
+      "proof": "MANAGER_HOST_ALLOWED_PREFIXES"
+    },
+    {
+      "id": "allow-feedback-loop",
+      "label": "Manager allowlist includes /feedback-loop/",
+      "status": "PASS",
+      "proof": "MANAGER_HOST_ALLOWED_PREFIXES"
+    },
+    {
+      "id": "header-height-token",
+      "label": "Shared header control height token",
+      "status": "PASS",
+      "proof": "rmc-platform-header.css"
+    },
+    {
+      "id": "header-user-compact",
+      "label": "Compact user dropdown on cp-navbar",
+      "status": "PASS",
+      "proof": "rmc-platform-header.css"
+    },
+    {
+      "id": "operator-render-module",
+      "label": "Operator account render helper",
+      "status": "PASS",
+      "proof": "operator_account_render.py"
+    },
+    {
+      "id": "partial-operator_profile_body",
+      "label": "Operator partial exists: templates/accounts/partials/operator_profile_body.html",
+      "status": "PASS",
+      "proof": "templates/accounts/partials/operator_profile_body.html"
+    },
+    {
+      "id": "partial-operator_profile_edit_body",
+      "label": "Operator partial exists: templates/accounts/partials/operator_profile_edit_body.html",
+      "status": "PASS",
+      "proof": "templates/accounts/partials/operator_profile_edit_body.html"
+    },
+    {
+      "id": "partial-operator_documentation_body",
+      "label": "Operator partial exists: templates/accounts/partials/operator_documentation_body.html",
+      "status": "PASS",
+      "proof": "templates/accounts/partials/operator_documentation_body.html"
+    },
+    {
+      "id": "partial-notifications_body",
+      "label": "Operator partial exists: templates/accounts/partials/notifications_body.html",
+      "status": "PASS",
+      "proof": "templates/accounts/partials/notifications_body.html"
+    },
+    {
+      "id": "partial-operator_notification_preferences_body",
+      "label": "Operator partial exists: templates/accounts/partials/operator_notification_preferences_body.html",
+      "status": "PASS",
+      "proof": "templates/accounts/partials/operator_notification_preferences_body.html"
+    },
+    {
+      "id": "dropdown-kb",
+      "label": "User dropdown Help uses kb:kb_home",
+      "status": "PASS",
+      "proof": "user_dropdown.html"
+    },
+    {
+      "id": "manager-help-kb",
+      "label": "manager_help redirects to kb:kb_home",
+      "status": "PASS",
+      "proof": "manager_urls.py"
+    },
+    {
+      "id": "views-render-account",
+      "label": "Account views use render_account_page",
+      "status": "PASS",
+      "proof": "accounts/views.py"
+    },
+    {
+      "id": "seed-kb-command",
+      "label": "KB seed command exists for operator help content",
+      "status": "PASS",
+      "proof": "seed_kb_articles"
+    },
+    {
+      "id": "migrations-applied",
+      "label": "No pending Django migrations (migrate --check)",
+      "status": "PASS",
+      "proof": "exit 0"
+    },
+    {
+      "id": "kb-seeded",
+      "label": "Knowledge base has seeded articles for Help Center",
+      "status": "PASS",
+      "proof": "11 articles (min 8)"
+    },
+    {
+      "id": "allow-authentication-profile-password",
+      "label": "Manager allowlist covers /authentication/profile/password/",
+      "status": "PASS",
+      "proof": "MANAGER_HOST_ALLOWED_PREFIXES"
+    },
+    {
+      "id": "allow-authentication-mfa-setup",
+      "label": "Manager allowlist covers /authentication/mfa/setup/",
+      "status": "PASS",
+      "proof": "MANAGER_HOST_ALLOWED_PREFIXES"
+    },
+    {
+      "id": "manager-support-feedback-loop",
+      "label": "Support and feedback redirect to manager_feedback_loop",
+      "status": "PASS",
+      "proof": "manager_urls.py"
+    },
+    {
+      "id": "tests",
+      "label": "Manager header + interaction contract tests",
+      "status": "PASS",
+      "proof": "http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n.................\n----------------------------------------------------------------------\nRan 17 tests in 1.069s\n\nOK"
+    }
+  ]
+}

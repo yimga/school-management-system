@@ -18,12 +18,8 @@ Covers ``apps.accounts.legacy_hashes.key_rotation``:
 from __future__ import annotations
 
 import json
-import logging
-import os
-import re
 from io import StringIO
 from pathlib import Path
-from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -295,7 +291,7 @@ class IntakeVendorAnchorTests(TestCase):
     """v3.33.0 vendor-anchor wire on store_legacy_hash."""
 
     def test_vendor_anchor_used_when_provided(self) -> None:
-        from datetime import datetime, timedelta
+        from datetime import timedelta
         from django.utils import timezone
         from apps.migration_cloud.services.legacy_hash_intake import (
             store_legacy_hash,

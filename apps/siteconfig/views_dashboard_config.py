@@ -9,7 +9,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache

@@ -19,7 +19,7 @@ from apps.schools.rls_context import rls_bypass
 from apps.siteconfig.models import RegionConfig
 from apps.social_media.models import SocialMediaIntegration, SocialProvider
 from apps.social_media.scope import SocialTenantScopeError, assert_integration_access
-from apps.social_media.services import emergency, providers
+from apps.social_media.services import emergency
 from apps.social_media.services.aggregator import sync_integration_feed
 from apps.social_media.services.emergency import saturate_standard_backlog
 

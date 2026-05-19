@@ -1,0 +1,57 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% trans "Wrong dashboard for this action" %}</title>
+  <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-canvas, #0f1419);
+      color: var(--text-primary, #f4f4f5);
+      font-family: system-ui, sans-serif;
+      padding: 1.5rem;
+    }
+    .panel {
+      max-width: 32rem;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--hairline, rgba(255,255,255,.12));
+      background: var(--surface-elevated, #1a1f26);
+    }
+    .actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: .75rem; }
+    a.btn {
+      display: inline-flex;
+      align-items: center;
+      padding: .5rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a.primary { background: var(--color-primary-500, #6366f1); color: #fff; }
+    a.secondary { border: 1px solid var(--hairline, rgba(255,255,255,.2)); color: inherit; }
+  </style>
+</head>
+<body>
+  <main class="panel" role="alert">
+    <h1>{% trans "Configuration area restricted" %}</h1>
+    <p>
+      {% trans "Your account is cleared for day-to-day campus operations, not deep system configuration (grading rules, tax structures, OAuth keys, permission matrices)." %}
+    </p>
+    <p class="text-muted" style="opacity:.85;font-size:.9rem;">
+      {% trans "If you need this access, ask a school IT administrator or principal to grant settings permissions." %}
+    </p>
+    <nav class="actions">
+      {% if redirect_hint %}
+      <a class="btn primary" href="{{ redirect_hint }}">{% trans "Go to operational dashboard" %}</a>
+      {% endif %}
+    </nav>
+  </main>
+</body>
+</html>

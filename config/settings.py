@@ -306,6 +306,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",  # manager host is platform-only beyond auth/bootstrap paths
     "apps.accounts.middleware.TenantHostControlPlaneIsolationMiddleware",  # platform operators need signed impersonation before tenant-host access
     "apps.accounts.middleware.ImpersonationReadOnlyGuardMiddleware",  # block writes on sensitive prefixes when impersonation is read-only
+    "apps.schools.middleware_dashboard_topology.DashboardTopologyRBACMiddleware",
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
@@ -416,6 +417,7 @@ TEMPLATES = [
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
                 "apps.schools.context_processors.conversion_enforcement_context",
                 "apps.schools.context_processors.operator_surface_ia_context",
+                "apps.schools.context_processors.dashboard_topology_context",
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
@@ -1595,6 +1597,40 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 30.0,  # seconds
         "options": {"queue": "default", "expires": 60},
     },
+    # v3.40.0 Agent 8 — nightly Migration Cloud end-to-end smoke against
+    # the synthetic tenant. 04:30 UTC daily. Dry-run ONLY (the task body
+    # never passes --apply) so a leaking dev kill-switch can't perturb
+    # prod state. Kill-switched via
+    # ``MIGRATION_CLOUD_SMOKE_NIGHTLY_ENABLED`` (default False); the
+    # task short-circuits before invoking the command when the switch
+    # is off. Emits a ``migration.smoke.nightly_run`` audit event on
+    # every run; emails ``MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL`` only
+    # on failure (one mail per run; no per-section spam).
+    "migration-cloud-smoke-nightly": {
+        "task": (
+            "apps.migration_cloud.tasks_smoke."
+            "run_smoke_against_synthetic_tenant"
+        ),
+        "schedule": (
+            _celery_crontab(hour=4, minute=30)
+            if _celery_crontab is not None
+            else 86400.0
+        ),
+        "options": {"queue": "low_priority", "expires": 3600},
+    },
+    # v3.40.0 Agent 12 — operator alert source: token rotation watchdog.
+    # Daily 03:30 UTC scan for API tokens whose ``grace_until`` has
+    # elapsed and which have no successor; emits one warning per overdue
+    # token (rate-limited by ``apps.migration_cloud.alerts``).
+    "migration-cloud-token-rotation-watchdog": {
+        "task": "apps.migration_cloud.tasks_alerts.token_rotation_watchdog",
+        "schedule": (
+            _celery_crontab(hour=3, minute=30)
+            if _celery_crontab is not None
+            else 86400.0
+        ),
+        "options": {"queue": "low_priority", "expires": 3600},
+    },
 }
 # Public demo refresh: set ENSURE_DEMO_CRON_SLUG (e.g. demo-school) and run Celery beat.
 _ensure_demo_cron_slug = (os.getenv("ENSURE_DEMO_CRON_SLUG") or "").strip()
@@ -1983,6 +2019,105 @@ MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND = os.environ.get(
 MIGRATION_CLOUD_VAULT_DRY_RUN = os.environ.get(
     "MIGRATION_CLOUD_VAULT_DRY_RUN", "1"
 ) == "1"
+
+# v3.40.0 Agent 8 — Migration Cloud nightly smoke task config.
+#
+# ``MIGRATION_CLOUD_SMOKE_NIGHTLY_ENABLED`` is the kill-switch for the
+# beat-scheduled nightly invocation of ``manage.py migration_cloud_smoke``
+# against the synthetic tenant. Default OFF so prod is never perturbed;
+# operators flip to "1" in dev / staging environments.
+#
+# ``MIGRATION_CLOUD_SMOKE_SYNTHETIC_TENANT`` is the slug of the synthetic
+# tenant the nightly run targets (the same slug operators pass to the
+# manual ``--tenant=`` invocation; default ``smoke-test-tenant``).
+#
+# ``MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL`` receives one email per
+# non-clean nightly run (exit_code != 0 OR any section failed). PII-free
+# body — counts and exit code only. Empty string = no email.
+MIGRATION_CLOUD_SMOKE_NIGHTLY_ENABLED = (
+    os.environ.get("MIGRATION_CLOUD_SMOKE_NIGHTLY_ENABLED", "0").strip() == "1"
+)
+MIGRATION_CLOUD_SMOKE_SYNTHETIC_TENANT = (
+    os.environ.get(
+        "MIGRATION_CLOUD_SMOKE_SYNTHETIC_TENANT", "smoke-test-tenant"
+    ) or "smoke-test-tenant"
+).strip()
+MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL = (
+    os.environ.get("MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL", "") or ""
+).strip() or None
+
+# v3.40.0 Agent 14 — Per-tenant audit-event volume rate-limit.
+#
+# Guards the append-only audit chain against runaway emit loops (bad
+# call site, malicious caller). The limit applies per
+# (tenant_id_hash, event_type) pair on a sliding 1h window. Sliding
+# state is in-memory only — worker restart resets the counter
+# (acceptable because the guard is a runaway-mitigation, NOT a
+# hard cap; see docs/MIGRATION_CLOUD_AUDIT_RATE_LIMITING.md).
+#
+#   MIGRATION_CLOUD_AUDIT_MAX_EVENTS_PER_TENANT_PER_HOUR
+#     Default 5000. Recommended floor 100 — anything lower risks
+#     refusing legitimate edge bursts (mass guardian-consent campaigns,
+#     domain-wide MAA re-sign flows).
+#
+#   MIGRATION_CLOUD_AUDIT_RATE_LIMIT_DISABLED
+#     Emergency kill-switch. Set to "1" when a legitimate burst is
+#     happening (e.g., mass MAA signature drive) and the operator
+#     wants the chain to absorb it un-rate-limited. Default OFF.
+MIGRATION_CLOUD_AUDIT_MAX_EVENTS_PER_TENANT_PER_HOUR = int(
+    os.environ.get(
+        "MIGRATION_CLOUD_AUDIT_MAX_EVENTS_PER_TENANT_PER_HOUR", "5000"
+    ) or "5000"
+)
+MIGRATION_CLOUD_AUDIT_RATE_LIMIT_DISABLED = (
+    os.environ.get(
+        "MIGRATION_CLOUD_AUDIT_RATE_LIMIT_DISABLED", "0"
+    ).strip() == "1"
+)
+
+# v3.40.0 Agent 12 — operator alert routing (Slack + PagerDuty + email).
+#
+# ``OPERATOR_ALERT_EMAIL`` is the v3.40 alias for the v3.39 setting; the
+# alerts module checks both. Empty = email channel disabled.
+#
+# ``OPERATOR_ALERT_SLACK_WEBHOOK_URL`` — Incoming Webhook URL for the
+# operator on-call Slack channel. Empty = Slack channel disabled. The
+# alerts module sha256-prefixes this URL before any log emission, so
+# the raw URL never lands in log aggregators.
+#
+# ``OPERATOR_ALERT_PAGERDUTY_INTEGRATION_KEY`` — Events API v2 routing
+# key for the Migration Cloud service. Empty = PagerDuty channel
+# disabled. Critical-severity alerts page; warnings do NOT.
+#
+# ``OPERATOR_ALERT_DRY_RUN`` defaults to "1" (ON). Channels log the
+# would-send payload but do NOT POST. Flip to "0" in production
+# deliberately — the alerts module reads the value lazily so an
+# operator can toggle without a redeploy.
+#
+# ``OPERATOR_ALERT_RATE_LIMIT_PER_HOUR`` caps distinct dedup_keys per
+# rolling hour to prevent a stale-state stampede (e.g. 200 overdue
+# tokens at once). Default 50.
+#
+# See ``docs/MIGRATION_CLOUD_OPERATOR_ALERTS.md`` for the full severity
+# routing table + incident response decision tree.
+OPERATOR_ALERT_EMAIL = (
+    os.environ.get("OPERATOR_ALERT_EMAIL", "") or ""
+).strip() or MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL
+OPERATOR_ALERT_SLACK_WEBHOOK_URL = (
+    os.environ.get("OPERATOR_ALERT_SLACK_WEBHOOK_URL", "") or ""
+).strip() or None
+OPERATOR_ALERT_PAGERDUTY_INTEGRATION_KEY = (
+    os.environ.get("OPERATOR_ALERT_PAGERDUTY_INTEGRATION_KEY", "") or ""
+).strip() or None
+OPERATOR_ALERT_DRY_RUN = (
+    os.environ.get("OPERATOR_ALERT_DRY_RUN", "1") or "1"
+).strip() not in ("0", "false", "False", "")
+try:
+    OPERATOR_ALERT_RATE_LIMIT_PER_HOUR = max(
+        1, int(os.environ.get("OPERATOR_ALERT_RATE_LIMIT_PER_HOUR", "50"))
+    )
+except (TypeError, ValueError):
+    OPERATOR_ALERT_RATE_LIMIT_PER_HOUR = 50
 
 # Pass 12: CORS allowlist. Strict by default; SiteConfig can extend per tenant
 # at request time via a middleware (django-cors-headers honors the dynamic list
@@ -2478,6 +2613,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.accounts.middleware.ImpossibleTravelMiddleware",
         "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
         "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",
+        "apps.schools.middleware_dashboard_topology.DashboardTopologyRBACMiddleware",
         "apps.accounts.middleware.ModuleAccessMiddleware",
         "apps.accounts.middleware.RequireMFAMiddleware",
         "apps.schools.middleware.TenantFreezeMiddleware",

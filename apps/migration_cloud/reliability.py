@@ -196,7 +196,7 @@ def safe_500(view_func: Callable) -> Callable:
 
     @functools.wraps(view_func)
     def _wrapped(*args, **kwargs):
-        request = _request_from_args(args)
+        _request_from_args(args)
         try:
             return view_func(*args, **kwargs)
         except Exception as exc:  # noqa: BLE001 — defensive boundary

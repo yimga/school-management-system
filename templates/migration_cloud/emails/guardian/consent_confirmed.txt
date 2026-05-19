@@ -1,0 +1,15 @@
+Hello {{ guardian_first_name|default:"there" }},
+
+This message confirms that your consent decision has been recorded for
+the {{ school_name }} migration to RunMyCampus.
+
+For your records, the decision was recorded on {{ expires_at|date:"Y-m-d" }}
+(the technical reference for this token; the actual decision timestamp is
+visible to your school's data-protection officer).
+
+You have the right to withdraw your consent within 90 days. To do so,
+contact your school's office.
+
+If you have questions, write to privacy@runmycampus.com.
+
+— The RunMyCampus team

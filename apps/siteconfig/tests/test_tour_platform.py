@@ -10,7 +10,7 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from apps.schools.models import School
 from apps.siteconfig.models import FeatureUsageEvent, TourStep
 from apps.siteconfig.tour_catalog import CATALOGS, marketing_product_tour_steps
-from apps.siteconfig.tour_context import normalize_tour_context, resolve_backend_tour_context
+from apps.siteconfig.tour_context import resolve_backend_tour_context
 from apps.siteconfig.ui_field_help import get_ui_field_help
 from apps.siteconfig.views_tour import control_plane_default_tour_steps
 

@@ -1,0 +1,35 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Action requested</title></head>
+<body style="font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #222; line-height: 1.5;">
+  <p>Hello {{ guardian_first_name|default:"there" }},</p>
+
+  <p><strong>{{ school_name }}</strong> is moving its student-records system to RunMyCampus.
+     Before this move begins, the school is asking for your consent.</p>
+
+  <p>Please review and respond by clicking the link below:</p>
+
+  <p><a href="{{ consent_url }}" style="display:inline-block;padding:10px 18px;background:#0d6efd;color:#fff;text-decoration:none;border-radius:4px;">Review and respond</a></p>
+
+  <p style="font-size: 13px; color: #555;">
+    This link is unique to you. Please do not share it.<br>
+    The link expires on {{ expires_at|date:"Y-m-d" }}.
+  </p>
+
+  <p>What you'll see when you open the link:</p>
+  <ul>
+    <li>A short summary of what data will be moved</li>
+    <li>The full agreement text the school is using</li>
+    <li>Two buttons: <em>I accept</em> and <em>I decline</em></li>
+  </ul>
+
+  <p style="font-size: 13px; color: #555;">
+    We do not place tracking cookies on the consent page. The only
+    information we record when you respond is your decision and your
+    IP address at that moment, for legal record.
+  </p>
+
+  <p>If you have questions, contact your school's office, or write to
+     <a href="mailto:privacy@runmycampus.com">privacy@runmycampus.com</a>.</p>
+
+  <p>— The RunMyCampus team</p>
+</body></html>

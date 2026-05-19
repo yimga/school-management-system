@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import TestCase
 from django.utils import timezone
 
 from apps.orchestration import event_log, slo_aggregator, versioning
@@ -17,7 +17,6 @@ from apps.orchestration.models import (
     OrchestrationSLOMetric,
     OrchestrationStepEvent,
     ProcessDefinition,
-    ProcessDefinitionVersion,
 )
 
 User = get_user_model()
@@ -53,7 +52,7 @@ class VersioningTests(TestCase):
 
     def test_bind_run_no_op_if_already_bound(self):
         v1 = versioning.publish_new_version(self.defn)
-        v2 = versioning.publish_new_version(self.defn)
+        versioning.publish_new_version(self.defn)
         run = OrchestrationRun.objects.create(definition=self.defn, definition_version=v1)
         versioning.bind_run_to_current_version(run)
         run.refresh_from_db()

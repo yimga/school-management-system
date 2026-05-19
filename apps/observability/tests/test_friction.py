@@ -8,7 +8,7 @@ from io import StringIO
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.test import Client, RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
 from apps.observability.models_friction import FRICTION_KIND_CODES, FrictionEvent

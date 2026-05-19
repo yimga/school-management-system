@@ -91,8 +91,8 @@ def main() -> int:
         "manager",
         "login_footer_override",
         "Login pages suppress duplicate skeleton footer",
-        _contains("templates/auth/manager_login.html", "block manager_corporate_footer")
-        and _contains("templates/auth/admin_login.html", "block manager_corporate_footer"),
+        _contains("templates/auth/manager_login.html", "block cp_shell_footer")
+        and _contains("templates/auth/admin_login.html", "block cp_shell_footer"),
         "manager_login + admin_login",
     )
     add(
@@ -120,6 +120,23 @@ def main() -> int:
         "footer_css",
         "Manager corporate footer stylesheet exists",
         _exists("static/css/manager-corporate-footer.css"),
+        "manager-corporate-footer.css",
+    )
+    add(
+        "manager",
+        "platform_shell_wrapper",
+        "Skeleton wraps all manager pages in cp-shell-content + cp_shell_page",
+        _contains("templates/control_plane_skeleton.html", "cp_shell_page")
+        and _contains("templates/control_plane_skeleton.html", "cp_shell_footer")
+        and _contains("templates/control_plane_base.html", "block cp_shell_page"),
+        "control_plane_skeleton + control_plane_base",
+    )
+    add(
+        "manager",
+        "footer_inside_shell_css",
+        "Footer layout CSS avoids viewport-shrink (no min-height 100vh on shell)",
+        _exists("static/css/manager-corporate-footer.css")
+        and _not_contains("static/css/manager-corporate-footer.css", "min-height: 100vh"),
         "manager-corporate-footer.css",
     )
     add(
@@ -273,6 +290,16 @@ def main() -> int:
         ),
         "SHOW_CORPORATE_MARKETING_FOOTER gate",
     )
+    add(
+        "manager",
+        "header_account_menu",
+        "Manager header search alignment + account dropdown routes",
+        _contains("static/css/rmc-platform-header.css", "--rmc-header-control-height")
+        and _contains("apps/schools/middleware.py", "/authentication/documentation/")
+        and _contains("templates/components/user_dropdown.html", "kb:kb_home")
+        and _exists("apps/accounts/operator_account_render.py"),
+        "rmc-platform-header + middleware + user_dropdown + operator_account_render",
+    )
 
     if args.run_tests:
         code, tail = _run(
@@ -285,6 +312,7 @@ def main() -> int:
                 "apps.siteconfig.tests.test_footer_surface_contract",
                 "apps.schools.tests.test_super_admin_surface_parity.SuperAdminSurfaceParityTests.test_manager_admin_login_public_chrome",
                 "apps.schools.tests.test_super_admin_surface_parity.SuperAdminSurfaceParityTests.test_super_dashboard_includes_horizontal_nav_rail_stylesheet",
+                "apps.schools.tests.test_manager_header_account_paths",
                 "--verbosity=1",
             ],
             timeout=900,

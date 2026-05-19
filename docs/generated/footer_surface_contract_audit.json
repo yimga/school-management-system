@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T14:12:29.458506+00:00",
+  "generated_at": "2026-05-19T16:28:47.725893+00:00",
   "pass": true,
-  "templates_scanned": 1011,
+  "templates_scanned": 1023,
   "rows": [
     {
       "check_id": "forbid_bundle_templates_control_plane_skeleton.html",
@@ -280,6 +280,24 @@
       "proof": "templates/control_plane_skeleton.html"
     },
     {
+      "check_id": "require_rmc_operator_footer__templates_admin_base.html",
+      "description": "templates/admin/base.html wires 'rmc_operator_footer_compact.html'",
+      "status": "PASS",
+      "proof": "templates/admin/base.html"
+    },
+    {
+      "check_id": "require_data-rmc-footer-surf_templates_admin_base.html",
+      "description": "templates/admin/base.html wires 'data-rmc-footer-surface=\"operator-compact\"'",
+      "status": "PASS",
+      "proof": "templates/admin/base.html"
+    },
+    {
+      "check_id": "require_rmc-footer-surfaces._templates_admin_base_site.html",
+      "description": "templates/admin/base_site.html wires 'rmc-footer-surfaces.css'",
+      "status": "PASS",
+      "proof": "templates/admin/base_site.html"
+    },
+    {
       "check_id": "require_rmc-footer-surfaces._templates_base.html",
       "description": "templates/base.html wires 'rmc-footer-surfaces.css'",
       "status": "PASS",
@@ -325,7 +343,7 @@
       "check_id": "sweep_non_marketing_no_bundle",
       "description": "No non-marketing template includes corporate_footer_bundle.html",
       "status": "PASS",
-      "proof": "1011 templates scanned"
+      "proof": "1023 templates scanned"
     },
     {
       "check_id": "sweep_non_marketing_no_mkt_command",

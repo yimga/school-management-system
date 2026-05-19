@@ -1,0 +1,74 @@
+{% load i18n %}
+{# Versioned consent text — v1.
+   Counsel-approved (placeholder: school-side counsel signoff pending).
+   Compliance map: FERPA §99.30, COPPA §312.5(b), GDPR Art. 7.
+
+   IMPORTANT: Once a token references this version, its sha256 is
+   immutably recorded on the token row. Any edit to this file
+   creates a NEW version — the OLD version remains in production
+   for tokens already minted against it. Add a sibling file
+   `_consent_text_v2.html`, do NOT edit this one in place. #}
+<section class="rmc-consent-text" data-rmc-consent-version="v1">
+  <h2>{% trans "Migration data-processing consent" %}</h2>
+
+  <p>
+    {% blocktrans %}Your school is moving its records into RunMyCampus. As part
+    of this move, certain information about your child — including name,
+    enrollment status, grades, attendance, and contact details — will be
+    copied from your school's current system into RunMyCampus.{% endblocktrans %}
+  </p>
+
+  <h3>{% trans "What we're asking" %}</h3>
+  <p>
+    {% blocktrans %}Before the move begins, we ask each parent or legal
+    guardian to confirm that they understand and consent to this data
+    transfer. This consent is recorded for legal and audit purposes.{% endblocktrans %}
+  </p>
+
+  <h3>{% trans "What data is involved" %}</h3>
+  <ul>
+    <li>{% trans "Your child's name and date of birth" %}</li>
+    <li>{% trans "Enrollment status and historical academic records" %}</li>
+    <li>{% trans "Attendance and discipline history" %}</li>
+    <li>{% trans "Contact information for you and your child" %}</li>
+  </ul>
+
+  <h3>{% trans "Scope of access" %}</h3>
+  <p>
+    {% blocktrans %}Only RunMyCampus engineers acting under the school's
+    written authorization (the Migration Authorization Agreement) will
+    handle this data, and only for the purpose of migrating it. We
+    apply data minimization — we do not extract fields the school did
+    not request.{% endblocktrans %}
+  </p>
+
+  <h3>{% trans "Data minimization and retention" %}</h3>
+  <p>
+    {% blocktrans %}There is no retention beyond migration. Working copies
+    of the extracted data are destroyed once the import has been
+    validated by your school. Your child's records remain in your
+    school's official system of record.{% endblocktrans %}
+  </p>
+
+  <h3>{% trans "Your rights" %}</h3>
+  <p>
+    {% blocktrans %}You have the right to withdraw at any time within 90
+    days of giving consent. You also have the data subject rights granted
+    by FERPA, COPPA (if your child is under 13), and the GDPR (if you
+    reside in the European Union): the right to know what we hold, to
+    correct it, and to request deletion subject to the school's record-
+    keeping obligations.{% endblocktrans %}
+  </p>
+
+  <h3>{% trans "How to contact us" %}</h3>
+  <p>
+    {% blocktrans %}For questions about this consent, contact your school's
+    data-protection officer. For technical questions about RunMyCampus,
+    contact privacy@runmycampus.com.{% endblocktrans %}
+  </p>
+
+  <hr>
+  <p class="text-muted small">
+    {% trans "Consent text version: v1. Once you respond below, a record of which version you saw is stored alongside your decision." %}
+  </p>
+</section>

@@ -1,5 +1,117 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1312 Ecosystem Sovereignty gatekeeper matrix (2026-05-19)
+
+**A. Scope:** Full gatekeeper prompt — 4-section matrix JSON + orchestrator gate (limitation log, sovereignty rewrite map, adversarial sweep 2, SOT platform variables).
+
+**B. Changes:** `scripts/verify_ecosystem_sovereignty_matrix.py`; `docs/generated/ecosystem_sovereignty_validation_matrix.json`; `npm run verify:ecosystem-sovereignty`.
+
+**C. Proof:** `verify_ecosystem_sovereignty_matrix.py --write` → **ECOSYSTEM_SOVEREIGNTY_MATRIX_PASS**; foundational layer **TENANT_SOVEREIGNTY** documented as first pressure-test.
+
+**D. SOT:** Section 11.4 batch **1312** **DONE**.
+
+**E. Boundary:** `live_ecosystem_complete: false` in artifact — honest external blockers unchanged.
+
+---
+
+## Slice - batch 1311 five-pillar gear-up — webhook DB dedup + API money wire (2026-05-19)
+
+**A. Scope:** User-requested audit/seed/migrate/test/improve on five-pillar mandate; Shopify race-safety + precision money wire.
+
+**B. Changes:** `WebhookLog` partial unique `(provider, idempotency_bucket)` migration **0064**; `claim_webhook_processing` handles `IntegrityError`; `InvoiceSerializer` / `PaymentSerializer` use `amount_str`; tests `test_webhook_claim_concurrent`, `test_invoice_serializer_money_wire`; five-pillar gate +3 checks (43 total).
+
+**C. Proof:** `seed_five_pillar_proof` OK; `verify_five_pillar_platform_completion.py --write --run-tests` → **FIVE_PILLAR_PLATFORM_PASS (43 checks)**.
+
+**D. SOT:** Section 11.4 batch **1311** **DONE**.
+
+**E. Boundary:** Six-pillar orchestrator may fail unrelated forensic `PERF_BUDGET_STRICT` on zero-ticket permissions (pre-existing query budget). Live/ecosystem axis unchanged.
+
+---
+
+## Slice - batch 1310 interaction integrity + operator footer audit closeout (2026-05-19)
+
+**A. Scope:** User-requested 100% audit of forensic interaction mandate (Help/RBAC/VoC/header/errors) + corporate footer on all `/super/` and `/admin/` manager-host pages; migrate/seed proof; gear-up pass.
+
+**B. Changes:** Extended interaction integrity gate to 16 checks; `scan_operator_shell_dead_hrefs.py` (baseline 0); `tenant_urls.handler503`; AI Center escalate allow-marker; user-dropdown wrapper stacking; SOT batch **1310**; CI wires dead-href scanner.
+
+**C. Proof:** `verify_interaction_integrity_completion.py` → **INTERACTION_INTEGRITY_PASS (16/16)**; `verify_footer_surface_contract.py` → **62/62**; `scan_operator_shell_dead_hrefs.py --strict` → **0**; `npm run test:interaction-integrity` → **5/5**; Django `test_interaction_integrity_contract` + `test_footer_surface_contract` green.
+
+**D. SOT:** Section 11.4 batch **1310** **DONE**.
+
+**E. Boundary:** No new DB migrations; unrelated `apps/api` makemigrations drift may exist on dirty trees; Playwright E2E not rerun in CI without credentials.
+
+---
+
+## Slice - batch 1309 manager header + account menu closeout (2026-05-19)
+
+**A. Scope:** Operator report — manager topbar search misaligned with utility chips; user dropdown Documentation / Notifications / Help links dead or cross-host.
+
+**B. Changes:** Middleware allowlist (`/authentication/documentation/`, `/authentication/notifications/`, `/kb/`, `/feedback-loop/`); `manager_help` → `kb:kb_home`; support/feedback → `manager_feedback_loop`; `operator_account_render.py` + five operator partials; profile/edit/notifications/preferences on control-plane shell; `--rmc-header-control-height` + compact cp-navbar user pill; extended interaction integrity gate.
+
+**C. Proof:** `verify_manager_header_account_completion.py` → **MANAGER_HEADER_ACCOUNT_PASS (22/22)** (second audit 2026-05-19: migrate `--check`, KB seed **11 articles**, password/MFA allowlist, support/feedback → feedback-loop); Django `test_manager_header_account_paths` + `test_interaction_integrity_contract` **17/17 OK**; `seed_kb_articles` + `migrate --check` green on dev DB.
+
+**D. SOT:** Section 11.4 batch **1309** **DONE**; batch **1306** help routing note superseded.
+
+**E. Boundary:** No new DB migrations; KB seed via existing `seed_kb_articles` (operator must run bootstrap locally for articles). Contact Support remains feedback-loop dashboard.
+
+---
+
+## Slice - batch 1308 five-pillar revalidation + Shopify gear-up (2026-05-19)
+
+**A. Scope:** Close batch **1307** residuals — `public_health` URL import, finance pillar test flake, full migrate/seed/proof rerun, Shopify money-wire gear-up.
+
+**B. Changes:** Re-export `public_health` / `public_status` from `apps/observability/views.py`; fix `test_payment_invoice_ext_ref_unique` (method + `SEND_FINANCE_SIGNALS` + `ValidationError` on unique constraint); wire `_finance_signals_enabled()` in `apps/finance/signals.py`; extend `FinancialAnalyticsAPI` + `by_method` to `amount_str` wire format; five-pillar gate +1 check `json_decimal_analytics_api`.
+
+**C. Proof:** `python manage.py check` **0 issues**; `migrate` **no pending**; `seed_five_pillar_proof` **FIVE_PILLAR_PROOF_SEED_OK**; `verify_five_pillar_platform_completion.py --write --run-tests` → **FIVE_PILLAR_PLATFORM_PASS (40 checks)**; `verify_six_pillar_global_dominance.py --write --run-tests` → **SIX_PILLAR_GLOBAL_DOMINANCE_PASS (10/10)**.
+
+**D. SOT:** Section 11.4 batch **1308** **DONE**; supersedes **1307** pillar-fail narrative for repo-mechanical scope.
+
+**E. Boundary:** Live/ecosystem axis unchanged (PSP settlement, external publishers, hosted OpenSearch, SOC2) per five-pillar certification.
+
+---
+
+## Slice - batch 1307 Agent 5 second-pass evidence audit (2026-05-19)
+
+**A. Scope:** Docs/evidence audit only for Migration Cloud and pillar completeness claims in the current dirty checkout. No product code was edited.
+
+**B. Migration Cloud proof:** `python manage.py makemigrations migration_cloud --check --dry-run --verbosity 1 --skip-checks` returned no changes; `python manage.py migrate migration_cloud --plan --skip-checks` returned no planned operations; `python scripts/scan_companion_canonical_headers_drift.py --strict` found 0 unallowed drift; `python -m unittest apps.migration_cloud.tests.test_signed_release_preflight_v3_39 scripts.tests.test_scan_companion_canonical_headers_drift_v3_39` ran **19 tests OK**.
+
+**C. Pillar audit finding:** Current five/six-pillar completion is **not proven green** in this checkout. `python scripts/verify_five_pillar_platform_completion.py --write --run-tests` exits 1 because Django URL import checks hit missing `apps.observability.views.public_health`. `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` exits 1 because the five-pillar child gate fails during the Django subset with `Invoice total must be at least 0.01` (`Ran 52 tests`, 1 error). `python scripts/verify_forensic_master_prompt_completion.py` remains **FORENSIC_MASTER_PROMPT_PASS** (24 pass / 0 fail).
+
+**D. Docs/artifacts:** SOT batches **1305**, **1303**, and **1292** now carry current-proof qualifiers; generated `docs/generated/agent5_migration_pillar_second_pass_audit.json`; `docs/generated/five_pillar_platform_audit.json` records **FIVE_PILLAR_PLATFORM_FAIL** from the rerun; `docs/generated/six_pillar_global_dominance_audit.json` records **SIX_PILLAR_GLOBAL_DOMINANCE_FAIL** from the rerun.
+
+**E. Boundary:** Do not claim current five-pillar or six-pillar 100% repo gate completion until the `public_health` URL import blocker and finance validation test-data failure are fixed and both gates rerun green. Normal Django `makemigrations` proof is also blocked by the URL import regression; Migration Cloud migration state was verified only with `--skip-checks`.
+
+---
+
+## Slice - batch 1306 platform interaction integrity (2026-05-19)
+
+**A. Scope:** Forensic interaction mandate — Help Center, RBAC matrix UI, VoC/marketing proof clicks, header dropdown logout visibility, HTTP 401–503 surfaces, platform-wide JS safety net (Django stack).
+
+**B. Changes:** `rmc-interaction-guard.js` + shell partial; 503 templates + `handler503`; permission matrix denied banner + hardened fetch; user dropdown dead-link removal; `mkt-proof-interactions.js`; CI gate + vitest + Playwright spec.
+
+**C. Proof:** `python scripts/verify_interaction_integrity_completion.py` → **INTERACTION_INTEGRITY_PASS (11/11)**; `npm run test:interaction-integrity` → **5/5**; Django contract + help-center tests green.
+
+**D. SOT:** Section 11.4 batch **1306** is **DONE**.
+
+**E. Boundary:** Full-route Playwright adversarial crawl requires live server + `E2E_USERNAME`/`E2E_PASSWORD`; not claimed as CI-default without secrets.
+
+---
+
+## Slice - batch 1305 five-pillar platform hardening closeout (2026-05-19)
+
+**A. Scope:** Close CTO five-pillar mandate (AWS / Shopify / Linux / Salesforce / Google) to **100% repo-contained** proof — tenant BOLA, webhook atomic idempotency, marketplace hook runtime, workflow governor, outbox prefetch, FTS/GIN search, AI PII redaction.
+
+**B. Changes:** `tenant_api_guards.py` + analytics viz / config-diff / north-star `school_id` guards; `webhooks/claim.py` + payment unique constraint + wallet `select_for_update`; `install_hook_delivery.py` + `workflow_hook_registry.py` + governor `workflow_run_limit_exceeded`; outbox school prefetch; student GIN migration; global search FTS students; `invoke_with_request` auto `redact_pii`.
+
+**C. Proof:** Historical row claimed `python scripts/verify_five_pillar_platform_completion.py --write --run-tests` → **FIVE_PILLAR_PLATFORM_PASS** and `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` → **SIX_PILLAR_GLOBAL_DOMINANCE_PASS**. **Second-pass audit batch 1307 supersedes current status:** the current checkout is not green; five-pillar exits 1 on missing `public_health`, and six-pillar exits 1 through the five-pillar child gate with a finance validation error.
+
+**D. SOT:** Section 11.4 batch **1305** is now qualified by batch **1307** until rerun green.
+
+**E. Boundary:** Live PSP settlement, external app publishers, OpenSearch cluster, and SOC2 attestation remain **BLOCKED_EXTERNAL** per five-pillar certification live axis (~21%). Current repo-axis mechanical completion is **not** claimed from this checkout.
+
+---
+
 ## Slice - batch 1304 V3.41 developer + trust public-surface closeout (2026-05-19)
 
 **A. Scope:** Proceed after V3.40 in the same 5-agent lane format: developer public pages/APIs, trust/security-compliance marketing surfaces, public URL aliases, footer/trust contracts, and marketing view-layer proof.
@@ -20,7 +132,7 @@
 
 **B. Changes:** Fixed DOM-budget host routing for `/authentication/backend/`; made manager theme-visibility verification tolerate SSL redirect settings; aligned tracked-root allowlist entries; removed a no-print scanner false positive from `auth_backends_legacy.py`; kept Migration Cloud at applied `0021_audit_event_root_key_signature` with an empty migration plan.
 
-**C. Proof:** `python manage.py makemigrations migration_cloud --check --dry-run --verbosity 1` clean; `python manage.py migrate migration_cloud --plan` empty; global `python manage.py makemigrations --check --dry-run --verbosity 1` clean; `python scripts/verify_forensic_master_prompt_completion.py` **FORENSIC_MASTER_PROMPT_PASS** (24 pass / 0 fail); `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` **SIX_PILLAR_GLOBAL_DOMINANCE_PASS** (10/10); companion Docker/Tauri signed-release preflights **OK**.
+**C. Proof:** Second-pass audit batch **1307** verifies Migration Cloud only with Django checks skipped: `makemigrations migration_cloud --check --dry-run --skip-checks` clean and `migrate migration_cloud --plan --skip-checks` empty. Normal Django management checks and global `makemigrations --check --dry-run` are currently blocked by missing `apps.observability.views.public_health`. `python scripts/verify_forensic_master_prompt_completion.py` remains **FORENSIC_MASTER_PROMPT_PASS** (24 pass / 0 fail); current `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` is **FAIL** through the five-pillar child gate.
 
 **D. SOT:** Section 11.4 batch **1303** is **DONE**.
 
@@ -138,7 +250,7 @@
 
 **B. Implementation:** `verify_tenant_sovereignty_pillar.py` (18 checks: meta bridge, sync bootstrap, marketing isolation, brand guard, theme builder, SOT vectors); `verify_six_pillar_global_dominance.py` orchestrator; `docs/generated/tenant_sovereignty_platform_vectors.json`.
 
-**C. Proof:** `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` → **SIX_PILLAR_GLOBAL_DOMINANCE_PASS (10/10)** (6 wiring + 4 child gates); tenant sovereignty **18/18**, five-pillar **24/24** incl. Django **37 OK**, AI engine room **OK**, forensic **24/24**. Re-audit closeout: wiring regression checks added to orchestrator.
+**C. Proof:** Historical row claimed `python scripts/verify_six_pillar_global_dominance.py --write --run-tests` → **SIX_PILLAR_GLOBAL_DOMINANCE_PASS**. **Second-pass audit batch 1307 supersedes current status:** rerun produced **SIX_PILLAR_GLOBAL_DOMINANCE_FAIL** through the five-pillar child gate; tenant sovereignty and forensic remain separately evidenced, but current six-pillar 100% completion is not claimed.
 
 **D. SOT:** §11.4 batch **1296**.
 
@@ -154,7 +266,7 @@
 
 **B. Implementation:** `control_plane_skeleton.html` owns `cp-corporate-footer` + `corporate_footer_bundle`; login templates suppress duplicate block; `portal_base.html` school footer partials only; `portal_chrome.py` + variant CSS/partials; Theme & Experience help copy.
 
-**C. Proof:** `python scripts/verify_manager_portal_chrome_completion.py --write --run-tests` **17/17 PASS**; `npm run verify:manager-chrome`; CI `platform-pillar-gates` step added. **Audit closeout:** wired `DashboardTemplate.config_schema.chrome` via `resolve_dashboard_template_for_request` (was incorrectly reading nonexistent `DashboardPack.config_schema`); dashboard hub portal-chrome column + theme pack layout preview.
+**C. Proof:** `python scripts/verify_manager_portal_chrome_completion.py --write --run-tests` **17/17 PASS**; `npm run verify:manager-chrome`; CI `platform-pillar-gates` step added. **Audit closeout:** wired `DashboardTemplate.config_schema.chrome` via `resolve_dashboard_template_for_request` (was incorrectly reading nonexistent `DashboardPack.config_schema`); dashboard hub portal-chrome column + theme pack layout preview. **Layout fix (2026-05-19):** footer moved inside `.cp-shell-content` in `control_plane_base.html`; removed `min-height: 100vh` shrink on `cp-shell-content--with-public-footer`; skeleton duplicate suppressed via `manager_corporate_footer` block; SW `sms-v3.41.8-manager-footer-layout-fix-2026-05-19`.
 
 **D. SOT:** §11.4 batch **1295**.
 

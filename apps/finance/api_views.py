@@ -21,6 +21,7 @@ from django.db.models.functions import ExtractMonth
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
+from apps.finance.json_decimal import amount_str
 from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
 from apps.finance.services import pay_invoice_with_wallet
 from apps.observability.tracing import trace_view
@@ -28,6 +29,17 @@ from apps.platform_runtime.helpers import get_platform_defaults
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
 from apps.api.permissions import IsAdminUser
 from apps.schools.models import School
+
+
+def _money_aggregate_rows(rows):
+    """Serialize ORM annotate totals as precision-preserving strings."""
+    out = []
+    for row in rows:
+        item = dict(row)
+        if "total" in item:
+            item["total"] = amount_str(item["total"])
+        out.append(item)
+    return out
 
 
 FINANCE_WRITE_ROLES = {
@@ -321,14 +333,20 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         count_by_status = queryset.values("status").annotate(count=Count("id"))
 
+        from apps.finance.json_decimal import amount_str
+        from decimal import Decimal
+
+        total_dec = Decimal(str(total_amount))
+        paid_dec = Decimal(str(paid_amount))
         return Response(
             {
-                "total_amount": float(total_amount),  # money-float-allow: display-precision-acceptable (finance overview API)
-                "paid_amount": float(paid_amount),  # money-float-allow: display-precision-acceptable
-                "pending_amount": float(pending_amount),  # money-float-allow: display-precision-acceptable
-                "overdue_amount": float(overdue_amount),  # money-float-allow: display-precision-acceptable
-                "payment_rate": round((paid_amount / total_amount * 100), 1)
-                if total_amount > 0
+                "total_amount": amount_str(total_dec),
+                "paid_amount": amount_str(paid_dec),
+                "pending_amount": amount_str(pending_amount),
+                "overdue_amount": amount_str(overdue_amount),
+                "amount_wire_format": "decimal_string",
+                "payment_rate": round((paid_dec / total_dec * 100), 1)
+                if total_dec > 0
                 else 0,
                 "by_status": list(count_by_status),
             }
@@ -507,8 +525,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         return Response(
             {
-                "breakdown": list(breakdown),
-                "total": float(queryset.aggregate(Sum("amount"))["amount__sum"] or 0),  # money-float-allow: display-precision-acceptable (collection breakdown API)
+                "breakdown": _money_aggregate_rows(breakdown),
+                "total": amount_str(
+                    queryset.aggregate(Sum("amount"))["amount__sum"] or 0
+                ),
             }
         )
 
@@ -540,12 +560,12 @@ class FinancialAnalyticsAPI(APIView):
             200: inline_serializer(
                 name="FinancialAnalyticsResponse",
                 fields={
-                    "total_invoiced": serializers.FloatField(),
-                    "total_collected": serializers.FloatField(),
+                    "total_invoiced": serializers.CharField(),
+                    "total_collected": serializers.CharField(),
                     "collection_rate": serializers.FloatField(),
-                    "pending_amount": serializers.FloatField(),
-                    "overdue_amount": serializers.FloatField(),
-                    "outstanding_fees": serializers.FloatField(),
+                    "pending_amount": serializers.CharField(),
+                    "overdue_amount": serializers.CharField(),
+                    "outstanding_fees": serializers.CharField(),
                     "payment_methods": serializers.ListField(child=serializers.DictField()),
                     "monthly_revenue": serializers.ListField(child=serializers.DictField()),
                     "currency": serializers.CharField(),
@@ -615,14 +635,14 @@ class FinancialAnalyticsAPI(APIView):
 
         return Response(
             {
-                "total_invoiced": float(total_invoiced),  # money-float-allow: display-precision-acceptable (aggregate report API)
-                "total_collected": float(total_collected),  # money-float-allow: display-precision-acceptable
+                "total_invoiced": amount_str(total_invoiced),
+                "total_collected": amount_str(total_collected),
                 "collection_rate": round(collection_rate, 1),
-                "pending_amount": float(pending_invoices),  # money-float-allow: display-precision-acceptable
-                "overdue_amount": float(overdue_invoices),  # money-float-allow: display-precision-acceptable
-                "outstanding_fees": float(outstanding_fees),  # money-float-allow: display-precision-acceptable
-                "payment_methods": list(payment_methods),
-                "monthly_revenue": list(monthly_revenue),
+                "pending_amount": amount_str(pending_invoices),
+                "overdue_amount": amount_str(overdue_invoices),
+                "outstanding_fees": amount_str(outstanding_fees),
+                "payment_methods": _money_aggregate_rows(payment_methods),
+                "monthly_revenue": _money_aggregate_rows(monthly_revenue),
                 "currency": ComplianceProfile.objects.filter(is_active=True)
                 .values_list("currency_code", flat=True)
                 .first()

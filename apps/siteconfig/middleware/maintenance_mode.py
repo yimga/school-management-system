@@ -81,6 +81,19 @@ class MaintenanceModeMiddleware:
 
         if self._is_maintenance_enabled(request):
             site = get_effective_site_settings(request=request)
-            return render(request, "maintenance.html", {"SITE": site}, status=503)
+            template = (
+                "errors/503_control_plane.html"
+                if getattr(request, "public_host_kind", None) == "manager"
+                else "errors/503.html"
+            )
+            return render(
+                request,
+                template,
+                {
+                    "SITE": site,
+                    "message": getattr(site, "maintenance_message", None) or "",
+                },
+                status=503,
+            )
 
         return self.get_response(request)

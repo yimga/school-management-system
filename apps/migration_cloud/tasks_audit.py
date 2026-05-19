@@ -64,13 +64,65 @@ def verify_audit_chain_weekly_task() -> dict:
         else:
             call_command("verify_audit_chain", "--all-tenants")
     except SystemExit as exc:
-        # call_command propagates the verifier's sys.exit(1) — that's
+        # call_command propagates the verifier's sys.exit(1|2) — that's
         # not a task failure; the broken-chain email already went out.
+        code = getattr(exc, "code", None)
         logger.info(
             "migration_cloud.audit.weekly: verifier exited with code=%s",
-            getattr(exc, "code", "?"),
+            code if code is not None else "?",
         )
-        return {"status": "completed_with_breaks", "exit_code": getattr(exc, "code", None)}
+        # v3.40.0 Agent 12 — multi-channel operator alert fan-out.
+        # Exit codes from verify_audit_chain:
+        #   1 = chain broken (one or more tenants)
+        #   2 = signature mismatch on a chain root
+        # Both are critical (pageable). Email is already covered by the
+        # verifier's --email-on-broken arg; this layer adds Slack +
+        # PagerDuty when configured.
+        try:
+            int_code = int(code) if code is not None else 0
+        except (TypeError, ValueError):
+            int_code = 0
+        if int_code in (1, 2):
+            try:
+                from apps.migration_cloud.alerts import alert
+                if int_code == 1:
+                    alert(
+                        severity="critical",
+                        title="Migration Cloud: audit chain broken",
+                        body=(
+                            "The weekly audit-chain verifier reported a "
+                            "broken chain on one or more tenants. The "
+                            "broken-chain email has already been sent "
+                            "(see `--email-on-broken`); this alert "
+                            "escalates to PagerDuty + Slack.\n\n"
+                            "Investigate via "
+                            "`python manage.py verify_audit_chain "
+                            "--all-tenants`."
+                        ),
+                        dedupe_key="audit-chain-broken-global",
+                    )
+                else:  # int_code == 2
+                    alert(
+                        severity="critical",
+                        title="Migration Cloud: audit root signature mismatch",
+                        body=(
+                            "The weekly audit-chain verifier reported a "
+                            "root-key signature mismatch. This is a "
+                            "trust-anchor incident: the HMAC-SHA512 root "
+                            "signature did not match the chain's "
+                            "integrity_hash. Engage security on-call.\n\n"
+                            "Investigate via "
+                            "`python manage.py verify_audit_chain "
+                            "--all-tenants --verbose`."
+                        ),
+                        dedupe_key="audit-sig-mismatch",
+                    )
+            except Exception as alert_exc:  # pylint: disable=broad-except
+                logger.warning(
+                    "migration_cloud.audit.weekly: alert dispatch raised %s",
+                    type(alert_exc).__name__,
+                )
+        return {"status": "completed_with_breaks", "exit_code": code}
     except Exception as exc:  # pylint: disable=broad-except
         # NEVER propagate. Beat retries are not the right recovery
         # mechanism for verifier errors — the operator should see the

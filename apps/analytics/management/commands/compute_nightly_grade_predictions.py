@@ -62,7 +62,7 @@ class Command(BaseCommand):
 
     def _process_school(self, school, dry_run):
         from apps.academics.models import (
-            AcademicYear, SubjectAssignment, Term,
+            SubjectAssignment, Term,
         )
         from apps.people.models import StudentProfile
 

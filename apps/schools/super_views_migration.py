@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.http import JsonResponse
 from django.utils import timezone
@@ -16,6 +16,13 @@ from apps.platform_runtime.models import PlatformOperatorMigrationCloudLink
 
 from .models import School
 from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
+
+
+def _optional_reverse(name: str) -> str:
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return ""
 
 
 def migration_data_quality_meter(summary: dict) -> dict:
@@ -140,6 +147,15 @@ def super_migration_cloud(request):
     operator_migration_cloud_links = list(
         PlatformOperatorMigrationCloudLink.objects.order_by("sort_order", "slug")
     )
+    migration_cloud_operator_urls = {
+        "console": _optional_reverse("migration_cloud_super:console"),
+        "new": _optional_reverse("migration_cloud_super:bundle_new"),
+        "health": _optional_reverse("migration_cloud_super:migration_cloud_health"),
+        "audit": _optional_reverse("migration_cloud_super:audit_dashboard"),
+        "tokens": _optional_reverse("migration_cloud_super:operator_token_list"),
+        "webhooks": _optional_reverse("migration_cloud_super:operator_webhook_list"),
+        "maa": _optional_reverse("migration_cloud_super:maa_v2_promotion_dashboard"),
+    }
     data_quality_meter = migration_data_quality_meter(summary)
     return render(
         request,
@@ -158,6 +174,7 @@ def super_migration_cloud(request):
             "exception_runs_open": exception_runs_open,
             "quarantine_open": quarantine_open,
             "operator_migration_cloud_links": operator_migration_cloud_links,
+            "migration_cloud_operator_urls": migration_cloud_operator_urls,
         },
     )
 

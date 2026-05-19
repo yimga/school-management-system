@@ -1,0 +1,62 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign migration agreement" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main">
+  <header class="mb-4">
+    <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to status" %}</a>
+    <h1 class="h2 mb-1 mt-2">{% trans "Sign the Migration Authorization Agreement" %}</h1>
+    <p class="text-secondary mb-0">
+      {% blocktrans with version=active_agreement_version %}Active version: {{ version }}{% endblocktrans %}
+    </p>
+  </header>
+
+  {% if already_signed %}
+    <div class="alert alert-success" role="status">
+      {% trans "You have already signed the agreement for this intake. Return to the status page to monitor progress." %}
+    </div>
+  {% else %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5 mb-3">{% trans "Agreement text" %}</h2>
+        <div class="rmc-maa-body" data-rmc-maa-version="{{ active_agreement_version }}" aria-label="{% trans 'Migration Authorization Agreement full text' %}">
+          <pre class="rmc-maa-body__pre">{{ maa_text }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <form method="post" action="{% url 'migration_intake_customer:migration-intake-sign-maa' id=intake.id %}" data-rmc-form="migration-intake-sign-maa">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="holder_name" class="form-label">{% trans "Vendor account holder (full legal name)" %}</label>
+            <input type="text" id="holder_name" name="vendor_account_holder_name" class="form-control" value="{{ default_holder_name }}" maxlength="256" required>
+            <div class="form-text">{% trans "Person whose credentials are used to access the source SIS." %}</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="signed_by_role" class="form-label">{% trans "Your role" %}</label>
+            <input type="text" id="signed_by_role" name="signed_by_role" class="form-control" maxlength="128" placeholder="{% trans 'e.g. Head of School, IT Director, Registrar' %}" required>
+          </div>
+
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="i_agree" required>
+            <label class="form-check-label" for="i_agree">
+              {% trans "I confirm I have authority to bind the school to this agreement and I have read the text above in full." %}
+            </label>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary">{% trans "Sign and continue" %}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</main>
+{% endblock %}

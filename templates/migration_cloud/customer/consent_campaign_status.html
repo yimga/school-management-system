@@ -1,0 +1,93 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Consent campaign status" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main">
+  <header class="mb-4">
+    <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to migration status" %}</a>
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mt-2">
+      <div>
+        <h1 class="h2 mb-1">{% trans "Guardian consent campaign" %}</h1>
+        <p class="text-secondary mb-0">{% trans "Live progress and per-token controls." %}</p>
+      </div>
+      <a href="{% url 'migration_guardian_consent_admin:guardian-consent-campaign-start' intake_id=intake.id %}" class="btn btn-outline-primary btn-sm">{% trans "Send to more guardians" %}</a>
+    </div>
+  </header>
+
+  <section class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3"><div class="card text-center"><div class="card-body"><div class="display-6">{{ totals.total }}</div><div class="text-secondary small">{% trans "Total" %}</div></div></div></div>
+    <div class="col-sm-6 col-lg-3"><div class="card text-center"><div class="card-body"><div class="display-6 text-success">{{ totals.consented }}</div><div class="text-secondary small">{% trans "Consented" %}</div></div></div></div>
+    <div class="col-sm-6 col-lg-3"><div class="card text-center"><div class="card-body"><div class="display-6 text-warning">{{ totals.pending }}</div><div class="text-secondary small">{% trans "Pending" %}</div></div></div></div>
+    <div class="col-sm-6 col-lg-3"><div class="card text-center"><div class="card-body"><div class="display-6 text-danger">{{ totals.declined|add:totals.expired }}</div><div class="text-secondary small">{% trans "Declined / Expired" %}</div></div></div></div>
+  </section>
+
+  {% if stuck %}
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Stuck tokens" %}
+        <span class="badge bg-warning text-dark">{{ stuck|length }}</span>
+      </h2>
+      <p class="text-secondary small">{% blocktrans %}Tokens issued more than 7 days ago that have not yet been opened. Resend up to 3 times per token; cooldown of 24 hours between sends.{% endblocktrans %}</p>
+      <table class="table table-sm">
+        <thead><tr>
+          <th>{% trans "Guardian" %}</th>
+          <th>{% trans "Issued" %}</th>
+          <th>{% trans "Resends" %}</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          {% for t in stuck %}
+            <tr>
+              <td>{{ t.guardian_name }}</td>
+              <td><small>{{ t.token_issued_at|date:"Y-m-d" }}</small></td>
+              <td>{{ t.resend_count }} / {{ resend_max }}</td>
+              <td>
+                <form method="post" action="{% url 'migration_guardian_consent_admin:guardian-consent-resend' intake_id=intake.id token_id=t.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-secondary"
+                          {% if t.resend_count >= resend_max %}disabled{% endif %}>
+                    {% trans "Resend" %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Recent tokens" %}</h2>
+      {% if recent %}
+        <table class="table table-sm">
+          <thead><tr>
+            <th>{% trans "Guardian" %}</th>
+            <th>{% trans "Issued" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "First seen" %}</th>
+            <th>{% trans "Decided" %}</th>
+          </tr></thead>
+          <tbody>
+            {% for t in recent %}
+              <tr>
+                <td>{{ t.guardian_name }}</td>
+                <td><small>{{ t.token_issued_at|date:"Y-m-d H:i" }}</small></td>
+                <td><span class="badge bg-secondary">{{ t.get_consent_decision_display }}</span></td>
+                <td><small>{% if t.token_first_seen_at %}{{ t.token_first_seen_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</small></td>
+                <td><small>{% if t.consented_at %}{{ t.consented_at|date:"Y-m-d H:i" }}{% elif t.declined_at %}{{ t.declined_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</small></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="text-secondary mb-0">{% trans "No consent tokens have been issued for this migration yet." %}</p>
+      {% endif %}
+    </div>
+  </section>
+</main>
+{% endblock %}

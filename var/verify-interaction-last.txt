@@ -1,0 +1,16 @@
+  FAIL 13: Tenant urlconf handler503 wired — No module named 'config'
+  FAIL 16: Contract tests green — lp_center_role_surfaces_linked (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_role_surfaces_linked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 32, in test_help_center_role_surfaces_linked
+    self.assertEqual(response.status_code, 200)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 400 != 200
+
+----------------------------------------------------------------------
+Ran 22 tests in 104.595s
+
+FAILED (failures=2, errors=5)
+Preserving test database for alias 'default'...
+verify_interaction_integrity_completion: INTERACTION_INTEGRITY_FAIL
+  PASS 14 / FAIL 2

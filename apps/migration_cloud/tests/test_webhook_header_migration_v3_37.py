@@ -30,6 +30,7 @@ import json
 import logging
 import sys
 import unittest
+from datetime import date
 from unittest import mock
 
 from django.test import SimpleTestCase, override_settings
@@ -266,6 +267,21 @@ class WebhookHeaderMigrationV37Tests(SimpleTestCase):
         # Delivery-id parity AND value matches row.pk (str cast).
         self.assertEqual(h["X-RunMyCampus-Delivery"], h["X-Migration-Cloud-Delivery"])
         self.assertEqual(h["X-RunMyCampus-Delivery"], str(row.pk))
+
+    def test_after_cutover_date_suppresses_legacy_even_when_flag_true(self) -> None:
+        with mock.patch.object(
+            webhook_dispatch.timezone,
+            "localdate",
+            return_value=date(2026, 8, 19),
+        ):
+            with override_settings(MIGRATION_CLOUD_EMIT_LEGACY_HEADERS=True):
+                cap, _row = _run_dispatcher_capture(
+                    secret=self.SECRET, payload=self.PAYLOAD,
+                )
+        headers = cap["headers"]
+        self.assertIn("X-RunMyCampus-Signature", headers)
+        self.assertNotIn("X-Migration-Cloud-Signature", headers)
+        self.assertNotIn("X-RunMyCampus-Header-Deprecation", headers)
 
 
 if __name__ == "__main__":  # pragma: no cover

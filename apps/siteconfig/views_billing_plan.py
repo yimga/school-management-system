@@ -7,13 +7,11 @@ from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from apps.siteconfig.control_plane_render import (
     default_operator_breadcrumbs,
     operator_cp_breadcrumb,
     render_siteconfig_stem,
 )
-from django.utils.translation import gettext as _
 
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods
@@ -99,71 +97,55 @@ def _suggested_upgrade_plan_slug_for_checkout(
 def billing_plan_readonly(request: HttpRequest) -> HttpResponse:
     school = getattr(request, "school", None)
     plan = getattr(school, "plan", None) if school is not None else None
-    addons: list = []
     if school is not None:
-        addons = list(getattr(school, "addons", None) or [])
+        list(getattr(school, "addons", None) or [])
 
-    student_count = 0
-    teacher_count = 0
     if school is not None:
-        student_count = StudentProfile.objects.filter(
+        StudentProfile.objects.filter(
             school=school, is_active=True
         ).count()
-        teacher_count = TeacherProfile.objects.filter(school=school).count()
+        TeacherProfile.objects.filter(school=school).count()
 
-    plan_catalog_advanced_url = _plan_catalog_advanced_url(request)
+    _plan_catalog_advanced_url(request)
 
-    console_url = None
     try:
-        console_url = reverse("siteconfig:console_domains_hub")
+        reverse("siteconfig:console_domains_hub")
     except NoReverseMatch:
         pass
 
     plan_tier_ctx = plan_display_context(school)
-    upgrade_next_tier = next_commercial_tier(plan_tier_ctx.get("tier_key"))
-    app_catalog_url = None
+    next_commercial_tier(plan_tier_ctx.get("tier_key"))
     try:
-        app_catalog_url = reverse("tenant_app_catalog")
+        reverse("tenant_app_catalog")
     except NoReverseMatch:
         pass
 
-    billing_account = None
-    platform_subscription = None
-    usage_meters: list = []
-    stripe_processor_configured = False
-    stripe_customer_linked = False
-    has_stripe_price_for_current_plan = False
-    upgrade_checkout_plan_code: str | None = None
-    checkout_start_url = None
-    customer_portal_url = None
     try:
-        checkout_start_url = reverse("siteconfig:billing_checkout_start")
-        customer_portal_url = reverse("siteconfig:billing_customer_portal")
+        reverse("siteconfig:billing_checkout_start")
+        reverse("siteconfig:billing_customer_portal")
     except NoReverseMatch:
         pass
 
     if school is not None:
         cfg = get_active_stripe_processor_config()
-        stripe_processor_configured = bool(cfg and stripe_secret_key(cfg))
+        bool(cfg and stripe_secret_key(cfg))
         account, subscription, _ = ensure_subscription_for_school(school)
-        billing_account = account
-        platform_subscription = subscription
-        stripe_customer_linked = bool((account.external_customer_ref or "").strip())
+        bool((account.external_customer_ref or "").strip())
         if plan is not None:
             slug = (plan.slug or "").strip()
             cyc = getattr(subscription, "billing_cycle", None) or "MONTHLY"
             cur = (account.currency_code or "USD").strip().upper()
-            has_stripe_price_for_current_plan = (
+            (
                 active_stripe_price_for_plan(
                     slug, billing_cycle=cyc, currency=cur
                 )
                 is not None
                 or active_stripe_price_for_plan(slug, billing_cycle=cyc) is not None
             )
-        upgrade_checkout_plan_code = _suggested_upgrade_plan_slug_for_checkout(
+        _suggested_upgrade_plan_slug_for_checkout(
             school, subscription, account
         )
-        usage_meters = list(
+        list(
             UsageMeter.objects.filter(school=school).order_by("-period_start")[:24]
         )
 

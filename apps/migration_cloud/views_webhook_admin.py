@@ -16,17 +16,12 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
-from collections import Counter
-from datetime import timedelta
-from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.http import (
-    Http404,
     HttpResponse,
-    HttpResponseBadRequest,
     HttpResponseRedirect,
     JsonResponse,
 )
@@ -129,7 +124,7 @@ class MigrationCloudWebhookListView(View):
     def get(self, request, *args, **kwargs):
         tenant_filter = request.GET.get("tenant_id")
         # tenant-isolation-allow: operator-shell-staff-cross-tenant-webhook-administration
-        qs = MigrationCloudWebhookSubscription.objects.all()
+        qs = MigrationCloudWebhookSubscription.objects.all().order_by("-created_at")
         try:
             if tenant_filter:
                 qs = qs.filter(tenant_id=int(tenant_filter))
@@ -137,21 +132,19 @@ class MigrationCloudWebhookListView(View):
             pass
         rows = [_row_for_table(r) for r in qs[:500]]
         # v3.35.0 — webhook header family migration banner state.
-        from django.conf import settings as _settings  # local import keeps test isolation simple
-        deadline = getattr(
-            _settings,
-            "MIGRATION_CLOUD_LEGACY_HEADER_DEPRECATION_DATE",
-            "2026-08-18",
+        from apps.migration_cloud.api.webhook_dispatch import (
+            _emit_legacy_headers_enabled,
+            _legacy_header_deprecation_cutover_date,
+            _legacy_header_window_active,
         )
-        emit_legacy = bool(
-            getattr(_settings, "MIGRATION_CLOUD_EMIT_LEGACY_HEADERS", True)
-        )
+        deadline = _legacy_header_deprecation_cutover_date().isoformat()
+        emit_legacy = _emit_legacy_headers_enabled()
         context = {
             "page_title": "Migration Cloud — webhook subscriptions",
             "shell": kwargs.get("shell", "super"),
             "rows": rows,
             "filter_tenant_id": tenant_filter or "",
-            "header_migration_window_active": True,
+            "header_migration_window_active": _legacy_header_window_active(),
             "header_migration_deadline": deadline,
             "emit_legacy_headers": emit_legacy,
         }
@@ -230,7 +223,10 @@ class MigrationCloudWebhookDeliveryLogView(View):
 
     def get(self, request, *args, **kwargs):
         sub_id_raw = request.GET.get("subscription_id") or kwargs.get("subscription_id")
-        page_no = int(request.GET.get("page") or 1)
+        try:
+            page_no = int(request.GET.get("page") or 1)
+        except (TypeError, ValueError):
+            page_no = 1
         # tenant-isolation-allow: operator-shell-staff-cross-tenant-webhook-administration
         qs = MigrationCloudWebhookDelivery.objects.all().order_by("-created_at")
         sub_id = None

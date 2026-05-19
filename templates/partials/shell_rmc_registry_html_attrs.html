@@ -1,2 +1,2 @@
 {# Single source for RMC shell registry attributes on <html> (see apps.platform_runtime.shell_contract). #}
- data-rmc-route-family="{{ rmc_shell.route_family }}" data-rmc-layout-token="{{ rmc_shell.layout_token }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-rmc-host-kind="{{ rmc_shell.host_kind }}" data-rmc-main-region="{{ rmc_shell.main_region }}"
+ data-rmc-route-family="{{ rmc_shell.route_family }}" data-rmc-layout-token="{{ rmc_shell.layout_token }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-rmc-host-kind="{{ rmc_shell.host_kind }}" data-rmc-main-region="{{ rmc_shell.main_region }}"{% if RMC_DASHBOARD_TIER %} data-rmc-dashboard-tier="{{ RMC_DASHBOARD_TIER }}"{% endif %}

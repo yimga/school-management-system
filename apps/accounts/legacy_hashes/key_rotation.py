@@ -41,7 +41,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone as dt_timezone
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Optional
 
 from django.apps import apps as django_apps
 from django.db import connection, transaction

@@ -7,7 +7,7 @@ from django.test import TestCase
 from apps.metadata.models import EntityCatalogEntry, FieldCatalogEntry
 from apps.policies import dlp
 from apps.policies.models import PolicyDecisionLog, PolicyRule
-from apps.policies.pdp import Decision, allowed, decide, require
+from apps.policies.pdp import allowed, decide, require
 from apps.schools.models import School
 
 

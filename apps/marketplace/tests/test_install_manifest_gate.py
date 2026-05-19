@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.marketplace.lifecycle import install_app
-from apps.marketplace.models import MarketplaceApp, MarketplaceListing
+from apps.marketplace.models import MarketplaceApp
 from apps.marketplace.services import ensure_marketplace_listing
 from apps.schools.models import School
 

@@ -186,6 +186,8 @@ handler403 = permission_denied
 handler404 = page_not_found
 handler500 = server_error
 
+from config.urls import service_unavailable as handler503  # noqa: E402
+
 from apps.siteconfig.views_manifest import (  # noqa: E402
     platform_manifest as _platform_manifest,
     portal_manifest as _portal_manifest,

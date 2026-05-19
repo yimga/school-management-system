@@ -19,7 +19,7 @@ from django.test import TestCase
 from django.urls import NoReverseMatch, reverse
 
 from apps.billing.psp_adapter_registry import PSP_REGISTER, psp_slugs
-from apps.compliance.soc2_control_register import SOC2_REGISTER, control_ids
+from apps.compliance.soc2_control_register import SOC2_REGISTER
 from apps.sales.pilot_register import PILOT_REGISTER
 
 

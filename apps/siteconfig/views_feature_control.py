@@ -19,7 +19,7 @@ from django.db import DatabaseError
 from django.core.cache import cache
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.utils.translation import gettext as _
 
 from apps.siteconfig.control_plane_render import (

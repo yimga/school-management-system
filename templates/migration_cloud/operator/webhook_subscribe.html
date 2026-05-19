@@ -3,7 +3,7 @@
 
 {% block page_title %}{{ page_title|default:"Register webhook subscription" }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--operator-webhook-subscribe" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
@@ -21,7 +21,7 @@
     <div class="rmc-card__body">
       <p class="rmc-lede rmc-lede--warn" role="alert">
         <strong>{% trans "This secret will not be shown again." %}</strong>
-        {% trans "Copy it now. Use it to verify the X-Migration-Cloud-Signature header on incoming deliveries." %}
+        {% trans "Copy it now. Use it to verify the X-RunMyCampus-Signature header on incoming deliveries. Legacy X-Migration-Cloud-* aliases are temporary during the cutover window." %}
       </p>
       <pre class="rmc-code rmc-code--secret" id="webhook-secret-block"><code>{{ result.plaintext }}</code></pre>
       <button class="rmc-btn rmc-btn--ghost rmc-copy" type="button" data-rmc-copy-target="#webhook-secret-block">

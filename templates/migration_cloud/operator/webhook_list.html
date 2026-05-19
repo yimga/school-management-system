@@ -3,7 +3,7 @@
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — webhook subscriptions" }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--operator-webhooks" id="main">
   {% if header_migration_window_active %}
   <aside class="rmc-banner rmc-banner--info" role="status" aria-label="{% trans 'Webhook header migration' %}">
@@ -18,6 +18,7 @@
   </aside>
   {% endif %}
   <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
     <h1 class="rmc-h1">{% trans "Webhook subscriptions" %}</h1>
     <p class="rmc-lede">
       {% trans "Outbound HTTPS endpoints partners register to receive bundle-lifecycle events. The HMAC secret is never returned after creation." %}
@@ -79,6 +80,13 @@
         <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
         <td>
           <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}?subscription_id={{ r.id }}">{% trans "Deliveries" %}</a>
+          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_audit' sub_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_audit' sub_id=r.id %}{% endif %}">{% trans "Audit" %}</a>
+          {% if r.active %}
+          <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_deactivate' sub_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_deactivate' sub_id=r.id %}{% endif %}" class="rmc-form--inline">
+            {% csrf_token %}
+            <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Deactivate" %}</button>
+          </form>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}

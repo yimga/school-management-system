@@ -18,9 +18,10 @@
 
 {% block page_title %}{{ page_title|default:"Webhook subscription audit" }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--operator-webhook-audit" id="main">
   <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
     <h1 class="rmc-h1">{% blocktrans with sub_id=subscription.id %}Audit — webhook subscription #{{ sub_id }}{% endblocktrans %}</h1>
     <p class="rmc-lede">

@@ -31,7 +31,6 @@ from django.views.decorators.http import require_http_methods
 from apps.integrations_marketplace.connector_registry import (
     CATEGORY_LABELS,
     get_connector,
-    list_connectors_by_category,
 )
 from apps.integrations_marketplace.oauth import (
     build_authorize_redirect,
@@ -39,7 +38,6 @@ from apps.integrations_marketplace.oauth import (
     persist_oauth_tokens,
     validate_callback_state,
 )
-from apps.integrations_marketplace.resolver import list_connections_for_school
 
 logger = logging.getLogger(__name__)
 

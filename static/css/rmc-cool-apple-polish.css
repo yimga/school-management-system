@@ -377,11 +377,13 @@
    the placeholder ("Search schools, incidentctrl Ks" in 2026-05-15 shots). */
 .cp-navbar .cp-topbar-search-input {
   border-radius: 999px;
-  padding: 0.5rem 4.25rem 0.5rem 1rem;
+  padding: 0 4.25rem 0 1rem;
   background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
   color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
-  height: 38px;
+  height: var(--rmc-header-control-height, 2.375rem);
+  min-height: var(--rmc-header-control-height, 2.375rem);
+  box-sizing: border-box;
 }
 
 .cp-navbar .cp-topbar-search-input::placeholder {

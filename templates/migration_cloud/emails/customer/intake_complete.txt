@@ -1,0 +1,14 @@
+{% load i18n %}{% trans "Your migration is complete" %}
+
+{% blocktrans with school=school_name vendor=vendor_label %}Welcome to RunMyCampus! The migration from {{ vendor }} into {{ school }} is complete. Your data is live and the portal is ready for daily use.{% endblocktrans %}
+
+{% trans "Open the status page:" %}
+{{ status_url_path }}
+
+{% trans "If anything looks off, reply to this email or contact partner-success@runmycampus.com within 14 days and we will reconcile." %}
+
+{% trans "Thank you for trusting us with your school's data," %}
+{% trans "The RunMyCampus team" %}
+
+--
+{% trans "Intake reference:" %} {{ intake_id }}

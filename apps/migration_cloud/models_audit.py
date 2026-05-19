@@ -47,9 +47,12 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import threading
+import time
 import uuid
 from typing import Any
 
+from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -64,6 +67,150 @@ logger = logging.getLogger(__name__)
 
 class MigrationCloudAuditEventReadOnlyError(AppendOnlyDeleteError):
     """Raised when code tries to mutate or delete an audit event row."""
+
+
+# ──────────────────────────────────────────────────────────────────────
+# v3.40.0 Agent 14 — Per-tenant audit-event volume rate-limit.
+#
+# Threat: a runaway emit-loop (bad call site, malicious caller) writes
+# millions of audit events into the append-only chain. Because rows are
+# delete-blocked, the only mitigation is a guard at the write site.
+#
+# Implementation: module-level sliding-1h counter keyed by
+# (tenant_id_hash, event_type). One meta-event written on first hit per
+# hour per (tenant, event_type); subsequent hits raise the typed
+# AuditEventRateLimitExceeded without writing.
+#
+# In-memory only — worker restart resets the counter (documented in
+# docs/MIGRATION_CLOUD_AUDIT_RATE_LIMITING.md). Acceptable because the
+# limit is a runaway-guard, not a hard cap.
+# ──────────────────────────────────────────────────────────────────────
+
+
+class AuditEventRateLimitExceeded(Exception):
+    """Raised when a tenant/event-type pair exceeds the per-hour limit.
+
+    Attributes
+    ----------
+    tenant_id_hash : str
+        sha256(tenant_slug)[:12] of the offending tenant.
+    event_type : str
+        The audit event type that was rate-limited.
+    count_in_window : int
+        Observed event count in the sliding 1h window at refusal time.
+    limit : int
+        The active per-hour limit at refusal time.
+    """
+
+    def __init__(
+        self,
+        tenant_id_hash: str,
+        event_type: str,
+        count_in_window: int,
+        limit: int,
+    ) -> None:
+        self.tenant_id_hash = tenant_id_hash
+        self.event_type = event_type
+        self.count_in_window = int(count_in_window)
+        self.limit = int(limit)
+        super().__init__(
+            f"audit rate-limit exceeded tenant_hash={tenant_id_hash} "
+            f"event_type={event_type} count={self.count_in_window} "
+            f"limit={self.limit}"
+        )
+
+
+_RATE_LIMIT_LOCK = threading.Lock()
+# Per (tenant_id_hash, event_type) → list[float] of monotonic emit timestamps
+# within the last 1h. Pruned lazily on each access.
+_RATE_LIMIT_BUCKETS: dict[tuple[str, str], list[float]] = {}
+# Per tenant_id_hash → monotonic timestamp of last meta-event emit, to
+# enforce one-meta-event-per-hour-per-tenant.
+_RATE_LIMIT_META_LAST: dict[str, float] = {}
+
+
+def _rate_limit_clock() -> float:
+    """Monotonic clock — overridable by tests via patching."""
+    return time.monotonic()
+
+
+def _rate_limit_window_seconds() -> float:
+    """1h sliding window — small helper for test injection."""
+    return 3600.0
+
+
+def _rate_limit_reset_for_tests() -> None:
+    """Clear in-memory state. ONLY called by tests."""
+    with _RATE_LIMIT_LOCK:
+        _RATE_LIMIT_BUCKETS.clear()
+        _RATE_LIMIT_META_LAST.clear()
+
+
+def _rate_limit_check_and_increment(
+    tenant_id_hash: str, event_type: str,
+) -> tuple[bool, int]:
+    """Atomically: prune, check limit, increment.
+
+    Returns
+    -------
+    (allowed, count_in_window)
+        ``allowed`` is True if the write may proceed (counter
+        incremented). False if the limit is exceeded (counter NOT
+        incremented further beyond the observed count).
+    """
+    if bool(getattr(
+        settings, "MIGRATION_CLOUD_AUDIT_RATE_LIMIT_DISABLED", False,
+    )):
+        return True, 0
+    limit = int(getattr(
+        settings, "MIGRATION_CLOUD_AUDIT_MAX_EVENTS_PER_TENANT_PER_HOUR",
+        5000,
+    ) or 5000)
+    if limit <= 0:
+        # Negative / zero limit is nonsensical; treat as disabled.
+        return True, 0
+    key = (tenant_id_hash, event_type)
+    now = _rate_limit_clock()
+    window = _rate_limit_window_seconds()
+    with _RATE_LIMIT_LOCK:
+        bucket = _RATE_LIMIT_BUCKETS.get(key)
+        if bucket is None:
+            bucket = []
+            _RATE_LIMIT_BUCKETS[key] = bucket
+        # Prune entries older than the sliding window.
+        cutoff = now - window
+        if bucket and bucket[0] < cutoff:
+            # Slice from the first index where ts >= cutoff.
+            keep_from = 0
+            for i, ts in enumerate(bucket):
+                if ts >= cutoff:
+                    keep_from = i
+                    break
+            else:
+                keep_from = len(bucket)
+            del bucket[:keep_from]
+        if len(bucket) >= limit:
+            return False, len(bucket)
+        bucket.append(now)
+        return True, len(bucket)
+
+
+def _rate_limit_should_emit_meta(tenant_id_hash: str) -> bool:
+    """One meta-event per tenant per hour. Bumps the last-emit ts."""
+    now = _rate_limit_clock()
+    window = _rate_limit_window_seconds()
+    with _RATE_LIMIT_LOCK:
+        last = _RATE_LIMIT_META_LAST.get(tenant_id_hash, 0.0)
+        if (now - last) < window:
+            return False
+        _RATE_LIMIT_META_LAST[tenant_id_hash] = now
+        return True
+
+
+# Registered event-type constant for the meta-event. Declared as a
+# module-level string so callers can reference it without importing the
+# TextChoices enum below (avoids a forward-reference cycle).
+_AUDIT_RATE_LIMIT_META_TYPE = "audit.rate_limit_triggered"
 
 
 class MigrationCloudAuditEventType(models.TextChoices):
@@ -102,6 +249,54 @@ class MigrationCloudAuditEventType(models.TextChoices):
     AUDIT_RETENTION_PURGE_APPLIED = (
         "audit.retention_purge_applied",
         "Audit retention purge applied (counsel-approved)",
+    )
+    # v3.40.0 Agent 11 — guardian-consent collection flow + intake
+    # generic transition event. The intake-level state_advanced event
+    # closes Agent 7's deferred item; the guardian.* set covers the
+    # full FERPA/COPPA/GDPR-compatible consent lifecycle.
+    INTAKE_STATE_ADVANCED = (
+        "migration.intake.state_advanced",
+        "Migration intake state advanced",
+    )
+    GUARDIAN_CONSENT_CAMPAIGN_STARTED = (
+        "migration.guardian_consent.campaign_started",
+        "Guardian consent campaign started",
+    )
+    GUARDIAN_CONSENT_MINTED = (
+        "migration.guardian_consent.minted",
+        "Guardian consent token minted",
+    )
+    GUARDIAN_CONSENT_FIRST_SEEN = (
+        "migration.guardian_consent.first_seen",
+        "Guardian opened the consent page for the first time",
+    )
+    GUARDIAN_CONSENT_CONSENTED = (
+        "migration.guardian_consent.consented",
+        "Guardian consented to migration",
+    )
+    GUARDIAN_CONSENT_DECLINED = (
+        "migration.guardian_consent.declined",
+        "Guardian declined consent",
+    )
+    GUARDIAN_CONSENT_REVOKED = (
+        "migration.guardian_consent.revoked",
+        "Guardian revoked previously-granted consent",
+    )
+    GUARDIAN_CONSENT_EXPIRED = (
+        "migration.guardian_consent.expired",
+        "Guardian consent token expired before decision",
+    )
+    GUARDIAN_CONSENT_RESENT = (
+        "migration.guardian_consent.resent",
+        "Guardian consent email resent",
+    )
+    # v3.40.0 Agent 14 — Per-tenant audit-event volume rate-limit
+    # triggered. Written by AuditEventManager.record() when the
+    # per-(tenant, event_type)-per-hour limit is exceeded. Capped at one
+    # write per tenant per hour so the meta-event itself cannot run away.
+    AUDIT_RATE_LIMIT_TRIGGERED = (
+        "audit.rate_limit_triggered",
+        "Audit event volume rate-limit triggered for a tenant",
     )
 
 
@@ -275,6 +470,54 @@ class AuditEventManager(AppendOnlyManager):
         subject_hash = _hash_email_or_id(subject)
         clean_payload = _sanitize_payload(payload_summary)
         tenant_hash = _hash_tenant_slug(tenant_slug or "")
+
+        # v3.40.0 Agent 14 — per-tenant audit-event volume rate-limit.
+        # The meta-event type is always allowed (never rate-limited
+        # itself); every other event passes through the counter.
+        if event_type != _AUDIT_RATE_LIMIT_META_TYPE:
+            allowed, count_in_window = _rate_limit_check_and_increment(
+                tenant_hash, event_type,
+            )
+            if not allowed:
+                limit = int(getattr(
+                    settings,
+                    "MIGRATION_CLOUD_AUDIT_MAX_EVENTS_PER_TENANT_PER_HOUR",
+                    5000,
+                ) or 5000)
+                # Emit one meta-event per tenant per hour (deduped).
+                if _rate_limit_should_emit_meta(tenant_hash):
+                    meta_payload = {
+                        "tenant_sha256_prefix": tenant_hash,
+                        "event_type": event_type,
+                        "count_in_window": int(count_in_window),
+                        "limit": int(limit),
+                    }
+                    try:
+                        with transaction.atomic():
+                            meta = self.model(
+                                tenant_id_hash=tenant_hash,
+                                event_type=_AUDIT_RATE_LIMIT_META_TYPE,
+                                actor_id=None,
+                                event_subject_hash=None,
+                                payload_summary=meta_payload,
+                            )
+                            meta.save()
+                    except Exception as exc:  # pylint: disable=broad-except
+                        # Don't let the meta-event write failure mask
+                        # the rate-limit signal — still raise below.
+                        logger.warning(
+                            "migration_cloud.audit.rate_limit_meta_emit_"
+                            "failed tenant_hash=%s err_type=%s",
+                            tenant_hash, type(exc).__name__,
+                        )
+                logger.warning(
+                    "migration_cloud.audit.rate_limit_triggered "
+                    "tenant_hash=%s event_type=%s count=%d limit=%d",
+                    tenant_hash, event_type, count_in_window, limit,
+                )
+                raise AuditEventRateLimitExceeded(
+                    tenant_hash, event_type, count_in_window, limit,
+                )
 
         with transaction.atomic():
             instance = self.model(
@@ -526,10 +769,17 @@ __all__ = [
     "MigrationCloudAuditEventType",
     "MigrationCloudAuditEventReadOnlyError",
     "AuditEventManager",
+    "AuditEventRateLimitExceeded",
     "GENESIS_SENTINEL",
     "_sanitize_payload",
     "_hash_tenant_slug",
     "_hash_email_or_id",
     "_compute_integrity_hash",
     "_canonical_json",
+    "_rate_limit_check_and_increment",
+    "_rate_limit_should_emit_meta",
+    "_rate_limit_reset_for_tests",
+    "_rate_limit_clock",
+    "_rate_limit_window_seconds",
+    "_AUDIT_RATE_LIMIT_META_TYPE",
 ]

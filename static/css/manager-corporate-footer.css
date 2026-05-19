@@ -1,12 +1,12 @@
 /**
- * RunMyCampus Manager — compact operator footer wrapper on authenticated control-plane pages.
+ * RunMyCampus Manager — compact operator footer inside authenticated control-plane shell.
  * Footer chrome lives in rmc-footer-surfaces.css; login layout in manager-login.css.
  */
 
 .cp-corporate-footer {
   flex-shrink: 0;
   width: 100%;
-  margin-top: auto;
+  margin-top: 0;
   border-top: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
   background: var(--surface-canvas, #0a0a0f);
 }
@@ -15,12 +15,35 @@
   margin-top: 0;
 }
 
+/* Authenticated shell: footer is the last flex child inside .cp-shell-content (not a sibling). */
 .cp-shell-content--with-public-footer {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cp-shell-content--with-public-footer > .rmc-control-plane-chrome,
+.cp-shell-content--with-public-footer > .skip-link-theme,
+.cp-shell-content--with-public-footer > [data-rmc-operator-surface-strip] {
+  flex-shrink: 0;
+}
+
+.cp-shell-content--with-public-footer > .cp-layout {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .cp-shell-content--with-public-footer > .cp-corporate-footer {
-  margin-top: auto;
+  flex-shrink: 0;
+}
+
+/* Skeleton-only pages: main / operator report bodies grow inside the shell column. */
+.cp-shell-content--with-public-footer > main,
+.cp-shell-content--with-public-footer > .rmc-page,
+.cp-shell-content--with-public-footer > section.error-page,
+.cp-shell-content--with-public-footer > .manager-login-landing {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
 }

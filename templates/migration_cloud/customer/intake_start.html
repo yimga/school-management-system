@@ -1,0 +1,65 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Start a migration" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main">
+  <header class="mb-4">
+    <h1 class="h2 mb-1">{% trans "Start a migration" %}</h1>
+    <p class="text-secondary mb-0">
+      {% trans "Tell us where your data lives today. We'll handle the rest — counsel signoff, encrypted extraction, and a side-by-side validation pass before anything goes live." %}
+    </p>
+  </header>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="post" action="{{ form_action }}" data-rmc-form="migration-intake-start">
+        {% csrf_token %}
+
+        <fieldset class="mb-4">
+          <legend class="h5">{% trans "Which SIS are you migrating from?" %}</legend>
+          <div class="row g-3">
+            {% for slug, label in vendor_choices %}
+              <div class="col-md-4 col-sm-6">
+                <label class="rmc-radio-card">
+                  <input type="radio" name="vendor_slug" value="{{ slug }}" required>
+                  <span class="rmc-radio-card__label">{{ label }}</span>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <fieldset class="mb-4">
+          <legend class="h5">{% trans "Agreement preview" %}</legend>
+          <p class="text-secondary">
+            {% blocktrans with version=active_agreement_version %}Before extraction begins you will sign the Migration Authorization Agreement (version {{ version }}). The full text is shown on the next page.{% endblocktrans %}
+          </p>
+        </fieldset>
+
+        <fieldset class="mb-4">
+          <legend class="h5">{% trans "Counsel signoff acknowledgment" %}</legend>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="counsel_ack" name="counsel_acknowledgment" required>
+            <label class="form-check-label" for="counsel_ack">
+              {% trans "I confirm that the school's authorized representative (head of school, business officer, or counsel) has reviewed RunMyCampus's data-processing addendum and approves proceeding with the migration." %}
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="mb-4">
+          <legend class="h5">{% trans "Anything we should know?" %}</legend>
+          <label for="notes_for_rmc" class="form-label">{% trans "Notes for the RunMyCampus team" %}</label>
+          <textarea class="form-control" id="notes_for_rmc" name="notes_for_runmycampus_team" rows="4" maxlength="4000" placeholder="{% trans 'Cutover window preferences, unusual data shapes, special handling, etc.' %}"></textarea>
+        </fieldset>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'migration_intake_customer:migration-intake-list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+          <button type="submit" class="btn btn-primary">{% trans "Continue to agreement" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

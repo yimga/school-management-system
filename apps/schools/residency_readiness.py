@@ -25,7 +25,6 @@ management command can format it nicely and exit appropriately.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from django.conf import settings
 

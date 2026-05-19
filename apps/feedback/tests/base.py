@@ -1,7 +1,7 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase, override_settings
+from django.test import Client, TransactionTestCase, override_settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.schools.models import School, SchoolMembership
@@ -13,6 +13,7 @@ User = get_user_model()
 @override_settings(
     MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
     SESSION_PINNING_ENABLED=False,
+    ALLOWED_HOSTS=["*"],
 )
 class FeedbackTestCase(TransactionTestCase):
     def setUp(self):
@@ -52,6 +53,8 @@ class FeedbackTestCase(TransactionTestCase):
             TOTPDevice.objects.get_or_create(user=user, name="test-device", confirmed=True)
         for user in [self.admin, self.teacher, self.parent, self.student]:
             SchoolMembership.objects.create(user=user, school=self.school_a, role=user.role, is_primary=True)
+        self.default_host = f"{self.school_a.subdomain}.runmycampus.com"
+        self.client = Client(HTTP_HOST=self.default_host)
 
     def force_login_with_mfa(self, user, *, password: str = "password"):
         self.client.login(username=user.username, password=password)

@@ -830,3 +830,57 @@ provision a new key + retain the old key in cold storage for
 post-incident verification of pre-incident events.
 
 ---
+
+
+## End-to-end rotation drill (v3.40.0)
+
+The `migration_cloud_rotation_drill` management command exercises
+every key surface this document covers, in one operator-visible run:
+Fernet (legacy-hash encryption), companion X25519 keypair, and the
+audit-root signing key. Sections execute in order with pre/post chain
+verification gates so a broken-chain state cannot be hidden by a
+rotation that runs on top of it.
+
+### Usage
+
+```
+python manage.py migration_cloud_rotation_drill --tenant <slug>
+python manage.py migration_cloud_rotation_drill --tenant <slug> --apply
+python manage.py migration_cloud_rotation_drill --tenant <slug> --apply \
+    --skip-companion-keypair --skip-audit-root-key
+```
+
+Dry-run mode (default) exercises the round-trip on every encrypted
+row + verifies the chain end-to-end, but never writes. The `--apply`
+flag is gated by the same `LIVE PROD DETECTED` heuristic as the
+nightly smoke command; set `MIGRATION_CLOUD_ROTATION_DRILL_ALLOW_PROD=1`
+to override (you almost certainly do not want to do this).
+
+### Exit codes
+
+* `0` — clean run (every required section passed; skipped sections
+  honored).
+* `1` — a required section failed (preflight, snapshot, reverify,
+  post-verify, snapshot-post, or audit-emit).
+* `2` — a required section was skipped (operator passed `--skip-...`
+  on a section the run cannot complete without).
+
+### Logging hygiene
+
+The drill NEVER emits to a logger or stdout:
+
+* any Fernet key bytes, X25519 private bytes, or HMAC-SHA512 signing
+  key bytes;
+* any signature bytes (vault `transit/hmac` response or local-env-key
+  digest);
+* full fingerprints — only the first 12 characters of a SHA-256
+  digest over public-key material ever surfaces.
+
+The drill's own audit row (event-type
+`migration.key_rotation.drill_completed`, or KEY_ROTATE with a marker
+key in the payload when the dedicated choice is not yet registered)
+captures the pre/post fingerprint *prefixes* plus the duration and
+the skip-flag matrix, so a future auditor can confirm "yes, the
+operator rotated companion + Fernet on 2026-05-19, and the chain
+was clean on both sides of the rotation."
+

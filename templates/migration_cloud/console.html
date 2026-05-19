@@ -23,7 +23,7 @@
 
 {% block page_title %}{{ page_title|default:"Migration Cloud" }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--migration-cloud" id="main">
   {% if messages %}
   <div class="rmc-banner-stack" role="status">
@@ -42,6 +42,13 @@
       <a href="{% url 'admin:migration_cloud_migrationbundle_changelist' %}" class="rmc-btn rmc-btn--ghost" aria-label="{% trans 'Advanced admin fallback: open migration bundles in Django admin' %}">
         {% trans "Open admin" %}
       </a>
+      {% if is_super_shell %}
+      <a href="{% url 'migration_cloud_super:migration_cloud_health' %}" class="rmc-btn rmc-btn--ghost">{% trans "Health" %}</a>
+      <a href="{% url 'migration_cloud_super:audit_dashboard' %}" class="rmc-btn rmc-btn--ghost">{% trans "Audit log" %}</a>
+      <a href="{% url 'migration_cloud_super:operator_webhook_list' %}" class="rmc-btn rmc-btn--ghost">{% trans "Webhooks" %}</a>
+      <a href="{% url 'migration_cloud_super:operator_token_list' %}" class="rmc-btn rmc-btn--ghost">{% trans "API tokens" %}</a>
+      <a href="{% url 'migration_cloud_super:maa_v2_promotion_dashboard' %}" class="rmc-btn rmc-btn--ghost">{% trans "MAA v2.0" %}</a>
+      {% endif %}
     </div>
   </header>
 

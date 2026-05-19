@@ -24,7 +24,6 @@ from __future__ import annotations
 import datetime as _dt
 from decimal import Decimal
 from io import StringIO
-from typing import Any
 
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase

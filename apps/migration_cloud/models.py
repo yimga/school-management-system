@@ -1419,3 +1419,13 @@ from apps.migration_cloud.models_audit import (  # noqa: E402, F401
     MigrationCloudAuditEventReadOnlyError,
     AuditEventManager,
 )
+
+# v3.40.0 Agent 7 — customer-facing migration intake request.
+# Lives in its own module to keep this file focused on the existing
+# bundle/artifact/run/api/webhook/audit lifecycle. Re-exported here so
+# Django's app loader picks up the model and migrations resolve it.
+from apps.migration_cloud.models_intake import (  # noqa: E402, F401
+    MigrationIntakeRequest,
+    MigrationIntakeState,
+    MigrationIntakeStateError,
+)

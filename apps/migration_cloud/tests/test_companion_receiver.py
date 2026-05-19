@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import logging
 import unittest
 from io import BytesIO
 
@@ -248,7 +247,6 @@ class CompanionReceiverDBBackedTests(TestCase):
         from apps.migration_cloud.models import (
             CompanionCiphertextBlob,
             CompanionUploadReceipt,
-            MigrationBundle,
         )
         self._login()
         maa = self._sign_maa()

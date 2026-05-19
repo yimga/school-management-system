@@ -6,7 +6,6 @@ resolve a tenant's install target ("latest stable", a pinned semver, etc).
 
 from __future__ import annotations
 
-from typing import Iterable
 
 from django.db import transaction
 from django.utils import timezone

@@ -343,7 +343,6 @@ class PIILoggingSmellScannerTests(SimpleTestCase):
     def test_scanner_detects_clear_positive(self):
         """The detector is not a no-op — fabricate a clear interpolation."""
         s = self._load_scanner()
-        body = '("user signed in password=%s", password)'
         # The helper expects the full logger.<lvl>(...) span.
         positive = 'logger.info("user signed in password=%s", password)'
         spans = s._extract_logger_call_spans(positive)

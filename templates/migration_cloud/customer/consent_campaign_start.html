@@ -1,0 +1,66 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Start consent campaign" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main">
+  <header class="mb-4">
+    <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to migration status" %}</a>
+    <h1 class="h2 mb-1 mt-2">{% trans "Start guardian consent campaign" %}</h1>
+    <p class="text-secondary mb-0">
+      {% trans "Upload a CSV with one row per guardian. The system mints a unique consent link for each row and emails the guardian directly." %}
+    </p>
+  </header>
+
+  {% if minted_count is not None %}
+    <div class="alert alert-success" role="status">
+      <strong>{% blocktrans count counter=minted_count %}{{ counter }} consent request sent.{% plural %}{{ counter }} consent requests sent.{% endblocktrans %}</strong>
+      {% if bad_line_count %}
+        <div class="mt-2">
+          {% blocktrans count counter=bad_line_count %}{{ counter }} row was rejected because it had missing or invalid fields.{% plural %}{{ counter }} rows were rejected because they had missing or invalid fields.{% endblocktrans %}
+        </div>
+        {% if bad_line_numbers %}
+          <div class="small text-secondary mt-1">
+            {% trans "Rejected line numbers (first 50):" %}
+            {{ bad_line_numbers|join:", " }}
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    <a href="{% url 'migration_guardian_consent_admin:guardian-consent-campaign-status' intake_id=intake.id %}" class="btn btn-primary">
+      {% trans "View campaign status" %}
+    </a>
+  {% else %}
+    <div class="card">
+      <div class="card-body">
+        <form method="post"
+              action="{% url 'migration_guardian_consent_admin:guardian-consent-campaign-start' intake_id=intake.id %}"
+              enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <fieldset class="mb-4">
+            <legend class="h5">{% trans "Upload CSV" %}</legend>
+            <p class="text-secondary">
+              {% blocktrans %}Required columns: <code>student_id, guardian_name, guardian_email</code>. A header row is optional. Up to 2,000 rows per upload.{% endblocktrans %}
+            </p>
+            <input type="file" name="csv_file" accept=".csv,text/csv" class="form-control" required>
+          </fieldset>
+
+          <div class="alert alert-info" role="status">
+            <strong>{% trans "What happens after submit:" %}</strong>
+            <ul class="mb-0">
+              <li>{% trans "A unique unguessable consent URL is generated for each row." %}</li>
+              <li>{% trans "Guardians receive an email containing their URL." %}</li>
+              <li>{% trans "Each consent token is valid for 30 days." %}</li>
+              <li>{% trans "Decisions are recorded with the guardian's IP and browser at the moment of decision, for legal record." %}</li>
+            </ul>
+          </div>
+
+          <button type="submit" class="btn btn-primary">{% trans "Mint tokens and send emails" %}</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</main>
+{% endblock %}

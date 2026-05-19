@@ -102,15 +102,28 @@ def dispatch_domain_event_to_triggers(domain_event: Any) -> list[dict[str, Any]]
     ctx.setdefault("domain_event_id", str(getattr(domain_event, "pk", "") or ""))
     ctx.setdefault("school_id", str(school.pk))
 
+    results: list[dict[str, Any]] = []
     try:
-        return fire(trigger_key, ctx, school=school, actor=None)
+        results = fire(trigger_key, ctx, school=school, actor=None)
     except Exception:
         logger.exception(
             "domain_event_bridge: trigger dispatch failed event_type=%s school=%s",
             getattr(domain_event, "event_type", ""),
             school.pk,
         )
-        return []
+    try:
+        from apps.marketplace.workflow_hook_registry import fire_manifest_workflow_hooks
+
+        event_type = str(getattr(domain_event, "event_type", "") or "")
+        results.extend(
+            fire_manifest_workflow_hooks(school, event_type, ctx)
+        )
+    except Exception:
+        logger.exception(
+            "domain_event_bridge: manifest workflow hooks failed event_type=%s",
+            getattr(domain_event, "event_type", ""),
+        )
+    return results
 
 
 def register_domain_event_trigger_subscriber() -> None:

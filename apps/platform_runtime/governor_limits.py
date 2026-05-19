@@ -45,6 +45,23 @@ def _tenant_dashboard_refreshes_key(tenant_id: str, hour_str: str) -> str:
     return f"platform_runtime:governor:dashboard_refreshes:{tenant_id}:{hour_str}"
 
 
+def workflow_run_limit_exceeded(
+    tenant_id: Optional[str] = None, school_id: Optional[int] = None
+) -> bool:
+    """Return True when the tenant has exceeded the daily workflow run cap."""
+    if not tenant_id and school_id is not None:
+        tenant_id = str(school_id)
+    if not tenant_id:
+        return False
+    try:
+        date_str = timezone.now().strftime("%Y-%m-%d")
+        key = _tenant_workflow_runs_key(tenant_id, date_str)
+        count = int(cache.get(key, 0) or 0)
+        return count >= WORKFLOW_RUNS_PER_DAY_PER_TENANT
+    except (ValueError, TypeError, AttributeError, ConnectionError, OSError):
+        return False
+
+
 def record_workflow_run(
     tenant_id: Optional[str] = None, school_id: Optional[int] = None
 ) -> None:
@@ -151,7 +168,7 @@ def get_governor_usage_for_tenant(
         "workflow_runs_per_day": {
             "limit": limits["workflow_runs_per_day"],
             "used": usage["workflow_runs_today"],
-            "enforced": False,
+            "enforced": True,
         },
         "api_requests_per_minute": {
             "limit": limits["api_requests_per_minute"],

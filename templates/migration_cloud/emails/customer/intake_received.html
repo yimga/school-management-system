@@ -1,0 +1,17 @@
+{% load i18n %}<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <title>{% trans "We received your migration request" %}</title>
+</head>
+<body>
+  <h1>{% trans "We received your migration request" %}</h1>
+  <p>{% blocktrans with school=school_name vendor=vendor_label %}We've recorded the migration intake from {{ vendor }} for {{ school }}. The next step is to sign the Migration Authorization Agreement so we can begin extraction.{% endblocktrans %}</p>
+  <p><strong>{% trans "Next action:" %}</strong> {{ next_action }}</p>
+  <p><a href="{{ status_url_path }}">{% trans "Open the status page" %}</a></p>
+  <p>{% trans "If you have questions, reply to this email or write to partner-success@runmycampus.com." %}</p>
+  <p>{% trans "Thank you," %}<br>{% trans "The RunMyCampus team" %}</p>
+  <hr>
+  <p><small>{% trans "Intake reference:" %} {{ intake_id }}</small></p>
+</body>
+</html>

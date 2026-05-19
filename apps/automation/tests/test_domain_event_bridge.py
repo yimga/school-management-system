@@ -1,6 +1,5 @@
 """Domain event outbox → trigger_dispatcher bridge."""
 
-from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase, tag
 
@@ -9,7 +8,7 @@ from apps.automation.domain_event_bridge import (
     resolve_trigger_key,
     register_domain_event_trigger_subscriber,
 )
-from apps.automation.trigger_dispatcher import clear_registry_for_tests, fire, register_handler
+from apps.automation.trigger_dispatcher import clear_registry_for_tests, register_handler
 from apps.events.bus import clear_subscribers_for_tests, dispatch_internal_subscribers
 
 

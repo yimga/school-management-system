@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-05-19T14:22:37.680169+00:00",
+  "generated_at": "2026-05-19T17:25:18.961077+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 908,
-  "views_indexed": 1736,
+  "row_count": 922,
+  "views_indexed": 1774,
   "summary": {
-    "login_gated": 867,
+    "login_gated": 877,
     "role_gated": 74,
     "permission_gated": 98,
     "has_inline_auth_check": 55,
-    "auth_mixin_gated": 65,
-    "rbac_allow_reason": 63,
-    "candidate_anonymous": 9,
+    "auth_mixin_gated": 74,
+    "rbac_allow_reason": 64,
+    "candidate_anonymous": 13,
     "unresolved": 28
   },
   "rows": [
@@ -3270,7 +3270,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -10552,7 +10552,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -13288,6 +13288,332 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "command-center/",
+      "view_symbol": "views_command_center.MigrationCloudCommandCenterView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_command_center.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-migration-cloud-command-center",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "",
+      "view_symbol": "views_customer.MigrationIntakeListView.as_view",
+      "urls_file": "apps/migration_cloud/urls_customer.py",
+      "view_file": "apps/migration_cloud/views_customer.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "start/",
+      "view_symbol": "views_customer.MigrationIntakeStartView.as_view",
+      "urls_file": "apps/migration_cloud/urls_customer.py",
+      "view_file": "apps/migration_cloud/views_customer.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_protect"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:id>/sign-maa/",
+      "view_symbol": "views_customer.MigrationIntakeMAASignView.as_view",
+      "urls_file": "apps/migration_cloud/urls_customer.py",
+      "view_file": "apps/migration_cloud/views_customer.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_protect"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:id>/status/",
+      "view_symbol": "views_customer.MigrationIntakeStatusView.as_view",
+      "urls_file": "apps/migration_cloud/urls_customer.py",
+      "view_file": "apps/migration_cloud/views_customer.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:id>/status/stream/",
+      "view_symbol": "views_customer.MigrationIntakeStatusStreamView.as_view",
+      "urls_file": "apps/migration_cloud/urls_customer.py",
+      "view_file": "apps/migration_cloud/views_customer.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:id>/abandon/",
+      "view_symbol": "views_customer.MigrationIntakeAbandonView.as_view",
+      "urls_file": "apps/migration_cloud/urls_customer.py",
+      "view_file": "apps/migration_cloud/views_customer.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_protect"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<str:raw_token>/",
+      "view_symbol": "views_guardian_consent.GuardianConsentLandingView.as_view",
+      "urls_file": "apps/migration_cloud/urls_guardian_consent.py",
+      "view_file": "apps/migration_cloud/views_guardian_consent.py",
+      "kind": "class",
+      "decorators": [
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": true
+    },
+    {
+      "url_pattern": "<str:raw_token>/accept/",
+      "view_symbol": "views_guardian_consent.GuardianConsentAcceptView.as_view",
+      "urls_file": "apps/migration_cloud/urls_guardian_consent.py",
+      "view_file": "apps/migration_cloud/views_guardian_consent.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_exempt",
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": true
+    },
+    {
+      "url_pattern": "<str:raw_token>/decline/",
+      "view_symbol": "views_guardian_consent.GuardianConsentDeclineView.as_view",
+      "urls_file": "apps/migration_cloud/urls_guardian_consent.py",
+      "view_file": "apps/migration_cloud/views_guardian_consent.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_exempt",
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": true
+    },
+    {
+      "url_pattern": "<str:raw_token>/revoke/",
+      "view_symbol": "views_guardian_consent.GuardianConsentRevokeView.as_view",
+      "urls_file": "apps/migration_cloud/urls_guardian_consent.py",
+      "view_file": "apps/migration_cloud/views_guardian_consent.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_exempt",
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": true
+    },
+    {
+      "url_pattern": "<uuid:intake_id>/consent/",
+      "view_symbol": "views_guardian_consent_admin.GuardianConsentCampaignStatusView.as_view",
+      "urls_file": "apps/migration_cloud/urls_guardian_consent.py",
+      "view_file": "apps/migration_cloud/views_guardian_consent_admin.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:intake_id>/consent/campaign/start/",
+      "view_symbol": "views_guardian_consent_admin.GuardianConsentCampaignStartView.as_view",
+      "urls_file": "apps/migration_cloud/urls_guardian_consent.py",
+      "view_file": "apps/migration_cloud/views_guardian_consent_admin.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_protect"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:intake_id>/consent/<uuid:token_id>/resend/",
+      "view_symbol": "views_guardian_consent_admin.GuardianConsentResendView.as_view",
+      "urls_file": "apps/migration_cloud/urls_guardian_consent.py",
+      "view_file": "apps/migration_cloud/views_guardian_consent_admin.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_protect"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "workbench/",
       "view_symbol": "views.operator_workbench",
       "urls_file": "apps/orchestration/urls.py",
@@ -13449,7 +13775,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"

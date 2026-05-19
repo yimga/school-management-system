@@ -91,7 +91,9 @@ def install_app(
             },
         )
 
-    _record_hooks(inst, app, "install", app.install_hooks or [])
+    from apps.marketplace.install_hook_delivery import dispatch_install_hooks
+
+    dispatch_install_hooks(inst, app, "install", app.install_hooks or [], actor=actor)
     AppAuditLog.objects.create(
         school=school,
         app=app,
@@ -128,7 +130,11 @@ def upgrade_app(
     installation.installed_version = nxt
     installation.status = AppInstallation.Status.ACTIVE
     installation.save(update_fields=["installed_version", "status"])
-    _record_hooks(installation, target, "upgrade", target.install_hooks or [])
+    from apps.marketplace.install_hook_delivery import dispatch_install_hooks
+
+    dispatch_install_hooks(
+        installation, target, "upgrade", target.install_hooks or [], actor=actor
+    )
     AppAuditLog.objects.create(
         school=installation.school,
         app=target,

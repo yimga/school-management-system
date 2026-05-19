@@ -27,7 +27,6 @@ from a Slack slash command, etc.) lands per-school as use-cases mature.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from django.http import HttpResponse, JsonResponse
 

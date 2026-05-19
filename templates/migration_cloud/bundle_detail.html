@@ -20,7 +20,7 @@
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--migration-cloud-detail"
       id="main"
       data-mc-bundle-id="{{ bundle.pk }}"
@@ -52,7 +52,7 @@
     <strong>{% trans "Pre-tenant bundle." %}</strong>
     {% trans "This bundle isn't bound to a school yet — common when a school uploads during signup. Bind it to a School row to enable apply." %}
     <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
-       href="{% url 'migration_cloud_super:bundle_bind_school' bundle_id=bundle.pk %}">
+       href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_bind_school' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_bind_school' bundle_id=bundle.pk %}{% endif %}">
       {% trans "Bind to school" %}
     </a>
   </div>

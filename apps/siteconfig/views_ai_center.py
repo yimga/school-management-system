@@ -20,7 +20,6 @@ from apps.siteconfig.control_plane_render import (
     render_siteconfig_operator_page,
 )
 from apps.siteconfig.ai_assistants import (
-    get_assistant,
     iter_assistants,
     user_may_use_assistant,
 )

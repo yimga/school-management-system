@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import tempfile
 from io import StringIO
-from pathlib import Path
 from unittest import mock
 
 import joblib  # type: ignore

@@ -9,7 +9,6 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from apps.siteconfig.control_plane_render import (
     default_operator_breadcrumbs,
     operator_cp_breadcrumb,
@@ -50,40 +49,37 @@ def report_templates_catalog_evidence(
                 "has_export_handler": has_handler,
             }
         )
-    template_with_handler = sum(1 for r in template_rows if r["has_export_handler"])
+    sum(1 for r in template_rows if r["has_export_handler"])
 
-    admin_reporttemplate_changelist_url = None
     u = request.user
     if getattr(u, "is_authenticated", False) and getattr(u, "is_superuser", False):
         try:
-            admin_reporttemplate_changelist_url = reverse(
+            reverse(
                 "admin:siteconfig_reporttemplate_changelist"
             )
         except NoReverseMatch:
             pass
 
-    scheduled_reports_hub_url = None
     try:
-        scheduled_reports_hub_url = reverse("siteconfig:scheduled_reports_delivery_hub")
+        reverse("siteconfig:scheduled_reports_delivery_hub")
     except NoReverseMatch:
         pass
-    tenant_report_schedules_evidence_url = None
     try:
-        tenant_report_schedules_evidence_url = reverse(
+        reverse(
             "siteconfig:tenant_report_schedules_evidence"
         )
     except NoReverseMatch:
         pass
     try:
-        term_publish_status_evidence_url = reverse(
+        reverse(
             "siteconfig:term_publish_status_evidence"
         )
     except NoReverseMatch:
-        term_publish_status_evidence_url = None
+        pass
     try:
-        compliance_exports_url = reverse("siteconfig:compliance_exports")
+        reverse("siteconfig:compliance_exports")
     except NoReverseMatch:
-        compliance_exports_url = None
+        pass
 
     return render_siteconfig_stem(
         request,

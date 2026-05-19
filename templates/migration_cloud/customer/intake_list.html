@@ -1,0 +1,64 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Migrations" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main">
+  <header class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="h2 mb-1">{% trans "Migrations" %}</h1>
+      <p class="text-secondary mb-0">{% trans "Your past and in-flight migration requests." %}</p>
+    </div>
+    <a href="{% url 'migration_intake_customer:migration-intake-start' %}" class="btn btn-primary">{% trans "Start a migration" %}</a>
+  </header>
+
+  <form method="get" class="mb-3">
+    <div class="d-flex gap-2 align-items-center">
+      <label for="state_filter" class="form-label mb-0">{% trans "State" %}</label>
+      <select id="state_filter" name="state" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+        <option value="">{% trans "All" %}</option>
+        {% for value, label in all_states %}
+          <option value="{{ value }}"{% if value == active_state_filter %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  {% if intakes %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Requested" %}</th>
+            <th scope="col">{% trans "Vendor" %}</th>
+            <th scope="col">{% trans "State" %}</th>
+            <th scope="col">{% trans "Progress" %}</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for intake in intakes %}
+            <tr>
+              <td>{{ intake.requested_at|date:"Y-m-d" }}</td>
+              <td>{{ intake.get_vendor_slug_display }}</td>
+              <td><span class="badge bg-secondary">{{ intake.get_state_display }}</span></td>
+              <td>{{ intake.pct_complete }}%</td>
+              <td>
+                <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-sm btn-outline-primary">{% trans "Open" %}</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <p class="text-secondary mb-3">{% trans "No migrations yet." %}</p>
+        <a href="{% url 'migration_intake_customer:migration-intake-start' %}" class="btn btn-primary">{% trans "Start your first migration" %}</a>
+      </div>
+    </div>
+  {% endif %}
+</main>
+{% endblock %}

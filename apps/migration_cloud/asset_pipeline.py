@@ -28,7 +28,6 @@ import hashlib
 import logging
 import re
 from pathlib import Path
-from typing import Any
 from urllib.parse import urlparse
 
 from django.conf import settings

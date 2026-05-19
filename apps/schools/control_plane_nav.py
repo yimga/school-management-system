@@ -318,7 +318,7 @@ def build_primary_control_plane_nav(request):
         },
         {
             "id": "primary_migration",
-            "label": "Migration",
+            "label": "Migration Cloud",
             "url_name": "super:migration_cloud",
             "icon": "bi-cloud-arrow-up",
         },

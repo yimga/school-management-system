@@ -20,7 +20,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-import logging
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase

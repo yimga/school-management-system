@@ -132,7 +132,7 @@ class ScoreShadowAtRiskTests(_ShadowFixtureMixin, TestCase):
             op, version="prod_v1",
             status=AtRiskModelArtifact.Status.PRODUCTION,
         )
-        cand = self._make_artifact(
+        self._make_artifact(
             op, version="cand_v1",
             status=AtRiskModelArtifact.Status.CANDIDATE,
         )
@@ -172,7 +172,7 @@ class ScoreShadowAtRiskTests(_ShadowFixtureMixin, TestCase):
 
     def test_explicit_candidate_version(self):
         school, op, students = self._seed(uid=id(self))
-        prod = self._make_artifact(
+        self._make_artifact(
             op, version="prod_x",
             status=AtRiskModelArtifact.Status.PRODUCTION,
         )

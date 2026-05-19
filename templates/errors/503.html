@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Service temporarily unavailable" %}{% endblock %}
+
+{% block content %}
+<section class="error-page" aria-labelledby="error-503-title">
+  <div>
+    <div class="error-code-display" aria-hidden="true">503</div>
+    <h1 id="error-503-title" class="error-title">{% trans "We'll be right back." %}</h1>
+    <p class="error-message">
+      {% if message %}
+        {{ message }}
+      {% else %}
+        {% trans "The platform is temporarily unavailable due to maintenance or high load. Your data is safe — please retry in a few minutes." %}
+      {% endif %}
+    </p>
+    <div class="error-actions">
+      <button class="btn btn-primary" type="button" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Try again" %}</button>
+      {% if PUBLIC_BRAND_MODE %}
+        <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}"><i class="bi bi-life-preserver me-1"></i>{% trans "Contact support" %}</a>
+      {% else %}
+        <a class="btn btn-outline-secondary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

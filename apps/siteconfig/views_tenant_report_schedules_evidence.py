@@ -5,7 +5,6 @@ from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from django.utils.translation import gettext as _
 
 from apps.siteconfig.control_plane_render import (

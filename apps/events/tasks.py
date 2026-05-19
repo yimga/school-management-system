@@ -40,11 +40,25 @@ def process_outbox_batch(batch_size: int = 100):
     from apps.events.models import DomainEvent
 
     # tenant-isolation-allow: domain-event outbox sweep across all tenants (reviewed 2026-05-14)
-    queryset = DomainEvent.objects.filter(status=DomainEvent.Status.PENDING).order_by(
-        "created_at"
-    )[: max(1, int(batch_size))]
+    queryset = list(
+        DomainEvent.objects.filter(status=DomainEvent.Status.PENDING)
+        .order_by("created_at")[: max(1, int(batch_size))]
+    )
+    school_ids = {e.school_id for e in queryset if getattr(e, "school_id", None)}
+    school_by_id: dict = {}
+    if school_ids:
+        from apps.schools.models import School
+
+        school_by_id = {
+            s.pk: s
+            for s in School.objects.filter(pk__in=school_ids).only(
+                "pk", "slug", "subdomain", "is_active"
+            )
+        }
     processed = 0
     for event in queryset:
+        if getattr(event, "school_id", None) and event.school_id in school_by_id:
+            event._prefetched_school = school_by_id[event.school_id]  # noqa: SLF001
         try:
             event.status = DomainEvent.Status.PROCESSING
             event.save(update_fields=["status"])

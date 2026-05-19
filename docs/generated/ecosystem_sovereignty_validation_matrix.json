@@ -1,0 +1,568 @@
+{
+  "generated_at": "2026-05-19T18:03:48.254581+00:00",
+  "verdict": "ECOSYSTEM_SOVEREIGNTY_MATRIX_PASS",
+  "repo_mechanical_complete": true,
+  "live_ecosystem_complete": false,
+  "live_ecosystem_note": "Repo proves architecture; live PSP/SOC2/pilots remain BLOCKED_EXTERNAL per docs/RUNMYCAMPUS_FIVE_PILLAR_CERTIFICATION.md",
+  "foundational_layer_pressure_tested_first": "TENANT_SOVEREIGNTY",
+  "1_architectural_limitation_log": [
+    {
+      "id": "LIVE_PSP_SETTLEMENT",
+      "pillar": "Shopify",
+      "severity": "external_blocker",
+      "finding": "No production PSP corridor with a settled live transaction is evidenced in-repo; ledger math and webhook idempotency are proven mechanically only.",
+      "remediation_owner": "operator",
+      "sot": "docs/RUNMYCAMPUS_FIVE_PILLAR_CERTIFICATION.md \u00a72"
+    },
+    {
+      "id": "LIVE_SOC2",
+      "pillar": "AWS",
+      "severity": "external_blocker",
+      "finding": "SOC 2 / ISO attestation claims require auditor sign-off outside the repo.",
+      "remediation_owner": "counsel + auditor",
+      "sot": "docs/compliance/SOC2_PCI_AUDITOR_ENGAGEMENT_GUIDE.md"
+    },
+    {
+      "id": "LIVE_THIRD_PARTY_APPS",
+      "pillar": "Linux",
+      "severity": "external_blocker",
+      "finding": "Marketplace extension surface is repo-complete; zero external publisher apps in production catalog.",
+      "remediation_owner": "partner ecosystem",
+      "sot": "docs/developer/PARTNER_APP_CERTIFICATION.md"
+    },
+    {
+      "id": "SEARCH_OPENSEARCH_DEFAULT",
+      "pillar": "Google",
+      "severity": "deferred",
+      "finding": "Student/document search uses bounded helpers + PostgreSQL GIN on search_index; hosted OpenSearch cluster is not the default backend.",
+      "remediation_owner": "platform",
+      "proof_in_repo": "apps/people/migrations/0052_studentprofile_search_index_gin.py"
+    },
+    {
+      "id": "PERF_ZERO_TICKET_STRICT",
+      "pillar": "Salesforce",
+      "severity": "flake_under_strict",
+      "finding": "Forensic PERF_BUDGET_STRICT smoke on zero-ticket permissions may fail on cold SQLite dev DBs (RuntimeDefaults query churn); warn-only unless PERF_BUDGET_STRICT=1 in CI.",
+      "remediation_owner": "platform",
+      "proof_in_repo": "scripts/check_performance_budgets.py"
+    },
+    {
+      "id": "SQLITE_TEST_PARALLELISM",
+      "pillar": "AWS",
+      "severity": "environment",
+      "finding": "Parallel webhook claim stress tests are sequential on SQLite CI; Postgres production uses DB unique constraint + select_for_update.",
+      "remediation_owner": "platform",
+      "proof_in_repo": "apps/finance/tests/test_webhook_claim_concurrent.py"
+    }
+  ],
+  "2_system_sovereignty_rewrite": {
+    "foundational_layer_first": "TENANT_SOVEREIGNTY",
+    "pillars": {
+      "Linux": {
+        "extension_manifest_validation": "apps/marketplace/extension_registry.py",
+        "install_lifecycle": "apps/marketplace/lifecycle.py",
+        "install_hook_delivery": "apps/marketplace/install_hook_delivery.py",
+        "workflow_hook_registry": "apps/marketplace/workflow_hook_registry.py",
+        "workflow_governor": "apps/platform_runtime/governor_limits.py",
+        "workflow_enforcement": "apps/siteconfig/workflow_engine.py",
+        "domain_event_bridge": "apps/automation/domain_event_bridge.py"
+      },
+      "AWS": {
+        "tenant_resolution_cache": "apps/schools/tenant_resolution_cache.py",
+        "cache_invalidation": "apps/schools/signals_tenant_cache.py",
+        "tenant_api_guards": "apps/schools/tenant_api_guards.py",
+        "bola_matrix_tests": "apps/api/tests/test_bola_idor_matrix.py",
+        "middleware_order_gate": "scripts/verify_middleware_stack_order.py",
+        "tenant_isolation_scanner": "scripts/scan_tenant_queryset_safety.py"
+      },
+      "Shopify": {
+        "webhook_ingress": "apps/finance/webhook_ingress.py",
+        "atomic_claim": "apps/finance/webhooks/claim.py",
+        "payment_unique_ext_ref": "apps/finance/migrations/0063_payment_uniq_invoice_ext_ref.py",
+        "webhook_unique_bucket": "apps/finance/migrations/0064_webhooklog_uniq_provider_bucket.py",
+        "json_decimal_wire": "apps/finance/json_decimal.py",
+        "wallet_pessimistic_lock": "apps/finance/services.py::pay_invoice_with_wallet",
+        "api_serializers_amount_str": "apps/api/serializers.py",
+        "financial_analytics_api": "apps/finance/api_views.py::FinancialAnalyticsAPI"
+      },
+      "Salesforce": {
+        "domain_event_dedup": "apps/automation/domain_event_bridge.py",
+        "workflow_depth": "apps/automation/trigger_dispatcher.py",
+        "outbox_prefetch": "apps/events/tasks.py",
+        "notification_batching": "apps/schoolops/tasks.py"
+      },
+      "Google": {
+        "list_search": "apps/siteconfig/list_search.py",
+        "student_search": "apps/people/student_search.py",
+        "document_search": "apps/portal/document_search.py",
+        "global_search_api": "apps/api/search_api.py",
+        "gin_migration": "apps/people/migrations/0052_studentprofile_search_index_gin.py",
+        "search_backfill": "apps/siteconfig/management/commands/backfill_search_indexes.py",
+        "ai_pii_redact": "services/ai_helpers.py::invoke_with_request"
+      }
+    }
+  },
+  "3_adversarial_sweep_2": {
+    "sweep_id": "adversarial_sweep_2",
+    "bola_http_cases": [
+      {
+        "pillar": "AWS",
+        "check_id": "cache_keys",
+        "description": "Versioned tenant resolution cache module",
+        "status": "PASS",
+        "proof": "tenant_resolution_cache.py"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "cache_invalidation",
+        "description": "SchoolDomain/School signals invalidate cache",
+        "status": "PASS",
+        "proof": "signals_tenant_cache + apps.ready"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "bola_me_schools",
+        "description": "me/schools uses schools_user_may_operate_on",
+        "status": "PASS",
+        "proof": "MeSchoolsView"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "bola_me_schools_test",
+        "description": "HTTP test: foreign school absent from me/schools",
+        "status": "PASS",
+        "proof": "test_bola_idor_matrix + test_me_schools_bola"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "bola_matrix",
+        "description": "BOLA matrix >= 30 HTTP cases",
+        "status": "PASS",
+        "proof": "35 tests"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "cache_lint",
+        "description": "No legacy tenant:host cache keys",
+        "status": "PASS",
+        "proof": "verify_tenant_resolution_cache_keys: OK"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "internal_tenant_slug_guards",
+        "description": "Internal ?tenant= APIs carry membership guards",
+        "status": "PASS",
+        "proof": "verify_internal_tenant_slug_guards: OK"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "middleware_order",
+        "description": "Middleware stack order gate",
+        "status": "PASS",
+        "proof": "_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "finance_ingress",
+        "description": "Finance webhook ingress boundary",
+        "status": "PASS",
+        "proof": "apps/finance/webhook_ingress.py"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "payment_reexport",
+        "description": "payment app re-exports finance ingress",
+        "status": "PASS",
+        "proof": "payment/webhook_ingress.py"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "views_payments_wire",
+        "description": "views_payments uses resolve_webhook_dedup_bucket",
+        "status": "PASS",
+        "proof": "views_payments.py"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "webhook_atomic_claim",
+        "description": "Webhook claim inside transaction.atomic",
+        "status": "PASS",
+        "proof": "webhooks/claim.py"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "payment_uniq_ext_ref",
+        "description": "Unique (invoice, external_reference) when ext ref set",
+        "status": "PASS",
+        "proof": "Payment.Meta.constraints"
+      },
+      {
+        "pillar": "AWS",
+        "check_id": "tenant_api_guards",
+        "description": "school_id query param membership guard module",
+        "status": "PASS",
+        "proof": "tenant_api_guards.py"
+      },
+      {
+        "pillar": "Salesforce",
+        "check_id": "event_dedup",
+        "description": "Domain event dispatch dedup + depth guard",
+        "status": "PASS",
+        "proof": "domain_event_bridge"
+      },
+      {
+        "pillar": "Salesforce",
+        "check_id": "trigger_depth",
+        "description": "trigger_dispatcher honors workflow depth",
+        "status": "PASS",
+        "proof": "trigger_dispatcher.py"
+      },
+      {
+        "pillar": "Salesforce",
+        "check_id": "notify_batch",
+        "description": "schoolops sweep uses notification batching",
+        "status": "PASS",
+        "proof": "schoolops/tasks.py"
+      },
+      {
+        "pillar": "Salesforce",
+        "check_id": "automation_bridge",
+        "description": "Automation app registers domain-event bridge",
+        "status": "PASS",
+        "proof": "automation/apps.py"
+      },
+      {
+        "pillar": "Salesforce",
+        "check_id": "outbox_school_prefetch",
+        "description": "Outbox batch prefetches schools for domain events",
+        "status": "PASS",
+        "proof": "events/tasks.py"
+      },
+      {
+        "pillar": "Linux",
+        "check_id": "extension_manifest",
+        "description": "Marketplace install validates extension manifest",
+        "status": "PASS",
+        "proof": "lifecycle.install_app"
+      },
+      {
+        "pillar": "Linux",
+        "check_id": "extension_registry",
+        "description": "Extension registry sandbox validator",
+        "status": "PASS",
+        "proof": "extension_registry.py"
+      },
+      {
+        "pillar": "Linux",
+        "check_id": "install_hook_delivery",
+        "description": "Install hooks dispatch via Celery/inline delivery",
+        "status": "PASS",
+        "proof": "install_hook_delivery.py"
+      },
+      {
+        "pillar": "Linux",
+        "check_id": "workflow_hook_registry",
+        "description": "Manifest workflow_hooks runtime registry",
+        "status": "PASS",
+        "proof": "workflow_hook_registry.py"
+      },
+      {
+        "pillar": "Linux",
+        "check_id": "governor_workflow_enforced",
+        "description": "Workflow governor limit enforced in run_workflow",
+        "status": "PASS",
+        "proof": "workflow_engine.run_workflow"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "list_search",
+        "description": "Bounded list_search helper module",
+        "status": "PASS",
+        "proof": "list_search.py"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "student_fts",
+        "description": "StudentProfile search_index + student_search filter",
+        "status": "PASS",
+        "proof": "people/student_search"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "document_fts",
+        "description": "Portal document search_index + document_search filter",
+        "status": "PASS",
+        "proof": "portal/document_search"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "kb_search",
+        "description": "Portal KB uses bounded list_search",
+        "status": "PASS",
+        "proof": "views_kb.py"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "backfill_cmd",
+        "description": "backfill_search_indexes management command",
+        "status": "PASS",
+        "proof": "backfill_search_indexes"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "migration_0051",
+        "description": "StudentProfile search_index migration",
+        "status": "PASS",
+        "proof": "0051_studentprofile_search_index"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "search_index_gin",
+        "description": "PostgreSQL GIN index on student search_index",
+        "status": "PASS",
+        "proof": "0052_studentprofile_search_index_gin"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "global_search_fts_students",
+        "description": "Global search uses filter_students_by_search for students",
+        "status": "PASS",
+        "proof": "search_api.py"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "ai_invoke_pii_redact",
+        "description": "invoke_with_request redacts PII heuristics before gateway",
+        "status": "PASS",
+        "proof": "ai_helpers.invoke_with_request"
+      },
+      {
+        "pillar": "PROOF",
+        "check_id": "seed_command",
+        "description": "seed_five_pillar_proof management command",
+        "status": "PASS",
+        "proof": "seed_five_pillar_proof"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "migration_0063",
+        "description": "Payment invoice+ext_ref unique migration",
+        "status": "PASS",
+        "proof": "0063_payment_uniq_invoice_ext_ref"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "migration_0064",
+        "description": "WebhookLog provider+bucket unique migration",
+        "status": "PASS",
+        "proof": "0064_webhooklog_uniq_provider_bucket"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "webhook_concurrent_test",
+        "description": "Parallel webhook claim race test",
+        "status": "PASS",
+        "proof": "test_webhook_claim_concurrent"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "invoice_serializer_amount_str",
+        "description": "Invoice/Payment serializers use amount_str wire format",
+        "status": "PASS",
+        "proof": "InvoiceSerializer.to_representation"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "json_decimal_api",
+        "description": "Finance invoice summary uses amount_str wire format",
+        "status": "PASS",
+        "proof": "InvoiceViewSet.summary"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "json_decimal_analytics_api",
+        "description": "Financial analytics API uses amount_str (no float money)",
+        "status": "PASS",
+        "proof": "FinancialAnalyticsAPI.get"
+      },
+      {
+        "pillar": "Shopify",
+        "check_id": "json_decimal_module_tests",
+        "description": "json_decimal unit tests present",
+        "status": "PASS",
+        "proof": "test_json_decimal.py"
+      },
+      {
+        "pillar": "Google",
+        "check_id": "search_adoption_lint",
+        "description": "Hot list views use search helpers",
+        "status": "PASS",
+        "proof": "verify_list_search_adoption: OK"
+      },
+      {
+        "pillar": "PROOF",
+        "check_id": "django_tests",
+        "description": "Pillar Django test subset green",
+        "status": "PASS",
+        "proof": "guage=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- trigger_dispatcher: depth limit trigger=payment_success depth=9\n............\n----------------------------------------------------------------------\nRan 56 tests in 2.633s\n\nOK\nPreserving test database for alias 'default'..."
+      }
+    ],
+    "bola_matrix_count": "35 tests",
+    "revalidation_gates": [
+      {
+        "name": "internal_tenant_slug_guards",
+        "module": "scripts/verify_internal_tenant_slug_guards.py"
+      },
+      {
+        "name": "webhook_claim_race_safety",
+        "module": "apps/finance/tests/test_webhook_claim_concurrent.py"
+      },
+      {
+        "name": "payment_ext_ref_unique",
+        "module": "apps/finance/tests/test_payment_invoice_ext_ref_unique.py"
+      },
+      {
+        "name": "invoice_serializer_money_wire",
+        "module": "apps/api/tests/test_invoice_serializer_money_wire.py"
+      },
+      {
+        "name": "ai_helpers_pii_redact",
+        "module": "services/tests/test_ai_helpers_pii_redact.py"
+      }
+    ],
+    "child_verifier_results": [
+      {
+        "gate": "verify_five_pillar_platform_completion",
+        "exit_code": 0,
+        "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (43 checks)"
+      },
+      {
+        "gate": "verify_tenant_sovereignty_pillar",
+        "exit_code": 0,
+        "proof": "verify_tenant_sovereignty_pillar: TENANT_SOVEREIGNTY_PASS (18 checks)"
+      },
+      {
+        "gate": "verify_ai_engine_room",
+        "exit_code": 0,
+        "proof": "verify_ai_engine_room: OK (tiers 1-5 engine room + product assistants 100%)"
+      },
+      {
+        "gate": "verify_internal_tenant_slug_guards",
+        "exit_code": 0,
+        "proof": "verify_internal_tenant_slug_guards: OK"
+      }
+    ],
+    "tightening_notes": [
+      "Webhook claim uses select_for_update + partial unique (provider, idempotency_bucket).",
+      "Payment duplicate external_reference rejected at DB + full_clean.",
+      "Internal ?tenant= APIs require schools_user_may_operate_on membership."
+    ]
+  },
+  "4_sot_platform_variables": {
+    "schema_version": "2.0.0",
+    "matrix": "ecosystem_sovereignty_category_defining",
+    "tenant_sovereignty": {
+      "cascade_layers": [
+        "RuntimeDefaults typed column",
+        "migration",
+        "RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES",
+        "EXACT_FIELD_OWNERS",
+        "SiteSettings.brand_payload",
+        "apps.siteconfig.context_processors",
+        "templates/partials/rmc_theme_meta.html",
+        "static/js/theme-preference-bootstrap.js",
+        "CSS var(--*) on html"
+      ],
+      "effective_theme_attributes": {
+        "data_theme": [
+          "light",
+          "dark"
+        ],
+        "data_theme_preference": [
+          "light",
+          "dark",
+          "system"
+        ],
+        "forbidden_data_theme_values": [
+          "system",
+          "auto"
+        ]
+      },
+      "surface_isolation": {
+        "marketing_local_storage_key": "rmc-mkt-theme",
+        "tenant_local_storage_key": "runmycampus-theme-preference",
+        "marketing_html_attribute": "data-surface=marketing"
+      },
+      "brand_guard": {
+        "module": "apps.siteconfig.brand_guard_runtime",
+        "min_contrast_ratio": 7.0,
+        "guarded_fields": [
+          "primary_color",
+          "accent_color"
+        ],
+        "persist_hook": "SiteSettings.save via guard_brand_hex_fields",
+        "render_hook": "context_processors via guard_brand_dict"
+      },
+      "shells_requiring_meta_bridge": [
+        "templates/portal_base.html",
+        "templates/base.html",
+        "templates/control_plane_skeleton.html",
+        "templates/admin/base_site.html",
+        "templates/marketing/base_marketing.html"
+      ],
+      "fouc_contract": {
+        "script": "static/js/theme-preference-bootstrap.js",
+        "load_in": "head",
+        "defer_allowed": false,
+        "async_allowed": false
+      },
+      "white_label_controls": {
+        "theme_builder_url_name": "siteconfig:theme_builder",
+        "publish_api": "/siteconfig/theme-experience/builder/api/publish/",
+        "preview_api": "/siteconfig/theme-experience/builder/api/preview/",
+        "custom_domain_setting": "SchoolDomain",
+        "logo_tokens": [
+          "SITE_LOGO_URL",
+          "SITE_LOGO_DARK_URL",
+          "SITE_FAVICON_DARK_URL"
+        ]
+      }
+    },
+    "cross_pillar_env": {
+      "tenant_cache_version_env": "RMC_TENANT_RESOLUTION_CACHE_VERSION",
+      "ai_engine_room": "AI_ENGINE_ROOM_SUPPORT",
+      "finance_webhook_dedup": "apps.finance.webhook_ingress.resolve_webhook_dedup_bucket",
+      "search_backfill_cmd": "backfill_search_indexes",
+      "SEND_FINANCE_SIGNALS": "django.settings (default True; tests set False)",
+      "MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND": "os.environ MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND",
+      "OBSERVABILITY_METRICS_BACKEND": "os.environ OBSERVABILITY_METRICS_BACKEND",
+      "DJANGO_TEST_DB_FILE": "scripts/run_sqlite_memory_tests.py pillar subset"
+    },
+    "finance_precision": {
+      "wire_format": "amount_str / DecimalJSONEncoder",
+      "module": "apps/finance/json_decimal.py",
+      "unique_constraints": [
+        "finance_payment_uniq_invoice_ext_ref",
+        "finance_webhooklog_uniq_provider_bucket"
+      ]
+    },
+    "seed_commands": [
+      "seed_five_pillar_proof",
+      "backfill_search_indexes"
+    ],
+    "ci_gates": [
+      "scripts/verify_ecosystem_sovereignty_matrix.py",
+      "scripts/verify_five_pillar_platform_completion.py",
+      "scripts/verify_tenant_sovereignty_pillar.py",
+      "scripts/verify_six_pillar_global_dominance.py"
+    ],
+    "honest_external_blockers": [
+      "Custom domain TLS + edge CDN provisioning per tenant (operator DNS)",
+      "Live PSP settlement corridor for Shopify-pillar 100% production proof",
+      "SOC 2 / ISO auditor sign-off for trust claims"
+    ]
+  },
+  "five_pillar_verdict": "FIVE_PILLAR_PLATFORM_PASS",
+  "five_pillar_passed": 43,
+  "five_pillar_failed": 0
+}

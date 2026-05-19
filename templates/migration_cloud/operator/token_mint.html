@@ -3,7 +3,7 @@
 
 {% block page_title %}{{ page_title|default:"Mint a Migration Cloud API token" }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--operator-token-mint" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_list' %}{% else %}{% url 'migration_cloud_super:operator_token_list' %}{% endif %}">{% trans "← Back to tokens" %}</a>

@@ -338,7 +338,7 @@ class ShadowGradePredictionTests(TestCase):
                 status=GradePredictionModelArtifact.Status.PRODUCTION,
                 registered_by=op, promoted_at=timezone.now(), promoted_by=op,
             )
-            cand = GradePredictionModelArtifact.objects.create(
+            GradePredictionModelArtifact.objects.create(
                 model_version="sg_cand2", artifact_path=cand_tmp.name,
                 trained_at=timezone.now(),
                 status=GradePredictionModelArtifact.Status.CANDIDATE,

@@ -12,6 +12,15 @@ class FooterSurfaceContractTests(SimpleTestCase):
         self.assertNotIn("corporate_footer_bundle.html", text)
         self.assertNotIn("mkt-footer-command", text)
 
+    def test_manager_admin_uses_compact_operator_footer(self):
+        admin_base = Path("templates/admin/base.html").read_text(encoding="utf-8")
+        admin_site = Path("templates/admin/base_site.html").read_text(encoding="utf-8")
+        self.assertIn("rmc_operator_footer_compact.html", admin_base)
+        self.assertIn('data-rmc-footer-surface="operator-compact"', admin_base)
+        self.assertIn("is_manager_host", admin_base)
+        self.assertIn("rmc-footer-surfaces.css", admin_site)
+        self.assertNotIn("corporate_footer_bundle.html", admin_base)
+
     def test_portal_never_includes_marketing_footer(self):
         text = Path("templates/portal_base.html").read_text(encoding="utf-8")
         self.assertNotIn("corporate_footer_bundle.html", text)

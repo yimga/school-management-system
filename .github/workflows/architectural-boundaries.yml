@@ -855,6 +855,10 @@ jobs:
           python scripts/verify_six_pillar_global_dominance.py --write
           python scripts/verify_footer_surface_contract.py --write
           python scripts/verify_manager_portal_chrome_completion.py --write
+          python scripts/verify_interaction_integrity_completion.py
+          python scripts/scan_operator_shell_dead_hrefs.py --strict
+          python scripts/verify_manager_header_account_completion.py
+          npm run test:interaction-integrity
           python manage.py migrate --noinput
           python manage.py backfill_search_indexes --only all
           python scripts/run_sqlite_memory_tests.py \

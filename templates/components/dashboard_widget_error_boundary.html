@@ -1,0 +1,25 @@
+{% load i18n %}
+{# Isolated failure shell for one dashboard widget/chart — rest of cockpit stays live. #}
+<div
+  class="rmc-dashboard-widget-boundary"
+  data-dashboard-widget="{{ widget_id|default:'panel' }}"
+  data-rmc-shell-viewport-safe="1"
+>
+  <div class="rmc-dashboard-widget-boundary__body" data-widget-body>
+    {{ body|default:"" }}
+  </div>
+  <div
+    class="rmc-dashboard-widget-boundary__error d-none"
+    role="alert"
+    data-widget-error
+    data-dashboard-error-boundary="1"
+  >
+    <p class="mb-2">
+      <strong>{{ widget_label|default:_("This panel") }}</strong>
+      {% trans "could not load. Other dashboard areas remain available." %}
+    </p>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-widget-retry>
+      {% trans "Retry connection" %}
+    </button>
+  </div>
+</div>

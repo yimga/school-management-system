@@ -23,7 +23,7 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes

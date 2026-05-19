@@ -51,6 +51,26 @@ def marketplace_health_check(status: str = "ok"):
     return updated
 
 
+@shared_task(name="marketplace.deliver_install_hooks")
+def deliver_install_hooks_task(
+    installation_id: str,
+    phase: str,
+    hook_urls: list[str],
+) -> int:
+    """POST install/upgrade hook URLs; failures logged, never raised."""
+    from apps.marketplace.models import AppInstallation
+    from apps.marketplace.install_hook_delivery import deliver_install_hooks_inline
+
+    try:
+        inst = AppInstallation.objects.select_related("app", "school").get(
+            pk=installation_id
+        )
+    except AppInstallation.DoesNotExist:
+        return 0
+    deliver_install_hooks_inline(inst, inst.app, phase, hook_urls)
+    return len(hook_urls)
+
+
 @shared_task(name="marketplace.webhook_deliver_due", bind=True)
 def webhook_deliver_due(self, limit: int = 50) -> int:
     """Move 1 — drain due WebhookDelivery rows with exponential-backoff retry."""

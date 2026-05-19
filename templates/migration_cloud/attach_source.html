@@ -3,7 +3,7 @@
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
-{% block content %}
+{% block cp_shell_page %}
 <main class="rmc-page rmc-page--migration-cloud-attach" id="main">
   <header class="rmc-page__header">
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}"

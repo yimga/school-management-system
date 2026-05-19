@@ -8,7 +8,6 @@ from io import StringIO
 from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase, override_settings
-from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.analytics.models import RiskDigestRecipient, RiskFactor

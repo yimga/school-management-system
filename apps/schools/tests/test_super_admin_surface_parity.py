@@ -11,6 +11,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.schools.models import School
+from apps.schools.tests.manager_client import bind_manager_session
 from apps.schools.super_admin_paired_surfaces import (
     SUPER_FIRST_PAIRED_SPECS,
     build_operator_surface_ia_context,
@@ -37,14 +38,21 @@ class SuperAdminSurfaceParityTests(TestCase):
         )
         self._mt_env.start()
         self.host = "manager.runmycampus.com"
+        self.password = "testpass123"
         self.user = User.objects.create_user(
             username=f"surface_ia_{uuid.uuid4().hex[:8]}",
-            password="testpass123",
+            password=self.password,
             is_staff=True,
             is_superuser=True,
         )
-        self.client = Client()
-        self.client.force_login(self.user)
+        self.client = Client(HTTP_HOST=self.host)
+        logged_in = self.client.login(
+            username=self.user.username,
+            password=self.password,
+            HTTP_HOST=self.host,
+        )
+        self.assertTrue(logged_in, "manager login must succeed for HTTP chrome tests")
+        bind_manager_session(self.client)
 
     def test_surface_parity_matrix_is_green(self):
         matrix = build_surface_parity_matrix()
@@ -96,7 +104,7 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "rmc-horizontal-nav-rail.css")
         self.assertContains(response, 'data-rmc-footer-surface="operator-compact"')
-        self.assertContains(response, "rmc-manager-login-footer")
+        self.assertContains(response, "data-rmc-manager-operator-footer")
         self.assertNotContains(response, "mkt-footer-command")
         self.assertNotContains(response, "mkt-footer-newsletter")
 

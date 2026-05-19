@@ -19,14 +19,12 @@ on the grace path.
 
 from __future__ import annotations
 
-import hashlib
-import logging
 import unittest
 from datetime import timedelta
 from unittest import mock
 
 from django.core.cache import cache
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -296,7 +294,7 @@ class TokenAuthBackendGracePeriodTests(TestCase):
         )
         plain = _generate_token_plaintext()
         now = timezone.now()
-        token_row = MigrationCloudAPIToken.objects.create(
+        MigrationCloudAPIToken.objects.create(
             user=self.user,
             token_hash=_hash_token(plain),
             name="grace",
@@ -383,9 +381,6 @@ class WebhookQuotaDispatchTests(TestCase):
 
     def test_delivery_deferred_when_quota_exhausted(self):
         # Saturate the tenant bucket BEFORE dispatch runs.
-        from apps.migration_cloud.api.rate_limiting import (
-            default_tenant_rate_limiter,
-        )
         # Use a tight limiter for the test by monkeypatching the module-level
         # default — we own the singleton.
         from apps.migration_cloud.api import rate_limiting
@@ -413,7 +408,7 @@ class WebhookQuotaDispatchTests(TestCase):
     def test_delivery_attempted_when_quota_ok(self):
         from apps.migration_cloud.api import rate_limiting
         loose = rate_limiting.TenantRateLimiter(hour_quota=1000, soft_limit=800)
-        row = self._make_delivery()
+        self._make_delivery()
         with mock.patch.object(rate_limiting, "default_tenant_rate_limiter", loose), \
              mock.patch(
                  "apps.migration_cloud.api.webhook_dispatch._deliver_one",

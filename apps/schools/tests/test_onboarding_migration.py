@@ -17,18 +17,15 @@ Covers the critical paths so the wave is verifiable end-to-end:
 
 from __future__ import annotations
 
-import uuid
 from datetime import timedelta
-from unittest import mock
 
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.schools.models import School, SignupVerification
 from apps.schools.onboarding_vendors import (
-    DOMAINS_BY_SLUG,
     ONBOARDING_DATA_DOMAINS,
     ONBOARDING_VENDORS,
     VENDORS_BY_SLUG,

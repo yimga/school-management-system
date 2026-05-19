@@ -32,8 +32,6 @@ Coverage matrix (~14 tests):
 from __future__ import annotations
 
 import io
-import logging
-import uuid
 from unittest import mock
 
 from django.core.management import call_command

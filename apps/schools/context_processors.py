@@ -43,6 +43,31 @@ def operator_surface_ia_context(request):
         }
 
 
+def dashboard_topology_context(request):
+    """Expose current dashboard tier for shells, nav, and widget boundaries."""
+    try:
+        from apps.schools.dashboard_rbac import classify_dashboard_tier
+
+        tier = classify_dashboard_tier(request)
+        return {
+            "RMC_DASHBOARD_TIER": tier,
+            "RMC_DASHBOARD_IS_OPERATIONAL": tier in {
+                "platform_super",
+                "tenant_super",
+            },
+            "RMC_DASHBOARD_IS_CONFIGURATION": tier in {
+                "platform_config",
+                "tenant_config",
+            },
+        }
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return {
+            "RMC_DASHBOARD_TIER": None,
+            "RMC_DASHBOARD_IS_OPERATIONAL": False,
+            "RMC_DASHBOARD_IS_CONFIGURATION": False,
+        }
+
+
 def conversion_enforcement_context(request):
     """
     Template toggles for strict conversion / single-primary UI (see CONVERSION_* settings).

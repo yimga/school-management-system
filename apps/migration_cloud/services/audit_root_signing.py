@@ -42,7 +42,7 @@ import hashlib
 import hmac
 import json
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 

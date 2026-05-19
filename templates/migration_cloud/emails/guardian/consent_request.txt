@@ -1,0 +1,26 @@
+Hello {{ guardian_first_name|default:"there" }},
+
+{{ school_name }} is moving its student-records system to RunMyCampus.
+Before this move begins, the school is asking for your consent.
+
+Please review and respond by visiting the link below:
+
+{{ consent_url }}
+
+This link is unique to you. Please do not share it.
+The link expires on {{ expires_at|date:"Y-m-d" }}.
+
+What you'll see when you open the link:
+
+  * A short summary of what data will be moved
+  * The full agreement text the school is using
+  * Two buttons: "I accept" and "I decline"
+
+We do not place tracking cookies on the consent page. The only
+information we record when you respond is your decision and your
+IP address at that moment, for legal record.
+
+If you have questions, contact your school's office, or write to
+privacy@runmycampus.com.
+
+— The RunMyCampus team

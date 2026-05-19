@@ -28,7 +28,7 @@ from typing import Any
 
 from django.conf import settings
 
-from .models import MigrationArtifact, MigrationBundle, MigrationIdMapping
+from .models import MigrationBundle, MigrationIdMapping
 
 logger = logging.getLogger(__name__)
 

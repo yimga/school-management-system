@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db import IntegrityError, DatabaseError
-from django.db.models import Q
 
 from apps.people.student_search import filter_students_by_search
 from apps.siteconfig.list_search import (

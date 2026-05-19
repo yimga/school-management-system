@@ -1,0 +1,42 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Abandon migration" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main">
+  <header class="mb-4">
+    <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to status" %}</a>
+    <h1 class="h2 mb-1 mt-2">{% trans "Abandon this migration?" %}</h1>
+    <p class="text-secondary mb-0">
+      {% trans "This stops the workflow before any data is extracted. You can start a new migration at any time." %}
+    </p>
+  </header>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post" action="{% url 'migration_intake_customer:migration-intake-abandon' id=intake.id %}">
+        {% csrf_token %}
+
+        <p class="mb-3">
+          <strong>{% trans "Vendor:" %}</strong> {{ intake.get_vendor_slug_display }}<br>
+          <strong>{% trans "Current state:" %}</strong> {{ intake.get_state_display }}<br>
+          <strong>{% trans "Requested:" %}</strong> {{ intake.requested_at|date:"Y-m-d H:i" }}
+        </p>
+
+        <div class="form-check mb-4">
+          <input type="checkbox" id="confirm_abandon" name="confirm" class="form-check-input" required>
+          <label class="form-check-label" for="confirm_abandon">
+            {% trans "I understand this cancels the request and any signed agreement remains on file." %}
+          </label>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-outline-secondary">{% trans "Keep migration" %}</a>
+          <button type="submit" class="btn btn-danger">{% trans "Abandon migration" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

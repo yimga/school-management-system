@@ -20,7 +20,6 @@ still has soft-quota signalling.
 from __future__ import annotations
 
 from datetime import date as _date
-from datetime import timedelta
 from typing import Any
 
 from django.db.models import Sum

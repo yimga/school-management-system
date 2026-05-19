@@ -2780,6 +2780,9 @@ html[data-bs-theme="dark"] .toast-undo {
 /* --- from templates/components/user_dropdown.html --- */
 .user-dropdown-wrapper {
   position: relative;
+  /* Keep expanded menus above sticky page chrome (interaction-integrity mandate). */
+  z-index: 1075;
+  overflow: visible;
 }
 
 .user-dropdown-trigger {

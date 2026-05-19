@@ -2,7 +2,7 @@
 {% load terminology_tags %}
 {# Enhanced user dropdown menu — i18n-wrapped 2026-05-12. #}
 {% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
-<div class="user-dropdown-wrapper">
+<div class="user-dropdown-wrapper" data-rmc-shell-viewport-safe="1">
   <div class="dropdown">
     <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
       <div class="user-avatar">
@@ -219,14 +219,14 @@
         <i class="bi bi-question-circle"></i> {% trans "Help & Support" %}
       </li>
       <li>
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}">
+        <a class="dropdown-item" href="{% url 'kb:kb_home' %}">
           <i class="bi bi-life-preserver"></i>
           <span>{% trans "Help Center" %}</span>
           <kbd>?</kbd>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}">
+        <a class="dropdown-item" href="{% url 'kb:kb_home' %}">
           <i class="bi bi-book"></i>
           <span>{% trans "Knowledge Base" %}</span>
         </a>
@@ -234,17 +234,35 @@
       <li>
         {% url 'manager_support_request' as manager_support_url %}
         {% url 'portal:support_request' as portal_support_url %}
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' and manager_support_url %}{{ manager_support_url }}{% elif portal_support_url %}{{ portal_support_url }}?type=support&next={{ request.path|urlencode }}{% else %}#{% endif %}" title="{% trans 'Contact Support' %}">
+        {% if request.public_host_kind == 'manager' and manager_support_url %}
+        <a class="dropdown-item" href="{{ manager_support_url }}" title="{% trans 'Contact Support' %}">
           <i class="bi bi-envelope"></i>
           <span>{% trans "Contact Support" %}</span>
         </a>
+        {% elif portal_support_url %}
+        <a class="dropdown-item" href="{{ portal_support_url }}?type=support&amp;next={{ request.path|urlencode }}" title="{% trans 'Contact Support' %}">
+          <i class="bi bi-envelope"></i>
+          <span>{% trans "Contact Support" %}</span>
+        </a>
+        {% else %}
+        <span class="dropdown-item text-muted" data-rmc-dead-link-allow="support-route-unconfigured">{% trans "Contact Support" %} <small>({% trans "unavailable" %})</small></span>
+        {% endif %}
       </li>
       <li>
         {% url 'manager_feedback' as manager_feedback_url %}
-        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' and manager_feedback_url %}{{ manager_feedback_url }}{% elif portal_support_url %}{{ portal_support_url }}?type=feedback&next={{ request.path|urlencode }}{% else %}#{% endif %}" title="{% trans 'Send Feedback' %}">
+        {% if request.public_host_kind == 'manager' and manager_feedback_url %}
+        <a class="dropdown-item" href="{{ manager_feedback_url }}" title="{% trans 'Send Feedback' %}">
           <i class="bi bi-chat-left-text"></i>
           <span>{% trans "Send Feedback" %}</span>
         </a>
+        {% elif portal_support_url %}
+        <a class="dropdown-item" href="{{ portal_support_url }}?type=feedback&amp;next={{ request.path|urlencode }}" title="{% trans 'Send Feedback' %}">
+          <i class="bi bi-chat-left-text"></i>
+          <span>{% trans "Send Feedback" %}</span>
+        </a>
+        {% else %}
+        <span class="dropdown-item text-muted" data-rmc-dead-link-allow="feedback-route-unconfigured">{% trans "Send Feedback" %} <small>({% trans "unavailable" %})</small></span>
+        {% endif %}
       </li>
       <li>
         {% comment %} v2.6 (2026-05-12): keyboard shortcut cheat sheet trigger. The same
@@ -279,7 +297,7 @@ JSON data island so the inline executable script can be removed
   "profileUrl": "{% url 'accounts:user_profile' %}",
   "preferencesUrl": "{% url 'siteconfig:user_preferences' %}",
   "logoutUrl": "{% url 'accounts:logout' %}",
-  "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"
+  "helpUrl": "{% url 'kb:kb_home' %}"
 }</script>
 <script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
 <script src="{% static 'js/rmc-theme-toggle.js' %}"></script>

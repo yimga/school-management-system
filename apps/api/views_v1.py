@@ -479,7 +479,7 @@ class MeSwitchSchoolView(View):
         school_id = (data.get("school_id") or data.get("tenant_id") or "").strip()
         if not school_id:
             return JsonResponse({"error": "school_id required"}, status=400)
-        from apps.schools.models import School, SchoolMembership
+        from apps.schools.models import School
 
         school = School.objects.filter(id=school_id, is_active=True).first()
         if not school:

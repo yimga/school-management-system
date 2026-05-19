@@ -22,12 +22,12 @@ from .base import (
 
 # Import per-vendor modules for their register() side effects. Order is
 # stable so the registry is deterministic across processes.
-from . import powerschool  # noqa: F401  PBKDF2-SHA512
-from . import blackbaud  # noqa: F401  bcrypt
-from . import veracross  # noqa: F401  bcrypt (distinct slug)
-from . import alma  # noqa: F401  bcrypt (distinct slug)
-from . import facts  # noqa: F401  bcrypt OR PBKDF2-SHA1 auto-detect
-from . import skyward  # noqa: F401  bcrypt OR salted SHA-512 auto-detect
+from . import powerschool  # noqa: F401 -- PBKDF2-SHA512
+from . import blackbaud  # noqa: F401 -- bcrypt
+from . import veracross  # noqa: F401 -- bcrypt (distinct slug)
+from . import alma  # noqa: F401 -- bcrypt (distinct slug)
+from . import facts  # noqa: F401 -- bcrypt OR PBKDF2-SHA1 auto-detect
+from . import skyward  # noqa: F401 -- bcrypt OR salted SHA-512 auto-detect
 
 
 def is_supported_algorithm(algorithm: str) -> bool:

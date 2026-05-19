@@ -36,9 +36,7 @@ import time
 import urllib.error
 import urllib.request
 from typing import Any
-from urllib.parse import urlencode
 
-from apps.integrations_marketplace.connector_registry import get_connector
 from apps.observability.tracing import (
     finish_transaction,
     set_tags,

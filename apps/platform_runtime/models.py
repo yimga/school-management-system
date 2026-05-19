@@ -1152,6 +1152,15 @@ class PlatformOperatorSuperDashboardLink(models.Model):
         default="super_dashboard",
         help_text="e.g. super_dashboard, admin, runbook",
     )
+    surface_tier = models.CharField(
+        max_length=16,
+        choices=(
+            ("operational", "Operational (day-to-day)"),
+            ("configuration", "Configuration (deep system state)"),
+        ),
+        default="operational",
+        help_text="Operational links surface on /super/ home; configuration links belong in /configuration/ or /admin/.",
+    )
     sort_order = models.PositiveSmallIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 

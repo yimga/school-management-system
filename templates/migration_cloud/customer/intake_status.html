@@ -1,0 +1,101 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Migration status" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block extrastyle %}
+  {% if not sse_enabled and not intake.is_terminal %}
+    {# No-SSE fallback: refresh every 30s so terminal-state pages don't reload. #}
+    <meta http-equiv="refresh" content="30">
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main" data-rmc-intake-status="{{ intake.id }}">
+  <header class="mb-4">
+    <a href="{% url 'migration_intake_customer:migration-intake-list' %}" class="text-secondary text-decoration-none">{% trans "← All migrations" %}</a>
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mt-2">
+      <div>
+        <h1 class="h2 mb-1">{% trans "Migration status" %}</h1>
+        <p class="text-secondary mb-0">
+          {% blocktrans with vendor=intake.get_vendor_slug_display state_label=intake.get_state_display %}{{ vendor }} migration — currently: {{ state_label }}{% endblocktrans %}
+        </p>
+      </div>
+      {% if can_abandon %}
+        <a href="{% url 'migration_intake_customer:migration-intake-abandon' id=intake.id %}" class="btn btn-outline-danger btn-sm">{% trans "Abandon migration" %}</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if next_action %}
+    <div class="alert alert-info" role="status" data-rmc-banner="next-action">
+      <strong>{% trans "Next:" %}</strong> {{ next_action }}
+      {% if intake.state == 'maa-pending-counsel' %}
+        <a href="{% url 'migration_intake_customer:migration-intake-sign-maa' id=intake.id %}" class="btn btn-sm btn-primary ms-2">{% trans "Sign agreement" %}</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Progress" %}</h2>
+      {% include "migration_cloud/customer/_progress_bar.html" %}
+    </div>
+  </section>
+
+  <div class="row">
+    <div class="col-md-7">
+      <section class="card mb-4">
+        <div class="card-body">
+          <h2 class="h5 mb-3">{% trans "Activity timeline" %}</h2>
+          {% if audit_events %}
+            <ul class="list-group list-group-flush">
+              {% for event in audit_events %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-baseline">
+                    <strong>{{ event.get_event_type_display }}</strong>
+                    <small class="text-secondary">{{ event.created_at|date:"Y-m-d H:i" }}</small>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-secondary mb-0">{% trans "No activity recorded yet." %}</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+    <div class="col-md-5">
+      <section class="card mb-4">
+        <div class="card-body">
+          <h2 class="h5 mb-3">{% trans "Notes from the RunMyCampus team" %}</h2>
+          {% if intake.notes_from_runmycampus_team %}
+            <p class="mb-0" style="white-space: pre-wrap;">{{ intake.notes_from_runmycampus_team }}</p>
+          {% else %}
+            <p class="text-secondary mb-0">{% trans "No notes posted yet." %}</p>
+          {% endif %}
+        </div>
+      </section>
+
+      {% if intake.requested_at %}
+        <dl class="row small text-secondary">
+          <dt class="col-sm-5">{% trans "Requested" %}</dt>
+          <dd class="col-sm-7">{{ intake.requested_at|date:"Y-m-d H:i" }}</dd>
+          {% if intake.started_at %}
+            <dt class="col-sm-5">{% trans "Extraction started" %}</dt>
+            <dd class="col-sm-7">{{ intake.started_at|date:"Y-m-d H:i" }}</dd>
+          {% endif %}
+          {% if intake.completed_at %}
+            <dt class="col-sm-5">{% trans "Completed" %}</dt>
+            <dd class="col-sm-7">{{ intake.completed_at|date:"Y-m-d H:i" }}</dd>
+          {% endif %}
+        </dl>
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+{% if sse_enabled and not intake.is_terminal %}
+<script src="" data-rmc-sse-stream="{% url 'migration_intake_customer:migration-intake-status-stream' id=intake.id %}" data-rmc-sse-bind="[data-rmc-intake-status]"></script>
+{% endif %}
+{% endblock %}

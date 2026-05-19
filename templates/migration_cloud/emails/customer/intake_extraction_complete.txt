@@ -1,0 +1,14 @@
+{% load i18n %}{% trans "Migration extraction complete" %}
+
+{% blocktrans with school=school_name vendor=vendor_label %}The extraction from {{ vendor }} for {{ school }} is complete. We're now running validation passes against the extracted data; you'll get another email when validation finishes and the data is ready for your approval to promote into production.{% endblocktrans %}
+
+{% trans "Next action:" %} {{ next_action }}
+
+{% trans "Open the status page:" %}
+{{ status_url_path }}
+
+{% trans "Thank you," %}
+{% trans "The RunMyCampus team" %}
+
+--
+{% trans "Intake reference:" %} {{ intake_id }}

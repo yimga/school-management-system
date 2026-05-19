@@ -60,6 +60,7 @@ import hashlib
 import hmac
 import json
 import logging
+from datetime import date
 from datetime import timedelta
 
 from django.conf import settings
@@ -111,15 +112,41 @@ LEGACY_HEADER_DEPRECATION_NOTICE = (
 SIGNATURE_FORMAT_VERSION = "v1"
 
 
+def _legacy_header_deprecation_cutover_date() -> date:
+    """Return the configured legacy-header removal date."""
+    raw = getattr(
+        settings,
+        "MIGRATION_CLOUD_LEGACY_HEADER_DEPRECATION_DATE",
+        LEGACY_HEADER_DEPRECATION_DATE,
+    )
+    try:
+        return date.fromisoformat(str(raw))
+    except ValueError:
+        logger.warning(
+            "migration_cloud_webhook_bad_legacy_header_cutover_date value=%s",
+            raw,
+        )
+        return date.fromisoformat(LEGACY_HEADER_DEPRECATION_DATE)
+
+
+def _legacy_header_window_active() -> bool:
+    """Return True through the announced legacy-header migration window."""
+    return timezone.localdate() <= _legacy_header_deprecation_cutover_date()
+
+
 def _emit_legacy_headers_enabled() -> bool:
     """Return True iff the dispatcher should emit the legacy header family.
 
     Backwards-compat default: ON. Operators can flip the env var
     ``RMC_EMIT_LEGACY_WEBHOOK_HEADERS=0`` (or set
     ``settings.MIGRATION_CLOUD_EMIT_LEGACY_HEADERS = False``) once their
-    receivers have migrated to the new ``X-RunMyCampus-*`` family.
+    receivers have migrated to the new ``X-RunMyCampus-*`` family. After
+    the announced cutover date the legacy family is suppressed even if
+    the compatibility setting is still true.
     """
-    return bool(getattr(settings, "MIGRATION_CLOUD_EMIT_LEGACY_HEADERS", True))
+    return bool(
+        getattr(settings, "MIGRATION_CLOUD_EMIT_LEGACY_HEADERS", True)
+    ) and _legacy_header_window_active()
 
 
 def _event_class_matches(subscription, event_type: str) -> bool:
@@ -175,10 +202,9 @@ def _build_outbound_headers(
 ) -> dict:
     """Build the outbound HTTP header dict for one delivery.
 
-    Always emits the new ``X-RunMyCampus-*`` family plus the deprecation
-    notice header. Co-emits the legacy ``X-Migration-Cloud-*`` family iff
-    ``emit_legacy`` is True (operator-controlled, default True during the
-    90-day window).
+    Always emits the new ``X-RunMyCampus-*`` family. Emits the
+    deprecation notice header only during the migration window. Co-emits
+    the legacy ``X-Migration-Cloud-*`` family iff ``emit_legacy`` is True.
     """
     headers = {
         "Content-Type": "application/json",
@@ -188,12 +214,13 @@ def _build_outbound_headers(
         "X-RunMyCampus-Version": SIGNATURE_FORMAT_VERSION,
         "X-RunMyCampus-Event": event_type,
         "X-RunMyCampus-Delivery": str(delivery_id),
-        # Deprecation pointer — always present during the dual-emit
-        # window so receivers can detect server-side migration progress.
-        "X-RunMyCampus-Header-Deprecation": LEGACY_HEADER_DEPRECATION_NOTICE,
         "User-Agent": "RunMyCampus-MigrationCloud/3.35",
     }
-    if emit_legacy:
+    if _legacy_header_window_active():
+        headers["X-RunMyCampus-Header-Deprecation"] = (
+            LEGACY_HEADER_DEPRECATION_NOTICE
+        )
+    if emit_legacy and _legacy_header_window_active():
         # Legacy family — byte-identical signature, will be removed
         # after LEGACY_HEADER_DEPRECATION_DATE.
         headers["X-Migration-Cloud-Signature"] = signature

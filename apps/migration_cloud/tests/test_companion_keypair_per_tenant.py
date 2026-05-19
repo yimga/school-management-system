@@ -253,7 +253,7 @@ class NoSecretsLoggedPerTenantTests(TestCase):
         with self.assertLogs(self.LOG_NAME, level=logging.INFO) as cm:
             companion_keypair.rotate_active_keypair(self.tenant)
 
-        combined = "\n".join(cm.output)
+        "\n".join(cm.output)
         # Forbid contiguous 40+-char base64-looking blobs (a 32-byte
         # base64 private key is 44 chars).
         for line in cm.output:

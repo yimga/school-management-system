@@ -1,0 +1,47 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Migration consent" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<main class="container py-4" id="main" data-rmc-guardian-consent>
+  <header class="mb-4">
+    <h1 class="h2 mb-1">{% trans "Please review and respond" %}</h1>
+    <p class="text-secondary mb-0">
+      {% blocktrans %}Your school is moving its records into RunMyCampus and is asking for your consent before doing so. Please take a moment to read the agreement below and choose Accept or Decline.{% endblocktrans %}
+    </p>
+  </header>
+
+  <div class="alert alert-secondary" role="status">
+    <strong>{% trans "Privacy notice:" %}</strong>
+    {% blocktrans %}When you choose Accept or Decline, we record your decision along with your IP address and browser type at that moment, for legal record. We do not place tracking cookies on your device for this page, and we do not share your information with third parties.{% endblocktrans %}
+  </div>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      {{ consent_text_body|safe }}
+    </div>
+  </section>
+
+  <section class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Your decision" %}</h2>
+      <form method="post"
+            action="{% url 'migration_guardian_consent:guardian-consent-accept' raw_token=raw_token %}"
+            class="d-inline-block me-2">
+        <input type="hidden" name="confirm" value="on">
+        <button type="submit" class="btn btn-primary">{% trans "I accept" %}</button>
+      </form>
+      <form method="post"
+            action="{% url 'migration_guardian_consent:guardian-consent-decline' raw_token=raw_token %}"
+            class="d-inline-block">
+        <input type="hidden" name="confirm" value="on">
+        <button type="submit" class="btn btn-outline-danger">{% trans "I decline" %}</button>
+      </form>
+      <p class="text-muted small mt-3 mb-0">
+        {% trans "Consent text version" %}: <code>{{ consent_text_version }}</code>
+      </p>
+    </div>
+  </section>
+</main>
+{% endblock %}

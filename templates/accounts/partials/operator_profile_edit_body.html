@@ -1,0 +1,29 @@
+{% load i18n %}
+<div class="container-fluid py-3" data-rmc-page="operator-profile-edit">
+  <div class="row justify-content-center">
+    <div class="col-lg-7 col-xl-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="h4 mb-3">{% trans "Edit profile" %}</h1>
+          <form method="post" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger" role="alert" aria-live="polite">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {% include "components/form_field.html" with field=form.first_name %}
+            {% include "components/form_field.html" with field=form.last_name %}
+            {% include "components/form_field.html" with field=form.email %}
+            {% include "components/form_field.html" with field=form.profile_photo %}
+            {% if request.user.profile_photo %}
+              <div class="mt-n2 mb-3">
+                <img src="{{ request.user.profile_photo.url }}" alt="{% trans 'Current profile photo' %}" style="max-height:80px;border-radius:8px;">
+              </div>
+            {% endif %}
+            {% url 'accounts:user_profile' as cancel_url %}
+            {% include "components/form_actions.html" with submit_label=_("Save changes") cancel_url=cancel_url %}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

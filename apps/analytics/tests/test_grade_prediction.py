@@ -17,7 +17,6 @@ from apps.analytics.ml.grade_prediction_features import GradePredictionFeatures
 from apps.analytics.ml.grade_prediction_model import (
     _heuristic_predict,
     _model_path,
-    predict_grade,
 )
 from apps.analytics.models import (
     GradePrediction,

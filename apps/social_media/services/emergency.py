@@ -6,10 +6,8 @@ import heapq
 import logging
 import threading
 import time
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
-from django.utils import timezone
 
 from apps.social_media.models import SocialPostOutbox, SocialPostPriority
 from apps.social_media.services import publisher

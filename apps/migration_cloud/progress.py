@@ -25,6 +25,29 @@ _STANDARD_STAGES = (
 )
 
 
+def _stage_graph(stages: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return an explicit graph shape for dashboard and API consumers."""
+    nodes = [
+        {
+            "id": stage["name"],
+            "label": stage["name"].replace("_", " ").title(),
+            "status": stage["status"],
+            "pct": stage["pct"],
+            "rows": stage.get("rows", 0),
+        }
+        for stage in stages
+    ]
+    edges = [
+        {
+            "from": _STANDARD_STAGES[idx],
+            "to": _STANDARD_STAGES[idx + 1],
+            "label": "then",
+        }
+        for idx in range(len(_STANDARD_STAGES) - 1)
+    ]
+    return {"nodes": nodes, "edges": edges}
+
+
 def emit(
     *,
     bundle_id: int,
@@ -94,8 +117,10 @@ def refresh_snapshot(*, bundle: MigrationBundle) -> dict[str, Any]:
             if ev.detail.get("rows"):
                 by_stage[s]["rows"] = max(by_stage[s].get("rows", 0), int(ev.detail["rows"]))
 
+    stages = [by_stage[name] for name in _STANDARD_STAGES]
     snapshot = {
-        "stages": [by_stage[name] for name in _STANDARD_STAGES],
+        "stages": stages,
+        "graph": _stage_graph(stages),
         "updated_at": timezone.now().isoformat(),
         "current_status": bundle.status,
     }

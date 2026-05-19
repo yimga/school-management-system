@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T14:22:37.783999+00:00",
+  "generated_at": "2026-05-19T17:25:19.163572+00:00",
   "verdict": "SIX_PILLAR_GLOBAL_DOMINANCE_PASS",
   "passed": 10,
   "failed": 0,
@@ -51,7 +51,7 @@
       "pillar": "AWS_SHOPIFY_SALESFORCE_LINUX_GOOGLE",
       "gate": "verify_five_pillar_platform_completion",
       "status": "PASS",
-      "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (24 checks)"
+      "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (43 checks)"
     },
     {
       "pillar": "GOOGLE_AI_ENGINE",

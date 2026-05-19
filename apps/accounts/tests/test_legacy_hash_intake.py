@@ -15,7 +15,6 @@ Covers ``apps.migration_cloud.services.legacy_hash_intake``:
 """
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model

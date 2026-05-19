@@ -28,7 +28,6 @@ from apps.schools.onboarding_vendors import (
     DOMAINS_BY_SLUG,
     ONBOARDING_DATA_DOMAINS,
     ONBOARDING_VENDORS,
-    VENDORS_BY_SLUG,
     estimate_minutes,
     resolve_vendor,
 )

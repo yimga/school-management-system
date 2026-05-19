@@ -8,7 +8,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 from django.utils import timezone
 
 from apps.marketplace import (
@@ -21,7 +21,6 @@ from apps.marketplace import (
 from apps.marketplace.models import (
     AppInstallation,
     AppRating,
-    AppVersion,
     MarketplaceApp,
     MarketplaceListing,
     PlatformMarketplaceEarning,

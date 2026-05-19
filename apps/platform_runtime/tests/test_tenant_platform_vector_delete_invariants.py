@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import uuid
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
 
 from apps.compliance.admin_audit import AuditLogAdmin

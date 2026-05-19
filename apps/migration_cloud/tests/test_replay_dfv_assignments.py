@@ -11,7 +11,6 @@ Combines:
 from __future__ import annotations
 
 import uuid
-from decimal import Decimal
 from io import StringIO
 
 from django.core.management import call_command
@@ -242,7 +241,6 @@ class ReplayBundleFilterTests(TestCase):
     """``--bundle`` filter narrows scope to one bundle id."""
 
     def test_bundle_filter_applied(self) -> None:
-        from apps.metadata.models import DynamicFieldValue
         from apps.schoolops.models import TransportAssignment
         ctx = _setup_tenant_with_dfv_transport(with_catalog=True)
         # Annotate the DFV payload with a bundle_id so filter matches.

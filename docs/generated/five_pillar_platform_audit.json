@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T14:20:22.040152+00:00",
+  "generated_at": "2026-05-19T18:03:46.929787+00:00",
   "verdict": "FIVE_PILLAR_PLATFORM_PASS",
-  "passed": 24,
+  "passed": 43,
   "failed": 0,
   "rows": [
     {
@@ -37,7 +37,7 @@
       "check_id": "bola_matrix",
       "description": "BOLA matrix >= 30 HTTP cases",
       "status": "PASS",
-      "proof": "34 tests"
+      "proof": "35 tests"
     },
     {
       "pillar": "AWS",
@@ -45,6 +45,13 @@
       "description": "No legacy tenant:host cache keys",
       "status": "PASS",
       "proof": "verify_tenant_resolution_cache_keys: OK"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "internal_tenant_slug_guards",
+      "description": "Internal ?tenant= APIs carry membership guards",
+      "status": "PASS",
+      "proof": "verify_internal_tenant_slug_guards: OK"
     },
     {
       "pillar": "AWS",
@@ -75,6 +82,27 @@
       "proof": "views_payments.py"
     },
     {
+      "pillar": "Shopify",
+      "check_id": "webhook_atomic_claim",
+      "description": "Webhook claim inside transaction.atomic",
+      "status": "PASS",
+      "proof": "webhooks/claim.py"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "payment_uniq_ext_ref",
+      "description": "Unique (invoice, external_reference) when ext ref set",
+      "status": "PASS",
+      "proof": "Payment.Meta.constraints"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "tenant_api_guards",
+      "description": "school_id query param membership guard module",
+      "status": "PASS",
+      "proof": "tenant_api_guards.py"
+    },
+    {
       "pillar": "Salesforce",
       "check_id": "event_dedup",
       "description": "Domain event dispatch dedup + depth guard",
@@ -103,6 +131,13 @@
       "proof": "automation/apps.py"
     },
     {
+      "pillar": "Salesforce",
+      "check_id": "outbox_school_prefetch",
+      "description": "Outbox batch prefetches schools for domain events",
+      "status": "PASS",
+      "proof": "events/tasks.py"
+    },
+    {
       "pillar": "Linux",
       "check_id": "extension_manifest",
       "description": "Marketplace install validates extension manifest",
@@ -115,6 +150,27 @@
       "description": "Extension registry sandbox validator",
       "status": "PASS",
       "proof": "extension_registry.py"
+    },
+    {
+      "pillar": "Linux",
+      "check_id": "install_hook_delivery",
+      "description": "Install hooks dispatch via Celery/inline delivery",
+      "status": "PASS",
+      "proof": "install_hook_delivery.py"
+    },
+    {
+      "pillar": "Linux",
+      "check_id": "workflow_hook_registry",
+      "description": "Manifest workflow_hooks runtime registry",
+      "status": "PASS",
+      "proof": "workflow_hook_registry.py"
+    },
+    {
+      "pillar": "Linux",
+      "check_id": "governor_workflow_enforced",
+      "description": "Workflow governor limit enforced in run_workflow",
+      "status": "PASS",
+      "proof": "workflow_engine.run_workflow"
     },
     {
       "pillar": "Google",
@@ -160,6 +216,83 @@
     },
     {
       "pillar": "Google",
+      "check_id": "search_index_gin",
+      "description": "PostgreSQL GIN index on student search_index",
+      "status": "PASS",
+      "proof": "0052_studentprofile_search_index_gin"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "global_search_fts_students",
+      "description": "Global search uses filter_students_by_search for students",
+      "status": "PASS",
+      "proof": "search_api.py"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "ai_invoke_pii_redact",
+      "description": "invoke_with_request redacts PII heuristics before gateway",
+      "status": "PASS",
+      "proof": "ai_helpers.invoke_with_request"
+    },
+    {
+      "pillar": "PROOF",
+      "check_id": "seed_command",
+      "description": "seed_five_pillar_proof management command",
+      "status": "PASS",
+      "proof": "seed_five_pillar_proof"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "migration_0063",
+      "description": "Payment invoice+ext_ref unique migration",
+      "status": "PASS",
+      "proof": "0063_payment_uniq_invoice_ext_ref"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "migration_0064",
+      "description": "WebhookLog provider+bucket unique migration",
+      "status": "PASS",
+      "proof": "0064_webhooklog_uniq_provider_bucket"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "webhook_concurrent_test",
+      "description": "Parallel webhook claim race test",
+      "status": "PASS",
+      "proof": "test_webhook_claim_concurrent"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "invoice_serializer_amount_str",
+      "description": "Invoice/Payment serializers use amount_str wire format",
+      "status": "PASS",
+      "proof": "InvoiceSerializer.to_representation"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "json_decimal_api",
+      "description": "Finance invoice summary uses amount_str wire format",
+      "status": "PASS",
+      "proof": "InvoiceViewSet.summary"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "json_decimal_analytics_api",
+      "description": "Financial analytics API uses amount_str (no float money)",
+      "status": "PASS",
+      "proof": "FinancialAnalyticsAPI.get"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "json_decimal_module_tests",
+      "description": "json_decimal unit tests present",
+      "status": "PASS",
+      "proof": "test_json_decimal.py"
+    },
+    {
+      "pillar": "Google",
       "check_id": "search_adoption_lint",
       "description": "Hot list views use search helpers",
       "status": "PASS",
@@ -170,7 +303,7 @@
       "check_id": "django_tests",
       "description": "Pillar Django test subset green",
       "status": "PASS",
-      "proof": "_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- trigger_dispatcher: depth limit trigger=payment_success depth=9\n........\n----------------------------------------------------------------------\nRan 37 tests in 4.619s\n\nOK\nPreserving test database for alias 'default'..."
+      "proof": "guage=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- trigger_dispatcher: depth limit trigger=payment_success depth=9\n............\n----------------------------------------------------------------------\nRan 56 tests in 2.633s\n\nOK\nPreserving test database for alias 'default'..."
     }
   ]
 }

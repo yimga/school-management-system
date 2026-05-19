@@ -32,7 +32,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import timedelta
 from typing import Any
 
 from django.core.management.base import BaseCommand

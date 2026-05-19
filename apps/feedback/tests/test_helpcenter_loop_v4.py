@@ -138,7 +138,7 @@ class KBRankerTests(TestCase):
         from apps.portal.models_kb import KBArticle, KBCategory
 
         cat = KBCategory.objects.create(name="General", slug="general")
-        a1 = KBArticle.objects.create(
+        KBArticle.objects.create(
             category=cat,
             title="Payments overview",
             slug="payments-overview",
@@ -146,7 +146,7 @@ class KBRankerTests(TestCase):
             content="Stripe and direct bank.",
             status="PUBLISHED",
         )
-        a2 = KBArticle.objects.create(
+        KBArticle.objects.create(
             category=cat,
             title="Refund policy",
             slug="refund-policy",
@@ -154,7 +154,7 @@ class KBRankerTests(TestCase):
             content="payments payments payments payments",
             status="PUBLISHED",
         )
-        a3 = KBArticle.objects.create(
+        KBArticle.objects.create(
             category=cat,
             title="Unrelated",
             slug="unrelated",

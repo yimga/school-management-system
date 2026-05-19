@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from apps.siteconfig.contrast_guard import remediate_brand_hex_on_background
 from apps.siteconfig.permission_matrix_simulator import simulate_role_capabilities
-from apps.siteconfig.tenant_diagnostics import compute_adoption_dimension, run_tenant_diagnostics
+from apps.siteconfig.tenant_diagnostics import compute_adoption_dimension
 
 
 class ContrastRemediateTests(TestCase):

@@ -1,0 +1,19 @@
+{% load i18n %}{% trans "We received your migration request" %}
+
+{% blocktrans with school=school_name vendor=vendor_label %}Hello from RunMyCampus,
+
+We've recorded the migration intake from {{ vendor }} for {{ school }}. The next step is to sign the Migration Authorization Agreement so we can begin extraction.{% endblocktrans %}
+
+{% trans "Next action:" %} {{ next_action }}
+
+{% trans "Open the status page:" %}
+{{ status_url_path }}
+
+{% trans "If you have questions, reply to this email or write to partner-success@runmycampus.com." %}
+
+{% trans "Thank you," %}
+{% trans "The RunMyCampus team" %}
+
+--
+{% trans "This is a transactional email tied to your migration intake." %}
+{% trans "Intake reference:" %} {{ intake_id }}

@@ -19,8 +19,12 @@ from . import (
     companion_receiver,
     views,
     views_audit_admin,
+    views_command_center,
+    views_dsar_admin,
     views_health,
     views_maa_promotion,
+    views_smoke_history,
+    views_smoke_trigger,
     views_token_admin,
     views_webhook_admin,
 )
@@ -108,4 +112,11 @@ urlpatterns = [
     # relative path under the portal mount; both shells render identically
     # because the view does not read per-shell tenant scope.
     path("health/", views_health.MigrationCloudHealthView.as_view(), name="migration_cloud_health"),  # rbac-allow: super-staff-migration-cloud-health-status
+    # v3.40.0 Agent 6 — Migration Cloud Command Center (8-card operator dashboard).
+    path("command-center/", views_command_center.MigrationCloudCommandCenterView.as_view(), name="migration_cloud_command_center"),  # rbac-allow: super-staff-migration-cloud-command-center
+    # v3.40.0 Agent 14 — "Run Smoke Now" operator trigger (form + Celery dispatch).
+    path("smoke/trigger/", views_smoke_trigger.SmokeRunTriggerView.as_view(), name="smoke_run_trigger"),  # rbac-allow: super-staff-migration-cloud-smoke-on-demand-trigger
+    # v3.40.0 Agent 13 — DSAR runbook recorder + smoke run history archive view.
+    path("dsar/runbook/", views_dsar_admin.DSARRunbookView.as_view(), name="migration_cloud_dsar_runbook"),  # rbac-allow: super-staff-dsar-runbook-view-record
+    path("smoke/history/", views_smoke_history.SmokeRunHistoryView.as_view(), name="migration_cloud_smoke_history"),  # rbac-allow: super-staff-migration-cloud-smoke-history
 ]

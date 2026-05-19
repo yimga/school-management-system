@@ -24,7 +24,6 @@ from apps.schools.control_plane import (
     require_control_plane_access,
     user_has_control_plane_access,
 )
-from apps.schools.tenant_url import build_public_absolute_url
 from config.admin import platform_admin_site
 
 # Reuse main urlconf error handlers and Phase B legacy redirects.
@@ -32,11 +31,13 @@ from config.urls import (
     page_not_found as handler404_view,
     permission_denied as handler403_view,
     server_error as handler500_view,
+    service_unavailable as handler503_view,
 )
 
 handler403 = handler403_view
 handler404 = handler404_view
 handler500 = handler500_view
+handler503 = handler503_view
 
 
 def manager_home(request):
@@ -57,15 +58,22 @@ def manager_offline_sync_center(request):
 
 
 def manager_help(request):
-    return redirect(build_public_absolute_url(request, "/support/"))
+    """Operator help stays on the manager host (KB), not a cross-host public redirect."""
+    from django.urls import reverse
+
+    return redirect(reverse("kb:kb_home"))
 
 
 def manager_support_request(request):
-    return redirect("super:command_center")
+    from django.urls import reverse
+
+    return redirect(reverse("manager_feedback_loop"))
 
 
 def manager_feedback(request):
-    return redirect("super:command_center")
+    from django.urls import reverse
+
+    return redirect(reverse("manager_feedback_loop"))
 
 
 def manager_notifications(request):
@@ -217,11 +225,12 @@ def _subscription_plan_label(subscription: TenantSubscription) -> str:
 
 @require_control_plane_access
 def manager_search_api(request):
+    urlconf = getattr(request, "urlconf", None)
     query = (request.GET.get("q") or "").strip()
     if len(query) < 2:
         query_lower = query.lower()
         results = []
-        static_catalog = _manager_search_static_catalog()
+        static_catalog = _manager_search_static_catalog(urlconf)
         if not query_lower:
             # Empty query: show a broader intent strip (BR-02 / §8.0.4); include the full
             # static catalog so curated tails (e.g. Workflow simulator) are not truncated.
@@ -236,7 +245,7 @@ def manager_search_api(request):
     query_lower = query.lower()
     results: list[dict[str, object]] = []
 
-    static_catalog = _manager_search_static_catalog()
+    static_catalog = _manager_search_static_catalog(urlconf)
     for item in static_catalog:
         haystack = (
             f"{item['title']} {item['description']} {' '.join(item['meta'])}".lower()
@@ -252,7 +261,7 @@ def manager_search_api(request):
             {
                 "title": school.name,
                 "description": f"Tenant {school.slug}",
-                "url": f"{reverse('super:dashboard')}?tenant={school.slug}",
+                "url": f"{reverse('super:dashboard', urlconf=urlconf)}?tenant={school.slug}",
                 "type": "class",
                 "meta": [school.country_code or "Tenant"],
             }
@@ -271,7 +280,7 @@ def manager_search_api(request):
                 "description": incident.summary
                 or incident.source_system
                 or "Platform incident",
-                "url": reverse("platform_incidents_console"),
+                "url": reverse("platform_incidents_console", urlconf=urlconf),
                 "type": "alert",
                 "meta": [incident.status, incident.severity],
             }
@@ -294,7 +303,7 @@ def manager_search_api(request):
             {
                 "title": f"{label} subscription",
                 "description": f"{_subscription_plan_label(subscription)} - {subscription.status}",
-                "url": f"{reverse('super:billing_dashboard')}?tenant={tenant_slug}",
+                "url": f"{reverse('super:billing_dashboard', urlconf=urlconf)}?tenant={tenant_slug}",
                 "type": "invoice",
                 "meta": [subscription.status],
             }
@@ -303,174 +312,226 @@ def manager_search_api(request):
     return JsonResponse({"results": results[:12]})
 
 
-def _manager_search_static_catalog():
+def _manager_search_static_catalog(urlconf=None):
     # §8 Click compression: intents per CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL (≤3 clicks)
+    def url(name, **kwargs):
+        return reverse(name, urlconf=urlconf, kwargs=kwargs or None)
+
     return [
+        {
+            "title": "Migration Cloud",
+            "description": "Start migrations, inspect bundles, review health, audit chains, tokens, and webhooks.",
+            "url": url("super:migration_cloud"),
+            "type": "app",
+            "meta": ["Migration Cloud", "Imports", "Readiness"],
+        },
+        {
+            "title": "Start migration",
+            "description": "Create a Migration Cloud bundle from a vendor export or canonical template.",
+            "url": url("migration_cloud_super:bundle_new"),
+            "type": "app",
+            "meta": ["Migration Cloud", "Intake"],
+        },
+        {
+            "title": "Migration Cloud health",
+            "description": "Webhook, MAA, companion upload, keypair, sunset, and scanner readiness.",
+            "url": url("migration_cloud_super:migration_cloud_health"),
+            "type": "alert",
+            "meta": ["Migration Cloud", "Health"],
+        },
+        {
+            "title": "Public-to-Product matrix",
+            "description": "Verify public promises against product routes and proof surfaces.",
+            "url": url("manager_public_to_product_matrix"),
+            "type": "report",
+            "meta": ["Readiness", "Proof"],
+        },
+        {
+            "title": "Feature gap register",
+            "description": "Operator register for shipped features, proof routes, models, commands, and CI gates.",
+            "url": url("manager_feature_gap_register"),
+            "type": "report",
+            "meta": ["Readiness", "Feature gaps"],
+        },
+        {
+            "title": "Feedback loop",
+            "description": "Live usage, friction, feedback submissions, and AI-assistant adoption signals.",
+            "url": url("manager_feedback_loop"),
+            "type": "report",
+            "meta": ["Readiness", "Voice of customer"],
+        },
+        {
+            "title": "Lane-2 readiness",
+            "description": "PSP, SOC2 evidence, and pilot readiness scoreboard for external work.",
+            "url": url("manager_lane2_readiness"),
+            "type": "report",
+            "meta": ["Readiness", "PSP", "SOC2", "Pilots"],
+        },
         {
             "title": "Open report library",
             "description": "Report packs, letters, and report card builder hub.",
-            "url": f"{reverse('studio_os:output')}?pane=reports",
+            "url": f"{url('studio_os:output')}?pane=reports",
             "type": "report",
             "meta": ["Studio Output", "Report library"],
         },
         {
             "title": "Feature control",
             "description": "Feature flags and capabilities.",
-            "url": reverse("studio_os:control"),
+            "url": url("studio_os:control"),
             "type": "class",
             "meta": ["Studio Control", "Feature flags"],
         },
         {
             "title": "Launch checklist",
             "description": "Launch readiness and setup studio.",
-            "url": reverse("studio_os:launch"),
+            "url": url("studio_os:launch"),
             "type": "student",
             "meta": ["Studio Launch", "Setup"],
         },
         {
             "title": "Studio Output",
             "description": "Report library hub, document library, IDs, branding, policy.",
-            "url": f"{reverse('studio_os:output')}?pane=reports",
+            "url": f"{url('studio_os:output')}?pane=reports",
             "type": "report",
             "meta": ["Studio", "Reports"],
         },
         {
             "title": "Tenant Mission Control",
             "description": "Global tenant registry, readiness, and platform posture.",
-            "url": reverse("super:dashboard"),
+            "url": url("super:dashboard"),
             "type": "report",
             "meta": ["Control plane"],
         },
         {
             "title": "Schools list",
             "description": "Paginated tenant directory, sector filters, and links to tenant 360.",
-            "url": reverse("super:schools_list"),
+            "url": url("super:schools_list"),
             "type": "class",
             "meta": ["Control plane", "Tenants", "Directory"],
         },
         {
             "title": "Analytics overview",
             "description": "Fleet analytics, observability entry points, and chart reference patterns.",
-            "url": reverse("super:analytics_overview"),
+            "url": url("super:analytics_overview"),
             "type": "report",
             "meta": ["Control plane", "Analytics", "Observability"],
         },
         {
             "title": "Mission Queues",
             "description": "Approvals, incidents, provisioning breaches, and operator backlog.",
-            "url": reverse("super:command_center"),
+            "url": url("super:command_center"),
             "type": "class",
             "meta": ["Queues"],
         },
         {
             "title": "Platform Billing",
             "description": "Subscriptions, trials, and revenue exceptions.",
-            "url": reverse("super:billing_dashboard"),
+            "url": url("super:billing_dashboard"),
             "type": "invoice",
             "meta": ["Billing"],
         },
         {
             "title": "Marketplace Governance",
             "description": "Publishers, app review queue, kill switches, and revenue-share posture.",
-            "url": reverse("super:marketplace_governance"),
+            "url": url("super:marketplace_governance"),
             "type": "app",
             "meta": ["Marketplace"],
         },
         {
             "title": "Blueprint Marketplace",
             "description": "Apply policy packs (e.g. Cameroon Francophone, UAE MoE+IB) to a school.",
-            "url": reverse("super:blueprint_marketplace"),
+            "url": url("super:blueprint_marketplace"),
             "type": "app",
             "meta": ["Marketplace", "Phase 6"],
         },
         {
             "title": "App Catalog",
             "description": "Install approved marketplace apps for a school.",
-            "url": reverse("super:app_catalog"),
+            "url": url("super:app_catalog"),
             "type": "app",
             "meta": ["Marketplace", "Phase 6"],
         },
         {
             "title": "Platform Incidents",
             "description": "Operator incident console and escalation status.",
-            "url": reverse("platform_incidents_console"),
+            "url": url("platform_incidents_console"),
             "type": "alert",
             "meta": ["Observability"],
         },
         {
             "title": "Provision Tenant",
             "description": "Launch the tenant onboarding wizard.",
-            "url": reverse("super:create_school_wizard"),
+            "url": url("super:create_school_wizard"),
             "type": "student",
             "meta": ["Provisioning"],
         },
         {
             "title": "Geography (region packs)",
             "description": "Wedges 7–13 continent packs, compare US/CAN/GBR, Create school with pack.",
-            "url": reverse("super:geography"),
+            "url": url("super:geography"),
             "type": "class",
             "meta": ["Geography", "Region packs", "Wedges", "GTM"],
         },
         {
             "title": "Trust center",
             "description": "Security & trust hub; residency, compliance, audit export, platform events.",
-            "url": reverse("super:trust_center"),
+            "url": url("super:trust_center"),
             "type": "class",
             "meta": ["Trust", "Security", "Compliance"],
         },
         {
             "title": "Operator policy",
             "description": "Governance, break-glass, change classes, metrics and automation API pointers.",
-            "url": reverse("super:operator_policy"),
+            "url": url("super:operator_policy"),
             "type": "class",
             "meta": ["Policy", "Governance", "Control plane"],
         },
         {
             "title": "Backlog unlock center",
             "description": "Machine-evaluated gates and program tracks; refresh after merges or CI.",
-            "url": reverse("super:backlog_unlock_center"),
+            "url": url("super:backlog_unlock_center"),
             "type": "class",
             "meta": ["Backlog", "Gates", "CI"],
         },
         {
             "title": "Fleet governed changes",
             "description": "Cross-tenant change records and legal status transitions.",
-            "url": reverse("super:fleet_governed_changes"),
+            "url": url("super:fleet_governed_changes"),
             "type": "class",
             "meta": ["Fleet", "Governance", "Change"],
         },
         {
             "title": "Platform operator hub",
             "description": "Curated super URLs plus platform-admin changelists in one screen (single-pane entry).",
-            "url": reverse("super:platform_operator_hub"),
+            "url": url("super:platform_operator_hub"),
             "type": "class",
             "meta": ["Operator hub", "Super", "Platform admin"],
         },
         {
             "title": "Playbook operator hub",
             "description": "Migration playbook audit, execution log filters, and curated operator deep links.",
-            "url": reverse("super:playbook_operator_hub"),
+            "url": url("super:playbook_operator_hub"),
             "type": "class",
             "meta": ["Automation", "Playbooks", "Control plane"],
         },
         {
             "title": "Runtime truth hub",
             "description": "Read-only RuntimeDefaults payload preview and slim SiteSettings singleton.",
-            "url": reverse("super:runtime_truth_hub"),
+            "url": url("super:runtime_truth_hub"),
             "type": "class",
             "meta": ["Runtime", "Phase B", "Control plane"],
         },
         {
             "title": "Metadata & lineage hub",
             "description": "Entity catalog, governance search, lineage graph, feature control, and tenant runtime links.",
-            "url": reverse("siteconfig:metadata_operator_hub"),
+            "url": url("siteconfig:metadata_operator_hub"),
             "type": "class",
             "meta": ["Metadata", "Catalog", "Lineage", "Control plane"],
         },
         {
             "title": "Workflow simulator",
             "description": "Simulate workflow resolution for a school and role (control plane).",
-            "url": reverse("super:workflow_simulator"),
+            "url": url("super:workflow_simulator"),
             "type": "class",
             "meta": ["Workflows", "Control plane"],
         },
@@ -560,6 +621,14 @@ urlpatterns = [
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),
     ),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
+    path(
+        "super/migration/",
+        include(
+            ("apps.migration_cloud.urls", "migration_cloud_super"),
+            namespace="migration_cloud_super",
+        ),
+        {"shell": "super"},
+    ),
     path("sales/", include(("apps.sales.urls", "sales"), namespace="sales")),
     path(
         "siteconfig/",

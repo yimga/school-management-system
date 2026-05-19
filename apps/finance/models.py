@@ -821,6 +821,13 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ["-paid_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["invoice", "external_reference"],
+                condition=~models.Q(external_reference=""),
+                name="finance_payment_uniq_invoice_ext_ref",
+            ),
+        ]
 
     def clean(self):
         """Validate payment data before saving."""
@@ -2031,6 +2038,13 @@ class WebhookLog(models.Model):
             models.Index(fields=["status", "-created_at"]),
             models.Index(fields=["client_ip", "-created_at"]),
             models.Index(fields=["-created_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "idempotency_bucket"],
+                condition=~models.Q(idempotency_bucket=""),
+                name="finance_webhooklog_uniq_provider_bucket",
+            ),
         ]
 
     def __str__(self) -> str:

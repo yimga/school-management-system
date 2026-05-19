@@ -284,6 +284,11 @@ def invoke_with_request(
         else:
             resolved_task = task_type
         md = normalize_gateway_metadata(metadata, request=request, school=resolved_school)
+        if looks_like_pii(prompt, user_query) and md.get("content_sensitivity") != "low_pii_ok":
+            prompt = redact_pii(prompt)
+            if user_query:
+                user_query = redact_pii(user_query)
+            md["pii_redacted"] = True
         return gateway_invoke(
             resolved_task,
             prompt,

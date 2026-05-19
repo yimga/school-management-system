@@ -6,19 +6,17 @@ Covers feed boundary breach, platform vs tenant scope, and 429 cache fallback.
 
 from __future__ import annotations
 
-from datetime import timedelta
 from unittest.mock import Mock, patch
 
 from django.db import models
 from django.test import RequestFactory, SimpleTestCase, TestCase, tag
-from django.utils import timezone
 from rest_framework.test import force_authenticate
 
 from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership
 from apps.schools.rls_context import rls_bypass
 from apps.siteconfig.models import RegionConfig
-from apps.social_media.api_views import SocialFeedAPI, SocialPublishAPI
+from apps.social_media.api_views import SocialFeedAPI
 from apps.social_media.models import SocialMediaIntegration, SocialProvider
 from apps.social_media.scope import SocialTenantScopeError, assert_integration_access
 from apps.social_media.services import aggregator, providers, throttle

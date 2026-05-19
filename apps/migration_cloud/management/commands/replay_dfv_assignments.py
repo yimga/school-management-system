@@ -158,7 +158,7 @@ class Command(BaseCommand):
                         "skipped_already_promoted": 0,
                         "skipped_unresolved": 0,
                     }
-                    obj = _helpers.promote_one(
+                    _helpers.promote_one(
                         dfv=dfv,
                         tenant_id=tenant_for_row,
                         apply_changes=apply_changes,

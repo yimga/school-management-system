@@ -20,7 +20,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-import logging
 from unittest import mock
 
 from django.test import RequestFactory, SimpleTestCase

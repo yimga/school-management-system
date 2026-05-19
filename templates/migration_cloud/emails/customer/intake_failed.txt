@@ -1,0 +1,18 @@
+{% load i18n %}{% trans "Your migration needs attention" %}
+
+{% blocktrans with school=school_name vendor=vendor_label %}The {{ vendor }} migration into {{ school }} encountered a problem and has been paused. No data has been committed to your production tenant.{% endblocktrans %}
+
+{% if operator_notes %}{% trans "Notes from the RunMyCampus team:" %}
+
+{{ operator_notes }}
+
+{% endif %}{% trans "Open the status page:" %}
+{{ status_url_path }}
+
+{% trans "Reply to this email or write to partner-success@runmycampus.com — we'll work the issue with you and resume when ready." %}
+
+{% trans "Thank you for your patience," %}
+{% trans "The RunMyCampus team" %}
+
+--
+{% trans "Intake reference:" %} {{ intake_id }}

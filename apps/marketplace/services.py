@@ -658,7 +658,7 @@ def install_app(
     # Pillar 4: persist per-scope grants the admin explicitly consented to.
     # Sensitive scopes start PENDING (require elevated approval); others go GRANTED.
     if grant_scope_codes:
-        from apps.marketplace.models import AppScope, ScopeGrant
+        from apps.marketplace.models import ScopeGrant
 
         consented = {(c or "").strip() for c in grant_scope_codes if (c or "").strip()}
         for scope in app.scopes.filter(scope_code__in=consented):

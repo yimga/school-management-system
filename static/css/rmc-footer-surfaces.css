@@ -12,14 +12,22 @@ html[data-surface="control-plane"] body.control-plane-shell {
   min-height: 100vh;
 }
 
-html[data-surface="control-plane"] body.control-plane-shell > main,
-html[data-surface="control-plane"] body.control-plane-shell > .manager-login-landing,
-html[data-surface="control-plane"] body.control-plane-shell > .admin-login-landing,
 html[data-surface="control-plane"] body.control-plane-shell > .cp-shell-content {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Footer is always inside .cp-shell-content (skeleton), not a body sibling. */
+html[data-surface="control-plane"] body.control-plane-shell .cp-shell-content > .cp-corporate-footer {
+  flex-shrink: 0;
+}
+
+/* Platform admin (/admin/ on manager host): footer inside #cp-main-content flex column */
+html[data-surface="control-plane"] .admin-cp-unified-page #cp-main-content > .cp-corporate-footer {
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 /* Block marketing mega-footer from leaking into manager / tenant shells */

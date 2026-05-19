@@ -307,9 +307,21 @@ def server_error(request):
         return HttpResponse(html, status=500, content_type="text/html; charset=utf-8")
 
 
+def service_unavailable(request, exception=None):
+    """Custom 503 page — maintenance mode and upstream overload."""
+    _coerce_request_user_for_error_pages(request)
+    template = (
+        "errors/503_control_plane.html"
+        if getattr(request, "public_host_kind", None) == "manager"
+        else "errors/503.html"
+    )
+    return render(request, template, status=503)
+
+
 handler403 = permission_denied
 handler404 = page_not_found
 handler500 = server_error
+handler503 = service_unavailable
 
 from apps.security.csp_report_view import csp_violation_report  # noqa: E402
 from apps.siteconfig.views_manifest import (  # noqa: E402
@@ -659,6 +671,43 @@ urlpatterns = [
         "portal/configure/migration/",
         include(("apps.migration_cloud.urls", "migration_cloud_portal"), namespace="migration_cloud_portal"),
         {"shell": "portal"},
+    ),
+    # v3.40.0 Agent 7 — customer-facing intake + status flow. Tenant-scoped
+    # (login-required, tenant-isolated). Distinct from the operator (super)
+    # and tenant-mirror (portal/configure) namespaces above: this is the
+    # surface the school's own staff use to request a migration, sign the
+    # MAA, and monitor progress.
+    path(
+        "migration/",
+        include(
+            ("apps.migration_cloud.urls_customer", "migration_intake_customer"),
+            namespace="migration_intake_customer",
+        ),
+    ),
+    # v3.40.0 Agent 11 — guardian consent collection flow.
+    # Anonymous (token-in-URL) namespace for guardian-facing routes;
+    # tenant-scoped (LoginRequiredMixin) admin namespace for school
+    # staff. Two separate mounts so the anonymous reverse-resolve
+    # cannot accidentally compose intake-id semantics.
+    path(
+        "migration/consent/",
+        include(
+            (
+                "apps.migration_cloud.urls_guardian_consent",
+                "migration_guardian_consent",
+            ),
+            namespace="migration_guardian_consent",
+        ),
+    ),
+    path(
+        "migration/",
+        include(
+            (
+                "apps.migration_cloud.urls_guardian_consent_admin",
+                "migration_guardian_consent_admin",
+            ),
+            namespace="migration_guardian_consent_admin",
+        ),
     ),
     # §3.3 Metadata search (staff-only)
     path(

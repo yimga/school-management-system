@@ -1,0 +1,86 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{# v3.40.0 Agent 13 — DSAR runbook operator view.
+
+   This template:
+     * Renders the last 30 DSAR runs from var/dsar-runs/*.json.
+     * Displays the current var/dsar-last-run.txt pointer.
+     * Provides a POST form to record a new DSAR run.
+
+   Privacy: notes content is rendered ONLY because the staff operator
+   who submitted it is the same staff operator viewing it. The notes
+   column is truncated server-side to 120 chars as defense-in-depth.
+   The request_id is NEVER rendered — only its sha256[:12] prefix.
+#}
+
+{% block page_title %}{{ page_title|default:"DSAR runbook" }}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--operator-dsar-runbook" id="main">
+  <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
+    <h1 class="rmc-h1">{% trans "DSAR runbook" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Record completed Data Subject Access Requests. The command-center DSAR card reads the latest run timestamp from var/dsar-last-run.txt." %}
+    </p>
+    {% if last_run_pointer %}
+      <p class="rmc-meta">{% trans "Latest recorded run:" %} <code>{{ last_run_pointer }}</code></p>
+    {% else %}
+      <p class="rmc-meta rmc-meta--warn">{% trans "No DSAR runs recorded yet." %}</p>
+    {% endif %}
+  </header>
+
+  <section class="rmc-card" aria-labelledby="dsar-record-form-h2">
+    <h2 id="dsar-record-form-h2" class="rmc-h2">{% trans "Record a new DSAR fulfillment" %}</h2>
+    <form method="post" class="rmc-form">
+      {% csrf_token %}
+      <label class="rmc-field">
+        <span>{% trans "Request ID (opaque)" %}</span>
+        <input type="text" name="request_id" required maxlength="200" autocomplete="off">
+      </label>
+      <label class="rmc-field">
+        <span>{% trans "Completed at (ISO-8601 UTC)" %}</span>
+        <input type="text" name="completed_at" required maxlength="40" placeholder="2026-05-19T13:00:00Z" autocomplete="off">
+      </label>
+      <label class="rmc-field rmc-field--wide">
+        <span>{% trans "Notes (operator-only; NEVER audit-logged)" %}</span>
+        <textarea name="notes" rows="3" maxlength="4000" autocomplete="off"></textarea>
+      </label>
+      <p class="rmc-actions">
+        <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Record DSAR run" %}</button>
+      </p>
+    </form>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="dsar-recent-h2">
+    <h2 id="dsar-recent-h2" class="rmc-h2">{% trans "Recent DSAR runs" %} <span class="rmc-meta">({{ runs_count }} / {{ max_runs_displayed }})</span></h2>
+    {% if runs %}
+      <table class="rmc-table">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Recorded at (UTC)" %}</th>
+            <th scope="col">{% trans "Completed at (UTC)" %}</th>
+            <th scope="col">{% trans "Request ID prefix" %}</th>
+            <th scope="col">{% trans "Has notes" %}</th>
+            <th scope="col">{% trans "Notes (truncated)" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in runs %}
+            <tr>
+              <td><code>{{ row.recorded_at_utc_iso }}</code></td>
+              <td><code>{{ row.completed_at_utc_iso }}</code></td>
+              <td><code>{{ row.request_id_prefix }}</code></td>
+              <td>{% if row.has_notes %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</td>
+              <td>{{ row.notes_truncated }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="rmc-empty">{% trans "No DSAR runs archived yet. Record one above (or run python manage.py dsar_runbook_record on the CLI)." %}</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

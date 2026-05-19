@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import unittest
 from datetime import timedelta
-from unittest import mock
 
 from django.test import SimpleTestCase, TestCase
 from django.utils import timezone

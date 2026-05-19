@@ -49,7 +49,6 @@ from unittest import mock
 from django.test import SimpleTestCase, override_settings
 
 from apps.migration_cloud.services.audit_root_signing import (
-    SIGNING_BACKEND_LOCAL,
     SIGNING_BACKEND_VAULT,
     RESERVED_BACKENDS_HSM,
     IMPLEMENTED_HSM_BACKENDS,
