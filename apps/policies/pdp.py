@@ -149,7 +149,7 @@ def _matches_resource(rule: PolicyRule, resource: dict) -> bool:
 
 
 def _applicable_rules(school) -> Iterable[PolicyRule]:
-    qs = PolicyRule.objects.filter(is_active=True)
+    qs = PolicyRule.objects.filter(is_active=True)  # tenant-isolation-allow: policy-decision-rules-global-catalog-lookup
     if school is not None:
         qs = qs.filter(models_school_filter_for(school))
     else:

@@ -1,0 +1,107 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Meal plan low-balance analytics" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-meal-plan-analytics" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Meal plan low-balance analytics" %}</h1>
+    <p class="rmc-lede">
+      {% blocktrans with days=window_days %}Rolling {{ days }}-day view of low-balance notification events per tenant, with cooldown-effectiveness and per-locale breakdowns. Staff-only.{% endblocktrans %}
+    </p>
+  </header>
+
+  <section class="rmc-card rmc-card--metric-row" aria-label="{% trans 'Headline metrics' %}">
+    <div class="rmc-metric">
+      <div class="rmc-metric__label">{% trans "Window" %}</div>
+      <div class="rmc-metric__value">{{ window_start|date:"Y-m-d" }} — {{ now|date:"Y-m-d" }}</div>
+    </div>
+    <div class="rmc-metric">
+      <div class="rmc-metric__label">{% trans "Total notifications sent" %}</div>
+      <div class="rmc-metric__value">{{ total_notifs|default:"0" }}</div>
+    </div>
+    <div class="rmc-metric">
+      <div class="rmc-metric__label">{% trans "Tracked transitions" %}</div>
+      <div class="rmc-metric__value">{{ total_transitions|default:"0" }}</div>
+    </div>
+    <div class="rmc-metric">
+      <div class="rmc-metric__label">{% trans "Cooldown effectiveness" %}</div>
+      <div class="rmc-metric__value">{{ cooldown_pct|default:"0.0" }}%</div>
+      <p class="rmc-muted">{% trans "Sends / transitions. Lower = the 7-day cooldown is suppressing more repeat sends." %}</p>
+    </div>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="top-tenants-heading">
+    <h2 id="top-tenants-heading" class="rmc-h2">{% trans "Top tenants by notification volume" %}</h2>
+    {% if top_tenants %}
+    <table class="rmc-data-table rmc-data-table--top-tenants">
+      <thead>
+        <tr>
+          <th>{% trans "Tenant" %}</th>
+          <th>{% trans "School ID" %}</th>
+          <th>{% trans "Low-balance notifications (window)" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in top_tenants %}
+        <tr>
+          <td>{{ row.school__name|default:"—" }}</td>
+          <td>{{ row.school_id }}</td>
+          <td>{{ row.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="rmc-muted">{% trans "No low-balance notifications in the current window." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="rmc-card" aria-labelledby="per-locale-heading">
+    <h2 id="per-locale-heading" class="rmc-h2">{% trans "Per-locale breakdown" %}</h2>
+    <table class="rmc-data-table rmc-data-table--per-locale">
+      <thead>
+        <tr>
+          <th>{% trans "Locale" %}</th>
+          <th>{% trans "Notifications" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in locale_breakdown %}
+        <tr>
+          <td><code class="rmc-kbd">{{ row.locale }}</code></td>
+          <td>{{ row.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="rolling-window-heading">
+    <h2 id="rolling-window-heading" class="rmc-h2">{% trans "Rolling 30-day per-tenant volume (all tenants)" %}</h2>
+    {% if per_tenant_window %}
+    <table class="rmc-data-table rmc-data-table--rolling">
+      <thead>
+        <tr>
+          <th>{% trans "Tenant" %}</th>
+          <th>{% trans "School ID" %}</th>
+          <th>{% trans "Notifications" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in per_tenant_window %}
+        <tr>
+          <td>{{ row.school__name|default:"—" }}</td>
+          <td>{{ row.school_id }}</td>
+          <td>{{ row.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="rmc-muted">{% trans "No tenant rows in window." %}</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

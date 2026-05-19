@@ -78,6 +78,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
+  {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
   <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
   <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
@@ -89,6 +90,7 @@
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
   <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {# Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). #}
   <style id="admin-brand-resolved-tokens">
@@ -155,7 +157,6 @@
 
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
-  {% if is_manager_host %}{% include "components/rmc_operator_surface_strip.html" %}{% endif %}
   {% if PREVIEW_MODE_ENABLED %}
     <div class="preview-cue preview-cue--active">
       <span>

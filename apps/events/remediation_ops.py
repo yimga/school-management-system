@@ -18,7 +18,7 @@ def domain_dead_letter_filter():
 
 def domain_dlq_queryset_for_school(school_pk, *, event_type: str | None = None):
     qs = (
-        WebhookDelivery.objects.filter(domain_event__school_id=school_pk)
+        WebhookDelivery.objects.filter(domain_event__school_id=school_pk)  # tenant-isolation-allow: platform-webhook-delivery-remediation-queue
         .filter(domain_dead_letter_filter())
         .filter(operator_resolution__isnull=True)
         .select_related("subscription", "domain_event")

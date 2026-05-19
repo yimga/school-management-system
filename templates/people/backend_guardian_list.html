@@ -1,43 +1,44 @@
 {% extends "backend_base.html" %}
+{% load i18n %}
 {% load static %}
 {% block backend_title %}Guardians - Backend{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_list' as back_url %}
-      {% include "studio_os/components/page_header.html" with title="Guardians" subtitle="Parent and guardian links to students" action_url=back_url action_text="Back to students" %}
+      {% include "studio_os/components/page_header.html" with title=_("Guardians") subtitle=_("Parent and guardian links to students") action_url=back_url action_text=_("Back to students") %}
 
       <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search" data-rmc-autosubmit="1">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
-            <label for="guardian-q" class="form-label small">Search</label>
-            <input type="search" id="guardian-q" name="q" class="form-control form-control-sm" placeholder="Guardian or student name, email..." value="{{ search }}">
+            <label for="guardian-q" class="form-label small">{% trans "Search" %}</label>
+            <input type="search" id="guardian-q" name="q" class="form-control form-control-sm" placeholder="{% trans 'Guardian or student name, email…' %}" value="{{ search }}">
           </div>
           <div class="col-md-2">
-            <label for="guardian-year" class="form-label small">Year</label>
+            <label for="guardian-year" class="form-label small">{% trans "Year" %}</label>
             <select id="guardian-year" name="year" class="form-select form-select-sm">
-              <option value="">All years</option>
+              <option value="">{% trans "All years" %}</option>
               {% for y in years %}
               <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2">
-            <label for="guardian-classroom" class="form-label small">Classroom</label>
+            <label for="guardian-classroom" class="form-label small">{% trans "Classroom" %}</label>
             <select id="guardian-classroom" name="classroom" class="form-select form-select-sm">
-              <option value="">All classrooms</option>
+              <option value="">{% trans "All classrooms" %}</option>
               {% for c in classrooms %}
               <option value="{{ c.id }}" {% if selected_classroom == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2">
-            <button type="submit" class="btn btn-primary btn-sm w-100" data-rmc-autosubmit-hide-when-js>Filter</button>
+            <button type="submit" class="btn btn-primary btn-sm w-100" data-rmc-autosubmit-hide-when-js>{% trans "Filter" %}</button>
           </div>
           <div class="col-md-2">
-            <a href="?format=csv{% if search %}&amp;q={{ search|urlencode }}{% endif %}{% if selected_classroom %}&amp;classroom={{ selected_classroom }}{% endif %}{% if selected_year %}&amp;year={{ selected_year }}{% endif %}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-download me-1"></i>Export CSV</a>
+            <a href="?format=csv{% if search %}&amp;q={{ search|urlencode }}{% endif %}{% if selected_classroom %}&amp;classroom={{ selected_classroom }}{% endif %}{% if selected_year %}&amp;year={{ selected_year }}{% endif %}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-download me-1"></i>{% trans "Export CSV" %}</a>
           </div>
         </div>
       </form>
@@ -70,7 +71,7 @@
             </table>
           </div>
           {% else %}
-          {% include "components/dashboard_empty_state.html" with icon="bi-people" title="No guardians found" message="Guardian links appear when parents are linked to students." action_url="" action_text="" %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-people" title=_("No guardians found") message=_("Guardian links appear when parents are linked to students.") action_url="" action_text="" %}
           {% endif %}
           {% if page_obj %}
           {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=show_page_size page_size=page_size page_size_options=page_size_options %}

@@ -395,3 +395,108 @@ def apply_rollover_proposal(
         allow_outstanding_returns,
         carry_forward_arrears,
     )
+
+
+# v3.33.0 Agent 4 — import the legacy-hashes Celery task modules so
+# Celery's autodiscover_tasks() registers their @shared_task decorators.
+# The modules themselves lazy-guard the Celery import so a CI lane
+# without Celery can still import this module cleanly.
+try:  # pragma: no cover - import side effects only
+    from apps.accounts.legacy_hashes import sunset_task as _sunset_task  # noqa: F401
+    from apps.accounts.legacy_hashes import key_rotation_task as _key_rotation_task  # noqa: F401
+except Exception:  # noqa: BLE001 - autodiscover must not fail on a downstream import error
+    logger.warning("legacy_hash_task_autodiscover_skipped", exc_info=True)
+
+
+# v3.34.0 Agent 5 — upstream django-cryptography compatibility watch.
+# The watch script polls PyPI weekly for new releases that may finally
+# work with Django 5 (removing the django.utils.baseconv dependency).
+# When a candidate appears, this task emails the operator distribution
+# list — it NEVER auto-upgrades; the operator must verify in a test
+# environment and PR the requirements.txt bump manually.
+@shared_task(name="accounts.watch_django_cryptography_upstream")
+def watch_django_cryptography_upstream() -> dict:
+    """Run scripts/check_django_cryptography_compat.py and notify on COMPAT lines.
+
+    Returns a small structured summary for logging/observability. The
+    detailed audit trail lives at ``var/upstream-watch/django-cryptography-*.json``.
+    """
+    import importlib.util
+    import pathlib
+
+    repo_root = pathlib.Path(__file__).resolve().parents[2]
+    script_path = repo_root / "scripts" / "check_django_cryptography_compat.py"
+    if not script_path.exists():
+        logger.warning(
+            "watch_django_cryptography_upstream: script_missing path=%s",
+            script_path,
+        )
+        return {"ok": False, "reason": "script_missing"}
+
+    # Import the script as a module to invoke main() directly — avoids
+    # spawning a subprocess (Celery worker context, shell=True forbidden).
+    spec = importlib.util.spec_from_file_location(
+        "_dcrypto_watch", script_path,
+    )
+    if spec is None or spec.loader is None:  # pragma: no cover - defensive
+        return {"ok": False, "reason": "import_failed"}
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    exit_code = module.main(["--repo-root", str(repo_root)])
+
+    # Locate the most-recent audit JSON to surface a COMPAT signal.
+    watch_dir = repo_root / "var" / "upstream-watch"
+    latest = None
+    if watch_dir.exists():
+        candidates = sorted(watch_dir.glob("django-cryptography-*.json"))
+        latest = candidates[-1] if candidates else None
+
+    compat_lines: list[str] = []
+    if latest is not None:
+        try:
+            import json as _json
+            payload = _json.loads(latest.read_text(encoding="utf-8"))
+            compat_lines = [
+                line for line in (payload.get("summary_lines") or [])
+                if isinstance(line, str) and line.startswith("COMPAT:")
+            ]
+        except (OSError, ValueError) as exc:  # pragma: no cover - audit json malformed
+            logger.warning(
+                "watch_django_cryptography_upstream: audit_parse_failed err=%s",
+                type(exc).__name__,
+            )
+
+    if compat_lines:
+        # Operator notification — uses Django's email scaffolding when
+        # available, otherwise just logs at WARNING so ops can grep.
+        try:
+            from django.core.mail import mail_admins
+            mail_admins(
+                subject="[RunMyCampus] django-cryptography Django-5 compat candidate",
+                message=(
+                    "The weekly upstream watch flagged a candidate release:\n\n"
+                    + "\n".join(compat_lines)
+                    + f"\n\nAudit trail: {latest}\n"
+                    + "Follow docs/SECURITY_KEYS.md § 'Internal Fernet Shim Migration Plan' "
+                    + "before bumping requirements.txt.\n"
+                ),
+                fail_silently=True,
+            )
+        except Exception:  # noqa: BLE001 - email backend is operator-configured
+            logger.warning(
+                "watch_django_cryptography_upstream: mail_admins_failed",
+                exc_info=True,
+            )
+        logger.info(
+            "watch_django_cryptography_upstream: compat_candidates_found "
+            "count=%s audit=%s",
+            len(compat_lines), latest,
+        )
+
+    return {
+        "ok": exit_code == 0,
+        "exit_code": exit_code,
+        "compat_candidate_count": len(compat_lines),
+        "audit_path": str(latest) if latest else None,
+    }

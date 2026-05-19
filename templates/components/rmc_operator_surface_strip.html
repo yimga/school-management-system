@@ -1,37 +1,29 @@
 {% load i18n %}
-{% if RMC_OPERATOR_SURFACE_IA and RMC_OPERATOR_SURFACE_SPINE %}
-<nav class="rmc-operator-surface-strip" aria-label="{% trans 'Operator surfaces' %}" data-rmc-operator-surface-strip data-rmc-surface-current="{{ RMC_OPERATOR_SURFACE_CURRENT|default:'' }}">
-  <div class="rmc-operator-surface-strip__inner">
-    <span class="rmc-operator-surface-strip__label">{% trans "Surfaces" %}</span>
-    <ul class="rmc-operator-surface-strip__spine list-unstyled d-flex flex-wrap gap-1 mb-0">
-      {% for link in RMC_OPERATOR_SURFACE_SPINE %}
-      <li>
-        <a href="{{ link.url }}"
-           class="rmc-operator-surface-strip__pill{% if link.active %} is-active{% endif %}"
-           data-rmc-surface="{{ link.surface }}"
-           {% if link.active %}aria-current="page"{% endif %}>
-          {{ link.label }}
-        </a>
-      </li>
-      {% endfor %}
-    </ul>
-    {% if RMC_OPERATOR_PAIRED_LINKS %}
-    <div class="rmc-operator-surface-strip__paired">
-      <span class="rmc-operator-surface-strip__paired-label">{% trans "Related" %}</span>
-      <ul class="rmc-operator-surface-strip__paired-list list-unstyled d-flex flex-wrap gap-1 mb-0">
-        {% for link in RMC_OPERATOR_PAIRED_LINKS %}
-        <li>
-          <a href="{{ link.url }}"
-             class="rmc-operator-surface-strip__pill rmc-operator-surface-strip__pill--paired"
-             data-rmc-surface="{{ link.surface }}"
-             title="{{ link.description|default:'' }}">
-            {{ link.label }}
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
-    {% endif %}
-  </div>
+{% if RMC_OPERATOR_SURFACE_STRIP_VISIBLE and RMC_OPERATOR_SURFACE_SPINE %}
+<nav class="cp-primary-nav rmc-operator-workspace-nav d-flex flex-wrap align-items-center gap-1 gap-md-2 px-3 py-2 border-bottom"
+     aria-label="{% trans 'Workspace' %}"
+     data-rmc-operator-surface-strip
+     data-rmc-surface-current="{{ RMC_OPERATOR_SURFACE_CURRENT|default:'' }}">
+  {% for link in RMC_OPERATOR_SURFACE_SPINE %}
+  <a href="{{ link.url }}"
+     class="cp-primary-nav__pill{% if link.active %} cp-primary-nav__pill--active{% endif %}"
+     data-rmc-surface="{{ link.surface }}"
+     {% if link.active %}aria-current="page"{% endif %}>
+    {% if link.icon %}<i class="bi {{ link.icon }}" aria-hidden="true"></i>{% endif %}
+    <span>{{ link.label }}</span>
+  </a>
+  {% endfor %}
+  {% if RMC_OPERATOR_PAIRED_LINKS %}
+  <span class="visually-hidden">{% trans "Related shortcuts" %}</span>
+  {% for link in RMC_OPERATOR_PAIRED_LINKS %}
+  <a href="{{ link.url }}"
+     class="cp-primary-nav__pill cp-primary-nav__pill--paired"
+     data-rmc-surface="{{ link.surface }}"
+     title="{{ link.description|default:'' }}">
+    {% if link.icon %}<i class="bi {{ link.icon }}" aria-hidden="true"></i>{% endif %}
+    <span>{{ link.label }}</span>
+  </a>
+  {% endfor %}
+  {% endif %}
 </nav>
 {% endif %}

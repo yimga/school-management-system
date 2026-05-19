@@ -32,7 +32,7 @@ _MANAGER_CANONICAL_VIEW_NAMES = frozenset(
         "siteconfig:scheduled_reports_delivery_hub",
         "siteconfig:tenant_runtime_configuration_hub",
         "siteconfig:metadata_operator_hub",
-        "siteconfig:onboarding",
+        # School activation checklist is tenant-scoped (request.school); not manager CP.
         "siteconfig:tag_manager",
         "siteconfig:billing_plan_readonly",
         "siteconfig:legacy_customizer",

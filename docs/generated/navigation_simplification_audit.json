@@ -1,21 +1,22 @@
 {
-  "generated_at": "2026-05-16T10:31:38.665585+00:00",
+  "generated_at": "2026-05-19T06:55:59.490139+00:00",
   "generated_by": "scripts/audit_navigation_simplification.py",
   "source_file": "apps/schools/control_plane_nav.py",
   "oversize_threshold": 7,
-  "group_count": 15,
-  "total_items": 60,
+  "group_count": 16,
+  "total_items": 65,
   "biggest_group_size": 6,
   "oversize_group_count": 0,
   "oversize_groups": [],
   "groups": [
     {
       "group": "Platform Overview",
-      "item_count": 3,
+      "item_count": 4,
       "items": [
         "super_dashboard",
         "super_command_center",
-        "super_ai_gateway_console"
+        "super_ai_gateway_console",
+        "ai_center"
       ],
       "oversize": false
     },
@@ -171,6 +172,17 @@
         "cp_config_mutation_audit_evidence",
         "cp_region_validation",
         "cp_region_comparison"
+      ],
+      "oversize": false
+    },
+    {
+      "group": "Voice of customer & proof",
+      "item_count": 4,
+      "items": [
+        "cp_public_to_product_matrix",
+        "cp_feature_gap_register",
+        "cp_feedback_loop",
+        "cp_lane2_readiness"
       ],
       "oversize": false
     }

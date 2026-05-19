@@ -1,0 +1,110 @@
+# RunMyCampus webhook verifier — JS / npm package publish workflow.
+#
+# Triggers ONLY on tags matching `webhook-verifier-js-*` (e.g.
+# `webhook-verifier-js-0.1.0`). Does NOT run on push to main; does NOT
+# run on PRs. Operators cut a tag from a release commit when they're
+# ready to publish.
+#
+# Authentication: npm provenance via GitHub Actions OIDC. No npm token
+# in repo secrets — npm verifies the publish was minted by this
+# workflow at this tag.
+#
+# Required one-time setup on the npm package:
+#   * `npm publish --provenance` requires the package to be in a
+#     scoped namespace under an org that has provenance enabled.
+#   * Add the org's "Allowed publishers" entry pointing at this repo
+#     + workflow filename + tag pattern.
+
+name: release-webhook-verifier-js
+
+on:
+  push:
+    tags:
+      - "webhook-verifier-js-*"
+
+# Do NOT trigger on push to main / PRs — only on the named tag.
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: beta/school-management-system/packages/runmycampus-webhook-verifier-js
+
+jobs:
+  test:
+    name: Test before release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["18", "20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          registry-url: "https://registry.npmjs.org"
+      - name: Install deps
+        run: npm ci || npm install --no-audit --no-fund
+      - name: Type-check
+        run: npx tsc --noEmit
+      - name: Run vitest
+        run: npx vitest run
+
+  build:
+    name: Build + pack
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - name: Install deps
+        run: npm ci || npm install --no-audit --no-fund
+      - name: Build (tsup → dual ESM/CJS + .d.ts)
+        run: npm run build
+      - name: Pack tarball (dry-run inspection then real)
+        run: |
+          npm pack --dry-run
+          npm pack
+          ls -la *.tgz
+      - name: Upload tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webhook-verifier-js-tarball
+          path: beta/school-management-system/packages/runmycampus-webhook-verifier-js/*.tgz
+
+  publish:
+    name: Publish to npm with provenance (OIDC)
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@runmycampus/webhook-verifier
+    permissions:
+      # OIDC required for `npm publish --provenance`.
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - name: Install deps
+        run: npm ci || npm install --no-audit --no-fund
+      - name: Build
+        run: npm run build
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
+        env:
+          # `--provenance` uses OIDC, but the npm CLI still wants a
+          # bearer token configured. For provenance the recommended
+          # path is the workflow-minted token via npm's GitHub
+          # integration; if your registry mirror does not accept it,
+          # fall back to a scoped automation token stored in NPM_TOKEN.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

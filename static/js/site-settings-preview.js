@@ -18,6 +18,11 @@
 
   const previewDevice = document.querySelector(".preview-device");
   const contrastHint = document.getElementById("contrastHint");
+  const surfaceButtons = Array.from(
+    document.querySelectorAll(".preview-surface-btn[data-preview-surface]")
+  );
+  const DARK_SURFACE = "#0f172a";
+  const LIGHT_SURFACE = "#ffffff";
   const roleSelect = document.getElementById("previewRoleSelect");
   const roleLabel = document.getElementById("previewRoleLabel");
   const modeButtons = Array.from(document.querySelectorAll(".preview-mode-btn"));
@@ -146,21 +151,63 @@
     `;
   };
 
+  const currentSurface = () => {
+    const theme = (previewDevice?.dataset.previewTheme || "light").toLowerCase();
+    return theme === "dark" ? "dark" : "light";
+  };
+
+  const setPreviewSurface = (surface) => {
+    if (!previewDevice) return;
+    const normalized = surface === "dark" ? "dark" : "light";
+    previewDevice.dataset.previewTheme = normalized;
+    surfaceButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.previewSurface === normalized);
+    });
+    updatePreview();
+  };
+
+  const surfaceTextColor = (surfaceHex) => {
+    const darkText = tok("--text-primary", tok("--color-base-900", "#0f172a"));
+    const lightText = tok("--text-primary", tok("--color-base-0", "#ffffff"));
+    if (surfaceHex.toLowerCase() === DARK_SURFACE) {
+      return lightText;
+    }
+    return pickReadableText(surfaceHex) || darkText;
+  };
+
   const updatePreview = () => {
     if (!previewDevice) return;
 
     const primary = getColorValue("primary_color", tok("--school-primary", "#0b0f14"));
     const headerSurface = getColorValue("header_bg_color", primary);
-    const contentSurface = getColorValue("footer_bg_color", headerSurface);
+    const isDark = currentSurface() === "dark";
+    const canvasSurface = isDark ? DARK_SURFACE : LIGHT_SURFACE;
+    const contentSurface =
+      getColorValue("footer_bg_color", headerSurface) || canvasSurface;
     const accent = getColorValue("accent_color", tok("--chart-color-3", "#38bdf8"));
-    const text = pickReadableText(primary);
+    const text = surfaceTextColor(isDark ? DARK_SURFACE : contentSurface);
 
     previewDevice.style.setProperty("--preview-sidebar-bg", primary);
     previewDevice.style.setProperty("--preview-sidebar-surface", headerSurface);
-    previewDevice.style.setProperty("--preview-content-bg", contentSurface);
+    previewDevice.style.setProperty(
+      "--preview-content-bg",
+      isDark ? DARK_SURFACE : contentSurface
+    );
     previewDevice.style.setProperty("--preview-text-color", text);
     previewDevice.style.setProperty("--preview-accent-color", accent);
     updateContrastHint(primary, text);
+    if (contrastHint && isDark) {
+      const headerRatio = contrastRatio(toRgb(headerSurface), toRgb(text));
+      const bodyRatio = contrastRatio(toRgb(DARK_SURFACE), toRgb(text));
+      if (headerRatio !== null && bodyRatio !== null) {
+        contrastHint.innerHTML = `
+          <strong>Dark surface contrast</strong>
+          <span class="contrast-line ${headerRatio < 4.5 ? "warn" : "good"}"><em>Header vs text:</em> ${headerRatio.toFixed(1)}:1</span>
+          <span class="contrast-line ${bodyRatio < 4.5 ? "warn" : "good"}"><em>Canvas vs text:</em> ${bodyRatio.toFixed(1)}:1</span>
+        `;
+        contrastHint.classList.toggle("unsafe", headerRatio < 4.5 || bodyRatio < 4.5);
+      }
+    }
   };
 
   const collectTrackedInputs = () => {
@@ -202,6 +249,24 @@
     }
 
     document.addEventListener("theme-pack-selected", updatePreview);
+    document.addEventListener("rmc-preview-surface-change", (event) => {
+      const surface = event.detail?.surface || "light";
+      setPreviewSurface(surface);
+    });
+
+    surfaceButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setPreviewSurface(btn.dataset.previewSurface || "light");
+      });
+    });
+
+    const darkModeCheckbox = document.getElementById("id_use_dark_mode");
+    if (darkModeCheckbox) {
+      darkModeCheckbox.addEventListener("change", () => {
+        setPreviewSurface(darkModeCheckbox.checked ? "dark" : "light");
+      });
+      if (darkModeCheckbox.checked) setPreviewSurface("dark");
+    }
 
     modeButtons.forEach((button) => {
       button.addEventListener("click", () => {

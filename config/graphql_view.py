@@ -6,7 +6,9 @@ Uses config.schema (Query: health, me, schoolCount, schools).
 
 import json
 import logging
+import re
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -15,6 +17,15 @@ from apps.api.rate_limit import throttle_ip_request
 from config.schema import schema
 
 logger = logging.getLogger(__name__)
+
+_INTROSPECTION_RE = re.compile(r"\b__schema\b|\b__type\b|IntrospectionQuery", re.I)
+
+
+def _introspection_allowed() -> bool:
+    explicit = getattr(settings, "GRAPHQL_INTROSPECTION_ENABLED", None)
+    if explicit is not None:
+        return bool(explicit)
+    return bool(getattr(settings, "DEBUG", False))
 
 
 @require_http_methods(["GET", "POST"])
@@ -78,6 +89,11 @@ def graphql_gateway(request):
     query = (body.get("query") or "").strip()
     if not query:
         return JsonResponse({"errors": [{"message": "Missing query"}]}, status=400)
+    if not _introspection_allowed() and _INTROSPECTION_RE.search(query):
+        return JsonResponse(
+            {"errors": [{"message": "GraphQL introspection is disabled"}]},
+            status=403,
+        )
     variables = body.get("variables") or {}
     if not isinstance(variables, dict):
         return JsonResponse(

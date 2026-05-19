@@ -43,7 +43,7 @@
   <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'LMS certification status' %}">
     <h2 class="h6 mb-2 fw-bold">{% trans "Certification status" %}</h2>
     <div class="table-responsive">
-      <table class="table table-dark table-sm table-striped">
+      <table class="table table-family table-sm table-striped">
         <caption class="visually-hidden">{% trans "Certification status" %}</caption>
         <thead>
           <tr>
@@ -76,7 +76,7 @@
   <section class="mt-4 pt-3 border-top border-secondary rmc-reveal" aria-label="{% trans 'Related catalogs' %}">
     <h2 class="h6 mb-2 fw-bold">{% trans "Tenant operators" %}</h2>
     <p class="small mb-2">{% trans "Each school: Backend → District & LMS interop — OneRoster URLs, token rotate, CSV roster exports, SSO/LTI discovery." %}</p>
-    <p class="small mb-0">{% trans "Learning modes & institution types (23–43):" %} <a href="{% url 'super:learning_delivery_packs' %}" class="link-light">{% trans "Learning delivery & institution types" %}</a></p>
+    <p class="small mb-0">{% trans "Learning modes & institution types (23–43):" %} <a href="{% url 'super:learning_delivery_packs' %}" class="link-secondary">{% trans "Learning delivery & institution types" %}</a></p>
   </section>
   <section class="mt-4 pt-3 border-top border-secondary rmc-reveal" aria-label="{% trans 'Platform spine' %}">
     <h2 class="h6 mb-2 fw-bold">{% trans "Platform spine" %}</h2>

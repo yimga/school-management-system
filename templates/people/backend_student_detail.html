@@ -1,4 +1,5 @@
 {% extends "backend_base.html" %}
+{% load i18n %}
 {% load i18n static region_format compliance_tags %}
 {% load terminology_tags %}
 {% block backend_title %}{% trans "Student 360" %} — {{ student.first_name }} {{ student.last_name }}{% endblock %}
@@ -6,7 +7,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/student-360-bento.css' %}">
 {% endblock %}
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4 student-360-page" data-page-archetype="record-detail">
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
@@ -15,7 +16,7 @@
     </ol>
   </nav>
 
-  {% include "studio_os/components/page_header.html" with title=student_display_name subtitle="Student 360 — one record across modules" %}
+  {% include "studio_os/components/page_header.html" with title=student_display_name subtitle=_("Student 360 — one record across modules") %}
 
   <div class="row g-3 student-360-bento mt-2 rmc-reveal-stagger">
     {% with d=record.data %}

@@ -4,7 +4,7 @@
 {% block content %}
 <div class="module">
   <h2>{{ title }}</h2>
-  <p>Set billing to <strong>Complimentary (waived)</strong> for the selected school(s). A waiver note is required for compliance.</p>
+  <p>{% trans "Set billing to" %} <strong>{% trans "Complimentary (waived)" %}</strong> {% trans "for the selected school(s). A waiver note is required for compliance." %}</p>
   {% if schools %}
   <ul>
     {% for school in schools %}
@@ -15,16 +15,16 @@
     {% csrf_token %}
     <input type="hidden" name="ids" value="{{ ids }}">
     <div class="form-row">
-      <label for="waiver_note">Waiver note (required):</label>
-      <textarea name="waiver_note" id="waiver_note" rows="4" cols="60" required placeholder="e.g. Partnership with NGO; approved by board 2025-02."></textarea>
+      <label for="waiver_note">{% trans "Waiver note (required):" %}</label>
+      <textarea name="waiver_note" id="waiver_note" rows="4" cols="60" required placeholder="{% trans 'e.g. Partnership with NGO; approved by board 2025-02.' %}"></textarea>
     </div>
     <div class="submit-row">
-      <input type="submit" value="Apply COMPLIMENTARY and save note">
-      <a href="{% url 'admin:schools_school_changelist' %}" class="button cancel-link">Cancel</a>
+      <input type="submit" value="{% trans 'Apply COMPLIMENTARY and save note' %}">
+      <a href="{% url 'admin:schools_school_changelist' %}" class="button cancel-link">{% trans "Cancel" %}</a>
     </div>
   </form>
   {% else %}
-  <p>No schools selected. <a href="{% url 'admin:schools_school_changelist' %}">Back to Schools</a></p>
+  <p>{% trans "No schools selected." %} <a href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to Schools" %}</a></p>
   {% endif %}
 </div>
 {% endblock %}

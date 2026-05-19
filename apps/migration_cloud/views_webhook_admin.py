@@ -16,11 +16,14 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
+from collections import Counter
+from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
@@ -98,11 +101,24 @@ class MigrationCloudWebhookListView(View):
         except (TypeError, ValueError):
             pass
         rows = [_row_for_table(r) for r in qs[:500]]
+        # v3.35.0 — webhook header family migration banner state.
+        from django.conf import settings as _settings  # local import keeps test isolation simple
+        deadline = getattr(
+            _settings,
+            "MIGRATION_CLOUD_LEGACY_HEADER_DEPRECATION_DATE",
+            "2026-08-18",
+        )
+        emit_legacy = bool(
+            getattr(_settings, "MIGRATION_CLOUD_EMIT_LEGACY_HEADERS", True)
+        )
         context = {
             "page_title": "Migration Cloud — webhook subscriptions",
             "shell": kwargs.get("shell", "super"),
             "rows": rows,
             "filter_tenant_id": tenant_filter or "",
+            "header_migration_window_active": True,
+            "header_migration_deadline": deadline,
+            "emit_legacy_headers": emit_legacy,
         }
         return render(request, self.template_name, context)
 

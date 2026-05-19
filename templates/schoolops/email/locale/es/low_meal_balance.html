@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Saldo bajo en el plan de comidas</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
+  <p>Hola,</p>
+  <p>
+    Este es un aviso de cortesía: el saldo del plan de comidas de
+    <strong>{{ student_first_name }} {{ student_last_name }}</strong>
+    se encuentra ahora en el umbral de saldo bajo configurado o por debajo.
+  </p>
+  <table cellpadding="6" cellspacing="0" border="0"
+         style="border-collapse: collapse; margin: 12px 0;">
+    <tr><td><strong>Plan</strong></td><td>{{ plan_label }}</td></tr>
+    <tr><td><strong>Saldo</strong></td><td>{{ balance_display }}</td></tr>
+    <tr><td><strong>Umbral</strong></td><td>{{ threshold_display }}</td></tr>
+  </table>
+  <p>Por favor considere recargar el saldo para evitar interrupciones del servicio.</p>
+  <p style="color: #6b7280; font-size: 12px;">
+    Usted recibe esta notificación porque está registrado como tutor
+    de este(a) estudiante. Para ajustar sus preferencias de notificación,
+    visite el portal de padres.
+  </p>
+  <p>Gracias,<br>RunMyCampus</p>
+</body>
+</html>

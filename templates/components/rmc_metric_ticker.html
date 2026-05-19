@@ -48,6 +48,6 @@
 
   {% comment %} Condensed mirror — duplicated in JS at runtime so we don't re-template. JS
      reads the .rmc-metric-ticker__full DOM and projects into this empty container. {% endcomment %}
-  <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" hidden></div>
+  <div class="rmc-metric-ticker__pin" data-rmc-metric-pin role="region" aria-label="{% trans 'Pinned metrics' %}" tabindex="0" hidden></div>
 </section>
 {% endwith %}

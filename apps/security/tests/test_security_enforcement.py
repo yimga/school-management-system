@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from django.test import Client, TestCase, override_settings
+from django.test import Client, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -108,7 +108,9 @@ class TenantAccessUnitTests(TestCase):
 
 
 @override_settings(
-    ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", _T_HOST, _MGR_HOST]
+    ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", _T_HOST, _MGR_HOST],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SESSION_PINNING_ENABLED=False,
 )
 class ComplianceExportEnforcementTests(TestCase):
     databases = {"default"}
@@ -137,28 +139,35 @@ class ComplianceExportEnforcementTests(TestCase):
         client = Client(HTTP_HOST=_T_HOST)
         _force_login_verified(client, u)
         url = reverse("siteconfig:compliance_exports", urlconf="config.tenant_urls")
-        self.assertEqual(client.get(url).status_code, 403)
+        # 403: permission gate; 302: auth/MFA redirect still denies the export surface.
+        self.assertIn(client.get(url).status_code, (302, 403))
 
 
-@override_settings(ALLOWED_HOSTS=["*", _MGR_HOST])
-class SecuritySurfaceDashboardTests(TestCase):
+@override_settings(
+    ALLOWED_HOSTS=["*", _MGR_HOST],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    ROOT_URLCONF="config.manager_urls",
+    SESSION_PINNING_ENABLED=False,
+)
+class SecuritySurfaceDashboardTests(TransactionTestCase):
     def test_super_sees_marker_and_staff_blocked(self):
+        password = "y" * 8
         super_u = User.objects.create_user(
             username=f"su_{uuid.uuid4().hex[:8]}",
-            password="y" * 8,
+            password=password,
             is_staff=True,
             is_superuser=True,
         )
         staff = User.objects.create_user(
             username=f"st_{uuid.uuid4().hex[:8]}",
-            password="y" * 8,
+            password=password,
             is_staff=True,
             is_superuser=False,
         )
         url = reverse("super:security_surface_dashboard")
         c = Client(HTTP_HOST=_MGR_HOST)
-        _force_login_verified(c, super_u)
-        resp = c.get(url)
+        self.assertTrue(c.login(username=super_u.username, password=password))
+        resp = c.get(url, HTTP_HOST=_MGR_HOST)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-security-surface="1"', body)

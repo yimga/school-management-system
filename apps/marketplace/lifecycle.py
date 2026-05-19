@@ -54,6 +54,15 @@ def install_app(
     if missing:
         raise ValueError(f"Missing required apps: {missing}")
 
+    from apps.marketplace.extension_registry import validate_marketplace_app_manifest
+
+    manifest = app.manifest if isinstance(app.manifest, dict) else {}
+    ok, manifest_errors = validate_marketplace_app_manifest(manifest)
+    if not ok:
+        raise ValueError(
+            "Invalid marketplace extension manifest: " + "; ".join(manifest_errors)
+        )
+
     inst, created = AppInstallation.objects.get_or_create(
         school=school,
         app=app,

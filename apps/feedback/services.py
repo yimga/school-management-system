@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections import Counter
 from decimal import Decimal
 
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Count, Avg
+from django.urls import reverse
 from django.utils import timezone
 
 from .models import (
@@ -27,6 +28,14 @@ ADMIN_ROLES = {
     "BURSAR",
     "PROPRIETOR",
     "SUPERADMIN",
+}
+
+SUPPORT_ESCALATION_CATEGORIES = {
+    FeedbackSubmission.Category.TRAINING.value,
+    FeedbackSubmission.Category.BILLING.value,
+    FeedbackSubmission.Category.DATA_IMPORT.value,
+    FeedbackSubmission.Category.LOGIN.value,
+    FeedbackSubmission.Category.ACCESSIBILITY.value,
 }
 
 
@@ -83,6 +92,103 @@ def visible_roadmap_for_user(user, school=None):
     return qs.distinct()
 
 
+def _normalize_text(value) -> str:
+    return str(value or "").strip()
+
+
+def _help_query(title="", description="", module="", category="") -> str:
+    parts = [_normalize_text(title), _normalize_text(module), _normalize_text(category)]
+    desc = _normalize_text(description)
+    if desc:
+        parts.append(" ".join(desc.split()[:18]))
+    return " ".join(p for p in parts if p)[:220]
+
+
+def _visible_kb_and_faq(request):
+    try:
+        from apps.portal.views_kb import _approved_faq_for_request, _published_kb_for_request
+
+        return _published_kb_for_request(request), _approved_faq_for_request(request)
+    except Exception:
+        return None, None
+
+
+def suggest_help_resources(
+    request,
+    *,
+    title="",
+    description="",
+    module="",
+    category="",
+    limit=4,
+):
+    """Return role/region-aware KB and FAQ resources before users file feedback.
+
+    This keeps the feedback center connected to the help center: users can self-serve
+    first, while submitted feedback still records which help surface they came from.
+    """
+    query = _help_query(title=title, description=description, module=module, category=category)
+    articles_qs, faqs_qs = _visible_kb_and_faq(request)
+    if not query or articles_qs is None or faqs_qs is None:
+        return {"query": query, "articles": [], "faqs": []}
+    try:
+        from apps.portal.kb_search import search_kb_articles
+
+        ranked_articles = [article for article, _score in search_kb_articles(articles_qs, query, limit=limit)]
+    except Exception:
+        ranked_articles = list(
+            articles_qs.filter(title__icontains=query).order_by("-is_featured", "-view_count")[:limit]
+        )
+    faqs = list(
+        faqs_qs.filter(
+            models.Q(question__icontains=query)
+            | models.Q(answer__icontains=query)
+            | models.Q(tags__icontains=query)
+        )[:limit]
+    )
+    if not faqs:
+        tokens = [token for token in query.split() if len(token) > 3][:4]
+        faq_filter = models.Q()
+        for token in tokens:
+            faq_filter |= models.Q(question__icontains=token) | models.Q(tags__icontains=token)
+        if faq_filter:
+            faqs = list(faqs_qs.filter(faq_filter)[:limit])
+    return {"query": query, "articles": ranked_articles[:limit], "faqs": faqs[:limit]}
+
+
+def should_escalate_to_support(category, severity=None, explicit=False) -> bool:
+    return bool(
+        explicit
+        or category in SUPPORT_ESCALATION_CATEGORIES
+        or severity == FeedbackSubmission.Severity.CRITICAL
+    )
+
+
+def support_entry_points(request):
+    """Centralized URLs for every help/contact/product voice surface."""
+    links = {}
+    route_names = {
+        "help_center": "feedback:help_center",
+        "kb_home": "kb:kb_home",
+        "faq_list": "kb:faq_list",
+        "support_request": "portal:support_request",
+        "portal_help": "portal:support_help_hub",
+        "school_feedback": "feedback:school_feedback",
+        "school_roadmap": "feedback:school_roadmap",
+        "release_notes": "feedback:release_notes_public",
+    }
+    for key, name in route_names.items():
+        try:
+            links[key] = reverse(name)
+        except Exception:
+            links[key] = ""
+    try:
+        links["contact_us"] = reverse("marketing_contact")
+    except Exception:
+        links["contact_us"] = links.get("support_request", "")
+    return links
+
+
 def _student_privacy_defaults(role, privacy_level):
     if role == "STUDENT":
         return FeedbackSubmission.PrivacyLevel.SCHOOL_PRIVATE, True, True
@@ -104,6 +210,10 @@ def submit_feedback(
     browser_context=None,
     device_context=None,
     current_action_context=None,
+    source_channel=FeedbackSubmission.SourceChannel.IN_APP,
+    source_url="",
+    related_kb_article_id=None,
+    related_faq_id=None,
 ):
     role = get_user_role(user)
     privacy_level, moderation_required, visible_to_school = _student_privacy_defaults(
@@ -124,6 +234,10 @@ def submit_feedback(
         browser_context=browser_context or {},
         device_context=device_context or {},
         current_action_context=current_action_context or {},
+        source_channel=source_channel or FeedbackSubmission.SourceChannel.IN_APP,
+        source_url=source_url or route,
+        related_kb_article_id=related_kb_article_id or None,
+        related_faq_id=related_faq_id or None,
         moderation_required=moderation_required,
         visible_to_school=visible_to_school,
     )
@@ -136,6 +250,73 @@ def submit_feedback(
         to_status=feedback.status,
     )
     return feedback
+
+
+def create_support_ticket_from_feedback(feedback, *, request=None, actor=None):
+    """Mirror operational feedback into the existing support queue.
+
+    Product feedback remains in apps.feedback. Training, billing, login, data/import,
+    accessibility, and critical issues also become GlobalSupportTicket rows so the
+    school/support operation can work them without waiting for product triage.
+    """
+    if feedback.school_id is None:
+        return None
+    try:
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+    except Exception:
+        return None
+    priority = GlobalSupportTicket.Priority.NORMAL
+    if feedback.severity == FeedbackSubmission.Severity.CRITICAL:
+        priority = GlobalSupportTicket.Priority.URGENT
+    elif feedback.severity == FeedbackSubmission.Severity.HIGH:
+        priority = GlobalSupportTicket.Priority.HIGH
+    elif feedback.severity == FeedbackSubmission.Severity.LOW:
+        priority = GlobalSupportTicket.Priority.LOW
+    user = actor or feedback.user
+    body = (
+        f"Feedback #{feedback.pk}\n"
+        f"Category: {feedback.get_category_display()}\n"
+        f"Role: {feedback.role or 'unknown'}\n"
+        f"Module: {feedback.module or 'general'}\n"
+        f"Route: {feedback.route or feedback.source_url or 'N/A'}\n"
+        f"Source: {feedback.source_channel}\n\n"
+        f"{feedback.description}"
+    )
+    ticket = GlobalSupportTicket.objects.create(
+        school=feedback.school,
+        user=user if getattr(user, "is_authenticated", False) else feedback.user,
+        subject=f"[Feedback] {feedback.title}"[:255],
+        body=body,
+        priority=priority,
+        status=GlobalSupportTicket.Status.OPEN,
+        tags=["feedback", feedback.category, feedback.module or "general"],
+        metadata={
+            "feedback_id": feedback.pk,
+            "source_channel": feedback.source_channel,
+            "source_url": feedback.source_url,
+            "route": feedback.route,
+            "privacy_level": feedback.privacy_level,
+        },
+    )
+    feedback.related_support_ticket_id = str(ticket.pk)
+    feedback.support_escalated = True
+    feedback.tags = sorted(set((feedback.tags or []) + ["support_escalated"]))
+    feedback.save(
+        update_fields=[
+            "related_support_ticket_id",
+            "support_escalated",
+            "tags",
+            "updated_at",
+        ]
+    )
+    FeedbackTriageEvent.objects.create(
+        feedback=feedback,
+        actor=user if getattr(user, "is_authenticated", False) else None,
+        action="support_ticket_created",
+        to_status=feedback.status,
+        payload={"support_ticket_id": str(ticket.pk)},
+    )
+    return ticket
 
 
 def submit_feature_request(

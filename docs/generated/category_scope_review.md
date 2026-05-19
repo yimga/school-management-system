@@ -1,7 +1,7 @@
 # Category scope review (program_gap_registry / system_closure_map)
 
-**Date:** 2026-05-05
-**Inputs:** `docs/generated/system_closure_map.json`
+**Date:** 2026-05-19  
+**Inputs:** `docs/generated/system_closure_map.json`  
 **Verdict:** **CATEGORY DEFINING — REPO SCOPE**
 
 ## Systems in `systems[]`

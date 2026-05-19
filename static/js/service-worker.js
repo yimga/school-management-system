@@ -1,4 +1,8 @@
 // Service worker for portal PWA + offline write-behind queue.
+// v3.35.3: Marketing frontend completion (CSS bundles, self-hosted fonts, hero media, theme/LCP gates) — docs/CSS_RETIREMENT_DOCKET.md § v3.35.3.
+// Bumped 2026-05-18 (v3.34.0): Migration Cloud deferred-item closeout — per-tenant CompanionKeypair, companion siblings (Tauri+Docker), webhook verifier SDK packaging (PyPI+npm), per-vendor legacy_hash_created_at + FACTS/Skyward counsel docket, MAA v2.0 promotion plumbing + upstream watch.
+// Bumped 2026-05-18 (v3.32.4): AAA theme auto-remediate, RBAC matrix zero anonymous, finance/compliance verifiers.
+// Bumped 2026-05-18 (v3.32.3): Zero-ticket hub — campus switcher, diagnostics, permission simulator.
 // Bumped 2026-05-18 (v3.32.2): Corporate OS wave — status, find campus, trust anchors, density.
 // Bumped 2026-05-18 (v3.32.1): Elite marketing footer command center + UI/UX loop gate.
 // Bumped 2026-05-18 (v3.31.7): Abrupt-end sweep tooling (portal tenant routes JSON, retries).
@@ -60,7 +64,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.32.2-corporate-os-public-surfaces-2026-05-18";
+const CACHE_VERSION = "sms-v3.36.0-glocal-closeout-1291-2026-05-19";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

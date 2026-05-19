@@ -32,6 +32,25 @@ TENANT_PASSWORD = os.environ.get("APPLE_QA_TENANT_PASSWORD", "AppleQaPass123!")
 TENANT_SUBDOMAIN = "apple-class-qa"
 TENANT_SLUG = "apple-class-qa"
 TENANT_NAME = "Apple Class QA"
+# Fixed hex secret for django_otp TOTPDevice.key (local QA only; see scripts/apple_class_qa_totp.py).
+APPLE_CLASS_QA_TOTP_HEX = os.environ.get(
+    "APPLE_CLASS_QA_TOTP_HEX", "31323334353637383930313233343536"
+)
+TOTP_DEVICE_NAME = "apple-class-qa"
+
+
+def ensure_qa_totp(user) -> None:
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    device, _ = TOTPDevice.objects.update_or_create(
+        user=user,
+        name=TOTP_DEVICE_NAME,
+        defaults={"confirmed": True, "key": APPLE_CLASS_QA_TOTP_HEX},
+    )
+    if device.key != APPLE_CLASS_QA_TOTP_HEX or not device.confirmed:
+        device.key = APPLE_CLASS_QA_TOTP_HEX
+        device.confirmed = True
+        device.save(update_fields=["key", "confirmed"])
 
 
 def ensure_platform_user() -> None:
@@ -52,6 +71,7 @@ def ensure_platform_user() -> None:
     user.email = user.email or f"{PLATFORM_USERNAME}@example.com"
     user.set_password(PLATFORM_PASSWORD)
     user.save()
+    ensure_qa_totp(user)
     print(f"platform user: {PLATFORM_USERNAME} ({'created' if created else 'updated'})")
 
 
@@ -89,6 +109,19 @@ def ensure_tenant_school() -> School:
     return school
 
 
+def ensure_local_browser_mfa_policy() -> None:
+    """Apple-class Playwright cannot complete MFA setup; relax staff MFA for local QA only."""
+    from apps.platform_runtime.models import RuntimeDefaults
+
+    defaults, _ = RuntimeDefaults.objects.get_or_create(pk=1)
+    if defaults.require_mfa_all_staff:
+        defaults.require_mfa_all_staff = False
+        defaults.save(update_fields=["require_mfa_all_staff"])
+        print("require_mfa_all_staff: disabled for local Apple-class QA")
+    else:
+        print("require_mfa_all_staff: already off")
+
+
 def ensure_tenant_user(school: School) -> None:
     user, created = User.objects.get_or_create(
         username=TENANT_USERNAME,
@@ -118,10 +151,12 @@ def ensure_tenant_user(school: School) -> None:
         membership.role = "ADMIN"
         membership.is_primary = True
         membership.save(update_fields=["role", "is_primary"])
+    ensure_qa_totp(user)
     print(f"tenant user: {TENANT_USERNAME} ({'created' if created else 'updated'}) -> {school.slug}")
 
 
 if __name__ == "__main__":
+    ensure_local_browser_mfa_policy()
     ensure_platform_user()
     school = ensure_tenant_school()
     ensure_tenant_user(school)

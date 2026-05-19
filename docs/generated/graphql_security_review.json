@@ -1,0 +1,26 @@
+{
+  "auth_policy": {
+    "health": "public",
+    "me": "authenticated user",
+    "school_count": "control_plane staff + manager host",
+    "schools": "control_plane staff + manager host, limit capped 100"
+  },
+  "csrf_policy": "csrf_exempt with IP rate limits",
+  "endpoint": "/graphql/",
+  "error_leakage": "errors as message strings only; no stack in JsonResponse",
+  "generated_at": "2026-05-19T06:55:55.320534+00:00",
+  "introspection": "enabled (disable in production via GRAPHQL_INTROSPECTION_ENABLED=0)",
+  "mutations": false,
+  "public_exposure": true,
+  "rate_limiting": {
+    "get": "60/min",
+    "post": "120/min"
+  },
+  "required_fix": "none for repo bar; production introspection off recommended",
+  "risk_level": "medium",
+  "schema_version": 1,
+  "tenant_scope": "schools query is global registry (not per-tenant); by design for operator tooling",
+  "tests": [
+    "apps/api/tests/test_graphql_security_review.py"
+  ]
+}

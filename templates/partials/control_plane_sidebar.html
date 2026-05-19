@@ -14,7 +14,7 @@
       {% for item in PINNED_CONTROL_PLANE_ITEMS %}
       <li class="nav-item d-flex align-items-center gap-0">
         <a class="nav-link text-white d-flex align-items-center flex-grow-1 {% if item.is_current %}active{% endif %}" href="{{ item.url }}"><i class="bi {{ item.icon }} me-2 cp-nav-icon"></i><span class="cp-nav-label">{% trans item.label %}</span></a>
-        <button type="button" class="cp-pin-btn cp-pin-pinned btn btn-link p-0 ms-1 text-white opacity-75" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Remove from Quick access' %}" title="{% trans 'Remove from Quick access' %}"><i class="bi bi-pin-angle-fill"></i></button>
+        <button type="button" class="cp-pin-btn cp-pin-pinned btn btn-link p-0 ms-1 text-white" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Remove from Quick access' %}" title="{% trans 'Remove from Quick access' %}"><i class="bi bi-pin-angle-fill"></i></button>
       </li>
       {% endfor %}
     </ul>
@@ -36,7 +36,7 @@
         {% if item.id not in PINNED_CONTROL_PLANE_IDS %}
             <li class="nav-item d-flex align-items-center gap-0">
               <a class="nav-link text-white d-flex align-items-center flex-grow-1 {% if item.is_current %}active{% endif %}" href="{{ item.url }}"><i class="bi {{ item.icon }} me-2 cp-nav-icon"></i><span class="cp-nav-label">{% trans item.label %}</span></a>
-              <button type="button" class="cp-pin-btn btn btn-link p-0 ms-1 text-white opacity-75" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Add to Quick access' %}" title="{% trans 'Add to Quick access' %}"><i class="bi bi-pin-angle"></i></button>
+              <button type="button" class="cp-pin-btn btn btn-link p-0 ms-1 text-white" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Add to Quick access' %}" title="{% trans 'Add to Quick access' %}"><i class="bi bi-pin-angle"></i></button>
             </li>
         {% endif %}
       {% endfor %}

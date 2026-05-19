@@ -1,0 +1,21 @@
+{% load static %}
+{% comment %}
+  Progressive hero video — poster always paints; MP4 autoplays when present (muted loop).
+  Scaffold asset: static/marketing/video/hero-home.mp4 (regenerate via fetch_marketing_hero_media.py).
+{% endcomment %}
+<div class="mkt-edt-hero__media" data-mkt-hero-media>
+  <video
+    class="mkt-edt-hero__video"
+    width="1280"
+    height="720"
+    poster="{% static 'marketing/img/hero-home-poster.svg' %}"
+    preload="none"
+    muted
+    loop
+    playsinline
+    disablepictureinpicture
+    aria-hidden="true"
+  >
+    <source src="{% static 'marketing/video/hero-home.mp4' %}" type="video/mp4">
+  </video>
+</div>

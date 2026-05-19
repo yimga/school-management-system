@@ -7,7 +7,7 @@
   {% elif request.GET.error %}
     <div class="mkt-edt-alert mkt-edt-alert--warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please retry or email from your workspace if you are already a customer." %}</div>
   {% endif %}
-  <form method="post" action="{% url 'marketing_contact_submit' %}" class="mkt-v3-form row g-3" data-form-name="contact">
+  <form method="post" action="{% url 'marketing_contact_submit' %}" class="mkt-v3-form row g-3" data-form-name="contact" novalidate data-rmc-validate="inline">
     {% csrf_token %}
     <div aria-hidden="true" class="mkt-v3-form__honeypot">
       <label for="contact-website-url">{% trans "Leave this field empty" %}</label>

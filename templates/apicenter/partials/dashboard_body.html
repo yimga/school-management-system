@@ -1,0 +1,126 @@
+{% load i18n static %}
+{% load region_format phase8_tags %}
+<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "API Center" %}</h1>
+<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+  {% phase8_dashboard_declaration "apicenter/dashboard.html" %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+  {% if phase7_de %}
+  {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
+  {% endif %}
+  <details class="de-secondary-collapsible mb-3">
+  <summary id="apicenter-all-integrations">{% trans "Expand all integrations" %}</summary>
+  <div class="dashboard-card-grid mb-4">
+    {% for integration in integrations %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h5 class="card-title mb-1">{{ integration.name }}</h5>
+              <span class="badge bg-secondary">{{ integration.get_provider_display }}</span>
+            </div>
+            <span class="rounded-circle d-inline-block {{ integration.enabled|yesno:'bg-success,bg-danger' }}" style="width:10px;height:10px;" title="{% if integration.enabled %}{% trans 'Enabled' %}{% else %}{% trans 'Disabled' %}{% endif %}"></span>
+          </div>
+          <p class="small text-muted mb-2">
+            {% if integration.last_call_at %}{% trans "Last call:" %} {{ integration.last_call_at|timesince }}{% trans " ago" %}{% else %}{% trans "No calls yet" %}{% endif %}
+            · {% trans "Status:" %} {{ integration.get_health_status_display }}
+          </p>
+          <form method="post" action="{% url 'apicenter:toggle' integration.slug %}" class="toggle-form">
+            {% csrf_token %}
+            <div class="mb-2">
+              <label for="reason-{{ integration.slug }}" class="form-label small">{% trans "Reason (required)" %}</label>
+              <input type="text" class="form-control form-control-sm" id="reason-{{ integration.slug }}" name="reason" placeholder="{% trans 'e.g. Security review' %}" required maxlength="500">
+            </div>
+            <button type="submit" class="btn btn-sm {{ integration.enabled|yesno:'btn-outline-danger,btn-primary' }}">
+              {% if integration.enabled %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}
+            </button>
+          </form>
+          <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-link btn-sm p-0 mt-2">{% trans "Manage config & scopes" %} →</a>
+        </div>
+      </div>
+    {% empty %}
+    <div class="card shadow-sm" style="grid-column: 1 / -1;">
+      <div class="card-body">
+        <div class="rmc-empty rmc-empty--inline" role="status" aria-live="polite">
+          <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-plug"></i></div>
+          <p class="rmc-empty__message">{% trans "No integrations yet. Add them in the Configuration Control Center." %}</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  </details>
+
+  {% if api_quotas %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Rate limits & quotas" %}</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Rate limits & quotas" %}</caption>
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Limit" %}</th>
+              <th>{% trans "Scope" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for q in api_quotas %}
+            <tr>
+              <td><code>{{ q.get_quota_type_display }}</code></td>
+              <td>{{ q.limit_value }}</td>
+              <td>{% if q.school_id %}{% trans "Tenant" %}{% else %}{% trans "Platform" %}{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Audit log" %}</h5>
+    </div>
+    <div class="card-body p-0">
+      {% if audit_logs %}
+      <div class="dashboard-card-scroll dashboard-card-scroll--tall table-responsive">
+        <table class="table table-hover mb-0 table-family align-middle">
+          <caption class="visually-hidden">{% trans "Audit log" %}</caption>
+          <thead class="table-light">
+            <tr>
+              <th>{% trans "When" %}</th>
+              <th>{% trans "Integration" %}</th>
+              <th>{% trans "Action" %}</th>
+              <th>{% trans "By" %}</th>
+              <th>{% trans "Reason" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in audit_logs %}
+            <tr>
+              <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+              <td><code>{{ log.integration.slug }}</code></td>
+              <td>{{ log.get_action_display }}</td>
+              <td>{{ log.changed_by.get_full_name|default:log.changed_by.username|default:"—" }}</td>
+              <td>{{ log.reason|truncatewords:15 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="small text-muted px-3 py-2 mb-0">{% trans "Showing last 50 entries." %}</p>
+      {% else %}
+      <div class="rmc-empty rmc-empty--inline px-3 py-3 mb-0" role="status" aria-live="polite">
+        <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-journal-text"></i></div>
+        <div class="rmc-empty__body">
+          <p class="rmc-empty__message mb-0">{% trans "No audit entries yet." %}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

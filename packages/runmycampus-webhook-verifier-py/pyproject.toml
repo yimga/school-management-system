@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "runmycampus-webhook-verifier"
+version = "0.1.0"
+description = "Verify RunMyCampus Migration Cloud webhook signatures (HMAC-SHA256, canonical JSON). Stdlib-only, zero runtime dependencies."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [
+    { name = "RunMyCampus", email = "developers@runmycampus.com" }
+]
+keywords = [
+    "runmycampus",
+    "webhook",
+    "hmac",
+    "signature-verification",
+    "canonical-json",
+    "education",
+    "sis",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+# Zero runtime dependencies — stdlib only. This is intentional and load-bearing:
+# customers in air-gapped / locked-down environments can install with no transitive risk.
+dependencies = []
+
+[project.urls]
+Homepage = "https://runmycampus.com"
+Documentation = "https://docs.runmycampus.com/webhooks/verification/"
+Repository = "https://github.com/runmycampus/runmycampus"
+Issues = "https://github.com/runmycampus/runmycampus/issues"
+Changelog = "https://github.com/runmycampus/runmycampus/blob/main/packages/runmycampus-webhook-verifier-py/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+]
+
+[tool.hatch.build]
+include = [
+    "src/runmycampus_webhook_verifier/**/*.py",
+    "README.md",
+    "LICENSE",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/runmycampus_webhook_verifier"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "tests/",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+    "MANIFEST.in",
+]

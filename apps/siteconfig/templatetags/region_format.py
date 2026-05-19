@@ -119,6 +119,21 @@ def format_date_tenant(context, value):
 
 
 @register.simple_tag(takes_context=True)
+def format_dual_date_tenant(context, value):
+    """Format date with optional Hijri/Buddhist/Hebrew annotation for tenant school."""
+    if value is None:
+        return ""
+    request = context.get("request")
+    school = getattr(request, "school", None) if request else None
+    try:
+        from apps.platform_runtime.calendar_display import format_dual_calendar_date
+
+        return format_dual_calendar_date(value, school=school)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return format_date_tenant(context, value)
+
+
+@register.simple_tag(takes_context=True)
 def format_currency_tenant(context, value):
     """Phase C: Format amount as currency using tenant locale."""
     if value is None:

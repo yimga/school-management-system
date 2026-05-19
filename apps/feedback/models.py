@@ -5,6 +5,15 @@ from django.utils import timezone
 
 
 class FeedbackSubmission(models.Model):
+    class SourceChannel(models.TextChoices):
+        IN_APP = "in_app", "In-app feedback center"
+        CONTEXTUAL = "contextual", "Contextual page widget"
+        HELP_CENTER = "help_center", "Help center"
+        KB_ARTICLE = "kb_article", "Knowledge base article"
+        FAQ = "faq", "FAQ"
+        CONTACT_US = "contact_us", "Contact us"
+        SUPPORT_TICKET = "support_ticket", "Support ticket"
+
     class Category(models.TextChoices):
         GENERAL = "general", "General feedback"
         BUG = "bug", "Bug report"
@@ -92,6 +101,30 @@ class FeedbackSubmission(models.Model):
     browser_context = models.JSONField(default=dict, blank=True)
     device_context = models.JSONField(default=dict, blank=True)
     current_action_context = models.JSONField(default=dict, blank=True)
+    source_channel = models.CharField(
+        max_length=32,
+        choices=SourceChannel.choices,
+        default=SourceChannel.IN_APP,
+        db_index=True,
+    )
+    source_url = models.CharField(max_length=500, blank=True)
+    related_kb_article = models.ForeignKey(
+        "portal.KBArticle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="feedback_submissions",
+    )
+    related_faq = models.ForeignKey(
+        "portal.FAQ",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="feedback_submissions",
+    )
+    related_support_ticket_id = models.CharField(max_length=64, blank=True, db_index=True)
+    related_contact_request_id = models.CharField(max_length=64, blank=True, db_index=True)
+    support_escalated = models.BooleanField(default=False, db_index=True)
     assigned_to = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

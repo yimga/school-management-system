@@ -1,12 +1,12 @@
 {
   "date": "2026-05-18",
-  "generated_at": "2026-05-18T19:24:18+00:00",
+  "generated_at": "2026-05-18T22:05:00+00:00",
   "major": 3,
-  "minor": 32,
+  "minor": 33,
   "patch": 2,
-  "raw": "sms-v3.32.2-corporate-os-public-surfaces-2026-05-18",
+  "raw": "sms-v3.33.2-dual-plane-theme-hub-2026-05-18",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "corporate-os-public-surfaces",
+  "slug": "dual-plane-theme-hub",
   "valid": true
 }

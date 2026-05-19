@@ -290,6 +290,216 @@ def get_default_throttle_classes():
     return [MigrationCloudReadThrottle]
 
 
+# ─── v3.33.0 — path-scoped global throttle ─────────────────────────────────
+
+#: Path prefix the global throttle activates on. Any request whose
+#: ``request.path`` does NOT contain this segment is allowed through
+#: without consulting the bucket, so non-/api/v1/ surfaces (operator UI,
+#: marketing pages, status JSON) keep their existing throttle semantics.
+MIGRATION_CLOUD_API_PATH_MARKER = "/api/v1/"
+
+#: Sub-marker confirming this is the Migration Cloud REST surface (not
+#: any other /api/v1/ root). The DRF router mounts both under
+#: ``/super/migration/api/v1/`` and ``/portal/configure/migration/api/v1/``.
+MIGRATION_CLOUD_PATH_SUB_MARKER = "/migration/"
+
+#: Response header signaling the caller has crossed the soft-warn line.
+#: Receivers can log this + back off; emission is non-fatal.
+SOFT_WARN_HEADER = "X-RateLimit-Soft-Warn"
+
+#: Header set on every throttled response with the current scope key —
+#: lets operators trace which class of traffic tripped the gate.
+SCOPE_HEADER = "X-RateLimit-Scope"
+
+
+def _path_is_migration_cloud_api(path: str) -> bool:
+    """Return True iff ``path`` targets the Migration Cloud REST surface.
+
+    Both mount points share the ``…/migration/api/v1/…`` substring so a
+    single test catches the operator and tenant shells alike. Defensive
+    against missing leading slash / trailing slash.
+    """
+    if not path:
+        return False
+    return (
+        MIGRATION_CLOUD_API_PATH_MARKER in path
+        and MIGRATION_CLOUD_PATH_SUB_MARKER in path
+    )
+
+
+def _scope_for_request(request) -> str | None:
+    """Map a request to its throttle scope, or ``None`` to skip throttling.
+
+    Three scopes:
+      * ``webhook_tenant``  — POST/GET/DELETE under ``/webhooks/`` or
+        ``/api/v1/...webhooks``.
+      * ``bundles_write`` — any non-safe HTTP method under the API
+        (POST / PUT / PATCH / DELETE) on bundles/artifacts.
+      * ``bundles_read``  — safe-method (GET / HEAD / OPTIONS) under the
+        API.
+
+    Returns ``None`` for any path that doesn't activate the throttle —
+    DRF interprets that as "allow request" for this throttle class.
+    """
+    path = getattr(request, "path", "") or ""
+    if not _path_is_migration_cloud_api(path):
+        return None
+    method = (getattr(request, "method", "") or "").upper()
+    if "/webhooks" in path:
+        return "webhook_tenant"
+    if method in ("GET", "HEAD", "OPTIONS"):
+        return "bundles_read"
+    return "bundles_write"
+
+
+class MigrationCloudGlobalThrottle(SimpleRateThrottle):
+    """Path-scoped throttle wired into DRF's ``DEFAULT_THROTTLE_CLASSES``.
+
+    DRF iterates every throttle in ``DEFAULT_THROTTLE_CLASSES`` on every
+    request. To keep the throttle a NO-OP on non-Migration-Cloud paths,
+    we override :meth:`allow_request` to short-circuit when
+    :func:`_scope_for_request` returns ``None``. The viewset-attached
+    ``MigrationCloudRead/WriteThrottle`` still apply where wired
+    directly.
+
+    Rate table (per the v3.33 task brief):
+      * ``webhook_tenant`` — 1000/hour/tenant
+      * ``bundles_write`` — 600/min/token
+      * ``bundles_read``  — 100/min/token
+
+    Soft-warn: when current count ≥ 80% of the scope's rate, the
+    throttle still allows the request but tags ``request._rmc_soft_warn``
+    so the response renderer can emit ``X-RateLimit-Soft-Warn: 1``. The
+    middleware companion :class:`SoftWarnHeaderMiddleware` reads that
+    flag and writes the header — kept out of the throttle itself so
+    DRF's ``wait()`` accounting stays clean.
+    """
+
+    # DRF reads ``THROTTLE_RATES[scope]`` via parent ``get_rate``; we own
+    # the table directly because we don't want operators to override the
+    # Migration Cloud rates through generic settings.
+    SCOPE_RATES = {
+        "webhook_tenant": "1000/hour",
+        "bundles_write": "600/min",
+        "bundles_read": "100/min",
+    }
+
+    SOFT_WARN_FRACTION = 0.80
+
+    scope = "migration-cloud-global"
+    cache_format = "throttle_rmc_global_%(scope)s_%(ident)s"
+
+    def __init__(self):
+        # Defer the parent ``__init__`` because it requires ``self.scope``
+        # to resolve from settings; we compute rate lazily per request.
+        self.rate = None
+        self.num_requests = None
+        self.duration = None
+
+    # ── Plumbing ────────────────────────────────────────────────────
+
+    def _activate_scope(self, scope_key: str) -> None:
+        """Set ``self.rate`` + parse it so the parent helpers work."""
+        self.scope = scope_key
+        self.rate = self.SCOPE_RATES[scope_key]
+        self.num_requests, self.duration = self.parse_rate(self.rate)
+
+    def get_cache_key(self, request, view):
+        # Key on token id when present, else user id, else IP.
+        try:
+            from apps.migration_cloud.models import MigrationCloudAPIToken
+        except Exception:  # pragma: no cover — defensive at import-time
+            MigrationCloudAPIToken = None  # type: ignore[assignment]
+
+        ident = None
+        auth = getattr(request, "auth", None)
+        if MigrationCloudAPIToken is not None and isinstance(auth, MigrationCloudAPIToken):
+            ident = f"tok-{auth.pk}"
+        else:
+            user = getattr(request, "user", None)
+            if user is not None and getattr(user, "is_authenticated", False):
+                ident = f"usr-{user.pk}"
+        if ident is None:
+            ident = self.get_ident(request) or "anon"
+        return self.cache_format % {"scope": self.scope, "ident": ident}
+
+    def get_rate(self):
+        # We set ``self.rate`` directly via ``_activate_scope``; parent
+        # ``allow_request`` calls this so respect what's already loaded.
+        return self.rate
+
+    # ── DRF entrypoint ───────────────────────────────────────────────
+
+    def allow_request(self, request, view):
+        """Path-scoped: skip when not Migration Cloud API.
+
+        Defensive: returns True (allow) for any request that doesn't
+        activate a scope, so this class can sit in
+        ``DEFAULT_THROTTLE_CLASSES`` without affecting unrelated apps.
+        """
+        scope_key = _scope_for_request(request)
+        if scope_key is None:
+            return True  # not our path — get out of the way
+
+        self._activate_scope(scope_key)
+        self.key = self.get_cache_key(request, view)
+        if self.key is None:  # pragma: no cover — get_cache_key always returns
+            return True
+
+        self.history = self.cache.get(self.key, [])
+        self.now = self.timer()
+
+        # Drop history entries outside the rolling window.
+        while self.history and self.history[-1] <= self.now - self.duration:
+            self.history.pop()
+
+        if len(self.history) >= self.num_requests:
+            logger.info(
+                "migration_cloud_global_throttle_reject scope=%s key=%s count=%s "
+                "limit=%s",
+                self.scope, self.key, len(self.history), self.num_requests,
+            )
+            return self.throttle_failure()
+
+        # Soft-warn: flag the request for the response middleware.
+        try:
+            soft_threshold = max(
+                1, int(self.num_requests * self.SOFT_WARN_FRACTION),
+            )
+            if len(self.history) >= soft_threshold:
+                setattr(request, "_rmc_rate_soft_warn", True)
+                setattr(request, "_rmc_rate_scope", self.scope)
+        except Exception:  # pragma: no cover — defensive
+            pass
+
+        return self.throttle_success()
+
+
+class SoftWarnHeaderMiddleware:
+    """Emit ``X-RateLimit-Soft-Warn: 1`` when the throttle flagged it.
+
+    DRF's throttle layer can't reach the response object, so we set a
+    request attribute in :class:`MigrationCloudGlobalThrottle` and let
+    this middleware paint it on the way out. Cheap (one ``getattr``)
+    per response, so safe to wire globally.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        try:
+            if getattr(request, "_rmc_rate_soft_warn", False):
+                response[SOFT_WARN_HEADER] = "1"
+                scope = getattr(request, "_rmc_rate_scope", None)
+                if scope:
+                    response[SCOPE_HEADER] = scope
+        except Exception:  # pragma: no cover — never break the response cycle
+            pass
+        return response
+
+
 # ─── Module-level singleton ───────────────────────────────────────────────
 
 #: Process-wide limiter the dispatcher consults. Cheap to construct, but

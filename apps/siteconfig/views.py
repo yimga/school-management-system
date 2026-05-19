@@ -2041,11 +2041,17 @@ def get_theme_colors_context(request):
 @permission_required("settings.manage")
 def theme_experience_redirect(request):
     """
-    Legacy route redirector so all theme editing lands on the canonical
-    Theme & Experience studio.
+    Legacy route: default to the dual-plane Theme & Experience hub.
+
+    Use ``?studio=1`` to jump straight to Studio Experience (older bookmarks).
     """
-    target = _theme_experience_canonical_url()
     next_url = _safe_next_url(request, request.GET.get("next"), "")
+    if request.GET.get("studio") in ("1", "true", "on"):
+        target = _theme_experience_canonical_url()
+        if next_url:
+            target = f"{target}?{urlencode({'next': next_url})}"
+        return redirect(target)
+    target = reverse("siteconfig:theme_experience_hub")
     if next_url:
         target = f"{target}?{urlencode({'next': next_url})}"
     return redirect(target)

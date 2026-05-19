@@ -126,7 +126,7 @@ def queue_deliveries_for_event(event, *, scheduled_for=None) -> list:
     deliveries = []
     for subscription in matching_subscriptions_for_event(event):
         delivery = (
-            WebhookDelivery.objects.filter(
+            WebhookDelivery.objects.filter(  # tenant-isolation-allow: platform-webhook-delivery-retry-worker-global
                 subscription=subscription, domain_event=event
             )
             .order_by("id")
@@ -340,7 +340,7 @@ def dispatch_due_webhooks(
 
     now = now or timezone.now()
     due = (
-        WebhookDelivery.objects.filter(status=WebhookDelivery.Status.PENDING)
+        WebhookDelivery.objects.filter(status=WebhookDelivery.Status.PENDING)  # tenant-isolation-allow: platform-webhook-delivery-status-aggregate
         .filter(Q(scheduled_for__isnull=True) | Q(scheduled_for__lte=now))
         .select_related("subscription", "domain_event")
         .order_by("scheduled_for", "created_at")[: max(1, int(limit))]

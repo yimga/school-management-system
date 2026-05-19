@@ -64,6 +64,7 @@ from apps.schools.marketing_views import (
     migration_simulator_page,
     institution_marketing_page,
     role_marketing_page,
+    marketing_verb_hub,
     submit_contact_request,
     submit_demo_request,
     submit_security_packet_request,
@@ -356,6 +357,7 @@ urlpatterns = [
     # Public tour-steps endpoint (registered here so marketing/trust templates
     # `{% url 'tour_steps_public_api' %}` resolve under the default urlconf in
     # tests that don't go through UrlConfSwitcherMiddleware).
+    # rbac-allow: anonymous onboarding tour steps for marketing/login shells
     path("api/tour-steps/public/", tour_steps_public_api, name="tour_steps_public_api"),
     path("-/version/", obs_views.public_version, name="public_version"),
     # CSP violation report sink (browsers POST here per Content-Security-Policy-Report-Only).
@@ -736,6 +738,19 @@ urlpatterns = [
         name="marketing_solutions_k12_schools",
     ),
     path("marketing/", marketing_landing, name="marketing_landing"),
+    path("grow/", marketing_verb_hub, {"verb": "grow"}, name="marketing_grow_hub"),
+    path(
+        "grow/marketplace/",
+        marketing_page,
+        {"page_slug": "platform-marketplace"},
+        name="marketing_grow_marketplace",
+    ),
+    path(
+        "grow/migration/",
+        marketing_page,
+        {"page_slug": "platform-migration-cloud"},
+        name="marketing_grow_migration",
+    ),
     path(
         "education-operating-system/",
         marketing_page,

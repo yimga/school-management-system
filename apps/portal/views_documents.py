@@ -56,14 +56,11 @@ def document_library_filtered_queryset(request):
     if pack_code:
         documents = documents.filter(document_pack__code=pack_code)
 
-    search_query = request.GET.get("q")
-    if search_query:
-        documents = documents.filter(
-            Q(search_index__icontains=search_query.lower())
-            | Q(title__icontains=search_query)
-            | Q(description__icontains=search_query)
-        )
-    return documents
+    from apps.portal.document_search import filter_documents_by_search
+    from apps.siteconfig.list_search import normalize_list_search_query
+
+    search_query = normalize_list_search_query(request.GET.get("q"))
+    return filter_documents_by_search(documents, search_query)
 
 
 def build_document_library_manage_context(request, *, studio_output_native: bool = False):

@@ -1,4 +1,8 @@
 {% load static %}
+{% comment %}
+  Login / tenant base.html footer chrome only — NOT included on marketing/base_marketing.html
+  (public marketing uses marketing-critical.min.css + marketing-enhanced.min.css).
+{% endcomment %}
 <link rel="stylesheet" href="{% static 'marketing/css/tokens-marketing.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/tokens-editorial.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-shell.css' %}">

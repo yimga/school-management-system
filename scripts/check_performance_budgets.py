@@ -35,6 +35,9 @@ BUDGETS = [
         "max_queries": 25,
         "enforce": True,
         "anonymous": False,
+        "forensic_ci_only": True,
+        "forensic_max_time": 12.0,
+        "forensic_max_queries": 90,
     },
     {
         "label": "Setup Studio",
@@ -85,11 +88,43 @@ BUDGETS = [
         "anonymous": True,
         "n10_ci_only": True,
     },
+    {
+        "label": "Zero-Ticket diagnostic hub",
+        "path": "/siteconfig/zero-ticket/",
+        "max_time": 1.2,
+        "max_queries": 40,
+        "enforce": True,
+        "anonymous": False,
+        "forensic_ci_only": True,
+        "forensic_max_time": 7.0,
+        "forensic_max_queries": 100,
+    },
+    {
+        "label": "Permission matrix simulator",
+        "path": "/siteconfig/zero-ticket/permissions/",
+        "max_time": 1.5,
+        "max_queries": 100,
+        "enforce": True,
+        "anonymous": False,
+        "forensic_ci_only": True,
+        "forensic_max_time": 4.5,
+        "forensic_max_queries": 100,
+    },
+    {
+        "label": "Configure hub (portal)",
+        "path": "/portal/configure/",
+        "max_time": 1.5,
+        "max_queries": 45,
+        "enforce": True,
+        "anonymous": False,
+    },
 ]
 
 # When PERF_BUDGET_STRICT_GATE_ROWS=n10_public, only rows with n10_ci_only run
 # (stable CI for N10 without failing on staff paths' query volume under DEBUG).
-_N10_CI = os.environ.get("PERF_BUDGET_STRICT_GATE_ROWS", "").strip().lower() == "n10_public"
+_GATE_ROWS = os.environ.get("PERF_BUDGET_STRICT_GATE_ROWS", "").strip().lower()
+_N10_CI = _GATE_ROWS == "n10_public"
+_FORENSIC_ZT = _GATE_ROWS == "forensic_zero_ticket"
 
 STRICT = os.environ.get("PERF_BUDGET_STRICT", "0") == "1"
 N10_STRICT = os.environ.get("PERF_BUDGET_STRICT_N10", "0") == "1"
@@ -116,21 +151,76 @@ def get_client_with_user():
     return client
 
 
-def run_budget_check():
-    budget_list = (
-        [b for b in BUDGETS if b.get("n10_ci_only")]
-        if _N10_CI
-        else list(BUDGETS)
+def get_tenant_client_with_user():
+    """
+    Tenant-subdomain client with membership + signed session school_id.
+
+    Uses PERF_BUDGET_TENANT_SUBDOMAIN or the first active school subdomain.
+    """
+    from django.contrib.auth import get_user_model
+
+    from apps.schools.models import School, SchoolMembership
+    from apps.schools.session_school_bind import sign_session_school_bind
+
+    User = get_user_model()
+    subdomain = (os.environ.get("PERF_BUDGET_TENANT_SUBDOMAIN") or "").strip()
+    school = None
+    if subdomain:
+        school = School.objects.filter(subdomain=subdomain, is_active=True).first()
+    if school is None:
+        school = School.objects.filter(is_active=True).order_by("created_at").first()
+    if school is None:
+        return get_client_with_user()
+
+    user = User.objects.filter(is_staff=True).first()
+    if user is None:
+        user = User.objects.filter(is_active=True).first()
+    if user is None:
+        return get_client_with_user()
+
+    if not SchoolMembership.objects.filter(user=user, school=school).exists():
+        SchoolMembership.objects.get_or_create(
+            user=user,
+            school=school,
+            defaults={"role": "ADMIN", "is_primary": True},
+        )
+
+    host = f"{school.subdomain}.runmycampus.com"
+    client = Client(HTTP_HOST=host)
+    client.force_login(user)
+    sign_session_school_bind(
+        client.session, school_id=str(school.pk), user_id=user.pk
     )
+    client.session.save()
+    return client
+
+
+def run_budget_check():
+    if _N10_CI:
+        budget_list = [b for b in BUDGETS if b.get("n10_ci_only")]
+    elif _FORENSIC_ZT:
+        budget_list = [b for b in BUDGETS if b.get("forensic_ci_only")]
+    else:
+        budget_list = list(BUDGETS)
     client_staff = get_client_with_user()
+    client_tenant = get_tenant_client_with_user()
     client_anon = Client()
     failed = []
     for row in budget_list:
         label = row["label"]
         path = row["path"]
-        max_time = max(0.05, float(row["max_time"]) * N10_TIME_FACTOR)
-        max_queries = int(row["max_queries"])
-        client = client_anon if row.get("anonymous") else client_staff
+        if _FORENSIC_ZT and row.get("forensic_max_time"):
+            max_time = max(0.05, float(row["forensic_max_time"]) * N10_TIME_FACTOR)
+            max_queries = int(row.get("forensic_max_queries") or row["max_queries"])
+        else:
+            max_time = max(0.05, float(row["max_time"]) * N10_TIME_FACTOR)
+            max_queries = int(row["max_queries"])
+        if row.get("anonymous"):
+            client = client_anon
+        elif row.get("tenant_host"):
+            client = client_tenant
+        else:
+            client = client_staff
         start = time.perf_counter()
         with CaptureQueriesContext(connection):
             _get(client, path)

@@ -1,0 +1,178 @@
+/**
+ * Platform readability wave 2 (2026-05-18).
+ * Load immediately AFTER theme-platform-contrast.css on authenticated shells.
+ * Chrome vs main-column split, marketplace proof cards, sidebar legibility, empty states.
+ */
+
+/* ----- Dark chrome: sidebar / topbar (readable without hover) ----- */
+:is(.cp-sidebar-nav, .cp-sidebar-inner, #cp-sidebar-col) .cp-nav-group-toggle,
+:is(.cp-sidebar-nav, .cp-sidebar-inner) .cp-nav-section-label,
+:is(.cp-sidebar-nav, .cp-sidebar-inner) .rmc-type-eyebrow {
+  color: color-mix(in srgb, var(--color-base-50, #f8fafc) 82%, transparent) !important; /* theme-locked-allow: platform-dark-chrome-readability */
+  opacity: 1 !important;
+}
+
+:is(.cp-sidebar-nav, .cp-sidebar-inner) .nav-link.text-white:not(.active) {
+  color: color-mix(in srgb, var(--color-base-50, #f8fafc) 94%, transparent) !important; /* theme-locked-allow: platform-dark-chrome-readability */
+}
+
+:is(.cp-sidebar-nav, .cp-sidebar-inner) .nav-link.text-white.active {
+  color: var(--color-base-50, #f8fafc) !important; /* theme-locked-allow: platform-dark-chrome-readability */
+}
+
+.cp-sidebar-nav .cp-pin-btn {
+  opacity: 1 !important;
+  color: color-mix(in srgb, var(--color-base-50, #f8fafc) 88%, transparent) !important; /* theme-locked-allow: platform-dark-chrome-readability */
+}
+
+.cp-sidebar-nav .cp-pin-btn:hover,
+.cp-sidebar-nav .cp-pin-btn:focus-visible {
+  color: var(--color-base-50, #f8fafc) !important; /* theme-locked-allow: platform-dark-chrome-readability */
+}
+
+.cp-sidebar-platform-admin .cp-nav-section-label,
+.cp-sidebar-platform-admin .admin-sidebar-section-title,
+.cp-sidebar-platform-admin .admin-sidebar-section-heading {
+  color: color-mix(in srgb, var(--text-on-brand, #fff) 85%, transparent) !important;
+}
+
+.cp-topbar-search-input::placeholder,
+.cp-header-search .form-control::placeholder {
+  color: color-mix(in srgb, var(--color-base-50, #f8fafc) 62%, transparent); /* theme-locked-allow: platform-dark-chrome-readability */
+  opacity: 1;
+}
+
+/* ----- Light main canvas: copy hierarchy ----- */
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(p, li, dd, dt, label, .form-label, .card-text, .list-group-item),
+html[data-bs-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) :is(p, li, label) {
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.text-muted, .text-secondary, .small.text-muted, .form-text, .helptext, .help-block),
+html[data-bs-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .text-muted {
+  color: var(--text-secondary, var(--color-base-600)) !important;
+  opacity: 1 !important;
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .card-title):not(:is(.proof-hero, .cp-hero, .bg-dark) *) {
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) :is(.proof-hero, .proof-hero *) {
+  color: var(--mkt-text-inverse, var(--color-base-50)); /* theme-locked-allow: platform-dark-chrome-readability */
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .proof-hero :is(.text-muted, .text-white-50) {
+  color: color-mix(in srgb, var(--color-base-50) 82%, transparent) !important; /* theme-locked-allow: platform-dark-chrome-readability */
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) tr.table-secondary :is(th, td) {
+  --bs-table-color: var(--text-primary, var(--color-base-900));
+  --bs-table-bg: var(--surface-elevated, var(--color-base-100));
+  color: var(--text-primary, var(--color-base-900));
+  background-color: var(--surface-elevated, var(--color-base-100));
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) ::placeholder {
+  color: var(--text-tertiary, var(--color-base-500));
+  opacity: 1;
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .form-control,
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .form-select {
+  color: var(--text-primary, var(--color-base-900));
+  background-color: var(--surface-elevated, var(--color-base-0));
+  border-color: var(--hairline-strong, var(--hairline));
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .btn-outline-secondary {
+  color: var(--text-primary, var(--color-base-900)) !important;
+  border-color: var(--hairline-strong, var(--hairline)) !important;
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .btn-outline-secondary:hover {
+  color: var(--text-primary, var(--color-base-900)) !important;
+  background-color: var(--surface-elevated, var(--color-base-100)) !important;
+}
+
+/* Empty states on light canvas */
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) :is(.rmc-empty, .dashboard-empty-state) {
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .rmc-empty__message,
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .dashboard-empty-message {
+  color: var(--text-secondary, var(--color-base-600));
+}
+
+/* Marketplace / proof catalog cards (light inset panels) */
+html[data-resolved-theme="light"] #cp-main-content .proof-app-card,
+html[data-resolved-theme="light"] #cp-main-content .proof-app-card :is(h3, strong, p, li, code) {
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="light"] #cp-main-content .proof-app-screen {
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="light"] #cp-main-content .proof-app-screen .proof-chip {
+  color: var(--text-secondary, var(--color-base-700));
+  background: var(--surface-canvas, var(--color-base-0));
+  border: 1px solid var(--hairline);
+}
+
+html[data-resolved-theme="light"] #cp-main-content .proof-app-card .text-muted {
+  color: var(--text-secondary, var(--color-base-600)) !important;
+}
+
+html[data-resolved-theme="light"] #cp-main-content .proof-panel-copy,
+html[data-resolved-theme="light"] #cp-main-content .proof-card p {
+  color: var(--text-secondary, var(--color-base-600));
+}
+
+/* Operator surface strip + breadcrumbs */
+html[data-resolved-theme="light"] .rmc-operator-surface-strip__pill,
+html[data-resolved-theme="light"] .rmc-operator-surface-strip__paired-label {
+  color: var(--text-secondary);
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .breadcrumb-item,
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .breadcrumb-item a {
+  color: var(--text-secondary);
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .breadcrumb-item.active {
+  color: var(--text-primary);
+}
+
+/* Dark main: ensure muted copy is not invisible */
+html[data-resolved-theme="dark"] :is(#cp-main-content, [data-rmc-shell-main]) .text-muted,
+html[data-resolved-theme="dark"] :is(#cp-main-content, [data-rmc-shell-main]) .text-secondary {
+  color: var(--text-secondary) !important;
+  opacity: 1 !important;
+}
+
+html[data-resolved-theme="dark"] :is(#cp-main-content, [data-rmc-shell-main]) .proof-app-screen .proof-chip {
+  color: var(--text-secondary);
+}
+
+/* Kill opacity-only affordances on primary copy in main column */
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main])
+  :is(p, span, small, td, th, label, a):is(.opacity-50, .opacity-75),
+html[data-resolved-theme="dark"] :is(#cp-main-content, [data-rmc-shell-main])
+  :is(p, span, small, td, th, label):is(.opacity-50, .opacity-75) {
+  opacity: 1 !important;
+}

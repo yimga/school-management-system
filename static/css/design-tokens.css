@@ -474,7 +474,7 @@
 
   /* Control-plane neutrals (light text + muted text on cp-ink-* surfaces). */
   --cp-text-ultra: #e8eef6;        /* primary text on ultra-dark cp surfaces */
-  --cp-text-muted-ultra: #8b9cb8;  /* muted/secondary text on ultra-dark cp surfaces */
+  --cp-text-muted-ultra: #a8b8d4;  /* muted/secondary text on ultra-dark cp surfaces (WCAG bump v2) */
 
   /* Cool slate tints (3xx-ish range) used by cp-hero/panel meta text.
      Distinct from --color-base-* because they are warmer and trade neutrality
@@ -4457,44 +4457,31 @@ html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed { opacity: 1; transfo
         is overridden here with a quieter single-tint + brand-tinted hairline
    No template touches — overrides cascade through the existing class names. */
 
-/* ---- Contrast repair on dark surfaces ----------------------------------- */
-/* Every manager / control-plane / dark-themed surface tint these utilities up
-   to the same readable tertiary-text color the rest of the v2 system uses.
-   Light surfaces keep Bootstrap's quieter values. */
+/* ---- Contrast repair on dark chrome only (not #cp-main-content light canvas) --- */
 [data-theme="dark"] .text-white-50,
 [data-bs-theme="dark"] .text-white-50,
-[data-surface="control-plane"] .text-white-50,
-[data-rmc-premium-shell="control-plane"] .text-white-50,
-.control-plane-shell .text-white-50,
-.cp-surface .text-white-50 {
+[data-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col, .cp-primary-nav, .rmc-control-plane-chrome) .text-white-50,
+[data-bs-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col, .cp-primary-nav, .rmc-control-plane-chrome) .text-white-50 {
   color: var(--text-tertiary, #aeaeb2) !important;
   opacity: 1 !important;
 }
 [data-theme="dark"] .text-white-25,
 [data-bs-theme="dark"] .text-white-25,
-[data-surface="control-plane"] .text-white-25,
-[data-rmc-premium-shell="control-plane"] .text-white-25,
-.control-plane-shell .text-white-25,
-.cp-surface .text-white-25 {
+[data-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col, .cp-primary-nav, .rmc-control-plane-chrome) .text-white-25,
+[data-bs-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col, .cp-primary-nav, .rmc-control-plane-chrome) .text-white-25 {
   color: var(--text-muted, #8e8e93) !important;
   opacity: 1 !important;
 }
-/* text-muted on dark surfaces is even worse than text-white-50 (Bootstrap #6c757d
-   on near-black is sub-WCAG). Reroute through the token system. */
 [data-theme="dark"] .text-muted,
 [data-bs-theme="dark"] .text-muted,
-[data-surface="control-plane"] .text-muted,
-[data-rmc-premium-shell="control-plane"] .text-muted,
-.control-plane-shell .text-muted,
-.cp-surface .text-muted {
+[data-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col, .cp-primary-nav, .rmc-control-plane-chrome) .text-muted,
+[data-bs-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col, .cp-primary-nav, .rmc-control-plane-chrome) .text-muted {
   color: var(--text-tertiary, #aeaeb2) !important;
 }
-/* Reset accidental opacity-50 / opacity-75 on TEXT elements — Apple-tier surfaces
-   never rely on opacity for type contrast (use color tokens instead). */
 [data-theme="dark"] :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-50,
 [data-theme="dark"] :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75,
-.control-plane-shell :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75,
-.cp-surface :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75 {
+[data-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col) :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75,
+[data-bs-theme="dark"] :is(.cp-navbar, .cp-sidebar-col, #cp-sidebar-col) :is(h1, h2, h3, h4, h5, h6, p, span, small, a, button).opacity-75 {
   opacity: 1;
 }
 

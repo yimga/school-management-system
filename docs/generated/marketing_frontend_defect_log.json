@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-05-19T02:37:00.575915+00:00",
+  "defects": [
+    {
+      "id": "P1",
+      "severity": "critical",
+      "category": "CWV / speed",
+      "finding": "32 synchronous render-blocking stylesheets on every marketing page",
+      "remediation": "marketing-critical.min.css + deferred marketing-enhanced.min.css; 4 blocking links in base_marketing.html",
+      "status": "fixed"
+    },
+    {
+      "id": "P2",
+      "severity": "high",
+      "category": "CWV / speed",
+      "finding": "Blocking Google Fonts CDN without self-hosted preload path",
+      "remediation": "Self-hosted Source Serif 4 WOFF2 + marketing-fonts.css in critical bundle",
+      "status": "fixed"
+    },
+    {
+      "id": "P3",
+      "severity": "high",
+      "category": "CWV / speed",
+      "finding": "Portal-only JS on acquisition traffic (lexicon, friction, launch splash)",
+      "remediation": "Removed from base_marketing.html; hero video JS homepage-only",
+      "status": "fixed"
+    },
+    {
+      "id": "T1",
+      "severity": "critical",
+      "category": "theme",
+      "finding": "Split theme bootstraps caused FOUC and v2 data-theme=system no-op",
+      "remediation": "mkt-theme-bootstrap.js + v3 effective data-theme contract",
+      "status": "fixed"
+    },
+    {
+      "id": "T2",
+      "severity": "high",
+      "category": "theme / contrast",
+      "finding": "Hardcoded colors below AAA on dark marketing chrome",
+      "remediation": "tokens-marketing.css SOT + marketing-accessibility-hardening.css (in critical bundle) + marketing-theme-contrast.spec.js axe critical gate",
+      "status": "fixed"
+    },
+    {
+      "id": "C1",
+      "severity": "medium",
+      "category": "conversion",
+      "finding": "Contact/demo forms lacked inline validation hook",
+      "remediation": "novalidate data-rmc-validate=inline + rmc-form-validation.js",
+      "status": "fixed"
+    },
+    {
+      "id": "S1",
+      "severity": "high",
+      "category": "SEO",
+      "finding": "Duplicate JSON-LD blocks across page templates",
+      "remediation": "Central mkt_structured_data.html in base_marketing.html",
+      "status": "fixed"
+    },
+    {
+      "id": "S2",
+      "severity": "medium",
+      "category": "SEO",
+      "finding": "Missing canonical/OG wiring on some marketing pages",
+      "remediation": "rmc_social_meta.html + canonical_url in base; verify_marketing_seo_shell.py",
+      "status": "fixed"
+    },
+    {
+      "id": "H1",
+      "severity": "medium",
+      "category": "hero / media",
+      "finding": "Hero video referenced but not shipped; MP4 gitignored",
+      "remediation": "hero-home.mp4 + poster + setup_marketing_ci_assets.py + gitignore exceptions",
+      "status": "fixed"
+    },
+    {
+      "id": "B1",
+      "severity": "medium",
+      "category": "budget",
+      "finding": "Original ~40KB critical CSS target not met with full grammar + shell",
+      "remediation": "marketing-critical-path.css + deferred grammar/narrative/full shell in enhanced; critical_max 45000 enforced",
+      "status": "fixed"
+    }
+  ],
+  "bundles": {
+    "critical_bytes": 15789,
+    "enhanced_bytes": 234023
+  }
+}

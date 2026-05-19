@@ -15,11 +15,11 @@
   <p class="small">{% trans "By institution type — RFP and ministry narrative." %}</p>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
-  {% if learning_packs_url %}<p><a href="{{ learning_packs_url }}" class="link-light">{% trans "Learning delivery & institution types" %}</a></p>{% endif %}
-  {% if statutory_hints_url %}<p class="small mb-2">{% trans "Jurisdiction hints for PDF shells and automation:" %} <a href="{{ statutory_hints_url }}" class="link-light">{% trans "Catalog JSON" %}</a> (<code>statutory_jurisdiction_hints</code>).</p>{% endif %}
+  {% if learning_packs_url %}<p><a href="{{ learning_packs_url }}" class="link-secondary">{% trans "Learning delivery & institution types" %}</a></p>{% endif %}
+  {% if statutory_hints_url %}<p class="small mb-2">{% trans "Jurisdiction hints for PDF shells and automation:" %} <a href="{{ statutory_hints_url }}" class="link-secondary">{% trans "Catalog JSON" %}</a> (<code>statutory_jurisdiction_hints</code>).</p>{% endif %}
   {% if tenant_statutory_extract_path %}<p class="small mb-2">{% trans "Per-tenant live aggregates (JSON, same auth as ministry PDF):" %} <code class="text-info">{{ tenant_statutory_extract_path }}</code> <code>?stub=…&amp;country=…</code> · {% trans "Identity graph summary:" %} <code class="text-info">{{ tenant_identity_graph_path }}</code></p>{% endif %}
   <div class="table-responsive">
-    <table class="table table-dark table-sm">
+    <table class="table table-family table-sm">
       <caption class="visually-hidden">{% trans "Ministry / accreditation report stubs" %}</caption>
       <thead><tr><th>{% trans "Type" %}</th><th>{% trans "Stubs" %}</th><th>{% trans "Statutory PDF (shell)" %}</th></tr></thead>
       <tbody>

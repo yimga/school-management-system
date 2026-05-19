@@ -1,0 +1,107 @@
+# RunMyCampus webhook verifier — Python package publish workflow.
+#
+# Triggers ONLY on tags matching `webhook-verifier-py-*` (e.g.
+# `webhook-verifier-py-0.1.0`). Does NOT run on push to main; does NOT
+# run on PRs. Operators cut a tag from a release commit when they're
+# ready to publish.
+#
+# Authentication: PyPI Trusted Publishing (OIDC). NO API token is
+# stored in repo secrets — PyPI mints a short-lived token for this
+# specific workflow + tag pattern. Configure once in PyPI project
+# settings: https://pypi.org/manage/project/runmycampus-webhook-verifier/settings/publishing/
+#   * Owner: runmycampus
+#   * Repository: runmycampus
+#   * Workflow filename: release-webhook-verifier-py.yml
+#   * Environment: pypi (this workflow's environment, below)
+
+name: release-webhook-verifier-py
+
+on:
+  push:
+    tags:
+      - "webhook-verifier-py-*"
+
+# Do NOT trigger on push to main / PRs — only on the named tag.
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: beta/school-management-system/packages/runmycampus-webhook-verifier-py
+
+jobs:
+  test:
+    name: Test before release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install package + dev deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run unittest suite
+        run: |
+          python -m unittest discover -s tests -v
+
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+      - name: Build
+        run: |
+          python -m build
+          ls -la dist/
+          twine check dist/*
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: webhook-verifier-py-dist
+          path: beta/school-management-system/packages/runmycampus-webhook-verifier-py/dist/*
+
+  publish:
+    name: Publish to PyPI (OIDC trusted publishing)
+    runs-on: ubuntu-latest
+    needs: build
+    # GitHub Environment lets the operator add an approval gate /
+    # restrict which branches can deploy. Set up at:
+    #   Settings → Environments → "pypi"
+    environment:
+      name: pypi
+      url: https://pypi.org/p/runmycampus-webhook-verifier
+    permissions:
+      # OIDC trusted-publishing: short-lived token minted on-the-fly
+      # for the tag. NO PyPI API token in repo secrets.
+      id-token: write
+      contents: read
+    steps:
+      - name: Download built dist
+        uses: actions/download-artifact@v4
+        with:
+          name: webhook-verifier-py-dist
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          # repository-url defaults to https://upload.pypi.org/legacy/ —
+          # for test runs swap to https://test.pypi.org/legacy/ via a
+          # separate workflow_dispatch trigger if needed.
+          verbose: true
+          print-hash: true

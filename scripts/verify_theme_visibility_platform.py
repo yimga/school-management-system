@@ -26,6 +26,7 @@ REQUIRED_CSS = (
     "theme-visibility-guard.css",
     "dark-mode-safety-net.css",
     "theme-platform-contrast.css",
+    "theme-platform-readability.css",
 )
 
 FORBIDDEN_JS = re.compile(
@@ -66,11 +67,45 @@ def check_shell_css() -> list[str]:
         errors.append("theme-platform-contrast.css must cover Django admin .module forms")
     if ".admin-login-card" not in contrast:
         errors.append("theme-platform-contrast.css must cover manager/admin login cards")
+    if ".table-dark" not in contrast or "--bs-table-color" not in contrast:
+        errors.append(
+            "theme-platform-contrast.css must neutralize Bootstrap table-dark on light main canvas"
+        )
+    if "btn-outline-light" not in contrast:
+        errors.append(
+            "theme-platform-contrast.css must remap btn-outline-light on light main canvas"
+        )
+    readability = _read(REPO_ROOT / "static/css/theme-platform-readability.css")
+    if ".proof-app-screen" not in readability:
+        errors.append("theme-platform-readability.css must cover marketplace proof-app-screen chips")
+    if "cp-nav-group-toggle" not in readability:
+        errors.append("theme-platform-readability.css must cover sidebar group labels")
+    cp_templates = list((REPO_ROOT / "templates" / "schools").rglob("*.html"))
+    cp_templates += list((REPO_ROOT / "templates" / "siteconfig").rglob("*.html"))
+    table_dark_hits = [
+        p.relative_to(REPO_ROOT).as_posix()
+        for p in cp_templates
+        if p.is_file() and "table-dark" in _read(p)
+    ]
+    if table_dark_hits:
+        errors.append(
+            "control-plane templates must not use table-dark (use table-family): "
+            + ", ".join(table_dark_hits[:8])
+            + (" ..." if len(table_dark_hits) > 8 else "")
+        )
     marketing_base = _read(REPO_ROOT / "templates/marketing/base_marketing.html")
     if 'data-mkt-edition="editorial"' not in marketing_base:
         errors.append("marketing/base_marketing.html must set data-mkt-edition=editorial (schoolhouse palette)")
-    if "tokens-schoolhouse.css" not in marketing_base and "tokens-editorial.css" not in marketing_base:
-        errors.append("marketing base must load editorial/schoolhouse token CSS")
+    has_editorial_tokens = (
+        "tokens-schoolhouse.css" in marketing_base
+        or "tokens-editorial.css" in marketing_base
+        or "marketing-critical.min.css" in marketing_base
+    )
+    if not has_editorial_tokens:
+        errors.append(
+            "marketing base must load editorial/schoolhouse tokens "
+            "(bundle or tokens-schoolhouse.css / tokens-editorial.css)"
+        )
     smashed = re.compile(r"(?:\.[\w-]+|#\w[\w-]*)\s+html\[data-")
     for lineno, line in enumerate(safety.splitlines(), start=1):
         if smashed.search(line):
@@ -101,8 +136,22 @@ def check_render_smoke() -> list[str]:
     host = "manager.runmycampus.com"
     # Mirrors docs/generated/THEME_VALIDATION_URLS.md (manager host).
     probes: tuple[tuple[str, tuple[str, ...]], ...] = (
-        ("/super/", ("theme-platform-contrast.css", "theme-preference-bootstrap.js")),
-        ("/super/schools/", ("theme-platform-contrast.css", "theme-preference-bootstrap.js")),
+        (
+            "/super/",
+            (
+                "theme-platform-contrast.css",
+                "theme-platform-readability.css",
+                "theme-preference-bootstrap.js",
+            ),
+        ),
+        (
+            "/super/schools/",
+            (
+                "theme-platform-contrast.css",
+                "theme-platform-readability.css",
+                "theme-preference-bootstrap.js",
+            ),
+        ),
         (
             "/admin/",
             (
@@ -134,6 +183,31 @@ def check_render_smoke() -> list[str]:
             ("theme-platform-contrast.css", "theme-preference-bootstrap.js", 'id="cp-main-content"'),
         ),
         ("/studio/", ("theme-platform-contrast.css", "theme-preference-bootstrap.js")),
+        (
+            "/api-center/",
+            (
+                "theme-platform-contrast.css",
+                "theme-platform-readability.css",
+                'id="cpSidebarNav"',
+                'id="cp-main-content"',
+            ),
+        ),
+        (
+            "/siteconfig/zero-ticket/",
+            (
+                "theme-platform-readability.css",
+                'id="cpSidebarNav"',
+                'id="cp-main-content"',
+            ),
+        ),
+        (
+            "/siteconfig/ai-center/",
+            (
+                "theme-platform-contrast.css",
+                "theme-platform-readability.css",
+                'id="cpSidebarNav"',
+            ),
+        ),
     )
     errors: list[str] = []
     for path, needles in probes:

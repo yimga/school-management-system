@@ -33,7 +33,7 @@ def public_status_page(request):
             .order_by("-created_at")[:25]
         )
         top_requests = list(
-            FeatureRequest.objects.filter(
+            FeatureRequest.objects.filter(  # tenant-isolation-allow: public-status-page-feature-request-list
                 status__in=["submitted", "triaging", "planned", "in_progress"],
             )
             .order_by("-weighted_score", "-vote_count")[:10]
@@ -46,7 +46,7 @@ def public_status_page(request):
 
         cutoff = timezone.now() - timedelta(days=7)
         incidents = list(
-            AppAuditLog.objects.filter(
+            AppAuditLog.objects.filter(  # tenant-isolation-allow: public-status-page-audit-trail-global
                 action__in=["kill_switch_on", "suspend", "incident"],
                 created_at__gte=cutoff,
             ).order_by("-created_at")[:20]
@@ -83,7 +83,7 @@ def public_status_json(request):
                 }
             )
         for fr in (
-            FeatureRequest.objects.filter(
+            FeatureRequest.objects.filter(  # tenant-isolation-allow: public-status-page-feature-detail
                 status__in=["submitted", "triaging", "planned", "in_progress"]
             ).order_by("-weighted_score", "-vote_count")[:10]
         ):
@@ -101,7 +101,7 @@ def public_status_json(request):
         from apps.marketplace.models import AppAuditLog
 
         cutoff = timezone.now() - timedelta(days=7)
-        for incident in AppAuditLog.objects.filter(
+        for incident in AppAuditLog.objects.filter(  # tenant-isolation-allow: public-status-page-audit-detail
             action__in=["kill_switch_on", "suspend", "incident"], created_at__gte=cutoff
         ).order_by("-created_at")[:20]:
             payload["incidents"].append(

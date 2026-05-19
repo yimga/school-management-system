@@ -1,24 +1,40 @@
 {
-  "generated_at": "2026-05-17T18:19:25.733097Z",
-  "expected_repo_sha": "2e72a4f8d4f8fdaf1043c930126648bc78a7204b",
-  "classification": "REPO_LOCAL_PARITY_CERTIFIED",
+  "generated_at": "2026-05-19T03:07:03.735988Z",
+  "expected_repo_sha": "ef295246c4dab9534a6e5d4bc71bae63d497e251",
+  "classification": "HOSTED_SHA_MISMATCH",
   "deployed_sha_verification": {
     "verified": false,
-    "blocker": "Hosted version endpoints not probed (--skip-remote). Lane 2 requires RENDER_PARITY_BASE_URL + DNS."
+    "remote_probed": true,
+    "deployed_shas": [
+      "611b7855539c007280781943268bcaf33b51a1f7",
+      "611b7855539c007280781943268bcaf33b51a1f7"
+    ],
+    "blocker": "Deploy latest main to Render until /-/version/ commit_sha matches repo HEAD"
   },
   "local_parity": {
     "version": "2026.05.17",
     "matrix_ok": true,
     "local_version_ok": true,
-    "remote_version": {}
+    "remote_version": {
+      "RENDER_PARITY_BASE_URL": {
+        "url": "https://school-management-system-2kzk.onrender.com",
+        "ok": true,
+        "commit_sha": "611b7855539c007280781943268bcaf33b51a1f7",
+        "build_time": "unknown"
+      },
+      "MANAGER_PARITY_BASE_URL": {
+        "url": "https://manager.runmycampus.com",
+        "ok": true,
+        "commit_sha": "611b7855539c007280781943268bcaf33b51a1f7",
+        "build_time": "unknown"
+      }
+    }
   },
   "direct_render_public_smoke": {
-    "summary": "validated via validate_marketing_urls --smoke and Client probes in run_local_browser_ux_certification.py",
-    "note": "Hosted 6/6 from prior batch 1199 attempt remains valid where network allows"
+    "summary": "validated via validate_marketing_urls --smoke"
   },
-  "verdict": "RENDER PARITY PARTIAL \u2014 repo-local matrix green; hosted SHA uncertified without operator env",
+  "verdict": "RENDER PARITY PARTIAL \u2014 version JSON reachable but commit_sha (611b7855539c\u2026) != repo HEAD (ef295246c4da\u2026); deploy required",
   "remaining_gaps": [
-    "Set RENDER_PARITY_BASE_URL and MANAGER_PARITY_BASE_URL when staging/prod URLs are reachable.",
-    "Ensure /-/version/ returns application/json on public and manager hosts (not marketing HTML shell)."
+    "Deploy repo HEAD to production"
   ]
 }

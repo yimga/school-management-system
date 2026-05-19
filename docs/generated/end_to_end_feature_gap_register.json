@@ -1,0 +1,41 @@
+{
+  "certification_gaps": [
+    {
+      "id": "render_live_sha",
+      "note": "RENDER_PARITY_BASE_URL + MANAGER_PARITY_BASE_URL not supplied by operator",
+      "status": "external_blocker"
+    },
+    {
+      "id": "live_psp_settlement",
+      "note": "global_payments + marketplace_monetization partial",
+      "status": "external_blocker"
+    }
+  ],
+  "generated_at": "2026-05-19T06:55:55.362149+00:00",
+  "repo_gaps": [
+    {
+      "classification": "external_blocker",
+      "gap_status": "partial",
+      "missing_pieces": [
+        "Credential-backed live PSP merchant onboarding and production payment-gateway ping (Stripe/Paystack/Flutterwave/MoMo production/SEPA bank APIs) \u2014 external contracts and secrets; not representable as closed inside this repository"
+      ],
+      "name": "Per-region primary + backup + manual fallback + reconciliation",
+      "system_id": "global_payments"
+    },
+    {
+      "classification": "external_blocker",
+      "gap_status": "partial",
+      "missing_pieces": [
+        "Live PSP merchant settlement + production gateway health ping \u2014 tenant/external (global_payments); honest ledger never fabricates settlement_completed without processor truth"
+      ],
+      "name": "Marketplace monetization \u2014 paid installs, billing readiness, entitlements, kill switch",
+      "system_id": "marketplace_monetization"
+    }
+  ],
+  "schema_version": 1,
+  "sot_partial_batches": [
+    "1158",
+    "1170",
+    "1199"
+  ]
+}

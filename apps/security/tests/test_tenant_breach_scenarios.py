@@ -24,11 +24,11 @@ class SignedStoragePathTests(TestCase):
 class PlanLimitEnforcementTests(TestCase):
     def test_plan_limit_suite_present(self):
         from apps.schools.tests.test_plan_and_feature_gate import (
-            PlanLimitEnforcementTests as SchoolsPlanTests,
+            UsageLimitMiddlewareTests,
         )
 
         self.assertTrue(
-            hasattr(SchoolsPlanTests, "test_max_students_limit_blocks_when_at_cap")
+            hasattr(UsageLimitMiddlewareTests, "test_max_students_limit_blocks_when_at_cap")
         )
 
 

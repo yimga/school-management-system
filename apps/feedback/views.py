@@ -8,6 +8,7 @@ from .forms import FeatureRequestForm, FeedbackSubmissionForm, RoleFeedbackForm,
 from .models import FeatureRequest, FeedbackSubmission, ReleaseNote, RoadmapItem, SurveyResponse
 from .services import (
     convert_feedback_to_feature_request,
+    create_support_ticket_from_feedback,
     create_roadmap_item_from_request,
     detect_churn_risk_signals,
     generate_you_said_we_did_items,
@@ -15,10 +16,13 @@ from .services import (
     get_user_role,
     is_operator,
     module_sentiment_summary,
+    should_escalate_to_support,
+    suggest_help_resources,
     submit_feature_request,
     submit_feedback,
     summarize_feedback_by_role,
     summarize_feedback_by_school,
+    support_entry_points,
     top_pain_points,
     triage_feedback,
     visible_feedback_for_user,
@@ -69,6 +73,7 @@ def _feedback_context(request, audience="school"):
         "roadmap_items": visible_roadmap_for_user(user, school)[:30],
         "release_notes": ReleaseNote.objects.filter(feature_requests__school=school).distinct()[:20],
         "you_said_we_did": generate_you_said_we_did_items(school),
+        "support_links": support_entry_points(request),
     }
 
 
@@ -92,13 +97,52 @@ def school_feedback_center(request):
             feedback_form = FeedbackSubmissionForm(request.POST)
             form = FeatureRequestForm()
             if feedback_form.is_valid():
-                submit_feedback(school=context["school"], user=request.user, **feedback_form.cleaned_data)
-                messages.success(request, "Feedback submitted.")
+                cleaned = dict(feedback_form.cleaned_data)
+                escalate = cleaned.pop("escalate_to_support", False)
+                feedback = submit_feedback(school=context["school"], user=request.user, **cleaned)
+                if should_escalate_to_support(
+                    feedback.category,
+                    feedback.severity,
+                    explicit=escalate,
+                ):
+                    ticket = create_support_ticket_from_feedback(
+                        feedback, request=request, actor=request.user
+                    )
+                    if ticket is not None:
+                        messages.success(
+                            request,
+                            "Feedback submitted and routed to the support queue.",
+                        )
+                    else:
+                        messages.success(request, "Feedback submitted.")
+                else:
+                    messages.success(request, "Feedback submitted.")
                 return redirect("feedback:school_feedback")
     else:
         form = FeatureRequestForm()
-        feedback_form = FeedbackSubmissionForm(initial={"route": request.GET.get("route", ""), "module": request.GET.get("module", "")})
-    context.update({"feedback_form": feedback_form, "feature_form": form})
+        initial = {
+            "route": request.GET.get("route", ""),
+            "module": request.GET.get("module", ""),
+            "source_channel": request.GET.get("source", FeedbackSubmission.SourceChannel.IN_APP),
+            "source_url": request.GET.get("source_url", request.META.get("HTTP_REFERER", "")),
+            "related_kb_article_id": request.GET.get("kb_article", ""),
+            "related_faq_id": request.GET.get("faq", ""),
+        }
+        feedback_form = FeedbackSubmissionForm(initial=initial)
+    help_resources = suggest_help_resources(
+        request,
+        title=request.POST.get("title", request.GET.get("q", "")),
+        description=request.POST.get("description", ""),
+        module=request.POST.get("module", request.GET.get("module", "")),
+        category=request.POST.get("category", request.GET.get("category", "")),
+    )
+    context.update(
+        {
+            "feedback_form": feedback_form,
+            "feature_form": form,
+            "help_resources": help_resources,
+        }
+    )
     return render(request, "feedback/school_center.html", context)
 
 
@@ -114,20 +158,44 @@ def role_feedback_center(request, role):
     if request.method == "POST":
         form = RoleFeedbackForm(request.POST, role_categories=categories)
         if form.is_valid():
-            submit_feedback(school=school, user=request.user, **form.cleaned_data)
+            cleaned = dict(form.cleaned_data)
+            escalate = cleaned.pop("escalate_to_support", False)
+            feedback = submit_feedback(school=school, user=request.user, **cleaned)
+            if should_escalate_to_support(feedback.category, feedback.severity, explicit=escalate):
+                create_support_ticket_from_feedback(feedback, request=request, actor=request.user)
             messages.success(request, "Feedback submitted.")
             return redirect(f"feedback:{role}_feedback")
     else:
         privacy = FeedbackSubmission.PrivacyLevel.SCHOOL_PRIVATE
         form = RoleFeedbackForm(
-            initial={"route": request.GET.get("route", ""), "privacy_level": privacy},
+            initial={
+                "route": request.GET.get("route", ""),
+                "privacy_level": privacy,
+                "source_channel": FeedbackSubmission.SourceChannel.HELP_CENTER
+                if request.GET.get("from") == "help"
+                else FeedbackSubmission.SourceChannel.IN_APP,
+                "source_url": request.META.get("HTTP_REFERER", ""),
+            },
             role_categories=categories,
         )
     items = visible_feedback_for_user(request.user, school)[:20]
+    help_resources = suggest_help_resources(
+        request,
+        title=request.GET.get("q", ""),
+        module=request.GET.get("module", ""),
+        category=request.GET.get("category", ""),
+    )
     return render(
         request,
         "feedback/role_center.html",
-        {"form": form, "role_surface": role, "school": school, "feedback_items": items},
+        {
+            "form": form,
+            "role_surface": role,
+            "school": school,
+            "feedback_items": items,
+            "help_resources": help_resources,
+            "support_links": support_entry_points(request),
+        },
     )
 
 
@@ -175,7 +243,11 @@ def contextual_feedback(request):
         browser_context={"user_agent": request.META.get("HTTP_USER_AGENT", "")},
         device_context={"accept": request.META.get("HTTP_ACCEPT", "")},
         current_action_context={"page_title": request.POST.get("page_title", "")},
+        source_channel=FeedbackSubmission.SourceChannel.CONTEXTUAL,
+        source_url=request.META.get("HTTP_REFERER", ""),
     )
+    if should_escalate_to_support(feedback.category, feedback.severity):
+        create_support_ticket_from_feedback(feedback, request=request, actor=request.user)
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({"ok": True, "id": feedback.pk})
     messages.success(request, "Feedback captured.")
@@ -293,6 +365,29 @@ def help_center(request):
             is_public=True, published_at__isnull=False
         ).order_by("-published_at")[:5]
     )
+    help_resources = suggest_help_resources(
+        request,
+        title=request.GET.get("q", ""),
+        module=request.GET.get("module", ""),
+        category=request.GET.get("category", ""),
+        limit=6,
+    )
+    open_support_count = 0
+    if school is not None:
+        try:
+            from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+            open_support_count = GlobalSupportTicket.objects.filter(
+                school=school,
+                user=request.user,
+                status__in=[
+                    GlobalSupportTicket.Status.OPEN,
+                    GlobalSupportTicket.Status.IN_PROGRESS,
+                    GlobalSupportTicket.Status.WAITING,
+                ],
+            ).count()
+        except Exception:
+            open_support_count = 0
     pinned_feedback_route = "feedback:school_feedback"
     if role == "teacher":
         pinned_feedback_route = "feedback:teacher_feedback"
@@ -310,6 +405,9 @@ def help_center(request):
             "release_notes": recent_release_notes,
             "pinned_feedback_route": pinned_feedback_route,
             "you_said_we_did": generate_you_said_we_did_items(school)[:5] if school else [],
+            "help_resources": help_resources,
+            "support_links": support_entry_points(request),
+            "open_support_count": open_support_count,
         },
     )
 

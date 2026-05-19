@@ -81,7 +81,7 @@ def event_analytics_console(request):
         platform_ev_qs.values("event_type").annotate(c=Count("id")).order_by("-c")[:30]
     )
 
-    domain_failed_deliveries = WebhookDelivery.objects.filter(
+    domain_failed_deliveries = WebhookDelivery.objects.filter(  # tenant-isolation-allow: platform-operator-webhook-delivery-ops-list
         domain_event__school_id=sid,
         status=WebhookDelivery.Status.FAILED,
     ).count()
@@ -102,7 +102,7 @@ def event_analytics_console(request):
         event_type="platform_event_replayed",
     ).count()
 
-    domain_latency = WebhookDelivery.objects.filter(
+    domain_latency = WebhookDelivery.objects.filter(  # tenant-isolation-allow: platform-operator-webhook-delivery-ops-detail
         domain_event__school_id=sid,
         status=WebhookDelivery.Status.DELIVERED,
         delivered_at__isnull=False,

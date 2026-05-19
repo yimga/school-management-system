@@ -15,9 +15,35 @@ from .models import (
 
 
 class FeedbackSubmissionAdmin(admin.ModelAdmin):
-    list_display = ("title", "school", "role", "category", "severity", "status", "privacy_level", "created_at")
-    list_filter = ("status", "category", "severity", "privacy_level", "role", "school")
-    search_fields = ("title", "description", "school__name", "user__username")
+    list_display = (
+        "title",
+        "school",
+        "role",
+        "category",
+        "source_channel",
+        "support_escalated",
+        "severity",
+        "status",
+        "privacy_level",
+        "created_at",
+    )
+    list_filter = (
+        "status",
+        "category",
+        "source_channel",
+        "support_escalated",
+        "severity",
+        "privacy_level",
+        "role",
+        "school",
+    )
+    search_fields = (
+        "title",
+        "description",
+        "school__name",
+        "user__username",
+        "related_support_ticket_id",
+    )
     readonly_fields = ("created_at", "updated_at")
     list_per_page = 50
     show_full_result_count = False

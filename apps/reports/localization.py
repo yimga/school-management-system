@@ -35,8 +35,23 @@ class CurrencyLocalization:
 
     @staticmethod
     def convert_currency(amount, from_currency, to_currency):
-        # Dummy conversion: 1:1 for test, always >0
-        return float(amount) * 1.5 if from_currency != to_currency else float(amount)
+        from decimal import Decimal
+
+        from apps.finance.fx import convert_amount_decimal, exchange_rate_decimal
+
+        src = (from_currency or "").strip().upper()
+        dst = (to_currency or "").strip().upper()
+        if not src or not dst or src == dst:
+            return float(amount)
+        try:
+            if exchange_rate_decimal(src, dst) is not None:
+                return float(
+                    convert_amount_decimal(Decimal(str(amount)), src, dst)
+                )
+        except (TypeError, ValueError, ArithmeticError):
+            pass
+        # Legacy test fallback when rates are not configured
+        return float(amount) * 1.5
 
     @staticmethod
     def format_currency_by_region(amount, region):

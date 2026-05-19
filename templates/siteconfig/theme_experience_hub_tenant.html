@@ -1,0 +1,19 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ hub_title }}{% endblock %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/theme-builder-canvas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/site-settings-preview.css' %}">
+{% endblock %}
+
+{% block backend_page %}
+  {% include "siteconfig/partials/theme_experience_hub_body.html" %}
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'js/theme-builder-canvas.js' %}" defer></script>
+{% endblock %}

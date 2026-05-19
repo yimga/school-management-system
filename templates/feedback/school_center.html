@@ -1,25 +1,82 @@
 {% extends "backend_base.html" %}
 {% block title %}Feedback Center{% endblock %}
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-3">
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
     <div>
-      <h1 class="h3 mb-1">Voice of Customer Center</h1>
-      <p class="text-muted mb-0">Give feedback, request features, follow roadmap decisions, and see released improvements.</p>
+      <h1 class="h3 mb-1">Help + Product Voice Center</h1>
+      <p class="text-muted mb-0">Search help, contact support, request features, follow decisions, and see what shipped.</p>
     </div>
-    <a class="btn btn-outline-primary" href="{% url 'feedback:school_roadmap' %}">Roadmap</a>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if support_links.kb_home %}<a class="btn btn-outline-secondary" href="{{ support_links.kb_home }}">Knowledge base</a>{% endif %}
+      {% if support_links.portal_help %}<a class="btn btn-outline-secondary" href="{{ support_links.portal_help }}">Support hub</a>{% endif %}
+      <a class="btn btn-outline-primary" href="{% url 'feedback:school_roadmap' %}">Roadmap</a>
+    </div>
   </div>
+
+  <section class="card mb-3">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-lg-7">
+          <h2 class="h5 mb-1">Before you file it, check the help loop</h2>
+          <p class="text-muted mb-0">The center now connects KB, FAQ, support tickets, feedback, roadmap, and release notes so support issues do not get buried in the product backlog.</p>
+        </div>
+        <form class="col-lg-5" method="get" action="{% url 'feedback:school_feedback' %}">
+          <label class="form-label small fw-semibold" for="feedback-help-q">Search help and feedback context</label>
+          <div class="input-group">
+            <input id="feedback-help-q" class="form-control" type="search" name="q" value="{{ help_resources.query }}" placeholder="Payments, imports, gradebook, login...">
+            <button class="btn btn-primary" type="submit">Search</button>
+          </div>
+        </form>
+      </div>
+      {% if help_resources.articles or help_resources.faqs %}
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <div class="small text-muted fw-semibold mb-2">Suggested KB articles</div>
+            <div class="list-group list-group-flush border rounded">
+              {% for article in help_resources.articles %}
+                <a class="list-group-item list-group-item-action" href="{% url 'kb:kb_article' article.slug %}">
+                  <strong>{{ article.title }}</strong>
+                  <div class="small text-muted">{{ article.summary|truncatewords:16 }}</div>
+                </a>
+              {% empty %}
+                <div class="list-group-item text-muted small">No matching KB articles yet.</div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted fw-semibold mb-2">Suggested FAQs</div>
+            <div class="list-group list-group-flush border rounded">
+              {% for faq in help_resources.faqs %}
+                <a class="list-group-item list-group-item-action" href="{% url 'kb:faq_detail' faq.id %}">
+                  <strong>{{ faq.question }}</strong>
+                  <div class="small text-muted">{{ faq.answer|truncatewords:16 }}</div>
+                </a>
+              {% empty %}
+                <div class="list-group-item text-muted small">No matching FAQs yet.</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
 
   <div class="row g-3">
     <section class="col-lg-6">
       <div class="card">
-        <div class="card-header fw-semibold">Give Feedback or Report Issue</div>
+        <div class="card-header fw-semibold">Report issue or ask for help</div>
         <div class="card-body">
           <form method="post" action="{% url 'feedback:school_feedback' %}">
             {% csrf_token %}
             <input type="hidden" name="form_kind" value="feedback">
             {{ feedback_form.as_p }}
-            <button class="btn btn-primary" type="submit">Submit feedback</button>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-primary" type="submit">Submit</button>
+              {% if support_links.support_request %}
+                <a class="btn btn-outline-secondary" href="{{ support_links.support_request }}">Contact support instead</a>
+              {% endif %}
+            </div>
           </form>
         </div>
       </div>

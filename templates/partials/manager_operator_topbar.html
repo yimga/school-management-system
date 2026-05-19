@@ -34,6 +34,7 @@
             <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
             <span>{% trans "Config" %}</span>
           </a>
+          {% include "components/rmc_operator_workspace_dropdown.html" %}
           {% if platform_incidents_url %}
             <a href="{{ platform_incidents_url }}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% blocktrans count count=platform_incidents|length %}{{ count }} open incident{% plural %}{{ count }} open incidents{% endblocktrans %}" title="{% trans 'Open incident console' %}">
               <i class="bi bi-bell" aria-hidden="true"></i>

@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 {% block backend_title %}{% trans "Institution profile" %}{% endblock %}
-{% block content %}
+{% block backend_page %}
 <div class="container py-4">
   <nav class="mb-3"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></nav>
   <h1 class="h4">{% trans "What kind of institution are you?" %}</h1>

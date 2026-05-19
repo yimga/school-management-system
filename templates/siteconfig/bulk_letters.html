@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Bulk Letters" %} · {{ SITE.site_name|default:"Portal" }}</h1>
   {% url 'studio_os:output' as bulk_letters_report_library_url %}
   {% url 'kb:kb_search' as bulk_letters_kb_url %}

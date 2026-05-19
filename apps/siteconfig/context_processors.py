@@ -643,6 +643,19 @@ def site_settings(request):
             ctx["SITE_LOGO_DARK_URL"] = tenant_brand.get("logo_dark_url")
         if tenant_brand.get("favicon_url"):
             ctx["SITE_FAVICON_URL"] = tenant_brand.get("favicon_url")
+        try:
+            from apps.siteconfig.brand_guard_runtime import guard_brand_dict
+
+            _tp = (theme_pref or "system").strip().lower()
+            _effective_surface = (
+                "dark" if _tp == "dark" else "light"
+            )  # system → light at SSR; client resolves OS
+            tenant_brand, _brand_adjusted = guard_brand_dict(
+                tenant_brand, effective_surface=_effective_surface
+            )
+            ctx["BRAND_AAA_ADJUSTED"] = _brand_adjusted
+        except ImportError:
+            ctx["BRAND_AAA_ADJUSTED"] = False
         ctx["SITE_PRIMARY_COLOR"] = tenant_brand.get("primary_color") or "#0d6efd"
         ctx["SITE_ACCENT_COLOR"] = tenant_brand.get("accent_color") or "#198754"
         ctx["TENANT_WALLPAPER_URL"] = (
@@ -700,6 +713,11 @@ def site_settings(request):
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
     path = (request.path or "").strip()
     ctx["CONTROL_PLANE_SHELL"] = public_host_kind == "manager"
+    ctx["rmc_backend_extends"] = (
+        "backend_base_manager.html"
+        if public_host_kind == "manager"
+        else "backend_base_tenant.html"
+    )
     user = getattr(request, "user", None)
     is_authenticated = bool(user and getattr(user, "is_authenticated", False))
     ctx["SHOW_CORPORATE_MARKETING_FOOTER"] = (
@@ -857,6 +875,23 @@ def site_settings(request):
     ctx["PUBLIC_BRAND_ACCENT_COLOR"] = _accent or os.getenv(
         "PUBLIC_BRAND_ACCENT_COLOR", "#d4af37"
     )
+    ctx["platform_palette"] = {
+        "primary": ctx["PUBLIC_BRAND_PRIMARY_COLOR"],
+        "accent": ctx["PUBLIC_BRAND_ACCENT_COLOR"],
+    }
+    ctx["CONTROL_PLANE_BRAND_CSS_VARS"] = ""
+    if ctx.get("CONTROL_PLANE_SHELL"):
+        try:
+            from apps.brand_experience.control_plane_brand_vars import (
+                control_plane_brand_css_vars,
+            )
+
+            ctx["CONTROL_PLANE_BRAND_CSS_VARS"] = control_plane_brand_css_vars(
+                primary_color=ctx["PUBLIC_BRAND_PRIMARY_COLOR"],
+                accent_color=ctx["PUBLIC_BRAND_ACCENT_COLOR"],
+            )
+        except OPTIONAL_CONTEXT_ERRORS:
+            ctx["CONTROL_PLANE_BRAND_CSS_VARS"] = ""
     if public_brand_mode:
         ctx["SITE_LOGO_URL"] = ""
         ctx["SITE_LOGO_DARK_URL"] = ""

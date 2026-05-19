@@ -2,40 +2,46 @@
 
 from __future__ import annotations
 
-import os
+import uuid
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import Client, TransactionTestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.schools import super_views_founder_dashboard
 
+_MANAGER_HOST = "manager.runmycampus.com"
 
-@override_settings(ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"])
-class FounderDashboardTests(TestCase):
+
+@override_settings(
+    ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", _MANAGER_HOST],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    ROOT_URLCONF="config.manager_urls",
+    SESSION_PINNING_ENABLED=False,
+)
+class FounderDashboardTests(TransactionTestCase):
     def setUp(self):
+        self.username = f"founder_mark_{uuid.uuid4().hex[:8]}"
         self.user = User.objects.create_user(
-            username="founder_mark_t",
+            username=self.username,
             password="x" * 8,
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
-        self.env = mock.patch.dict(
-            os.environ,
-            {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
-            clear=False,
+        self.client = Client(HTTP_HOST=_MANAGER_HOST)
+        self.assertTrue(
+            self.client.login(username=self.username, password="x" * 8),
+            "manager control-plane login failed",
         )
-        self.env.start()
-
-    def tearDown(self):
-        self.env.stop()
-
     def test_superuser_sees_markers(self):
         url = reverse("super:founder_dashboard")
-        r = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
-        self.assertEqual(r.status_code, 200)
+        r = self.client.get(url, HTTP_HOST=_MANAGER_HOST)
+        self.assertEqual(
+            r.status_code,
+            200,
+            msg=f"redirect={r.get('Location', '')!r}",
+        )
         body = r.content.decode("utf-8", errors="replace")
         self.assertIn("data-rmc-founder-dashboard=", body)
         self.assertIn("data-rmc-self-heal-status=", body)
@@ -63,7 +69,7 @@ class FounderDashboardTests(TestCase):
             "_load_json",
             side_effect=_fake_load_json,
         ):
-            r = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
+            r = self.client.get(url, HTTP_HOST=_MANAGER_HOST)
         self.assertEqual(r.status_code, 200)
         body = r.content.decode("utf-8", errors="replace")
         self.assertIn("not available", body)

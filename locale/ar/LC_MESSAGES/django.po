@@ -27473,3 +27473,1876 @@ msgstr ""
 
 msgid "active"
 msgstr ""
+
+msgid "3+ stars"
+msgstr ""
+
+msgid "4+ stars"
+msgstr ""
+
+msgid "4.5+ stars"
+msgstr ""
+
+msgid "AA"
+msgstr ""
+
+msgid "About RunMyCampus"
+msgstr ""
+
+msgid "About this app"
+msgstr ""
+
+msgid "Accessibility and privacy stance"
+msgstr ""
+
+msgid ""
+"Accounts for learners under 13 should be provisioned by the school with "
+"parental consent workflows appropriate to the institution's jurisdiction and"
+" policies."
+msgstr ""
+
+msgid "Action requested: re-sign Migration Authorization Agreement (v2.0)"
+msgstr ""
+
+msgid "Add endpoint"
+msgstr ""
+
+msgid "Advanced palette editor"
+msgstr ""
+
+msgid "Agreement reference:"
+msgstr ""
+
+msgid "Alpha"
+msgstr ""
+
+msgid "Already installed at this school"
+msgstr ""
+
+msgid "Any pricing"
+msgstr ""
+
+msgid "Any rating"
+msgstr ""
+
+msgid "App Marketplace"
+msgstr ""
+
+msgid "App marketplace"
+msgstr ""
+
+msgid "Application received"
+msgstr ""
+
+msgid "Apply COMPLIMENTARY and save note"
+msgstr ""
+
+msgid ""
+"Apply to publish apps on the RunMyCampus marketplace. Verify your email; an "
+"operator will review your application within a few business days."
+msgstr ""
+
+msgid ""
+"Approvals, workflow, import, documents, RBAC, and communications — without "
+"leaving Studio."
+msgstr ""
+
+msgid "At"
+msgstr ""
+
+msgid "Audience routing shortcuts"
+msgstr ""
+
+msgid "Audit trails"
+msgstr ""
+
+msgid "Auto-fix to AAA"
+msgstr ""
+
+msgid "Automation module is not mounted for this tenant."
+msgstr ""
+
+msgid "Back to Schools"
+msgstr ""
+
+msgid "Back to command center"
+msgstr ""
+
+msgid "Back to diagnostics"
+msgstr ""
+
+msgid "Back to tokens"
+msgstr ""
+
+msgid "Become a marketplace publisher"
+msgstr ""
+
+msgid "Become a publisher"
+msgstr ""
+
+msgid "Book a platform walkthrough"
+msgstr ""
+
+msgid "Brand assets"
+msgstr ""
+
+msgid ""
+"Brand identity, theme packs, and portal layout. Changes flow through the "
+"configurability cascade so the tenant brand wins."
+msgstr ""
+
+msgid "Brand tokens"
+msgstr ""
+
+msgid "Browse templates"
+msgstr ""
+
+msgid "Browse tenants"
+msgstr ""
+
+msgid "COPPA aware"
+msgstr ""
+
+msgid "COPPA verification"
+msgstr ""
+
+msgid "Campaign:"
+msgstr ""
+
+msgid "Campus Workflow Canvas"
+msgstr ""
+
+msgid "Campus switcher focused"
+msgstr ""
+
+msgid "Campus workflow canvas"
+msgstr ""
+
+msgid "Canonical domains"
+msgstr ""
+
+msgid "Canonical migration template"
+msgstr ""
+
+msgid ""
+"Capabilities, feature flags, audit, and platform governance. Review impact "
+"before rollback."
+msgstr ""
+
+msgid "Careers"
+msgstr ""
+
+msgid "Chain"
+msgstr ""
+
+msgid "Chain pagination"
+msgstr ""
+
+msgid "Changelog"
+msgstr ""
+
+msgid "Changelog (markdown allowed)"
+msgstr ""
+
+msgid "Channel"
+msgstr ""
+
+msgid "Choose theme"
+msgstr ""
+
+msgid "Churn (30d)"
+msgstr ""
+
+msgid "Cleared Studio preview tenant."
+msgstr ""
+
+msgid "Comfort"
+msgstr ""
+
+msgid "Commerce ecosystem"
+msgstr ""
+
+msgid "Compact"
+msgstr ""
+
+msgid "Complimentary (waived)"
+msgstr ""
+
+msgid "Component health"
+msgstr ""
+
+msgid ""
+"Configure RunMyCampus Manager chrome, platform defaults, Studio Experience, "
+"and global branding. Changes here do not replace a single school's tenant "
+"branding — use impersonation on the tenant host for per-school work."
+msgstr ""
+
+msgid "Configure a specific school"
+msgstr ""
+
+msgid ""
+"Configure how this school looks and feels: portals, staff dashboards, theme "
+"packs, and Studio Experience. Your choices apply to this tenant only."
+msgstr ""
+
+msgid "Contact email"
+msgstr ""
+
+msgid "Continue to my portal"
+msgstr ""
+
+msgid "Contrast surface"
+msgstr ""
+
+msgid "Cookie policy"
+msgstr ""
+
+msgid "Cooldown effectiveness"
+msgstr ""
+
+msgid ""
+"Copy it now and store it in your secret vault. The server only retains "
+"sha256(token); there is no recovery path."
+msgstr ""
+
+msgid ""
+"Copy it now. Use it to verify the X-Migration-Cloud-Signature header on "
+"incoming deliveries."
+msgstr ""
+
+msgid "Copy to clipboard"
+msgstr ""
+
+msgid "Corporate OS quick links"
+msgstr ""
+
+msgid "Create a new school"
+msgstr ""
+
+msgid "Current score"
+msgstr ""
+
+msgid "Customer migration deadline {{ deadline }}."
+msgstr ""
+
+msgid "Data minimization"
+msgstr ""
+
+msgid ""
+"Data processing supports school-owned records, regional compliance profiles,"
+" and data-subject request workflows documented in our privacy materials."
+msgstr ""
+
+msgid "Data subject rights"
+msgstr ""
+
+msgid "Deferred"
+msgstr ""
+
+msgid "Delete this endpoint?"
+msgstr ""
+
+msgid "Deliveries"
+msgstr ""
+
+msgid "Deliveries appear as events fire on bundle lifecycle transitions."
+msgstr ""
+
+msgid "Delivery log"
+msgstr ""
+
+msgid "Denied"
+msgstr ""
+
+msgid ""
+"Design cross-campus automations with the visual workflow designer. Publish "
+"from Studio OS or run simulations before go-live."
+msgstr ""
+
+msgid "Developer"
+msgstr ""
+
+msgid "Developer APIs"
+msgstr ""
+
+msgid "Didn't receive the email? Check your spam folder or contact support."
+msgstr ""
+
+msgid "Display density"
+msgstr ""
+
+msgid ""
+"District buyers can audit compliance, operators can check uptime, families "
+"can find their tenant portal, and builders can reach the ecosystem without "
+"touching the wrong school domain."
+msgstr ""
+
+msgid "Don't see your SIS? Use our canonical template."
+msgstr ""
+
+msgid "Done — back to subscriptions"
+msgstr ""
+
+msgid "Done — back to tokens"
+msgstr ""
+
+msgid "Download JavaScript SDK"
+msgstr ""
+
+msgid "Download Python SDK"
+msgstr ""
+
+msgid "Download all (zip)"
+msgstr ""
+
+msgid "Download all 20 templates (zip)"
+msgstr ""
+
+msgid "Download verification guide"
+msgstr ""
+
+msgid "Download {{ slug }}.csv"
+msgstr ""
+
+msgid ""
+"Drag sections, toggle light/dark, and preview contrast before you publish."
+msgstr ""
+
+msgid "Drag to reorder. Toggle visibility on the canvas."
+msgstr ""
+
+msgid "Drag-and-drop nodes, guards, and campus-scoped triggers."
+msgstr ""
+
+msgid ""
+"Drop one of these single-file libraries into your webhook receiver to verify"
+" the X-RunMyCampus-Signature header. Each is dependency-free, MIT-licensed, "
+"and constant-time compare by default."
+msgstr ""
+
+msgid ""
+"Dry-run triggers against sample payloads, then publish campus-scoped "
+"definitions."
+msgstr ""
+
+msgid "Effective theme surface"
+msgstr ""
+
+msgid "Email discovery"
+msgstr ""
+
+msgid "Email discovery login"
+msgstr ""
+
+msgid "Email must be verified first"
+msgstr ""
+
+msgid "Email pending"
+msgstr ""
+
+msgid "Email verified"
+msgstr ""
+
+msgid "Encryption"
+msgstr ""
+
+msgid ""
+"Enter the email your school issued. We route you to the correct tenant "
+"portal without exposing whether an address exists in our directory."
+msgstr ""
+
+msgid "Event types"
+msgstr ""
+
+msgid "Event types (comma-separated, blank = all)"
+msgstr ""
+
+msgid "Every path is tuned for the person who landed in the wrong place."
+msgstr ""
+
+msgid "Execution log & definitions"
+msgstr ""
+
+msgid "Existing user"
+msgstr ""
+
+msgid ""
+"Experience, automation, outputs, launch, and control — unified preview, "
+"publish, and rollback."
+msgstr ""
+
+msgid "FERPA aligned"
+msgstr ""
+
+msgid "FERPA deep dive →"
+msgstr ""
+
+msgid "FERPA privacy pledge"
+msgstr ""
+
+msgid "FERPA, COPPA, GDPR, and WCAG evidence surfaced for school review."
+msgstr ""
+
+msgid "Filter by pricing"
+msgstr ""
+
+msgid "Filter tokens"
+msgstr ""
+
+msgid "Filter webhooks"
+msgstr ""
+
+msgid "Find campus"
+msgstr ""
+
+msgid "Find my campus"
+msgstr ""
+
+msgid "Find your campus"
+msgstr ""
+
+msgid "Find your campus portal"
+msgstr ""
+
+msgid "Find your school login"
+msgstr ""
+
+msgid "Finish setup & sign in"
+msgstr ""
+
+msgid "Footer navigation"
+msgstr ""
+
+msgid "Footer operating proof points"
+msgstr ""
+
+msgid "For K-12 districts"
+msgstr ""
+
+msgid "For higher education"
+msgstr ""
+
+msgid "GDPR / POPIA ready"
+msgstr ""
+
+msgid "GDPR / Privacy Policy"
+msgstr ""
+
+msgid "GDPR / privacy"
+msgstr ""
+
+msgid "GDPR pack →"
+msgstr ""
+
+msgid "Global brand registry"
+msgstr ""
+
+msgid "Go to portal login"
+msgstr ""
+
+msgid "Grace until"
+msgstr ""
+
+msgid "Hardware Store"
+msgstr ""
+
+msgid "Have an email?"
+msgstr ""
+
+msgid "Header migration in progress"
+msgstr ""
+
+msgid "Headline (optional)"
+msgstr ""
+
+msgid "Headline metrics"
+msgstr ""
+
+msgid "Hello,"
+msgstr ""
+
+msgid ""
+"Hello, This is a courtesy notice that {{ first }} {{ last }}'s meal plan "
+"balance is now at or below the configured low-balance threshold."
+msgstr ""
+
+msgid "Hi {{ username }},"
+msgstr ""
+
+msgid "Highest rated"
+msgstr ""
+
+msgid "How operators will identify this token in the table."
+msgstr ""
+
+msgid ""
+"If you have questions, reply to this email or contact partner-"
+"success@runmycampus.com. The full text of v2.0 is shown on the sign page."
+msgstr ""
+
+msgid ""
+"If you weren't expecting this email, you can safely ignore it — no action is"
+" required."
+msgstr ""
+
+msgid ""
+"If your school portal is unreachable, use the campus finder or contact "
+"support with your school name and role."
+msgstr ""
+
+msgid "Implementation timelines"
+msgstr ""
+
+msgid "In this mode"
+msgstr ""
+
+msgid "Infrastructure map"
+msgstr ""
+
+msgid "Install"
+msgstr ""
+
+msgid "Intent"
+msgstr ""
+
+msgid "JSON probe"
+msgstr ""
+
+msgid "Last HTTP"
+msgstr ""
+
+msgid "Last status"
+msgstr ""
+
+msgid "Last success"
+msgstr ""
+
+msgid "Latency"
+msgstr ""
+
+msgid "Legal & Compliance"
+msgstr ""
+
+msgid "Legal entity name (optional)"
+msgstr ""
+
+msgid "Lesson planning templates"
+msgstr ""
+
+msgid "Live API check"
+msgstr ""
+
+msgid "Live checks"
+msgstr ""
+
+msgid ""
+"Live component health, maintenance posture, and escalation paths for schools"
+" evaluating or operating on the platform."
+msgstr ""
+
+msgid "Live status"
+msgstr ""
+
+msgid "Live uptime, incidents, and maintenance windows"
+msgstr ""
+
+msgid "Loading schools…"
+msgstr ""
+
+msgid ""
+"Logos, favicon, default theme packs, and report style defaults for the "
+"platform."
+msgstr ""
+
+msgid "Long-tail intake"
+msgstr ""
+
+msgid "Low meal plan balance"
+msgstr ""
+
+msgid "Low-balance notifications (window)"
+msgstr ""
+
+msgid "MRR"
+msgstr ""
+
+msgid ""
+"Manager chrome colors, marketing lockup URLs, and public-surface brand "
+"tokens."
+msgstr ""
+
+msgid ""
+"Manager host: operator workflows, Studio OS, and platform administration."
+msgstr ""
+
+msgid ""
+"Marketplace, hardware, and integration entry points for campus operations."
+msgstr ""
+
+msgid "Meal plan low-balance analytics"
+msgstr ""
+
+msgid "Migration guide"
+msgstr ""
+
+msgid "Minimum rating"
+msgstr ""
+
+msgid "Mint a scoped API token"
+msgstr ""
+
+msgid "Mint new token"
+msgstr ""
+
+msgid "Mint token"
+msgstr ""
+
+msgid "Mint your first token to get started."
+msgstr ""
+
+msgid "Mode preview"
+msgstr ""
+
+msgid "Most popular"
+msgstr ""
+
+msgid "Most-voted requests"
+msgstr ""
+
+msgid "Name (A–Z)"
+msgstr ""
+
+msgid "Nearly complete"
+msgstr ""
+
+msgid ""
+"Need help? Reply to this email or contact <a href=\"mailto:{{ support_email "
+"}}\" style=\"color:#2563eb;\">{{ support_email }}</a>."
+msgstr ""
+
+msgid "Need help? Reply to this email or contact {{ support_email }}."
+msgstr ""
+
+msgid "New school"
+msgstr ""
+
+msgid "Newest"
+msgstr ""
+
+msgid "Next retry"
+msgstr ""
+
+msgid "Next →"
+msgstr ""
+
+msgid "No active public incidents."
+msgstr ""
+
+msgid "No alerts."
+msgstr ""
+
+msgid "No chain entries"
+msgstr ""
+
+msgid "No deliveries yet"
+msgstr ""
+
+msgid "No deliveries yet."
+msgstr ""
+
+msgid "No endpoints registered yet."
+msgstr ""
+
+msgid "No endpoints registered."
+msgstr ""
+
+msgid "No health score available yet."
+msgstr ""
+
+msgid "No incidents in the last 7 days."
+msgstr ""
+
+msgid "No low-balance notifications in the current window."
+msgstr ""
+
+msgid "No maintenance windows published."
+msgstr ""
+
+msgid ""
+"No matching school found. Check spelling, try a shorter name, or use email "
+"discovery."
+msgstr ""
+
+msgid "No open requests."
+msgstr ""
+
+msgid "No preview"
+msgstr ""
+
+msgid "No published versions yet."
+msgstr ""
+
+msgid "No retention beyond migration"
+msgstr ""
+
+msgid "No reviews yet."
+msgstr ""
+
+msgid "No schools selected."
+msgstr ""
+
+msgid "No strictly-required fields; fill in what you have."
+msgstr ""
+
+msgid "No suggestions."
+msgstr ""
+
+msgid "No tenant rows in window."
+msgstr ""
+
+msgid "No theme surfaces are available on this host. Check URL configuration."
+msgstr ""
+
+msgid "No tokens yet"
+msgstr ""
+
+msgid "No versions published yet."
+msgstr ""
+
+msgid "No webhook subscriptions"
+msgstr ""
+
+msgid "Not started"
+msgstr ""
+
+msgid "Nothing pending."
+msgstr ""
+
+msgid "Nothing shipped in the last 30 days."
+msgstr ""
+
+msgid ""
+"One public hub for buyers, operators, families, developers, and tenant "
+"routing."
+msgstr ""
+
+msgid ""
+"One quiet system, behind everything your school does. Admissions, fees, "
+"classrooms, parent messages — handled."
+msgstr ""
+
+msgid "One workspace for how your campus looks, runs, and launches"
+msgstr ""
+
+msgid "Open campus finder"
+msgstr ""
+
+msgid "Open delivery log →"
+msgstr ""
+
+msgid "Open portal"
+msgstr ""
+
+msgid "Open risk alerts"
+msgstr ""
+
+msgid "Open schools registry"
+msgstr ""
+
+msgid "Open workflow designer"
+msgstr ""
+
+msgid "Operational proof, not decorative links"
+msgstr ""
+
+msgid ""
+"Operator surface for Migration Cloud REST API authentication. Plaintext is "
+"never recoverable — only the preview suffix is shown."
+msgstr ""
+
+msgid "Or search by campus name"
+msgstr ""
+
+msgid "Organization name"
+msgstr ""
+
+msgid ""
+"Outbound HTTPS endpoints partners register to receive bundle-lifecycle "
+"events. The HMAC secret is never returned after creation."
+msgstr ""
+
+msgid ""
+"Outbound deliveries POST canonical-JSON payloads to your endpoint with an "
+"HMAC-SHA256 signature header. The secret is returned ONCE on the result "
+"page."
+msgstr ""
+
+msgid "PCI scope minimized via processor-hosted flows"
+msgstr ""
+
+msgid "PCI-DSS via processors"
+msgstr ""
+
+msgid "PDP"
+msgstr ""
+
+msgid "POST publish API"
+msgstr ""
+
+msgid "POST simulate API"
+msgstr ""
+
+msgid "Page {{ cur }} of {{ total }}"
+msgstr ""
+
+msgid "Page {{ current }} of {{ total }}"
+msgstr ""
+
+msgid "Pagination"
+msgstr ""
+
+msgid "Parent access guide"
+msgstr ""
+
+msgid "Parent or student"
+msgstr ""
+
+msgid ""
+"Parents and students often know the school name but not the login email "
+"domain."
+msgstr ""
+
+msgid "Per-locale breakdown"
+msgstr ""
+
+msgid ""
+"Per-user appearance and portal defaults for this account. Changes apply on "
+"your next page load."
+msgstr ""
+
+msgid "Permission Matrix Simulator"
+msgstr ""
+
+msgid "Permission matrix simulator"
+msgstr ""
+
+msgid "Pick a specific domain →"
+msgstr ""
+
+msgid "Pick a tenant for live preview"
+msgstr ""
+
+msgid "Plaintext token"
+msgstr ""
+
+msgid ""
+"Plan, role-preview, and infrastructure for going live. Guided onboarding is "
+"the fastest path."
+msgstr ""
+
+msgid "Platform Hub"
+msgstr ""
+
+msgid "Platform backoffice navigation"
+msgstr ""
+
+msgid ""
+"Platform defaults live here. Per-school branding runs on the tenant host — "
+"open a school from the registry and use Open as school."
+msgstr ""
+
+msgid "Platform global branding"
+msgstr ""
+
+msgid "Platform status & roadmap"
+msgstr ""
+
+msgid "Platform theme & experience"
+msgstr ""
+
+msgid "Platform-wide control plane"
+msgstr ""
+
+msgid "Please consider topping up the balance to avoid service interruption."
+msgstr ""
+
+msgid "Portal login"
+msgstr ""
+
+msgid "Post review"
+msgstr ""
+
+msgid "Posture"
+msgstr ""
+
+msgid "Preview context set to %(name)s."
+msgstr ""
+
+msgid "Preview tenant"
+msgstr ""
+
+msgid "Pricing matrix"
+msgstr ""
+
+msgid "Primary footer actions"
+msgstr ""
+
+msgid "Privacy policy →"
+msgstr ""
+
+msgid "Procurement & subprocessors"
+msgstr ""
+
+msgid "Procurement docs"
+msgstr ""
+
+msgid "Procurement packet"
+msgstr ""
+
+msgid ""
+"Public gateway: runmycampus.com for procurement, trust, and campus "
+"discovery."
+msgstr ""
+
+msgid "Public health, maintenance windows, and platform reliability signals."
+msgstr ""
+
+msgid "Publish new version"
+msgstr ""
+
+msgid "Publisher payout share (30d / lifetime)"
+msgstr ""
+
+msgid "Publisher reply:"
+msgstr ""
+
+msgid "Publisher signup queue"
+msgstr ""
+
+msgid "Publisher signups"
+msgstr ""
+
+msgid "Quarantine review"
+msgstr ""
+
+msgid "Quick edits sync to the live preview below."
+msgstr ""
+
+msgid "Re-run"
+msgstr ""
+
+msgid "Read API documentation"
+msgstr ""
+
+msgid "Ready to apply"
+msgstr ""
+
+msgid "Recent deliveries"
+msgstr ""
+
+msgid "Recent failures"
+msgstr ""
+
+msgid "Recent incidents (7d)"
+msgstr ""
+
+msgid "Recent items"
+msgstr ""
+
+msgid "Recently shipped (30d)"
+msgstr ""
+
+msgid "Register a subscription to receive bundle-lifecycle events."
+msgstr ""
+
+msgid "Register new subscription"
+msgstr ""
+
+msgid "Register subscription"
+msgstr ""
+
+msgid "Register webhook subscription"
+msgstr ""
+
+msgid "Registry of brand tokens and experience ownership metadata."
+msgstr ""
+
+msgid "Related shortcuts"
+msgstr ""
+
+msgid ""
+"Release notes, compliance updates, implementation guides, and platform "
+"reliability notices. Unsubscribe anytime."
+msgstr ""
+
+msgid ""
+"Reports, documents, credentials, and branding inheritance. Everything "
+"publishes through governed output packs."
+msgstr ""
+
+msgid "Request a new link"
+msgstr ""
+
+msgid "Request a platform demo"
+msgstr ""
+
+msgid "Required:"
+msgstr ""
+
+msgid ""
+"Resolve roster, permission, and module issues without opening a support "
+"ticket."
+msgstr ""
+
+msgid "Review &amp; re-sign MAA v2.0"
+msgstr ""
+
+msgid "Reviews"
+msgstr ""
+
+msgid "Revoke token"
+msgstr ""
+
+msgid "Right to withdraw at any time"
+msgstr ""
+
+msgid "Role profile"
+msgstr ""
+
+msgid "Role rank"
+msgstr ""
+
+msgid "Role routing"
+msgstr ""
+
+msgid "Role-based access with MFA-ready patterns"
+msgstr ""
+
+msgid "Rolling 30-day per-tenant volume (all tenants)"
+msgstr ""
+
+msgid ""
+"Rolling {{ days }}-day view of low-balance notification events per tenant, "
+"with cooldown-effectiveness and per-locale breakdowns. Staff-only."
+msgstr ""
+
+msgid "Rotate"
+msgstr ""
+
+msgid "Rotate secret"
+msgstr ""
+
+msgid "Route parents, students, and staff to their tenant space"
+msgstr ""
+
+msgid "RunMyCampus Studio"
+msgstr ""
+
+msgid "RunMyCampus corporate gateway"
+msgstr ""
+
+msgid ""
+"RunMyCampus has updated the Migration Authorization Agreement (MAA) you "
+"previously signed for migration of source-vendor data into your tenant. The "
+"new version (v2.0) expands the data-protection language we are committing "
+"to, with five clauses that did not appear in v1.0:"
+msgstr ""
+
+msgid "RunMyCampus platform status"
+msgstr ""
+
+msgid ""
+"RunMyCampus separates public marketing, manager control plane, and tenant "
+"school subdomains. Each school receives an isolated tenant context with "
+"dedicated portal, backend, and configuration surfaces."
+msgstr ""
+
+msgid "Runtime defaults — public brand"
+msgstr ""
+
+msgid "SOC 2 control mapping"
+msgstr ""
+
+msgid ""
+"SOC 2 control mapping and certification language are presented honestly—we "
+"document readiness and control design unless an external attestation is "
+"published."
+msgstr ""
+
+msgid ""
+"Same idea as a Shopify CSV import: download our canonical template, fill in "
+"the rows you have, upload through the wizard. No source-system signature "
+"required."
+msgstr ""
+
+msgid "Sample row"
+msgstr ""
+
+msgid ""
+"School ID. Leave blank to allow this token to act across every tenant the "
+"user can see."
+msgstr ""
+
+msgid "School action"
+msgstr ""
+
+msgid "School email"
+msgstr ""
+
+msgid "School leader"
+msgstr ""
+
+msgid "School name, code, or domain"
+msgstr ""
+
+msgid "School not found or inactive."
+msgstr ""
+
+msgid "School theme & experience"
+msgstr ""
+
+msgid "School workspace"
+msgstr ""
+
+msgid "School-scoped data paths and operator boundaries"
+msgstr ""
+
+msgid ""
+"Schools remain the data controller for education records. RunMyCampus "
+"provides access controls, auditability, and disclosure safeguards aligned to"
+" common FERPA operational practices."
+msgstr ""
+
+msgid "Scope of access"
+msgstr ""
+
+msgid "Scoped API tokens"
+msgstr ""
+
+msgid "Score history"
+msgstr ""
+
+msgid "Screenshot {{ n }}"
+msgstr ""
+
+msgid "Screenshots"
+msgstr ""
+
+msgid "Search apps"
+msgstr ""
+
+msgid ""
+"Search by school name, slug, or domain. Parents, students, and staff should "
+"land on their school tenant—not the corporate marketing site."
+msgstr ""
+
+msgid "Secret"
+msgstr ""
+
+msgid "Secret preview"
+msgstr ""
+
+msgid "Security matrix"
+msgstr ""
+
+msgid ""
+"Security, privacy, accessibility, and payment-processing evidence in one "
+"route."
+msgstr ""
+
+msgid ""
+"Select a role profile to see why each capability is visible or hidden, "
+"before changing live access."
+msgstr ""
+
+msgid "Select a tenant to unlock live theme, launch, and experience previews."
+msgstr ""
+
+msgid "Select school for Studio preview"
+msgstr ""
+
+msgid "Select tenant for launch data"
+msgstr ""
+
+msgid "Select tenant for live theme"
+msgstr ""
+
+msgid "Select tenant for output preview"
+msgstr ""
+
+msgid "Select tenant for workflow context"
+msgstr ""
+
+msgid "Self-serve signup"
+msgstr ""
+
+msgid "Semver only. The newest stable version becomes the install default."
+msgstr ""
+
+msgid ""
+"Sends / transitions. Lower = the 7-day cooldown is suppressing more repeat "
+"sends."
+msgstr ""
+
+msgid "Sensitive admin actions logged for review"
+msgstr ""
+
+msgid "Set billing to"
+msgstr ""
+
+msgid "Set up my password"
+msgstr ""
+
+msgid "Set up your RunMyCampus password"
+msgstr ""
+
+msgid ""
+"Setup links are valid for a limited time and can only be used once. Please "
+"request a password reset from the sign-in page to continue."
+msgstr ""
+
+msgid "Showing all deliveries across every subscription."
+msgstr ""
+
+msgid "Showing deliveries for subscription #{{ subscription_id }}."
+msgstr ""
+
+msgid ""
+"Showing the full rotation lineage for token #{{ anchor }}. The chain "
+"contains {{ total }} token(s)."
+msgstr ""
+
+msgid "Sign in to install"
+msgstr ""
+
+msgid "Simulate & publish"
+msgstr ""
+
+msgid "Solutions & Routers"
+msgstr ""
+
+msgid "Sort catalog"
+msgstr ""
+
+msgid "Source: draft values"
+msgstr ""
+
+msgid "Start again"
+msgstr ""
+
+msgid "Start from district-approved workflow blueprints."
+msgstr ""
+
+msgid "Start typing your school name, slug, or domain fragment."
+msgstr ""
+
+msgid "Status and incident history"
+msgstr ""
+
+msgid "Student portal overview"
+msgstr ""
+
+msgid "Studio navigation"
+msgstr ""
+
+msgid "Studio overview metrics"
+msgstr ""
+
+msgid "Submit application"
+msgstr ""
+
+msgid "Subscribe to product and trust updates"
+msgstr ""
+
+msgid "Subscriber-side signature verifier SDK"
+msgstr ""
+
+msgid "Subscription created"
+msgstr ""
+
+msgid "Subscription details"
+msgstr ""
+
+msgid "Suggested fix"
+msgstr ""
+
+msgid "Suggested interventions"
+msgstr ""
+
+msgid "Suggestions"
+msgstr ""
+
+msgid "Support hub"
+msgstr ""
+
+msgid "Support knowledge base"
+msgstr ""
+
+msgid "Switch school or campus"
+msgstr ""
+
+msgid "Switch workspace"
+msgstr ""
+
+msgid "Switched to"
+msgstr ""
+
+msgid "System Status (Live)"
+msgstr ""
+
+msgid "System status"
+msgstr ""
+
+msgid "TLS in transit; encrypted storage for sensitive fields"
+msgstr ""
+
+msgid "Teacher communities"
+msgstr ""
+
+msgid "Teacher workspace overview"
+msgstr ""
+
+msgid "Tenant Health & Diagnostic Canvas"
+msgstr ""
+
+msgid "Tenant ID"
+msgstr ""
+
+msgid "Tenant backend"
+msgstr ""
+
+msgid "Tenant diagnostics"
+msgstr ""
+
+msgid "Tenant health"
+msgstr ""
+
+msgid ""
+"Tenant hosts: school subdomains (and verified custom domains when "
+"configured)."
+msgstr ""
+
+msgid "Tenant isolation"
+msgstr ""
+
+msgid "Tenant routing"
+msgstr ""
+
+msgid "Tenant scope (optional)"
+msgstr ""
+
+msgid "Thank you,"
+msgstr ""
+
+msgid "Thank you, The RunMyCampus team"
+msgstr ""
+
+msgid ""
+"Thanks — we'll review the application for <strong>{{ org }}</strong> "
+"shortly."
+msgstr ""
+
+msgid ""
+"That verification link is no longer valid. If you've already verified, you "
+"can ignore this. Otherwise, please submit a new application."
+msgstr ""
+
+msgid "The RunMyCampus team"
+msgstr ""
+
+msgid ""
+"The old token (#{{ id }}) keeps authenticating until {{ grace }} so clients "
+"can roll out. After that, only this new token works."
+msgstr ""
+
+msgid ""
+"The plaintext token is returned ONCE on the next page. The server stores "
+"only sha256(token) — there is no recovery."
+msgstr ""
+
+msgid "Theme & experience"
+msgstr ""
+
+msgid "Theme & experience hub"
+msgstr ""
+
+msgid "Theme and experience surfaces"
+msgstr ""
+
+msgid "Theme builder"
+msgstr ""
+
+msgid "Theme preference"
+msgstr ""
+
+msgid "Theme sections"
+msgstr ""
+
+msgid ""
+"Theme tokens, focus-visible rings, skip links, and reduced-motion fallbacks "
+"are enforced in the marketing and dashboard shells."
+msgstr ""
+
+msgid ""
+"Theme, launch, and experience embeds need a selected school. Browse tenants,"
+" open one, then return to Studio."
+msgstr ""
+
+msgid ""
+"This is a courtesy notice that <strong>{{ first }} {{ last }}</strong>'s "
+"meal plan balance is now at or below the configured low-balance threshold."
+msgstr ""
+
+msgid ""
+"This is a transactional email tied to your existing Migration Authorization "
+"Agreement."
+msgstr ""
+
+msgid ""
+"This link is valid for a limited time and can only be used once. If it "
+"expires before you finish, request a password reset from the sign-in page."
+msgstr ""
+
+msgid "This secret will not be shown again."
+msgstr ""
+
+msgid "This token has no rotation history."
+msgstr ""
+
+msgid "This token will not be shown again."
+msgstr ""
+
+msgid "Threshold"
+msgstr ""
+
+msgid "Token details"
+msgstr ""
+
+msgid "Token minted"
+msgstr ""
+
+msgid "Token not recognized"
+msgstr ""
+
+msgid "Token rotated"
+msgstr ""
+
+msgid "Token rotation chain"
+msgstr ""
+
+msgid "Too many searches. Please wait a moment and try again."
+msgstr ""
+
+msgid "Top tenants by notification volume"
+msgstr ""
+
+msgid "Topic"
+msgstr ""
+
+msgid "Topics"
+msgstr ""
+
+msgid "Total notifications sent"
+msgstr ""
+
+msgid "Tracked transitions"
+msgstr ""
+
+msgid "Training academies"
+msgstr ""
+
+msgid "Trust & Operations"
+msgstr ""
+
+msgid "Trust & Security Center"
+msgstr ""
+
+msgid "Trust & operations"
+msgstr ""
+
+msgid "Trust and compliance badges"
+msgstr ""
+
+msgid ""
+"Twenty domains covered — students, staff, guardians, enrollment, attendance,"
+" grades, finance, and more. Extra columns you keep are preserved as "
+"DynamicFieldValues; re-uploads on the same external_id update existing "
+"records (idempotent)."
+msgstr ""
+
+msgid ""
+"Twenty domains, one canonical CSV each. Fill in what you have, leave the "
+"rest blank, then upload through the intake wizard. The accelerator pre-"
+"classifies each file by name — don't rename them."
+msgstr ""
+
+msgid "URL"
+msgstr ""
+
+msgid "URL (https only)"
+msgstr ""
+
+msgid ""
+"Use the footer to verify platform health, review procurement evidence, find "
+"the right school portal, or extend the campus operating system safely."
+msgstr ""
+
+msgid "Use this one-time link to choose your new password:"
+msgstr ""
+
+msgid "User ID"
+msgstr ""
+
+msgid "Validate before apply"
+msgstr ""
+
+msgid "Verification result"
+msgstr ""
+
+msgid "Verified install"
+msgstr ""
+
+msgid "Version:"
+msgstr ""
+
+msgid "Versions"
+msgstr ""
+
+msgid "Visible"
+msgstr ""
+
+msgid "Visual designer"
+msgstr ""
+
+msgid "Votes"
+msgstr ""
+
+msgid "WCAG 2.2 AA target"
+msgstr ""
+
+msgid "WCAG accessibility statement"
+msgstr ""
+
+msgid "Waiver note (required):"
+msgstr ""
+
+msgid ""
+"We target WCAG 2.2 AA across public and tenant surfaces, with AAA contrast "
+"goals for high-stakes administrative data such as grades and financial "
+"ledgers."
+msgstr ""
+
+msgid ""
+"We've sent a verification link to <strong>{{ email }}</strong>. Click the "
+"link to confirm your address, then an RMC operator will review your "
+"application within a few business days."
+msgstr ""
+
+msgid "Webhook delivery log"
+msgstr ""
+
+msgid "Webhook endpoints"
+msgstr ""
+
+msgid "Webhook endpoints for"
+msgstr ""
+
+msgid "Webhook header migration"
+msgstr ""
+
+msgid "Webhook health (24h)"
+msgstr ""
+
+msgid "Webhook log"
+msgstr ""
+
+msgid "Webhook subscriptions"
+msgstr ""
+
+msgid "Website"
+msgstr ""
+
+msgid "Welcome back to RunMyCampus"
+msgstr ""
+
+msgid "What do you intend to build?"
+msgstr ""
+
+msgid "What worked, what didn\\"
+msgstr ""
+
+msgid "Which school's events should this endpoint receive."
+msgstr ""
+
+msgid ""
+"Workflows, approvals, simulation, and staged activation. Run outcomes in the"
+" canvas; use the sidebar to jump between tools."
+msgstr ""
+
+msgid "Yanked"
+msgstr ""
+
+msgid ""
+"You are receiving this notification because you are registered as a guardian"
+" for this student. To adjust notification preferences, visit the parent "
+"portal."
+msgstr ""
+
+msgid ""
+"Your existing v1.0 signature remains valid for migrations already accepted "
+"by RunMyCampus. The v2.0 agreement only applies to future uploads. To keep "
+"using the Migration Cloud for new uploads, please re-sign v2.0 within the "
+"next 30 days:"
+msgstr ""
+
+msgid "Your rating:"
+msgstr ""
+
+msgid ""
+"Your school recently migrated to RunMyCampus. Your old password is no longer"
+" active — please choose a new one to finish setting up your account. After "
+"this you can sign in normally."
+msgstr ""
+
+msgid ""
+"Your school recently migrated to RunMyCampus. Your previous password is no "
+"longer active — to keep using your account, you need to set a fresh one."
+msgstr ""
+
+msgid "abandoned"
+msgstr ""
+
+msgid "all"
+msgstr ""
+
+msgid "all events"
+msgstr ""
+
+msgid "anchor"
+msgstr ""
+
+msgid "as of"
+msgstr ""
+
+msgid "bursar's desk"
+msgstr ""
+
+msgid "by {{ name }}"
+msgstr ""
+
+msgid "campus"
+msgstr ""
+
+msgid "classroom door"
+msgstr ""
+
+msgid "e.g. Partnership with NGO; approved by board 2025-02."
+msgstr ""
+
+msgid ""
+"emit-legacy is OFF. Only X-RunMyCampus-* headers are sent; legacy headers "
+"are suppressed."
+msgstr ""
+
+msgid ""
+"emit-legacy is ON. Both X-RunMyCampus-* and X-Migration-Cloud-* header "
+"families are sent on every delivery."
+msgstr ""
+
+msgid "failed"
+msgstr ""
+
+msgid ""
+"fields that are not mapped to our canonical ontology are quarantined and "
+"never written into your tenant unless you explicitly map them."
+msgstr ""
+
+msgid "for the selected school(s). A waiver note is required for compliance."
+msgstr ""
+
+msgid "in grace"
+msgstr ""
+
+msgid "lifetime"
+msgstr ""
+
+msgid "ok"
+msgstr ""
+
+msgid "on this page to jump to a mode"
+msgstr ""
+
+msgid "opens the Studio palette"
+msgstr ""
+
+msgid "parent's phone"
+msgstr ""
+
+msgid ""
+"raw migration artifacts are purged within 90 days of successful apply, or "
+"earlier on written withdrawal."
+msgstr ""
+
+msgid "revoked"
+msgstr ""
+
+msgid "rotated (grace)"
+msgstr ""
+
+msgid "rotated forward to"
+msgstr ""
+
+msgid ""
+"the agreement is now explicitly limited to the data domains you select in "
+"the Companion at extraction time."
+msgstr ""
+
+msgid "topics, comma separated or *"
+msgstr ""
+
+msgid ""
+"we route GDPR and NY Education Law section 2-d data-subject requests through"
+" you as data controller and respond within the 30-day statutory window."
+msgstr ""
+
+msgid ""
+"you can withdraw consent at any time; we stop processing within 48 hours of "
+"receiving notice."
+msgstr ""
+
+msgid "you@school.edu"
+msgstr ""
+
+msgid "{{ count }} canonical header{% plural %}{{ count }} canonical headers"
+msgstr ""
+
+msgid "— No tenant —"
+msgstr ""
+
+msgid "← Back to intake wizard"
+msgstr ""
+
+msgid "← Back to subscriptions"
+msgstr ""
+
+msgid "← Back to tokens"
+msgstr ""
+
+msgid "← Previous"
+msgstr ""
+
+msgid "Add hours"
+msgstr ""
+
+msgid "Advanced palette"
+msgstr ""
+
+msgid "Classroom"
+msgstr ""
+
+msgid "Confirm hours"
+msgstr ""
+
+msgid "Confirm on-site hours"
+msgstr ""
+
+msgid "Create Student"
+msgstr ""
+
+msgid "Department"
+msgstr ""
+
+msgid "Employer portal — Apprentice progress"
+msgstr ""
+
+msgid "Guardian or student name, email…"
+msgstr ""
+
+msgid "Hours to add"
+msgstr ""
+
+msgid "Hub contrast preview"
+msgstr ""
+
+msgid "Name or admission number…"
+msgstr ""
+
+msgid "Name, staff ID, or email…"
+msgstr ""
+
+msgid "Open theme builder"
+msgstr ""
+
+msgid "Preview site"
+msgstr ""
+
+msgid "Redo"
+msgstr ""
+
+msgid ""
+"Shopify-grade canvas: drag sections, compare light and dark contrast live, "
+"publish brand tokens without leaving the hub."
+msgstr ""
+
+msgid "Students"
+msgstr ""
+
+msgid "Visual theme builder"
+msgstr ""
+
+msgid "FAQ matches"
+msgstr ""
+
+msgid "Find help"
+msgstr ""
+
+msgid "Knowledge base matches"
+msgstr ""
+
+msgid "Open support request"
+msgstr ""
+
+msgid "Public contact page"
+msgstr ""
+
+msgid "Reach a human when help docs are not enough."
+msgstr ""
+
+msgid "Search across help and feedback context"
+msgstr ""
+
+msgid "Send product feedback"
+msgstr ""
+
+msgid "Try payments, imports, gradebook, login, mobile..."
+msgstr ""
+
+msgid "open request(s)."
+msgstr ""
+
+msgid "Admission Number"
+msgstr ""
+
+msgid "Date of Birth"
+msgstr ""
+
+msgid "Gender"
+msgstr ""
+
+msgid "Login credentials"
+msgstr ""
+
+msgid "Parent Email"
+msgstr ""
+
+msgid "Parent Phone"
+msgstr ""
+
+msgid "Place of Birth"
+msgstr ""
+
+msgid "Profile photo"
+msgstr ""
+
+msgid "Reports to"
+msgstr ""

@@ -51,6 +51,17 @@
   color: color-mix(in oklab, var(--color-sky-500) 12%, var(--color-base-0)); /* theme-locked-allow: config-preview-fixed-swatch */
 }
 
+.preview-device[data-preview-theme="dark"] .preview-content,
+.preview-device[data-preview-theme="dark"] .preview-card,
+.preview-device[data-preview-theme="dark"] .preview-chart-card {
+  background: var(--preview-content-bg, #0f172a);
+  color: var(--preview-text-color, #f8fafc);
+}
+
+.preview-device[data-preview-theme="dark"] .preview-sidebar {
+  color: var(--preview-text-color, #f8fafc);
+}
+
 .preview-device {
   width: 100%;
   max-width: 940px;

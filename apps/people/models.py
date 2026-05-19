@@ -367,6 +367,11 @@ class StudentProfile(models.Model):
     admission_number = models.CharField(
         max_length=64, unique=True, blank=True, null=True
     )
+    search_index = models.TextField(
+        blank=True,
+        default="",
+        help_text="Precomputed lowercase search text for backend list FTS.",
+    )
     profile_photo = models.ImageField(
         upload_to=tenant_upload_to_student_profile_photo,
         blank=True,
@@ -681,6 +686,9 @@ class StudentProfile(models.Model):
             )
         if not self.referral_code:
             self.referral_code = f"REF-{uuid.uuid4().hex[:6].upper()}"
+        from apps.people.student_search_index import build_student_search_index
+
+        self.search_index = build_student_search_index(self)
         super().save(*args, **kwargs)
 
     def clean(self):

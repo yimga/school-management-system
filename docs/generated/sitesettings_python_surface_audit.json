@@ -1,22 +1,22 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-05-18T18:02:57.840466+00:00",
+  "generated_at": "2026-05-19T01:02:05.525479+00:00",
   "class_level_allowlist": [
     "apps/platform_runtime/helpers.py",
     "apps/siteconfig/models.py"
   ],
   "totals": {
-    "sitesettings_word": 20,
+    "sitesettings_word": 22,
     "get_solo_paren": 3,
     "sitesettings_objects": 1,
-    "import_siteconfig_sitesettings": 0,
+    "import_siteconfig_sitesettings": 1,
     "django_get_model_sitesettings": 0,
     "sitesettings_get_solo": 0,
     "sitesettings_load": 0,
     "get_effective_site_settings": 124,
     "get_platform_site_settings_record": 18,
-    "runtime_defaults_get_singleton": 9,
-    "files_with_any_hit": 89
+    "runtime_defaults_get_singleton": 10,
+    "files_with_any_hit": 90
   },
   "by_app": {
     "accounts": {
@@ -281,16 +281,16 @@
     },
     "siteconfig": {
       "django_get_model_sitesettings": 0,
-      "files": 20,
+      "files": 21,
       "get_effective_site_settings": 29,
       "get_platform_site_settings_record": 6,
       "get_solo_paren": 1,
-      "import_siteconfig_sitesettings": 0,
-      "runtime_defaults_get_singleton": 7,
+      "import_siteconfig_sitesettings": 1,
+      "runtime_defaults_get_singleton": 8,
       "sitesettings_get_solo": 0,
       "sitesettings_load": 0,
       "sitesettings_objects": 0,
-      "sitesettings_word": 9
+      "sitesettings_word": 11
     },
     "studio_os": {
       "django_get_model_sitesettings": 0,
@@ -1439,6 +1439,19 @@
       "runtime_defaults_get_singleton": 0
     },
     {
+      "relpath": "apps/siteconfig/views_theme_builder.py",
+      "sitesettings_word": 2,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 1,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 1
+    },
+    {
       "relpath": "apps/studio_os/services.py",
       "sitesettings_word": 0,
       "get_solo_paren": 0,
@@ -1465,7 +1478,9 @@
       "runtime_defaults_get_singleton": 0
     }
   ],
-  "by_kind": {},
+  "by_kind": {
+    "import SiteSettings from apps.siteconfig.models": 1
+  },
   "high_gravity_read_paths": [
     {
       "relpath": "apps/siteconfig/views.py",
@@ -1912,6 +1927,19 @@
       "runtime_defaults_get_singleton": 0
     },
     {
+      "relpath": "apps/siteconfig/views_theme_builder.py",
+      "sitesettings_word": 2,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 1,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 1
+    },
+    {
       "relpath": "apps/evals/advanced_evaluations.py",
       "sitesettings_word": 1,
       "get_solo_paren": 0,
@@ -2235,21 +2263,14 @@
       "get_effective_site_settings": 1,
       "get_platform_site_settings_record": 0,
       "runtime_defaults_get_singleton": 0
-    },
-    {
-      "relpath": "apps/api/oneroster_roster_webhook.py",
-      "sitesettings_word": 0,
-      "get_solo_paren": 0,
-      "sitesettings_objects": 0,
-      "import_siteconfig_sitesettings": 0,
-      "django_get_model_sitesettings": 0,
-      "sitesettings_get_solo": 0,
-      "sitesettings_load": 0,
-      "get_effective_site_settings": 2,
-      "get_platform_site_settings_record": 0,
-      "runtime_defaults_get_singleton": 0
     }
   ],
-  "violations": [],
+  "violations": [
+    {
+      "kind": "import SiteSettings from apps.siteconfig.models",
+      "path": "apps/siteconfig/views_theme_builder.py",
+      "detail": "1"
+    }
+  ],
   "sitesettings_objects_violations": []
 }

@@ -86,6 +86,12 @@ def configuration_module_detail(request, module_key: str):
         context["pack_key"] = module_key
     elif module_key == "registries":
         context["registries"] = resolved_registry_rows()
+    elif module_key == "experience":
+        from apps.siteconfig.theme_experience_surfaces import (
+            build_platform_theme_experience_surfaces,
+        )
+
+        context["theme_experience_surfaces"] = build_platform_theme_experience_surfaces()
     else:
         context["related_modules"] = enriched_modules()
     return render(request, "platform_runtime/configuration_module_detail.html", context)

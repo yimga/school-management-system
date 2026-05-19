@@ -152,7 +152,7 @@ def anonymize_user(user: User, delete_sessions: bool = True) -> None:
 
 
 # Plan IV: Per-region PII masking (GDPR/FERPA/NDPR)
-COMPLIANCE_REGIONS = ("GDPR", "FERPA", "NDPR", "")
+COMPLIANCE_REGIONS = ("GDPR", "FERPA", "NDPR", "LGPD", "PIPL", "PIPEDA", "POPIA", "")
 
 
 def mask_pii_for_region(value: str | None, region: str) -> str:
@@ -182,4 +182,12 @@ def mask_pii_for_region(value: str | None, region: str) -> str:
         if len(s) >= 4 and s.replace("+", "").replace(" ", "").isdigit():
             return "****" + s[-4:]
         return s[:2] + "***" if len(s) > 3 else "***"
+    if region_upper in ("LGPD", "PIPL", "PIPEDA", "POPIA"):
+        # Align with GDPR-style minimization for Brazil / China / Canada packs.
+        if "@" in s and "." in s:
+            parts = s.split("@")
+            return (parts[0][:1] + "***@" + parts[-1]) if len(parts) == 2 else "***"
+        if len(s) >= 4 and s.replace("+", "").replace(" ", "").isdigit():
+            return "***" + s[-2:]
+        return s[:1] + "***" if len(s) > 1 else "**"
     return "***"

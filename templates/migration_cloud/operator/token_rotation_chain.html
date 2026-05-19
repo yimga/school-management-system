@@ -1,0 +1,95 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Token rotation chain" }}{% endblock %}
+
+{% block content %}
+<main class="rmc-page rmc-page--operator-token-chain" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Token rotation chain" %}</h1>
+    <p class="rmc-lede">
+      {% blocktrans with anchor=anchor_id total=chain_total %}Showing the full rotation lineage for token #{{ anchor }}. The chain contains {{ total }} token(s).{% endblocktrans %}
+    </p>
+    <div class="rmc-page__actions">
+      <a class="rmc-btn rmc-btn--ghost" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_list' %}{% else %}{% url 'migration_cloud_super:operator_token_list' %}{% endif %}">{% trans "Back to tokens" %}</a>
+    </div>
+  </header>
+
+  {% if rows %}
+  <table class="rmc-data-table rmc-data-table--token-chain">
+    <thead>
+      <tr>
+        <th>{% trans "Step" %}</th>
+        <th>{% trans "ID" %}</th>
+        <th>{% trans "Name" %}</th>
+        <th>{% trans "Preview" %}</th>
+        <th>{% trans "Scopes" %}</th>
+        <th>{% trans "Created" %}</th>
+        <th>{% trans "Revoked" %}</th>
+        <th>{% trans "Grace until" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Next" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr{% if r.is_anchor %} class="rmc-data-table__row--anchor" aria-current="true"{% endif %}>
+        <td>
+          {% if r.is_anchor %}
+            <span class="rmc-pill rmc-pill--info">{% trans "anchor" %}</span>
+          {% else %}
+            {{ forloop.counter }}
+          {% endif %}
+        </td>
+        <td>#{{ r.id }}</td>
+        <td>{{ r.name }}</td>
+        <td><code class="rmc-kbd">{{ r.preview }}</code></td>
+        <td>
+          {% for s in r.scopes %}<code class="rmc-kbd">{{ s }}</code>{% if not forloop.last %} {% endif %}{% empty %}—{% endfor %}
+        </td>
+        <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+        <td>{% if r.revoked_at %}{{ r.revoked_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+        <td>{% if r.grace_until %}{{ r.grace_until|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
+        <td>
+          {% if r.is_active %}
+            <span class="rmc-pill rmc-pill--success">{% trans "active" %}</span>
+          {% elif r.in_grace %}
+            <span class="rmc-pill rmc-pill--warn">{% trans "in grace" %}</span>
+          {% elif r.revoked_at %}
+            <span class="rmc-pill rmc-pill--muted">{% trans "revoked" %}</span>
+          {% else %}
+            <span class="rmc-pill rmc-pill--muted">{% trans "—" %}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if r.rotated_to_id %}
+            <span aria-label="{% trans 'rotated forward to' %}">&rarr; #{{ r.rotated_to_id }}</span>
+          {% else %}
+            —
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_count > 1 %}
+  <nav class="rmc-pagination" aria-label="{% trans 'Chain pagination' %}">
+    {% if has_prev %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_num|add:'-1' }}">&larr; {% trans "Previous" %}</a>
+    {% endif %}
+    <span class="rmc-muted">{% blocktrans with current=page_num total=page_count %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
+    {% if has_next %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?page={{ page_num|add:'1' }}">{% trans "Next" %} &rarr;</a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="rmc-empty">
+    <h2 class="rmc-h2">{% trans "No chain entries" %}</h2>
+    <p>{% trans "This token has no rotation history." %}</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

@@ -55,6 +55,17 @@ class AcademicYear(models.Model):
     def __str__(self):
         return self.name
 
+    def format_start_date_display(self) -> str:
+        """Gregorian + optional secondary calendar annotation for tenant region."""
+        from apps.platform_runtime.calendar_display import format_dual_calendar_date
+
+        return format_dual_calendar_date(self.start_date, school=self.school)
+
+    def format_end_date_display(self) -> str:
+        from apps.platform_runtime.calendar_display import format_dual_calendar_date
+
+        return format_dual_calendar_date(self.end_date, school=self.school)
+
 
 class Term(models.Model):
     # Backwards-compatible symbolic constants (no longer enforced as choices)

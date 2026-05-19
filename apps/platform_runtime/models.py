@@ -9,6 +9,8 @@ from __future__ import annotations
 from django.conf import settings
 from django.db import models
 
+from apps.platform_runtime.append_only import AppendOnlyManager, AppendOnlyModelMixin
+
 
 def _invalidate_effective_site_settings_cache():
     """Called when RuntimeDefaults is saved so get_effective_site_settings sees new values."""
@@ -1296,7 +1298,9 @@ class PlatformOperatorMigrationCloudLink(models.Model):
         return self.label
 
 
-class PlatformIntegrationWebhookEvent(models.Model):
+class PlatformIntegrationWebhookEvent(AppendOnlyModelMixin, models.Model):
+    objects = AppendOnlyManager()
+
     """
     Inbound integration webhook receipts (HMAC verified with
     ``RuntimeDefaults.webhook_signing_secret`` / ``get_effective_site_settings``).
@@ -1341,7 +1345,9 @@ class AIActionAuditLog(models.Model):
         ordering = ["-created_at"]
 
 
-class PlatformEventLog(models.Model):
+class PlatformEventLog(AppendOnlyModelMixin, models.Model):
+    objects = AppendOnlyManager()
+
     """
     Append-only outbox for emit_platform_event (§0.3 Pillar 5 — event-driven baseline).
     Enables replay, analytics, and future webhook fan-out without losing events at log-only phase.

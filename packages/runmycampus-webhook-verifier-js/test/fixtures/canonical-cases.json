@@ -1,0 +1,112 @@
+{
+  "_comment": "Shared canonical-JSON fixtures. Source of truth for Python AND JS test suites. Both implementations MUST produce expected_canonical bytes and expected_sha256 for each case. To regenerate after editing, see packages/README-PARITY.md.",
+  "version": "1",
+  "cases": [
+    {
+      "name": "empty_object",
+      "input": {},
+      "expected_canonical": "{}",
+      "expected_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "name": "empty_array",
+      "input": [],
+      "expected_canonical": "[]",
+      "expected_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "name": "null_value",
+      "input": null,
+      "expected_canonical": "null",
+      "expected_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "name": "boolean_true",
+      "input": true,
+      "expected_canonical": "true",
+      "expected_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+    },
+    {
+      "name": "boolean_false",
+      "input": false,
+      "expected_canonical": "false",
+      "expected_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+    },
+    {
+      "name": "integer_positive",
+      "input": 42,
+      "expected_canonical": "42",
+      "expected_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+    },
+    {
+      "name": "integer_negative",
+      "input": -17,
+      "expected_canonical": "-17",
+      "expected_sha256": "d3471dcc109cd382f5e09a64253c2219958b5f8f07371fba48ac81fed97bb18a"
+    },
+    {
+      "name": "integer_zero",
+      "input": 0,
+      "expected_canonical": "0",
+      "expected_sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "name": "ascii_string",
+      "input": "hello",
+      "expected_canonical": "\"hello\"",
+      "expected_sha256": "5aa762ae383fbb727af3c7a36d4940a5b8c40a989452d2304fc958ff3f354e7a"
+    },
+    {
+      "name": "unicode_string_basic",
+      "input": "café",
+      "expected_canonical": "\"café\"",
+      "expected_sha256": "28380feb8724d669bc8d4cf5b5a5bb1adbdc61b81ebd06f3fabc567b4f3b0fc5"
+    },
+    {
+      "name": "unicode_string_cjk",
+      "input": "学校管理",
+      "expected_canonical": "\"学校管理\"",
+      "expected_sha256": "03f3dd5ecf873aefe1bfb63a08266c866be31fd1cea33123507302ca6175faa2"
+    },
+    {
+      "name": "escaped_chars",
+      "input": "line1\nline2\t\"quoted\"\\backslash",
+      "expected_canonical": "\"line1\\nline2\\t\\\"quoted\\\"\\\\backslash\"",
+      "expected_sha256": "5c04e83431b4af129cf4fa2f6f925256d5b47f24f02cef33d07f61e41d1f9433"
+    },
+    {
+      "name": "flat_object_sorted_keys",
+      "input": {"b": 2, "a": 1, "c": 3},
+      "expected_canonical": "{\"a\":1,\"b\":2,\"c\":3}",
+      "expected_sha256": "e6a3385fb77c287a712e7f406a451727f0625041823ecf23bea7ef39b2e39805"
+    },
+    {
+      "name": "nested_object",
+      "input": {"outer": {"z": 26, "a": 1}, "first": "value"},
+      "expected_canonical": "{\"first\":\"value\",\"outer\":{\"a\":1,\"z\":26}}",
+      "expected_sha256": "cf6494e5171439016f1f55786336c09a0eeec5a4b6688755a8e3276ff25416f4"
+    },
+    {
+      "name": "array_of_objects",
+      "input": [{"id": 2}, {"id": 1}],
+      "expected_canonical": "[{\"id\":2},{\"id\":1}]",
+      "expected_sha256": "1546ad5b6653e302e9e61296e1bbf4d7746e91c5cea80e5e1731a4b2523ad25a"
+    },
+    {
+      "name": "realistic_webhook_payload",
+      "input": {
+        "event": "migration.bundle.completed",
+        "delivery_id": "d_abc123",
+        "tenant_id": 42,
+        "occurred_at": "2026-05-18T12:00:00Z",
+        "data": {
+          "bundle_id": 7,
+          "domains": ["students", "staff", "guardians"],
+          "row_counts": {"students": 1234, "staff": 56, "guardians": 2400}
+        }
+      },
+      "expected_canonical": "{\"data\":{\"bundle_id\":7,\"domains\":[\"students\",\"staff\",\"guardians\"],\"row_counts\":{\"guardians\":2400,\"staff\":56,\"students\":1234}},\"delivery_id\":\"d_abc123\",\"event\":\"migration.bundle.completed\",\"occurred_at\":\"2026-05-18T12:00:00Z\",\"tenant_id\":42}",
+      "expected_sha256": "1a3a27658578e087ef852db73fe15f90176355c6427d7250bf789b5ee9ea9bb6"
+    }
+  ]
+}

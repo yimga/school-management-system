@@ -276,6 +276,14 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "theme-pack-active-site-label")
         self.assertContains(response, "theme-pack-active-admin-label")
 
+    def test_theme_preview_includes_light_dark_surface_toggle(self):
+        self.client.login(username="theme-manager", password="password")
+        resp = self.client.get(self.url_standalone)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'data-preview-surface="light"')
+        self.assertContains(resp, 'data-preview-surface="dark"')
+        self.assertContains(resp, 'data-preview-theme="light"')
+
     def test_theme_studio_renders_enhanced_device_preview_layout(self):
         self.client.login(username="theme-manager", password="password")
         response = self.client.get(self.url_standalone)
@@ -302,7 +310,7 @@ class ThemeStudioAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         mocked_call_command.assert_called_once_with("seed_admin_dashboard_palettes")
 
-    def test_legacy_theme_experience_route_redirects_to_theme_studio(self):
+    def test_legacy_theme_experience_route_redirects_to_hub(self):
         self.client.login(username="theme-manager", password="password")
         response = self.client.get(
             reverse("siteconfig:theme_experience_redirect"),
@@ -311,11 +319,20 @@ class ThemeStudioAccessTests(TestCase):
             },
         )
         self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse("studio_os:experience"), response.url)
+        self.assertIn(reverse("siteconfig:theme_experience_hub"), response.url)
         self.assertIn(
             "next=%2Fadmin%2Fsiteconfig%2Fsitesettings%2F1%2Fchange%2F%23section-theme-experience",
             response.url,
         )
+
+    def test_legacy_theme_experience_route_studio_escape_hatch(self):
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(
+            reverse("siteconfig:theme_experience_redirect"),
+            {"studio": "1"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("studio_os:experience"), response.url)
 
 
 class ThemeResolutionTests(TestCase):

@@ -1,0 +1,30 @@
+{
+  "gaps": [
+    "live Render SHA badge on marketing",
+    "live pilot logos"
+  ],
+  "generated_at": "2026-05-19T06:55:52.633853+00:00",
+  "public_surfaces": [
+    {
+      "product_route": "/security-compliance/",
+      "promise": "Trust Center / security-compliance",
+      "status": "present"
+    },
+    {
+      "product_route": "/status/",
+      "promise": "Status page",
+      "status": "present"
+    },
+    {
+      "product_route": "/find-campus/",
+      "promise": "Find Campus",
+      "status": "present"
+    },
+    {
+      "product_route": "/help/, /contact/",
+      "promise": "Help / contact",
+      "status": "present"
+    }
+  ],
+  "schema_version": 1
+}

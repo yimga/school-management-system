@@ -83,7 +83,7 @@ def public_app_detail(request, slug: str):
     versions = list_versions(app, include_yanked=False)
     rating_stats = ratings.aggregate_for_app(app)
     recent_reviews = (
-        AppRating.objects.filter(app=app, status=AppRating.Status.PUBLISHED)
+        AppRating.objects.filter(app=app, status=AppRating.Status.PUBLISHED)  # tenant-isolation-allow: developer-platform-app-rating-list
         .order_by("-created_at")[:10]
     )
     is_installed_here = False
@@ -530,7 +530,7 @@ def publisher_webhook_log(request):
     app_ids = list(MarketplaceApp.objects.filter(publisher=publisher).values_list("id", flat=True))
     endpoints = WebhookEndpoint.objects.filter(app_id__in=app_ids).select_related("app")
     deliveries = (
-        WebhookDelivery.objects.filter(app_id__in=app_ids)
+        WebhookDelivery.objects.filter(app_id__in=app_ids)  # tenant-isolation-allow: developer-platform-webhook-delivery-log
         .select_related("endpoint", "app")
         .order_by("-created_at")[:200]
     )

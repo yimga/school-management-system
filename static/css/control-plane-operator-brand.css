@@ -1,0 +1,78 @@
+/**
+ * Operator-configurable manager chrome (RuntimeDefaults public_brand_*).
+ * Inline :root rules come from control_plane_operator_brand_style.html.
+ */
+body.control-plane-shell {
+  --cp-ultra-gold: var(--rmc-operator-accent, var(--cp-ultra-gold));
+  --cp-gold-600: var(--rmc-operator-accent, var(--cp-gold-600));
+  --cp-gold-500: var(--rmc-operator-accent, var(--cp-gold-500));
+  --cp-gold-700: var(--rmc-operator-accent, var(--cp-gold-700));
+  --cp-accent-2: var(--rmc-operator-accent, var(--cp-accent-2));
+  --cp-accent: var(--rmc-operator-primary, var(--cp-accent));
+  --cp-operator-chrome-primary: var(--rmc-operator-primary);
+}
+
+body.control-plane-shell .manager-login-card .btn-primary,
+body.control-plane-shell .admin-login-card .btn-primary {
+  background: linear-gradient(
+    180deg,
+    var(--rmc-operator-accent, var(--cp-gold-600)) 0%,
+    var(--cp-ultra-gold, var(--rmc-operator-accent)) 50%,
+    var(--rmc-operator-accent, var(--cp-gold-700)) 100%
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--rmc-operator-accent, var(--cp-ultra-gold)) 55%,
+    transparent
+  );
+}
+
+body.control-plane-shell .btn-primary {
+  background-color: var(--rmc-operator-primary, var(--bs-primary));
+  border-color: var(--rmc-operator-primary, var(--bs-primary));
+}
+
+body.control-plane-shell .btn-primary:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--rmc-operator-primary, var(--bs-primary)) 88%,
+    white
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--rmc-operator-primary, var(--bs-primary)) 88%,
+    white
+  );
+}
+
+body.control-plane-shell .btn-outline-primary {
+  color: var(--rmc-operator-primary, var(--bs-primary));
+  border-color: color-mix(
+    in srgb,
+    var(--rmc-operator-primary, var(--bs-primary)) 65%,
+    transparent
+  );
+}
+
+body.control-plane-shell .btn-outline-primary:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--rmc-operator-primary, var(--bs-primary)) 12%,
+    transparent
+  );
+  border-color: var(--rmc-operator-primary, var(--bs-primary));
+  color: var(--rmc-operator-primary, var(--bs-primary));
+}
+
+body.control-plane-shell .cp-primary-nav__pill--active,
+body.control-plane-shell .cp-primary-nav__pill[aria-current="page"] {
+  border-color: color-mix(
+    in srgb,
+    var(--rmc-operator-accent, var(--cp-ultra-gold)) 70%,
+    transparent
+  );
+}
+
+body.control-plane-shell a:not(.btn):focus-visible {
+  outline-color: var(--rmc-operator-accent, var(--cp-ultra-gold));
+}

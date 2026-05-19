@@ -72,6 +72,28 @@ class OperatorSiteconfigManagerRedirectTests(TestCase):
         self.assertIn("manager", resp["Location"])
         self.assertIn("/siteconfig/ai-center/", resp["Location"])
 
+    def test_middleware_does_not_redirect_tenant_school_onboarding(self):
+        """School activation checklist stays on tenant host (request.school context)."""
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="op_onboarding_tenant",
+            password="x" * 8,
+            is_staff=True,
+            is_superuser=True,
+        )
+        rf = RequestFactory()
+        request = rf.get("/siteconfig/onboarding/", HTTP_HOST=_TENANT)
+        request.user = user
+
+        def get_response(req):
+            from django.http import HttpResponse
+
+            return HttpResponse("ok")
+
+        mw = OperatorSiteconfigManagerShellMiddleware(get_response)
+        resp = mw(request)
+        self.assertEqual(resp.status_code, 200)
+
     def test_middleware_passes_through_on_manager_host(self):
         User = get_user_model()
         user = User.objects.create_user(

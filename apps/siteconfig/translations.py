@@ -156,15 +156,14 @@ class LocalizationService:
         return f"{num:,.{decimals}f}"
 
 
-# Supported languages
-SUPPORTED_LANGUAGES = {
-    "en": "English",
-    "fr": "Français",
-    "pid": "Pidgin English",
-    "sw": "Kiswahili",
-    "ha": "Hausa",
-    "yo": "Yoruba",
-}
+# Supported languages — aligned with config.settings.LANGUAGES (G-02 unified switcher).
+def _build_supported_languages() -> dict[str, str]:
+    from apps.siteconfig.unified_languages import get_unified_language_choices
+
+    return {code: label for code, label in get_unified_language_choices()}
+
+
+SUPPORTED_LANGUAGES = _build_supported_languages()
 
 # Translation storage
 TRANSLATIONS_DIR = Path(settings.BASE_DIR) / "locale" / "translations"

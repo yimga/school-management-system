@@ -145,6 +145,50 @@
       "replay_protection": "provider_signature_timestamp_manual_review_required",
       "verdict": "keep"
     },
+    "apps/integrations_marketplace/webhooks.py": {
+      "audit_logging": "implemented",
+      "auth_model": "connector_hmac_per_integration",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-18",
+      "notes": "Inbound connector webhook receiver; per-integration + per-IP rate limit before HMAC verify; school scoped via ServiceIntegration row.",
+      "owner": "integrations_marketplace",
+      "rate_limiting": "implemented",
+      "replay_protection": "hmac_signature_before_dispatch",
+      "verdict": "keep"
+    },
+    "apps/migration_cloud/companion_receiver.py": {
+      "audit_logging": "implemented",
+      "auth_model": "login_required_staff_companion_maa",
+      "expected_count": 4,
+      "last_reviewed": "2026-05-18",
+      "notes": "Companion browser extension upload/sign endpoints; CSRF exempt for extension POST; MAA + ciphertext integrity guards.",
+      "owner": "migration_cloud",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "client_idempotency_key",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/observability/views_friction.py": {
+      "audit_logging": "implemented",
+      "auth_model": "session_authenticated_or_tenant_context",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-18",
+      "notes": "Friction UX ingest POST from same-origin recorder; requires authenticated user or school on request; payload capped; anonymous returns ignored no-op.",
+      "owner": "platform_observability",
+      "rate_limiting": "implemented",
+      "replay_protection": "per_rollup_row_rate_limit",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/orchestration/api.py": {
+      "audit_logging": "implemented",
+      "auth_model": "session_or_jwt_accept_session_or_jwt",
+      "expected_count": 3,
+      "last_reviewed": "2026-05-18",
+      "notes": "Orchestration runs JSON API; csrf_exempt for JWT/API clients; tenant filter on non-staff; cancel/retry/create guarded by _can_act.",
+      "owner": "orchestration",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "tenant_scoped_run_ids",
+      "verdict": "keep_with_hardening"
+    },
     "apps/platform_runtime/views_rum.py": {
       "audit_logging": "implemented",
       "auth_model": "shared_ingest_token_env_rum_ingest_key",
@@ -190,18 +234,18 @@
       "verdict": "keep"
     },
     "config/graphql_view.py": {
-      "audit_logging": "manual_review_required",
+      "audit_logging": "implemented",
       "auth_model": "mixed_client_access",
       "expected_count": 1,
-      "last_reviewed": "2026-03-28",
-      "notes": "GraphQL endpoint still supports non-browser API clients.",
+      "last_reviewed": "2026-05-18",
+      "notes": "GraphQL gateway POST/GET; IP throttle; staff-only school registry; query-only schema; CSRF exempt for API clients.",
       "owner": "api_platform",
-      "rate_limiting": "manual_review_required",
+      "rate_limiting": "implemented",
       "replay_protection": "not_applicable",
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-05-14T23:10:41.973051+00:00",
+  "generated_at": "2026-05-18T21:17:23.172094+00:00",
   "raw_sql": {
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
@@ -242,7 +286,7 @@
   },
   "summary": {
     "allow_any_files": 3,
-    "csrf_exempt_files": 15,
+    "csrf_exempt_files": 19,
     "raw_sql_files": 6
   }
 }

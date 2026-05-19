@@ -17,8 +17,11 @@ app_name = "marketplace_dev"
 public_urlpatterns = [
     path("apps/<slug:slug>/", v.public_app_detail, name="public_app_detail"),
     path("apps/<slug:slug>/rate/", v.submit_rating_view, name="submit_rating"),
+    # rbac-allow: public marketplace catalog JSON for developer platform discovery
     path("api/v1/catalog/", v.public_app_catalog_api, name="public_app_catalog_api"),
+    # rbac-allow: publisher self-signup onboarding (email verification follows)
     path("publisher/signup/", v.publisher_signup_view, name="publisher_signup"),
+    # rbac-allow: email verification link from publisher signup mail
     path("publisher/verify-email/", v.verify_email_view, name="verify_email"),
 ]
 

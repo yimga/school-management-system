@@ -1,0 +1,18 @@
+Olá,
+
+Este é um aviso de cortesia: o saldo do plano de refeições de
+{{ student_first_name }} {{ student_last_name }} está agora no limite
+de saldo baixo configurado ou abaixo dele.
+
+  Plano:    {{ plan_label }}
+  Saldo:    {{ balance_display }}
+  Limite:   {{ threshold_display }}
+
+Considere recarregar o saldo para evitar interrupção do serviço.
+
+Você está a receber esta notificação porque está registado como tutor
+deste(a) aluno(a). Para ajustar as preferências de notificação, visite
+o portal dos pais.
+
+Obrigado,
+RunMyCampus

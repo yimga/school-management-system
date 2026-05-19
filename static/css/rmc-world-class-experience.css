@@ -603,6 +603,16 @@ main li,
   }
 }
 
+/* Skip link — axe color-contrast on control-plane shells. */
+.skip-link,
+a.skip-link {
+  color: var(--rmc-acx-text-strong);
+  background: var(--rmc-acx-surface-opaque);
+  border: 1px solid var(--rmc-acx-touch-border);
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Apple-class shell axe-clean overrides (SOT batch 1202)                      */
 /*                                                                             */
@@ -781,5 +791,27 @@ main li a:not(.btn):not(.nav-link),
 /* /school/setup/imports/ data-quality meter / overflow-safe inset. */
 [data-apple-class-data-quality-meter],
 [data-world-class-readiness-meter] {
+  color: var(--rmc-acx-text-strong);
+}
+
+/* Portal / tenant proof surfaces — batch 1286 axe burndown (extends batch 1202). */
+main .text-muted,
+.portal-layout .text-muted,
+.tenant-app-catalog-wrap .text-muted,
+.proof-page .text-muted {
+  color: var(--rmc-acx-text-muted, var(--text-secondary));
+}
+
+.proof-page .btn-outline-primary,
+.tenant-app-catalog-wrap .btn-outline-primary,
+.ui-premium-surface .btn-outline-primary {
+  color: var(--rmc-acx-link);
+  border-color: var(--rmc-acx-link);
+  background: var(--rmc-acx-surface-opaque);
+  font-weight: 600;
+}
+
+.text-muted.text-uppercase.small.fw-semibold,
+.text-muted.text-uppercase.small {
   color: var(--rmc-acx-text-strong);
 }

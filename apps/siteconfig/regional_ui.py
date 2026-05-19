@@ -71,13 +71,30 @@ def augment_region_shell_context(region_ctx: dict, request) -> dict[str, Any]:
     rtl_locale = is_rtl_locale(loc)
     direction = "rtl" if policy_rtl or rtl_locale else "ltr"
 
+    low_bandwidth = False
+    try:
+        school = getattr(request, "school", None)
+        if school is not None:
+            from apps.siteconfig.tenant_config import get_tenant_locale
+
+            tl = get_tenant_locale(school=school)
+            low_bandwidth = bool(
+                tl.get("low_bandwidth")
+                or tl.get("offline_mode_default")
+                or tl.get("enable_offline_mode")
+            )
+    except Exception:
+        low_bandwidth = False
+
     return {
         "rmc_locale": loc,
         "rmc_text_direction": direction,
+        "rmc_low_bandwidth": low_bandwidth,
         "rmc_regional_ui": {
             "locale": loc,
             "direction": direction,
             "rtl_locale_hint": rtl_locale,
             "policy_rtl": policy_rtl,
+            "low_bandwidth": low_bandwidth,
         },
     }

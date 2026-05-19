@@ -205,6 +205,10 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
         "default_timezone": "UTC",
         "labels_map": {},
         "is_rtl": False,
+        "calendar_system": "gregorian",
+        "week_start_day": 0,
+        "offline_mode_default": False,
+        "low_bandwidth": False,
     }
     if school is None and request is not None:
         school = getattr(request, "school", None)
@@ -289,6 +293,10 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
             out["date_format"] = settings["date_format"]
         if settings.get("grading_scale"):
             out["grading_scale"] = settings["grading_scale"]
+        if settings.get("calendar_system"):
+            out["calendar_system"] = str(settings["calendar_system"]).strip().lower()
+        if settings.get("week_start_day") is not None:
+            out["week_start_day"] = int(settings["week_start_day"]) % 7
         if isinstance(settings.get("labels_map"), dict):
             out["labels_map"] = {
                 **(out.get("labels_map") or {}),
@@ -323,6 +331,18 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
                     out["grading_scale"] = (
                         getattr(region, "grading_scale", None) or out["grading_scale"]
                     )
+                cal = getattr(region, "calendar_system", None)
+                if cal:
+                    out["calendar_system"] = str(cal).strip().lower()
+                wsd = getattr(region, "week_start_day", None)
+                if wsd is not None:
+                    out["week_start_day"] = int(wsd) % 7
+                pack = get_regional_policy_pack(str(getattr(region, "code", "") or ""))
+                if isinstance(pack, dict):
+                    defaults = pack.get("defaults") or {}
+                    if defaults.get("offline_mode_default") is True:
+                        out["offline_mode_default"] = True
+                        out["low_bandwidth"] = True
         except SOFT_TENANT_CONFIG_ERRORS:
             pass
 
@@ -443,13 +463,9 @@ def format_date_tenant(dt, request=None, school=None) -> str:
         return ""
     locale = get_tenant_locale(request=request, school=school)
     pattern = (locale.get("date_format") or "DD/MM/YYYY").strip()
-    from django.utils import dateformat
+    from apps.platform_runtime.localization import format_school_date
 
-    fmt = pattern.replace("YYYY", "Y").replace("DD", "d").replace("MM", "m")
-    try:
-        return dateformat.format(dt, fmt)
-    except (AttributeError, TypeError, ValueError):
-        return str(dt)
+    return format_school_date(dt, date_format=pattern)
 
 
 def format_currency_tenant(amount, request=None, school=None) -> str:
@@ -757,6 +773,55 @@ REGIONAL_POLICY_PACKS: dict[str, dict[str, Any]] = {
         },
         "locks": {},
     },
+    "POPIA": {
+        "code": "POPIA",
+        "version": "2026.1",
+        "name": "South Africa POPIA Education Pack",
+        "defaults": {
+            "privacy_framework": "POPIA",
+            "data_residency_region": "af-south-1",
+            "default_language": "en",
+            "currency": "ZAR",
+            "date_format": "YYYY/MM/DD",
+            "grading_scale": "0-100",
+            "offline_mode_default": True,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+        },
+    },
+    "PIPL": {
+        "code": "PIPL",
+        "version": "2026.1",
+        "name": "China PIPL Education Pack",
+        "defaults": {
+            "privacy_framework": "PIPL",
+            "data_residency_region": "cn-north-1",
+            "default_language": "zh",
+            "currency": "CNY",
+            "date_format": "YYYY-MM-DD",
+            "grading_scale": "0-100",
+            "offline_mode_default": False,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {
+            "privacy_framework": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+            "data_residency_region": {
+                "compliance_locked": True,
+                "tenant_editable": False,
+                "requires_approval": True,
+            },
+        },
+    },
     "CAN": {
         "code": "CAN",
         "version": "2026.1",
@@ -896,13 +961,14 @@ def get_regional_policy_pack(region_code: str | None) -> dict[str, Any]:
         return deepcopy(REGIONAL_POLICY_PACKS["WAEC"])
     if code in {"CMR", "SEN", "CIV", "BEN", "TGO", "BFA", "MLI", "NER", "TCD", "CAF"}:
         return deepcopy(REGIONAL_POLICY_PACKS["AFR_FR"])
+    if code == "ZAF":
+        return deepcopy(REGIONAL_POLICY_PACKS["POPIA"])
     if code in {
         "UGA",
         "KEN",
         "RWA",
         "ETH",
         "TZA",
-        "ZAF",
         "ZWE",
         "ZMB",
         "MWI",
@@ -911,10 +977,11 @@ def get_regional_policy_pack(region_code: str | None) -> dict[str, Any]:
         "SDN",
     }:
         return deepcopy(REGIONAL_POLICY_PACKS["LCA"])
+    if code in {"CHN", "CN"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["PIPL"])
     if code in {
         "IND",
         "SGP",
-        "CHN",
         "JPN",
         "KOR",
         "MYS",

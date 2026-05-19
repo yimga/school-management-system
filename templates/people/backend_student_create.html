@@ -1,20 +1,21 @@
 {% extends "backend_base.html" %}
+{% load i18n %}
 {% load static %}
 {% load region_format %}
 {# Backend UI: distinct from /admin; uses portal backend light theme. #}
-{% block title %}Create Student - Backend{% endblock %}
+{% block title %}{% trans "Create Student" %} - {% trans "Backend" %}{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_list' as list_url %}
-      {% include "studio_os/components/page_header.html" with title="Create Student" subtitle="Add a new student to the system" action_url=list_url action_text="Back to List" %}
+      {% include "studio_os/components/page_header.html" with title=_("Create Student") subtitle=_("Add a new student to the system") action_url=list_url action_text=_("Back to List") %}
 
       {% if has_draft %}
       <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
         <span><i class="bi bi-file-earmark-check me-2"></i>Draft saved{% if draft_updated_at %} on {{ draft_updated_at|date:"M j, Y g:i A" }}{% endif %}.</span>
-        <button type="button" class="btn btn-sm btn-outline-primary" id="form-draft-discard" data-form-draft-url="{{ form_draft_url }}">Discard draft</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="form-draft-discard" data-form-draft-url="{{ form_draft_url }}">{% trans "Discard draft" %}</button>
       </div>
       {% endif %}
       <div class="card shadow-sm">
@@ -49,7 +50,7 @@
               </div>
               
               <div class="col-md-4">
-                <label for="{{ form.gender.id_for_label }}" class="form-label">Gender</label>
+                <label for="{{ form.gender.id_for_label }}" class="form-label">{% trans "Gender" %}</label>
                 {{ form.gender }}
                 {% if form.gender.errors %}
                   <div class="text-danger small">{{ form.gender.errors }}</div>
@@ -57,7 +58,7 @@
               </div>
               
               <div class="col-md-4">
-                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">{% trans "Date of Birth" %}</label>
                 {{ form.date_of_birth }}
                 {% if form.date_of_birth.errors %}
                   <div class="text-danger small">{{ form.date_of_birth.errors }}</div>
@@ -65,7 +66,7 @@
               </div>
               
               <div class="col-md-4">
-                <label for="{{ form.place_of_birth.id_for_label }}" class="form-label">Place of Birth</label>
+                <label for="{{ form.place_of_birth.id_for_label }}" class="form-label">{% trans "Place of Birth" %}</label>
                 {{ form.place_of_birth }}
                 {% if form.place_of_birth.errors %}
                   <div class="text-danger small">{{ form.place_of_birth.errors }}</div>
@@ -73,7 +74,7 @@
               </div>
 
               <div class="col-12">
-                <label for="{{ form.profile_photo.id_for_label }}" class="form-label">Profile photo</label>
+                <label for="{{ form.profile_photo.id_for_label }}" class="form-label">{% trans "Profile photo" %}</label>
                 {{ form.profile_photo }}
                 <small class="form-text text-muted">Used on digital ID. Optional.</small>
                 {% if form.profile_photo.errors %}
@@ -107,7 +108,7 @@
               </div>
               
               <div class="col-md-4">
-                <label for="{{ form.specialty.id_for_label }}" class="form-label">Specialty</label>
+                <label for="{{ form.specialty.id_for_label }}" class="form-label">{% trans "Specialty" %}</label>
                 {{ form.specialty }}
                 {% if form.specialty.errors %}
                   <div class="text-danger small">{{ form.specialty.errors }}</div>
@@ -115,7 +116,7 @@
               </div>
               
               <div class="col-md-6">
-                <label for="{{ form.admission_number.id_for_label }}" class="form-label">Admission Number</label>
+                <label for="{{ form.admission_number.id_for_label }}" class="form-label">{% trans "Admission Number" %}</label>
                 {{ form.admission_number }}
                 <small class="form-text text-muted">Leave blank to auto-generate</small>
                 {% if form.admission_number.errors %}
@@ -124,7 +125,7 @@
               </div>
               
               <div class="col-md-6">
-                <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                <label for="{{ form.status.id_for_label }}" class="form-label">{% trans "Status" %}</label>
                 {{ form.status }}
                 {% if form.status.errors %}
                   <div class="text-danger small">{{ form.status.errors }}</div>
@@ -137,7 +138,7 @@
               </div>
               
               <div class="col-md-6">
-                <label for="{{ form.parent_phone.id_for_label }}" class="form-label">Parent Phone</label>
+                <label for="{{ form.parent_phone.id_for_label }}" class="form-label">{% trans "Parent Phone" %}</label>
                 {{ form.parent_phone }}
                 {% if form.parent_phone.errors %}
                   <div class="text-danger small">{{ form.parent_phone.errors }}</div>
@@ -145,7 +146,7 @@
               </div>
               
               <div class="col-md-6">
-                <label for="{{ form.parent_email.id_for_label }}" class="form-label">Parent Email</label>
+                <label for="{{ form.parent_email.id_for_label }}" class="form-label">{% trans "Parent Email" %}</label>
                 {{ form.parent_email }}
                 <small class="form-text text-muted">If provided, a parent account will be created</small>
                 {% if form.parent_email.errors %}
@@ -155,7 +156,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-4">
-              <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary">Cancel</a>
+              <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
               {% if form_draft_url %}
               <button type="button" class="btn btn-outline-secondary" id="form-draft-save" data-form-draft-url="{{ form_draft_url }}">
                 <i class="bi bi-cloud-arrow-up me-2"></i>Save draft

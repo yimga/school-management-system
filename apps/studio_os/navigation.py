@@ -283,6 +283,7 @@ def build_output_focus_sidebar(request) -> list[dict]:
 def build_experience_focus_sidebar(request) -> list[dict]:
     rail: list[dict] = []
     specs = [
+        (_("Theme & experience hub"), "siteconfig:theme_experience_hub", "bi-palette2"),
         (_("Theme & colors"), "siteconfig:theme_colors", "bi-palette"),
         (_("Customizer"), "studio_os:experience", "bi-brush"),
         (_("School theme"), "siteconfig:school_theme_settings", "bi-building"),

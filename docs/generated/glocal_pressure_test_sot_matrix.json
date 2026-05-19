@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.1.0",
+  "generated_for": "runmycampus.com glocal pressure-test",
+  "generated_at": "2026-05-18",
+  "locale_catalog": {
+    "gettext_locales": ["en", "ar", "de", "es", "fr", "ha", "hi", "it", "ja", "pid", "pt_BR", "ru", "sw", "tr", "yo", "zh_Hans", "zh_Hant"],
+    "en_msgid_count": 8813,
+    "translation_status": "en_100pct_others_stub_regression_gated",
+    "canonical_po": "locale/en/LC_MESSAGES/django.po",
+    "verifiers": [
+      "scripts/verify_i18n_catalog_fresh.py",
+      "scripts/scan_locale_coverage.py --compare",
+      "scripts/verify_glocal_closeout_completion.py"
+    ],
+    "rtl_locales_logic": ["ar", "he", "fa", "ur"],
+    "shell_dir_attribute": "rmc_text_direction from apps/siteconfig/regional_ui.py",
+    "rtl_css": ["static/css/regional-rtl.css", "static/css/admin-sidebar-polish.css"]
+  },
+  "tenant_regional_columns": {
+    "schools.School": ["default_region_id", "data_region", "compliance_region", "timezone"],
+    "siteconfig.RegionConfig": [
+      "default_language",
+      "timezone",
+      "date_format",
+      "decimal_separator",
+      "thousands_separator",
+      "calendar_system",
+      "grading_scale",
+      "default_currency",
+      "academic_year_start_month",
+      "term_count_per_year",
+      "is_rtl",
+      "grading_rule"
+    ],
+    "siteconfig.CountryMultiplier": ["country_code", "multiplier"],
+    "finance.ComplianceProfile": ["vat_rate", "report_currency_code"],
+    "platform_runtime.RuntimeDefaults": ["enable_offline_mode", "offline_sync_conflict_resolution"]
+  },
+  "formatting_wrappers": {
+    "python": [
+      "apps/platform_runtime/localization.py",
+      "apps/platform_runtime/calendar_display.py",
+      "apps/siteconfig/tenant_config.py",
+      "apps/siteconfig/templatetags/region_format.py"
+    ],
+    "template_filters": ["format_date", "format_date_tenant", "format_currency", "format_currency_tenant", "format_number"]
+  },
+  "grading_scale_registry": {
+    "runtime_keys": ["0-20", "0-100", "0-10", "a-f", "gpa", "uk-honours", "ib-7"],
+    "region_config_choices": ["0-20", "0-100", "0-10", "a-f", "gpa"],
+    "assessment_weights_aliases": ["numeric_0_20", "letter_a_e", "gpa_4_0", "percentage"],
+    "normalizer": "apps.evals.grading.normalize_scale_id",
+    "max_score_resolver": "apps.evals.grading.max_score_for_school"
+  },
+  "calendar_systems": {
+    "region_config_values": ["gregorian", "islamic", "buddhist", "hebrew"],
+    "runtime_canonical": ["gregorian", "hijri", "buddhist", "hebrew"],
+    "registry_codes": ["gregorian", "islamic", "buddhist", "hebrew"],
+    "registry_seed_command": "manage.py ensure_calendar_system_registry",
+    "dual_display": "apps.platform_runtime.calendar_display.format_dual_calendar_date",
+    "hijri_library": "optional hijridate for Hijri annotation",
+    "conversion_engine": "display_dual_calendar_hijri_buddhist_hebrew_optional_libs"
+  },
+  "compliance_packs": {
+    "REGIONAL_POLICY_PACKS": "apps/siteconfig/tenant_config.py",
+    "implemented_frameworks": ["GDPR", "FERPA", "NDPR", "LGPD", "PIPL", "PIPEDA"],
+    "cross_border_gate": "apps.compliance.cross_border_export.cross_border_export_blocked",
+    "export_wire": "apps.reports.compliance_exports.generate_regional_compliance_export",
+    "strict_enforcement_env": "DATA_RESIDENCY_ENFORCE=1"
+  },
+  "finance": {
+    "money_type": "DecimalField in apps/finance",
+    "float_gate": "scripts/scan_money_float.py baseline 0",
+    "tax_engine": "apps/finance/tax_engine.py",
+    "tax_wiring": "apps.finance.services.recalculate_invoice applies vat_rate percent",
+    "country_multiplier_wiring": "apps.billing.services.ensure_subscription_for_school",
+    "fx_status": "apps/finance/fx.py + settings.EXCHANGE_RATES + API rate as Decimal string"
+  },
+  "offline": {
+    "service_worker": "static/js/service-worker.js",
+    "sync_client": "static/js/sync-manager.js",
+    "server_queue": "apps/platform_runtime/offline_queue.py",
+    "celery_beat_task": "platform_runtime.process_offline_queues_due",
+    "marks_offline": "apps/evals/offline_sync.py"
+  },
+  "remediation_waves": {
+    "2026_05_18_wave1": [
+      "localization.calendar_system + date_format + week_start_day",
+      "grading.normalize_scale_id + Evaluation.clean scale-aware",
+      "localization.default_region lookup fix"
+    ],
+    "2026_05_18_wave2_glocal_closeout": [
+      "calendar_display.py + ensure_calendar_system_registry",
+      "tax_engine vat_percent_to_fraction + recalculate_invoice tax",
+      "billing CountryMultiplier on subscription",
+      "PIPL pack + CHN routing + cross_border_export gate",
+      "privacy LGPD/PIPL masking",
+      "waive_subscription_form i18n",
+      "celery beat offline queue replay"
+    ],
+    "2026_05_18_wave4_glocal_100pct_audit": [
+      "unified_languages.py + SUPPORTED_LANGUAGES from LANGUAGES",
+      "apps/finance/fx.py Decimal FX + EXCHANGE_RATES defaults",
+      "POPIA pack + ZAF routing + export_destination resolver",
+      "payment.RegionalPaymentRailCatalog model",
+      "ib-7 grading scale + TH buddhist calendar_system on CountryProfile",
+      "he/fa/ur LANGUAGES + EXTRA_LANG_INFO RTL",
+      "glocal-text-expansion.css + verify_glocal_closeout_completion.py",
+      "burndown_glocal_priority_locales.py"
+    ],
+    "2026_05_19_wave6_glocal_audit_reconciliation": [
+      "verify_glocal_closeout_completion expanded to full prompt bundle (G-01..G-22 + NEW)",
+      "32 tenant-isolation-allow markers for platform-scoped queries (v3.27 drift)",
+      "G-08-week verifier uses Sunday year-edge date for week_start_day proof"
+    ],
+    "2026_05_19_wave5_glocal_100pct_final": [
+      "rmc_low_bandwidth shell attr + regional-rtl low-bandwidth CSS",
+      "AcademicYear dual-calendar display + format_dual_date_tenant tag",
+      "people/* create templates mechanical {% trans %} sweep",
+      "seed_payment_rail_catalog management command",
+      "verify_glocal_closeout_completion expanded + phases_3_11 wire",
+      "SOT batch 1291 + SW sms-v3.36.0-glocal-closeout-1291-2026-05-19"
+    ],
+    "2026_05_18_wave3_glocal_gap_closeout": [
+      "RequestTimeoutMiddleware + REQUEST_TIMEOUT_SECONDS",
+      "RegionConfig.week_start_day + get_tenant_locale calendar_system/week_start",
+      "calendar_week_bounds + accounts attendance week alignment",
+      "format_date_tenant delegates to format_school_date",
+      "EXCHANGE_RATES wired in CurrencyLocalization.convert_currency",
+      "uk-honours grading scale + aliases",
+      "hijridate in requirements.txt",
+      "templates/people mechanical i18n sweep",
+      "sync_i18n_catalog --compile"
+    ]
+  },
+  "tests": [
+    "apps/platform_runtime/tests/test_localization_glocal.py",
+    "apps/platform_runtime/tests/test_calendar_display.py",
+    "apps/platform_runtime/tests/test_request_timeout_middleware.py",
+    "apps/evals/tests/test_glocal_grading_sovereignty.py",
+    "apps/finance/tests/test_tax_engine_glocal.py",
+    "apps/finance/tests/test_fx.py",
+    "apps/compliance/tests/test_cross_border_export.py"
+  ],
+  "remaining_backlog": [],
+  "blocked_external": [
+    {
+      "id": "G-01-human-translation",
+      "reason": "Professional translation of 8800+ msgids requires vendor linguists; English fallback seeded for people/* priority locales via burndown_glocal_priority_locales.py"
+    },
+    {
+      "id": "G-19-live-fx-api",
+      "reason": "Live Fixer/OpenExchangeRates API key is operator-supplied env secret; Decimal table ships in settings.EXCHANGE_RATES"
+    },
+    {
+      "id": "G-22-native-psp-wiring",
+      "reason": "Pix/M-Pesa/SEPA live PSP credentials are per-tenant operator contracts; catalog + finance.payment_region_catalog document rails"
+    }
+  ]
+}

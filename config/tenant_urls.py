@@ -186,6 +186,15 @@ handler403 = permission_denied
 handler404 = page_not_found
 handler500 = server_error
 
+from apps.siteconfig.views_manifest import (  # noqa: E402
+    platform_manifest as _platform_manifest,
+    portal_manifest as _portal_manifest,
+)
+from apps.siteconfig.views_manifest_icon import (  # noqa: E402
+    icon_any as _manifest_icon_any,
+    icon_maskable as _manifest_icon_maskable,
+)
+
 urlpatterns = [
     path("", home, name="home"),
     path(
@@ -214,6 +223,18 @@ urlpatterns = [
     ),
     path("demo/flow/complete/", demo_flow_complete, name="demo_flow_complete"),
     path("favicon.ico", favicon_redirect),
+    path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),
+    path("manifest-portal.json", _portal_manifest, name="pwa_manifest_portal"),
+    path(
+        "manifest/icon-<int:size>.png",
+        _manifest_icon_any,
+        name="pwa_manifest_icon_any",
+    ),
+    path(
+        "manifest/icon-<int:size>-maskable.png",
+        _manifest_icon_maskable,
+        name="pwa_manifest_icon_maskable",
+    ),
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", tenant_admin_site.urls),

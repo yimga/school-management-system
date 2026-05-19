@@ -6,7 +6,9 @@ app_name = "feedback"
 
 urlpatterns = [
     # Move 4 — public status page.
+    # rbac-allow: public platform status page (no PII; strategic move v3.27)
     path("status/", views_public_status.public_status_page, name="public_status"),
+    # rbac-allow: public status JSON for status.runmycampus.com monitors
     path("status/api/", views_public_status.public_status_json, name="public_status_json"),
     path("feedback/", views.school_feedback_center, name="school_feedback"),
     path("school/feedback/", views.school_feedback_center, name="school_feedback_alias"),

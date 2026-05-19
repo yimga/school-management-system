@@ -234,3 +234,31 @@ body {
   color: var(--school-primary);
   text-decoration: underline;
 }
+
+/* Corporate marketing footer on manager sign-in (cream card on navy ground) */
+.manager-login-corporate-footer {
+  margin: 0 auto 2rem;
+  max-width: min(960px, 100%);
+  padding: 0 0.75rem;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--mkt-surface-cream, var(--rmc-os-bg-canvas, #faf8f5));
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.45);
+}
+
+.manager-login-corporate-footer .mkt-footer {
+  margin: 0;
+}
+
+.manager-login-footer a,
+.admin-login-footer a {
+  color: rgba(245, 238, 221, 0.92);
+  text-decoration: none;
+  font-size: var(--type-size-caption);
+}
+
+.manager-login-footer a:hover,
+.admin-login-footer a:hover {
+  color: var(--school-accent, var(--school-primary));
+  text-decoration: underline;
+}

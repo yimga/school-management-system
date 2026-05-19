@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
+const { appleClassLogin } = require('./helpers/apple-class-login');
 
 const MANAGER_BASE_URL = process.env.MANAGER_BASE_URL || 'http://manager.runmycampus.com:8012';
 const TENANT_BASE_URL = process.env.TENANT_BASE_URL || 'http://apple-class-qa.runmycampus.com:8012';
@@ -42,7 +43,7 @@ const TENANT_ROUTES = [
   { route: '/school/settings/', required: ['[data-apple-class-tenant-school-admin]'] },
   { route: '/school/setup/blueprints/', required: ['[data-apple-class-tenant-school-admin]', '[data-apple-class-visual-workflow-path]'] },
   { route: '/school/setup/packs/', required: ['[data-apple-class-tenant-school-admin]', '[data-apple-class-visual-workflow-path]'] },
-  { route: '/school/setup/imports/', required: ['[data-apple-class-migration-ux]', '[data-apple-class-data-quality-meter]'], followsRedirect: true },
+  { route: '/siteconfig/onboarding/', required: ['[data-apple-class-migration-ux]', '[data-apple-class-data-quality-meter]'] },
   { route: '/school/apps/', required: ['[data-apple-class-app-catalog]'], followsRedirect: true },
   { route: '/school/money/', required: ['[data-apple-class-billing-ux]'], followsRedirect: true },
   { route: '/school/workflows/', required: ['body'], followsRedirect: true },
@@ -66,18 +67,7 @@ const COMPONENTS = [
   { name: 'empty state', marker: '[data-world-class-empty-state]' },
 ];
 
-async function login(page, baseUrl, username, password) {
-  await page.goto(`${baseUrl}/authentication/login/`, { waitUntil: 'networkidle' });
-  const roleSelect = page.locator('select[name="role"]');
-  if (await roleSelect.count()) {
-    await roleSelect.selectOption('staff');
-  }
-  await page.locator('input[name="username"]').fill(username);
-  await page.locator('input[name="password"]').fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForLoadState('networkidle');
-  expect(/\/authentication\/login\/?$/i.test(page.url()), `login completed for ${username}`).toBe(false);
-}
+const login = appleClassLogin;
 
 async function axeBlocking(page) {
   if (SKIP_AXE) return [];

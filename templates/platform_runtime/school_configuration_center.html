@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <main class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1">
   {% include "components/world_class_page_hero.html" with hero_id="school-settings-title" role=_("School administrators") title=_("School Configuration Center") subtitle=_("A tenant-safe setup cockpit for school settings, blueprints, packs, imports, apps, money, workflows, offline posture, audit, and security.") purpose=_("Tenant-safe school setup") status=_("Tenant scoped only") primary_url="/school/setup/blueprints/" primary_label=_("Continue setup") secondary_url="/school/audit/" secondary_label=_("Review audit trail") visual_title=_("Know exactly what to do next") visual_body=_("School readiness, blockers, and next best action stay visible without exposing platform-only actions.") %}
   {% include "components/world_class_summary_strip.html" with readiness="74%" readiness_label=_("School readiness") risk=_("Visible") risk_label=_("Tenant blockers") next_step=_("Setup") next_step_label=_("Blueprints and packs") blockers=_("External") blockers_label=_("Payments and integrations honest") %}

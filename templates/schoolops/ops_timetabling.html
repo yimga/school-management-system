@@ -3,7 +3,7 @@
 {% load terminology_tags %}
 {% block title %}{% trans "Timetabling" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Schedules" %}{% endblock %}
-{% block content %}
+{% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Timetabling" %} — {{ school.name }}</h1>
 <div class="container-fluid py-4">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>

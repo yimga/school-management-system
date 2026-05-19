@@ -592,9 +592,24 @@ def recalculate_invoice(invoice: Invoice) -> None:
         return
     # Query by invoice_id so totals match the DB. `invoice.lines.all()` can return a stale
     # reverse-cache if lines were just created against the same in-memory invoice instance.
-    total = Decimal("0.00")
+    subtotal = Decimal("0.00")
     for line in InvoiceLine.objects.filter(invoice_id=invoice.pk):
-        total += line.amount
+        subtotal += line.amount
+
+    total = subtotal
+    profile = getattr(invoice, "profile", None)
+    if profile is not None:
+        vat_percent = getattr(profile, "vat_rate", None) or Decimal("0")
+        if vat_percent > 0:
+            from apps.finance.tax_engine import compute_tax, resolve_vat_rate_fraction
+
+            region_code = str(getattr(profile, "country_code", None) or "US")[:2]
+            rate = resolve_vat_rate_fraction(
+                region_code=region_code,
+                vat_percent=vat_percent,
+            )
+            tax_amount = compute_tax(subtotal, region_code, rate_override=rate)
+            total = subtotal + tax_amount
 
     paid = Decimal("0.00")
     # tenant-isolation-allow: service-scoped-via-request-school-context

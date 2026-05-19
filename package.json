@@ -16,7 +16,16 @@
     "vendor:dexie": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true})\" && npx copyfiles -f node_modules/dexie/dist/dexie.min.js static/js/vendor/",
     "sweep:abrupt-end:routes": "python scripts/generate_control_plane_sweep_routes.py --write && python scripts/generate_portal_tenant_sweep_routes.py --write",
     "sweep:abrupt-end": "bash scripts/run_platform_abrupt_end_sweep.sh",
-    "sweep:abrupt-end:node": "node scripts/verify_platform_abrupt_end_sweep.mjs"
+    "sweep:abrupt-end:node": "node scripts/verify_platform_abrupt_end_sweep.mjs",
+    "perf:playwright": "node scripts/verify_playwright_performance_budgets.mjs",
+    "perf:forensic-dom": "node scripts/verify_zero_ticket_dom_budget.mjs",
+    "verify:forensic": "python scripts/verify_forensic_master_prompt_completion.py",
+    "verify:five-pillar": "python scripts/verify_five_pillar_platform_completion.py --write --run-tests",
+    "build:marketing-css": "python scripts/build_marketing_css_bundles.py",
+    "verify:marketing": "python scripts/build_marketing_css_bundles.py && python scripts/generate_marketing_frontend_defect_log.py --write && python scripts/verify_marketing_seo_shell.py && python scripts/verify_marketing_css_bundles_fresh.py && python scripts/verify_marketing_public_shell.py && python scripts/verify_marketing_hero_media.py",
+    "audit:marketing": "python scripts/audit_marketing_prompt_complete.py",
+    "verify:marketing:completion": "python scripts/generate_marketing_frontend_defect_log.py --write && python scripts/verify_marketing_seo_shell.py && python scripts/verify_marketing_frontend_completion.py",
+    "test:e2e:marketing:theme": "playwright test tests/e2e/marketing-theme-contrast.spec.js"
   },
   "dependencies": {
     "dexie": "^4.0.10"

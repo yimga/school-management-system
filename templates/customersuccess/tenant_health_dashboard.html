@@ -3,7 +3,7 @@
 
 {% block title %}{% trans "Tenant health" %}{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container py-4" data-page="tenant-health-dashboard">
   <h1 class="h3 mb-3">{% trans "Tenant health" %}</h1>
 
@@ -19,7 +19,7 @@
         {% if latest.dimensions %}
         <table class="table table-sm mb-0">
           {% for k, v in latest.dimensions.items %}
-          <tr><th class="text-muted">{{ k }}</th><td>{{ v }}</td></tr>
+          <tr><th scope="row" class="text-muted">{{ k }}</th><td>{{ v }}</td></tr>
           {% endfor %}
         </table>
         {% endif %}

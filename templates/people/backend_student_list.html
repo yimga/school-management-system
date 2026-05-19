@@ -1,14 +1,14 @@
 {% extends "backend_base.html" %}
-{% load static region_format tenant_hook %}
+{% load i18n static region_format tenant_hook %}
 {# Backend UI: distinct from /admin; uses portal backend light theme. #}
-{% block title %}Students - Backend{% endblock %}
+{% block title %}{% trans "Students" %} - {% trans "Backend" %}{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_create' as create_url %}
-      {% include "studio_os/components/page_header.html" with title="Students" subtitle="Manage student records" action_url=create_url action_text="Add Student" %}
+      {% include "studio_os/components/page_header.html" with title=_("Students") subtitle=_("Manage student records") action_url=create_url action_text=_("Add Student") %}
 
       {% comment %} Pass 8 Wave 2: added list-filter-bar + form-system--dense so canonical filter-bar
          CSS (dense micro-labels, harmonized search affordance) styles this row identically
@@ -16,38 +16,38 @@
       <form method="get" class="list-filter-bar form-system form-system--dense card card-body bg-light mb-3 page-family-filter-row" role="search" data-list-filter-bar data-rmc-autosubmit="1">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
-            <label for="student-q" class="form-label small">Search</label>
-            <input type="search" id="student-q" name="q" class="form-control form-control-sm" placeholder="Name or admission number..." value="{{ search }}">
+            <label for="student-q" class="form-label small">{% trans "Search" %}</label>
+            <input type="search" id="student-q" name="q" class="form-control form-control-sm" placeholder="{% trans 'Name or admission number…' %}" value="{{ search }}">
           </div>
           <div class="col-md-2">
-            <label for="student-year" class="form-label small">Year</label>
+            <label for="student-year" class="form-label small">{% trans "Year" %}</label>
             <select id="student-year" name="year" class="form-select form-select-sm">
-              <option value="">All years</option>
+              <option value="">{% trans "All years" %}</option>
               {% for y in years %}
               <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2">
-            <label for="student-classroom" class="form-label small">Classroom</label>
+            <label for="student-classroom" class="form-label small">{% trans "Classroom" %}</label>
             <select id="student-classroom" name="classroom" class="form-select form-select-sm">
-              <option value="">All classrooms</option>
+              <option value="">{% trans "All classrooms" %}</option>
               {% for c in classrooms %}
               <option value="{{ c.id }}" {% if selected_classroom == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2">
-            <label for="student-status" class="form-label small">Status</label>
+            <label for="student-status" class="form-label small">{% trans "Status" %}</label>
             <select id="student-status" name="status" class="form-select form-select-sm">
-              <option value="">All statuses</option>
+              <option value="">{% trans "All statuses" %}</option>
               {% for value, label in status_choices %}
               <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2">
-            <button type="submit" class="btn btn-primary btn-sm w-100" data-rmc-autosubmit-hide-when-js>Filter</button>
+            <button type="submit" class="btn btn-primary btn-sm w-100" data-rmc-autosubmit-hide-when-js>{% trans "Filter" %}</button>
           </div>
         </div>
       </form>
@@ -56,7 +56,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
             <span class="small text-muted">{% if students %}{{ page_obj.paginator.count }} student(s){% else %}No students{% endif %}</span>
-            <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&amp;{% endif %}format=csv">Export CSV</a>
+            <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&amp;{% endif %}format=csv">{% trans "Export CSV" %}</a>
           </div>
           {% if students %}
           <div class="table-responsive">
@@ -115,7 +115,7 @@
           </div>
           {% else %}
           {% url 'accounts:backend_student_create' as empty_action_url %}
-          {% include "components/dashboard_empty_state.html" with icon="bi-people" title="No students found" message="Students you add will appear here. Add your first student to get started." action_url=empty_action_url action_text="Add your first student" %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-people" title=_("No students found") message=_("Students you add will appear here. Add your first student to get started.") action_url=empty_action_url action_text=_("Add your first student") %}
           {% endif %}
           {% if page_obj %}
           {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=show_page_size page_size=page_size page_size_options=page_size_options %}

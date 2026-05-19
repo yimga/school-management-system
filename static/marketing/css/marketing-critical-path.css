@@ -1,0 +1,49 @@
+/**
+ * Above-the-fold marketing critical path — hero, nav chrome, primary CTAs only.
+ * Full grammar + narrative + platform headers load in marketing-enhanced.min.css.
+ */
+body.marketing-surface .mkt-navbar,
+body.marketing-surface nav.mkt-navbar {
+  background: var(--mkt-surface-elevated, var(--surface-elevated, #fffaf0));
+  color: var(--mkt-ink, var(--text-primary, #1a1612));
+}
+
+body.marketing-surface .mkt-edt-hero-headline,
+body.marketing-surface .mkt-v3-hero-headline,
+body.marketing-surface #hero-headline {
+  color: var(--mkt-ink, var(--text-primary, #1a1612));
+  font-family: var(--mkt-font-display, "Source Serif 4", Georgia, serif);
+}
+
+body.marketing-surface .mkt-edt-cta,
+body.marketing-surface .mkt-v3-cta-primary,
+body.marketing-surface a.mkt-edt-cta {
+  color: var(--mkt-cta-ink, #1a1612);
+  background: var(--mkt-accent, var(--color-primary-500, #a06814));
+  border-color: var(--mkt-accent, #a06814);
+}
+
+body.marketing-surface .mkt-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  z-index: 10000;
+}
+
+body.marketing-surface .mkt-skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--mkt-ink, #1a1612);
+  color: var(--mkt-surface-canvas, #fffaf0);
+}
+
+html[data-theme="dark"] body.marketing-surface .mkt-edt-hero-headline,
+html[data-theme="dark"] body.marketing-surface .mkt-v3-hero-headline {
+  color: var(--mkt-ink-dark, var(--text-primary, #f8fafc));
+}
+
+html[data-theme="dark"] body.marketing-surface .mkt-navbar {
+  background: var(--mkt-surface-elevated-dark, var(--surface-elevated, #1a1612));
+  color: var(--mkt-ink-dark, var(--text-primary, #f8fafc));
+}

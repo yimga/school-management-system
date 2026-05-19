@@ -14,6 +14,12 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db import IntegrityError, DatabaseError
 from django.db.models import Q
+
+from apps.people.student_search import filter_students_by_search
+from apps.siteconfig.list_search import (
+    apply_bounded_icontains,
+    normalize_list_search_query,
+)
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ValidationError
 from django.urls import reverse, NoReverseMatch
@@ -325,9 +331,8 @@ def backend_classroom_list(request):
         .select_related("academic_year", "department")
         .order_by("academic_year__start_date", "name")
     )
-    search = (request.GET.get("q") or "").strip()
-    if search:
-        qs = qs.filter(Q(name__icontains=search) | Q(code__icontains=search))
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = apply_bounded_icontains(qs, search, "name", "code")
     year_id = request.GET.get("academic_year")
     if year_id:
         qs = qs.filter(academic_year_id=year_id)
@@ -445,13 +450,8 @@ def backend_student_list(request):
         .order_by("last_name", "first_name")
     )
 
-    search = (request.GET.get("q") or "").strip()
-    if search:
-        qs = qs.filter(
-            Q(first_name__icontains=search)
-            | Q(last_name__icontains=search)
-            | Q(admission_number__icontains=search)
-        )
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = filter_students_by_search(qs, search)
     year_id = request.GET.get("year")
     if year_id:
         qs = qs.filter(academic_year_id=year_id)
@@ -713,14 +713,15 @@ def backend_teacher_list(request):
         .order_by("staff_id")
     )
 
-    search = (request.GET.get("q") or "").strip()
-    if search:
-        qs = qs.filter(
-            Q(staff_id__icontains=search)
-            | Q(user__first_name__icontains=search)
-            | Q(user__last_name__icontains=search)
-            | Q(user__email__icontains=search)
-        )
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = apply_bounded_icontains(
+        qs,
+        search,
+        "staff_id",
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+    )
     department_id = request.GET.get("department")
     if department_id:
         qs = qs.filter(department_id=department_id)
@@ -863,14 +864,10 @@ def backend_applicant_list(request):
         .order_by("-created_at")
     )
 
-    search = (request.GET.get("q") or "").strip()
-    if search:
-        qs = qs.filter(
-            Q(first_name__icontains=search)
-            | Q(last_name__icontains=search)
-            | Q(email__icontains=search)
-            | Q(lead_source__icontains=search)
-        )
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = apply_bounded_icontains(
+        qs, search, "first_name", "last_name", "email", "lead_source"
+    )
     stage = request.GET.get("stage")
     if stage and stage in dict(Applicant.Stage.choices):
         qs = qs.filter(stage=stage)
@@ -971,15 +968,16 @@ def backend_guardian_list(request):
         .order_by("guardian_user__last_name", "guardian_user__first_name")
     )
 
-    search = (request.GET.get("q") or "").strip()
-    if search:
-        qs = qs.filter(
-            Q(guardian_user__first_name__icontains=search)
-            | Q(guardian_user__last_name__icontains=search)
-            | Q(guardian_user__email__icontains=search)
-            | Q(student__first_name__icontains=search)
-            | Q(student__last_name__icontains=search)
-        )
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = apply_bounded_icontains(
+        qs,
+        search,
+        "guardian_user__first_name",
+        "guardian_user__last_name",
+        "guardian_user__email",
+        "student__first_name",
+        "student__last_name",
+    )
     classroom_id = request.GET.get("classroom")
     if classroom_id:
         qs = qs.filter(student__classroom_id=classroom_id)

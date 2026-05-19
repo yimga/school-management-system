@@ -37,7 +37,7 @@
   {% include "components/world_class_page_hero.html" with hero_id="super-command-center-title" role=_("Platform operators") title=_("Platform Command Center") subtitle=_("Operate platform health, tenant risk, implementation pipeline, revenue/payment readiness, marketplace governance, security/compliance, and proof ledger from one premium command center.") purpose=_("Platform command center") status=_("UI/UX transformation active") primary_url=wcx_create_school_url primary_label=_("Setup Studio") secondary_url=wcx_configuration_url secondary_label=_("Configuration center") visual_title=_("Operator confidence") visual_body=_("Top risks, external blockers, queues, and recent proof are above the fold before deep configuration opens.") %}
 
   {% comment %} Chips: at-a-glance platform pulse. Replaces the redundant cp-hero chip row. {% endcomment %}
-  <div class="cp-chip-row mb-3" data-rmc-cp-chip-row="1">
+  <div class="cp-chip-row mb-3" data-rmc-cp-chip-row="1" data-apple-class-command-strip>
     <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'healthy' }}">{% blocktrans with status=platform_health.overall_status|default:"healthy"|upper %}Platform {{ status }}{% endblocktrans %}</span>
     {% if platform_incidents_url %}
       <a href="{{ platform_incidents_url }}" class="cp-chip text-decoration-none" title="{% trans 'Open incident console' %}">{% blocktrans with count=platform_incidents|length %}Open incidents {{ count }}{% endblocktrans %}</a>

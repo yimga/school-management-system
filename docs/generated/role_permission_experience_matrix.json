@@ -1,0 +1,7 @@
+{
+  "candidate_anonymous_routes": 9,
+  "generated_at": "2026-05-19T06:55:52.631878+00:00",
+  "schema_version": 1,
+  "source": "docs/generated/role_permission_matrix.json",
+  "verdict": "matrix present \u2014 review flagged routes in CSV"
+}

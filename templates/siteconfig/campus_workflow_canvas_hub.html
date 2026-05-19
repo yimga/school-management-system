@@ -1,0 +1,65 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Campus workflow canvas" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-4" data-page="campus-workflow-canvas">
+  <header class="mb-4">
+    <h1 class="h3 mb-1">{% trans "Campus Workflow Canvas" %}</h1>
+    <p class="text-secondary mb-0">
+      {% trans "Design cross-campus automations with the visual workflow designer. Publish from Studio OS or run simulations before go-live." %}
+    </p>
+  </header>
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card h-100 rmc-card">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Visual designer" %}</h2>
+          <p class="small text-secondary">
+            {% trans "Drag-and-drop nodes, guards, and campus-scoped triggers." %}
+          </p>
+          {% if designer_url %}
+          <a href="{{ designer_url }}" class="btn btn-primary">{% trans "Open workflow designer" %}</a>
+          {% else %}
+          <p class="small text-danger mb-0">{% trans "Automation module is not mounted for this tenant." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100 rmc-card">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Simulate & publish" %}</h2>
+          <p class="small text-secondary">
+            {% trans "Dry-run triggers against sample payloads, then publish campus-scoped definitions." %}
+          </p>
+          {% if workflow_list_url %}
+          <a href="{{ workflow_list_url }}" class="btn btn-outline-primary btn-sm d-block mb-2">{% trans "Execution log & definitions" %}</a>
+          {% endif %}
+          {% if simulate_api %}
+          <p class="small mb-0"><code>{{ simulate_api }}</code> — {% trans "POST simulate API" %}</p>
+          {% endif %}
+          {% if publish_api %}
+          <p class="small mb-0 mt-1"><code>{{ publish_api }}</code> — {% trans "POST publish API" %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100 rmc-card">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Template gallery" %}</h2>
+          <p class="small text-secondary">
+            {% trans "Start from district-approved workflow blueprints." %}
+          </p>
+          {% if gallery_url %}
+          <a href="{{ gallery_url }}" class="btn btn-outline-secondary">{% trans "Browse templates" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

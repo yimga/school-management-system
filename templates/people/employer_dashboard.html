@@ -1,7 +1,8 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
+{% load i18n %}
 {% load region_format phase8_tags %}
-{% block title %}Employer portal — Apprentice progress{% endblock %}
+{% block title %}{% trans "Employer portal — Apprentice progress" %}{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Employer portal — Apprentice progress</h1>
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
@@ -22,8 +23,8 @@
               <td>{{ p.confirmed_hours }}</td>
               <td>{{ p.last_confirmed_at|date:"M d, Y"|default:"—" }}</td>
               <td>
-                <a href="{% url 'portal:employer_confirm_hours' placement_id=p.id %}" class="btn btn-sm btn-outline-primary">Confirm hours</a>
-                <a href="{% url 'portal:employer_student_transcript' placement_id=p.id %}" class="btn btn-sm btn-outline-secondary ms-1">Transcript</a>
+                <a href="{% url 'portal:employer_confirm_hours' placement_id=p.id %}" class="btn btn-sm btn-outline-primary">{% trans "Confirm hours" %}</a>
+                <a href="{% url 'portal:employer_student_transcript' placement_id=p.id %}" class="btn btn-sm btn-outline-secondary ms-1">{% trans "Transcript" %}</a>
               </td>
             </tr>
             {% endfor %}

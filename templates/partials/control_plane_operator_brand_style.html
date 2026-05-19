@@ -1,0 +1,3 @@
+{% if CONTROL_PLANE_BRAND_CSS_VARS %}
+<style nonce="{{ csp_nonce }}">{{ CONTROL_PLANE_BRAND_CSS_VARS|safe }}</style>
+{% endif %}

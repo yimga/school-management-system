@@ -33,6 +33,64 @@ logger = logging.getLogger(__name__)
 _PRE_SAVE_IS_LOW_ATTR = "_schoolops_low_balance_pre_save_is_low"
 
 
+def _publish_low_balance_webhook(instance) -> None:
+    """v3.33.0 — fan a ``schoolops.meal_plan.low_balance_triggered`` event
+    out to every :class:`MigrationCloudWebhookSubscription` that has
+    explicitly opted in to ``schoolops.*``.
+
+    Defensive: a webhook outage NEVER raises out of this signal — the
+    save transaction must remain inviolate. PII-free payload: row PK,
+    student/plan IDs, school ID, currency, and the boolean ``is_low``
+    only. No balance numeric, no names, no emails.
+    """
+    try:
+        from apps.migration_cloud.api.webhook_dispatch import enqueue
+        from apps.migration_cloud.models import (
+            MigrationCloudWebhookSubscription,
+        )
+        school_id = getattr(instance, "school_id", None)
+        if school_id is None:
+            return
+        # tenant-isolation-allow: webhook-dispatch-scoped-via-instance-school-fk-tenant-bound
+        subs = MigrationCloudWebhookSubscription.objects.filter(
+            tenant_id=school_id, active=True,
+        )
+        event_type = "schoolops.meal_plan.low_balance_triggered"
+        payload = {
+            "event": event_type,
+            "school_id": int(school_id),
+            "meal_plan_balance_id": int(instance.pk),
+            "student_id": int(getattr(instance, "student_id", 0) or 0),
+            "meal_plan_id": (
+                int(instance.meal_plan_id) if instance.meal_plan_id else None
+            ),
+            "currency": getattr(instance, "currency", "") or "",
+            "is_low": True,
+        }
+        published = 0
+        for sub in subs:
+            try:
+                row = enqueue(sub, event_type, payload)
+                if row is not None:
+                    published += 1
+            except Exception:  # noqa: BLE001 -- per-sub isolation
+                logger.warning(
+                    "schoolops.low_balance_webhook_enqueue_failed "
+                    "sub_id=%s row_pk=%s",
+                    getattr(sub, "pk", None), getattr(instance, "pk", None),
+                )
+        logger.info(
+            "schoolops.low_balance_webhook_published "
+            "row_pk=%s school_id=%s subs_total=%s subs_published=%s",
+            instance.pk, school_id, subs.count(), published,
+        )
+    except Exception:  # noqa: BLE001 -- signal-handler safety
+        logger.exception(
+            "schoolops.low_balance_webhook_publish_failed row_pk=%s",
+            getattr(instance, "pk", None),
+        )
+
+
 @receiver(pre_save, sender="schoolops.MealPlanBalance")
 def _cache_pre_save_is_low(
     sender: Any, instance: Any, **kwargs: Any,
@@ -100,6 +158,11 @@ def _dispatch_low_balance_notification(
         notify_low_meal_plan_balance.delay(
             meal_plan_balance_id=int(instance.pk),
         )
+        # v3.33.0 — publish a coarse webhook event so partner systems
+        # subscribed to ``schoolops.*`` can react (e.g. parent-portal
+        # banner refresh, finance-team alerting). NEVER include PII —
+        # the payload carries IDs + the boolean "is_low" state only.
+        _publish_low_balance_webhook(instance)
         logger.info(
             "schoolops.low_balance_signal dispatched "
             "row_pk=%s student_id=%s plan_id=%s",

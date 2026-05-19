@@ -208,7 +208,7 @@ def deliver_due(*, limit: int = 50, http_session=None) -> int:
 
     now = timezone.now()
     qs = (
-        WebhookDelivery.objects.filter(
+        WebhookDelivery.objects.filter(  # tenant-isolation-allow: marketplace-webhook-delivery-replay-global
             status__in=[
                 WebhookDelivery.Status.PENDING,
                 WebhookDelivery.Status.FAILED,

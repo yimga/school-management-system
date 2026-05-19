@@ -3,10 +3,9 @@
 
 {% block title %}{{ seo_title|default:"Migrate to RunMyCampus" }}{% endblock %}
 {% block extrahead %}
+  {{ block.super }}
   <meta name="description" content="{{ seo_description|default:'' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
-  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
-  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 
 {% block content %}

@@ -1,0 +1,17 @@
+{
+  "alias_of": "route_surface_audit.json",
+  "broken_count": 0,
+  "certification_status": "CERTIFIED",
+  "generated_at": "2026-05-19T06:55:55.357582+00:00",
+  "schema_version": 1,
+  "source": "scripts/audit_route_surface.py",
+  "summary": {
+    "broken_count": 0,
+    "reverse_usages": 2629,
+    "risk_count": 0,
+    "routes_audited": 6979,
+    "status": "ROUTE SYSTEM CERTIFIED",
+    "template_href_action_usages": 247,
+    "template_url_usages": 2207
+  }
+}

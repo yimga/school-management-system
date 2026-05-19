@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}{% trans "Activity log" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Platform activity (this school)" %}{% endblock %}
-{% block content %}
+{% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Activity log" %} — {{ school.name }}</h1>
 <div class="container-fluid py-4">
   <p class="text-muted small mb-3">{% trans "Recent catalog events recorded for this tenant. Used for audits and operational awareness (N24 partial)." %}</p>

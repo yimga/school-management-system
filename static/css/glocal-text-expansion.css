@@ -1,0 +1,26 @@
+/**
+ * G-05: German/long-string safe filter rows and backend lists.
+ */
+.page-family-filter-row .col-md-2,
+.page-family-filter-row .col-md-4,
+.list-filter-bar [class*="col-"] {
+  min-width: 0;
+}
+
+.page-family-filter-row .form-label,
+.list-filter-bar .form-label {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.page-family-filter-row .btn,
+.list-filter-bar .btn {
+  white-space: normal;
+  text-wrap: balance;
+}
+
+@media (max-width: 768px) {
+  .page-family-filter-row .row {
+    flex-wrap: wrap;
+  }
+}

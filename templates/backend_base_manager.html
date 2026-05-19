@@ -1,0 +1,30 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{% block title %}{% block backend_title %}{% trans "Backend" %}{% endblock %}{% endblock %}{% endblock %}
+
+{% block cp_page_archetype %}{% block page_archetype %}operational-workbench{% endblock %}{% endblock %}
+
+{% block cp_workspace_header %}{% endblock %}
+
+{% block breadcrumbs %}
+{% include "partials/breadcrumbs.html" %}
+{% endblock %}
+
+{% block breadcrumb_actions %}
+{% include "partials/backend_portal_breadcrumb_actions.html" %}
+{% endblock %}
+
+{% block cp_content %}
+<h1 class="visually-hidden">{% block backend_base_fallback_h1 %}{% trans "Backend" %}{% endblock %}</h1>
+{% block backend_main %}{% endblock %}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-spacing-readability.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-shell-parity.css' %}">
+<link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+{% endblock %}

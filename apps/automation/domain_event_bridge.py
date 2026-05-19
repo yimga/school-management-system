@@ -15,6 +15,10 @@ from apps.automation.workflow_trigger_catalog import FULL_TRIGGER_CATALOG_KEYS
 
 logger = logging.getLogger(__name__)
 
+from apps.automation.workflow_limits import MAX_DOMAIN_EVENT_CHAIN_DEPTH
+
+_DOMAIN_EVENT_DEDUP_TTL_SECONDS = 86_400
+
 # Domain event_type may differ from workflow trigger keys (aliases).
 _EVENT_TYPE_TO_TRIGGER: dict[str, str] = {
     "attendance_saved": "attendance_saved",
@@ -42,8 +46,25 @@ def resolve_trigger_key(event_type: str) -> str | None:
     return _EVENT_TYPE_TO_TRIGGER.get(et)
 
 
+def _domain_event_already_dispatched(domain_event_id: Any) -> bool:
+    if not domain_event_id:
+        return False
+    try:
+        from django.core.cache import cache
+    except ImportError:
+        return False
+    key = f"rmc:v1:domain_event_dispatched:{domain_event_id}"
+    if cache.get(key):
+        return True
+    cache.set(key, "1", timeout=_DOMAIN_EVENT_DEDUP_TTL_SECONDS)
+    return False
+
+
 def dispatch_domain_event_to_triggers(domain_event: Any) -> list[dict[str, Any]]:
     """Map a persisted domain event to ``fire()`` when the type is known."""
+    if _domain_event_already_dispatched(getattr(domain_event, "pk", None)):
+        return []
+
     trigger_key = resolve_trigger_key(str(getattr(domain_event, "event_type", "") or ""))
     if not trigger_key:
         return []
@@ -62,7 +83,22 @@ def dispatch_domain_event_to_triggers(domain_event: Any) -> list[dict[str, Any]]
     if not isinstance(payload, dict):
         payload = {}
 
+    depth_raw = payload.get("_domain_event_depth", 0)
+    try:
+        depth = int(depth_raw)
+    except (TypeError, ValueError):
+        depth = 0
+    if depth > MAX_DOMAIN_EVENT_CHAIN_DEPTH:
+        logger.warning(
+            "domain_event_bridge: depth limit event_type=%s school=%s depth=%s",
+            getattr(domain_event, "event_type", ""),
+            school.pk,
+            depth,
+        )
+        return []
+
     ctx = dict(payload)
+    ctx["_domain_event_depth"] = depth + 1
     ctx.setdefault("domain_event_id", str(getattr(domain_event, "pk", "") or ""))
     ctx.setdefault("school_id", str(school.pk))
 

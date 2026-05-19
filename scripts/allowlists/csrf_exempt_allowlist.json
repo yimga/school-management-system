@@ -73,10 +73,10 @@
       "verdict": "keep_with_hardening",
       "auth_model": "mixed_client_access",
       "replay_protection": "not_applicable",
-      "rate_limiting": "manual_review_required",
-      "audit_logging": "manual_review_required",
-      "notes": "GraphQL endpoint still supports non-browser API clients.",
-      "last_reviewed": "2026-03-28"
+      "rate_limiting": "implemented",
+      "audit_logging": "implemented",
+      "notes": "GraphQL gateway POST/GET; IP throttle; staff-only school registry; query-only schema; CSRF exempt for API clients.",
+      "last_reviewed": "2026-05-18"
     },
     "apps/api/br_northstar_views.py": {
       "expected_count": 11,
@@ -165,6 +165,50 @@
       "audit_logging": "implemented",
       "notes": "CSP violation reports are browser-generated POSTs without application CSRF cookies; the endpoint rate-limits, caps request bodies, and logs only normalized directive and URI metadata.",
       "last_reviewed": "2026-05-14"
+    },
+    "apps/observability/views_friction.py": {
+      "expected_count": 1,
+      "owner": "platform_observability",
+      "verdict": "keep_with_hardening",
+      "auth_model": "session_authenticated_or_tenant_context",
+      "replay_protection": "per_rollup_row_rate_limit",
+      "rate_limiting": "implemented",
+      "audit_logging": "implemented",
+      "notes": "Friction UX ingest POST from same-origin recorder; requires authenticated user or school on request; payload capped; anonymous returns ignored no-op.",
+      "last_reviewed": "2026-05-18"
+    },
+    "apps/integrations_marketplace/webhooks.py": {
+      "expected_count": 1,
+      "owner": "integrations_marketplace",
+      "verdict": "keep",
+      "auth_model": "connector_hmac_per_integration",
+      "replay_protection": "hmac_signature_before_dispatch",
+      "rate_limiting": "implemented",
+      "audit_logging": "implemented",
+      "notes": "Inbound connector webhook receiver; per-integration + per-IP rate limit before HMAC verify; school scoped via ServiceIntegration row.",
+      "last_reviewed": "2026-05-18"
+    },
+    "apps/orchestration/api.py": {
+      "expected_count": 3,
+      "owner": "orchestration",
+      "verdict": "keep_with_hardening",
+      "auth_model": "session_or_jwt_accept_session_or_jwt",
+      "replay_protection": "tenant_scoped_run_ids",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "implemented",
+      "notes": "Orchestration runs JSON API; csrf_exempt for JWT/API clients; tenant filter on non-staff; cancel/retry/create guarded by _can_act.",
+      "last_reviewed": "2026-05-18"
+    },
+    "apps/migration_cloud/companion_receiver.py": {
+      "expected_count": 4,
+      "owner": "migration_cloud",
+      "verdict": "keep_with_hardening",
+      "auth_model": "login_required_staff_companion_maa",
+      "replay_protection": "client_idempotency_key",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "implemented",
+      "notes": "Companion browser extension upload/sign endpoints; CSRF exempt for extension POST; MAA + ciphertext integrity guards.",
+      "last_reviewed": "2026-05-18"
     }
   }
 }

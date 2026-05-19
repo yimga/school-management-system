@@ -30,7 +30,6 @@
     function showResults(html) {
       resultsEl.innerHTML = html;
       resultsEl.style.display = html ? 'block' : 'none';
-      searchInput.setAttribute('aria-expanded', html ? 'true' : 'false');
     }
 
     function hideResults() {

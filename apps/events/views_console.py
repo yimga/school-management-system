@@ -106,7 +106,7 @@ def event_domain_detail(request, event_id):
     if ev is None:
         raise Http404("Domain event not found for this tenant.")
     deliveries = list(
-        WebhookDelivery.objects.filter(domain_event=ev)
+        WebhookDelivery.objects.filter(domain_event=ev)  # tenant-isolation-allow: platform-operator-webhook-delivery-console
         .select_related("subscription")
         .order_by("-created_at")[:40]
     )

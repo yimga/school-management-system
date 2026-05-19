@@ -174,6 +174,135 @@ class MigrationCloudTokenRevokeView(View):
 
 
 @method_decorator(staff_member_required, name="dispatch")
+class TokenRotationChainView(View):
+    """GET /super/migration/operator/tokens/<id>/chain/ — walk the rotation chain.
+
+    Each :class:`MigrationCloudAPIToken` may carry a ``rotated_to`` FK
+    pointing at the successor minted by a previous Rotate operation. We
+    walk that chain forwards from the requested anchor (most recent →
+    successor) AND backwards to the original ancestor so the operator
+    sees the entire lineage at a glance.
+
+    Grace-window status: each row reports ``in_grace`` (revoked but
+    successor's grace window is still active) so a partner-success rep
+    can answer "is the old token still usable?" without SQL.
+
+    Paginated when the combined chain exceeds 20 rows.
+    """
+
+    template_name = "migration_cloud/operator/token_rotation_chain.html"
+    PAGE_SIZE = 20
+    MAX_WALK_DEPTH = 200  # safety belt against pathological cycles
+
+    def _walk_forward(self, anchor: MigrationCloudAPIToken) -> list:
+        """Return [anchor, successor, successor-of-successor, ...]."""
+        chain = []
+        seen_ids = set()
+        cursor = anchor
+        depth = 0
+        while cursor is not None and depth < self.MAX_WALK_DEPTH:
+            if cursor.pk in seen_ids:
+                break  # cycle defense
+            seen_ids.add(cursor.pk)
+            chain.append(cursor)
+            successor_id = getattr(cursor, "rotated_to_id", None)
+            if not successor_id:
+                break
+            try:
+                # tenant-isolation-allow: operator-shell-staff-cross-tenant-token-administration
+                cursor = MigrationCloudAPIToken.objects.get(pk=successor_id)
+            except MigrationCloudAPIToken.DoesNotExist:
+                break
+            depth += 1
+        return chain
+
+    def _walk_backward(self, anchor: MigrationCloudAPIToken) -> list:
+        """Return [ancestor-N, ..., parent, anchor's-parent] (excludes anchor)."""
+        ancestors = []
+        seen_ids = {anchor.pk}
+        depth = 0
+        while depth < self.MAX_WALK_DEPTH:
+            # tenant-isolation-allow: operator-shell-staff-cross-tenant-token-administration
+            parent_qs = MigrationCloudAPIToken.objects.filter(
+                rotated_to_id=(ancestors[0].pk if ancestors else anchor.pk)
+            )
+            parent = parent_qs.first()
+            if parent is None or parent.pk in seen_ids:
+                break
+            seen_ids.add(parent.pk)
+            ancestors.insert(0, parent)
+            depth += 1
+        return ancestors
+
+    def _row_for_chain(self, row: MigrationCloudAPIToken, anchor_pk: int) -> dict:
+        """Project one token into the chain template's row shape."""
+        now = timezone.now()
+        in_grace = (
+            row.revoked_at is not None
+            and row.grace_until is not None
+            and row.grace_until > now
+        )
+        return {
+            "id": row.pk,
+            "name": row.name,
+            "preview": f"mc_...{row.token_hash[-4:]}",
+            "scopes": list(row.scopes or []),
+            "created_at": row.created_at,
+            "revoked_at": row.revoked_at,
+            "grace_until": row.grace_until,
+            "rotated_to_id": row.rotated_to_id,
+            "is_active": row.is_active,
+            "in_grace": in_grace,
+            "is_anchor": row.pk == anchor_pk,
+        }
+
+    def get(self, request, *args, **kwargs):
+        token_id = kwargs.get("token_id")
+        # tenant-isolation-allow: operator-shell-staff-cross-tenant-token-administration
+        anchor = get_object_or_404(MigrationCloudAPIToken, pk=token_id)
+
+        ancestors = self._walk_backward(anchor)
+        forward = self._walk_forward(anchor)
+        # Combined timeline: oldest ancestor → ... → anchor → ... → latest successor.
+        full_chain = ancestors + forward
+
+        page_param = request.GET.get("page", "1")
+        try:
+            page_num = max(int(page_param), 1)
+        except (TypeError, ValueError):
+            page_num = 1
+
+        total = len(full_chain)
+        page_count = max(1, (total + self.PAGE_SIZE - 1) // self.PAGE_SIZE)
+        page_num = min(page_num, page_count)
+        start = (page_num - 1) * self.PAGE_SIZE
+        end = start + self.PAGE_SIZE
+        page_rows = [
+            self._row_for_chain(r, anchor.pk) for r in full_chain[start:end]
+        ]
+
+        logger.info(
+            "migration_cloud_operator_token_chain_viewed user_id=%s anchor_id=%s "
+            "chain_len=%s page=%s",
+            request.user.pk, anchor.pk, total, page_num,
+        )
+
+        context = {
+            "page_title": f"Token rotation chain — token #{anchor.pk}",
+            "shell": kwargs.get("shell", "super"),
+            "anchor_id": anchor.pk,
+            "rows": page_rows,
+            "chain_total": total,
+            "page_num": page_num,
+            "page_count": page_count,
+            "page_size": self.PAGE_SIZE,
+            "has_prev": page_num > 1,
+            "has_next": page_num < page_count,
+        }
+        return render(request, self.template_name, context)
+
+
+@method_decorator(staff_member_required, name="dispatch")
 class MigrationCloudTokenRotateView(View):
     """POST /super/migration/operator/tokens/<id>/rotate/ — same logic as API rotate."""
 

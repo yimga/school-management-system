@@ -6,9 +6,11 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from apps.schools.models import School
 from apps.schools.super_admin_paired_surfaces import (
     SUPER_FIRST_PAIRED_SPECS,
     build_operator_surface_ia_context,
+    build_operator_surface_spine,
     build_surface_parity_matrix,
     resolve_bridge_key_for_super_view,
 )
@@ -35,13 +37,27 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertTrue(matrix["bindings_ok"], matrix)
         self.assertTrue(matrix["browser_probes_ok"], matrix)
 
-    def test_context_processor_on_super_and_admin(self):
-        for path in ("/super/", "/admin/"):
-            request = self.client.get(path, HTTP_HOST=self.host).wsgi_request
-            request.user = self.user
-            ctx = build_operator_surface_ia_context(request)
-            self.assertTrue(ctx["RMC_OPERATOR_SURFACE_IA"], path)
-            self.assertGreaterEqual(len(ctx["RMC_OPERATOR_SURFACE_SPINE"]), 4, path)
+    def test_context_processor_shows_workspace_nav_on_super_not_admin(self):
+        super_request = self.client.get("/super/", HTTP_HOST=self.host).wsgi_request
+        super_request.user = self.user
+        super_ctx = build_operator_surface_ia_context(super_request)
+        self.assertTrue(super_ctx["RMC_OPERATOR_SURFACE_IA"])
+        self.assertTrue(super_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
+        self.assertGreaterEqual(len(super_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 4)
+
+        admin_request = self.client.get("/admin/", HTTP_HOST=self.host).wsgi_request
+        admin_request.user = self.user
+        admin_ctx = build_operator_surface_ia_context(admin_request)
+        self.assertTrue(admin_ctx["RMC_OPERATOR_SURFACE_IA"])
+        self.assertFalse(admin_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
+        self.assertGreaterEqual(len(admin_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 4)
+        self.assertEqual(admin_ctx["RMC_OPERATOR_PAIRED_LINKS"], [])
+
+    def test_workspace_spine_links_carry_icons(self):
+        request = self.client.get("/super/", HTTP_HOST=self.host).wsgi_request
+        request.user = self.user
+        spine = build_operator_surface_spine(request)
+        self.assertTrue(all(link.icon for link in spine))
 
     def test_super_schools_list_shows_admin_bridge_chip(self):
         response = self.client.get(
@@ -49,15 +65,39 @@ class SuperAdminSurfaceParityTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "rmc-operator-surface-strip")
+        self.assertContains(response, "cp-primary-nav__pill")
         self.assertContains(response, "Open platform admin")
 
-    def test_admin_schools_changelist_shows_operator_view_chip(self):
+    def test_admin_schools_changelist_has_dropdown_not_strip(self):
         response = self.client.get(
             reverse("admin:schools_school_changelist"), HTTP_HOST=self.host
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "rmc-operator-surface-strip")
-        self.assertContains(response, "Open operator view")
+        self.assertContains(response, "data-rmc-operator-workspace-dropdown")
+        self.assertNotContains(response, "rmc-operator-workspace-nav")
+        self.assertNotContains(response, "data-rmc-operator-surface-strip")
+
+    def test_manager_admin_login_public_chrome(self):
+        response = Client().get("/authentication/login/", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "mkt-footer-command")
+        self.assertContains(response, "manager-login-corporate-footer")
+        self.assertContains(response, "Platform status")
+        self.assertContains(response, "Find campus")
+        self.assertContains(response, "rmc-corporate-os.css")
+
+    def test_admin_waive_subscription_hides_workspace_strip(self):
+        school = School.objects.create(
+            name="Sweep Waive School",
+            slug="sweep-waive-school",
+            subdomain="sweep-waive-school",
+        )
+        url = reverse("admin:schools_school_waive_form")
+        response = self.client.get(f"{url}?ids={school.pk}", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-rmc-operator-workspace-dropdown")
+        self.assertNotContains(response, "rmc-operator-workspace-nav")
+        self.assertNotContains(response, "data-rmc-operator-surface-strip")
 
     def test_manager_admin_uses_platform_admin_sidebar(self):
         for path in ("/admin/", reverse("admin:schools_school_changelist")):
@@ -122,7 +162,7 @@ class SuperAdminSurfaceParityTests(TestCase):
             "marketplace_apps",
         )
 
-    def test_admin_marketplace_changelist_shows_operator_view_chip(self):
+    def test_admin_marketplace_changelist_hides_workspace_nav(self):
         response = self.client.get(
             reverse(
                 "admin:integrations_marketplace_marketplaceapp_changelist"
@@ -130,8 +170,7 @@ class SuperAdminSurfaceParityTests(TestCase):
             HTTP_HOST=self.host,
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "rmc-operator-surface-strip")
-        self.assertContains(response, "Open operator view")
+        self.assertNotContains(response, "rmc-operator-workspace-nav")
 
     def test_super_first_specs_with_bridge_keys_are_registered(self):
         from apps.schools.super_admin_bridge_registry import PLATFORM_ADMIN_BRIDGES

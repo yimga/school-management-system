@@ -315,6 +315,10 @@
   opacity: 0.92;
 }
 
+.cp-primary-nav__pill--paired {
+  border-style: dashed;
+}
+
 /* === Sidebar typography rhythm =========================================== */
 
 .cp-sidebar-col .cp-sidebar-inner > * + * {

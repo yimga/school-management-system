@@ -86,6 +86,16 @@ python3 manage.py test apps.<app_name>.tests --verbosity=2 --no-input
 python3 manage.py check
 ```
 
+**Marketing public shell (runmycampus.com):** after editing files listed in `scripts/marketing_css_bundle_manifest.json`, rebuild bundles and verify:
+
+```bash
+npm run build:marketing-css
+npm run verify:marketing
+npm run audit:marketing
+# Playwright theme matrix (Django on runmycampus.com:8000):
+npm run test:e2e:marketing:theme
+```
+
 Use `python scripts/run_sqlite_memory_tests.py <labels>` when Postgres is configured but unavailable or when SQLite test DB teardown hangs on Windows.
 
 **Abrupt-end / scroll-reveal sweep (Playwright):** `npm run sweep:abrupt-end:routes` regenerates `docs/generated/control_plane_sweep_routes.json` and `portal_tenant_sweep_routes.json`. With Django up on `VISUAL_QA_PORT` and `MAP manager.runmycampus.com 127.0.0.1`, run `npm run sweep:abrupt-end` (Git Bash) or `SWEEP_TIER=operator+admin node scripts/verify_platform_abrupt_end_sweep.mjs`. On Git Bash, `export MSYS_NO_PATHCONV=1` if you pass `SWEEP_PATHS` / `SWEEP_TENANT_PATHS` starting with `/`.

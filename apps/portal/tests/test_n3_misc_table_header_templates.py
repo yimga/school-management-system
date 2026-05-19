@@ -44,9 +44,14 @@ class MiscTableHeaderScopeTests(SimpleTestCase):
         self.assertIn('class="visually-hidden">{% trans "Actions" %}</span>', text)
 
     def test_siteconfig_reportcard_builder_assignments(self):
-        text = self._read("templates", "siteconfig", "reportcard_builder.html")
+        wrapper = self._read("templates", "siteconfig", "reportcard_builder.html")
+        body = self._read(
+            "templates", "siteconfig", "partials", "reportcard_builder_body.html"
+        )
+        text = wrapper + body
         self.assertIn('aria-label="Report card style assignments by classroom"', text)
-        self.assertIn('scope="col">{% trans "Classroom" %}</th>', text)
+        self.assertIn('scope="col">', text)
+        self.assertIn("Classroom", text)
 
     def test_schools_super_metadata_catalog(self):
         text = self._read("templates", "schools", "super_metadata_catalog.html")

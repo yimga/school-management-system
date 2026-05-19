@@ -3,8 +3,17 @@ Early middleware to block common scanner/probe paths with 404.
 Reduces log noise and avoids any redirect (e.g. .git) that could leak info.
 """
 
+from __future__ import annotations
+
+import concurrent.futures
+import logging
+import os
 import re
-from django.http import HttpResponseNotFound
+
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseNotFound
+
+logger = logging.getLogger(__name__)
 
 
 # Path prefixes and patterns that are known scanner targets; return 404 immediately.
@@ -121,3 +130,57 @@ class GlobalHotPathRateLimitMiddleware:
                 r["Retry-After"] = str(retry)
             return r
         return self.get_response(request)
+
+
+class RequestTimeoutMiddleware:
+    """
+    Best-effort wall-clock cap on synchronous WSGI requests (rural / slow-network UX).
+
+    Disabled when REQUEST_TIMEOUT_SECONDS is 0 or DISABLE_REQUEST_TIMEOUT=1.
+    Does not cancel the worker thread on timeout; returns 504 to the client.
+    """
+
+    _SKIP_PREFIXES = (
+        "/static/",
+        "/media/",
+        "/health",
+        "/healthz",
+        "/ready",
+        "/live",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if os.getenv("DISABLE_REQUEST_TIMEOUT", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+        ):
+            return self.get_response(request)
+
+        timeout = int(getattr(settings, "REQUEST_TIMEOUT_SECONDS", 0) or 0)
+        if timeout <= 0:
+            return self.get_response(request)
+
+        path = (request.path or "").lower()
+        if any(path.startswith(prefix) for prefix in self._SKIP_PREFIXES):
+            return self.get_response(request)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(self.get_response, request)
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                logger.warning(
+                    "request_timeout path=%s method=%s timeout_s=%s",
+                    request.path,
+                    request.method,
+                    timeout,
+                )
+                return HttpResponse(
+                    "Gateway timeout — request exceeded server time limit.",
+                    status=504,
+                    content_type="text/plain; charset=utf-8",
+                )

@@ -158,12 +158,11 @@ def main(argv: list[str] | None) -> int:
     proc_sec = subprocess.run(
         [
             exe,
-            str(ROOT / "manage.py"),
-            "test",
+            str(ROOT / "scripts/run_sqlite_memory_tests.py"),
             "apps.security.tests.test_security_enforcement",
             "apps.security.tests.test_absolute_security_enforcement",
             "apps.security.tests.test_tenant_route_leakage",
-            "--noinput",
+            "--verbosity=1",
             *extra_test_args,
         ],
         cwd=str(ROOT),
@@ -218,10 +217,9 @@ def main(argv: list[str] | None) -> int:
     proc_degraded = subprocess.run(
         [
             exe,
-            str(ROOT / "manage.py"),
-            "test",
-            "apps.schools.tests.test_founder_dashboard.FounderDashboardTests.test_dashboard_degrades_when_generated_json_missing",
-            "--noinput",
+            str(ROOT / "scripts/run_sqlite_memory_tests.py"),
+            "apps.schools.tests.test_founder_dashboard",
+            "--verbosity=1",
             *extra_test_args,
         ],
         cwd=str(ROOT),

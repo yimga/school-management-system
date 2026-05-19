@@ -1,0 +1,82 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Permission matrix simulator" %}{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-4" data-page="permission-matrix-simulator">
+  <header class="mb-4">
+    <h1 class="h3 mb-1">{% trans "Permission Matrix Simulator" %}</h1>
+    <p class="text-secondary mb-0">{% trans "Select a role profile to see why each capability is visible or hidden, before changing live access." %}</p>
+  </header>
+
+  <form method="get" class="row g-2 align-items-end mb-4" id="rmc-perm-sim-form">
+    <div class="col-md-4">
+      <label class="form-label" for="role-select">{% trans "Role profile" %}</label>
+      <select class="form-select" id="role-select" name="role">
+        {% for r in roles %}
+        <option value="{{ r }}"{% if r == selected_role %} selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-primary">{% trans "Simulate" %}</button>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-secondary" id="rmc-perm-sim-live" data-api-url="{% url 'siteconfig:api_permission_matrix_simulate' %}">
+        {% trans "Live API check" %}
+      </button>
+    </div>
+  </form>
+
+  <p class="small text-muted">{% trans "Role rank" %}: {{ simulation.role_rank }}</p>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-middle" id="rmc-perm-matrix-table">
+      <thead class="table-light">
+        <tr>
+          <th>{% trans "Capability" %}</th>
+          <th>{% trans "Visible" %}</th>
+          <th>{% trans "School action" %}</th>
+          <th>{% trans "Feature" %}</th>
+          <th>{% trans "PDP" %}</th>
+          <th>{% trans "Why" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cap in simulation.capabilities %}
+        <tr>
+          <td>{{ cap.label }}</td>
+          <td>
+            {% if cap.visible %}
+            <span class="badge bg-success">{% trans "Yes" %}</span>
+            {% else %}
+            <span class="badge bg-secondary">{% trans "No" %}</span>
+            {% endif %}
+          </td>
+          <td>{% if cap.school_action_ok %}{% trans "OK" %}{% else %}{% trans "Denied" %}{% endif %}</td>
+          <td>{% if cap.feature_ok %}{% trans "OK" %}{% else %}{% trans "Denied" %}{% endif %}</td>
+          <td><code class="small">{{ cap.pdp_effect }}</code></td>
+          <td class="small text-secondary">
+            <ul class="mb-0 ps-3">
+              {% for reason in cap.reasons %}
+              <li>{{ reason }}</li>
+              {% endfor %}
+            </ul>
+            {% if cap.patch_hint %}
+            <button type="button" class="btn btn-link btn-sm p-0 mt-1" disabled title="{{ cap.patch_hint }}">{% trans "Suggested fix" %}</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="mt-3">
+    <a href="{% url 'siteconfig:zero_ticket_hub' %}" class="btn btn-outline-secondary btn-sm">{% trans "Back to diagnostics" %}</a>
+  </p>
+</div>
+
+<script src="{% static 'js/rmc-permission-matrix-simulator.js' %}" defer></script>
+{% endblock %}

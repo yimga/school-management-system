@@ -21,6 +21,23 @@ CI guard: [`scripts/scan_theme_attribute_contract.py`](../scripts/scan_theme_att
 
 Under v2, `data-theme` carried the raw preference (`light` / `dark` / `system`). A user with preference="system" + OS=dark got `<html data-theme="system">`, which never matched any `[data-theme="dark"]` rule. Aesthetic-profile dark overrides like `[data-rmc-aesthetic="cool-apple"][data-theme="dark"]` set `--surface-elevated: #1e293b`; under the broken contract these never fired, so cards stayed white. Meanwhile `[data-bs-theme="dark"]` *did* match (Bootstrap path), so `--text-primary` flipped to near-white. Net effect: **white text on white card platform-wide** — the symptom that triggered this fix. v3 collapses `data-theme` to the effective value; 271 CSS sites across 34 files start matching correctly with zero CSS edits.
 
+## 0.1 Dual-plane theme & experience (tenant vs manager)
+
+RunMyCampus exposes **two independent configuration planes** for look-and-feel:
+
+| Plane | Host | Hub URL | Who |
+| --- | --- | --- | --- |
+| **Tenant / school** | `https://<school>.runmycampus.com` | `/siteconfig/theme-experience/hub/` | School staff with `settings.manage` |
+| **Platform / manager** | `https://manager.runmycampus.com` | `/siteconfig/theme-experience/hub/` | Control-plane operators (superuser / SUPERADMIN) |
+
+- **Tenant hub** links to Studio Experience, Theme & Experience editor, admin/backend theme pack, dashboards, compare/recommendations, and School Configuration Center — all scoped to **one school**.
+- **Manager hub** links to platform Studio, Theme & Experience editor, `/configuration/experience/`, RuntimeDefaults **public brand** (manager chrome colors/logos), and Platform global branding. Per-school work uses **Open as school** from the schools registry (tenant host), not manager defaults alone.
+- Legacy `/siteconfig/theme-experience/` redirects to the **hub**; append `?studio=1` to jump directly to Studio Experience (old bookmarks).
+
+Operator manager chrome reads `RuntimeDefaults.public_brand_*` via `CONTROL_PLANE_BRAND_CSS_VARS` on `control_plane_skeleton.html` (`static/css/control-plane-operator-brand.css`).
+
+Gate: `python scripts/verify_dual_plane_theme_experience.py`.
+
 ## 1. Three surfaces
 
 | Surface | Base template | Theme source | Where theme is applied |

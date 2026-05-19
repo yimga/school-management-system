@@ -1,0 +1,4 @@
+{% load static %}
+{# Non-blocking stylesheet load — keeps critical path to 3 CSS requests (bootstrap, design-tokens, critical bundle). #}
+<link rel="stylesheet" href="{% static stylesheet %}" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="{% static stylesheet %}"></noscript>

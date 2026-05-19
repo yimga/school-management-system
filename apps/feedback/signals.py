@@ -66,7 +66,7 @@ def _email_submitters_on_release(sender, instance: ReleaseNote, created, **kwarg
     feature_request_ids = set(instance.feature_requests.values_list("id", flat=True))
     # Also pull through the RoadmapItem's linked requests.
     if instance.roadmap_item_id:
-        rm_ids = FeatureRequest.objects.filter(
+        rm_ids = FeatureRequest.objects.filter(  # tenant-isolation-allow: public-feature-request-vote-aggregate
             roadmap_items=instance.roadmap_item_id
         ).values_list("id", flat=True)
         feature_request_ids.update(rm_ids)
@@ -74,11 +74,11 @@ def _email_submitters_on_release(sender, instance: ReleaseNote, created, **kwarg
         return
 
     submitter_ids = set(
-        FeatureRequest.objects.filter(id__in=feature_request_ids)
+        FeatureRequest.objects.filter(id__in=feature_request_ids)  # tenant-isolation-allow: public-feature-request-status-notify
         .values_list("submitted_by_id", flat=True)
     )
     voter_ids = set(
-        FeedbackVote.objects.filter(feature_request_id__in=feature_request_ids)
+        FeedbackVote.objects.filter(feature_request_id__in=feature_request_ids)  # tenant-isolation-allow: public-feedback-vote-dedup-global
         .values_list("user_id", flat=True)
     )
     recipient_ids = (submitter_ids | voter_ids) - {None}

@@ -3,7 +3,7 @@
 
 {% block backend_title %}{% trans "Metadata governance" %}{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="catalog">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <form method="get" action="{% url 'metadata:metadata_governance' %}" class="mb-4">

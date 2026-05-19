@@ -5,6 +5,18 @@
 
 {% block content %}
 <main class="rmc-page rmc-page--operator-webhooks" id="main">
+  {% if header_migration_window_active %}
+  <aside class="rmc-banner rmc-banner--info" role="status" aria-label="{% trans 'Webhook header migration' %}">
+    <strong>{% trans "Header migration in progress" %}</strong> —
+    {% if emit_legacy_headers %}
+      {% trans "emit-legacy is ON. Both X-RunMyCampus-* and X-Migration-Cloud-* header families are sent on every delivery." %}
+    {% else %}
+      {% trans "emit-legacy is OFF. Only X-RunMyCampus-* headers are sent; legacy headers are suppressed." %}
+    {% endif %}
+    {% blocktrans with deadline=header_migration_deadline %}Customer migration deadline {{ deadline }}.{% endblocktrans %}
+    <a class="rmc-link" href="/docs/WEBHOOK_HEADER_MIGRATION_2026.md">{% trans "Migration guide" %}</a>
+  </aside>
+  {% endif %}
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Webhook subscriptions" %}</h1>
     <p class="rmc-lede">
@@ -15,6 +27,18 @@
       <a class="rmc-btn rmc-btn--ghost" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}">{% trans "Delivery log" %}</a>
     </div>
   </header>
+
+  <section class="rmc-card rmc-card--verifier-sdk" aria-labelledby="verifier-sdk-heading">
+    <h2 class="rmc-h2" id="verifier-sdk-heading">{% trans "Subscriber-side signature verifier SDK" %}</h2>
+    <p>
+      {% trans "Drop one of these single-file libraries into your webhook receiver to verify the X-RunMyCampus-Signature header. Each is dependency-free, MIT-licensed, and constant-time compare by default." %}
+    </p>
+    <ul class="rmc-list rmc-list--inline">
+      <li><a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_api:webhook-verifier-download' asset='python' %}{% else %}{% url 'migration_cloud_super:migration_cloud_api:webhook-verifier-download' asset='python' %}{% endif %}" download>{% trans "Download Python SDK" %} (<code class="rmc-kbd">webhook_verifier_sdk.py</code>)</a></li>
+      <li><a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_api:webhook-verifier-download' asset='javascript' %}{% else %}{% url 'migration_cloud_super:migration_cloud_api:webhook-verifier-download' asset='javascript' %}{% endif %}" download>{% trans "Download JavaScript SDK" %} (<code class="rmc-kbd">runmycampus_webhook_verifier.js</code>)</a></li>
+      <li><a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_api:webhook-verifier-download' asset='docs' %}{% else %}{% url 'migration_cloud_super:migration_cloud_api:webhook-verifier-download' asset='docs' %}{% endif %}" download>{% trans "Download verification guide" %} (<code class="rmc-kbd">WEBHOOK_VERIFICATION.md</code>)</a></li>
+    </ul>
+  </section>
 
   <form method="get" class="rmc-toolbar" role="search" aria-label="{% trans 'Filter webhooks' %}">
     <label class="rmc-form__label">{% trans "Tenant ID" %}

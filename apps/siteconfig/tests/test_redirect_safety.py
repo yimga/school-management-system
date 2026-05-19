@@ -37,4 +37,4 @@ class SiteConfigRedirectSafetyTests(TestCase):
             {"next": "https://evil.example/phish"},
         )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("studio_os:experience"))
+        self.assertEqual(response.url, reverse("siteconfig:theme_experience_hub"))

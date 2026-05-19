@@ -454,6 +454,29 @@ def record_app_install_for_billing(school, app, installation, *, amount=None):
     return entry
 
 
+def _resolve_country_multiplier_for_school(school) -> Decimal:
+    """PPP multiplier from siteconfig.CountryMultiplier by school region/country code."""
+    from apps.siteconfig.models_platform_catalog import CountryMultiplier
+
+    candidates: list[str] = []
+    region = getattr(school, "default_region", None)
+    if region is not None:
+        code = str(getattr(region, "code", "") or "").strip().upper()
+        if code:
+            candidates.append(code)
+            if len(code) >= 2:
+                candidates.append(code[:2])
+    for lookup in candidates:
+        row = (
+            CountryMultiplier.objects.filter(country_code__iexact=lookup, is_active=True)
+            .order_by("-updated_at")
+            .first()
+        )
+        if row is not None:
+            return Decimal(str(row.multiplier))
+    return Decimal("1.000")
+
+
 def ensure_subscription_for_school(school):
     account, _created = ensure_billing_account_for_school(school)
     active_statuses = [
@@ -475,7 +498,8 @@ def ensure_subscription_for_school(school):
     base_amount = Decimal(
         str(getattr(getattr(school, "plan", None), "base_price", None) or "0")
     )
-    billed_amount = base_amount
+    country_multiplier = _resolve_country_multiplier_for_school(school)
+    billed_amount = (base_amount * country_multiplier).quantize(Decimal("0.01"))
     if subscription is None:
         subscription = TenantSubscription.objects.create(
             billing_account=account,
@@ -487,6 +511,7 @@ def ensure_subscription_for_school(school):
             current_period_end=period_end,
             trial_end_date=getattr(school, "trial_end_date", None),
             base_amount=base_amount,
+            country_multiplier=country_multiplier,
             billed_amount=billed_amount,
             addon_codes=list(getattr(school, "addons", None) or []),
             metadata={"seeded_from_school": True},
@@ -520,6 +545,9 @@ def ensure_subscription_for_school(school):
     if subscription.base_amount != base_amount:
         subscription.base_amount = base_amount
         changed_fields.append("base_amount")
+    if subscription.country_multiplier != country_multiplier:
+        subscription.country_multiplier = country_multiplier
+        changed_fields.append("country_multiplier")
     if (
         not subscription.external_subscription_ref
         and subscription.billed_amount != billed_amount

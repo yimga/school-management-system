@@ -91,7 +91,31 @@ def main() -> int:
     if oversize_groups:
         for g in oversize_groups:
             print(f"    - {g['group']}: {g['item_count']} items")
+    md_path = OUT_PATH.with_suffix(".md")
+    md_lines = [
+        f"- Groups: **{len(groups)}** | Items: **{total_items}** | Biggest: **{biggest}**",
+        f"- Oversize (>{OVERSIZE_THRESHOLD}): **{len(oversize_groups)}**",
+        "",
+        "| Group | Items |",
+        "| --- | --- |",
+    ]
+    for g in groups:
+        md_lines.append(f"| {g['group']} | {g['item_count']} |")
+    md_path.write_text(
+        "\n".join(
+            [
+                "# Navigation Simplification Audit",
+                "",
+                f"- Generated: `{datetime.now(timezone.utc).isoformat()}`",
+                "",
+            ]
+            + md_lines
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     print(f"  written:          {OUT_PATH.relative_to(ROOT).as_posix()}")
+    print(f"  written:          {md_path.relative_to(ROOT).as_posix()}")
     return 0
 
 

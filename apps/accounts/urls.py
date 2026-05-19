@@ -403,11 +403,12 @@ urlpatterns = [
     # users emailed by accounts.sunset_stale_legacy_hashes. Token-validated
     # by Django's PasswordResetConfirmView parent; view additionally clears
     # the three legacy_* fields atomically on form_valid.
+    # rbac-allow: token-authenticated legacy-hash one-time setup; must be anonymous-reachable
     path(
         "legacy-setup/<uidb64>/<token>/",
         LegacySetupView.as_view(),
         name="legacy_setup",
-    ),  # rbac-allow: token-authenticated setup link, must be anonymous-reachable
+    ),
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),
     path("mfa/verify/", mfa_verify, name="mfa_verify"),

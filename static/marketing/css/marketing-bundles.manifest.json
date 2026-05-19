@@ -1,0 +1,171 @@
+{
+  "version": "2026-05-19",
+  "generated_utc": "2026-05-19T02:37:00Z",
+  "critical": {
+    "path": "static/marketing/css/marketing-critical.min.css",
+    "bytes": 15789,
+    "sources": [
+      {
+        "path": "static/marketing/css/tokens-marketing.css",
+        "sha256": "28b4889f46d773528e408088d73cfb9cd56e4c2b99f0e5b2806db9b4f6c5ec1a",
+        "bytes": 6367
+      },
+      {
+        "path": "static/marketing/css/marketing-v3-shell.css",
+        "sha256": "4f08fd55827302b2075e01a99082546633e514ba058cdc25aec14d24ff8f654e",
+        "bytes": 3372
+      },
+      {
+        "path": "static/marketing/css/marketing-critical-path.css",
+        "sha256": "70724bde168809548e16fe47fd215b69a54072d0d0fd3f727f7d20ae194365e7",
+        "bytes": 1679
+      },
+      {
+        "path": "static/marketing/css/marketing-accessibility-hardening.css",
+        "sha256": "c840a62b9dc1d6a028eb12a8b5c3c4789bd5dd927203e16706b2c830d68bda9e",
+        "bytes": 10949
+      },
+      {
+        "path": "static/marketing/css/marketing-fonts.css",
+        "sha256": "1493f43220250124b4d113a753db91561b40f7c16ea43e4876d59e930e25388d",
+        "bytes": 1832
+      }
+    ]
+  },
+  "enhanced": {
+    "path": "static/marketing/css/marketing-enhanced.min.css",
+    "bytes": 234023,
+    "sources": [
+      {
+        "path": "static/css/rmc-class-grammar.css",
+        "sha256": "b4319f8ffab70b87e07bdf8452e7d7222511a5804106641a23866ab5fdc54393",
+        "bytes": 62070
+      },
+      {
+        "path": "static/css/rmc-platform-header.css",
+        "sha256": "0b45d2f9ee4c3c846b3149aa069c99b0c9d4b30127551852f9b69d8672944785",
+        "bytes": 6702
+      },
+      {
+        "path": "static/css/statement-header.css",
+        "sha256": "40471ab3f9485a69aafd501ea4ac21208e95f59c420971e85cb053d714e60c31",
+        "bytes": 7889
+      },
+      {
+        "path": "static/marketing/css/tokens-schoolhouse.css",
+        "sha256": "2cde74e49c9393752195a82e857cc8f2446c1009933cc0c58d8fb51227200502",
+        "bytes": 3468
+      },
+      {
+        "path": "static/marketing/css/marketing-v3-narrative.css",
+        "sha256": "09de4ef200569caee62dd851c4d9155ab1153abb030aedf3708f6bc038b5ae83",
+        "bytes": 12029
+      },
+      {
+        "path": "static/marketing/css/marketing-shell.css",
+        "sha256": "0d24a524257388aed69fbc3fd1f5a4a0a5d16decba40d0b66ed474c5d2704f8c",
+        "bytes": 38030
+      },
+      {
+        "path": "static/marketing/css/tokens-editorial.css",
+        "sha256": "48d0884ec53954631b9b6a40da21478f4568cc9359025d94bfcce211d870a63b",
+        "bytes": 50153
+      },
+      {
+        "path": "static/css/rmc-warm-bright-school.css",
+        "sha256": "cb05dd58023ebf8ac0ecdf2a5bafae88be463a71e68e5ceb9e98296dfbd5468b",
+        "bytes": 20658
+      },
+      {
+        "path": "static/css/rmc-cool-apple-polish.css",
+        "sha256": "333bdd92dcb65791f46250876d9e31fb9f60624b116980e175af09831d737336",
+        "bytes": 23209
+      },
+      {
+        "path": "static/css/design-tokens-luxury.css",
+        "sha256": "97ce301a704a2fd8b9e8de085c7b0224211de446f8d73b0ddf0f52ec462d3d0f",
+        "bytes": 5467
+      },
+      {
+        "path": "static/marketing/css/marketing-v3-dashboards.css",
+        "sha256": "b302d30aa9b565f9a347d2bbf4544de77760511515b0cc1198fd6f4be1276215",
+        "bytes": 1516
+      },
+      {
+        "path": "static/marketing/css/marketing-v3-pages.css",
+        "sha256": "d6ddcdce16b4783b2bed16bd6cfdcfa505459c5899e2d85238e2851fb2c17e4f",
+        "bytes": 5784
+      },
+      {
+        "path": "static/css/rmc-bell-clock-product.css",
+        "sha256": "2ef4d16c0be63dd157f11626e4010f1d48d31571c797049b9d432807bd7141de",
+        "bytes": 8493
+      },
+      {
+        "path": "static/marketing/css/proof-pages.css",
+        "sha256": "0fa13838f2194ebecac852734ace7a9b2e67c5122d78d89f95d7ee4aaaff8d7c",
+        "bytes": 6990
+      },
+      {
+        "path": "static/css/platform-high-end.css",
+        "sha256": "3307cc539d114510a1961570010e06d8abfe7be36442d2aa446f99f35dfe574b",
+        "bytes": 18745
+      },
+      {
+        "path": "static/css/marketing-static-bundle.css",
+        "sha256": "6686a244ea61480e950946d1551bdcdc23927fb19fe94fd9d605d4897b0d561c",
+        "bytes": 9839
+      },
+      {
+        "path": "static/css/glass-surface-recipe.css",
+        "sha256": "526073d02f0c95bc4b5eec29637cd62dca3c278d024d88e638b3a06276dd32b7",
+        "bytes": 2053
+      },
+      {
+        "path": "static/css/platform-responsive-touch.css",
+        "sha256": "85e32123d48672ccb7474a254ce216b4b4d6dd712b02519e98a78bb9ac433a3b",
+        "bytes": 4308
+      },
+      {
+        "path": "static/css/accessibility.css",
+        "sha256": "82863f14c1877cc4848cf5b4dd8204d52a31a49bbc625cf08334b56c98b64bbc",
+        "bytes": 1478
+      },
+      {
+        "path": "static/css/header-no-spillage.css",
+        "sha256": "80f69baffd9b7ffafce638c1efc1d0ad914930c71742396e8e20be20c65724c5",
+        "bytes": 3756
+      },
+      {
+        "path": "static/css/rmc-premium-os.css",
+        "sha256": "067d63f2657f30f7904cbbf93e13b1d032db3b8a4e732d51fdb5957e085f7988",
+        "bytes": 5242
+      },
+      {
+        "path": "static/css/rmc-premium-polish.css",
+        "sha256": "00be76a1c2a9cf63d03434f70d1b28db399ae20ab69b1f828c0645c13dbce57a",
+        "bytes": 3477
+      },
+      {
+        "path": "static/css/rmc-world-class-experience.css",
+        "sha256": "f2c2618d6531f622f492e461d942bacb6c07cd207c96fb93eb46ee8e410a7416",
+        "bytes": 24946
+      },
+      {
+        "path": "static/css/rmc-corporate-os.css",
+        "sha256": "abcab8cf5dae7c00b84d7cbcd268f17cffe05fb54622f24ede7ec319da3b7403",
+        "bytes": 3537
+      },
+      {
+        "path": "static/marketing/css/marketing-corporate-os.css",
+        "sha256": "130249a9b5804824a08767e792ab71262dad63e4965512b9451c5329cba77243",
+        "bytes": 8686
+      }
+    ]
+  },
+  "budgets": {
+    "critical_max": 45000,
+    "enhanced_max": 250000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; grammar/narrative/full shell deferred."
+  }
+}

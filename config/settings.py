@@ -206,6 +206,7 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.dashboard.apps.DashboardConfig",
     "apps.finance",
+    "payment",
     "apps.payroll",
     "apps.compliance.apps.ComplianceConfig",
     "apps.communication",
@@ -264,6 +265,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.ReservedPublicHostAccessMiddleware",  # verify./support. host isolation
     "apps.schools.middleware.PublicPathRedirectMiddleware",  # public paths hit on tenant host -> base host
     "apps.schools.middleware.TenantMiddleware",  # When USE_DJANGO_TENANTS=0: resolve request.school from host
+    "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
     "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
     "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
     "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
@@ -280,6 +282,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.ModuleActivationMiddleware",  # World Engine E.2: set request.active_modules from get_tenant_modules
     "apps.schools.middleware.TenantApiQuotaMiddleware",  # Plan I: per-tenant API rate limit
     "config.middleware.GlobalHotPathRateLimitMiddleware",  # §0.3: per-IP cap on OneRoster/SCIM/LTI/token hot paths
+    "config.middleware.RequestTimeoutMiddleware",  # Glocal: wall-clock cap on slow rural networks
     "apps.schools.middleware.DynamicThemeMiddleware",  # Phase B: admin theme per school (Unfold/Jazzmin/Sneat)
     "django.middleware.locale.LocaleMiddleware",  # Add for i18n
     "django.middleware.common.CommonMiddleware",
@@ -330,6 +333,11 @@ MIDDLEWARE += [
     # 'unsafe-inline' was removed from the policy and enforce mode is now safe).
     # Operators can roll back to Report-Only via CSP_ENFORCE=0.
     "apps.security.csp_middleware.ContentSecurityPolicyMiddleware",
+    # v3.33.0: paint X-RateLimit-Soft-Warn: 1 on responses whose throttle
+    # crossed 80% of the scope ceiling. Reads request._rmc_rate_soft_warn
+    # set inside MigrationCloudGlobalThrottle.allow_request. No-op for
+    # requests where the flag isn't set, so cheap to wire globally.
+    "apps.migration_cloud.api.rate_limiting.SoftWarnHeaderMiddleware",
 ]
 
 # CSP defaults — enforced by default since v2.57 (inline-style backlog at 0).
@@ -685,6 +693,46 @@ PASSWORD_HASHERS = [
 # django-cryptography 1.x reads when its conf is initialized.
 CRYPTOGRAPHY_KEY = os.environ.get("DJANGO_CRYPTOGRAPHY_KEY") or SECRET_KEY
 
+# --- Migration Cloud MAA version flip (v3.34.0 Agent 5) ---
+# Promotion plumbing for the MAA v2.0 counsel-pending body. We CANNOT
+# promote v2.0 to default until external counsel signs off — that step
+# is a real-world legal deferral, not a software change. What this
+# setting does ship is the **one-config-flip** wiring so that when
+# counsel signoff lands the operator can advance the default with a
+# single env-var change (plus a maa_text.py edit that removes "v2.0"
+# from the draft-version set). See
+# ``docs/MAA_V2_PROMOTION_CHECKLIST.md`` for the full procedure.
+#
+# Safety contract:
+#   * Default value is "v1.0" — the production-signed body. Never
+#     auto-flips. Operators must explicitly set the env var to promote.
+#   * Opt-in tenants (RMC_MAA_V2_OPTIN_TENANT_IDS) get a **preview-only**
+#     v2.0 banner in the sign flow. The signature_text captured at
+#     server-side is STILL the active version — preview never binds.
+#   * The active version that the receiver signs is resolved via
+#     ``apps.migration_cloud.services.maa_text.resolve_active_version_for_tenant``;
+#     the preview version (if any) is resolved via
+#     ``resolve_preview_version_for_tenant``.
+MIGRATION_CLOUD_MAA_DEFAULT_VERSION = os.environ.get(
+    "RMC_MAA_DEFAULT_VERSION", "v1.0"
+)
+MIGRATION_CLOUD_MAA_OPTIN_TENANT_IDS = [
+    int(_x)
+    for _x in (os.environ.get("RMC_MAA_V2_OPTIN_TENANT_IDS", "") or "").split(",")
+    if _x.strip().isdigit()
+]
+
+# --- Celery beat enablement gate (v3.34.0 Agent 5) ---
+# Lazy guard for beat entries that the operator can defer per-environment
+# (e.g. local dev should not poll upstream PyPI for django-cryptography
+# every Monday). Production sets this to "1"; CI / dev lanes default
+# off via the env. Existing beat entries that predate this setting
+# remain active unconditionally — only entries that explicitly check
+# this flag are gated.
+CELERY_BEAT_ENABLED = (
+    os.environ.get("CELERY_BEAT_ENABLED", "1").strip() == "1"
+)
+
 # --- Static / Media ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -786,6 +834,10 @@ SECURE_REDIRECT_EXEMPT = [
 ]
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "1") == "1" and not DEBUG
 CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "1") == "1" and not DEBUG
+if RUNNING_TESTS:
+    # Django test Client uses HTTP; Secure cookies would never round-trip.
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 # Cookies must not be readable by JavaScript — defense-in-depth for XSS.
 SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "1") == "1"
 CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "1") == "1"
@@ -1234,9 +1286,11 @@ if REDIS_URL:
     }
 
 # Optional: Redis-backed sessions when Redis is available (shared across workers)
-if REDIS_URL:
+if REDIS_URL and not RUNNING_TESTS:
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
     SESSION_CACHE_ALIAS = "default"
+if RUNNING_TESTS:
+    SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 # --- Celery (background tasks; broker uses REDIS_URL when set) ---
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or REDIS_URL or ""
@@ -1297,6 +1351,13 @@ CELERY_BEAT_SCHEDULE = {
         "task": "compliance.mark_sla_breaches",
         "schedule": 3600.0,  # Hourly — GDPR Art. 12(3) one-month SLA, hourly granularity is fine
         "options": {"expires": 300},
+    },
+    # Glocal closeout — server-side offline queue replay (LCA / background_retry).
+    "platform-runtime-process-offline-queues": {
+        "task": "platform_runtime.process_offline_queues_due",
+        "schedule": 300.0,
+        "kwargs": {"limit_per_school": 25, "school_limit": 50},
+        "options": {"expires": 240},
     },
     # v3.32.0 Agent 4 — daily sweep for low MealPlanBalance rows the
     # post_save signal missed (e.g. rows already low at app-startup).
@@ -1384,6 +1445,47 @@ CELERY_BEAT_SCHEDULE = {
         "kwargs": {"dry_run": False, "age_months": 12, "grace_days": 30},
         "options": {"queue": "default", "expires": 3600},
     },
+    # v3.33.0 Agent 4 — monthly orphan-ciphertext audit for the
+    # MultiFernet rotation lifecycle. First of month, 04:00 UTC. The
+    # task ONLY verifies (it does NOT auto-rotate) — if any orphans
+    # are found, it emails the operator distribution list. Auto-rotate
+    # is operator-driven via `python manage.py rotate_encryption_keys
+    # --apply` so the operator is in the loop on every key migration.
+    # Lazy-guarded for CI lanes without celery installed (falls back
+    # to a ~30-day interval; the operator UTC alignment is best-effort
+    # in that path).
+    "accounts-key-rotation-monthly": {
+        "task": "accounts.audit_encryption_key_orphans",
+        "schedule": (
+            _celery_crontab(hour=4, minute=0, day_of_month="1")
+            if _celery_crontab is not None
+            else 2592000.0
+        ),
+        "options": {"queue": "default", "expires": 3600},
+    },
+    # v3.34.0 Agent 5 — weekly upstream watch for django-cryptography
+    # Django-5 compatibility. Mondays 05:00 UTC. The script ALWAYS exits
+    # 0 (it's a watch, not a gate); the task layer parses the audit JSON
+    # and emails the operator when a candidate release lands. NEVER
+    # auto-upgrades — operator manually verifies + PRs the
+    # requirements.txt bump per the docs/UPSTREAM_WATCH.md protocol.
+    # Lazy-guarded behind CELERY_BEAT_ENABLED so dev / CI lanes can
+    # disable upstream polling without code edits.
+    **(
+        {
+            "upstream-watch-django-cryptography": {
+                "task": "accounts.watch_django_cryptography_upstream",
+                "schedule": (
+                    _celery_crontab(hour=5, minute=0, day_of_week=1)
+                    if _celery_crontab is not None
+                    else 604800.0
+                ),
+                "options": {"queue": "default", "expires": 3600},
+            },
+        }
+        if CELERY_BEAT_ENABLED
+        else {}
+    ),
     "update-invoice-statuses": {
         "task": "finance.update_invoice_statuses",
         "schedule": 86400.0,  # Daily
@@ -1747,7 +1849,44 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": int(os.getenv("API_DEFAULT_PAGE_SIZE", "50")),
     # Pass 12: RFC 7807 problem+json envelope on every error response.
     "EXCEPTION_HANDLER": "apps.api.exception_handler.rfc7807_exception_handler",
+    # v3.33.0: Migration Cloud global throttle. Path-scoped — short-circuits
+    # to NO-OP for any request whose path does not contain
+    # ``/migration/api/v1/``, so non-Migration-Cloud DRF surfaces keep
+    # their existing semantics. Three internal scopes:
+    #   * webhook_tenant  — 1000/hour (any /webhooks/ path)
+    #   * bundles_write   — 600/min   (unsafe HTTP method)
+    #   * bundles_read    — 100/min   (safe HTTP method)
+    # See ``apps/migration_cloud/api/rate_limiting.py``.
+    "DEFAULT_THROTTLE_CLASSES": (
+        "apps.migration_cloud.api.rate_limiting.MigrationCloudGlobalThrottle",
+    ),
 }
+
+# v3.33.0: SSE deployment transport mode. ``wsgi-fallback`` emits a
+# one-shot snapshot frame and closes (safe under sync Gunicorn workers);
+# ``asgi-daphne`` runs the full 60s long-poll loop. See
+# ``docs/SSE_DAPHNE_DEPLOYMENT.md`` for the operator runbook.
+MIGRATION_CLOUD_SSE_TRANSPORT = os.getenv(
+    "MIGRATION_CLOUD_SSE_TRANSPORT", "wsgi-fallback",
+).strip().lower()
+
+# v3.35.0 — Webhook header family migration window.
+#
+# The outbound webhook dispatcher emits BOTH the new canonical
+# ``X-RunMyCampus-*`` header family AND the legacy ``X-Migration-Cloud-*``
+# header family during a 90-day deprecation window so existing customer
+# verifier code continues to work. After 2026-08-18 the legacy family
+# will be removed in v3.40.0 (or the earliest release on/after that
+# date). Customers should migrate their verifier code to the new family
+# during the window — see ``docs/WEBHOOK_HEADER_MIGRATION_2026.md``.
+#
+# Default ON for backwards-compat. Operators flip
+# ``RMC_EMIT_LEGACY_WEBHOOK_HEADERS=0`` once all their downstream
+# receivers have migrated.
+MIGRATION_CLOUD_EMIT_LEGACY_HEADERS = (
+    os.environ.get("RMC_EMIT_LEGACY_WEBHOOK_HEADERS", "1").strip() == "1"
+)
+MIGRATION_CLOUD_LEGACY_HEADER_DEPRECATION_DATE = "2026-08-18"
 
 # Pass 12: CORS allowlist. Strict by default; SiteConfig can extend per tenant
 # at request time via a middleware (django-cors-headers honors the dynamic list
@@ -1904,6 +2043,9 @@ LANGUAGES = [
     ("sw", "Kiswahili"),
     ("ha", "Hausa"),
     ("yo", "Yoruba"),
+    ("he", "עברית (Hebrew)"),
+    ("fa", "فارسی (Persian)"),
+    ("ur", "اردو (Urdu)"),
 ]
 
 # Register custom language codes in Django's LANG_INFO so get_language_info() (e.g. admin/unfold language switch) does not raise KeyError.
@@ -1919,6 +2061,9 @@ EXTRA_LANG_INFO = {
     "sw": {"bidi": False, "code": "sw", "name": "Kiswahili", "name_local": "Kiswahili"},
     "ha": {"bidi": False, "code": "ha", "name": "Hausa", "name_local": "Hausa"},
     "yo": {"bidi": False, "code": "yo", "name": "Yoruba", "name_local": "Yorùbá"},
+    "he": {"bidi": True, "code": "he", "name": "Hebrew", "name_local": "עברית"},
+    "fa": {"bidi": True, "code": "fa", "name": "Persian", "name_local": "فارسی"},
+    "ur": {"bidi": True, "code": "ur", "name": "Urdu", "name_local": "اردو"},
 }
 django.conf.locale.LANG_INFO = {**django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO}
 
@@ -1985,8 +2130,21 @@ PAYMENT_MAX_AMOUNT = int(os.getenv("PAYMENT_MAX_AMOUNT", "100000000000"))
 # Global grading scales (imported from apps.evals.grading module at runtime)
 # Reference: GRADING_SCALES, CURRENCY_SYMBOLS defined in apps/evals/grading.py
 
-# Optional: exchange rates for GET /api/v1/finance/exchange-rate (e.g. {"USD_XAF": 600, "BASE": "USD"} or Fixer.io key)
-# EXCHANGE_RATES = {}
+# FX table for reporting + CurrencyLocalization (units per 1 USD unless FROM_TO pair keys).
+EXCHANGE_RATES = {
+    "BASE": "USD",
+    "USD": 1,
+    "EUR": 0.92,
+    "GBP": 0.79,
+    "NGN": 1550,
+    "KES": 130,
+    "XAF": 600,
+    "ZAR": 18.5,
+    "CNY": 7.2,
+    "THB": 36,
+}
+# Wall-clock request cap for WSGI (0 = disabled). Rural / high-latency UX; see RequestTimeoutMiddleware.
+REQUEST_TIMEOUT_SECONDS = int(os.getenv("REQUEST_TIMEOUT_SECONDS", "120"))
 
 # --- AI Gateway (RunMyCampus Open-Source AI Adoption Blueprint) ---
 # All product AI goes through services.ai_gateway. No browser calls Ollama/vLLM/LiteLLM directly.
@@ -2173,6 +2331,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.schools.middleware.ReservedPublicHostAccessMiddleware",
         "apps.schools.middleware.PublicPathRedirectMiddleware",
         "apps.schools.middleware.TenantSchemaSchoolBridgeMiddleware",
+        "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
         "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)

@@ -1,16 +1,14 @@
 {
-  "generated_at": "2026-05-08T15:49:19.430Z",
+  "generated_at": "2026-05-19T03:00:37.142Z",
   "verdict": "APPLE-CLASS UX READY - LOCAL",
   "components": [
     {
       "name": "glass panel",
       "marker": "[data-apple-class-glass-panel]",
-      "count": 12,
+      "count": 8,
       "routes": [
         "/configuration/",
-        "/configuration/change-requests/",
-        "/school/settings/",
-        "/super/"
+        "/configuration/change-requests/"
       ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
@@ -32,18 +30,16 @@
         "/configuration/billing/",
         "/configuration/migrations/",
         "/school/money/",
-        "/school/setup/imports/"
+        "/siteconfig/onboarding/"
       ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
     {
       "name": "metric card",
       "marker": "[data-apple-class-metric-card]",
-      "count": 8,
+      "count": 2,
       "routes": [
-        "/configuration/billing/",
-        "/school/settings/",
-        "/super/"
+        "/configuration/billing/"
       ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
@@ -58,8 +54,8 @@
         "/school/money/",
         "/school/settings/",
         "/school/setup/blueprints/",
-        "/school/setup/imports/",
-        "/school/setup/packs/"
+        "/school/setup/packs/",
+        "/siteconfig/onboarding/"
       ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
@@ -75,8 +71,8 @@
         "/configuration/policy-bundles/",
         "/configuration/workflow-packs/",
         "/school/setup/blueprints/",
-        "/school/setup/imports/",
-        "/school/setup/packs/"
+        "/school/setup/packs/",
+        "/siteconfig/onboarding/"
       ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
@@ -103,15 +99,22 @@
         "/configuration/billing/",
         "/configuration/migrations/",
         "/school/money/",
-        "/school/setup/imports/"
+        "/siteconfig/onboarding/"
       ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
     {
       "name": "risk/blocker card",
       "marker": "[data-world-class-risk-blocker-card], [data-apple-class-risk-card]",
-      "count": 0,
-      "routes": [],
+      "count": 32,
+      "routes": [
+        "/configuration/",
+        "/configuration/blueprints/",
+        "/school/apps/",
+        "/school/money/",
+        "/school/settings/",
+        "/super/"
+      ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
     {
@@ -128,8 +131,14 @@
     {
       "name": "inline edit field",
       "marker": "[data-apple-class-inline-edit-field]",
-      "count": 0,
-      "routes": [],
+      "count": 20,
+      "routes": [
+        "/configuration/",
+        "/configuration/blueprints/",
+        "/school/apps/",
+        "/school/money/",
+        "/school/settings/"
+      ],
       "accessibility_notes": "Covered in authenticated route smoke and axe pass where rendered."
     },
     {

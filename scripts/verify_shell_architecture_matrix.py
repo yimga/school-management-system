@@ -116,8 +116,8 @@ def main(argv: list[str] | None = None) -> int:
         "templates/marketing/base_marketing.html",
         [
             'data-surface="marketing"',
-            "marketing/css/tokens-marketing.css",
-            "marketing/css/marketing-shell.css",
+            "marketing/css/marketing-critical.min.css",
+            "marketing/css/marketing-enhanced.min.css",
         ],
     )
     _check_not_contains(

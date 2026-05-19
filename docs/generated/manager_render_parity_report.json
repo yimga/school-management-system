@@ -2,5 +2,18 @@
   "version": "2026.05.17",
   "matrix_ok": true,
   "local_version_ok": true,
-  "remote_version": {}
+  "remote_version": {
+    "RENDER_PARITY_BASE_URL": {
+      "url": "https://school-management-system-2kzk.onrender.com",
+      "ok": true,
+      "commit_sha": "611b7855539c007280781943268bcaf33b51a1f7",
+      "build_time": "unknown"
+    },
+    "MANAGER_PARITY_BASE_URL": {
+      "url": "https://manager.runmycampus.com",
+      "ok": true,
+      "commit_sha": "611b7855539c007280781943268bcaf33b51a1f7",
+      "build_time": "unknown"
+    }
+  }
 }

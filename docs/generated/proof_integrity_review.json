@@ -1,42 +1,8 @@
 {
-  "generated_at": "2026-05-07T00:00:00-04:00",
-  "scope": "repo proof integrity cleanup",
-  "verdict": "PROOF INTEGRITY READY - REPO SCOPE",
-  "sot_batch_id_uniqueness": {
-    "status": "passed",
-    "command": "python scripts/verify_sot_batch_id_uniqueness.py",
-    "rows_checked": 570,
-    "policy": "Duplicate §11.4 forward queue batch IDs fail unless non-primary duplicate rows are explicitly marked as superseded aliases.",
-    "resolved_duplicate_ids": [
-      "1087",
-      "1193",
-      "1194",
-      "1195",
-      "1197"
-    ],
-    "notes": [
-      "batch 1170-dev is treated as a dev suffix row, not a numeric batch 1170 duplicate",
-      "duplicate rows were marked as superseded aliases without changing factual proof claims"
-    ]
-  },
   "artifact_reconciliation": {
-    "local_browser_ux": {
-      "artifact": "docs/generated/live_browser_ux_certification_report.json",
-      "truth": "LIVE BROWSER UX CERTIFIED - LOCAL"
-    },
     "admin_config_browser_qa": {
       "artifact": "docs/generated/admin_config_browser_qa_report.json",
       "truth": "superseded checklist only; not browser/live certification"
-    },
-    "render_parity": {
-      "artifact": "docs/generated/render_parity_certification_report.json",
-      "truth": "RENDER PARITY PARTIAL",
-      "remaining_blockers": [
-        "deployed SHA not verified",
-        "authenticated manager QA not certified",
-        "authenticated tenant QA not certified",
-        "Render shell command parity not certified"
-      ]
     },
     "category_scope": {
       "artifact": "docs/generated/category_scope_review.json",
@@ -45,11 +11,48 @@
     "closure_map": {
       "artifact": "docs/generated/system_closure_map.json",
       "truth": "global_payments and marketplace_monetization remain partial external blockers"
+    },
+    "local_browser_ux": {
+      "artifact": "docs/generated/live_browser_ux_certification_report.json",
+      "truth": "LIVE BROWSER UX CERTIFIED - LOCAL"
+    },
+    "render_parity": {
+      "artifact": "docs/generated/render_parity_certification_report.json",
+      "remaining_blockers": [
+        "deployed SHA not verified",
+        "authenticated manager QA not certified",
+        "authenticated tenant QA not certified",
+        "Render shell command parity not certified"
+      ],
+      "truth": "RENDER PARITY PARTIAL"
     }
   },
   "external_honesty": {
-    "full_market_category_defining_claim": false,
+    "apple_class_browser_current": true,
+    "full_market_category_defining": false,
+    "live_psp_certified": false,
     "render_parity_certified": false,
-    "live_psp_certified": false
-  }
+    "soc2_pci_certified": false
+  },
+  "final_validation_truth_check": "FINAL VALIDATION READY \u2014 FOCUSED REPO SCOPE",
+  "generated_at": "2026-05-19T06:55:52.647999+00:00",
+  "scope": "repo proof integrity cleanup",
+  "sot_batch_id_uniqueness": {
+    "command": "python scripts/verify_sot_batch_id_uniqueness.py",
+    "notes": [
+      "batch 1170-dev is treated as a dev suffix row, not a numeric batch 1170 duplicate",
+      "duplicate rows were marked as superseded aliases without changing factual proof claims"
+    ],
+    "policy": "Duplicate \u00a711.4 forward queue batch IDs fail unless non-primary duplicate rows are explicitly marked as superseded aliases.",
+    "resolved_duplicate_ids": [
+      "1087",
+      "1193",
+      "1194",
+      "1195",
+      "1197"
+    ],
+    "rows_checked": 570,
+    "status": "passed"
+  },
+  "verdict": "PROOF INTEGRITY READY - REPO SCOPE"
 }

@@ -39,7 +39,7 @@ def metrics_for_publisher(publisher: PublisherOrganization) -> dict:
             "webhook_health": {"endpoints": 0, "succeeded": 0, "failed": 0, "abandoned": 0},
         }
 
-    install_counts = AppInstallation.objects.filter(app_id__in=app_ids).aggregate(
+    install_counts = AppInstallation.objects.filter(app_id__in=app_ids).aggregate(  # tenant-isolation-allow: marketplace-partner-install-metrics-aggregate
         active=Count("id", filter=Q(status=AppInstallation.Status.ACTIVE)),
         lifetime=Count("id"),
         uninstalled_30d=Count(
@@ -51,7 +51,7 @@ def metrics_for_publisher(publisher: PublisherOrganization) -> dict:
         ),
     )
 
-    subs = TenantMarketplaceSubscription.objects.filter(
+    subs = TenantMarketplaceSubscription.objects.filter(  # tenant-isolation-allow: marketplace-partner-subscription-metrics-aggregate
         app_id__in=app_ids, status=TenantMarketplaceSubscription.Status.ACTIVE
     )
     mrr_cents = 0
@@ -64,14 +64,14 @@ def metrics_for_publisher(publisher: PublisherOrganization) -> dict:
             mrr_cents += int((amt / Decimal("12")) * 100)
         # one-time / none -> 0 MRR contribution
 
-    earnings = PlatformMarketplaceEarning.objects.filter(app_id__in=app_ids)
+    earnings = PlatformMarketplaceEarning.objects.filter(app_id__in=app_ids)  # tenant-isolation-allow: marketplace-partner-earnings-metrics-aggregate
     pub_share_30d = earnings.filter(
         recorded_at__gte=timezone.now() - timedelta(days=30)
     ).aggregate(s=Sum("publisher_share_amount"))["s"] or Decimal("0.00")
     pub_share_lifetime = earnings.aggregate(s=Sum("publisher_share_amount"))["s"] or Decimal("0.00")
 
     # Webhook health: last 24h
-    wh_24h = WebhookDelivery.objects.filter(
+    wh_24h = WebhookDelivery.objects.filter(  # tenant-isolation-allow: marketplace-partner-webhook-metrics-aggregate
         app_id__in=app_ids, created_at__gte=timezone.now() - timedelta(hours=24)
     ).aggregate(
         succeeded=Count("id", filter=Q(status=WebhookDelivery.Status.SUCCEEDED)),
@@ -112,7 +112,7 @@ def per_app_metrics(publisher: PublisherOrganization) -> list[dict]:
         .order_by("name")
     )
     for app in apps:
-        install_counts = AppInstallation.objects.filter(app=app).aggregate(
+        install_counts = AppInstallation.objects.filter(app=app).aggregate(  # tenant-isolation-allow: marketplace-partner-install-rollups-by-publisher
             active=Count("id", filter=Q(status=AppInstallation.Status.ACTIVE)),
             lifetime=Count("id"),
             uninstalled_30d=Count(
@@ -124,7 +124,7 @@ def per_app_metrics(publisher: PublisherOrganization) -> list[dict]:
             ),
         )
         pub_share_30d = (
-            PlatformMarketplaceEarning.objects.filter(
+            PlatformMarketplaceEarning.objects.filter(  # tenant-isolation-allow: marketplace-partner-earnings-rollups-by-publisher
                 app=app, recorded_at__gte=timezone.now() - timedelta(days=30)
             ).aggregate(s=Sum("publisher_share_amount"))["s"]
             or Decimal("0.00")

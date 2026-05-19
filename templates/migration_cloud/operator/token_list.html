@@ -60,6 +60,7 @@
           {% endif %}
         </td>
         <td>
+          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_chain' token_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_token_chain' token_id=r.id %}{% endif %}">{% trans "Chain" %}</a>
           <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_rotate' token_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_token_rotate' token_id=r.id %}{% endif %}" class="rmc-form--inline">
             {% csrf_token %}
             <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Rotate" %}</button>

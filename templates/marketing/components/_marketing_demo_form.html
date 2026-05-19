@@ -8,7 +8,7 @@
   {% elif request.GET.error %}
     <div class="mkt-edt-alert mkt-edt-alert--warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please try again or contact us directly." %}</div>
   {% endif %}
-  <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="mkt-v3-form row g-3" data-form-name="demo">
+  <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="mkt-v3-form row g-3" data-form-name="demo" novalidate data-rmc-validate="inline">
     {% csrf_token %}
     <div aria-hidden="true" class="mkt-v3-form__honeypot">
       <label for="demo-website-url">{% trans "Leave this field empty" %}</label>
@@ -16,11 +16,11 @@
     </div>
     <div class="col-md-6">
       <label for="demo-name" class="form-label">{% trans "Name" %}</label>
-      <input type="text" id="demo-name" name="name" class="form-control" maxlength="256" required>
+      <input type="text" id="demo-name" name="name" class="form-control" maxlength="256" required autocomplete="name" aria-required="true">
     </div>
     <div class="col-md-6">
       <label for="demo-email" class="form-label">{% trans "Email" %}</label>
-      <input type="email" id="demo-email" name="email" class="form-control" maxlength="256" required>
+      <input type="email" id="demo-email" name="email" class="form-control" maxlength="256" required autocomplete="email" inputmode="email" aria-required="true">
     </div>
     <div class="col-md-6">
       <label for="demo-phone" class="form-label">{% trans "Phone" %}</label>

@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-05-19T06:55:55.361868+00:00",
+  "post_handler_summary": {},
+  "schema_version": 1,
+  "source": [
+    "scripts/audit_post_handler_surface.py",
+    "scripts/audit_template_url_names.py"
+  ],
+  "summary_by_bucket": {
+    "product": 274,
+    "scripts": 4
+  },
+  "summary_by_classification": {
+    "needs_review": 98,
+    "protected_candidate": 176,
+    "scripts_cli": 4
+  },
+  "template_url_audit": "0 broken (see PLATFORM_AUDIT_ARTIFACTS_2026_05_16.md)"
+}

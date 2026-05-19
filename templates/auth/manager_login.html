@@ -1,11 +1,12 @@
 {% extends "control_plane_skeleton.html" %}
-{% load static i18n %}
+{% load static i18n marketing_public_urls %}
 
 {% block title %}{% trans "Control plane sign-in" %} — RunMyCampus Manager{% endblock %}
 
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/manager-login.css' %}">
+  {% include "marketing/partials/corporate_footer_styles.html" %}
 {% endblock %}
 
 {% block content %}
@@ -57,8 +58,12 @@
               <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
             </form>
 
-            <div class="manager-login-footer mt-3">
-              <a href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer">{% trans "Back to public site" %}</a>
+            <div class="manager-login-footer mt-3 d-flex flex-wrap justify-content-center gap-2">
+              <a href="{% marketing_public_href 'status' %}">{% trans "Platform status" %}</a>
+              <span class="text-white-50" aria-hidden="true">·</span>
+              <a href="{% marketing_public_href 'find_school' %}">{% trans "Find campus" %}</a>
+              <span class="text-white-50" aria-hidden="true">·</span>
+              <a href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
             </div>
           </div>
         </div>
@@ -66,5 +71,8 @@
     </div>
   </div>
 </section>
+<div class="manager-login-corporate-footer" data-manager-login-public-footer>
+  {% include "marketing/partials/corporate_footer_bundle.html" %}
+</div>
 </main>
 {% endblock %}

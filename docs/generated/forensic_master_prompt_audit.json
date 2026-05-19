@@ -1,0 +1,152 @@
+{
+  "generated_at": "2026-05-19T03:09:18.769050+00:00",
+  "verdict": "FORENSIC_MASTER_PROMPT_PASS",
+  "pass_count": 24,
+  "fail_count": 0,
+  "rows": [
+    {
+      "id": "1a",
+      "mandate": "Light/Dark/System + AAA cycle",
+      "status": "PASS",
+      "proof": "verify_theme_aaa_brand_cycle: PASS (6 brands x 2 surfaces @ 7.0:1)"
+    },
+    {
+      "id": "1b",
+      "mandate": "WCAG visibility + shell sweep",
+      "status": "PASS",
+      "proof": "2f4yCvEs', '2026-05-19 09:08:20.590568', 'f2ugw4crjuuxkrlea2udeg4cpfhl37f5'); alias=default\nDEBUG 2026-05-18 23:08:20,599 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.006) COMMIT; args=None; alias=default"
+    },
+    {
+      "id": "1c",
+      "mandate": "Hue-shift guardrail platform-wide",
+      "status": "PASS",
+      "proof": "apps\\siteconfig\\brand_guard_runtime.py"
+    },
+    {
+      "id": "1d",
+      "mandate": "Shopify-grade theme builder + hub + E2E spec",
+      "status": "PASS",
+      "proof": "verify_theme_experience_gear: PASS"
+    },
+    {
+      "id": "2a",
+      "mandate": "BOLA matrix >= 30 cases",
+      "status": "PASS",
+      "proof": "test_bola_idor_matrix: 34 tests"
+    },
+    {
+      "id": "2b",
+      "mandate": "Session school binding middleware",
+      "status": "PASS",
+      "proof": "session_school_bind + middleware"
+    },
+    {
+      "id": "2c",
+      "mandate": "Cryptographic session seal tamper test",
+      "status": "PASS",
+      "proof": "apps\\schools\\tests\\test_session_school_bind.py"
+    },
+    {
+      "id": "2d",
+      "mandate": "Campus switch hierarchy tests",
+      "status": "PASS",
+      "proof": "apps\\api\\tests\\test_me_switch_school_bola.py"
+    },
+    {
+      "id": "2e",
+      "mandate": "Tenant queryset safety baseline 0",
+      "status": "PASS",
+      "proof": "    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 218,\n  \"finding_count\": 0,\n  \"findings_per_app\": {}\n}\n[scanner] tenant-scoped models: 218\n\n[scanner] sample (first 5):"
+    },
+    {
+      "id": "3a",
+      "mandate": "PERF_BUDGET_STRICT smoke",
+      "status": "PASS",
+      "proof": "GCzWuYbc', '2026-05-19 03:38:38.734332', 'fu9hhv793e6ggwrrlddmdlpxk4bdosep'); alias=default\nDEBUG 2026-05-18 23:08:38,744 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.006) COMMIT; args=None; alias=default"
+    },
+    {
+      "id": "3b",
+      "mandate": "N+1 caps on diagnostics/simulator",
+      "status": "PASS",
+      "proof": "apps\\siteconfig\\tests\\test_performance_zero_ticket.py"
+    },
+    {
+      "id": "3c",
+      "mandate": "DOM budget gate (executed)",
+      "status": "PASS",
+      "proof": "cz3lscT8', '2026-05-19 03:38:58.468956', 'r2gqil9ycinq1a0gb2yjsbv8o49rkgcc'); alias=default\nDEBUG 2026-05-18 23:08:58,478 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.006) COMMIT; args=None; alias=default"
+    },
+    {
+      "id": "4.0",
+      "mandate": "Platform vector imports",
+      "status": "PASS",
+      "proof": "- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+    },
+    {
+      "id": "4.1-4.6",
+      "mandate": "Behavioral vector tests module",
+      "status": "PASS",
+      "proof": "apps\\platform_runtime\\tests\\test_tenant_platform_vector_behavior.py"
+    },
+    {
+      "id": "4.6",
+      "mandate": "Audit append-only scan",
+      "status": "PASS",
+      "proof": "verify_audit_log_append_only: PASS (no AuditLog.objects.update/delete in app code)"
+    },
+    {
+      "id": "4.5",
+      "mandate": "Finance payment atomicity",
+      "status": "PASS",
+      "proof": "verify_finance_payment_atomicity: PASS"
+    },
+    {
+      "id": "4.6b",
+      "mandate": "Append-only ORM + bulk delete",
+      "status": "PASS",
+      "proof": "apps\\platform_runtime\\tests\\test_tenant_platform_vector_delete_invariants.py"
+    },
+    {
+      "id": "5.1",
+      "mandate": "Zero-Ticket hub stack",
+      "status": "PASS",
+      "proof": "apps/siteconfig/views_zero_ticket_hub.py,apps/siteconfig/tenant_diagnostics.py,apps/siteconfig/permission_matrix_simulator.py,static/js/rmc-zero-ticket-diagnostics.js"
+    },
+    {
+      "id": "5.2",
+      "mandate": "Permission simulator + export",
+      "status": "PASS",
+      "proof": "siteconfig urls"
+    },
+    {
+      "id": "5.3",
+      "mandate": "Workflow canvas hub (not link-only)",
+      "status": "PASS",
+      "proof": "templates\\siteconfig\\campus_workflow_canvas_hub.html"
+    },
+    {
+      "id": "5.4",
+      "mandate": "Campus switcher a11y",
+      "status": "PASS",
+      "proof": "templates\\components\\rmc_campus_switcher.html"
+    },
+    {
+      "id": "6",
+      "mandate": "No placeholders in hot paths",
+      "status": "PASS",
+      "proof": "zero-ticket + theme_builder views"
+    },
+    {
+      "id": "7",
+      "mandate": "SOT batch 1288 + autonomous log",
+      "status": "PASS",
+      "proof": "docs present"
+    },
+    {
+      "id": "8",
+      "mandate": "RBAC matrix within ceiling",
+      "status": "PASS",
+      "proof": "  login-gated:          844\n  role-gated:           74\n  permission-gated:     98\n  inline-auth-check:    55\n  auth-mixin-gated:     65\n  rbac-allow markers:   56\n  candidate-anonymous:  9 (review for public routes)\n  unresolved-view:      28 (view_symbol not found in views*.py)\n  json:                 docs/generated/role_permission_matrix.json\n  csv:                  docs/generated/role_permission_matrix.csv\n\nNOTE: candidate_anonymous count 9 is BELOW gate 66. Consider tightening the gate to 9."
+    }
+  ]
+}

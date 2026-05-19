@@ -61,31 +61,24 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def _resolve_fernet_key() -> bytes:
-    """Resolve the Fernet key bytes used to encrypt legacy_* columns.
+    """Resolve the *primary* (newest) Fernet key bytes.
 
     Returns 32 url-safe base64-encoded bytes (the format Fernet expects).
 
     Resolution order:
 
-    1. ``DJANGO_CRYPTOGRAPHY_KEY`` env var. If set, it must be a valid
-       url-safe-base64 Fernet key (44 chars, 32 raw bytes). Any other
-       value is rejected (Fernet will raise on first use; we surface a
-       clear log line at startup).
-    2. ``SECRET_KEY`` from Django settings, SHA-256 hashed and
-       url-safe-base64 encoded. This is a *development convenience*; a
-       SECRET_KEY rotation also rotates the encryption key, which is
-       not what you want in production. The log line at module-import
-       time warns when we fall through to this branch.
+    1. ``settings.DJANGO_CRYPTOGRAPHY_KEYS`` (list, newest-first) — if
+       set, returns the first entry. This is the v3.33.0 rotation path.
+    2. ``DJANGO_CRYPTOGRAPHY_KEY`` env var (singular, legacy). If set,
+       it must be a valid url-safe-base64 Fernet key (44 chars, 32 raw
+       bytes).
+    3. ``SECRET_KEY`` from Django settings, SHA-256 hashed and
+       url-safe-base64 encoded. Development convenience only.
     """
-    env_key = (os.environ.get("DJANGO_CRYPTOGRAPHY_KEY") or "").strip()
-    if env_key:
-        # Validate length cheaply; deeper validation happens at first use.
-        if len(env_key) != 44:
-            logger.warning(
-                "django_cryptography_key_unexpected_length",
-                extra={"len": len(env_key), "expected": 44},
-            )
-        return env_key.encode("ascii")
+    # v3.33.0 — MultiFernet rotation path. Newest key first.
+    keys = _resolve_fernet_key_list()
+    if keys:
+        return keys[0]
 
     # Dev/test fallback: derive deterministically from SECRET_KEY.
     try:
@@ -100,6 +93,60 @@ def _resolve_fernet_key() -> bytes:
         extra={"source": "SECRET_KEY", "production_safe": False},
     )
     return derived
+
+
+def _resolve_fernet_key_list() -> list[bytes]:
+    """Resolve the ordered list of Fernet keys (newest-first).
+
+    v3.33.0 MultiFernet rotation support. Resolution order:
+
+    1. ``settings.DJANGO_CRYPTOGRAPHY_KEYS`` — Python list of
+       url-safe-base64 strings. Newest-first. Used by the rotation
+       code path.
+    2. ``DJANGO_CRYPTOGRAPHY_KEY`` env var (singular, legacy) — one key.
+    3. Empty list — caller falls through to SECRET_KEY-derived path.
+
+    NEVER logs the key bytes themselves — only counts + a length-check
+    side-channel. A length mismatch is a configuration error worth
+    surfacing; the key itself is not emitted.
+    """
+    out: list[bytes] = []
+
+    # Highest priority: list-typed setting for rotation.
+    try:
+        from django.conf import settings  # local import
+        list_setting = getattr(settings, "DJANGO_CRYPTOGRAPHY_KEYS", None)
+    except Exception:  # pragma: no cover - settings should always import
+        list_setting = None
+    if list_setting:
+        if isinstance(list_setting, (list, tuple)):
+            for entry in list_setting:
+                if not entry:
+                    continue
+                if isinstance(entry, bytes):
+                    out.append(entry)
+                elif isinstance(entry, str):
+                    s = entry.strip()
+                    if s:
+                        if len(s) != 44:
+                            logger.warning(
+                                "django_cryptography_keys_entry_unexpected_length",
+                                extra={"len": len(s), "expected": 44, "position": len(out)},
+                            )
+                        out.append(s.encode("ascii"))
+        if out:
+            return out
+
+    # Singular env var (legacy single-key deployments).
+    env_key = (os.environ.get("DJANGO_CRYPTOGRAPHY_KEY") or "").strip()
+    if env_key:
+        if len(env_key) != 44:
+            logger.warning(
+                "django_cryptography_key_unexpected_length",
+                extra={"len": len(env_key), "expected": 44},
+            )
+        out.append(env_key.encode("ascii"))
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -124,15 +171,24 @@ except Exception:  # noqa: BLE001 - we MUST tolerate any startup error from the 
 
 
 def _get_fernet():
-    """Lazily build a Fernet instance using the resolved key.
+    """Lazily build a Fernet (or MultiFernet) using the resolved key(s).
 
     Lazy so that test runs which never touch the legacy_* fields don't
     require the ``cryptography`` extra to be importable. Re-resolved on
     every call so key rotation via env var picks up without process
     restart in dev (production sets the env at boot, so re-resolution
     is cheap).
+
+    v3.33.0: when ``settings.DJANGO_CRYPTOGRAPHY_KEYS`` carries more
+    than one entry, returns a ``MultiFernet`` that **encrypts under the
+    first (newest) key** and **decrypts under any** key in the list.
+    This is the rotation grace pattern — older ciphertexts continue to
+    open while new writes already use the new key.
     """
-    from cryptography.fernet import Fernet  # local import: optional at module load
+    from cryptography.fernet import Fernet, MultiFernet  # local import: optional at module load
+    keys = _resolve_fernet_key_list()
+    if len(keys) >= 2:
+        return MultiFernet([Fernet(k) for k in keys])
     return Fernet(_resolve_fernet_key())
 
 
@@ -180,8 +236,9 @@ class EncryptedCharField(models.CharField):
         return value
 
     def get_prep_value(self, value: Any) -> Any:
+        # Never persist SQL NULL — CharField columns are NOT NULL with default="".
         if value is None or value == "":
-            return value
+            return ""
         if not isinstance(value, str):
             value = str(value)
         return _get_fernet().encrypt(value.encode("utf-8")).decode("utf-8")
@@ -235,9 +292,7 @@ class EncryptedJSONField(models.JSONField):
             return value
 
     def get_prep_value(self, value: Any) -> Any:
-        if value is None:
-            return None
-        if value == {} or value == "" or value == "{}":
+        if value is None or value == {} or value == "" or value == "{}":
             return "{}"
         serialized = json.dumps(value, separators=(",", ":"), sort_keys=True)
         return _get_fernet().encrypt(serialized.encode("utf-8")).decode("utf-8")
@@ -364,3 +419,25 @@ def backend_in_use() -> str:
     code path executed. NOT logged with any secret material.
     """
     return "django_cryptography_upstream" if _USE_UPSTREAM else "internal_fernet_shim"
+
+
+def active_key_count() -> int:
+    """Return how many Fernet keys are currently active.
+
+    1 = single-key (no rotation in flight). 2+ = MultiFernet rotation
+    grace period. 0 = SECRET_KEY-derived dev fallback. Used by the
+    rotation tooling + the operator beat for visibility. NEVER logs
+    key material.
+    """
+    return len(_resolve_fernet_key_list())
+
+
+def _get_primary_fernet():
+    """Return a single-key Fernet built from the NEWEST key only.
+
+    Used by the rotation code path: re-encrypt with this so the
+    resulting ciphertext is solely under the new primary key (no
+    MultiFernet token-version ambiguity).
+    """
+    from cryptography.fernet import Fernet  # local import: optional at module load
+    return Fernet(_resolve_fernet_key())

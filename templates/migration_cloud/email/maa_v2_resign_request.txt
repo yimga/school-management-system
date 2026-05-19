@@ -1,0 +1,25 @@
+{% load i18n %}{% blocktrans %}Action requested: re-sign Migration Authorization Agreement (v2.0){% endblocktrans %}
+
+{% blocktrans with name=recipient_name|default:"there" %}Hello {{ name }},{% endblocktrans %}
+
+{% blocktrans %}RunMyCampus has updated the Migration Authorization Agreement (MAA) you previously signed for migration of source-vendor data into your tenant. The new version (v2.0) expands the data-protection language we are committing to, with five clauses that did not appear in v1.0:{% endblocktrans %}
+
+  1. {% trans "Scope of access" %} - {% trans "the agreement is now explicitly limited to the data domains you select in the Companion at extraction time." %}
+  2. {% trans "Data minimization" %} - {% trans "fields that are not mapped to our canonical ontology are quarantined and never written into your tenant unless you explicitly map them." %}
+  3. {% trans "No retention beyond migration" %} - {% trans "raw migration artifacts are purged within 90 days of successful apply, or earlier on written withdrawal." %}
+  4. {% trans "Right to withdraw at any time" %} - {% trans "you can withdraw consent at any time; we stop processing within 48 hours of receiving notice." %}
+  5. {% trans "Data subject rights" %} - {% trans "we route GDPR and NY Education Law section 2-d data-subject requests through you as data controller and respond within the 30-day statutory window." %}
+
+{% blocktrans %}Your existing v1.0 signature remains valid for migrations already accepted by RunMyCampus. The v2.0 agreement only applies to future uploads. To keep using the Migration Cloud for new uploads, please re-sign v2.0 within the next 30 days:{% endblocktrans %}
+
+  {{ resign_url }}
+
+{% blocktrans %}If you have questions, reply to this email or contact partner-success@runmycampus.com. The full text of v2.0 is shown on the sign page.{% endblocktrans %}
+
+{% blocktrans %}Thank you,
+The RunMyCampus team{% endblocktrans %}
+
+--
+{% trans "This is a transactional email tied to your existing Migration Authorization Agreement." %}
+{% trans "Campaign:" %} {{ campaign_version }}
+{% trans "Agreement reference:" %} #{{ agreement_id }}

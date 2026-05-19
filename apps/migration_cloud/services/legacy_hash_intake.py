@@ -88,6 +88,7 @@ def store_legacy_hash(
     algorithm: str,
     params_dict: Optional[dict] = None,
     source_vendor: str = "",
+    legacy_hash_created_at_source: Optional[Any] = None,
 ) -> bool:
     """Canonical write site for a foreign-vendor legacy hash.
 
@@ -106,6 +107,15 @@ def store_legacy_hash(
         source_vendor: Human-readable source SIS identifier
             (``"powerschool"``, ``"blackbaud"``, etc.) — logged for
             operator visibility, NEVER part of the verify path.
+        legacy_hash_created_at_source: v3.33.0 — when the source SIS
+            exposes a "password last set" timestamp (PowerSchool's
+            ``PasswordChanged`` column, Blackbaud SKY's
+            ``PasswordLastChanged``, etc.), the extractor passes the
+            vendor-reported value here. We use it as the sunset anchor
+            so a hash that's been "stale" at the vendor for 11 months
+            does not get a fresh 12-month grace clock on intake. Falls
+            back to ``timezone.now()`` when not provided (most vendors
+            do NOT expose this — see ``VENDOR_COVERAGE.md``).
 
     Returns:
         ``True`` on success, ``False`` on DB failure (logged
@@ -123,13 +133,83 @@ def store_legacy_hash(
             f"user must be a {UserModel.__name__} instance, got {type(user).__name__}"
         )
 
+    # Resolve the sunset anchor. Vendor-provided timestamps win when
+    # present; otherwise we anchor to "now" so the 12-month sunset
+    # clock starts at intake. Defensive: if the caller hands us a
+    # naive value or a string, fall back to "now" rather than raising
+    # — the lander shouldn't fail intake on a type quirk in the
+    # vendor payload.
+    #
+    # v3.34.0 — extended to accept ISO-8601 strings from the per-vendor
+    # extractors (the Companion bundle emits string timestamps via
+    # JSON), and to clamp future-dated values to now() with a structured
+    # warning (clock skew on the vendor server is real; Blackbaud /
+    # Alma have been observed emitting timestamps slightly ahead of
+    # UTC). The clamp is defensive — a future anchor would make the
+    # sunset clock fire "in the future", which the cron skips silently.
     now = timezone.now()
+    anchor = now
+    _anchor_clamped_future = False
+    _anchor_parsed_from_string = False
+    if legacy_hash_created_at_source is not None:
+        from datetime import datetime as _dt
+        from datetime import timedelta as _td
+
+        candidate = None
+        if isinstance(legacy_hash_created_at_source, _dt):
+            candidate = legacy_hash_created_at_source
+        elif (
+            isinstance(legacy_hash_created_at_source, str)
+            and legacy_hash_created_at_source.strip()
+        ):
+            raw = legacy_hash_created_at_source.strip()
+            # Normalize the common "...Z" UTC suffix for fromisoformat.
+            if raw.endswith("Z"):
+                raw = raw[:-1] + "+00:00"
+            try:
+                candidate = _dt.fromisoformat(raw)
+                _anchor_parsed_from_string = True
+            except (ValueError, TypeError):
+                candidate = None
+
+        if candidate is not None:
+            # Make sure we store an aware datetime.
+            if timezone.is_naive(candidate):
+                try:
+                    candidate = timezone.make_aware(candidate)
+                except Exception:  # noqa: BLE001
+                    candidate = None
+
+        if candidate is not None:
+            # Future-date clamp (clock-skew protection). Allow a
+            # 60-second forward tolerance to avoid noisy warnings for
+            # rows generated within the same minute as intake.
+            if candidate > now + _td(seconds=60):
+                _anchor_clamped_future = True
+                # Emit a structured warning — operator-visible, NEVER
+                # contains hash / salt / password material.
+                logger.warning(
+                    "legacy_hash_intake_anchor_clamped_future",
+                    extra={
+                        "user_id": getattr(user, "pk", None),
+                        "algorithm": algorithm,
+                        "source_vendor": source_vendor or "unspecified",
+                        "skew_seconds": int(
+                            (candidate - now).total_seconds()
+                        ),
+                        "result": "anchor_clamped_to_now",
+                    },
+                )
+                anchor = now
+            else:
+                anchor = candidate
+
     try:
         with transaction.atomic():
             user.legacy_password_hash = hash_value
             user.legacy_hash_algorithm = algorithm
             user.legacy_hash_params = params_dict
-            user.legacy_hash_created_at = now
+            user.legacy_hash_created_at = anchor
             user.save(update_fields=INTAKE_FIELDS)
     except DatabaseError:
         logger.exception(
@@ -152,6 +232,9 @@ def store_legacy_hash(
             "algorithm": algorithm,
             "source_vendor": source_vendor or "unspecified",
             "params_keys": sorted(params_dict.keys()),
+            "anchor_from_vendor": legacy_hash_created_at_source is not None,
+            "anchor_parsed_from_string": _anchor_parsed_from_string,
+            "anchor_clamped_future": _anchor_clamped_future,
             "result": "stored",
         },
     )

@@ -53,7 +53,7 @@ def _evaluate_rule_health_below(rule, *, now) -> int:
         return 0
     threshold = int(rule.config.get("threshold") or 50)
     recent_since = now - timedelta(hours=24)
-    qs = TenantHealthScore.objects.filter(
+    qs = TenantHealthScore.objects.filter(  # tenant-isolation-allow: platform-operator-health-score-sweep-all-tenants
         score__lte=threshold, computed_at__gte=recent_since
     ).select_related("school")
     fired = 0
@@ -78,7 +78,7 @@ def _evaluate_rule_risk_alert_red(rule, *, now) -> int:
     except ImportError:
         return 0
     recent_since = now - timedelta(hours=24)
-    qs = TenantRiskAlert.objects.filter(
+    qs = TenantRiskAlert.objects.filter(  # tenant-isolation-allow: platform-operator-risk-alert-sweep-all-tenants
         severity="red", created_at__gte=recent_since
     ).select_related("school")
     fired = 0

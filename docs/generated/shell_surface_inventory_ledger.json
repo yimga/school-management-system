@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-05-17T19:37:48.351199+00:00",
-  "passed": false,
+  "generated_at": "2026-05-19T07:11:39.389618+00:00",
+  "passed": true,
   "rows": [
     {
       "path": "templates/accounts/backend_dashboard.html",
@@ -19,6 +19,14 @@
       "summary": "ok"
     },
     {
+      "path": "templates/backend_base_manager.html",
+      "summary": "ok"
+    },
+    {
+      "path": "templates/backend_base_tenant.html",
+      "summary": "ok"
+    },
+    {
       "path": "templates/base.html",
       "summary": "ok"
     },
@@ -28,7 +36,7 @@
     },
     {
       "path": "templates/control_plane_base.html",
-      "summary": "missing: data-rmc-shell-title="
+      "summary": "ok"
     },
     {
       "path": "templates/control_plane_skeleton.html",
@@ -152,7 +160,7 @@
     },
     {
       "path": "templates/siteconfig/academic_years_setup_evidence.html",
-      "summary": "missing: data-shell-surface=, data-admin-replacement-category="
+      "summary": "ok"
     },
     {
       "path": "templates/siteconfig/bulk_letters.html",
@@ -168,7 +176,7 @@
     },
     {
       "path": "templates/siteconfig/departments_setup_evidence.html",
-      "summary": "missing: data-shell-surface=, data-admin-replacement-category="
+      "summary": "ok"
     },
     {
       "path": "templates/siteconfig/entity_catalog_overview.html",
@@ -224,7 +232,7 @@
     },
     {
       "path": "templates/siteconfig/scheduled_reports_delivery_hub.html",
-      "summary": "missing: data-shell-surface="
+      "summary": "ok"
     },
     {
       "path": "templates/siteconfig/school_theme_settings.html",
@@ -232,15 +240,15 @@
     },
     {
       "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
-      "summary": "missing: data-siteconfig-surface="
+      "summary": "ok"
     },
     {
       "path": "templates/siteconfig/term_publish_status_evidence.html",
-      "summary": "missing: data-shell-surface=, data-admin-replacement-category="
+      "summary": "ok"
     },
     {
       "path": "templates/siteconfig/user_preferences.html",
-      "summary": "missing: shell_chrome_contextual_info_banner.html, chrome_banner_title="
+      "summary": "ok"
     },
     {
       "path": "templates/studio_os/partials/shell_main_content.html",
@@ -255,6 +263,6 @@
       "summary": "ok"
     }
   ],
-  "templates_checked": 63,
+  "templates_checked": 65,
   "verify": "verify_shell_surface_inventory"
 }

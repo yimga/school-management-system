@@ -5,7 +5,7 @@ const { defineConfig } = require('@playwright/test');
 
 // run_visual_qa.sh sets PLAYWRIGHT_HOST_RULES when a Postgres tenant domain is discovered
 const _defaultRules =
-  'MAP runmycampus.com 127.0.0.1,MAP manager.runmycampus.com 127.0.0.1';
+  'MAP runmycampus.com 127.0.0.1,MAP manager.runmycampus.com 127.0.0.1,MAP apple-class-qa.runmycampus.com 127.0.0.1';
 const _hostRules = (process.env.PLAYWRIGHT_HOST_RULES || _defaultRules).trim();
 
 module.exports = defineConfig({

@@ -293,9 +293,13 @@ CONFIGURATION_MODULES: tuple[ConfigurationModule, ...] = (
         "Studio OS",
         "both",
         "ready",
-        "Open Studio experience",
-        _link("Studio experience", "studio_os:experience"),
+        "Open theme & experience hub",
+        _link("Theme & experience hub", "siteconfig:theme_experience_hub"),
         _link("Premium UX audit", path="/docs/generated/live_ux_premium_audit.md"),
+        detail=(
+            "Dual-plane configurability: tenants use the school hub on the tenant host; "
+            "operators use this hub on manager.runmycampus.com plus RuntimeDefaults public brand."
+        ),
     ),
 )
 
@@ -461,7 +465,13 @@ TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
     {"name": "Apps", "status": "ready", "missing": "marketplace monetization external_required", "route": "/settings/app-catalog/", "primary_action": "Open school app catalog"},
     {"name": "Workflows", "status": "ready", "missing": "none", "route": "/studio/automation/", "primary_action": "Open automation studio"},
     {"name": "Offline Settings", "status": "ready", "missing": "none", "route": "/portal/offline-sync/", "primary_action": "Open offline sync"},
-    {"name": "Branding / Theme", "status": "ready", "missing": "none", "route": "/siteconfig/school-theme/", "primary_action": "Open school theme"},
+    {
+        "name": "Branding / Theme",
+        "status": "ready",
+        "missing": "none",
+        "route": "/siteconfig/theme-experience/hub/",
+        "primary_action": "Open theme & experience hub",
+    },
     {"name": "Security / Audit", "status": "ready", "missing": "none", "route": "/compliance/", "primary_action": "Open school audit"},
 )
 

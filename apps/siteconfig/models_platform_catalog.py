@@ -20,6 +20,17 @@ class RegionConfig(models.Model):
         ("0-10", "European (0-10)"),
         ("a-f", "Letter Grade (A-F)"),
         ("gpa", "GPA (0-4.0)"),
+        ("uk-honours", "UK Honours classification (0-100)"),
+        ("ib-7", "IB Diploma (0-7)"),
+    ]
+    WEEK_START_CHOICES = [
+        (0, "Monday"),
+        (1, "Tuesday"),
+        (2, "Wednesday"),
+        (3, "Thursday"),
+        (4, "Friday"),
+        (5, "Saturday"),
+        (6, "Sunday"),
     ]
 
     code = models.CharField(
@@ -56,6 +67,11 @@ class RegionConfig(models.Model):
         max_length=20,
         choices=CALENDAR_CHOICES,
         default="gregorian",
+    )
+    week_start_day = models.IntegerField(
+        default=0,
+        choices=WEEK_START_CHOICES,
+        help_text="First day of the instructional week (0=Monday, 6=Sunday).",
     )
     grading_scale = models.CharField(
         max_length=20,

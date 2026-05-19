@@ -3,9 +3,9 @@
 
 {% block title %}{{ seo_title|default:"Developers" }}{% endblock %}
 {% block extrahead %}
+  {{ block.super }}
   <meta name="description" content="{{ seo_description|default:'' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
-  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
 {% endblock %}
 
 {% block content %}

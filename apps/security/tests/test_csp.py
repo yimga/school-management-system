@@ -22,19 +22,22 @@ class CspMiddlewareTests(SimpleTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-    def test_html_response_gets_csp_header_in_report_only_by_default(self):
+    @override_settings(CSP_ENFORCE=True)
+    def test_html_response_gets_csp_enforce_header_by_default(self):
+        """CSP_ENFORCE defaults True since v2.57 (inline-style backlog at 0)."""
+        mw = ContentSecurityPolicyMiddleware(_get_response)
+        resp = mw(self.factory.get("/"))
+        self.assertIn("Content-Security-Policy", resp)
+        self.assertNotIn("Content-Security-Policy-Report-Only", resp)
+        self.assertIn("default-src 'self'", resp["Content-Security-Policy"])
+
+    @override_settings(CSP_ENFORCE=False)
+    def test_html_response_gets_report_only_when_enforce_disabled(self):
         mw = ContentSecurityPolicyMiddleware(_get_response)
         resp = mw(self.factory.get("/"))
         self.assertIn("Content-Security-Policy-Report-Only", resp)
         self.assertNotIn("Content-Security-Policy", resp)
         self.assertIn("default-src 'self'", resp["Content-Security-Policy-Report-Only"])
-
-    @override_settings(CSP_ENFORCE=True)
-    def test_html_response_gets_enforce_header_when_flag_on(self):
-        mw = ContentSecurityPolicyMiddleware(_get_response)
-        resp = mw(self.factory.get("/"))
-        self.assertIn("Content-Security-Policy", resp)
-        self.assertNotIn("Content-Security-Policy-Report-Only", resp)
 
     def test_admin_path_bypassed(self):
         mw = ContentSecurityPolicyMiddleware(_get_response)
@@ -42,6 +45,7 @@ class CspMiddlewareTests(SimpleTestCase):
         self.assertNotIn("Content-Security-Policy-Report-Only", resp)
         self.assertNotIn("Content-Security-Policy", resp)
 
+    @override_settings(CSP_ENFORCE=True)
     def test_static_path_bypassed(self):
         mw = ContentSecurityPolicyMiddleware(_get_response)
         resp = mw(self.factory.get("/static/css/x.css"))

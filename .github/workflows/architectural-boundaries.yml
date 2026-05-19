@@ -39,6 +39,8 @@ on:
       - "beta/school-management-system/scripts/scan_off_token_colors.py"
       - "beta/school-management-system/scripts/scan_theme_locked_token_text.py"
       - "beta/school-management-system/var/security-audit-baseline-theme-locked-token-text.json"
+      - "beta/school-management-system/scripts/scan_pii_logging_smell.py"
+      - "beta/school-management-system/var/security-audit-baseline-pii-logging-smell.json"
       - "beta/school-management-system/templates/**/*.html"
       - "beta/school-management-system/static/css/**/*.css"
       - "beta/school-management-system/static/marketing/css/**/*.css"
@@ -437,6 +439,20 @@ jobs:
         run: |
           python scripts/scan_theme_attribute_contract.py --strict
 
+  pii-logging-smell:
+    name: "PII logging smell (passwords/tokens/secrets interpolated into logger calls)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run pii-logging-smell scanner --strict
+        run: |
+          python scripts/scan_pii_logging_smell.py --strict
+
   sentry-alert-rule-drift:
     name: "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
     runs-on: ubuntu-latest
@@ -735,6 +751,79 @@ jobs:
           python-version: "3.12"
       - name: Run marketing asset parity scanner
         run: python scripts/check_marketing_assets_claimed_vs_present.py
+
+  marketing-css-bundles-fresh:
+    name: Marketing CSS bundles fresh
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify marketing-critical/enhanced bundles match sources
+        run: python scripts/verify_marketing_css_bundles_fresh.py
+
+  marketing-public-shell:
+    name: Marketing public shell hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Marketing shell + hero media gates
+        run: |
+          python scripts/setup_marketing_ci_assets.py
+          python scripts/verify_marketing_public_shell.py
+          python scripts/verify_marketing_hero_media.py
+
+  platform-pillar-gates:
+    name: "Platform pillars: middleware order, tenant cache, list search"
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: beta/school-management-system
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Pillar mechanical gates
+        env:
+          SECRET_KEY: "ci-platform-pillar-gates-not-production-64chars-long"
+          ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
+        run: |
+          python scripts/verify_middleware_stack_order.py
+          python scripts/verify_tenant_resolution_cache_keys.py
+          python scripts/verify_list_search_adoption.py
+          python scripts/verify_five_pillar_platform_completion.py --write
+          python manage.py migrate --noinput
+          python manage.py backfill_search_indexes --only all
+          python scripts/run_sqlite_memory_tests.py \
+            apps.schools.tests.test_tenant_resolution_cache \
+            apps.siteconfig.tests.test_list_search \
+            apps.siteconfig.tests.test_tenant_switch_security \
+            apps.people.tests.test_student_search \
+            apps.marketplace.tests.test_extension_manifest_validation \
+            apps.marketplace.tests.test_install_manifest_gate \
+            apps.automation.tests.test_domain_event_bridge_depth \
+            apps.automation.tests.test_domain_event_dedup \
+            apps.automation.tests.test_trigger_dispatcher_depth \
+            apps.schoolops.tests.test_notification_batch \
+            apps.finance.tests.test_webhook_ingress \
+            apps.finance.tests.test_views_payments_dedup_bucket \
+            apps.api.tests.test_me_schools_bola \
+            apps.portal.tests.test_document_search \
+            payment.tests.test_webhook_ingress \
+            --verbosity=1
 
   theme-visibility-platform:
     name: "Theme visibility: shell wiring + main-content utility baseline"

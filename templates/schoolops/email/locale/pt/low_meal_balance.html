@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Saldo baixo no plano de refeições</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
+  <p>Olá,</p>
+  <p>
+    Este é um aviso de cortesia: o saldo do plano de refeições de
+    <strong>{{ student_first_name }} {{ student_last_name }}</strong>
+    está agora no limite de saldo baixo configurado ou abaixo dele.
+  </p>
+  <table cellpadding="6" cellspacing="0" border="0"
+         style="border-collapse: collapse; margin: 12px 0;">
+    <tr><td><strong>Plano</strong></td><td>{{ plan_label }}</td></tr>
+    <tr><td><strong>Saldo</strong></td><td>{{ balance_display }}</td></tr>
+    <tr><td><strong>Limite</strong></td><td>{{ threshold_display }}</td></tr>
+  </table>
+  <p>Considere recarregar o saldo para evitar interrupção do serviço.</p>
+  <p style="color: #6b7280; font-size: 12px;">
+    Você está a receber esta notificação porque está registado como tutor
+    deste(a) aluno(a). Para ajustar as preferências de notificação,
+    visite o portal dos pais.
+  </p>
+  <p>Obrigado,<br>RunMyCampus</p>
+</body>
+</html>

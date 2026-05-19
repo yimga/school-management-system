@@ -1,11 +1,12 @@
 {% load i18n static %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token }}">
     {% include "partials/rmc_theme_meta.html" %}
+    {% include "partials/control_plane_operator_brand_style.html" %}
     {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
        v2.47 (2026-05-15): Control plane defaults to LIGHT — manager-aesthetic-polish.css
        was authored for light content over dark chrome (sidebar/navbar stay dark in both
@@ -37,7 +38,10 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). #}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
@@ -49,6 +53,7 @@
     <link rel="stylesheet" href="{% static 'css/utilities-extras.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+    <link rel="stylesheet" href="{% static 'css/control-plane-operator-brand.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
     <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
@@ -71,6 +76,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
     {# Phase G (2026-05-12): platform-wide long-page grammar. #}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -78,6 +84,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
   <body class="control-plane-shell cp-surface" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>

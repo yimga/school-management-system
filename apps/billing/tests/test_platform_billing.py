@@ -65,6 +65,32 @@ class PlatformBillingServicesTests(TestCase):
         self.assertEqual(subscription.base_amount, Decimal("199.00"))
         self.assertEqual(subscription.billed_amount, Decimal("199.00"))
 
+    def test_ensure_subscription_applies_country_multiplier(self):
+        from apps.billing.services import _resolve_country_multiplier_for_school
+        from apps.siteconfig.models_platform_catalog import CountryMultiplier, RegionConfig
+
+        region, _ = RegionConfig.objects.get_or_create(
+            code="KEN",
+            defaults={
+                "name": "Kenya",
+                "default_currency": "KES",
+                "grading_scale": "0-100",
+            },
+        )
+        CountryMultiplier.objects.update_or_create(
+            country_code="KEN",
+            defaults={"multiplier": Decimal("0.75"), "is_active": True},
+        )
+        self.school.default_region = region
+        self.school.save(update_fields=["default_region"])
+
+        self.assertEqual(_resolve_country_multiplier_for_school(self.school), Decimal("0.75"))
+
+        _account, subscription, _created = ensure_subscription_for_school(self.school)
+
+        self.assertEqual(subscription.country_multiplier, Decimal("0.75"))
+        self.assertEqual(subscription.billed_amount, Decimal("149.25"))
+
     def test_ensure_subscription_materializes_entitlements_and_limits(self):
         from apps.billing.entitlements import can, limits
 

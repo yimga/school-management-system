@@ -72,9 +72,8 @@ def _build_policy() -> str:
 class ContentSecurityPolicyMiddleware:
     """Adds the CSP header to every HTML response.
 
-    In Report-Only mode (default) browsers send violation reports but do not
-    block. Flip ``CSP_ENFORCE=True`` once the high-traffic surfaces show zero
-    new violations.
+    Enforce mode is default (``CSP_ENFORCE=True``). Set ``CSP_ENFORCE=0`` to
+    emit ``Content-Security-Policy-Report-Only`` instead.
     """
 
     BYPASS_PREFIXES = ("/admin/", "/static/", "/media/")

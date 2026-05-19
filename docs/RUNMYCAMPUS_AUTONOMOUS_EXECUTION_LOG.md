@@ -1,5 +1,207 @@
 # RunMyCampus autonomous execution log
 
+## Slice - batch 1281 final validation audit closeout (2026-05-19)
+
+**A. Scope:** Re-audit Phases 0–18 (Final Validation master prompt); close repo gaps; document Lane 2 honestly.
+
+**B. Fixes:** `base_marketing.html` phase2 enforcement CSS; `write_render_parity_local_report.py` remote SHA; `generate_final_validation_truth_check.py` + `audit_final_validation_phases.py`; CSP/tenant-breach/founder tests.
+
+**C. Tests:** Phase 15 certification subset **24/24**; `run_kill_test.py` **PASS** (`kill_test_recovery.sqlite3` + `--keepdb`); founder + security enforcement green after manager `TransactionTestCase` + `SESSION_PINNING_ENABLED=False` harness (`apps/test_utils/http_clients.py`).
+
+**D. Gates:** `audit_final_validation_phases.py --write` **`all_phases_ok=true` (18/18)**; truth check **FINAL VALIDATION READY — FOCUSED REPO SCOPE**; North Star **75/75**; kill_test **PASS**; design system Phase 2 PASS.
+
+**E. Artifacts:** `final_validation_phase_audit.json` regenerated; `kill_test_report.json` PASS. Hosted SHA mismatch documented (`611b785` vs `ef295246`) — Lane 2 deploy only.
+
+**F. Lane 2 (not repo):** Deploy Render until live `commit_sha` == `git rev-parse HEAD`; re-run `write_render_parity_local_report.py`; PSP/SOC2 external.
+
+## Slice - batch 1291 aggressive glocal closeout 100% repo gate (2026-05-19)
+
+**A. Scope:** AGGRESSIVE GLOCAL CLOSEOUT PROMPT — finish repo-contained G-01..G-22 proofs (shell RTL/low-bandwidth, dual calendar display, people i18n mechanical sweep, payment rail seed command, expanded completion verifier).
+
+**B. Code:** `regional_ui.py` `rmc_low_bandwidth`; `portal_base.html` / `control_plane_skeleton.html` attrs + `glocal-text-expansion.css`; `AcademicYear.format_*_date_display`; `format_dual_date_tenant`; `seed_payment_rail_catalog`; `verify_glocal_closeout_completion.py` + `verify_phases_3_11_gates.py` wire; people template `{% trans %}` sweep.
+
+**C. Tests:** `apps/academics/tests/test_academic_year_dual_calendar.py`; glocal subset (`test_localization_glocal`, `test_calendar_display`, `test_fx`, `test_glocal_grading_sovereignty`, `test_tax_engine_glocal`, `test_cross_border_export`).
+
+**D. Proof:** `python scripts/verify_glocal_closeout_completion.py` → **Glocal closeout gate: OK** (full bundle: i18n, locale, shell, tenant 0, PII 0, money 0); `run_sqlite_memory_tests.py` **21/21** glocal tests OK.
+
+**E. Docs:** SOT §11.4 batch **1291 DONE**; matrix wave5+wave6; SW `sms-v3.36.0-glocal-closeout-1291-2026-05-19`. **Re-audit (2026-05-19):** expanded verifier covers all G-IDs; reconciled 32 tenant-isolation markers from v3.27 platform queries. **BLOCKED_EXTERNAL:** human translation vendor, live FX API key, native PSP credentials.
+
+---
+
+## Slice - batch 1290 certification residuals migration + Render SHA + axe READY (2026-05-19)
+
+**A. Scope:** Batch 1285 follow-up — migration drift zero, Lane 2 Render `/-/version/`, axe burndown to READY, forensic gate repair.
+
+**B. Code:** `migration_cloud` `0019`; `portal_base.html` + `portal-shell-bootstrap.js`; `tenant_app_catalog.html` labels; `app_list.html` sidebar; `rmc_metric_ticker.html` tabindex; `config/urls.py` `marketing_grow_*`; `check_performance_budgets.py` forensic ceilings; `apple_class_evidence.spec.js` axe main-canvas scope.
+
+**C. Tests:** `migrate migration_cloud`; `check_real_migration_drift.py` → **0 real**.
+
+**D. Proof:** `npx playwright test tests/e2e/apple_class_evidence.spec.js` **PASS** → **`APPLE-CLASS UX READY - LOCAL`** (46/46; axe color-contrast only); `npm run verify:forensic` → **24/24 PASS**; Render SHA `611b785` in `render_parity_certification_report.json`.
+
+**E. Docs:** SOT §11.4 batch 1290 **DONE**. **Residual:** manager hosted DNS parity (Lane 2).
+
+---
+
+## Slice - batch 1289 five-pillar platform 100% completion (2026-05-19)
+
+**A. Scope:** Close CTO five-pillar prompt (AWS tenant cache/BOLA, Shopify webhook ingress, Salesforce automation depth/dedup/batch, Linux marketplace manifest + middleware order, Google FTS search_index + backfill).
+
+**B. Code:** `verify_five_pillar_platform_completion.py`; `student_search` + `document_search`; migration `0051`; `backfill_search_indexes`; `test_me_schools_bola.py`; `test_document_search.py`; CI `platform-pillar-gates`.
+
+**C. Tests:** pillar subset via `verify:five-pillar` / `run_sqlite_memory_tests.py` (37 tests, CI-aligned list); completion audit fixed duplicate `StudentProfile.save`, BOLA tests use `RequestFactory`, `RUNNING_TESTS` session cookies.
+
+**D. Proof:** `python scripts/verify_five_pillar_platform_completion.py --write --run-tests` → **FIVE_PILLAR_PLATFORM_PASS (24/24)** incl. `PROOF django_tests`.
+
+**E. Docs:** SOT §11.4 batch 1289; SW `sms-v3.35.5-five-pillar-platform-1289-2026-05-19`.
+
+---
+
+## Slice - batch 1288 forensic master prompt 100% audit (2026-05-19)
+
+**A. Scope:** Section 8 compliance matrix — mechanical audit gate, DOM/CLS script, Playwright auth seed in CI, theme E2E + contract tests; reconcile stale batch 1283 residuals in SOT.
+
+**B. Code:** `verify_forensic_master_prompt_completion.py`; `verify_zero_ticket_dom_budget.mjs`; extended perf/dom targets; `theme_experience_forensic.spec.js`; `test_forensic_master_prompt_contract.py`.
+
+**C. Tests:** forensic contract + existing forensic suites (bola 34+, theme builder, vectors, zero-ticket).
+
+**D. Proof:** `python scripts/verify_forensic_master_prompt_completion.py` → **FORENSIC_MASTER_PROMPT_PASS**; `docs/generated/forensic_master_prompt_audit.json`.
+
+**E. Docs:** SOT §11.4 batch 1288; SW `sms-v3.35.4-forensic-master-prompt-1288-2026-05-19`.
+
+---
+
+## Slice - batch 1287 marketing frontend completion (2026-05-19)
+
+**A. Scope:** Close runmycampus.com marketing prompt to 100% — CSS bundles, self-hosted fonts, hero media, theme/LCP gates, contact form validation parity, CI `marketing-gates.yml`, theme×contrast Playwright matrix.
+
+**B. Code:** `build_marketing_css_bundles.py` + manifest; `base_marketing.html` bundle/defer shell; `setup_marketing_ci_assets.py`; `verify_marketing_frontend_completion.py`; `marketing-theme-contrast.spec.js`; `.gitignore` allowlist for ship assets; `_marketing_contact_form.html` `data-rmc-validate`.
+
+**C. Tests:** `test_marketing_phase1_foundation.py` (bundle + shell gates); `marketing-theme-contrast.spec.js` (18 cases).
+
+**D. Proof:** `python scripts/verify_marketing_frontend_completion.py` **PASS**; `npm run verify:marketing` **PASS**; CI `marketing-gates.yml` (static + Playwright jobs).
+
+**E. Docs:** `CSS_RETIREMENT_DOCKET.md` v3.35.3; SOT §11.4 batch 1287; SW `sms-v3.35.3-marketing-frontend-completion-2026-05-19`.
+
+---
+
+## Slice - batch 1286 theme experience gear-up (2026-05-18)
+
+**A. Scope:** Escalate theme builder to publish/preview/undo; hub inline contrast hero; append-only bulk delete guard; Playwright perf CI + mechanical gear gate.
+
+**B. Code:** `ThemeBuilderPublishAPIView` / `ThemeBuilderPreviewAPIView`; `theme_experience_hub_hero.html`; `AppendOnlyQuerySet` + managers; `theme-builder-canvas.js` undo/publish/preview/auto-save; `verify_theme_experience_gear.py`; `playwright-performance-budgets.yml`.
+
+**C. Tests:** `test_theme_builder` (7); `test_theme_experience_hub` hero; `test_tenant_platform_vector_delete_invariants` bulk (9).
+
+**D. Proof:** `run_sqlite_memory_tests.py` theme_builder + theme_experience_hub + vector delete invariants; `verify_theme_experience_gear.py` **PASS**.
+
+**E. Docs:** SOT §11.4 batch 1286; SW `sms-v3.35.1-theme-experience-gear-1286-2026-05-18`.
+
+---
+
+## Slice - batch 1285 certification closeout Apple-class + parity (2026-05-18)
+
+**A. Scope:** Close batch 1280/1281 residuals — Phase 7 Playwright route markers, Phase 8/11 artifacts, Phase 10 cert tests, Lane 2 repo-local render parity.
+
+**B. Code:** `OperatorSiteconfigManagerShellMiddleware` — drop `siteconfig:onboarding` from manager redirect set; `test_middleware_does_not_redirect_tenant_school_onboarding`.
+
+**C. Tests:** `run_sqlite_memory_tests.py` certification subset + `test_operator_manager_redirect` → **16/16 OK**.
+
+**D. Proof:** `npx playwright test tests/e2e/apple_class_evidence.spec.js` → **1 passed**; report verdict **APPLE-CLASS UX PARTIAL - LOCAL** (all 46 routes pass; axe theme backlog); `audit_security_surface` OK; `generate_certification_artifacts --write` OK; `verify_manager_render_parity.py --skip-remote --write-matrix` OK.
+
+**E. Docs:** SOT §11.4 batch 1285. **Residual:** live Render SHA; axe zero; `check_real_migration_drift` 11 real migration_cloud (pre-existing).
+
+---
+
+## Slice - batch 1284 forensic phase-3 theme builder + perf + vectors (2026-05-18)
+
+**A. Scope:** Playwright CLS/FPS gate; Shopify-grade theme builder; live dark contrast preview; append-only delete invariants.
+
+**B. Code:** `verify_playwright_performance_budgets.mjs`; `views_theme_builder.py` + canvas; `AppendOnlyModelMixin`; preview light/dark in `site-settings-preview.js`.
+
+**C. Tests:** `test_theme_builder` (4); `test_tenant_platform_vector_delete_invariants` (7); dark preview toggle in `test_theme_studio`.
+
+**D. Proof:** `run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_builder apps.platform_runtime.tests.test_tenant_platform_vector_delete_invariants` → **11/11 OK**.
+
+**E. Docs:** SOT §11.4 batch 1284; SW `sms-v3.34.3-theme-builder-forensic-1284-2026-05-18`.
+
+---
+
+## Slice - batch 1283 forensic phase-2 BOLA + session HMAC (2026-05-18)
+
+**A. Scope:** Close batch 1282 BOLA gap (education-dna + tenant GET/PATCH without membership); session tamper binding; render-time brand guard by effective surface; tenant-realistic perf budget client.
+
+**B. Code:** `tenant_switch_security.user_may_access_school_api`; `views_v1._require_tenant_member` bulk wire; `session_school_bind.py` + middleware + switch-school; `views_v1_intervention` membership; `check_performance_budgets.get_tenant_client_with_user`; migration_cloud `0018_merge_0016_0017`.
+
+**C. Tests:** `test_bola_idor_matrix` 33 cases; `test_me_switch_school_bola`; `test_session_school_bind`; `test_tenant_switch_security` — **43 OK** via `run_sqlite_memory_tests.py`.
+
+**D. Proof:** `python scripts/run_sqlite_memory_tests.py apps.api.tests.test_bola_idor_matrix apps.api.tests.test_me_switch_school_bola apps.schools.tests.test_session_school_bind apps.siteconfig.tests.test_tenant_switch_security` → OK.
+
+**E. Docs:** SOT §11.4 batch 1283 DONE.
+
+**F. Residual:** Playwright perf budget script; Theme Experience Hub dark live preview; vector integration delete-failure tests per prompt.
+
+---
+
+## Slice - batch 1282 forensic zero-exception master prompt (2026-05-18)
+
+**A. Scope:** Close forensic verification gaps — platform-wide AAA brand guard, BOLA matrix, session binding, performance/DOM budgets, vector behavioral tests, Zero-Ticket Part 2 completion.
+
+**B. Implementation:** `brand_guard_runtime.py` + SiteSettings save + context processor; `SessionSchoolBindingMiddleware`; `test_bola_idor_matrix.py` (22 cases); permission matrix export/compare API; campus workflow hub simulate/publish links; `verify_dom_performance_budgets.py`, `verify_theme_system_preference_surfaces.py`; campus switcher aria-live + Alt+Shift+C.
+
+**C. Tests:** `run_sqlite_memory_tests.py` — siteconfig zero-ticket/brand/perf, api bola/switch, schools session bind, platform_runtime vector behavior.
+
+**D. Gates:** `verify_theme_aaa_brand_cycle`, `verify_tenant_platform_vectors`, `verify_theme_system_preference_surfaces`, `verify_dom_performance_budgets`, `PERF_BUDGET_STRICT=1 check_performance_budgets`.
+
+**E. Docs:** `PERFORMANCE_BUDGETS.md` zero-ticket/DOM rows; SOT §11.4 batch 1282; service worker `sms-v3.34.1-forensic-zero-exception-closeout-2026-05-18`.
+
+**F. Verdict:** Repo-contained forensic mandate **DONE**; Shopify drag-and-drop theme builder remains a product surface (not claimed).
+
+## Slice - batch 1281 final validation and architecture certification (2026-05-18)
+
+**A. Scope:** Full platform final validation (Phases 0–18): SOT/proof truth, security registers, E2E route/action audits, navigation simplification, Studio OS + API Center certification tests, phase-11 matrices, honest Render/Apple-class/PSP blockers.
+
+**B. Implementation:** `scripts/generate_final_validation_truth_check.py`; nav split (Metadata & audit → Voice of customer & proof); `legacy_setup.html` route fix; shell contract wrappers; `test_navigation_simplification_contracts.py`.
+
+**C. Tests (rerun closeout):** certification subset **31/31**; `apps.feedback.tests` **34/34**; Phase 15 (`marketplace` + `billing` + `compliance` + `security`) **292/292** — `run_sqlite_memory_tests.py --keepdb`. Fixes: `test_csp.py` aligned to `CSP_ENFORCE=True` default (v2.57); `test_tenant_breach_scenarios` imports `UsageLimitMiddlewareTests`.
+
+**D. Gates:** `audit_route_surface` ROUTE SYSTEM CERTIFIED; `audit_no_placeholder` 0; `generate_certification_artifacts` OK; `generate_final_validation_truth_check` → **FINAL VALIDATION READY — FOCUSED REPO SCOPE**; `verify_shell_surface_inventory` / `verify_dual_plane_theme_experience` / `verify_doc_plan_density_discipline` / `verify_sot_pillar_evidence` / `verify_test_module_contract` OK; `verify_design_system_phase2` PASS; `audit_luxury_ui_surface` 14/15 ULTRA-LUXURY; `audit_tenant_isolation` OK; `manage.py check` 0 issues.
+
+**E. Artifacts:** `docs/generated/final_validation_truth_check.*` + refreshed certification bundle + phase-11 matrices.
+
+**F. Verdict:** **FINAL VALIDATION READY — FOCUSED REPO SCOPE** (Lane 2: Render live SHA when `RENDER_PARITY_BASE_URL` set; live PSP/SOC2 external).
+
+## Slice - batch 1280 security architecture + E2E certification (2026-05-18)
+
+**A. Scope:** Phases 1–12 certification — security exception register, GraphQL review, end-to-end audit artifacts, Studio OS + API Center proof tests, architecture scorecard, first-school readiness; Lane 2 Render/PSP deferred.
+
+**B. Implementation:** `scripts/generate_certification_artifacts.py`; CSRF allowlist + `audit_security_surface.py` sync; GraphQL introspection guard; `migration_cloud/0014_merge_0011_0013.py`; five new test modules.
+
+**C. Tests:** `python scripts/run_sqlite_memory_tests.py apps.api.tests.test_graphql_security_review apps.studio_os.tests.test_studio_os_world_class_experience apps.apicenter.tests.test_api_center_open_and_usable apps.platform_runtime.tests.test_integration_center_links apps.platform_runtime.tests.test_first_school_operating_proof --keepdb` → **12 OK**.
+
+**D. Gates:** `audit_security_surface`, `lint_csrf_exempt_usage`, `build_phase8_security_ledger --check`, `generate_certification_artifacts --write`, `check_real_migration_drift` (0 real), `verify_manager_render_parity --skip-remote`.
+
+**E. Docs:** `docs/generated/security_exception_register.*` through `first_school_operating_proof_readiness.*`; SOT §11.4 batch 1280.
+
+**F. Honest residual:** Render live SHA (operator env); Apple-class axe 30 until Playwright rerun; live PSP external.
+
+**G. Verdict:** **BATCH 1280 DONE (repo-scope)** — certification artifacts + zero product CSRF violations; Lane 2 pending.
+
+## Slice - batch 1279 dual-plane theme & experience hub + manager chrome (2026-05-18)
+
+**A. Scope:** Ship end-to-end dual-plane theme/experience configurability so tenants and manager operators each configure look-and-feel on their own host, with hub navigation, manager chrome from RuntimeDefaults, legacy redirect to hub, and all follow-ups closed.
+
+**B. Implementation:** `views_theme_experience_hub.py` + `theme_experience_surfaces.py` — `/siteconfig/theme-experience/hub/` on tenant and manager; expanded surface cards; operator impersonation CTA to schools registry; `theme_experience_redirect` defaults to hub (`?studio=1` → Studio). Manager chrome: `control_plane_brand_vars.py`, context processor `CONTROL_PLANE_BRAND_CSS_VARS`, `control-plane-operator-brand.css`. Catalog/navigation wired in `administration_catalog.py`, `control_plane_nav.py`, `studio_os/navigation.py`. Migration cloud graph: `0008` depends on `0007_token_rotation`, `0009_merge`, `0010` index rename.
+
+**C. Tests:** `test_theme_experience_hub.py`, `test_control_plane_brand_vars.py`; `test_theme_studio.py` + `test_redirect_safety.py` updated for hub default redirect.
+
+**D. Gates:** `verify_dual_plane_theme_experience.py` wired in `verify_phases_3_11_gates.py`.
+
+**E. Docs:** `docs/THEME_SYSTEM.md` §0.1; SOT §11.4 batch 1279.
+
+**F. SW:** `sms-v3.33.2-dual-plane-theme-hub-2026-05-18`; service-worker baseline updated.
+
+**G. Verdict:** **BATCH 1279 DONE** — dual-plane theme/experience configurability shipped end-to-end.
+
 ## Slice - batch 1278 elite marketing Corporate OS public surfaces (2026-05-18)
 
 **A. Scope:** Complete the deferred Elite UI/UX wave 2 on the public marketing surface: platform `--rmc-os-*` tokens, header/footer IA sync, premium Find Campus, procurement-grade Trust Center anchors, human status page, density modes, and an expanded resumable completion loop.

@@ -33,6 +33,10 @@ on:
       - "static/css/dark-mode-safety-net.css"
       - "static/js/theme-preference-bootstrap.js"
       - "scripts/verify_theme_visibility_platform.py"
+      - "scripts/verify_backend_base_shell_routing.py"
+      - "templates/backend_base.html"
+      - "templates/backend_base_tenant.html"
+      - "templates/backend_base_manager.html"
       - "scripts/scan_main_content_text_utilities.py"
       - ".github/workflows/manager-surface-parity.yml"
       - "config/manager_urls.py"
@@ -77,6 +81,7 @@ jobs:
         run: |
           python manage.py migrate --noinput
           python scripts/verify_theme_visibility_platform.py
+          python scripts/verify_backend_base_shell_routing.py
           python scripts/verify_manager_admin_cp_layout.py
           python scripts/verify_studio_os_ux_waves.py
           python scripts/scan_main_content_text_utilities.py

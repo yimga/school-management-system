@@ -226,6 +226,22 @@ def main(argv: list[str] | None = None) -> int:
         "Docs discipline: single-source plan density non-growth",
     )
     run(
+        [py, _script_path("verify_dual_plane_theme_experience.py"), *base_args],
+        "Theme: tenant + manager dual-plane experience hub surfaces",
+    )
+    run(
+        [py, _script_path("verify_theme_experience_gear.py"), *base_args],
+        "Theme: builder publish/preview APIs, hub hero, append-only bulk guard",
+    )
+    run(
+        [py, _script_path("verify_forensic_master_prompt_completion.py"), *base_args],
+        "Forensic: Section 8 master prompt mechanical completion matrix",
+    )
+    run(
+        [py, _script_path("verify_five_pillar_platform_completion.py"), *base_args],
+        "Platform: AWS/Shopify/Salesforce/Linux/Google five-pillar completion",
+    )
+    run(
         [py, _script_path("verify_path_to_100_plan_discipline.py"), *base_args],
         "Per-app depth: PATH_TO_100 plan Sec 6 spine + SOT pointers (slice vs Sec 12 gate)",
     )
@@ -420,6 +436,14 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [py, _script_path("verify_theme_visibility_platform.py"), *base_args],
         "Theme visibility: shell CSS wiring + manager render smoke",
+    )
+    run(
+        [py, _script_path("verify_backend_base_shell_routing.py"), *base_args],
+        "Manager shell: backend_base router + CP smoke probes",
+    )
+    run(
+        [py, _script_path("verify_glocal_closeout_completion.py"), *base_args],
+        "Glocal closeout: G-01..G-22 repo proofs + i18n/money-float sub-gates",
     )
     run(
         [py, _script_path("scan_main_content_text_utilities.py"), *base_args],

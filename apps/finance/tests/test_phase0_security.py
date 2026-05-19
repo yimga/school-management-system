@@ -340,8 +340,8 @@ class EvaluationValidationTest(TestCase):
         with self.assertRaises(ValidationError):
             evaluation.full_clean()
 
-    def test_evaluation_score_exceeds_20(self):
-        """Test evaluation with score > 20 raises error."""
+    def test_evaluation_score_exceeds_cameroon_scale(self):
+        """Score above tenant max (0-20 default) raises ValidationError."""
         evaluation = Evaluation(
             academic_year=self.year,
             term=self.term,
@@ -351,6 +351,24 @@ class EvaluationValidationTest(TestCase):
             exam_score=Decimal("25"),
         )
         with self.assertRaises(ValidationError):
+            evaluation.full_clean()
+
+    def test_evaluation_allows_score_on_0_100_scale(self):
+        """US-style 0-100 schools accept scores up to 100 (G-10)."""
+        from unittest.mock import patch
+
+        evaluation = Evaluation(
+            academic_year=self.year,
+            term=self.term,
+            subject_assignment=self.subject_assign,
+            student=self.student,
+            teacher=self.teacher,
+            exam_score=Decimal("85"),
+        )
+        with patch(
+            "apps.evals.grading.max_score_for_school",
+            return_value=Decimal("100"),
+        ):
             evaluation.full_clean()
 
     def test_evaluation_no_scores_raises_error(self):

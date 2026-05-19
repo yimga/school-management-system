@@ -304,8 +304,34 @@ body[data-mkt-edition="editorial"] main {
 
 [data-mkt-edition="editorial"] .mkt-edt-hero__artifact {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: var(--mkt-edt-space-3, 1.25rem);
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__media {
+  width: 100%;
+  max-width: 28rem;
+  border-radius: var(--mkt-radius-lg, 0.75rem);
+  overflow: hidden;
+  box-shadow: var(--mkt-shadow-lg);
+  aspect-ratio: 16 / 9;
+  background: var(--bg-marketing-surface, var(--mkt-surface));
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt-edition="editorial"] .mkt-edt-hero__video {
+    display: none;
+  }
 }
 
 [data-mkt-edition="editorial"] .mkt-edt-hero__artifact svg {

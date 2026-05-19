@@ -6,12 +6,16 @@
 
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'marketing/css/tokens-editorial.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-landing-v2.css' %}">
+{% endblock %}
+{% block extrajs %}
+  {{ block.super }}
+  <script src="{% static 'marketing/js/mkt-hero-video.js' %}" defer></script>
 {% endblock %}
 
 {% block extrahead %}
-  <meta name="description" content="One quiet system, behind everything your school does. Admissions, fees, classrooms, parent messages — handled.">
+  {{ block.super }}
+  <meta name="description" content="{% trans 'One quiet system, behind everything your school does. Admissions, fees, classrooms, parent messages — handled.' %}">
   {% if v2_preview %}<meta name="robots" content="noindex, nofollow">{% endif %}
 {% endblock %}
 
@@ -62,6 +66,7 @@
       </div>
 
       <div class="mkt-edt-hero__artifact rmc-reveal rmc-reveal--scale" data-mkt-parallax="0.06">
+        {% include "marketing/components/_hero_home_video.html" %}
         {% include "marketing/components/_dashboard_frame.html" with frame_title="Daily briefing" dashboard_partial="schools/_v2/_artifact_today_briefing.svg.html" %}
       </div>
     </div>

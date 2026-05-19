@@ -1,0 +1,9 @@
+{
+  "apple_class_verdict": "APPLE-CLASS UX READY - LOCAL",
+  "axe_serious_critical": 33,
+  "generated_at": "2026-05-19T06:55:55.368314+00:00",
+  "page_standards_note": "9 findings / 895 templates (mechanical)",
+  "render_parity": "PARTIAL \u2014 skip-remote until operator URLs provided",
+  "schema_version": 1,
+  "ux_gap_count": 0
+}

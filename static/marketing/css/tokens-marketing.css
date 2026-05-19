@@ -1,7 +1,14 @@
 /**
- * Marketing shell tokens — Phase 2: same family as product (design-tokens.css).
- * --mkt-* names stay for marketing templates; values alias platform scale so the
- * marketing front cannot drift into a separate palette.
+ * MARKETING FRONTEND SOT — runmycampus.com public surface
+ *
+ * Canonical token file for all marketing templates/CSS. Do not fork hex literals
+ * in page CSS; extend this file. Semantic names map to WCAG 2.2 AAA targets (7:1)
+ * on cream (--mkt-surface) and charcoal (--mkt-hero-bg) in light mode; dark mode
+ * overrides live under html[data-theme="dark"][data-surface="marketing"].
+ *
+ * Meta / JSON-LD: templates/marketing/partials/mkt_structured_data.html
+ * Theme FOUC: static/marketing/js/mkt-theme-bootstrap.js (rmc-mkt-theme key)
+ * Shell: templates/marketing/base_marketing.html
  *
  * Load order: design-tokens.css → design-tokens-luxury.css → this file.
  */
@@ -55,6 +62,19 @@
   /* Bridge: proof-pages + shared product token names on marketing shell */
   --school-primary: var(--mkt-primary);
   --school-accent: var(--mkt-accent);
+
+  /* Semantic marketing tokens (SOT aliases — use in new CSS) */
+  --text-marketing-primary: var(--mkt-text);
+  --text-marketing-secondary: var(--mkt-text-muted);
+  --text-marketing-inverse: var(--mkt-text-inverse);
+  --text-marketing-brand: var(--mkt-primary);
+  --bg-marketing-surface: var(--mkt-surface);
+  --bg-marketing-elevated: var(--color-base-0);
+  --bg-marketing-hero: var(--mkt-hero-bg);
+  --border-marketing-hairline: var(--mkt-border);
+  --text-marketing-on-primary: var(--mkt-on-primary);
+  --text-marketing-on-accent: var(--mkt-on-accent);
+  --focus-marketing-ring: var(--mkt-accent);
 }
 
 /* PUBLIC_BRAND_MODE inline style in base_marketing still overrides --mkt-primary / --mkt-hero-bg / --mkt-accent */
@@ -96,4 +116,11 @@ html[data-theme="dark"][data-surface="marketing"] {
   --mkt-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
   --mkt-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
   --mkt-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --text-marketing-primary: var(--mkt-text);
+  --text-marketing-secondary: var(--mkt-text-muted);
+  --text-marketing-inverse: var(--mkt-text-inverse);
+  --bg-marketing-surface: var(--mkt-surface);
+  --bg-marketing-elevated: var(--color-base-800);
+  --bg-marketing-hero: var(--mkt-hero-bg);
+  --border-marketing-hairline: var(--mkt-border);
 }

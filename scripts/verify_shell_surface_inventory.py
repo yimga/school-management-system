@@ -332,8 +332,18 @@ TEMPLATE_REQUIRED_SUBSTRINGS: dict[str, tuple[str, ...]] = {
         "data-page-archetype=\"catalog\"",
     ),
     "templates/backend_base.html": (
+        "rmc_backend_extends",
+        "backend_main",
+        "backend_page",
+    ),
+    "templates/backend_base_tenant.html": (
         "backend_portal_breadcrumb_actions.html",
         "block.super",
+    ),
+    "templates/backend_base_manager.html": (
+        "control_plane_base.html",
+        "cp_content",
+        "cp_workspace_header",
     ),
     "templates/siteconfig/partials/configuration_control_center_staging_publish.html": (
         "data-ccc-staging-strip",
@@ -355,7 +365,8 @@ DJANGO_MSG_CORE_INCLUDE = 'include "partials/shell_chrome_django_messages.html"'
 SHELL_TEMPLATES_NO_INLINE_MESSAGES: tuple[str, ...] = (
     "templates/portal_base.html",
     "templates/control_plane_base.html",
-    "templates/backend_base.html",
+    "templates/backend_base_tenant.html",
+    "templates/backend_base_manager.html",
     "templates/studio_os/shell.html",
 )
 

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}{% trans "Visitor log" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Visitor check-in / check-out" %}{% endblock %}
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">

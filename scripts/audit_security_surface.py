@@ -45,8 +45,12 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 # Webhooks / provider callbacks: CSRF cannot be used; token/HMAC is the real gate.
-KNOWN_CSRF_EXEMPT_PRODUCT_PATHS: frozenset[str] = frozenset(
-    {
+# Source of truth: scripts/allowlists/csrf_exempt_allowlist.json (keys under "files").
+_CSRF_ALLOWLIST_PATH = REPO / "scripts" / "allowlists" / "csrf_exempt_allowlist.json"
+
+
+def _load_known_csrf_exempt_product_paths() -> frozenset[str]:
+    fallback = {
         "apps/accounts/views_saml.py",
         "apps/api/scim_views.py",
         "apps/api/oneroster_roster_webhook.py",
@@ -56,7 +60,17 @@ KNOWN_CSRF_EXEMPT_PRODUCT_PATHS: frozenset[str] = frozenset(
         "apps/platform_runtime/views_rum.py",
         "apps/schools/section8_views.py",
     }
-)
+    try:
+        data = json.loads(_CSRF_ALLOWLIST_PATH.read_text(encoding="utf-8"))
+        files = data.get("files") or {}
+        if isinstance(files, dict) and files:
+            return frozenset(str(k) for k in files.keys())
+    except (OSError, json.JSONDecodeError, TypeError):
+        pass
+    return frozenset(fallback)
+
+
+KNOWN_CSRF_EXEMPT_PRODUCT_PATHS: frozenset[str] = _load_known_csrf_exempt_product_paths()
 
 
 SKIP_PREFIXES = (

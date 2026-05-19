@@ -360,6 +360,25 @@ def generate_regional_compliance_export(
       { ok: False, blocked: True, missing: [str], message: str }
     """
     params = params or {}
+    from apps.compliance.cross_border_export import cross_border_export_blocked
+    from apps.compliance.export_destination import resolve_export_destination_region
+
+    dest_region = resolve_export_destination_region(
+        school=school,
+        request=getattr(user, "_request", None) if user is not None else None,
+        params=params,
+    )
+    blocked_cb, cb_message = cross_border_export_blocked(
+        school, destination_region=dest_region or None
+    )
+    if blocked_cb:
+        return {
+            "ok": False,
+            "blocked": True,
+            "missing": [cb_message],
+            "message": cb_message,
+        }
+
     missing = get_compliance_export_missing_data(export_key, school, params)
     if missing:
         return {

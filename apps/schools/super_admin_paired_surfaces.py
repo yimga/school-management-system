@@ -27,15 +27,17 @@ class OperatorSurfaceLink:
     surface: str  # super | configuration | admin | policy
     active: bool = False
     description: str = ""
+    icon: str = ""
 
 
-# Always-on spine (manager host). Order is intentional for the strip UI.
-OPERATOR_SURFACE_SPINE_SPECS: tuple[tuple[str, str, str], ...] = (
-    ("super", "super:dashboard", _("Control plane")),
-    ("super", "super:platform_operator_hub", _("Operator hub")),
-    ("configuration", "configuration:center", _("Config center")),
-    ("admin", "admin:index", _("Platform admin")),
-    ("super", "super:operator_policy", _("Surface policy")),
+# Always-on spine (manager host). Order is intentional for the workspace nav UI.
+# Tuple: surface, url_name, label, bootstrap-icons class.
+OPERATOR_SURFACE_SPINE_SPECS: tuple[tuple[str, str, str, str], ...] = (
+    ("super", "super:dashboard", _("Control plane"), "bi-speedometer2"),
+    ("super", "super:platform_operator_hub", _("Operator hub"), "bi-compass"),
+    ("configuration", "configuration:center", _("Config center"), "bi-gear-wide-connected"),
+    ("admin", "admin:index", _("Platform admin"), "bi-building-gear"),
+    ("super", "super:operator_policy", _("Policies"), "bi-shield-check"),
 )
 
 # Super-first flows with optional break-glass admin bridge.
@@ -228,6 +230,16 @@ def _is_manager_operator_host(request) -> bool:
     return kind in {"manager", "local", ""}
 
 
+def _operator_surface_strip_visible(request) -> bool:
+    """Workspace nav renders on /super/ and /configuration/, not Django admin."""
+    path = (getattr(request, "path", None) or "").lower().rstrip("/") or "/"
+    if path == "/admin" or path.startswith("/admin/"):
+        return False
+    if path == "/internal-admin" or path.startswith("/internal-admin/"):
+        return False
+    return True
+
+
 def _detect_operator_surface(request) -> str | None:
     path = (getattr(request, "path", None) or "").lower()
     if path.startswith("/super/"):
@@ -329,6 +341,7 @@ def _append_admin_bridge_link(
             url=admin_bridge_url,
             surface="admin",
             description=str(meta.get("description", "")),
+            icon="bi-box-arrow-in-right",
         )
     )
 
@@ -336,7 +349,7 @@ def _append_admin_bridge_link(
 def build_operator_surface_spine(request) -> list[OperatorSurfaceLink]:
     current = _detect_operator_surface(request)
     links: list[OperatorSurfaceLink] = []
-    for surface, url_name, label in OPERATOR_SURFACE_SPINE_SPECS:
+    for surface, url_name, label, icon in OPERATOR_SURFACE_SPINE_SPECS:
         url = _safe_reverse(url_name)
         if not url:
             continue
@@ -347,6 +360,7 @@ def build_operator_surface_spine(request) -> list[OperatorSurfaceLink]:
                 url=url,
                 surface=surface,
                 active=current == surface,
+                icon=icon,
             )
         )
     return links
@@ -386,6 +400,7 @@ def build_paired_surface_links(request) -> list[OperatorSurfaceLink]:
                             description=_(
                                 "Super-first control plane list for this domain."
                             ),
+                            icon="bi-arrow-left-right",
                         )
                     )
             else:
@@ -400,6 +415,7 @@ def build_paired_surface_links(request) -> list[OperatorSurfaceLink]:
                             description=_(
                                 "Curated operator directory for this admin model."
                             ),
+                            icon="bi-compass",
                         )
                     )
 
@@ -410,6 +426,7 @@ def build_operator_surface_ia_context(request) -> dict[str, Any]:
     if not _is_manager_operator_host(request):
         return {
             "RMC_OPERATOR_SURFACE_IA": False,
+            "RMC_OPERATOR_SURFACE_STRIP_VISIBLE": False,
             "RMC_OPERATOR_SURFACE_SPINE": [],
             "RMC_OPERATOR_PAIRED_LINKS": [],
             "RMC_OPERATOR_SURFACE_CURRENT": None,
@@ -417,10 +434,12 @@ def build_operator_surface_ia_context(request) -> dict[str, Any]:
 
     spine = build_operator_surface_spine(request)
     paired = build_paired_surface_links(request)
+    strip_visible = _operator_surface_strip_visible(request) and bool(spine)
     return {
         "RMC_OPERATOR_SURFACE_IA": bool(spine),
+        "RMC_OPERATOR_SURFACE_STRIP_VISIBLE": strip_visible,
         "RMC_OPERATOR_SURFACE_SPINE": spine,
-        "RMC_OPERATOR_PAIRED_LINKS": paired,
+        "RMC_OPERATOR_PAIRED_LINKS": paired if strip_visible else [],
         "RMC_OPERATOR_SURFACE_CURRENT": _detect_operator_surface(request),
     }
 
@@ -428,7 +447,7 @@ def build_operator_surface_ia_context(request) -> dict[str, Any]:
 def build_surface_parity_matrix() -> dict[str, Any]:
     """Machine-readable audit rows for verify_super_admin_surface_parity.py."""
     spine_rows = []
-    for surface, url_name, label in OPERATOR_SURFACE_SPINE_SPECS:
+    for surface, url_name, label, _icon in OPERATOR_SURFACE_SPINE_SPECS:
         spine_rows.append(
             {
                 "surface": surface,

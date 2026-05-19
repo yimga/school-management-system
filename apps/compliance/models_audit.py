@@ -8,8 +8,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from django.conf import settings
 
+from apps.platform_runtime.append_only import AppendOnlyManager, AppendOnlyModelMixin
 
-class AuditLog(models.Model):
+
+class AuditLog(AppendOnlyModelMixin, models.Model):
     """
     Comprehensive audit trail capturing all significant system actions:
     - Model create/update/delete
@@ -95,6 +97,8 @@ class AuditLog(models.Model):
         related_name="related_to",
         help_text="Reference to related audit entries",
     )
+
+    objects = AppendOnlyManager()
 
     class Meta:
         ordering = ["-timestamp"]

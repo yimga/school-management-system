@@ -8,6 +8,8 @@ module.exports = {
       url: [
         process.env.LHCI_URL || 'http://localhost:8000/accounts/login/',
         process.env.LHCI_URL_PORTAL || 'http://localhost:8000/portal/parent/',
+        process.env.LHCI_URL_MARKETING_HOME || 'http://runmycampus.com:8000/',
+        process.env.LHCI_URL_MARKETING_PRICING || 'http://runmycampus.com:8000/pricing/',
       ],
       numberOfRuns: 1,
       startServerCommand: process.env.LHCI_START_SERVER ? 'python manage.py runserver' : undefined,

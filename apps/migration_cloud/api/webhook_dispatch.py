@@ -16,17 +16,42 @@ HMAC: outbound deliveries sign ``payload_json`` (sorted-keys, separators
 ``secret_ciphertext`` and Fernet-encrypted at rest by
 :class:`apps.accounts.legacy_hashes.encryption.EncryptedBinaryField`
 (v3.32.0). Reads transparently decrypt; the dispatcher never touches
-ciphertext bytes. Header:
-    ``X-Migration-Cloud-Signature: sha256=<hex>``
-plus
-    ``X-Migration-Cloud-Event: <event_type>``
-    ``X-Migration-Cloud-Delivery: <delivery_id>``.
+ciphertext bytes.
+
+Header families (v3.35.0 dual-emit window):
+
+  * New canonical family — matches the packaged SDKs
+    (``runmycampus-webhook-verifier`` PyPI / ``@runmycampus/webhook-verifier``
+    npm):
+        ``X-RunMyCampus-Signature: sha256=<hex>``
+        ``X-RunMyCampus-Timestamp: <unix-seconds>``
+        ``X-RunMyCampus-Version: v1``
+        ``X-RunMyCampus-Event: <event_type>``
+        ``X-RunMyCampus-Delivery: <delivery_id>``
+  * Legacy family (emitted in parallel until 2026-08-18 — see
+    :data:`LEGACY_HEADER_DEPRECATION_DATE`):
+        ``X-Migration-Cloud-Signature: sha256=<hex>`` (byte-identical)
+        ``X-Migration-Cloud-Timestamp: <unix-seconds>`` (byte-identical)
+        ``X-Migration-Cloud-Version: v1``
+        ``X-Migration-Cloud-Event: <event_type>``
+        ``X-Migration-Cloud-Delivery: <delivery_id>``
+
+Operators can opt-out of legacy emission early by setting
+``RMC_EMIT_LEGACY_WEBHOOK_HEADERS=0`` (Django setting
+``MIGRATION_CLOUD_EMIT_LEGACY_HEADERS``). Default is ON for
+backwards-compat. The new family is ALWAYS emitted.
+
+Both signatures are computed identically over the same canonical body —
+swapping header names doesn't change the bytes a customer compares.
 
 Receivers verify with the secret they were given **once** at subscription
 creation (the platform also stores ``secret_hash`` for support workflows).
 
 Production note: log lines NEVER include the payload body or the secret.
 Only IDs, sizes, status codes, and event types.
+
+See ``docs/WEBHOOK_HEADER_MIGRATION_2026.md`` for the customer-facing
+migration timeline.
 """
 
 from __future__ import annotations
@@ -37,6 +62,7 @@ import json
 import logging
 from datetime import timedelta
 
+from django.conf import settings
 from django.utils import timezone
 
 try:  # pragma: no cover — Celery is the prod path; tests run sans worker.
@@ -63,6 +89,62 @@ RETRY_SCHEDULE = [
 ]
 MAX_ATTEMPTS = len(RETRY_SCHEDULE)
 
+#: v3.35.0 — sliding window for the idempotency-key collision guard.
+#: Two ``enqueue`` calls with the same ``(subscription_id,
+#: idempotency_key)`` within this window collapse to a single delivery
+#: row (the second call returns the existing row + logs a warning).
+IDEMPOTENCY_WINDOW = timedelta(hours=24)
+
+# v3.35.0 — header family migration window.
+#
+# The legacy ``X-Migration-Cloud-*`` header family is co-emitted alongside
+# the new canonical ``X-RunMyCampus-*`` family during a 90-day deprecation
+# window. After ``LEGACY_HEADER_DEPRECATION_DATE`` the legacy family will
+# be removed in v3.40.0 (or the earliest release on/after that date).
+# Customers receive a ``X-RunMyCampus-Header-Deprecation`` header on every
+# delivery during the window pointing at this date.
+LEGACY_HEADER_DEPRECATION_DATE = "2026-08-18"
+LEGACY_HEADER_DEPRECATION_NOTICE = (
+    f"legacy-x-migration-cloud-headers-will-be-removed-after-"
+    f"{LEGACY_HEADER_DEPRECATION_DATE}"
+)
+SIGNATURE_FORMAT_VERSION = "v1"
+
+
+def _emit_legacy_headers_enabled() -> bool:
+    """Return True iff the dispatcher should emit the legacy header family.
+
+    Backwards-compat default: ON. Operators can flip the env var
+    ``RMC_EMIT_LEGACY_WEBHOOK_HEADERS=0`` (or set
+    ``settings.MIGRATION_CLOUD_EMIT_LEGACY_HEADERS = False``) once their
+    receivers have migrated to the new ``X-RunMyCampus-*`` family.
+    """
+    return bool(getattr(settings, "MIGRATION_CLOUD_EMIT_LEGACY_HEADERS", True))
+
+
+def _event_class_matches(subscription, event_type: str) -> bool:
+    """Return True iff ``event_type`` matches one of ``subscription.event_classes``.
+
+    Each entry is a coarse ``"<class>.*"`` glob. Default is ``["migration.*"]``
+    for legacy v3.32 subscriptions that never set the column. Empty list
+    after explicit clear is also treated as the default (defensive).
+    """
+    classes = list(getattr(subscription, "event_classes", None) or [])
+    if not classes:
+        classes = ["migration.*"]
+    head = (event_type or "").split(".", 1)[0]
+    for glob in classes:
+        if not isinstance(glob, str):
+            continue
+        if glob == "*":
+            return True
+        # Accept literal class prefix (``"<head>.*"``) or exact match.
+        if glob == event_type:
+            return True
+        if glob.endswith(".*") and glob[:-2] == head:
+            return True
+    return False
+
 
 def _canonical_payload_bytes(payload: dict) -> bytes:
     """Return the canonical byte form used for HMAC signing.
@@ -73,17 +155,149 @@ def _canonical_payload_bytes(payload: dict) -> bytes:
 
 
 def _sign(secret_bytes: bytes, payload_bytes: bytes) -> str:
-    """Return ``sha256=<hex>`` HMAC for the X-Migration-Cloud-Signature header."""
+    """Return ``sha256=<hex>`` HMAC for the signature header.
+
+    The same digest is emitted under BOTH ``X-RunMyCampus-Signature`` and
+    ``X-Migration-Cloud-Signature`` headers — they are byte-identical
+    aliases during the v3.35.0 dual-emit window.
+    """
     digest = hmac.new(secret_bytes, payload_bytes, hashlib.sha256).hexdigest()
     return f"sha256={digest}"
 
 
-def enqueue(subscription, event_type: str, payload: dict):
+def _build_outbound_headers(
+    *,
+    signature: str,
+    event_type: str,
+    delivery_id,
+    timestamp: str,
+    emit_legacy: bool,
+) -> dict:
+    """Build the outbound HTTP header dict for one delivery.
+
+    Always emits the new ``X-RunMyCampus-*`` family plus the deprecation
+    notice header. Co-emits the legacy ``X-Migration-Cloud-*`` family iff
+    ``emit_legacy`` is True (operator-controlled, default True during the
+    90-day window).
+    """
+    headers = {
+        "Content-Type": "application/json",
+        # New canonical family — matches packaged SDKs.
+        "X-RunMyCampus-Signature": signature,
+        "X-RunMyCampus-Timestamp": timestamp,
+        "X-RunMyCampus-Version": SIGNATURE_FORMAT_VERSION,
+        "X-RunMyCampus-Event": event_type,
+        "X-RunMyCampus-Delivery": str(delivery_id),
+        # Deprecation pointer — always present during the dual-emit
+        # window so receivers can detect server-side migration progress.
+        "X-RunMyCampus-Header-Deprecation": LEGACY_HEADER_DEPRECATION_NOTICE,
+        "User-Agent": "RunMyCampus-MigrationCloud/3.35",
+    }
+    if emit_legacy:
+        # Legacy family — byte-identical signature, will be removed
+        # after LEGACY_HEADER_DEPRECATION_DATE.
+        headers["X-Migration-Cloud-Signature"] = signature
+        headers["X-Migration-Cloud-Timestamp"] = timestamp
+        headers["X-Migration-Cloud-Version"] = SIGNATURE_FORMAT_VERSION
+        headers["X-Migration-Cloud-Event"] = event_type
+        headers["X-Migration-Cloud-Delivery"] = str(delivery_id)
+    return headers
+
+
+def parse_inbound_signature_header(
+    headers,
+) -> tuple[str | None, str | None]:
+    """Return ``(signature, source_family)`` from an inbound headers map.
+
+    Accepts both the new and legacy header families during the deprecation
+    window. The new ``X-RunMyCampus-Signature`` is preferred when both are
+    present (matches the SDK contract).
+
+    Args:
+        headers: Anything with a ``get(name, default)`` accessor — Django
+            ``HttpRequest.headers``, ``requests.Response.headers``,
+            ``dict``, etc.
+
+    Returns:
+        ``(value, "new")`` if the new header is present;
+        ``(value, "legacy")`` if only the legacy header is present;
+        ``(None, None)`` otherwise.
+    """
+    if headers is None:
+        return None, None
+    try:
+        new_value = headers.get("X-RunMyCampus-Signature") or headers.get(
+            "x-runmycampus-signature"
+        )
+    except AttributeError:
+        return None, None
+    if new_value:
+        return new_value, "new"
+    legacy_value = headers.get("X-Migration-Cloud-Signature") or headers.get(
+        "x-migration-cloud-signature"
+    )
+    if legacy_value:
+        return legacy_value, "legacy"
+    return None, None
+
+
+def _find_existing_idempotent_delivery(subscription, idempotency_key: str):
+    """Return an existing delivery row that should short-circuit a new enqueue.
+
+    Looks for a row with the same ``(subscription_id, idempotency_key)``
+    created within :data:`IDEMPOTENCY_WINDOW` whose status is in
+    ``{pending, delivered}``. ``failed`` / ``exhausted`` rows do NOT
+    short-circuit — those represent a final outcome and the caller is
+    allowed to retry with the same key after the window or via the
+    operator replay path.
+
+    Returns ``None`` if no collision; the live delivery row otherwise.
+    Empty ``idempotency_key`` disables the guard entirely (legacy
+    enqueue sites that don't pass one keep working unchanged).
+    """
+    if not idempotency_key:
+        return None
+    from apps.migration_cloud.models import (
+        MigrationCloudWebhookDelivery,
+        WebhookDeliveryStatus,
+    )
+
+    window_start = timezone.now() - IDEMPOTENCY_WINDOW
+    # tenant-isolation-allow: idempotency-key-scoped-by-subscription
+    return (
+        MigrationCloudWebhookDelivery.objects.filter(
+            subscription_id=subscription.pk,
+            idempotency_key=idempotency_key,
+            created_at__gte=window_start,
+            status__in=[
+                WebhookDeliveryStatus.PENDING,
+                WebhookDeliveryStatus.DELIVERED,
+            ],
+        )
+        .order_by("-created_at")
+        .first()
+    )
+
+
+def enqueue(
+    subscription,
+    event_type: str,
+    payload: dict,
+    *,
+    idempotency_key: str = "",
+):
     """Create a pending ``MigrationCloudWebhookDelivery`` row.
 
     The dispatcher Celery task picks it up on the next tick. We pre-compute
     the signature here so receivers can verify even on the very first
     attempt (the secret may be wrapped/rotated before retry).
+
+    v3.35.0 — when the caller supplies ``idempotency_key`` and a row
+    with the same ``(subscription_id, idempotency_key)`` already exists
+    within :data:`IDEMPOTENCY_WINDOW` with status in
+    ``{pending, delivered}``, we DO NOT create a duplicate row — we log
+    a warning and return the existing row. This prevents producer-side
+    double-fires from doubling outbound HTTP traffic to subscribers.
     """
     # Local import — keeps Celery/Django app-load order safe.
     from apps.migration_cloud.models import (
@@ -94,6 +308,28 @@ def enqueue(subscription, event_type: str, payload: dict):
     if not subscription.active:
         logger.info(
             "migration_cloud_webhook_skip_inactive sub_id=%s event=%s",
+            subscription.pk, event_type,
+        )
+        return None
+    # v3.35.0 — idempotency-key collision guard (runs BEFORE the
+    # event-class / event-types filters; a duplicate is a duplicate even
+    # if it would have been filtered out for the second call).
+    existing = _find_existing_idempotent_delivery(subscription, idempotency_key)
+    if existing is not None:
+        logger.warning(
+            "migration_cloud_webhook_idempotency_collision "
+            "sub_id=%s existing_delivery_id=%s event=%s",
+            subscription.pk, existing.pk, event_type,
+        )
+        return existing
+    # v3.33.0 — event-class opt-in gate. Coarse glob: e.g. a
+    # ``"schoolops.meal_plan.low_balance_triggered"`` event matches only
+    # subscriptions whose ``event_classes`` list contains
+    # ``"schoolops.*"``. Empty / missing list defaults to ``"migration.*"``
+    # for backwards compatibility with v3.32 subscriptions.
+    if not _event_class_matches(subscription, event_type):
+        logger.info(
+            "migration_cloud_webhook_skip_event_class sub_id=%s event=%s",
             subscription.pk, event_type,
         )
         return None
@@ -113,6 +349,7 @@ def enqueue(subscription, event_type: str, payload: dict):
         event_type=event_type,
         payload_json=payload,
         request_signature=signature,
+        idempotency_key=idempotency_key or "",
         attempt_count=0,
         status=WebhookDeliveryStatus.PENDING,
         next_retry_at=timezone.now(),  # eligible immediately
@@ -135,13 +372,18 @@ def _deliver_one(row) -> bool:
 
     sub = row.subscription
     payload_bytes = _canonical_payload_bytes(row.payload_json)
-    headers = {
-        "Content-Type": "application/json",
-        "X-Migration-Cloud-Signature": row.request_signature,
-        "X-Migration-Cloud-Event": row.event_type,
-        "X-Migration-Cloud-Delivery": str(row.pk),
-        "User-Agent": "RunMyCampus-MigrationCloud/3.29",
-    }
+    # Unix-seconds timestamp lets receivers use the SDK's clock-skew
+    # check (default 300s window). We compute this at attempt time so
+    # retries get a fresh timestamp — receivers anchored to ``now``
+    # don't have to special-case 24h-old retries.
+    timestamp = str(int(timezone.now().timestamp()))
+    headers = _build_outbound_headers(
+        signature=row.request_signature,
+        event_type=row.event_type,
+        delivery_id=row.pk,
+        timestamp=timestamp,
+        emit_legacy=_emit_legacy_headers_enabled(),
+    )
 
     row.attempt_count += 1
     status_code = 0

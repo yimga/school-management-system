@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-05-19T06:55:58.498453+00:00",
+  "harness": "apps.platform_runtime.tests.test_onboarding + test_first_school_operating_proof",
+  "live_ready": false,
+  "readiness_percent": 94,
+  "repo_ready": true,
+  "schema_version": 1,
+  "steps": [
+    {
+      "evidence": "School model + onboarding engine tests",
+      "id": "create_configure_school",
+      "status": "closed"
+    },
+    {
+      "evidence": "platform_runtime blueprint tests",
+      "id": "install_blueprint",
+      "status": "closed"
+    },
+    {
+      "evidence": "pack library tests",
+      "id": "install_packs",
+      "status": "closed"
+    },
+    {
+      "evidence": "import hub + migration cloud",
+      "id": "import_students",
+      "status": "closed"
+    },
+    {
+      "evidence": "people backend tests",
+      "id": "create_classes",
+      "status": "closed"
+    },
+    {
+      "evidence": "portal attendance + offline",
+      "id": "attendance",
+      "status": "closed"
+    },
+    {
+      "evidence": "evals/grading tests",
+      "id": "marks",
+      "status": "closed"
+    },
+    {
+      "evidence": "reports + compliance exports",
+      "id": "report_publishing",
+      "status": "closed"
+    },
+    {
+      "evidence": "finance billing tests",
+      "id": "invoice",
+      "status": "closed"
+    },
+    {
+      "evidence": "receipt upload flow tests",
+      "id": "manual_receipt",
+      "status": "closed"
+    },
+    {
+      "evidence": "parent portal tests",
+      "id": "parent_view",
+      "status": "closed"
+    },
+    {
+      "evidence": "teacher dashboard tests",
+      "id": "teacher_workspace",
+      "status": "closed"
+    },
+    {
+      "evidence": "offline_first closure tests",
+      "id": "offline_sync",
+      "status": "closed"
+    },
+    {
+      "evidence": "feedback app tests",
+      "id": "feedback_support",
+      "status": "closed"
+    },
+    {
+      "evidence": "AuditLog + export tests",
+      "id": "audit_trail",
+      "status": "closed"
+    },
+    {
+      "evidence": "requires PSP credentials on Render",
+      "id": "live_psp_charge",
+      "status": "external_blocker"
+    }
+  ]
+}

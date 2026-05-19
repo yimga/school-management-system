@@ -21,6 +21,24 @@ from apps.schools.control_plane import user_has_control_plane_access
 from .models import APIAuditLog, APIKey, APIQuota, _hash_secret
 
 
+def _is_manager_host(request):
+    return getattr(request, "public_host_kind", None) == "manager"
+
+
+def _apicenter_back_action(request):
+    if request.GET.get("embed"):
+        try:
+            return reverse("studio_os:control"), _("Back to Control")
+        except NoReverseMatch:
+            pass
+    if _is_manager_host(request):
+        try:
+            return reverse("super:dashboard"), _("Back to command center")
+        except NoReverseMatch:
+            pass
+    return reverse("accounts:backend_dashboard"), _("Back to dashboard")
+
+
 def _api_center_allowed(request):
     """Allow manager-host operators by control-plane access alone; tenant access additionally requires the enable_api_center flag and api_center.manage permission (or ADMIN/IT_ADMIN)."""
     if getattr(request, "public_host_kind", None) == "manager":
@@ -73,17 +91,7 @@ def api_center_dashboard(request):
     for q in quotas:
         key = q.school_id or "platform"
         quotas_by_school.setdefault(key, []).append(q)
-    # §2e row 8 page maturity: page_header + data-page-archetype (CONTROL_PLANE §5.1)
-    if request.GET.get("embed"):
-        try:
-            action_url = reverse("studio_os:control")
-            action_text = _("Back to Control")
-        except NoReverseMatch:
-            action_url = reverse("accounts:backend_dashboard")
-            action_text = _("Back to dashboard")
-    else:
-        action_url = reverse("accounts:backend_dashboard")
-        action_text = _("Back to dashboard")
+    action_url, action_text = _apicenter_back_action(request)
     integ_list = list(integrations)
     n_total = len(integ_list)
     n_on = sum(1 for i in integ_list if getattr(i, "enabled", False))

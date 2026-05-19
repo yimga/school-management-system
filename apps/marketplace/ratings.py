@@ -44,7 +44,7 @@ def submit_rating(
 
 
 def aggregate_for_app(app: MarketplaceApp) -> dict:
-    qs = AppRating.objects.filter(app=app, status=AppRating.Status.PUBLISHED)
+    qs = AppRating.objects.filter(app=app, status=AppRating.Status.PUBLISHED)  # tenant-isolation-allow: marketplace-app-rating-aggregate-by-app
     aggregate = qs.aggregate(
         avg=Avg("stars"),
         total=Count("id"),

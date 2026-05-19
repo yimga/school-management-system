@@ -84,6 +84,10 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+    {% if not PUBLIC_BRAND_MODE %}
+    {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
+    {% endif %}
     {% if SHOW_CORPORATE_MARKETING_FOOTER %}
     {% include "marketing/partials/corporate_footer_styles.html" %}
     {% endif %}
@@ -152,6 +156,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
 

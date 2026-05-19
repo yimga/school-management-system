@@ -6,6 +6,7 @@
   'use strict';
 
   var STORAGE_KEY = 'rmc-mkt-theme';
+  var PLATFORM_KEY = 'runmycampus-theme-preference';
   var root = document.documentElement;
   var mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
@@ -44,6 +45,10 @@
     root.setAttribute('data-theme', next);
     try {
       localStorage.setItem(STORAGE_KEY, preference);
+      localStorage.setItem(PLATFORM_KEY, preference);
+    } catch (_) { /* ignore */ }
+    try {
+      window.dispatchEvent(new CustomEvent('rmc:theme-change', { detail: { preference: preference } }));
     } catch (_) { /* ignore */ }
     setPressedState(preference, next);
   }

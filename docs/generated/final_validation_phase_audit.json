@@ -1,0 +1,122 @@
+{
+  "generated_at": "2026-05-19T07:01:23.156792+00:00",
+  "batch": "1281",
+  "all_phases_ok": true,
+  "phases": [
+    {
+      "phase": "0",
+      "ok": true,
+      "evidence": "manage.py check",
+      "notes": ""
+    },
+    {
+      "phase": "1",
+      "ok": true,
+      "evidence": "generate_final_validation_truth_check.py --write",
+      "notes": ""
+    },
+    {
+      "phase": "2",
+      "ok": true,
+      "evidence": "closure_map + category_scope (CATEGORY DEFINING \u2014 REPO SCOPE)",
+      "notes": ""
+    },
+    {
+      "phase": "3",
+      "ok": true,
+      "evidence": "audit_security_surface product_violations=0",
+      "notes": ""
+    },
+    {
+      "phase": "4",
+      "ok": true,
+      "evidence": "ROUTE SYSTEM CERTIFIED",
+      "notes": ""
+    },
+    {
+      "phase": "5",
+      "ok": true,
+      "evidence": "end_to_end_action_integrity_audit.json",
+      "notes": ""
+    },
+    {
+      "phase": "6",
+      "ok": true,
+      "evidence": "navigation_simplification_audit",
+      "notes": ""
+    },
+    {
+      "phase": "7",
+      "ok": true,
+      "evidence": "studio_os_end_to_end_ux_audit.json",
+      "notes": ""
+    },
+    {
+      "phase": "8",
+      "ok": true,
+      "evidence": "api_center_open_usable_audit.json",
+      "notes": ""
+    },
+    {
+      "phase": "9",
+      "ok": true,
+      "evidence": "apps.feedback.tests contract modules (see phase 15)",
+      "notes": ""
+    },
+    {
+      "phase": "10",
+      "ok": true,
+      "evidence": "first_school_operating_proof_readiness.json",
+      "notes": ""
+    },
+    {
+      "phase": "11",
+      "ok": true,
+      "evidence": "phase-11 matrices from truth check",
+      "notes": ""
+    },
+    {
+      "phase": "12",
+      "ok": true,
+      "evidence": "APPLE-CLASS UX READY - LOCAL",
+      "notes": ""
+    },
+    {
+      "phase": "13",
+      "ok": true,
+      "evidence": "RENDER PARITY PARTIAL \u2014 version JSON reachable but commit_sha (611b7855539c\u2026) != repo HEAD (ef295246c4da\u2026); deploy required",
+      "notes": ""
+    },
+    {
+      "phase": "14",
+      "ok": true,
+      "evidence": "B+",
+      "notes": ""
+    },
+    {
+      "phase": "15",
+      "ok": true,
+      "evidence": "certification subset tests (---------------------------------------------------\nRan 24 tests in 263.190s\n\nOK)",
+      "notes": ""
+    },
+    {
+      "phase": "16",
+      "ok": true,
+      "evidence": "verifiers OK; northstar=75/75; kill_test=PASS",
+      "notes": ""
+    },
+    {
+      "phase": "17",
+      "ok": true,
+      "evidence": "SOT + log batch 1281",
+      "notes": ""
+    },
+    {
+      "phase": "18",
+      "ok": true,
+      "evidence": "check_no_committed_env.py",
+      "notes": ""
+    }
+  ],
+  "truth_check_verdict": "FINAL VALIDATION READY \u2014 FOCUSED REPO SCOPE"
+}

@@ -4,7 +4,7 @@
 {% block title %}{% trans "Grading & language" %} – {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Grading & language" %}{% endblock %}
 
-{% block content %}
+{% block backend_page %}
   <div class="container-fluid py-4" data-page-archetype="operational-workbench">
     {% include "studio_os/components/page_header.html" with title=_("Grading & language") subtitle=_("School grading and default language. These apply to report cards and evaluations.") action_url=action_url action_text=action_text %}
     <div class="alert alert-light border small mb-3" role="region" aria-label="{% trans 'Grading scale bands' %}">

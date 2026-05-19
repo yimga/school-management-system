@@ -1,0 +1,7 @@
+{
+  "browser_proof": "apple_class_authenticated_browser_report mobile viewports",
+  "evidence": "PWA manifest coverage gate + viewport meta on shells",
+  "generated_at": "2026-05-19T06:55:52.643407+00:00",
+  "schema_version": 1,
+  "status": "partial"
+}

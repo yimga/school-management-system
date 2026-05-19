@@ -85,6 +85,7 @@ urlpatterns = [
     path("operator/tokens/mint/", views_token_admin.MigrationCloudTokenMintView.as_view(), name="operator_token_mint"),  # rbac-allow: staff-only-operator-token-and-webhook-management
     path("operator/tokens/<int:token_id>/revoke/", views_token_admin.MigrationCloudTokenRevokeView.as_view(), name="operator_token_revoke"),  # rbac-allow: staff-only-operator-token-and-webhook-management
     path("operator/tokens/<int:token_id>/rotate/", views_token_admin.MigrationCloudTokenRotateView.as_view(), name="operator_token_rotate"),  # rbac-allow: staff-only-operator-token-and-webhook-management
+    path("operator/tokens/<int:token_id>/chain/", views_token_admin.TokenRotationChainView.as_view(), name="operator_token_chain"),  # rbac-allow: staff-only-operator-token-and-webhook-management
     path("operator/webhooks/", views_webhook_admin.MigrationCloudWebhookListView.as_view(), name="operator_webhook_list"),  # rbac-allow: staff-only-operator-token-and-webhook-management
     path("operator/webhooks/subscribe/", views_webhook_admin.MigrationCloudWebhookSubscribeView.as_view(), name="operator_webhook_subscribe"),  # rbac-allow: staff-only-operator-token-and-webhook-management
     path("operator/webhooks/deliveries/", views_webhook_admin.MigrationCloudWebhookDeliveryLogView.as_view(), name="operator_webhook_delivery_log"),  # rbac-allow: staff-only-operator-token-and-webhook-management

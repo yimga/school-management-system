@@ -1,0 +1,96 @@
+# Marketing public surface: assets, CSS bundles, shell hygiene, LCP/CLS, theme matrix.
+name: Marketing gates
+
+on:
+  pull_request:
+    paths:
+      - "beta/school-management-system/templates/marketing/**"
+      - "beta/school-management-system/templates/schools/marketing_*"
+      - "beta/school-management-system/static/marketing/**"
+      - "beta/school-management-system/scripts/*marketing*"
+      - "beta/school-management-system/scripts/marketing_css_bundle_manifest.json"
+      - "beta/school-management-system/tests/e2e/marketing-*.spec.js"
+      - "beta/school-management-system/.github/workflows/marketing-gates.yml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  marketing-static-gates:
+    name: Marketing static gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Ensure hero + fonts (fetch when absent)
+        run: python scripts/setup_marketing_ci_assets.py
+      - name: Build marketing CSS bundles from manifest
+        run: python scripts/build_marketing_css_bundles.py
+      - name: Marketing completion checklist + bundles + shell
+        run: |
+          python scripts/generate_marketing_frontend_defect_log.py --write
+          python scripts/verify_marketing_seo_shell.py
+          python scripts/verify_marketing_frontend_completion.py
+          python scripts/verify_marketing_css_bundles_fresh.py
+          python scripts/verify_marketing_public_shell.py
+          python scripts/verify_marketing_hero_media.py
+
+  marketing-playwright-gates:
+    name: Marketing LCP/CLS + theme matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: beta/school-management-system/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Install Node deps
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Marketing ship assets + CSS bundles
+        run: |
+          python scripts/setup_marketing_ci_assets.py
+          python scripts/build_marketing_css_bundles.py
+      - name: Migrate
+        env:
+          SECRET_KEY: "marketing-gates-ci-not-production-64chars___________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver,runmycampus.com"
+          MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
+        run: python manage.py migrate --noinput
+      - name: Start Django
+        env:
+          SECRET_KEY: "marketing-gates-ci-not-production-64chars___________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver,runmycampus.com"
+          MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
+        run: |
+          python manage.py runserver 127.0.0.1:8000 --noreload &
+          for i in $(seq 1 30); do
+            curl -sf -H "Host: runmycampus.com" http://127.0.0.1:8000/ >/dev/null && break
+            sleep 2
+          done
+      - name: LCP + CLS budgets (/, /pricing/)
+        env:
+          MKT_LIGHTHOUSE_STRICT: "1"
+          MKT_LIGHTHOUSE_HOST: "runmycampus.com"
+          MKT_LIGHTHOUSE_PORT: "8000"
+        run: python scripts/verify_marketing_lighthouse_budget.py
+      - name: Theme matrix + axe critical (/, /pricing/, /demo/)
+        env:
+          MARKETING_BASE_URL: "http://runmycampus.com:8000"
+          PLAYWRIGHT_HOST_RULES: "MAP runmycampus.com 127.0.0.1"
+        run: npx playwright test tests/e2e/marketing-theme-contrast.spec.js

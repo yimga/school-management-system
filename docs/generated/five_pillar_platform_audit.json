@@ -1,0 +1,176 @@
+{
+  "generated_at": "2026-05-19T03:24:08.847821+00:00",
+  "verdict": "FIVE_PILLAR_PLATFORM_PASS",
+  "passed": 24,
+  "failed": 0,
+  "rows": [
+    {
+      "pillar": "AWS",
+      "check_id": "cache_keys",
+      "description": "Versioned tenant resolution cache module",
+      "status": "PASS",
+      "proof": "tenant_resolution_cache.py"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "cache_invalidation",
+      "description": "SchoolDomain/School signals invalidate cache",
+      "status": "PASS",
+      "proof": "signals_tenant_cache + apps.ready"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "bola_me_schools",
+      "description": "me/schools uses schools_user_may_operate_on",
+      "status": "PASS",
+      "proof": "MeSchoolsView"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "bola_me_schools_test",
+      "description": "HTTP test: foreign school absent from me/schools",
+      "status": "PASS",
+      "proof": "test_bola_idor_matrix + test_me_schools_bola"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "bola_matrix",
+      "description": "BOLA matrix >= 30 HTTP cases",
+      "status": "PASS",
+      "proof": "34 tests"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "cache_lint",
+      "description": "No legacy tenant:host cache keys",
+      "status": "PASS",
+      "proof": "verify_tenant_resolution_cache_keys: OK"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "middleware_order",
+      "description": "Middleware stack order gate",
+      "status": "PASS",
+      "proof": "_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "finance_ingress",
+      "description": "Finance webhook ingress boundary",
+      "status": "PASS",
+      "proof": "apps/finance/webhook_ingress.py"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "payment_reexport",
+      "description": "payment app re-exports finance ingress",
+      "status": "PASS",
+      "proof": "payment/webhook_ingress.py"
+    },
+    {
+      "pillar": "Shopify",
+      "check_id": "views_payments_wire",
+      "description": "views_payments uses resolve_webhook_dedup_bucket",
+      "status": "PASS",
+      "proof": "views_payments.py"
+    },
+    {
+      "pillar": "Salesforce",
+      "check_id": "event_dedup",
+      "description": "Domain event dispatch dedup + depth guard",
+      "status": "PASS",
+      "proof": "domain_event_bridge"
+    },
+    {
+      "pillar": "Salesforce",
+      "check_id": "trigger_depth",
+      "description": "trigger_dispatcher honors workflow depth",
+      "status": "PASS",
+      "proof": "trigger_dispatcher.py"
+    },
+    {
+      "pillar": "Salesforce",
+      "check_id": "notify_batch",
+      "description": "schoolops sweep uses notification batching",
+      "status": "PASS",
+      "proof": "schoolops/tasks.py"
+    },
+    {
+      "pillar": "Salesforce",
+      "check_id": "automation_bridge",
+      "description": "Automation app registers domain-event bridge",
+      "status": "PASS",
+      "proof": "automation/apps.py"
+    },
+    {
+      "pillar": "Linux",
+      "check_id": "extension_manifest",
+      "description": "Marketplace install validates extension manifest",
+      "status": "PASS",
+      "proof": "lifecycle.install_app"
+    },
+    {
+      "pillar": "Linux",
+      "check_id": "extension_registry",
+      "description": "Extension registry sandbox validator",
+      "status": "PASS",
+      "proof": "extension_registry.py"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "list_search",
+      "description": "Bounded list_search helper module",
+      "status": "PASS",
+      "proof": "list_search.py"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "student_fts",
+      "description": "StudentProfile search_index + student_search filter",
+      "status": "PASS",
+      "proof": "people/student_search"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "document_fts",
+      "description": "Portal document search_index + document_search filter",
+      "status": "PASS",
+      "proof": "portal/document_search"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "kb_search",
+      "description": "Portal KB uses bounded list_search",
+      "status": "PASS",
+      "proof": "views_kb.py"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "backfill_cmd",
+      "description": "backfill_search_indexes management command",
+      "status": "PASS",
+      "proof": "backfill_search_indexes"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "migration_0051",
+      "description": "StudentProfile search_index migration",
+      "status": "PASS",
+      "proof": "0051_studentprofile_search_index"
+    },
+    {
+      "pillar": "Google",
+      "check_id": "search_adoption_lint",
+      "description": "Hot list views use search helpers",
+      "status": "PASS",
+      "proof": "verify_list_search_adoption: OK"
+    },
+    {
+      "pillar": "PROOF",
+      "check_id": "django_tests",
+      "description": "Pillar Django test subset green",
+      "status": "PASS",
+      "proof": "_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- trigger_dispatcher: depth limit trigger=payment_success depth=9\n........\n----------------------------------------------------------------------\nRan 37 tests in 1.866s\n\nOK\nPreserving test database for alias 'default'..."
+    }
+  ]
+}

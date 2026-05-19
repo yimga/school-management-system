@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% block backend_title %}{{ donor.display_name }}{% endblock %}
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   {% include "studio_os/components/page_header.html" with title=donor.display_name subtitle="Donor detail & gifts" action_url=edit_url action_text="Edit donor" %}
   <p class="text-muted small">{{ donor.email|default:"No email" }} · Ref: {{ donor.external_ref|default:"—" }}</p>

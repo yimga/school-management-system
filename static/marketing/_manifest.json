@@ -11,8 +11,8 @@
       "expected_aspect": "16:9",
       "mobile_aspect": "1:1",
       "expected_duration_s": 8,
-      "status": "PLACEHOLDER",
-      "vendor_hint": "Sora or Veo",
+      "status": "SHIPPED_SCAFFOLD",
+      "vendor_hint": "Sora or Veo (production replace)",
       "brief_ref": "docs/AI_MEDIA_GENERATION_PIPELINE_2026_05_14.md#21-sora--veo--hero-homemp4"
     },
     {

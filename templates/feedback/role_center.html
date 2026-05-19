@@ -3,7 +3,27 @@
 {% block content %}
 <div class="container py-3">
   <h1 class="h3 mb-1">{{ role_surface|title }} Feedback</h1>
-  <p class="text-muted">Tell the school what is not working or what would make your work easier.</p>
+  <p class="text-muted">Get help first, then tell the school or product team what is not working.</p>
+  <div class="d-flex gap-2 flex-wrap mb-3">
+    {% if support_links.kb_home %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.kb_home }}">Help articles</a>{% endif %}
+    {% if support_links.portal_help %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.portal_help }}">Support hub</a>{% endif %}
+    {% if support_links.support_request %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.support_request }}">Contact support</a>{% endif %}
+  </div>
+  {% if help_resources.articles or help_resources.faqs %}
+    <section class="card mb-3">
+      <div class="card-body">
+        <h2 class="h6">Suggested help</h2>
+        <div class="row g-2">
+          {% for article in help_resources.articles %}
+            <div class="col-md-6"><a class="list-group-item list-group-item-action border rounded" href="{% url 'kb:kb_article' article.slug %}">{{ article.title }}</a></div>
+          {% endfor %}
+          {% for faq in help_resources.faqs %}
+            <div class="col-md-6"><a class="list-group-item list-group-item-action border rounded" href="{% url 'kb:faq_detail' faq.id %}">{{ faq.question }}</a></div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
   <div class="row g-3">
     <section class="col-lg-7">
       <div class="card">

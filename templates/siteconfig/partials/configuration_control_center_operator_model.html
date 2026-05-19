@@ -16,7 +16,7 @@
       <div class="small {% if compact %}text-muted{% else %}text-secondary{% endif %}">
         <span class="fw-medium">{% trans "Also" %}:</span>
         {% for r in step.related %}
-        <a href="{{ r.url }}" class="{% if compact %}link-primary{% else %}link-light{% endif %} ms-1" data-operator-stability="{{ r.stability }}">{{ r.label }}</a>
+        <a href="{{ r.url }}" class="{% if compact %}link-primary{% else %}link-secondary{% endif %} ms-1" data-operator-stability="{{ r.stability }}">{{ r.label }}</a>
         {% if not forloop.last %}<span class="text-muted">·</span>{% endif %}
         {% endfor %}
       </div>

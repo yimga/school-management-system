@@ -6,10 +6,6 @@
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'RunMyCampus school management platform.' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
-  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
-  {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
-  {% if faq_schema_json %}<script type="application/ld+json">{{ faq_schema_json|safe }}</script>{% endif %}
-  {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 {% block extrastyle %}
   {{ block.super }}

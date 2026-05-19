@@ -99,7 +99,12 @@ def get_ai_permission_for_user(
             return True
         return False
     if task in FLEET_STAFF_AI_TASKS:
-        return _staff_super_or_control_plane(user)
+        if _staff_or_super(user):
+            return True
+        # Control-plane operator roles must not unlock fleet assistants on a bound tenant host.
+        if school is None and _control_plane_operator(user):
+            return True
+        return False
     if task in BILLING_USAGE_AI_TASKS:
         if _staff_super_or_control_plane(user):
             return True

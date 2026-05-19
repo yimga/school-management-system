@@ -746,8 +746,17 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return HttpResponseBadRequest("Webhook payload must be a JSON object.")
 
     reference_id = _extract_reference(data) or "unknown"
-    dedup_reference = (
-        f"idempotency:{_idem_header}" if _idem_header else reference_id
+    from apps.finance.webhook_ingress import resolve_webhook_dedup_bucket
+
+    header_map = {
+        str(k): v for k, v in request.headers.items()
+    } if hasattr(request, "headers") else {}
+    dedup_reference = resolve_webhook_dedup_bucket(
+        provider_code,
+        data,
+        headers=header_map,
+        idempotency_header=_idem_header,
+        reference_fallback=reference_id,
     )
 
     if not validator.validate_ip_whitelist(client_ip):
@@ -816,6 +825,8 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return HttpResponseForbidden("Invalid timestamp.")
 
     if not validator.validate_idempotency(provider_code, dedup_reference):
+        from apps.finance.webhook_ingress import duplicate_webhook_response
+
         _create_webhook_log(
             reference_id=reference_id,
             signature_valid=True,
@@ -824,7 +835,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             idempotency_bucket=dedup_reference,
         )
         logger.info("Duplicate webhook from %s: %s", provider_slug, dedup_reference)
-        return JsonResponse({"status": "ignored", "reason": "duplicate"})
+        return duplicate_webhook_response()
 
     # Dead-letter queue: stop hammering after repeated failures (idempotency-Key still dedupes success path)
     from django.conf import settings as dj_settings

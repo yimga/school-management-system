@@ -51,6 +51,7 @@ class CountryProfile:
     grading_scales: tuple[str, ...] = ()            # ordered by likelihood
     currency: str = "USD"
     academic_year_start_month: int = 9              # ISO month 1..12
+    calendar_system: str = "gregorian"              # gregorian | islamic | buddhist | hebrew
     student_id_patterns: tuple[str, ...] = ()       # regex patterns for typical national/SIS IDs
     attendance_code_dialect: str = "letters_paie"   # see ATTENDANCE_DIALECTS below
     notes: str = ""
@@ -265,6 +266,7 @@ COUNTRY_PROFILES: dict[str, CountryProfile] = {
         date_format="%d/%m/%Y", name_order="first_last",
         grading_scales=("TH_0_4",),
         currency="THB", academic_year_start_month=5,
+        calendar_system="buddhist",
     ),
     # ------------------------------------------------------- Africa
     "ZA": CountryProfile(

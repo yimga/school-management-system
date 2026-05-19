@@ -64,6 +64,30 @@ DEFAULT_REGIONAL_RATES: dict[tuple[str, str], Decimal] = {
 }
 
 
+def vat_percent_to_fraction(vat_percent: Decimal) -> Decimal:
+    """ComplianceProfile.vat_rate is stored as percent (19.25 → 19.25%)."""
+    if vat_percent is None or vat_percent <= 0:
+        return Decimal("0")
+    return (Decimal(str(vat_percent)) / Decimal("100")).quantize(Decimal("0.0001"))
+
+
+def resolve_vat_rate_fraction(
+    *,
+    region_code: str,
+    vat_percent: Decimal | None = None,
+    tax_type: str = "VAT",
+) -> Decimal:
+    """
+    Resolve fractional VAT/GST rate for compute_tax.
+
+    Prefer explicit ComplianceProfile.vat_rate (percent); else regional fallback table.
+    """
+    if vat_percent is not None and vat_percent > 0:
+        return vat_percent_to_fraction(vat_percent)
+    key = (region_code.upper()[:2], tax_type.upper())
+    return DEFAULT_REGIONAL_RATES.get(key, Decimal("0"))
+
+
 def compute_tax(
     amount: Decimal,
     region_code: str,

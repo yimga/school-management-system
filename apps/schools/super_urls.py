@@ -54,6 +54,7 @@ from .super_views_migration import (
     super_migration_rollback,
 )
 from .super_views_provisioning import api_create_school
+from apps.schoolops.views_analytics import MealPlanAnalyticsView
 
 app_name = "super"
 
@@ -938,4 +939,10 @@ urlpatterns = [
         require_super_access_with_host(super_views_config.super_migration_runs_list),
         name="migration_runs_list",
     ),
+    # v3.33.0 — schoolops meal-plan low-balance analytics dashboard.
+    path(
+        "schoolops/meal-plan-analytics/",
+        MealPlanAnalyticsView.as_view(),
+        name="schoolops_meal_plan_analytics",
+    ),  # rbac-allow: staff-only-meal-plan-analytics-dashboard
 ]

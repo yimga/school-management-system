@@ -1,0 +1,16 @@
+{% comment %}
+  JSON-LD for public marketing pages. Expects structured_data_json and optional
+  organization_schema_json, faq_schema_json, breadcrumb_schema_json from view context.
+{% endcomment %}
+{% if structured_data_json %}
+<script type="application/ld+json">{{ structured_data_json|safe }}</script>
+{% endif %}
+{% if organization_schema_json %}
+<script type="application/ld+json">{{ organization_schema_json|safe }}</script>
+{% endif %}
+{% if faq_schema_json %}
+<script type="application/ld+json">{{ faq_schema_json|safe }}</script>
+{% endif %}
+{% if breadcrumb_schema_json %}
+<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>
+{% endif %}

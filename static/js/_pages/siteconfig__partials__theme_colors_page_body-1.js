@@ -83,6 +83,18 @@
     }
   }
 
+  function csrfToken() {
+    var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  function surfaceRemediatePanel(message, show) {
+    var panel = document.getElementById('theme-contrast-remediate-panel');
+    if (!panel) return;
+    panel.textContent = message || '';
+    panel.classList.toggle('d-none', !show);
+  }
+
   function updateContrastBadge(dirty) {
     if (!contrastBadge || !window.ContrastGuard || !window.ContrastGuard.buildThemeContrastReport) return;
     var values = {};
@@ -98,11 +110,75 @@
     contrastBadge.dataset.status = report.status;
     contrastBadge.classList.toggle('text-bg-success-subtle', ok);
     contrastBadge.classList.toggle('text-bg-warning', !ok);
+    var remediateBtn = document.getElementById('theme-contrast-auto-remediate');
+    if (remediateBtn) {
+      remediateBtn.classList.toggle('d-none', ok || !(report.failures && report.failures.length));
+    }
+    if (ok) {
+      surfaceRemediatePanel('', false);
+    } else if (report.failures && report.failures.length) {
+      var lines = report.failures.map(function(f) {
+        return (f.field || '') + ': ' + (f.ratio ? f.ratio.toFixed(1) : '?') + ':1 (need ' + (f.min_ratio || 4.5) + ':1)';
+      });
+      surfaceRemediatePanel(lines.join(' · '), true);
+    }
     if (activeSource) {
       activeSource.textContent = dirty
         ? (pageData.trans_source_draft_values || 'Source: draft values')
         : (pageData.trans_source_saved_values || 'Source: saved values');
     }
+    return report;
+  }
+
+  function applyBrandRemediations() {
+    var pageData = window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {};
+    var url = pageData.url_brand_contrast_remediate;
+    if (!url) return Promise.resolve();
+    var surface = readFieldValue('background_color') || '#ffffff';
+    var report = updateContrastBadge(true);
+    if (!report || !report.failures || !report.failures.length) return Promise.resolve();
+    var remediateBtn = document.getElementById('theme-contrast-auto-remediate');
+    if (remediateBtn) remediateBtn.disabled = true;
+    var chain = Promise.resolve();
+    report.failures.forEach(function(failure) {
+      var field = failure.field;
+      var brand = readFieldValue(field);
+      if (!brand) return;
+      chain = chain.then(function() {
+        return fetch(url, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRFToken': csrfToken()
+          },
+          body: JSON.stringify({
+            brand_hex: brand,
+            background_hex: surface,
+            min_ratio: 7.0
+          })
+        }).then(function(res) {
+          return res.json();
+        }).then(function(body) {
+          if (body && body.remediated_hex && body.adjusted) {
+            var input = fieldByName(field);
+            if (input) {
+              input.value = body.remediated_hex;
+              input.dispatchEvent(new Event('input', { bubbles: true }));
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
+        });
+      });
+    });
+    return chain.finally(function() {
+      if (remediateBtn) remediateBtn.disabled = false;
+      updateDraftState();
+      if (typeof window.showToast === 'function') {
+        window.showToast('Brand colors shifted for AAA contrast', 'success', 3000);
+      }
+    });
   }
 
   function updateDraftState() {
@@ -253,6 +329,13 @@
       }
       updateDraftState();
     });
+
+    var remediateBtn = document.getElementById('theme-contrast-auto-remediate');
+    if (remediateBtn) {
+      remediateBtn.addEventListener('click', function() {
+        applyBrandRemediations();
+      });
+    }
 
     var previewBtn = document.getElementById('theme-colors-live-preview');
     if (previewBtn && form) {

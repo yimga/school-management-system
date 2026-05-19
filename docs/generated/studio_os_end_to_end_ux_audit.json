@@ -1,0 +1,63 @@
+{
+  "browser_proof": "apps.studio_os.tests.test_studio_os_world_class_experience",
+  "generated_at": "2026-05-19T06:55:58.196522+00:00",
+  "reverse_ok": true,
+  "routes": [
+    {
+      "name": "studio_os:shell",
+      "path": "/studio/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:experience",
+      "path": "/studio/experience/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:automation",
+      "path": "/studio/automation/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:output",
+      "path": "/studio/output/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:launch",
+      "path": "/studio/launch/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:control",
+      "path": "/studio/control/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:preview",
+      "path": "/studio/preview/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:global_search",
+      "path": "/studio/search/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:recommendations",
+      "path": "/studio/recommendations/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:audit",
+      "path": "/studio/audit/",
+      "reverse_ok": true
+    },
+    {
+      "name": "studio_os:rollback",
+      "path": "/studio/rollback/",
+      "reverse_ok": true
+    }
+  ],
+  "schema_version": 1
+}

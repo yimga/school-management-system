@@ -74,6 +74,23 @@ from .views_waiver import request_waiver
 from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
+from .views_theme_experience_hub import theme_experience_hub
+from .views_theme_builder import (
+    ThemeBuilderLayoutAPIView,
+    ThemeBuilderPreviewAPIView,
+    ThemeBuilderPublishAPIView,
+    theme_builder,
+)
+from .views_zero_ticket_hub import (
+    campus_workflow_canvas_hub,
+    api_brand_contrast_remediate,
+    api_permission_matrix_export,
+    api_permission_matrix_simulate,
+    api_tenant_diagnostics,
+    permission_matrix_simulator,
+    zero_ticket_hub,
+)
+from apps.customersuccess.views_dashboard import tenant_health_dashboard
 from .views_tag_manager import tag_manager, tag_manager_edit
 from .views_impersonation_consent import (
     grant_impersonation_consent,
@@ -262,6 +279,63 @@ urlpatterns = [
     path(
         "theme-experience/", theme_experience_redirect, name="theme_experience_redirect"
     ),
+    path(
+        "theme-experience/hub/",
+        theme_experience_hub,
+        name="theme_experience_hub",
+    ),
+    path(
+        "theme-experience/builder/",
+        theme_builder,
+        name="theme_builder",
+    ),
+    path(
+        "theme-experience/builder/api/layout/",
+        ThemeBuilderLayoutAPIView.as_view(),
+        name="theme_builder_layout_api",
+    ),
+    path(
+        "theme-experience/builder/api/publish/",
+        ThemeBuilderPublishAPIView.as_view(),
+        name="theme_builder_publish_api",
+    ),
+    path(
+        "theme-experience/builder/api/preview/",
+        ThemeBuilderPreviewAPIView.as_view(),
+        name="theme_builder_preview_api",
+    ),
+    path("zero-ticket/", zero_ticket_hub, name="zero_ticket_hub"),
+    path(
+        "zero-ticket/permissions/",
+        permission_matrix_simulator,
+        name="permission_matrix_simulator",
+    ),
+    path("zero-ticket/health/", tenant_health_dashboard, name="tenant_health_dashboard"),
+    path(
+        "zero-ticket/workflows/",
+        campus_workflow_canvas_hub,
+        name="campus_workflow_canvas_hub",
+    ),
+    path(
+        "zero-ticket/api/diagnostics/",
+        api_tenant_diagnostics,
+        name="api_tenant_diagnostics",
+    ),
+    path(
+        "zero-ticket/api/permissions/simulate/",
+        api_permission_matrix_simulate,
+        name="api_permission_matrix_simulate",
+    ),
+    path(
+        "zero-ticket/api/permissions/export/",
+        api_permission_matrix_export,
+        name="api_permission_matrix_export",
+    ),
+    path(
+        "zero-ticket/api/brand-contrast/remediate/",
+        api_brand_contrast_remediate,
+        name="api_brand_contrast_remediate",
+    ),
     path("preview-from-form/", preview_from_form, name="preview_from_form"),
     path("preferences/", user_preferences, name="user_preferences"),
     path(
@@ -444,6 +518,7 @@ urlpatterns = [
         "guided-onboarding/execute-launch/", execute_launch_view, name="execute_launch"
     ),
     path("api/tour-steps/", tour_steps_api, name="tour_steps_api"),
+    # rbac-allow: anonymous onboarding tour steps for marketing/login shells
     path("api/tour-steps/public/", tour_steps_public_api, name="tour_steps_public_api"),
     path("api/tour-analytics/", tour_analytics_api, name="tour_analytics_api"),
     path("api/tour-info/", tour_info_tag_api, name="tour_info_tag_api"),

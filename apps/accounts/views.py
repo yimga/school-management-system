@@ -1337,20 +1337,33 @@ def rbac_dashboard(request):
                 return redirect("accounts:rbac")
 
     today = timezone.localdate()
-    week_start = today - timedelta(days=6)
-    window = TeacherAttendance.objects.filter(date__range=(week_start, today))
+    from apps.platform_runtime.localization import (
+        calendar_week_bounds,
+        week_start_day_for_school,
+    )
+
+    school = getattr(request, "school", None)
+    if school:
+        week_start, week_end = calendar_week_bounds(
+            today, week_start_day=week_start_day_for_school(school)
+        )
+    else:
+        week_start = today - timedelta(days=6)
+        week_end = today
+    window = TeacherAttendance.objects.filter(date__range=(week_start, week_end))
     present_map = {
         entry["date"]: entry["count"]
         for entry in window.filter(status=TeacherAttendance.Status.PRESENT)
         .values("date")
         .annotate(count=Count("id"))
     }
+    day_count = (week_end - week_start).days + 1
     attendance_trend = [
         {
             "date": week_start + timedelta(days=offset),
             "present": present_map.get(week_start + timedelta(days=offset), 0),
         }
-        for offset in range(7)
+        for offset in range(day_count)
     ]
     attendance_trend_total = sum(item["present"] for item in attendance_trend)
     attendance_trend_progress = min(attendance_trend_total, 100)
@@ -1579,24 +1592,37 @@ def backend_dashboard(request):
         label = status_labels.get(row["status"], row["status"])
         attendance_counts[label] = row["count"]
 
-    week_start = today - timedelta(days=6)
-    window = TeacherAttendance.objects.filter(date__range=(week_start, today))
+    from apps.platform_runtime.localization import (
+        calendar_week_bounds,
+        week_start_day_for_school,
+    )
+
+    school = getattr(request, "school", None)
+    if school:
+        week_start, week_end = calendar_week_bounds(
+            today, week_start_day=week_start_day_for_school(school)
+        )
+    else:
+        week_start = today - timedelta(days=6)
+        week_end = today
+    window = TeacherAttendance.objects.filter(date__range=(week_start, week_end))
     present_map = {
         entry["date"]: entry["count"]
         for entry in window.filter(status=TeacherAttendance.Status.PRESENT)
         .values("date")
         .annotate(count=Count("id"))
     }
+    day_count = (week_end - week_start).days + 1
     attendance_trend = [
         {
             "date": week_start + timedelta(days=offset),
             "present": present_map.get(week_start + timedelta(days=offset), 0),
         }
-        for offset in range(7)
+        for offset in range(day_count)
     ]
     attendance_trend_total = sum(item["present"] for item in attendance_trend)
     attendance_trend_progress = min(attendance_trend_total, 100)
-    avg_weekly_present = attendance_trend_total / 7 if attendance_trend else 0
+    avg_weekly_present = attendance_trend_total / day_count if attendance_trend else 0
     ai_insight = f"Average daily presence last week: {avg_weekly_present:.0f} students."
 
     finance_access_banner = {

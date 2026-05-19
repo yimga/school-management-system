@@ -31,7 +31,12 @@ both mount points because the parent ``app_name`` is shared).
 
 from __future__ import annotations
 
+import mimetypes
+import os
+
+from django.http import FileResponse, Http404
 from django.urls import include, path
+from django.views.decorators.http import require_GET
 from rest_framework.routers import DefaultRouter
 
 from .docs import MigrationCloudRedocView, MigrationCloudSchemaView
@@ -50,6 +55,50 @@ router.register(r"webhooks", WebhookSubscriptionViewSet, basename="webhook")
 
 _SCHEMA_NAME = "migration-cloud-schema"
 
+
+# ─── v3.33.0 — verifier SDK downloads ─────────────────────────────────────
+
+#: Map of url-segment → on-disk asset name. Each file is shipped under
+#: ``apps/migration_cloud/api/static/`` and served with appropriate
+#: ``Content-Type`` + ``Content-Disposition: attachment`` for the
+#: subscriber-side reference SDKs / verification docs.
+_VERIFIER_ASSETS = {
+    "python": ("webhook_verifier_sdk.py", "text/x-python"),
+    "javascript": ("runmycampus_webhook_verifier.js", "application/javascript"),
+    "docs": ("WEBHOOK_VERIFICATION.md", "text/markdown"),
+}
+
+
+@require_GET
+def webhook_verifier_download(request, asset: str):
+    """Serve a single verifier-SDK asset as a downloadable attachment.
+
+    Public-anonymous: the SDK files contain zero secrets — they are the
+    reference verification code partners use on their own servers. The
+    docs page links to each.
+    """
+    if asset not in _VERIFIER_ASSETS:
+        raise Http404("unknown asset")
+    # The Python SDK file ships in the api package directory; the JS +
+    # docs ship under api/static/. Resolve from package __file__ so the
+    # path holds across deployment layouts.
+    here = os.path.dirname(os.path.abspath(__file__))
+    if asset == "python":
+        path_on_disk = os.path.join(here, _VERIFIER_ASSETS[asset][0])
+    else:
+        path_on_disk = os.path.join(here, "static", _VERIFIER_ASSETS[asset][0])
+    if not os.path.isfile(path_on_disk):
+        raise Http404("asset missing")
+    content_type = _VERIFIER_ASSETS[asset][1] or (
+        mimetypes.guess_type(path_on_disk)[0] or "application/octet-stream"
+    )
+    response = FileResponse(open(path_on_disk, "rb"), content_type=content_type)
+    filename = os.path.basename(path_on_disk)
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["Cache-Control"] = "public, max-age=300"
+    return response
+
+
 urlpatterns = [
     path("", include(router.urls)),
     path(
@@ -61,5 +110,11 @@ urlpatterns = [
         "docs/",
         MigrationCloudRedocView.as_view(),
         name="migration-cloud-docs",
+    ),
+    # v3.33.0 — subscriber-side verifier SDK downloads (Python + JS + docs).
+    path(
+        "webhooks/verifier/<str:asset>/",
+        webhook_verifier_download,
+        name="webhook-verifier-download",
     ),
 ]

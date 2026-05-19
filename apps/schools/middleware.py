@@ -167,6 +167,23 @@ def _cache_get_optional(key, default=None):
         return default
 
 
+def _cache_delete_optional(key) -> bool:
+    try:
+        from django.core.cache import cache
+
+        cache.delete(key)
+        return True
+    except (
+        ImportError,
+        AttributeError,
+        TypeError,
+        ConnectionError,
+        ValueError,
+        RuntimeError,
+    ):
+        return False
+
+
 def _cache_set_optional(key, value, timeout=None) -> bool:
     try:
         from django.core.cache import cache
@@ -382,7 +399,9 @@ def _is_base_domain(host: str, base_domain: str) -> bool:
 
 def _tenant_cache_key(host_or_sub: str, kind: str = "host") -> str:
     """Cache key for optional Redis tenant lookup (<10ms). Use kind='host' or 'subdomain'."""
-    return f"tenant:{kind}:{host_or_sub}"
+    from apps.schools.tenant_resolution_cache import tenant_resolution_cache_key
+
+    return tenant_resolution_cache_key(host_or_sub, kind)
 
 
 class UrlConfSwitcherMiddleware(MiddlewareMixin):

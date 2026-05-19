@@ -410,7 +410,7 @@
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   border: 1px solid rgba(255, 255, 255, 0.14); /* off-token-allow: white-overlay */
-  color: rgba(255, 255, 255, 0.6); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.78); /* off-token-allow: white-overlay */
   line-height: 1;
   user-select: none;
 }

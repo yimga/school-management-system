@@ -112,19 +112,21 @@ def _approved_faq_for_request(request):
 def faq_list(request):
     """Display all FAQs organized by category"""
     category_slug = request.GET.get("category")
-    search_query = request.GET.get("q")
+    from apps.siteconfig.list_search import (
+        apply_bounded_icontains,
+        normalize_list_search_query,
+    )
+
+    search_query = normalize_list_search_query(request.GET.get("q"))
 
     faqs = _approved_faq_for_request(request)
 
     if category_slug:
         faqs = faqs.filter(category__slug=category_slug)
 
-    if search_query:
-        faqs = faqs.filter(
-            Q(question__icontains=search_query)
-            | Q(answer__icontains=search_query)
-            | Q(tags__icontains=search_query)
-        )
+    faqs = apply_bounded_icontains(
+        faqs, search_query, "question", "answer", "tags"
+    )
 
     categories = FAQCategory.objects.filter(is_active=True)
     featured_faqs = list(faqs.filter(is_featured=True)[:5])
@@ -568,7 +570,12 @@ def kb_article_submit(request):
 
 def kb_search(request):
     """Search knowledge base (Move 4 — ranked results via kb_search service)."""
-    query = request.GET.get("q", "")
+    from apps.siteconfig.list_search import (
+        apply_bounded_icontains,
+        normalize_list_search_query,
+    )
+
+    query = normalize_list_search_query(request.GET.get("q"))
     if not query:
         return redirect("kb:kb_home")
     from apps.portal.kb_search import search_kb_articles
@@ -584,17 +591,16 @@ def kb_search(request):
         position = {pk: i for i, pk in enumerate(ids)}
         articles.sort(key=lambda a: position.get(a.pk, 10_000))
     else:
-        articles = base_qs.filter(
-            Q(title__icontains=query)
-            | Q(summary__icontains=query)
-            | Q(content__icontains=query)
-            | Q(tags__icontains=query)
+        articles = apply_bounded_icontains(
+            base_qs, query, "title", "summary", "content", "tags"
         )
 
-    faqs = _approved_faq_for_request(request).filter(
-        Q(question__icontains=query)
-        | Q(answer__icontains=query)
-        | Q(tags__icontains=query)
+    faqs = apply_bounded_icontains(
+        _approved_faq_for_request(request),
+        query,
+        "question",
+        "answer",
+        "tags",
     )
 
     paginator_articles = Paginator(articles, 10)

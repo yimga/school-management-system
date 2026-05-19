@@ -1,0 +1,21 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{{ hub_title }}{% endblock %}
+
+{% block extra_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/theme-builder-canvas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/site-settings-preview.css' %}">
+{% endblock %}
+
+{% block cp_workspace_header %}{% endblock %}
+
+{% block cp_content %}
+  {% include "siteconfig/partials/theme_experience_hub_body.html" %}
+{% endblock %}
+
+{% block extrajs %}
+  {{ block.super }}
+  <script src="{% static 'js/theme-builder-canvas.js' %}" defer></script>
+{% endblock %}

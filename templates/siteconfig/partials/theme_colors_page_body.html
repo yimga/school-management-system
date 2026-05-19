@@ -47,11 +47,15 @@
                 {% trans "Contrast safety: needs attention" %}
               {% endif %}
             </span>
+            <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="theme-contrast-auto-remediate">
+              {% trans "Auto-fix to AAA" %}
+            </button>
             <span id="theme-active-source" class="small text-muted">
               {% trans "Source: saved values" %}
             </span>
           </div>
         </div>
+        <div id="theme-contrast-remediate-panel" class="small text-secondary d-none mb-2" role="status"></div>
         <div class="d-flex flex-wrap gap-2 small">
           <span class="badge text-bg-light border">
             {% trans "Site pack:" %}
@@ -249,6 +253,7 @@
 {{ theme_contrast_targets|json_script:"theme-contrast-targets" }}
 <script type="application/json" id="page-data-siteconfig__partials__theme_colors_page_body-1">{
   "url_siteconfig_preview_from_form": "{% url "siteconfig:preview_from_form" %}",
+  "url_brand_contrast_remediate": "{% url "siteconfig:api_brand_contrast_remediate" %}",
   "trans_draft_changes_pending": "{% trans "Draft changes pending" %}",
   "trans_saved_state": "{% trans "Saved state" %}",
   "trans_source_saving_current_form_values": "{% trans "Source: saving current form values..." %}",

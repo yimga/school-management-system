@@ -1,15 +1,16 @@
 {% extends "backend_base.html" %}
+{% load i18n %}
 {% load static i18n %}
 {% load region_format %}
 {# Backend UI: Add applicant (admissions). 26.5: Save draft / Resume draft via FormDraft (application_form). #}
 {% block backend_title %}{% trans "Add applicant" %} - Backend{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_applicant_list' as list_url %}
-      {% include "studio_os/components/page_header.html" with title="Add applicant" subtitle="Record a lead or new application." action_url=list_url action_text="Back to list" %}
+      {% include "studio_os/components/page_header.html" with title=_("Add applicant") subtitle=_("Record a lead or new application.") action_url=list_url action_text=_("Back to list") %}
 
       {% if has_draft %}
       <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">

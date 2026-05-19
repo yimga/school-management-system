@@ -1,0 +1,17 @@
+Bonjour,
+
+Ceci est un avis de courtoisie indiquant que le solde du plan de
+repas de {{ student_first_name }} {{ student_last_name }} est désormais au seuil bas configuré ou en dessous.
+
+  Plan :     {{ plan_label }}
+  Solde :    {{ balance_display }}
+  Seuil :    {{ threshold_display }}
+
+Veuillez envisager de recharger le solde pour éviter une interruption du service.
+
+Vous recevez cette notification car vous êtes enregistré(e) comme
+tuteur de cet(te) élève. Pour modifier vos préférences de notification,
+veuillez consulter le portail des parents.
+
+Merci,
+RunMyCampus

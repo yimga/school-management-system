@@ -1,0 +1,36 @@
+{
+  "all_reverse_ok": true,
+  "generated_at": "2026-05-19T06:55:58.493740+00:00",
+  "routes": [
+    {
+      "name": "apicenter:dashboard",
+      "ok": true,
+      "path": "/api-center/"
+    },
+    {
+      "name": "apicenter:api_portal_docs",
+      "ok": true,
+      "path": "/api-center/docs/"
+    },
+    {
+      "name": "apicenter:api_keys",
+      "ok": true,
+      "path": "/api-center/keys/"
+    },
+    {
+      "name": "api-schema",
+      "ok": true,
+      "path": "/api/schema/"
+    },
+    {
+      "name": "api-schema-ui",
+      "ok": true,
+      "path": "/api/schema/ui/"
+    }
+  ],
+  "schema_version": 1,
+  "tests": [
+    "apps.apicenter.tests.test_api_center_open_and_usable",
+    "apps.apicenter.tests.test_developer_platform_e2e"
+  ]
+}

@@ -35,7 +35,7 @@ def aggregate_recent_window(*, window_minutes: int = 60) -> int:
 
     for defn in ProcessDefinition.objects.all():
         runs = list(
-            OrchestrationRun.objects.filter(
+            OrchestrationRun.objects.filter(  # tenant-isolation-allow: orchestration-slo-run-aggregate-all-tenants
                 definition=defn, created_at__gte=window_start, created_at__lt=window_end
             )
         )
@@ -53,7 +53,7 @@ def aggregate_recent_window(*, window_minutes: int = 60) -> int:
             if r.sla_deadline and r.completed_at and r.completed_at > r.sla_deadline:
                 sla_breach += 1
         total = len(runs)
-        queue_depth = OrchestrationRun.objects.filter(
+        queue_depth = OrchestrationRun.objects.filter(  # tenant-isolation-allow: orchestration-slo-run-latency-aggregate
             definition=defn,
             status=OrchestrationRun.Status.PENDING,
             created_at__lt=window_end,

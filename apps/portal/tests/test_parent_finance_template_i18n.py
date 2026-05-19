@@ -19,4 +19,9 @@ class ParentFinanceTemplateI18nTests(SimpleTestCase):
         self.assertIn('{% trans "Request finance access" %}', text)
         self.assertIn('id="parent-finance-access-request-form"', text)
         self.assertIn('dir="auto"', text)
-        self.assertIn('{% trans "Invoices" %}', text)
+        self.assertTrue(
+            '{% trans "Invoices" %}' in text
+            or '{% trans_term "Invoices"' in text
+            or 'trans_term "Invoices"' in text,
+            "Invoices heading must use trans or trans_term",
+        )

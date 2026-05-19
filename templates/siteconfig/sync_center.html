@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block backend_page %}
   <div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center">
     {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Conflicts from offline sync. Resolve by keeping server version, client version, or discarding.") action_url=action_url|default:None action_text=action_text|default:None %}
     {% if sync_available %}

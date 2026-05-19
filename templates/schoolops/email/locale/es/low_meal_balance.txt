@@ -1,0 +1,18 @@
+Hola,
+
+Este es un aviso de cortesía: el saldo del plan de comidas de
+{{ student_first_name }} {{ student_last_name }} se encuentra ahora
+en el umbral de saldo bajo configurado o por debajo.
+
+  Plan:     {{ plan_label }}
+  Saldo:    {{ balance_display }}
+  Umbral:   {{ threshold_display }}
+
+Por favor considere recargar el saldo para evitar interrupciones del servicio.
+
+Usted recibe esta notificación porque está registrado como tutor de
+este(a) estudiante. Para ajustar sus preferencias de notificación,
+visite el portal de padres.
+
+Gracias,
+RunMyCampus

@@ -387,6 +387,12 @@ class SiteSettings(models.Model):
             "require_guardian_finance_opt_in"
         )
         requested_update_fields = kwargs.get("update_fields")
+        try:
+            from apps.siteconfig.brand_guard_runtime import guard_brand_hex_fields
+
+            guard_brand_hex_fields(self)
+        except ImportError:
+            pass
         cleared_fields = self._sanitize_foreign_keys()
         if requested_update_fields is not None:
             normalized_update_fields = set(requested_update_fields)

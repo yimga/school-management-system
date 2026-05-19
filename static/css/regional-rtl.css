@@ -13,3 +13,32 @@
   margin-right: 0;
   margin-left: 0.5rem;
 }
+
+[dir="rtl"] .table th,
+[dir="rtl"] .table td {
+  text-align: right;
+}
+
+[dir="rtl"] .modal-header,
+[dir="rtl"] .modal-footer {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] #cp-main-content .list-filter-bar .row {
+  direction: rtl;
+}
+
+[dir="rtl"] .form-label,
+[dir="rtl"] .form-control,
+[dir="rtl"] .form-select {
+  text-align: right;
+}
+
+html[data-rmc-low-bandwidth="1"] img.rmc-decorative,
+html[data-rmc-low-bandwidth="1"] .rmc-skeleton-shimmer {
+  display: none !important;
+}
+
+html[data-rmc-low-bandwidth="1"] .page-family-filter-row .btn {
+  min-height: 2.25rem;
+}

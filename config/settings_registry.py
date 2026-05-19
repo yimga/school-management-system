@@ -438,6 +438,13 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("DEFAULT_CURRENCY", "str", '"USD"', "finance", "Default currency code when tenant has none set."),
     SettingSpec("PLATFORM_DEFAULT_CURRENCY", "str", '"USD"', "finance", "Platform-wide default currency."),
     SettingSpec("EXCHANGE_RATES", "dict", "{}", "finance", "Static FX rate overrides (test / fallback)."),
+    SettingSpec(
+        "REQUEST_TIMEOUT_SECONDS",
+        "int",
+        "120",
+        "ops",
+        "Wall-clock cap on synchronous HTTP requests (0 disables RequestTimeoutMiddleware).",
+    ),
     SettingSpec("DEFAULT_SCHOOL_TIMEZONE", "str", '"UTC"', "ops", "Default timezone applied to new schools."),
     SettingSpec("PLATFORM_DEFAULT_TIMEZONE", "str", '"UTC"', "ops", "Platform-wide default timezone."),
     SettingSpec("PLATFORM_DEFAULT_GRADING_SCALE", "str", '""', "academics", "Default grading scale slug for new schools."),

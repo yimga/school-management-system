@@ -117,8 +117,9 @@ def compute_tenant_health_score(school):
     else:
         dimensions["workflows"] = 20
 
-    # Adoption placeholder: assume 70 if we have no module adoption metrics
-    dimensions["adoption"] = 70
+    from apps.siteconfig.tenant_diagnostics import compute_adoption_dimension
+
+    dimensions["adoption"] = compute_adoption_dimension(school)
 
     score = sum(dimensions.values()) / len(dimensions) if dimensions else 50
     return round(Decimal(str(score)), 2), dimensions

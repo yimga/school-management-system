@@ -6,11 +6,11 @@
   "dimension_scores": {
     "action_clarity": {
       "max": 3,
-      "score": 2
+      "score": 3
     },
     "click_depth": {
       "max": 2,
-      "score": 2
+      "score": 1
     },
     "component_consistency": {
       "max": 2,
@@ -50,8 +50,8 @@
       ]
     }
   },
-  "generated_at": "2026-05-18T18:02:40.810263+00:00",
-  "high_impact_templates_total": 214,
+  "generated_at": "2026-05-19T07:11:40.587926+00:00",
+  "high_impact_templates_total": 222,
   "inline_styles": {
     "count": 47,
     "needs_review_count": 47,
@@ -110,8 +110,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 92,
-    "needs_review_count": 92,
+    "count": 98,
+    "needs_review_count": 98,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -125,6 +125,7 @@
       "templates/schools/billing_dashboard.html",
       "templates/schools/super_dashboard.html",
       "templates/siteconfig/bulk_letters.html",
+      "templates/siteconfig/campus_workflow_canvas_hub.html",
       "templates/siteconfig/config_mutation_audit_evidence.html",
       "templates/siteconfig/curriculum_templates.html",
       "templates/siteconfig/customizer.html",
@@ -171,8 +172,11 @@
       "templates/siteconfig/partials/term_publish_status_evidence_body.html",
       "templates/siteconfig/partials/theme_colors_content.html",
       "templates/siteconfig/partials/theme_colors_page_body.html",
+      "templates/siteconfig/partials/theme_experience_hub_body.html",
+      "templates/siteconfig/partials/theme_experience_hub_hero.html",
       "templates/siteconfig/partials/user_preferences_body.html",
       "templates/siteconfig/partials/workflow_flow_gallery_body.html",
+      "templates/siteconfig/permission_matrix_simulator.html",
       "templates/siteconfig/report_library.html",
       "templates/siteconfig/request_custom_requirement.html",
       "templates/siteconfig/request_waiver.html",
@@ -180,7 +184,9 @@
       "templates/siteconfig/school_theme_settings.html",
       "templates/siteconfig/sync_center.html",
       "templates/siteconfig/template_gallery.html",
+      "templates/siteconfig/theme_builder.html",
       "templates/siteconfig/workflow_hub.html",
+      "templates/siteconfig/zero_ticket_hub.html",
       "templates/studio_os/components/action_bar.html",
       "templates/studio_os/components/loading_empty_states.html",
       "templates/studio_os/partials/_mode_hero.html",
@@ -210,19 +216,15 @@
     "violation_paths": []
   },
   "missing_table_family": {
-    "count": 11,
-    "needs_review_count": 11,
+    "count": 7,
+    "needs_review_count": 7,
     "needs_review_paths": [
       "templates/reports/annual_report_cameroon.html",
       "templates/reports/statistical_return.html",
       "templates/reports/term_report_cameroon.html",
-      "templates/siteconfig/entity_catalog_overview.html",
-      "templates/siteconfig/metadata_dynamic_fields_operator.html",
       "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
-      "templates/siteconfig/partials/region_comparison_body.html",
-      "templates/siteconfig/partials/region_grading_scales_matrix_body.html",
-      "templates/siteconfig/partials/region_validation_dashboard_body.html",
       "templates/siteconfig/partials/workflow_flow_gallery_body.html",
+      "templates/siteconfig/permission_matrix_simulator.html",
       "templates/studio_os/partials/launch_school_infrastructure_body.html"
     ],
     "violation_count": 0,
@@ -496,7 +498,7 @@
         "path": "templates/accounts/backend_dashboard.html",
         "permission_denied": false,
         "retry": false,
-        "zero_click_shell_or_exempt": true
+        "zero_click_shell_or_exempt": false
       },
       {
         "empty": true,
@@ -536,7 +538,7 @@
         "path": "templates/marketplace/tenant_app_catalog.html",
         "permission_denied": false,
         "retry": true,
-        "zero_click_shell_or_exempt": true
+        "zero_click_shell_or_exempt": false
       },
       {
         "empty": false,
@@ -546,7 +548,7 @@
         "path": "templates/marketplace/tenant_installed_apps.html",
         "permission_denied": false,
         "retry": false,
-        "zero_click_shell_or_exempt": true
+        "zero_click_shell_or_exempt": false
       },
       {
         "empty": false,
@@ -1103,11 +1105,11 @@
     }
   },
   "zero_click_contract": {
-    "failure_count": 0,
+    "failure_count": 3,
     "rows": [
       {
         "path": "templates/accounts/backend_dashboard.html",
-        "zero_click_resolved": true
+        "zero_click_resolved": false
       },
       {
         "path": "templates/schools/super_dashboard.html",
@@ -1123,11 +1125,11 @@
       },
       {
         "path": "templates/marketplace/tenant_app_catalog.html",
-        "zero_click_resolved": true
+        "zero_click_resolved": false
       },
       {
         "path": "templates/marketplace/tenant_installed_apps.html",
-        "zero_click_resolved": true
+        "zero_click_resolved": false
       },
       {
         "path": "templates/teacher/dashboard.html",

@@ -3,7 +3,7 @@
 
 {% block backend_title %}{% trans "Lineage graph" %}{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="catalog" data-decision-engine="surface">
   {% phase8_dashboard_declaration "metadata/lineage_graph.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}

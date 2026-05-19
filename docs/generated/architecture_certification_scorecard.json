@@ -1,0 +1,153 @@
+{
+  "composite_repo_grade": "B+",
+  "external_blockers": [
+    "render_live_sha",
+    "live_psp_settlement",
+    "soc2_pci"
+  ],
+  "generated_at": "2026-05-19T06:55:58.498402+00:00",
+  "graphql_review": "medium",
+  "pillars": [
+    {
+      "evidence": "RLS FORCE migrations + tenant middleware",
+      "gap": "maintain zero-regression",
+      "grade": "A-",
+      "id": "multi_tenancy",
+      "next_action": "maintain zero-regression"
+    },
+    {
+      "evidence": "scan_tenant_queryset_safety baseline 0",
+      "gap": "marker quality audits",
+      "grade": "A-",
+      "id": "rls_tenant_isolation",
+      "next_action": "marker quality audits"
+    },
+    {
+      "evidence": "exception register product_violations=0",
+      "gap": "production GraphQL introspection off",
+      "grade": "A-",
+      "id": "security",
+      "next_action": "production GraphQL introspection off"
+    },
+    {
+      "evidence": "batch 1194 admin/config certified",
+      "gap": "maintain",
+      "grade": "A",
+      "id": "admin_config_model",
+      "next_action": "maintain"
+    },
+    {
+      "evidence": "UX waves + route reverse audit",
+      "gap": "Playwright action proof",
+      "grade": "B+",
+      "id": "studio_os",
+      "next_action": "Playwright action proof"
+    },
+    {
+      "evidence": "governed installation + workflow packs",
+      "gap": "tenant parity sweeps",
+      "grade": "A-",
+      "id": "blueprints_packs",
+      "next_action": "tenant parity sweeps"
+    },
+    {
+      "evidence": "configuration console + change requests",
+      "gap": "operator drill evidence",
+      "grade": "A-",
+      "id": "runtime_governance",
+      "next_action": "operator drill evidence"
+    },
+    {
+      "evidence": "developer platform + catalog",
+      "gap": "third-party publisher Lane 2",
+      "grade": "B+",
+      "id": "marketplace",
+      "next_action": "third-party publisher Lane 2"
+    },
+    {
+      "evidence": "API Center + OpenAPI + scoped tokens",
+      "gap": "maintain",
+      "grade": "A-",
+      "id": "api_developer_platform",
+      "next_action": "maintain"
+    },
+    {
+      "evidence": "migration cloud v3.33 + onboarding tests",
+      "gap": "companion live districts",
+      "grade": "A-",
+      "id": "migration_onboarding",
+      "next_action": "companion live districts"
+    },
+    {
+      "evidence": "friction/RUM/SLO registry + public status",
+      "gap": "Sentry alert drift snapshot",
+      "grade": "B+",
+      "id": "observability",
+      "next_action": "Sentry alert drift snapshot"
+    },
+    {
+      "evidence": "AuditLog + DSAR runbook + MAA v2",
+      "gap": "SOC2 auditor sign-off",
+      "grade": "A-",
+      "id": "compliance_audit",
+      "next_action": "SOC2 auditor sign-off"
+    },
+    {
+      "evidence": "finance tests; PSP partial external",
+      "gap": "live PSP settlement corridor",
+      "grade": "C+",
+      "id": "billing_payments",
+      "next_action": "live PSP settlement corridor"
+    },
+    {
+      "evidence": "feedback loop + KB + status",
+      "gap": "production volume proof",
+      "grade": "B+",
+      "id": "feedback_customer_voice",
+      "next_action": "production volume proof"
+    },
+    {
+      "evidence": "apple-class mechanical markers",
+      "gap": "axe serious/critical \u2192 0",
+      "grade": "B",
+      "id": "ux_accessibility",
+      "next_action": "axe serious/critical \u2192 0"
+    },
+    {
+      "evidence": "certification tests + phase gates",
+      "gap": "full prompt verifier cadence",
+      "grade": "A-",
+      "id": "tests_verifiers",
+      "next_action": "full prompt verifier cadence"
+    },
+    {
+      "evidence": "local parity artifacts; Render SHA partial",
+      "gap": "RENDER_PARITY_BASE_URL",
+      "grade": "C+",
+      "id": "deploy_live_readiness",
+      "next_action": "RENDER_PARITY_BASE_URL"
+    },
+    {
+      "evidence": "procurement_packet + trust anchors",
+      "gap": "buyer attestation",
+      "grade": "B+",
+      "id": "enterprise_procurement",
+      "next_action": "buyer attestation"
+    },
+    {
+      "evidence": "customersuccess + health dashboards",
+      "gap": "first-100-schools Lane 2",
+      "grade": "B",
+      "id": "support_customer_success",
+      "next_action": "first-100-schools Lane 2"
+    },
+    {
+      "evidence": "CATEGORY DEFINING \u2014 REPO SCOPE",
+      "gap": "Lane 2 pilots + live PSP",
+      "grade": "B",
+      "id": "competitive_readiness",
+      "next_action": "Lane 2 pilots + live PSP"
+    }
+  ],
+  "schema_version": 1
+}

@@ -14,29 +14,13 @@
   <meta charset="utf-8">
   {% include "partials/rmc_theme_meta.html" %}
   {% include "partials/rmc_social_meta.html" %}
-  {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
-     Marketing surface keeps its editorial palette, but if a logged-in user
-     navigates here their Light/Dark/System preference must still apply. {% endcomment %}
-  <script nonce="{{ csp_nonce }}">
-    (function () {
-      try {
-        var stored = localStorage.getItem('rmc-mkt-theme');
-        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (stored === 'dark' || stored === 'light' || stored === 'system') {
-          document.documentElement.setAttribute('data-theme-preference', stored);
-          document.documentElement.setAttribute('data-theme', stored === 'system' ? (prefersDark ? 'dark' : 'light') : stored);
-        }
-      } catch (_) { /* ignore */ }
-    })();
-  </script>
+  {% include "marketing/partials/mkt_structured_data.html" %}
+  {% comment %} FOUC-safe theme: mkt-theme-bootstrap (rmc-mkt-theme + platform fallback) then platform bootstrap for logged-in cross-shell sync. {% endcomment %}
+  <script src="{% static 'marketing/js/mkt-theme-bootstrap.js' %}"></script>
   <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
-  <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
-  <script src="{% static 'js/rmc-friction.js' %}" defer></script>
-  <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
   {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
   <script src="{% static 'js/rmc-reveal.js' %}"></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
-  <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
   <script src="{% static 'js/_pages/marketing__base_marketing.js' %}"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -47,57 +31,23 @@
   <title>{% block title %}{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}{% endblock %}</title>
   <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon-bell.svg' %}{% endif %}" type="image/svg+xml">
 
-  {# Source Serif 4 — editorial display face. Preconnect first so the font request fires in parallel with CSS. #}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap"> <!-- sri-allow: google-fonts-rotating-resource -->
+  {# Self-hosted Source Serif 4 (latin 400/600/700) — bundled in marketing-critical.min.css via marketing-fonts.css #}
+  <link rel="preload" href="{% static 'marketing/fonts/source-serif-4/source-serif-4-latin-600-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
 
   {% block extrahead %}{% endblock %}
 
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
-  {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
-  <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
-  <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
-  {# Marketing surface intentionally does not load bootstrap-theme-bridge.css — keeps editorial palette from being overridden by platform indigo/emerald. #}
-  <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/tokens-marketing.css' %}">
-  {# tokens-editorial.css activates via [data-mkt-edition="editorial"] on body — additive, opt-in. #}
-  <link rel="stylesheet" href="{% static 'marketing/css/tokens-editorial.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/tokens-schoolhouse.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-shell.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-narrative.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-shell.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
-  <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
-  {# design-system-phase2-enforcement.css dropped from marketing — its .ds-*/Bootstrap-overlap rules are not used on the editorial surface (Bootstrap alone covers .alert / .card / .btn-*). ~8 KB shaved. #}
-  {# marketing-static-bundle.css holds static <style> extractions from marketing/* templates. Other shells use phase2-{portal,base,admin,control-plane}-bundle.css. #}
-  <link rel="stylesheet" href="{% static 'css/marketing-static-bundle.css' %}">
-  <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
-  <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
-  <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
-  {# platform-fluid-everywhere.css retired 2026-05-12 — clamp() typography now in design-tokens.css #}
-  <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
-  <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-corporate-os.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-corporate-os.css' %}">
+  <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-critical.min.css' %}">
+  <link rel="prefetch" href="{% static 'marketing/css/marketing-enhanced.min.css' %}" as="style">
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-enhanced.min.css" %}
   {% block extrastyle %}{% endblock %}
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-accessibility-hardening.css' %}">
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
 <body class="{% block body_class %}marketing-surface{% endblock %}{% if LANGUAGE_BIDI or is_rtl %} bidi-rtl{% else %} bidi-ltr{% endif %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story"{% block body_extra_attrs %} data-mkt-edition="editorial" data-mkt-section="{% with s=marketing_page_slug|default:'platform' %}{% if 'platform' in s or 'sis' in s or 'admissions' in s or 'attendance' in s or 'fees' in s or 'grading' in s or 'parent-portal' in s or 'teacher-portal' in s or 'student-portal' in s or 'communications' in s or 'analytics' in s or 'workflows' in s or 'offline' in s or 'security' in s %}platform{% elif 'solutions' in s or 'for-private' in s or 'for-school' in s or 'k12' in s or 'international' in s or 'multi-campus' in s or 'faith' in s or 'payments-readiness' in s %}solutions{% elif 'pricing' in s %}pricing{% elif 'resources' in s or 'developer' in s or 'blog' in s or 'guides' in s or 'case-studies' in s or 'help-center' in s or 'product-tour' in s %}resources{% elif 'trust' in s or 'compliance' in s %}trust{% elif 'migrate' in s or 'migration' in s %}migrate{% elif 'compare' in s %}compare{% elif 'company' in s or 'about' in s or 'contact' in s or 'demo' in s %}company{% else %}platform{% endif %}{% endwith %}"{% endblock %}>
-  {# Public marketing surface: tenant PWA/service-worker prompts belong on school subdomains, not this shell (see portal_base vs marketing templates). #}
-  {% include "partials/rmc_launch_splash.html" %}
+  {# Public marketing: no tenant launch splash (avoids CLS + wasted paint on cold acquisition traffic). #}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% include 'marketing/marketing_header.html' %}
 
@@ -121,7 +71,6 @@
   <script src="{% static 'marketing/js/marketing-corporate-os.js' %}" defer></script>
   <script src="{% static 'marketing/js/scroll-narrative.js' %}" defer></script>
   <script src="{% static 'marketing/js/rotating-headline.js' %}" defer></script>
-  <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
   {% include "partials/rmc_shortcuts_i18n.html" %}
   <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
   <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>

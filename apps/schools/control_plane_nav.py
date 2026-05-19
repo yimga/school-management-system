@@ -200,6 +200,7 @@ def _primary_nav_is_current(request_path: str, item_id: str) -> bool:
             "/siteconfig/theme-colors/",
             "/siteconfig/template-gallery/",
             "/siteconfig/theme-experience/",
+            "/siteconfig/theme-experience/hub/",
             "/siteconfig/preview-from-form/",
             "/siteconfig/preview/toggle/",
             "/siteconfig/act-as/",
@@ -885,8 +886,8 @@ def build_control_plane_nav(request):
             },
             {
                 "id": "cp_theme_experience",
-                "label": "Fleet theme & experience defaults",
-                "url_name": "siteconfig:theme_colors",
+                "label": "Fleet theme & experience hub",
+                "url_name": "siteconfig:theme_experience_hub",
                 "icon": "bi-palette",
             },
             {
@@ -942,6 +943,11 @@ def build_control_plane_nav(request):
                 "url_name": "siteconfig:region_comparison",
                 "icon": "bi-columns-gap",
             },
+        ],
+    )
+    add_group(
+        "Voice of customer & proof",
+        [
             {
                 "id": "cp_public_to_product_matrix",
                 "label": "Public-to-Product matrix",

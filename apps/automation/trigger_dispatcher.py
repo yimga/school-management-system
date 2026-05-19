@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable
 
+from .workflow_limits import MAX_DOMAIN_EVENT_CHAIN_DEPTH
 from .workflow_trigger_catalog import FULL_TRIGGER_CATALOG_KEYS
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,26 @@ def fire(
         raise UnknownTriggerError(f"Unknown trigger key: {trigger_key!r}")
 
     payload = payload if isinstance(payload, dict) else {}
+    depth_raw = payload.get("_domain_event_depth", payload.get("_workflow_depth", 0))
+    try:
+        depth = int(depth_raw)
+    except (TypeError, ValueError):
+        depth = 0
+    if depth > MAX_DOMAIN_EVENT_CHAIN_DEPTH:
+        logger.warning(
+            "trigger_dispatcher: depth limit trigger=%s depth=%s",
+            trigger_key,
+            depth,
+        )
+        return [
+            {
+                "handler": "trigger_dispatcher",
+                "status": "failed",
+                "summary": None,
+                "error": "workflow_recursion_limit",
+            }
+        ]
+
     results: list[dict[str, Any]] = []
 
     # Local import keeps this module import-safe outside Django.

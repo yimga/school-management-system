@@ -1,6 +1,158 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-18 (v3.32.2 — Elite marketing Corporate OS public surfaces)
+**Last updated:** 2026-05-19 (v3.35.3 — Marketing frontend completion, runmycampus.com public surface)
+
+## 2026-05-19 — v3.35.3 Marketing frontend completion (runmycampus.com)
+
+**Status:** SHIPPED. SW `sms-v3.35.3-marketing-frontend-completion-2026-05-19`.
+
+### What landed
+
+| Area | Deliverable |
+|------|-------------|
+| CSS delivery | `marketing-critical.min.css` (**~16KB**) + `marketing-enhanced.min.css` (~234KB deferred) via `build_marketing_css_bundles.py`; critical = tokens + v3-shell + `marketing-critical-path.css` + a11y hardening + fonts; grammar/narrative/full shell in enhanced |
+| Fonts | Self-hosted Source Serif 4 WOFF2 + `marketing-fonts.css`; Google Fonts CDN removed from `base_marketing.html` |
+| Theme | `mkt-theme-bootstrap.js` + `theme-toggle.js` (light/dark/system); v3 `data-theme` effective contract |
+| Hero | `_hero_home_video.html` + `hero-home.mp4` + `hero-home-poster.svg` (`preload="none"` on video) |
+| SEO | Central `mkt_structured_data.html`; deduped page-level JSON-LD |
+| Forms | Contact + demo `novalidate data-rmc-validate="inline"` |
+| Gates | `verify_marketing_*` family + `verify_marketing_frontend_completion.py` + CI `marketing-gates.yml` (LCP/CLS + theme matrix) |
+| Defect log | `docs/generated/marketing_frontend_defect_log.md` via `generate_marketing_frontend_defect_log.py --write` |
+| SEO gate | `verify_marketing_seo_shell.py` (canonical, OG/Twitter, JSON-LD, hero/pricing h1) |
+| E2E | `marketing-theme-contrast.spec.js` — `/`, `/pricing/`, `/demo/` × light/dark/system × desktop/mobile + axe critical |
+
+### Deploy
+
+1. SW bump (above) — hard refresh marketing after deploy.
+2. Run `python scripts/build_marketing_css_bundles.py` after any marketing CSS source edit.
+3. Fresh clones: `python scripts/setup_marketing_ci_assets.py` (hero + fonts) before `verify:marketing`.
+4. Playwright: `npm run test:e2e:marketing:theme` with Django on `runmycampus.com:8000`.
+
+### Honest residual (ongoing drift, not prompt blockers)
+
+- **Per-selector 7:1 AAA proof** — axe critical gate on `/`, `/pricing/`, `/demo/` theme matrix; sitewide AAA burndown remains incremental in `marketing-accessibility-hardening.css`.
+
+---
+
+## 2026-05-18 — v3.34.0 Migration Cloud deferred-item closeout (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW `sms-v3.34.0-migration-cloud-deferred-closeout-2026-05-18`. 6th consecutive Migration Cloud fan-out (v3.26 → v3.28 → v3.31 → v3.32 → v3.33 → v3.34) closes every v3.33.0 honest-deferred item end-to-end.
+
+### Per-agent deliverables
+
+| Agent | Scope | New files | Modified | Tests |
+|-------|-------|-----------|----------|-------|
+| 1 | Per-tenant `MigrationCloudCompanionKeypair` | migration `0015_companion_keypair_per_tenant.py`, `test_companion_keypair_per_tenant.py` | models.py, services/companion_keypair.py, companion_receiver.py, test_companion_keypair.py, test_companion_v3_33_hardening.py, docs/SECURITY_KEYS.md §3 | 12 new + 27 preserved Django |
+| 2 | Companion siblings — Tauri + Docker | `companion-tauri/` 16 files, `companion-docker/` 15 files, `docs/COMPANION_SIBLINGS.md` | CLAUDE.md SOT | toolchain checks deferred (no cargo/docker in sandbox); JSON parse OK |
+| 3 | Webhook verifier SDK as PyPI + npm packages | `packages/runmycampus-webhook-verifier-py/` (PEP 621, stdlib-only), `packages/runmycampus-webhook-verifier-js/` (dual ESM+CJS, zero deps), 2 tag-only release workflows | standalone verifier files deprecation-commented; WEBHOOK_VERIFICATION.md install section; SECURITY_KEYS.md §4 | 40 Python + 37 JS; SHA256 byte-parity across 16 fixture cases |
+| 4 | Per-vendor `legacy_hash_created_at` + FACTS/Skyward counsel docket | `docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md`, vitest legacy-hash-per-vendor file, Django test_legacy_hash_intake_per_vendor_v3_34.py | legacy_hash_intake.py (ISO-8601 + future-clamp), VENDOR_COVERAGE.md (6-row matrix), companion-extension/src/vendors/{blackbaud,veracross,alma}.ts, SECURITY_KEYS.md, CLAUDE.md | 8 Django + 6 vitest |
+| 5 | MAA v2.0 promotion plumbing + django-cryptography upstream watch | `scripts/check_django_cryptography_compat.py`, `docs/MAA_V2_PROMOTION_CHECKLIST.md`, `docs/UPSTREAM_WATCH.md`, test_maa_v2_promotion_plumbing_v3_34.py | services/maa_text.py (resolver + draft refusal), companion_receiver.py (constant-time text compare + 3 new 400 codes), apps/accounts/tasks.py, config/settings.py (env-var + beat), SECURITY_KEYS.md §7 | 19 Django |
+
+**Aggregate:** 5 new docs + 4 new test files + 1 new script + 1 new migration + 2 new packages + 2 new top-level companion siblings + 2 new release workflows; **86 new tests + 70 preserved across all suites**.
+
+### Cross-agent integration verified (live `manage.py shell`)
+
+- All 5 services import cleanly (`companion_keypair`, `maa_text`, `legacy_hash_intake`, `webhook_verifier_sdk`, `key_rotation`)
+- `AUTHENTICATION_BACKENDS[0] == "apps.accounts.auth_backends_legacy.LegacyHashUpgradeBackend"` — preserved
+- `AGREEMENT_VERSIONS == {'v1.0', 'v2.0'}`; `MAA_TEXT_DRAFT_VERSIONS == {'v2.0'}`; `MIGRATION_CLOUD_MAA_DEFAULT_VERSION == 'v1.0'` (unchanged — v2.0 promotion is one-config-flip, NOT performed)
+- `upstream-watch-django-cryptography` beat present; `accounts-key-rotation-monthly` beat preserved from v3.33.0
+- `python manage.py showmigrations migration_cloud` — single leaf `0015_companion_keypair_per_tenant` (unapplied; pure AddField+RunPython); `makemigrations --dry-run --check` → "No changes detected"
+
+### Zero-tolerance gates (all 0)
+
+| Scanner | Result |
+|---------|--------|
+| `scan_drf_schema_coverage` | 0 |
+| `scan_money_float` | 0 |
+| `scan_migration_model_imports` | 0 |
+| `scan_tenant_isolation_marker_quality` | 0 |
+| `scan_pii_logging_smell` | 0 |
+| `scan_print_statements` | 0 |
+| `scan_bare_except` | 0 |
+| `scan_subprocess_shell_true` | 0 |
+
+### Deploy checklist
+
+1. SW bump (above) — hard refresh portal after deploy
+2. Apply migration `migration_cloud 0015_companion_keypair_per_tenant` — RunPython backfills existing keypair to first school by pk; per-tenant deployments with v3.32+ keys must rotate via `CompanionKeypairRotateView` post-migration
+3. Verify `CELERY_BEAT_ENABLED="1"` in prod env (default), then confirm `upstream-watch-django-cryptography` enqueued on Mondays 05:00 UTC
+4. No v2.0 MAA promotion — counsel signoff PDF must land in `docs/legal/maa_v2_signoff.pdf` before flipping `RMC_MAA_DEFAULT_VERSION=v2.0`
+5. Webhook verifier SDK: do NOT push tags `webhook-verifier-py-*` or `webhook-verifier-js-*` to GitHub until ready to publish; release workflows are tag-only
+6. FACTS / Skyward write paths remain `// honest-stub:` — no operator UX changes; counsel review docket open
+
+### Strategic significance
+
+Closes every honest-deferred item from v3.33.0. RunMyCampus Migration Cloud now has:
+- **Tenant isolation at the cryptographic floor**: per-tenant companion server keypairs prevent cross-tenant decrypt blast radius
+- **3 companion delivery surfaces**: browser extension (MV3), Tauri desktop (Win/Mac/Linux), Docker appliance (DMZ self-host) — all sharing one sealed-box wire format
+- **First-class customer integration**: PyPI + npm webhook verifier SDKs with byte-parity canonical JSON; standalone vendored copies preserved for backwards compatibility
+- **Strict per-vendor password-set timestamps** where vendors expose them; honest PARTIAL/NO labels where they do not
+- **Counsel-review docket** for FACTS/Skyward write paths (write paths remain blocked; framing is questions-for-counsel)
+- **MAA v2.0 promotion plumbing** (preview-only opt-in; 3 independent draft-signature gates; never auto-flip)
+- **Upstream-watch tooling** for django-cryptography Django-5 compat (read-only watch; never auto-upgrades)
+
+Supersedes [[project-migration-cloud-deferred-closeout-v3-33-2026-05-18]] for the deferred-item closeout role.
+
+**Honest deferred to v3.35+**: counsel signoff PDF for MAA v2.0 + actual flip; per-vendor `legacy_hash_created_at` upgrade for Blackbaud (PARTIAL → strict if vendor exposes); FACTS/Skyward write-path unblock (requires external counsel signoff filed in docket); cargo/docker first-pull verification by operator; webhook verifier SDK 0.1.0 → 1.0.0 stabilization (90 days field-tested).
+
+---
+
+## 2026-05-18 — v3.33.4 backend_base manager shell sweep (wave 2)
+
+**Status:** SHIPPED. SW `sms-v3.33.4-backend-base-sweep-probes-ci-2026-05-18`.
+
+**What landed:** Extended `verify_backend_base_shell_routing.py` with static `backend_page` block guard + manager smoke for `/api-center/keys/` and `/siteconfig/theme-experience/hub/`; wired gate into `manager-surface-parity.yml`, `run_manager_surface_parity.sh`, and `verify_phases_3_11_gates.py`; theme visibility probe for `/siteconfig/ai-center/` (portal_base manager bridge); admin `btn-outline-light` remap includes `body.admin-manager-shell #content` (index shortcuts, waive forms); `theme_experience_hub_control_plane.html` suppresses duplicate `cp_workspace_header` on manager.
+
+**Gates:** `verify_backend_base_shell_routing.py` OK · `verify_theme_visibility_platform.py` OK.
+
+### Deploy
+
+1. SW bump (above) — hard refresh manager after deploy.
+2. No migrations.
+
+## 2026-05-18 — v3.33.0 Migration Cloud platform deferred-item closeout (5-agent parallel fan-out, non-CSS wave)
+
+**Status:** SHIPPED. SW `sms-v3.33.0-migration-cloud-deferred-closeout-2026-05-18`. Fifth-in-series Migration Cloud fan-out (v3.26 → v3.28 → v3.31 → v3.32 → v3.33). Closes every deferred item from v3.32.0 end-to-end.
+
+**Scope.** 5-agent parallel fan-out, end-to-end coverage of the v3.32.0 honest-deferred list. Logged here per the all-waves-audit convention even though no CSS landed.
+
+### What landed
+
+| Agent | Pillar | Files | Outcome |
+|---|---|---|---|
+| 1 | Companion deepening | `apps/migration_cloud/{models,companion_receiver,services/companion_keypair}.py` + migration `0011_companion_keypair_encrypted_and_receipt_keyversion.py`; `companion-extension/src/{background/upload,vendors/{facts,skyward,powerschool,powerschool/data_director}}.ts` | `CompanionUploadReceipt.key_version` persisted; `MigrationCloudCompanionKeypair.private_key_encrypted` promoted to `EncryptedBinaryField` (crypto-pending marker removed); `decrypt_with_active_or_versioned` returns typed `DecryptResult(plaintext, key_version, fingerprint_b64)`; auto-fingerprint-verify on EVERY upload (not just first) + `last_verified_fingerprint_at` persisted; FACTS + Skyward safe-read DOM parsing of public directory pages (writes remain `// honest-stub:` with console.warn); PowerSchool DataDirector canned-report extractor — walks saved-reports list with `rmc-<domain>` name allowlist; **11 Django + 16 vitest** (incl. NoSecretsLoggedTests via `assertLogs`) |
+| 2 | REST API globalization | `apps/migration_cloud/api/{rate_limiting,sse,urls,webhook_verifier_sdk}.py` + `static/{runmycampus_webhook_verifier.js,WEBHOOK_VERIFICATION.md}`; `views_token_admin.py`; `templates/migration_cloud/operator/token_rotation_chain.html`; `docs/SSE_DAPHNE_DEPLOYMENT.md`; `config/settings.py` | DRF `DEFAULT_THROTTLE_CLASSES` wired to scope-aware `MigrationCloudGlobalThrottle` — activates ONLY on `/api/v1/migration/...` paths; soft-warn `X-RateLimit-Soft-Warn: 1` header at >80%; `TokenRotationChainView` paginated cycle-defended; standalone webhook verifier SDK ships in BOTH Python (zero non-stdlib imports) AND JS (browser/Node) + 3-example doc page (Flask, Express, raw HTTP); `MIGRATION_CLOUD_SSE_TRANSPORT` setting (`wsgi-fallback` default; `asgi-daphne` long-poll); **35 tests** (30 SimpleTestCase green, 5 DB-backed parse-clean); pre-existing v3.32 19/19 regression-clean |
+| 3 | Schoolops analytics + i18n | `templates/schoolops/email/locale/{en,fr,es,pt,ar}/low_meal_balance.{txt,html}` (10 files); `apps/schoolops/{sms_templates,tasks,views_analytics,signals}.py`; `templates/schoolops/operator/meal_plan_analytics.html`; `apps/schools/super_urls.py`; migration `apps/migration_cloud/migrations/0012_webhook_event_classes.py` | 5 locale email templates (Arabic `dir="rtl"`); `SMS_LOW_BALANCE_BY_LOCALE` dict normal+very-low forms (hard 160-char cap; privacy gate omits numeric/currency when balance <$1); `_resolve_guardian_locale` honors `guardian.guardian_user.preferred_language`; `/super/schoolops/meal-plan-analytics/` staff-only dashboard (4 panels: 30-day rolling per-tenant, top-10, cooldown effectiveness, per-locale breakdown); `MigrationCloudWebhookSubscription.event_classes` JSONField (default `["migration.*"]`); dispatcher honors event-class match → `schoolops.meal_plan.low_balance_triggered` published with PII-free payload; **20 tests** (11 structural green) |
+| 4 | Hash + crypto rotation | `apps/accounts/legacy_hashes/{encryption,key_rotation,key_rotation_task,VENDOR_COVERAGE.md}.py`; `apps/accounts/management/commands/rotate_encryption_keys.py`; `apps/accounts/tasks.py`; `apps/migration_cloud/services/legacy_hash_intake.py`; `config/settings.py`; `docs/SECURITY_KEYS.md` | `_resolve_fernet_key()` honors `settings.DJANGO_CRYPTOGRAPHY_KEYS` newest-first list; `_get_fernet()` returns `MultiFernet([...])` when 2+ keys; `rotate_all_encrypted_columns(dry_run=True)` per-row `transaction.atomic()` + raw-SQL UPDATE bypassing re-encrypting descriptor; `verify_no_orphan_ciphertexts()` `hmac.compare_digest` constant-time + tenant-isolation-allow markers; `KEY_ROTATION_LOG = "logs/key_rotation_{utc_iso}.jsonl"` NEVER logs key material; `legacy_hash_created_at_source` kwarg on `store_legacy_hash` + vendor-coverage matrix (PowerSchool YES, BB/Veracross/FACTS/Skyward NO, Alma PARTIAL); new beat entry `accounts-key-rotation-monthly` `crontab(hour=4, minute=0, day_of_month="1")` first-of-month 04:00 UTC orphan-verifier (read-only, emails on orphans, NEVER auto-rotates); `python manage.py rotate_encryption_keys [--apply] [--model X.Y] [--verify-orphans]`; **16 tests** (incl. assertNotIn key/plaintext/salt/ciphertext leak guards); AUTHENTICATION_BACKENDS[0] invariant verified by dedicated test |
+| 5 | MAA v2.0 + compliance | `apps/migration_cloud/services/maa_text.py`; `apps/migration_cloud/{models,companion_receiver}.py`; migration `0013_maa_signature_sha256.py`; `apps/migration_cloud/tests/test_maa_v2_and_compliance_v3_33.py`; `docs/{DPA_TEMPLATE,DSAR_RUNBOOK,SECURITY_KEYS}.md`; `scripts/scan_pii_logging_smell.py`; `var/security-audit-baseline-pii-logging-smell.json`; `CLAUDE.md`; `.github/workflows/architectural-boundaries.yml` | `MAA_TEXT_V2_0` constant w/ `[DRAFT v2.0 — PENDING COUNSEL REVIEW]` header + 5 verbatim phrases ("scope of access", "data minimization", "no retention beyond migration", "right to withdraw at any time", "data subject rights"); `AGREEMENT_VERSIONS = {"v1.0", "v2.0"}` + `MAA_TEXT_DRAFT_VERSIONS = {"v2.0"}` + `is_draft_version()`; default stays `v1.0`; `MigrationAuthorizationAgreement.signature_text_sha256` CharField(64) auto-computed in `save()`; migration 0013 AddField + RunPython backfill via `apps.get_model(...)` + 5-part hyphenated tenant marker; `maa_text_view` returns `is_draft`/`draft_banner`; `MASignView` refuses draft versions (400 `code=draft_version`); `docs/DPA_TEMPLATE.md` GDPR Art. 28 + NY Ed Law § 2-d; `docs/DSAR_RUNBOOK.md` 30-day SLA + redaction policy + attestation; SECURITY_KEYS.md gains "Cross-System Trust Anchors" section (6 anchors → storage/rotator/blast-radius/recovery + cascade map + cross-links to DSAR/DPA); **new zero-tolerance scanner** `scan_pii_logging_smell.py` baseline 0 day 1 (refined twice — requires sensitive-keyword identifier AND interpolation context); CLAUDE.md scanner table +1 row; **30 tests** (27/27 SimpleTestCase green; 3 DB-backed `_can_use_db()` guarded) |
+
+### Cross-agent integration verified
+
+`python manage.py shell -c '<imports>'` smoke 5/5 modules OK. AUTHENTICATION_BACKENDS[0]=`LegacyHashUpgradeBackend` invariant preserved. 5 v3.33-relevant CELERY_BEAT_SCHEDULE entries present (`marketplace-webhook-deliver-due`, `schoolops-sweep-low-meal-balances`, `accounts-sunset-stale-legacy-hashes`, `accounts-key-rotation-monthly` [new], `migration-cloud-webhook-deliver-due`). MAA: v1.0 default + v2.0 draft set populated. SMS locales × 5. Encryption backend `internal_fernet_shim` (honest fallback; `active_key_count` reflects current env config). Migration leaves resolved: `0014_merge_0011_0013.py` already converges Agent 1's `0011` and Agent 5's `0013`; Agent 3's `0012_webhook_event_classes` depends on `0014` — clean linear DAG.
+
+### Zero-tolerance gates
+
+| Gate | Status |
+|---|---|
+| `scan_drf_schema_coverage 0` | GREEN |
+| `scan_money_float 0` | GREEN |
+| `scan_migration_model_imports 0` | GREEN |
+| `scan_tenant_isolation_marker_quality 0` | GREEN |
+| `scan_pii_logging_smell 0` | GREEN (new baseline day 1) |
+| `check_real_migration_drift` | 0 real, cosmetic-only (merge migration auto-renames) |
+
+### Deploy
+
+1. SW `sms-v3.33.0-migration-cloud-deferred-closeout-2026-05-18` ✅
+2. CLAUDE.md top-line SOT entry ✅ (this section linked)
+3. Memory file `project_migration_cloud_deferred_closeout_v3_33_2026_05_18.md` ✅
+4. MEMORY.md index prepended ✅
+5. Migrations queued: `0011, 0012, 0013, 0014` (migration_cloud); none required for accounts (pure code wave)
+6. New beat entry: `accounts-key-rotation-monthly` — confirm Celery beat restarted post-deploy
+
+### Strategic significance
+
+5th consecutive Migration Cloud fan-out wave closes the platform-trust loop end-to-end. The "Shopify of K-12" framing is now hardened at the operator-ergonomics + compliance layers: counsel-blessed MAA scaffold (v2.0 draft), DPA + DSAR docs, automated encryption-key rotation tooling, per-locale i18n, scope-aware throttling, and per-upload fingerprint verification close every honest-deferred ask from v3.32.0. Honest-deferred forward to v3.34+: counsel-signoff on MAA v2.0; per-tenant CompanionKeypair; Tauri-desktop + Docker-appliance companion siblings; django-cryptography 1.2 (when ships); webhook signature verification helper SDK published as PyPI package.
 
 ## 2026-05-18 — v3.32.2 Elite marketing Corporate OS public surfaces
 

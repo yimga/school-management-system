@@ -11,7 +11,9 @@ migrated schema across invocations (avoids 20+ minute cold migration on every ru
 ``RMC_SQLITE_TEST_USE_MEMORY_NAME=1`` here — that forces ``TEST NAME = :memory:`` and makes
 ``--keepdb`` ineffective (see ``config/settings.py``).
 
-Pass ``--fresh`` to delete the cached test DB and migrate from scratch.
+Pass ``--fresh`` to migrate into a new timestamped DB file (avoids Windows file locks
+on the stable cache). Omit ``--fresh`` to reuse ``rmc_sqlite_test_runner.sqlite3`` with
+``--keepdb`` (added automatically).
 
 Usage:
   python scripts/run_sqlite_memory_tests.py apps.analytics.tests --verbosity=1
@@ -23,6 +25,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 
@@ -37,16 +40,15 @@ def main() -> int:
         # Rebuild schema from scratch; --keepdb would reuse a corrupt partial DB.
         argv = [a for a in argv if a not in ("--fresh", "--keepdb")]
 
-    # Stable path aligns with config/settings.py RMC_SQLITE_TEST_MEMORY runner + --keepdb reuse.
-    tfile = tdir / "rmc_sqlite_test_runner.sqlite3"
+    # Stable path for --keepdb reuse; fresh runs use a new file so Windows never
+    # blocks on "Destroying old test database" when another process holds the cache.
+    stable = tdir / "rmc_sqlite_test_runner.sqlite3"
     if fresh:
-        for suffix in ("", "-journal", "-wal", "-shm"):
-            candidate = Path(f"{tfile}{suffix}")
-            if candidate.is_file():
-                try:
-                    candidate.unlink()
-                except OSError:
-                    pass
+        tfile = tdir / f"rmc_sqlite_test_runner_fresh_{int(time.time())}.sqlite3"
+    else:
+        tfile = stable
+        if "--keepdb" not in argv:
+            argv.append("--keepdb")
 
     env = os.environ.copy()
     env["RMC_SQLITE_TEST_MEMORY"] = "1"

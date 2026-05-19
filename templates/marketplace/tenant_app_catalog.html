@@ -10,7 +10,7 @@
 
 {% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4 proof-page tenant-app-catalog-wrap ui-premium-surface" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant">
   {% if not school %}
   <div class="proof-panel" data-page-header="1">
@@ -110,20 +110,24 @@
 
     {% comment %} Polish (v3.27.x): progressive-enhancement search/facet bar driven by the catalog JSON API. Falls back to server-rendered grid below if JS is off. {% endcomment %}
     <div class="d-flex flex-wrap gap-2 align-items-center mb-3" data-region="catalog-search-bar" data-catalog-api-url="/marketplace/api/v1/catalog/">
-      <input type="search" name="q" placeholder="{% trans 'Search apps' %}" class="form-control form-control-sm" style="max-width:18rem;" data-catalog-search-input>
-      <select class="form-select form-select-sm w-auto" data-catalog-facet="pricing">
+      <label for="tenant-catalog-search" class="visually-hidden">{% trans "Search apps" %}</label>
+      <input type="search" id="tenant-catalog-search" name="q" placeholder="{% trans 'Search apps' %}" class="form-control form-control-sm" style="max-width:18rem;" data-catalog-search-input>
+      <label for="tenant-catalog-pricing" class="visually-hidden">{% trans "Filter by pricing" %}</label>
+      <select id="tenant-catalog-pricing" class="form-select form-select-sm w-auto" data-catalog-facet="pricing">
         <option value="">{% trans "Any pricing" %}</option>
         <option value="free">{% trans "Free" %}</option>
         <option value="subscription">{% trans "Subscription" %}</option>
         <option value="usage">{% trans "Usage" %}</option>
       </select>
-      <select class="form-select form-select-sm w-auto" data-catalog-facet="sort">
+      <label for="tenant-catalog-sort" class="visually-hidden">{% trans "Sort catalog" %}</label>
+      <select id="tenant-catalog-sort" class="form-select form-select-sm w-auto" data-catalog-facet="sort">
         <option value="popular">{% trans "Most popular" %}</option>
         <option value="newest">{% trans "Newest" %}</option>
         <option value="rating">{% trans "Highest rated" %}</option>
         <option value="name">{% trans "Name (A–Z)" %}</option>
       </select>
-      <select class="form-select form-select-sm w-auto" data-catalog-facet="min_rating">
+      <label for="tenant-catalog-min-rating" class="visually-hidden">{% trans "Minimum rating" %}</label>
+      <select id="tenant-catalog-min-rating" class="form-select form-select-sm w-auto" data-catalog-facet="min_rating">
         <option value="">{% trans "Any rating" %}</option>
         <option value="3">{% trans "3+ stars" %}</option>
         <option value="4">{% trans "4+ stars" %}</option>

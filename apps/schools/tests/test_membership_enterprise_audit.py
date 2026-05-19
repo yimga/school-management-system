@@ -53,7 +53,6 @@ class SchoolMembershipEnterpriseAuditTests(TestCase):
             school=self.school,
             role=User.Role.ADMIN,
         )
-        AuditLog.objects.filter(model_name="SchoolMembership").delete()
         m.role = User.Role.TEACHER
         m.save()
         row = AuditLog.objects.filter(

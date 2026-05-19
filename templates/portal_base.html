@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1" data-surface="tenant" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="tenant" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -16,6 +16,7 @@
     <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
     <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
+    <script src="{% static 'js/rmc-campus-switcher.js' %}" defer></script>
     {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
@@ -43,6 +44,7 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
@@ -75,6 +77,7 @@
     <link rel="stylesheet" href="{% static 'css/platform-premium-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
 {% comment %} Retired 2026-05-12 (pass 3 css cleanup): dashboard-high-contrast.css + dashboard-crisp-polish.css
        — unique load-bearing rules folded into dashboard-theme-sync.css (already loaded). {% endcomment %}
@@ -97,6 +100,7 @@
     <link rel="stylesheet" href="{% static 'css/mobile-luxury-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
+    {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
@@ -112,6 +116,11 @@
        hygiene that the manager surface uses, so portal + backend look like one product. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-portal-bundle.css' %}">
+    {% if request.public_host_kind == 'manager' %}
+    <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+    <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
+    <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
+    {% endif %}
     <style>
       {% block theme_root_variables %}
       {% with theme=SITE_THEME %}
@@ -161,7 +170,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -246,18 +255,17 @@
             {% if SHOW_HEADER_SEARCH %}
             <!-- Global Search Bar (Ctrl+K) - searches students, teachers, invoices, etc. -->
             <div class="topbar-search search-bar-wrapper header-search-container">
+              <label for="headerSearchInput" class="visually-hidden">{% trans "Global search" %}</label>
               <input 
-                type="text" 
+                type="search" 
                 class="form-control form-control-sm topbar-search-input nav-search" 
                 placeholder="{% trans 'Search students, teachers, invoices…' %}"
                 id="headerSearchInput"
-                aria-label="{% trans 'Global search' %}"
-                aria-autocomplete="list"
-                aria-expanded="false"
-                aria-controls="headerSearchResults"
+                name="q"
+                autocomplete="off"
               />
               <span class="topbar-search-kbd" aria-hidden="true">Ctrl+K</span>
-              <div id="headerSearchResults" class="header-search-dropdown header-search-dropdown--hidden" role="listbox" aria-label="{% trans 'Search results' %}"></div>
+              <div id="headerSearchResults" class="header-search-dropdown header-search-dropdown--hidden" role="region" aria-label="{% trans 'Search results' %}" aria-live="polite"></div>
             </div>
             {% endif %}
 
@@ -285,7 +293,10 @@
                  visible in every authenticated portal page so operators can toggle modes
                  from anywhere. Hidden below lg via .d-none .d-lg-inline-flex. {% endcomment %}
               {% if request.user.is_authenticated and not request.public_host_kind == 'manager' %}
-                <span class="d-none d-lg-inline-flex"> {% include "components/rmc_shell_switcher.html" %}</span>
+                <span class="d-none d-lg-inline-flex align-items-center gap-2">
+                  {% include "components/rmc_campus_switcher.html" %}
+                  {% include "components/rmc_shell_switcher.html" %}
+                </span>
               {% endif %}
               <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
 
@@ -310,12 +321,16 @@
 
 {% include "partials/shell_portal_layout_wrap_open.html" %}
         <!-- Sidebar (desktop) - Resizable, collapsible to icon strip -->
-        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block rmc-glass-sidebar-shell" id="portal-sidebar-col" data-collapsible="true" data-shell-sidebar="portal" data-shell-sidebar-mount="desktop">
-          <div class="sidebar p-3">
-            {% if request.public_host_kind != 'manager' %}
-              {% include "partials/portal_sidebar.html" %}
-            {% endif %}
+        <div class="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %} col-lg-3 col-xl-2 d-none d-lg-block {% if request.public_host_kind != 'manager' %}rmc-glass-sidebar-shell{% endif %}" id="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %}" data-collapsible="true" data-shell-sidebar="{% if request.public_host_kind == 'manager' %}control-plane{% else %}portal{% endif %}" data-shell-sidebar-mount="desktop"{% if request.public_host_kind == 'manager' %} aria-label="{% trans 'Control plane navigation' %}"{% endif %}>
+          {% if request.public_host_kind == 'manager' %}
+          <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
+            {% include "partials/control_plane_sidebar.html" %}
           </div>
+          {% else %}
+          <div class="sidebar p-3">
+            {% include "partials/portal_sidebar.html" %}
+          </div>
+          {% endif %}
         </div>
         <!-- Resize handle (desktop only; hidden when sidebar collapsed).
              Pass 10: WCAG 2.1.1 keyboard equivalence — separator is focusable
@@ -341,7 +356,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{% trans 'Close' %}"></button>
           </div>
           <div class="offcanvas-body">
-          {% if request.public_host_kind != 'manager' %}
+          {% if request.public_host_kind == 'manager' %}
+            {% include "partials/control_plane_sidebar.html" with sidebar_nav_id="cpSidebarNavOffcanvas" %}
+          {% else %}
             {% include "partials/portal_sidebar.html" %}
           {% endif %}
         </div>
@@ -356,7 +373,7 @@
           {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
             {% block breadcrumb_actions %}{% endblock %}
           {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
-            {% if request.user.is_authenticated %}
+            {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
             {% block rmc_workspace_os_header %}
             {% include "components/rmc_os_page_header.html" %}
             {% endblock %}
@@ -364,7 +381,7 @@
               {% block rmc_os_shell_primary_action %}{% endblock %}
             </div>
             {% endif %}
-            {% if request.user.is_authenticated and request.resolver_match and request.resolver_match.namespace|default:'' != 'studio_os' %}
+            {% if request.user.is_authenticated and request.public_host_kind != 'manager' and request.resolver_match and request.resolver_match.namespace|default:'' != 'studio_os' %}
               {% if request.user|tenant_operator_hub_visible %}
                 {% include "partials/tenant_studio_product_strip.html" %}
                 <div class="mb-3">
@@ -490,6 +507,7 @@
 
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     {% if SHOW_OFFLINE_STATUS_BAR %}
     <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
     <script src="{% static 'js/vendor/dexie.min.js' %}"></script>

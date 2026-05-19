@@ -221,3 +221,38 @@ def sweep_event_webhook_deliveries_task(limit: int = 50) -> int:
     from apps.platform_runtime.event_bus import sweep_stale_webhook_deliveries
 
     return sweep_stale_webhook_deliveries(limit=limit)
+
+
+@shared_task(name="platform_runtime.process_offline_queues_due")
+def process_offline_queues_due(
+    *,
+    limit_per_school: int = 25,
+    school_limit: int = 50,
+) -> dict:
+    """
+    Drain QUEUED OfflineAction rows per tenant (rural / background_retry LCA pack).
+
+    Complements browser SW replay; does not replace manual sync center UX.
+    """
+    from apps.platform_runtime.models import OfflineAction
+    from apps.platform_runtime.offline_queue import process_offline_queue
+
+    school_ids = list(
+        OfflineAction.objects.filter(status=OfflineAction.Status.QUEUED)  # tenant-isolation-allow: offline-queue-celery-distinct-school-ids
+        .values_list("school_id", flat=True)
+        .distinct()[:school_limit]
+    )
+    totals = {"schools": 0, "synced": 0, "failed": 0, "conflicts": 0, "processed": 0}
+    for school_id in school_ids:
+        if school_id is None:
+            continue
+        summary = process_offline_queue(
+            school_id=school_id,
+            limit=limit_per_school,
+        )
+        totals["schools"] += 1
+        totals["synced"] += int(summary.get("synced") or 0)
+        totals["failed"] += int(summary.get("failed") or 0)
+        totals["conflicts"] += int(summary.get("conflicts") or 0)
+        totals["processed"] += int(summary.get("processed") or 0)
+    return totals

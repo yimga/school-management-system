@@ -1,0 +1,60 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Tenant diagnostics" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-4" data-page="zero-ticket-hub">
+  <header class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Tenant Health & Diagnostic Canvas" %}</h1>
+      <p class="text-secondary mb-0">{% trans "Resolve roster, permission, and module issues without opening a support ticket." %}</p>
+    </div>
+    <span class="badge rmc-badge {% if diagnostics.overall == 'pass' %}bg-success{% elif diagnostics.overall == 'warn' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+      {% trans "Overall" %}: {{ diagnostics.overall|upper }}
+    </span>
+  </header>
+
+  <div class="row g-3 mb-4">
+    {% for section in hub_sections %}
+    <div class="col-md-6 col-xl-3">
+      <a href="{% url section.url_name %}" class="card h-100 text-decoration-none rmc-card-interactive">
+        <div class="card-body">
+          <h2 class="h6 mb-1">{{ section.title }}</h2>
+          <p class="small text-secondary mb-0">{{ section.description }}</p>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <section class="card rmc-card" aria-labelledby="diag-checks-heading">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h2 id="diag-checks-heading" class="h6 mb-0">{% trans "Live checks" %}</h2>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="rmc-diagnostics-refresh" data-api-url="{% url 'siteconfig:api_tenant_diagnostics' %}">
+        {% trans "Re-run" %}
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <ul class="list-group list-group-flush" id="rmc-diagnostics-list">
+        {% for check in diagnostics.checks %}
+        <li class="list-group-item d-flex flex-wrap align-items-start justify-content-between gap-2">
+          <div>
+            <strong>{{ check.label }}</strong>
+            <p class="small text-secondary mb-0">{{ check.detail }}</p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge {% if check.status == 'pass' %}bg-success{% elif check.status == 'warn' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ check.status }}</span>
+            {% if check.remedy_url %}
+            <a href="{{ check.remedy_url }}" class="btn btn-sm btn-link">{{ check.remedy_label|default:"Fix" }}</a>
+            {% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script src="{% static 'js/rmc-zero-ticket-diagnostics.js' %}" defer></script>
+{% endblock %}

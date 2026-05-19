@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block breadcrumb_actions %}
-<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-light">{% trans "Back to Dashboard" %}</a>
+<a href="{{ dashboard_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Back to Dashboard" %}</a>
 {% endblock %}
 
 {% block cp_content %}
@@ -73,12 +73,12 @@
   <form method="get" class="mb-4">
     <div class="input-group">
       <input type="text" name="q" class="form-control" placeholder="{% trans 'Search entity or field...' %}" value="{{ query }}" />
-      <button type="submit" class="btn btn-outline-light">{% trans "Search" %}</button>
+      <button type="submit" class="btn btn-outline-secondary">{% trans "Search" %}</button>
     </div>
   </form>
-  <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
+  <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
-      <table class="table table-dark table-hover mb-0" aria-label="Metadata catalog entities and field impact">
+      <table class="table table-family table-hover mb-0" aria-label="Metadata catalog entities and field impact">
         <thead>
           <tr>
             <th scope="col">{% trans "Entity" %}</th>

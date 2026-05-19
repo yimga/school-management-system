@@ -1,0 +1,64 @@
+# Playwright CLS + scroll FPS on theme/configure surfaces (soft-skip when server down).
+name: Playwright performance budgets
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 7 * * 1"
+
+jobs:
+  playwright-perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Install Node deps
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+      - name: Migrate and seed staff user
+        env:
+          DEBUG: "1"
+          SECRET_KEY: "playwright-perf-ci-not-production-64chars___________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver,manager.runmycampus.com"
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell -c "
+          from django.contrib.auth import get_user_model
+          U = get_user_model()
+          if not U.objects.filter(username='admin').exists():
+              U.objects.create_superuser('admin', 'admin-ci@example.invalid', 'Sch00l_1234')
+          "
+      - name: Start Django (background)
+        env:
+          DEBUG: "1"
+          SECRET_KEY: "playwright-perf-ci-not-production-64chars___________"
+          ALLOWED_HOSTS: "localhost,127.0.0.1,testserver,manager.runmycampus.com"
+        run: |
+          python manage.py runserver 127.0.0.1:8000 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8000/ >/dev/null && break
+            sleep 2
+          done
+      - name: Seed manager Playwright auth state
+        env:
+          VISUAL_QA_PORT: "8000"
+          MANAGER_BASE_URL: "http://manager.runmycampus.com:8000"
+          PLAYWRIGHT_HOST_RULES: "MAP manager.runmycampus.com 127.0.0.1"
+        run: node scripts/seed_manager_playwright_auth.js
+      - name: Run Playwright perf budgets (strict)
+        env:
+          PERF_PLAYWRIGHT_STRICT: "1"
+          PERF_PLAYWRIGHT_BASE_URL: "http://127.0.0.1:8000"
+          PLAYWRIGHT_HOST_RULES: "MAP manager.runmycampus.com 127.0.0.1"
+        run: npm run perf:playwright

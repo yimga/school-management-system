@@ -12,6 +12,19 @@ class FeedbackSubmissionForm(forms.Form):
     privacy_level = forms.ChoiceField(choices=FeedbackSubmission.PrivacyLevel.choices)
     contact_preference = forms.CharField(max_length=80, required=False)
     description = forms.CharField(widget=forms.Textarea(attrs={"rows": 5}))
+    source_channel = forms.ChoiceField(
+        choices=FeedbackSubmission.SourceChannel.choices,
+        required=False,
+        initial=FeedbackSubmission.SourceChannel.IN_APP,
+        widget=forms.HiddenInput,
+    )
+    source_url = forms.CharField(max_length=500, required=False, widget=forms.HiddenInput)
+    related_kb_article_id = forms.IntegerField(required=False, widget=forms.HiddenInput)
+    related_faq_id = forms.IntegerField(required=False, widget=forms.HiddenInput)
+    escalate_to_support = forms.BooleanField(
+        required=False,
+        help_text="Create an operational support ticket as well as product feedback.",
+    )
 
 
 class RoleFeedbackForm(FeedbackSubmissionForm):

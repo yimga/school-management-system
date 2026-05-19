@@ -22,13 +22,19 @@
       <span class="preview-role-note" id="previewRoleLabel">Inherits {{ current_role }} access.</span>
     </div>
 
-    <div class="preview-mode-switch" role="group" aria-label="{% trans 'Preview device mode' %}">
-      <button type="button" class="preview-mode-btn active" data-preview-mode="desktop">{% trans "Desktop" %}</button>
-      <button type="button" class="preview-mode-btn" data-preview-mode="tablet">{% trans "Tablet" %}</button>
-      <button type="button" class="preview-mode-btn" data-preview-mode="mobile">{% trans "Mobile" %}</button>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      <div class="preview-mode-switch" role="group" aria-label="{% trans 'Preview device mode' %}">
+        <button type="button" class="preview-mode-btn active" data-preview-mode="desktop">{% trans "Desktop" %}</button>
+        <button type="button" class="preview-mode-btn" data-preview-mode="tablet">{% trans "Tablet" %}</button>
+        <button type="button" class="preview-mode-btn" data-preview-mode="mobile">{% trans "Mobile" %}</button>
+      </div>
+      <div class="preview-surface-switch" role="group" aria-label="{% trans 'Contrast surface' %}">
+        <button type="button" class="preview-surface-btn active" data-preview-surface="light">{% trans "Light" %}</button>
+        <button type="button" class="preview-surface-btn" data-preview-surface="dark">{% trans "Dark" %}</button>
+      </div>
     </div>
 
-    <div class="preview-device" data-preview-mode="desktop" aria-live="polite">
+    <div class="preview-device" data-preview-mode="desktop" data-preview-theme="light" aria-live="polite">
       <div class="preview-sidebar">
         <div class="preview-logo">Logo</div>
         <div class="preview-nav">

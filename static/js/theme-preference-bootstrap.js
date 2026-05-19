@@ -30,12 +30,23 @@
 (function () {
   "use strict";
   var KEY = "runmycampus-theme-preference";
+  var MKT_KEY = "rmc-mkt-theme";
   var VALID = { light: 1, dark: 1, system: 1 };
   var mql = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
   function readPreference() {
     var raw = null;
-    try { raw = localStorage.getItem(KEY); } catch (_) { /* private mode */ }
+    try {
+      /* Marketing surface: anonymous visitors use rmc-mkt-theme; honor it before
+         the platform key so theme-preference-bootstrap does not clobber FOUC-safe
+         marketing state on DOMContentLoaded. */
+      if (document.documentElement.getAttribute("data-surface") === "marketing") {
+        raw = localStorage.getItem(MKT_KEY);
+      }
+      if (!VALID[raw]) {
+        raw = localStorage.getItem(KEY);
+      }
+    } catch (_) { /* private mode */ }
     return VALID[raw] ? raw : "system";
   }
 
@@ -256,6 +267,9 @@
     set: function (pref) {
       if (!VALID[pref]) { pref = "system"; }
       try { localStorage.setItem(KEY, pref); } catch (_) {}
+      if (document.documentElement.getAttribute("data-surface") === "marketing") {
+        try { localStorage.setItem(MKT_KEY, pref); } catch (_) {}
+      }
       apply(pref);
       try {
         window.dispatchEvent(new CustomEvent("rmc:theme-change", { detail: { preference: pref } }));

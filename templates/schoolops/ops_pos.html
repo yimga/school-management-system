@@ -2,7 +2,7 @@
 {% load i18n static %}
 {% block title %}{% trans "POS (stub)" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Point of sale — quick lines" %}{% endblock %}
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="text-muted small d-flex flex-wrap gap-3 align-items-center">{% trans "Stub module: logs sale lines. When Inventory is enabled, link a stock line to prefill the item name." %} <a class="btn btn-sm btn-outline-secondary" href="?export=csv">{% trans "Export CSV (up to 5000 lines)" %}</a> <a class="btn btn-sm btn-outline-secondary" href="?export=json">{% trans "Export JSON summary" %}</a></p>

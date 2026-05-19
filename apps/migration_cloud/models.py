@@ -19,10 +19,19 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
+from apps.platform_runtime.append_only import AppendOnlyManager, AppendOnlyModelMixin
+
 # v3.32.0 — encrypted-at-rest BinaryField for the webhook subscription
 # secret_ciphertext column. Shares the Fernet key with the User-model
 # legacy_* columns so a single key rotation covers both surfaces — see
 # docs/SECURITY_KEYS.md.
+#
+# v3.33.0 — same Fernet shim now also wraps
+# ``MigrationCloudCompanionKeypair.private_key_encrypted`` (was raw
+# BinaryField in v3.32, promoted via migration 0011).
+from apps.accounts.legacy_hashes.encryption import (
+    EncryptedBinaryField as _EncryptedBinaryField,
+)
 from apps.accounts.legacy_hashes.encryption import (
     encrypt_binaryfield as _webhook_encrypt_binaryfield,
 )
@@ -737,6 +746,23 @@ class MigrationCloudWebhookSubscription(models.Model):
         blank=True,
         help_text="List of event-type strings, e.g. ['bundle.advanced'].",
     )
+    # v3.33.0 — coarse event-class opt-in. The dispatcher consults this
+    # BEFORE event_types: a subscription only receives events whose
+    # ``"<class>.*"`` glob is listed here. Empty list (the literal
+    # default for JSON-field-backed columns) is treated by the
+    # dispatcher as ``["migration.*"]`` so legacy v3.32 subscriptions
+    # remain on the migration-only firehose with zero migration writes
+    # to existing rows. Schoolops cross-app events publish under
+    # ``"schoolops.*"`` and skip subscriptions that haven't opted in.
+    event_classes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "List of event-class globs the subscription opts in to. "
+            "Examples: ['migration.*'], ['migration.*', 'schoolops.*']. "
+            "Empty list is treated as ['migration.*'] (legacy default)."
+        ),
+    )
     active = models.BooleanField(default=True, db_index=True)
     created_by = models.ForeignKey(
         User,
@@ -765,7 +791,9 @@ class WebhookDeliveryStatus(models.TextChoices):
     EXHAUSTED = "exhausted", "Exhausted"
 
 
-class MigrationCloudWebhookDelivery(models.Model):
+class MigrationCloudWebhookDelivery(AppendOnlyModelMixin, models.Model):
+    objects = AppendOnlyManager()
+
     """Append-only delivery log for outbound webhooks.
 
     FSM: ``pending`` → (HTTP 2xx) ``delivered``
@@ -818,11 +846,73 @@ class MigrationCloudWebhookDelivery(models.Model):
         blank=True,
         help_text="Short code: 'tenant-quota-exhausted', 'tenant-quota-warning', etc.",
     )
+    # v3.35.0 — caller-supplied idempotency key for collision guard.
+    # When the dispatcher's ``enqueue`` is called twice within 24h with
+    # the same ``(subscription_id, idempotency_key)`` we short-circuit
+    # the second call and return the existing row. Empty string ("") is
+    # the legacy default — collision guard is skipped for those rows so
+    # v3.32+ enqueue sites that don't pass a key keep working unchanged.
+    idempotency_key = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Caller-supplied idempotency key. Two enqueues within 24h "
+            "carrying the same (subscription, idempotency_key) produce "
+            "only one delivery row. Empty string disables the guard."
+        ),
+    )
+    # v3.35.0 — operator-triggered replay link. When the operator clicks
+    # "Replay" in the audit view (``views_webhook_admin.WebhookDelivery
+    # ReplayView``) a NEW delivery row is created that copies payload +
+    # event_type + signature material from the original; this FK points
+    # back to the original row so the audit log can trace causality.
+    # ``on_delete=SET_NULL`` keeps the replay row visible even if the
+    # original is later purged.
+    replay_of = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="replays",
+        db_index=True,
+        help_text=(
+            "FK to the original delivery this row replays. NULL for "
+            "first-attempt deliveries; populated only via operator replay."
+        ),
+    )
+    replayed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="webhook_replays_triggered",
+        help_text="Staff user who triggered this replay (NULL for non-replay rows).",
+    )
+    replayed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this replay row was created (operator click time).",
+    )
 
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Migration Cloud webhook delivery"
         verbose_name_plural = "Migration Cloud webhook deliveries"
+        indexes = [
+            # v3.35.0 — composite index supports the duplicate-replay-window
+            # guard (lookup by (replay_of_id, created_at)) and the idempotency
+            # key collision guard (lookup by (subscription_id, idempotency_key)).
+            models.Index(
+                fields=["replay_of", "created_at"],
+                name="mc_webhook_replay_of_idx",
+            ),
+            models.Index(
+                fields=["subscription", "idempotency_key"],
+                name="mc_webhook_sub_idem_idx",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.event_type} → sub={self.subscription_id} [{self.status}]"
@@ -881,6 +971,22 @@ class MigrationAuthorizationAgreement(models.Model):
     signature_text = models.TextField(
         help_text="Verbatim text the operator agreed to; rendered at sign time.",
     )
+    # v3.33.0 — audit-grade fingerprint of the signature_text bytes.
+    # sha256 hex digest (64 chars). Auto-computed on save so the row's
+    # fingerprint is always in lock-step with the verbatim text. NEVER
+    # log this value outside the staff-only audit endpoints — although
+    # it is one-way and reveals no secret, conservative defense keeps
+    # it inside the audit boundary.
+    signature_text_sha256 = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "sha256(signature_text.encode('utf-8')) — audit fingerprint, "
+            "auto-computed on save. Detects post-hoc tampering."
+        ),
+    )
     client_ip = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.CharField(max_length=512, blank=True, default="")
 
@@ -902,6 +1008,20 @@ class MigrationAuthorizationAgreement(models.Model):
     @property
     def is_active(self) -> bool:
         return self.revoked_at is None
+
+    def save(self, *args, **kwargs) -> None:
+        """Auto-compute ``signature_text_sha256`` on every save.
+
+        Pure-function fingerprint of the verbatim text; keeps the
+        audit column in lock-step with the body even if a future
+        admin tool edits the text post-create. sha256 over the
+        canonical UTF-8 bytes of ``signature_text``.
+        """
+        import hashlib
+
+        canonical = (self.signature_text or "").encode("utf-8")
+        self.signature_text_sha256 = hashlib.sha256(canonical).hexdigest()
+        super().save(*args, **kwargs)
 
 
 class CompanionCiphertextBlob(models.Model):
@@ -982,6 +1102,21 @@ class CompanionUploadReceipt(models.Model):
         default="libsodium-secretbox-x25519-sealed",
         help_text="Encryption scheme tag; matches companion-extension/src/lib/crypto.ts.",
     )
+    # v3.33.0 — Server keypair version that successfully decrypted this
+    # upload. Filled by ``CompanionDecryptHookView`` after the SealedBox
+    # opens; empty string until the decrypt hook runs. Lets an auditor
+    # answer "which active-at-the-time keypair half opened receipt R?"
+    # without replaying the rotation history.
+    key_version = models.CharField(
+        max_length=16,
+        blank=True,
+        default="",
+        help_text=(
+            "Server keypair version that successfully decrypted this "
+            "upload (filled at decrypt time). Empty until the decrypt "
+            "hook runs. NEVER carries private bytes."
+        ),
+    )
 
     class Meta:
         app_label = "migration_cloud"
@@ -1009,46 +1144,64 @@ class MigrationCloudCompanionKeypair(models.Model):
     ``CompanionDecryptHookView`` using the matching private half kept
     HERE.
 
-    Exactly one row carries ``is_active=True`` at any time (enforced by
-    the unique partial constraint). Rotation cycles the active flag and
-    stamps ``rotated_out_at`` on the previous row so older ciphertext
-    blobs can still be decrypted by version. Operator UX is invisible:
-    the popup re-fetches per-session and switches keys automatically.
+    v3.34.0 — keypairs are now PER-TENANT. Exactly one row per tenant
+    carries ``is_active=True`` at any time (enforced by the partial
+    unique constraint scoped to ``(tenant, is_active=True)``). Each
+    tenant's rotation cycle is independent: a leaked key in tenant A
+    triggers rotation of tenant A's keypair only — tenant B's blast
+    radius is zero. Operator UX is invisible: the popup fetches the
+    pubkey for the current operator's tenant via the session cookie.
 
     Security invariants:
 
-    * ``private_key_encrypted`` is wrapped via Agent 5's
-      ``EncryptedCharField`` shim when importable; otherwise it stores
-      raw bytes with a ``# crypto-pending`` marker (Agent 5 wraps in a
-      follow-up migration). Either way, the private bytes NEVER appear
-      in a response, in logs, or in admin list_display.
+    * ``private_key_encrypted`` is wrapped via the
+      :class:`~apps.accounts.legacy_hashes.encryption.EncryptedBinaryField`
+      Fernet shim. The private bytes NEVER appear in a response, in
+      logs, or in admin list_display.
     * Constant-time compare is used for any external fingerprint check.
     * Public-key fingerprint is sha256(public_key_b64)[:16] bytes,
       base64-encoded — never the full hash (truncation prevents
       accidental disclosure of the full pubkey to logging sinks that
       don't carry the public_key_b64 itself).
+    * Tenant FK is mandatory at v3.34.0; the v3.32-era global keypair
+      was migrated forward to the first tenant via migration
+      ``0015_companion_keypair_per_tenant``.
     """
 
     KEY_VERSION_MAX_LEN = 16
     PUBLIC_KEY_B64_MAX_LEN = 64
 
+    # tenant-isolation-allow: per-tenant-server-keypair-rotation-scope
+    tenant = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="companion_keypairs",
+        db_index=True,
+        help_text=(
+            "Tenant that owns this keypair. v3.34.0 promotes the "
+            "Companion server keypair from platform-global to per-tenant "
+            "so a single-tenant key leak does not blast-radius the rest."
+        ),
+    )
     key_version = models.CharField(
         max_length=KEY_VERSION_MAX_LEN,
-        unique=True,
         db_index=True,
-        help_text="Monotonic version tag, e.g. 'v1', 'v2'.",
+        help_text=(
+            "Monotonic version tag scoped per-tenant, e.g. 'v1', 'v2'. "
+            "Unique within (tenant, key_version)."
+        ),
     )
     public_key_b64 = models.CharField(
         max_length=PUBLIC_KEY_B64_MAX_LEN,
         help_text="Base64 of the 32-byte X25519 public key; safe to return.",
     )
-    # ``BinaryField`` rather than CharField — the encrypted private bytes
-    # are not human-readable. When Agent 5's EncryptedCharField shim is
-    # importable, the bytes are stored Fernet-wrapped; otherwise they
-    # are raw NaCl PrivateKey.encode() bytes.
-    private_key_encrypted = models.BinaryField(
+    # ``EncryptedBinaryField`` — Fernet-wrapping shim that round-trips
+    # bytes transparently. Reads return the raw 32-byte private key
+    # the SealedBox opener needs; writes encrypt on the way out. The
+    # DB column shape (BinaryField backing) is unchanged. Wrap promoted
+    # from v3.32's plain BinaryField via migration 0011.
+    private_key_encrypted = _EncryptedBinaryField(
         help_text="Encrypted X25519 private key. Never returned in responses.",
-        # crypto-pending: wrap-after-cross-agent-merge
     )
     is_active = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -1061,12 +1214,17 @@ class MigrationCloudCompanionKeypair(models.Model):
             models.Index(fields=["is_active"]),
             models.Index(fields=["key_version"]),
             models.Index(fields=["-created_at"]),
+            models.Index(fields=["tenant", "is_active"]),
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=["is_active"],
+                fields=["tenant", "is_active"],
                 condition=models.Q(is_active=True),
-                name="migrationcloud_companion_keypair_one_active",
+                name="uniq_active_keypair_per_tenant",
+            ),
+            models.UniqueConstraint(
+                fields=["tenant", "key_version"],
+                name="uniq_keypair_version_per_tenant",
             ),
         ]
         verbose_name = "Migration Cloud companion keypair"
@@ -1074,4 +1232,177 @@ class MigrationCloudCompanionKeypair(models.Model):
 
     def __str__(self) -> str:
         flag = "active" if self.is_active else "retired"
-        return f"CompanionKeypair[{self.key_version}] ({flag})"
+        return f"CompanionKeypair[{self.key_version}] tenant={self.tenant_id} ({flag})"
+
+
+# ─── v3.35.0 — MAA v2.0 flip pre-flight tooling (Agent 3) ────────────────
+#
+# Two append-only audit models supporting the MAA v2.0 promotion path.
+# Neither carries a tenant FK because both records are platform-wide
+# concerns (counsel signoff is per-platform; the re-sign campaign is
+# tracked at the platform level so a single send-attempt counts even
+# if the operator changes tenant context between dispatches).
+#
+# Both models are append-only by convention — there are NO UPDATE or
+# DELETE code paths exposed in the codebase. Admin / mgmt commands
+# call ``.objects.create(...)`` only.
+
+
+class MigrationCloudCounselAttestation(models.Model):
+    """Append-only audit record of counsel attestations.
+
+    Each row records an explicit operator-level attestation that
+    external counsel has signed off on a numbered MAA promotion
+    artifact (or other compliance gate). Operators with the
+    ``legal-officers`` staff group attach attestations from the
+    operator UI; the model is append-only and platform-wide.
+
+    Security invariants:
+
+    * Append-only: the operator UI never offers an update / delete
+      affordance, and the admin entry registered in ``admin.py`` is
+      ``has_change_permission=False`` / ``has_delete_permission=False``.
+    * ``attestation_text`` is operator-supplied prose; it does NOT
+      include MAA body text (the verifier checks readiness without
+      logging the body). Treated as low-sensitivity narrative.
+    * Platform-wide (no tenant FK): counsel signoff is a platform
+      concern, not a per-tenant one. Marker below makes the
+      cross-tenant scope explicit for the tenant-isolation scanner.
+    """
+
+    ATTESTATION_TYPE_MAX_LEN = 64
+    RELATED_ARTIFACT_PATH_MAX_LEN = 512
+
+    # tenant-isolation-allow: platform-wide-counsel-attestation-audit-log
+    operator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="migration_cloud_counsel_attestations",
+        help_text=(
+            "Staff user who recorded this attestation. Must be a member "
+            "of the legal-officers group at attestation time."
+        ),
+    )
+    attested_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    attestation_type = models.CharField(
+        max_length=ATTESTATION_TYPE_MAX_LEN,
+        db_index=True,
+        help_text=(
+            "Stable identifier for the attestation kind, e.g. "
+            "'maa_v2_counsel_signoff_received'. Keep short, machine-readable."
+        ),
+    )
+    attestation_text = models.TextField(
+        help_text=(
+            "Operator-supplied narrative describing the attestation "
+            "(e.g. 'Received signed PDF from counsel Jane Q. Doe, "
+            "Esq. on 2026-06-01; filed at docs/legal/maa_v2_signoff.pdf')."
+        ),
+    )
+    related_artifact_path = models.CharField(
+        max_length=RELATED_ARTIFACT_PATH_MAX_LEN,
+        blank=True,
+        default="",
+        help_text=(
+            "Optional repo-relative path of the supporting artifact "
+            "(e.g. 'docs/legal/maa_v2_signoff.pdf'). Free-text; the "
+            "audit row is the SOT, not the file."
+        ),
+    )
+
+    class Meta:
+        app_label = "migration_cloud"
+        ordering = ["-attested_at"]
+        indexes = [
+            models.Index(fields=["attestation_type", "-attested_at"]),
+        ]
+        verbose_name = "Migration Cloud counsel attestation"
+        verbose_name_plural = "Migration Cloud counsel attestations"
+
+    def __str__(self) -> str:
+        return (
+            f"CounselAttestation[{self.attestation_type}] "
+            f"operator={self.operator_id} at={self.attested_at:%Y-%m-%d}"
+        )
+
+
+class MigrationCloudMAACampaignNotification(models.Model):
+    """Idempotency record for MAA v2.0 re-sign campaign emails.
+
+    Each row records one (agreement, recipient_email) pair that has
+    been notified for the named campaign. The
+    ``maa_v2_resign_campaign`` mgmt command checks this table before
+    enqueueing a fresh email — operators can re-run the command
+    daily / weekly without double-sending.
+
+    Append-only: no UPDATE / DELETE paths; bare ``.objects.create``
+    only. Cross-tenant by design (the campaign is run platform-wide
+    by the partner-success team) — marker is 5-part hyphenated.
+    """
+
+    AGREEMENT_VERSION_MAX_LEN = 32
+    RECIPIENT_EMAIL_MAX_LEN = 254  # RFC 5321 path-segment cap.
+    CAMPAIGN_VERSION_MAX_LEN = 32
+
+    # tenant-isolation-allow: cross-tenant-maa-campaign-tracking
+    agreement = models.ForeignKey(
+        MigrationAuthorizationAgreement,
+        on_delete=models.CASCADE,
+        related_name="campaign_notifications",
+        help_text=(
+            "The v1.0-era MAA row that triggered the notification. "
+            "On agreement deletion the notification rows cascade out "
+            "(they are derived audit; the SOT is the agreement)."
+        ),
+    )
+    recipient_email = models.EmailField(
+        max_length=RECIPIENT_EMAIL_MAX_LEN,
+        help_text=(
+            "Email address that received (or was queued to receive) "
+            "the campaign email. Operator-attached not at scrape time "
+            "but resolved from the signing operator's User row."
+        ),
+    )
+    sent_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    campaign_version = models.CharField(
+        max_length=CAMPAIGN_VERSION_MAX_LEN,
+        db_index=True,
+        help_text=(
+            "Campaign identifier, e.g. 'maa_v2_resign_2026Q3'. Allows "
+            "future v3.x re-sign campaigns to coexist (each campaign "
+            "is independently idempotent)."
+        ),
+    )
+    dispatch_mode = models.CharField(
+        max_length=16,
+        default="dry_run",
+        db_index=True,
+        help_text=(
+            "Either 'dry_run' (recorded but not enqueued) or 'queued' "
+            "(enqueued via send_mail and recorded). 'queued' rows are "
+            "the only ones operators expect a real email send for."
+        ),
+    )
+
+    class Meta:
+        app_label = "migration_cloud"
+        ordering = ["-sent_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["agreement", "recipient_email", "campaign_version"],
+                name="uniq_maa_campaign_per_agreement_recipient",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["campaign_version", "-sent_at"]),
+            models.Index(fields=["dispatch_mode", "-sent_at"]),
+        ]
+        verbose_name = "Migration Cloud MAA campaign notification"
+        verbose_name_plural = "Migration Cloud MAA campaign notifications"
+
+    def __str__(self) -> str:
+        return (
+            f"MAACampaign[{self.campaign_version}] "
+            f"agreement={self.agreement_id} "
+            f"mode={self.dispatch_mode}"
+        )

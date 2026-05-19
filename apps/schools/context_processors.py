@@ -36,6 +36,7 @@ def operator_surface_ia_context(request):
     except (ImportError, NoReverseMatch, TypeError, ValueError):
         return {
             "RMC_OPERATOR_SURFACE_IA": False,
+            "RMC_OPERATOR_SURFACE_STRIP_VISIBLE": False,
             "RMC_OPERATOR_SURFACE_SPINE": [],
             "RMC_OPERATOR_PAIRED_LINKS": [],
             "RMC_OPERATOR_SURFACE_CURRENT": None,

@@ -757,6 +757,9 @@ class PlatformIntegrationWebhookEventAdmin(ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 register_platform_admin(
     PlatformIntegrationWebhookEvent, PlatformIntegrationWebhookEventAdmin

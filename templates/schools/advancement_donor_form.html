@@ -1,6 +1,6 @@
 {% extends "backend_base.html" %}
 {% block backend_title %}{{ title }}{% endblock %}
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   {% include "studio_os/components/page_header.html" with title=title subtitle="Advancement" action_url=list_url action_text="All donors" %}
   <form method="post" class="card card-body shadow-sm" style="max-width: 36rem;">

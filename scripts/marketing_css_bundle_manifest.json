@@ -1,0 +1,43 @@
+{
+  "version": "2026-05-19",
+  "note": "Critical = above-fold shell. Enhanced = deferred via media=print onload. Bootstrap + design-tokens stay separate (vendor + platform foundation).",
+  "critical": [
+    "static/marketing/css/tokens-marketing.css",
+    "static/marketing/css/marketing-v3-shell.css",
+    "static/marketing/css/marketing-critical-path.css",
+    "static/marketing/css/marketing-accessibility-hardening.css",
+    "static/marketing/css/marketing-fonts.css"
+  ],
+  "enhanced": [
+    "static/css/rmc-class-grammar.css",
+    "static/css/rmc-platform-header.css",
+    "static/css/statement-header.css",
+    "static/marketing/css/tokens-schoolhouse.css",
+    "static/marketing/css/marketing-v3-narrative.css",
+    "static/marketing/css/marketing-shell.css",
+    "static/marketing/css/tokens-editorial.css",
+    "static/css/rmc-warm-bright-school.css",
+    "static/css/rmc-cool-apple-polish.css",
+    "static/css/design-tokens-luxury.css",
+    "static/marketing/css/marketing-v3-dashboards.css",
+    "static/marketing/css/marketing-v3-pages.css",
+    "static/css/rmc-bell-clock-product.css",
+    "static/marketing/css/proof-pages.css",
+    "static/css/platform-high-end.css",
+    "static/css/marketing-static-bundle.css",
+    "static/css/glass-surface-recipe.css",
+    "static/css/platform-responsive-touch.css",
+    "static/css/accessibility.css",
+    "static/css/header-no-spillage.css",
+    "static/css/rmc-premium-os.css",
+    "static/css/rmc-premium-polish.css",
+    "static/css/rmc-world-class-experience.css",
+    "static/css/rmc-corporate-os.css",
+    "static/marketing/css/marketing-corporate-os.css"
+  ],
+  "size_budget_bytes": {
+    "critical_max": 45000,
+    "enhanced_max": 250000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; grammar/narrative/full shell deferred."
+  }
+}

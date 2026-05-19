@@ -29,9 +29,9 @@
         <span class="ms-2">{% trans "Items in profile" %} {{ evaluation.items_in_profile }} / {% trans "registry total" %} {{ evaluation.items_total_in_registry }}</span>
         {% endif %}
         <span class="ms-2">
-          <a class="link-light text-decoration-underline" href="{% url 'super:backlog_unlock_center' %}?profile={{ profile_smoke }}">{% trans "smoke" %}</a>
+          <a class="link-secondary text-decoration-underline" href="{% url 'super:backlog_unlock_center' %}?profile={{ profile_smoke }}">{% trans "smoke" %}</a>
           ·
-          <a class="link-light text-decoration-underline" href="{% url 'super:backlog_unlock_center' %}?profile={{ profile_full }}">{% trans "full" %}</a>
+          <a class="link-secondary text-decoration-underline" href="{% url 'super:backlog_unlock_center' %}?profile={{ profile_full }}">{% trans "full" %}</a>
         </span>
       </p>
     </div>
@@ -173,7 +173,7 @@
   <section class="mt-5 rmc-reveal" aria-labelledby="recent-unlock-h">
     <h2 id="recent-unlock-h" class="h5 mb-3">{% trans "Recent dependency-met events" %}</h2>
     <div class="table-responsive">
-      <table class="table table-dark table-sm table-bordered border-secondary">
+      <table class="table table-family table-sm table-bordered border-secondary">
         <caption class="visually-hidden">{% trans "Recent dependency-met events" %}</caption>
         <thead>
           <tr>

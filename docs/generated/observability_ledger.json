@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-05-18T01:28:30.789048+00:00",
+  "generated_at": "2026-05-19T03:07:12.622236+00:00",
   "kill_test": {
-    "critical_count": 0,
+    "critical_count": 2,
     "present": true,
-    "result": "PASS"
+    "result": "FAIL"
   },
   "northstar": {
     "present": true,
-    "rating": "DOMINANT",
-    "score": 75
+    "rating": "ELITE",
+    "score": 71
   },
   "runtime": {
     "ai_audits_recent_24h": -1,

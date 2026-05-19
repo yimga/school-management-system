@@ -32,6 +32,7 @@ if [[ ! -f "node_modules/playwright/cli.js" ]]; then
 fi
 
 "${PYTHON_CMD}" scripts/verify_theme_visibility_platform.py
+"${PYTHON_CMD}" scripts/verify_backend_base_shell_routing.py
 "${PYTHON_CMD}" scripts/verify_manager_admin_cp_layout.py
 "${PYTHON_CMD}" scripts/verify_super_admin_surface_parity.py --write
 "${PYTHON_CMD}" manage.py test \

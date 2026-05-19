@@ -249,6 +249,17 @@ body.rmc-cmdk-open { overflow: hidden; }
   min-height: 32px;
 }
 .rmc-shell-switcher__btn:hover { background: var(--surface-overlay); color: var(--text-primary); }
+/* Campus / school workspace switcher (multi-tenant header). */
+.rmc-campus-switcher__select {
+  min-width: 10rem;
+  max-width: 14rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-overlay, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, inherit);
+  border-color: var(--hairline, rgba(255, 255, 255, 0.2));
+  font-size: var(--type-size-sm, 0.8125rem);
+}
+
 .rmc-shell-switcher__btn.is-active {
   background: var(--surface-elevated);
   color: var(--text-primary);

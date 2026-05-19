@@ -16,7 +16,11 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.http import require_http_methods
 
-from apps.api.views_v1 import _backend_flag_enabled, _get_school_from_request
+from apps.api.views_v1 import (
+    _backend_flag_enabled,
+    _get_school_from_request,
+    _require_auth_and_tenant_member,
+)
 from apps.platform_runtime.structured_logging import log_view_exception
 
 logger = logging.getLogger(__name__)
@@ -26,11 +30,9 @@ class InterventionRedFlagsView(View):
     """GET /api/v1/intervention/red-flags - At-risk students (score > 80)."""
 
     def get(self, request):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         try:
             from apps.analytics.models import RiskFactor
 
@@ -63,11 +65,9 @@ class InterventionCalculateRiskView(View):
     """POST /api/v1/intervention/calculate-risk - Trigger risk score calculation (background)."""
 
     def post(self, request):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         try:
             from apps.analytics.tasks import compute_risk_factors_task
 
@@ -99,11 +99,9 @@ class InterventionActionCenterView(View):
     """GET /api/v1/intervention/action-center - List interventions for Action Center (approve/dismiss)."""
 
     def get(self, request):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         from apps.analytics.models import (
             InterventionLog,
             RiskFactor,
@@ -149,11 +147,9 @@ class InterventionActionCenterDetailView(View):
     """PATCH /api/v1/intervention/action-center/<id> - Dismiss or resolve an intervention."""
 
     def patch(self, request, id):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         try:
             data = json.loads(request.body) if request.body else {}
         except json.JSONDecodeError:
@@ -190,11 +186,9 @@ class InterventionGenerateRoadmapView(View):
             return JsonResponse(
                 {"error": "Intervention roadmap is not enabled."}, status=404
             )
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         try:
             data = json.loads(request.body) if request.body else {}
         except json.JSONDecodeError:

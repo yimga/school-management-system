@@ -578,7 +578,13 @@ class Evaluation(models.Model):
         unique_together = ("academic_year", "term", "subject_assignment", "student")
 
     def clean(self):
-        # Validate score ranges (0-20 for Cameroon)
+        from apps.evals.grading import max_score_for_school
+
+        school = getattr(self, "school", None)
+        if school is None and self.subject_assignment_id:
+            school = getattr(self.subject_assignment, "school", None)
+        max_score = max_score_for_school(school)
+
         score_fields = {
             "seq1_score": self.seq1_score,
             "seq2_score": self.seq2_score,
@@ -593,9 +599,14 @@ class Evaluation(models.Model):
                     raise ValidationError(
                         {field_name: f"{field_name} cannot be negative"}
                     )
-                if score > 20:
+                if score > max_score:
                     raise ValidationError(
-                        {field_name: f"{field_name} cannot exceed 20"}
+                        {
+                            field_name: (
+                                f"{field_name} cannot exceed {max_score} "
+                                f"for this school's grading scale"
+                            )
+                        }
                     )
 
         # At least one score must be entered

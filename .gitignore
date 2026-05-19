@@ -86,6 +86,13 @@ db_step4.sqlite3
 *.webm
 *.mp4
 *.png
+# Marketing ship assets (committed; CI + fresh clones must pass hero gate)
+!static/marketing/video/hero-home.mp4
+!static/marketing/img/hero-home-poster.svg
+!static/marketing/fonts/**/*.woff2
+!static/marketing/css/marketing-critical.min.css
+!static/marketing/css/marketing-enhanced.min.css
+!static/marketing/css/marketing-bundles.manifest.json
 
 # Merge conflict artifacts (do not commit)
 *_Conflict.py

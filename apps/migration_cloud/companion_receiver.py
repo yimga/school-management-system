@@ -30,6 +30,7 @@ Defense layers:
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import logging
 import uuid
@@ -57,7 +58,14 @@ from .models import (
 )
 from .reliability import idempotent_post, safe_500
 from .services import companion_keypair as _companion_keypair
-from .services.maa_text import AGREEMENT_VERSION_CURRENT, render_maa_text
+from .services.maa_text import (
+    AGREEMENT_VERSION_CURRENT,
+    MAA_TEXT_DRAFT_VERSIONS,
+    is_draft_version,
+    render_maa_text,
+    resolve_active_version_for_tenant,
+    resolve_preview_version_for_tenant,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +84,11 @@ def _client_ip(request: HttpRequest) -> str | None:
 
 def _user_agent(request: HttpRequest) -> str:
     return (request.META.get("HTTP_USER_AGENT") or "")[:512]
+
+
+def _constant_time_eq(a: str, b: str) -> bool:
+    """Constant-time string equality (defence-in-depth for sha digests)."""
+    return hmac.compare_digest(a.encode("utf-8"), b.encode("utf-8"))
 
 
 def _request_school(request: HttpRequest):
@@ -151,20 +164,69 @@ def maa_text_view(request: HttpRequest) -> JsonResponse:
     """
     vendor = (request.GET.get("vendor") or "").strip()
     holder = (request.GET.get("holder") or "").strip()
-    version = (request.GET.get("version") or AGREEMENT_VERSION_CURRENT).strip()
+    explicit_version = (request.GET.get("version") or "").strip()
     if not vendor:
         return _json_error("vendor querystring parameter required", status=400, code="missing_vendor")
+
+    # v3.34.0 — resolve the tenant-aware ACTIVE version (always non-draft;
+    # see resolve_active_version_for_tenant docstring for the safety
+    # contract). Preview is opt-in-only and never binds. If the caller
+    # passes ?version=<x> explicitly we honor that for rendering only;
+    # the active version that the server would actually sign remains the
+    # tenant-resolved one.
+    tenant = _request_school(request)
+    active_version = resolve_active_version_for_tenant(tenant)
+    preview_version = resolve_preview_version_for_tenant(tenant)
+
+    # If no explicit version was passed, render the active version body.
+    # If one was passed, render that body — useful for the preview path
+    # where the popup wants to see the draft text. The "version" field
+    # in the response always reports what was actually rendered.
+    version = explicit_version or active_version
+
     try:
         text = render_maa_text(vendor, holder, version)
     except ValueError as exc:
         return _json_error(str(exc), status=400, code="bad_version")
+    is_draft = is_draft_version(version)
+
+    preview_payload: dict[str, Any] | None = None
+    if preview_version is not None:
+        try:
+            preview_text = render_maa_text(vendor, holder, preview_version)
+        except ValueError:
+            preview_text = ""
+        preview_payload = {
+            "version": preview_version,
+            "text": preview_text,
+            "is_preview": True,
+            "preview_banner": "PREVIEW — not yet active",
+        }
+
     logger.info(
-        "migration_cloud.companion_receiver: maa_text rendered vendor=%s version=%s user_id=%s",
-        vendor, version, getattr(request.user, "pk", None),
+        "migration_cloud.companion_receiver: maa_text rendered vendor=%s version=%s "
+        "active_version=%s preview_version=%s user_id=%s draft=%s",
+        vendor, version, active_version, preview_version,
+        getattr(request.user, "pk", None), is_draft,
     )
-    return JsonResponse(
-        {"ok": True, "vendor": vendor, "version": version, "text": text}
-    )
+    response: dict[str, Any] = {
+        "ok": True,
+        "vendor": vendor,
+        "version": version,
+        "text": text,
+        "is_draft": is_draft,
+        "active_version": active_version,
+        # UI must render a "Draft — preview only" banner when is_draft is True.
+        "draft_banner": (
+            "DRAFT — pending counsel review. Preview only; "
+            "this version is not legally binding."
+            if is_draft
+            else ""
+        ),
+    }
+    if preview_payload is not None:
+        response["preview"] = preview_payload
+    return JsonResponse(response)
 
 
 # ─── MAA sign (POST) ─────────────────────────────────────────────────────
@@ -189,7 +251,25 @@ class MAASignView(LoginRequiredMixin, View):
         vendor_source = (payload.get("vendor_source") or "").strip()
         holder_name = (payload.get("vendor_account_holder_name") or "").strip()
         role = (payload.get("signed_by_role") or "").strip()
-        version = (payload.get("agreement_version") or AGREEMENT_VERSION_CURRENT).strip()
+        requested_version = (
+            payload.get("agreement_version") or ""
+        ).strip()
+        # v3.34.0 — operator MAY include the rendered signature_text in
+        # the POST so the server can verify byte-for-byte equality with
+        # the active-version body. This catches:
+        #   (a) UI rendering a preview body and accidentally posting it
+        #   (b) Tampering between render and sign
+        # When omitted, the server renders + captures the active body
+        # itself (backwards-compatible with v3.33 callers).
+        submitted_signature_text = payload.get("submitted_signature_text")
+        if submitted_signature_text is not None and not isinstance(
+            submitted_signature_text, str
+        ):
+            return _json_error(
+                "submitted_signature_text must be a string",
+                status=400,
+                code="bad_signature_text",
+            )
 
         if not vendor_source or not holder_name or not role:
             return _json_error(
@@ -210,10 +290,109 @@ class MAASignView(LoginRequiredMixin, View):
                 code="no_tenant",
             )
 
+        # v3.34.0 — the version that actually binds is the tenant-resolved
+        # ACTIVE version (always non-draft). If the operator explicitly
+        # passed a different agreement_version we cross-check: if they
+        # asked for the active version, fine; if they asked for a draft
+        # version they get refused; if they asked for a different
+        # non-draft version we honor it only when it matches the
+        # active resolver result.
+        active_version = resolve_active_version_for_tenant(school)
+        version = requested_version or active_version
+
+        # v3.33.0 — refuse to sign a draft version. Drafts may be
+        # PREVIEWED via the maa_text endpoint with ?version=v2.0 but
+        # cannot bind the operator until counsel review advances them
+        # out of the draft set and AGREEMENT_VERSION_CURRENT moves
+        # forward.
+        if is_draft_version(version):
+            logger.warning(
+                "migration_cloud.companion_receiver: maa_sign refused_draft "
+                "user_id=%s version=%s",
+                getattr(request.user, "pk", None), version,
+            )
+            return _json_error(
+                "agreement_version is a DRAFT — preview only; cannot be signed.",
+                status=400,
+                code="draft_version",
+            )
+
+        # v3.34.0 — if the caller passed a non-draft version that
+        # diverges from the tenant-resolved active version, refuse so
+        # opt-in tenants can't drift to a different non-draft body by
+        # client-side request. The active version is the SOURCE OF
+        # TRUTH for what binds.
+        if requested_version and requested_version != active_version:
+            logger.warning(
+                "migration_cloud.companion_receiver: maa_sign version_mismatch "
+                "user_id=%s requested=%s active=%s",
+                getattr(request.user, "pk", None),
+                requested_version, active_version,
+            )
+            return _json_error(
+                "requested agreement_version does not match the tenant-active "
+                "version; refresh the sign page and retry.",
+                status=400,
+                code="version_mismatch",
+            )
+
         try:
             signature_text = render_maa_text(vendor_source, holder_name, version)
         except ValueError as exc:
             return _json_error(str(exc), status=400, code="bad_version")
+
+        # v3.34.0 — when the operator submitted a signature_text body,
+        # verify it matches the server-rendered active-version body
+        # byte-for-byte. Drift here means the client rendered the
+        # preview (draft) and is trying to bind it — refuse with
+        # ``draft_signature_attempt``. Boolean presence + sha prefix
+        # are logged; the bodies themselves are NEVER logged.
+        if submitted_signature_text is not None:
+            submitted_sha = hashlib.sha256(
+                submitted_signature_text.encode("utf-8")
+            ).hexdigest()
+            expected_sha = hashlib.sha256(
+                signature_text.encode("utf-8")
+            ).hexdigest()
+            if not _constant_time_eq(submitted_sha, expected_sha):
+                # Determine whether the submitted body matches ANY draft
+                # version body — that tells us the caller tried to bind
+                # the preview, which is the explicit failure code the
+                # spec calls for.
+                looks_like_draft = False
+                for draft_v in MAA_TEXT_DRAFT_VERSIONS:
+                    try:
+                        draft_body = render_maa_text(
+                            vendor_source, holder_name, draft_v,
+                        )
+                    except ValueError:
+                        continue
+                    draft_sha = hashlib.sha256(
+                        draft_body.encode("utf-8"),
+                    ).hexdigest()
+                    if _constant_time_eq(submitted_sha, draft_sha):
+                        looks_like_draft = True
+                        break
+                logger.warning(
+                    "migration_cloud.companion_receiver: maa_sign "
+                    "signature_text_mismatch user_id=%s submitted_sha_prefix=%s "
+                    "expected_sha_prefix=%s looks_like_draft=%s",
+                    getattr(request.user, "pk", None),
+                    submitted_sha[:12], expected_sha[:12], looks_like_draft,
+                )
+                if looks_like_draft:
+                    return _json_error(
+                        "submitted signature_text matches a DRAFT version "
+                        "body; drafts cannot be signed.",
+                        status=400,
+                        code="draft_signature_attempt",
+                    )
+                return _json_error(
+                    "submitted_signature_text does not match the "
+                    "server-rendered active-version body.",
+                    status=400,
+                    code="signature_text_mismatch",
+                )
 
         maa = MigrationAuthorizationAgreement.objects.create(  # tenant-isolation-allow: companion-receiver-create-maa-for-resolved-tenant
             tenant=school,
@@ -399,6 +578,14 @@ class CompanionUploadView(LoginRequiredMixin, View):
                     triggered_by=request.user,
                 )
 
+                # v3.33.0 — record the client-supplied ``key_version``
+                # tag on the receipt at upload time so an auditor can
+                # answer "which server key half opened receipt R?" even
+                # before the decrypt hook runs. The decrypt hook later
+                # overwrites this field with the version that ACTUALLY
+                # opened the SealedBox (may differ from the tag after a
+                # rotation when the client signalled the new version
+                # but the upload arrived before the decrypt did).
                 receipt = CompanionUploadReceipt.objects.create(  # tenant-isolation-allow: companion-receiver-create-receipt-for-resolved-tenant
                     tenant=school,
                     bundle=bundle,
@@ -407,6 +594,7 @@ class CompanionUploadView(LoginRequiredMixin, View):
                     client_idempotency_key=idem_key,
                     ciphertext_sha256=observed_sha,
                     plaintext_byte_size=plaintext_size,
+                    key_version=(key_version_tag or "")[:16],
                 )
         except IntegrityError:
             # Race: another request used the same idempotency key while we
@@ -503,11 +691,51 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
         with receipt.ciphertext_blob.blob_file.open("rb") as fh:
             ciphertext_bytes = fh.read()
 
-        try:
-            plaintext = _companion_keypair.decrypt_with_active_or_versioned(
-                ciphertext_bytes,
-                requested_version=requested_version,
+        # v3.34.0 — keypairs are per-tenant. Resolve the tenant scope
+        # from the bundle (authoritative — set at upload time when the
+        # request had its own tenant). Cross-check against the caller's
+        # current request.tenant to refuse cross-tenant decrypts: a
+        # staff user signed into tenant A cannot trigger decrypt on a
+        # bundle belonging to tenant B.
+        bundle_tenant = getattr(bundle, "school", None)
+        if bundle_tenant is None:
+            return _json_error(
+                "bundle has no tenant",
+                status=409,
+                code="bundle_no_tenant",
             )
+        caller_school = _request_school(request)
+        if caller_school is not None and getattr(caller_school, "pk", None) != getattr(
+            bundle_tenant, "pk", None
+        ):
+            logger.warning(
+                "migration_cloud.companion_receiver: decrypt tenant_mismatch "
+                "bundle_id=%s bundle_tenant=%s caller_tenant=%s user_id=%s",
+                bundle.pk,
+                getattr(bundle_tenant, "pk", None),
+                getattr(caller_school, "pk", None),
+                getattr(user, "pk", None),
+            )
+            return _json_error(
+                "tenant mismatch between bundle and caller",
+                status=403,
+                code="tenant_mismatch",
+            )
+
+        try:
+            # v3.34.0 — service requires tenant first arg. Returns a
+            # ``DecryptResult`` carrying the keypair version that
+            # opened the SealedBox. We persist that version on the
+            # receipt so audit trails pin to the exact half-key used
+            # (the client-supplied tag stored at upload time may
+            # diverge after a rotation).
+            decrypt_result = _companion_keypair.decrypt_with_active_or_versioned(
+                bundle_tenant,
+                ciphertext_bytes,
+                key_version=requested_version,
+            )
+            plaintext = decrypt_result.plaintext
+            opened_with_version = decrypt_result.key_version
         except _companion_keypair.PyNaClUnavailable:
             return _json_error(
                 "PyNaCl not installed on server; decrypt hook unavailable",
@@ -534,6 +762,14 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
         # Mark blob decrypted; persist plaintext as the bundle's intake artifact.
         receipt.ciphertext_blob.decrypted_at = timezone.now()
         receipt.ciphertext_blob.save(update_fields=["decrypted_at"])
+
+        # v3.33.0 — overwrite the receipt's ``key_version`` with the
+        # version that actually opened the SealedBox (vs. the client-
+        # supplied upload tag). Tracked for audit; never carries
+        # private bytes.
+        if opened_with_version and opened_with_version != receipt.key_version:
+            receipt.key_version = opened_with_version[:16]
+            receipt.save(update_fields=["key_version"])
 
         bundle.intake_source_uri = f"{bundle.intake_source_uri} (decrypted)"
         bundle.status = BundleStatus.INGESTING
@@ -568,11 +804,32 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
 def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
     """GET /companion/server-pubkey/ — return the active X25519 public key.
 
-    Anonymous-allowed (cross-extension fetch from the Companion popup;
-    the popup carries the operator's session cookie but the public key
-    itself is non-sensitive). Optional ``?tenant_id=<n>`` is accepted
-    for forward compatibility with per-tenant keypairs but is currently
-    a no-op — one global active keypair serves all tenants.
+    v3.34.0 — keypairs are per-tenant. The tenant is resolved from
+    ``request.tenant`` (set by django-tenants schema middleware) or
+    ``request.school`` (operator-shell helper). When the request carries
+    no tenant scope, returns 400 — the Companion popup MUST sign in
+    first so its session cookie lands a tenant.
+
+    v3.35.0 — operators who manage multiple tenants (e.g. a district-
+    level admin migrating 5 schools) need to fetch pubkeys for a tenant
+    OTHER than the one bound to their session cookie. The view now
+    accepts an explicit ``?tenant=<slug>`` query parameter:
+
+      * If ``?tenant=<slug>`` is omitted, fall back to the session-
+        resolved tenant (v3.34.0 behavior; backwards-compatible).
+      * If ``?tenant=<slug>`` is supplied AND ``request.tenant`` resolves
+        AND they differ: 403 ``tenant_mismatch_query_vs_session``. This
+        catches the foot-gun where an operator clicks a saved bookmark
+        for tenant A while signed into tenant B's subdomain.
+      * If ``?tenant=<slug>`` is supplied but the slug does not match
+        an active ``School`` row: 404 ``tenant_not_found``. The error
+        message intentionally does NOT echo the slug — that would leak
+        slug-existence to an unauthenticated probe.
+
+    Public-key material itself is non-sensitive, but issuing the wrong
+    tenant's pubkey would let an extension seal data the WRONG tenant
+    can open. Resolving via request.tenant (or the explicit-and-verified
+    query param) prevents that confusion.
 
     Response shape::
 
@@ -588,8 +845,70 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
     ``ok=True``; the test suite asserts the absence of any "private"
     key in the JSON payload.
     """
+    # v3.35.0 — resolve the requested tenant from the query param FIRST,
+    # then cross-check against the session tenant. The query-param path
+    # supports operators managing multiple tenants from a single browser.
+    explicit_slug = (request.GET.get("tenant") or "").strip()
+    session_school = _request_school(request)
+
+    requested_school = None
+    if explicit_slug:
+        from apps.schools.models import School
+        requested_school = (
+            # tenant-isolation-allow: operator-multi-tenant-public-key-lookup
+            School.objects.filter(slug=explicit_slug, is_active=True).first()
+        )
+        if requested_school is None:
+            # Generic 404; do NOT echo the slug — that would leak
+            # slug-existence via differential timing or message text to
+            # an unauthenticated caller.
+            logger.warning(
+                "migration_cloud.companion_receiver: server_pubkey tenant_not_found "
+                "user_id=%s slug_prefix=%s",
+                getattr(getattr(request, "user", None), "pk", None),
+                explicit_slug[:8],
+            )
+            return _json_error(
+                "tenant not found",
+                status=404,
+                code="tenant_not_found",
+            )
+        # Cross-check vs session: if both resolve and they differ, refuse.
+        if session_school is not None and getattr(session_school, "pk", None) != getattr(
+            requested_school, "pk", None
+        ):
+            logger.warning(
+                "migration_cloud.companion_receiver: server_pubkey "
+                "tenant_mismatch_query_vs_session user_id=%s "
+                "session_pk=%s requested_pk=%s",
+                getattr(getattr(request, "user", None), "pk", None),
+                getattr(session_school, "pk", None),
+                getattr(requested_school, "pk", None),
+            )
+            return _json_error(
+                "session tenant does not match requested tenant; sign "
+                "into the correct subdomain or clear the query parameter.",
+                status=403,
+                code="tenant_mismatch_query_vs_session",
+            )
+        school = requested_school
+    else:
+        school = session_school
+
+    if school is None:
+        logger.warning(
+            "migration_cloud.companion_receiver: server_pubkey denied no_tenant "
+            "user_id=%s",
+            getattr(getattr(request, "user", None), "pk", None),
+        )
+        return _json_error(
+            "tenant required (sign in to a tenant before fetching pubkey)",
+            status=400,
+            code="no_tenant",
+        )
+
     try:
-        info = _companion_keypair.get_active_public_key_info()
+        info = _companion_keypair.get_active_public_key_info(school)
     except _companion_keypair.PyNaClUnavailable:
         return _json_error(
             "PyNaCl not installed on server; companion keypair unavailable",
@@ -597,13 +916,11 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
             code="pynacl_missing",
         )
 
-    # The tenant_id query is logged for audit-trail but does not change
-    # the response (per-tenant keypairs are a future enhancement).
-    tenant_id_raw = request.GET.get("tenant_id")
     logger.info(
         "migration_cloud.companion_receiver: server_pubkey_fetched "
-        "key_version=%s fingerprint=%s tenant_id_q=%s",
-        info["key_version"], info["fingerprint_b64"], tenant_id_raw,
+        "tenant_pk=%s key_version=%s fingerprint=%s explicit_query=%s",
+        school.pk, info["key_version"], info["fingerprint_b64"],
+        bool(explicit_slug),
     )
     return JsonResponse({"ok": True, **info}, status=200)
 
@@ -614,6 +931,11 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
 @method_decorator(csrf_exempt, name="dispatch")
 class CompanionKeypairRotateView(LoginRequiredMixin, View):
     """POST /companion/keypair/rotate/ — staff-only key rotation.
+
+    v3.34.0 — rotation is scoped to ``request.tenant``. A staff user
+    can ONLY rotate the keypair of the tenant they're currently bound
+    to via session; rotating tenant B from tenant A's portal is not
+    possible because the service-layer query filters by tenant_id.
 
     Generates a fresh X25519 keypair, marks the previous active one as
     rotated_out, and returns the old + new version + fingerprint. No
@@ -626,8 +948,23 @@ class CompanionKeypairRotateView(LoginRequiredMixin, View):
         if not (user and user.is_authenticated and getattr(user, "is_staff", False)):
             return _json_error("staff-only endpoint", status=403, code="not_staff")
 
+        school = _request_school(request)
+        if school is None:
+            logger.warning(
+                "migration_cloud.companion_receiver: keypair_rotate denied no_tenant "
+                "user_id=%s",
+                getattr(user, "pk", None),
+            )
+            return _json_error(
+                "tenant required for keypair rotation",
+                status=400,
+                code="no_tenant",
+            )
+
         try:
-            result = _companion_keypair.rotate_keypair(operator_user=user)
+            result = _companion_keypair.rotate_active_keypair(
+                school, operator_user=user
+            )
         except _companion_keypair.PyNaClUnavailable:
             return _json_error(
                 "PyNaCl not installed on server; rotate unavailable",

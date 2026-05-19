@@ -57,7 +57,10 @@ GRADING_SCALES = {
             "D": Decimal("1"),
             "F": Decimal("0"),
         },
-        "display": lambda score: ("F", "D", "C", "B", "A")[min(4, int(score))],
+        "display": lambda score: {0: "F", 1: "D", 2: "C", 3: "B", 4: "A"}.get(
+            min(4, max(0, int(round(float(score))))),
+            "F",
+        ),
     },
     "gpa": {
         "min": Decimal("0"),
@@ -70,6 +73,42 @@ GRADING_SCALES = {
             "F": Decimal("0"),
         },
         "display": lambda score: f"{score:.2f}",
+    },
+    "uk-honours": {
+        "min": Decimal("0"),
+        "max": Decimal("100"),
+        "grades": {
+            "First": Decimal("70"),
+            "2:1": Decimal("60"),
+            "2:2": Decimal("50"),
+            "Third": Decimal("40"),
+            "Fail": Decimal("0"),
+        },
+        "display": lambda score: (
+            "First"
+            if float(score) >= 70
+            else "2:1"
+            if float(score) >= 60
+            else "2:2"
+            if float(score) >= 50
+            else "Third"
+            if float(score) >= 40
+            else "Fail"
+        ),
+    },
+    "ib-7": {
+        "min": Decimal("0"),
+        "max": Decimal("7"),
+        "grades": {
+            "7": Decimal("7"),
+            "6": Decimal("6"),
+            "5": Decimal("5"),
+            "4": Decimal("4"),
+            "3": Decimal("3"),
+            "2": Decimal("2"),
+            "1": Decimal("1"),
+        },
+        "display": lambda score: f"{float(score):.0f}/7",
     },
 }
 
@@ -137,6 +176,33 @@ ASSESSMENT_WEIGHTS_SCALE_MAP = {
     "percentage": "0-100",
 }
 
+# RegionConfig / migration profile aliases → GRADING_SCALES keys
+REGION_SCALE_ALIASES = {
+    **ASSESSMENT_WEIGHTS_SCALE_MAP,
+    "numeric_0_100": "0-100",
+    "numeric_0_10": "0-10",
+    "letter_af": "a-f",
+    "letter_a_f": "a-f",
+    "gpa_4": "gpa",
+    "th_0_4": "0-10",
+    "uk_honours": "uk-honours",
+    "uk-honors": "uk-honours",
+    "uk_honors": "uk-honours",
+    "ib_0_7": "ib-7",
+    "ib-0-7": "ib-7",
+    "ib": "ib-7",
+}
+
+
+def normalize_scale_id(scale: str | None, *, default: str = "0-100") -> str:
+    """Map tenant / AssessmentWeights scale tokens to a GRADING_SCALES key."""
+    if not scale:
+        return default
+    key = str(scale).strip()
+    if key in GRADING_SCALES:
+        return key
+    return REGION_SCALE_ALIASES.get(key, default)
+
 
 def scale_for_assessment_weights(weights) -> str:
     """
@@ -159,9 +225,17 @@ def get_scale_for_school(school) -> str:
     try:
         from apps.siteconfig.tenant_config import get_grading_schema_for_school
 
-        return get_grading_schema_for_school(school).get("scale") or "0-100"
+        raw = get_grading_schema_for_school(school).get("scale") or "0-100"
+        return normalize_scale_id(raw, default="0-100")
     except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return "0-100"
+
+
+def max_score_for_school(school) -> Decimal:
+    """Upper bound for component scores on this school's active grading scale."""
+    scale_id = get_scale_for_school(school)
+    config = GRADING_SCALES.get(scale_id, GRADING_SCALES["0-100"])
+    return config["max"]
 
 
 def get_grade_letter(score, scale="0-20"):

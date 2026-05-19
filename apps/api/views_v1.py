@@ -47,13 +47,54 @@ def _require_super_or_school(request, school_id=None):
     allowed_roles = {"ADMIN", "IT_ADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL"}
     if request_school and role in allowed_roles:
         if school_id is None or str(request_school.id) == str(school_id):
-            return True, None
+            from apps.schools.models import SchoolMembership
+            from apps.schools.tenant_switch_security import user_may_switch_to_school
+
+            if SchoolMembership.objects.filter(
+                user=request.user, school=request_school
+            ).exists():
+                return True, None
+            if user_may_switch_to_school(
+                request.user, request_school, active_school=request_school
+            ):
+                return True, None
     return False, JsonResponse({"error": "Forbidden"}, status=403)
 
 
 def _get_school_from_request(request):
     """Return request.school (set by tenant middleware) or None."""
     return getattr(request, "school", None)
+
+
+def _require_tenant_member(request, school=None):
+    """
+    Require tenant context and SchoolMembership (or hierarchy) on that school.
+
+    Returns (school, None) or (None, JsonResponse error).
+    """
+    school = school or _get_school_from_request(request)
+    if not school:
+        return None, JsonResponse({"error": "Tenant context required"}, status=400)
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return None, JsonResponse({"error": "Authentication required"}, status=401)
+    session_sid = ""
+    if hasattr(request, "session"):
+        session_sid = (request.session.get("school_id") or "").strip()
+    from apps.schools.tenant_switch_security import user_may_access_school_api
+
+    if not user_may_access_school_api(
+        user, school, session_school_id=session_sid or None
+    ):
+        return None, JsonResponse({"error": "Forbidden"}, status=403)
+    return school, None
+
+
+def _require_auth_and_tenant_member(request):
+    """Auth first, then tenant membership (common API view preamble)."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return None, JsonResponse({"error": "Authentication required"}, status=401)
+    return _require_tenant_member(request)
 
 
 def _user_has_any_role(user, allowed_roles: set[str]) -> bool:
@@ -68,9 +109,9 @@ def _require_finance_operator(request):
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return False, JsonResponse({"error": "Authentication required"}, status=401)
-    school = _get_school_from_request(request)
-    if not school:
-        return False, JsonResponse({"error": "Tenant context required"}, status=400)
+    school, err = _require_tenant_member(request)
+    if err:
+        return False, err
     if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
         return True, None
     if _user_has_any_role(user, FINANCE_OPERATOR_ROLES):
@@ -83,9 +124,9 @@ def _require_parent_finance_or_operator_access(request):
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return False, JsonResponse({"error": "Authentication required"}, status=401)
-    school = _get_school_from_request(request)
-    if not school:
-        return False, JsonResponse({"error": "Tenant context required"}, status=400)
+    school, err = _require_tenant_member(request)
+    if err:
+        return False, err
     if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
         return True, None
     if _user_has_any_role(user, FINANCE_OPERATOR_ROLES):
@@ -253,11 +294,9 @@ class EducationDNAView(View):
     """GET /api/v1/config/education-dna - Fetches grading rules and education template for current tenant."""
 
     def get(self, request):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         try:
             from apps.siteconfig.billing_sku_registry import (
                 get_effective_report_platform_bundle_slug_for_school,
@@ -367,65 +406,57 @@ class MeSchoolsView(View):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         from apps.schools.models import SchoolMembership
+        from apps.schools.tenant_switch_security import schools_user_may_operate_on
         from apps.siteconfig.billing_sku_registry import (
             get_effective_report_platform_bundle_slug_for_school,
             get_operator_default_report_platform_bundle_slug,
         )
 
         operator_bundle_slug = get_operator_default_report_platform_bundle_slug()
-        memberships = (
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            SchoolMembership.objects.filter(user=request.user)
-            .select_related("school")
-            .order_by("-is_primary", "school__name")
+        current = getattr(request, "school", None)
+        allowed_schools = schools_user_may_operate_on(
+            request.user, active_school=current
         )
+        membership_by_school = {
+            m.school_id: m
+            for m in SchoolMembership.objects.filter(user=request.user).select_related(  # tenant-isolation-allow: user-scoped-me-schools-membership-enumeration
+                "school"
+            )
+            if m.school_id
+        }
         schools = []
-        for m in memberships:
-            if not m.school or not m.school.is_active:
+        child_schools = []
+        for school in allowed_schools:
+            if not school or not getattr(school, "is_active", True):
                 continue
             rp_slug = (
-                str(getattr(m.school, "report_platform_bundle_slug", None) or "")
+                str(getattr(school, "report_platform_bundle_slug", None) or "")
                 .strip()
                 .lower()
             )
-            schools.append(
-                {
-                    "school_id": str(m.school_id),
-                    "name": m.school.name,
-                    "slug": getattr(m.school, "slug", "") or "",
-                    "primary_sector": getattr(m.school, "primary_sector", "") or "",
-                    "role": m.role,
-                    "is_primary": m.is_primary,
-                    "report_platform_bundle_slug": rp_slug,
-                    "effective_report_platform_bundle": get_effective_report_platform_bundle_slug_for_school(
-                        m.school, operator_default_slug=operator_bundle_slug
-                    ),
-                }
-            )
-        current = getattr(request, "school", None)
-        # Nested tenancy: include child schools when current school is a parent (campus switcher)
-        child_schools = []
-        if current and getattr(current, "get_child_schools", None):
-            try:
-                children = current.get_child_schools()
-                child_schools = [
-                    {
-                        "school_id": str(s.id),
-                        "name": s.name,
-                        "slug": getattr(s, "slug", "") or "",
-                        "report_platform_bundle_slug": (
-                            str(getattr(s, "report_platform_bundle_slug", None) or "")
-                            .strip()
-                            .lower()
-                        ),
-                        "effective_report_platform_bundle": get_effective_report_platform_bundle_slug_for_school(
-                            s, operator_default_slug=operator_bundle_slug
-                        ),
-                    }
-                    for s in children[:50]
-                ]
-            except (AttributeError, DatabaseError, TypeError):
-                pass
+            row = {
+                "school_id": str(school.pk),
+                "name": school.name,
+                "slug": getattr(school, "slug", "") or "",
+                "primary_sector": getattr(school, "primary_sector", "") or "",
+                "report_platform_bundle_slug": rp_slug,
+                "effective_report_platform_bundle": get_effective_report_platform_bundle_slug_for_school(
+                    school, operator_default_slug=operator_bundle_slug
+                ),
+            }
+            membership = membership_by_school.get(school.pk)
+            if membership is not None:
+                row["role"] = membership.role
+                row["is_primary"] = membership.is_primary
+                schools.append(row)
+            elif getattr(school, "parent_school_id", None):
+                child_schools.append(row)
+            else:
+                row.setdefault("role", "")
+                row.setdefault("is_primary", False)
+                schools.append(row)
+        schools.sort(key=lambda item: (not item.get("is_primary"), item.get("name", "")))
+        child_schools = child_schools[:50]
         return JsonResponse(
             {
                 "schools": schools,
@@ -453,15 +484,19 @@ class MeSwitchSchoolView(View):
         school = School.objects.filter(id=school_id, is_active=True).first()
         if not school:
             return JsonResponse({"error": "School not found"}, status=404)
-        if (
-            not request.user.is_superuser
-            and not SchoolMembership.objects.filter(
-                user=request.user, school=school
-            ).exists()
+        from apps.schools.tenant_switch_security import user_may_switch_to_school
+
+        active = getattr(request, "school", None)
+        if not user_may_switch_to_school(
+            request.user, school, active_school=active
         ):
             return JsonResponse({"error": "Not a member of this school"}, status=403)
         if hasattr(request, "session"):
-            request.session["school_id"] = str(school.id)
+            from apps.schools.session_school_bind import sign_session_school_bind
+
+            sign_session_school_bind(
+                request.session, school_id=str(school.id), user_id=request.user.pk
+            )
             request.session.save()
         from apps.schools.tenant_url import build_tenant_backend_url
 
@@ -488,9 +523,9 @@ class TenantChildrenView(View):
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         from apps.schools.models import School
 
         # Children: schools whose parent_school is current school
@@ -744,12 +779,15 @@ class FinanceExchangeRateView(View):
                 {
                     "from_currency": from_currency,
                     "to_currency": to_currency,
-                    "rate": 1.0,
+                    "rate": "1",
                     "source": "identity",
                 }
             )
-        rate = _get_exchange_rate(from_currency, to_currency)
-        if rate is None:
+        from apps.finance.fx import exchange_rate_api_payload
+
+        try:
+            payload = exchange_rate_api_payload(from_currency, to_currency)
+        except ValueError:
             return JsonResponse(
                 {
                     "error": "Exchange rate not available",
@@ -758,35 +796,17 @@ class FinanceExchangeRateView(View):
                 },
                 status=503,
             )
-        return JsonResponse(
-            {
-                "from_currency": from_currency,
-                "to_currency": to_currency,
-                "rate": rate,
-                "source": "settings_or_api",
-            }
-        )
+        return JsonResponse(payload)
 
 
 def _get_exchange_rate(from_currency: str, to_currency: str):
-    """Return rate from_currency -> to_currency, or None if not configured."""
-    from django.conf import settings
+    """Return rate from_currency -> to_currency as float, or None if not configured."""
+    from apps.finance.fx import exchange_rate_decimal
 
-    rates = getattr(settings, "EXCHANGE_RATES", None) or {}
-    if isinstance(rates, dict):
-        key = f"{from_currency}_{to_currency}"
-        if key in rates:
-            return float(rates[key])
-        base = rates.get("BASE", "USD")
-        from_rate = rates.get(
-            from_currency if base == "USD" else f"{base}_{from_currency}", 1.0
-        )
-        to_rate = rates.get(
-            to_currency if base == "USD" else f"{base}_{to_currency}", 1.0
-        )
-        if from_rate and to_rate:
-            return float(to_rate) / float(from_rate)
-    return None
+    rate = exchange_rate_decimal(from_currency, to_currency)
+    if rate is None:
+        return None
+    return float(rate)
 
 
 # ---------------------------------------------------------------------------
@@ -842,9 +862,9 @@ class AttendanceBulkView(View):
                 attend_date = datetime.strptime(date_str[:10], "%Y-%m-%d").date()
         except (ValueError, TypeError):
             attend_date = timezone.now().date()
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         created = []
         for r in records:
             student_id = r.get("student_id") or r.get("student")
@@ -873,9 +893,9 @@ class AttendanceExportView(View):
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         from apps.portal.attendance_exports import user_can_access_student_attendance_export
         from apps.schools.tenant_access import user_belongs_to_school
 
@@ -949,9 +969,9 @@ class VocationalLogHoursView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -1014,9 +1034,9 @@ class VocationalVerifySkillView(View):
     def patch(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -1075,9 +1095,9 @@ class VocationalDigitalBadgeView(View):
     def get(self, request, student_id):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         try:
             from apps.evals.models_enhanced import StudentCompetencyAssessment
             from apps.people.models import StudentProfile
@@ -1124,9 +1144,9 @@ class SchedulerGenerateView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -1174,9 +1194,9 @@ class SchedulerValidateView(View):
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         schedule_id = request.GET.get("schedule_id")
         if schedule_id:
             try:
@@ -1207,9 +1227,9 @@ class VocationalCertificationsExpiringView(View):
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         days = int(request.GET.get("days", 30))
         from datetime import timedelta
         from django.utils import timezone
@@ -1250,9 +1270,9 @@ class SyllabusPacingView(View):
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         sa_id = request.GET.get("subject_assignment_id")
         if not sa_id:
             return JsonResponse({"error": "subject_assignment_id required"}, status=400)
@@ -1568,11 +1588,9 @@ class RiskThresholdsConfigView(View):
     """GET/PATCH /api/v1/config/risk-thresholds - Per-tenant risk band thresholds for Action Center."""
 
     def get(self, request):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         from apps.analytics.models import RiskThresholds
 
         try:
@@ -1590,11 +1608,9 @@ class RiskThresholdsConfigView(View):
             )
 
     def patch(self, request):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         allowed, err = _require_super_or_school(request)
         if not allowed:
             return err
@@ -1637,11 +1653,9 @@ class ComplianceExportSchoolView(View):
     """POST /api/v1/compliance/export-school - Request full school data export (GDPR-style). Returns summary or job_id."""
 
     def post(self, request):
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         from apps.people.models import StudentProfile
         from apps.finance.models import Invoice, Payment
 
@@ -1676,11 +1690,9 @@ class EnrollmentForecastView(View):
             return JsonResponse(
                 {"error": "Enrollment forecast is not enabled."}, status=404
             )
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
-        if not getattr(request, "user", None) or not request.user.is_authenticated:
-            return JsonResponse({"error": "Authentication required"}, status=401)
+        school, err = _require_auth_and_tenant_member(request)
+        if err:
+            return err
         from apps.people.models import StudentProfile
 
         current = StudentProfile.objects.filter(school=school, is_active=True).count()
@@ -1781,9 +1793,9 @@ class RegulatoryExportView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -1860,9 +1872,9 @@ class AttendanceBulkUpdateView(View):
     def patch(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -1961,9 +1973,9 @@ class PaymentDisputeListView(View):
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         role = (getattr(request.user, "role", "") or "").upper()
         allowed = {
             "BURSAR",
@@ -2086,9 +2098,9 @@ class PaymentDisputeResolveView(View):
     def patch(self, request, id):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         role = (getattr(request.user, "role", "") or "").upper()
         allowed = {
             "BURSAR",
@@ -2605,9 +2617,9 @@ class VideoSessionListCreateView(View):
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         from apps.communication.video_conferencing import VirtualClassroom
         from django.db.models import Q
 
@@ -2637,9 +2649,9 @@ class VideoSessionListCreateView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -2707,9 +2719,9 @@ class VideoAttendanceSyncView(View):
     def post(self, request, id):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -2778,9 +2790,9 @@ class EMISPrepareView(View):
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         data, error_response = _parse_json_object(request)
         if error_response:
             return error_response
@@ -2843,9 +2855,9 @@ class EMISSubmitView(View):
     def post(self, request, id):
         if not getattr(request, "user", None) or not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
-        school = _get_school_from_request(request)
-        if not school:
-            return JsonResponse({"error": "Tenant context required"}, status=400)
+        school, err = _require_tenant_member(request)
+        if err:
+            return err
         from apps.reports.models import EMISSubmission
         from django.utils import timezone
 

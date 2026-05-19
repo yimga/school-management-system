@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-05-19T06:55:52.645213+00:00",
+  "routes": [
+    "/help/",
+    "/super/help/",
+    "manager_help"
+  ],
+  "schema_version": 1,
+  "status": "present"
+}

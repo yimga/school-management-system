@@ -57,7 +57,40 @@ class MarketingPhase1HomeWiringTest(SimpleTestCase):
 
     def test_base_marketing_loads_v3_assets(self) -> None:
         text = BASE_MARKETING.read_text(encoding="utf-8")
-        self.assertIn("tokens-schoolhouse.css", text)
+        self.assertIn("marketing-critical.min.css", text)
+        self.assertIn("marketing-enhanced.min.css", text)
         self.assertIn("scroll-narrative.js", text)
         self.assertIn("theme-toggle.js", text)
         self.assertIn('data-theme="light"', text)
+
+    def test_marketing_css_bundles_exist(self) -> None:
+        for rel in (
+            "static/marketing/css/marketing-critical.min.css",
+            "static/marketing/css/marketing-enhanced.min.css",
+            "static/marketing/fonts/source-serif-4/source-serif-4-latin-400-normal.woff2",
+        ):
+            self.assertTrue((REPO_ROOT / rel).is_file(), rel)
+
+    def test_marketing_public_shell_gate_passes(self) -> None:
+        import subprocess
+        import sys
+
+        proc = subprocess.run(
+            [sys.executable, "scripts/verify_marketing_public_shell.py"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
+
+    def test_marketing_frontend_completion_gate_passes(self) -> None:
+        import subprocess
+        import sys
+
+        proc = subprocess.run(
+            [sys.executable, "scripts/verify_marketing_frontend_completion.py"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)

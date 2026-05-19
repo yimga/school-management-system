@@ -108,16 +108,6 @@ body.admin-manager-shell #content label {
   color: var(--text-primary);
 }
 
-/* Sidebar nav: text-white is correct on dark chrome only */
-html[data-resolved-theme="light"] .cp-sidebar-inner .cp-nav-label,
-html[data-resolved-theme="light"] .cp-sidebar-nav .nav-link.text-white {
-  color: var(--text-primary, var(--color-base-100));
-}
-
-html[data-resolved-theme="light"] .cp-sidebar-inner {
-  color: var(--text-primary);
-}
-
 /* Prevent dark-only body class from forcing dark vis tokens in light mode */
 html[data-resolved-theme="light"] body.portal-backend-dark {
   /* palette class may linger briefly during toggle; resolved theme wins */
@@ -331,4 +321,194 @@ html[data-resolved-theme="dark"] .cp-ultra-login .admin-login-card {
 html[data-resolved-theme="dark"] .admin-login-card h1.text-white,
 html[data-resolved-theme="dark"] .admin-login-card .text-white:not(.btn) {
   color: var(--text-primary) !important;
+}
+
+/* ----- Light main canvas: semantic text (chrome keeps --cp-text) ----- */
+html[data-resolved-theme="light"] body.control-plane-shell #cp-main-content,
+html[data-bs-theme="light"] body.control-plane-shell #cp-main-content,
+html[data-resolved-theme="light"] body.admin-manager-shell #cp-main-content,
+html[data-bs-theme="light"] body.admin-manager-shell #cp-main-content {
+  color: var(--text-primary, var(--color-base-900));
+}
+
+/* ----- Tables: Bootstrap table-dark on light canvas (platform-wide) ----- */
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    body.admin-premium-shell #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.table, .cp-table),
+html[data-bs-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) :is(.table, .cp-table) {
+  --bs-table-color: var(--text-primary, var(--color-base-900));
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--hairline);
+  --bs-table-striped-color: var(--text-primary, var(--color-base-900));
+  --bs-table-striped-bg: var(--surface-elevated, var(--color-base-100));
+  --bs-table-active-color: var(--text-primary, var(--color-base-900));
+  --bs-table-active-bg: var(--surface-elevated, var(--color-base-100));
+  --bs-table-hover-color: var(--text-primary, var(--color-base-900));
+  --bs-table-hover-bg: var(--surface-elevated, var(--color-base-100));
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) :is(.table, .cp-table) :is(th, td, code),
+html[data-bs-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) :is(.table, .cp-table) :is(th, td, code) {
+  color: var(--text-primary, var(--color-base-900));
+  border-color: var(--hairline);
+}
+
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) .table-dark,
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) .table.table-dark,
+html[data-bs-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .table-dark {
+  --bs-table-color: var(--text-primary, var(--color-base-900));
+  --bs-table-bg: var(--surface-canvas, var(--color-base-50));
+  --bs-table-striped-color: var(--text-primary, var(--color-base-900));
+  --bs-table-striped-bg: var(--surface-elevated, var(--color-base-100));
+  --bs-table-hover-color: var(--text-primary, var(--color-base-900));
+  --bs-table-hover-bg: var(--surface-elevated, var(--color-base-100));
+}
+
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) .table-dark :is(tr.table-secondary, tr.table-secondary th, tr.table-secondary td),
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    [data-rmc-shell-main]
+  ) .table-dark tr.table-secondary :is(th, td) {
+  --bs-table-color: var(--text-primary, var(--color-base-900));
+  --bs-table-bg: var(--surface-elevated, var(--color-base-100));
+  color: var(--text-primary, var(--color-base-900));
+}
+
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) .table thead.table-light th,
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    [data-rmc-shell-main]
+  ) .table-light :is(th, td) {
+  color: var(--text-primary, var(--color-base-900));
+  background-color: var(--surface-elevated, var(--color-base-100));
+}
+
+/* Light main: legacy dark-outline controls on white cards (not inside dark heroes) */
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    body.admin-manager-shell #content,
+    body.admin-premium-shell #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .btn-outline-light:not(:is(.proof-hero, .cp-hero, .bg-dark, .card-header.bg-dark, .statement-header) *),
+html[data-bs-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    body.admin-manager-shell #content,
+    [data-rmc-shell-main]
+  ) .btn-outline-light:not(:is(.proof-hero, .cp-hero, .bg-dark, .card-header.bg-dark) *) {
+  color: var(--text-primary, var(--color-base-900)) !important;
+  border-color: var(--hairline-strong, var(--hairline)) !important;
+}
+
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    body.admin-manager-shell #content,
+    [data-rmc-shell-main],
+    .cp-shell-content
+  ) .btn-outline-light:not(:is(.proof-hero, .cp-hero, .bg-dark, .card-header.bg-dark) *):hover,
+html[data-bs-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #content,
+    [data-rmc-shell-main]
+  ) .btn-outline-light:not(:is(.proof-hero, .cp-hero, .bg-dark) *):hover {
+  color: var(--text-primary, var(--color-base-900)) !important;
+  background-color: var(--surface-elevated, var(--color-base-100)) !important;
+  border-color: var(--text-secondary) !important;
+}
+
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) :is(.proof-hero, .cp-hero, .bg-dark) .btn-outline-light,
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) .card-header.bg-dark ~ .card-body .btn-outline-light {
+  color: var(--color-base-50, #f8fafc) !important;
+  border-color: color-mix(in srgb, var(--color-base-50) 55%, transparent) !important;
+}
+
+html[data-resolved-theme="light"] :is(
+    #cp-main-content,
+    #main-content,
+    body.admin-manager-shell #cp-main-content #content,
+    [data-rmc-shell-main]
+  ) .link-light,
+html[data-bs-theme="light"] :is(#cp-main-content, #main-content, [data-rmc-shell-main]) .link-light {
+  color: var(--school-accent, var(--brand-primary, var(--color-indigo-500))) !important;
+}
+
+/* Light main: admin-manager-shell dark panel tokens → semantic surfaces */
+html[data-resolved-theme="light"] body.admin-manager-shell #cp-main-content #content :is(.card, .module),
+html[data-bs-theme="light"] body.admin-manager-shell #cp-main-content #content :is(.card, .module) {
+  background: var(--surface-canvas, var(--color-base-0)) !important;
+  color: var(--text-primary, var(--color-base-900)) !important;
+  border-color: var(--hairline) !important;
+}
+
+html[data-resolved-theme="light"] body.admin-manager-shell #cp-main-content #content :is(table, .results table),
+html[data-bs-theme="light"] body.admin-manager-shell #cp-main-content #content :is(table, .results table) {
+  background: var(--surface-canvas, var(--color-base-0)) !important;
+}
+
+html[data-resolved-theme="light"] body.admin-manager-shell #cp-main-content #content :is(th, td),
+html[data-bs-theme="light"] body.admin-manager-shell #cp-main-content #content :is(th, td) {
+  color: var(--text-primary, var(--color-base-900)) !important;
+}
+
+html[data-resolved-theme="light"] body.admin-manager-shell #cp-main-content #content thead th,
+html[data-bs-theme="light"] body.admin-manager-shell #cp-main-content #content thead th {
+  background: var(--surface-elevated, var(--color-base-100)) !important;
+  color: var(--text-primary, var(--color-base-900)) !important;
+}
+
+/* Dark resolved: keep cp-table on dark canvas aligned with tokens */
+html[data-resolved-theme="dark"] :is(#cp-main-content, [data-rmc-shell-main]) :is(.cp-table, .cp-table th, .cp-table td),
+html[data-bs-theme="dark"] :is(#cp-main-content, [data-rmc-shell-main]) :is(.cp-table, .cp-table th, .cp-table td) {
+  color: var(--text-primary);
 }

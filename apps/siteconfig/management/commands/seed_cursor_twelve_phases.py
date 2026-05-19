@@ -204,6 +204,11 @@ CURSOR_PHASE_PLAN: list[tuple[int, str, list[tuple[str, list[str], str]]]] = [
                 [],
                 "Business glossary entries (metadata catalog vocabulary)",
             ),
+            (
+                "backfill_search_indexes",
+                [],
+                "Refresh StudentProfile and portal document search_index columns",
+            ),
         ],
     ),
 ]

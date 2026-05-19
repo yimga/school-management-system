@@ -4,14 +4,14 @@
 {% block title %}{% trans "Help Center" %}{% endblock %}
 {% block backend_title %}{% trans "Help Center" %}{% endblock %}
 
-{% block content %}
+{% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <div class="d-flex align-items-center gap-3 mb-3">
     <div class="mkt-advisor-figure mkt-advisor-figure--muted mkt-advisor-figure--reveal d-none d-md-inline-flex" aria-hidden="true">
       {% include "marketing/components/_advisor_character.html" with pose="welcoming" size=140 accessible_label="" %}
     </div>
     <div class="flex-grow-1">
-      {% include "studio_os/components/page_header.html" with title=_("Help Center") subtitle=_("Get unblocked fast. Browse guides, share feedback, see what shipped.") %}
+      {% include "studio_os/components/page_header.html" with title=_("Help Center") subtitle=_("Search guidance, contact support, share product feedback, and see what changed.") %}
     </div>
   </div>
 
@@ -44,16 +44,62 @@
       </a>
     </section>
     <section class="col-md-6 col-lg-3">
-      {% url 'marketing_contact' as marketing_contact_url %}
-      <a href="{% if marketing_contact_url %}{{ marketing_contact_url }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
+      <a href="{% if support_links.portal_help %}{{ support_links.portal_help }}{% elif support_links.support_request %}{{ support_links.support_request }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
           <i class="bi bi-life-preserver fs-1" aria-hidden="true"></i>
           <h2 class="h6 mt-2">{% trans "Contact support" %}</h2>
-          <p class="small text-muted mb-0">{% trans "Reach a human. We answer in 1 business day." %}</p>
+          <p class="small text-muted mb-0">
+            {% if open_support_count %}{{ open_support_count }} {% trans "open request(s)." %}{% else %}{% trans "Reach a human when help docs are not enough." %}{% endif %}
+          </p>
         </div>
       </a>
     </section>
   </div>
+
+  <section class="card shadow-sm mb-4">
+    <div class="card-body">
+      <form method="get" action="{% url 'feedback:help_center' %}" class="row g-3 align-items-end">
+        <div class="col-lg-8">
+          <label class="form-label fw-semibold" for="help-center-q">{% trans "Search across help and feedback context" %}</label>
+          <input id="help-center-q" class="form-control form-control-lg" type="search" name="q" value="{{ help_resources.query }}" placeholder="{% trans 'Try payments, imports, gradebook, login, mobile...' %}">
+        </div>
+        <div class="col-lg-4 d-grid">
+          <button class="btn btn-primary btn-lg" type="submit">{% trans "Find help" %}</button>
+        </div>
+      </form>
+      {% if help_resources.articles or help_resources.faqs %}
+        <div class="row g-3 mt-2">
+          <div class="col-md-6">
+            <div class="small text-muted fw-semibold mb-2">{% trans "Knowledge base matches" %}</div>
+            <div class="list-group list-group-flush border rounded">
+              {% for article in help_resources.articles %}
+                <a class="list-group-item list-group-item-action" href="{% url 'kb:kb_article' article.slug %}">
+                  <strong>{{ article.title }}</strong>
+                  <div class="small text-muted">{{ article.summary|truncatewords:18 }}</div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted fw-semibold mb-2">{% trans "FAQ matches" %}</div>
+            <div class="list-group list-group-flush border rounded">
+              {% for faq in help_resources.faqs %}
+                <a class="list-group-item list-group-item-action" href="{% url 'kb:faq_detail' faq.id %}">
+                  <strong>{{ faq.question }}</strong>
+                  <div class="small text-muted">{{ faq.answer|truncatewords:18 }}</div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      <div class="d-flex gap-2 flex-wrap mt-3">
+        {% if support_links.support_request %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.support_request }}">{% trans "Open support request" %}</a>{% endif %}
+        <a class="btn btn-outline-secondary btn-sm" href="{% url pinned_feedback_route %}?from=help&source=help_center">{% trans "Send product feedback" %}</a>
+        {% if support_links.contact_us %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_us }}">{% trans "Public contact page" %}</a>{% endif %}
+      </div>
+    </div>
+  </section>
 
   <div class="row g-3">
     <section class="col-lg-7">

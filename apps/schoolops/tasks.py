@@ -32,6 +32,37 @@ logger = logging.getLogger(__name__)
 
 _LOW_BALANCE_COOLDOWN_DAYS = 7
 _SWEEP_BATCH_LIMIT = 500
+_SUPPORTED_LOCALES = ("en", "fr", "es", "pt", "ar")
+
+
+def _resolve_guardian_locale(student) -> str:
+    """Best-effort: return a 2-letter locale code based on the first
+    eligible guardian's :attr:`User.preferred_language`. Falls back to
+    ``"en"`` whenever the relation is missing or the language is unknown.
+
+    NOTE: ``preferred_language`` is a column on the User model (added in
+    accounts migration ``0031_add_preferred_language``); :class:`StudentGuardian`
+    links to that user via ``guardian_user``.
+    """
+    try:
+        # tenant-isolation-allow: guardian-link-row-scoped-via-student-fk-already-tenant-bound
+        links = student.guardian_links.filter(receives_email=True)
+    except Exception:  # noqa: BLE001
+        return "en"
+    for link in links:
+        try:
+            user = getattr(link, "guardian_user", None)
+            if user is None:
+                continue
+            pref = (getattr(user, "preferred_language", "") or "").strip()
+            if not pref:
+                continue
+            base = pref.lower().split("-", 1)[0].split("_", 1)[0]
+            if base in _SUPPORTED_LOCALES:
+                return base
+        except Exception:  # noqa: BLE001
+            continue
+    return "en"
 
 
 def _resolve_guardian_emails(student) -> list[str]:
@@ -68,13 +99,44 @@ def _resolve_guardian_emails(student) -> list[str]:
     return deduped
 
 
-def _maybe_dispatch_sms(student, body_text: str) -> bool:
+def _maybe_dispatch_sms(student, body_text: str) -> bool:  # noqa: ARG001
+    """Compatibility wrapper for v3.32 callers that pass a pre-rendered
+    long-form body. v3.33 prefers :func:`_maybe_dispatch_sms_short_form`
+    which renders the locale-specific short form and enforces the <=160
+    char cap. Kept here so external callers don't break."""
+    return _maybe_dispatch_sms_short_form(
+        student=student, locale="en", first_name=getattr(student, "first_name", "") or "",
+        balance=None, currency="",
+    )
+
+
+def _maybe_dispatch_sms_short_form(
+    *,
+    student,
+    locale: str,
+    first_name: str,
+    balance,
+    currency: str,
+) -> bool:
     """Optional SMS hook. Returns True on dispatch, False otherwise.
+
+    v3.33.0: locale-aware short-form body (<=160 chars). Privacy gate
+    inside :func:`render_low_balance_sms` ensures we NEVER include the
+    balance numeric when ``balance < $1`` (very-low form just says "low").
 
     Looks for ``apps.notifications.sms_helpers.send_sms`` or
     ``apps.communication.sms_helpers.send_sms`` (either may exist in
     different waves of this repo); if neither importable, no-op.
     """
+    from apps.schoolops.sms_templates import render_low_balance_sms
+
+    body_text = render_low_balance_sms(
+        locale=locale,
+        first_name=first_name,
+        balance=balance,
+        currency=currency,
+    )
+
     try:
         from importlib import import_module
         for mod_path in (
@@ -185,13 +247,25 @@ def notify_low_meal_plan_balance(meal_plan_balance_id: int) -> dict[str, Any]:
                 else "Cafeteria credit"
             ),
         }
+        # v3.33.0: pick per-locale templates based on first eligible
+        # guardian's preferred_language. Falls back to 'en' for unknown.
+        locale = _resolve_guardian_locale(student)
         subject = f"Low meal plan balance for {first_name}"
-        text_body = render_to_string(
-            "schoolops/email/low_meal_balance.txt", ctx,
-        )
-        html_body = render_to_string(
-            "schoolops/email/low_meal_balance.html", ctx,
-        )
+        try:
+            text_body = render_to_string(
+                f"schoolops/email/locale/{locale}/low_meal_balance.txt", ctx,
+            )
+            html_body = render_to_string(
+                f"schoolops/email/locale/{locale}/low_meal_balance.html", ctx,
+            )
+        except Exception:  # noqa: BLE001 -- defensive fallback to legacy template path
+            locale = "en"
+            text_body = render_to_string(
+                "schoolops/email/locale/en/low_meal_balance.txt", ctx,
+            )
+            html_body = render_to_string(
+                "schoolops/email/locale/en/low_meal_balance.html", ctx,
+            )
 
         from_email = getattr(
             settings, "DEFAULT_FROM_EMAIL", "no-reply@runmycampus.com",
@@ -214,9 +288,18 @@ def notify_low_meal_plan_balance(meal_plan_balance_id: int) -> dict[str, Any]:
                 row.pk, getattr(student, "pk", None),
             )
 
-        # Optional SMS.
-        sms_dispatched = _maybe_dispatch_sms(student, text_body)
+        # Optional SMS — v3.33.0 short-form, locale-aware, with privacy
+        # gate on critically-low balances (no numeric in plaintext when
+        # balance < $1). NEVER reuse the long-form email body for SMS.
+        sms_dispatched = _maybe_dispatch_sms_short_form(
+            student=student,
+            locale=locale,
+            first_name=first_name,
+            balance=row.balance,
+            currency=row.currency,
+        )
         result["delivered_sms"] = bool(sms_dispatched)
+        result["locale"] = locale
 
         # Update tracking columns.
         row.last_low_balance_notification_sent_at = timezone.now()
@@ -283,6 +366,9 @@ def sweep_low_meal_plan_balances() -> dict[str, Any]:
             "last_low_balance_notification_sent_at",
         ).order_by("pk")[:_SWEEP_BATCH_LIMIT]
 
+        from apps.schoolops.notification_batch import enqueue_in_chunks
+
+        eligible_ids: list[int] = []
         for row in rows:
             summary["scanned"] += 1
             if not row.is_low:
@@ -292,16 +378,19 @@ def sweep_low_meal_plan_balances() -> dict[str, Any]:
             if last is not None and last >= cutoff:
                 summary["skipped_cooldown"] += 1
                 continue
-            try:
-                notify_low_meal_plan_balance.delay(
-                    meal_plan_balance_id=int(row.pk),
-                )
-                summary["enqueued"] += 1
-            except Exception:  # noqa: BLE001
-                summary["errors"] += 1
-                logger.warning(
-                    "schoolops.sweep_enqueue_failed row_pk=%s", row.pk,
-                )
+            eligible_ids.append(int(row.pk))
+
+        try:
+            batch_summary = enqueue_in_chunks(
+                notify_low_meal_plan_balance,
+                eligible_ids,
+                max_total=_SWEEP_BATCH_LIMIT,
+            )
+            summary["enqueued"] = batch_summary["enqueued"]
+            summary["skipped_cap"] = batch_summary.get("skipped_cap", 0)
+        except Exception:  # noqa: BLE001
+            summary["errors"] += 1
+            logger.warning("schoolops.sweep_batch_enqueue_failed")
         logger.info(
             "schoolops.sweep_low_meal_plan_balances summary=%s", summary,
         )
