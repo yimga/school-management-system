@@ -33,11 +33,13 @@ class SiteconfigDynamicFieldSyncStats:
 
 
 def sync_definitions_from_siteconfig(*, dry_run: bool = False) -> SiteconfigDynamicFieldSyncStats:
-    return SiteconfigDynamicFieldSyncStats(warnings=[_PHASE5B_RETIREMENT])
+    _ = dry_run
+    return SiteconfigDynamicFieldSyncStats()
 
 
 def sync_values_from_siteconfig(*, dry_run: bool = False) -> SiteconfigDynamicFieldSyncStats:
-    return SiteconfigDynamicFieldSyncStats(warnings=[_PHASE5B_RETIREMENT])
+    _ = dry_run
+    return SiteconfigDynamicFieldSyncStats()
 
 
 def run_full_sync(
@@ -47,6 +49,5 @@ def run_full_sync(
     values: bool = True,
 ) -> SiteconfigDynamicFieldSyncStats:
     _ = (dry_run, definitions, values)  # API compatibility; no-op regardless.
-    return SiteconfigDynamicFieldSyncStats(
-        warnings=list(dict.fromkeys([_PHASE5B_RETIREMENT])),
-    )
+    # Phase 5b retirement is expected on every deploy — not a WARN-worthy condition.
+    return SiteconfigDynamicFieldSyncStats()

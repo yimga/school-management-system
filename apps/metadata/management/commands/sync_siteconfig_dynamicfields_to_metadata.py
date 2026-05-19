@@ -52,3 +52,8 @@ class Command(BaseCommand):
             )
         for w in stats.warnings[:50]:
             self.stdout.write(self.style.WARNING(f"  WARN: {w}\n"))
+        if not stats.warnings and not dry:
+            self.stdout.write(
+                "  Note: legacy siteconfig DynamicField* EAV retired (siteconfig.0168); "
+                "sync is a documented no-op on current releases.\n"
+            )

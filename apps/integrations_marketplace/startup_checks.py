@@ -31,11 +31,23 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+def _effective_oauth_callback_base_url() -> str:
+    """Resolved callback base (settings default + manager fallback)."""
+    raw = str(getattr(settings, "OAUTH_CALLBACK_BASE_URL", "") or "").strip()
+    if raw:
+        return raw
+    if not bool(getattr(settings, "DEBUG", False)):
+        manager = str(getattr(settings, "MANAGER_PLATFORM_BASE_URL", "") or "").strip()
+        if manager:
+            return manager
+    return ""
+
+
 def oauth_callback_base_url_state() -> dict:
     """Inspect the OAUTH_CALLBACK_BASE_URL setting; return a structured
     diagnostic the redirect-URI registry page and the boot-warning share.
     """
-    raw = str(getattr(settings, "OAUTH_CALLBACK_BASE_URL", "") or "").strip()
+    raw = _effective_oauth_callback_base_url()
     debug = bool(getattr(settings, "DEBUG", False))
     if not raw:
         return {

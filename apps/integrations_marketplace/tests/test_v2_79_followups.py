@@ -219,9 +219,23 @@ class StartupChecksTests(SimpleTestCase):
 
     def test_state_when_unset_in_prod_is_warning(self):
         with mock.patch.object(im_startup.settings, "OAUTH_CALLBACK_BASE_URL", "", create=True), \
+             mock.patch.object(im_startup.settings, "MANAGER_PLATFORM_BASE_URL", "", create=True), \
              mock.patch.object(im_startup.settings, "DEBUG", False):
             state = im_startup.oauth_callback_base_url_state()
         self.assertEqual(state["level"], "warning")
+
+    def test_state_manager_fallback_in_prod_is_ok(self):
+        with mock.patch.object(im_startup.settings, "OAUTH_CALLBACK_BASE_URL", "", create=True), \
+             mock.patch.object(
+                 im_startup.settings,
+                 "MANAGER_PLATFORM_BASE_URL",
+                 "https://manager.example.com",
+                 create=True,
+             ), \
+             mock.patch.object(im_startup.settings, "DEBUG", False):
+            state = im_startup.oauth_callback_base_url_state()
+        self.assertEqual(state["level"], "ok")
+        self.assertEqual(state["value"], "https://manager.example.com")
 
     def test_state_malformed_value_is_warning(self):
         with mock.patch.object(im_startup.settings, "OAUTH_CALLBACK_BASE_URL", "not-a-url", create=True):

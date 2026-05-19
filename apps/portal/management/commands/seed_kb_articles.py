@@ -25,8 +25,15 @@ class Command(BaseCommand):
             action="store_true",
             help="Show what would be created without writing.",
         )
+        parser.add_argument(
+            "--verbose-existing",
+            action="store_true",
+            help="Print one line per KB article that already exists (default: summary only).",
+        )
 
     def handle(self, *args, **options):
+        verbosity = int(options.get("verbosity", 1))
+        verbose_existing = bool(options.get("verbose_existing")) or verbosity >= 2
         if options.get("dry_run"):
             self.stdout.write(
                 self.style.SUCCESS("Dry run: would ensure KB categories and articles.")
@@ -1058,6 +1065,7 @@ First of month: Full system backup</pre>
 
         # Create articles
         created_count = 0
+        skipped_count = 0
         for article_data in articles:
             category = categories.get(article_data["category"])
             if not category:
@@ -1089,14 +1097,18 @@ First of month: Full system backup</pre>
             if created:
                 created_count += 1
                 self.stdout.write(f"  [ok] Article: {article_data['title']}")
-            else:
+            elif verbose_existing:
                 self.stdout.write(
                     f"  - Article already exists: {article_data['title']}"
                 )
+            else:
+                skipped_count += 1
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n[ok] Successfully created {created_count} KB articles!"
+                f"\n[ok] KB articles: {created_count} created"
+                + (f", {skipped_count} already present" if skipped_count else "")
+                + "."
             )
         )
         self.stdout.write(self.style.SUCCESS("[ok] KB seeding complete!"))
