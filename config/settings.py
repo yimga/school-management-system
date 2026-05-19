@@ -2411,6 +2411,9 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.policies",
         "apps.events",
         "apps.marketplace",
+        "apps.social_media.apps.SocialMediaConfig",  # Public-schema social OAuth + outbox (school FK nullable); migrate_schemas --shared
+        "apps.integrations_marketplace.apps.IntegrationsMarketplaceConfig",  # Proxy owners + Celery OAuth/mailbox tasks; middleware
+        "apps.setup_studio.apps.SetupStudioConfig",  # SetupStepDefinition + SetupProgress (school FK in public schema)
         "apps.packages.apps.PackagesConfig",  # Package engine (InstalledPackage, etc.) in public schema for manager package_rollout
         "apps.customersuccess",
         "apps.brand_experience.apps.BrandExperienceConfig",  # Admin IA references; required for platform admin app list
@@ -2434,6 +2437,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.payroll",
         "apps.school_events",
         "apps.student360",
+        "apps.studio_os.apps.StudioOsConfig",  # Tenant/manager Studio OS routes (no models; views + services)
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [
         a for a in TENANT_APPS if a not in SHARED_APPS

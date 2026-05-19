@@ -769,6 +769,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify migration files are not gitignored or untracked
         run: python scripts/verify_migration_files_tracked.py
+      - name: Verify tenant SHARED_APPS / TENANT_APPS cover migrated apps
+        run: python scripts/verify_tenant_schema_app_registration.py
 
   marketing-bell-clock:
     name: Bell-clock mark consistency

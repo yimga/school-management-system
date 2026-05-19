@@ -75,6 +75,16 @@ def main() -> int:
         _contains("config/settings.py", "apps.social_media.apps.SocialMediaConfig"),
         "settings.py",
     )
+    settings_text = (ROOT / "config" / "settings.py").read_text(encoding="utf-8")
+    shared_block = ""
+    if "SHARED_APPS = [" in settings_text:
+        shared_block = settings_text.split("SHARED_APPS = [", 1)[1].split("TENANT_APPS", 1)[0]
+    add(
+        "shared_apps_registered",
+        "social_media in SHARED_APPS (migrate_schemas --shared on Render)",
+        "apps.social_media.apps.SocialMediaConfig" in shared_block,
+        "SHARED_APPS block",
+    )
     add(
         "integration_model",
         "SocialMediaIntegration model + encrypted tokens",
