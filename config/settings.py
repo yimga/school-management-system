@@ -84,6 +84,13 @@ MANAGER_PLATFORM_BASE_URL = (
     .strip()
     .rstrip("/")
 )
+# OAuth redirect/callback base (Zoom, Google, Microsoft, Slack app consoles).
+# Explicit env wins; in production default to the manager control plane so boot
+# does not warn on every migrate/predeploy when the var is unset.
+_oauth_callback_base = os.getenv("OAUTH_CALLBACK_BASE_URL", "").strip().rstrip("/")
+if not _oauth_callback_base and not DEBUG:
+    _oauth_callback_base = MANAGER_PLATFORM_BASE_URL
+OAUTH_CALLBACK_BASE_URL = _oauth_callback_base
 # Public marketing site URL — env-driven so the platform brand domain is configurable
 # per environment (staging vs prod) and never hardcoded in views/templates.
 # Read in templates as `{{ public_site_url }}` (via context processor) or as

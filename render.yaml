@@ -38,6 +38,10 @@ services:
         value: ".runmycampus.com"
       - key: USE_DJANGO_TENANTS
         value: "1"
+      - key: OAUTH_CALLBACK_BASE_URL
+        value: "https://manager.runmycampus.com"
+      - key: MANAGER_PLATFORM_BASE_URL
+        value: "https://manager.runmycampus.com"
       - key: SECURE_SSL_REDIRECT
         value: "1"
       - key: SECRET_KEY
