@@ -4,52 +4,52 @@
     {
       "artifact": "security_exception_register.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:22.386382+00:00"
+      "mtime_utc": "2026-05-19T06:55:55.321723+00:00"
     },
     {
       "artifact": "graphql_security_review.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:22.387233+00:00"
+      "mtime_utc": "2026-05-19T06:55:55.322718+00:00"
     },
     {
       "artifact": "end_to_end_app_route_inventory.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:22.438735+00:00"
+      "mtime_utc": "2026-05-19T06:55:55.368555+00:00"
     },
     {
       "artifact": "end_to_end_action_integrity_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:22.439639+00:00"
+      "mtime_utc": "2026-05-19T06:55:55.370551+00:00"
     },
     {
       "artifact": "architecture_certification_scorecard.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:25.637574+00:00"
+      "mtime_utc": "2026-05-19T06:55:58.498766+00:00"
     },
     {
       "artifact": "first_school_operating_proof_readiness.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:25.639624+00:00"
+      "mtime_utc": "2026-05-19T06:55:58.501898+00:00"
     },
     {
       "artifact": "studio_os_end_to_end_ux_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:25.633558+00:00"
+      "mtime_utc": "2026-05-19T06:55:58.495112+00:00"
     },
     {
       "artifact": "api_center_open_usable_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:25.635557+00:00"
+      "mtime_utc": "2026-05-19T06:55:58.496291+00:00"
     },
     {
       "artifact": "system_closure_map.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:19.848885+00:00"
+      "mtime_utc": "2026-05-19T06:55:52.740133+00:00"
     },
     {
       "artifact": "category_scope_review.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:19.970892+00:00"
+      "mtime_utc": "2026-05-19T06:55:52.835675+00:00"
     },
     {
       "artifact": "render_parity_certification_report.json",
@@ -64,42 +64,42 @@
     {
       "artifact": "navigation_simplification_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:26.615468+00:00"
+      "mtime_utc": "2026-05-19T06:55:59.490103+00:00"
     },
     {
       "artifact": "navigation_simplification_audit.md",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:26.615468+00:00"
+      "mtime_utc": "2026-05-19T06:55:59.491101+00:00"
     },
     {
       "artifact": "end_to_end_feature_gap_register.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:22.440641+00:00"
+      "mtime_utc": "2026-05-19T06:55:55.371816+00:00"
     },
     {
       "artifact": "end_to_end_ux_quality_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:22.441756+00:00"
+      "mtime_utc": "2026-05-19T06:55:55.373318+00:00"
     },
     {
       "artifact": "role_permission_experience_matrix.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:19.717839+00:00"
+      "mtime_utc": "2026-05-19T06:55:52.631806+00:00"
     },
     {
       "artifact": "public_to_product_promise_matrix.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:19.720401+00:00"
+      "mtime_utc": "2026-05-19T06:55:52.634372+00:00"
     },
     {
       "artifact": "forms_validation_quality_audit.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:19.726849+00:00"
+      "mtime_utc": "2026-05-19T06:55:52.640096+00:00"
     },
     {
       "artifact": "proof_integrity_review.json",
       "exists": true,
-      "mtime_utc": "2026-05-19T05:19:19.744323+00:00"
+      "mtime_utc": "2026-05-19T06:55:52.647824+00:00"
     }
   ],
   "category_scope_verdict": "CATEGORY DEFINING \u2014 REPO SCOPE",
@@ -119,7 +119,7 @@
     "render_parity_certified": false,
     "soc2_pci_certified": false
   },
-  "generated_at": "2026-05-19T06:55:52.615935+00:00",
+  "generated_at": "2026-05-19T07:11:48.706905+00:00",
   "kill_test_result": "PASS",
   "latest_sot_batches": [
     {
