@@ -10,6 +10,7 @@ is the single entry for bounded config; "Open in backoffice" only for rare/legac
 """
 
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 
 
 def _safe_reverse(url_name, urlconf=None, kwargs=None, args=None):
@@ -104,49 +105,97 @@ def is_manager_platform_admin_path(path: str) -> bool:
     return p == "/admin" or p.startswith("/admin/")
 
 
+def _append_manager_admin_nav_link(
+    links: list[dict],
+    *,
+    spec: dict,
+    urlconf: str,
+    request_path: str,
+) -> None:
+    url = _safe_reverse(spec["url_name"], urlconf=urlconf)
+    if not url:
+        return
+    links.append(
+        {
+            "id": spec["id"],
+            "label": spec["label"],
+            "url": url,
+            "icon": spec["icon"],
+            "is_current": cp_nav_item_is_current(request_path, url),
+        }
+    )
+
+
 def build_manager_platform_admin_nav(request):
     """
     Context for manager ``/admin/*`` sidebar (not CONTROL_PLANE_NAV).
 
-    Returns quick cross-links to control plane; model/app tree comes from
-  ``available_apps`` on the admin site ``each_context``.
+    Returns quick cross-links to control plane + guided configuration surfaces;
+    model/app tree comes from ``available_apps`` on the admin site ``each_context``.
     """
     urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
-    quick_links = []
+    request_path = getattr(request, "path", "") or ""
+    quick_links: list[dict] = []
+    guided_links: list[dict] = []
     for spec in (
         {
             "id": "admin_index",
-            "label": "Dashboard",
+            "label": _("Backoffice home"),
             "url_name": "admin:index",
             "icon": "bi-grid-3x3-gap",
         },
         {
             "id": "super_dashboard",
-            "label": "Control plane",
+            "label": _("Control plane"),
             "url_name": "super:dashboard",
             "icon": "bi-speedometer2",
         },
         {
             "id": "super_platform_operator_hub",
-            "label": "Platform operator hub",
+            "label": _("Platform operator hub"),
             "url_name": "super:platform_operator_hub",
             "icon": "bi-diagram-3",
         },
     ):
-        url = _safe_reverse(spec["url_name"], urlconf=urlconf)
-        if url:
-            quick_links.append(
-                {
-                    "id": spec["id"],
-                    "label": spec["label"],
-                    "url": url,
-                    "icon": spec["icon"],
-                    "is_current": cp_nav_item_is_current(
-                        getattr(request, "path", ""), url
-                    ),
-                }
-            )
-    return {"quick_links": quick_links}
+        _append_manager_admin_nav_link(
+            quick_links, spec=spec, urlconf=urlconf, request_path=request_path
+        )
+    for spec in (
+        {
+            "id": "config_center",
+            "label": _("Config center"),
+            "url_name": "siteconfig:console_domains_hub",
+            "icon": "bi-gear-wide-connected",
+        },
+        {
+            "id": "configuration_center",
+            "label": _("Configuration engine"),
+            "url_name": "configuration:center",
+            "icon": "bi-sliders",
+        },
+        {
+            "id": "studio_shell",
+            "label": _("Studio"),
+            "url_name": "studio_os:shell",
+            "icon": "bi-palette",
+        },
+        {
+            "id": "feature_control",
+            "label": _("Feature control"),
+            "url_name": "siteconfig:feature_control_panel",
+            "icon": "bi-toggles",
+        },
+        {
+            "id": "theme_experience",
+            "label": _("Theme & experience"),
+            "url_name": "siteconfig:theme_colors",
+            "icon": "bi-brush",
+        },
+    ):
+        _append_manager_admin_nav_link(
+            guided_links, spec=spec, urlconf=urlconf, request_path=request_path
+        )
+    return {"quick_links": quick_links, "guided_links": guided_links}
 
 
 def _primary_nav_is_current(request_path: str, item_id: str) -> bool:

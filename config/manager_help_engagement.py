@@ -17,9 +17,10 @@ from apps.feedback.db_readiness import (
     feature_request_queryset,
     feedback_schema_ready,
     open_feature_request_count,
+    roadmap_queryset,
 )
 from apps.feedback.forms import FeatureRequestForm
-from apps.feedback.models import FeatureRequest, RoadmapItem
+from apps.feedback.models import FeatureRequest
 from apps.feedback.services import (
     generate_you_said_we_did_items,
     submit_feature_request,
@@ -85,9 +86,11 @@ def manager_feature_center(request):
             "feature_form": form,
             "feature_requests": feature_requests,
             "feedback_schema_pending": not feedback_schema_ready(),
-            "roadmap_items": RoadmapItem.objects.filter(
-                tenant_visibility=True
-            ).order_by("-priority_score")[:30],
+            "roadmap_items": list(
+                roadmap_queryset()
+                .filter(tenant_visibility=True)
+                .order_by("-priority_score")[:30]
+            ),
             "you_said_we_did": generate_you_said_we_did_items(None)[:10],
             "support_links": support_entry_points(request),
             "help_center_url": reverse("manager_help_center"),

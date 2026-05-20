@@ -35,8 +35,12 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
 
     def test_manager_admin_scroll_contract_in_css_and_templates(self):
         css = Path("static/css/admin-cp-parity.css").read_text(encoding="utf-8")
+        base = Path("templates/admin/base.html").read_text(encoding="utf-8")
         self.assertIn("overflow-y: auto !important", css)
-        self.assertIn("flex: 0 1 auto !important", css)
+        self.assertIn(".cp-admin-main-scroll-pane", css)
+        self.assertIn("flex: 1 1 auto !important", css)
+        self.assertIn("min-h-0", base.split('id="cp-main-content"')[1].split(">")[0])
+        self.assertIn("cp-admin-main-scroll-pane", base)
         self.assertIn(".cp-platform-admin-app-tree", css)
         change_list = Path("templates/admin/change_list.html").read_text(encoding="utf-8")
         change_form = Path("templates/admin/change_form.html").read_text(encoding="utf-8")
@@ -48,6 +52,8 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
             encoding="utf-8"
         )
         self.assertIn("overflow-auto", sidebar)
+        self.assertIn("guided_links", sidebar)
+        self.assertIn("Guided setup", sidebar)
         offcanvas = Path("templates/admin/manager_cp_offcanvas.html").read_text(encoding="utf-8")
         self.assertIn("manager_platform_admin_sidebar.html", offcanvas)
 

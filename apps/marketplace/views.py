@@ -646,6 +646,39 @@ def app_catalog(request):
     browse_q.pop("page", None)
     pagination_extra_query = browse_q.urlencode()
 
+    # region agent log
+    try:
+        from django.template.loader import get_template
+
+        get_template("marketplace/app_catalog.html")
+        _mkt_tpl_ok = True
+        _mkt_tpl_err = ""
+    except Exception as exc:
+        _mkt_tpl_ok = False
+        _mkt_tpl_err = type(exc).__name__
+    try:
+        from pathlib import Path as _Path
+        import json as _json
+        import time as _time
+
+        _log = _Path(__file__).resolve().parents[2] / "debug-22cfee.log"
+        _log.open("a", encoding="utf-8").write(
+            _json.dumps(
+                {
+                    "sessionId": "22cfee",
+                    "hypothesisId": "H-A",
+                    "location": "marketplace.views.app_catalog",
+                    "message": "template_compile_precheck",
+                    "data": {"ok": _mkt_tpl_ok, "error": _mkt_tpl_err},
+                    "timestamp": int(_time.time() * 1000),
+                }
+            )
+            + "\n"
+        )
+    except OSError:
+        pass
+    # endregion
+
     return render(
         request,
         "marketplace/app_catalog.html",

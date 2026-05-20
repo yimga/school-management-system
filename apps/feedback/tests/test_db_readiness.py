@@ -9,7 +9,7 @@ from apps.feedback.db_readiness import (
     feedback_schema_ready,
     open_feature_request_count,
 )
-from apps.feedback.services import top_pain_points
+from apps.feedback.services import generate_you_said_we_did_items, top_pain_points
 
 
 class FeedbackDbReadinessTests(SimpleTestCase):
@@ -31,5 +31,15 @@ class FeedbackDbReadinessTests(SimpleTestCase):
     def test_open_feature_count_zero_when_tables_missing(self):
         with patch("apps.feedback.db_readiness.feedback_schema_ready", return_value=False):
             self.assertEqual(open_feature_request_count(), 0)
+
+    def test_you_said_we_did_empty_when_tables_missing(self):
+        with patch("apps.feedback.services.feedback_schema_ready", return_value=False):
+            self.assertEqual(generate_you_said_we_did_items(None), [])
+
+    def test_module_sentiment_summary_empty_when_tables_missing(self):
+        with patch("apps.feedback.services.feedback_schema_ready", return_value=False):
+            from apps.feedback.services import module_sentiment_summary
+
+            self.assertEqual(module_sentiment_summary(), [])
 
 

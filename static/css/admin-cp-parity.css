@@ -411,9 +411,17 @@ body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
   flex-direction: column !important;
 }
 
+/* Flex height chain: min-height 0 on every flex child so main column can scroll. */
+body.admin-manager-shell .admin-cp-unified-page .cp-layout > .row > .cp-sidebar-col,
+body.admin-manager-shell .admin-cp-unified-page .cp-layout > .row > .cp-main-col,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
+  min-height: 0 !important;
+}
+
 body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .grow,
-body.admin-manager-shell .admin-cp-unified-page #cp-main-content > div.grow {
-  flex: 0 1 auto !important;
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > div.grow,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .cp-admin-main-scroll-pane {
+  flex: 1 1 auto !important;
   min-height: 0 !important;
   min-width: 0 !important;
   overflow: visible !important;
@@ -534,6 +542,22 @@ body.admin-manager-shell.change-list .changelist-form-container {
   align-items: flex-start !important;
 }
 
+/* Changelist: no nested h-full scroll trap — main column owns vertical scroll. */
+body.admin-manager-shell .rmc-admin-changelist-main,
+body.admin-manager-shell .result-list-wrapper,
+body.admin-manager-shell .changelist-form-container,
+body.admin-manager-shell #changelist {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+body.admin-manager-shell .result-list-wrapper > .grow,
+body.admin-manager-shell .rmc-admin-changelist-main.grow {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
 /* Change forms + site settings: long fieldsets scroll inside main column. */
 body.admin-manager-shell.change-form #content-main form,
 body.admin-manager-shell.change-form .site-settings-layout,
@@ -610,6 +634,23 @@ body.admin-manager-shell #changelist-filter {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+/* Manager /admin/ embed: model lists stay visible without Alpine x-show. */
+body.admin-manager-shell [data-rmc-platform-admin-sidebar="1"] .admin-sidebar-model-list {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+body.admin-manager-shell .cp-layout > .row.flex-lg-row {
+  flex-direction: row !important;
+}
+
+@media (max-width: 991.98px) {
+  body.admin-manager-shell .cp-layout > .row.flex-lg-row {
+    flex-direction: column !important;
+  }
 }
 
 .cp-sidebar-offcanvas .cp-platform-admin-app-tree {

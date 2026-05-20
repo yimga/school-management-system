@@ -107,12 +107,16 @@
     if (!event || !event.error) return;
     var target = event.target;
     if (target && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) return;
-    notify(UNAVAILABLE_MSG, 'error');
+    if (typeof console !== 'undefined' && console.error) {
+      console.error('[rmc-interaction-guard]', event.error);
+    }
   });
 
   window.addEventListener('unhandledrejection', function (event) {
     if (!event) return;
-    notify(UNAVAILABLE_MSG, 'error');
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[rmc-interaction-guard] unhandled rejection', event.reason);
+    }
   });
 
   document.addEventListener('shown.bs.dropdown', function (event) {

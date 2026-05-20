@@ -727,7 +727,7 @@ def site_settings(request):
     # Manager control-plane shell: compact operator footer (rmc_operator_footer_compact), not marketing mega-footer.
     ctx["SHOW_MANAGER_CORPORATE_FOOTER"] = public_host_kind == "manager"
     ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-    ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
+    ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
     if ctx["CONTROL_PLANE_SHELL"]:
         try:
             from apps.schools.control_plane_nav import (
@@ -789,7 +789,7 @@ def site_settings(request):
                 ctx["STUDIO_FOCUS_SHELL"] = False
                 ctx["STUDIO_FOCUS_SIDEBAR"] = []
                 ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-                ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
+                ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
         except OPTIONAL_CONTEXT_ERRORS:
             ctx["CONTROL_PLANE_NAV"] = []
             ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
@@ -798,7 +798,7 @@ def site_settings(request):
             ctx["STUDIO_FOCUS_SHELL"] = False
             ctx["STUDIO_FOCUS_SIDEBAR"] = []
             ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-            ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
+            ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
     else:
         ctx["CONTROL_PLANE_NAV"] = []
         ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
@@ -807,7 +807,7 @@ def site_settings(request):
         ctx["STUDIO_FOCUS_SHELL"] = False
         ctx["STUDIO_FOCUS_SIDEBAR"] = []
         ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-        ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": []}
+        ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
         try:
             from apps.accounts.permissions import tenant_operator_hub_eligible
             from apps.schools.control_plane_nav import build_tenant_operator_primary_nav

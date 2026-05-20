@@ -80,6 +80,8 @@ def visible_feedback_for_user(user, school=None):
 
 
 def visible_roadmap_for_user(user, school=None):
+    if not feedback_schema_ready():
+        return RoadmapItem.objects.none()
     qs = RoadmapItem.objects.prefetch_related("feature_requests")
     if is_operator(user):
         return qs
@@ -597,24 +599,38 @@ def detect_churn_risk_signals():
 
 
 def generate_you_said_we_did_items(school=None):
-    notes = ReleaseNote.objects.filter(published_at__isnull=False).prefetch_related(
-        "feature_requests"
-    )
-    if school is not None:
-        notes = notes.filter(feature_requests__school=school).distinct()
-    items = []
-    for note in notes[:20]:
-        requests = list(note.feature_requests.all())
-        problem = requests[0].problem_statement if requests else note.summary
-        items.append({"you_said": problem, "we_did": note.summary, "release_note": note})
-    return items
+    if not feedback_schema_ready():
+        return []
+
+    def _load():
+        notes = ReleaseNote.objects.filter(published_at__isnull=False).prefetch_related(
+            "feature_requests"
+        )
+        if school is not None:
+            notes = notes.filter(feature_requests__school=school).distinct()
+        items = []
+        for note in notes[:20]:
+            requests = list(note.feature_requests.all())
+            problem = requests[0].problem_statement if requests else note.summary
+            items.append(
+                {"you_said": problem, "we_did": note.summary, "release_note": note}
+            )
+        return items
+
+    return run_feedback_query(_load, default=[])
 
 
 def module_sentiment_summary():
-    rows = SurveyResponse.objects.values("workflow").annotate(
-        total=Count("id"), average_score=Avg("score")
-    )
-    return list(rows)
+    if not feedback_schema_ready():
+        return []
+
+    def _load():
+        rows = SurveyResponse.objects.values("workflow").annotate(
+            total=Count("id"), average_score=Avg("score")
+        )
+        return list(rows)
+
+    return run_feedback_query(_load, default=[])
 
 
 def top_pain_points(limit=10):

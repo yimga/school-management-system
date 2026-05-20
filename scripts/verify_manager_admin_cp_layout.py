@@ -93,6 +93,14 @@ def check_css() -> list[str]:
         errors.append("templates/admin/base.html #cp-main-content missing data-rmc-shell-main-scroll")
     if "manager_platform_admin_sidebar.html" not in admin_base:
         errors.append("templates/admin/base.html must include manager_platform_admin_sidebar")
+    if 'id="cp-main-content"' in admin_base and "min-h-0" not in admin_base.split('id="cp-main-content"')[1].split(">")[0]:
+        errors.append(
+            "templates/admin/base.html #cp-main-content must include min-h-0 for main-column scroll"
+        )
+    if "cp-admin-main-scroll-pane" not in admin_base:
+        errors.append(
+            "templates/admin/base.html missing cp-admin-main-scroll-pane wrapper for scroll chain"
+        )
     if "control_plane_sidebar.html" in admin_base:
         errors.append(
             "templates/admin/base.html must not include control_plane_sidebar on manager admin"
@@ -163,7 +171,7 @@ def check_render() -> list[str]:
                     'data-shell-nav-family="platform-admin"',
                     "data-rmc-platform-admin-sidebar",
                     "admin-sidebar-all-apps",
-                    "cp-admin-app-list",
+                    "rmc-admin-catalog",
                     "Applications",
                 ),
             ),

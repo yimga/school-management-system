@@ -122,6 +122,10 @@ class ControlPlaneNavParityTests(SimpleTestCase):
         self.assertIn("admin_index", ids)
         self.assertIn("super_dashboard", ids)
         self.assertIn("super_platform_operator_hub", ids)
+        guided_ids = {row["id"] for row in nav.get("guided_links") or []}
+        self.assertIn("config_center", guided_ids)
+        self.assertIn("configuration_center", guided_ids)
+        self.assertIn("studio_shell", guided_ids)
 
 
 @override_settings(ALLOWED_HOSTS=["*"], ROOT_URLCONF="config.manager_urls")

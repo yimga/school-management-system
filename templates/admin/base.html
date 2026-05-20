@@ -2,20 +2,20 @@
 
 {% load admin_list i18n unfold admin_urls %}
 {% block base %}
-    <div id="page" class="{% if is_manager_host %}admin-cp-unified-page d-flex flex-column min-vh-100 w-100 max-w-full{% else %}flex flex-row max-w-full min-h-screen {% element_classes 'page' %}{% endif %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}" {% if is_manager_host %}data-shell-layout="admin-control-plane-unified" data-rmc-admin-cp-unified="1" data-rmc-cp-scroll="main"{% endif %}>
+    <div id="page" class="{% if is_manager_host %}admin-cp-unified-page d-flex flex-column min-vh-100 min-h-0 w-100 max-w-full{% else %}flex flex-row max-w-full min-h-screen {% element_classes 'page' %}{% endif %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}" {% if is_manager_host %}data-shell-layout="admin-control-plane-unified" data-rmc-admin-cp-unified="1" data-rmc-cp-scroll="main"{% endif %}>
         {% block branding %}{% endblock %}
         {% if is_manager_host %}
         <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded"
            href="#cp-main-content"
            aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
         <div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column">
-            <div class="row g-2 flex-grow-1 min-h-0">
-                <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
-                    <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
+            <div class="row g-2 flex-grow-1 min-h-0 flex-column flex-lg-row">
+                <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block min-h-0" id="cp-sidebar-col" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
+                    <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded h-100 min-h-0">
                         {% include "partials/manager_platform_admin_sidebar.html" %}
                     </div>
                 </aside>
-                <div id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main d-flex flex-column min-w-0 flex-grow-1 bg-white dark:bg-base-900" role="main" data-shell-main="platform-admin" data-authenticated-surface="manager-control-plane" data-rmc-shell-main="django-admin" data-rmc-shell-main-scroll="">
+                <div id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main d-flex flex-column min-w-0 min-h-0 flex-grow-1 bg-white dark:bg-base-900" role="main" data-shell-main="platform-admin" data-authenticated-surface="manager-control-plane" data-rmc-shell-main="django-admin" data-rmc-shell-main-scroll="">
         {% else %}
         {% if not is_popup and not is_manager_host %}
             {% block nav-sidebar %}
@@ -52,7 +52,7 @@
             {% endif %}
             {% endblock admin_breadcrumbs %}
 
-            <div class="@container px-4 pb-4 grow min-h-0 min-w-0">
+            <div class="cp-admin-main-scroll-pane @container px-4 pb-4 grow min-h-0 min-w-0">
                 {% block admin_operator_steering %}
                     {% if not is_popup and is_manager_host %}
                         {% include "components/rmc_operator_surface_strip.html" %}
