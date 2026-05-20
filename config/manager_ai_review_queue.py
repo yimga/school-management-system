@@ -74,4 +74,6 @@ def manager_ai_review_queue(request):
             "help_center_url": reverse("manager_help_center"),
             "analytics_url": reverse("manager_help_analytics"),
         },
-        page_title=str(_("AI review qu
+        page_title=str(_("AI review queue")),
+        page_archetype="operational-workbench",
+    )

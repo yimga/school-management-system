@@ -54,8 +54,10 @@
         </div>
         <div class="card-body">
           <p class="small text-tertiary">{% trans "Start with the workflow problem. Product triage converts strong requests into roadmap candidates." %}</p>
-          <form method="post" action="{% url 'manager_help_center' %}">
+          {% include "partials/help_deflection_strip.html" with deflection_surface="manager_help_feature" %}
+          <form method="post" action="{% url 'manager_help_center' %}" data-deflection-form-auto>
             {% csrf_token %}
+            <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
             <input type="hidden" name="form_kind" value="feature_quick">
             <div class="row g-2">
               <div class="col-md-6">
@@ -191,6 +193,7 @@
           <div class="small text-tertiary">{% trans "AI review queue" %}</div>
           <div class="h4 mb-0">{{ signals.deflection.pending_reviews|default:0 }}</div>
           {% if ai_review_url %}<a class="btn btn-sm btn-outline-primary mt-2" href="{{ ai_review_url }}">{% trans "Review failed AI" %}</a>{% endif %}
+          {% if analytics_url %}<a class="btn btn-sm btn-outline-info mt-2 ms-1" href="{{ analytics_url }}">{% trans "North-star analytics" %}</a>{% endif %}
         </div>
       </div>
     </div>

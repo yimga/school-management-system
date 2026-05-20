@@ -7,7 +7,9 @@ from __future__ import annotations
 import csv
 import io
 
+from django.contrib import messages
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
@@ -73,13 +75,17 @@ def manager_help_analytics(request):
             )
         elif row and action == "draft_gap_kb":
             try:
-                create_kb_draft_from_content_gap(row, author=request.user)
-            except ValueError:
-                pass
+                article = create_kb_draft_from_content_gap(row, author=request.user)
+                messages.success(
+                    request,
+                    str(_("KB draft: %(slug)s") % {"slug": article.slug}),
+                )
+            except ValueError as exc:
+                messages.error(request, str(exc))
         elif row and action == "done_gap":
             row.status = HelpContentGapTask.Status.DONE
             row.save(update_fields=["status", "updated_at"])
-        return HttpResponse(status=302, headers={"Location": request.path})
+        return redirect("manager_help_analytics")
 
     gaps = list(
         HelpContentGapTask.objects.filter(

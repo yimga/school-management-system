@@ -1,0 +1,40 @@
+{% load i18n %}
+<div class="rmc-help-center" data-rmc-page="kb-locale-families">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-1"><i class="bi bi-translate me-2"></i>{% trans "KB translation families" %}</h2>
+      <p class="small text-tertiary mb-0">{% trans "Link locale variants via shared locale_group_id; mark one canonical per family." %}</p>
+    </div>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ help_center_url }}">{% trans "Help hub" %}</a>
+  </div>
+
+  {% for family in families %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header d-flex flex-wrap justify-content-between gap-2">
+      <span class="fw-semibold"><code>{{ family.group_id }}</code></span>
+      <span class="small text-tertiary">{{ family.locales|join:", " }}</span>
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for art in family.articles %}
+      <li class="list-group-item d-flex flex-wrap justify-content-between gap-2 align-items-center">
+        <div>
+          <strong>{{ art.title }}</strong>
+          <span class="badge text-bg-light ms-1">{{ art.locale|default:"all" }}</span>
+          <span class="badge text-bg-secondary">{{ art.get_status_display }}</span>
+          {% if art.translation_of_id %}<span class="badge text-bg-info">{% trans "translation" %}</span>{% endif %}
+        </div>
+        <form method="post" class="d-flex flex-wrap gap-1 align-items-center">
+          {% csrf_token %}
+          <input type="hidden" name="article_id" value="{{ art.pk }}">
+          <input type="hidden" name="locale_group_id" value="{{ family.group_id }}">
+          <button type="submit" name="action" value="mark_canonical" class="btn btn-sm btn-outline-primary">{% trans "Canonical" %}</button>
+          <a class="btn btn-sm btn-link" href="{% url 'kb:kb_article' art.slug %}">{% trans "Open" %}</a>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% empty %}
+  <p class="text-tertiary small">{% trans "No translation groups yet — set locale_group_id on KB articles in admin." %}</p>
+  {% endfor %}
+</div>

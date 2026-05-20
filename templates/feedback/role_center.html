@@ -38,8 +38,10 @@
           {% else %}
             <p class="small text-muted">Tell us what is blocking classroom work, what should improve, or what support you need.</p>
           {% endif %}
-          <form method="post">
+          {% include "partials/help_deflection_strip.html" with deflection_surface="role_feedback" %}
+          <form method="post" data-deflection-form-auto>
             {% csrf_token %}
+            <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
             {{ form.as_p }}
             <button class="btn btn-primary" type="submit">Send feedback</button>
           </form>

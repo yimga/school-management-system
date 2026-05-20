@@ -43,6 +43,17 @@ def _engage_actions() -> list[dict]:
             "cta": _("Open feature center"),
         },
         {
+            "id": "help-analytics",
+            "title": _("Help analytics"),
+            "description": _(
+                "North-star deflection, CSAT, zero-result gaps, and exportable metrics."
+            ),
+            "icon": "bi-graph-up-arrow",
+            "accent": "info",
+            "url": _link("manager_help_analytics"),
+            "cta": _("Open analytics"),
+        },
+        {
             "id": "contact-us",
             "title": _("Contact us"),
             "description": _(
@@ -159,6 +170,18 @@ def _help_center_sections() -> list[dict]:
             "title": _("Operate & respond"),
             "description": _("Live signals and operator feedback."),
             "cards": [
+                card(
+                    _("Help analytics"),
+                    _("Deflection rate, CSAT, content gaps, and weekly CSV export."),
+                    "bi-graph-up",
+                    "manager_help_analytics",
+                ),
+                card(
+                    _("AI review queue"),
+                    _("Failed support AI sessions — resolve, draft, and publish KB."),
+                    "bi-shield-check",
+                    "manager_ai_review_queue",
+                ),
                 card(
                     _("Feedback loop · live usage"),
                     _("Friction, feedback submissions, and AI adoption (7d/30d)."),
@@ -277,6 +300,7 @@ def manager_help_center(request):
             "feature_center_url": _link("manager_feature_center"),
             "contact_us_url": _link("manager_contact_us"),
             "ai_review_url": _link("manager_ai_review_queue"),
+            "analytics_url": _link("manager_help_analytics"),
         },
         page_title=str(_("Help center")),
         page_archetype="decision-console",

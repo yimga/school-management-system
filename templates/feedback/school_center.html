@@ -70,8 +70,10 @@
       <div class="card">
         <div class="card-header fw-semibold">Report issue or ask for help</div>
         <div class="card-body">
-          <form method="post" action="{% url 'feedback:school_feedback' %}">
+          {% include "partials/help_deflection_strip.html" with deflection_surface="school_feedback" %}
+          <form method="post" action="{% url 'feedback:school_feedback' %}" data-deflection-form-auto>
             {% csrf_token %}
+            <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
             <input type="hidden" name="form_kind" value="feedback">
             {{ feedback_form.as_p }}
             <div class="d-flex gap-2 flex-wrap">
@@ -89,8 +91,10 @@
         <div class="card-header fw-semibold">Request Feature</div>
         <div class="card-body">
           <p class="small text-muted">Feature requests go through discovery and prioritization. For urgent work blockers, use support.</p>
-          <form method="post" action="{% url 'feedback:school_feedback' %}">
+          {% include "partials/help_deflection_strip.html" with deflection_surface="school_feature" %}
+          <form method="post" action="{% url 'feedback:school_feedback' %}" data-deflection-form-auto>
             {% csrf_token %}
+            <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
             <input type="hidden" name="form_kind" value="feature">
             {{ feature_form.as_p }}
             <button class="btn btn-primary" type="submit">Submit feature request</button>

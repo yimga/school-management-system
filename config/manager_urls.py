@@ -587,6 +587,14 @@ urlpatterns = [
         name="manager_help_analytics",
     ),
     path(
+        "help-center/locale-families/",
+        __import__(
+            "config.manager_kb_locale_families",
+            fromlist=["manager_kb_locale_families"],
+        ).manager_kb_locale_families,
+        name="manager_kb_locale_families",
+    ),
+    path(
         "feature-center/",
         __import__(
             "config.manager_help_engagement", fromlist=["manager_feature_center"]
