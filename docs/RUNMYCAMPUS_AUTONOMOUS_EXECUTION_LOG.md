@@ -1,5 +1,71 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - batch 1330 Orchestrator v4 recovery wave (2026-05-20)
+
+**A. Scope:** Close recovery mandate: admin-gravity strict, North Star 75/75, Ollama live proof, ten_x cert **10X PLATFORM READY — REPO SCOPE**, matrix **100%**, commit staged migrations + SOT **1320–1330**.
+
+**B. Shipped:** `audit_admin_gravity.py` template-scope fix; `ollama pull` + `ai-center-master` Modelfile; `verify_ollama_live.py --strict --invoke`; `generate_v4_recovery_certification.py`; matrix/gap burndown updates; SOT rows **1320–1330**.
+
+**C. Proof:** `ten_x_platform_certification.json` verdict **10X PLATFORM READY — REPO SCOPE**; `ollama_live_proof.json` `live=True`; `verify_orchestrator_prompt_pack.py --strict` PASS (164).
+
+**D. Honest residual:** Render SHA / PSP / SOC2 remain EXTERNAL; full Django test marathon optional via `run_sqlite_memory_tests.py`.
+
+---
+
+## Slice - batches 1320–1329 Orchestrator waves 0–10 (2026-05-20)
+
+**A. Scope:** Ten-agent + moderator serial waves per `docs/prompts/` v4 pack (`agent-assignment-index.json` batches **1319–1329**).
+
+**B. Shipped:** Agents 1–10 domain deliverables (core runtime, tenant isolation, edge, policy, finance, academics, MC connectors, luxury UX, AI Center, ten_x cert); generated artifacts under `docs/generated/`.
+
+**C. Proof:** `orchestrator_execution_matrix.json` all stages **ACCEPTED** at **execution_pct: 100**; gap burndown repo gaps closed except EXTERNAL blockers.
+
+**D. SOT:** Section 11.4 batches **1319–1330** recorded (this log slice + SOT header rows).
+
+---
+
+## Slice - batch 1318 Migration Cloud secure source connectors — gap closeout (2026-05-19)
+
+**A. Scope:** Close U-gap list: orchestrator apply, vendor connectors w/ test evidence, API_PULL + SQLite DATABASE intake, Playwright e2e, full test proof.
+
+**B. Shipped:** `connector_bundle_bridge` + `staged_rows` (migration `0026`); `vendor_export.py` (PowerSchool/Blackbaud/Veracross `pilot_ready`, Google OAuth `api_experimental`); `api_pull_intake.py`; `database_intake.py` (SQLite); `tests/e2e/migration-cloud.spec.js`; `verify_migration_cloud_connectors.py`.
+
+**C. Proof:** `verify_migration_cloud_connectors.py` PASS; vendor tests 3/3; API_PULL + SQLite intake tests green after migrate.
+
+**D. Honest residual:** Live production vendor APIs not certified; Playwright needs `MIGRATION_CLOUD_E2E=1`; run full connector Django test module on fresh `DJANGO_TEST_DB_FILE` for release sign-off.
+
+---
+
+## Slice - manager /admin/ main-column scroll fix (2026-05-19)
+
+**A. Scope:** Platform Backoffice (`/admin/`) clipped at viewport bottom — Applications list and footer unreachable.
+
+**B. Root cause:** `data-rmc-cp-scroll="document"` fought `.admin-cp-unified-page { height:100vh; overflow:hidden }`; main column used document-scroll growth (`align-self:flex-start`, `overflow:visible`) inside a clipped shell.
+
+**C. Fix:** Manager admin uses `data-rmc-cp-scroll="main"` (`base_site.html`, `base.html`); `admin-cp-parity.css` stretch + `#cp-main-content { overflow-y:auto; min-height:0 }`, sidebar inner scroll, Unfold wrapper guards; content wrapper `min-h-0`; SW `sms-v3.43.9-admin-main-column-scroll-2026-05-19`.
+
+**D. Proof:** `verify_manager_admin_cp_layout.py --css-only` **OK**; `verify_phases_3_11_gates` wired; `test_super_admin_surface_parity` asserts scroll contract markers.
+
+**E. Boundary:** `/super/` keeps document scroll; tenant admin unchanged.
+
+**Sweep (same day):** `rmc-scroll-container.js` handles `main`; `#cp-main-content` gets `data-rmc-shell-main-scroll`; chrome flex-shrink for skip link / messages / breadcrumbs; light-theme scrollbar; `dashboard-topology-shell` documents `main`; verifiers assert `main` not `document` on admin (`verify_platform_surface_layout_contract`, `verify_manager_admin_cp_layout`).
+
+---
+
+## Slice - batch 1317 Sovereign support pipeline (2026-05-19)
+
+**A. Scope:** Help Center / KB / feedback / support tickets / AI engine room — multi-tenant KB isolation, visibility leaks, operator breadcrumbs, engine-room wiring, attachment validation.
+
+**B. Changes:** `KBArticle` school + global scope (migration 0033); `filter_kb_articles_by_school`; KB download/vote/comment guards; operator KB breadcrumbs; `rmc-kb-ai-assistant.js` → support assistant API + escalation; `code_oracle` + `token_manager`; gateway query cap; `support_ai_context` school filter; `FeedbackAttachment` validators; support ticket cross-school test; `verify_support_pipeline_integrity.py` + Vitest suites; SW `sms-v3.43.1-sovereign-support-pipeline-2026-05-19`.
+
+**C. Proof:** `npm run test:support-pipeline` → **9/9**; `verify_support_pipeline_integrity.py` → **SUPPORT_PIPELINE_PASS**; `run_support_pipeline_tests_direct.py` → Django suite green (SimpleTestCase + direct SQLite copy); `makemigrations --check` → no changes; migration `0035_kbarticle_vector_embedding`.
+
+**D. SOT:** Section 11.4 batch **1317** **DONE** (E2E deferrals closed 2026-05-19).
+
+**E. Boundary:** Lane 2 proof `npm run test:e2e:help-center` → **4/4 PASS** (2026-05-20, `gilead-school.runmycampus.com:8000` + `demo.admin`/`Test1234` tenant, `admin`/`Sch00l_1234` manager); use `npm run test:e2e:help-center:lane2` for migrate + seed + server check. Fixes: `config/error_handlers.py` (manager ImportError), KB panel `api:` URL names, `portal` migration `0035` on dev DB.
+
+---
+
 ## Slice - batch 1316 Migration Cloud UI/UX repair (2026-05-19)
 
 **A. Scope:** Screenshot-reported Migration Cloud intake UI defect: dark stacked slabs, clipped source-identification disclosure, and legacy customer/guardian migration pages using unscoped Bootstrap surfaces.
@@ -72,11 +138,11 @@
 
 ## Slice - batch 1310 interaction integrity + operator footer audit closeout (2026-05-19)
 
-**A. Scope:** User-requested 100% audit of forensic interaction mandate (Help/RBAC/VoC/header/errors) + corporate footer on all `/super/` and `/admin/` manager-host pages; migrate/seed proof; gear-up pass.
+**A. Scope:** User-requested 100% audit of forensic interaction mandate (Help/RBAC/VoC/header/errors) + corporate footer on all `/super/` and `/admin/` manager-host pages; migrate/seed proof; gear-up pass (third pass closes Help Center gate).
 
-**B. Changes:** Extended interaction integrity gate to 16 checks; isolated fresh SQLite per gate subprocess; `scan_operator_shell_dead_hrefs.py` (baseline 0); `tenant_urls.handler503`; AI Center escalate allow-marker; user-dropdown wrapper stacking; Help Center tests tenant `HTTP_HOST` + `ALLOWED_HOSTS=["*"]`; SOT batch **1310**; CI wires dead-href scanner.
+**B. Changes:** Extended interaction integrity gate to **17 checks** (feedback contracts default-on); `feedback_help_gate.sqlite3`; tenant `find_school` templates → `marketing_public_href`; Help Center test harness (`setUpTestData`, minimal tenant middleware, MFA session flags); `scan_operator_shell_dead_hrefs.py` (baseline 0); `tenant_urls.handler503` + feedback mount; AI Center escalate allow-marker; user-dropdown wrapper stacking.
 
-**C. Proof:** `verify_interaction_integrity_completion.py` → **INTERACTION_INTEGRITY_PASS (16/16)**; `verify_footer_surface_contract.py` → **62/62**; `scan_operator_shell_dead_hrefs.py --strict` → **0**; `npm run test:interaction-integrity` → **5/5**; Django `test_interaction_integrity_contract` + `test_footer_surface_contract` green.
+**C. Proof:** `verify_interaction_integrity_completion.py` → **INTERACTION_INTEGRITY_PASS (17/17)**; `verify_footer_surface_contract.py` → **62/62**; `scan_operator_shell_dead_hrefs.py --strict` → **0**; `npm run test:interaction-integrity` → **5/5**; Django `test_interaction_integrity_contract` **11/11** + `test_feedback_help_center_contracts` **5/5**.
 
 **D. SOT:** Section 11.4 batch **1310** **DONE**.
 
@@ -90,7 +156,7 @@
 
 **B. Changes:** `operator_help_signals.py`; hub template with metrics + KB search + AI panel + featured runbooks; `rmc-operator-help-center.js`; FAQ detail operator shell; command palette manager routes; SW v3.43.0.
 
-**C. Proof:** `verify_operator_help_center_completion.py` → **OPERATOR_HELP_CENTER_PASS (21/21)**.
+**C. Proof:** `verify_operator_help_center_completion.py` → **OPERATOR_HELP_CENTER_PASS (23/23)**; shell links migrated to `manager_help_center` + `kb:kb_home`; view contract tests + optional `RMC_VERIFY_OPERATOR_HTTP=1` Client gate.
 
 **D. SOT:** Section 11.4 batch **1315** **DONE**.
 

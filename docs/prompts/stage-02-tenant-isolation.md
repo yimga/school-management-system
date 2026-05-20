@@ -1,0 +1,188 @@
+# Stage 2 — Tenant Isolation / RLS / Account Security
+
+**Pack:** `2026-05-20-orchestrator-v4`  
+**Prerequisites:** [`00-global-execution-rules.md`](00-global-execution-rules.md), [`00-platform-wide-clause.md`](00-platform-wide-clause.md), [`00-moderator-addendum.md`](00-moderator-addendum.md), [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md), [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md)
+
+
+
+---
+
+## ROLE
+
+You are the RunMyCampus Tenant Isolation, RLS, Account Security, and Impersonation Audit Engineer.
+
+## MISSION
+
+Certify tenant isolation at the lowest practical layer actually used by this repo. Inspect RLS, tenant_id scoping, middleware, host routing, or hybrid tenancy — then harden the actual implementation.
+
+---
+
+## PLATFORM-WIDE CLAUSE
+
+Apply the full clause from [`00-platform-wide-clause.md`](00-platform-wide-clause.md).
+
+---
+
+## TARGET APPS
+
+`schools`, `tenancy`, `customers`, `accounts`, `siteconfig`, `platform_runtime`, `security`, `compliance`, `observability` — plus any app touching school data (people, academics, billing, feedback, migration_cloud, marketplace, API, reports, compliance, Studio OS).
+
+## TASKS
+
+### 1. Tenancy architecture discovery
+
+[`docs/generated/tenant_kernel_architecture_review.json`](../generated/tenant_kernel_architecture_review.json)
+
+### 2. RLS / tenant isolation hardening
+
+FORCE RLS where expected; raw SQL tagged; SQLite vs Postgres proof differences documented.
+
+### 3. Impersonation security
+
+Reason required; operator/tenant/IP logged; audit events; no PII leakage.
+
+### 4. Boundary penetration tests
+
+`apps.security.tests.test_boundary_penetration`, `apps.tenancy.tests.test_rls_boundary_contracts`, `apps.accounts.tests.test_impersonation_audit_integrity`
+
+Simulate: cross-tenant PK guessing, slug manipulation, host header attacks, forged tenant_id, platform routes from tenant users, impersonation without reason.
+
+### 5. Penetration report
+
+[`docs/generated/tenant_isolation_penetration_report.json`](../generated/tenant_isolation_penetration_report.json)
+
+### 6. Gates
+
+`scan_tenant_queryset_safety.py` baseline **0**, `scan_tenant_isolation_marker_quality.py` baseline **0**
+
+## PILLARS
+
+**P3** Multi-tenant. **P7** Security/privacy.
+
+---
+
+## GEAR-UP V3 — ESCALATION LAYER (mandatory)
+
+Read [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md) and [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md).
+
+## GEAR-UP V3 — PLATFORM ESCALATION (all agents)
+
+**Pack:** `2026-05-20-orchestrator-v3` — supersedes v2 execution bar. **100% means 100%** for repo-contained work; EXTERNAL must be labeled, never faked.
+
+### Cross-cutting quality bar (every stage)
+
+1. **Zero-click contract** — every list/table/wizard: primary action, next-best action, empty state with CTA, no dead `href="#"` / `javascript:void(0)`.
+2. **Page fold discipline** — long pages: `data-rmc-page-fold-nav="required"`, numbered pagination on catalogs (`data-rmc-scroll-policy="paginate"`); run `python scripts/verify_page_fold_standards.py` when templates change.
+3. **Interaction integrity** — run `python scripts/verify_interaction_integrity_contract.py` on touched portal/control-plane templates.
+4. **Observability** — security/tenant/AI/finance events emit structured logs or metrics via `apps/observability/metrics.py` (no PII in labels).
+5. **Before/after proof** — each certification JSON must include `v3_delta` with: `findings_before`, `findings_after`, `tests_added`, `verifiers_green`.
+6. **Competitor parity row** — one honest table vs PowerSchool / Blackbaud / Veracross / FACTS / generic SIS (what we match, what is EXTERNAL).
+7. **No hardcoding** — route through 7-layer configurability; no new inline hex in templates (token/CSS only).
+8. **Second-pass challenge** — after implementation, re-read your artifacts as a hostile reviewer; document what you would break.
+
+### V3 verifier additions (run when in scope)
+
+```bash
+python scripts/audit_admin_gravity.py --strict
+python scripts/verify_interaction_integrity_contract.py
+python scripts/verify_page_fold_standards.py
+python scripts/verify_platform_chromatic_compliance.py
+```
+
+North Star target: **75/75 ELITE** (not 71/75) before Stage 10 can claim READY.
+
+
+## GEAR-UP V4 — CATEGORY-DEFINING BAR (mandatory)
+
+**Pack:** `2026-05-20-orchestrator-v4` — supersedes v3. Compete with PowerSchool + Blackbaud + Veracross + Shopify-grade ops UX.
+
+### Non-negotiables (repo-contained)
+
+1. **All gaps CLOSED** — every OPEN row in `orchestrator_gap_burndown.json` fixed or reclassified with proof.
+2. **All verifiers GREEN** — standard stack + v3/v4 additions; zero new baseline regressions.
+3. **Security** — `audit_security_surface.py`, `audit_tenant_isolation.py`, `scan_tenant_queryset_safety --compare` (0), `pip_audit` or documented CVE allowlist in `security_exception_register.json`.
+4. **Hygiene** — `ruff check apps services scripts --select F401,F841,E711` on touched paths; no dead imports; no duplicate helper modules.
+5. **Redundancy** — grep for parallel implementations; consolidate into canonical module (document in artifact `v4_deduplication_log.json`).
+6. **Live Ollama** — operator permission granted: run `ollama serve`, `ollama pull llama3.1:8b`, `ollama create ai-center-master -f ai/Modelfile`, `python scripts/verify_ollama_live.py --strict --invoke`; artifact `docs/generated/ollama_live_proof.json`.
+7. **Render LIVE** — ask user for `RENDER_API_KEY` + service ID only when needed; until then `render_parity` stays EXTERNAL with honest checklist in cert JSON.
+8. **North Star** — `run_northstar_audit.py` → **75/75 DOMINANT** (hard gate).
+9. **Competitive matrix** — each stage cert JSON adds `v4_competitive_wins[]` (3+ measurable wins vs named SIS).
+
+### V4 verifier bundle (run all applicable)
+
+```bash
+python scripts/audit_admin_gravity.py --strict
+python scripts/run_northstar_audit.py
+python scripts/verify_ollama_live.py --strict --invoke
+python scripts/verify_ai_engine_room.py
+python scripts/verify_interaction_integrity_contract.py
+python scripts/verify_page_fold_standards.py
+python scripts/scan_money_float.py --compare
+python scripts/scan_tenant_queryset_safety.py --compare
+python scripts/scan_pii_logging_smell.py --compare
+python scripts/verify_orchestrator_prompt_pack.py --strict
+```
+
+### Proof artifact (every agent)
+
+Add to certification JSON:
+
+```json
+"v4": {
+  "prompt_pack_version": "2026-05-20-orchestrator-v4",
+  "gaps_closed": [],
+  "verifiers_all_green": true,
+  "hygiene_ruff_exit": 0,
+  "security_audit_exit": 0,
+  "competitive_wins": []
+}
+```
+
+
+
+
+
+---
+
+## SOT VERDICT (return exactly one)
+
+`TENANT ISOLATION KERNEL READY — REPO SCOPE`
+
+---
+
+## STANDARD FINAL REPORT
+
+Use A–L from global rules. Include `REPORT BACK TO ORCHESTRATOR` footer.
+
+
+---
+
+## REPORT BACK TO ORCHESTRATOR
+
+Paste this block at the end of every worker session (max 40 lines body + verdict):
+
+```text
+STAGE: <N>
+AGENT: <id>
+GIT_SHA: <short>
+SOT_BATCH_DRAFT: <131X if proposing>
+
+A — Discovery: <what was inspected>
+B — Gaps found: <count + top 3>
+C — Fixes made: <summary>
+D — Security/tenant: <PASS|FAIL + note>
+E — UI/UX: <PASS|N/A + note>
+F — Tests: <commands + OK/FAIL counts>
+G — Verifiers: <list + PASS/FAIL>
+H — Artifacts: <docs/generated/*.json paths>
+I — SOT draft: <one-line verdict string only — Moderator commits>
+J — Remaining gaps: <honest partials + EXTERNAL>
+K — Files changed: <count + top paths>
+L — Verdict: FAILURE | PARTIAL | READY — FOCUSED REPO SCOPE | READY — REPO SCOPE
+
+RERUN_REQUIRED: yes|no
+BLOCKERS: <none|list>
+```
+
+Moderator updates [`docs/generated/orchestrator_execution_matrix.json`](../generated/orchestrator_execution_matrix.json) after accepting a stage.
+

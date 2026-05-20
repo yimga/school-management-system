@@ -1,0 +1,197 @@
+{
+  "prompt_pack_version": "2026-05-20-orchestrator-v4",
+  "plan_ref": ".cursor/plans/9-agent_moderator_wave_11e58d68.plan.md",
+  "sot_batches": {
+    "moderator_stage0": 1319,
+    "agent1": 1320,
+    "agent2": 1321,
+    "agent3": 1322,
+    "agent4": 1323,
+    "agent5": 1324,
+    "agent6": 1325,
+    "agent7": 1326,
+    "agent8": 1327,
+    "agent9": 1328,
+    "agent10": 1329,
+    "recovery_v3": 1330,
+    "v3_second_pass": 1331
+  },
+  "agents": [
+    {
+      "id": "Moderator",
+      "stage": null,
+      "prompt_file": "00-moderator-chief-orchestrator.md",
+      "sot_batch": [
+        1319,
+        1329
+      ],
+      "pillars": [
+        "P6",
+        "CTO"
+      ],
+      "depends_on": [],
+      "worker_paste_file": "worker-paste/moderator.md"
+    },
+    {
+      "id": "Agent0",
+      "stage": 0,
+      "prompt_file": "stage-00-current-state-validation.md",
+      "sot_batch": 1319,
+      "pillars": [
+        "P6"
+      ],
+      "depends_on": [],
+      "also": [
+        "phase-0-p0-deploy-gate.md"
+      ],
+      "worker_paste_file": "worker-paste/agent0-stage-0.md"
+    },
+    {
+      "id": "Agent1",
+      "stage": 1,
+      "prompt_file": "stage-01-core-runtime.md",
+      "sot_batch": 1320,
+      "pillars": [
+        "P6",
+        "P7"
+      ],
+      "depends_on": [
+        0
+      ],
+      "worker_paste_file": "worker-paste/agent1-stage-1.md"
+    },
+    {
+      "id": "Agent2",
+      "stage": 2,
+      "prompt_file": "stage-02-tenant-isolation.md",
+      "sot_batch": 1321,
+      "pillars": [
+        "P3",
+        "P7"
+      ],
+      "depends_on": [
+        1
+      ],
+      "worker_paste_file": "worker-paste/agent2-stage-2.md"
+    },
+    {
+      "id": "Agent3",
+      "stage": 3,
+      "prompt_file": "stage-03-edge-routing-branding.md",
+      "sot_batch": 1322,
+      "pillars": [
+        "P1",
+        "P3"
+      ],
+      "depends_on": [
+        2
+      ],
+      "worker_paste_file": "worker-paste/agent3-stage-3.md"
+    },
+    {
+      "id": "Agent4",
+      "stage": 4,
+      "prompt_file": "stage-04-policy-entitlements.md",
+      "sot_batch": 1323,
+      "pillars": [
+        "P3"
+      ],
+      "depends_on": [
+        1,
+        2
+      ],
+      "worker_paste_file": "worker-paste/agent4-stage-4.md"
+    },
+    {
+      "id": "Agent5",
+      "stage": 5,
+      "prompt_file": "stage-05-finance-ledger.md",
+      "sot_batch": 1324,
+      "pillars": [
+        "P5"
+      ],
+      "depends_on": [
+        4
+      ],
+      "worker_paste_file": "worker-paste/agent5-stage-5.md"
+    },
+    {
+      "id": "Agent6",
+      "stage": 6,
+      "prompt_file": "stage-06-academics-operations.md",
+      "sot_batch": 1325,
+      "pillars": [
+        "P4"
+      ],
+      "depends_on": [
+        4
+      ],
+      "worker_paste_file": "worker-paste/agent6-stage-6.md"
+    },
+    {
+      "id": "Agent7",
+      "stage": 7,
+      "prompt_file": "stage-07-migration-cloud.md",
+      "sot_batch": 1326,
+      "pillars": [],
+      "depends_on": [
+        2
+      ],
+      "worker_paste_file": "worker-paste/agent7-stage-7.md"
+    },
+    {
+      "id": "Agent8",
+      "stage": 8,
+      "prompt_file": "stage-08-workspace-ux.md",
+      "sot_batch": 1327,
+      "pillars": [
+        "P1",
+        "P2"
+      ],
+      "depends_on": [
+        3,
+        6,
+        7
+      ],
+      "worker_paste_file": "worker-paste/agent8-stage-8.md"
+    },
+    {
+      "id": "Agent9",
+      "stage": 9,
+      "prompt_file": "stage-09-ai-center-expanded.md",
+      "sot_batch": 1328,
+      "pillars": [
+        "P4"
+      ],
+      "depends_on": [
+        1,
+        4,
+        8
+      ],
+      "note": "NOT stage-09-api-automation-base.md alone",
+      "worker_paste_file": "worker-paste/agent9-stage-9.md"
+    },
+    {
+      "id": "Agent10",
+      "stage": 10,
+      "prompt_file": "stage-10-final-certification.md",
+      "sot_batch": 1329,
+      "pillars": [
+        "ALL"
+      ],
+      "depends_on": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "worker_paste_file": "worker-paste/agent10-stage-10.md"
+    }
+  ]
+}

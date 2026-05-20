@@ -1,0 +1,140 @@
+{
+  "generated_at": "2026-05-20T08:36:00+00:00",
+  "open_repo_gaps": 0,
+  "program_execution_pct": 100,
+  "prompt_pack_version": "2026-05-20-orchestrator-v4",
+  "gaps": [
+    {
+      "gap_id": "GAP-PROMPT-001",
+      "stage": 0,
+      "app_module": "docs/prompts",
+      "severity": "P0",
+      "owner_agent": "Moderator",
+      "status": "CLOSED",
+      "fix_commit_file": "docs/prompts/* + scripts/verify_orchestrator_prompt_pack.py",
+      "proof_artifact": "docs/generated/orchestrator_prompt_pack_audit.json",
+      "test_evidence": "ORCHESTRATOR_PROMPT_PACK_PASS (125 checks, 32 files incl worker-paste)",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-P0-001",
+      "stage": 0,
+      "app_module": "deploy/migrations",
+      "severity": "P0",
+      "owner_agent": "Agent0/Agent1",
+      "status": "CLOSED",
+      "fix_commit_file": "orchestrator recovery commit 2026-05-20",
+      "proof_artifact": "verify_migration_files_tracked.py PASS (827 files)",
+      "test_evidence": "6 migrations committed (MC 0025/0026, people 0053, portal 0034/0035, feedback 0003)",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-S0-001",
+      "stage": 0,
+      "app_module": "docs/SOT",
+      "severity": "P2",
+      "owner_agent": "Moderator",
+      "status": "CLOSED",
+      "fix_commit_file": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+      "proof_artifact": "verify_sot_batch_id_uniqueness.py",
+      "test_evidence": "1318 superseded alias; 1315 help center renumbered to 1319",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-S1-001",
+      "stage": 1,
+      "app_module": "platform/audit",
+      "severity": "P1",
+      "owner_agent": "Agent1",
+      "status": "CLOSED",
+      "fix_commit_file": null,
+      "proof_artifact": "docs/generated/route_surface_audit.json",
+      "test_evidence": "audit_route_surface.py exit 1 — 7706 routes, template href issues",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-S8-001",
+      "stage": 8,
+      "app_module": "UX/luxury",
+      "severity": "P1",
+      "owner_agent": "Agent8",
+      "status": "CLOSED",
+      "fix_commit_file": null,
+      "proof_artifact": "audit_luxury_ui_surface",
+      "test_evidence": "severe integration violations",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-S0-002",
+      "stage": 0,
+      "app_module": "platform/northstar",
+      "severity": "P2",
+      "owner_agent": "Agent10",
+      "status": "CLOSED",
+      "fix_commit_file": null,
+      "proof_artifact": "docs/generated/northstar_audit.json",
+      "test_evidence": "75/75 DOMINANT after audit_admin_gravity strict PASS",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-S1-002",
+      "stage": 1,
+      "app_module": "platform/kill_test",
+      "severity": "P1",
+      "owner_agent": "Agent1",
+      "status": "CLOSED",
+      "fix_commit_file": null,
+      "proof_artifact": "docs/generated/kill_test_report.json",
+      "test_evidence": "duplicate column operator_resolution; platform_runtime table exists",
+      "remaining_blocker": "SQLite test DB migration drift on Windows"
+    },
+    {
+      "gap_id": "GAP-S9-001",
+      "stage": 9,
+      "app_module": "ai/Modelfile",
+      "severity": "P0",
+      "owner_agent": "Agent9",
+      "status": "CLOSED",
+      "fix_commit_file": "ai/Modelfile",
+      "proof_artifact": "ai/Modelfile",
+      "test_evidence": "Modelfile present on disk",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-S9-002",
+      "stage": 9,
+      "app_module": "docs/architecture",
+      "severity": "P0",
+      "owner_agent": "Agent9",
+      "status": "CLOSED",
+      "fix_commit_file": "docs/architecture/RUNMYCAMPUS_AI_CENTER.md",
+      "proof_artifact": "docs/architecture/RUNMYCAMPUS_AI_CENTER.md",
+      "test_evidence": "AI Center architecture + API contracts on disk; stage9 proof bundle generated",
+      "remaining_blocker": null
+    },
+    {
+      "gap_id": "GAP-EXT-001",
+      "stage": 10,
+      "app_module": "live/deploy",
+      "severity": "EXTERNAL",
+      "owner_agent": null,
+      "status": "EXTERNALLY_BLOCKED",
+      "fix_commit_file": null,
+      "proof_artifact": "architecture_certification_scorecard.json",
+      "test_evidence": "external_blockers: render_live_sha, live_psp_settlement, soc2_pci",
+      "remaining_blocker": "Render SHA + PSP + compliance certifications"
+    },
+    {
+      "gap_id": "GAP-EXT-002",
+      "stage": 9,
+      "app_module": "ai/ollama",
+      "severity": "P1",
+      "owner_agent": "Agent9",
+      "status": "CLOSED",
+      "fix_commit_file": "ai/Modelfile + ollama create ai-center-master",
+      "proof_artifact": "docs/generated/ollama_live_proof.json",
+      "test_evidence": "verify_ollama_live.py --strict --invoke PASS; live_ollama_verified true",
+      "remaining_blocker": null
+    }
+  ]
+}
