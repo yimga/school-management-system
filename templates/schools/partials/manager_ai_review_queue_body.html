@@ -8,6 +8,7 @@
     <div class="d-flex gap-2">
       <a class="btn btn-sm btn-outline-secondary" href="{{ help_center_url }}">{% trans "Help center" %}</a>
       <a class="btn btn-sm btn-outline-primary" href="{{ kb_home_url }}">{% trans "Knowledge base" %}</a>
+      {% if analytics_url %}<a class="btn btn-sm btn-outline-info" href="{{ analytics_url }}">{% trans "Analytics" %}</a>{% endif %}
     </div>
   </div>
 
@@ -33,7 +34,11 @@
           <input type="hidden" name="review_id" value="{{ row.pk }}">
           <input type="text" name="note" class="form-control form-control-sm" style="min-width:12rem;flex:1" placeholder="{% trans 'Resolution note (optional)' %}">
           <button type="submit" name="action" value="publish_kb_draft" class="btn btn-sm btn-primary">{% trans "Create KB draft" %}</button>
-          <button type="submit" name="action" value="resolve" class="btn btn-sm btn-success">{% trans "Resolve" %}</button>
+          {% if row.kb_draft_article_id %}
+          <button type="submit" name="action" value="publish_kb" class="btn btn-sm btn-success">{% trans "Publish draft" %}</button>
+          <a class="btn btn-sm btn-link align-self-center" href="{% url 'kb:kb_article' row.kb_draft_article.slug %}">{% trans "Open draft" %}</a>
+          {% endif %}
+          <button type="submit" name="action" value="resolve" class="btn btn-sm btn-outline-success">{% trans "Resolve" %}</button>
           <button type="submit" name="action" value="dismiss" class="btn btn-sm btn-outline-secondary">{% trans "Dismiss" %}</button>
           {% if row.kb_draft_article_id %}
           <span class="badge text-bg-info align-self-center">{% trans "Draft linked" %}</span>

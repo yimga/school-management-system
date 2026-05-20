@@ -111,6 +111,10 @@
       {% endif %}
       {% endblock %}
     </div>
+    {% if request.user.is_authenticated %}
+      {% include "partials/help_proactive_nudge.html" %}
+      {% include "partials/help_contextual_drawer.html" %}
+    {% endif %}
     {% block cp_shell_after %}{% endblock %}
     {% endblock %}
     {% comment %} Phase E (2026-05-12): AI copilot is mounted on every authenticated shell so
