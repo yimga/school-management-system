@@ -6,18 +6,33 @@
 {% block bodyclass %}{{ block.super }} app-{{ app_label }}{% endblock %}
 
 {% block content %}
-
-<div class="admin-app-index">
-  <div class="admin-app-index__back">
-    <a href="{% url 'admin:index' %}"><span aria-hidden="true">←</span> {% trans "Back to dashboard" %}</a>
+<div class="admin-app-index rmc-admin-app-index" data-rmc-scroll-policy="paginate">
+  <div class="admin-app-index__back mb-2">
+    <a href="{% url 'admin:index' %}" class="text-decoration-none small">
+      <span aria-hidden="true">←</span> {% trans "Back to platform catalog" %}
+    </a>
   </div>
 
-  <h1 class="admin-app-index__title">{{ title }}</h1>
-  <p class="admin-app-index__subtitle">
-    {% blocktranslate with app=app_list.0.name %}Manage {{ app }} models below.{% endblocktranslate %}
+  <h1 class="admin-app-index__title h4 mb-1">{{ title }}</h1>
+  <p class="admin-app-index__subtitle text-muted small mb-3">
+    {% blocktranslate with app=app_list.0.name %}Models in {{ app }}. Open the operator view when available; use changelist for raw CRUD.{% endblocktranslate %}
   </p>
 
-  {% if app_list %}
+  {% if admin_app_index_models %}
+  <div class="rmc-admin-catalog-model-grid mb-3">
+    {% for model in admin_app_index_models %}
+    <div class="rmc-admin-catalog-model-card">
+      <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-name text-decoration-none">{{ model.name }}</a>
+      <span class="rmc-admin-catalog-model-meta">{{ model.object_name }}</span>
+      <div class="rmc-admin-catalog-model-actions">
+        <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
+        {% if model.add_url %}<a href="{{ model.add_url }}">{% trans "Add" %}</a>{% endif %}
+        {% if model.super_url %}<a href="{{ model.super_url }}" class="fw-semibold">{% trans "Operator view" %}</a>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif app_list %}
     {% for app in app_list %}
       {% if app.models %}
         <div class="admin-app-index__grid">
@@ -27,19 +42,16 @@
                 {% if model.admin_url %}
                   <a href="{{ model.admin_url }}" class="admin-app-index__card-link"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>
                     {{ model.name }}
-                    <span class="material-symbols-outlined" style="font-size: var(--type-size-body-l);">chevron_right</span>
                   </a>
                 {% else %}
                   <span class="admin-app-index__card-link">{{ model.name }}</span>
                 {% endif %}
                 <div class="admin-app-index__card-actions">
                   {% if model.add_url %}
-                    <a href="{{ model.add_url }}" class="addlink" title="{% translate 'Add' %}">+ {% trans "Add" %}</a>
+                    <a href="{{ model.add_url }}" class="addlink">+ {% trans "Add" %}</a>
                   {% endif %}
-                  {% if model.admin_url and model.add_url %}
-                    <a href="{{ model.admin_url }}" title="{% translate 'Change' %}">{% trans "View / Edit" %}</a>
-                  {% elif model.admin_url %}
-                    <a href="{{ model.admin_url }}" title="{% translate 'Change' %}">{% trans "Open" %}</a>
+                  {% if model.admin_url %}
+                    <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
                   {% endif %}
                 </div>
               </div>
@@ -47,11 +59,11 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="admin-app-index__empty">{% trans "You don't have permission to view or edit anything in this app." %}</p>
+        <p class="admin-app-index__empty text-muted">{% trans "You don't have permission to view or edit anything in this app." %}</p>
       {% endif %}
     {% endfor %}
   {% else %}
-    <p class="admin-app-index__empty">{% trans "You don't have permission to view or edit anything." %}</p>
+    <p class="admin-app-index__empty text-muted">{% trans "You don't have permission to view or edit anything." %}</p>
   {% endif %}
 </div>
 {% endblock %}

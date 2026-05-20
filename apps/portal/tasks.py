@@ -228,6 +228,21 @@ def help_north_star_weekly_email(days: int = 7) -> dict[str, Any]:
         return {"ok": False, "error": str(exc)}
 
 
+@shared_task(name="portal.notify_forum_reply")
+def notify_forum_reply_task(reply_id: int, topic_url: str = "") -> dict[str, Any]:
+    """Email topic followers when a new forum reply is posted (batch 1360)."""
+    try:
+        from apps.portal.forum_notifications import send_forum_reply_notifications
+
+        return send_forum_reply_notifications(reply_id, topic_url=topic_url)
+    except Exception as exc:
+        log_exception_with_context(
+            "portal.notify_forum_reply failed",
+            route=f"forum_reply:{reply_id}",
+        )
+        return {"sent": 0, "skipped": 0, "errors": 1, "error": str(exc)}
+
+
 @shared_task(name="portal.archive_stale_kb_articles_monthly")
 def archive_stale_kb_articles_monthly(limit: int = 50) -> dict[str, Any]:
     """Auto-archive unhelpful published KB articles (batch 1356)."""

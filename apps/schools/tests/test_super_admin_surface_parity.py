@@ -77,6 +77,21 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertGreaterEqual(len(admin_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 4)
         self.assertEqual(admin_ctx["RMC_OPERATOR_PAIRED_LINKS"], [])
 
+    def test_manager_admin_changelist_exposes_paired_operator_view(self):
+        from django.test import RequestFactory
+        from django.urls import resolve, reverse
+
+        admin_url_name = "admin:integrations_marketplace_integration_changelist"
+        path = reverse(admin_url_name)
+        request = RequestFactory().get(path, HTTP_HOST=self.host)
+        request.user = self.user
+        request.public_host_kind = "manager"
+        request.resolver_match = resolve(path)
+        admin_ctx = build_operator_surface_ia_context(request)
+        self.assertGreaterEqual(len(admin_ctx["RMC_OPERATOR_PAIRED_LINKS"]), 1)
+        labels = [link.label for link in admin_ctx["RMC_OPERATOR_PAIRED_LINKS"]]
+        self.assertTrue(any("operator" in lbl.lower() for lbl in labels))
+
     def test_workspace_spine_links_carry_icons(self):
         request = self.client.get("/super/", HTTP_HOST=self.host).wsgi_request
         request.user = self.user

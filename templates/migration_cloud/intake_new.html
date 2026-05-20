@@ -1,11 +1,22 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n static %}
 
-{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_title %}{{ page_title }}{% endblock %}
+{% block cp_page_archetype %}operational-workbench{% endblock %}
 
-{% block cp_shell_page %}
-<main class="rmc-page rmc-page--migration-cloud-intake" id="main">
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/migration-cloud-intake-premium.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<main class="rmc-page rmc-page--migration-cloud-intake rmc-intake-v2" id="main" data-mc-intake-v2>
   <header class="rmc-page__header rmc-intake-hero" data-mc-intake-command-center>
+    <div class="rmc-intake-hero__visual" aria-hidden="true">
+      <div class="rmc-intake-hero__orb">
+        <i class="bi bi-cloud-upload" aria-hidden="true"></i>
+      </div>
+    </div>
     <div class="rmc-intake-hero__copy">
       <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
          class="rmc-back">{% trans "Back to all migrations" %}</a>
@@ -28,6 +39,14 @@
         <span>{% trans "dedupe key" %}</span>
       </div>
     </div>
+    <div class="rmc-intake-hero__pipeline" aria-label="{% trans 'Post-intake pipeline' %}">
+      {% for step in pipeline_steps %}
+        <span class="rmc-intake-hero__pipe-step">
+          <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+          {{ step.label }}
+        </span>
+      {% endfor %}
+    </div>
   </header>
 
   {% if errors %}
@@ -47,6 +66,38 @@
   </div>
   {% endif %}
 
+  <nav class="rmc-intake-stepper" aria-label="{% trans 'Migration intake steps' %}" data-mc-intake-stepper>
+    <div class="rmc-intake-stepper__track" aria-hidden="true">
+      <span class="rmc-intake-stepper__fill" data-mc-stepper-fill style="width: 0%"></span>
+    </div>
+    <ol class="rmc-intake-stepper__list">
+      <li>
+        <a href="#mc-source-path-title" class="rmc-intake-stepper__link is-active" data-mc-step="1" data-mc-step-key="source">
+          {% trans "Source" %}
+          <span class="rmc-intake-stepper__hint">{% trans "Upload, URL, or live staging" %}</span>
+        </a>
+      </li>
+      <li>
+        <a href="#mc-classifier-title" class="rmc-intake-stepper__link" data-mc-step="2" data-mc-step-key="context">
+          {% trans "Context" %}
+          <span class="rmc-intake-stepper__hint">{% trans "Label, vendor hint, SLA" %}</span>
+        </a>
+      </li>
+      <li>
+        <a href="#mc-guardrails-title" class="rmc-intake-stepper__link" data-mc-step="3" data-mc-step-key="guardrails">
+          {% trans "Guardrails" %}
+          <span class="rmc-intake-stepper__hint">{% trans "Expected row totals" %}</span>
+        </a>
+      </li>
+      <li>
+        <a href="#mc-safety-title" class="rmc-intake-stepper__link" data-mc-step="4" data-mc-step-key="safety">
+          {% trans "Safety" %}
+          <span class="rmc-intake-stepper__hint">{% trans "Diff mode and rollback" %}</span>
+        </a>
+      </li>
+    </ol>
+  </nav>
+
   <div class="rmc-intake-layout">
     <form method="post"
           action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}"
@@ -57,38 +108,41 @@
           data-mc-max-upload-bytes="{{ max_upload_bytes }}">
       {% csrf_token %}
 
-      <section class="rmc-intake-panel rmc-intake-panel--source-id"
+      <details class="rmc-intake-panel rmc-intake-panel--source-id rmc-intake-panel--collapsible"
                id="mc-vendor-from-image"
                data-mc-source-identify-panel
                data-mc-vendor-from-image-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:ai_vendor_from_image' %}{% else %}{% url 'migration_cloud_super:ai_vendor_from_image' %}{% endif %}"
-               data-mc-vendor-csrf="{{ csrf_token }}"
-               aria-labelledby="mc-source-id-title">
-        <div class="rmc-intake-panel__head">
-          <div>
-            <p class="rmc-intake-eyebrow">{% trans "Source intelligence" %}</p>
-            <h2 class="rmc-h2" id="mc-source-id-title">{% trans "Not sure what exported the data?" %}</h2>
+               data-mc-vendor-csrf="{{ csrf_token }}">
+        <summary>
+          <div class="rmc-intake-panel__head">
+            <div>
+              <p class="rmc-intake-eyebrow">{% trans "Source intelligence" %}</p>
+              <h2 class="rmc-h2" id="mc-source-id-title">{% trans "Not sure what exported the data?" %}</h2>
+            </div>
+            <span class="rmc-pill">{% trans "Optional" %}</span>
           </div>
-          <span class="rmc-pill">{% trans "Optional" %}</span>
-        </div>
-        <div class="rmc-intake-source-id__grid">
-          <p class="rmc-form__help">
-            {% trans "Upload a screenshot or PDF from the old system. OCR runs first, then the source hint is filled when the vendor is clear." %}
-          </p>
-          <div class="rmc-intake-source-id__actions">
-            <input type="file"
-                   name="image"
-                   accept="image/*,.pdf"
-                   class="rmc-input rmc-input--file"
-                   data-mc-vendor-image-input>
-            <button type="button" class="rmc-btn rmc-btn--primary rmc-btn--sm" data-mc-vendor-image-submit>
-              {% trans "Identify source" %}
-            </button>
+        </summary>
+        <div class="rmc-intake-panel__body">
+          <div class="rmc-intake-source-id__grid">
+            <p class="rmc-form__help">
+              {% trans "Upload a screenshot or PDF from the old system. OCR runs first, then the source hint is filled when the vendor is clear." %}
+            </p>
+            <div class="rmc-intake-source-id__actions">
+              <input type="file"
+                     name="image"
+                     accept="image/*,.pdf"
+                     class="rmc-input rmc-input--file"
+                     data-mc-vendor-image-input>
+              <button type="button" class="rmc-btn rmc-btn--primary rmc-btn--sm" data-mc-vendor-image-submit>
+                {% trans "Identify source" %}
+              </button>
+            </div>
           </div>
+          <p class="rmc-mapping__status" data-mc-vendor-from-image-result role="status" aria-live="polite"></p>
         </div>
-        <p class="rmc-mapping__status" data-mc-vendor-from-image-result role="status" aria-live="polite"></p>
-      </section>
+      </details>
 
-      <section class="rmc-intake-panel" aria-labelledby="mc-source-path-title">
+      <section class="rmc-intake-panel" data-mc-intake-step-panel="source" aria-labelledby="mc-source-path-title">
         <div class="rmc-intake-panel__head">
           <div>
             <p class="rmc-intake-eyebrow">{% trans "Step 1" %}</p>
@@ -114,7 +168,7 @@
 
         <label class="rmc-form__field rmc-intake-method-select">
           <span class="rmc-form__label">{% trans "Exact intake method" %}</span>
-          <select name="intake_method" id="mc-intake-method" class="rmc-input rmc-input--select" required>
+          <select name="intake_method" id="mc-intake-method" class="rmc-input rmc-input--select rmc-prefs-select" required>
             {% for m in intake_methods %}
               <option value="{{ m.value }}"
                       data-kind="{{ m.kind }}"
@@ -155,7 +209,8 @@
                    value="{{ form.intake_source_uri|default:'' }}"
                    placeholder="https://exports.example.edu/sis-export.zip"
                    class="rmc-input rmc-input--text"
-                   autocomplete="off">
+                   autocomplete="off"
+                   data-mc-intake-field="url">
             <small class="rmc-form__help">{% trans "Supported schemes: http://, https://, sftp://, and s3://." %}</small>
           </label>
         </div>
@@ -171,7 +226,7 @@
         </div>
       </section>
 
-      <section class="rmc-intake-panel" aria-labelledby="mc-classifier-title">
+      <section class="rmc-intake-panel" data-mc-intake-step-panel="context" aria-labelledby="mc-classifier-title">
         <div class="rmc-intake-panel__head">
           <div>
             <p class="rmc-intake-eyebrow">{% trans "Step 2" %}</p>
@@ -187,7 +242,8 @@
                    value="{{ form.label|default:'' }}"
                    placeholder="{% trans 'Sept 2026 cutover from legacy SIS' %}"
                    class="rmc-input rmc-input--text"
-                   maxlength="200">
+                   maxlength="200"
+                   data-mc-intake-field="label">
           </label>
 
           <label class="rmc-form__field">
@@ -198,7 +254,8 @@
                    placeholder="{% trans 'powerschool / blackbaud / custom / blank' %}"
                    class="rmc-input rmc-input--text"
                    maxlength="200"
-                   list="mc-source-suggestions">
+                   list="mc-source-suggestions"
+                   data-mc-intake-field="hint">
             <datalist id="mc-source-suggestions">
               <option value="powerschool">
               <option value="blackbaud">
@@ -214,7 +271,7 @@
 
           <label class="rmc-form__field">
             <span class="rmc-form__label">{% trans "Size / SLA tier" %}</span>
-            <select name="sla_tier" class="rmc-input rmc-input--select">
+            <select name="sla_tier" class="rmc-input rmc-input--select rmc-prefs-select" data-mc-intake-field="sla">
               {% for value, label in sla_tiers %}
                 <option value="{{ value }}"
                         {% if form.sla_tier == value or not form.sla_tier and value == default_sla_tier %}selected{% endif %}>
@@ -233,7 +290,8 @@
                    placeholder="{% trans 'blank = pre-tenant staging' %}"
                    class="rmc-input rmc-input--text"
                    inputmode="numeric"
-                   pattern="[0-9]*">
+                   pattern="[0-9]*"
+                   data-mc-intake-field="school">
             <small class="rmc-form__help">{% trans "Bind now if the tenant exists, or leave blank and bind after provisioning." %}</small>
           </label>
           {% endif %}
@@ -242,7 +300,7 @@
 
       {% include "migration_cloud/_canonical_template_panel.html" %}
 
-      <section class="rmc-intake-panel" aria-labelledby="mc-guardrails-title">
+      <section class="rmc-intake-panel" data-mc-intake-step-panel="guardrails" aria-labelledby="mc-guardrails-title">
         <div class="rmc-intake-panel__head">
           <div>
             <p class="rmc-intake-eyebrow">{% trans "Step 3" %}</p>
@@ -254,25 +312,25 @@
         <div class="rmc-form__grid">
           <label class="rmc-form__field">
             <span class="rmc-form__label">{% trans "Expected students" %}</span>
-            <input type="text" name="expected_students_count" value="{{ form.expected_students_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="1240">
+            <input type="text" name="expected_students_count" value="{{ form.expected_students_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="1240" data-mc-intake-field="guardrail">
           </label>
           <label class="rmc-form__field">
             <span class="rmc-form__label">{% trans "Expected guardians" %}</span>
-            <input type="text" name="expected_guardians_count" value="{{ form.expected_guardians_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="2480">
+            <input type="text" name="expected_guardians_count" value="{{ form.expected_guardians_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="2480" data-mc-intake-field="guardrail">
           </label>
           <label class="rmc-form__field">
             <span class="rmc-form__label">{% trans "Expected invoices" %}</span>
-            <input type="text" name="expected_invoice_count" value="{{ form.expected_invoice_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="860">
+            <input type="text" name="expected_invoice_count" value="{{ form.expected_invoice_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="860" data-mc-intake-field="guardrail">
           </label>
           <label class="rmc-form__field">
             <span class="rmc-form__label">{% trans "Expected invoice total" %}</span>
-            <input type="text" name="expected_invoice_total_amount" value="{{ form.expected_invoice_total_amount|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="125000.00">
+            <input type="text" name="expected_invoice_total_amount" value="{{ form.expected_invoice_total_amount|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="125000.00" data-mc-intake-field="guardrail">
           </label>
         </div>
         <p class="rmc-form__help">{% trans "These totals are stored on the bundle and checked before live apply. Leave fields blank when the source does not provide reliable totals." %}</p>
       </section>
 
-      <section class="rmc-intake-panel" aria-labelledby="mc-safety-title">
+      <section class="rmc-intake-panel" data-mc-intake-step-panel="safety" aria-labelledby="mc-safety-title">
         <div class="rmc-intake-panel__head">
           <div>
             <p class="rmc-intake-eyebrow">{% trans "Step 4" %}</p>
@@ -283,7 +341,7 @@
         <div class="rmc-form__grid">
           <label class="rmc-form__field">
             <span class="rmc-form__label">{% trans "Ingest mode" %}</span>
-            <select name="diff_mode" class="rmc-input rmc-input--select" data-mc-diff-mode>
+            <select name="diff_mode" class="rmc-input rmc-input--select rmc-prefs-select" data-mc-diff-mode>
               <option value="full" {% if form.diff_mode != 'since' %}selected{% endif %}>{% trans "Full re-ingest" %}</option>
               <option value="since" {% if form.diff_mode == 'since' %}selected{% endif %}>{% trans "Only rows changed since date" %}</option>
             </select>
@@ -294,7 +352,7 @@
           </label>
           <label class="rmc-form__field">
             <span class="rmc-form__label">{% trans "Rollback if parity falls below" %}</span>
-            <input type="text" name="parity_drift_rollback_pct" value="{{ form.parity_drift_rollback_pct|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="98.5">
+            <input type="text" name="parity_drift_rollback_pct" value="{{ form.parity_drift_rollback_pct|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="98.5" data-mc-intake-field="rollback">
           </label>
         </div>
 
@@ -314,6 +372,7 @@
         <div>
           <strong>{% trans "Ready to create the bundle" %}</strong>
           <p data-mc-submit-summary>{% trans "The source will be fingerprinted, staged, and opened in the mapping workspace." %}</p>
+          <p class="mb-0"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> {% trans "to submit when the form is valid" %}</p>
         </div>
         <div class="rmc-form__actions">
           <button type="submit" class="rmc-btn rmc-btn--primary" data-mc-submit-label>{% trans "Create bundle and start" %}</button>
@@ -323,7 +382,23 @@
       </div>
     </form>
 
-    <aside class="rmc-intake-sidecar" aria-label="{% trans 'Intake readiness' %}">
+    <aside class="rmc-intake-sidecar" aria-label="{% trans 'Intake readiness' %}" data-mc-intake-sidecar>
+      <div class="rmc-intake-readiness" data-mc-readiness-card>
+        <div class="d-flex justify-content-between align-items-baseline gap-2">
+          <h2 class="rmc-h2 mb-0">{% trans "Intake readiness" %}</h2>
+          <span class="rmc-intake-readiness__score" data-mc-readiness-score>0%</span>
+        </div>
+        <div class="rmc-intake-readiness__meter" aria-hidden="true">
+          <span class="rmc-intake-readiness__fill" data-mc-readiness-fill style="width: 0%"></span>
+        </div>
+        <ul class="rmc-intake-readiness__list" data-mc-readiness-list>
+          <li data-mc-readiness-item="source"><i class="bi bi-circle" aria-hidden="true"></i><span>{% trans "Source path selected" %}</span></li>
+          <li data-mc-readiness-item="context"><i class="bi bi-circle" aria-hidden="true"></i><span>{% trans "Migration label provided" %}</span></li>
+          <li data-mc-readiness-item="payload"><i class="bi bi-circle" aria-hidden="true"></i><span data-mc-readiness-payload-label>{% trans "Files or remote URI attached" %}</span></li>
+          <li data-mc-readiness-item="safety"><i class="bi bi-circle" aria-hidden="true"></i><span>{% trans "Safety options reviewed" %}</span></li>
+        </ul>
+      </div>
+
       <section class="rmc-intake-panel rmc-intake-panel--side">
         <h2 class="rmc-h2">{% trans "Source readiness" %}</h2>
         <ul class="rmc-intake-checklist">

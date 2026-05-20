@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views_ai_surfaces as _ai_surfaces
+from . import views_forums
 
 from .views import (
     badge_verify,
@@ -177,6 +178,14 @@ urlpatterns = [
     path("api/offline/process/", api_offline_process, name="api_offline_process"),
     # Backwards compatibility: older templates and tests expect 'parent_performance'
     path("parent/performance/", parent_child_results, name="parent_performance"),
+    path("forums/", views_forums.forum_home, name="forum_home"),
+    path("forums/new/", views_forums.forum_new_topic, name="forum_new_topic"),
+    path(
+        "forums/category/<slug:category_slug>/",
+        views_forums.forum_category,
+        name="forum_category",
+    ),
+    path("forums/topic/<int:topic_id>/", views_forums.forum_topic, name="forum_topic"),
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),
     path("parent/stats/", portal_stats, name="portal_stats"),
     path("syllabus/", portal_syllabus, name="portal_syllabus"),

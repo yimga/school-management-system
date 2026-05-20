@@ -13,7 +13,12 @@
     {% endfor %}
   </ul>
   {% endif %}
-  <div class="cp-platform-admin-app-tree min-h-0 overflow-auto">
+  <div class="rmc-sidebar-catalog-search px-1 mb-2">
+    <label class="visually-hidden" for="rmcSidebarCatalogSearch">{% trans "Filter apps and models" %}</label>
+    <input type="search" id="rmcSidebarCatalogSearch" class="form-control form-control-sm" data-rmc-sidebar-catalog-search placeholder="{% trans 'Filter models…' %}" autocomplete="off">
+    <p class="rmc-sidebar-catalog-empty small text-muted mb-0 mt-1" data-rmc-sidebar-catalog-empty hidden>{% trans "No matches" %}</p>
+  </div>
+  <div class="cp-platform-admin-app-tree min-h-0 overflow-auto" data-rmc-platform-admin-app-tree>
     {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False platform_admin_sidebar_embed=True %}
   </div>
 </nav>

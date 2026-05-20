@@ -6,6 +6,9 @@
     "templates/admin/automation/migrationrun/change_form.html",
     "templates/admin/base.html",
     "templates/admin/base_site.html",
+    "templates/admin/change_form.html",
+    "templates/admin/change_list.html",
+    "templates/admin/change_list_object_tools.html",
     "templates/admin/compliance/compliancerule/change_form.html",
     "templates/admin/compliance/consentrecord/change_form.html",
     "templates/admin/compliance/consentrequest/change_form.html",
@@ -22,7 +25,10 @@
     "templates/admin/components/theme_preview_section.html",
     "templates/admin/extra_user_links.html",
     "templates/admin/global_registries/change_list.html",
+    "templates/admin/includes/admin_change_form_header.html",
+    "templates/admin/includes/admin_changelist_header.html",
     "templates/admin/includes/admin_operator_outcome_deck.html",
+    "templates/admin/includes/admin_operator_steering_strip.html",
     "templates/admin/includes/model_count_badge.html",
     "templates/admin/includes/operator_path_banner.html",
     "templates/admin/includes/tenant_admin_decision_banner.html",
@@ -329,7 +335,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-20T11:34:06.137859+00:00",
+  "generated_at": "2026-05-20T12:40:09.036401+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -403,7 +409,7 @@
       733
     ],
     "apps/siteconfig/forms.py": [
-      1481
+      1518
     ],
     "apps/siteconfig/management/commands/crawl_admin_changelists.py": [
       95
@@ -677,9 +683,9 @@
       67
     ],
     "apps/schools/super_views_config.py": [
-      71,
-      78,
-      359
+      77,
+      84,
+      370
     ],
     "apps/schools/super_views_enterprise_security.py": [
       455,
@@ -1099,9 +1105,9 @@
     "apps/schools/super_views_config.py": {
       "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        71,
-        78,
-        359
+        77,
+        84,
+        370
       ]
     },
     "apps/schools/super_views_enterprise_security.py": {
@@ -1620,9 +1626,9 @@
     },
     "apps/schools/super_views_config.py": {
       "line_numbers": [
-        71,
-        78,
-        359
+        77,
+        84,
+        370
       ],
       "v2": "needs_model_service_support"
     },
@@ -2000,9 +2006,9 @@
         },
         {
           "lines": [
-            71,
-            78,
-            359
+            77,
+            84,
+            370
           ],
           "path": "apps/schools/super_views_config.py",
           "v2": "needs_model_service_support"
@@ -2479,7 +2485,7 @@
         },
         {
           "lines": [
-            12
+            11
           ],
           "path": "templates/admin/app_index.html",
           "straggler_class": "admin_fallback_only"
@@ -2494,9 +2500,23 @@
         {
           "lines": [
             42,
-            45
+            44
           ],
           "path": "templates/admin/base.html",
+          "straggler_class": "admin_fallback_only"
+        },
+        {
+          "lines": [
+            6
+          ],
+          "path": "templates/admin/change_form.html",
+          "straggler_class": "admin_fallback_only"
+        },
+        {
+          "lines": [
+            7
+          ],
+          "path": "templates/admin/change_list.html",
           "straggler_class": "admin_fallback_only"
         },
         {
@@ -2521,8 +2541,10 @@
         },
         {
           "lines": [
-            69,
-            72
+            58,
+            59,
+            112,
+            137
           ],
           "path": "templates/admin/index_superadmin.html",
           "straggler_class": "admin_fallback_only"
@@ -2783,7 +2805,7 @@
       "permission_and_admin_or_bridge": 31,
       "redirect_or_link_to_admin": 32
     },
-    "admin_template_files": 68,
+    "admin_template_files": 74,
     "admin_url_namespaces_by_app_label_segment": {
       "academics": 22,
       "accounts": 4,
@@ -2813,7 +2835,8 @@
       "runtime": 13,
       "sales": 2,
       "schools": 9,
-      "siteconfig": 42
+      "siteconfig": 42,
+      "system": 1
     },
     "approx_product_code_lines_with_admin_substring": 593,
     "approx_register_calls_in_admin_py": 0,
@@ -2836,7 +2859,7 @@
       "entity_catalog_template_order": "pass",
       "metadata_console_order": "pass"
     },
-    "template_files_mentioning_admin_url_or_href": 27
+    "template_files_mentioning_admin_url_or_href": 29
   },
   "template_admin_url_reference_hits": {
     "templates/admin/admin_dashboard.html": [
@@ -2844,14 +2867,20 @@
       247
     ],
     "templates/admin/app_index.html": [
-      12
+      11
     ],
     "templates/admin/app_list.html": [
       23
     ],
     "templates/admin/base.html": [
       42,
-      45
+      44
+    ],
+    "templates/admin/change_form.html": [
+      6
+    ],
+    "templates/admin/change_list.html": [
+      7
     ],
     "templates/admin/index.html": [
       411,
@@ -2870,8 +2899,10 @@
       500
     ],
     "templates/admin/index_superadmin.html": [
-      69,
-      72
+      58,
+      59,
+      112,
+      137
     ],
     "templates/admin/index_tenant.html": [
       53,
@@ -2997,7 +3028,7 @@
       703
     ],
     "apps/siteconfig/forms.py": [
-      1481
+      1518
     ],
     "apps/siteconfig/models.py": [
       1822

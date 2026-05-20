@@ -411,7 +411,14 @@ def pulse_survey(request):
 def voice_of_customer(request):
     if not is_operator(request.user):
         return redirect("accounts:redirect")
-    qs = FeedbackSubmission.objects.select_related("school", "user", "assigned_to")
+    from .db_readiness import (
+        feature_request_queryset,
+        feedback_schema_ready,
+        feedback_submission_queryset,
+    )
+
+    schema_ready = feedback_schema_ready()
+    qs = feedback_submission_queryset().select_related("school", "user", "assigned_to")
     base_qs = qs
     if request.GET.get("status"):
         qs = qs.filter(status=request.GET["status"])
@@ -425,9 +432,18 @@ def voice_of_customer(request):
         request,
         "feedback/voice_of_customer.html",
         {
-            "feedback_items": qs[:100],
-            "feature_requests": FeatureRequest.objects.select_related("school").all()[:100],  # tenant-isolation-allow: voice-of-customer-operator-cross-tenant
-            "roadmap_candidates": RoadmapItem.objects.filter(status=RoadmapItem.Status.UNDER_REVIEW)[:50],
+            "feedback_items": list(qs[:100]),
+            "feature_requests": list(
+                feature_request_queryset()
+                .select_related("school")
+                .all()[:100]  # tenant-isolation-allow: voice-of-customer-operator-cross-tenant
+            ),
+            "feedback_schema_pending": not schema_ready,
+            "roadmap_candidates": list(
+                RoadmapItem.objects.filter(status=RoadmapItem.Status.UNDER_REVIEW)[:50]
+            )
+            if schema_ready
+            else [],
             "by_school": summarize_feedback_by_school(),
             "by_role": summarize_feedback_by_role(),
             "pain_points": top_pain_points(),
@@ -611,12 +627,16 @@ def help_center(request):
         }
     except Exception:
         pass
+    from apps.portal.help_unified_hub import tenant_community_lane
+
+    community_lane = tenant_community_lane(request)
     return render(
         request,
         "feedback/help_center.html",
         {
             "role": role,
             "school": school,
+            "community_lane": community_lane,
             "is_operator": is_op,
             "can_request_features": can_request_features,
             "release_notes": recent_release_notes,

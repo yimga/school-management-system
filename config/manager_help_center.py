@@ -13,10 +13,16 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from apps.feedback.form_widgets import apply_bootstrap_form_styles
+from apps.feedback.db_readiness import (
+    feature_request_queryset,
+    feedback_schema_ready,
+    open_feature_request_count,
+)
 from apps.feedback.forms import FeatureRequestForm
 from apps.feedback.models import FeatureRequest
 from apps.feedback.services import submit_feature_request, support_entry_points
 from apps.schools.control_plane import require_control_plane_access
+from apps.portal.help_unified_hub import operator_public_kb_lane
 from apps.schools.operator_help_signals import operator_help_signal_bundle
 from apps.schools.operator_report_render import render_manager_report_page
 
@@ -41,6 +47,17 @@ def _engage_actions() -> list[dict]:
             "accent": "primary",
             "url": _link("manager_feature_center"),
             "cta": _("Open feature center"),
+        },
+        {
+            "id": "public-kb",
+            "title": _("Public help corpus"),
+            "description": _(
+                "Sovereign marketing KB — featured runbooks and semantic search on runmycampus.com."
+            ),
+            "icon": "bi-globe2",
+            "accent": "success",
+            "url": _link("marketing_kb_search"),
+            "cta": _("Search public KB"),
         },
         {
             "id": "help-analytics",
@@ -245,6 +262,19 @@ def manager_help_center(request):
     if request.method == "POST" and request.POST.get("form_kind") == "feature_quick":
         feature_quick_form = FeatureRequestForm(request.POST)
         apply_bootstrap_form_styles(feature_quick_form)
+        if not feedback_schema_ready():
+            messages.warning(
+                request,
+                str(
+                    _(
+                        "Feature requests are temporarily unavailable while database "
+                        "migrations finish. Try again shortly or contact platform support."
+                    )
+                ),
+            )
+            from django.shortcuts import redirect
+
+            return redirect("manager_help_center")
         if feature_quick_form.is_valid():
             submit_feature_request(
                 school=None,
@@ -273,16 +303,10 @@ def manager_help_center(request):
             return redirect("manager_help_center")
 
     recent_features = list(
-        FeatureRequest.objects.filter(submitted_by=request.user).order_by("-created_at")[:5]
+        feature_request_queryset()
+        .filter(submitted_by=request.user)
+        .order_by("-created_at")[:5]
     )
-    open_feature_count = FeatureRequest.objects.filter(
-        status__in=[
-            FeatureRequest.Status.SUBMITTED,
-            FeatureRequest.Status.TRIAGING,
-            FeatureRequest.Status.UNDER_REVIEW,
-            FeatureRequest.Status.NEEDS_MORE_INFO,
-        ]
-    ).count()
 
     return render_manager_report_page(
         request,
@@ -296,11 +320,13 @@ def manager_help_center(request):
             "support_links": support_links,
             "feature_quick_form": feature_quick_form,
             "recent_features": recent_features,
-            "open_feature_count": open_feature_count,
+            "open_feature_count": open_feature_request_count(),
+            "feedback_schema_pending": not feedback_schema_ready(),
             "feature_center_url": _link("manager_feature_center"),
             "contact_us_url": _link("manager_contact_us"),
             "ai_review_url": _link("manager_ai_review_queue"),
             "analytics_url": _link("manager_help_analytics"),
+            "public_kb_lane": operator_public_kb_lane(),
         },
         page_title=str(_("Help center")),
         page_archetype="decision-console",

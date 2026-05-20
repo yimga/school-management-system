@@ -1,11 +1,11 @@
 # Admin gravity audit (generated)
 
-**UTC** `2026-05-20T11:34:06.137859+00:00`  
+**UTC** `2026-05-20T12:40:09.036401+00:00`  
 
 | Metric | Value |
 | --- | --- |
 | approx `admin.site.register` calls | 0 |
-| custom admin template files | 68 |
+| custom admin template files | 74 |
 | product files w/ admin bridge hints | 67 |
 | product files w/ `admin:metadata` references | 6 |
 | approx product `admin.` reference lines (non-migration) | 593 |

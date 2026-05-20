@@ -42,6 +42,19 @@ html[data-surface="control-plane"] [data-rmc-page-fold-nav="required"] .feature-
   overflow: visible;
 }
 
+/* Shell scroll isolation: tables scroll inside main, not the document body */
+.rmc-shell-main,
+.portal-main-col.rmc-shell-main,
+.cp-main-col.rmc-shell-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.rmc-shell-main .table-responsive {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 .rmc-task-pager {
   border-top: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
   padding-top: 0.5rem;

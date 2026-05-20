@@ -28,7 +28,7 @@
 
             {% block messages %}
                 <div class="px-4">
-                    <div class="{% if not cl.model_admin.list_fullwidth %}container{% endif %} mx-auto">
+                    <div class="{% if is_manager_host %}w-100{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto">
                         {% include "unfold/helpers/messages.html" %}
                     </div>
                 </div>
@@ -36,17 +36,14 @@
 
             {% block admin_breadcrumbs %}
             {% if not is_popup %}
-            <nav aria-label="{% trans 'Breadcrumb' %}" class="px-4 pt-1 pb-2">
-                <div class="{% if not cl.model_admin.list_fullwidth %}container{% endif %} mx-auto">
-                    <ol class="breadcrumb mb-0 flex flex-wrap items-center gap-1 text-sm text-base-600 dark:text-base-400">
+            <nav aria-label="{% trans 'Breadcrumb' %}" class="px-4 pt-1 pb-2 rmc-admin-breadcrumb-nav">
+                <div class="{% if is_manager_host %}w-100{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto">
+                    <ol class="breadcrumb rmc-admin-breadcrumb mb-0 flex flex-wrap items-center gap-1 text-sm text-base-600 dark:text-base-400">
                         <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% if is_manager_host %}{% trans 'Platform Backoffice' %}{% else %}{% trans 'Admin' %}{% endif %}</a></li>
                         {% if opts %}
-                            <li class="breadcrumb-item"><span class="mx-1">/</span></li>
-                            <li class="breadcrumb-item"><a href="{% url 'admin:app_list' opts.app_label %}" class="hover:text-primary dark:hover:text-primary">{{ opts.app_label|title }}</a></li>
-                            <li class="breadcrumb-item"><span class="mx-1">/</span></li>
-                            <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ opts.verbose_name_plural|default:title }}</li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin:app_list' opts.app_label %}" class="hover:text-primary dark:hover:text-primary">{{ opts.app_config.verbose_name|default:opts.app_label|title }}</a></li>
+                            <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ opts.verbose_name_plural|capfirst|default:title }}</li>
                         {% elif app_list and title %}
-                            <li class="breadcrumb-item"><span class="mx-1">/</span></li>
                             <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ title }}</li>
                         {% endif %}
                     </ol>
@@ -56,7 +53,7 @@
             {% endblock admin_breadcrumbs %}
 
             <div class="@container px-4 pb-4 grow min-h-0 min-w-0">
-                <div id="content" class="{% if not cl.model_admin.list_fullwidth %}container{% endif %} mx-auto {% block coltype %}colM{% endblock %}" data-page-archetype="decision-console" data-decision-console-scope="django-admin">
+                <div id="content" class="{% if is_manager_host %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto {% block coltype %}colM{% endblock %}" data-page-archetype="decision-console" data-decision-console-scope="django-admin">
                     {% block content_tabs %}
                         {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
                             <div class="site-settings-layout flex flex-col lg:flex-row gap-4 lg:gap-6">
@@ -74,11 +71,11 @@
                     {% block content %}
                         {% if not is_popup %}
                             {% if is_manager_host %}
-                                {% include "admin/includes/operator_path_banner.html" %}
+                                {% include "admin/includes/admin_operator_steering_strip.html" %}
                             {% elif request.user.is_authenticated %}
                                 {% include "admin/includes/tenant_admin_decision_banner.html" %}
+                                {% include "admin/includes/admin_operator_outcome_deck.html" %}
                             {% endif %}
-                            {% include "admin/includes/admin_operator_outcome_deck.html" %}
                         {% endif %}
                         {% block object-tools %}{% endblock %}
 

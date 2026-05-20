@@ -198,6 +198,14 @@ class WeatherLocation(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
     timezone = models.CharField(max_length=64, default="UTC")
+    catalog_source_id = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        unique=True,
+        db_index=True,
+        help_text="Stable geonames (or catalog) identifier for API lookups.",
+    )
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -205,7 +213,6 @@ class WeatherLocation(models.Model):
 
     class Meta:
         ordering = ["region__name", "sort_order", "city"]
-        unique_together = [("region", "city")]
 
     def __str__(self):
         return self.display_label
@@ -322,9 +329,140 @@ class WeatherLocation(models.Model):
         ]
 
     @classmethod
+    def sync_from_global_catalog(cls, *, batch_size: int = 2000) -> dict[str, int]:
+        """
+        Persist the full geonames city catalog (and all ISO countries) into RegionConfig
+        + WeatherLocation so header-weather works even when in-process geonamescache
+        is unavailable on a given worker.
+        """
+        from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+        if not GlobalGeoCatalog.has_live_catalog():
+            return {"countries": 0, "cities_created": 0, "cities_updated": 0, "skipped": True}
+
+        region_model = django_apps.get_model("siteconfig", "RegionConfig")
+        countries_created = 0
+        for country in GlobalGeoCatalog.list_countries():
+            code = country["code"]
+            defaults = GlobalGeoCatalog.country_defaults(code)
+            _, created = region_model.objects.get_or_create(
+                code=code,
+                defaults={
+                    "name": defaults["country_name"] or code,
+                    "default_language": defaults["default_language"] or "en",
+                    "timezone": defaults["timezone"] or "UTC",
+                    "date_format": "DD/MM/YYYY",
+                    "grading_scale": "0-100",
+                    "default_currency": defaults["currency"] or "USD",
+                    "academic_year_start_month": 9,
+                    "term_count_per_year": 3,
+                },
+            )
+            if created:
+                countries_created += 1
+
+        country_index, _, _ = GlobalGeoCatalog._build_city_indexes()
+        for code in country_index.keys():
+            defaults = GlobalGeoCatalog.country_defaults(code)
+            _, was_created = region_model.objects.get_or_create(
+                code=code,
+                defaults={
+                    "name": defaults["country_name"] or code,
+                    "default_language": defaults["default_language"] or "en",
+                    "timezone": defaults["timezone"] or "UTC",
+                    "date_format": "DD/MM/YYYY",
+                    "grading_scale": "0-100",
+                    "default_currency": defaults["currency"] or "USD",
+                    "academic_year_start_month": 9,
+                    "term_count_per_year": 3,
+                },
+            )
+            if was_created:
+                countries_created += 1
+        created = 0
+        updated = 0
+        pending_create: list[WeatherLocation] = []
+        existing_by_source = {
+            row.catalog_source_id: row
+            for row in cls.objects.filter(catalog_source_id__isnull=False).only(
+                "pk",
+                "catalog_source_id",
+                "latitude",
+                "longitude",
+                "timezone",
+                "label",
+                "is_active",
+            )
+        }
+
+        def flush_create() -> None:
+            nonlocal created
+            if not pending_create:
+                return
+            cls.objects.bulk_create(
+                pending_create, batch_size=batch_size, ignore_conflicts=True
+            )
+            created += len(pending_create)
+            pending_create.clear()
+
+        for _code, rows in country_index.items():
+            for row in rows:
+                source_id = str(row.get("id") or "").strip()
+                if not source_id:
+                    continue
+                region_id = str(row.get("country_code") or "").upper()
+                if not region_id:
+                    continue
+                city_name = str(row.get("city") or "").strip()
+                if not city_name:
+                    continue
+                payload = {
+                    "label": str(row.get("label") or city_name),
+                    "latitude": float(row.get("latitude") or 0.0),
+                    "longitude": float(row.get("longitude") or 0.0),
+                    "timezone": str(row.get("timezone") or "UTC"),
+                    "is_active": True,
+                }
+                existing = existing_by_source.get(source_id)
+                if existing is None:
+                    pending_create.append(
+                        cls(
+                            region_id=region_id,
+                            city=city_name,
+                            catalog_source_id=source_id,
+                            sort_order=0,
+                            **payload,
+                        )
+                    )
+                    if len(pending_create) >= batch_size:
+                        flush_create()
+                    continue
+                changed_fields = []
+                for field, value in payload.items():
+                    if getattr(existing, field) != value:
+                        changed_fields.append(field)
+                if changed_fields:
+                    cls.objects.filter(pk=existing.pk).update(**payload)
+                    updated += 1
+        flush_create()
+        GlobalGeoCatalog.clear_caches()
+        return {
+            "countries": countries_created,
+            "cities_created": created,
+            "cities_updated": updated,
+            "skipped": False,
+        }
+
+    @classmethod
     def ensure_seed_data(cls) -> None:
+        from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+        if GlobalGeoCatalog.has_persisted_catalog():
+            return
         if cls.objects.exists():
             return
+        # Full worldwide catalog is seeded only via manage.py seed_global_weather_locations
+        # (or seed_global_data --with-weather-locations). Never sync 30k+ rows on a web request.
         region_model = django_apps.get_model("siteconfig", "RegionConfig")
         for row in cls._seed_rows():
             country_defaults = GlobalGeoCatalog.country_defaults(row["country_code"])

@@ -6,7 +6,11 @@
 <article class="mkt-v3-page mkt-view-layer-page">
   {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
-  {% if show_mkt_help_engine %}
+  {% if marketing_kb_hub %}
+  <div class="mkt-edt-container">
+    {% include "marketing/partials/mkt_help_hub.html" %}
+  </div>
+  {% elif show_mkt_help_engine %}
   <div class="mkt-edt-container rmc-reveal" data-mkt-reveal>
     {% include "marketing/partials/mkt_help_engine.html" %}
   </div>
@@ -28,4 +32,10 @@
     <a href="{% url 'marketing_trust_dedicated' %}" class="mkt-edt-link">{% trans "Trust center →" %}</a>
   </div>
 </article>
+{% endblock %}
+{% block extrajs %}
+{{ block.super }}
+{% if show_mkt_help_engine %}
+<script src="{% static 'marketing/js/mkt-kb-search-typeahead.js' %}" defer></script>
+{% endif %}
 {% endblock %}

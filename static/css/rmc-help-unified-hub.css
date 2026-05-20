@@ -1,0 +1,14 @@
+/* Unified help hub — marketing + tenant (batch 1359) */
+.mkt-help-hub__card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.mkt-help-hub__card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2, 0 4px 12px rgba(0, 0, 0, 0.08));
+}
+.rmc-help-community-lane .card {
+  border-left: 3px solid var(--color-primary-500, #4f46e5);
+}
+.forum-kb-suggestions .list-group-item {
+  border-left: 2px solid var(--hairline, rgba(0, 0, 0, 0.08));
+}

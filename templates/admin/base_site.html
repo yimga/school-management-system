@@ -71,10 +71,14 @@
   <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-base-site-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
   <link rel="stylesheet" href="{% static 'css/phase2-admin-bundle.css' %}">
   {# Phase G (2026-05-12): platform-wide long-page grammar. #}
   <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-cp-parity.css' %}">
+  {% if is_manager_host %}
+  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
+  {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
@@ -155,6 +159,9 @@
     })();
   </script>
   <script src="{% static 'js/admin-sidebar-nav.js' %}" defer></script>
+  {% if is_manager_host %}
+  <script src="{% static 'js/admin-platform-catalog.js' %}" defer></script>
+  {% endif %}
   <script src="{% static 'js/return-to-origin.js' %}" defer></script>
 {% endblock %}
 
@@ -209,8 +216,10 @@
   {# Phase G: ⌘K command palette on the admin shell too. #}
   {% if request.user.is_authenticated %}
     {% include 'components/rmc_command_palette.html' %}
-    <button type="button" class="btn btn-outline-primary btn-sm position-fixed rmc-page-help-fab" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
-      <i class="bi bi-question-circle" aria-hidden="true"></i> {% trans "Help" %}
+    {% include "partials/rmc_assist_dock_labels.html" %}
+    <button type="button" class="btn btn-outline-primary btn-sm rmc-page-help-fab" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
+      <i class="bi bi-question-circle" aria-hidden="true"></i>
+      <span class="rmc-assist-dock__label">{% trans "Help" %}</span>
     </button>
     <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
     <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
@@ -221,6 +230,7 @@
     {# v2.47: inline drawer collapse/expand toggle. #}
     <script src="{% static 'js/rmc-acx-drawer-toggle.js' %}" defer></script>
     <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
+    <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
   {% endif %}
   {% if is_manager_host %}
   {% include "partials/cp_context_drawer_shell.html" %}

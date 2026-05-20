@@ -1,39 +1,50 @@
-{% load static %}
+{% load static i18n %}
 {% if request.user.is_authenticated %}
 {% url 'feedback:contextual' as voc_contextual_url %}
 {% if voc_contextual_url %}
 {% with rmatch=request.resolver_match %}
 <link rel="stylesheet" href="{% static 'css/voc-widget.css' %}">
 <div class="voc-widget" data-open="false" data-module="{% if rmatch %}{{ rmatch.app_name|default:'' }}{% endif %}">
-  <div class="voc-widget__panel" role="dialog" aria-label="Page feedback">
-    <form method="post" action="{{ voc_contextual_url }}">
-      {% csrf_token %}
-      <input type="hidden" name="next" value="{{ request.get_full_path }}">
-      <input type="hidden" name="route" value="{{ request.path }}">
-      <input type="hidden" name="page_title" value="{% if title %}{{ title }}{% elif rmatch %}{{ rmatch.url_name|default:'' }}{% endif %}">
-      <input type="hidden" name="module" value="{% if rmatch %}{{ rmatch.app_name|default:'' }}{% endif %}">
-      <div class="voc-widget__actions mb-2">
-        <button class="btn btn-sm btn-outline-primary text-start" name="title" value="Was this page helpful?" type="submit">
-          <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i> Was this page helpful?
-        </button>
-        <button class="btn btn-sm btn-outline-danger text-start" name="category" value="bug" type="submit">
-          <i class="bi bi-bug" aria-hidden="true"></i> Report issue
-        </button>
+  <div class="voc-widget__panel" role="dialog" aria-modal="true" aria-labelledby="voc-widget-title">
+    <header class="rmc-assist-panel__header voc-widget__header">
+      <div>
+        <h2 class="rmc-assist-panel__title" id="voc-widget-title">{% trans "How is this page?" %}</h2>
+        <p class="rmc-assist-panel__subtitle">{% trans "Quick signal — we attach your current route automatically." %}</p>
       </div>
-      <label class="form-label small fw-semibold" for="voc-widget-description">Request improvement</label>
-      <textarea id="voc-widget-description" class="form-control form-control-sm mb-2" name="description" placeholder="What should work better on this page?"></textarea>
-      <input type="hidden" name="title" value="Request improvement">
-      <input type="hidden" name="category" value="feature">
-      <button class="btn btn-sm btn-primary w-100" type="submit">
-        <i class="bi bi-send" aria-hidden="true"></i> Send feedback
+      <button type="button" class="rmc-assist-panel__close" data-voc-close aria-label="{% trans 'Close feedback' %}">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
       </button>
-    </form>
+    </header>
+    <div class="rmc-assist-panel__body">
+      <form method="post" action="{{ voc_contextual_url }}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input type="hidden" name="route" value="{{ request.path }}">
+        <input type="hidden" name="page_title" value="{% if title %}{{ title }}{% elif rmatch %}{{ rmatch.url_name|default:'' }}{% endif %}">
+        <input type="hidden" name="module" value="{% if rmatch %}{{ rmatch.app_name|default:'' }}{% endif %}">
+        <div class="voc-widget__actions mb-3">
+          <button class="btn btn-sm btn-outline-primary text-start" name="title" value="Was this page helpful?" type="submit">
+            <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i> {% trans "This page helped" %}
+          </button>
+          <button class="btn btn-sm btn-outline-danger text-start" name="category" value="bug" type="submit">
+            <i class="bi bi-bug" aria-hidden="true"></i> {% trans "Report an issue" %}
+          </button>
+        </div>
+        <label class="form-label small fw-semibold" for="voc-widget-description">{% trans "Suggest an improvement" %}</label>
+        <textarea id="voc-widget-description" class="form-control form-control-sm mb-3" name="description" rows="3" placeholder="{% trans 'What should work better on this screen?' %}"></textarea>
+        <input type="hidden" name="title" value="Request improvement">
+        <input type="hidden" name="category" value="feature">
+        <button class="btn btn-sm btn-primary w-100" type="submit">
+          <i class="bi bi-send" aria-hidden="true"></i> {% trans "Send feedback" %}
+        </button>
+      </form>
+    </div>
   </div>
-  <button class="btn btn-primary rounded-circle shadow" type="button" data-voc-toggle aria-label="Open feedback">
-    <i class="bi bi-chat-square-text" aria-hidden="true"></i>
+  <button class="btn btn-primary rounded-circle shadow" type="button" data-voc-toggle aria-label="{% trans 'Open page feedback' %}" aria-expanded="false">
+    <i class="bi bi-chat-heart" aria-hidden="true"></i>
   </button>
 </div>
-<script src="{% static 'js/voc-widget.js' %}"></script>
+<script src="{% static 'js/voc-widget.js' %}" defer></script>
 {% endwith %}
 {% endif %}
 {% endif %}

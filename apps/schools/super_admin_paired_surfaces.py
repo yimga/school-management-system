@@ -460,11 +460,18 @@ def build_operator_surface_ia_context(request) -> dict[str, Any]:
     spine = build_operator_surface_spine(request)
     paired = build_paired_surface_links(request)
     strip_visible = _operator_surface_strip_visible(request) and bool(spine)
+    on_manager_admin = (
+        _is_manager_operator_host(request)
+        and _detect_operator_surface(request) == "admin"
+        and bool(paired)
+    )
     return {
         "RMC_OPERATOR_SURFACE_IA": bool(spine),
         "RMC_OPERATOR_SURFACE_STRIP_VISIBLE": strip_visible,
         "RMC_OPERATOR_SURFACE_SPINE": spine,
-        "RMC_OPERATOR_PAIRED_LINKS": paired if strip_visible else [],
+        "RMC_OPERATOR_PAIRED_LINKS": paired
+        if (strip_visible or on_manager_admin)
+        else [],
         "RMC_OPERATOR_SURFACE_CURRENT": _detect_operator_surface(request),
     }
 

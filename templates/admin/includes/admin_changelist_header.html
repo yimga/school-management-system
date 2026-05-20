@@ -1,0 +1,32 @@
+{% load i18n admin_urls %}
+{# Manager /admin/ changelist: title + add action (Unfold header userlinks are not mounted on manager host). #}
+<div class="rmc-admin-changelist-pagehead mb-3 flex flex-wrap items-center justify-between gap-3" data-rmc-admin-changelist-head="1">
+  <div class="min-w-0">
+    <h1 class="text-lg font-semibold text-base-900 dark:text-base-100 mb-0 tracking-tight">
+      {{ cl.opts.verbose_name_plural|capfirst }}
+    </h1>
+    {% if cl.result_count is not None %}
+      <p class="text-xs text-base-500 dark:text-base-400 mb-0 mt-1">
+        {% blocktranslate count counter=cl.result_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}
+      </p>
+    {% endif %}
+  </div>
+  <div class="object-tools flex flex-wrap items-center gap-2 shrink-0">
+    {% if RMC_OPERATOR_PAIRED_LINKS %}
+      {% for link in RMC_OPERATOR_PAIRED_LINKS %}
+        <a href="{{ link.url }}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium hover:bg-base-100 dark:border-base-600 dark:hover:bg-base-800" title="{{ link.description|default:'' }}">
+          {% if link.icon %}<i class="bi {{ link.icon }} me-1" aria-hidden="true"></i>{% endif %}
+          {{ link.label }}
+        </a>
+      {% endfor %}
+    {% endif %}
+    {% if has_add_permission %}
+      {% url cl.opts|admin_urlname:"add" as add_url %}
+      {% blocktranslate with name=cl.opts.verbose_name asvar add_title %}Add {{ name }}{% endblocktranslate %}
+      <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold bg-primary-600 text-white hover:bg-primary-700" title="{{ add_title }}">
+        <span class="material-symbols-outlined text-base leading-none">add</span>
+        <span>{{ add_title }}</span>
+      </a>
+    {% endif %}
+  </div>
+</div>

@@ -1,6 +1,5 @@
 /* Voice-of-customer contextual feedback widget.
-   Mounted by templates/components/contextual_feedback_widget.html.
-   Uses theme tokens so the panel flips correctly in dark mode. */
+   Panel chrome extended by rmc-assist-dock.css when mounted in the assist dock. */
 
 .voc-widget {
   position: fixed;
@@ -8,21 +7,27 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 0.5rem;
-  /* bottom/right: rmc-shell-fab-stack.css */
+  z-index: 10440;
 }
 
 .voc-widget__panel {
   display: none;
+  flex-direction: column;
   width: min(360px, calc(100vw - 2rem));
   background: var(--surface-elevated, var(--bs-body-bg));
   border: 1px solid var(--hairline);
   box-shadow: var(--elev-3, 0 18px 45px var(--surface-overlay));
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.voc-widget[data-open="true"] .voc-widget__panel {
-  display: block;
+.voc-widget[data-open="true"] .voc-widget__panel,
+.rmc-assist-panel--feedback.rmc-assist-panel--open {
+  display: flex;
+}
+
+.voc-widget__header {
+  flex-shrink: 0;
 }
 
 .voc-widget__actions {
@@ -33,4 +38,9 @@
 
 .voc-widget textarea {
   min-height: 84px;
+}
+
+body[data-rmc-assist-dock="mounted"] .voc-widget {
+  position: static;
+  z-index: auto;
 }

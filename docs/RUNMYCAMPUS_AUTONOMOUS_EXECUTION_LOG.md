@@ -1,5 +1,55 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - batch 1361 Operator UX closeout (2026-05-20)
+
+**A. Scope:** Manager login centering; stacked bottom-right FABs; user prefs locale/region selects; Migration Cloud intake premium workbench; production feedback table 500s; worldwide weather location catalog + safe seed path.
+
+**B. Shipped:** `rmc-assist-dock` (CSS/JS/labels) on CP/portal/admin; `manager-login.css`; `migration-cloud-intake-premium.css` + intake v2 template/JS; `feedback/db_readiness.py` wired in manager help + VoC + contact; `GlobalGeoCatalog` + `WeatherLocation` migrations 0180/0181 + `seed_global_weather_locations` + bootstrap `--with-weather-locations`; removed request-time full catalog sync from `ensure_seed_data`.
+
+**C. Proof:** `verify_migration_cloud_intake_experience.py` **12/12 PASS**; `test_db_readiness` **3/3**; `test_global_weather_catalog_seed` **2/2**; `test_user_preference_form_locale` **3/3**; `test_manager_portal_chrome_contract` **8/8**; SW v3.51.1.
+
+**D. Residual (Lane 2):** Render `migrate` + `seed_global_weather_locations`; Playwright `run_manager_surface_parity.sh` on staging (`RENDER_PARITY_BASE_URL`); FACTS/Skyward writes counsel-blocked (v3.34 docket).
+
+## Slice - batch 1360 Help center depth (2026-05-20)
+
+**A. Scope:** Forum reply email notifications; marketing KB category landing pages; tenant AI copilot on forum compose/reply.
+
+**B. Shipped:** `forum_notifications.py` + Celery `notify_forum_reply`; email templates; `help_forum_compose.py` + compose partial; `marketing_kb_category_view` + `kb_category_public.html`; hub + article breadcrumb wiring.
+
+**C. Proof:** `verify_help_center_tiers.py` **99 PASS**; `test_help_center_1360`; SW v3.51.0.
+
+**D. Residual (Lane 2):** in-app forum notification inbox; Playwright on staging.
+
+## Slice - batch 1359 Help center elevation (2026-05-20)
+
+**A. Scope:** Lift help center above 1357 — unified KB + community + support lanes, forum↔KB deflection, marketing hub bundle + hybrid search.
+
+**B. Shipped:** `help_unified_hub.py`, `help_forum_kb_bridge.py`, `marketing_kb_hub_bundle` / `marketing_kb_search_hybrid`, `mkt_help_hub.html`, `help_community_lane.html`, forum deflection/sidebar/search, manager public KB lane, `rmc-help-unified-hub.css`, verifier **89** checks, `test_help_elevation_1359`.
+
+**C. Proof:** `verify_help_center_tiers.py` **89 PASS**; SW v3.50.0; `help-center-gates.yml` includes elevation tests.
+
+**D. Residual (Lane 2):** forum notifications; marketing category pages; Playwright on staging; operator pgvector migrate.
+
+## Slice - batch 1358 Global scroll compression + Render cert gap closeout (2026-05-20)
+
+**A. Scope:** Close Render 10x **PARTIAL** (`verify_five_pillar_platform` middleware, `verify_page_fold_standards`, interaction integrity); operator super-list pagination/tab compression; layout scroll isolation.
+
+**B. Shipped:** `verify_middleware_stack_order.py` django-tenants mode; `public_support_hub.html` `marketing_public_href`; `super_views_config.py` paginator + tabbed plans; 8 super list templates + pagination partial; `rmc-page-fold-standards.css` shell table scroll; `audit_template_scroll_compression.py`; `db_readiness.py` tenant markers; `generate_v4_recovery_certification.py` strict interaction env.
+
+**C. Proof:** `scan_tenant_queryset_safety.py --compare` **0**; `INTERACTION_INTEGRITY_PASS`; `ORCHESTRATOR_V5_BUNDLE_PASS`; `PAGE_FOLD_STANDARDS 15/15`; `SUPPORT_PIPELINE_PASS`; `generate_v4_recovery_certification.py` **READY — REPO SCOPE** (local Ollama green).
+
+**D. Residual (Lane 2):** Render redeploy for middleware + `.cursorrules` page-fold; Ollama unreachable on dyno; discovery audit **581** unpaginated template files — continue per-app pagination waves.
+
+## Slice - batch 1357 Community forums + marketing KB search (2026-05-20)
+
+**A. Scope:** Former 1356 out-of-scope: community forums end-to-end; sovereign marketing KB search on runmycampus.com; help-center PR gate hardening.
+
+**B. Shipped:** `models_forums.py` + `views_forums.py` + templates; `marketing_kb.py` + `marketing_kb_views.py` + search/article/typeahead routes; `mkt_help_engine` + `public_support_hub` search; migration **0038**; CI workflow DB isolation + expanded tests; verifier **78** checks.
+
+**C. Proof:** `verify_help_center_tiers.py` **78 PASS**; `help-center-gates.yml` runs wave3 + forums + marketing KB tests; SW v3.49.0.
+
+**D. Residual (Lane 2):** pgvector on operator Postgres; Playwright green on staging with hosts.
+
 ## Slice - batch 1356 Help Center final gap closeout (2026-05-20)
 
 **A. Scope:** End-to-end closeout of post-1355 audit gaps (manager feature center deflection, support ticket form, marketing help engine, module inline copilot, north-star email, KB archive, locale publish ops, CI gates, orchestrator help journeys).

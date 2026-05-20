@@ -74,8 +74,11 @@ def safe_feedback_summary(since_7d, since_30d) -> dict:
     try:
         from django.db.models import Count, Q
 
+        from apps.feedback.db_readiness import feedback_schema_ready
         from apps.feedback.models import FeedbackSubmission
     except (ImportError, RuntimeError):
+        return {**_empty_period(), "critical_open": 0}
+    if not feedback_schema_ready():
         return {**_empty_period(), "critical_open": 0}
     try:
         # tenant-isolation-allow: cross-tenant operator-level aggregate; intentional churn analytics

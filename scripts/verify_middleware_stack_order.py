@@ -2,8 +2,9 @@
 """
 Verify critical Django middleware ordering (Linux pillar).
 
-Fails when security/session/tenant/CORS/idempotency layers drift out of the
-documented positions in config.settings.MIDDLEWARE.
+Supports both stacks:
+  - Single-schema (USE_DJANGO_TENANTS=0): SecurityMiddleware first + TenantMiddleware
+  - Schema-per-tenant (USE_DJANGO_TENANTS=1, Render production): TenantMainMiddleware first
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ def _index(stack: list[str], needle: str) -> int:
     return -1
 
 
-def verify_middleware_order(stack: list[str]) -> list[str]:
+def verify_middleware_order(stack: list[str], *, django_tenants_mode: bool) -> list[str]:
     errors: list[str] = []
 
     def require_before(a: str, b: str, reason: str) -> None:
@@ -37,6 +38,31 @@ def verify_middleware_order(stack: list[str]) -> list[str]:
             return
         if ia >= ib:
             errors.append(f"{a} must precede {b}: {reason}")
+
+    if django_tenants_mode or _index(stack, "TenantMainMiddleware") >= 0:
+        if _index(stack, "TenantMainMiddleware") != 0:
+            errors.append("TenantMainMiddleware must be first in MIDDLEWARE")
+        require_before(
+            "TenantMainMiddleware",
+            "TenantSchemaSchoolBridgeMiddleware",
+            "schema tenant before request.school bridge",
+        )
+        require_before(
+            "TenantSchemaSchoolBridgeMiddleware",
+            "SessionSchoolBindingMiddleware",
+            "request.school before session school_id bind",
+        )
+        require_before(
+            "SecurityMiddleware",
+            "SessionMiddleware",
+            "security headers before session cookies",
+        )
+        require_before(
+            "SessionMiddleware",
+            "AuthenticationMiddleware",
+            "session before auth",
+        )
+        return errors
 
     require_before(
         "SecurityMiddleware",
@@ -86,12 +112,21 @@ def main() -> int:
     from django.conf import settings
 
     stack = list(getattr(settings, "MIDDLEWARE", []))
-    errors = verify_middleware_order(stack)
+    tenants_mode = bool(getattr(settings, "USE_DJANGO_TENANTS", False))
+    errors = verify_middleware_order(stack, django_tenants_mode=tenants_mode)
     if errors:
         for err in errors:
             print(f"verify_middleware_stack_order: {err}", file=sys.stderr)
+        print(
+            f"verify_middleware_stack_order: mode={'django-tenants' if tenants_mode else 'single-schema'} "
+            f"USE_DJANGO_TENANTS={tenants_mode}",
+            file=sys.stderr,
+        )
         return 1
-    print("verify_middleware_stack_order: OK")
+    print(
+        f"verify_middleware_stack_order: OK "
+        f"(mode={'django-tenants' if tenants_mode else 'single-schema'})"
+    )
     return 0
 
 

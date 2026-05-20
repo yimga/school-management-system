@@ -183,6 +183,13 @@ if [[ "${RUN_BOOTSTRAP_PLATFORM_CATALOG:-0}" == "1" ]]; then
   fi
 fi
 
+# Worldwide weather city catalog (~30k rows). Idempotent; first run can take minutes.
+# Also included when bootstrap_platform_catalog --all runs (seed_global_data --with-weather-locations).
+# Default OFF so predeploy stays fast; flip RUN_SEED_GLOBAL_WEATHER_LOCATIONS=1 after siteconfig 0180/0181 migrate.
+if [[ "${RUN_SEED_GLOBAL_WEATHER_LOCATIONS:-0}" == "1" ]]; then
+  run "${PYTHON_BIN}" manage.py seed_global_weather_locations
+fi
+
 # Collect static files (required for WhiteNoise/serving)
 run "${PYTHON_BIN}" manage.py collectstatic --noinput --clear
 

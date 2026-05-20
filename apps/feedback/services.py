@@ -8,6 +8,7 @@ from django.db.models import Count, Avg
 from django.urls import reverse
 from django.utils import timezone
 
+from .db_readiness import feedback_schema_ready, run_feedback_query
 from .models import (
     FeatureRequest,
     FeedbackSubmission,
@@ -552,25 +553,47 @@ def notify_submitters_of_release(release_note):
 
 
 def summarize_feedback_by_school():
-    return (
-        FeedbackSubmission.objects.values("school__name")
-        .annotate(total=Count("id"))
-        .order_by("-total")
+    if not feedback_schema_ready():
+        return []
+    return run_feedback_query(
+        lambda: list(
+            FeedbackSubmission.objects.values("school__name")
+            .annotate(total=Count("id"))
+            .order_by("-total")
+        ),
+        default=[],
     )
 
 
 def summarize_feedback_by_role():
-    return FeedbackSubmission.objects.values("role").annotate(total=Count("id")).order_by("-total")
+    if not feedback_schema_ready():
+        return []
+    return run_feedback_query(
+        lambda: list(
+            FeedbackSubmission.objects.values("role")
+            .annotate(total=Count("id"))
+            .order_by("-total")
+        ),
+        default=[],
+    )
 
 
 def detect_churn_risk_signals():
+    if not feedback_schema_ready():
+        return []
     # tenant-isolation-allow: platform-level churn-risk analytics aggregated across all tenants for super-admin dashboards (results grouped by school below)
     risky = FeedbackSubmission.objects.filter(
         severity__in=[FeedbackSubmission.Severity.HIGH, FeedbackSubmission.Severity.CRITICAL],
         status__in=[FeedbackSubmission.Status.NEW, FeedbackSubmission.Status.TRIAGED],
     )
-    grouped = risky.values("school", "school__name").annotate(total=Count("id")).filter(total__gte=2)
-    return list(grouped)
+    return run_feedback_query(
+        lambda: list(
+            risky.values("school", "school__name")
+            .annotate(total=Count("id"))
+            .filter(total__gte=2)
+        ),
+        default=[],
+    )
 
 
 def generate_you_said_we_did_items(school=None):
@@ -595,9 +618,14 @@ def module_sentiment_summary():
 
 
 def top_pain_points(limit=10):
-    texts = FeedbackSubmission.objects.exclude(module="").values_list("module", flat=True)
-    counts = Counter(texts)
-    return counts.most_common(limit)
+    if not feedback_schema_ready():
+        return []
+
+    def _aggregate():
+        texts = FeedbackSubmission.objects.exclude(module="").values_list("module", flat=True)
+        return Counter(texts).most_common(limit)
+
+    return run_feedback_query(_aggregate, default=[])
 
 
 def publish_release_note(title, summary, *, roadmap_item=None, feature_requests=None, is_public=False):

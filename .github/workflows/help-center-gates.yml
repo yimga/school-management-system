@@ -1,4 +1,4 @@
-# Help center mechanical gates (batch 1356) — no live Playwright server required.
+# Help center mechanical gates (batch 1356–1357) — no live Playwright server required.
 name: Help center gates
 
 on:
@@ -6,21 +6,37 @@ on:
     branches: [main]
     paths:
       - "apps/portal/**"
+      - "apps/schools/marketing_kb_views.py"
+      - "apps/schools/section8_views.py"
+      - "apps/schools/tests/test_marketing_kb_search.py"
       - "config/manager_*.py"
+      - "config/urls.py"
+      - "config/settings.py"
       - "templates/**/help_*"
       - "templates/**/manager_*help*"
       - "templates/**/manager_support*"
+      - "templates/portal/forums_*.html"
+      - "templates/marketing/kb_*.html"
       - "templates/marketing/partials/mkt_help_engine.html"
+      - "templates/marketing/pages/type_view_layer.html"
+      - "templates/schools/public_support_hub.html"
+      - "static/marketing/js/mkt-kb-search-typeahead.js"
       - "scripts/verify_help_center*.py"
       - "scripts/verify_kb_embedding_coverage.py"
       - "scripts/verify_support_deflection.py"
+      - "scripts/run_sqlite_memory_tests.py"
       - ".github/workflows/help-center-gates.yml"
   workflow_dispatch: {}
 
 jobs:
   help-center-gates:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      SECRET_KEY: "ci-help-center-gates-not-production-64chars________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
+      DJANGO_TEST_DB_FILE: ".django_test_dbs/help_center_gates_ci.sqlite3"
+      RMC_SQLITE_TEST_MEMORY: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,9 +45,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Migrate + help gates
-        env:
-          SECRET_KEY: "ci-help-center-gates-not-production-64chars________"
-          ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
         run: |
           python manage.py migrate --noinput
           python scripts/verify_help_center_tiers.py
@@ -39,7 +52,7 @@ jobs:
           python scripts/verify_support_deflection.py
           python scripts/verify_help_center_graft_bundles.py
           python scripts/generate_orchestrator_journey_manifest.py
-          python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_help_center_wave3 --verbosity=1
+          python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_help_center_wave3 apps.portal.tests.test_community_forums apps.portal.tests.test_help_elevation_1359 apps.portal.tests.test_help_center_1360 apps.schools.tests.test_marketing_kb_search --verbosity=1
 
   help-center-e2e-lane2:
     runs-on: ubuntu-latest
@@ -61,6 +74,7 @@ jobs:
         env:
           SECRET_KEY: "ci-help-e2e-not-production-use-64chars________________"
           ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com,gilead-school.runmycampus.com"
+          DJANGO_TEST_DB_FILE: ".django_test_dbs/help_center_e2e_ci.sqlite3"
         run: |
           python manage.py migrate --noinput
           python manage.py runserver 0.0.0.0:8000 &

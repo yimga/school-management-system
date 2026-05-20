@@ -423,19 +423,27 @@ body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page #cp-s
   -webkit-overflow-scrolling: touch;
 }
 
-/* Unfold inner wrappers must not re-trap overflow (long changelist/index). */
+/* Unfold inner wrappers must not re-trap overflow — scroll lives on #cp-main-content. */
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .grow,
 body.admin-manager-shell .admin-cp-unified-page #cp-main-content > div.grow {
-  flex: 1 1 auto !important;
+  flex: 0 1 auto !important;
   min-height: 0 !important;
   min-width: 0 !important;
   overflow: visible !important;
 }
 
 body.admin-manager-shell .admin-cp-unified-page #cp-main-content #content,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content #content-main,
 body.admin-manager-shell .admin-cp-unified-page #cp-main-content .cp-admin-index {
   overflow: visible !important;
   max-height: none !important;
+  width: 100% !important;
+  max-width: none !important;
 }
 
 html[data-resolved-theme="light"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content,
@@ -517,6 +525,133 @@ html[data-bs-theme="dark"] body.admin-manager-shell .cp-admin-index .text-muted 
   min-height: 0;
 }
 
+/* ----- Manager /admin/ scroll + layout (all page types, 2026-05-20) ----- */
+
+/* Breadcrumb: CSS separators (no literal "/" list items). */
+.rmc-admin-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: "/";
+  padding-inline: 0.35rem;
+  color: var(--text-secondary, var(--color-base-500));
+  float: none;
+  display: inline;
+}
+
+body.admin-manager-shell .rmc-admin-breadcrumb .breadcrumb-item.active {
+  font-weight: 600;
+}
+
+body.admin-manager-shell #content,
+body.admin-manager-shell #content-main,
+body.admin-manager-shell #changelist,
+body.admin-manager-shell .rmc-admin-changelist-main {
+  min-height: 0 !important;
+}
+
+body.admin-manager-shell.change-list .result-list-wrapper,
+body.admin-manager-shell.change-list .changelist-form-container {
+  align-items: flex-start !important;
+}
+
+/* Change forms + site settings: long fieldsets scroll inside main column. */
+body.admin-manager-shell.change-form #content-main form,
+body.admin-manager-shell.change-form .site-settings-layout,
+body.admin-manager-shell.change-form .site-settings-main {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content .submit-row,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content footer .submit-row,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content .rmc-admin-changeform-pagehead {
+  flex-shrink: 0 !important;
+}
+
+body.admin-manager-shell .rmc-admin-changeform-pagehead .object-tools {
+  margin: 0 !important;
+  float: none !important;
+}
+
+/* Admin index / app index: full list scrolls with main column. */
+body.admin-manager-shell.admin-index .cp-admin-index,
+body.admin-manager-shell .admin-cp-unified-page .cp-admin-index {
+  overflow: visible !important;
+  padding-bottom: 2rem;
+}
+
+/* Unfold search toolbar: drop negative-margin overlap that separated search from results. */
+body.admin-manager-shell .rmc-admin-changelist-toolbar {
+  margin-bottom: 0.75rem !important;
+  padding-bottom: 0 !important;
+}
+
+body.admin-manager-shell .rmc-admin-changelist-toolbar.lg\:pb-11,
+body.admin-manager-shell .rmc-admin-changelist-toolbar.lg\:-mb-8 {
+  padding-bottom: 0 !important;
+  margin-bottom: 0.75rem !important;
+}
+
+body.admin-manager-shell .rmc-admin-changelist-pagehead .object-tools {
+  margin: 0 !important;
+  float: none !important;
+}
+
+body.admin-manager-shell .rmc-admin-changelist-pagehead .object-tools .addlink {
+  text-decoration: none;
+}
+
+/* Collapsible control-plane hint on siteconfig/global_registries changelists. */
+body.admin-manager-shell .rmc-admin-cp-hint > summary::-webkit-details-marker {
+  display: none;
+}
+
+body.admin-manager-shell .rmc-admin-cp-hint[open] > summary span:last-child {
+  visibility: hidden;
+}
+
+/* Changelist filter rail: scroll when tall; usable width on desktop. */
+body.admin-manager-shell #changelist-filter {
+  min-width: 12rem;
+  flex: 0 0 12rem;
+}
+
+@media (min-width: 1536px) {
+  body.admin-manager-shell #changelist-filter .grow.h-full.overflow-auto {
+    max-height: min(70vh, calc(100vh - 11rem));
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Platform admin sidebar: every app/model link reachable. */
 .cp-sidebar-platform-admin .cp-platform-admin-app-tree {
-  max-height: calc(100vh - 14rem);
+  max-height: min(calc(100vh - 9rem), 100%);
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.cp-sidebar-offcanvas .cp-platform-admin-app-tree {
+  max-height: none;
+}
+
+body.admin-manager-shell #changelist.filtered .result-list-wrapper {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* Unified operator steering strip (path + outcome + hints + paired links). */
+.rmc-admin-steering-strip {
+  max-width: 100%;
+}
+
+.rmc-admin-steering-strip .rmc-admin-steering-section:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+.rmc-admin-app-index .rmc-admin-catalog-model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.5rem;
 }

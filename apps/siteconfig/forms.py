@@ -28,7 +28,38 @@ from .models_constants import BACKEND_CONSOLE_THEME_CHOICES
 from .models_support import DashboardView
 from .models_platform_catalog import RegionConfig
 from .models_tooling import UserPreference
-from .translations import SUPPORTED_LANGUAGES
+from .unified_languages import get_unified_language_choices
+
+# Used when RegionConfig is empty (fresh DB) so preferences still show a usable dropdown.
+_FALLBACK_REGION_CHOICES = [
+    ("CMR", "Cameroon"),
+    ("USA", "United States"),
+    ("GBR", "United Kingdom"),
+    ("CAN", "Canada"),
+    ("NGA", "Nigeria"),
+    ("KEN", "Kenya"),
+    ("FRA", "France"),
+    ("DEU", "Germany"),
+]
+
+
+def _build_preferred_language_choices():
+    rows = get_unified_language_choices()
+    if not rows:
+        rows = list(getattr(settings, "LANGUAGES", []) or [("en", "English")])
+    return [("", "Default (from region)")] + list(rows)
+
+
+def _build_preferred_region_choices():
+    try:
+        db_rows = list(
+            RegionConfig.objects.values_list("code", "name").order_by("name")
+        )
+    except (AttributeError, DatabaseError, OperationalError, ProgrammingError, TypeError, ValueError):
+        db_rows = []
+    if db_rows:
+        return [("", "Default (platform)")] + db_rows
+    return [("", "Default (platform)")] + _FALLBACK_REGION_CHOICES
 from .models_dashboard import DashboardUserPreference
 from .widgets import ColorInputWithPreview
 
@@ -807,8 +838,18 @@ class UserPreferenceForm(forms.ModelForm):
             "simple_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "theme_preference": forms.Select(attrs={"class": "form-select"}),
             "high_contrast": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "preferred_language": forms.Select(attrs={"class": "form-select"}),
-            "preferred_region": forms.Select(attrs={"class": "form-select"}),
+            "preferred_language": forms.Select(
+                attrs={
+                    "class": "form-select rmc-prefs-select",
+                    "data-rmc-prefs-select": "language",
+                }
+            ),
+            "preferred_region": forms.Select(
+                attrs={
+                    "class": "form-select rmc-prefs-select",
+                    "data-rmc-prefs-select": "region",
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -824,19 +865,15 @@ class UserPreferenceForm(forms.ModelForm):
         self.fields["timezone"].widget.attrs["data-default-timezone"] = (
             settings.TIME_ZONE
         )
-        self.fields["preferred_language"].choices = [
-            ("", "Default (from region)")
-        ] + list(SUPPORTED_LANGUAGES.items())
+        self.fields["preferred_language"].choices = _build_preferred_language_choices()
         self.fields["preferred_language"].required = False
-        try:
-            region_choices = [("", "Default")] + list(
-                RegionConfig.objects.values_list("code", "name").order_by("name")
-            )
-            self.fields["preferred_region"].choices = region_choices
-        except (AttributeError, DatabaseError, TypeError, ValueError):
-            self.fields["preferred_region"].widget = forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "e.g. CMR"}
-            )
+        self.fields["preferred_region"].choices = _build_preferred_region_choices()
+        self.fields["preferred_region"].widget = forms.Select(
+            attrs={
+                "class": "form-select rmc-prefs-select",
+                "data-rmc-prefs-select": "region",
+            }
+        )
         self.fields["preferred_region"].required = False
 
         if self.instance and self.instance.notification_channels:

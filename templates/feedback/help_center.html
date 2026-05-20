@@ -6,6 +6,7 @@
 
 {% block backend_page %}
 <link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
 <div class="container-fluid py-4 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-page="help-center">
   <div class="d-flex align-items-center gap-3 mb-3">
     <div class="mkt-advisor-figure mkt-advisor-figure--muted mkt-advisor-figure--reveal d-none d-md-inline-flex" aria-hidden="true">
@@ -17,6 +18,8 @@
   </div>
 
   {% include "feedback/partials/help_center_engage_strip.html" %}
+
+  {% include "partials/help_community_lane.html" %}
 
   {% include "partials/help_persona_quickstart.html" with kb_search_url=kb_search_url %}
 
@@ -74,6 +77,17 @@
         </div>
       </a>
     </section>
+    {% if community_lane.visible %}
+    <section class="col-md-6 col-xl-2">
+      <a href="{{ community_lane.forum_home_url }}" class="card shadow-sm h-100 text-decoration-none border-primary">
+        <div class="card-body">
+          <i class="bi bi-people fs-1" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Community" %}</h2>
+          <p class="small text-muted mb-0">{% trans "School discussion forums." %}</p>
+        </div>
+      </a>
+    </section>
+    {% endif %}
     <section class="col-md-6 col-xl-2">
       <a href="{% if support_links.contact_center %}{{ support_links.contact_center }}{% elif support_links.portal_help %}{{ support_links.portal_help }}{% elif support_links.support_request %}{{ support_links.support_request }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">

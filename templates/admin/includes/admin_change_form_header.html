@@ -1,0 +1,29 @@
+{% load i18n admin_urls admin_modify unfold %}
+{# Manager /admin/ change form: title + history / view-on-site (Unfold header tools are not mounted on manager host). #}
+<div class="rmc-admin-changeform-pagehead mb-3 flex flex-wrap items-center justify-between gap-3" data-rmc-admin-changeform-head="1">
+  <div class="min-w-0">
+    <h1 class="text-lg font-semibold text-base-900 dark:text-base-100 mb-0 tracking-tight">
+      {% if add %}
+        {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
+      {% else %}
+        {% blocktrans with name=opts.verbose_name %}Change {{ name }}{% endblocktrans %}
+      {% endif %}
+    </h1>
+    {% if original and not add %}
+      <p class="text-xs text-base-500 dark:text-base-400 mb-0 mt-1 truncate">{{ original }}</p>
+    {% endif %}
+  </div>
+  <div class="object-tools flex flex-wrap items-center gap-2 shrink-0">
+    {% if has_add_permission and not add %}
+      {% url opts|admin_urlname:"add" as add_url %}
+      {% blocktranslate with name=opts.verbose_name asvar add_title %}Add {{ name }}{% endblocktranslate %}
+      <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold border border-base-300 dark:border-base-600 hover:bg-base-100 dark:hover:bg-base-800" title="{{ add_title }}">
+        <span class="material-symbols-outlined text-base leading-none">add</span>
+        <span>{{ add_title }}</span>
+      </a>
+    {% endif %}
+    {% if change and not is_popup %}
+      {% change_form_object_tools %}
+    {% endif %}
+  </div>
+</div>

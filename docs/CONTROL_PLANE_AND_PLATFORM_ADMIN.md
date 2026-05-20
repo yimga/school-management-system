@@ -48,3 +48,82 @@ Tenant **`/admin/`** (`TenantAdminSite`) is a **different** site: tenant models 
 
 - **`apps/schools/control_plane_nav.py`** — `build_control_plane_nav()`.
 - When adding a **primary** operator surface, add it there; when adding **only** a model admin, use `register_platform_admin` and optionally link `/admin/` from docs or sidebar.
+
+---
+
+## Platform `/admin/` audit (2026-05-20)
+
+**Scope:** manager-host `PlatformAdminSite` (`/admin/`), all sub-pages (index, app index, changelist, change form, history, delete), sidebar IA, bridges, and operator workflows vs `/super/`.
+
+### Surface map
+
+| Layer | Implementation | Notes |
+|-------|----------------|-------|
+| **Shell** | `templates/admin/base.html` + `admin-cp-parity.css` | Control-plane chrome: sidebar, topbar, scroll host `#cp-main-content`, breadcrumb separators (no literal `/` list items). |
+| **Index** | `admin/index_superadmin.html` | Section-grouped **model catalog** + metrics + shortcuts; search via `admin-platform-catalog.js`. |
+| **Sidebar** | `manager_platform_admin_sidebar.html` + `app_list.html` | Quick links + filterable app/model tree (`data-admin-search`). |
+| **Changelist** | `admin/change_list.html` + `admin_changelist_header.html` | In-page title, record count, Add pill on manager host; filters scroll inside rail. |
+| **Change form** | `admin/change_form.html` + `admin_change_form_header.html` | History / Add another in-page on manager host. |
+| **Bridges** | `super:admin_bridge` + `PLATFORM_ADMIN_BRIDGES` | Slug → admin changelist; catalog adds **Open super view** when a bridge exists. |
+| **IA sections** | `PlatformAdminSite.PLATFORM_APP_SECTIONS` (9) | Platform Configuration → … → Advanced System Objects. |
+| **Registration** | `register_platform_admin` across ~21 apps | ~171 models on platform site (tenant site is separate). |
+
+### Findings (pre–gear-up)
+
+| Issue | Severity | Status |
+|-------|----------|--------|
+| Changelist vertical stretch / content at bottom | P0 | **Fixed** — `admin-cp-parity.css` flex + scroll host. |
+| Breadcrumb literal `/` items | P0 | **Fixed** — CSS separators + proper labels. |
+| Add action missing on manager changelists | P0 | **Fixed** — `change_list_object_tools.html`. |
+| No search across ~171 models | P0 | **Fixed** — `build_platform_admin_catalog` + index/sidebar search. |
+| Duplicate steering (path banner + outcome deck + siteconfig hints) | P1 | **DONE** — `admin_operator_steering_strip.html` (dismissible, sessionStorage). |
+| `admin/dashboard/` redirects to index; rich `admin_dashboard.html` unused | P2 | **Partial** — index KPIs wired; dedicated dashboard template still optional. |
+| Dual marketplace app labels in sidebar | P2 | Open — consolidate IA copy. |
+| App index pages still flat Unfold default | P2 | **DONE** — `app_index.html` + `enrich_app_index_models()`. |
+
+### Gear-up roadmap (aggressive)
+
+| Tier | Deliverable | Proof |
+|------|-------------|-------|
+| **P0** | Model catalog + sidebar filter | `platform_admin_catalog.py`, `index_superadmin.html`, `admin-platform-catalog.js`; `test_platform_admin_catalog.py`. |
+| **P0** | Scroll reachability on all admin page types | `admin-cp-parity.css`; `test_manager_portal_chrome_contract.py`. |
+| **P1** | Single operator steering strip | `admin_steering.py`, `admin_operator_steering_strip.html`; `verify_admin_steering_strip_contract.py`. |
+| **P1** | Changelist **Open operator view** on bridged models | `super_admin_paired_surfaces.py` (`on_manager_admin`); `admin_changelist_header.html`. |
+| **P2** | Index KPIs from `build_admin_dashboard_context` | `build_admin_index_kpi_strip()`; `admin_index_kpis` on index. |
+| **P2** | App index (`admin/app_index.html`) | `PlatformAdminSite.app_index()` + `enrich_app_index_models()`. |
+| **P3** | Admin changelist render smoke + Playwright | `verify_admin_changelist_render_contract.py`; `SWEEP_TIER=operator+admin npm run sweep:abrupt-end`. |
+
+### Key files
+
+- `config/admin.py` — `PlatformAdminSite.index()` injects `admin_catalog`.
+- `apps/siteconfig/platform_admin_catalog.py` — catalog builder.
+- `static/css/admin-platform-catalog.css`, `static/js/admin-platform-catalog.js`.
+- `templates/admin/index_superadmin.html`, `templates/partials/manager_platform_admin_sidebar.html`.
+
+---
+
+## Post-deploy operator checklist (batch 1361)
+
+After shipping manager UX / weather / feedback hardening to **Render** (or any Postgres host):
+
+1. **Migrations (required)** — Pre-deploy must run `scripts/release/render_predeploy.sh` (not plain `migrate` when `USE_DJANGO_TENANTS=1`). Ensures `feedback` tables exist and `siteconfig` **0180** / **0181** apply.
+2. **Feedback** — If `/contact-us/` or `/super/voice-of-customer/` still show the “tables missing” banner, re-run migrate for `feedback`; defensive `db_readiness` is not a substitute.
+3. **Weather catalog** — One-time (idempotent):
+   ```bash
+   python manage.py seed_global_weather_locations
+   ```
+   Or full platform bootstrap (includes weather via `--with-weather-locations`):
+   ```bash
+   RUN_BOOTSTRAP_PLATFORM_CATALOG=1 ./scripts/release/render_predeploy.sh
+   ```
+   Optional predeploy-only flag: `RUN_SEED_GLOBAL_WEATHER_LOCATIONS=1` (see `scripts/release/render_predeploy.sh`).
+4. **Client cache** — Hard refresh after deploy; service worker bumps to `sms-v3.51.1-operator-ux-closeout-1361-*`.
+5. **Staging E2E** — With Django up and hosts mapped:
+   ```bash
+   export MSYS_NO_PATHCONV=1
+   export RENDER_PARITY_BASE_URL=https://<your-render-manager-host>
+   bash scripts/run_manager_surface_parity.sh
+   ```
+   Playwright against **live Render** is Lane 2 evidence, not repo-gate blocking.
+
+**Out of scope (v3.34):** FACTS / Skyward companion **write** paths remain `// honest-stub:` until counsel sign-off — see [`FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md`](FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md).

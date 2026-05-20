@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T11:33:20.748529+00:00",
+  "generated_at": "2026-05-20T12:39:26.688846+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -558,21 +558,21 @@
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/feedback/views.py",
-      "line": "458",
+      "line": "474",
       "protective_decorator_nearby": true
     },
     {
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/feedback/views.py",
-      "line": "494",
+      "line": "510",
       "protective_decorator_nearby": true
     },
     {
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/feedback/views.py",
-      "line": "509",
+      "line": "525",
       "protective_decorator_nearby": true
     },
     {
@@ -1144,6 +1144,20 @@
     },
     {
       "bucket": "product",
+      "classification": "protected_candidate",
+      "file": "apps/portal/views_forums.py",
+      "line": "151",
+      "protective_decorator_nearby": true
+    },
+    {
+      "bucket": "product",
+      "classification": "protected_candidate",
+      "file": "apps/portal/views_forums.py",
+      "line": "202",
+      "protective_decorator_nearby": true
+    },
+    {
+      "bucket": "product",
       "classification": "needs_review",
       "file": "apps/portal/views_kb.py",
       "line": "202",
@@ -1370,21 +1384,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2553",
+      "line": "2556",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2630",
+      "line": "2633",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2689",
+      "line": "2692",
       "protective_decorator_nearby": false
     },
     {
@@ -1398,28 +1412,28 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/section8_views.py",
-      "line": "705",
+      "line": "713",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/section8_views.py",
-      "line": "780",
+      "line": "788",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/section8_views.py",
-      "line": "867",
+      "line": "875",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/section8_views.py",
-      "line": "993",
+      "line": "1001",
       "protective_decorator_nearby": false
     },
     {
@@ -1489,14 +1503,14 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config.py",
-      "line": "224",
+      "line": "230",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config.py",
-      "line": "473",
+      "line": "494",
       "protective_decorator_nearby": false
     },
     {
@@ -1797,7 +1811,7 @@
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/siteconfig/views_feature_control.py",
-      "line": "1271",
+      "line": "1276",
       "protective_decorator_nearby": true
     },
     {
@@ -2021,14 +2035,14 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "config/manager_help_center.py",
-      "line": "230",
+      "line": "247",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "config/manager_help_engagement.py",
-      "line": "28",
+      "line": "33",
       "protective_decorator_nearby": false
     },
     {
@@ -2083,15 +2097,15 @@
   ],
   "schema_version": 1,
   "summary_by_bucket": {
-    "product": 293,
+    "product": 295,
     "scripts": 4
   },
   "summary_by_classification": {
     "needs_review": 107,
-    "protected_candidate": 186,
+    "protected_candidate": 188,
     "scripts_cli": 4
   },
   "totals": {
-    "hits": 297
+    "hits": 299
   }
 }

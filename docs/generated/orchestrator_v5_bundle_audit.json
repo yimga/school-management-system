@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T11:37:38.172845+00:00",
+  "generated_at": "2026-05-20T12:38:01.783476+00:00",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "verdict": "ORCHESTRATOR_V5_BUNDLE_PASS",
   "checks": [
@@ -16,7 +16,7 @@
     {
       "check": "nav_ledger",
       "ok": true,
-      "proof": "INFO 2026-05-20 07:37:21,397 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- acc"
+      "proof": "INFO 2026-05-20 08:37:37,893 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- acc"
     },
     {
       "check": "interaction_contract",

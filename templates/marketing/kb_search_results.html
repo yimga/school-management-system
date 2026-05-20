@@ -1,0 +1,52 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Help center search" %} | RunMyCampus{% endblock %}
+{% block content %}
+<section class="mkt-section rmc-reveal" data-mkt-reveal>
+  <h1 class="mkt-section-heading">{% trans "Knowledge base search" %}</h1>
+  <form method="get" action="{% url 'marketing_kb_search' %}" class="input-group mb-4" role="search" id="mkt-kb-search-form">
+    <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+    <input type="search" name="q" class="form-control" value="{{ query }}" placeholder="{% trans 'Search runbooks and guides' %}" aria-label="{% trans 'Search knowledge base' %}" autocomplete="off" data-mkt-kb-typeahead="1">
+    <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
+  </form>
+  <div class="d-none" data-mkt-kb-typeahead-url="{{ typeahead_url }}"></div>
+  {% if query %}
+  <p class="text-secondary mb-3">
+    {% blocktrans count counter=result_count %}{{ counter }} result for your query{% plural %}{{ counter }} results for your query{% endblocktrans %}
+    {% if search_mode == "semantic" %}<span class="badge bg-info ms-1">{% trans "Semantic match" %}</span>{% endif %}
+  </p>
+  {% endif %}
+  <div class="list-group">
+    {% for article in page_obj %}
+    <a class="list-group-item list-group-item-action" href="{% url article_url_name article_slug=article.slug %}">
+      <h2 class="h6 mb-1">{{ article.title }}</h2>
+      <p class="small text-secondary mb-0">{{ article.summary|truncatewords:30 }}</p>
+    </a>
+    {% empty %}
+    <div class="list-group-item text-secondary">
+      {% if query %}{% trans "No articles matched. Try different keywords or contact support." %}{% else %}{% trans "Enter a search term to find published guides." %}{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-3" aria-label="{% trans 'Search results pages' %}">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+  <p class="mt-4 mb-0">
+    <a href="{% url 'public_support_hub' %}">{% trans "Support hub" %}</a>
+    · <a href="{% url 'marketing_contact' %}">{% trans "Contact us" %}</a>
+  </p>
+</section>
+{% endblock %}
+{% block extrajs %}
+<script src="{% static 'marketing/js/mkt-kb-search-typeahead.js' %}" defer></script>
+{% endblock %}

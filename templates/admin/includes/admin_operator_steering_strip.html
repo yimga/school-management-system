@@ -1,0 +1,97 @@
+{% load i18n %}
+{# Unified dismissible steering: operator path + outcome deck + changelist CP hints + bridged super links. #}
+{% if is_manager_host %}
+{% with has_outcome=admin_outcome_deck has_hint=admin_steering_hint has_paired=RMC_OPERATOR_PAIRED_LINKS %}
+<div id="rmc-admin-steering-strip"
+     class="rmc-admin-steering-strip mb-3 rounded-lg border border-primary-500/25 bg-primary-500/8 px-3 py-2 text-sm dark:border-primary-400/35 dark:bg-primary-500/12"
+     role="region"
+     aria-label="{% trans 'Operator steering' %}"
+     data-rmc-admin-steering-strip="1"
+     hidden>
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+    <p class="mb-0 fw-semibold">{% trans "Operator steering" %}</p>
+    <button type="button"
+            class="btn-close btn-close-white btn-sm"
+            id="rmc-admin-steering-strip-dismiss"
+            aria-label="{% trans 'Dismiss' %}"></button>
+  </div>
+
+  <div class="rmc-admin-steering-section mb-2 pb-2 border-bottom border-base-300/40 dark:border-base-600/50">
+    <p class="mb-1">
+      <strong>{% trans "Operator path" %}:</strong>
+      {% trans "Prefer Configuration Control Center and Studio for guided changes. Use model pages below for raw record access when required." %}
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-primary btn-sm">{% trans "Config center" %}</a>
+      <a href="{% url 'studio_os:shell' %}" class="btn btn-outline-light btn-sm">{% trans "Studio" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Control plane" %}</a>
+    </div>
+  </div>
+
+  {% if has_paired %}
+  <div class="rmc-admin-steering-section mb-2 pb-2 border-bottom border-base-300/40 dark:border-base-600/50">
+    <p class="mb-1 fw-semibold">{% trans "Paired surface" %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% for link in RMC_OPERATOR_PAIRED_LINKS %}
+      <a href="{{ link.url }}" class="btn btn-outline-light btn-sm" title="{{ link.description|default:'' }}">
+        {% if link.icon %}<i class="bi {{ link.icon }} me-1" aria-hidden="true"></i>{% endif %}
+        {{ link.label }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if has_outcome %}
+  <div class="rmc-admin-steering-section mb-2 pb-2 border-bottom border-base-300/40 dark:border-base-600/50"
+       data-admin-outcome-deck="{{ admin_outcome_deck.admin_deck_outcome_id }}">
+    <p class="mb-1">
+      {% trans "This model maps to" %}:
+      <span class="text-primary">{{ admin_outcome_deck.admin_deck_title }}</span>
+    </p>
+    {% if admin_outcome_deck.admin_deck_subtitle %}
+    <p class="small text-muted mb-1">{{ admin_outcome_deck.admin_deck_subtitle }}</p>
+    {% endif %}
+    {% if admin_outcome_deck.admin_deck_links %}
+    <div class="d-flex flex-wrap gap-2">
+      {% for link in admin_outcome_deck.admin_deck_links %}
+      <a href="{{ link.url }}" class="btn btn-outline-light btn-sm">{{ link.label }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if has_hint %}
+  <div class="rmc-admin-steering-section"
+       data-rmc-admin-cp-hint="{{ admin_steering_hint.hint_id }}">
+    <p class="mb-1 fw-semibold">{{ admin_steering_hint.title }}</p>
+    <p class="small text-muted mb-2">{{ admin_steering_hint.body }}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% for link in admin_steering_hint.links %}
+      <a href="{{ link.url }}" class="btn btn-outline-light btn-sm">{{ link.label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var KEY = "rmc_admin_steering_strip_dismissed";
+  var el = document.getElementById("rmc-admin-steering-strip");
+  var btn = document.getElementById("rmc-admin-steering-strip-dismiss");
+  if (!el) return;
+  try {
+    if (sessionStorage.getItem(KEY) === "1") return;
+  } catch (e) { /* ignore */ }
+  el.removeAttribute("hidden");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      el.setAttribute("hidden", "hidden");
+      try { sessionStorage.setItem(KEY, "1"); } catch (e) { /* ignore */ }
+    });
+  }
+})();
+</script>
+{% endwith %}
+{% endif %}

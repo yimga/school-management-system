@@ -90,6 +90,7 @@
           {% url 'manager_kb_locale_families' as cmdk_locale_families_url %}
           {% if cmdk_locale_families_url %}{"label": "{% trans 'KB translation families' %}", "url": "{{ cmdk_locale_families_url }}", "icon": "bi-translate", "keywords": "locale translation kb i18n"},{% endif %}
           {% endif %}
+        {% endif %}
       ]
     },
     {

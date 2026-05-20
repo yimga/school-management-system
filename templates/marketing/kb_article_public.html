@@ -1,0 +1,27 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{{ article.title }} | RunMyCampus{% endblock %}
+{% block content %}
+<article class="mkt-section rmc-reveal" data-mkt-reveal>
+  <nav class="mb-2 small">
+    <a href="{% url 'marketing_resources_help_center' %}">{% trans "Help center" %}</a>
+    / <a href="{% url 'marketing_kb_search' %}">{% trans "Search" %}</a>
+    {% if category_url and article.category %}
+    / <a href="{{ category_url }}">{{ article.category.name }}</a>
+    {% elif article.category %} / {{ article.category.name }}{% endif %}
+  </nav>
+  <h1 class="mkt-section-heading">{{ article.title }}</h1>
+  <p class="text-secondary">{{ article.summary }}</p>
+  <div class="mkt-kb-article-body">
+    {% if article.content_html %}
+    {{ article.content_html|safe }}
+    {% else %}
+    {{ article.content|linebreaks }}
+    {% endif %}
+  </div>
+  <p class="mt-4">
+    <a class="btn btn-outline-primary" href="{% url 'marketing_kb_search' %}?q=">{% trans "Search more articles" %}</a>
+    <a class="btn btn-outline-secondary ms-2" href="{% url 'public_support_hub' %}">{% trans "Support hub" %}</a>
+  </p>
+</article>
+{% endblock %}

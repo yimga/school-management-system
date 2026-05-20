@@ -6,6 +6,7 @@ RUNBOOK_ADMIN_TO_SUPER_MIGRATION Phases 1–8. All views must be wrapped with re
 
 from django.apps import apps as django_apps
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
@@ -28,6 +29,11 @@ def _config_context(request):
         "dashboard_url": reverse("super:dashboard"),
         "system_config_url": reverse("siteconfig:console_domains_hub"),
     }
+
+
+def _paginate_queryset(request, queryset, *, per_page: int = 20):
+    """Numbered pages for operator config inventories (page-fold / 250vh compression)."""
+    return Paginator(queryset, per_page).get_page(request.GET.get("page") or 1)
 
 
 @require_GET
@@ -298,13 +304,16 @@ def super_regions_list(request):
     """List platform RegionConfig. Config surface is Configuration Control Center (no admin residue)."""
     from apps.global_registries.models import RegionConfig
 
-    regions = list(RegionConfig.objects.all().order_by("code"))
+    page_obj = _paginate_queryset(
+        request, RegionConfig.objects.all().order_by("code")
+    )
     return render(
         request,
         "schools/super_regions_list.html",
         {
             **_config_context(request),
-            "regions": regions,
+            "regions": page_obj,
+            "page_obj": page_obj,
             "grading_list_url": reverse("super:grading_list"),
         },
     )
@@ -315,17 +324,19 @@ def super_grading_list(request):
     """List platform GradingScaleConfig. Config surface is Configuration Control Center (no admin residue)."""
     from apps.global_registries.models import GradingScaleConfig
 
-    grading_scales = list(
-        GradingScaleConfig.objects.select_related("region")
-        .all()
-        .order_by("region__code", "scale_type")
+    page_obj = _paginate_queryset(
+        request,
+        GradingScaleConfig.objects.select_related("region").order_by(
+            "region__code", "scale_type"
+        ),
     )
     return render(
         request,
         "schools/super_grading_list.html",
         {
             **_config_context(request),
-            "grading_scales": grading_scales,
+            "grading_scales": page_obj,
+            "page_obj": page_obj,
             "regions_list_url": reverse("super:regions_list"),
         },
     )
@@ -359,13 +370,16 @@ def super_country_multipliers_list(request):
     """List CountryMultiplier catalog; CRUD via super (not platform /admin/)."""
     from apps.plans_entitlements.models import CountryMultiplier
 
-    rows = list(CountryMultiplier.objects.all().order_by("country_code"))
+    page_obj = _paginate_queryset(
+        request, CountryMultiplier.objects.all().order_by("country_code")
+    )
     return render(
         request,
         "schools/super_country_multipliers_list.html",
         {
             **_config_context(request),
-            "multipliers": rows,
+            "multipliers": page_obj,
+            "page_obj": page_obj,
             "plans_list_url": reverse("super:plans_list"),
         },
     )
@@ -379,15 +393,17 @@ def super_feature_toggles_list(request):
     """List platform FeatureToggleDefinition. Config surface is Configuration Control Center (no admin residue)."""
     from apps.policies_rules.models import FeatureToggleDefinition
 
-    definitions = list(
-        FeatureToggleDefinition.objects.all().order_by("category", "key")
+    page_obj = _paginate_queryset(
+        request,
+        FeatureToggleDefinition.objects.all().order_by("category", "key"),
     )
     return render(
         request,
         "schools/super_feature_toggles_list.html",
         {
             **_config_context(request),
-            "definitions": definitions,
+            "definitions": page_obj,
+            "page_obj": page_obj,
         },
     )
 
@@ -400,11 +416,13 @@ def super_incidents_list(request):
     """List platform PlatformIncident; link to pulse. No admin residue."""
     from apps.observability.models import PlatformIncident
 
-    incidents = list(
-        PlatformIncident.objects.select_related("affected_school")
-        .all()
-        .order_by("-detected_at")[:200]
+    page_obj = _paginate_queryset(
+        request,
+        PlatformIncident.objects.select_related("affected_school").order_by(
+            "-detected_at"
+        ),
     )
+    incidents = page_obj
     try:
         pulse_url = reverse("super:pulse")
     except NoReverseMatch:
@@ -415,6 +433,7 @@ def super_incidents_list(request):
         {
             **_config_context(request),
             "incidents": incidents,
+            "page_obj": page_obj,
             "pulse_url": pulse_url,
         },
     )
@@ -425,10 +444,9 @@ def super_billing_accounts_list(request):
     """List platform BillingAccount; link to billing dashboard. No admin residue."""
     from apps.billing.models import BillingAccount
 
-    accounts = list(
-        BillingAccount.objects.select_related("school")
-        .all()
-        .order_by("school__name")[:200]
+    page_obj = _paginate_queryset(
+        request,
+        BillingAccount.objects.select_related("school").order_by("school__name"),
     )
     try:
         billing_dashboard_url = reverse("super:billing_dashboard")
@@ -439,7 +457,8 @@ def super_billing_accounts_list(request):
         "schools/super_billing_accounts_list.html",
         {
             **_config_context(request),
-            "accounts": accounts,
+            "accounts": page_obj,
+            "page_obj": page_obj,
             "billing_dashboard_url": billing_dashboard_url,
         },
     )
@@ -450,10 +469,11 @@ def super_migration_runs_list(request):
     """List platform MigrationRun; link to migration cloud. No admin residue."""
     from apps.automation.models import MigrationRun
 
-    runs = list(
-        MigrationRun.objects.select_related("school", "triggered_by")
-        .all()
-        .order_by("-started_at")[:200]
+    page_obj = _paginate_queryset(
+        request,
+        MigrationRun.objects.select_related("school", "triggered_by").order_by(
+            "-started_at"
+        ),
     )
     try:
         migration_cloud_url = reverse("super:migration_cloud")
@@ -464,7 +484,8 @@ def super_migration_runs_list(request):
         "schools/super_migration_runs_list.html",
         {
             **_config_context(request),
-            "runs": runs,
+            "runs": page_obj,
+            "page_obj": page_obj,
             "migration_cloud_url": migration_cloud_url,
         },
     )

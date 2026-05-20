@@ -910,6 +910,11 @@ def _safe_float(value, default: float) -> float:
 
 
 def _get_weather_selector_state(site: Any) -> dict:
+    if not GlobalGeoCatalog.is_available():
+        try:
+            WeatherLocation.ensure_seed_data()
+        except (DatabaseError, LookupError, RuntimeError, TypeError, ValueError):
+            pass
     defaults = default_header_weather_config()
     feature_settings = (
         site.get_feature_control_settings()
@@ -975,11 +980,11 @@ def _get_weather_selector_state(site: Any) -> dict:
             "label": str(row.get("label") or row.get("city") or ""),
             "timezone": str(row.get("timezone") or "UTC"),
         }
-        for row in GlobalGeoCatalog.search_cities(country_code=country_code, limit=220)
+        for row in GlobalGeoCatalog.search_cities(country_code=country_code, limit=500)
     ]
 
-    if not countries or not cities:
-        # Backward-compatible fallback if global catalog deps are unavailable.
+    if not GlobalGeoCatalog.is_available():
+        # Legacy fallback only when neither live geonames nor persisted catalog exists.
         locations = _list_weather_locations()
         selected = None
         if location_id:
@@ -1624,7 +1629,7 @@ def feature_control_weather_cities(request):
         request.GET.get("country_code")
     )
     query = (request.GET.get("q") or "").strip()
-    limit = _clamp_int(request.GET.get("limit"), 220, minimum=10, maximum=500)
+    limit = _clamp_int(request.GET.get("limit"), 500, minimum=10, maximum=500)
     cities = [
         {
             "id": str(row.get("id") or ""),

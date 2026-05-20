@@ -23,7 +23,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const USER_ROLE = DATA["var_user_role_default_user"] || "USER";
   const CSRF_TOKEN = DATA["var_csrf_token"] || "";
 
+  function assistDockMounted() {
+    return document.body.getAttribute('data-rmc-assist-dock') === 'mounted';
+  }
+
   function forceCopilotPosition(wrapper) {
+    if (assistDockMounted()) return;
     const isSmall = window.matchMedia && window.matchMedia('(max-width: 576px)').matches;
     const right = isSmall ? '12px' : '16px';
     const bottom = isSmall ? '12px' : '16px';
@@ -35,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function forcePanelPosition(panel) {
+    if (assistDockMounted()) return;
     const isSmall = window.matchMedia && window.matchMedia('(max-width: 576px)').matches;
     panel.style.right = isSmall ? '12px' : '24px';
     panel.style.left = 'auto';
@@ -137,6 +143,15 @@ document.addEventListener('DOMContentLoaded', function() {
       panel.classList.toggle('active');
       const isOpen = panel.classList.contains('active');
       trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (window.RMCAssistDock) {
+        if (isOpen) {
+          window.RMCAssistDock.closeAll('ai');
+          document.body.setAttribute('data-rmc-assist-panel', 'ai');
+        } else {
+          window.RMCAssistDock.closeAll();
+        }
+        window.RMCAssistDock.syncBackdrop();
+      }
       if (isOpen) {
         if (!AI_PERMISSIONS.can_access_ai) {
           const infoMsg = document.createElement('div');
@@ -160,6 +175,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     closeBtn.addEventListener('click', function() {
       panel.classList.remove('active');
+      trigger.setAttribute('aria-expanded', 'false');
+      if (window.RMCAssistDock) window.RMCAssistDock.closeAll();
     });
 
     input.addEventListener('input', function() {
@@ -306,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!panel.contains(e.target) && !trigger.contains(e.target)) {
         panel.classList.remove('active');
         trigger.setAttribute('aria-expanded', 'false');
+        if (window.RMCAssistDock) window.RMCAssistDock.closeAll();
       }
     });
 
@@ -321,6 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (panel.classList.contains('active')) {
           panel.classList.remove('active');
           trigger.setAttribute('aria-expanded', 'false');
+          if (window.RMCAssistDock) window.RMCAssistDock.closeAll();
           trigger.focus();
         }
       }

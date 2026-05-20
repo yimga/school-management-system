@@ -33,8 +33,8 @@ _BOOTSTRAP_PLATFORM_CATALOG_ERRORS = (
 BOOTSTRAP_STEPS = [
     (
         "seed_global_data",
-        ["--skip-unesco"],
-        "Global regions, country profiles, brand registry",
+        ["--skip-unesco", "--with-weather-locations"],
+        "Global regions, country profiles, brand registry, weather city catalog",
     ),
     (
         "seed_platform_registries",

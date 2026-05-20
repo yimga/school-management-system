@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>New forum reply</title></head>
+<body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #111;">
+  <p>Someone replied to a community discussion you follow at <strong>{{ school_name }}</strong>.</p>
+  <h2 style="font-size: 1.1rem;">{{ topic_title }}</h2>
+  <p style="color: #555; font-size: 0.9rem;">{{ replier_name }}</p>
+  <blockquote style="border-left: 3px solid #4F46E5; margin: 1rem 0; padding-left: 1rem; color: #333;">
+    {{ reply_excerpt|linebreaksbr }}
+  </blockquote>
+  <p><a href="{{ topic_url }}" style="color: #4F46E5;">View the full thread</a></p>
+  <p style="font-size: 0.8rem; color: #888;">You received this because you started or replied to this topic.</p>
+</body>
+</html>

@@ -1,101 +1,135 @@
 {% load static %}
 {% load i18n accounts_extras %}
-<div class="container py-3" data-page-archetype="operational-workbench">
+<link rel="stylesheet" href="{% static 'css/rmc-user-preferences.css' %}">
+<div class="container py-3 rmc-user-preferences" data-page-archetype="operational-workbench">
   {% trans "Back to dashboard" as back_action %}
   {% trans "My settings" as prefs_eyebrow %}
   {% include "studio_os/components/page_header.html" with eyebrow=prefs_eyebrow title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-xl-7">
-      {% trans "Personalize your portal." as prefs_banner_title %}
-      {% blocktrans trimmed asvar prefs_banner_body %}These settings only change what you see (theme, widgets, notifications). Full Site Settings stay locked to Admins.{% endblocktrans %}
-      {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
-        {% url 'siteconfig:console_domains_hub' as prefs_banner_action_url %}
-        {% trans "Config center" as prefs_banner_action_label %}
-        {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body chrome_banner_action_url=prefs_banner_action_url chrome_banner_action_label=prefs_banner_action_label %}
-      {% else %}
-        {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body %}
-      {% endif %}
 
-      <div class="card shadow-sm">
-        <div class="card-header bg-white">
-          <h1 class="h6 mb-0">Settings</h1>
-          <p class="text-muted small mb-0">Theme, timezone, dashboard view, and refresh options.</p>
-        </div>
-        <div class="card-body">
-          <form method="post" novalidate id="user-preferences-form">
-            {% csrf_token %}
+  {% trans "Personalize your portal." as prefs_banner_title %}
+  {% blocktrans trimmed asvar prefs_banner_body %}These settings only change what you see (theme, widgets, notifications). Full Site Settings stay locked to Admins.{% endblocktrans %}
+  {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
+    {% url 'siteconfig:console_domains_hub' as prefs_banner_action_url %}
+    {% trans "Config center" as prefs_banner_action_label %}
+    {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body chrome_banner_action_url=prefs_banner_action_url chrome_banner_action_label=prefs_banner_action_label %}
+  {% else %}
+    {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title=prefs_banner_title chrome_banner_body=prefs_banner_body %}
+  {% endif %}
 
-            {% if form.dashboard_visual_preset %}
-            <div class="mb-3 p-3 border rounded-3 bg-light-subtle">
-              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
-                <div>
-                  <label class="form-label fw-semibold mb-1" for="{{ form.dashboard_visual_preset.id_for_label }}">
-                    {{ form.dashboard_visual_preset.label }}
-                  </label>
-                  <div class="small text-muted">
-                    Applied to your current role:
-                    <strong>{{ request.user.get_role_display|default:request.user.role|default:"User" }}</strong>
-                  </div>
-                </div>
+  <div class="card shadow-sm rmc-user-preferences__card">
+    <div class="card-header">
+      <h1 class="h6 mb-0">{% trans "Settings" %}</h1>
+      <p class="text-muted small mb-0">{% trans "Theme, timezone, locale, dashboard view, and refresh options." %}</p>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate id="user-preferences-form">
+        {% csrf_token %}
+
+        {% if form.dashboard_visual_preset %}
+        <div class="mb-3 p-3 border rounded-3 bg-light-subtle">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+            <div>
+              <label class="form-label fw-semibold mb-1" for="{{ form.dashboard_visual_preset.id_for_label }}">
+                {{ form.dashboard_visual_preset.label }}
+              </label>
+              <div class="small text-muted">
+                {% trans "Applied to your current role:" %}
+                <strong>{{ request.user.get_role_display|default:request.user.role|default:"User" }}</strong>
               </div>
-              {{ form.dashboard_visual_preset }}
-              {% if form.dashboard_visual_preset.help_text %}
-                <div class="form-text">{{ form.dashboard_visual_preset.help_text }}</div>
-              {% endif %}
-              {% if form.dashboard_visual_preset.errors %}
-                <div class="invalid-feedback d-block">
-                  {{ form.dashboard_visual_preset.errors|join:", " }}
-                </div>
-              {% endif %}
             </div>
-            {% endif %}
-
-            {% for field in form %}
-              {% if field.name != "dashboard_visual_preset" %}
-              {% if field.field.widget.input_type == "checkbox" %}
-                <div class="form-check mb-3">
-                  {{ field }}
-                  <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% else %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% endif %}
-              {% endif %}
-            {% endfor %}
-
-            <div class="d-flex flex-wrap gap-2 mt-3">
-              <button type="submit" class="btn btn-primary" id="preferences-submit-btn">Save preferences</button>
-              <a class="btn btn-outline-secondary btn-back-primary" href="{{ previous_page }}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
-              {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
-                <a class="btn btn-outline-secondary" href="{% url 'siteconfig:console_domains_hub' %}">
-                  {% trans "Config center" %}
-                </a>
-              {% endif %}
-            </div>
-          </form>
+          </div>
+          {{ form.dashboard_visual_preset }}
+          {% if form.dashboard_visual_preset.help_text %}
+            <div class="form-text">{{ form.dashboard_visual_preset.help_text }}</div>
+          {% endif %}
+          {% if form.dashboard_visual_preset.errors %}
+            <div class="invalid-feedback d-block">{{ form.dashboard_visual_preset.errors|join:", " }}</div>
+          {% endif %}
         </div>
-      </div>
+        {% endif %}
+
+        <section class="rmc-prefs-locale" aria-labelledby="rmc-prefs-locale-heading">
+          <h2 class="rmc-prefs-locale__title" id="rmc-prefs-locale-heading">{% trans "Language & region" %}</h2>
+          <p class="rmc-prefs-locale__lead">
+            {% trans "Choose how dates, numbers, and UI language appear for your account. Leave as default to follow your school or browser." %}
+          </p>
+          <div class="rmc-prefs-locale__grid">
+            <div class="rmc-prefs-field">
+              <label class="form-label" for="{{ form.preferred_language.id_for_label }}">{{ form.preferred_language.label }}</label>
+              {{ form.preferred_language }}
+              {% if form.preferred_language.help_text %}
+                <div class="form-text" id="rmc-prefs-language-hint">{{ form.preferred_language.help_text }}</div>
+              {% endif %}
+              {% if form.preferred_language.errors %}
+                <div class="invalid-feedback d-block">{{ form.preferred_language.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="rmc-prefs-field">
+              <label class="form-label" for="{{ form.preferred_region.id_for_label }}">{{ form.preferred_region.label }}</label>
+              {{ form.preferred_region }}
+              {% if form.preferred_region.help_text %}
+                <div class="form-text" id="rmc-prefs-region-hint">{{ form.preferred_region.help_text }}</div>
+              {% endif %}
+              {% if form.preferred_region.errors %}
+                <div class="invalid-feedback d-block">{{ form.preferred_region.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="rmc-prefs-preview" id="rmc-prefs-locale-preview" aria-live="polite">
+            <span data-rmc-prefs-preview-label>{% trans "Preview" %}:</span>
+            <strong data-rmc-prefs-preview-text>{% trans "Select a region to see date and number formatting." %}</strong>
+          </div>
+        </section>
+
+        {% for field in form %}
+          {% if field.name != "dashboard_visual_preset" and field.name != "preferred_language" and field.name != "preferred_region" %}
+          {% if field.field.widget.input_type == "checkbox" %}
+            <div class="form-check mb-3">
+              {{ field }}
+              <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <button type="submit" class="btn btn-primary" id="preferences-submit-btn">{% trans "Save preferences" %}</button>
+          <a class="btn btn-outline-secondary btn-back-primary" href="{{ previous_page }}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to dashboard" %}</a>
+          {% if request.user.is_superuser or request.user.role == "ADMIN" or request.user|has_feature_permission:"settings.manage" %}
+            <a class="btn btn-outline-secondary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
+          {% endif %}
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
-  <script src="{% static 'js/_pages/siteconfig__user_preferences.js' %}"></script>
+<script type="application/json" id="page-data-rmc-user-preferences">{
+  "regionHints": {
+    "": "{% filter escapejs %}{% trans "Platform default formatting" %}{% endfilter %}",
+    "CMR": "{% filter escapejs %}{% trans "Cameroon — DD/MM/YYYY, comma decimals, XAF-style grouping" %}{% endfilter %}",
+    "USA": "{% filter escapejs %}{% trans "United States — MM/DD/YYYY, USD grouping" %}{% endfilter %}",
+    "GBR": "{% filter escapejs %}{% trans "United Kingdom — DD/MM/YYYY, GBP grouping" %}{% endfilter %}",
+    "CAN": "{% filter escapejs %}{% trans "Canada — YYYY-MM-DD or DD/MM/YYYY, CAD grouping" %}{% endfilter %}",
+    "NGA": "{% filter escapejs %}{% trans "Nigeria — DD/MM/YYYY, NGN grouping" %}{% endfilter %}"
+  },
+  "languageLabel": "{% filter escapejs %}{% trans "UI language" %}{% endfilter %}"
+}</script>
+<script src="{% static 'js/_pages/siteconfig__user_preferences.js' %}" defer></script>

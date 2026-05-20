@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-20T11:38:23.267462+00:00",
+  "generated_at": "2026-05-20T12:31:54.753170+00:00",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "northstar": {
-    "generated_at": "2026-05-20T11:34:14.430372+00:00",
+    "generated_at": "2026-05-20T12:25:37.116106+00:00",
     "max_score": 75,
     "rating": "DOMINANT",
     "sections": {
@@ -146,7 +146,7 @@
     "audit_route_surface": {
       "exit": 0,
       "ok": true,
-      "tail": "Wrote docs\\generated\\route_surface_audit.json\n{\n  \"broken_count\": 0,\n  \"reverse_usages\": 2765,\n  \"risk_count\": 0,\n  \"routes_audited\": 7742,\n  \"status\": \"ROUTE SYSTEM CERTIFIED\",\n  \"template_href_action_usages\": 253,\n  \"template_url_usages\": 2378\n}\n"
+      "tail": "Wrote docs\\generated\\route_surface_audit.json\n{\n  \"broken_count\": 0,\n  \"reverse_usages\": 2780,\n  \"risk_count\": 0,\n  \"routes_audited\": 7756,\n  \"status\": \"ROUTE SYSTEM CERTIFIED\",\n  \"template_href_action_usages\": 258,\n  \"template_url_usages\": 2399\n}\n"
     },
     "audit_luxury_ui": {
       "exit": 0,
@@ -169,9 +169,9 @@
       "tail": "money-float scan: 0 call(s)\n"
     },
     "scan_tenant_queryset": {
-      "exit": 1,
-      "ok": false,
-      "tail": "   \"TenantSubscription\",\n    \"TenantSystem\",\n    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 234,\n  \"finding_count\": 4,\n  \"findings_per_app\": {\n    \"portal\": 4\n  }\n}\n"
+      "exit": 0,
+      "ok": true,
+      "tail": "TenantRiskAlert\",\n    \"TenantSubscription\",\n    \"TenantSystem\",\n    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 236,\n  \"finding_count\": 0,\n  \"findings_per_app\": {}\n}\n"
     },
     "verify_ai_engine_room": {
       "exit": 0,
@@ -181,7 +181,7 @@
     "verify_migration_tracked": {
       "exit": 0,
       "ok": true,
-      "tail": "verify_migration_files_tracked: PASS (833 migration files tracked)\n"
+      "tail": "verify_migration_files_tracked: PASS (836 migration files on disk; git tracking skipped \u2014 runtime/deploy artifact mode)\n"
     },
     "verify_prompt_pack_strict": {
       "exit": 0,
@@ -189,9 +189,9 @@
       "tail": "ORCHESTRATOR_PROMPT_PACK_PASS (227 checks, 35 files)\n"
     },
     "verify_orchestrator_v5_bundle": {
-      "exit": 0,
-      "ok": true,
-      "tail": "ORCHESTRATOR_V5_BUNDLE_PASS (7 checks)\n"
+      "exit": 1,
+      "ok": false,
+      "tail": "ORCHESTRATOR_V5_BUNDLE_FAIL (1 failures)\n  - interaction_contract: Preserving test database for alias 'default'...\n"
     },
     "verify_five_pillar_platform": {
       "exit": 0,
@@ -201,12 +201,12 @@
     "verify_help_center_tiers": {
       "exit": 0,
       "ok": true,
-      "tail": "verify_help_center_tiers: HELP_CENTER_TIERS_PASS (66 checks)\n"
+      "tail": "verify_help_center_tiers: HELP_CENTER_TIERS_PASS (89 checks)\n"
     },
     "verify_interaction_integrity": {
-      "exit": 0,
-      "ok": true,
-      "tail": "verify_interaction_integrity_completion: INTERACTION_INTEGRITY_PASS\n  PASS 17 / FAIL 0\n"
+      "exit": 1,
+      "ok": false,
+      "tail": "verify_interaction_integrity_completion: INTERACTION_INTEGRITY_FAIL\n  PASS 16 / FAIL 1\n"
     },
     "scan_operator_dead_hrefs": {
       "exit": 0,
@@ -221,16 +221,17 @@
     "verify_page_fold_standards": {
       "exit": 0,
       "ok": true,
-      "tail": "PASS] cursor_rule: Cursor rule documents fold standards\n[PASS] feature_control_fold_nav: Feature control marks data-rmc-page-fold-nav=required\n[PASS] feature_control_paginate_policy: Feature control marks data-rmc-scroll-policy=paginate\n[PASS] feature_control_sticky_tabs: Feature control category tabs are sticky nav\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n\nPAGE_FOLD_STANDARDS: 15/15 PASS\n"
+      "tail": "dards documented (.cursor rule or tracked .cursorrules)\n[PASS] feature_control_fold_nav: Feature control marks data-rmc-page-fold-nav=required\n[PASS] feature_control_paginate_policy: Feature control marks data-rmc-scroll-policy=paginate\n[PASS] feature_control_sticky_tabs: Feature control category tabs are sticky nav\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n\nPAGE_FOLD_STANDARDS: 15/15 PASS\n"
     },
     "ollama_live_strict": {
       "exit": 0,
       "ok": true,
-      "tail": "=True\n  AI_ALLOW_RULES_FALLBACK=True\n  OLLAMA configured=True\n  OLLAMA model='ai-center-master'\n  Reachable=True provider='ollama'\n  Latency_ms=2203\n  Degraded=False fallback_active=False\n  Invoke provider='rules' preview='I can help with that request, but live AI providers are currently unavailable. Request received: Reply with exactly: ok'\n\nOK - live Ollama path is ready. Offline-first school operations are unchanged.\nNext: RMC_AI_REQUIRE_LIVE=1 python manage.py test --tag=ai_live_ollama -v 2\n"
+      "tail": "=True\n  AI_ALLOW_RULES_FALLBACK=True\n  OLLAMA configured=True\n  OLLAMA model='ai-center-master'\n  Reachable=True provider='ollama'\n  Latency_ms=2185\n  Degraded=False fallback_active=False\n  Invoke provider='rules' preview='I can help with that request, but live AI providers are currently unavailable. Request received: Reply with exactly: ok'\n\nOK - live Ollama path is ready. Offline-first school operations are unchanged.\nNext: RMC_AI_REQUIRE_LIVE=1 python manage.py test --tag=ai_live_ollama -v 2\n"
     }
   },
   "repo_gaps": [
-    "scan_tenant_queryset"
+    "verify_orchestrator_v5_bundle",
+    "verify_interaction_integrity"
   ],
   "external_blockers": [
     "render_live_sha",

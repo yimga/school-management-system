@@ -1,0 +1,46 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
+<section class="mkt-help-hub rmc-reveal mb-4" data-mkt-reveal aria-labelledby="mkt-help-hub-title">
+  <div class="mkt-help-hub__hero card border-0 shadow-sm">
+    <div class="card-body">
+      <h2 id="mkt-help-hub-title" class="h4 mb-2">{% trans "RunMyCampus Help Hub" %}</h2>
+      <p class="text-secondary mb-3">
+        {% blocktrans count counter=marketing_kb_hub.article_count %}{{ counter }} published guide{% plural %}{{ counter }} published guides{% endblocktrans %}
+        {% trans "for schools and operators — search, read, or contact us." %}
+      </p>
+      {% include "marketing/partials/mkt_help_engine.html" %}
+    </div>
+  </div>
+
+  {% if marketing_kb_hub.featured_articles %}
+  <div class="mt-4">
+    <h3 class="h5 mb-3">{% trans "Featured runbooks" %}</h3>
+    <div class="row g-3">
+      {% for article in marketing_kb_hub.featured_articles %}
+      <div class="col-md-6 col-lg-4">
+        <a class="card h-100 text-decoration-none mkt-help-hub__card" href="{% url 'marketing_kb_article' article_slug=article.slug %}">
+          <div class="card-body">
+            <h4 class="h6 mb-1">{{ article.title }}</h4>
+            <p class="small text-secondary mb-0">{{ article.summary|truncatewords:18 }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if marketing_kb_hub.categories %}
+  <div class="mt-4">
+    <h3 class="h5 mb-3">{% trans "Browse by topic" %}</h3>
+    <div class="list-group">
+      {% for row in marketing_kb_hub.categories %}
+      <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="{% url 'marketing_kb_category' category_slug=row.category.slug %}">
+        <span>{{ row.category.name }}</span>
+        <span class="badge bg-secondary rounded-pill">{{ row.article_count }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</section>

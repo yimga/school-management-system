@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console" data-rmc-scroll-policy="paginate">
   {% operator_console_strip %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -73,6 +73,7 @@
     <p class="mb-0">{% trans "No country multipliers configured." %}</p>
   </div>
   {% endif %}
+  {% include "components/pagination.html" %}
   <p class="mt-3"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to Config center" %}</a></p>
 </div>
 {% endblock %}

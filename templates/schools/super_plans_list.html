@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console">
+<div class="container-fluid py-3 content-max-960" data-page-archetype="decision-console" data-rmc-scroll-policy="paginate">
   {% operator_console_strip %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -38,7 +38,16 @@
   <p class="small mb-3">{% trans "Add-ons in catalog:" %} {{ addons_count }}</p>
   {% endif %}
 
-  {% if plans %}
+  <ul class="nav nav-tabs rmc-section-nav mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link {% if active_tab == 'plans' %}active{% endif %}" href="?tab=plans" role="tab">{% trans "Plans" %}</a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link {% if active_tab == 'addons' %}active{% endif %}" href="?tab=addons" role="tab">{% trans "Add-ons" %}</a>
+    </li>
+  </ul>
+
+  {% if active_tab == 'plans' and plans %}
   <div class="cp-overview-card border border-secondary rounded p-0 overflow-hidden">
     <div class="table-responsive">
       <table class="table table-family table-hover mb-0">
@@ -75,13 +84,13 @@
       </table>
     </div>
   </div>
-  {% else %}
+  {% elif active_tab == 'plans' %}
   <div class="cp-overview-card border border-secondary rounded p-4">
     <p class="mb-0">{% trans "No plans configured." %}</p>
   </div>
   {% endif %}
 
-  {% if addons %}
+  {% if active_tab == 'addons' and addons %}
   <h2 class="h6 text-uppercase mt-4 mb-2">{% trans "Add-ons" %}</h2>
   <div class="cp-overview-card border border-secondary rounded p-0 overflow-hidden">
     <div class="table-responsive">
@@ -115,8 +124,13 @@
       </table>
     </div>
   </div>
+  {% elif active_tab == 'addons' %}
+  <div class="cp-overview-card border border-secondary rounded p-4">
+    <p class="mb-0">{% trans "No add-ons configured." %}</p>
+  </div>
   {% endif %}
 
+  {% include "components/pagination.html" %}
   <p class="mt-3"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to Config center" %}</a></p>
 </div>
 {% endblock %}

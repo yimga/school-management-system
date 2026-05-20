@@ -98,6 +98,10 @@ logger = logging.getLogger(__name__)
 @login_required
 def portal_feature_page(request: HttpRequest, feature: str):
     """Portal tools (Community, Video, Documents): require corresponding portal.* permission and feature enabled."""
+    if feature == "forums":
+        from apps.portal.views_forums import forum_home
+
+        return forum_home(request)
     perm_code = PORTAL_FEATURE_PERMISSIONS.get(feature)
     if perm_code and not request.user.has_feature_permission(perm_code):
         return HttpResponseForbidden("You do not have access to this portal feature.")

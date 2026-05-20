@@ -13,6 +13,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from apps.feedback.form_widgets import apply_bootstrap_form_styles
+from apps.feedback.db_readiness import (
+    feature_request_queryset,
+    feedback_schema_ready,
+    open_feature_request_count,
+)
 from apps.feedback.forms import FeatureRequestForm
 from apps.feedback.models import FeatureRequest, RoadmapItem
 from apps.feedback.services import (
@@ -31,6 +36,17 @@ def manager_feature_center(request):
     """Operator feature discovery — submit requests and review cross-tenant signals."""
     if request.method == "POST":
         form = FeatureRequestForm(request.POST)
+        if not feedback_schema_ready():
+            messages.warning(
+                request,
+                str(
+                    _(
+                        "Feature requests are temporarily unavailable while database "
+                        "migrations finish. Try again shortly or contact platform support."
+                    )
+                ),
+            )
+            return redirect_manager_feature_center()
         if form.is_valid():
             submit_feature_request(
                 school=None,
@@ -57,15 +73,18 @@ def manager_feature_center(request):
         )
         apply_bootstrap_form_styles(form)
 
-    feature_requests = FeatureRequest.objects.select_related("school", "submitted_by").order_by(
-        "-weighted_score", "-created_at"
-    )[:75]
+    feature_requests = list(
+        feature_request_queryset()
+        .select_related("school", "submitted_by")
+        .order_by("-weighted_score", "-created_at")[:75]
+    )
     return render_manager_report_page(
         request,
         body_template="schools/partials/manager_feature_center_body.html",
         context={
             "feature_form": form,
             "feature_requests": feature_requests,
+            "feedback_schema_pending": not feedback_schema_ready(),
             "roadmap_items": RoadmapItem.objects.filter(
                 tenant_visibility=True
             ).order_by("-priority_score")[:30],
@@ -83,20 +102,13 @@ def manager_feature_center(request):
 def manager_contact_us(request):
     """Operator contact router — platform support, product voice, and public contact."""
     links = support_entry_points(request)
-    open_feature_count = FeatureRequest.objects.filter(
-        status__in=[
-            FeatureRequest.Status.SUBMITTED,
-            FeatureRequest.Status.TRIAGING,
-            FeatureRequest.Status.UNDER_REVIEW,
-            FeatureRequest.Status.NEEDS_MORE_INFO,
-        ]
-    ).count()
     return render_manager_report_page(
         request,
         body_template="schools/partials/manager_contact_us_body.html",
         context={
             "support_links": links,
-            "open_feature_count": open_feature_count,
+            "open_feature_count": open_feature_request_count(),
+            "feedback_schema_pending": not feedback_schema_ready(),
             "help_center_url": reverse("manager_help_center"),
             "manager_support_url": reverse("manager_support_request"),
         },

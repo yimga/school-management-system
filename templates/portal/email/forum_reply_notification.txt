@@ -1,0 +1,15 @@
+Hello,
+
+Someone replied to a community discussion you follow at {{ school_name }}.
+
+Topic: {{ topic_title }}
+From: {{ replier_name }}
+
+{{ reply_excerpt }}
+
+View the full thread:
+{{ topic_url }}
+
+You are receiving this because you started or replied to this topic. Adjust email preferences in your portal account settings.
+
+— RunMyCampus Community Forums

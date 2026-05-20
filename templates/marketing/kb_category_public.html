@@ -1,0 +1,52 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{{ category.name }} | {% trans "Help Center" %} | RunMyCampus{% endblock %}
+{% block content %}
+<article class="mkt-section rmc-reveal" data-mkt-reveal>
+  <nav class="mb-2 small">
+    <a href="{% url 'marketing_resources_help_center' %}">{% trans "Help center" %}</a>
+    / <a href="{% url 'marketing_kb_search' %}">{% trans "Search" %}</a>
+    / {{ category.name }}
+  </nav>
+  <h1 class="mkt-section-heading">{{ category.name }}</h1>
+  {% if category.description %}
+  <p class="text-secondary">{{ category.description }}</p>
+  {% endif %}
+  <p class="text-secondary small mb-4">
+    {% blocktrans count counter=article_count %}{{ counter }} article in this topic{% plural %}{{ counter }} articles in this topic{% endblocktrans %}
+  </p>
+
+  <div class="row g-3">
+    {% for article in page_obj %}
+    <div class="col-md-6 col-lg-4">
+      <a class="card h-100 text-decoration-none mkt-help-hub__card" href="{% url 'marketing_kb_article' article_slug=article.slug %}">
+        <div class="card-body">
+          <h2 class="h6 mb-1">{{ article.title }}</h2>
+          <p class="small text-secondary mb-0">{{ article.summary|truncatewords:20 }}</p>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <p class="text-muted">{% trans "No published articles in this category yet." %}</p>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-4" aria-label="{% trans 'Category pagination' %}">
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  <p class="mt-4">
+    <a class="btn btn-outline-primary" href="{% url 'marketing_kb_search' %}">{% trans "Search all guides" %}</a>
+  </p>
+</article>
+{% endblock %}

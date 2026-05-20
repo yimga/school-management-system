@@ -46,7 +46,123 @@
 }
 
 .rmc-page--migration-cloud-intake {
-  padding-block: 1.25rem 2rem;
+  padding-block: 0.5rem 2rem;
+  margin-inline: auto;
+  width: min(100%, 88rem);
+}
+
+body.control-plane-shell #cp-main-content .cp-page-body:has(.rmc-page--migration-cloud-intake) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rmc-intake-stepper {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 4;
+  margin-block-end: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--mc-border);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--surface-elevated, #fff) 92%, transparent);
+  box-shadow: var(--mc-shadow-soft);
+  backdrop-filter: blur(10px);
+}
+
+.rmc-intake-stepper__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: mc-intake-step;
+}
+
+.rmc-intake-stepper__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--mc-border);
+  color: var(--text-secondary, #475569);
+  font-size: var(--type-size-small, 0.875rem);
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.rmc-intake-stepper__link::before {
+  counter-increment: mc-intake-step;
+  content: counter(mc-intake-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 10%, transparent);
+  color: var(--school-primary, #4f46e5);
+}
+
+.rmc-intake-stepper__link:hover,
+.rmc-intake-stepper__link:focus-visible {
+  border-color: var(--mc-border-strong);
+  color: var(--text-primary, #111827);
+}
+
+.rmc-intake-stepper__link.is-active {
+  border-color: var(--mc-border-strong);
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 12%, var(--surface-elevated, #fff));
+  color: var(--text-primary, #111827);
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-layout {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1.15fr) minmax(17rem, 22rem);
+  gap: 1.5rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  gap: 1.5rem;
+  margin-block-end: 0.25rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-hero .rmc-h1 {
+  font-size: clamp(1.85rem, 3.2vw, 2.65rem);
+  line-height: 1.08;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-metric {
+  text-align: center;
+  background: color-mix(in srgb, var(--surface-canvas, #f8fafc) 88%, var(--school-primary, #4f46e5) 12%);
+}
+
+.rmc-page--migration-cloud-intake .rmc-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.15rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-method-grid {
+  gap: 1rem;
+}
+
+.rmc-page--migration-cloud-intake .rmc-input--select.rmc-prefs-select,
+.rmc-page--migration-cloud-intake select.rmc-prefs-select {
+  appearance: auto;
+  color: var(--text-primary, #111827);
+  background-color: color-mix(in srgb, var(--surface-canvas, #ffffff) 94%, transparent);
+}
+
+.rmc-page--migration-cloud-intake .rmc-intake-savebar {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
 }
 
 .rmc-page--migration-cloud-intake .rmc-intake-hero,
@@ -64,18 +180,12 @@
   box-shadow: var(--mc-shadow-soft);
 }
 
-.rmc-page--migration-cloud-intake .rmc-intake-hero {
+.rmc-page--migration-cloud-intake:not(.rmc-intake-v2) .rmc-intake-hero {
   align-items: center;
   padding: 1.5rem;
   background:
     linear-gradient(135deg, var(--mc-panel), var(--mc-panel-soft)),
     var(--mc-panel);
-}
-
-.rmc-page--migration-cloud-intake .rmc-intake-hero .rmc-h1 {
-  font-size: 3.65rem;
-  line-height: 1;
-  letter-spacing: 0;
 }
 
 .rmc-page--migration-cloud-intake .rmc-lede,
@@ -244,7 +354,16 @@
   }
 }
 
+@media (max-width: 900px) {
+  .rmc-page--migration-cloud-intake .rmc-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 720px) {
+  .rmc-intake-stepper {
+    position: static;
+  }
   .rmc-page--migration-cloud-intake,
   :where(.rmc-page--migration-cloud-customer, [data-rmc-migration-cloud-surface]) {
     padding-inline: 1rem;

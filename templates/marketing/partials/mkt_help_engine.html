@@ -7,10 +7,11 @@
     <a class="btn btn-outline-secondary" href="{% url 'marketing_contact' %}">{% trans "Contact sales" %}</a>
     <a class="btn btn-outline-secondary" href="{% url 'global_login_discovery' %}">{% trans "Find your school" %}</a>
   </div>
-  <form method="get" action="{% url 'public_support_hub' %}" class="input-group" role="search">
+  <form method="get" action="{% url 'marketing_kb_search' %}" class="input-group" role="search" id="mkt-help-engine-search">
     <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
-    <input type="search" name="q" class="form-control" placeholder="{% trans 'Describe your question (routes to support hub)' %}" aria-label="{% trans 'Search help topics' %}">
+    <input type="search" name="q" class="form-control" placeholder="{% trans 'Search guides and runbooks' %}" aria-label="{% trans 'Search knowledge base' %}" autocomplete="off" data-mkt-kb-typeahead="1">
     <button class="btn btn-outline-primary" type="submit">{% trans "Search" %}</button>
   </form>
+  <div class="d-none" data-mkt-kb-typeahead-url="{% url 'marketing_kb_typeahead' %}"></div>
   <p class="small text-secondary mt-2 mb-0">{% trans "Signed-in schools use the in-product Help center and knowledge base on their tenant domain." %}</p>
 </section>

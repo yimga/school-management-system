@@ -78,6 +78,12 @@ from apps.schools.signup_views import (
     onboard_migration_handoff,
     onboard_migration_start,
 )
+from apps.schools.marketing_kb_views import (
+    marketing_kb_article_view,
+    marketing_kb_category_view,
+    marketing_kb_search_view,
+    marketing_kb_typeahead_api,
+)
 from apps.schools.section8_views import (
     verify_caddy_domain,
     global_login_discovery,
@@ -702,6 +708,26 @@ urlpatterns = [
         marketing_page,
         {"page_slug": "resources-help-center"},
         name="marketing_resources_help_center",
+    ),
+    path(
+        "resources/help-center/search/",
+        marketing_kb_search_view,
+        name="marketing_kb_search",
+    ),
+    path(
+        "resources/help-center/category/<slug:category_slug>/",
+        marketing_kb_category_view,
+        name="marketing_kb_category",
+    ),
+    path(
+        "resources/help-center/article/<slug:article_slug>/",
+        marketing_kb_article_view,
+        name="marketing_kb_article",
+    ),
+    path(
+        "api/v1/marketing/kb/typeahead/",
+        marketing_kb_typeahead_api,
+        name="marketing_kb_typeahead",
     ),
     path(
         "solutions/k12-schools/",

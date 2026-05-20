@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T11:35:52.859630+00:00",
+  "generated_at": "2026-05-20T12:42:07.330991+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -8722,25 +8722,25 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/feedback/services.py",
-      "line": "47",
+      "line": "48",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "manager_scoped",
       "file": "apps/feedback/services.py",
-      "line": "169",
+      "line": "170",
       "preview": "is_manager = getattr(request, \"public_host_kind\", None) == \"manager\""
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/feedback/services.py",
-      "line": "277",
+      "line": "278",
       "preview": "if feedback.school_id is None:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/feedback/services.py",
-      "line": "414",
+      "line": "415",
       "preview": "\"school\": school or feature_request.school,"
     },
     {
@@ -17396,6 +17396,12 @@
       "preview": "school=getattr(request, \"school\", None),"
     },
     {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/help_unified_hub.py",
+      "line": "33",
+      "preview": "school = getattr(request, \"school\", None)"
+    },
+    {
       "classification": "manager_scoped",
       "file": "apps/portal/kb_context.py",
       "line": "12",
@@ -17445,6 +17451,48 @@
     },
     {
       "classification": "tenant_scoped",
+      "file": "apps/portal/kb_locale_ops.py",
+      "line": "34",
+      "preview": "{\"school_id\": canonical.school_id}"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/kb_locale_ops.py",
+      "line": "35",
+      "preview": "if canonical.school_id"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/kb_locale_ops.py",
+      "line": "73",
+      "preview": "school_id: int | None = None,"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/kb_locale_ops.py",
+      "line": "83",
+      "preview": "if school_id:"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/kb_locale_ops.py",
+      "line": "84",
+      "preview": "group_qs = KBArticle.objects.filter(locale_group_id=gid, school_id=school_id)"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/kb_locale_ops.py",
+      "line": "113",
+      "preview": "if canonical.school_id:"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/kb_locale_ops.py",
+      "line": "115",
+      "preview": "locale_group_id=gid, school_id=canonical.school_id"
+    },
+    {
+      "classification": "tenant_scoped",
       "file": "apps/portal/kb_pgvector.py",
       "line": "45",
       "preview": "school_id: str | None,"
@@ -17466,6 +17514,18 @@
       "file": "apps/portal/kb_pgvector.py",
       "line": "62",
       "preview": "params.append(str(school_id))"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/marketing_kb.py",
+      "line": "44",
+      "preview": "school = School.objects.filter(slug=slug, is_active=True).first()"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/marketing_kb.py",
+      "line": "177",
+      "preview": "school = School.objects.filter("
     },
     {
       "classification": "tenant_scoped",
@@ -18148,13 +18208,13 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/views.py",
-      "line": "120",
+      "line": "124",
       "preview": "school=getattr(request, \"school\", None),"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/views.py",
-      "line": "302",
+      "line": "306",
       "preview": "events = _merged_upcoming_events(year, school=getattr(request, \"school\", None))"
     },
     {
@@ -18474,6 +18534,36 @@
       "file": "apps/portal/views_documents.py",
       "line": "371",
       "preview": "school_id=ctx.get(\"school_id\"),"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/views_forums.py",
+      "line": "50",
+      "preview": "school = getattr(request, \"school\", None)"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/views_forums.py",
+      "line": "94",
+      "preview": "school = request.school"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/views_forums.py",
+      "line": "127",
+      "preview": "school = request.school"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/views_forums.py",
+      "line": "156",
+      "preview": "school = request.school"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/views_forums.py",
+      "line": "207",
+      "preview": "school = request.school"
     },
     {
       "classification": "tenant_scoped",
@@ -21898,31 +21988,31 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/section8_views.py",
-      "line": "612",
+      "line": "620",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "needs_review",
       "file": "apps/schools/section8_views.py",
-      "line": "616",
+      "line": "624",
       "preview": "school = School.objects.filter(slug=school_slug, is_active=True).first()"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/section8_views.py",
-      "line": "770",
+      "line": "778",
       "preview": "\"school\": str(integration.school_id),"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/section8_views.py",
-      "line": "1058",
+      "line": "1066",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/schools/section8_views.py",
-      "line": "1093",
+      "line": "1101",
       "preview": "school = getattr(request, \"school\", None)"
     },
     {
@@ -24808,7 +24898,13 @@
     {
       "classification": "manager_scoped",
       "file": "apps/schools/tests/test_super_admin_surface_parity.py",
-      "line": "143",
+      "line": "88",
+      "preview": "request.public_host_kind = \"manager\""
+    },
+    {
+      "classification": "manager_scoped",
+      "file": "apps/schools/tests/test_super_admin_surface_parity.py",
+      "line": "158",
       "preview": "urlconf=\"config.manager_urls\","
     },
     {
@@ -26020,7 +26116,7 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/siteconfig/forms.py",
-      "line": "1289",
+      "line": "1326",
       "preview": "school_id=getattr(getattr(request, \"school\", None), \"id\", None),"
     },
     {
@@ -26518,13 +26614,13 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/siteconfig/models_global_experience.py",
-      "line": "537",
+      "line": "675",
       "preview": "return f\"{self.actor_id} {self.action} {self.school_id} @ {self.created_at}\""
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/siteconfig/models_global_experience.py",
-      "line": "600",
+      "line": "738",
       "preview": "return f\"Passport {self.user_id} ({self.school_id or 'global'})\""
     },
     {
@@ -28408,7 +28504,7 @@
     {
       "classification": "manager_scoped",
       "file": "apps/siteconfig/views_feature_control.py",
-      "line": "1275",
+      "line": "1280",
       "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\":"
     },
     {
@@ -29904,107 +30000,11 @@
       "file": "apps/tenancy/tests/test_rls_boundary_contracts.py",
       "line": "59",
       "preview": "set_rls_school_id(\"  \")"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/tenancy/tests/test_tenant_context_middleware.py",
-      "line": "25",
-      "preview": "request.school = school"
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "apps/test_utils/http_clients.py",
-      "line": "7",
-      "preview": "MANAGER_HOST = \"manager.runmycampus.com\""
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "apps/test_utils/http_clients.py",
-      "line": "12",
-      "preview": "\"ROOT_URLCONF\": \"config.manager_urls\","
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/admin.py",
-      "line": "47",
-      "preview": "return (getattr(request, \"public_host_kind\", None) or \"\").lower()"
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/error_handlers.py",
-      "line": "4",
-      "preview": "Kept in a dedicated module so ``config.manager_urls`` can import handlers without"
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/error_handlers.py",
-      "line": "38",
-      "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/error_handlers.py",
-      "line": "51",
-      "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/error_handlers.py",
-      "line": "63",
-      "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/error_handlers.py",
-      "line": "87",
-      "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\""
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/manager_help_engagement.py",
-      "line": "5",
-      "preview": "apps.feedback.views on tenant hosts; operators use these routes on manager.runmycampus.com."
-    },
-    {
-      "classification": "needs_review",
-      "file": "config/manager_operator_support.py",
-      "line": "28",
-      "preview": "queryset=School.objects.filter(is_active=True).order_by(\"name\"),"
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/manager_urls.py",
-      "line": "2",
-      "preview": "Manager host URL configuration (manager.runmycampus.com)."
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/manager_urls.py",
-      "line": "256",
-      "preview": "school_matches = School.objects.filter("
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/schema.py",
-      "line": "32",
-      "preview": "host_kind = (getattr(request, \"public_host_kind\", None) or \"\").lower()"
-    },
-    {
-      "classification": "needs_review",
-      "file": "config/schema.py",
-      "line": "92",
-      "preview": "return School.objects.filter(is_active=True).count()"
-    },
-    {
-      "classification": "needs_review",
-      "file": "config/schema.py",
-      "line": "104",
-      "preview": "School.objects.filter(is_active=True).order_by(\"name\")["
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 5015
+    "hits": 5032
   },
   "truncated": true
 }

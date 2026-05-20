@@ -16,9 +16,20 @@ OUT_MD = ROOT / "docs" / "generated" / "ten_x_platform_certification.md"
 PROMPT_PACK_VERSION = "2026-05-20-orchestrator-v5"
 
 
-def _run(cmd: list[str], timeout: int = 180) -> dict:
+def _run(cmd: list[str], timeout: int = 180, *, strict_interaction: bool = False) -> dict:
+    env = os.environ.copy()
+    if strict_interaction:
+        env["RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS"] = "0"
+        env.pop("RMC_VERIFY_INTERACTION_SKIP_TESTS", None)
     try:
-        p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=timeout)
+        p = subprocess.run(
+            cmd,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env=env,
+        )
         return {"exit": p.returncode, "ok": p.returncode == 0, "tail": (p.stdout or p.stderr)[-500:]}
     except Exception as exc:  # noqa: BLE001
         return {"exit": -1, "ok": False, "tail": str(exc)}

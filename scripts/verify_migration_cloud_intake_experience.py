@@ -28,6 +28,14 @@ def main() -> int:
             "template exposes the intake command-center header",
         ),
         (
+            "intake_premium_v2_layer",
+            _contains("templates/migration_cloud/intake_new.html", "rmc-intake-v2")
+            and _contains("templates/migration_cloud/intake_new.html", "migration-cloud-intake-premium.css")
+            and _contains("templates/migration_cloud/intake_new.html", "data-mc-readiness-card")
+            and _contains("static/css/migration-cloud-intake-premium.css", ".rmc-intake-stepper__fill"),
+            "intake v2 premium workbench CSS and live readiness sidecar are wired",
+        ),
+        (
             "method_family_cards",
             _contains("templates/migration_cloud/intake_new.html", "data-mc-method-card"),
             "template exposes upload/url/live-source method cards",

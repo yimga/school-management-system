@@ -37,6 +37,16 @@ class Command(BaseCommand):
             action="store_true",
             help="Pass through to seed_global_brand_registry to skip UNESCO calls.",
         )
+        parser.add_argument(
+            "--with-weather-locations",
+            action="store_true",
+            help="Also persist the global weather city catalog (~23k cities).",
+        )
+        parser.add_argument(
+            "--skip-weather-locations",
+            action="store_true",
+            help="Do not run seed_global_weather_locations.",
+        )
 
     def handle(self, *args, **options):
         with_profiles = options.get("with_profiles", True) and not options.get(
@@ -61,5 +71,11 @@ class Command(BaseCommand):
                 "seed_global_brand_registry",
                 skip_unesco=options.get("skip_unesco", False),
             )
+
+        if options.get("with_weather_locations") and not options.get(
+            "skip_weather_locations"
+        ):
+            self.stdout.write("Seeding global weather locations...")
+            call_command("seed_global_weather_locations")
 
         self.stdout.write(self.style.SUCCESS("seed_global_data complete."))

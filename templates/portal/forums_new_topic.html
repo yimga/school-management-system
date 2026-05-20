@@ -1,0 +1,39 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "New forum topic" %}{% endblock %}
+{% block content %}
+<h1 class="mb-3">{% trans "Start a discussion" %}</h1>
+{% include "partials/help_deflection_strip.html" with deflection_surface="forum_new_topic" %}
+{% include "portal/partials/forum_compose_ai_assistant.html" %}
+{% if suggested_kb %}
+<aside class="forum-kb-suggestions card card-body mb-3" aria-label="{% trans 'Suggested guides' %}">
+  <h2 class="h6">{% trans "Before you post — these guides may help" %}</h2>
+  <div class="list-group list-group-flush">
+    {% for item in suggested_kb %}
+    <a class="list-group-item list-group-item-action" href="{{ item.url }}">{{ item.title }}</a>
+    {% endfor %}
+  </div>
+</aside>
+{% endif %}
+<form method="post" class="card card-body" data-deflection-form-auto>
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label" for="forum-category">{% trans "Category" %}</label>
+    <select class="form-select" id="forum-category" name="category_id">
+      {% for cat in categories %}
+      <option value="{{ cat.pk }}"{% if request.GET.category == cat.slug %} selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="forum-title">{% trans "Title" %}</label>
+    <input class="form-control" id="forum-title" name="title" required maxlength="200">
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="forum-body">{% trans "Message" %}</label>
+    <textarea class="form-control" id="forum-body" name="body" rows="6" required>{% if prefill_body %}{{ prefill_body }}{% endif %}</textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">{% trans "Post topic" %}</button>
+  <a class="btn btn-outline-secondary ms-2" href="{% url 'portal:forum_home' %}">{% trans "Cancel" %}</a>
+</form>
+{% endblock %}

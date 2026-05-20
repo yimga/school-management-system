@@ -103,6 +103,16 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
                 )
             except _ADMIN_CONTEXT_FALLBACK_ERRORS:
                 context["admin_outcome_deck"] = None
+        context["admin_steering_hint"] = None
+        if self.is_platform_site():
+            try:
+                from apps.siteconfig.admin_steering import build_admin_steering_hint
+
+                context["admin_steering_hint"] = build_admin_steering_hint(
+                    request, is_platform_site=True
+                )
+            except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+                context["admin_steering_hint"] = None
         return context
 
     def login(self, request, extra_context=None):
@@ -393,10 +403,49 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             base_context=self.each_context(request),
             title=self.index_title,
         )
-        context["app_list"] = self.get_app_list(request)
+        app_list = self.get_app_list(request)
+        context["app_list"] = app_list
+        try:
+            from apps.siteconfig.platform_admin_catalog import build_platform_admin_catalog
+
+            context["admin_catalog"] = build_platform_admin_catalog(app_list)
+        except Exception:
+            logging.getLogger(__name__).warning(
+                "platform admin catalog build failed", exc_info=True
+            )
+            context["admin_catalog"] = {
+                "entries": [],
+                "sections": [],
+                "model_count": 0,
+                "app_count": 0,
+                "section_count": 0,
+            }
+        try:
+            from apps.siteconfig.admin_steering import build_admin_index_kpi_strip
+
+            context["admin_index_kpis"] = build_admin_index_kpi_strip(context)
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            context["admin_index_kpis"] = []
         if extra_context:
             context.update(extra_context)
         return TemplateResponse(request, self.index_template_name, context)
+
+    def app_index(self, request, app_label, extra_context=None):
+        extra_context = dict(extra_context or {})
+        try:
+            from apps.siteconfig.platform_admin_catalog import enrich_app_index_models
+
+            app_dict = self._build_app_dict(request, app_label)
+            app_info = app_dict.get(app_label) or {}
+            extra_context["admin_app_index_models"] = enrich_app_index_models(
+                app_info
+            )
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            logging.getLogger(__name__).warning(
+                "platform admin app_index enrich failed", exc_info=True
+            )
+            extra_context["admin_app_index_models"] = []
+        return super().app_index(request, app_label, extra_context=extra_context)
 
     # AdminOpsShell IA: sections and app order for platform /admin/
     PLATFORM_APP_SECTIONS = (

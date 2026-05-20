@@ -200,8 +200,28 @@ class GlobalGeoCatalog:
     """Read-only global catalog with in-process caching."""
 
     @classmethod
-    def is_available(cls) -> bool:
+    def has_live_catalog(cls) -> bool:
         return bool(pycountry and geonamescache)
+
+    @classmethod
+    def has_persisted_catalog(cls) -> bool:
+        try:
+            from apps.siteconfig.models import WeatherLocation
+
+            return WeatherLocation.objects.filter(
+                catalog_source_id__isnull=False
+            ).exists()
+        except (LookupError, RuntimeError):
+            return False
+
+    @classmethod
+    def is_available(cls) -> bool:
+        return cls.has_live_catalog() or cls.has_persisted_catalog()
+
+    @classmethod
+    def clear_caches(cls) -> None:
+        cls._build_city_indexes.cache_clear()
+        cls.list_countries.cache_clear()
 
     @classmethod
     def normalize_country_code(cls, code: str | None) -> str:
@@ -222,6 +242,10 @@ class GlobalGeoCatalog:
             if match:
                 return match.alpha_3
         if len(raw) == 2:
+            if pycountry:
+                match = pycountry.countries.get(alpha_2=raw)
+                if match and getattr(match, "alpha_3", None):
+                    return str(match.alpha_3).upper()
             return _ALPHA2_TO_ALPHA3_FALLBACK.get(raw, raw)
         return raw
 
@@ -288,6 +312,8 @@ class GlobalGeoCatalog:
                 dominant_timezone[alpha3] = (timezone_name, population)
 
         if not geonamescache:
+            if cls.has_persisted_catalog():
+                return cls._build_city_indexes_from_db()
             for row in _FALLBACK_CITIES:
                 _add_city(row)
             timezone_map = {code: value[0] for code, value in dominant_timezone.items()}
@@ -330,6 +356,59 @@ class GlobalGeoCatalog:
         return country_index, by_id, timezone_map
 
     @classmethod
+    def _build_city_indexes_from_db(
+        cls,
+    ) -> tuple[
+        dict[str, list[dict[str, Any]]], dict[str, dict[str, Any]], dict[str, str]
+    ]:
+        from apps.siteconfig.models import WeatherLocation
+
+        country_index: dict[str, list[dict[str, Any]]] = {}
+        by_id: dict[str, dict[str, Any]] = {}
+        dominant_timezone: dict[str, tuple[str, int]] = {}
+
+        rows = (
+            WeatherLocation.objects.select_related("region")
+            .filter(is_active=True)
+            .order_by("region__name", "city")
+        )
+        for loc in rows.iterator(chunk_size=2000):
+            alpha3 = cls.normalize_country_code(loc.region_id)
+            if not alpha3:
+                continue
+            city_id = str(loc.catalog_source_id or loc.pk)
+            population = 0
+            city = str(loc.city or "").strip()
+            timezone_name = str(loc.timezone or loc.region.timezone or "UTC")
+            country_name = str(loc.region.name or "").strip()
+            label = str(loc.label or "").strip() or (
+                f"{city}, {country_name}" if country_name else city
+            )
+            payload = {
+                "id": city_id,
+                "country_code": alpha3,
+                "country_code_alpha2": cls.alpha2_for_country(alpha3),
+                "city": city,
+                "label": label,
+                "timezone": timezone_name,
+                "latitude": float(loc.latitude or 0.0),
+                "longitude": float(loc.longitude or 0.0),
+                "population": population,
+            }
+            country_index.setdefault(alpha3, []).append(payload)
+            by_id[city_id] = payload
+            previous = dominant_timezone.get(alpha3)
+            if timezone_name and (previous is None or population > previous[1]):
+                dominant_timezone[alpha3] = (timezone_name, population)
+
+        for code, city_rows in country_index.items():
+            city_rows.sort(key=lambda item: str(item.get("city") or "").lower())
+            country_index[code] = city_rows
+
+        timezone_map = {code: value[0] for code, value in dominant_timezone.items()}
+        return country_index, by_id, timezone_map
+
+    @classmethod
     @lru_cache(maxsize=1)
     def list_countries(cls) -> list[dict[str, str]]:
         """
@@ -339,20 +418,37 @@ class GlobalGeoCatalog:
         if not pycountry:
             from apps.siteconfig.models import RegionConfig
 
-            rows = (
-                RegionConfig.objects.all()
-                .order_by("name")
-                .values_list("code", "name", "timezone")
-            )
-            return [
+            rows = RegionConfig.objects.all().order_by("name")
+            countries = [
                 {
-                    "code": str(code or "").upper(),
-                    "code_alpha2": cls.alpha2_for_country(code),
-                    "name": str(name or code or "").strip(),
-                    "timezone": str(tz or "UTC").strip() or "UTC",
+                    "code": str(region.code or "").upper(),
+                    "code_alpha2": cls.alpha2_for_country(region.code),
+                    "name": str(region.name or region.code or "").strip(),
+                    "timezone": str(region.timezone or "UTC").strip() or "UTC",
                 }
-                for code, name, tz in rows
+                for region in rows
             ]
+            if countries:
+                return countries
+            if cls.has_persisted_catalog():
+                from apps.siteconfig.models import RegionConfig
+
+                _, _, timezone_map = cls._build_city_indexes()
+                codes = sorted(timezone_map.keys())
+                regions = {
+                    str(row.code).upper(): row
+                    for row in RegionConfig.objects.filter(code__in=codes)
+                }
+                return [
+                    {
+                        "code": code,
+                        "code_alpha2": cls.alpha2_for_country(code),
+                        "name": str(getattr(regions.get(code), "name", None) or code),
+                        "timezone": timezone_map.get(code, "UTC"),
+                    }
+                    for code in codes
+                ]
+            return []
 
         _, _, timezone_map = cls._build_city_indexes()
         countries = []

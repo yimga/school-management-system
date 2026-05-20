@@ -69,7 +69,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.47.2-shell-fab-stack-2026-05-20";
+const CACHE_VERSION = "sms-v3.51.1-operator-ux-closeout-1361-2026-05-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -147,6 +147,7 @@ const STATIC_ASSETS = [
   "/static/css/rmc-warm-bright-school.css",
   "/static/css/rmc-platform-header.css",
   "/static/css/migration-cloud-ui.css",
+  "/static/css/migration-cloud-intake-premium.css",
   "/static/css/dashboard-responsive.css",
   "/static/css/reduce-motion-low-power.css",
   // command-palette.js retired 2026-05-12 — replaced by rmc-command-palette.js

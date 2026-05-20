@@ -1,0 +1,23 @@
+{% load i18n %}
+{% if community_lane.visible %}
+<section class="rmc-help-community-lane mb-4" aria-labelledby="help-community-lane-title">
+  <div class="card border-0 shadow-sm h-100">
+    <div class="card-body">
+      <h2 id="help-community-lane-title" class="h6 mb-2"><i class="bi bi-people me-1"></i>{% trans "Community forums" %}</h2>
+      <p class="small text-muted mb-2">{% trans "Discuss school life with parents, teachers, and staff — separate from private support tickets." %}</p>
+      <p class="small mb-3">{% blocktrans count counter=community_lane.topic_count %}{{ counter }} active topic{% plural %}{{ counter }} active topics{% endblocktrans %}</p>
+      {% if community_lane.recent_topics %}
+      <ul class="list-unstyled small mb-3">
+        {% for t in community_lane.recent_topics %}
+        <li class="mb-1"><a href="{% url 'portal:forum_topic' topic_id=t.pk %}">{{ t.title }}</a> <span class="text-muted">({{ t.reply_count }} {% trans "replies" %})</span></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-primary" href="{{ community_lane.forum_home_url }}">{% trans "Open forums" %}</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ community_lane.forum_new_url }}">{% trans "Start a topic" %}</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}

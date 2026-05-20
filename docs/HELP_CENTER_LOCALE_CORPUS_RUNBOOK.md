@@ -63,6 +63,12 @@ Attachments: CSV always; PDF when WeasyPrint system libs are installed.
 | Postgres pgvector | `python manage.py migrate_kb_embeddings_to_pgvector` on operator DB |
 | Ollama reindex at scale | `portal-reindex-kb-embeddings-weekly` + `reindex_kb_help_embeddings` |
 | Playwright | `npm run test:e2e:help-center` with Django + `/etc/hosts` for manager + tenant |
+| Marketing KB corpus | Set `MARKETING_KB_TENANT_SLUG` (defaults to `TENANT_EXAMPLE_SLUG`) — global published articles in that tenant schema power `/resources/help-center/search/` |
+| Community forums | Enable `portal_features.forums` in site settings; grant `portal.forums` to roles; sidebar **Community** → `/portal/forums/` |
+| Unified hub (batch **1359**) | Tenant `/help-center/` includes community lane; marketing `mkt_help_hub` on resources pages; hybrid search falls back to semantic when text empty (needs embeddings + pgvector on operator DB) |
+| Forum reply email (batch **1360**) | Celery `portal.notify_forum_reply` on new reply; respects `PortalPreferences.notification_email` |
+| Marketing KB categories (batch **1360**) | `/resources/help-center/category/<slug>/` — browse hub links land here, not search-only |
+| Forum compose AI (batch **1360**) | KB assistant panel on new topic + reply forms (`forum_compose_ai_assistant`) |
 
 ## Verifiers
 

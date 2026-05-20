@@ -958,6 +958,11 @@ SESSION_SAVE_EVERY_REQUEST = os.getenv("SESSION_SAVE_EVERY_REQUEST", "1") == "1"
 # MARKETING_DEMO_TENANT_URL is unset, to build https://{slug}.{MULTI_TENANT_BASE_DOMAIN}/
 _tenant_example_slug_raw = (os.getenv("TENANT_EXAMPLE_SLUG") or "").strip()
 TENANT_EXAMPLE_SLUG = _tenant_example_slug_raw or None
+MARKETING_KB_TENANT_SLUG = (
+    (os.getenv("MARKETING_KB_TENANT_SLUG") or "").strip()
+    or TENANT_EXAMPLE_SLUG
+    or "demo-school"
+)
 MARKETING_DEMO_TENANT_URL = derive_marketing_demo_tenant_url(
     os.getenv("MARKETING_DEMO_TENANT_URL") or "",
     TENANT_EXAMPLE_SLUG,

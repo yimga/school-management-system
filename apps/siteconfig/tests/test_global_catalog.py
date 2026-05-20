@@ -27,3 +27,21 @@ class GlobalGeoCatalogTests(TestCase):
     def test_country_timezones_are_scoped(self):
         ug_tz = GlobalGeoCatalog.list_timezones(country_code="UGA", limit=30)
         self.assertIn("Africa/Kampala", ug_tz)
+
+    def test_country_list_is_comprehensive_when_live_catalog_present(self):
+        if not GlobalGeoCatalog.has_live_catalog():
+            self.skipTest("pycountry + geonamescache required for live catalog")
+        countries = GlobalGeoCatalog.list_countries()
+        self.assertGreaterEqual(len(countries), 200)
+        codes = {item.get("code") for item in countries}
+        self.assertIn("CMR", codes)
+        self.assertIn("JPN", codes)
+        self.assertIn("BRA", codes)
+
+    def test_cameroon_has_many_cities_when_live_catalog_present(self):
+        if not GlobalGeoCatalog.has_live_catalog():
+            self.skipTest("pycountry + geonamescache required for live catalog")
+        rows = GlobalGeoCatalog.search_cities(country_code="CMR", limit=500)
+        self.assertGreaterEqual(len(rows), 5)
+        city_names = {str(row.get("city", "")).lower() for row in rows}
+        self.assertIn("douala", city_names)

@@ -76,7 +76,7 @@
     {# Phase H: overflow containment for this shell is enforced in control-plane-skeleton-root.css (overflow-x: clip on html/body). #}
     <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-shell-fab-stack.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
@@ -149,6 +149,7 @@
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     {% include "partials/rmc_tour_bootstrap.html" %}
+    <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% block extrajs %}{% endblock %}
   </body>
 </html>

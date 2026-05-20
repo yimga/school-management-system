@@ -1,0 +1,78 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{{ topic.title }}{% endblock %}
+{% block content %}
+<nav aria-label="{% trans 'Breadcrumb' %}" class="mb-2">
+  <a href="{% url 'portal:forum_home' %}">{% trans "Forums" %}</a>
+  {% if topic.category %} / <a href="{% url 'portal:forum_category' category_slug=topic.category.slug %}">{{ topic.category.name }}</a>{% endif %}
+  / {{ topic.title|truncatewords:8 }}
+</nav>
+
+<article class="card mb-3">
+  <div class="card-body">
+    <h1 class="h4">{{ topic.title }}</h1>
+    <p class="small text-muted mb-2">
+      {% if topic.author %}{{ topic.author.get_full_name|default:topic.author.username }}{% endif %}
+      · {{ topic.created_at|date:"SHORT_DATETIME_FORMAT" }}
+      · {{ topic.reply_count }} {% trans "replies" %}
+    </p>
+    <div class="forum-topic-body">{{ topic.body|linebreaksbr }}</div>
+    {% if can_moderate %}
+    <form method="post" class="d-flex flex-wrap gap-2 mt-3">
+      {% csrf_token %}
+      {% if topic.is_locked %}
+      <button type="submit" name="action" value="unlock" class="btn btn-sm btn-outline-secondary">{% trans "Unlock" %}</button>
+      {% else %}
+      <button type="submit" name="action" value="lock" class="btn btn-sm btn-outline-secondary">{% trans "Lock" %}</button>
+      {% endif %}
+      {% if topic.is_pinned %}
+      <button type="submit" name="action" value="unpin" class="btn btn-sm btn-outline-secondary">{% trans "Unpin" %}</button>
+      {% else %}
+      <button type="submit" name="action" value="pin" class="btn btn-sm btn-outline-secondary">{% trans "Pin" %}</button>
+      {% endif %}
+    </form>
+    {% endif %}
+  </div>
+</article>
+
+<section class="mb-4" aria-labelledby="forum-replies-heading">
+  <h2 id="forum-replies-heading" class="h5">{% trans "Replies" %}</h2>
+  {% for reply in replies %}
+  <div class="card mb-2{% if reply.is_staff_answer %} border-primary{% endif %}">
+    <div class="card-body py-2">
+      <p class="small text-muted mb-1">
+        {% if reply.author %}{{ reply.author.get_full_name|default:reply.author.username }}{% endif %}
+        · {{ reply.created_at|date:"SHORT_DATETIME_FORMAT" }}
+        {% if reply.is_staff_answer %}<span class="badge bg-primary">{% trans "Staff" %}</span>{% endif %}
+      </p>
+      <div>{{ reply.body|linebreaksbr }}</div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">{% trans "No replies yet." %}</p>
+  {% endfor %}
+</section>
+
+{% if suggested_kb %}
+<aside class="forum-kb-suggestions card card-body mb-3" aria-label="{% trans 'Related guides' %}">
+  <h2 class="h6">{% trans "Related knowledge base articles" %}</h2>
+  <ul class="list-group list-group-flush">
+    {% for item in suggested_kb %}
+    <li class="list-group-item"><a href="{{ item.url }}">{{ item.title }}</a></li>
+    {% endfor %}
+  </ul>
+</aside>
+{% endif %}
+
+{% if not topic.is_locked %}
+{% include "portal/partials/forum_compose_ai_assistant.html" %}
+<form method="post" class="card card-body" data-deflection-form-auto>
+  {% csrf_token %}
+  <label class="form-label" for="reply-body">{% trans "Your reply" %}</label>
+  <textarea class="form-control mb-2" id="reply-body" name="body" rows="4" required></textarea>
+  <button type="submit" class="btn btn-primary">{% trans "Post reply" %}</button>
+</form>
+{% else %}
+<p class="alert alert-secondary">{% trans "This topic is locked — new replies are disabled." %}</p>
+{% endif %}
+{% endblock %}

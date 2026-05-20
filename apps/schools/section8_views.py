@@ -499,6 +499,14 @@ def public_support_hub(request):
     """
     Public support subdomain landing (shared/public schema).
     """
+    q = (request.GET.get("q") or "").strip()
+    if q:
+        from urllib.parse import urlencode
+
+        from django.shortcuts import redirect
+        from django.urls import reverse
+
+        return redirect(f"{reverse('marketing_kb_search')}?{urlencode({'q': q})}")
     return render(request, "schools/public_support_hub.html", {})
 
 

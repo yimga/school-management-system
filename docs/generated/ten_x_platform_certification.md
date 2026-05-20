@@ -8,4 +8,4 @@
 
 **Journey coverage:** 100.0%
 
-**Repo gaps:** scan_tenant_queryset
+**Repo gaps:** verify_orchestrator_v5_bundle, verify_interaction_integrity

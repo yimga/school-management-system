@@ -66,7 +66,7 @@
     const country = (weatherCountrySelect.value || '').toUpperCase();
     const q = (query || '').trim();
     const token = ++weatherCityFetchToken;
-    const url = weatherCityUrl + '?country_code=' + encodeURIComponent(country) + '&q=' + encodeURIComponent(q) + '&limit=220';
+    const url = weatherCityUrl + '?country_code=' + encodeURIComponent(country) + '&q=' + encodeURIComponent(q) + '&limit=500';
     fetch(url, { credentials: 'same-origin' })
       .then(function(resp) { return resp.ok ? resp.json() : null; })
       .then(function(data) {

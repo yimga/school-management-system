@@ -1,0 +1,53 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Community Forums" %}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h1 class="mb-1">{% trans "Community Forums" %}</h1>
+    <p class="text-muted mb-0">{% trans "Discuss school life with parents, teachers, and staff." %}</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'portal:forum_new_topic' %}"><i class="bi bi-plus-lg me-1"></i>{% trans "New topic" %}</a>
+</div>
+
+<form method="get" class="input-group mb-3" role="search">
+  <input type="search" name="q" class="form-control" value="{{ search_query }}" placeholder="{% trans 'Search discussions' %}" aria-label="{% trans 'Search forums' %}">
+  <button class="btn btn-outline-secondary" type="submit">{% trans "Search" %}</button>
+</form>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">{% trans "Categories" %}</div>
+      <ul class="list-group list-group-flush">
+        {% for cat in categories %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <a href="{% url 'portal:forum_category' category_slug=cat.slug %}">{{ cat.name }}</a>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted">{% trans "No categories yet." %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">{% trans "Recent topics" %}</div>
+      <div class="list-group list-group-flush">
+        {% for topic in topics %}
+        <a class="list-group-item list-group-item-action" href="{% url 'portal:forum_topic' topic_id=topic.pk %}">
+          <div class="d-flex w-100 justify-content-between">
+            <h6 class="mb-1">{{ topic.title }}{% if topic.is_pinned %} <span class="badge bg-info">{% trans "Pinned" %}</span>{% endif %}{% if topic.is_locked %} <span class="badge bg-secondary">{% trans "Locked" %}</span>{% endif %}</h6>
+            <small class="text-muted">{{ topic.last_activity_at|date:"SHORT_DATE_FORMAT" }}</small>
+          </div>
+          <p class="mb-1 small text-muted">{{ topic.body|truncatewords:24 }}</p>
+          <small class="text-muted">{{ topic.reply_count }} {% trans "replies" %}{% if topic.category %} · {{ topic.category.name }}{% endif %}</small>
+        </a>
+        {% empty %}
+        <div class="list-group-item text-muted">{% trans "No topics yet — start the conversation." %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

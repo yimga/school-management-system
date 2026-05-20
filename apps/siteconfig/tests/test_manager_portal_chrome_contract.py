@@ -26,8 +26,28 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
     def test_manager_admin_shell_includes_operator_footer(self):
         text = Path("templates/admin/base.html").read_text(encoding="utf-8")
         self.assertIn("is_manager_host", text)
+        self.assertIn("admin_operator_steering_strip.html", text)
+        self.assertNotIn("operator_path_banner.html", text)
         self.assertIn("rmc_operator_footer_compact.html", text)
         self.assertIn("cp-corporate-footer", text)
+
+    def test_manager_admin_scroll_contract_in_css_and_templates(self):
+        css = Path("static/css/admin-cp-parity.css").read_text(encoding="utf-8")
+        self.assertIn("overflow-y: auto !important", css)
+        self.assertIn("flex: 0 1 auto !important", css)
+        self.assertIn(".cp-platform-admin-app-tree", css)
+        change_list = Path("templates/admin/change_list.html").read_text(encoding="utf-8")
+        change_form = Path("templates/admin/change_form.html").read_text(encoding="utf-8")
+        self.assertIn("block.super", change_list)
+        self.assertIn("block.super", change_form)
+        self.assertIn("admin_changelist_header.html", change_list)
+        self.assertIn("admin_change_form_header.html", change_form)
+        sidebar = Path("templates/partials/manager_platform_admin_sidebar.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("overflow-auto", sidebar)
+        offcanvas = Path("templates/admin/manager_cp_offcanvas.html").read_text(encoding="utf-8")
+        self.assertIn("manager_platform_admin_sidebar.html", offcanvas)
 
     def test_portal_base_excludes_marketing_corporate_footer(self):
         text = Path("templates/portal_base.html").read_text(encoding="utf-8")
