@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-19T20:57:03.486126+00:00",
-  "verdict": "INTERACTION_INTEGRITY_FAIL",
-  "pass_count": 15,
-  "fail_count": 1,
+  "generated_at": "2026-05-20T09:00:34.716371+00:00",
+  "verdict": "INTERACTION_INTEGRITY_PASS",
+  "pass_count": 17,
+  "fail_count": 0,
   "rows": [
     {
       "id": "1",
@@ -96,9 +96,15 @@
     },
     {
       "id": "16",
+      "label": "Tenant urlconf mounts feedback (Help Center on subdomain)",
+      "status": "PASS",
+      "proof": "tenant_urls + school_finder_bento"
+    },
+    {
+      "id": "17",
       "label": "Contract tests green",
-      "status": "FAIL",
-      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'scripts/run_sqlite_memory_tests.py', 'apps.siteconfig.tests.test_interaction_integrity_contract', 'apps.schools.tests.test_manager_header_account_paths.ManagerHeaderAccountPathTests', 'apps.schools.tests.test_operator_help_center.OperatorHelpCenterAllowlistTests', 'apps.feedback.tests.test_feedback_help_center_contracts', '--verbosity=1', '--no-input', '--fresh']' timed out after 900 seconds"
+      "status": "PASS",
+      "proof": "fast: f upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 0.588s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

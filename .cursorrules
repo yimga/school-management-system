@@ -33,6 +33,22 @@
 
 - When plan doesn't include a module (e.g. Design Studio, Inventory): show Upgrade Modal or friendly paywall instead of empty/broken screen. No module visible without entitlement check.
 
+## Page fold & scroll standards (3–4 fold rule)
+
+- **Max page length:** 4 viewport folds of primary content. Beyond that → tabs, wizard steps, or numbered pagination.
+- **2+ folds:** sticky Back to top + in-page section anchor nav (`.rmc-page-fold-nav` / `.rmc-section-nav` + `data-rmc-section-anchor`).
+- **Task UI** (forms, tables, wizards, search results): `data-rmc-scroll-policy="paginate"` — numbered pages only, no infinite scroll.
+- **Discovery** (feeds, blogs, galleries): `data-rmc-scroll-policy="discovery"` — lazy load allowed.
+- **Gate:** `python scripts/verify_page_fold_standards.py`. Full rule: `.cursor/rules/runmycampus-page-fold-standards.mdc`.
+
+## Pixel-perfect & zero-flaw (navigation, UI, security)
+
+Full mandate: `.cursor/rules/runmycampus-pixel-perfect-zero-flaw.mdc` (always on for templates, static, views, urls).
+
+- **Nav/routing:** Django named URLs + host surfaces; no dead `href="#"`; no menu item dumping users on dashboard root.
+- **UI:** `design-tokens.css` + `.rmc-*`; skeletons; page-fold + chromatic gates.
+- **Proof before done:** `scan_operator_shell_dead_hrefs.py --strict`, `verify_interaction_integrity_completion.py`, `audit_luxury_ui_surface.py`; Playwright `npm run sweep:abrupt-end` when changing chrome or route maps.
+
 ## AUDIT & QUALITY LAWS
 
 Before considering any task done, verify:

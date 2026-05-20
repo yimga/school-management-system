@@ -6,7 +6,7 @@
   "prompt_pack_verdict": "ORCHESTRATOR_PROMPT_PACK_PASS",
   "prompt_pack_checks": 164,
   "prompt_pack_files": 34,
-  "active_wave": "recovery_v4_complete",
+  "active_wave": "pixel_perfect_audit_recovery_rerun_2026-05-20",
   "program_execution_pct": 100,
   "program_final_verdict": "10X PLATFORM READY — REPO SCOPE",
   "rerun_wave": "recovery_v4_post_gear_up",

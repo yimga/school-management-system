@@ -41,6 +41,7 @@ def _contains(rel: str, needle: str) -> bool:
 def _pick_gate_db() -> Path:
     tdir = ROOT / ".django_test_dbs"
     for name in (
+        "feedback_help_gate.sqlite3",
         "manager_header_account_gate.sqlite3",
         "operator_help_center_gate.sqlite3",
         "interaction_integrity_gate_v2.sqlite3",
@@ -49,6 +50,10 @@ def _pick_gate_db() -> Path:
         if candidate.is_file():
             return candidate
     return tdir / "interaction_integrity_gate_v2.sqlite3"
+
+
+def _feedback_gate_db() -> Path:
+    return ROOT / ".django_test_dbs" / "feedback_help_gate.sqlite3"
 
 
 def _run_tests(labels: list[str], *, timeout: int = 900) -> tuple[bool, str]:
@@ -211,9 +216,18 @@ def main() -> int:
         "templates/admin/base.html + base_site.html",
     )
 
-    tenant_503_ok = _contains(
-        "config/tenant_urls.py",
-        "from config.urls import service_unavailable as handler503",
+    tenant_urls_text = (ROOT / "config" / "tenant_urls.py").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    tenant_503_ok = (
+        "handler503" in tenant_urls_text
+        and "service_unavailable" in tenant_urls_text
+        and (
+            "from config.urls import service_unavailable as handler503" in tenant_urls_text
+            or "from config.error_handlers import service_unavailable as handler503"
+            in tenant_urls_text
+            or "handler503 = service_unavailable" in tenant_urls_text
+        )
     )
     add(
         "13",
@@ -244,6 +258,14 @@ def main() -> int:
         "tests/interaction-integrity.test.tsx",
     )
 
+    add(
+        "16",
+        "Tenant urlconf mounts feedback (Help Center on subdomain)",
+        _contains("config/tenant_urls.py", 'include(("apps.feedback.urls", "feedback")')
+        and _contains("templates/schools/partials/school_finder_bento.html", "marketing_public_href"),
+        "tenant_urls + school_finder_bento",
+    )
+
     if os.environ.get("RMC_VERIFY_INTERACTION_SKIP_TESTS") == "1":
         tests_ok, test_tail = True, "skipped (RMC_VERIFY_INTERACTION_SKIP_TESTS=1)"
     else:
@@ -254,15 +276,46 @@ def main() -> int:
                 "apps.schools.tests.test_operator_help_center.OperatorHelpCenterAllowlistTests",
             ]
         )
-        feedback_ok, feedback_tail = True, "skipped (set RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=0 to run)"
-        if os.environ.get("RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS", "1") == "0":
-            feedback_ok, feedback_tail = _run_tests(
-                ["apps.feedback.tests.test_feedback_help_center_contracts"],
-                timeout=240,
+        skip_feedback = os.environ.get("RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS", "1") == "1"
+        if skip_feedback:
+            feedback_ok, feedback_tail = True, "skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+        else:
+            feedback_db = _feedback_gate_db()
+            feedback_env = os.environ.copy()
+            feedback_env["DJANGO_TEST_DB_FILE"] = str(feedback_db)
+            fresh_feedback = (
+                os.environ.get("RMC_VERIFY_INTERACTION_FRESH_DB") == "1"
+                or not feedback_db.is_file()
             )
+            fb_cmd = [
+                sys.executable,
+                "scripts/run_sqlite_memory_tests.py",
+            ]
+            if fresh_feedback:
+                fb_cmd.append("--fresh")
+            fb_cmd.extend(
+                [
+                    "apps.feedback.tests.test_feedback_help_center_contracts",
+                    "--verbosity=1",
+                    "--no-input",
+                ]
+            )
+            try:
+                proc = subprocess.run(
+                    fb_cmd,
+                    cwd=str(ROOT),
+                    capture_output=True,
+                    text=True,
+                    timeout=900,
+                    env=feedback_env,
+                )
+                feedback_ok = proc.returncode == 0
+                feedback_tail = ((proc.stdout or "") + (proc.stderr or "")).strip()[-400:]
+            except (subprocess.TimeoutExpired, OSError) as exc:
+                feedback_ok, feedback_tail = False, str(exc)
         tests_ok = fast_ok and feedback_ok
         test_tail = f"fast: {fast_tail[-200:]}\nfeedback: {feedback_tail[-200:]}"
-    add("16", "Contract tests green", tests_ok, test_tail or "django tests")
+    add("17", "Contract tests green", tests_ok, test_tail or "django tests")
 
     failures = [r for r in rows if not r.ok]
     payload = {

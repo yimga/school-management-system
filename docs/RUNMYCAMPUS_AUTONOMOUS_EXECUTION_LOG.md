@@ -1,5 +1,17 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - batches 1331–1337 Help Center mega-prompt graft (2026-05-20)
+
+**A. Scope:** Implement mega-prompt graft on monolith (no `/services/ingestion|orchestrator|gateway` trees); multi-tenant operator + tenant help; FERPA sanitize; local-first SSE fallbacks; i18n language in SSE meta + prompts.
+
+**B. Shipped:** `support_deflection.py`, `views_support_deflection.py`, `rmc-support-deflection.js`, `support_sanitize.py`, `support_intent.py`, `code_index.py`, feedback models/migration `0004`, mgmt commands `reindex_kb_help_embeddings` + `build_code_support_index`, `operator_help_signals.safe_deflection_summary`.
+
+**C. Proof:** `verify_support_deflection.py` PASS; `verify_support_pipeline_integrity.py` PASS; `run_support_pipeline_tests_direct.py` **26/26 OK**; `build_code_support_index` wrote `code_support_index.json`; validation adds `test_support_intent_router.py`, `metadata.deflected_at`, `support_ingest` 500/50 chunks.
+
+**D. Honest residual:** Lane 2 live Ollama + Playwright SSE — EXTERNALLY_BLOCKED in CI; run `migrate feedback` + `reindex_kb_help_embeddings` on deploy hosts.
+
+---
+
 ## Slice - batch 1330 Orchestrator v4 recovery wave (2026-05-20)
 
 **A. Scope:** Close recovery mandate: admin-gravity strict, North Star 75/75, Ollama live proof, ten_x cert **10X PLATFORM READY — REPO SCOPE**, matrix **100%**, commit staged migrations + SOT **1320–1330**.

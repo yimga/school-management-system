@@ -35,6 +35,22 @@ def main() -> int:
         "verify_ai_engine_room": _run([sys.executable, "scripts/verify_ai_engine_room.py"]),
         "verify_migration_tracked": _run([sys.executable, "scripts/verify_migration_files_tracked.py"]),
         "verify_prompt_pack_v4": _run([sys.executable, "scripts/verify_orchestrator_prompt_pack.py", "--strict"]),
+        "verify_interaction_integrity": _run(
+            [sys.executable, "scripts/verify_interaction_integrity_completion.py"],
+            180,
+        ),
+        "scan_operator_dead_hrefs": _run(
+            [sys.executable, "scripts/scan_operator_shell_dead_hrefs.py", "--strict"],
+            60,
+        ),
+        "verify_platform_chromatic": _run(
+            [sys.executable, "scripts/verify_platform_chromatic_compliance.py"],
+            120,
+        ),
+        "verify_page_fold_standards": _run(
+            [sys.executable, "scripts/verify_page_fold_standards.py"],
+            60,
+        ),
         "ollama_live_strict": _run(
             [sys.executable, "scripts/verify_ollama_live.py", "--strict", "--invoke"],
             120,
@@ -45,13 +61,9 @@ def main() -> int:
     if ns_path.is_file():
         ns = json.loads(ns_path.read_text(encoding="utf-8"))
     ollama_proof = ROOT / "docs" / "generated" / "ollama_live_proof.json"
-    repo_gaps = []
-    if not verifiers["audit_admin_gravity_strict"]["ok"]:
-        repo_gaps.append("audit_admin_gravity_strict")
-    if ns.get("total_score", 0) < 75:
+    repo_gaps = [name for name, v in verifiers.items() if not v["ok"]]
+    if ns.get("total_score", 0) < 75 and "northstar_below_75" not in repo_gaps:
         repo_gaps.append("northstar_below_75")
-    if not verifiers["ollama_live_strict"]["ok"]:
-        repo_gaps.append("ollama_live_not_verified")
     core_gaps = [g for g in repo_gaps if "ollama" not in g]
     all_repo_green = (
         all(v["ok"] for k, v in verifiers.items())
