@@ -18,8 +18,10 @@
         <div class="card-header fw-semibold">{% trans "Request a capability" %}</div>
         <div class="card-body">
           <p class="small text-tertiary">{% trans "Use this for product ideas and workflow needs. Urgent operational problems should go to support." %}</p>
-          <form method="post" action="{% url 'manager_feature_center' %}">
+          {% include "partials/help_deflection_strip.html" with deflection_surface="manager_feature_center" %}
+          <form method="post" action="{% url 'manager_feature_center' %}" data-deflection-form-auto>
             {% csrf_token %}
+            <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
             {% for field in feature_form %}
             <div class="mb-2">
               <label class="form-label small fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>

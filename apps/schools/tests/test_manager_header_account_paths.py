@@ -80,11 +80,10 @@ class ManagerHeaderAccountPathTests(SimpleTestCase):
             self.assertIsNotNone(match.func)
 
     @override_settings(ROOT_URLCONF="config.manager_urls")
-    def test_manager_support_and_feedback_redirect_to_loop(self):
-        from config.manager_urls import manager_feedback, manager_support_request
+    def test_manager_feedback_redirects_to_loop(self):
+        from config.manager_urls import manager_feedback
 
-        request = RequestFactory().get("/support/", HTTP_HOST="manager.runmycampus.com")
-        for view in (manager_support_request, manager_feedback):
-            response = view(request)
-            self.assertEqual(response.status_code, 302)
-            self.assertIn("/feedback-loop", response["Location"])
+        request = RequestFactory().get("/feedback/", HTTP_HOST="manager.runmycampus.com")
+        response = manager_feedback(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/feedback-loop", response["Location"])

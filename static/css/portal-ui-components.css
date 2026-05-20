@@ -690,17 +690,13 @@
 
 /* --- Page context help FAB (control_plane_skeleton / admin base_site) --- */
 .rmc-page-help-fab {
-  z-index: 1040;
-  bottom: 1rem;
-  right: 1rem;
+  /* bottom/right/z-index: rmc-shell-fab-stack.css */
 }
 
 /* --- from templates/components/back_to_top.html --- */
 .back-to-top-btn {
     position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    z-index: 1040;
+    /* bottom/right/z-index: rmc-shell-fab-stack.css */
     width: 2.5rem;
     height: 2.5rem;
     padding: 0;

@@ -43,15 +43,28 @@ def main() -> int:
 
     manifest = ROOT / "docs" / "generated" / "orchestrator_journey_manifest.json"
     journey_ok = False
+    help_ok = False
+    help_supp: list = []
     if manifest.is_file():
         data = json.loads(manifest.read_text(encoding="utf-8"))
         journey_ok = int(data.get("journey_count") or 0) == 27
+        help_supp = data.get("supplementary_help_center_journeys") or []
+        help_ok = len(help_supp) >= 3
 
     results.append(
         {
             "check": "journey_count_27",
             "ok": journey_ok,
             "proof": "27 journeys" if journey_ok else "manifest count != 27",
+        }
+    )
+    results.append(
+        {
+            "check": "help_center_supplementary_journeys",
+            "ok": help_ok if manifest.is_file() else False,
+            "proof": f"{len(help_supp)} help journeys"
+            if manifest.is_file() and help_ok
+            else "missing supplementary_help_center_journeys",
         }
     )
 

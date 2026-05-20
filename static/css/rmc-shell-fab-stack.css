@@ -1,0 +1,124 @@
+/**
+ * RunMyCampus — bottom-right floating action stack.
+ * Prevents AI copilot, feedback (VoC), messages chathead, page help, and back-to-top
+ * from sharing the same fixed coordinates.
+ */
+
+html[data-surface="control-plane"],
+html[data-surface="tenant"] body.portal-body-with-layout {
+  --rmc-fab-edge-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  --rmc-fab-edge-right: max(16px, env(safe-area-inset-right, 0px));
+  --rmc-fab-primary-size: 60px;
+  --rmc-fab-secondary-size: 44px;
+  --rmc-fab-help-size: 38px;
+  --rmc-fab-gap: 12px;
+  --rmc-fab-slot-0: var(--rmc-fab-edge-bottom);
+  --rmc-fab-slot-1: calc(var(--rmc-fab-slot-0) + var(--rmc-fab-primary-size) + var(--rmc-fab-gap));
+  --rmc-fab-slot-2: calc(var(--rmc-fab-slot-1) + var(--rmc-fab-secondary-size) + var(--rmc-fab-gap));
+  --rmc-fab-slot-3: calc(var(--rmc-fab-slot-2) + var(--rmc-fab-help-size) + var(--rmc-fab-gap));
+  --rmc-fab-slot-4: calc(var(--rmc-fab-slot-3) + var(--rmc-fab-secondary-size) + var(--rmc-fab-gap));
+}
+
+/* Layer 0 — AI copilot (primary) */
+body.control-plane-shell .ai-copilot-wrapper,
+body.portal-body-with-layout .ai-copilot-wrapper {
+  bottom: var(--rmc-fab-slot-0) !important;
+  right: var(--rmc-fab-edge-right) !important;
+  z-index: 10450 !important;
+}
+
+body.control-plane-shell .ai-copilot-panel,
+body.portal-body-with-layout .ai-copilot-panel {
+  bottom: calc(var(--rmc-fab-slot-1) + 12px) !important;
+  right: calc(var(--rmc-fab-edge-right) + 8px) !important;
+}
+
+/* Layer 1 — contextual feedback (VoC) */
+body.control-plane-shell .voc-widget,
+body.portal-body-with-layout .voc-widget {
+  bottom: var(--rmc-fab-slot-1) !important;
+  right: var(--rmc-fab-edge-right) !important;
+  z-index: 10440;
+}
+
+/* Layer 2 — messages chathead (portal; above VoC when both exist) */
+body.portal-body-with-layout .portal-chathead {
+  bottom: var(--rmc-fab-slot-2) !important;
+  z-index: 10455;
+}
+
+body.portal-body-with-layout:not(:has(.voc-widget)) .portal-chathead {
+  bottom: var(--rmc-fab-slot-1) !important;
+}
+
+/* Layer 2/3 — page help FAB (control plane skeleton) */
+body.control-plane-shell .rmc-page-help-fab {
+  bottom: var(--rmc-fab-slot-2) !important;
+  right: var(--rmc-fab-edge-right) !important;
+  z-index: 10435;
+  margin: 0 !important;
+}
+
+body.control-plane-shell:not(:has(.voc-widget)) .rmc-page-help-fab {
+  bottom: var(--rmc-fab-slot-1) !important;
+}
+
+/* Redundant on dedicated help / KB surfaces (help is already the page content). */
+body.control-plane-shell:has([data-rmc-page="help-center"]) .rmc-page-help-fab,
+body.control-plane-shell:has(.rmc-kb-operator) .rmc-page-help-fab,
+body.control-plane-shell:has([data-rmc-page="kb-home"]) .rmc-page-help-fab {
+  display: none !important;
+}
+
+/* Back to top — top of stack (hidden until scrolled) */
+body.control-plane-shell .back-to-top-btn,
+body.portal-body-with-layout .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-3) !important;
+  right: var(--rmc-fab-edge-right) !important;
+  z-index: 10430;
+}
+
+body.control-plane-shell:not(:has(.voc-widget)) .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-2) !important;
+}
+
+body.control-plane-shell:has([data-rmc-page="help-center"]) .back-to-top-btn,
+body.control-plane-shell:has(.rmc-kb-operator) .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-2) !important;
+}
+
+body.control-plane-shell:has([data-rmc-page="help-center"]):not(:has(.voc-widget)) .back-to-top-btn,
+body.control-plane-shell:has(.rmc-kb-operator):not(:has(.voc-widget)) .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-1) !important;
+}
+
+body.portal-body-with-layout .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-3) !important;
+}
+
+body.portal-body-with-layout:not(:has(.voc-widget)) .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-2) !important;
+}
+
+body.portal-body-with-layout:has(.portal-chathead) .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-4) !important;
+}
+
+body.portal-body-with-layout:has(.portal-chathead):not(:has(.voc-widget)) .back-to-top-btn {
+  bottom: var(--rmc-fab-slot-3) !important;
+}
+
+@media (max-width: 575.98px) {
+  html[data-surface="control-plane"],
+  html[data-surface="tenant"] body.portal-body-with-layout {
+    --rmc-fab-gap: 10px;
+    --rmc-fab-primary-size: 56px;
+    --rmc-fab-secondary-size: 40px;
+  }
+
+  body.control-plane-shell .ai-copilot-panel,
+  body.portal-body-with-layout .ai-copilot-panel {
+    right: var(--rmc-fab-edge-right) !important;
+    width: min(420px, calc(100vw - 2 * var(--rmc-fab-edge-right)));
+  }
+}

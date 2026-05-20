@@ -84,10 +84,14 @@ def support_deflection_urls(request):
 
 def help_contextual(request):
     """Proactive nudges + contextual help drawer (batches 1346/1352/1353)."""
-    from apps.portal.help_proactive_inline import proactive_nudge_for_request
+    from apps.portal.help_proactive_inline import (
+        module_inline_assistant_for_request,
+        proactive_nudge_for_request,
+    )
     from apps.portal.school_help_context import contextual_help_drawer_enabled
 
     nudge = proactive_nudge_for_request(request)
+    inline_assistant = module_inline_assistant_for_request(request)
     drawer = contextual_help_drawer_enabled(request)
     journey = None
     journey_articles: list = []
@@ -129,4 +133,5 @@ def help_contextual(request):
         "help_guided_journey": journey,
         "help_guided_journey_articles": journey_articles,
         "help_contextual_urls": urls,
+        **inline_assistant,
     }

@@ -4746,6 +4746,14 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "config/manager_operator_support.py",
+        "governance_tier": "safe",
+        "line": "38",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
         "line": "90",
@@ -7144,7 +7152,7 @@
         "classification": "allowed",
         "file": "apps/schools/marketing_views.py",
         "governance_tier": "safe",
-        "line": "2551",
+        "line": "2553",
         "pattern": "require_http_methods"
       },
       {
@@ -7152,7 +7160,7 @@
         "classification": "allowed",
         "file": "apps/schools/marketing_views.py",
         "governance_tier": "safe",
-        "line": "2628",
+        "line": "2630",
         "pattern": "require_http_methods"
       },
       {
@@ -7160,7 +7168,7 @@
         "classification": "allowed",
         "file": "apps/schools/marketing_views.py",
         "governance_tier": "safe",
-        "line": "2687",
+        "line": "2689",
         "pattern": "require_http_methods"
       },
       {
@@ -8432,7 +8440,15 @@
         "classification": "allowed",
         "file": "config/manager_kb_locale_families.py",
         "governance_tier": "safe",
-        "line": "20",
+        "line": "26",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "config/manager_operator_support.py",
+        "governance_tier": "safe",
+        "line": "39",
         "pattern": "require_http_methods"
       },
       {
@@ -8914,7 +8930,7 @@
         "classification": "allowed",
         "file": "apps/schools/marketing_views.py",
         "governance_tier": "safe",
-        "line": "2835",
+        "line": "2837",
         "pattern": "staff_member_required"
       },
       {
@@ -10844,7 +10860,23 @@
         "classification": "needs_review",
         "file": "scripts/generate_v4_recovery_certification.py",
         "governance_tier": "controlled",
-        "line": "19",
+        "line": "21",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/generate_v4_recovery_certification.py",
+        "governance_tier": "controlled",
+        "line": "66",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/generate_v4_recovery_certification.py",
+        "governance_tier": "controlled",
+        "line": "74",
         "pattern": "subprocess"
       },
       {
@@ -11820,7 +11852,7 @@
         "classification": "needs_review",
         "file": "scripts/verify_migration_files_tracked.py",
         "governance_tier": "controlled",
-        "line": "29",
+        "line": "16",
         "pattern": "subprocess"
       },
       {
@@ -11828,7 +11860,15 @@
         "classification": "needs_review",
         "file": "scripts/verify_migration_files_tracked.py",
         "governance_tier": "controlled",
-        "line": "37",
+        "line": "56",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/verify_migration_files_tracked.py",
+        "governance_tier": "controlled",
+        "line": "64",
         "pattern": "subprocess"
       },
       {
@@ -12044,7 +12084,7 @@
         "classification": "needs_review",
         "file": "scripts/verify_stage_journey_coverage.py",
         "governance_tier": "controlled",
-        "line": "85",
+        "line": "93",
         "pattern": "subprocess"
       },
       {
@@ -12052,7 +12092,7 @@
         "classification": "needs_review",
         "file": "scripts/verify_stage_journey_coverage.py",
         "governance_tier": "controlled",
-        "line": "95",
+        "line": "103",
         "pattern": "subprocess"
       },
       {
@@ -12169,7 +12209,7 @@
       }
     ]
   },
-  "generated_at": "2026-05-20T11:17:48.525092+00:00",
+  "generated_at": "2026-05-20T11:35:36.669660+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -12196,25 +12236,25 @@
     "allow_any": 39,
     "csrf_exempt": 34,
     "cursor_execute": 2,
-    "login_required": 535,
+    "login_required": 536,
     "permission_classes": 56,
-    "require_http_methods": 391,
+    "require_http_methods": 392,
     "staff_member_required": 68,
-    "subprocess": 394
+    "subprocess": 397
   },
   "summary_by_classification": {
-    "allowed": 1233,
-    "needs_review": 275,
+    "allowed": 1235,
+    "needs_review": 278,
     "unsafe": 11
   },
   "summary_by_governance_tier": {
-    "controlled": 225,
+    "controlled": 228,
     "needs_review": 51,
-    "safe": 1233,
+    "safe": 1235,
     "violation": 10
   },
   "totals": {
-    "hits": 1519
+    "hits": 1524
   },
   "unified": [
     {
@@ -16956,6 +16996,14 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "config/manager_operator_support.py",
+      "governance_tier": "safe",
+      "line": "38",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
       "line": "90",
@@ -19350,7 +19398,7 @@
       "classification": "allowed",
       "file": "apps/schools/marketing_views.py",
       "governance_tier": "safe",
-      "line": "2551",
+      "line": "2553",
       "pattern": "require_http_methods"
     },
     {
@@ -19358,7 +19406,7 @@
       "classification": "allowed",
       "file": "apps/schools/marketing_views.py",
       "governance_tier": "safe",
-      "line": "2628",
+      "line": "2630",
       "pattern": "require_http_methods"
     },
     {
@@ -19366,7 +19414,7 @@
       "classification": "allowed",
       "file": "apps/schools/marketing_views.py",
       "governance_tier": "safe",
-      "line": "2687",
+      "line": "2689",
       "pattern": "require_http_methods"
     },
     {
@@ -20638,7 +20686,15 @@
       "classification": "allowed",
       "file": "config/manager_kb_locale_families.py",
       "governance_tier": "safe",
-      "line": "20",
+      "line": "26",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "config/manager_operator_support.py",
+      "governance_tier": "safe",
+      "line": "39",
       "pattern": "require_http_methods"
     },
     {
@@ -21118,7 +21174,7 @@
       "classification": "allowed",
       "file": "apps/schools/marketing_views.py",
       "governance_tier": "safe",
-      "line": "2835",
+      "line": "2837",
       "pattern": "staff_member_required"
     },
     {
@@ -23046,7 +23102,23 @@
       "classification": "needs_review",
       "file": "scripts/generate_v4_recovery_certification.py",
       "governance_tier": "controlled",
-      "line": "19",
+      "line": "21",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/generate_v4_recovery_certification.py",
+      "governance_tier": "controlled",
+      "line": "66",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/generate_v4_recovery_certification.py",
+      "governance_tier": "controlled",
+      "line": "74",
       "pattern": "subprocess"
     },
     {
@@ -24022,7 +24094,7 @@
       "classification": "needs_review",
       "file": "scripts/verify_migration_files_tracked.py",
       "governance_tier": "controlled",
-      "line": "29",
+      "line": "16",
       "pattern": "subprocess"
     },
     {
@@ -24030,7 +24102,15 @@
       "classification": "needs_review",
       "file": "scripts/verify_migration_files_tracked.py",
       "governance_tier": "controlled",
-      "line": "37",
+      "line": "56",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/verify_migration_files_tracked.py",
+      "governance_tier": "controlled",
+      "line": "64",
       "pattern": "subprocess"
     },
     {
@@ -24246,7 +24326,7 @@
       "classification": "needs_review",
       "file": "scripts/verify_stage_journey_coverage.py",
       "governance_tier": "controlled",
-      "line": "85",
+      "line": "93",
       "pattern": "subprocess"
     },
     {
@@ -24254,7 +24334,7 @@
       "classification": "needs_review",
       "file": "scripts/verify_stage_journey_coverage.py",
       "governance_tier": "controlled",
-      "line": "95",
+      "line": "103",
       "pattern": "subprocess"
     },
     {

@@ -70,3 +70,36 @@ class HelpCenterWave3Tests(TestCase):
         for row in rows:
             self.assertIn("title", row)
             self.assertIn("url", row)
+
+    def test_kb_archive_dry_run(self):
+        from apps.portal.kb_archive import archive_kb_articles, stale_kb_archive_candidates
+
+        result = archive_kb_articles(stale_kb_archive_candidates(limit=5), dry_run=True)
+        self.assertTrue(result.get("dry_run"))
+
+    def test_create_locale_variant(self):
+        from apps.portal.models_kb import KBCategory
+        from apps.portal.kb_locale_ops import create_locale_variant
+
+        cat = KBCategory.objects.create(name="Loc", slug="loc-cat", is_active=True)
+        canonical = KBArticle.objects.create(
+            title="English guide",
+            slug="english-guide",
+            category=cat,
+            status="PUBLISHED",
+            locale="en",
+        )
+        variant = create_locale_variant(canonical, locale="fr")
+        self.assertEqual(variant.locale, "fr")
+        self.assertEqual(variant.translation_of_id, canonical.pk)
+
+    def test_module_inline_assistant_on_finance_dashboard(self):
+        from apps.portal.help_proactive_inline import module_inline_assistant_for_request
+
+        user = User.objects.create_user(username="finhelp", password="x")
+        rf = RequestFactory()
+        req = rf.get("/finance/dashboard/")
+        req.user = user
+        ctx = module_inline_assistant_for_request(req)
+        self.assertTrue(ctx.get("show_module_inline_help_assistant"))
+        self.assertEqual(ctx.get("help_module_slug"), "finance")

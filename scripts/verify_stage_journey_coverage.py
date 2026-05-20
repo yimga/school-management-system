@@ -68,6 +68,14 @@ VERIFIER_SCRIPTS: dict[str, list[str]] = {
     "audit_luxury_ui_surface": [sys.executable, "scripts/audit_luxury_ui_surface.py"],
     "verify_ai_engine_room": [sys.executable, "scripts/verify_ai_engine_room.py"],
     "verify_ollama_live": [sys.executable, "scripts/verify_ollama_live.py"],
+    "verify_help_center_tiers": [
+        sys.executable,
+        "scripts/verify_help_center_tiers.py",
+    ],
+    "verify_kb_embedding_coverage": [
+        sys.executable,
+        "scripts/verify_kb_embedding_coverage.py",
+    ],
 }
 
 
@@ -155,7 +163,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     data = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    journeys = data.get("journeys") or []
+    journeys = list(data.get("journeys") or [])
+    journeys.extend(data.get("supplementary_help_center_journeys") or [])
     results = [_check_journey(j, do_run=args.run) for j in journeys]
     passed = [r for r in results if r["status"] == "PASS"]
     failed = [r for r in results if r["status"] != "PASS"]

@@ -26,9 +26,32 @@ Send moderator (do not commit secrets):
 
 Moderator runs `scripts/verify_render_live_parity.py` (if present) or `render_predeploy.sh` log capture.
 
+## Recovery cert on Render shell
+
+`PARTIAL` means at least one **non-Ollama** verifier failed. Ollama-only failure yields
+`READY — REPO SCOPE (OLLAMA LIVE PENDING)` instead.
+
+```bash
+cd ~/project/src
+# After deploy includes commit 89efd95c+ (v5 gear-up lift):
+python scripts/generate_v4_recovery_certification.py --runtime
+# Prints repo_gaps + verifier tails on PARTIAL.
+
+# Quick read of last run:
+python -c "import json; d=json.load(open('docs/generated/ten_x_platform_certification.json')); print('gaps:', d.get('repo_gaps')); print('verdict:', d.get('verdict'))"
+
+# Common fixes on Render:
+git pull   # or redeploy latest main — need v5 scripts + var/* baselines + migration 0007
+python scripts/generate_orchestrator_journey_manifest.py --write
+python scripts/verify_stage_journey_coverage.py
+python manage.py migrate --noinput   # if manage.py check fails on pending migrations
+```
+
+Set `RMC_RECOVERY_RUNTIME=1` (or `--runtime`) when `.git` is missing in the container.
+
 ## Current repo recovery status
 
 - North Star: **75/75 DOMINANT**
 - `audit_admin_gravity.py --strict`: **PASS**
-- Prompt pack: **v4** — `ORCHESTRATOR_PROMPT_PACK_PASS` (164 checks)
-- Ollama live: **pending operator install** (rules fallback active until daemon up)
+- Prompt pack: **v5** — `ORCHESTRATOR_PROMPT_PACK_PASS` (227 checks)
+- Ollama live: **not on Render web dyno** — expect `OLLAMA LIVE PENDING` unless sidecar Ollama is wired

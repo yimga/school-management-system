@@ -10,9 +10,14 @@
 
   {% for family in families %}
   <div class="card border-0 shadow-sm mb-3">
-    <div class="card-header d-flex flex-wrap justify-content-between gap-2">
+    <div class="card-header d-flex flex-wrap justify-content-between gap-2 align-items-center">
       <span class="fw-semibold"><code>{{ family.group_id }}</code></span>
       <span class="small text-tertiary">{{ family.locales|join:", " }}</span>
+      <form method="post" class="mb-0">
+        {% csrf_token %}
+        <input type="hidden" name="locale_group_id" value="{{ family.group_id }}">
+        <button type="submit" name="action" value="publish_group" class="btn btn-sm btn-success">{% trans "Publish all in group" %}</button>
+      </form>
     </div>
     <ul class="list-group list-group-flush">
       {% for art in family.articles %}
@@ -28,6 +33,11 @@
           <input type="hidden" name="article_id" value="{{ art.pk }}">
           <input type="hidden" name="locale_group_id" value="{{ family.group_id }}">
           <button type="submit" name="action" value="mark_canonical" class="btn btn-sm btn-outline-primary">{% trans "Canonical" %}</button>
+          <select name="locale" class="form-select form-select-sm" style="width:auto" aria-label="{% trans 'Locale' %}">
+            {% for loc in locale_targets %}<option value="{{ loc }}">{{ loc }}</option>{% endfor %}
+          </select>
+          <button type="submit" name="action" value="create_variant" class="btn btn-sm btn-outline-secondary">{% trans "Add variant" %}</button>
+          <button type="submit" name="action" value="seed_variants" class="btn btn-sm btn-outline-secondary">{% trans "Seed fr/es/pt/ar" %}</button>
           <a class="btn btn-sm btn-link" href="{% url 'kb:kb_article' art.slug %}">{% trans "Open" %}</a>
         </form>
       </li>

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T11:17:52.088867+00:00",
+  "generated_at": "2026-05-20T11:35:52.859630+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -17368,13 +17368,13 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/context_processors.py",
-      "line": "106",
+      "line": "110",
       "preview": "school=getattr(request, \"school\", None),"
     },
     {
       "classification": "manager_scoped",
       "file": "apps/portal/context_processors.py",
-      "line": "122",
+      "line": "126",
       "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\":"
     },
     {
@@ -23837,13 +23837,13 @@
       "classification": "manager_scoped",
       "file": "apps/schools/tests/test_manager_header_account_paths.py",
       "line": "84",
-      "preview": "from config.manager_urls import manager_feedback, manager_support_request"
+      "preview": "from config.manager_urls import manager_feedback"
     },
     {
       "classification": "manager_scoped",
       "file": "apps/schools/tests/test_manager_header_account_paths.py",
       "line": "86",
-      "preview": "request = RequestFactory().get(\"/support/\", HTTP_HOST=\"manager.runmycampus.com\")"
+      "preview": "request = RequestFactory().get(\"/feedback/\", HTTP_HOST=\"manager.runmycampus.com\")"
     },
     {
       "classification": "manager_scoped",
@@ -29966,6 +29966,12 @@
       "preview": "apps.feedback.views on tenant hosts; operators use these routes on manager.runmycampus.com."
     },
     {
+      "classification": "needs_review",
+      "file": "config/manager_operator_support.py",
+      "line": "28",
+      "preview": "queryset=School.objects.filter(is_active=True).order_by(\"name\"),"
+    },
+    {
       "classification": "manager_scoped",
       "file": "config/manager_urls.py",
       "line": "2",
@@ -29994,17 +30000,11 @@
       "file": "config/schema.py",
       "line": "104",
       "preview": "School.objects.filter(is_active=True).order_by(\"name\")["
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/settings.py",
-      "line": "84",
-      "preview": "os.getenv(\"MANAGER_PLATFORM_BASE_URL\", \"https://manager.runmycampus.com\")"
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 5014
+    "hits": 5015
   },
   "truncated": true
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T11:19:14.006550+00:00",
+  "generated_at": "2026-05-20T11:37:11.147417+00:00",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "journey_count": 27,
   "stages_covered": [
@@ -287,6 +287,38 @@
       "proof": {
         "host": "manager",
         "spec": "tests/e2e/ai-center.spec.js"
+      }
+    }
+  ],
+  "supplementary_help_center_journeys": [
+    {
+      "journey_id": "HC-J1",
+      "stage": 8,
+      "persona": "operator",
+      "title": "Help center tier gate",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_help_center_tiers"
+      }
+    },
+    {
+      "journey_id": "HC-J2",
+      "stage": 8,
+      "persona": "operator",
+      "title": "Help deflection Playwright crawl",
+      "proof": {
+        "host": "manager",
+        "spec": "tests/e2e/help-center-crawl.spec.js"
+      }
+    },
+    {
+      "journey_id": "HC-J3",
+      "stage": 8,
+      "persona": "operator",
+      "title": "KB embedding coverage gate",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_kb_embedding_coverage"
       }
     }
   ]

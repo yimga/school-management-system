@@ -65,9 +65,9 @@ def manager_help(request):
 
 
 def manager_support_request(request):
-    from django.urls import reverse
+    from config.manager_operator_support import manager_support_request as _view
 
-    return redirect(reverse("manager_feedback_loop"))
+    return _view(request)
 
 
 def manager_feedback(request):

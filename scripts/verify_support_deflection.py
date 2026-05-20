@@ -17,7 +17,8 @@ def main() -> int:
         "DEFLECTION_SCORE_THRESHOLD = 0.88" in (ROOT / "apps/portal/kb_embeddings.py").read_text(encoding="utf-8"),
         "support-deflection" in (ROOT / "apps/api/urls.py").read_text(encoding="utf-8"),
         "rmc-support-deflection.js" in (ROOT / "templates/partials/help_deflection_strip.html").read_text(encoding="utf-8")
-        and "help_deflection_strip" in (ROOT / "templates/portal/support_request.html").read_text(encoding="utf-8"),
+        and "help_deflection_strip" in (ROOT / "templates/portal/support_request.html").read_text(encoding="utf-8")
+        and "manager_support_ticket" in (ROOT / "templates/schools/partials/manager_support_request_body.html").read_text(encoding="utf-8"),
         "SupportDeflectionEvent" in (ROOT / "apps/feedback/models.py").read_text(encoding="utf-8"),
         (ROOT / "services/ai/tests/test_support_intent_router.py").is_file(),
         (ROOT / "apps/portal/support_ingest.py").is_file(),

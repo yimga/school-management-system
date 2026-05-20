@@ -1543,6 +1543,24 @@ CELERY_BEAT_SCHEDULE = {
                 ),
                 "options": {"expires": 7200},
             },
+            "portal-help-north-star-weekly-email": {
+                "task": "portal.help_north_star_weekly_email",
+                "schedule": (
+                    _celery_crontab(hour=6, minute=0, day_of_week=1)
+                    if _celery_crontab is not None
+                    else 604800.0
+                ),
+                "options": {"expires": 7200},
+            },
+            "portal-archive-stale-kb-articles-monthly": {
+                "task": "portal.archive_stale_kb_articles_monthly",
+                "schedule": (
+                    _celery_crontab(hour=6, minute=30, day_of_month=1)
+                    if _celery_crontab is not None
+                    else 2592000.0
+                ),
+                "options": {"expires": 7200},
+            },
         }
         if CELERY_BEAT_ENABLED
         else {}
@@ -2150,6 +2168,10 @@ MIGRATION_CLOUD_AUDIT_RATE_LIMIT_DISABLED = (
 OPERATOR_ALERT_EMAIL = (
     os.environ.get("OPERATOR_ALERT_EMAIL", "") or ""
 ).strip() or MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL
+# Help north-star weekly digest (batch 1356); falls back to OPERATOR_ALERT_EMAIL.
+HELP_NORTH_STAR_WEEKLY_EMAIL = (
+    os.environ.get("HELP_NORTH_STAR_WEEKLY_EMAIL", "") or ""
+).strip() or OPERATOR_ALERT_EMAIL
 OPERATOR_ALERT_SLACK_WEBHOOK_URL = (
     os.environ.get("OPERATOR_ALERT_SLACK_WEBHOOK_URL", "") or ""
 ).strip() or None

@@ -6,6 +6,11 @@
 <article class="mkt-v3-page mkt-view-layer-page">
   {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
+  {% if show_mkt_help_engine %}
+  <div class="mkt-edt-container rmc-reveal" data-mkt-reveal>
+    {% include "marketing/partials/mkt_help_engine.html" %}
+  </div>
+  {% endif %}
   {% if page.segments %}
   <section class="mkt-edt-container mkt-v3-page__segments rmc-reveal" data-mkt-reveal>
     <div class="mkt-v3-segment-grid">

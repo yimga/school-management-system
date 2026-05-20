@@ -215,3 +215,27 @@ def purge_help_telemetry_monthly() -> dict[str, Any]:
         return {"ok": True}
     except Exception as exc:
         return {"ok": False, "error": str(exc)}
+
+
+@shared_task(name="portal.help_north_star_weekly_email")
+def help_north_star_weekly_email(days: int = 7) -> dict[str, Any]:
+    """Weekly north-star CSV/PDF email to operator distro (batch 1356)."""
+    try:
+        from apps.portal.help_north_star_report import send_north_star_weekly_email
+
+        return send_north_star_weekly_email(days=days)
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+@shared_task(name="portal.archive_stale_kb_articles_monthly")
+def archive_stale_kb_articles_monthly(limit: int = 50) -> dict[str, Any]:
+    """Auto-archive unhelpful published KB articles (batch 1356)."""
+    try:
+        from apps.portal.kb_archive import archive_kb_articles, stale_kb_archive_candidates
+
+        candidates = stale_kb_archive_candidates(limit=limit)
+        result = archive_kb_articles(candidates, dry_run=False)
+        return {"ok": True, **result}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}

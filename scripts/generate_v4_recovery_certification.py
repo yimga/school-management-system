@@ -2,7 +2,9 @@
 """Regenerate ten_x_platform_certification with v4/v5 recovery gates and compliance matrix."""
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -22,7 +24,70 @@ def _run(cmd: list[str], timeout: int = 180) -> dict:
         return {"exit": -1, "ok": False, "tail": str(exc)}
 
 
+def _print_failures(repo_gaps: list[str], verifiers: dict, *, verbose: bool) -> None:
+    if not repo_gaps:
+        return
+    print(f"repo_gaps ({len(repo_gaps)}): {', '.join(repo_gaps)}", file=sys.stderr)
+    for name in repo_gaps:
+        if name == "northstar_below_75":
+            print("  - northstar_below_75: total_score < 75 (see docs/generated/northstar_audit.json)", file=sys.stderr)
+            continue
+        entry = verifiers.get(name)
+        if not entry:
+            continue
+        print(f"  - {name}: exit={entry.get('exit')}", file=sys.stderr)
+        if verbose or name in repo_gaps[:6]:
+            tail = (entry.get("tail") or "").strip()
+            if tail:
+                print("    --- tail ---", file=sys.stderr)
+                for line in tail.splitlines()[-12:]:
+                    print(f"    {line}", file=sys.stderr)
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Print stderr tails for every failed verifier (default on PARTIAL).",
+    )
+    parser.add_argument(
+        "--runtime",
+        action="store_true",
+        help="Render/production shell: skip git migration tracking (artifact-on-disk only).",
+    )
+    args = parser.parse_args()
+    if args.runtime:
+        os.environ["RMC_RECOVERY_RUNTIME"] = "1"
+
+    def _git_ok() -> bool:
+        try:
+            p = subprocess.run(
+                ["git", "rev-parse", "--is-inside-work-tree"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            return p.returncode == 0 and p.stdout.strip() == "true"
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+
+    migration_cmd = [sys.executable, "scripts/verify_migration_files_tracked.py"]
+    runtime = args.runtime or os.environ.get("RMC_RECOVERY_RUNTIME", "").strip() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if runtime or not _git_ok():
+        migration_cmd.append("--artifact-only")
+        if not runtime and not _git_ok():
+            print(
+                "Note: git unavailable — migration check uses artifact-on-disk mode.",
+                file=sys.stderr,
+            )
+
     verifiers = {
         "manage_py_check": _run([sys.executable, "manage.py", "check", "--settings=config.settings"]),
         "audit_admin_gravity_strict": _run([sys.executable, "scripts/audit_admin_gravity.py", "--strict"], 120),
@@ -34,7 +99,7 @@ def main() -> int:
         "scan_money_float": _run([sys.executable, "scripts/scan_money_float.py", "--compare"]),
         "scan_tenant_queryset": _run([sys.executable, "scripts/scan_tenant_queryset_safety.py", "--compare"]),
         "verify_ai_engine_room": _run([sys.executable, "scripts/verify_ai_engine_room.py"]),
-        "verify_migration_tracked": _run([sys.executable, "scripts/verify_migration_files_tracked.py"]),
+        "verify_migration_tracked": _run(migration_cmd),
         "verify_prompt_pack_strict": _run([sys.executable, "scripts/verify_orchestrator_prompt_pack.py", "--strict"]),
         "verify_orchestrator_v5_bundle": _run(
             [sys.executable, "scripts/verify_orchestrator_v5_bundle.py"],
@@ -126,6 +191,14 @@ def main() -> int:
         encoding="utf-8",
     )
     print(verdict)
+    if verdict == "10X PLATFORM PARTIAL — REPO SCOPE":
+        print(
+            "Hint: cat docs/generated/ten_x_platform_certification.json | grep repo_gaps",
+            file=sys.stderr,
+        )
+        _print_failures(repo_gaps, verifiers, verbose=True if args.verbose else True)
+    elif args.verbose and repo_gaps:
+        _print_failures(repo_gaps, verifiers, verbose=True)
     return 0 if verdict.startswith("10X PLATFORM READY") else 1
 
 

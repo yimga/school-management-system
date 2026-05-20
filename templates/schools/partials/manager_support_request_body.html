@@ -1,0 +1,35 @@
+{% load i18n static %}
+<div class="container-fluid py-3" data-page-archetype="contact-routing">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Support request" %}</h1>
+      <p class="text-tertiary mb-0 small">
+        {% trans "Urgent operational issues for the platform team. Product ideas belong in the feature center." %}
+      </p>
+    </div>
+    {% if help_center_url %}
+    <a class="btn btn-outline-secondary btn-sm" href="{{ help_center_url }}">{% trans "Help center" %}</a>
+    {% endif %}
+  </div>
+
+  {% include "partials/help_deflection_strip.html" with deflection_surface="manager_support_ticket" %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <form method="post" id="manager-support-request-form" data-deflection-form-auto>
+        {% csrf_token %}
+        <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+        <button class="btn btn-primary" type="submit">{% trans "Send message" %}</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/rmc-support-deflection.js' %}" defer></script>

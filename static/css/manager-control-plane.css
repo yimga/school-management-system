@@ -834,9 +834,11 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] .portal-layout-row {
 .cp-sidebar-col::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.45); /* off-token-allow: white-overlay */
 }
-/* Main column grows with content; document/body scrolls (no trapped viewport void). */
+/* Main column grows with content; document/body scrolls (no trapped viewport void).
+   Login landings use #cp-main-content for skip-link parity but are NOT .cp-main-col —
+   align-self:flex-start there shrinks the column to content width and pins it left. */
 body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-main-col,
-body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content,
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content.cp-main-col,
 body.control-plane-shell[data-rmc-cp-scroll="document"] .portal-main-col {
   flex: 1 1 auto !important;
   min-width: 0 !important;

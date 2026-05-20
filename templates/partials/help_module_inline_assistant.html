@@ -1,0 +1,17 @@
+{% load i18n static %}
+{% if show_module_inline_help_assistant %}
+<section class="rmc-module-inline-help mb-4" data-rmc-module-inline-help data-rmc-module="{{ help_module_slug|default:'' }}">
+  <details class="card border-0 shadow-sm" open>
+    <summary class="card-header py-2 fw-semibold user-select-none">
+      <i class="bi bi-stars me-1"></i>{% trans "Module help copilot" %}
+      {% if help_module_slug %}<span class="badge text-bg-light ms-1">{{ help_module_slug }}</span>{% endif %}
+    </summary>
+    <div class="card-body pt-0">
+      <p class="small text-tertiary mb-2">{% trans "Ask about workflows on this dashboard. Answers use published KB articles for your role." %}</p>
+      {% include "portal/partials/kb_ai_assistant_panel.html" %}
+    </div>
+  </details>
+</section>
+<link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
+<script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>
+{% endif %}

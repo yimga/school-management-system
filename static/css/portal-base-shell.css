@@ -692,11 +692,10 @@ body.backend-shell .page-wrap {
   letter-spacing: -0.3px;
 }
 
-/* Messages chathead: fixed bottom-right, just above AI copilot (12px gap); above Copilot z-index so never hidden */
+/* Messages chathead: stacked above AI + VoC — rmc-shell-fab-stack.css */
 .portal-chathead {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
-  bottom: calc(16px + 60px + 12px);
   width: 44px;
   height: 44px;
   border-radius: 50%;

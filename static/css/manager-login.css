@@ -16,9 +16,20 @@ body {
 .admin-login-landing {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   padding: 0;
+}
+
+/* Direct child of .cp-shell-content (not .cp-layout); must span the viewport width. */
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content.manager-login-landing,
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content.admin-login-landing {
+  align-self: stretch !important;
+  width: 100%;
+  max-width: 100%;
 }
 
 .manager-login-landing__stage {

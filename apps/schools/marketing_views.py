@@ -2482,6 +2482,8 @@ def marketing_page(request, page_slug: str):
 
         ctx["developer_nav"] = developer_nav_items(request)
         ctx["active_developer_nav"] = "marketing_developers"
+    if normalized_slug in ("resources-help-center", "support-knowledge-base"):
+        ctx["show_mkt_help_engine"] = True
     # Product page: product-led storytelling (micro-demos, scroll-driven dark-mode, outcome-focused, developer-centric)
     if normalized_slug == "product":
         return render(request, "schools/marketing_product_page.html", ctx)

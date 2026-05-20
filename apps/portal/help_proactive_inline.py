@@ -31,6 +31,33 @@ def proactive_nudge_for_request(request) -> dict[str, Any] | None:
     }
 
 
+_INLINE_ASSISTANT_PREFIXES = (
+    "/finance/",
+    "/payroll/",
+    "/evals/",
+)
+
+
+def module_inline_assistant_for_request(request) -> dict[str, Any]:
+    """Full inline KB copilot on finance/payroll/evals dashboards (batch 1356)."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return {}
+    path = (getattr(request, "path", "") or "").lower()
+    slug = ""
+    for prefix in _INLINE_ASSISTANT_PREFIXES:
+        if path.startswith(prefix):
+            slug = prefix.strip("/").split("/")[0]
+            break
+    if not slug:
+        return {}
+    if "dashboard" not in path and "compliance" not in path:
+        return {}
+    return {
+        "show_module_inline_help_assistant": True,
+        "help_module_slug": slug,
+    }
+
+
 def _module_from_path(path: str) -> str:
     p = (path or "").lower().strip("/")
     for prefix in friction_route_prefixes():

@@ -111,6 +111,7 @@
 
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-shell-fab-stack.css' %}">
     {% comment %} Phase G (2026-05-12): platform-wide long-page grammar — ⌘K palette, sticky
        section nav, progressive-disclosure collapse, Console/Configure switcher. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -620,6 +621,7 @@
     </div>
 
     {% include "partials/help_proactive_nudge.html" %}
+    {% include "partials/help_module_inline_assistant.html" %}
     {% include "partials/help_contextual_drawer.html" %}
     {% include 'components/contextual_feedback_widget.html' %}
 

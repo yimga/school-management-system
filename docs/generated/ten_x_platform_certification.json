@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-20T11:20:13.651799+00:00",
+  "generated_at": "2026-05-20T11:38:23.267462+00:00",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "northstar": {
-    "generated_at": "2026-05-20T11:17:12.338780+00:00",
+    "generated_at": "2026-05-20T11:34:14.430372+00:00",
     "max_score": 75,
     "rating": "DOMINANT",
     "sections": {
@@ -146,7 +146,7 @@
     "audit_route_surface": {
       "exit": 0,
       "ok": true,
-      "tail": "Wrote docs\\generated\\route_surface_audit.json\n{\n  \"broken_count\": 0,\n  \"reverse_usages\": 2765,\n  \"risk_count\": 0,\n  \"routes_audited\": 7742,\n  \"status\": \"ROUTE SYSTEM CERTIFIED\",\n  \"template_href_action_usages\": 253,\n  \"template_url_usages\": 2374\n}\n"
+      "tail": "Wrote docs\\generated\\route_surface_audit.json\n{\n  \"broken_count\": 0,\n  \"reverse_usages\": 2765,\n  \"risk_count\": 0,\n  \"routes_audited\": 7742,\n  \"status\": \"ROUTE SYSTEM CERTIFIED\",\n  \"template_href_action_usages\": 253,\n  \"template_url_usages\": 2378\n}\n"
     },
     "audit_luxury_ui": {
       "exit": 0,
@@ -169,9 +169,9 @@
       "tail": "money-float scan: 0 call(s)\n"
     },
     "scan_tenant_queryset": {
-      "exit": 0,
-      "ok": true,
-      "tail": "TenantRiskAlert\",\n    \"TenantSubscription\",\n    \"TenantSystem\",\n    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 234,\n  \"finding_count\": 0,\n  \"findings_per_app\": {}\n}\n"
+      "exit": 1,
+      "ok": false,
+      "tail": "   \"TenantSubscription\",\n    \"TenantSystem\",\n    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 234,\n  \"finding_count\": 4,\n  \"findings_per_app\": {\n    \"portal\": 4\n  }\n}\n"
     },
     "verify_ai_engine_room": {
       "exit": 0,
@@ -191,7 +191,7 @@
     "verify_orchestrator_v5_bundle": {
       "exit": 0,
       "ok": true,
-      "tail": "ORCHESTRATOR_V5_BUNDLE_PASS (6 checks)\n"
+      "tail": "ORCHESTRATOR_V5_BUNDLE_PASS (7 checks)\n"
     },
     "verify_five_pillar_platform": {
       "exit": 0,
@@ -201,7 +201,7 @@
     "verify_help_center_tiers": {
       "exit": 0,
       "ok": true,
-      "tail": "verify_help_center_tiers: HELP_CENTER_TIERS_PASS (54 checks)\n"
+      "tail": "verify_help_center_tiers: HELP_CENTER_TIERS_PASS (66 checks)\n"
     },
     "verify_interaction_integrity": {
       "exit": 0,
@@ -226,55 +226,57 @@
     "ollama_live_strict": {
       "exit": 0,
       "ok": true,
-      "tail": "=True\n  AI_ALLOW_RULES_FALLBACK=True\n  OLLAMA configured=True\n  OLLAMA model='ai-center-master'\n  Reachable=True provider='ollama'\n  Latency_ms=2068\n  Degraded=False fallback_active=False\n  Invoke provider='rules' preview='I can help with that request, but live AI providers are currently unavailable. Request received: Reply with exactly: ok'\n\nOK - live Ollama path is ready. Offline-first school operations are unchanged.\nNext: RMC_AI_REQUIRE_LIVE=1 python manage.py test --tag=ai_live_ollama -v 2\n"
+      "tail": "=True\n  AI_ALLOW_RULES_FALLBACK=True\n  OLLAMA configured=True\n  OLLAMA model='ai-center-master'\n  Reachable=True provider='ollama'\n  Latency_ms=2203\n  Degraded=False fallback_active=False\n  Invoke provider='rules' preview='I can help with that request, but live AI providers are currently unavailable. Request received: Reply with exactly: ok'\n\nOK - live Ollama path is ready. Offline-first school operations are unchanged.\nNext: RMC_AI_REQUIRE_LIVE=1 python manage.py test --tag=ai_live_ollama -v 2\n"
     }
   },
-  "repo_gaps": [],
+  "repo_gaps": [
+    "scan_tenant_queryset"
+  ],
   "external_blockers": [
     "render_live_sha",
     "live_psp_settlement",
     "soc2_pci"
   ],
   "v3_compliance_pct": {
-    "0": 100,
-    "1": 100,
-    "2": 100,
-    "3": 100,
-    "4": 100,
-    "5": 100,
-    "6": 100,
-    "7": 100,
-    "8": 100,
-    "9": 100,
-    "10": 100
+    "0": 95,
+    "1": 95,
+    "2": 95,
+    "3": 95,
+    "4": 95,
+    "5": 95,
+    "6": 95,
+    "7": 95,
+    "8": 95,
+    "9": 95,
+    "10": 95
   },
   "v4_compliance_pct": {
-    "0": 100,
-    "1": 100,
-    "2": 100,
-    "3": 100,
-    "4": 100,
-    "5": 100,
-    "6": 100,
-    "7": 100,
-    "8": 100,
-    "9": 100,
-    "10": 100
+    "0": 95,
+    "1": 95,
+    "2": 95,
+    "3": 95,
+    "4": 95,
+    "5": 95,
+    "6": 95,
+    "7": 95,
+    "8": 95,
+    "9": 95,
+    "10": 95
   },
   "v5_compliance_pct": {
-    "0": 100,
-    "1": 100,
-    "2": 100,
-    "3": 100,
-    "4": 100,
-    "5": 100,
-    "6": 100,
-    "7": 100,
-    "8": 100,
-    "9": 100,
-    "10": 100
+    "0": 95,
+    "1": 95,
+    "2": 95,
+    "3": 95,
+    "4": 95,
+    "5": 95,
+    "6": 95,
+    "7": 95,
+    "8": 95,
+    "9": 95,
+    "10": 95
   },
   "journey_coverage_pct": 100.0,
   "ollama_live_proof_path": "docs/generated/ollama_live_proof.json",
-  "verdict": "10X PLATFORM READY \u2014 REPO SCOPE"
+  "verdict": "10X PLATFORM PARTIAL \u2014 REPO SCOPE"
 }

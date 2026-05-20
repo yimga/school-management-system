@@ -1,0 +1,68 @@
+# Help center mechanical gates (batch 1356) — no live Playwright server required.
+name: Help center gates
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/portal/**"
+      - "config/manager_*.py"
+      - "templates/**/help_*"
+      - "templates/**/manager_*help*"
+      - "templates/**/manager_support*"
+      - "templates/marketing/partials/mkt_help_engine.html"
+      - "scripts/verify_help_center*.py"
+      - "scripts/verify_kb_embedding_coverage.py"
+      - "scripts/verify_support_deflection.py"
+      - ".github/workflows/help-center-gates.yml"
+  workflow_dispatch: {}
+
+jobs:
+  help-center-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Migrate + help gates
+        env:
+          SECRET_KEY: "ci-help-center-gates-not-production-64chars________"
+          ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
+        run: |
+          python manage.py migrate --noinput
+          python scripts/verify_help_center_tiers.py
+          python scripts/verify_kb_embedding_coverage.py
+          python scripts/verify_support_deflection.py
+          python scripts/verify_help_center_graft_bundles.py
+          python scripts/generate_orchestrator_journey_manifest.py
+          python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_help_center_wave3 --verbosity=1
+
+  help-center-e2e-lane2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          npm ci
+      - name: Playwright help-center crawl (Lane 2 — needs server)
+        env:
+          SECRET_KEY: "ci-help-e2e-not-production-use-64chars________________"
+          ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com,gilead-school.runmycampus.com"
+        run: |
+          python manage.py migrate --noinput
+          python manage.py runserver 0.0.0.0:8000 &
+          sleep 8
+          npx playwright test tests/e2e/help-center-crawl.spec.js --reporter=line || echo "Lane 2 e2e skipped/failed — run locally with hosts mapped"

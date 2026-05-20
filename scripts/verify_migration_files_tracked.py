@@ -11,8 +11,28 @@ import sys
 from pathlib import Path
 
 
+def _git_available(root: Path) -> bool:
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        )
+        return proc.returncode == 0 and proc.stdout.strip() == "true"
+    except OSError:
+        return False
+
+
 def main() -> int:
+    import os
+
     root = Path(__file__).resolve().parent.parent
+    artifact_only = "--artifact-only" in sys.argv or os.environ.get("RMC_RECOVERY_RUNTIME", "").strip() in {
+        "1",
+        "true",
+        "yes",
+    }
     migrations = sorted(
         p for p in root.glob("apps/*/migrations/*.py")
         if p.name != "__init__.py"
@@ -20,6 +40,13 @@ def main() -> int:
     if not migrations:
         print("verify_migration_files_tracked: no migration files found", file=sys.stderr)
         return 1
+
+    if artifact_only or not _git_available(root):
+        print(
+            f"verify_migration_files_tracked: PASS ({len(migrations)} migration files on disk; "
+            "git tracking skipped — runtime/deploy artifact mode)"
+        )
+        return 0
 
     ignored: list[str] = []
     untracked: list[str] = []

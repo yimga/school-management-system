@@ -74,6 +74,19 @@ def main() -> int:
         ("1354-journey-seed", (ROOT / "apps/portal/management/commands/seed_help_journey_slugs.py").is_file()),
         ("1354-deflection-panel-class", _ok("templates/partials/help_deflection_strip.html", "rmc-support-deflection-panel")),
         ("1354-locale-fallback", _ok("apps/portal/kb_embeddings.py", "filter_kb_queryset_by_locale_with_fallback")),
+        # Batch 1356 — final gap closeout
+        ("1356-feature-center-deflection", _ok("templates/schools/partials/manager_feature_center_body.html", "manager_feature_center")),
+        ("1356-support-form", _ok("templates/schools/partials/manager_support_request_body.html", "data-deflection-form-auto")),
+        ("1356-support-view", _ok("config/manager_operator_support.py", "ManagerSupportRequestForm")),
+        ("1356-inline-copilot", _ok("templates/partials/help_module_inline_assistant.html", "show_module_inline_help_assistant")),
+        ("1356-marketing-help", _ok("templates/marketing/partials/mkt_help_engine.html", "mkt-help-engine")),
+        ("1356-north-star-email", _ok("apps/portal/tasks.py", "portal.help_north_star_weekly_email")),
+        ("1356-kb-archive", _ok("apps/portal/kb_archive.py", "stale_kb_archive_candidates")),
+        ("1356-archive-cmd", (ROOT / "apps/portal/management/commands/archive_stale_kb_articles.py").is_file()),
+        ("1356-locale-ops", _ok("apps/portal/kb_locale_ops.py", "publish_locale_group")),
+        ("1356-locale-publish-ui", _ok("templates/schools/partials/manager_kb_locale_families_body.html", "publish_group")),
+        ("1356-orchestrator-help", _ok("scripts/generate_orchestrator_journey_manifest.py", "supplementary_help_center_journeys")),
+        ("1356-corpus-runbook", (ROOT / "docs/HELP_CENTER_LOCALE_CORPUS_RUNBOOK.md").is_file()),
     ]
     failed = [cid for cid, ok in checks if not ok]
     if failed:

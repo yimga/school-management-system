@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T11:16:49.022457+00:00",
+  "generated_at": "2026-05-20T11:33:20.748529+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -1370,21 +1370,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2551",
+      "line": "2553",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2628",
+      "line": "2630",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2687",
+      "line": "2689",
       "protective_decorator_nearby": false
     },
     {
@@ -2035,8 +2035,15 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "config/manager_kb_locale_families.py",
-      "line": "20",
+      "line": "26",
       "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "protected_candidate",
+      "file": "config/manager_operator_support.py",
+      "line": "39",
+      "protective_decorator_nearby": true
     },
     {
       "bucket": "product",
@@ -2076,15 +2083,15 @@
   ],
   "schema_version": 1,
   "summary_by_bucket": {
-    "product": 292,
+    "product": 293,
     "scripts": 4
   },
   "summary_by_classification": {
     "needs_review": 107,
-    "protected_candidate": 185,
+    "protected_candidate": 186,
     "scripts_cli": 4
   },
   "totals": {
-    "hits": 296
+    "hits": 297
   }
 }

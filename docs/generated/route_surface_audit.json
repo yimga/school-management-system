@@ -25997,7 +25997,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 119,
+          "line": 123,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"feedback:help_center\")",
@@ -26746,7 +26746,7 @@
         },
         {
           "kind": "template_url",
-          "line": 55,
+          "line": 57,
           "name": "feedback:vote_feature",
           "path": "templates/schools/partials/manager_feature_center_body.html",
           "raw": "{% url 'feedback:vote_feature' item.pk %}",
@@ -27126,6 +27126,15 @@
           "line": 73,
           "name": "global_login_discovery",
           "path": "templates/marketing/partials/marketing_inner_tail.html",
+          "raw": "{% url 'global_login_discovery' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 8,
+          "name": "global_login_discovery",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
           "raw": "{% url 'global_login_discovery' %}",
           "reason": "",
           "status": "OK"
@@ -28009,7 +28018,7 @@
         },
         {
           "kind": "template_url",
-          "line": 31,
+          "line": 41,
           "name": "kb:kb_article",
           "path": "templates/schools/partials/manager_kb_locale_families_body.html",
           "raw": "{% url 'kb:kb_article' art.slug %}",
@@ -28354,7 +28363,7 @@
         },
         {
           "kind": "reverse",
-          "line": 63,
+          "line": 92,
           "name": "kb:kb_home",
           "path": "config/manager_kb_locale_families.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -28363,7 +28372,7 @@
         },
         {
           "kind": "reverse",
-          "line": 120,
+          "line": 124,
           "name": "kb:kb_home",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -29198,7 +29207,7 @@
         },
         {
           "kind": "template_url",
-          "line": 21,
+          "line": 22,
           "name": "manager_feature_center",
           "path": "templates/schools/partials/manager_feature_center_body.html",
           "raw": "{% url 'manager_feature_center' %}",
@@ -29236,15 +29245,6 @@
       "permission_requirement": "control_plane",
       "reasons": [],
       "reverse_usage": [
-        {
-          "kind": "reverse",
-          "line": 70,
-          "name": "manager_feedback_loop",
-          "path": "config/manager_urls.py",
-          "raw": "reverse(\"manager_feedback_loop\")",
-          "reason": "",
-          "status": "OK"
-        },
         {
           "kind": "reverse",
           "line": 76,
@@ -29374,9 +29374,18 @@
         },
         {
           "kind": "reverse",
-          "line": 62,
+          "line": 91,
           "name": "manager_help_center",
           "path": "config/manager_kb_locale_families.py",
+          "raw": "reverse(\"manager_help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 170,
+          "name": "manager_help_center",
+          "path": "config/manager_operator_support.py",
           "raw": "reverse(\"manager_help_center\")",
           "reason": "",
           "status": "OK"
@@ -29392,7 +29401,7 @@
         },
         {
           "kind": "reverse",
-          "line": 123,
+          "line": 127,
           "name": "manager_help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"manager_help_center\")",
@@ -81270,7 +81279,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3772,
+          "line": 3774,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -82742,7 +82751,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 119,
+          "line": 123,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"feedback:help_center\")",
@@ -83491,7 +83500,7 @@
         },
         {
           "kind": "template_url",
-          "line": 55,
+          "line": 57,
           "name": "feedback:vote_feature",
           "path": "templates/schools/partials/manager_feature_center_body.html",
           "raw": "{% url 'feedback:vote_feature' item.pk %}",
@@ -85429,6 +85438,15 @@
           "raw": "{% url 'global_login_discovery' %}",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 8,
+          "name": "global_login_discovery",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
+          "raw": "{% url 'global_login_discovery' %}",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "url_path": "/discover/",
@@ -86909,7 +86927,7 @@
         },
         {
           "kind": "template_url",
-          "line": 31,
+          "line": 41,
           "name": "kb:kb_article",
           "path": "templates/schools/partials/manager_kb_locale_families_body.html",
           "raw": "{% url 'kb:kb_article' art.slug %}",
@@ -87254,7 +87272,7 @@
         },
         {
           "kind": "reverse",
-          "line": 63,
+          "line": 92,
           "name": "kb:kb_home",
           "path": "config/manager_kb_locale_families.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -87263,7 +87281,7 @@
         },
         {
           "kind": "reverse",
-          "line": 120,
+          "line": 124,
           "name": "kb:kb_home",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -88826,7 +88844,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2679,
+          "line": 2681,
           "name": "marketing_contact",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -88835,7 +88853,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2641,
+          "line": 2643,
           "name": "marketing_contact",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -88914,6 +88932,15 @@
           "line": 99,
           "name": "marketing_contact",
           "path": "templates/marketing/pages/type_trust_center.html",
+          "raw": "{% url 'marketing_contact' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 7,
+          "name": "marketing_contact",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
           "raw": "{% url 'marketing_contact' %}",
           "reason": "",
           "status": "OK"
@@ -89019,7 +89046,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2620,
+          "line": 2622,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -89028,7 +89055,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2559,
+          "line": 2561,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -89536,7 +89563,7 @@
         },
         {
           "kind": "template_url",
-          "line": 22,
+          "line": 27,
           "name": "marketing_demo",
           "path": "templates/marketing/pages/type_view_layer.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -91588,7 +91615,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2737,
+          "line": 2739,
           "name": "marketing_security_packet_request",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_security_packet_request\")",
@@ -91597,7 +91624,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2697,
+          "line": 2699,
           "name": "marketing_security_packet_request",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_security_packet_request\")",
@@ -92435,7 +92462,7 @@
         },
         {
           "kind": "template_url",
-          "line": 23,
+          "line": 28,
           "name": "marketing_trust_dedicated",
           "path": "templates/marketing/pages/type_view_layer.html",
           "raw": "{% url 'marketing_trust_dedicated' %}",
@@ -104435,6 +104462,24 @@
           "line": 68,
           "name": "public_support_hub",
           "path": "templates/marketing/public_status.html",
+          "raw": "{% url 'public_support_hub' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 6,
+          "name": "public_support_hub",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
+          "raw": "{% url 'public_support_hub' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 10,
+          "name": "public_support_hub",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
           "raw": "{% url 'public_support_hub' %}",
           "reason": "",
           "status": "OK"
@@ -138312,7 +138357,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 3772,
+          "line": 3774,
           "name": "developer_portal",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"developer_portal\")",
@@ -138792,6 +138837,15 @@
           "line": 73,
           "name": "global_login_discovery",
           "path": "templates/marketing/partials/marketing_inner_tail.html",
+          "raw": "{% url 'global_login_discovery' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 8,
+          "name": "global_login_discovery",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
           "raw": "{% url 'global_login_discovery' %}",
           "reason": "",
           "status": "OK"
@@ -140035,7 +140089,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2679,
+          "line": 2681,
           "name": "marketing_contact",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -140044,7 +140098,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2641,
+          "line": 2643,
           "name": "marketing_contact",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_contact\")",
@@ -140123,6 +140177,15 @@
           "line": 99,
           "name": "marketing_contact",
           "path": "templates/marketing/pages/type_trust_center.html",
+          "raw": "{% url 'marketing_contact' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 7,
+          "name": "marketing_contact",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
           "raw": "{% url 'marketing_contact' %}",
           "reason": "",
           "status": "OK"
@@ -140228,7 +140291,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 2620,
+          "line": 2622,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -140237,7 +140300,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2559,
+          "line": 2561,
           "name": "marketing_demo",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_demo\")",
@@ -140745,7 +140808,7 @@
         },
         {
           "kind": "template_url",
-          "line": 22,
+          "line": 27,
           "name": "marketing_demo",
           "path": "templates/marketing/pages/type_view_layer.html",
           "raw": "{% url 'marketing_demo' %}",
@@ -142962,7 +143025,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2737,
+          "line": 2739,
           "name": "marketing_security_packet_request",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_security_packet_request\")",
@@ -142971,7 +143034,7 @@
         },
         {
           "kind": "reverse",
-          "line": 2697,
+          "line": 2699,
           "name": "marketing_security_packet_request",
           "path": "apps/schools/marketing_views.py",
           "raw": "reverse(\"marketing_security_packet_request\")",
@@ -143892,7 +143955,7 @@
         },
         {
           "kind": "template_url",
-          "line": 23,
+          "line": 28,
           "name": "marketing_trust_dedicated",
           "path": "templates/marketing/pages/type_view_layer.html",
           "raw": "{% url 'marketing_trust_dedicated' %}",
@@ -144780,6 +144843,24 @@
           "line": 68,
           "name": "public_support_hub",
           "path": "templates/marketing/public_status.html",
+          "raw": "{% url 'public_support_hub' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 6,
+          "name": "public_support_hub",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
+          "raw": "{% url 'public_support_hub' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 10,
+          "name": "public_support_hub",
+          "path": "templates/marketing/partials/mkt_help_engine.html",
           "raw": "{% url 'public_support_hub' %}",
           "reason": "",
           "status": "OK"
@@ -179464,7 +179545,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 119,
+          "line": 123,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"feedback:help_center\")",
@@ -180213,7 +180294,7 @@
         },
         {
           "kind": "template_url",
-          "line": 55,
+          "line": 57,
           "name": "feedback:vote_feature",
           "path": "templates/schools/partials/manager_feature_center_body.html",
           "raw": "{% url 'feedback:vote_feature' item.pk %}",
@@ -182654,7 +182735,7 @@
         },
         {
           "kind": "template_url",
-          "line": 31,
+          "line": 41,
           "name": "kb:kb_article",
           "path": "templates/schools/partials/manager_kb_locale_families_body.html",
           "raw": "{% url 'kb:kb_article' art.slug %}",
@@ -182999,7 +183080,7 @@
         },
         {
           "kind": "reverse",
-          "line": 63,
+          "line": 92,
           "name": "kb:kb_home",
           "path": "config/manager_kb_locale_families.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -183008,7 +183089,7 @@
         },
         {
           "kind": "reverse",
-          "line": 120,
+          "line": 124,
           "name": "kb:kb_home",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -201415,7 +201496,7 @@
     "routes_audited": 7742,
     "status": "ROUTE SYSTEM CERTIFIED",
     "template_href_action_usages": 253,
-    "template_url_usages": 2374
+    "template_url_usages": 2378
   },
   "urlconfs": {
     "manager": "config.manager_urls",

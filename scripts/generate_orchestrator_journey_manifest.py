@@ -104,12 +104,37 @@ def main() -> int:
             j["proof"]["verifier_alias"] = v
             j["proof"]["verifier"] = alias_verifier[v]
 
+    supplementary = [
+        _j(
+            "HC-J1",
+            8,
+            "operator",
+            "Help center tier gate",
+            verifier="verify_help_center_tiers",
+        ),
+        _j(
+            "HC-J2",
+            8,
+            "operator",
+            "Help deflection Playwright crawl",
+            spec="tests/e2e/help-center-crawl.spec.js",
+        ),
+        _j(
+            "HC-J3",
+            8,
+            "operator",
+            "KB embedding coverage gate",
+            verifier="verify_kb_embedding_coverage",
+        ),
+    ]
+
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "prompt_pack_version": "2026-05-20-orchestrator-v5",
         "journey_count": len(JOURNEYS),
         "stages_covered": list(range(1, 10)),
         "journeys": JOURNEYS,
+        "supplementary_help_center_journeys": supplementary,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

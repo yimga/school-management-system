@@ -752,7 +752,7 @@
     },
     {
       "file": "apps/schools/marketing_views.py",
-      "line": "2830",
+      "line": "2832",
       "signal": "export_delivery_hint"
     },
     {
@@ -841,20 +841,20 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-05-20T11:16:57.414800+00:00",
+  "generated_at": "2026-05-20T11:33:27.990886+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-05-20T11:16:49.022457+00:00",
+    "generated_at": "2026-05-20T11:33:20.748529+00:00",
     "summary_by_bucket": {
-      "product": 292,
+      "product": 293,
       "scripts": 4
     },
     "summary_by_classification": {
       "needs_review": 107,
-      "protected_candidate": 185,
+      "protected_candidate": 186,
       "scripts_cli": 4
     },
     "totals": {
-      "hits": 296
+      "hits": 297
     }
   },
   "post_handler_product_needs_review": [
@@ -1205,21 +1205,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2551",
+      "line": "2553",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2628",
+      "line": "2630",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/marketing_views.py",
-      "line": "2687",
+      "line": "2689",
       "protective_decorator_nearby": false
     },
     {
@@ -1604,34 +1604,34 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "config/manager_kb_locale_families.py",
-      "line": "20",
+      "line": "26",
       "protective_decorator_nearby": false
     }
   ],
   "post_risk": {
     "product_needs_review_post_handlers": 107,
-    "product_protected_candidate_post_handlers": 185
+    "product_protected_candidate_post_handlers": 186
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-05-20T11:16:41.919345+00:00",
+    "generated_at": "2026-05-20T11:33:16.055339+00:00",
     "summary": {
       "allow_any": 39,
       "csrf_exempt": 34,
       "cursor_execute": 2,
-      "login_required": 535,
+      "login_required": 536,
       "permission_classes": 56,
-      "require_http_methods": 391,
+      "require_http_methods": 392,
       "staff_member_required": 68,
-      "subprocess": 394
+      "subprocess": 397
     },
     "summary_by_classification": {
-      "allowed": 1233,
-      "needs_review": 275,
+      "allowed": 1235,
+      "needs_review": 278,
       "unsafe": 11
     },
     "totals": {
-      "hits": 1519
+      "hits": 1524
     }
   },
   "subprocess_hits": [
@@ -1787,8 +1787,8 @@
     "cursor_execute_hits_apps": 0,
     "export_delivery_hint_hits_apps": 84,
     "product_needs_review": 107,
-    "product_post_handlers": 292,
-    "product_protected_candidate": 185,
+    "product_post_handlers": 293,
+    "product_protected_candidate": 186,
     "subprocess_hits_apps": 29
   }
 }

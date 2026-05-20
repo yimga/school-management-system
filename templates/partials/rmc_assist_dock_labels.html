@@ -1,0 +1,14 @@
+{% load i18n %}
+<script type="application/json" id="page-data-rmc-assist-dock" nonce="{{ csp_nonce }}">{
+  "expand": "{% filter escapejs %}{% trans "More assistants" %}{% endfilter %}",
+  "collapse": "{% filter escapejs %}{% trans "Fewer assistants" %}{% endfilter %}",
+  "toolbar": "{% filter escapejs %}{% trans "Page assistants" %}{% endfilter %}",
+  "ai": "{% filter escapejs %}{% trans "AI Copilot" %}{% endfilter %}",
+  "feedback": "{% filter escapejs %}{% trans "Page feedback" %}{% endfilter %}",
+  "help": "{% filter escapejs %}{% trans "Help on this page" %}{% endfilter %}",
+  "messages": "{% filter escapejs %}{% trans "Messages" %}{% endfilter %}",
+  "backToTop": "{% filter escapejs %}{% trans "Back to top" %}{% endfilter %}",
+  "close": "{% filter escapejs %}{% trans "Close" %}{% endfilter %}",
+  "feedbackTitle": "{% filter escapejs %}{% trans "How is this page?" %}{% endfilter %}",
+  "feedbackHint": "{% filter escapejs %}{% trans "Quick signal for operators — we route by page context." %}{% endfilter %}"
+}</script>

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-20T11:19:14.207891+00:00",
-  "journey_count": 27,
-  "pass_count": 27,
+  "generated_at": "2026-05-20T11:37:11.319763+00:00",
+  "journey_count": 30,
+  "pass_count": 30,
   "fail_count": 0,
   "journey_coverage_pct": 100.0,
   "by_stage": {
@@ -34,8 +34,8 @@
       "total": 3
     },
     "8": {
-      "pass": 3,
-      "total": 3
+      "pass": 6,
+      "total": 6
     },
     "9": {
       "pass": 3,
@@ -204,6 +204,24 @@
       "stage": 9,
       "status": "PASS",
       "detail": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\tests\\e2e\\ai-center.spec.js"
+    },
+    {
+      "journey_id": "HC-J1",
+      "stage": 8,
+      "status": "PASS",
+      "detail": "ok"
+    },
+    {
+      "journey_id": "HC-J2",
+      "stage": 8,
+      "status": "PASS",
+      "detail": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\tests\\e2e\\help-center-crawl.spec.js"
+    },
+    {
+      "journey_id": "HC-J3",
+      "stage": 8,
+      "status": "PASS",
+      "detail": "ok"
     }
   ],
   "verdict": "JOURNEY_COVERAGE_PASS"
