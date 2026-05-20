@@ -39,6 +39,40 @@ _PLATFORM_CHANGESET_HINTS: dict[str, dict[str, Any]] = {
             ("super:geography", _("Geography (super)")),
         ),
     },
+    "integrations_marketplace": {
+        "title": _("Integrations & marketplace"),
+        "body": _(
+            "Integration catalog governance and publisher apps are managed from the "
+            "control plane first. Use this changelist for credential rows and deep fixes."
+        ),
+        "links": (
+            ("super:marketplace_governance", _("Marketplace governance")),
+            ("super:platform_operator_hub", _("Operator hub")),
+            ("siteconfig:console_domains_hub", _("Config center")),
+        ),
+    },
+    "marketplace": {
+        "title": _("Marketplace records"),
+        "body": _(
+            "Publisher listings and install health live under Marketplace governance. "
+            "Use admin for break-glass publisher record edits."
+        ),
+        "links": (
+            ("super:marketplace_governance", _("Marketplace governance")),
+            ("super:blueprint_marketplace", _("Blueprint marketplace")),
+        ),
+    },
+    "billing": {
+        "title": _("Billing & revenue"),
+        "body": _(
+            "Fleet billing accounts and revenue operations are surfaced on the control "
+            "plane. Use admin changelists for ledger-grade row maintenance."
+        ),
+        "links": (
+            ("super:billing_accounts_list", _("Billing accounts (super)")),
+            ("super:dashboard", _("Control plane")),
+        ),
+    },
 }
 
 

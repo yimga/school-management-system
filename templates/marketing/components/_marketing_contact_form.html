@@ -2,6 +2,7 @@
 {% load terminology_tags %}
 <section id="contact-form-block" class="mkt-v3-form-block" aria-label="{% trans 'Contact form' %}">
   <h2 class="mkt-v3-section-headline">{% trans "Send a message" %}</h2>
+  <p class="mkt-v3-lead mkt-v3-lead--compact">{% trans "Required fields are marked. We triage by inquiry type and respond within one business day for sales and implementation." %}</p>
   {% if request.GET.submitted %}
     <div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks—we received your note and will respond as soon as possible." %}</div>
   {% elif request.GET.error %}
@@ -33,9 +34,10 @@
       <label for="contact-inquiry-type" class="form-label">{% trans "Inquiry type" %} <span class="text-danger">*</span></label>
       <select id="contact-inquiry-type" name="inquiry_type" class="form-select" required>
         <option value="" disabled selected>{% trans "Select…" %}</option>
-        <option value="sales">{% trans "Sales" %}</option>
-        <option value="implementation">{% trans "Implementation" %}</option>
-        <option value="support">{% trans "Support" %}</option>
+        <option value="sales">{% trans "Sales / evaluation" %}</option>
+        <option value="procurement">{% trans "Procurement / RFP" %}</option>
+        <option value="implementation">{% trans "Implementation planning" %}</option>
+        <option value="support">{% trans "Support (existing customer)" %}</option>
         <option value="partnership">{% trans "Partnership" %}</option>
         <option value="general">{% trans "General" %}</option>
       </select>

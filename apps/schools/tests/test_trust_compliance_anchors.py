@@ -50,7 +50,7 @@ class TrustCompliancePartialRenderTests(SimpleTestCase):
             self._ctx(),
         )
         self.assertIn('data-mkt-trust-command-center="1"', html)
-        self.assertIn("Proof command center", html)
+        self.assertIn("Trust evidence dashboard", html)
 
     def test_control_framework_partial(self):
         html = render_to_string(
@@ -58,7 +58,7 @@ class TrustCompliancePartialRenderTests(SimpleTestCase):
             self._ctx(),
         )
         self.assertIn('data-mkt-trust-control-framework="1"', html)
-        self.assertIn("Mechanism", html)
+        self.assertIn("How it works", html)
         self.assertIn('data-trust-control="api_surface"', html)
 
     def test_external_honesty_partial(self):

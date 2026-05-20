@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
-from typing import Any, Generator, Iterable
+from typing import Any, Generator
 
 from django.conf import settings
 from django.db.models import Q, QuerySet
@@ -120,7 +120,7 @@ def marketing_kb_hub_bundle(
     category_limit: int = 8,
 ) -> dict[str, Any]:
     """Featured articles + category counts for the public marketing help hub."""
-    from apps.portal.models_kb import KBArticle, KBCategory
+    from apps.portal.models_kb import KBCategory
 
     with marketing_kb_schema_context():
         base = marketing_kb_queryset(country_code=country_code, plan_tier=plan_tier)

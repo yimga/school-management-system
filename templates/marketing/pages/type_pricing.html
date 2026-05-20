@@ -7,6 +7,7 @@
 <article class="mkt-v3-page mkt-v3-page--pricing" data-mkt-pricing>
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Pricing") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
+  {% include "marketing/components/_local_first_global_next.html" with compact=True %}
   <div class="mkt-edt-container">
     {% include "marketing/components/_currency_switcher.html" %}
   </div>
@@ -19,9 +20,9 @@
         <h3 class="mkt-v3-pricing-plan__name">{{ plan.plan }}</h3>
         <p class="mkt-v3-pricing-plan__tagline">{{ plan.tagline }}</p>
         <p class="mkt-v3-pricing-plan__price" data-mkt-price-stub aria-live="polite">
-          <span class="mkt-v3-pricing-plan__price-label">{% trans "From" %}</span>
-          <span class="mkt-v3-pricing-plan__price-value" data-plan="{{ plan.plan|lower }}">—</span>
-          <span class="mkt-v3-pricing-plan__price-unit">{% trans "/ student / month" %}</span>
+          <span class="mkt-v3-pricing-plan__price-label">{% if plan.plan == "Enterprise" %}{% trans "Commercial" %}{% else %}{% trans "Indicative band" %}{% endif %}</span>
+          <span class="mkt-v3-pricing-plan__price-value" data-plan="{{ plan.plan|lower }}">{% if plan.plan == "Enterprise" %}{% trans "Custom quote" %}{% else %}{% trans "Select currency" %}{% endif %}</span>
+          <span class="mkt-v3-pricing-plan__price-unit">{% if plan.plan == "Enterprise" %}{% trans "Scoped to campuses, modules, and rollout" %}{% else %}{% trans "per student / month (not a final quote)" %}{% endif %}</span>
         </p>
         <ul class="mkt-v3-pricing-plan__highlights">
           {% for bullet in plan.highlights %}
@@ -32,7 +33,22 @@
       </article>
       {% endfor %}
     </div>
-    <p class="mkt-v3-pricing-plans__note small">{% trans "Illustrative bands — exact commercial terms confirmed during procurement." %}</p>
+    <p class="mkt-v3-pricing-plans__note small">{% trans "Currency switcher shows indicative bands only. Final pricing depends on student count, modules, campuses, implementation scope, and regional tax rules—confirmed in writing during procurement." %}</p>
+  </section>
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="pricing-procurement-heading">
+    <h2 id="pricing-procurement-heading" class="mkt-v3-section-headline">{% trans "Built for procurement conversations" %}</h2>
+    <ul class="mkt-v3-pricing-procurement">
+      <li>{% trans "Capability matrix you can attach to RFPs and board packets—no surprise module lock-outs after signature." %}</li>
+      <li>{% trans "Clear upgrade path from Starter → Growth → Enterprise without re-platforming or duplicate tenants." %}</li>
+      <li>{% trans "Implementation and Migration Cloud scoped as add-ons with named deliverables." %}</li>
+      <li>{% trans "Security, data residency, and audit posture documented on our Trust center—ask for a tailored security brief." %}</li>
+    </ul>
+    <p class="mkt-v3-pricing-procurement__links small mb-0">
+      <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust & security" %}</a>
+      <span aria-hidden="true"> · </span>
+      <a href="{% url 'marketing_resources_guides' %}">{% trans "Procurement guides" %}</a>
+    </p>
   </section>
 
   {% if page_extras.pricing_plan_comparison %}
@@ -85,8 +101,9 @@
   </section>
   {% endif %}
 
-  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal">
+  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal mkt-v3-page__close--split">
     <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a pricing walkthrough" %}</a>
+    <a href="{% url 'marketing_contact' %}" class="mkt-edt-cta mkt-edt-cta--secondary" data-cta="contact">{% trans "Send a procurement question" %}</a>
   </section>
 </article>
 {% endblock %}

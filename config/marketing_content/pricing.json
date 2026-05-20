@@ -1,9 +1,9 @@
 {
   "label": "Pricing",
   "seo_title": "Pricing | RunMyCampus",
-  "seo_description": "Compare Starter, Growth, and Enterprise capabilities across admissions, academics, finance, portals, offline sync, workflows, and governance.",
+  "seo_description": "Compare Starter, Growth, and Enterprise capabilities. Indicative bands and quote-based packaging—final terms confirmed during procurement.",
   "headline": "Plans shaped around how schools actually operate.",
-  "subheadline": "Starter for digitizing core operations, Growth for full admissions-to-reporting cycles, Enterprise for multi-campus governance and advanced depth.",
+  "subheadline": "Starter for digitizing core operations, Growth for full admissions-to-reporting cycles, Enterprise for multi-campus governance. All commercial terms are confirmed in writing—never implied by this page alone.",
   "schema_type": "OfferCatalog",
   "segments": [
     {
@@ -16,7 +16,7 @@
     },
     {
       "title": "Enterprise",
-      "body": "Multi-campus controls, offline sync, integration-ready APIs, advanced analytics, audits, and priority implementation."
+      "body": "Many campuses, one governance layer—group policy and reporting without HQ overriding local calendars, fees, or assessment rules. Offline sync, integrations, and audit depth per campus."
     }
   ],
   "extras": {
@@ -27,9 +27,9 @@
         "detail": "Starter, Growth, and Enterprise packaging aligned to operating maturity."
       },
       {
-        "value": "Configurable",
-        "label": "capability depth",
-        "detail": "Turn modules on as governance requirements increase—not duplicate tenants."
+        "value": "Quote-based",
+        "label": "commercial packaging",
+        "detail": "Indicative currency bands on this page are not binding quotes—procurement confirms scope."
       },
       {
         "value": "Clear",
@@ -44,12 +44,16 @@
     ],
     "faqs": [
       {
+        "question": "Are the currency amounts on this page final prices?",
+        "answer": "No. The switcher shows indicative per-student bands for planning conversations only. Your quote reflects student count, modules, campuses, implementation, and regional tax rules."
+      },
+      {
         "question": "Which plan fits a single-campus school?",
         "answer": "Starter focuses on digitizing records, attendance, communications, and baseline portals; Growth unlocks admissions depth and billing sophistication."
       },
       {
         "question": "When should schools choose Enterprise?",
-        "answer": "When multi-campus governance, offline-heavy deployments, integration portfolios, or audit-heavy workflows demand priority support and controls."
+        "answer": "When you run many campuses under one governance layer—shared policy and visibility without overriding each campus’s local calendar, currency, or compliance posture."
       },
       {
         "question": "Can we pilot before expanding?",

@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator
 from django.db import DatabaseError
 from django.db.models import Count, Prefetch, Q, Sum
 from django.http import HttpResponse, JsonResponse
@@ -482,6 +483,25 @@ def blueprint_marketplace(request):
     )
 
 
+def _app_catalog_query_params(request) -> dict[str, str]:
+    """Preserve browse state across POST redirect."""
+    params: dict[str, str] = {}
+    for key in ("q", "kind", "page", "school_id", "school_q"):
+        val = (request.GET.get(key) or request.POST.get(key) or "").strip()
+        if val:
+            params[key] = val
+    return params
+
+
+def _app_catalog_redirect(request, **extra: str):
+    params = _app_catalog_query_params(request)
+    params.update({k: v for k, v in extra.items() if v})
+    base = reverse("super:app_catalog")
+    if params:
+        return redirect(f"{base}?{urlencode(params)}")
+    return redirect(base)
+
+
 @login_required
 @user_passes_test(_control_plane_access)
 @require_http_methods(["GET", "POST"])
@@ -525,7 +545,10 @@ def app_catalog(request):
     ]
     for lst in installable_listings:
         lst.catalog_display = catalog_listing_display(lst)
-    schools, school_query, school_limit = _control_plane_school_options(request)
+
+    schools, school_query, school_limit = _control_plane_school_options(
+        request, default_limit=80
+    )
     installed = set()
     if schools:
         for inst in AppInstallation.objects.filter(
@@ -539,14 +562,14 @@ def app_catalog(request):
         school_id = request.POST.get("school_id") or request.POST.get("school")
         if not app_id or not school_id:
             messages.error(request, "Select an app and a school.")
-            return redirect("super:app_catalog")
+            return _app_catalog_redirect(request)
         if request.POST.get("install_after_impact_preview") != "1":
             messages.error(
                 request,
                 "Open “Preview impact”, review scopes and compatibility, then confirm "
                 "install from that dialog (N17).",
             )
-            return redirect("super:app_catalog")
+            return _app_catalog_redirect(request)
         app = get_object_or_404(MarketplaceApp, pk=app_id, is_active=True)
         school = get_object_or_404(School, pk=school_id, is_active=True)
         try:
@@ -562,7 +585,45 @@ def app_catalog(request):
             )
         except ValueError as e:
             messages.error(request, str(e))
-        return redirect("super:app_catalog")
+        return _app_catalog_redirect(request)
+
+    search_query = (request.GET.get("q") or "").strip()
+    active_kind = (request.GET.get("kind") or "all").strip().lower()
+    valid_kinds = {c[0] for c in MarketplaceApp.AppKind.choices}
+    if active_kind not in valid_kinds and active_kind != "all":
+        active_kind = "all"
+
+    filtered = installable_listings
+    if search_query:
+        needle = search_query.lower()
+        filtered = [
+            lst
+            for lst in filtered
+            if needle in (lst.app.name or "").lower()
+            or needle in (lst.app.slug or "").lower()
+            or needle in (lst.app.description or "").lower()
+            or needle in (lst.short_description or "").lower()
+            or needle in (lst.category or "").lower()
+        ]
+    if active_kind != "all":
+        filtered = [lst for lst in filtered if lst.app.kind == active_kind]
+
+    kind_tabs: list[dict[str, object]] = [
+        {"key": "all", "label": "All apps", "count": len(installable_listings)}
+    ]
+    for kind_key, kind_label in MarketplaceApp.AppKind.choices:
+        count = sum(1 for lst in installable_listings if lst.app.kind == kind_key)
+        if count:
+            kind_tabs.append({"key": kind_key, "label": kind_label, "count": count})
+
+    page_obj = Paginator(filtered, 12).get_page(request.GET.get("page") or 1)
+    listings_page = list(page_obj.object_list)
+
+    selected_school_id = (request.GET.get("school_id") or "").strip()
+    try:
+        selected_school_id_int = int(selected_school_id) if selected_school_id else None
+    except ValueError:
+        selected_school_id_int = None
 
     catalog_stats = {
         "apps": len(installable_listings),
@@ -575,21 +636,33 @@ def app_catalog(request):
             if getattr(listing, "sensitive_scope_count", 0) == 0
         ),
         "installed_pairs": len(installed),
+        "showing": len(listings_page),
+        "filtered_total": page_obj.paginator.count,
     }
     catalog_counts = get_platform_catalog_counts()
     from apps.schools.decision_architecture import get_decision_architecture_for_page
+
+    browse_q = request.GET.copy()
+    browse_q.pop("page", None)
+    pagination_extra_query = browse_q.urlencode()
 
     return render(
         request,
         "marketplace/app_catalog.html",
         {
-            "listings": installable_listings,
+            "listings": listings_page,
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "active_kind": active_kind,
+            "kind_tabs": kind_tabs,
             "schools": schools,
             "school_query": school_query,
             "school_limit": school_limit,
+            "selected_school_id": selected_school_id_int,
             "installed": installed,
             "catalog_stats": catalog_stats,
             "catalog_counts": catalog_counts,
+            "pagination_extra_query": pagination_extra_query,
             "decision_architecture": get_decision_architecture_for_page("app_catalog"),
             "install_impact_preview_url": reverse(
                 "super:marketplace_install_impact_preview"

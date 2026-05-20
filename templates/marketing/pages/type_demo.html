@@ -6,6 +6,7 @@
 <article class="mkt-v3-page mkt-v3-page--demo">
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Book a demo") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
+  {% include "marketing/components/_local_first_global_next.html" with compact=True %}
   {% if page.segments %}
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
     <div class="mkt-v3-segment-grid">
@@ -18,6 +19,38 @@
     </div>
   </section>
   {% endif %}
+
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="demo-next-steps-heading">
+    <h2 id="demo-next-steps-heading" class="mkt-v3-section-headline">{% trans "What happens after you submit" %}</h2>
+    <ol class="mkt-v3-demo-steps">
+      <li><strong>{% trans "Confirmation" %}</strong> — {% trans "We acknowledge your request and route it to the right specialist (sales or implementation)." %}</li>
+      <li><strong>{% trans "Scheduling" %}</strong> — {% trans "Within one business day we propose times that match your timezone and attendee list." %}</li>
+      <li><strong>{% trans "Preparation" %}</strong> — {% trans "You receive a short prep note so the session stays on your campuses, calendars, and priorities—not a generic tour." %}</li>
+      <li><strong>{% trans "Follow-up" %}</strong> — {% trans "After the walkthrough you get rollout framing and packaging pointers; commercial terms are confirmed only during procurement." %}</li>
+    </ol>
+  </section>
+
+  {% if page_extras.demo_agenda %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="demo-agenda-heading">
+    <h2 id="demo-agenda-heading" class="mkt-v3-section-headline">{% trans "Typical agenda (~45 minutes)" %}</h2>
+    <ul class="mkt-v3-demo-agenda">
+      {% for item in page_extras.demo_agenda %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if page_extras.trust_strip %}
+  <section class="mkt-edt-container mkt-v3-demo-trust rmc-reveal" aria-label="{% trans 'Session focus areas' %}">
+    <ul class="mkt-v3-trust-strip">
+      {% for label in page_extras.trust_strip %}
+      <li>{{ label }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
   <section class="mkt-edt-container rmc-reveal mkt-v3-demo-form-wrap">
     <div class="mkt-v3-demo-form-wrap__figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">
       {% include "marketing/components/_advisor_character.html" with pose="explaining" size=220 accessible_label="" %}

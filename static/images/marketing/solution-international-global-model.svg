@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="t d">
+  <title id="t">International global operating model</title>
+  <desc id="d">Illustrative multi-currency, calendars, and localization readiness.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="sh"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .card { fill: #1e293b; stroke: #475569; stroke-width: 1.2; rx: 10; filter: url(#sh); }
+      .accent { fill: #c2410c; }
+      .ok { fill: #34d399; }
+      .warn { fill: #f59e0b; }
+      .t { fill: #e2e8f0; font: 700 11px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 9px ui-sans-serif, system-ui, sans-serif; }
+      .row { fill: #334155; rx: 3; }
+    </style>
+  </defs>
+  <rect width="920" height="340" fill="url(#bg)"/>
+  <text class="t" x="460" y="28" text-anchor="middle">Global operating model</text>
+  <rect class="card" x="40" y="60" width="260" height="220"/><text class="t" x="56" y="88">Currencies</text><text class="ts" x="56" y="120">USD · EUR · XAF · GBP</text>
+  <rect class="card" x="320" y="60" width="260" height="220"/><text class="t" x="336" y="88">Calendars</text>
+  <rect class="card" x="600" y="60" width="280" height="220"/><text class="t" x="616" y="88">Parent regions</text>
+</svg>

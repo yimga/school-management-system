@@ -13,10 +13,13 @@ def main() -> int:
     findings: list[str] = []
 
     base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
+    if "block admin_operator_steering" not in base:
+        findings.append("base.html must define admin_operator_steering block")
     if "admin_operator_steering_strip.html" not in base:
         findings.append("base.html must include admin_operator_steering_strip.html")
-    if "operator_path_banner.html" in base:
-        findings.append("base.html must not include legacy operator_path_banner.html")
+    banner = ROOT / "templates/admin/includes/operator_path_banner.html"
+    if banner.is_file():
+        findings.append("operator_path_banner.html must be deleted (use steering strip)")
     if "admin_operator_outcome_deck.html" in base and "is_manager_host" in base:
         # tenant path may still use outcome deck
         if base.count("admin_operator_outcome_deck.html") > 1 or (

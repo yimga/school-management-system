@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="t d">
+  <title id="t">K-12 student lifecycle</title>
+  <desc id="d">Illustrative journey from admission to graduation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="sh"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .card { fill: #1e293b; stroke: #475569; stroke-width: 1.2; rx: 10; filter: url(#sh); }
+      .accent { fill: #c2410c; }
+      .ok { fill: #34d399; }
+      .warn { fill: #f59e0b; }
+      .t { fill: #e2e8f0; font: 700 11px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 9px ui-sans-serif, system-ui, sans-serif; }
+      .row { fill: #334155; rx: 3; }
+    </style>
+  </defs>
+  <rect width="920" height="340" fill="url(#bg)"/>
+  <text class="t" x="460" y="28" text-anchor="middle">Full K–12 lifecycle</text>
+  <rect class="card" x="60" y="80" width="800" height="200"/><line x1="100" y1="180" x2="820" y2="180" stroke="#c2410c" stroke-width="3"/>
+  <text class="t" x="120" y="160" text-anchor="middle">Admit</text><text class="t" x="300" y="160" text-anchor="middle">Learn</text><text class="t" x="500" y="160" text-anchor="middle">Assess</text><text class="t" x="700" y="160" text-anchor="middle">Graduate</text>
+</svg>

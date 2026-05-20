@@ -67,6 +67,22 @@ def _check_not_contains(
             errors.append(f"{rel_path} contains forbidden token: {token!r}")
 
 
+def _portal_base_tenant_surface_ok(text: str) -> bool:
+    """portal_base sets tenant surface on tenant hosts via {% if manager %}…{% else %}tenant."""
+    if 'data-surface="tenant"' in text:
+        return True
+    return 'data-surface="{%' in text and "tenant{%" in text
+
+
+def _portal_base_cp_css_manager_only(text: str, token: str) -> bool:
+    """Control-plane shell CSS may load only inside manager-host {% if %} blocks."""
+    idx = text.find(token)
+    if idx < 0:
+        return True
+    window = text[max(0, idx - 800) : idx]
+    return "public_host_kind == 'manager'" in window or 'public_host_kind == "manager"' in window
+
+
 def _check_file_exists(errors: list[str], root: Path, rel_path: str) -> None:
     if not (root / rel_path).is_file():
         errors.append(f"missing required file: {rel_path}")
@@ -174,27 +190,31 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     # Portal / backend / Studio canvas: extends chain for most tenant app chrome (Studio uses portal_base).
-    _check_contains(
-        errors,
-        root,
-        "templates/portal_base.html",
-        [
-            'data-surface="tenant"',
-            "css/design-system-unified.css",
-            "css/platform-responsive-touch.css",
-        ],
-    )
-    _check_not_contains(
-        errors,
-        root,
-        "templates/portal_base.html",
-        [
-            "css/control-plane-primary-nav.css",
-            "css/control-plane-phase1-shell.css",
-            "marketing/css/tokens-marketing.css",
-            "marketing/css/marketing-shell.css",
-        ],
-    )
+    portal_text = _read(root, "templates/portal_base.html")
+    if not _portal_base_tenant_surface_ok(portal_text):
+        errors.append(
+            'templates/portal_base.html missing required tenant surface marker '
+            '(data-surface="tenant" or {% else %}tenant{% endif %})'
+        )
+    for token in (
+        "css/design-system-unified.css",
+        "css/platform-responsive-touch.css",
+    ):
+        if token not in portal_text:
+            errors.append(f"templates/portal_base.html missing required token: {token!r}")
+    for forbidden in (
+        "css/control-plane-primary-nav.css",
+        "css/control-plane-phase1-shell.css",
+        "marketing/css/tokens-marketing.css",
+        "marketing/css/marketing-shell.css",
+    ):
+        if forbidden in portal_text and not _portal_base_cp_css_manager_only(
+            portal_text, forbidden
+        ):
+            errors.append(
+                f"templates/portal_base.html contains forbidden token outside "
+                f"manager-host block: {forbidden!r}"
+            )
 
     # Studio OS shell: extends tenant spine; forbid cross-surface CSS in shell partials.
     _check_file_exists(errors, root, "templates/studio_os/shell.html")

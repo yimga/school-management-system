@@ -2,7 +2,7 @@
 {% load terminology_tags %}
 <section class="mkt-v3-form-block" aria-label="{% trans 'Request a demo' %}">
   <h2 class="mkt-v3-section-headline">{% trans "Request a demo" %}</h2>
-  <p class="mkt-v3-lead">{% trans "Tell us about your school and we'll schedule a walkthrough within one business day." %}</p>
+  <p class="mkt-v3-lead">{% trans "Tell us about your school—we reply within one business day with scheduling options. No purchase commitment required." %}</p>
   {% if request.GET.submitted %}
     <div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks! We've received your request and will be in touch soon." %}</div>
   {% elif request.GET.error %}
@@ -35,6 +35,18 @@
       <input type="text" id="demo-country" name="country" class="form-control" maxlength="64" autocomplete="country">
     </div>
     <div class="col-md-6">
+      <label for="demo-role" class="form-label">{% trans "Your role" %}</label>
+      <select id="demo-role" name="role" class="form-select">
+        <option value="">{% trans "Select role" %}</option>
+        <option value="head">{% trans "Head of school / principal" %}</option>
+        <option value="registrar">{% trans "Registrar / admissions" %}</option>
+        <option value="finance">{% trans "Finance / bursar" %}</option>
+        <option value="it">{% trans "IT / systems" %}</option>
+        <option value="operations">{% trans "Operations / group office" %}</option>
+        <option value="other">{% trans "Other" %}</option>
+      </select>
+    </div>
+    <div class="col-md-6">
       <label for="demo-school-type" class="form-label">{% trans "School type" %}</label>
       <select id="demo-school-type" name="school_type" class="form-select">
         <option value="">{% trans "Select type" %}</option>
@@ -49,6 +61,19 @@
     <div class="col-md-6">
       <label for="demo-student-count" class="form-label">{% trans "Approximate student count" %}</label>
       <input type="number" id="demo-student-count" name="student_count" class="form-control" min="1" max="100000" inputmode="numeric">
+    </div>
+    <div class="col-md-6">
+      <label for="demo-compliance" class="form-label">{% trans "Which jurisdiction governs your student records?" %}</label>
+      <select id="demo-compliance" name="compliance_jurisdiction" class="form-select">
+        <option value="">{% trans "Select jurisdiction" %}</option>
+        {% for row in compliance_jurisdiction_choices %}
+        <option value="{{ row.value }}">{{ row.label }}</option>
+        {% empty %}
+        <option value="ferpa-us">{% trans "FERPA (United States)" %}</option>
+        <option value="gdpr-uk">{% trans "UK GDPR" %}</option>
+        <option value="other">{% trans "Other / multiple jurisdictions" %}</option>
+        {% endfor %}
+      </select>
     </div>
     <div class="col-12">
       <label for="demo-message" class="form-label">{% trans_term "Message" key="message" %}</label>

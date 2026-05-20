@@ -1,0 +1,130 @@
+name: Admin platform proof
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "config/admin.py"
+      - "apps/siteconfig/admin_steering.py"
+      - "apps/siteconfig/platform_admin_catalog.py"
+      - "apps/schools/super_admin_paired_surfaces.py"
+      - "templates/admin/**"
+      - "static/css/admin-cp-parity.css"
+      - "static/css/admin-platform-catalog.css"
+      - "static/js/admin-platform-catalog.js"
+      - "scripts/verify_admin_steering_strip_contract.py"
+      - "scripts/verify_admin_changelist_render_contract.py"
+      - "scripts/verify_admin_platform_gear_up_bundle.py"
+      - "scripts/run_admin_full_proof_bundle.sh"
+      - "scripts/run_admin_abrupt_end_sweep.sh"
+      - "scripts/verify_platform_abrupt_end_sweep.mjs"
+      - "docs/generated/control_plane_sweep_routes.json"
+      - ".github/workflows/admin-platform-proof.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admin-render-full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SECRET_KEY: "ci-admin-platform-proof-not-production-64chars________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com,manager.runmycampus.com"
+      DJANGO_TEST_DB_FILE: /tmp/rmc-admin-proof-${{ github.run_id }}.sqlite3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Migrate and steering contract
+        run: |
+          python manage.py migrate --noinput
+          python scripts/verify_admin_steering_strip_contract.py
+
+      - name: Full admin changelist render crawl (175 routes)
+        run: |
+          python scripts/generate_control_plane_sweep_routes.py --write
+          ADMIN_RENDER_FULL=1 python scripts/verify_admin_changelist_render_contract.py --write
+
+      - name: Upload render audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-changelist-render-audit
+          path: docs/generated/admin_changelist_render_audit.json
+          if-no-files-found: ignore
+
+  admin-playwright-sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: admin-render-full
+    env:
+      SECRET_KEY: "ci-admin-platform-proof-not-production-64chars________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com,manager.runmycampus.com"
+      VISUAL_QA_PORT: "8012"
+      VISUAL_QA_USERNAME: visualqa_admin
+      VISUAL_QA_PASSWORD: VisualQaPass123!
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Migrate and seed visual QA user
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell -c "
+          from django.contrib.auth import get_user_model
+          U=get_user_model()
+          u,created=U.objects.get_or_create(username='visualqa_admin', defaults={'email':'visualqa@runmycampus.com','is_staff':True,'is_superuser':True,'is_active':True})
+          u.set_password('VisualQaPass123!')
+          u.is_staff=True
+          u.is_superuser=True
+          u.save()
+          "
+
+      - name: Playwright admin abrupt-end sweep (175 changelists)
+        env:
+          SWEEP_INCLUDE_TENANT: "0"
+          SWEEP_TIER: admin_changelist
+        run: bash scripts/run_admin_abrupt_end_sweep.sh
+
+      - name: Upload sweep artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-playwright-sweep
+          path: |
+            docs/generated/admin_playwright_sweep_audit.json
+            debug-7911e1.log
+          if-no-files-found: ignore

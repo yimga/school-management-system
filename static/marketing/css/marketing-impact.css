@@ -376,6 +376,24 @@ html[data-mkt-lane="finance"] .mkt-navbar .navbar-brand {
   margin-top: 1rem;
 }
 
+.mkt-v3-os-story__figure {
+  margin: 1.5rem 0 0;
+}
+.mkt-v3-os-story__figure img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--mkt-radius-lg, 12px);
+  border: 1px solid color-mix(in oklab, var(--mkt-hairline, #e5e1d8) 70%, transparent);
+}
+.mkt-v3-os-story__caption {
+  margin-top: 0.65rem;
+  font-size: 0.875rem;
+  color: var(--mkt-ink-muted, #57534e);
+}
+.mkt-edt-hero__illustrative {
+  margin-top: 0.75rem;
+}
+
 /* ── Pricing matrix — i18n expansion safe ── */
 .mkt-v3-pricing-matrix {
   width: 100%;

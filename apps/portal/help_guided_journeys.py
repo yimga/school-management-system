@@ -43,7 +43,6 @@ def resolve_journey_articles(
         return []
     try:
         from apps.portal.kb_context import filter_kb_articles_by_school, published_kb_queryset
-        from apps.portal.models_kb import KBArticle
 
         from apps.portal.kb_embeddings import filter_kb_queryset_by_locale_with_fallback
 

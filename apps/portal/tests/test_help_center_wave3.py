@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
-from apps.feedback.models import HelpContentGapTask, SupportAIInteractionReview
+from apps.feedback.models import SupportAIInteractionReview
 from apps.portal.help_content_gaps import ensure_content_gap_task
 from apps.portal.kb_embeddings import filter_kb_queryset_by_locale_with_fallback
 from apps.portal.kb_hitl_publish import publish_kb_article

@@ -1,0 +1,90 @@
+{% load i18n static %}
+{# Compact governed catalog card — scopes/compatibility live in <details> to respect page-fold limits. #}
+<article
+  class="rmc-mkt-app-card rmc-reveal"
+  data-rmc-mkt-app-card
+  data-app-id="{{ listing.app.pk }}"
+  data-app-name="{{ listing.app.name|lower }}"
+  data-app-slug="{{ listing.app.slug|lower }}"
+  data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.short_description|default:''|lower }} {{ listing.category|default:''|lower }}"
+>
+  <div class="rmc-mkt-app-card__media">
+    {% if listing.preview_image_url %}
+    <img src="{{ listing.preview_image_url }}" alt="" class="rmc-mkt-app-card__img" loading="lazy" width="320" height="140">
+    {% else %}
+    <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rmc-mkt-app-card__img rmc-mkt-app-card__img--placeholder" loading="lazy" width="320" height="140">
+    {% endif %}
+    <div class="rmc-mkt-app-card__badges">
+      <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified" %}{% else %}{% trans "Review" %}{% endif %}
+      </span>
+      {% if listing.security_review_status == 'approved' %}
+      <span class="badge text-bg-info"><i class="bi bi-shield-lock" aria-hidden="true"></i> {% trans "Secured" %}</span>
+      {% endif %}
+      <span class="badge text-bg-light">{{ listing.app.get_kind_display }}</span>
+    </div>
+  </div>
+
+  <div class="rmc-mkt-app-card__body">
+    <header class="rmc-mkt-app-card__head">
+      <div>
+        <h3 class="h6 mb-0">{{ listing.app.name }}</h3>
+        <p class="small text-muted mb-0"><code>{{ listing.app.slug }}</code> · v{{ listing.app.version }}</p>
+      </div>
+    </header>
+
+    <p class="small mb-2">
+      {{ listing.short_description|default:listing.app.description|default:_("Installable capability with governed sandbox rollout.")|truncatewords:22 }}
+    </p>
+
+    <div class="rmc-mkt-app-card__chips">
+      <span class="proof-chip"><i class="bi bi-buildings" aria-hidden="true"></i> {{ listing.active_installations|default:0 }} {% trans "schools" %}</span>
+      <span class="proof-chip"><i class="bi bi-key" aria-hidden="true"></i> {{ listing.scope_count|default:0 }} {% trans "scopes" %}</span>
+      {% if listing.sensitive_scope_count %}
+      <span class="proof-chip proof-chip--warn"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {{ listing.sensitive_scope_count }} {% trans "sensitive" %}</span>
+      {% endif %}
+    </div>
+
+    <details class="rmc-mkt-app-card__details small">
+      <summary class="rmc-mkt-app-card__summary">{% trans "Permissions, compatibility & rollback" %}</summary>
+      <div class="rmc-mkt-app-card__details-body">
+        {% if listing.app.scopes.all %}
+        <p class="fw-semibold mb-1">{% trans "Required permissions" %}</p>
+        <ul class="list-unstyled mb-2">
+          {% for scope in listing.app.scopes.all %}
+          <li class="mb-1">
+            <code>{{ scope.scope_code }}</code>
+            {% if scope.description %}<span class="text-muted">— {{ scope.description|truncatewords:12 }}</span>{% endif %}
+            {% if scope.sensitive %}<span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% with cd=listing.catalog_display %}
+        {% if cd.platform_min_version or cd.min_rmc_version or cd.blueprint_families or cd.workflow_families %}
+        <p class="mb-1"><strong>{% trans "Compatibility" %}:</strong>
+          {% if cd.platform_min_version %}{% trans "Platform" %} <code>{{ cd.platform_min_version }}</code>{% endif %}
+          {% if cd.min_rmc_version %} · RMC <code>{{ cd.min_rmc_version }}</code>{% endif %}
+          {% if cd.blueprint_families %}<br>{% trans "Blueprints" %}: {{ cd.blueprint_families|join:", " }}{% endif %}
+          {% if cd.workflow_families %}<br>{% trans "Workflows" %}: {{ cd.workflow_families|join:", " }}{% endif %}
+        </p>
+        {% endif %}
+        <p class="mb-0 text-muted"><strong>{% trans "Rollback" %}:</strong> {{ cd.rollback_summary }}</p>
+        {% endwith %}
+        {% if listing.sandbox_installations %}
+        <p class="mb-0 mt-2 text-muted">{% blocktrans count counter=listing.sandbox_installations %}{{ counter }} sandbox install pending review{% plural %}{{ counter }} sandbox installs pending review{% endblocktrans %}</p>
+        {% endif %}
+      </div>
+    </details>
+  </div>
+
+  <footer class="rmc-mkt-app-card__actions">
+    <button type="button" class="btn btn-outline-primary btn-sm" data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}">
+      {% trans "Preview impact" %}
+    </button>
+    <button type="button" class="btn btn-primary btn-sm" data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}">
+      {% trans "Install to sandbox" %}
+    </button>
+  </footer>
+</article>

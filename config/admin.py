@@ -486,9 +486,14 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             "name": "Automation & Migration",
             "section": "Migration Records",
         },
+        "integrations_marketplace": {
+            "order": 49,
+            "name": "Integrations catalog",
+            "section": "Integrations & Providers",
+        },
         "marketplace": {
             "order": 50,
-            "name": "Marketplace",
+            "name": "Marketplace apps",
             "section": "Marketplace Records",
         },
         "observability": {

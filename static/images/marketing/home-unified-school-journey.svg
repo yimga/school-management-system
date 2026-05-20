@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="t d">
+  <title id="t">Unified school journey on RunMyCampus</title>
+  <desc id="d">Illustrative flow from inquiry through governance on one operating system.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="sh"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .card { fill: #1e293b; stroke: #475569; stroke-width: 1.2; rx: 10; filter: url(#sh); }
+      .accent { fill: #c2410c; }
+      .ok { fill: #34d399; }
+      .warn { fill: #f59e0b; }
+      .t { fill: #e2e8f0; font: 700 11px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 9px ui-sans-serif, system-ui, sans-serif; }
+      .row { fill: #334155; rx: 3; }
+    </style>
+  </defs>
+  <rect width="920" height="340" fill="url(#bg)"/>
+  <text class="t" x="460" y="28" text-anchor="middle" font-size="13">One learner journey — connected surfaces</text>
+  <g transform="translate(40,56)">
+    <rect class="card" x="0" y="0" width="100" height="44"/><text class="t" x="50" y="28" text-anchor="middle">Inquiry</text>
+    <path stroke="#64748b" stroke-width="2" d="M104 22 H120"/><polygon fill="#64748b" points="120,18 128,22 120,26"/>
+    <rect class="card" x="132" y="0" width="110" height="44"/><text class="t" x="187" y="28" text-anchor="middle">Admission</text>
+    <path stroke="#64748b" stroke-width="2" d="M246 22 H262"/><polygon fill="#64748b" points="262,18 270,22 262,26"/>
+    <rect class="card" x="274" y="0" width="120" height="44"/><text class="t" x="334" y="28" text-anchor="middle">Enrollment</text>
+    <path stroke="#64748b" stroke-width="2" d="M398 22 H414"/><polygon fill="#64748b" points="414,18 422,22 414,26"/>
+    <rect class="card" x="426" y="0" width="110" height="44"/><text class="t" x="481" y="28" text-anchor="middle">Attendance</text>
+    <path stroke="#64748b" stroke-width="2" d="M540 22 H556"/><polygon fill="#64748b" points="556,18 564,22 556,26"/>
+    <rect class="card" x="568" y="0" width="80" height="44"/><text class="t" x="608" y="28" text-anchor="middle">Fees</text>
+    <path stroke="#64748b" stroke-width="2" d="M652 22 H668"/><polygon fill="#64748b" points="668,18 676,22 668,26"/>
+    <rect class="card" x="680" y="0" width="100" height="44"/><text class="t" x="730" y="28" text-anchor="middle">Assessment</text>
+    <path stroke="#64748b" stroke-width="2" d="M784 22 H800"/><polygon fill="#64748b" points="800,18 808,22 800,26"/>
+    <rect class="card" x="812" y="0" width="88" height="44"/><text class="t" x="856" y="28" text-anchor="middle">Reports</text>
+  </g>
+  <g transform="translate(80,130)">
+    <rect class="card" x="0" y="0" width="760" height="180"/>
+    <text class="t" x="24" y="32">Parent portal · Finance · Leadership analytics · Governance</text>
+    <rect class="row" x="24" y="52" width="220" height="10"/><rect class="row" x="24" y="72" width="180" height="10"/>
+    <rect class="row" x="280" y="52" width="200" height="10"/><rect class="ok" x="280" y="72" width="120" height="10" rx="3"/>
+    <rect class="row" x="520" y="52" width="210" height="10"/><rect class="warn" x="520" y="72" width="90" height="10" rx="3"/>
+    <text class="ts" x="24" y="160">Illustrative product composite — not customer-specific data</text>
+  </g>
+</svg>

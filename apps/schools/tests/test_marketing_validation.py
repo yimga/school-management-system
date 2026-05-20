@@ -610,6 +610,14 @@ class MarketingLegacyCanonicalRedirectTests(TestCase):
                 r = self.client.get(path, HTTP_HOST=self.host)
                 self.assertEqual(r.status_code, 200)
 
+    def test_case_studies_honest_region_labels_not_school_a(self):
+        resp = self.client.get("/resources/case-studies/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        self.assertIn("data-mkt-case-studies-honest", body)
+        self.assertIn("Cameroon", body)
+        self.assertNotIn('"School A"', body)
+
 
 @override_settings(
     ALLOWED_HOSTS=["*"],
@@ -759,6 +767,62 @@ class DeveloperHubPublicUrlconfTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "developer-app-sandbox-frame")
         self.assertContains(resp, "ensure_demo_environment")
+
+
+@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+class MarketingLocalFirstTiersTests(TestCase):
+    """Tier 2–3: security-packet annex, honest case studies, enterprise + marketplace copy."""
+
+    def setUp(self):
+        self.client = Client()
+        self.host = "runmycampus.com"
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+
+    def tearDown(self):
+        self.env.stop()
+
+    def test_security_packet_jurisdiction_and_country_annex(self):
+        resp = self.client.get(
+            reverse("marketing_security_packet_request") + "?jurisdiction=ndpr-ng",
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        self.assertIn("data-mkt-security-country-annex", body)
+        self.assertIn("Which jurisdiction governs your student records", body)
+        self.assertIn("Nigeria", body)
+        self.assertIn("mkt-security-packet-annex.js", body)
+
+    def test_demo_compliance_jurisdiction_picker(self):
+        resp = self.client.get(reverse("marketing_demo"), HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b"Which jurisdiction governs your student records", resp.content)
+        self.assertIn(b'compliance_jurisdiction', resp.content)
+
+    def test_pricing_enterprise_governance_layer_narrative(self):
+        resp = self.client.get("/pricing/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b"governance layer", resp.content)
+
+    def test_marketplace_activate_per_campus_copy(self):
+        resp = self.client.get("/grow/marketplace/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b"activate per campus", resp.content.lower())
+
+    def test_landing_scale_signal_with_illustrative_disclaimer(self):
+        resp = self.client.get("/marketing/", HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        self.assertIn("mkt-scale-signal", body)
+        self.assertIn("Illustrative scale signal", body)
 
 
 class ExperienceControlMarketingRegistryTests(SimpleTestCase):

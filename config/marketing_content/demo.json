@@ -2,21 +2,21 @@
   "label": "Request a Demo",
   "seo_title": "Request a Demo | RunMyCampus",
   "seo_description": "Schedule a guided walkthrough of RunMyCampus—admissions, SIS, attendance, finance, portals, analytics, and governance—for schools worldwide.",
-  "headline": "See how RunMyCampus can work for your school.",
-  "subheadline": "Walk through admissions, daily operations, finance, portals, reporting, and governance with our team. Built for flexible calendars, grading models, currencies, and multi-campus structures.",
+  "headline": "See how RunMyCampus fits your operating model.",
+  "subheadline": "A focused session on admissions, daily operations, finance, portals, reporting, and governance—aligned to your calendars, grading models, currencies, and campuses. No obligation to buy.",
   "schema_type": "WebPage",
   "segments": [
     {
       "title": "What we cover",
-      "body": "Student records, admissions flow, attendance, grading, parent and teacher portals, fee operations, messaging, analytics, workflows, offline capture, and security posture—aligned to how you run schools."
+      "body": "Student records, admissions, attendance, grading, family and teacher portals, fee operations, messaging, analytics, workflows, offline capture, and security posture—only where it matters to your rollout."
     },
     {
       "title": "Who should attend",
-      "body": "Head of school or principal, registrar or admissions lead, finance lead, IT owner, and anyone shaping rollout—invite your core decision makers."
+      "body": "Head of school or principal, registrar or admissions lead, finance lead, and IT or operations—invite the people who will sign off on procurement and go-live."
     },
     {
-      "title": "After your request",
-      "body": "We reply with next steps to schedule a session. You'll receive preparation prompts so time on the call stays focused on your priorities."
+      "title": "What you will not get",
+      "body": "A generic slideshow or invented metrics. We stay on product surfaces and honest implementation framing; commercial terms are confirmed later in procurement."
     }
   ],
   "extras": {
@@ -26,7 +26,7 @@
       "Multi-currency fee readiness",
       "Role-based portals",
       "Offline-ready operations",
-      "Secure audit trails",
+      "Audit-friendly governance",
       "Multi-campus support"
     ],
     "suppress_footer_clusters": true,

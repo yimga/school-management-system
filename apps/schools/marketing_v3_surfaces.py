@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 def marketing_verb_nav_enabled() -> bool:
-    return bool(getattr(settings, "MARKETING_VERB_NAV_ENABLED", True))
+    return bool(getattr(settings, "MARKETING_VERB_NAV_ENABLED", False))
 
 
 def _p(name: str, fallback: str, **kwargs) -> str:
@@ -308,13 +308,13 @@ def marketing_navbar_verb_primary() -> list[dict]:
     ]
 
     return [
-        {"label": _("Run"), "path": run_path, "mega_columns": run_mega, "bridge_label": _("was: Platform")},
-        {"label": _("Teach"), "path": teach_path, "mega_columns": teach_mega, "bridge_label": _("was: Platform")},
-        {"label": _("Pay"), "path": pay_path, "mega_columns": pay_mega, "bridge_label": _("was: Platform")},
-        {"label": _("Communicate"), "path": comm_path, "mega_columns": comm_mega, "bridge_label": _("was: Platform")},
-        {"label": _("Grow"), "path": grow_path, "mega_columns": grow_mega, "bridge_label": _("was: Platform")},
+        {"label": _("Run"), "path": run_path, "mega_columns": run_mega},
+        {"label": _("Teach"), "path": teach_path, "mega_columns": teach_mega},
+        {"label": _("Pay"), "path": pay_path, "mega_columns": pay_mega},
+        {"label": _("Communicate"), "path": comm_path, "mega_columns": comm_mega},
+        {"label": _("Grow"), "path": grow_path, "mega_columns": grow_mega},
         {"label": _("Pricing"), "path": pricing_path},
-        {"label": _("Why switch"), "path": why_path},
+        {"label": _("Why RunMyCampus"), "path": why_path},
     ]
 
 

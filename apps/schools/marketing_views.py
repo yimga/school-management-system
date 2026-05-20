@@ -50,7 +50,7 @@ MARKETING_CONTENT_DIR = os.path.join(
     getattr(settings, "BASE_DIR", os.getcwd()), "config", "marketing_content"
 )
 # Single source of truth: how many primary nav items show in the bar before "More" dropdown (IMPROVEMENTS_RUNBOOK 3.1).
-MARKETING_NAVBAR_VISIBLE_COUNT = 4
+MARKETING_NAVBAR_VISIBLE_COUNT = 5
 
 _MARKETING_PAGE_TYPE_TEMPLATES: dict[str, str] = {
     "pricing": "marketing/pages/type_pricing.html",
@@ -64,6 +64,8 @@ _MARKETING_PAGE_TYPE_TEMPLATES: dict[str, str] = {
     "solutions": "marketing/pages/type_solutions_hub.html",
     "demo": "marketing/pages/type_demo.html",
     "book-demo": "marketing/pages/type_demo.html",
+    "resources-case-studies": "marketing/pages/type_resources_case_studies.html",
+    "case-studies": "marketing/pages/type_resources_case_studies.html",
     "trust-center": "marketing/pages/type_trust_center.html",
     "security-compliance": "marketing/pages/type_security_compliance.html",
 }
@@ -106,7 +108,7 @@ def _marketing_page_type_template(slug: str) -> str | None:
 
 
 def _marketing_more_nav_mega_columns() -> list[dict]:
-    """Premium mega panel for overflow 'More' nav (Compare, Marketplace, Developers, Contact, Company)."""
+    """Premium mega panel for overflow 'More' nav (utility routes + demo CTA)."""
 
     def p(name: str, fallback: str, **kwargs) -> str:
         u = _safe_reverse(name, kwargs=kwargs if kwargs else None)
@@ -114,12 +116,17 @@ def _marketing_more_nav_mega_columns() -> list[dict]:
 
     return [
         {
-            "title": "Explore",
+            "title": "Company & utility",
             "links": [
                 {
-                    "label": "Compare",
-                    "path": p("marketing_compare", "/compare/"),
-                    "blurb": "Evaluation framing and architecture contrast for serious procurement.",
+                    "label": "Company",
+                    "path": p("marketing_company", "/company/"),
+                    "blurb": "How we work with schools, networks, and operators at scale.",
+                },
+                {
+                    "label": "Contact",
+                    "path": p("marketing_contact", "/contact/"),
+                    "blurb": "Sales, implementation, support, and partnerships—routed clearly.",
                 },
                 {
                     "label": "Marketplace",
@@ -127,24 +134,34 @@ def _marketing_more_nav_mega_columns() -> list[dict]:
                     "blurb": "Governed apps and packs—extend the OS without shadow IT sprawl.",
                 },
                 {
-                    "label": "Developers",
-                    "path": p("marketing_developers", "/developers/"),
-                    "blurb": "REST, webhooks, and sandbox patterns for your integration roadmap.",
+                    "label": "Platform status",
+                    "path": p("status", "/status/"),
+                    "blurb": "Live operational status for public surfaces.",
                 },
             ],
         },
         {
-            "title": "Connect",
+            "title": "Trust & legal",
             "links": [
                 {
-                    "label": "Contact",
-                    "path": p("marketing_contact", "/contact/"),
-                    "blurb": "Sales, implementation, support, and partnerships—routed with clear expectations.",
+                    "label": "Trust center",
+                    "path": p("marketing_trust_dedicated", "/trust/"),
+                    "blurb": "Route integrity, accessibility, and honest security evidence.",
                 },
                 {
-                    "label": "Company",
-                    "path": p("marketing_company", "/company/"),
-                    "blurb": "How we work with schools, networks, and operators at scale.",
+                    "label": "Compare",
+                    "path": p("marketing_compare", "/compare/"),
+                    "blurb": "Evaluation framing for serious procurement.",
+                },
+                {
+                    "label": "Privacy",
+                    "path": p("marketing_privacy", "/privacy/"),
+                    "blurb": "Data handling and privacy commitments.",
+                },
+                {
+                    "label": "Need help choosing?",
+                    "path": p("marketing_demo", "/demo/"),
+                    "blurb": "Book a demo — we map your school type to the right surfaces.",
                 },
             ],
         },
@@ -297,10 +314,13 @@ def _marketing_navbar_primary() -> list[dict]:
     workflows = p("marketing_platform_workflows", "/platform/workflows/")
     offline = p("marketing_platform_offline_first", "/platform/offline-first/")
     security = p("marketing_platform_security", "/platform/security/")
+    marketplace = p("marketing_platform_marketplace", "/platform/marketplace/")
+    developers = p("marketing_developers", "/developers/")
+    migration = p("marketing_platform_migration_cloud", "/platform/migration-cloud/")
 
     platform_mega_columns = [
         {
-            "title": "Core operations",
+            "title": "Core school operations",
             "links": [
                 _nav_mega_link(
                     "Student Information System",
@@ -313,34 +333,34 @@ def _marketing_navbar_primary() -> list[dict]:
                     "Pipeline from enquiry through enrollment with one thread.",
                 ),
                 _nav_mega_link(
-                    "Attendance & marks",
+                    "Attendance",
                     attendance,
-                    "Daily presence and formative marks tied to the same learner record.",
+                    "Daily register, late patterns, and parent notification flow.",
                 ),
                 _nav_mega_link(
-                    "Fees & payments",
-                    fees,
-                    "Invoices, receipts, and guardian visibility without spreadsheet drift.",
+                    "Timetable & daily operations",
+                    attendance,
+                    "Class rhythm, registers, and office handoffs on one spine.",
                 ),
                 _nav_mega_link(
                     "Grading & report cards",
                     grading,
-                    "Assessment, transcripts, and reporting on one academic spine.",
+                    "Assessment, transcripts, and publishing on one academic spine.",
                 ),
             ],
         },
         {
-            "title": "Portals",
+            "title": "Portals & role workspaces",
             "links": [
-                _nav_mega_link(
-                    "Parent portal",
-                    parent_p,
-                    "Fees, announcements, and learner progress in one mobile-ready place.",
-                ),
                 _nav_mega_link(
                     "Teacher workspace",
                     teacher_p,
                     "Attendance, gradebook, and classroom workflows without tool sprawl.",
+                ),
+                _nav_mega_link(
+                    "Parent portal",
+                    parent_p,
+                    "Fees, announcements, and learner progress in one mobile-ready place.",
                 ),
                 _nav_mega_link(
                     "Student portal",
@@ -355,27 +375,52 @@ def _marketing_navbar_primary() -> list[dict]:
             ],
         },
         {
-            "title": "Intelligence & control",
+            "title": "Finance & governance",
             "links": [
+                _nav_mega_link(
+                    "Fees & payments",
+                    fees,
+                    "Invoices, receipts, and guardian visibility without spreadsheet drift.",
+                ),
+                _nav_mega_link(
+                    "Reconciliation",
+                    fees,
+                    "Collected vs outstanding with ledger ties and audit trail.",
+                ),
                 _nav_mega_link(
                     "Analytics",
                     analytics,
                     "Leadership dashboards for enrollment, finance, and learning signals.",
                 ),
                 _nav_mega_link(
+                    "Security & governance",
+                    security,
+                    "Permissions, audit posture, and operator-grade boundaries.",
+                ),
+            ],
+        },
+        {
+            "title": "Infrastructure & automation",
+            "links": [
+                _nav_mega_link(
                     "Workflows",
                     workflows,
                     "Configurable approvals and handoffs without custom code.",
                 ),
                 _nav_mega_link(
-                    "Offline-first",
+                    "Offline-first / edge sync",
                     offline,
                     "Classroom continuity when connectivity is unreliable.",
                 ),
                 _nav_mega_link(
-                    "Security & governance",
-                    security,
-                    "Permissions, audit posture, and operator-grade boundaries.",
+                    "Marketplace",
+                    marketplace,
+                    "Governed apps, modules, and integration depth.",
+                ),
+                _nav_mega_link(
+                    "Developers / APIs",
+                    developers,
+                    "REST, webhooks, and sandbox patterns for your roadmap.",
                 ),
             ],
         },
@@ -489,9 +534,12 @@ def _marketing_navbar_primary() -> list[dict]:
     help_c = p("marketing_resources_help_center", "/resources/help-center/")
     blog = p("marketing_resources_blog", "/resources/blog/")
 
+    procurement = p("marketing_procurement_checklist", "/procurement-checklist/")
+    migrate_from = p("marketing_migrate_from", "/migrate-from/")
+
     resources_mega_columns = [
         {
-            "title": "Learn",
+            "title": "Learn & evaluate",
             "links": [
                 _nav_mega_link(
                     "Resources hub",
@@ -511,13 +559,23 @@ def _marketing_navbar_primary() -> list[dict]:
                 _nav_mega_link(
                     "Case studies",
                     cases,
-                    "Structured stories—no fabricated logos or metrics.",
+                    "Honest hub — stories publish as schools go live.",
                 ),
             ],
         },
         {
-            "title": "Support & stories",
+            "title": "Buying help",
             "links": [
+                _nav_mega_link(
+                    "Procurement checklist",
+                    procurement,
+                    "Security, data, and rollout questions buyers need answered.",
+                ),
+                _nav_mega_link(
+                    "Migration guide",
+                    migrate_from,
+                    "Phased cutover playbooks without Friday-night panic.",
+                ),
                 _nav_mega_link(
                     "Help center",
                     help_c,
@@ -543,6 +601,75 @@ def _marketing_navbar_primary() -> list[dict]:
     pricing_path = p("marketing_pricing", "/pricing/")
     why_path = p("marketing_why_switch", "/why-switch/")
     trust_path = p("marketing_trust_dedicated", "/trust/")
+    security_packet = p("marketing_security_packet_request", "/security-packet/")
+
+    why_mega_columns = [
+        {
+            "title": "Why an education OS",
+            "links": [
+                _nav_mega_link(
+                    "Why RunMyCampus",
+                    why_path,
+                    "Operating system — not another disconnected SIS.",
+                ),
+                _nav_mega_link(
+                    "Edge-native operations",
+                    offline,
+                    "When the network drops, the school day does not.",
+                ),
+                _nav_mega_link(
+                    "Platform extensibility",
+                    marketplace,
+                    "Governed marketplace and APIs without shadow IT.",
+                ),
+            ],
+        },
+        {
+            "title": "Trust & procurement",
+            "links": [
+                _nav_mega_link(
+                    "Trust center",
+                    trust_path,
+                    "Route integrity, accessibility, and honest security posture.",
+                ),
+                _nav_mega_link(
+                    "Security & governance",
+                    security,
+                    "Permissions, audit logs, and tenant isolation evidence.",
+                ),
+                _nav_mega_link(
+                    "Request security packet",
+                    security_packet,
+                    "Architecture, data processing, and dependency status.",
+                ),
+                _nav_mega_link(
+                    "Procurement checklist",
+                    procurement,
+                    "Reduce buyer risk before the RFP deadline.",
+                ),
+            ],
+        },
+        {
+            "title": "Implementation",
+            "links": [
+                _nav_mega_link(
+                    "Migration from legacy",
+                    migrate_from,
+                    "Phased cutover with dry-runs and validation gates.",
+                ),
+                _nav_mega_link(
+                    "Migration Cloud",
+                    migration,
+                    "Operator-grade intake, mapping, and reconciliation.",
+                ),
+                _nav_mega_link(
+                    "Compare alternatives",
+                    p("marketing_compare", "/compare/"),
+                    "Architecture contrast for serious procurement.",
+                ),
+            ],
+        },
+    ]
 
     return [
         {
@@ -557,9 +684,12 @@ def _marketing_navbar_primary() -> list[dict]:
             "children": solutions_children,
             "mega_columns": solutions_mega_columns,
         },
-        {"label": "Why RunMyCampus", "path": why_path},
+        {
+            "label": "Why RunMyCampus",
+            "path": why_path,
+            "mega_columns": why_mega_columns,
+        },
         {"label": "Pricing", "path": pricing_path},
-        {"label": "Trust", "path": trust_path},
         {
             "label": "Resources",
             "path": resources_path,
@@ -612,6 +742,9 @@ def _topical_nav_featured(limit: int = 4) -> list[dict]:
 
 def _get_country_from_request(request) -> str:
     """Country code (alpha-2) from GeoIP for marketing personalization."""
+    override = getattr(settings, "MARKETING_GEO_COUNTRY_OVERRIDE", None) or ""
+    if str(override).strip():
+        return str(override).strip().upper()[:2]
     try:
         from apps.compliance.access_control import get_country_from_ip
 
@@ -624,6 +757,12 @@ def _get_country_from_request(request) -> str:
         return code
     except (ImportError, AttributeError, TypeError, ValueError, OSError):
         return ""
+
+
+def _compliance_jurisdiction_choices() -> list[dict[str, str]]:
+    from apps.schools.security_packet_country_annex import jurisdiction_choices
+
+    return jurisdiction_choices()
 
 
 def _normalize_country_code(value: str) -> str:
@@ -729,19 +868,35 @@ def _geo_copy_variations(country: str) -> dict:
     variants = {
         "CM": {
             "cta_primary": "Réserver une démo",
-            "proof_lead": "Conçu pour les écoles francophones et les équipes qui opèrent à l'international.",
+            "proof_lead": "Conçu pour les écoles camerounaises — calendrier, frais et rapports sur une seule plateforme.",
         },
         "CA": {
             "cta_primary": "Book a demo",
-            "proof_lead": "Built for Canadian schools and multi-province deployments.",
+            "proof_lead": "Built for Canadian schools—provincial report cards and multi-campus finance on one core.",
         },
         "NG": {
             "cta_primary": "Book a demo",
-            "proof_lead": "Designed for Nigerian schools and WAEC alignment.",
+            "proof_lead": "Designed for Nigerian school groups—WAEC-ready grading and bursar workflows.",
         },
         "GB": {
             "cta_primary": "Book a demo",
-            "proof_lead": "UK term structures and British curriculum support.",
+            "proof_lead": "UK term structures, independent-school governance, and parent portals on one core.",
+        },
+        "GH": {
+            "cta_primary": "Book a demo",
+            "proof_lead": "Built for Ghanaian school networks—local calendars and fee discipline without spreadsheets.",
+        },
+        "KE": {
+            "cta_primary": "Book a demo",
+            "proof_lead": "Kenyan campuses—CBC-aligned operations, fees, and family communication in one place.",
+        },
+        "ZA": {
+            "cta_primary": "Book a demo",
+            "proof_lead": "South African schools—POPIA-aware defaults and multi-campus controls.",
+        },
+        "US": {
+            "cta_primary": "Book a demo",
+            "proof_lead": "U.S. districts and independents—FERPA-conscious records and role-based portals.",
         },
     }
     return variants.get(
@@ -987,7 +1142,7 @@ def _marketing_context(
                 "Parent / teacher / student portal entry points",
                 "Standard support",
             ],
-            "cta_label": "Book demo",
+            "cta_label": "Get a quote",
             "cta_path": _safe_reverse("marketing_demo") or "/demo/",
         },
         {
@@ -999,20 +1154,20 @@ def _marketing_context(
                 "Grading, exams, and published report cards",
                 "Analytics for leadership reviews",
             ],
-            "cta_label": "See pricing details",
-            "cta_path": "/pricing/",
+            "cta_label": "Get a quote",
+            "cta_path": _safe_reverse("marketing_demo") or "/demo/",
         },
         {
             "plan": "Enterprise",
-            "tagline": "Groups and advanced institutions needing multi-campus governance and depth.",
+            "tagline": "Many campuses, one governance layer—local calendars and fee rules stay on each campus.",
             "highlights": [
-                "Multi-campus controls & custom workflows",
-                "Offline sync & integration-ready APIs",
+                "Group policy and reporting without overriding campus rules",
+                "Offline sync & integration-ready APIs per campus",
                 "Advanced analytics & audit-heavy governance",
                 "Priority implementation support",
             ],
-            "cta_label": "Book demo",
-            "cta_path": "/demo/",
+            "cta_label": "Book enterprise walkthrough",
+            "cta_path": _safe_reverse("marketing_demo") or "/demo/",
         },
     ]
 
@@ -1516,15 +1671,15 @@ def _marketing_context(
     from_single_to_enterprise = [
         {
             "stage": "Single school",
-            "summary": "One campus, one tenant. Launch in days.",
+            "summary": "One campus, one tenant. Local calendar, currency, and compliance land first.",
         },
         {
-            "stage": "Network",
-            "summary": "Multi-campus with central oversight and campus autonomy.",
+            "stage": "School group",
+            "summary": "Many campuses, one governance layer—shared policy without HQ overriding local rules.",
         },
         {
-            "stage": "White-label operator",
-            "summary": "National scale with dedicated manager operations and branding.",
+            "stage": "Enterprise operator",
+            "summary": "National or trust-scale visibility with campus-by-campus configuration and audit depth.",
         },
     ]
 
@@ -1939,11 +2094,22 @@ def _marketing_context(
 
     platform_headline = hero_headline
 
+    from apps.schools.marketing_region import build_marketing_region_affordance
+
+    region_affordance = build_marketing_region_affordance(
+        country_code=country,
+        country_label=country_label,
+        language_code=language,
+        is_regional_page=regional,
+    )
+
     return {
         "pitch": pitch,
         "brand": brand,
         "country_code": country,
+        "country_label": country_label,
         "language_code": language,
+        **region_affordance,
         "seo_title": pitch.get("seo_title"),
         "seo_description": pitch.get("seo_description"),
         "canonical_url": canonical_url,
@@ -2059,6 +2225,15 @@ def _marketing_context(
             {"label": "Currencies & fees", "value": "Multi-currency"},
             {"label": "Portals", "value": "Role-based"},
         ],
+        "marketing_scale_school_count": (
+            getattr(settings, "MARKETING_SCALE_SCHOOL_COUNT", None) or "40+"
+        ),
+        "marketing_scale_country_count": (
+            getattr(settings, "MARKETING_SCALE_COUNTRY_COUNT", None) or "12"
+        ),
+        "marketing_scale_illustrative": bool(
+            getattr(settings, "MARKETING_SCALE_ILLUSTRATIVE", True)
+        ),
         "illustration_workflow_url": illustration_workflow_url,
         "illustration_globe_url": illustration_globe_url,
         "illustration_students_url": illustration_students_url,
@@ -2444,6 +2619,11 @@ def marketing_page(request, page_slug: str):
         **marketing_personality_context(page_slug),
         "blog_posts": blog_posts,
         "blog_list_intro_html": blog_list_intro_html,
+        **(
+            {"compliance_jurisdiction_choices": _compliance_jurisdiction_choices()}
+            if normalized_slug in ("demo", "book-demo")
+            else {}
+        ),
         "powerhouse_highlights": [
             "Predictive risk scoring and intervention action-center workflows.",
             "Student passport and transcript portability across schools.",
@@ -2469,7 +2649,9 @@ def marketing_page(request, page_slug: str):
 
         ctx["solutions_personas"] = marketing_solutions_personas()
     if normalized_slug in TRUST_COMPLIANCE_ANCHOR_SLUGS:
-        trust_ctx = build_trust_compliance_context()
+        trust_ctx = build_trust_compliance_context(
+            country_code=base_ctx.get("country_code") or ""
+        )
         if normalized_slug in (
             "security-compliance",
             "trust-center",
@@ -2570,15 +2752,23 @@ def submit_demo_request(request):
     country = (request.POST.get("country") or "").strip()[:128]
     school_type = (request.POST.get("school_type") or "").strip()[:128]
     student_count = (request.POST.get("student_count") or "").strip()[:64]
+    role = (request.POST.get("role") or "").strip()[:128]
+    compliance_jurisdiction = (request.POST.get("compliance_jurisdiction") or "").strip()[
+        :128
+    ]
     detail_lines = []
     if phone:
         detail_lines.append(f"Phone: {phone}")
     if country:
         detail_lines.append(f"Country: {country}")
+    if role:
+        detail_lines.append(f"Role: {role}")
     if school_type:
         detail_lines.append(f"School type: {school_type}")
     if student_count:
         detail_lines.append(f"Student count: {student_count}")
+    if compliance_jurisdiction:
+        detail_lines.append(f"Compliance jurisdiction: {compliance_jurisdiction}")
     message_for_store = message
     if detail_lines:
         suffix = "\n\n" + "\n".join(detail_lines)
@@ -2596,6 +2786,8 @@ def submit_demo_request(request):
                 "country": country,
                 "school_type": school_type,
                 "student_count": student_count,
+                "role": role,
+                "compliance_jurisdiction": compliance_jurisdiction,
             }
         )
         try:
@@ -2705,8 +2897,24 @@ def submit_security_packet_request(request):
     organization = (request.POST.get("organization") or "").strip()[:256]
     role = (request.POST.get("role") or "").strip()[:128]
     country = (request.POST.get("country") or "").strip()[:128]
+    compliance_jurisdiction = (request.POST.get("compliance_jurisdiction") or "").strip()[
+        :64
+    ]
+    compliance_profile_id = (request.POST.get("compliance_profile_id") or "").strip()[
+        :32
+    ]
     nda_status = (request.POST.get("nda_status") or "").strip()[:128]
     artifact_needs = (request.POST.get("artifact_needs") or "").strip()[:4000]
+    from apps.schools.security_packet_country_annex import (
+        build_country_annex,
+        country_code_for_jurisdiction,
+    )
+
+    annex_country = country_code_for_jurisdiction(compliance_jurisdiction) or ""
+    country_annex = build_country_annex(
+        country_code=annex_country,
+        compliance_profile_id=compliance_profile_id,
+    )
     webhook_url = getattr(settings, "MARKETING_CONTACT_WEBHOOK_URL", None) or getattr(
         settings, "MARKETING_DEMO_WEBHOOK_URL", None
     ) or ""
@@ -2718,6 +2926,18 @@ def submit_security_packet_request(request):
         "organization": organization,
         "role": role,
         "country": country,
+        "compliance_jurisdiction": compliance_jurisdiction,
+        "compliance_profile_id": compliance_profile_id or country_annex.get(
+            "compliance_profile_id"
+        ),
+        "country_annex": {
+            "country_code": country_annex.get("country_code"),
+            "profile_name": country_annex.get("profile_name"),
+            "currency_code": country_annex.get("currency_code"),
+            "timezone": country_annex.get("timezone"),
+            "retention_summary": country_annex.get("retention_summary"),
+            "calendar_note": country_annex.get("calendar_note"),
+        },
         "nda_status": nda_status,
         "artifact_needs": artifact_needs,
     }
@@ -3010,6 +3230,9 @@ def institution_marketing_page(request, institution_slug: str):
     breadcrumb_schema_json = json.dumps(
         _breadcrumb_list_schema(base_url, breadcrumb_segments)
     )
+    from apps.schools.marketing_region import institution_regional_callout
+
+    slug_norm = (institution_slug or "").strip().lower()
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -3019,7 +3242,12 @@ def institution_marketing_page(request, institution_slug: str):
         "breadcrumb_schema_json": breadcrumb_schema_json,
         "page": page_copy,
         "active_nav_slug": "solutions",
-        "institution_segment_slug": (institution_slug or "").strip().lower(),
+        "institution_segment_slug": slug_norm,
+        "institution_regional_callout": institution_regional_callout(
+            slug_norm,
+            country_code=base_ctx.get("country_code") or "",
+            country_label=base_ctx.get("country_label") or "",
+        ),
     }
     return render(request, "marketing/marketing_institution_page.html", ctx)
 
@@ -3494,7 +3722,20 @@ def regional_marketing_landing(request, country_code: str, language_code: str = 
         language_code=language_code or getattr(request, "LANGUAGE_CODE", "en"),
         regional=True,
     )
-    return render(request, "schools/marketing_landing.html", ctx)
+    pitch = ctx.get("pitch") or {}
+    ctx["marketing_regional_landing"] = True
+    ctx["marketing_geo_tagline"] = (
+        pitch.get("headline")
+        or ctx.get("marketing_geo_tagline")
+        or ""
+    )
+    if pitch.get("subheadline"):
+        ctx["marketing_regional_subheadline"] = pitch["subheadline"]
+    from apps.schools.marketing_geo import MARKETING_CAROUSEL_ITEMS, MARKETING_PROOF_QUOTE
+
+    ctx["marketing_carousel_items"] = list(MARKETING_CAROUSEL_ITEMS)
+    ctx["marketing_proof_quote"] = dict(MARKETING_PROOF_QUOTE)
+    return render(request, "schools/marketing_landing_v2.html", ctx)
 
 
 @require_GET

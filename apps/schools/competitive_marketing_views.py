@@ -202,6 +202,28 @@ def marketing_implementation_assurance(request):
 
 @require_GET
 def marketing_security_packet_request(request):
+    from apps.schools.marketing_views import _get_country_from_request
+    from apps.schools.security_packet_country_annex import (
+        build_country_annex,
+        country_code_for_jurisdiction,
+        jurisdiction_choices,
+    )
+
+    jurisdiction_value = (request.GET.get("jurisdiction") or "").strip().lower()
+    geo_country = _get_country_from_request(request)
+    country_code = country_code_for_jurisdiction(jurisdiction_value) or geo_country
+    profile_id = (request.GET.get("compliance_profile_id") or "").strip()
+    security_country_annex = build_country_annex(
+        country_code=country_code,
+        compliance_profile_id=profile_id,
+    )
+    annex_by_jurisdiction: dict[str, dict] = {
+        "": build_country_annex(country_code=country_code),
+    }
+    for row in jurisdiction_choices():
+        code = (row.get("country_code") or "").upper()[:2]
+        annex_by_jurisdiction[row["value"]] = build_country_annex(country_code=code)
+
     ctx = {
         "seo_title": "Request security packet — procurement artefacts",
         "submitted": request.GET.get("submitted") == "1",
@@ -209,5 +231,9 @@ def marketing_security_packet_request(request):
         "trust_url": reverse("marketing_trust_dedicated"),
         "submit_url": reverse("marketing_security_packet_submit"),
         "procurement_url": reverse("marketing_procurement_checklist"),
+        "jurisdiction_choices": jurisdiction_choices(),
+        "selected_jurisdiction": jurisdiction_value,
+        "security_country_annex": security_country_annex,
+        "annex_by_jurisdiction_json": json.dumps(annex_by_jurisdiction),
     }
     return render(request, "marketing/security_packet_request.html", ctx)

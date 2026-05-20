@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" role="img" aria-labelledby="t d">
+  <title id="t">Private school growth engine</title>
+  <desc id="d">Illustrative enrollment-to-parent-trust flywheel.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="sh"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .card { fill: #1e293b; stroke: #475569; stroke-width: 1.2; rx: 10; filter: url(#sh); }
+      .accent { fill: #c2410c; }
+      .ok { fill: #34d399; }
+      .warn { fill: #f59e0b; }
+      .t { fill: #e2e8f0; font: 700 11px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 9px ui-sans-serif, system-ui, sans-serif; }
+      .row { fill: #334155; rx: 3; }
+    </style>
+  </defs>
+  <rect width="920" height="340" fill="url(#bg)"/>
+  <text class="t" x="460" y="28" text-anchor="middle">Private school growth flywheel</text>
+  <circle cx="460" cy="180" r="100" fill="none" stroke="#c2410c" stroke-width="2" opacity="0.6"/>
+  <text class="t" x="460" y="120" text-anchor="middle">Inquiry</text><text class="t" x="580" y="180" text-anchor="middle">Fees</text><text class="t" x="460" y="250" text-anchor="middle">Trust</text><text class="t" x="340" y="180" text-anchor="middle">Reports</text>
+</svg>

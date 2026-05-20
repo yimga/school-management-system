@@ -31,7 +31,9 @@ TIER="${SWEEP_TIER:-operator+admin}"
 HEALTH_MAX="${SWEEP_HEALTH_SECS:-120}"
 
 python scripts/generate_control_plane_sweep_routes.py --write
-python scripts/generate_portal_tenant_sweep_routes.py --write
+if [[ "${SWEEP_INCLUDE_TENANT:-1}" != "0" ]]; then
+  python scripts/generate_portal_tenant_sweep_routes.py --write
+fi
 
 if [[ "${SWEEP_SKIP_HEALTH:-0}" != "1" ]]; then
   echo "Waiting for ${BASE_URL}/ready/ (max ${HEALTH_MAX}s)..."

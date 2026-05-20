@@ -1,66 +1,71 @@
 {
   "baseline_counts": {
-    "allow_any": 116,
-    "csrf_exempt": 344,
-    "cursor_execute": 389,
-    "except_exception": 721,
-    "get_solo": 208,
-    "gilead": 16694,
-    "gilead_files": 183,
-    "html_files": 972,
-    "management_commands": 226,
-    "markdown_files": 1223,
-    "migration_files": 825,
-    "print_calls": 1498,
-    "python_files": 3597,
-    "site_settings": 2105
+    "allow_any": 138,
+    "csrf_exempt": 447,
+    "cursor_execute": 395,
+    "except_exception": 1280,
+    "get_solo": 211,
+    "gilead": 16730,
+    "gilead_files": 195,
+    "html_files": 1217,
+    "management_commands": 258,
+    "markdown_files": 1374,
+    "migration_files": 883,
+    "print_calls": 2076,
+    "python_files": 4430,
+    "site_settings": 2159
   },
   "doc_drift": {
-    "actual_installed_app_count": 47,
-    "documented_app_count": 46,
-    "is_stale": true,
+    "actual_installed_app_count": 48,
+    "documented_app_count": 48,
+    "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
   "largest_python_files": [
     {
-      "bytes": 151913,
-      "lines": 3782,
+      "bytes": 163812,
+      "lines": 4091,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 140963,
-      "lines": 3005,
+      "bytes": 143830,
+      "lines": 3056,
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 125726,
-      "lines": 3231,
+      "bytes": 132074,
+      "lines": 2808,
+      "path": "config/settings.py"
+    },
+    {
+      "bytes": 130653,
+      "lines": 3334,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 120486,
-      "lines": 3209,
+      "bytes": 125763,
+      "lines": 3270,
       "path": "apps/evals/views.py"
     },
     {
-      "bytes": 119404,
-      "lines": 2865,
+      "bytes": 119211,
+      "lines": 2890,
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 105720,
-      "lines": 3022,
-      "path": "apps/finance/models.py"
+      "bytes": 111317,
+      "lines": 2608,
+      "path": "apps/migration_cloud/views.py"
     },
     {
-      "bytes": 104985,
-      "lines": 2785,
+      "bytes": 106976,
+      "lines": 2828,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 100182,
-      "lines": 2154,
-      "path": "config/settings.py"
+      "bytes": 106339,
+      "lines": 3037,
+      "path": "apps/finance/models.py"
     },
     {
       "bytes": 99012,
@@ -68,18 +73,13 @@
       "path": "apps/siteconfig/admin.py"
     },
     {
-      "bytes": 95628,
-      "lines": 2420,
+      "bytes": 96234,
+      "lines": 2418,
       "path": "apps/studio_os/views.py"
     },
     {
-      "bytes": 89899,
-      "lines": 2132,
-      "path": "apps/migration_cloud/views.py"
-    },
-    {
-      "bytes": 82421,
-      "lines": 2062,
+      "bytes": 83551,
+      "lines": 2075,
       "path": "apps/finance/tasks.py"
     }
   ],
@@ -163,6 +163,11 @@
       "app": "accounts",
       "command": "refresh_saml_idp_metadata",
       "path": "apps/accounts/management/commands/refresh_saml_idp_metadata.py"
+    },
+    {
+      "app": "accounts",
+      "command": "rotate_encryption_keys",
+      "path": "apps/accounts/management/commands/rotate_encryption_keys.py"
     },
     {
       "app": "accounts",
@@ -296,6 +301,11 @@
     },
     {
       "app": "analytics",
+      "command": "seed_analytics_demo",
+      "path": "apps/analytics/management/commands/seed_analytics_demo.py"
+    },
+    {
+      "app": "analytics",
       "command": "seed_default_digest_recipients",
       "path": "apps/analytics/management/commands/seed_default_digest_recipients.py"
     },
@@ -333,6 +343,11 @@
       "app": "analytics",
       "command": "verify_ai_ml_readiness",
       "path": "apps/analytics/management/commands/verify_ai_ml_readiness.py"
+    },
+    {
+      "app": "analytics",
+      "command": "verify_ai_promotion_readiness",
+      "path": "apps/analytics/management/commands/verify_ai_promotion_readiness.py"
     },
     {
       "app": "analytics",
@@ -525,6 +540,11 @@
       "path": "apps/events/management/commands/sync_legacy_webhooks_to_events.py"
     },
     {
+      "app": "feedback",
+      "command": "purge_help_telemetry",
+      "path": "apps/feedback/management/commands/purge_help_telemetry.py"
+    },
+    {
       "app": "finance",
       "command": "apply_split_late_fees",
       "path": "apps/finance/management/commands/apply_split_late_fees.py"
@@ -610,6 +630,11 @@
       "path": "apps/integrations_marketplace/management/commands/subscribe_push.py"
     },
     {
+      "app": "integrations_marketplace",
+      "command": "verify_oauth_token_rotation_policy",
+      "path": "apps/integrations_marketplace/management/commands/verify_oauth_token_rotation_policy.py"
+    },
+    {
       "app": "marketplace",
       "command": "create_sandbox_tenant",
       "path": "apps/marketplace/management/commands/create_sandbox_tenant.py"
@@ -661,8 +686,63 @@
     },
     {
       "app": "migration_cloud",
+      "command": "_assignment_promotion_helpers",
+      "path": "apps/migration_cloud/management/commands/_assignment_promotion_helpers.py"
+    },
+    {
+      "app": "migration_cloud",
       "command": "cleanup_intake_uploads",
       "path": "apps/migration_cloud/management/commands/cleanup_intake_uploads.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "dsar_runbook_record",
+      "path": "apps/migration_cloud/management/commands/dsar_runbook_record.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "maa_v2_resign_campaign",
+      "path": "apps/migration_cloud/management/commands/maa_v2_resign_campaign.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "migration_cloud_rotation_drill",
+      "path": "apps/migration_cloud/management/commands/migration_cloud_rotation_drill.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "migration_cloud_smoke",
+      "path": "apps/migration_cloud/management/commands/migration_cloud_smoke.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "migration_cloud_smoke_multi",
+      "path": "apps/migration_cloud/management/commands/migration_cloud_smoke_multi.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "promote_dyna_assignments",
+      "path": "apps/migration_cloud/management/commands/promote_dyna_assignments.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "purge_audit_events_pre_approved",
+      "path": "apps/migration_cloud/management/commands/purge_audit_events_pre_approved.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "replay_dfv_assignments",
+      "path": "apps/migration_cloud/management/commands/replay_dfv_assignments.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "seed_migration_connector_profiles",
+      "path": "apps/migration_cloud/management/commands/seed_migration_connector_profiles.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "verify_audit_chain",
+      "path": "apps/migration_cloud/management/commands/verify_audit_chain.py"
     },
     {
       "app": "observability",
@@ -731,6 +811,11 @@
     },
     {
       "app": "people",
+      "command": "repair_teacherprofile_updated_at",
+      "path": "apps/people/management/commands/repair_teacherprofile_updated_at.py"
+    },
+    {
+      "app": "people",
       "command": "revoke_audit_log_permissions",
       "path": "apps/people/management/commands/revoke_audit_log_permissions.py"
     },
@@ -743,6 +828,11 @@
       "app": "platform_runtime",
       "command": "backfill_runtime_defaults",
       "path": "apps/platform_runtime/management/commands/backfill_runtime_defaults.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "ensure_calendar_system_registry",
+      "path": "apps/platform_runtime/management/commands/ensure_calendar_system_registry.py"
     },
     {
       "app": "platform_runtime",
@@ -771,6 +861,16 @@
     },
     {
       "app": "platform_runtime",
+      "command": "seed_dashboard_topology_links",
+      "path": "apps/platform_runtime/management/commands/seed_dashboard_topology_links.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "seed_five_pillar_proof",
+      "path": "apps/platform_runtime/management/commands/seed_five_pillar_proof.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "suggest_next_runtime_defaults_fields",
       "path": "apps/platform_runtime/management/commands/suggest_next_runtime_defaults_fields.py"
     },
@@ -786,6 +886,11 @@
     },
     {
       "app": "policies",
+      "command": "apply_tenant_overrides",
+      "path": "apps/policies/management/commands/apply_tenant_overrides.py"
+    },
+    {
+      "app": "policies",
       "command": "seed_blueprint_policy_packs",
       "path": "apps/policies/management/commands/seed_blueprint_policy_packs.py"
     },
@@ -793,6 +898,16 @@
       "app": "policies",
       "command": "update_blueprint_bundles",
       "path": "apps/policies/management/commands/update_blueprint_bundles.py"
+    },
+    {
+      "app": "portal",
+      "command": "archive_stale_kb_articles",
+      "path": "apps/portal/management/commands/archive_stale_kb_articles.py"
+    },
+    {
+      "app": "portal",
+      "command": "build_code_support_index",
+      "path": "apps/portal/management/commands/build_code_support_index.py"
     },
     {
       "app": "portal",
@@ -816,8 +931,23 @@
     },
     {
       "app": "portal",
+      "command": "migrate_kb_embeddings_to_pgvector",
+      "path": "apps/portal/management/commands/migrate_kb_embeddings_to_pgvector.py"
+    },
+    {
+      "app": "portal",
+      "command": "reindex_kb_help_embeddings",
+      "path": "apps/portal/management/commands/reindex_kb_help_embeddings.py"
+    },
+    {
+      "app": "portal",
       "command": "seed_faqs",
       "path": "apps/portal/management/commands/seed_faqs.py"
+    },
+    {
+      "app": "portal",
+      "command": "seed_help_journey_slugs",
+      "path": "apps/portal/management/commands/seed_help_journey_slugs.py"
     },
     {
       "app": "portal",
@@ -960,6 +1090,11 @@
       "path": "apps/security/management/commands/verify_csp_readiness.py"
     },
     {
+      "app": "setup_studio",
+      "command": "seed_studio_os",
+      "path": "apps/setup_studio/management/commands/seed_studio_os.py"
+    },
+    {
       "app": "siteconfig",
       "command": "aggregate_ai_metrics",
       "path": "apps/siteconfig/management/commands/aggregate_ai_metrics.py"
@@ -973,6 +1108,11 @@
       "app": "siteconfig",
       "command": "audit_tenant_models",
       "path": "apps/siteconfig/management/commands/audit_tenant_models.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "backfill_search_indexes",
+      "path": "apps/siteconfig/management/commands/backfill_search_indexes.py"
     },
     {
       "app": "siteconfig",
@@ -1038,6 +1178,16 @@
       "app": "siteconfig",
       "command": "dispatch_webhook_deliveries",
       "path": "apps/siteconfig/management/commands/dispatch_webhook_deliveries.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "engine_room_sync_ollama",
+      "path": "apps/siteconfig/management/commands/engine_room_sync_ollama.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "ensure_all_user_identities",
+      "path": "apps/siteconfig/management/commands/ensure_all_user_identities.py"
     },
     {
       "app": "siteconfig",
@@ -1116,6 +1266,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "scan_stale_feature_flags",
+      "path": "apps/siteconfig/management/commands/scan_stale_feature_flags.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "seed_admin_dashboard_palettes",
       "path": "apps/siteconfig/management/commands/seed_admin_dashboard_palettes.py"
     },
@@ -1148,6 +1303,11 @@
       "app": "siteconfig",
       "command": "seed_global_regions",
       "path": "apps/siteconfig/management/commands/seed_global_regions.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_global_weather_locations",
+      "path": "apps/siteconfig/management/commands/seed_global_weather_locations.py"
     },
     {
       "app": "siteconfig",
@@ -1233,27 +1393,30 @@
         "finance_payments",
         "identity_access",
         "identity_provisioning",
+        "integrations_marketplace",
         "interop_lti",
         "interop_webhook",
         "learning_institution",
         "marketing_leads",
+        "migration_cloud",
         "north_star_api",
+        "orchestration",
         "platform_observability",
         "portal_office_wopi",
         "security_observability"
       ],
-      "reviewed_endpoints": 39,
-      "reviewed_files": 15
+      "reviewed_endpoints": 48,
+      "reviewed_files": 19
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 41,
-    "cursor_execute_apps_config_py_excl_migrations": 36,
-    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 3,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 51,
+    "cursor_execute_apps_config_py_excl_migrations": 40,
+    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 5,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 1372,
-    "site_settings_refs_apps_py_excl_migrations": 54,
-    "site_settings_refs_apps_py_excl_migrations_tests": 20
+    "print_calls_scripts_py": 1910,
+    "site_settings_refs_apps_py_excl_migrations": 68,
+    "site_settings_refs_apps_py_excl_migrations_tests": 33
   },
   "site_settings_fields": [
     {
@@ -1279,6 +1442,7 @@
       "apps/integrations_marketplace/connector_registry.py",
       "apps/integrations_marketplace/mailbox_fetch.py",
       "apps/integrations_marketplace/management/commands/subscribe_push.py",
+      "apps/integrations_marketplace/management/commands/verify_oauth_token_rotation_policy.py",
       "apps/integrations_marketplace/manager_views.py",
       "apps/integrations_marketplace/models.py",
       "apps/integrations_marketplace/oauth.py",

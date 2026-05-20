@@ -33727,7 +33727,7 @@
         },
         {
           "kind": "template_url",
-          "line": 100,
+          "line": 101,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' %}",
@@ -106407,7 +106407,7 @@
         },
         {
           "kind": "template_url",
-          "line": 100,
+          "line": 101,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' %}",
@@ -191635,7 +191635,7 @@
         },
         {
           "kind": "template_url",
-          "line": 100,
+          "line": 101,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' %}",

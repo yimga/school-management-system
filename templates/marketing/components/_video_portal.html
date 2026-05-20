@@ -19,7 +19,7 @@
     controlslist="nodownload noplaybackrate"
     aria-label="{% if portal_label %}{{ portal_label }}{% else %}{% trans 'Product walkthrough' %}{% endif %}"
   >
-    <source src="{{ portal_video_url }}" type="video/mp4">
+    {% if show_video_source %}<source src="{{ portal_video_url }}" type="video/mp4">{% endif %}
   </video>
   <button type="button" class="mkt-video-portal__overlay" data-mkt-video-overlay aria-label="{% trans 'Play video' %}">
     <span class="mkt-video-portal__overlay-icon" aria-hidden="true">▶</span>

@@ -8,7 +8,6 @@ from uuid import UUID
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
@@ -34,7 +33,7 @@ from .services.connector_credentials import (
 from .services.connector_discovery import run_source_discovery, stage_entity_preview
 from .services.connector_import import generate_idempotency_key, run_connector_import
 from .services.connector_mapping import confirm_mappings, suggest_field_mappings
-from .services.connector_rollback import rollback_posture_card, rollback_preview
+from .services.connector_rollback import rollback_posture_card
 
 logger = logging.getLogger(__name__)
 

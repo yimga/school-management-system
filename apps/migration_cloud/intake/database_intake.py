@@ -5,7 +5,6 @@ from __future__ import annotations
 import csv
 import io
 import sqlite3
-import tempfile
 from pathlib import Path
 from typing import Any, Iterator
 

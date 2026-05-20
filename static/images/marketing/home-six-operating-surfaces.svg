@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" width="920" height="300" role="img" aria-labelledby="t d">
+  <title id="t">Six operating surfaces of RunMyCampus</title>
+  <desc id="d">Illustrative grid of command center, teacher, parent, finance, publishing, and analytics surfaces.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="sh"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.35"/></filter>
+    <style>
+      .card { fill: #1e293b; stroke: #475569; stroke-width: 1.2; rx: 10; filter: url(#sh); }
+      .accent { fill: #c2410c; }
+      .ok { fill: #34d399; }
+      .warn { fill: #f59e0b; }
+      .t { fill: #e2e8f0; font: 700 11px ui-sans-serif, system-ui, sans-serif; }
+      .ts { fill: #94a3b8; font: 600 9px ui-sans-serif, system-ui, sans-serif; }
+      .row { fill: #334155; rx: 3; }
+    </style>
+  </defs>
+  <rect width="920" height="300" fill="url(#bg)"/>
+  <text class="t" x="460" y="28" text-anchor="middle" font-size="13">Six operating surfaces — one education OS</text>
+  <g transform="translate(24,48)">
+    <rect class="card" x="0" y="0" width="280" height="120"/><text class="t" x="16" y="28">School command center</text><rect class="row" x="16" y="44" width="200" height="8"/><rect class="accent" x="16" y="62" width="140" height="8" rx="3"/>
+    <rect class="card" x="296" y="0" width="280" height="120"/><text class="t" x="312" y="28">Teacher workspace</text><rect class="row" x="312" y="44" width="200" height="8"/><rect class="ok" x="312" y="62" width="120" height="8" rx="3"/>
+    <rect class="card" x="592" y="0" width="280" height="120"/><text class="t" x="608" y="28">Parent mobile portal</text><rect class="row" x="608" y="44" width="200" height="8"/><rect class="row" x="608" y="62" width="160" height="8"/>
+    <rect class="card" x="0" y="136" width="280" height="120"/><text class="t" x="16" y="164">Finance cockpit</text><rect class="row" x="16" y="180" width="200" height="8"/><rect class="warn" x="16" y="198" width="100" height="8" rx="3"/>
+    <rect class="card" x="296" y="136" width="280" height="120"/><text class="t" x="312" y="164">Academic publishing studio</text><rect class="row" x="312" y="180" width="200" height="8"/><rect class="row" x="312" y="198" width="180" height="8"/>
+    <rect class="card" x="592" y="136" width="280" height="120"/><text class="t" x="608" y="164">Analytics &amp; governance</text><rect class="row" x="608" y="180" width="200" height="8"/><rect class="ok" x="608" y="198" width="130" height="8" rx="3"/>
+  </g>
+</svg>

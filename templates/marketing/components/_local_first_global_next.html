@@ -1,0 +1,43 @@
+{% load i18n %}
+{# Local-first, global-next positioning — reuse on trust, pricing, contact, and home-adjacent pages. #}
+<section class="mkt-edt-container mkt-local-first rmc-reveal{% if compact %} mkt-local-first--compact{% endif %}" aria-labelledby="local-first-heading" data-mkt-local-first-global-next="1">
+  <header class="mkt-local-first__header">
+    <p class="mkt-v3-eyebrow">{% trans "Local first · global next" %}</p>
+    <h2 id="local-first-heading" class="mkt-v3-section-headline">
+      {% if country_label and country_label != "Global" %}
+      {% blocktrans with country=country_label %}Built for {{ country }} campuses—on one worldwide platform.{% endblocktrans %}
+      {% else %}
+      {% trans "Your campus rules first. The network scales second." %}
+      {% endif %}
+    </h2>
+    <p class="mkt-v3-lead mkt-v3-lead--compact">
+      {% if geo_copy.proof_lead %}
+      {{ geo_copy.proof_lead }}
+      {% else %}
+      {% trans "Calendars, currencies, grading models, languages, and compliance defaults land per school—not as a one-size-fits-all template. The same codebase serves single campuses and multi-country groups." %}
+      {% endif %}
+    </p>
+  </header>
+  <div class="mkt-local-first__grid">
+    <article class="mkt-v3-segment-card">
+      <h3 class="h6">{% trans "Local operations" %}</h3>
+      <p class="small mb-0">{% trans "Timetables, fee schedules, report cards, and portals follow how your school actually runs—term structures, assessment scales, and family communication norms included." %}</p>
+    </article>
+    <article class="mkt-v3-segment-card">
+      <h3 class="h6">{% trans "Regional compliance" %}</h3>
+      <p class="small mb-0">{% trans "FERPA, GDPR, POPIA, and accessibility expectations are addressed with jurisdiction-aware defaults and exportable evidence for your auditors and procurement team." %}</p>
+    </article>
+    <article class="mkt-v3-segment-card">
+      <h3 class="h6">{% trans "Global scale" %}</h3>
+      <p class="small mb-0">{% trans "Multi-campus governance, offline capture, marketplace extensions, and integration-ready APIs—without forking the product per country." %}</p>
+    </article>
+  </div>
+  {% if not compact %}
+  <ul class="mkt-local-first__chips" aria-label="{% trans 'Localization surfaces' %}">
+    <li>{% trans "180+ currencies" %}</li>
+    <li>{% trans "29 languages" %}</li>
+    <li>{% trans "Country compliance profiles" %}</li>
+    <li>{% trans "Offline where networks fail" %}</li>
+  </ul>
+  {% endif %}
+</section>

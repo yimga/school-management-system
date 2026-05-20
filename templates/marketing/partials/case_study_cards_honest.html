@@ -1,0 +1,28 @@
+{% load i18n %}
+<section class="mkt-edt-container mkt-case-studies-honest rmc-reveal" aria-labelledby="case-studies-heading" data-mkt-case-studies-honest="1">
+  <h2 id="case-studies-heading" class="mkt-v3-section-headline">{% trans "Implementation patterns (illustrative)" %}</h2>
+  <p class="mkt-v3-lead mkt-v3-lead--compact">{% trans "Named by region and campus type—not anonymous placeholder quotes. Metrics are representative patterns from rollout programs unless a partner has approved a public case study." %}</p>
+  <div class="mkt-v3-segment-grid">
+    {% for case in page_extras.case_cards %}
+    <article class="mkt-v3-segment-card mkt-case-card">
+      {% if case.campus_type or case.country_label %}
+      <p class="mkt-v3-eyebrow mb-1">
+        {% if case.country_label %}{{ case.country_label }}{% endif %}
+        {% if case.campus_type %} · {{ case.campus_type }}{% endif %}
+        {% if case.illustrative %} · {% trans "Illustrative" %}{% endif %}
+      </p>
+      {% endif %}
+      <h3 class="h6">{{ case.title }}</h3>
+      <p class="small mb-2">{{ case.result }}</p>
+      {% if case.impact %}<p class="small text-muted mb-2">{{ case.impact }}</p>{% endif %}
+      {% if case.outcomes %}
+      <ul class="small mb-0 ps-3">
+        {% for outcome in case.outcomes %}
+        <li>{{ outcome }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>

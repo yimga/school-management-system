@@ -2074,9 +2074,23 @@ body[data-mkt-edition="editorial"] main {
    simultaneously and the text stacked. Co-located here so the marketing
    surface actually receives them.
    ============================================================ */
+[data-mkt-edition="editorial"] .mkt-edt-walkthrough__reel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+[data-mkt-edition="editorial"] .mkt-edt-walkthrough__reel svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 [data-mkt-edition="editorial"] .reel-scene {
   opacity: 0;
   animation: reelCycle 25s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+[data-mkt-edition="editorial"] .reel-scene--1 {
+  opacity: 1;
+  animation-fill-mode: both;
 }
 [data-mkt-edition="editorial"] .reel-scene--1 { animation-delay:  0s; }
 [data-mkt-edition="editorial"] .reel-scene--2 { animation-delay:  5s; }

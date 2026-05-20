@@ -248,6 +248,103 @@
   color: var(--mkt-ink-2, #475569);
 }
 
+.mkt-v3-trust-strip li {
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--mkt-rule, rgba(15, 27, 45, 0.1));
+  border-radius: 999px;
+  background: var(--mkt-tile, #fff);
+}
+
+.mkt-v3-demo-steps,
+.mkt-v3-demo-agenda,
+.mkt-v3-pricing-procurement {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--mkt-ink-2, #475569);
+  font-size: 0.9375rem;
+}
+
+.mkt-v3-demo-steps li + li,
+.mkt-v3-demo-agenda li + li,
+.mkt-v3-pricing-procurement li + li {
+  margin-top: 0.65rem;
+}
+
+.mkt-v3-lead--compact {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mkt-v3-segment-card__cta {
+  margin-top: 0.75rem;
+  align-self: flex-start;
+}
+
+.mkt-v3-segment-card--intent {
+  display: flex;
+  flex-direction: column;
+}
+
+.mkt-v3-page__close--split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+}
+
+.mkt-local-first__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.mkt-local-first__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--mkt-ink-2, #475569);
+}
+
+.mkt-local-first__chips li {
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--mkt-rule, rgba(15, 27, 45, 0.1));
+  border-radius: 999px;
+  background: var(--mkt-tile, #fff);
+}
+
+.mkt-local-first--compact .mkt-local-first__header {
+  margin-bottom: 0.5rem;
+}
+
+.mkt-region-affordance__chip {
+  font-weight: 600;
+  border-radius: 999px;
+  padding-inline: 0.75rem;
+}
+
+.mkt-region-affordance__change {
+  font-size: 0.8125rem;
+  padding-inline: 0.25rem;
+}
+
+.mkt-region-affordance--banner {
+  color: var(--mkt-ink-2, #475569);
+}
+
+.mkt-trust-regulatory-card--highlight {
+  border-color: var(--mkt-accent, #4f46e5);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mkt-accent, #4f46e5) 25%, transparent);
+}
+
+.mkt-inst-audience-callout--regional {
+  background: color-mix(in srgb, var(--mkt-accent, #4f46e5) 6%, var(--mkt-tile, #fff));
+}
+
 .mkt-v3-link-list {
   list-style: none;
   padding: 0;

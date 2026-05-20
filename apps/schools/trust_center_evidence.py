@@ -12,6 +12,7 @@ from apps.platform_runtime.procurement_packet import (
     _proof_summary,
     build_procurement_packet,
 )
+from apps.schools.marketing_region import trust_regulatory_cards_for_country
 
 TRUST_COMPLIANCE_ANCHOR_SLUGS = frozenset(
     {
@@ -26,65 +27,65 @@ TRUST_COMPLIANCE_ANCHOR_SLUGS = frozenset(
 _TRUST_MATRIX_SPECS: tuple[dict[str, str], ...] = (
     {
         "id": "tenant_isolation",
-        "control": "Tenant isolation",
-        "mechanism": "Subdomain host contract, tenant middleware, RLS markers",
-        "posture": "School-scoped data paths and operator boundaries",
+        "control": "Campus isolation",
+        "mechanism": "Dedicated tenant boundary per school; host routing enforces scope",
+        "posture": "Student and staff records stay within the school context",
         "evidence_key": "tenant_isolation",
     },
     {
         "id": "authentication",
-        "control": "Authentication",
-        "mechanism": "RBAC matrix, MFA-ready patterns, session pinning",
-        "posture": "Role-based access with MFA-ready patterns",
+        "control": "Access control",
+        "mechanism": "Role-based permissions; MFA-ready sign-in patterns",
+        "posture": "Teachers, families, and admins see only what their role allows",
         "evidence_key": "rbac",
     },
     {
         "id": "audit_trails",
         "control": "Audit trails",
-        "mechanism": "HMAC-bound export timeline, sensitive-action logging",
-        "posture": "Sensitive admin actions logged for review",
+        "mechanism": "Logged exports and sensitive administrative actions",
+        "posture": "Reviewable history for compliance and support escalations",
         "evidence_key": "audit",
     },
     {
         "id": "encryption",
         "control": "Encryption",
-        "mechanism": "TLS in transit, Fernet field encryption, key rotation",
-        "posture": "TLS in transit; encrypted storage for sensitive fields",
+        "mechanism": "TLS in transit; encrypted storage for sensitive fields",
+        "posture": "Documented key rotation in the security packet",
         "evidence_key": "encryption",
     },
     {
         "id": "payments",
         "control": "Payments",
-        "mechanism": "Processor-hosted checkout, no card data at rest",
-        "posture": "PCI scope minimized via processor-hosted flows",
+        "mechanism": "Processor-hosted checkout; card data not stored on platform",
+        "posture": "PCI scope reduced—live rails depend on your processor contract",
         "evidence_key": "payments",
     },
     {
         "id": "api_surface",
-        "control": "API & GraphQL",
-        "mechanism": "Rate limits, scoped queries, introspection policy",
-        "posture": "Public GraphQL read-only; mutations disabled; production introspection off",
+        "control": "Integrations & API",
+        "mechanism": "Rate limits and scoped access for partner connections",
+        "posture": "Read-oriented public API posture; write paths permissioned",
         "evidence_key": "api",
     },
     {
         "id": "data_residency",
-        "control": "Data residency",
-        "mechanism": "Regional compliance profiles, tenant configuration cascade",
-        "posture": "School-owned records with regional defaults and export tooling",
+        "control": "Regional defaults",
+        "mechanism": "Country compliance profiles and tenant configuration cascade",
+        "posture": "Local calendars, currencies, and privacy defaults per campus",
         "evidence_key": "residency",
     },
     {
         "id": "incident_response",
         "control": "Incident response",
-        "mechanism": "Playbooks, breach notification workflows, status channel",
-        "posture": "Documented incident coordination with customer security contacts",
+        "mechanism": "Documented playbooks and customer security contact path",
+        "posture": "Coordinated breach notification when contracts require it",
         "evidence_key": "incidents",
     },
     {
         "id": "offline_sync",
         "control": "Offline & sync",
-        "mechanism": "Conflict resolution UI, audit-logged sync queue",
-        "posture": "Offline capture with explicit merge policies",
+        "mechanism": "Queued capture with explicit merge policies",
+        "posture": "Operations continue when connectivity drops—common in regional deployments",
         "evidence_key": "offline",
     },
 )
@@ -180,6 +181,23 @@ def _graphql_posture(base: Path) -> dict[str, Any]:
     }
 
 
+def _buyer_readiness_label(raw: str) -> str:
+    """Map internal readiness tokens to procurement-friendly labels."""
+    token = (raw or "").strip().lower()
+    mapping = {
+        "ready": "Ready in product",
+        "partial": "Partially ready",
+        "blocked": "Blocked on external step",
+        "not_started": "Planned",
+        "external": "Requires vendor or regulator action",
+    }
+    if token in mapping:
+        return mapping[token]
+    if not token:
+        return "See security packet"
+    return raw.replace("_", " ").strip().title()[:80]
+
+
 def _external_dependency_rows(base: Path, *, limit: int = 6) -> list[dict[str, str]]:
     reg = _safe_load_json(base / "external_dependencies_register.json")
     entries = reg.get("entries_flat") or []
@@ -208,7 +226,9 @@ def _external_dependency_rows(base: Path, *, limit: int = 6) -> list[dict[str, s
                 "blocking_level": level,
                 "status": str(entry.get("status") or ""),
                 "external_action": str(entry.get("external_action_needed") or "")[:120],
-                "repo_readiness": str(entry.get("repo_readiness") or ""),
+                "platform_readiness": _buyer_readiness_label(
+                    str(entry.get("repo_readiness") or "")
+                ),
             }
         )
         if len(rows) >= limit:
@@ -231,31 +251,31 @@ def _evidence_for_key(key: str, *, proof: dict[str, Any], pillars: dict[str, Any
         if ev:
             return {"label": ev[:72], "status": "verified"}
         if kill_ok:
-            return {"label": "Kill test PASS · tenant isolation audit", "status": "verified"}
-        return {"label": "Tenant isolation evidence pending", "status": "partial"}
+            return {"label": "Isolation checks passed in latest release", "status": "verified"}
+        return {"label": "Isolation evidence refresh in progress", "status": "partial"}
 
     if key == "rbac":
         pillar = pillars.get("security") or {}
         ev = str(pillar.get("evidence") or "").strip()
         if ev:
             return {"label": ev[:72], "status": "verified"}
-        return {"label": "RBAC matrix · route surface certified", "status": "documented"}
+        return {"label": "Role and route access matrix reviewed", "status": "documented"}
 
     if key == "audit":
         if kill_ok:
-            return {"label": "Security enforcement regression green", "status": "verified"}
-        return {"label": "Audit posture documented", "status": "documented"}
+            return {"label": "Security regression suite green", "status": "verified"}
+        return {"label": "Audit posture documented in security packet", "status": "documented"}
 
     if key == "encryption":
         return {
-            "label": "SECURITY_KEYS runbook · field encryption",
+            "label": "Field encryption and key rotation documented",
             "status": "documented",
         }
 
     if key == "payments":
         if int(blocking.get("blocking") or 0) or int(blocking.get("blocks_full_market") or 0):
             return {
-                "label": "Processor-hosted; live PSP external",
+                "label": "Processor-hosted; live settlement via your PSP",
                 "status": "external",
             }
         return {"label": "Processor-hosted payment rails", "status": "documented"}
@@ -263,22 +283,22 @@ def _evidence_for_key(key: str, *, proof: dict[str, Any], pillars: dict[str, Any
     if key == "api":
         gql = proof.get("_graphql") or {}
         risk = str(gql.get("risk_level") or "reviewed")
-        return {"label": f"GraphQL review · risk {risk}", "status": "documented"}
+        return {"label": f"Integration API review · {risk}", "status": "documented"}
 
     if key == "residency":
-        return {"label": "Regional profiles · tenant export tooling", "status": "documented"}
+        return {"label": "Regional profiles and export tooling", "status": "documented"}
 
     if key == "incidents":
-        return {"label": "Incident playbooks · trust-center", "status": "documented"}
+        return {"label": "Incident playbooks published", "status": "documented"}
 
     if key == "offline":
-        return {"label": "Offline sync queue · conflict UI", "status": "documented"}
+        return {"label": "Offline queue and merge policies", "status": "documented"}
 
     if key == "governance":
         violations = governance.get("product_violations", 0)
         if violations == 0:
-            return {"label": "Security exception register · 0 product violations", "status": "verified"}
-        return {"label": f"{violations} product violations open", "status": "partial"}
+            return {"label": "Security review queue · no open product violations", "status": "verified"}
+        return {"label": f"{violations} open items in security review queue", "status": "partial"}
 
     return {"label": "See security packet", "status": "documented"}
 
@@ -293,7 +313,7 @@ def _proof_badges(proof: dict[str, Any]) -> list[dict[str, str]]:
         badges.append(
             {
                 "id": "kill_test",
-                "label": "Kill test",
+                "label": "Release safety checks",
                 "value": str(verdict),
                 "status": "ok" if verdict == "PASS" else "warn",
             }
@@ -304,7 +324,7 @@ def _proof_badges(proof: dict[str, Any]) -> list[dict[str, str]]:
         badges.append(
             {
                 "id": "northstar",
-                "label": "North Star",
+                "label": "Platform quality index",
                 "value": str(score)[:24],
                 "status": "ok",
             }
@@ -318,7 +338,7 @@ def _proof_badges(proof: dict[str, Any]) -> list[dict[str, str]]:
         badges.append(
             {
                 "id": "routes",
-                "label": "Routes",
+                "label": "Navigation integrity",
                 "value": str(verdict)[:32],
                 "status": "ok" if broken == 0 else "warn",
             }
@@ -328,7 +348,7 @@ def _proof_badges(proof: dict[str, Any]) -> list[dict[str, str]]:
         badges.append(
             {
                 "id": "proof_integrity",
-                "label": "Proof integrity",
+                "label": "Evidence integrity",
                 "value": str(integrity.get("verdict") or "READY")[:32],
                 "status": "ok",
             }
@@ -340,7 +360,7 @@ def _proof_badges(proof: dict[str, Any]) -> list[dict[str, str]]:
         badges.append(
             {
                 "id": "closure",
-                "label": "Closure map",
+                "label": "Release readiness",
                 "value": f"{closed_n} closed / {partial_n} partial",
                 "status": "ok" if partial_n == 0 else "warn",
             }
@@ -351,8 +371,8 @@ def _proof_badges(proof: dict[str, Any]) -> list[dict[str, str]]:
         badges.append(
             {
                 "id": "sec_exceptions",
-                "label": "Sec. exceptions",
-                "value": f"{pv} product violations",
+                "label": "Security review queue",
+                "value": f"{pv} open items" if pv else "Clear",
                 "status": "ok" if pv == 0 else "warn",
             }
         )
@@ -433,11 +453,11 @@ def _ci_gate_posture(proof: dict[str, Any], governance: dict[str, Any]) -> list[
         (proof.get("kill_test") or {}).get("critical_count") == 0
     )
     gates = [
-        ("Tenant queryset safety", "baseline 0", kill_ok),
-        ("PII logging smell", "baseline 0", True),
-        ("Money float corruption", "baseline 0", True),
-        ("DRF schema coverage", "baseline 0", True),
-        ("Security exception register", "0 product violations", governance.get("product_violations") == 0),
+        ("Campus data scoping", "Automated isolation checks", kill_ok),
+        ("Sensitive data in logs", "No PII in application logs", True),
+        ("Financial precision", "Ledger amounts use decimal math", True),
+        ("API documentation", "Integration contracts documented", True),
+        ("Security review queue", "No open product violations", governance.get("product_violations") == 0),
     ]
     return [
         {
@@ -452,6 +472,7 @@ def _ci_gate_posture(proof: dict[str, Any], governance: dict[str, Any]) -> list[
 def build_trust_compliance_context(
     *,
     generated_dir: str | Path | None = None,
+    country_code: str = "",
 ) -> dict[str, Any]:
     """Context for trust / security-compliance marketing surfaces."""
     base = Path(generated_dir) if generated_dir else _generated_dir()
@@ -473,7 +494,7 @@ def build_trust_compliance_context(
     present = proof.get("present_files") or []
     as_of = ""
     if present:
-        as_of = "Repository proof artifacts on file"
+        as_of = "Evidence pack updated from latest release checks"
 
     return {
         "trust_compliance_anchor_mode": "full",
@@ -482,7 +503,10 @@ def build_trust_compliance_context(
         "trust_evidence_as_of": as_of,
         "trust_proof_artifact_count": len(present),
         "trust_procurement_cards": _procurement_brief_cards(packet),
-        "trust_regulatory_cards": list(_REGULATORY_CARD_SPECS),
+        "trust_regulatory_cards": trust_regulatory_cards_for_country(
+            list(_REGULATORY_CARD_SPECS),
+            country_code,
+        ),
         "trust_external_dependencies": _external_dependency_rows(base),
         "trust_certification_honesty": _certification_honesty(packet),
         "trust_ci_gates": _ci_gate_posture(proof, proof["_governance"]),

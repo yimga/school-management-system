@@ -1,4 +1,13 @@
 {% load i18n %}
+{% if institution_regional_callout %}
+<div class="mkt-inst-audience-callout mkt-inst-audience-callout--regional border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'Regional positioning' %}">
+  <p class="small text-uppercase text-muted mb-1">{{ institution_regional_callout.eyebrow }}</p>
+  <p class="mb-0 fw-semibold">{{ institution_regional_callout.body }}</p>
+  {% if marketing_region_landing_path %}
+  <p class="small mb-0 mt-2"><a href="{{ marketing_region_landing_path }}" class="mkt-edt-link">{% trans "See your regional overview" %} →</a></p>
+  {% endif %}
+</div>
+{% endif %}
 {% with s=institution_segment_slug|default:'' %}
 {% if s == 'international-schools' %}
 <div class="mkt-inst-audience-callout mkt-inst-audience-callout--international border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'International school positioning' %}">

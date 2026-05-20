@@ -1,0 +1,7 @@
+{% load i18n static %}
+{% comment %}Archetype hero visual — pass visual_static and visual_alt.{% endcomment %}
+{% if visual_static %}
+<section class="mkt-edt-container mkt-v3-archetype__visual rmc-reveal" aria-hidden="false" data-mkt-reveal>
+  <img src="{% static visual_static %}" alt="{{ visual_alt }}" width="920" height="340" loading="lazy" decoding="async" class="img-fluid" data-mkt-platform-visual="1">
+</section>
+{% endif %}

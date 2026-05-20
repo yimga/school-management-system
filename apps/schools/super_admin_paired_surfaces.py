@@ -99,8 +99,26 @@ SUPER_FIRST_PAIRED_SPECS: tuple[dict[str, str], ...] = (
     {
         "slug": "integrations",
         "label": _("Integrations"),
-        "super_url_name": "",
+        "super_url_name": "super:marketplace_governance",
         "bridge_key": "integrations",
+    },
+    {
+        "slug": "service_integrations",
+        "label": _("Service integrations"),
+        "super_url_name": "super:marketplace_governance",
+        "bridge_key": "service_integrations",
+    },
+    {
+        "slug": "packages_installed",
+        "label": _("Installed packages"),
+        "super_url_name": "super:blueprint_marketplace",
+        "bridge_key": "packages_installed",
+    },
+    {
+        "slug": "runtime_defaults",
+        "label": _("Runtime defaults"),
+        "super_url_name": "configuration:center",
+        "bridge_key": "runtime_defaults",
     },
     {
         "slug": "marketplace_governance",
@@ -119,12 +137,6 @@ SUPER_FIRST_PAIRED_SPECS: tuple[dict[str, str], ...] = (
         "label": _("Trust center"),
         "super_url_name": "super:trust_center",
         "bridge_key": "platform_event_logs",
-    },
-    {
-        "slug": "runtime_defaults",
-        "label": _("Runtime defaults"),
-        "super_url_name": "",
-        "bridge_key": "runtime_defaults",
     },
     {
         "slug": "fleet_governed_changes",
@@ -231,10 +243,10 @@ def _is_manager_operator_host(request) -> bool:
 
 
 def _operator_surface_strip_visible(request) -> bool:
-    """Workspace nav renders on /super/ and /configuration/, not Django admin."""
-    path = (getattr(request, "path", None) or "").lower().rstrip("/") or "/"
-    if path == "/admin" or path.startswith("/admin/"):
+    """Workspace spine on manager /super/, /configuration/, and /admin/."""
+    if not _is_manager_operator_host(request):
         return False
+    path = (getattr(request, "path", None) or "").lower().rstrip("/") or "/"
     if path == "/internal-admin" or path.startswith("/internal-admin/"):
         return False
     return True
@@ -291,6 +303,18 @@ def bridge_key_for_admin_url_name(admin_url_name: str) -> str | None:
     return None
 
 
+def _admin_changelist_url_name_for_resolver(url_name: str) -> str | None:
+    if url_name.endswith("_changelist"):
+        return f"admin:{url_name}"
+    if url_name.endswith("_change"):
+        return f"admin:{url_name.replace('_change', '_changelist')}"
+    if url_name.endswith("_add"):
+        return f"admin:{url_name.replace('_add', '_changelist')}"
+    if url_name.endswith("_history"):
+        return f"admin:{url_name.replace('_history', '_changelist')}"
+    return None
+
+
 def bridge_key_for_request(request) -> str | None:
     match = getattr(request, "resolver_match", None)
     if not match or not match.url_name:
@@ -298,10 +322,48 @@ def bridge_key_for_request(request) -> str | None:
     app_name = getattr(match, "app_name", None) or ""
     if app_name != "admin":
         return None
-    admin_url_name = f"admin:{match.url_name}"
-    if not admin_url_name.endswith("_changelist"):
+    changelist_name = _admin_changelist_url_name_for_resolver(match.url_name)
+    if not changelist_name:
         return None
-    return bridge_key_for_admin_url_name(admin_url_name)
+    return bridge_key_for_admin_url_name(changelist_name)
+
+
+# Bridge keys without explicit SUPER_FIRST_PAIRED_SPECS still get a direct super URL.
+BRIDGE_KEY_OPERATOR_VIEW_URL: dict[str, str] = {
+    "integrations": "super:marketplace_governance",
+    "service_integrations": "super:marketplace_governance",
+    "marketplace_apps": "super:marketplace_governance",
+    "packages_installed": "super:blueprint_marketplace",
+    "experience_packs": "super:blueprint_marketplace",
+    "runtime_defaults": "configuration:center",
+    "phase_b_domain_snapshots": "configuration:center",
+    "fleet_governed_changes": "super:fleet_governed_changes",
+    "ai_model_registry": "super:ai_model_hub",
+    "global_brand_registry": "configuration:center",
+    "platform_global_branding": "configuration:center",
+    "billing_billingaccount": "super:billing_accounts_list",
+    "migration_runs_admin": "super:migration_runs_list",
+    "platform_incidents_admin": "super:incidents_list",
+    "compliance_audit_log": "super:security_hub",
+    "platform_event_logs": "super:trust_center",
+    "feature_toggle_states": "super:feature_toggles_list",
+    "schools_school": "super:schools_list",
+}
+
+
+def resolve_operator_view_for_bridge(bridge_key: str) -> tuple[str | None, str]:
+    spec = super_first_spec_for_bridge_key(bridge_key)
+    super_url_name = (spec or {}).get("super_url_name", "").strip()
+    if not super_url_name:
+        super_url_name = BRIDGE_KEY_OPERATOR_VIEW_URL.get(bridge_key, "").strip()
+    if super_url_name:
+        url = _safe_reverse(super_url_name)
+        if url:
+            return url, str(_("Open operator view"))
+    hub_url = _safe_reverse("super:platform_operator_hub")
+    if hub_url:
+        return hub_url, str(_("Browse operator hub"))
+    return None, ""
 
 
 def super_first_spec_for_url_name(url_name: str) -> dict[str, str] | None:
@@ -409,38 +471,22 @@ def build_paired_surface_links(request) -> list[OperatorSurfaceLink]:
             _append_admin_bridge_link(links, bridge_key)
 
     if namespace == "admin" and url_name:
-        bridge_key = bridge_key_for_admin_url_name(f"admin:{url_name}")
-        if bridge_key:
-            spec = super_first_spec_for_bridge_key(bridge_key)
-            super_url_name = (spec or {}).get("super_url_name", "").strip()
-            if super_url_name:
-                super_url = _safe_reverse(super_url_name)
-                if super_url:
+        changelist_name = _admin_changelist_url_name_for_resolver(url_name)
+        if changelist_name:
+            bridge_key = bridge_key_for_admin_url_name(changelist_name)
+            if bridge_key:
+                super_url, label = resolve_operator_view_for_bridge(bridge_key)
+                if super_url and label:
                     links.append(
                         OperatorSurfaceLink(
-                            link_id=f"super_{spec.get('slug', bridge_key)}",
-                            label=_("Open operator view"),
+                            link_id=f"super_{bridge_key}",
+                            label=label,
                             url=super_url,
                             surface="super",
                             description=_(
                                 "Super-first control plane list for this domain."
                             ),
                             icon="bi-arrow-left-right",
-                        )
-                    )
-            else:
-                hub_url = _safe_reverse("super:platform_operator_hub")
-                if hub_url:
-                    links.append(
-                        OperatorSurfaceLink(
-                            link_id="operator_hub",
-                            label=_("Operator hub"),
-                            url=hub_url,
-                            surface="super",
-                            description=_(
-                                "Curated operator directory for this admin model."
-                            ),
-                            icon="bi-compass",
                         )
                     )
 

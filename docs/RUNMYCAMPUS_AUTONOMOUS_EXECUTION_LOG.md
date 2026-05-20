@@ -1,5 +1,65 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Release verification batch 1363 (2026-05-20)
+
+**A. Scope:** Global migration lockdown, integration gate sweep, test hygiene, SOT lockdown after multi-batch §11.4 work.
+
+**B. Shipped:** Migration/schema clean; `payment/tests.py` removed (package `payment/tests/` only); `GLOBAL_DATA_REGION`; broad-except allowlist rebaseline; platform inventory doc **48** apps; shell-matrix verifier accepts `portal_base` manager-host conditional surface/CSS; ruff + secret-scan + no-hardcoding gates green.
+
+**C. Proof:** `makemigrations --check`; `migrate --noinput`; `manage.py check`; `pytest services/ai/tests/` **37/37**; `verify_support_pipeline_integrity` PASS; `verify_kb_embedding_coverage` OK; `migrate_gate_test_db` on `release_verify_1363.sqlite3`; admin/help verifiers PASS; `verify_shell_architecture_matrix` PASS.
+
+**D. Residual:** Full **5351**-test `run_sqlite_memory_tests.py` run — blocked on Windows SQLite lock in-session; finish on CI/Linux with commands in SOT §11.4 batch **1363**, then `verify_phases_3_11_gates.py` to completion.
+
+## Slice - Marketing category-dominance reconstruction (2026-05-20)
+
+**A. Scope:** Live-confusing verb nav (`Run was: Platform`), enterprise IA, homepage OS story, platform/solution archetype visuals, honest video/reel, asset parity tests.
+
+**B. Shipped:** Default `MARKETING_VERB_NAV_ENABLED=False` + enterprise mega menus (Platform 4-col, Why mega, Resources buying help); removed `bridge_label`; 21 illustrative SVGs via `generate_marketing_category_assets.py`; `_home_os_story.html`; platform archetype visuals + solution stock photos; reel CSS co-location fix; `_video_portal` no empty `<source>`; tests `test_marketing_claimed_assets`, `test_marketing_analytics`, `marketing-visual-quality.spec.js`.
+
+**C. Proof:** `check_marketing_assets_claimed_vs_present.py` **0 missing**; narrow marketing tests **20/20 OK**; `test_marketing_nav_contract` enterprise labels.
+
+**D. Residual:** Full `test_marketing_validation` + Playwright visual-quality on production after deploy; trust page buyer-language pass on `security-trust.json` if internal jargon returns in content JSON.
+
+## Slice - Marketing conversion copy (pricing / demo / contact) (2026-05-20)
+
+**A. Scope:** Optional follow-up — quote-based pricing clarity, demo expectations, contact routing (non-blocking nav/visual gates).
+
+**B. Shipped:** `type_pricing.html` indicative-band labels + procurement section + dual close CTAs; `pricing_snapshot` CTAs → demo quotes; `type_demo.html` next-steps + agenda + trust strip; `type_contact.html` intent routing cards; form inquiry types (procurement) + demo role field; JSON copy in `pricing.json` / `demo.json` / `contact.json`; `marketing-v3-pages.css` helpers.
+
+**C. Proof:** Smoke GET `/pricing/`, `/demo/`, `/contact/` on `runmycampus.com` host **200** with procurement + routing markers present.
+
+**D. Residual:** Full `test_marketing_validation`; production deploy + Playwright on live domain.
+
+## Slice - Trust buyer-language + local-first global-next (2026-05-20)
+
+**A. Scope:** Trust center procurement copy; remove engineering jargon from public trust surfaces; reinforce local-first · global-next on trust, pricing, contact.
+
+**B. Shipped:** `security-trust.json` buyer rewrite; `trust_center_evidence.py` matrix/badge/CI buyer labels; trust partials (evidence dashboard, platform readiness column); `_local_first_global_next.html` on trust/pricing/contact; `verify_trust_compliance_surfaces.py` markers updated.
+
+**C. Proof:** `test_trust_compliance_anchors` **10/10 OK** (4 skipped HTTP); smoke GET trust/pricing/contact — `data-mkt-local-first-global-next`, no `North Star` / `repo scope` in HTML.
+
+**D. Residual:** Production GeoIP on live host; full `test_marketing_validation` + Playwright post-deploy.
+
+## Slice - Local-first global-next Tier 1 end-to-end (2026-05-20)
+
+**A. Scope:** Header region affordance, canonical regional landings, RegionalPitch seed NG/GB, country-aware trust regulatory grid, institution regional callouts, demo compliance jurisdiction, regional v2 homepage.
+
+**B. Shipped:** `marketing_region.py`; `_marketing_region_affordance.html`; `MARKETING_GEO_COUNTRY_OVERRIDE`; regional routes `/en/ng/`, `/en/gb/`, legacy `/ng/`, `/gb/`; migration `0182_seed_regional_pitch_ng_gb`; trust grid highlights; demo + platform-security local-first blocks; `test_marketing_region.py`.
+
+**C. Proof:** `test_marketing_region` helpers green; `verify_trust_compliance_surfaces.py` PASS; regional `/en/ng/` renders region banner.
+
+**D. Residual:** Tier 2 security-packet country annex; case-study country labels; production deploy + Playwright.
+
+## Slice - batch 1362 Platform admin gear-up closeout (2026-05-20)
+
+**A. Scope:** Close 13-item platform `/admin/` gap list — steering strip, paired super-first CTAs on changelist + change form, surface strip parity, index page-fold, CI gates, legacy dashboard retirement, orphan banner purge.
+
+**B. Shipped:** `admin_operator_steering` block in `base.html` (surface strip + steering); `super_admin_paired_surfaces.py` change-form pairing + operator view URLs; `admin_steering.py` hints (integrations/marketplace/billing); `index_superadmin.html` fold-nav + collapsed sections; deleted `operator_path_banner.html`; `admin_dashboard.html` → `index_superadmin` shim; `verify_admin_*` + bundle + `architectural-boundaries.yml` CI; `PLATFORM_APP_ORDER` marketplace label split.
+
+**C. Proof:** `verify_admin_platform_gear_up_bundle.py` PASS; steering + changelist render verifiers PASS; page-fold admin-index checks PASS; targeted Django tests green.
+
+**D. Residual:** None for repo-scope P3 — `ADMIN_RENDER_FULL=1` crawl **173/175 ok** (2 redirect_escape); Playwright admin sweep **175/175 pass** (2 redirect_escape skipped). Re-run on staging after deploy: `bash scripts/run_admin_full_proof_bundle.sh`.
+
 ## Slice - platform sidebar rail contract (2026-05-20)
 
 **A. Scope:** Platform-wide fix for canvas-colored void below short left nav (manager /super/, /admin/, portal).
@@ -29575,3 +29635,21 @@ Both families share the same root: shell theme tokens not yet meeting WCAG 1.4.3
 **F. Lane 2:** No live PSP merchant accounts, production/staging secrets, webhook secrets, settlement accounts, supervised transactions, SOC2/PCI auditor artifacts, or pilot-school evidence were available in repo. SOT §12 remains the command center; no `verified_live` claim was made.
 
 **G. Verdict:** **BATCH 1243 VERIFIED; RLS/SECURITY FOLLOW-UP COVERAGE ADDED; FULL-MARKET READINESS STILL EXTERNAL-EVIDENCE BLOCKED**.
+
+---
+
+## §11.4 batch — Local-first tiers 2–4 marketing (2026-05-20)
+
+**A. Scope:** Tier 2 (demo compliance jurisdiction, security-packet country annex from `compliance_profile_id`, honest case studies by region/campus type); Tier 3 (enterprise groups narrative, marketplace per-campus copy, illustrative scale signal via `MARKETING_SCALE_*` settings); Tier 4 validation (smoke + unit tests; production deploy/Playwright operator-owned).
+
+**B. Tier 2:** `security_packet_country_annex.py` + annex partial wired into `marketing_security_packet_request` (jurisdiction preview + `mkt-security-packet-annex.js`); webhook payload includes `country_annex`; demo form label + shared `jurisdiction_choices()`; `resources-case-studies.json` + `type_resources_case_studies.html` with `case_study_cards_honest.html` (no “School A”).
+
+**C. Tier 3:** `from_single_to_enterprise` + Enterprise pricing snapshot/tagline/FAQ; `platform-marketplace.json` + marketplace template callout; multi-campus institution copy; homepage globe scale disclaimer when `MARKETING_SCALE_ILLUSTRATIVE` (default true).
+
+**D. Validation:** `verify_trust_compliance_surfaces.py` **PASS**; `validate_marketing_urls --smoke` **PASS**; `SecurityPacketCountryAnnexTests` **3 OK**; Django client smoke on security packet, case studies, demo, pricing, `/grow/marketplace/`, landing **OK**.
+
+**D. Gate:** `python scripts/verify_marketing_local_first_tiers.py --http` **PASS** (files + markers + annex module + HTTP smoke on six routes).
+
+**E. Tests:** `MarketingLocalFirstTiersTests` merged into `test_marketing_validation.py`; `SecurityPacketCountryAnnexTests` (SimpleTestCase). Full `manage.py test apps.schools.tests.test_marketing_validation` may hang on Windows SQLite migrate—use `python scripts/run_sqlite_memory_tests.py … --keepdb` or CI Linux.
+
+**F. Tier 4 (operator, post-deploy):** Production deploy; `npm run test:e2e:marketing:theme` against live host; optional `MARKETING_SCALE_*` env when consent to publish real counts.

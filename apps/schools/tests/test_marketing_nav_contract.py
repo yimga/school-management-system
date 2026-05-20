@@ -28,10 +28,12 @@ class MarketingNavContractTests(SimpleTestCase):
                 "Solutions",
                 "Why RunMyCampus",
                 "Pricing",
-                "Trust",
                 "Resources",
             ],
         )
+        why = next(i for i in nav if i["label"] == "Why RunMyCampus")
+        self.assertTrue(why.get("mega_columns"))
+        self.assertNotIn("Trust", labels)
 
     def test_solutions_dropdown_maps_buyer_segments(self):
         from apps.schools.marketing_v3_surfaces import marketing_verb_nav_enabled

@@ -4,7 +4,6 @@ AI help governance — tenant feature flag + retention helpers (batch 1345).
 
 from __future__ import annotations
 
-from typing import Any
 
 
 def ai_help_enabled_for_request(request) -> bool:

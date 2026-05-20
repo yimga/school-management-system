@@ -42,11 +42,19 @@
     <div class="mkt-edt-hero__grid mkt-edt-container--edge">
       <div class="mkt-edt-hero__copy rmc-arrival">
         <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Tuesday · Cedar Ridge Academy" %}</p>
+        {% if marketing_regional_landing %}
+        {% include "marketing/components/_marketing_region_affordance.html" %}
+        {% endif %}
         {% include "marketing/components/_hero_geo_subline.html" %}
+        {% if marketing_regional_landing and marketing_geo_tagline %}
+        <h1 id="hero-headline" class="mkt-edt-hero-headline mkt-v3-hero-headline rmc-reveal">{{ marketing_geo_tagline }}</h1>
+        {% include "marketing/components/_regional_hero_lead.html" %}
+        {% else %}
         {% include "marketing/components/_rotating_headline.html" %}
         <p class="mkt-edt-lead mkt-edt-hero__lead rmc-reveal">
           {% trans "One quiet system behind admissions, classrooms, fees, and the message you send a parent at 8:14 a.m." %}
         </p>
+        {% endif %}
         <div class="mkt-edt-hero__ctas rmc-reveal">
           <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta rmc-tactile-48" data-cta="demo" data-page="home-v2" data-mkt-tactile>
             {% trans "Book a demo" %}
@@ -57,10 +65,11 @@
           <button type="button" class="mkt-edt-cta mkt-edt-cta--ghost rmc-tactile-48" data-tour-trigger="marketing_home">{% trans "Platform overview" %}</button>
         </div>
 
-        <ul class="mkt-edt-hero__stats rmc-reveal" aria-label="{% trans 'Quick proof points' %}">
+        <p class="mkt-edt-illustrative-pill mkt-edt-hero__illustrative rmc-reveal">{% trans "Illustrative rollout ranges — not a guarantee for your school" %}</p>
+        <ul class="mkt-edt-hero__stats rmc-reveal" aria-label="{% trans 'Illustrative proof ranges' %}">
           <li class="mkt-edt-hero__stat">
             <span class="mkt-edt-hero__stat-value">8 weeks</span>
-            <span class="mkt-edt-hero__stat-label">{% trans "to fully switch from legacy SIS" %}</span>
+            <span class="mkt-edt-hero__stat-label">{% trans "typical switch from legacy SIS (illustrative)" %}</span>
           </li>
           <li class="mkt-edt-hero__stat">
             <span class="mkt-edt-hero__stat-value">32 hrs</span>
@@ -95,6 +104,10 @@
   {% endif %}
 
   {% include "marketing/components/_product_proof_block.html" %}
+
+  <hr class="mkt-edt-rule">
+
+  {% include "marketing/components/_home_os_story.html" %}
 
   <hr class="mkt-edt-rule">
 
@@ -166,7 +179,7 @@
       animated reel. Anchor wrapper keeps the whole thing clickable.
       {% endcomment %}
       <div class="mkt-edt-walkthrough__portal-wrap rmc-reveal">
-        {% include "marketing/components/_video_portal.html" with portal_id="mkt-walkthrough-portal" portal_label=_("60-second walkthrough") video_src="marketing/video/hero-home.mp4" poster_src="marketing/img/hero-home-poster.svg" %}
+        {% include "marketing/components/_video_portal.html" with portal_id="mkt-walkthrough-portal" portal_label=_("Animated product preview") show_video_source=False poster_src="marketing/img/hero-home-poster.svg" %}
       </div>
 
       <button type="button" class="mkt-edt-walkthrough__poster mkt-edt-walkthrough__poster--secondary" aria-label="{% trans 'Play the 60-second walkthrough' %}" data-mkt-walkthrough-play data-mkt-tactile>
@@ -229,6 +242,9 @@
           <span class="mkt-scale-signal__mark" aria-hidden="true">{% include "components/_bell_clock_mark.html" with size=16 filled_segments=4 accessible_label="" %}</span>
           <span>{% blocktrans %}Running across <span class="mkt-scale-signal__count">{{ marketing_scale_school_count|default:"40+" }}</span> schools in <span class="mkt-scale-signal__count">{{ marketing_scale_country_count|default:"12" }}</span> countries{% endblocktrans %}</span>
         </p>
+        {% if marketing_scale_illustrative %}
+        <p class="small text-muted mb-0">{% trans "Illustrative scale signal—refresh from published metrics when partner consent allows." %}</p>
+        {% endif %}
       </header>
       <div class="mkt-edt-globe__map mkt-edt-globe__map--interactive" role="region" aria-labelledby="globe-map-title">
         {% include "schools/_v2/_decoration_world_map.svg.html" %}

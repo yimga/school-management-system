@@ -1,0 +1,28 @@
+{% load i18n %}
+<section class="card border-0 shadow-sm mb-4" id="security-country-annex" data-mkt-security-country-annex="1" aria-labelledby="annex-heading">
+  <div class="card-body">
+    <h2 id="annex-heading" class="h6">{% trans "Country annex preview" %}</h2>
+    <p class="small text-muted">{% trans "Illustrative one-pager for procurement—full attestations ship in the complete security packet after your request." %}</p>
+    {% if security_country_annex.illustrative %}
+    <p class="small mb-2"><span class="badge text-bg-secondary">{% trans "Illustrative preset" %}</span></p>
+    {% endif %}
+    <dl class="row small mb-0">
+      <dt class="col-sm-4">{% trans "Jurisdiction" %}</dt>
+      <dd class="col-sm-8" id="annex-country-code">{{ security_country_annex.country_code|default:"—" }}</dd>
+      <dt class="col-sm-4">{% trans "Compliance profile" %}</dt>
+      <dd class="col-sm-8" id="annex-profile-name">{{ security_country_annex.profile_name }}</dd>
+      <dt class="col-sm-4">{% trans "Profile ID" %}</dt>
+      <dd class="col-sm-8" id="annex-profile-id"><code>{% if security_country_annex.compliance_profile_id %}{{ security_country_annex.compliance_profile_id }}{% else %}—{% endif %}</code></dd>
+      <dt class="col-sm-4">{% trans "Currency" %}</dt>
+      <dd class="col-sm-8" id="annex-currency">{{ security_country_annex.currency_code }}</dd>
+      <dt class="col-sm-4">{% trans "Timezone default" %}</dt>
+      <dd class="col-sm-8" id="annex-timezone">{{ security_country_annex.timezone }}</dd>
+      <dt class="col-sm-4">{% trans "Retention" %}</dt>
+      <dd class="col-sm-8" id="annex-retention">{{ security_country_annex.retention_summary }}</dd>
+      <dt class="col-sm-4">{% trans "Calendar" %}</dt>
+      <dd class="col-sm-8" id="annex-calendar">{{ security_country_annex.calendar_note }}</dd>
+      <dt class="col-sm-4">{% trans "Residency" %}</dt>
+      <dd class="col-sm-8" id="annex-residency">{{ security_country_annex.data_residency_note }}</dd>
+    </dl>
+  </div>
+</section>

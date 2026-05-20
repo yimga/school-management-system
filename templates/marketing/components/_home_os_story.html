@@ -1,0 +1,28 @@
+{% load i18n static %}
+<section class="mkt-edt-section mkt-v3-section mkt-v3-os-story mkt-v3-os-story--edge rmc-reveal" aria-labelledby="os-story-headline" data-mkt-reveal data-mkt-section="os-story">
+  <div class="mkt-edt-container mkt-edt-container--edge">
+    <header>
+      <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Education operating system" %}</p>
+      <h2 id="os-story-headline" class="mkt-edt-section-headline mkt-v3-section-headline">
+        {% trans "Run every school day from one operating system." %}
+      </h2>
+      <p class="mkt-edt-lead mkt-v3-lead">
+        {% trans "Admissions, attendance, finance, teaching, parent communication, analytics, security, and daily operations — connected in one configurable platform." %}
+      </p>
+      <p class="mkt-edt-illustrative-pill">{% trans "Illustrative product diagrams — not customer-specific data" %}</p>
+    </header>
+    <figure class="mkt-v3-os-story__figure mkt-v3-os-story__figure--journey">
+      <img src="{% static 'images/marketing/home-unified-school-journey.svg' %}" alt="{% trans 'Diagram: learner journey from inquiry through enrollment, attendance, fees, assessment, report cards, parent portal, and leadership analytics' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-home-journey-visual="1">
+      <figcaption class="mkt-v3-os-story__caption">{% trans "One student journey — inquiry through governance on a single spine." %}</figcaption>
+    </figure>
+    <figure class="mkt-v3-os-story__figure mkt-v3-os-story__figure--surfaces">
+      <img src="{% static 'images/marketing/home-six-operating-surfaces.svg' %}" alt="{% trans 'Diagram: six operating surfaces — command center, teacher workspace, parent portal, finance cockpit, publishing studio, analytics and governance' %}" width="920" height="300" loading="lazy" decoding="async" data-mkt-home-surfaces-visual="1">
+      <figcaption class="mkt-v3-os-story__caption">{% trans "Six surfaces your staff and families actually open between the bells." %}</figcaption>
+    </figure>
+    <div class="mkt-edt-hero__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo" data-page="home-os-story">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-cta mkt-edt-cta--ghost" data-cta="product-tour" data-page="home-os-story">{% trans "See product tour" %}</a>
+      <a href="{% url 'marketing_procurement_checklist' %}" class="mkt-edt-cta mkt-edt-cta--ghost" data-cta="procurement" data-page="home-os-story">{% trans "Procurement checklist" %}</a>
+    </div>
+  </div>
+</section>

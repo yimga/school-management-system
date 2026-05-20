@@ -138,6 +138,9 @@ function loadManagerSurfaces() {
         return false;
       }
       if (tierFilter === 'all') return true;
+      if (tierFilter === 'admin_changelist') {
+        return row.tier === 'admin_changelist';
+      }
       if (tierFilter === 'operator+admin') {
         return row.tier === 'operator' || row.tier === 'admin_changelist';
       }
@@ -184,7 +187,12 @@ function loadTenantSurfaces() {
     });
 }
 
-const SURFACES = [...loadManagerSurfaces(), ...loadTenantSurfaces()];
+const INCLUDE_TENANT =
+  (process.env.SWEEP_INCLUDE_TENANT || '1').toLowerCase() !== '0';
+const SURFACES = [
+  ...loadManagerSurfaces(),
+  ...(INCLUDE_TENANT ? loadTenantSurfaces() : []),
+];
 
 function isInfraOrNonHtmlSkip(error) {
   const e = String(error || '');
@@ -374,6 +382,18 @@ async function main() {
     try {
       const resp = await gotoWithRetries(mgrPage, s.url);
       if (resp && resp.status() >= 400) {
+        if (resp.status() >= 500 && s.url.startsWith('/admin/')) {
+          failures += 1;
+          const row = {
+            ...s,
+            ok: false,
+            failures: [`http_${resp.status()}`],
+            error: `HTTP ${resp.status()}`,
+          };
+          results.push(row);
+          writeLog('SWEEP', 'FAIL', row);
+          continue;
+        }
         skipped += 1;
         results.push({ ...s, ok: true, skipped: `http_${resp.status()}` });
         continue;
@@ -388,6 +408,20 @@ async function main() {
       }
       await mgrPage.waitForTimeout(650);
       audit = await mgrPage.evaluate(sweepPageInBrowser, s.scrollRoot || null);
+      const requestedAdmin = s.url.startsWith('/admin/');
+      const landedAdmin = audit.path && String(audit.path).startsWith('/admin/');
+      if (requestedAdmin && !landedAdmin) {
+        skipped += 1;
+        const row = {
+          ...s,
+          ...audit,
+          ok: true,
+          skipped: 'redirect_escape',
+        };
+        results.push(row);
+        writeLog('SWEEP', 'skip_redirect_escape', row);
+        continue;
+      }
       const row = { ...s, ...audit };
       results.push(row);
       writeLog('SWEEP', row.ok ? 'pass' : 'FAIL', row);
@@ -498,8 +532,26 @@ async function main() {
       error: r.error,
     })),
   };
+  const auditPath = path.join(
+    process.cwd(),
+    'docs/generated/admin_playwright_sweep_audit.json'
+  );
+  fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+  fs.writeFileSync(
+    auditPath,
+    JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        ...summary,
+        results,
+      },
+      null,
+      2
+    ) + '\n'
+  );
   writeLog('SUMMARY', 'platform abrupt-end sweep', summary);
   console.log(JSON.stringify(summary, null, 2));
+  console.log(`Wrote ${auditPath}`);
   if (layoutFailed.length) {
     console.error('\nLayout failures (abrupt end / stranded reveal):');
     for (const f of layoutFailed) {

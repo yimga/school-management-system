@@ -1,0 +1,32 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-case-studies{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-v3-page mkt-v3-page--case-studies">
+  <header class="mkt-v3-page__hero mkt-edt-container rmc-reveal">
+    <p class="mkt-v3-eyebrow">{% trans "Case studies" %}</p>
+    <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
+  </header>
+  {% if page.segments %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
+    <div class="mkt-v3-segment-grid">
+      {% for seg in page.segments %}
+      <article class="mkt-v3-segment-card">
+        <h2 class="h5">{{ seg.title }}</h2>
+        <p>{{ seg.body }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  {% if page_extras.case_cards %}
+  {% include "marketing/partials/case_study_cards_honest.html" %}
+  {% endif %}
+  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal">
+    <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Discuss your rollout" %}</a>
+    <a href="{% url 'marketing_contact' %}" class="mkt-edt-cta mkt-edt-cta--secondary" data-cta="contact">{% trans "Become a documented partner" %}</a>
+  </section>
+</article>
+{% endblock %}

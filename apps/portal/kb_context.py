@@ -117,7 +117,7 @@ def filter_by_target_roles(queryset: QuerySet, request) -> QuerySet:
 
 def kb_categories_for_request(request, country_code: str, plan_tier: str):
     """Top-level active categories that have at least one visible published article."""
-    from apps.portal.models_kb import KBArticle, KBCategory
+    from apps.portal.models_kb import KBCategory
 
     is_op = is_operator_help_request(request)
     arts = published_kb_queryset()

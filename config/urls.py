@@ -1527,6 +1527,18 @@ urlpatterns = [
         "ca/", regional_marketing_landing, {"country_code": "CA"}, name="marketing_ca"
     ),
     path(
+        "ng/",
+        regional_marketing_landing,
+        {"country_code": "NG", "language_code": "en"},
+        name="marketing_ng",
+    ),
+    path(
+        "gb/",
+        regional_marketing_landing,
+        {"country_code": "GB", "language_code": "en"},
+        name="marketing_gb",
+    ),
+    path(
         "setup-studio/", onboarding_wizard, name="setup_studio"
     ),  # Public 3-step onboarding (delegates to onboarding_wizard); post-signup setup lives in siteconfig Setup Studio
     path("onboard/", onboarding_wizard, name="onboard_wizard"),

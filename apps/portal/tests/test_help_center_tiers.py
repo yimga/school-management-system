@@ -4,7 +4,7 @@ from django.test import SimpleTestCase
 
 from apps.portal.kb_synonyms import expand_query_synonyms
 from apps.portal.help_search_intelligence import zero_result_fingerprints, deflection_rate_summary
-from apps.portal.help_governance import ai_help_enabled_for_request, help_telemetry_retention_days
+from apps.portal.help_governance import help_telemetry_retention_days
 from apps.portal.kb_embeddings import effective_deflection_threshold, filter_kb_queryset_by_locale
 
 

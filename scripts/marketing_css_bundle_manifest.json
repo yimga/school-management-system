@@ -42,7 +42,7 @@
   ],
   "size_budget_bytes": {
     "critical_max": 45000,
-    "enhanced_max": 250000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; grammar/narrative/full shell deferred."
+    "enhanced_max": 280000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (275KB as of 2026-05-20). Deferred load via media=print onload."
   }
 }

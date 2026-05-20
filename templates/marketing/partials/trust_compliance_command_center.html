@@ -1,11 +1,11 @@
 {% load i18n %}
 <section class="mkt-edt-container mkt-trust-command-center rmc-reveal" aria-labelledby="trust-command-heading" data-mkt-trust-command-center="1">
   <header class="mkt-trust-command-center__header">
-    <h2 id="trust-command-heading" class="mkt-v3-section-headline">{% trans "Proof command center" %}</h2>
-    <p class="mkt-v3-lead mb-0">{% trans "Live posture from repository verifiers and generated ledgers—updated when CI gates run, not when copywriters edit." %}</p>
+    <h2 id="trust-command-heading" class="mkt-v3-section-headline">{% trans "Trust evidence dashboard" %}</h2>
+    <p class="mkt-v3-lead mb-0">{% trans "Posture summaries from automated release checks and procurement packets—refreshed when we ship, not when marketing copy is edited." %}</p>
     {% if trust_architecture_grade %}
     <p class="mkt-trust-command-grade">
-      <span class="mkt-trust-command-grade__label">{% trans "Architecture certification (repo scope)" %}</span>
+      <span class="mkt-trust-command-grade__label">{% trans "Architecture review grade" %}</span>
       <strong class="mkt-trust-command-grade__value">{{ trust_architecture_grade }}</strong>
       {% if trust_compliance_status %}<span class="mkt-trust-command-grade__meta">{{ trust_compliance_status }}</span>{% endif %}
     </p>
@@ -13,7 +13,7 @@
   </header>
 
   {% if trust_proof_badges %}
-  <div class="mkt-trust-proof-strip mkt-trust-proof-strip--command" role="list" aria-label="{% trans 'Repository proof posture' %}">
+  <div class="mkt-trust-proof-strip mkt-trust-proof-strip--command" role="list" aria-label="{% trans 'Release evidence posture' %}">
     {% for badge in trust_proof_badges %}
     <div class="mkt-trust-proof-badge mkt-trust-proof-badge--{{ badge.status }}" role="listitem">
       <span class="mkt-trust-proof-badge__label">{{ badge.label }}</span>
@@ -23,7 +23,7 @@
   </div>
   {% if trust_evidence_as_of %}
   <p class="mkt-trust-proof-meta">
-    {{ trust_evidence_as_of }}{% if trust_proof_artifact_count %} · {% blocktrans count counter=trust_proof_artifact_count %}{{ counter }} artifact{% plural %}{{ counter }} artifacts{% endblocktrans %}{% endif %}
+    {{ trust_evidence_as_of }}{% if trust_proof_artifact_count %} · {% blocktrans count counter=trust_proof_artifact_count %}{{ counter }} evidence artifact{% plural %}{{ counter }} evidence artifacts{% endblocktrans %}{% endif %}
   </p>
   {% endif %}
   {% endif %}
@@ -41,7 +41,7 @@
 
   {% if trust_ci_gates %}
   <div class="mkt-trust-ci-panel" aria-labelledby="trust-ci-heading">
-    <h3 id="trust-ci-heading" class="h6 mkt-trust-ci-panel__title">{% trans "Mechanical security gates (CI)" %}</h3>
+    <h3 id="trust-ci-heading" class="h6 mkt-trust-ci-panel__title">{% trans "Automated security checks (every release)" %}</h3>
     <ul class="mkt-trust-ci-list">
       {% for gate in trust_ci_gates %}
       <li class="mkt-trust-ci-list__item mkt-trust-ci-list__item--{{ gate.status }}">

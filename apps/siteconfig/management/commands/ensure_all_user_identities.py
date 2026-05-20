@@ -32,21 +32,26 @@ class Command(BaseCommand):
 
         total = qs.count()
         prefs_created = 0
+        dash_prefs_created = 0
         profiles_created = 0
 
         for user in qs.iterator(chunk_size=200):
             before_portal = hasattr(user, "preferences") and user.preferences
-            before_dash = hasattr(user, "dashboard_preferences") and user.dashboard_preferences
+            before_dash = (
+                hasattr(user, "dashboard_preferences") and user.dashboard_preferences
+            )
             identity = ensure_user_identity(user)
             if identity.get("portal_preference") and not before_portal:
                 prefs_created += 1
+            if identity.get("dashboard_preference") and not before_dash:
+                dash_prefs_created += 1
             if identity.get("people_profile"):
                 profiles_created += 1
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"ensure_all_user_identities: {total} user(s) processed "
-                f"(preferences bootstrapped where missing; "
+                f"(portal prefs: {prefs_created}, dashboard prefs: {dash_prefs_created}; "
                 f"{profiles_created} staff profile(s) ensured)"
             )
         )

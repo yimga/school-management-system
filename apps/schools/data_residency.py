@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 # Canonical region codes the platform recognises. Operators may seed
 # additional values via `RuntimeDefaults.payload["data_residency.regions"]`
 # without touching code, but the audit trail prefers the canonical set.
+# Default region when no country mapping exists; served by the primary DB (no replica).
+GLOBAL_DATA_REGION: str = "global"
+
 CANONICAL_REGIONS: frozenset[str] = frozenset({
     "us_east",
     "us_west",
@@ -80,7 +83,7 @@ def derive_default_region(country_code: str) -> str:
     """
     code = (country_code or "").strip().upper()
     if not code:
-        return "global"
+        return GLOBAL_DATA_REGION
     try:
         from apps.platform_runtime.models import RuntimeDefaults
 
@@ -94,7 +97,7 @@ def derive_default_region(country_code: str) -> str:
                     return explicit.strip()
     except (ImportError, RuntimeError, AttributeError, ValueError):
         pass
-    return DEFAULT_REGION_BY_COUNTRY.get(code, "global")
+    return DEFAULT_REGION_BY_COUNTRY.get(code, GLOBAL_DATA_REGION)
 
 
 def effective_region(school: Any) -> str:

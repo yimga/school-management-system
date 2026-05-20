@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-scroll-policy="paginate">
+<div class="cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
   {% if PREVIEW_MODE_ENABLED %}
   <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
     <span>{% trans "Preview mode" %} — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}</span>
@@ -98,10 +98,16 @@
     </div>
   </section>
 
-  <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Model catalog by section" %}</h2>
+  <h2 class="h6 text-uppercase text-muted mb-2" id="rmc-admin-catalog-heading">{% trans "Model catalog by section" %}</h2>
   {% if admin_catalog and admin_catalog.sections %}
+  <nav class="rmc-page-fold-nav rmc-section-nav mb-3" aria-label="{% trans 'Catalog sections' %}">
+    <a href="#rmc-admin-catalog-heading" class="active" data-rmc-section-anchor>{% trans "Overview" %}</a>
     {% for section in admin_catalog.sections %}
-    <details class="rmc-admin-catalog-section" data-rmc-admin-catalog-section open>
+    <a href="#rmc-admin-sec-{{ forloop.counter }}" data-rmc-section-anchor>{{ section.title }}</a>
+    {% endfor %}
+  </nav>
+    {% for section in admin_catalog.sections %}
+    <details class="rmc-admin-catalog-section" id="rmc-admin-sec-{{ forloop.counter }}" data-rmc-admin-catalog-section>
       <summary>
         <span>{{ section.title }}</span>
         <span class="text-muted small"><span data-rmc-section-visible-count>{{ section.model_count }}</span> / {{ section.model_count }} {% trans "models" %}</span>

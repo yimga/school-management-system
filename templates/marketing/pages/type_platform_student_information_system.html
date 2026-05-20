@@ -7,8 +7,9 @@
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Student information · academics lane") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-archetype__hero" %}
   <div class="mkt-edt-container mkt-v3-archetype__ctas">
     <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
-    <a href="{% url 'marketing_teach_hub' %}" class="mkt-edt-link">{% trans "Back to Teach →" %}</a>
+    <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform overview →" %}</a>
   </div>
+  {% include "marketing/components/_platform_archetype_visual.html" with visual_static="images/marketing/platform-sis-record-spine.svg" visual_alt=_("Diagram: student record spine linking guardians, enrollment, documents, attendance, fees, and grades") %}
   {% include "marketing/components/_dashboard_frame.html" with frame_title="Learner spine" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" frame_extra_class="mkt-v3-dashboard-frame--lane-academics" %}
   <div class="mkt-edt-container">
     {% include "marketing/components/_lane_academics_matrix.html" %}

@@ -1065,6 +1065,18 @@ urlpatterns = [
         {"country_code": "CA", "language_code": "en"},
         name="marketing_ca",
     ),
+    path(
+        "ng/",
+        regional_marketing_landing,
+        {"country_code": "NG", "language_code": "en"},
+        name="marketing_ng",
+    ),
+    path(
+        "gb/",
+        regional_marketing_landing,
+        {"country_code": "GB", "language_code": "en"},
+        name="marketing_gb",
+    ),
     path("onboard/", onboarding_wizard, name="onboard_wizard"),
     path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),

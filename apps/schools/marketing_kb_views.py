@@ -11,7 +11,6 @@ from django.views.decorators.http import require_GET
 from apps.portal.marketing_kb import (
     marketing_kb_article_by_slug,
     marketing_kb_category_by_slug,
-    marketing_kb_hub_bundle,
     marketing_kb_search_hybrid,
     marketing_kb_typeahead,
 )

@@ -15,14 +15,14 @@
           {% if forloop.counter <= marketing_navbar_visible_count|default:7 %}
           <li class="nav-item {% if item.children or item.mega_columns %}dropdown mkt-nav-dropdown{% if item.mega_columns %} mkt-nav-dropdown--mega{% endif %}{% endif %}">
             {% if item.children or item.mega_columns %}
-            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true" data-menu-name="{{ item.label }}">{{ item.label }}{% if item.bridge_label %}<span class="mkt-nav-bridge">{{ item.bridge_label }}</span>{% endif %}</a>
+            <a class="nav-link px-2 dropdown-toggle" href="{{ item.path }}" id="mktNavDd{{ forloop.counter }}" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true" data-menu-name="{{ item.label }}">{{ item.label }}</a>
             {% if item.mega_columns %}
             <ul class="dropdown-menu dropdown-menu-dark mkt-mega-menu" aria-labelledby="mktNavDd{{ forloop.counter }}">
               <li class="px-0 py-0">
                 <div class="mkt-mega-inner px-3 py-3">
                   <div class="row g-3">
                     {% for col in item.mega_columns %}
-                    <div class="{% if item.mega_columns|length == 2 %}col-md-6{% else %}col-md-4{% endif %}">
+                    <div class="{% if item.mega_columns|length == 2 %}col-md-6{% elif item.mega_columns|length >= 4 %}col-md-3{% else %}col-md-4{% endif %}">
                       <div class="mkt-mega-col-title">{{ col.title }}</div>
                       {% for link in col.links %}
                       <a class="mkt-mega-link" href="{{ link.path }}" data-menu-link="1" data-menu-name="{{ item.label }}" data-link-label="{{ link.label }}" data-link-target="{{ link.path }}">
@@ -101,6 +101,7 @@
         {% if not PUBLIC_BRAND_MODE %}
         {% include "marketing/components/_theme_toggle.html" %}
         {% endif %}
+        {% include "marketing/components/_marketing_region_affordance.html" %}
         <a class="mkt-status-pill" href="{% url 'status' %}" data-mkt-status aria-label="{% trans 'Platform status' %}" title="{% trans 'Platform status' %}">
           <span class="mkt-status-pill__dot" aria-hidden="true"></span>
           <span class="mkt-status-pill__label" data-mkt-status-label>{% trans "All systems operational" %}</span>

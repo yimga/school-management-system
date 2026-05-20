@@ -1,18 +1,40 @@
 {
   "label": "Security & Trust",
   "seo_title": "Security & Trust | RunMyCampus",
-  "seo_description": "Tenant isolation, governance audits, impersonation logging, and export controls — visibility-first security for education operations.",
-  "headline": "Security and trust by design.",
-  "subheadline": "Tenant isolation, scoped access, audit-friendly exports, and evidence you can show auditors—without claiming certifications we have not verified for your deployment.",
+  "seo_description": "Tenant isolation, audit-ready exports, regional compliance defaults, and honest attestations—for schools and procurement teams worldwide.",
+  "headline": "Security your board and auditors can understand.",
+  "subheadline": "Every campus stays isolated. Access is role-based and logged. We document posture honestly—certifications and live payment rails only when externally verified for your deployment.",
   "schema_type": "WebPage",
   "segments": [
-    {"title": "Tenant isolation", "body": "School-scoped data paths with operator-run isolation audits and review queues."},
-    {"title": "Governance visibility", "body": "Generated security surface and POST-handler scans for mechanical review — operators stay in the loop."},
-    {"title": "Support access", "body": "Impersonation and support flows are logged and permissioned — no silent elevation."},
-    {"title": "Exports & downloads", "body": "Sensitive exports remain permission-checked; public anonymous report export is not a product path."}
+    {
+      "title": "Campus isolation",
+      "body": "Each school's data is scoped to its tenant. Cross-campus access is deliberate, permissioned, and reviewable—not accidental."
+    },
+    {
+      "title": "Operational visibility",
+      "body": "Security controls are tested continuously in our release pipeline. Your team receives summaries suitable for RFPs—not engineering jargon buried in tickets."
+    },
+    {
+      "title": "Support access",
+      "body": "When operators assist your school, impersonation and elevation are logged. There is no silent back-door access path."
+    },
+    {
+      "title": "Exports & records",
+      "body": "Sensitive exports require permission checks. Student-record downloads follow the same discipline your registrars expect."
+    }
   ],
   "extras": {
-    "trust_strip": ["Tenant isolation", "Governance audits", "Scoped marketplace installs", "Evidence-first operations"],
-    "cta_primary": {"label": "Book a demo", "href": "/book-demo/"}
+    "trust_strip": [
+      "Campus isolation",
+      "Audit-ready exports",
+      "Regional compliance defaults",
+      "Honest attestations"
+    ],
+    "architecture_summary": "RunMyCampus is multi-tenant by design: each school operates in its own scoped environment with host-level routing, role-based access, and regional configuration profiles. Groups can govern many campuses without blending student records.",
+    "encryption_copy": "Data is encrypted in transit (TLS). Sensitive fields at rest use platform key management with documented rotation procedures—details are included in the security packet we provide during procurement.",
+    "cta_primary": {
+      "label": "Book a demo",
+      "href": "/demo/"
+    }
   }
 }

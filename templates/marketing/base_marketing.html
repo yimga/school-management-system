@@ -45,8 +45,8 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-critical.min.css' %}">
   <link rel="prefetch" href="{% static 'marketing/css/marketing-enhanced.min.css' %}" as="style">
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-enhanced.min.css" %}
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-page-personality.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-viz.css' %}">
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-page-personality.css" %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-personality-viz.css" %}
   {% block extrastyle %}{% endblock %}
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}

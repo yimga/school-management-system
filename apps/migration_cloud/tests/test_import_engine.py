@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import csv
 from decimal import Decimal
-from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase

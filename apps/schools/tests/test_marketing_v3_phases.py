@@ -15,8 +15,8 @@ from apps.schools.marketing_v3_surfaces import (
 
 
 class MarketingVerbNavTest(SimpleTestCase):
-    def test_verb_nav_enabled_by_default(self) -> None:
-        self.assertTrue(marketing_verb_nav_enabled())
+    def test_verb_nav_disabled_by_default(self) -> None:
+        self.assertFalse(marketing_verb_nav_enabled())
 
     def test_verb_nav_has_five_verbs(self) -> None:
         labels = [x["label"] for x in marketing_navbar_verb_primary()]

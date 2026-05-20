@@ -10,9 +10,10 @@
     <p class="mkt-v3-lead">{{ page.subheadline }}</p>
     <div class="mkt-v3-archetype__ctas">
       <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
-      <a href="{% url 'marketing_grow_hub' %}" class="mkt-edt-link">{% trans "Back to Grow →" %}</a>
+      <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform overview →" %}</a>
     </div>
   </header>
+  {% include "marketing/components/_platform_archetype_visual.html" with visual_static="images/marketing/platform-workflows-automation-timeline.svg" visual_alt=_("Diagram: workflow automation with triggers, approvals, tasks, and audit trail") %}
   {% include "marketing/components/_dashboard_frame.html" with frame_title="Approval queue" dashboard_partial="schools/_v2/_artifact_it_health.svg.html" %}
   <section class="mkt-edt-container mkt-v3-archetype__wins">
     <h2>{% trans "Approvals without hallway chase" %}</h2>

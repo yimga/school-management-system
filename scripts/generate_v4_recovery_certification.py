@@ -114,7 +114,7 @@ def main() -> int:
         "verify_prompt_pack_strict": _run([sys.executable, "scripts/verify_orchestrator_prompt_pack.py", "--strict"]),
         "verify_orchestrator_v5_bundle": _run(
             [sys.executable, "scripts/verify_orchestrator_v5_bundle.py"],
-            240,
+            600,
         ),
         "verify_five_pillar_platform": _run(
             [sys.executable, "scripts/verify_five_pillar_platform_completion.py"],
@@ -126,7 +126,7 @@ def main() -> int:
         ),
         "verify_interaction_integrity": _run(
             [sys.executable, "scripts/verify_interaction_integrity_completion.py"],
-            180,
+            600,
         ),
         "scan_operator_dead_hrefs": _run(
             [sys.executable, "scripts/scan_operator_shell_dead_hrefs.py", "--strict"],

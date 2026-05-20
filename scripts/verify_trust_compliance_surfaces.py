@@ -15,11 +15,11 @@ if str(ROOT) not in sys.path:
 REQUIRED_PARTIAL_MARKERS = {
     "marketing/partials/trust_compliance_command_center.html": [
         'data-mkt-trust-command-center="1"',
-        "Proof command center",
+        "Trust evidence dashboard",
     ],
     "marketing/partials/trust_compliance_control_framework.html": [
         'data-mkt-trust-control-framework="1"',
-        "Mechanism",
+        "How it works",
     ],
     "marketing/partials/trust_compliance_regulatory_grid.html": [
         'data-mkt-trust-regulatory="1"',
@@ -36,6 +36,7 @@ REQUIRED_PARTIAL_MARKERS = {
     ],
     "marketing/pages/type_trust_center.html": [
         'data-mkt-trust-center="1"',
+        "_local_first_global_next.html",
         "trust_compliance_command_center.html",
         "trust_compliance_external_honesty.html",
     ],

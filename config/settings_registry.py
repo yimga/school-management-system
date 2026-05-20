@@ -567,7 +567,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("LANGUAGE_COOKIE_PATH", "str", '"/"', "i18n", "Language cookie path."),
     SettingSpec("LANGUAGE_COOKIE_SAMESITE", "str", '"Lax"', "i18n", "Language cookie SameSite policy."),
     SettingSpec("LANGUAGE_COOKIE_SECURE", "bool", "False", "i18n", "Language cookie Secure flag."),
-    SettingSpec("MARKETING_VERB_NAV_ENABLED", "bool", "True", "marketing", "Enable marketing verb-canonical nav."),
+    SettingSpec("MARKETING_VERB_NAV_ENABLED", "bool", "False", "marketing", "Enable marketing verb-canonical nav (default: enterprise Platform/Solutions IA)."),
     SettingSpec("OAUTH_CALLBACK_BASE_URL", "str", '""', "security", "Base URL for OAuth callback construction."),
     SettingSpec("PASS_THRESHOLD_DEFAULT", "float", "10.0", "academics", "Default pass mark threshold."),
     SettingSpec("PAYMENT_MAX_AMOUNT", "int", "0", "finance", "Optional cap on payment amounts (0=disabled)."),

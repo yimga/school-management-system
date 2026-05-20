@@ -77,8 +77,15 @@ Tenant **`/admin/`** (`TenantAdminSite`) is a **different** site: tenant models 
 | Add action missing on manager changelists | P0 | **Fixed** — `change_list_object_tools.html`. |
 | No search across ~171 models | P0 | **Fixed** — `build_platform_admin_catalog` + index/sidebar search. |
 | Duplicate steering (path banner + outcome deck + siteconfig hints) | P1 | **DONE** — `admin_operator_steering_strip.html` (dismissible, sessionStorage). |
-| `admin/dashboard/` redirects to index; rich `admin_dashboard.html` unused | P2 | **Partial** — index KPIs wired; dedicated dashboard template still optional. |
-| Dual marketplace app labels in sidebar | P2 | Open — consolidate IA copy. |
+| `admin/dashboard/` redirects to index; rich `admin_dashboard.html` unused | P2 | **DONE** — `obs_views.admin_dashboard` → `admin:index`; shim extends `index_superadmin.html`. |
+| Dual marketplace app labels in sidebar | P2 | **DONE** — `PLATFORM_APP_ORDER` labels: Integrations catalog vs Marketplace apps. |
+| Surface strip missing on `/admin/` | P2 | **DONE** — `rmc_operator_surface_strip.html` in `admin_operator_steering` block. |
+| Paired CTAs only on changelists | P2 | **DONE** — `admin_change_form_header.html` + `_admin_changelist_url_name_for_resolver()`. |
+| Page-fold on catalog index (~171 models) | P2 | **DONE** — collapsed `<details>`, `data-rmc-page-fold-nav`, section anchor nav. |
+| `operator_path_banner.html` orphan | P2 | **DONE** — deleted; steering strip only. |
+| CI gates for admin contracts | P3 | **DONE** — `architectural-boundaries.yml` runs steering + changelist render verifiers. |
+| Full Playwright admin sweep | P3 | **DONE (script + CI)** — `bash scripts/run_admin_abrupt_end_sweep.sh` (starts server, 175 changelists); `bash scripts/run_admin_full_proof_bundle.sh` runs Django crawl + Playwright; workflow `.github/workflows/admin-platform-proof.yml`. |
+| Full Django render crawl | P3 | **DONE** — `ADMIN_RENDER_FULL=1 python scripts/verify_admin_changelist_render_contract.py --write` → `docs/generated/admin_changelist_render_audit.json` (173 ok, 2 redirect_escape). |
 | App index pages still flat Unfold default | P2 | **DONE** — `app_index.html` + `enrich_app_index_models()`. |
 
 ### Gear-up roadmap (aggressive)
@@ -91,7 +98,7 @@ Tenant **`/admin/`** (`TenantAdminSite`) is a **different** site: tenant models 
 | **P1** | Changelist **Open operator view** on bridged models | `super_admin_paired_surfaces.py` (`on_manager_admin`); `admin_changelist_header.html`. |
 | **P2** | Index KPIs from `build_admin_dashboard_context` | `build_admin_index_kpi_strip()`; `admin_index_kpis` on index. |
 | **P2** | App index (`admin/app_index.html`) | `PlatformAdminSite.app_index()` + `enrich_app_index_models()`. |
-| **P3** | Admin changelist render smoke + Playwright | `verify_admin_changelist_render_contract.py` (24-route Django smoke); `bash scripts/run_admin_abrupt_end_sweep.sh` when Django is on `:8012` with `manager.runmycampus.com` mapped to `127.0.0.1`. |
+| **P3** | Admin changelist render smoke + Playwright | `verify_admin_steering_strip_contract.py`; `verify_admin_changelist_render_contract.py` (PR sample 32; `ADMIN_RENDER_FULL=1 --write` for all 175); `bash scripts/run_admin_full_proof_bundle.sh`; `bash scripts/run_admin_abrupt_end_sweep.sh`; CI `admin-platform-proof.yml`. |
 
 ### Key files
 

@@ -65,6 +65,7 @@ def assess_readiness(*, slug_filter: str = "") -> ReadinessReport:
     useful for narrowing down "why does this tenant fail?" investigations.
     """
     from apps.schools.data_residency import (
+        GLOBAL_DATA_REGION,
         derive_default_region,
         effective_region,
     )
@@ -99,7 +100,7 @@ def assess_readiness(*, slug_filter: str = "") -> ReadinessReport:
         explicit = (school.data_region or "").strip()
         if not explicit:
             derived = derive_default_region(school.country_code or "")
-            if derived and derived != "global":
+            if derived and derived != GLOBAL_DATA_REGION:
                 report.unbackfilled_schools.append(
                     (school.slug, (school.country_code or "--"), derived)
                 )
@@ -108,7 +109,7 @@ def assess_readiness(*, slug_filter: str = "") -> ReadinessReport:
     # "global" which is served by the default DB by definition.
     aliases = report.registered_replica_aliases
     for region in sorted(report.schools_active_regions):
-        if region == "global":
+        if region == GLOBAL_DATA_REGION:
             continue
         if region not in aliases:
             report.missing_replicas.append(region)

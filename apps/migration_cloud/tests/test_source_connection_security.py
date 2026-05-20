@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -15,7 +14,6 @@ from apps.migration_cloud.models_connectors import (
 )
 from apps.migration_cloud.services.connector_credentials import (
     create_source_connection,
-    purge_source_credentials,
     redact_connection_for_display,
     retrieve_source_credential_for_runtime,
     revoke_source_connection,

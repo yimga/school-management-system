@@ -186,10 +186,11 @@
       "path": "apps/tenancy/"
     }
   ],
-  "generated_at": "2026-05-20T04:53:15.518989+00:00",
+  "generated_at": "2026-05-20T13:57:50.856166+00:00",
   "generated_proof_artifacts": [
     "academic_operations_certification.json",
     "academic_operations_workflow_audit.json",
+    "admin_changelist_render_audit.json",
     "admin_config_browser_qa_report.json",
     "admin_config_domain_implementation_matrix.json",
     "admin_config_domain_route_matrix.json",
@@ -199,6 +200,7 @@
     "admin_config_wiring_matrix.json",
     "admin_control_plane_replacement_candidates.json",
     "admin_gravity_audit.json",
+    "admin_playwright_sweep_audit.json",
     "admin_usage_extended_audit.json",
     "administration_surface_map.json",
     "agent5_migration_pillar_second_pass_audit.json",
@@ -224,6 +226,7 @@
     "blueprint_marketplace_depth_discovery.json",
     "category_scope_review.json",
     "certifier_failure_triage.json",
+    "code_support_index.json",
     "compliance_evidence_ledger.json",
     "config_policy_entitlement_certification.json",
     "control_plane_sweep_routes.json",
@@ -234,10 +237,7 @@
     "design_system_audit.json",
     "dr_drill_log.json",
     "ecosystem_sovereignty_validation_matrix.json",
-    "edge_surface_browser_qa.json",
-    "edge_surface_routing_audit.json",
-    "emotional_ux_audit.json",
-    "emotional_ux_confidence_audit.json"
+    "edge_surface_browser_qa.json"
   ],
   "metadata_only": true,
   "pii_free": true,

@@ -5,7 +5,6 @@ Ensure DRAFT KB articles exist for guided-journey slug map (batch 1354).
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-from django.utils.text import slugify
 
 from apps.portal.help_guided_journeys import JOURNEY_BY_PREFIX
 from apps.portal.models_kb import HelpAudience, KBArticle, KBCategory

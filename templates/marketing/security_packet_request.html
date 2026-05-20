@@ -1,5 +1,5 @@
 {% extends "schools/marketing_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{{ seo_title }}{% endblock %}
 {% block content %}
 <div class="container py-5" style="max-width: 40rem">
@@ -16,9 +16,21 @@
   <div class="alert alert-warning">{% trans "We could not confirm delivery. If you included an email, we still logged your intent — please try again or use the general contact page." %}</div>
   {% endif %}
 
+  <div class="mb-4">
+    <label class="form-label" for="sp_jurisdiction_preview">{% trans "Which jurisdiction governs your student records?" %}</label>
+    <select id="sp_jurisdiction_preview" class="form-select" data-mkt-security-jurisdiction-preview>
+      <option value="">{% trans "Select to preview country annex" %}</option>
+      {% for row in jurisdiction_choices %}
+      <option value="{{ row.value }}"{% if row.value == selected_jurisdiction %} selected{% endif %}>{{ row.label }}</option>
+      {% endfor %}
+    </select>
+    <p class="small text-muted mt-2 mb-0">{% trans "Preview calendar, currency, and retention defaults for procurement—full attestations ship in the complete packet." %}</p>
+  </div>
+
+  {% include "marketing/partials/security_packet_country_annex.html" %}
+
   <form method="post" action="{{ submit_url }}" class="card border-0 shadow-sm">
     {% csrf_token %}
-    {# Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. #}
     <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
       <label for="sp_website_url">{% trans "Leave this field empty" %}</label>
       <input type="text" id="sp_website_url" name="website_url" tabindex="-1" autocomplete="off">
@@ -41,7 +53,16 @@
         <input class="form-control" id="sp_role" name="role" maxlength="128" placeholder="{% trans 'e.g. CIO, DPO, procurement lead' %}">
       </div>
       <div class="mb-3">
-        <label class="form-label" for="sp_country">{% trans "Country" %}</label>
+        <label class="form-label" for="sp_jurisdiction">{% trans "Which jurisdiction governs your student records?" %}</label>
+        <select class="form-select" id="sp_jurisdiction" name="compliance_jurisdiction" data-mkt-security-jurisdiction-form>
+          <option value="">{% trans "Select jurisdiction" %}</option>
+          {% for row in jurisdiction_choices %}
+          <option value="{{ row.value }}"{% if row.value == selected_jurisdiction %} selected{% endif %}>{{ row.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="sp_country">{% trans "Country (optional detail)" %}</label>
         <input class="form-control" id="sp_country" name="country" maxlength="128">
       </div>
       <div class="mb-3">
@@ -52,6 +73,7 @@
         <label class="form-label" for="sp_art">{% trans "Artefacts needed" %}</label>
         <textarea class="form-control" id="sp_art" name="artifact_needs" rows="4" maxlength="4000" placeholder="{% trans 'e.g. data flow, subprocessors, pen test summary, RLS model, incident response' %}"></textarea>
       </div>
+      <input type="hidden" name="compliance_profile_id" id="sp_compliance_profile_id" value="{{ security_country_annex.compliance_profile_id }}">
       <button type="submit" class="btn btn-primary">{% trans "Submit request" %}</button>
     </div>
   </form>
@@ -62,4 +84,6 @@
     <a href="{{ trust_url }}">{% trans "Trust center" %}</a>
   </p>
 </div>
+<script type="application/json" id="mkt-security-annex-data">{{ annex_by_jurisdiction_json|safe }}</script>
+<script src="{% static 'marketing/js/mkt-security-packet-annex.js' %}" defer></script>
 {% endblock %}

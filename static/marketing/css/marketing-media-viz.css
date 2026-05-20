@@ -80,6 +80,26 @@
   width: 100%;
 }
 
+.mkt-hero-showcase__visual {
+  margin: 0;
+  width: 100%;
+}
+
+.mkt-hero-showcase__composite {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 1rem;
+  border: 1px solid var(--mkt-edt-rule);
+  box-shadow: var(--mkt-edt-shadow-artifact, 0 24px 48px -16px rgba(31, 41, 55, 0.18));
+}
+
+.mkt-hero-showcase__caption {
+  margin: 0.65rem 0 0;
+  text-align: center;
+}
+
 .mkt-live-pulse {
   border-radius: 1rem;
   border: 1px solid var(--mkt-edt-rule);

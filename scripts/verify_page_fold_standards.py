@@ -117,6 +117,28 @@ def main() -> int:
         "feature_control_panel_content.html",
     )
 
+    admin_index = _read("templates/admin/index_superadmin.html")
+    add(
+        "admin_index_fold_nav",
+        "Platform admin index marks data-rmc-page-fold-nav=required",
+        'data-rmc-page-fold-nav="required"' in admin_index,
+        "templates/admin/index_superadmin.html",
+    )
+    add(
+        "admin_index_section_nav",
+        "Platform admin index includes rmc-page-fold-nav section anchors",
+        "rmc-page-fold-nav" in admin_index and "data-rmc-section-anchor" in admin_index,
+        "templates/admin/index_superadmin.html",
+    )
+    add(
+        "admin_index_catalog_collapsed",
+        "Platform admin catalog sections default collapsed (no open attribute)",
+        "<details" in admin_index
+        and 'data-rmc-admin-catalog-section' in admin_index
+        and "<details class=\"rmc-admin-catalog-section\" id=" in admin_index,
+        "templates/admin/index_superadmin.html",
+    )
+
     pagination_partial = _read("templates/components/pagination.html")
     add(
         "pagination_partial",

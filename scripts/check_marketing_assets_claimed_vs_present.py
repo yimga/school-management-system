@@ -41,6 +41,7 @@ ASSETS_DIR = REPO_ROOT / "static" / "images" / "marketing"
 TEMPLATES_DIR = REPO_ROOT / "templates"
 
 ASSET_PREFIXES = (
+    "home",
     "platform",
     "solution",
     "module",
@@ -85,22 +86,7 @@ PLANNED_MARKERS = (
 # Explicit roadmap allowlist — assets named in docs as future deliverables.
 # Each entry needs a reason so the allowlist stays honest. Remove an entry
 # only when the corresponding asset ships AND is referenced from a template.
-PLANNED_ASSETS: dict[str, str] = {
-    "platform-admissions-readiness-board.svg":
-        "Phase-1 design work — Readiness-board archetype for /run/admissions/",
-    "platform-fees-collection-cockpit.svg":
-        "Phase-1 design work — Finance-cockpit archetype for /pay/fees/",
-    "platform-parent-day-in-life.svg":
-        "Phase-1 design work — Persona day artifact for /solutions/parent/",
-    "platform-teacher-classroom-desk.svg":
-        "Phase-1 design work — Classroom-desk archetype for /teach/",
-    "solution-faith-community-hub.svg":
-        "Phase-1 design work — Community-operations archetype for /solutions/faith-based/",
-    "solution-growing-network-playbook.svg":
-        "Phase-1 design work — Launch-playbook archetype for /solutions/growing-networks/",
-    "solution-private-growth-engine.svg":
-        "Phase-1 design work — Enrollment-growth archetype for /solutions/private/",
-}
+PLANNED_ASSETS: dict[str, str] = {}
 
 # Legacy placeholder assets kept on disk for backfill/fallback paths but not
 # referenced by any current view/template. Retirement decision deferred to a
@@ -112,6 +98,12 @@ LEGACY_KEPT_ASSETS: dict[str, str] = {
         "Generic logo placeholder for press-marks and partner-tile fallbacks",
     "testimonial-thumb.svg":
         "Generic avatar fallback for testimonial cards when a real photo is absent",
+    "platform-analytics-leadership-dashboard.svg":
+        "Canonical source; templates reference platform-analytics-leadership.svg (alias copy)",
+    "platform-security-governance-center.svg":
+        "Canonical source; templates reference platform-security-governance.svg (alias copy)",
+    "platform-fees-collection-cockpit.svg":
+        "Canonical source; templates reference platform-fees-payments-dashboard.svg (alias copy)",
 }
 
 

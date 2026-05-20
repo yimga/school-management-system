@@ -9,7 +9,28 @@
     <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
     <p class="mkt-v3-lead">{{ page.subheadline }}</p>
   </header>
-  {% if page.segments %}
+  {% include "marketing/components/_local_first_global_next.html" with compact=True %}
+
+  {% if page_extras.contact_intent_cards %}
+  <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="contact-routing-heading">
+    <h2 id="contact-routing-heading" class="mkt-v3-section-headline">{% trans "Choose how you want to engage" %}</h2>
+    <p class="mkt-v3-lead mkt-v3-lead--compact">{% trans "We route every message to the right team—expectations are labeled up front." %}</p>
+    <div class="mkt-v3-segment-grid">
+      {% for card in page_extras.contact_intent_cards %}
+      <article class="mkt-v3-segment-card mkt-v3-segment-card--intent">
+        <h2 class="h5">{{ card.title }}</h2>
+        <p>{{ card.body }}</p>
+        {% if card.cta_href %}
+        <a href="{{ card.cta_href }}" class="mkt-edt-cta mkt-edt-cta--secondary mkt-v3-segment-card__cta" data-cta="contact-routing">{{ card.cta_label }}</a>
+        {% endif %}
+        {% if card.hint %}<p class="small text-muted mb-0">{{ card.hint }}</p>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% if page_extras.contact_support_note %}<p class="small text-muted mt-3 mb-1">{{ page_extras.contact_support_note }}</p>{% endif %}
+    {% if page_extras.contact_implementation_note %}<p class="small text-muted mb-0">{{ page_extras.contact_implementation_note }}</p>{% endif %}
+  </section>
+  {% elif page.segments %}
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
     <div class="mkt-v3-segment-grid">
       {% for seg in page.segments %}
@@ -21,6 +42,7 @@
     </div>
   </section>
   {% endif %}
+
   <section class="mkt-edt-container rmc-reveal">
     {% include "marketing/components/_marketing_contact_form.html" %}
   </section>

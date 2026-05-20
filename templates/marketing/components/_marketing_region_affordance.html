@@ -1,0 +1,28 @@
+{% load i18n %}
+{% if marketing_region_show_affordance and not marketing_region_is_regional_page %}
+<div class="mkt-region-affordance d-none d-lg-flex align-items-center gap-2" data-mkt-region-affordance="1">
+  <span class="mkt-region-affordance__label small text-white-50">{% trans "Your region" %}</span>
+  <a href="{{ marketing_region_landing_path }}" class="mkt-region-affordance__chip btn btn-sm btn-outline-light" data-cta="region-landing">
+    {{ marketing_region_detected_label }}
+  </a>
+  <div class="dropdown">
+    <button type="button" class="btn btn-sm btn-link text-white-50 text-decoration-none dropdown-toggle mkt-region-affordance__change" id="mktRegionPicker" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false" aria-haspopup="true">
+      {% trans "Change" %}
+    </button>
+    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="mktRegionPicker">
+      {% for opt in marketing_region_picker_options %}
+      <li>
+        <a class="dropdown-item{% if opt.country_code == marketing_region_detected_code %} active{% endif %}" href="{{ opt.path }}" lang="{{ opt.default_language }}">{{ opt.label }}</a>
+      </li>
+      {% endfor %}
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item" href="{% url 'home' %}">{% trans "Global homepage" %}</a></li>
+    </ul>
+  </div>
+</div>
+{% elif marketing_region_is_regional_page %}
+<p class="mkt-region-affordance mkt-region-affordance--banner small mb-0" data-mkt-region-affordance="regional">
+  {% blocktrans with region=marketing_region_detected_label %}Viewing RunMyCampus for <strong>{{ region }}</strong>{% endblocktrans %}
+  · <a href="{% url 'home' %}" class="mkt-edt-link">{% trans "Global site" %}</a>
+</p>
+{% endif %}

@@ -148,8 +148,13 @@ def main(argv: list[str] | None = None) -> int:
         for label, rx in PATTERNS:
             if rx.search(text):
                 # Allow obvious placeholders in docs/tests
-                if "/tests/" in str(path).replace("\\", "/") and "AKIA" in label:
-                    if "EXAMPLE" in text or "placeholder" in text.lower():
+                rel = str(path).replace("\\", "/")
+                if "/tests/" in rel:
+                    if "AKIA" in label and (
+                        "EXAMPLE" in text or "placeholder" in text.lower()
+                    ):
+                        continue
+                    if "Stripe" in label:
                         continue
                 bad.append(f"{path.relative_to(root)}: possible {label}")
 

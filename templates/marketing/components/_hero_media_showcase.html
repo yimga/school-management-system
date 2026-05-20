@@ -1,8 +1,19 @@
 {% load i18n static %}
-{% comment %}Hero right column — product video + live analytics showcase.{% endcomment %}
+{% comment %}Hero right column — product composite + live analytics showcase (no empty video src).{% endcomment %}
 <div class="mkt-hero-showcase" data-mkt-hero-showcase>
-  <div class="mkt-hero-showcase__video">
-    {% include "marketing/components/_video_portal.html" with portal_id="mkt-hero-portal" portal_label=_("Campus operations preview") video_src="marketing/video/hero-home.mp4" poster_src="marketing/img/hero-home-poster.svg" %}
-  </div>
+  <figure class="mkt-hero-showcase__visual">
+    <img
+      src="{% static 'images/marketing/hero-global-os-composite.svg' %}"
+      alt="{% trans 'Composite view of leadership analytics, administration, teacher workspace, parent mobile portal, finance, and student portal in RunMyCampus' %}"
+      width="960"
+      height="520"
+      decoding="async"
+      loading="eager"
+      class="mkt-hero-composite-img mkt-hero-showcase__composite"
+    >
+    <figcaption class="mkt-hero-showcase__caption mkt-edt-illustrative-pill">
+      {% trans "Illustrative product surfaces — demo data" %}
+    </figcaption>
+  </figure>
   {% include "marketing/components/_hero_live_campus_pulse.html" %}
 </div>

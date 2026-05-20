@@ -26,7 +26,9 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
     def test_manager_admin_shell_includes_operator_footer(self):
         text = Path("templates/admin/base.html").read_text(encoding="utf-8")
         self.assertIn("is_manager_host", text)
+        self.assertIn("block admin_operator_steering", text)
         self.assertIn("admin_operator_steering_strip.html", text)
+        self.assertIn("rmc_operator_surface_strip.html", text)
         self.assertNotIn("operator_path_banner.html", text)
         self.assertIn("rmc_operator_footer_compact.html", text)
         self.assertIn("cp-corporate-footer", text)

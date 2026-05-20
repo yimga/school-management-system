@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import mimetypes
-from pathlib import Path
 from typing import Any, Iterator
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen

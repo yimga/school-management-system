@@ -14,6 +14,14 @@
     {% endif %}
   </div>
   <div class="object-tools flex flex-wrap items-center gap-2 shrink-0">
+    {% if RMC_OPERATOR_PAIRED_LINKS %}
+      {% for link in RMC_OPERATOR_PAIRED_LINKS %}
+        <a href="{{ link.url }}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium hover:bg-base-100 dark:border-base-600 dark:hover:bg-base-800" title="{{ link.description|default:'' }}">
+          {% if link.icon %}<i class="bi {{ link.icon }} me-1" aria-hidden="true"></i>{% endif %}
+          {{ link.label }}
+        </a>
+      {% endfor %}
+    {% endif %}
     {% if has_add_permission and not add %}
       {% url opts|admin_urlname:"add" as add_url %}
       {% blocktranslate with name=opts.verbose_name asvar add_title %}Add {{ name }}{% endblocktranslate %}

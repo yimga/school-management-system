@@ -37,6 +37,7 @@ class SuperAdminSurfaceParityTests(TestCase):
             clear=False,
         )
         self._mt_env.start()
+        self.addCleanup(self._mt_env.stop)
         self.host = "manager.runmycampus.com"
         self.password = "testpass123"
         self.user = User.objects.create_user(
@@ -73,7 +74,7 @@ class SuperAdminSurfaceParityTests(TestCase):
         admin_request.user = self.user
         admin_ctx = build_operator_surface_ia_context(admin_request)
         self.assertTrue(admin_ctx["RMC_OPERATOR_SURFACE_IA"])
-        self.assertFalse(admin_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
+        self.assertTrue(admin_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
         self.assertGreaterEqual(len(admin_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 4)
         self.assertEqual(admin_ctx["RMC_OPERATOR_PAIRED_LINKS"], [])
 
@@ -132,14 +133,39 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertContains(response, "cp-primary-nav__pill")
         self.assertContains(response, "Open platform admin")
 
-    def test_admin_schools_changelist_has_dropdown_not_strip(self):
+    def test_admin_schools_changelist_shows_workspace_strip_and_paired_cta(self):
         response = self.client.get(
             reverse("admin:schools_school_changelist"), HTTP_HOST=self.host
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-rmc-operator-workspace-dropdown")
         self.assertNotContains(response, "rmc-operator-workspace-nav")
-        self.assertNotContains(response, "data-rmc-operator-surface-strip")
+        self.assertContains(response, "data-rmc-operator-surface-strip")
+        self.assertContains(response, "data-rmc-admin-steering-strip")
+
+    def test_manager_admin_change_form_exposes_paired_operator_view(self):
+        school = School.objects.create(
+            name="Paired Change School",
+            slug="paired-change-school",
+            subdomain="paired-change-school",
+        )
+        url = reverse("admin:schools_school_change", args=[school.pk])
+        response = self.client.get(url, HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-rmc-admin-changeform-head")
+        self.assertContains(response, "data-rmc-operator-surface-strip")
+        html = response.content.decode()
+        self.assertTrue(
+            "operator" in html.lower() or "control plane" in html.lower(),
+            "change form should surface super-first paired CTA",
+        )
+
+    def test_admin_dashboard_redirects_to_index(self):
+        response = self.client.get(
+            reverse("admin_dashboard"), HTTP_HOST=self.host
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("admin:index"))
 
     def test_manager_admin_login_public_chrome(self):
         response = Client().get("/authentication/login/", HTTP_HOST=self.host)
@@ -203,6 +229,9 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertIn('data-rmc-cp-scroll="main"', html)
         self.assertIn("cp-admin-app-list", html)
         self.assertIn("Applications", html)
+        self.assertIn("data-rmc-page-fold-nav", html)
+        self.assertIn("rmc-page-fold-nav", html)
+        self.assertIn("data-rmc-operator-surface-strip", html)
 
     def test_manager_super_and_admin_share_operator_topbar(self):
         super_resp = self.client.get("/super/", HTTP_HOST=self.host)

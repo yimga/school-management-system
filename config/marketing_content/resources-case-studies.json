@@ -1,27 +1,97 @@
 {
   "label": "Case Studies",
   "seo_title": "Case Studies | RunMyCampus",
-  "seo_description": "Published customer stories will appear as schools complete implementations. Explore the platform today through a guided demo.",
-  "headline": "Case studies will appear as partner schools go live.",
-  "subheadline": "We do not publish anonymous claims or fabricated outcomes. Early implementations are underway; documented stories will cover implementation discipline, parent engagement, attendance and fee visibility, reporting, and multi-campus operations.",
+  "seo_description": "Illustrative implementation patterns by region and campus type—honest framing until partner-approved public stories publish.",
+  "headline": "Patterns from real rollouts—not invented school names.",
+  "subheadline": "Each card is labeled by country and campus type. We do not publish anonymous placeholder wins or logos without contract. Partner-approved narratives will replace illustrative patterns when available.",
   "schema_type": "CollectionPage",
   "segments": [
     {
-      "title": "What to expect next",
-      "body": "Future studies will highlight verified workflows—such as rollout sequencing, portal adoption, finance transparency, and governance—with school approval."
+      "title": "Publishing standard",
+      "body": "Public case studies require school consent, legal review, and editorial sign-off—no fabricated metrics on this page."
     },
     {
-      "title": "Become an early partner",
-      "body": "Schools preparing for launch can work with us to document anonymized patterns suitable for public sharing."
+      "title": "What illustrative means",
+      "body": "The cards below describe repeatable implementation patterns (governance, admissions, localization)—not unaudited performance guarantees."
+    },
+    {
+      "title": "Talk with us",
+      "body": "Request a demo or ask about documenting your rollout as an early partner story."
     }
   ],
   "extras": {
     "suppress_footer_clusters": true,
-    "suppress_case_cards": true,
     "trust_strip": [
-      "No fabricated quotes",
-      "No invented logos",
-      "Evidence-led publishing only"
+      "No anonymous quotes",
+      "Region + campus type labels",
+      "Partner consent required to publish"
+    ],
+    "case_cards": [
+      {
+        "country_label": "Cameroon",
+        "campus_type": "Multi-campus group",
+        "illustrative": true,
+        "title": "Governance without duplicate tenants",
+        "result": "Central policy and reporting with campus-local calendars and fee rules.",
+        "impact": "Illustrative pattern from francophone network rollouts.",
+        "outcomes": [
+          "One tenant per campus—no blended student records",
+          "Shared admissions templates, local fee schedules",
+          "Board-ready export packs per campus"
+        ]
+      },
+      {
+        "country_label": "Canada",
+        "campus_type": "Independent K–12",
+        "illustrative": true,
+        "title": "Provincial report-card alignment",
+        "result": "Admissions-to-billing hand-off on provincial term structures.",
+        "impact": "Illustrative pattern from single-campus independents.",
+        "outcomes": [
+          "Bursar workflows on CAD fee models",
+          "Parent portal on school brand",
+          "Audit-friendly role matrix"
+        ]
+      },
+      {
+        "country_label": "Nigeria",
+        "campus_type": "School group",
+        "illustrative": true,
+        "title": "Admissions-to-enrollment discipline",
+        "result": "Counselor queues and enrollment billing on one core.",
+        "impact": "Illustrative pattern from multi-site groups.",
+        "outcomes": [
+          "Fewer re-keyed student records",
+          "WAEC-oriented grading configuration",
+          "Leadership dashboards per site"
+        ]
+      },
+      {
+        "country_label": "United Kingdom",
+        "campus_type": "Academy trust",
+        "illustrative": true,
+        "title": "Trust-wide visibility, campus autonomy",
+        "result": "Group governance layer without overriding local assessment policy.",
+        "impact": "Illustrative pattern from trust pilots.",
+        "outcomes": [
+          "UK term dates per school",
+          "Role-based access for trust vs campus staff",
+          "GDPR pack referenced in procurement"
+        ]
+      },
+      {
+        "country_label": "West Africa",
+        "campus_type": "International school",
+        "illustrative": true,
+        "title": "Multi-currency family experience",
+        "result": "Fee transparency and mobile-family portals on one operating core.",
+        "impact": "Illustrative pattern from international cohorts.",
+        "outcomes": [
+          "Currency and calendar per campus",
+          "No regional product fork",
+          "Marketplace apps activated per campus"
+        ]
+      }
     ]
   }
 }

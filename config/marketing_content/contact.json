@@ -1,31 +1,39 @@
 {
   "label": "Contact",
   "seo_title": "Contact | RunMyCampus",
-  "seo_description": "Reach RunMyCampus for sales, implementation planning, partnerships, or general questions. Support for existing schools is routed through your tenant portal.",
-  "headline": "Let's connect your school or network to one operating platform.",
-  "subheadline": "Tell us whether you are exploring procurement, planning rollout, need partner information, or want a general orientation—we'll route your message appropriately.",
+  "seo_description": "Reach RunMyCampus for sales, procurement, implementation planning, partnerships, or general questions. Existing customers: use in-product support for fastest help.",
+  "headline": "Route your question to the right team.",
+  "subheadline": "Sales, procurement, implementation, partnerships, or general orientation—we label response expectations up front. No purchase commitment required to reach out.",
   "schema_type": "ContactPage",
   "segments": [],
   "extras": {
     "suppress_footer_clusters": true,
     "trust_strip": [
       "Built for schools worldwide",
-      "Clear response expectations",
+      "One business day for sales & implementation",
       "No obligation to procure",
       "Security-aware handling"
     ],
     "contact_intent_cards": [
       {
-        "title": "Sales inquiry",
-        "body": "Evaluate fit, packaging, and roadmap for your leadership team.",
-        "cta_label": "Request a demo",
+        "title": "Sales & evaluation",
+        "body": "Explore fit, packaging, and roadmap with your leadership team.",
+        "cta_label": "Book a demo",
         "cta_href": "/demo/"
       },
       {
-        "title": "Implementation inquiry",
-        "body": "Discuss phases, integrations, and success criteria before go-live.",
+        "title": "Procurement & RFP",
+        "body": "Security briefs, capability matrix, data-processing addenda, and commercial scoping for formal buying processes.",
+        "cta_label": "Send procurement note",
+        "cta_href": "/contact/#contact-form-block",
+        "hint": "Choose “Procurement / RFP” in the form."
+      },
+      {
+        "title": "Implementation planning",
+        "body": "Discuss phases, integrations, data expectations, and success criteria before go-live—without committing to a purchase timeline.",
         "cta_label": "Use the form below",
-        "cta_href": "/contact/#contact-form-block"
+        "cta_href": "/contact/#contact-form-block",
+        "hint": "Choose “Implementation planning” in the form."
       },
       {
         "title": "Support",
@@ -39,15 +47,9 @@
         "cta_label": "Message partnerships",
         "cta_href": "/contact/#contact-form-block",
         "hint": "Choose “Partnership” in the form."
-      },
-      {
-        "title": "General",
-        "body": "Anything else—we will triage and respond.",
-        "cta_label": "Send a message",
-        "cta_href": "/contact/#contact-form-block"
       }
     ],
-    "contact_support_note": "We aim to respond to inbound requests within one business day. Existing customers should use in-product support channels for fastest resolution.",
-    "contact_implementation_note": "Implementation conversations cover data expectations, rollout waves, training, and governance—without committing you to a purchase timeline."
+    "contact_support_note": "Existing customers should use in-product support channels for operational issues—we respond fastest there.",
+    "contact_implementation_note": "Implementation conversations cover rollout waves, training, and governance. Procurement and legal reviews can run in parallel when you are ready."
   }
 }

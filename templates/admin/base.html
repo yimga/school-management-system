@@ -53,6 +53,12 @@
             {% endblock admin_breadcrumbs %}
 
             <div class="@container px-4 pb-4 grow min-h-0 min-w-0">
+                {% block admin_operator_steering %}
+                    {% if not is_popup and is_manager_host %}
+                        {% include "components/rmc_operator_surface_strip.html" %}
+                        {% include "admin/includes/admin_operator_steering_strip.html" %}
+                    {% endif %}
+                {% endblock admin_operator_steering %}
                 <div id="content" class="{% if is_manager_host %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto {% block coltype %}colM{% endblock %}" data-page-archetype="decision-console" data-decision-console-scope="django-admin">
                     {% block content_tabs %}
                         {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
@@ -69,13 +75,9 @@
                     {% endblock content_tabs %}
 
                     {% block content %}
-                        {% if not is_popup %}
-                            {% if is_manager_host %}
-                                {% include "admin/includes/admin_operator_steering_strip.html" %}
-                            {% elif request.user.is_authenticated %}
-                                {% include "admin/includes/tenant_admin_decision_banner.html" %}
-                                {% include "admin/includes/admin_operator_outcome_deck.html" %}
-                            {% endif %}
+                        {% if not is_popup and request.user.is_authenticated and not is_manager_host %}
+                            {% include "admin/includes/tenant_admin_decision_banner.html" %}
+                            {% include "admin/includes/admin_operator_outcome_deck.html" %}
                         {% endif %}
                         {% block object-tools %}{% endblock %}
 

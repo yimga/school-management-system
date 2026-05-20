@@ -55,8 +55,12 @@ def main() -> int:
         errors.append("_rotating_headline.html must emit a single hero <h1>")
 
     pricing = _read(PRICING)
-    if not re.search(r"<h1\b", pricing, re.I):
-        errors.append("type_pricing.html must emit <h1>")
+    hero_partial = REPO / "templates" / "marketing" / "components" / "_personality_hero.html"
+    pricing_has_h1 = bool(re.search(r"<h1\b", pricing, re.I))
+    if not pricing_has_h1 and "_personality_hero.html" in pricing and hero_partial.is_file():
+        pricing_has_h1 = bool(re.search(r"<h1\b", _read(hero_partial), re.I))
+    if not pricing_has_h1:
+        errors.append("type_pricing.html must emit <h1> (direct or via _personality_hero.html)")
 
     if errors:
         for e in errors:

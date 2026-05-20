@@ -855,6 +855,8 @@ jobs:
           python scripts/verify_six_pillar_global_dominance.py --write
           python scripts/verify_footer_surface_contract.py --write
           python scripts/verify_manager_portal_chrome_completion.py --write
+          python scripts/verify_admin_steering_strip_contract.py
+          ADMIN_RENDER_SAMPLE_MAX=32 python scripts/verify_admin_changelist_render_contract.py
           RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1 python scripts/verify_interaction_integrity_completion.py
           python scripts/scan_operator_shell_dead_hrefs.py --strict
           python scripts/verify_manager_header_account_completion.py
