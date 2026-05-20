@@ -91,7 +91,7 @@ Tenant **`/admin/`** (`TenantAdminSite`) is a **different** site: tenant models 
 | **P1** | Changelist **Open operator view** on bridged models | `super_admin_paired_surfaces.py` (`on_manager_admin`); `admin_changelist_header.html`. |
 | **P2** | Index KPIs from `build_admin_dashboard_context` | `build_admin_index_kpi_strip()`; `admin_index_kpis` on index. |
 | **P2** | App index (`admin/app_index.html`) | `PlatformAdminSite.app_index()` + `enrich_app_index_models()`. |
-| **P3** | Admin changelist render smoke + Playwright | `verify_admin_changelist_render_contract.py`; `SWEEP_TIER=operator+admin npm run sweep:abrupt-end`. |
+| **P3** | Admin changelist render smoke + Playwright | `verify_admin_changelist_render_contract.py` (24-route Django smoke); `bash scripts/run_admin_abrupt_end_sweep.sh` when Django is on `:8012` with `manager.runmycampus.com` mapped to `127.0.0.1`. |
 
 ### Key files
 
@@ -127,3 +127,9 @@ After shipping manager UX / weather / feedback hardening to **Render** (or any P
    Playwright against **live Render** is Lane 2 evidence, not repo-gate blocking.
 
 **Out of scope (v3.34):** FACTS / Skyward companion **write** paths remain `// honest-stub:` until counsel sign-off — see [`FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md`](FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md).
+
+### Sidebar rail contract (platform-wide)
+
+Every authenticated shell with a left nav must load [`static/css/rmc-sidebar-rail-contract.css`](../static/css/rmc-sidebar-rail-contract.css) **after** layout shell CSS. The aside column (`.cp-sidebar-col` / `#cp-sidebar-col` / `.portal-sidebar-col`) stretches with the row and carries the rail background; the inner panel (`.cp-sidebar-inner` or tenant `.sidebar`) fills the column and scrolls overflow inside the rail — never leaving canvas-colored void below short nav.
+
+**Gate:** `python scripts/verify_sidebar_rail_contract.py` (also required by `verify_manager_admin_cp_layout.py` CSS inventory).

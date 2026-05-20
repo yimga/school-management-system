@@ -1,0 +1,112 @@
+/**
+ * Platform sidebar rail contract (control plane + manager /admin/ + portal).
+ *
+ * Problem: short nav content left a canvas-colored void below the dark sidebar
+ * because only .cp-sidebar-inner had the panel background and flex: 0 1 auto
+ * let the inner box shrink to content height inside a stretched column.
+ *
+ * Rule: the sidebar COLUMN stretches with the layout row; the INNER rail (or
+ * tenant .sidebar) fills the column height and scrolls overflow inside the rail.
+ * Load after manager-control-plane.css and manager-aesthetic-polish.css.
+ */
+
+@media (min-width: 992px) {
+  /* --- Column: stretch + ink on the aside (not the page canvas) --- */
+  .cp-sidebar-col,
+  #cp-sidebar-col,
+  .portal-sidebar-col,
+  #portal-sidebar-col {
+    align-self: stretch !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  body.control-plane-shell .cp-sidebar-col,
+  body.control-plane-shell #cp-sidebar-col,
+  body.manager-portal-bridge .cp-sidebar-col,
+  body.manager-portal-bridge #cp-sidebar-col,
+  body.admin-manager-shell .cp-sidebar-col,
+  body.admin-manager-shell #cp-sidebar-col {
+    background: var(--cp-ink-sidebar, var(--cp-panel-bg, rgba(8, 16, 30, 0.92)));
+  }
+
+  /* Tenant portal: glass/solid shell background on the column */
+  .portal-layout-wrap .portal-sidebar-col.rmc-glass-sidebar-shell,
+  .portal-sidebar-col.rmc-glass-sidebar-shell {
+    background: var(--rmc-glass-bg, var(--portal-sidebar-bg, var(--surface-elevated)));
+  }
+
+  .portal-layout-wrap .portal-sidebar-col:not(.rmc-glass-sidebar-shell),
+  .portal-sidebar-col:not(.rmc-glass-sidebar-shell) {
+    background: var(--portal-sidebar-bg, var(--surface-elevated, var(--color-base-50)));
+  }
+
+  /* --- Control-plane inner panel: fill column, scroll inside --- */
+  .cp-sidebar-col .cp-sidebar-inner,
+  #cp-sidebar-col .cp-sidebar-inner {
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Document scroll: sticky top but still fill column width/height */
+  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner,
+  body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-sidebar-col .cp-sidebar-inner,
+  body.manager-portal-bridge[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+  }
+
+  /* Main-column scroll (manager /admin/): viewport-trapped row */
+  body.control-plane-shell[data-rmc-cp-scroll="main"] .cp-layout > .row,
+  body.admin-manager-shell[data-rmc-cp-scroll="main"] .cp-layout > .row,
+  body.admin-manager-shell .admin-cp-unified-page .cp-layout > .row {
+    align-items: stretch !important;
+  }
+
+  body.control-plane-shell[data-rmc-cp-scroll="main"] .cp-sidebar-col,
+  body.control-plane-shell[data-rmc-cp-scroll="main"] #cp-sidebar-col,
+  body.admin-manager-shell[data-rmc-cp-scroll="main"] #cp-sidebar-col {
+    flex: 0 0 auto;
+    min-height: 0 !important;
+  }
+
+  /* Nav trees scroll inside the rail */
+  .cp-sidebar-col .cp-sidebar-nav,
+  #cp-sidebar-col .cp-sidebar-nav,
+  .cp-sidebar-platform-admin,
+  .cp-sidebar-platform-admin .cp-platform-admin-app-tree,
+  #cp-sidebar-col #nav-sidebar-apps.admin-sidebar-apps {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cp-sidebar-platform-admin .cp-platform-admin-app-tree,
+  #cp-sidebar-col #nav-sidebar-apps.admin-sidebar-apps {
+    overflow-y: auto;
+  }
+
+  /* --- Tenant portal .sidebar inside column --- */
+  .portal-layout-wrap .portal-sidebar-col .sidebar,
+  .portal-sidebar-col > .sidebar {
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}

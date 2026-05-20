@@ -783,14 +783,7 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] .portal-layout-row {
     overflow: hidden !important;
     background: var(--cp-ink-sidebar, rgba(8, 16, 30, 0.92));
   }
-  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner {
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    width: 100%;
-    max-height: 100vh;
-    flex: 0 1 auto;
-  }
+  /* Inner rail fill + scroll: rmc-sidebar-rail-contract.css (platform contract) */
 }
 .cp-sidebar-col .cp-sidebar-inner {
   flex: 1 1 auto;
@@ -1008,18 +1001,7 @@ body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .p
 /* Also enforce compact width for the nav so even if all groups did
    somehow expand, the sidebar can't push past the 280px column. The
    nav becomes its own scroll container instead of the page. */
-#cp-sidebar-col {
-  max-height: calc(100vh - 4rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/* Manager /admin/ unified chrome: scroll + height owned by admin-cp-parity.css */
-body.admin-manager-shell .admin-cp-unified-page #cp-sidebar-col {
-  max-height: none;
-  overflow: hidden;
-  overscroll-behavior: auto;
-}
+/* Sidebar column height/scroll: rmc-sidebar-rail-contract.css (do not cap height here). */
 .cp-sidebar-nav {
   /* Tighter row height + smaller chevron padding so the full 15-group
      header list is visible at once on a 1080p viewport without scrolling

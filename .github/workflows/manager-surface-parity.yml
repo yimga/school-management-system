@@ -82,6 +82,7 @@ jobs:
           python manage.py migrate --noinput
           python scripts/verify_theme_visibility_platform.py
           python scripts/verify_backend_base_shell_routing.py
+          python scripts/verify_sidebar_rail_contract.py
           python scripts/verify_manager_admin_cp_layout.py
           python scripts/verify_studio_os_ux_waves.py
           python scripts/scan_main_content_text_utilities.py

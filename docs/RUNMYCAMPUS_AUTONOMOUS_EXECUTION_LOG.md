@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - platform sidebar rail contract (2026-05-20)
+
+**A. Scope:** Platform-wide fix for canvas-colored void below short left nav (manager /super/, /admin/, portal).
+
+**B. Shipped:** `rmc-sidebar-rail-contract.css`; root regression removed from `manager-control-plane.css` (`flex: 0 1 auto` on document-scroll inner); wired in control plane / portal / admin shells; `verify_sidebar_rail_contract.py` in CI; SW v3.51.3.
+
+**C. Proof:** `verify_sidebar_rail_contract.py` PASS.
+
+**D. Residual:** New shells with sidebars must load contract CSS last among shell styles.
+
 ## Slice - batch 1361 Operator UX closeout (2026-05-20)
 
 **A. Scope:** Manager login centering; stacked bottom-right FABs; user prefs locale/region selects; Migration Cloud intake premium workbench; production feedback table 500s; worldwide weather location catalog + safe seed path.

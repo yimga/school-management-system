@@ -913,6 +913,7 @@ jobs:
         run: |
           python manage.py migrate --noinput
           python scripts/verify_theme_visibility_platform.py
+          python scripts/verify_sidebar_rail_contract.py
           python scripts/verify_manager_admin_cp_layout.py
           python scripts/scan_main_content_text_utilities.py
           python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1

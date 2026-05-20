@@ -330,23 +330,7 @@ body.admin-manager-shell .admin-cp-unified-page #cp-main-content > #admin-manage
   flex-shrink: 0 !important;
 }
 
-body.admin-manager-shell .admin-cp-unified-page #cp-sidebar-col {
-  align-self: stretch !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  background: var(--cp-panel-bg, rgba(8, 16, 30, 0.92));
-}
-
-body.admin-manager-shell .admin-cp-unified-page #cp-sidebar-col .cp-sidebar-inner {
-  flex: 1 1 auto !important;
-  min-height: 100% !important;
-  height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
+/* Sidebar column fill: rmc-sidebar-rail-contract.css */
 
 body.admin-manager-shell .admin-cp-unified-page #nav-sidebar,
 body.admin-manager-shell .admin-cp-unified-page .admin-sidebar-column {
@@ -419,22 +403,6 @@ body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page #cp-m
   max-height: none !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
-}
-
-body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page #cp-sidebar-col {
-  align-self: stretch !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page #cp-sidebar-col .cp-sidebar-inner {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Unfold inner wrappers must not re-trap overflow — scroll lives on #cp-main-content. */
@@ -537,27 +505,6 @@ html[data-bs-theme="dark"] body.admin-manager-shell .cp-admin-index .text-muted 
   height: auto;
   flex: 1 1 auto;
   min-height: 0;
-}
-
-/* Platform-admin sidebar: fill column — no canvas-colored void under the dark rail */
-body.admin-manager-shell .admin-cp-unified-page .cp-sidebar-platform-admin {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-body.admin-manager-shell .admin-cp-unified-page .cp-sidebar-platform-admin .cp-platform-admin-app-tree {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-body.admin-manager-shell .admin-cp-unified-page #cp-sidebar-col #nav-sidebar-apps.admin-sidebar-apps {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  height: auto !important;
 }
 
 /* ----- Manager /admin/ scroll + layout (all page types, 2026-05-20) ----- */

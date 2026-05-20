@@ -18,6 +18,7 @@ CSS_FILES = (
     "static/css/admin-sidebar-scroll.css",
     "static/css/admin-base-site-shell.css",
     "static/css/admin-cp-parity.css",
+    "static/css/rmc-sidebar-rail-contract.css",
 )
 
 # Tenant-only row layout must not apply to unified manager admin page.
