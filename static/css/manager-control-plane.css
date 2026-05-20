@@ -1013,6 +1013,13 @@ body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .p
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* Manager /admin/ unified chrome: scroll + height owned by admin-cp-parity.css */
+body.admin-manager-shell .admin-cp-unified-page #cp-sidebar-col {
+  max-height: none;
+  overflow: hidden;
+  overscroll-behavior: auto;
+}
 .cp-sidebar-nav {
   /* Tighter row height + smaller chevron padding so the full 15-group
      header list is visible at once on a 1080p viewport without scrolling
