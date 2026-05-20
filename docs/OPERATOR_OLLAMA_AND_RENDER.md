@@ -33,12 +33,15 @@ Moderator runs `scripts/verify_render_live_parity.py` (if present) or `render_pr
 
 ```bash
 cd ~/project/src
-# After deploy includes commit 89efd95c+ (v5 gear-up lift):
+# After deploy includes latest main (6c713595+ page-fold Render fix):
 python scripts/generate_v4_recovery_certification.py --runtime
-# Prints repo_gaps + verifier tails on PARTIAL.
 
-# Quick read of last run:
-python -c "import json; d=json.load(open('docs/generated/ten_x_platform_certification.json')); print('gaps:', d.get('repo_gaps')); print('verdict:', d.get('verdict'))"
+# One-liner: which gates failed (paste as ONE line in bash):
+python -c "import json;d=json.load(open('docs/generated/ten_x_platform_certification.json'));print('verdict:',d['verdict']);print('repo_gaps:',d.get('repo_gaps'));[print(k,v.get('exit'),(v.get('tail') or '')[-300:]) for k,v in d.get('verifiers',{}).items() if not v.get('ok')]"
+
+# Drill into a single gate:
+python scripts/verify_page_fold_standards.py 2>&1 | grep FAIL
+python scripts/verify_five_pillar_platform_completion.py 2>&1 | grep FAIL
 
 # Common fixes on Render:
 git pull   # or redeploy latest main — need v5 scripts + var/* baselines + migration 0007

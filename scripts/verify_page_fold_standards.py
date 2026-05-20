@@ -85,11 +85,16 @@ def main() -> int:
         (ROOT / "static/css/rmc-page-fold-standards.css").is_file(),
         "static/css/rmc-page-fold-standards.css",
     )
+    cursorrules = _read(".cursorrules")
+    cursor_doc = (ROOT / ".cursor/rules/runmycampus-page-fold-standards.mdc").is_file() or (
+        "verify_page_fold_standards" in cursorrules
+        and "page-fold" in cursorrules.lower()
+    )
     add(
         "cursor_rule",
-        "Cursor rule documents fold standards",
-        (ROOT / ".cursor/rules/runmycampus-page-fold-standards.mdc").is_file(),
-        ".cursor/rules/runmycampus-page-fold-standards.mdc",
+        "Fold standards documented (.cursor rule or tracked .cursorrules)",
+        cursor_doc,
+        ".cursorrules" if "verify_page_fold_standards" in cursorrules else ".cursor/rules/...",
     )
 
     fc = _read("templates/siteconfig/feature_control_panel_content.html")
