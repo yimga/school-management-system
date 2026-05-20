@@ -57,6 +57,23 @@ def main() -> int:
         ("1353-csat-api", _ok("apps/api/urls.py", "ai-support-session-rating")),
         ("1353-csat-model", _ok("apps/feedback/models.py", "SupportAISessionRating")),
         ("1353-csat-js", _ok("static/js/rmc-kb-ai-assistant.js", "postSessionRating")),
+        # Batch 1354 — all-bases-covered
+        ("1354-manager-deflection", _ok("templates/schools/partials/manager_help_center_body.html", "data-deflection-form-auto")),
+        ("1354-school-feedback-deflection", _ok("templates/feedback/school_center.html", "data-deflection-form-auto")),
+        ("1354-role-feedback-deflection", _ok("templates/feedback/role_center.html", "data-deflection-form-auto")),
+        ("1354-cp-drawer", _ok("templates/control_plane_skeleton.html", "help_contextual_drawer")),
+        ("1354-csat-hitl", _ok("apps/portal/views_ai_gateway.py", 'thumbs == "down"')),
+        ("1354-publish-kb", _ok("apps/portal/kb_hitl_publish.py", "publish_kb_article")),
+        ("1354-journey-resolve", _ok("apps/portal/context_processors.py", "resolve_journey_articles")),
+        ("1354-content-gap", _ok("apps/portal/help_content_gaps.py", "ensure_content_gap_task")),
+        ("1354-gap-model", _ok("apps/feedback/models.py", "HelpContentGapTask")),
+        ("1354-analytics-csv", _ok("config/manager_help_analytics.py", 'format") == "csv"')),
+        ("1354-locale-families", _ok("config/manager_urls.py", "manager_kb_locale_families")),
+        ("1354-purge-beat", _ok("config/settings.py", "portal-purge-help-telemetry-monthly")),
+        ("1354-kb-pgvector-cmd", (ROOT / "apps/portal/management/commands/migrate_kb_embeddings_to_pgvector.py").is_file()),
+        ("1354-journey-seed", (ROOT / "apps/portal/management/commands/seed_help_journey_slugs.py").is_file()),
+        ("1354-deflection-panel-class", _ok("templates/partials/help_deflection_strip.html", "rmc-support-deflection-panel")),
+        ("1354-locale-fallback", _ok("apps/portal/kb_embeddings.py", "filter_kb_queryset_by_locale_with_fallback")),
     ]
     failed = [cid for cid, ok in checks if not ok]
     if failed:

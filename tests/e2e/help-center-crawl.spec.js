@@ -75,6 +75,15 @@ test("manager help center hub loads", async ({ page }) => {
   await expect(page.locator("body")).toContainText(/help|discover|knowledge/i);
 });
 
+test("manager help center exposes deflection and analytics markers", async ({ page }) => {
+  if (!(await managerLogin(page))) return;
+  const response = await page.goto(`${MANAGER_BASE}/help-center/`);
+  expect(response?.status()).toBeLessThan(400);
+  const html = await page.content();
+  expect(html).toMatch(/data-deflection-form-auto|data-support-deflection-url/);
+  expect(html).toMatch(/help-center\/analytics|North-star|north-star/i);
+});
+
 test("manager KB home has AI panel contract markers", async ({ page }) => {
   if (!(await managerLogin(page))) return;
   const response = await page.goto(`${MANAGER_BASE}/kb/`);
@@ -87,5 +96,9 @@ test("manager KB home has AI panel contract markers", async ({ page }) => {
   if (await panel.count()) {
     await expect(panel).toHaveAttribute("data-support-assistant-url", /.+/);
     await expect(panel.locator("#rmc-kb-ai-prompt")).toBeVisible();
+    const csat = panel.locator("[data-rmc-kb-ai-csat]");
+    if (await csat.count()) {
+      await expect(csat).toBeAttached();
+    }
   }
 });

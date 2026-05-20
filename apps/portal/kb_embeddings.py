@@ -138,7 +138,7 @@ def _published_scope_qs(*, school: Any, operator: bool) -> QuerySet[KBArticle]:
     )
     qs = published_kb_queryset().filter(help_audience__in=audience)
     qs = filter_kb_articles_by_school(qs, school)
-    return filter_kb_queryset_by_locale(qs)
+    return filter_kb_queryset_by_locale_with_fallback(qs)
 
 
 def search_kb_articles_by_embedding(

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T10:51:27.397852+00:00",
+  "generated_at": "2026-05-20T11:19:31.413655+00:00",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "verdict": "ORCHESTRATOR_V5_BUNDLE_PASS",
   "checks": [
@@ -16,7 +16,7 @@
     {
       "check": "nav_ledger",
       "ok": true,
-      "proof": "INFO 2026-05-20 06:51:14,206 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- acc"
+      "proof": "INFO 2026-05-20 07:19:17,687 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- acc"
     },
     {
       "check": "interaction_contract",
@@ -26,7 +26,7 @@
     {
       "check": "prompt_pack",
       "ok": true,
-      "proof": "ORCHESTRATOR_PROMPT_PACK_PASS (181 checks, 35 files)"
+      "proof": "ORCHESTRATOR_PROMPT_PACK_PASS (227 checks, 35 files)"
     },
     {
       "check": "journey_count_27",

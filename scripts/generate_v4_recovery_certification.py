@@ -100,7 +100,7 @@ def main() -> int:
     journey_pct = None
     if journey_cov.is_file():
         jc = json.loads(journey_cov.read_text(encoding="utf-8"))
-        journey_pct = jc.get("coverage_pct")
+        journey_pct = jc.get("journey_coverage_pct", jc.get("coverage_pct"))
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "prompt_pack_version": PROMPT_PACK_VERSION,

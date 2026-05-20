@@ -1366,7 +1366,7 @@ After §11.4 status edits: `python scripts/generate_system_closure_map.py --writ
 
 ## RERUN LOGIC
 
-**Recovery wave** — when `ten_x_platform_certification.json` regresses or journey coverage drops, re-run Agent 10 and affected stage agents before claiming READY.
+**Recovery wave** — when `ten_x_platform_certification.json` regresses or `journey_coverage_pct` drops below **100**, re-run `python scripts/generate_v4_recovery_certification.py` (v5 gates: bundle, five-pillar, help-center tiers), `verify_orchestrator_v5_bundle.py`, and affected stage agents before claiming READY.
 
 **RERUN REQUIRED** when any acceptance criterion is unmet after the first pass.
 
@@ -1499,7 +1499,7 @@ STAGE_10 = stage_wrapper(
 5. Attempt full Django suite if feasible (document skip reason on Windows DB lock)
 6. Run **full standard verifier stack** including `audit_luxury_ui_surface.py`
 7. Create [`docs/generated/ten_x_platform_certification.json`](../generated/ten_x_platform_certification.json) and [`.md`](../generated/ten_x_platform_certification.md)
-8. Record per-stage `v3_compliance_pct` and `v4_compliance_pct` from recovery cert (must be **100** for REPO SCOPE READY)
+8. Record per-stage `v3_compliance_pct`, `v4_compliance_pct`, and `v5_compliance_pct` from recovery cert (must be **100** for REPO SCOPE READY; `journey_coverage_pct` must be **100**)
 
 ## GRADE DIMENSIONS (all required in JSON)
 
@@ -1541,10 +1541,13 @@ A–I Stage summaries | J Tests | K Verifiers | L Full suite | M Live/Render | N
 
 PILLARS = """# Seven-Pillar Prompts + CTO Synthesis
 
+**Pack:** `2026-05-20-orchestrator-v5`  
+**Gear-up (mandatory before pillar work):** [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md), [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md), [`00-gear-up-v5-transformational.md`](00-gear-up-v5-transformational.md)
+
 **Source plans:** [seven-pillar platform audit](.cursor/plans/seven-pillar_platform_audit_99bb91a1.plan.md), [9-agent moderator wave](.cursor/plans/9-agent_moderator_wave_11e58d68.plan.md)  
 **Audit of record:** [`docs/PLATFORM_AUDIT_12_PILLARS_2026_05_17.md`](../PLATFORM_AUDIT_12_PILLARS_2026_05_17.md)
 
-Paste the relevant pillar section with global rules when an agent is mapped (see README).
+Paste the relevant pillar section with global rules + all three gear-up layers when an agent is mapped (see README).
 
 ---
 

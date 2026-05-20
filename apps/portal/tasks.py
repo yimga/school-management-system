@@ -203,3 +203,15 @@ def build_code_support_index_weekly() -> dict[str, Any]:
         return {"ok": True}
     except Exception as exc:
         return {"ok": False, "error": str(exc)}
+
+
+@shared_task(name="portal.purge_help_telemetry_monthly")
+def purge_help_telemetry_monthly() -> dict[str, Any]:
+    """Purge aged help telemetry (batch 1354)."""
+    from django.core.management import call_command
+
+    try:
+        call_command("purge_help_telemetry", apply=True)
+        return {"ok": True}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}

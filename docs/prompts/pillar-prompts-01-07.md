@@ -1,9 +1,12 @@
 # Seven-Pillar Prompts + CTO Synthesis
 
+**Pack:** `2026-05-20-orchestrator-v5`  
+**Gear-up (mandatory before pillar work):** [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md), [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md), [`00-gear-up-v5-transformational.md`](00-gear-up-v5-transformational.md)
+
 **Source plans:** [seven-pillar platform audit](.cursor/plans/seven-pillar_platform_audit_99bb91a1.plan.md), [9-agent moderator wave](.cursor/plans/9-agent_moderator_wave_11e58d68.plan.md)  
 **Audit of record:** [`docs/PLATFORM_AUDIT_12_PILLARS_2026_05_17.md`](../PLATFORM_AUDIT_12_PILLARS_2026_05_17.md)
 
-Paste the relevant pillar section with global rules when an agent is mapped (see README).
+Paste the relevant pillar section with global rules + all three gear-up layers when an agent is mapped (see README).
 
 ---
 

@@ -19,6 +19,15 @@
     return root ? root.getAttribute("data-support-deflection-ack-url") : "";
   }
 
+  function surfaceForForm(form) {
+    if (!form) return surface();
+    var wrap = form.closest("[data-support-deflection-url]");
+    if (wrap && wrap.getAttribute("data-deflection-surface")) {
+      return wrap.getAttribute("data-deflection-surface");
+    }
+    return surface();
+  }
+
   function surface() {
     var root = rootEl();
     return (root && root.getAttribute("data-deflection-surface")) || "support_ticket";
@@ -29,12 +38,17 @@
     return input ? input.value : "";
   }
 
-  function panel() {
-    return document.getElementById("rmc-support-deflection-panel");
+  function panelForForm(form) {
+    var wrap =
+      (form && form.closest("[data-support-deflection-url]")) || rootEl();
+    return wrap ? wrap.querySelector(".rmc-support-deflection-panel") : null;
   }
 
   function setBlocking(form, blocking) {
     if (!form) return;
+    if (form.getAttribute("method") && form.getAttribute("method").toLowerCase() === "get") {
+      return;
+    }
     form.dataset.deflectionBlocking = blocking ? "1" : "0";
     var submit = form.querySelector('button[type="submit"]');
     if (submit) {
@@ -43,8 +57,8 @@
     }
   }
 
-  function renderArticles(data) {
-    var el = panel();
+  function renderArticles(form, data) {
+    var el = panelForForm(form);
     if (!el) return;
     el.innerHTML = "";
     if (!data || !data.articles || !data.articles.length) {
@@ -65,8 +79,8 @@
       a.href = row.url || "#";
       a.textContent = (row.title || "Article") + (row.score ? " (" + row.score + ")" : "");
       a.addEventListener("click", function () {
-        postAck(data, "opened");
-        clearBlocking();
+        postAck(form, data, "opened");
+        clearBlocking(form);
       });
       li.appendChild(a);
       list.appendChild(li);
@@ -77,21 +91,27 @@
     dismiss.className = "btn btn-sm btn-outline-secondary";
     dismiss.textContent = "Continue anyway";
     dismiss.addEventListener("click", function () {
-      postAck(data, "dismissed");
-      clearBlocking();
+      postAck(form, data, "dismissed");
+      clearBlocking(form);
     });
     el.appendChild(dismiss);
   }
 
-  function clearBlocking() {
-    document.querySelectorAll("form[data-deflection-form]").forEach(function (form) {
+  function clearBlocking(form) {
+    if (form) {
       setBlocking(form, false);
       var ack = form.querySelector("[data-deflection-ack]");
+      if (ack) ack.value = "1";
+      return;
+    }
+    document.querySelectorAll("form[data-deflection-form]").forEach(function (f) {
+      setBlocking(f, false);
+      var ack = f.querySelector("[data-deflection-ack]");
       if (ack) ack.value = "1";
     });
   }
 
-  function postAck(data, outcome) {
+  function postAck(form, data, outcome) {
     var url = ackUrl();
     if (!url) return;
     fetch(url, {
@@ -105,7 +125,7 @@
         outcome: outcome,
         query: data.query || "",
         articles: data.articles || [],
-        surface: surface(),
+        surface: surfaceForForm(form),
       }),
     }).catch(function () {});
   }
@@ -115,7 +135,7 @@
     var message = form.querySelector(
       "[name=message], [name=description], [name=body], [name=problem_statement]"
     );
-    var q = form.querySelector("[name=q], [data-deflection-query]");
+    var q = form.querySelector("[name=q], [data-deflection-query], [data-rmc-help-search-input]");
     var parts = [];
     if (subject && subject.value) parts.push(subject.value);
     if (message && message.value) parts.push(message.value);
@@ -128,13 +148,13 @@
     if (!url || !form) return;
     var q = queryFromForm(form);
     if (q.length < 12) {
-      renderArticles(null);
+      renderArticles(form, null);
       setBlocking(form, false);
       return;
     }
     var params = new URLSearchParams({
       q: q,
-      surface: surface(),
+      surface: surfaceForForm(form),
     });
     fetch(url + "?" + params.toString(), { credentials: "same-origin" })
       .then(function (r) {
@@ -142,8 +162,12 @@
       })
       .then(function (data) {
         data.query = q;
-        renderArticles(data);
-        setBlocking(form, !!data.blocking);
+        renderArticles(form, data);
+        var block = !!data.blocking;
+        if (form.getAttribute("method") && form.getAttribute("method").toLowerCase() === "get") {
+          block = false;
+        }
+        setBlocking(form, block);
       })
       .catch(function () {
         setBlocking(form, false);
@@ -162,6 +186,9 @@
       }, 450);
     });
     form.addEventListener("submit", function (ev) {
+      if (form.getAttribute("method") && form.getAttribute("method").toLowerCase() === "get") {
+        return;
+      }
       if (form.dataset.deflectionBlocking === "1") {
         var ack = form.querySelector("[data-deflection-ack]");
         if (!ack || ack.value !== "1") {
@@ -175,6 +202,25 @@
     var supportForm = document.getElementById("support-request-form");
     if (supportForm) initForm(supportForm);
     document.querySelectorAll("form[data-deflection-form-auto]").forEach(initForm);
+    document.querySelectorAll("form[data-rmc-help-search-input]").forEach(function (form) {
+      if (!form.querySelector("[data-rmc-help-search-input]")) return;
+      if (!form.dataset.deflectionBound) {
+        if (!form.querySelector("[data-deflection-ack]")) {
+          var ack = document.createElement("input");
+          ack.type = "hidden";
+          ack.name = "deflection_acknowledged";
+          ack.setAttribute("data-deflection-ack", "1");
+          ack.value = "0";
+          form.appendChild(ack);
+        }
+        initForm(form);
+      }
+    });
+    document.querySelectorAll("form").forEach(function (form) {
+      if (form.querySelector("[data-rmc-help-search-input]") && !form.dataset.deflectionBound) {
+        initForm(form);
+      }
+    });
   }
 
   if (document.readyState === "loading") {

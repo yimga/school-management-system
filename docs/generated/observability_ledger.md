@@ -1,6 +1,6 @@
 # Observability ledger
 
-- generated_at: 2026-05-20T09:53:48.130792+00:00
+- generated_at: 2026-05-20T11:17:12.204270+00:00
 - northstar: 75 (DOMINANT)
 - kill_test: PASS
 - self_heal: SELF_HEALED_PASS

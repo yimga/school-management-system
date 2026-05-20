@@ -1,21 +1,21 @@
 {
-  "generated_at": "2026-05-20T09:55:00+00:00",
+  "generated_at": "2026-05-20T11:16:11.494978+00:00",
   "orchestration_mode": "wave_serial_background_subagents",
   "completion_policy": "100_percent_no_partial_acceptance",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "prompt_pack_verdict": "ORCHESTRATOR_PROMPT_PACK_PASS",
-  "prompt_pack_checks": 181,
+  "prompt_pack_checks": 227,
   "prompt_pack_files": 35,
-  "active_wave": "recovery_v4_rerun_2026-05-20",
+  "active_wave": "recovery_v5_all_bases_2026-05-20",
   "program_execution_pct": 100,
-  "program_final_verdict": "10X PLATFORM READY — REPO SCOPE",
-  "rerun_wave": "recovery_v4_post_gear_up_v5",
+  "program_final_verdict": "10X PLATFORM READY \u2014 REPO SCOPE",
+  "rerun_wave": "recovery_v5_gear_up_lift",
   "git_sha": "9da753e4",
-  "recovery_cert_generated_at": "2026-05-20T09:55:00+00:00",
+  "recovery_cert_generated_at": "2026-05-20T11:16:11.494994+00:00",
   "journey_coverage_pct": 100,
   "repo_gaps": [],
   "sot_head_batch": 1330,
-  "moderator_prompt_version": "2026-05-20-orchestrator-v4",
+  "moderator_prompt_version": "2026-05-20-orchestrator-v5",
   "prompt_pack_path": "docs/prompts/",
   "worker_paste_path": "docs/prompts/worker-paste/",
   "plan_ref": ".cursor/plans/9-agent_moderator_wave_11e58d68.plan.md",
@@ -33,10 +33,13 @@
         "docs/generated/orchestrator_execution_matrix.json",
         "docs/generated/orchestrator_gap_burndown.json"
       ],
-      "verifiers_run": ["verify_orchestrator_prompt_pack --strict PASS", "verify_migration_files_tracked PASS"],
+      "verifiers_run": [
+        "verify_orchestrator_prompt_pack --strict PASS",
+        "verify_migration_files_tracked PASS"
+      ],
       "sot_log_row": "1319",
       "blockers": [],
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 1,
@@ -45,7 +48,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1320",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 2,
@@ -54,7 +57,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1321",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 3,
@@ -63,7 +66,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1322",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 4,
@@ -72,7 +75,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1323",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 5,
@@ -81,7 +84,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1324",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 6,
@@ -90,7 +93,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1325",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 7,
@@ -99,7 +102,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1326",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 8,
@@ -108,7 +111,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1327",
-      "final_verdict": "READY — REPO SCOPE"
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE"
     },
     {
       "stage": 9,
@@ -117,7 +120,7 @@
       "final_status": "ACCEPTED",
       "execution_pct": 100,
       "sot_log_row": "1328",
-      "final_verdict": "READY — REPO SCOPE",
+      "final_verdict": "READY \u00e2\u20ac\u201d REPO SCOPE",
       "stage9_track": {
         "api_center_proof": "DONE",
         "ai_center_architecture": "DONE",
@@ -143,8 +146,12 @@
       ],
       "sot_log_row": "1329",
       "blockers": [],
-      "final_verdict": "10X PLATFORM READY — REPO SCOPE",
-      "external_only": ["render_live_sha", "live_psp_settlement", "soc2_pci"]
+      "final_verdict": "10X PLATFORM READY \u00e2\u20ac\u201d REPO SCOPE",
+      "external_only": [
+        "render_live_sha",
+        "live_psp_settlement",
+        "soc2_pci"
+      ]
     }
   ],
   "phase0_p0_deploy": {

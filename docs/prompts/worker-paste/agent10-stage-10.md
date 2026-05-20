@@ -527,7 +527,7 @@ Apply the full clause from [`00-platform-wide-clause.md`](00-platform-wide-claus
 5. Attempt full Django suite if feasible (document skip reason on Windows DB lock)
 6. Run **full standard verifier stack** including `audit_luxury_ui_surface.py`
 7. Create [`docs/generated/ten_x_platform_certification.json`](../generated/ten_x_platform_certification.json) and [`.md`](../generated/ten_x_platform_certification.md)
-8. Record per-stage `v3_compliance_pct` and `v4_compliance_pct` from recovery cert (must be **100** for REPO SCOPE READY)
+8. Record per-stage `v3_compliance_pct`, `v4_compliance_pct`, and `v5_compliance_pct` from recovery cert (must be **100** for REPO SCOPE READY; `journey_coverage_pct` must be **100**)
 
 ## GRADE DIMENSIONS (all required in JSON)
 

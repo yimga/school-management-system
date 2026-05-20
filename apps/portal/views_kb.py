@@ -100,9 +100,9 @@ def _published_kb_for_request(request):
     qs = filter_kb_articles_by_region(qs, country, plan)
     qs = filter_kb_articles_by_school(qs, request)
     qs = filter_by_target_roles(qs, request)
-    from apps.portal.kb_embeddings import filter_kb_queryset_by_locale
+    from apps.portal.kb_embeddings import filter_kb_queryset_by_locale_with_fallback
 
-    qs = filter_kb_queryset_by_locale(qs)
+    qs = filter_kb_queryset_by_locale_with_fallback(qs)
     return qs
 
 

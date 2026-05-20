@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T09:54:17.678855+00:00",
+  "generated_at": "2026-05-20T11:17:52.088867+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -17366,9 +17366,15 @@
       "preview": "\"platform_status_strip\": compute_platform_status_strip_bundle(school_id)"
     },
     {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/context_processors.py",
+      "line": "106",
+      "preview": "school=getattr(request, \"school\", None),"
+    },
+    {
       "classification": "manager_scoped",
       "file": "apps/portal/context_processors.py",
-      "line": "113",
+      "line": "122",
       "preview": "if getattr(request, \"public_host_kind\", None) == \"manager\":"
     },
     {
@@ -17386,7 +17392,7 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/help_search_intelligence.py",
-      "line": "37",
+      "line": "38",
       "preview": "school=getattr(request, \"school\", None),"
     },
     {
@@ -17404,61 +17410,61 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_embeddings.py",
-      "line": "108",
+      "line": "123",
       "preview": "school_id = getattr(article, \"school_id\", None)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_embeddings.py",
-      "line": "109",
+      "line": "124",
       "preview": "if school_id:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_embeddings.py",
-      "line": "111",
+      "line": "126",
       "preview": "locale_group_id=gid, school_id=school_id"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_embeddings.py",
-      "line": "141",
+      "line": "156",
       "preview": "school_id = str(getattr(school, \"pk\", None) or \"\") or None"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_embeddings.py",
-      "line": "143",
+      "line": "158",
       "preview": "school_id=school_id,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_embeddings.py",
-      "line": "153",
+      "line": "168",
       "preview": "hit_qs = KBArticle.objects.filter(pk__in=ids, school_id=school_pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_pgvector.py",
-      "line": "44",
+      "line": "45",
       "preview": "school_id: str | None,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_pgvector.py",
-      "line": "59",
+      "line": "60",
       "preview": "if school_id:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_pgvector.py",
-      "line": "60",
+      "line": "61",
       "preview": "school_filter = \" AND (school_id = %s OR school_id IS NULL)\""
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/portal/kb_pgvector.py",
-      "line": "61",
+      "line": "62",
       "preview": "params.append(str(school_id))"
     },
     {
@@ -17913,6 +17919,12 @@
     },
     {
       "classification": "manager_scoped",
+      "file": "apps/portal/tests/test_help_center_wave3.py",
+      "line": "61",
+      "preview": "@override_settings(ROOT_URLCONF=\"config.manager_urls\")"
+    },
+    {
+      "classification": "manager_scoped",
       "file": "apps/portal/tests/test_kb_audience_filters.py",
       "line": "33",
       "preview": "req.urlconf = \"config.manager_urls\" if manager else \"config.tenant_urls\""
@@ -18323,6 +18335,12 @@
       "classification": "tenant_scoped",
       "file": "apps/portal/views_ai_gateway.py",
       "line": "1988",
+      "preview": "school=getattr(request, \"school\", None),"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/portal/views_ai_gateway.py",
+      "line": "2002",
       "preview": "school=getattr(request, \"school\", None),"
     },
     {
@@ -29982,29 +30000,11 @@
       "file": "config/settings.py",
       "line": "84",
       "preview": "os.getenv(\"MANAGER_PLATFORM_BASE_URL\", \"https://manager.runmycampus.com\")"
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "config/settings.py",
-      "line": "93",
-      "preview": "_oauth_callback_base = MANAGER_PLATFORM_BASE_URL or \"https://manager.runmycampus.com\""
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "config/settings.py",
-      "line": "277",
-      "preview": "\"apps.schools.middleware.TenantMiddleware\",  # When USE_DJANGO_TENANTS=0: resolve request.school from host"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "config/settings.py",
-      "line": "279",
-      "preview": "\"apps.schools.middleware.RlsResetOnExceptionMiddleware\",  # RESET app.current_school_id on response or exception"
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 5011
+    "hits": 5014
   },
   "truncated": true
 }

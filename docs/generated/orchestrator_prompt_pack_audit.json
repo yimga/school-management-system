@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-05-20T10:51:27.378602+00:00",
+  "generated_at": "2026-05-20T11:19:31.394202+00:00",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "verdict": "ORCHESTRATOR_PROMPT_PACK_PASS",
-  "pass_count": 181,
+  "pass_count": 227,
   "fail_count": 0,
   "checks": [
     {
       "id": "file:README.md",
       "ok": true,
-      "proof": "3623 bytes"
+      "proof": "4845 bytes"
     },
     {
       "id": "file:00-global-execution-rules.md",
@@ -18,7 +18,7 @@
     {
       "id": "file:00-moderator-chief-orchestrator.md",
       "ok": true,
-      "proof": "15164 bytes"
+      "proof": "15318 bytes"
     },
     {
       "id": "marker:00-moderator-chief-orchestrator.md:Chief Platform Orchestrator",
@@ -383,7 +383,7 @@
     {
       "id": "file:stage-10-final-certification.md",
       "ok": true,
-      "proof": "10171 bytes"
+      "proof": "10233 bytes"
     },
     {
       "id": "marker:stage-10-final-certification.md:ten_x_platform_certification",
@@ -411,9 +411,29 @@
       "proof": "found"
     },
     {
+      "id": "marker:stage-10-final-certification.md:v4_compliance_pct",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:v5_compliance_pct",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:journey_coverage_pct",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:verify_orchestrator_v5_bundle",
+      "ok": true,
+      "proof": "found"
+    },
+    {
       "id": "file:pillar-prompts-01-07.md",
       "ok": true,
-      "proof": "5461 bytes"
+      "proof": "5785 bytes"
     },
     {
       "id": "file:agent-assignment-index.json",
@@ -423,7 +443,7 @@
     {
       "id": "file:worker-paste/moderator.md",
       "ok": true,
-      "proof": "34315 bytes"
+      "proof": "34469 bytes"
     },
     {
       "id": "file:worker-paste/agent0-stage-0.md",
@@ -478,7 +498,217 @@
     {
       "id": "file:worker-paste/agent10-stage-10.md",
       "ok": true,
-      "proof": "28832 bytes"
+      "proof": "28894 bytes"
+    },
+    {
+      "id": "gear_up:phase-0-p0-deploy-gate.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:phase-0-p0-deploy-gate.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:phase-0-p0-deploy-gate.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-00-current-state-validation.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-00-current-state-validation.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-00-current-state-validation.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-01-core-runtime.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-01-core-runtime.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-01-core-runtime.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-02-tenant-isolation.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-02-tenant-isolation.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-02-tenant-isolation.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-03-edge-routing-branding.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-03-edge-routing-branding.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-03-edge-routing-branding.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-04-policy-entitlements.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-04-policy-entitlements.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-04-policy-entitlements.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-05-finance-ledger.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-05-finance-ledger.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-05-finance-ledger.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-06-academics-operations.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-06-academics-operations.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-06-academics-operations.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-07-migration-cloud.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-07-migration-cloud.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-07-migration-cloud.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-08-workspace-ux.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-08-workspace-ux.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-08-workspace-ux.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-09-api-automation-base.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-09-api-automation-base.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-09-api-automation-base.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-09-ai-center-expanded.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-09-ai-center-expanded.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-09-ai-center-expanded.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-10-final-certification.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-10-final-certification.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:stage-10-final-certification.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:00-moderator-chief-orchestrator.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:00-moderator-chief-orchestrator.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "present"
+    },
+    {
+      "id": "gear_up:00-moderator-chief-orchestrator.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "present"
     },
     {
       "id": "manifest:agents_count",

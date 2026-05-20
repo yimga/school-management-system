@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-20T08:36:00+00:00",
+  "generated_at": "2026-05-20T11:16:11.492657+00:00",
   "open_repo_gaps": 0,
   "program_execution_pct": 100,
-  "prompt_pack_version": "2026-05-20-orchestrator-v4",
+  "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "gaps": [
     {
       "gap_id": "GAP-PROMPT-001",
@@ -49,7 +49,7 @@
       "status": "CLOSED",
       "fix_commit_file": null,
       "proof_artifact": "docs/generated/route_surface_audit.json",
-      "test_evidence": "audit_route_surface.py exit 1 — 7706 routes, template href issues",
+      "test_evidence": "audit_route_surface.py exit 1 \u00e2\u20ac\u201d 7706 routes, template href issues",
       "remaining_blocker": null
     },
     {

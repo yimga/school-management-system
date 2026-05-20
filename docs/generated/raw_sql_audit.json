@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-05-20T09:53:46.085597+00:00",
+  "generated_at": "2026-05-20T11:17:09.540467+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -629,7 +629,19 @@
     {
       "classification": "needs_review",
       "file": "apps/portal/kb_pgvector.py",
-      "line": "74",
+      "line": "75",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/management/commands/migrate_kb_embeddings_to_pgvector.py",
+      "line": "45",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/management/commands/migrate_kb_embeddings_to_pgvector.py",
+      "line": "89",
       "pattern": "connection_cursor"
     },
     {
@@ -1079,6 +1091,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 179
+    "hits": 181
   }
 }

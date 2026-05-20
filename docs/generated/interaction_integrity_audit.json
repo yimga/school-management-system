@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T10:51:27.153669+00:00",
+  "generated_at": "2026-05-20T11:19:44.050864+00:00",
   "verdict": "INTERACTION_INTEGRITY_PASS",
   "pass_count": 17,
   "fail_count": 0,
@@ -104,7 +104,7 @@
       "id": "17",
       "label": "Contract tests green",
       "status": "PASS",
-      "proof": "fast: f upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 0.920s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "proof": "fast: f upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 0.750s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

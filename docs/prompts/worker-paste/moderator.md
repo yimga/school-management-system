@@ -568,7 +568,7 @@ After §11.4 status edits: `python scripts/generate_system_closure_map.py --writ
 
 ## RERUN LOGIC
 
-**Recovery wave** — when `ten_x_platform_certification.json` regresses or journey coverage drops, re-run Agent 10 and affected stage agents before claiming READY.
+**Recovery wave** — when `ten_x_platform_certification.json` regresses or `journey_coverage_pct` drops below **100**, re-run `python scripts/generate_v4_recovery_certification.py` (v5 gates: bundle, five-pillar, help-center tiers), `verify_orchestrator_v5_bundle.py`, and affected stage agents before claiming READY.
 
 **RERUN REQUIRED** when any acceptance criterion is unmet after the first pass.
 

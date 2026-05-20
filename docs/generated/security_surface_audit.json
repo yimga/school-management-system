@@ -3100,7 +3100,7 @@
         "classification": "allowed",
         "file": "apps/portal/views_ai_gateway.py",
         "governance_tier": "safe",
-        "line": "2005",
+        "line": "2023",
         "pattern": "login_required"
       },
       {
@@ -6680,7 +6680,7 @@
         "classification": "allowed",
         "file": "apps/portal/views_ai_gateway.py",
         "governance_tier": "safe",
-        "line": "2003",
+        "line": "2021",
         "pattern": "require_http_methods"
       },
       {
@@ -8390,9 +8390,17 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "config/manager_help_analytics.py",
+        "governance_tier": "safe",
+        "line": "50",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "config/manager_help_center.py",
         "governance_tier": "safe",
-        "line": "207",
+        "line": "230",
         "pattern": "require_http_methods"
       },
       {
@@ -8417,6 +8425,14 @@
         "file": "config/manager_help_engagement.py",
         "governance_tier": "safe",
         "line": "108",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "config/manager_kb_locale_families.py",
+        "governance_tier": "safe",
+        "line": "20",
         "pattern": "require_http_methods"
       },
       {
@@ -10828,7 +10844,7 @@
         "classification": "needs_review",
         "file": "scripts/generate_v4_recovery_certification.py",
         "governance_tier": "controlled",
-        "line": "18",
+        "line": "19",
         "pattern": "subprocess"
       },
       {
@@ -12153,7 +12169,7 @@
       }
     ]
   },
-  "generated_at": "2026-05-20T09:54:16.135899+00:00",
+  "generated_at": "2026-05-20T11:17:48.525092+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -12182,23 +12198,23 @@
     "cursor_execute": 2,
     "login_required": 535,
     "permission_classes": 56,
-    "require_http_methods": 389,
+    "require_http_methods": 391,
     "staff_member_required": 68,
     "subprocess": 394
   },
   "summary_by_classification": {
-    "allowed": 1231,
+    "allowed": 1233,
     "needs_review": 275,
     "unsafe": 11
   },
   "summary_by_governance_tier": {
     "controlled": 225,
     "needs_review": 51,
-    "safe": 1231,
+    "safe": 1233,
     "violation": 10
   },
   "totals": {
-    "hits": 1517
+    "hits": 1519
   },
   "unified": [
     {
@@ -15294,7 +15310,7 @@
       "classification": "allowed",
       "file": "apps/portal/views_ai_gateway.py",
       "governance_tier": "safe",
-      "line": "2005",
+      "line": "2023",
       "pattern": "login_required"
     },
     {
@@ -18870,7 +18886,7 @@
       "classification": "allowed",
       "file": "apps/portal/views_ai_gateway.py",
       "governance_tier": "safe",
-      "line": "2003",
+      "line": "2021",
       "pattern": "require_http_methods"
     },
     {
@@ -20580,9 +20596,17 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "config/manager_help_analytics.py",
+      "governance_tier": "safe",
+      "line": "50",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "config/manager_help_center.py",
       "governance_tier": "safe",
-      "line": "207",
+      "line": "230",
       "pattern": "require_http_methods"
     },
     {
@@ -20607,6 +20631,14 @@
       "file": "config/manager_help_engagement.py",
       "governance_tier": "safe",
       "line": "108",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "config/manager_kb_locale_families.py",
+      "governance_tier": "safe",
+      "line": "20",
       "pattern": "require_http_methods"
     },
     {
@@ -23014,7 +23046,7 @@
       "classification": "needs_review",
       "file": "scripts/generate_v4_recovery_certification.py",
       "governance_tier": "controlled",
-      "line": "18",
+      "line": "19",
       "pattern": "subprocess"
     },
     {

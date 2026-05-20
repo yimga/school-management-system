@@ -18,6 +18,23 @@ PROMPTS = ROOT / "docs" / "prompts"
 MANIFEST = PROMPTS / "agent-assignment-index.json"
 OUT = ROOT / "docs" / "generated" / "orchestrator_prompt_pack_audit.json"
 
+STAGE_FILES_GEAR_UP = [
+    "phase-0-p0-deploy-gate.md",
+    "stage-00-current-state-validation.md",
+    "stage-01-core-runtime.md",
+    "stage-02-tenant-isolation.md",
+    "stage-03-edge-routing-branding.md",
+    "stage-04-policy-entitlements.md",
+    "stage-05-finance-ledger.md",
+    "stage-06-academics-operations.md",
+    "stage-07-migration-cloud.md",
+    "stage-08-workspace-ux.md",
+    "stage-09-api-automation-base.md",
+    "stage-09-ai-center-expanded.md",
+    "stage-10-final-certification.md",
+    "00-moderator-chief-orchestrator.md",
+]
+
 WORKER_PASTE_SLUGS = [
     "moderator",
     "agent0-stage-0",
@@ -118,6 +135,10 @@ STAGE_MARKERS: dict[str, list[str]] = {
         "75/75",
         "audit_admin_gravity.py --strict",
         "v3_compliance_pct",
+        "v4_compliance_pct",
+        "v5_compliance_pct",
+        "journey_coverage_pct",
+        "verify_orchestrator_v5_bundle",
     ],
     "00-moderator-chief-orchestrator.md": [
         "Chief Platform Orchestrator",
@@ -199,6 +220,19 @@ def main(argv: list[str] | None = None) -> int:
                     f"marker:{name}:{marker[:40]}",
                     marker.lower() in text.lower(),
                     "found" if marker.lower() in text.lower() else "missing marker",
+                )
+            )
+
+    for stage_name in STAGE_FILES_GEAR_UP:
+        if not (PROMPTS / stage_name).is_file():
+            continue
+        stext = _read(stage_name)
+        for layer in ("GEAR-UP V3", "GEAR-UP V4", "GEAR-UP V5"):
+            checks.append(
+                Check(
+                    f"gear_up:{stage_name}:{layer}",
+                    layer in stext,
+                    "present" if layer in stext else f"missing {layer}",
                 )
             )
 

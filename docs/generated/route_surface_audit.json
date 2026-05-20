@@ -20583,7 +20583,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 256,
+          "line": 260,
           "name": "api:kb-typeahead",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'api:kb-typeahead' as kb_typeahead_url %}",
@@ -22536,17 +22536,7 @@
       ],
       "scope": "manager",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 37,
-          "name": "api:support-deflection",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/",
       "view": "apps.portal.views_support_deflection.api_support_deflection"
     },
@@ -22576,17 +22566,7 @@
       ],
       "scope": "manager",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 38,
-          "name": "api:support-deflection-ack",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection-ack' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/ack/",
       "view": "apps.portal.views_support_deflection.api_support_deflection_ack"
     },
@@ -26017,7 +25997,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 110,
+          "line": 119,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"feedback:help_center\")",
@@ -26547,7 +26527,7 @@
         },
         {
           "kind": "template_url",
-          "line": 73,
+          "line": 74,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -26556,7 +26536,7 @@
         },
         {
           "kind": "template_url",
-          "line": 92,
+          "line": 95,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -26748,7 +26728,7 @@
         },
         {
           "kind": "template_url",
-          "line": 131,
+          "line": 135,
           "name": "feedback:vote_feature",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:vote_feature' item.pk %}",
@@ -27854,7 +27834,16 @@
         },
         {
           "kind": "reverse",
-          "line": 109,
+          "line": 59,
+          "name": "kb:kb_article",
+          "path": "apps/portal/help_guided_journeys.py",
+          "raw": "reverse(\"kb:kb_article\", kwargs={\"article_slug\": art.slug})",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 114,
           "name": "kb:kb_article",
           "path": "apps/portal/help_search_intelligence.py",
           "raw": "reverse(\"kb:kb_article\", kwargs={\"article_slug\": article.slug})",
@@ -27907,15 +27896,6 @@
           "name": "kb:kb_article",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
-          "reason": "requires template context arguments",
-          "status": "OK"
-        },
-        {
-          "kind": "template_url",
-          "line": 11,
-          "name": "kb:kb_article",
-          "path": "templates/partials/help_contextual_drawer.html",
-          "raw": "{% url 'kb:kb_article' slug %}",
           "reason": "requires template context arguments",
           "status": "OK"
         },
@@ -28011,10 +27991,28 @@
         },
         {
           "kind": "template_url",
-          "line": 222,
+          "line": 39,
+          "name": "kb:kb_article",
+          "path": "templates/schools/partials/manager_ai_review_queue_body.html",
+          "raw": "{% url 'kb:kb_article' row.kb_draft_article.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 226,
           "name": "kb:kb_article",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "kb:kb_article",
+          "path": "templates/schools/partials/manager_kb_locale_families_body.html",
+          "raw": "{% url 'kb:kb_article' art.slug %}",
           "reason": "requires template context arguments",
           "status": "OK"
         },
@@ -28347,7 +28345,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 64,
+          "line": 73,
           "name": "kb:kb_home",
           "path": "config/manager_ai_review_queue.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -28356,7 +28354,16 @@
         },
         {
           "kind": "reverse",
-          "line": 111,
+          "line": 63,
+          "name": "kb:kb_home",
+          "path": "config/manager_kb_locale_families.py",
+          "raw": "reverse(\"kb:kb_home\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 120,
           "name": "kb:kb_home",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -29080,7 +29087,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 26,
+          "line": 107,
           "name": "manager_ai_review_queue",
           "path": "config/manager_help_analytics.py",
           "raw": "reverse(\"manager_ai_review_queue\")",
@@ -29090,7 +29097,17 @@
       ],
       "scope": "manager",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 88,
+          "name": "manager_ai_review_queue",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'manager_ai_review_queue' as cmdk_ai_review_url %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
       "url_path": "/help-center/ai-review/",
       "view": "config.manager_ai_review_queue.manager_ai_review_queue"
     },
@@ -29272,6 +29289,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 75,
+          "name": "manager_help_analytics",
+          "path": "config/manager_ai_review_queue.py",
+          "raw": "reverse(\"manager_help_analytics\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 54,
           "name": "manager_help_analytics",
           "path": "apps/portal/tests/test_help_center_wave2.py",
@@ -29282,7 +29308,17 @@
       ],
       "scope": "manager",
       "status": "OK",
-      "template_usage": [],
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 86,
+          "name": "manager_help_analytics",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'manager_help_analytics' as cmdk_help_analytics_url %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
       "url_path": "/help-center/analytics/",
       "view": "config.manager_help_analytics.manager_help_analytics"
     },
@@ -29293,7 +29329,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 65,
+          "line": 74,
           "name": "manager_help_center",
           "path": "config/manager_ai_review_queue.py",
           "raw": "reverse(\"manager_help_center\")",
@@ -29302,7 +29338,7 @@
         },
         {
           "kind": "reverse",
-          "line": 25,
+          "line": 106,
           "name": "manager_help_center",
           "path": "config/manager_help_analytics.py",
           "raw": "reverse(\"manager_help_center\")",
@@ -29338,6 +29374,15 @@
         },
         {
           "kind": "reverse",
+          "line": 62,
+          "name": "manager_help_center",
+          "path": "config/manager_kb_locale_families.py",
+          "raw": "reverse(\"manager_help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 64,
           "name": "manager_help_center",
           "path": "config/manager_urls.py",
@@ -29347,7 +29392,7 @@
         },
         {
           "kind": "reverse",
-          "line": 114,
+          "line": 123,
           "name": "manager_help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"manager_help_center\")",
@@ -29477,7 +29522,7 @@
         },
         {
           "kind": "template_url",
-          "line": 57,
+          "line": 59,
           "name": "manager_help_center",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'manager_help_center' %}",
@@ -29565,6 +29610,46 @@
       "template_usage": [],
       "url_path": "/integrations-rollup/",
       "view": "apps.integrations_marketplace.manager_views.manager_integrations_rollup"
+    },
+    {
+      "name": "manager_kb_locale_families",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 108,
+          "name": "manager_kb_locale_families",
+          "path": "config/manager_help_analytics.py",
+          "raw": "reverse(\"manager_kb_locale_families\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 63,
+          "name": "manager_kb_locale_families",
+          "path": "apps/portal/tests/test_help_center_wave3.py",
+          "raw": "reverse(\"manager_kb_locale_families\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 90,
+          "name": "manager_kb_locale_families",
+          "path": "templates/components/rmc_command_palette.html",
+          "raw": "{% url 'manager_kb_locale_families' as cmdk_locale_families_url %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/help-center/locale-families/",
+      "view": "config.manager_kb_locale_families.manager_kb_locale_families"
     },
     {
       "name": "manager_lane2_readiness",
@@ -33594,7 +33679,7 @@
         },
         {
           "kind": "template_url",
-          "line": 94,
+          "line": 100,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' %}",
@@ -74378,7 +74463,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 256,
+          "line": 260,
           "name": "api:kb-typeahead",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'api:kb-typeahead' as kb_typeahead_url %}",
@@ -76331,17 +76416,7 @@
       ],
       "scope": "public",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 37,
-          "name": "api:support-deflection",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/",
       "view": "apps.portal.views_support_deflection.api_support_deflection"
     },
@@ -76371,17 +76446,7 @@
       ],
       "scope": "public",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 38,
-          "name": "api:support-deflection-ack",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection-ack' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/ack/",
       "view": "apps.portal.views_support_deflection.api_support_deflection_ack"
     },
@@ -82677,7 +82742,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 110,
+          "line": 119,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"feedback:help_center\")",
@@ -83207,7 +83272,7 @@
         },
         {
           "kind": "template_url",
-          "line": 73,
+          "line": 74,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -83216,7 +83281,7 @@
         },
         {
           "kind": "template_url",
-          "line": 92,
+          "line": 95,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -83408,7 +83473,7 @@
         },
         {
           "kind": "template_url",
-          "line": 131,
+          "line": 135,
           "name": "feedback:vote_feature",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:vote_feature' item.pk %}",
@@ -86669,7 +86734,16 @@
         },
         {
           "kind": "reverse",
-          "line": 109,
+          "line": 59,
+          "name": "kb:kb_article",
+          "path": "apps/portal/help_guided_journeys.py",
+          "raw": "reverse(\"kb:kb_article\", kwargs={\"article_slug\": art.slug})",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 114,
           "name": "kb:kb_article",
           "path": "apps/portal/help_search_intelligence.py",
           "raw": "reverse(\"kb:kb_article\", kwargs={\"article_slug\": article.slug})",
@@ -86722,15 +86796,6 @@
           "name": "kb:kb_article",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
-          "reason": "requires template context arguments",
-          "status": "OK"
-        },
-        {
-          "kind": "template_url",
-          "line": 11,
-          "name": "kb:kb_article",
-          "path": "templates/partials/help_contextual_drawer.html",
-          "raw": "{% url 'kb:kb_article' slug %}",
           "reason": "requires template context arguments",
           "status": "OK"
         },
@@ -86826,10 +86891,28 @@
         },
         {
           "kind": "template_url",
-          "line": 222,
+          "line": 39,
+          "name": "kb:kb_article",
+          "path": "templates/schools/partials/manager_ai_review_queue_body.html",
+          "raw": "{% url 'kb:kb_article' row.kb_draft_article.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 226,
           "name": "kb:kb_article",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "kb:kb_article",
+          "path": "templates/schools/partials/manager_kb_locale_families_body.html",
+          "raw": "{% url 'kb:kb_article' art.slug %}",
           "reason": "requires template context arguments",
           "status": "OK"
         },
@@ -87162,7 +87245,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 64,
+          "line": 73,
           "name": "kb:kb_home",
           "path": "config/manager_ai_review_queue.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -87171,7 +87254,16 @@
         },
         {
           "kind": "reverse",
-          "line": 111,
+          "line": 63,
+          "name": "kb:kb_home",
+          "path": "config/manager_kb_locale_families.py",
+          "raw": "reverse(\"kb:kb_home\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 120,
           "name": "kb:kb_home",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -105742,7 +105834,7 @@
         },
         {
           "kind": "template_url",
-          "line": 94,
+          "line": 100,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' %}",
@@ -134315,7 +134407,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 256,
+          "line": 260,
           "name": "api:kb-typeahead",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'api:kb-typeahead' as kb_typeahead_url %}",
@@ -136268,17 +136360,7 @@
       ],
       "scope": "public_host",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 37,
-          "name": "api:support-deflection",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/",
       "view": "apps.portal.views_support_deflection.api_support_deflection"
     },
@@ -136308,17 +136390,7 @@
       ],
       "scope": "public_host",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 38,
-          "name": "api:support-deflection-ack",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection-ack' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/ack/",
       "view": "apps.portal.views_support_deflection.api_support_deflection_ack"
     },
@@ -171633,7 +171705,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 256,
+          "line": 260,
           "name": "api:kb-typeahead",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'api:kb-typeahead' as kb_typeahead_url %}",
@@ -173586,17 +173658,7 @@
       ],
       "scope": "tenant",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 37,
-          "name": "api:support-deflection",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/",
       "view": "apps.portal.views_support_deflection.api_support_deflection"
     },
@@ -173626,17 +173688,7 @@
       ],
       "scope": "tenant",
       "status": "OK",
-      "template_usage": [
-        {
-          "kind": "template_url",
-          "line": 38,
-          "name": "api:support-deflection-ack",
-          "path": "templates/portal/support_request.html",
-          "raw": "{% url 'api:support-deflection-ack' %}",
-          "reason": "",
-          "status": "OK"
-        }
-      ],
+      "template_usage": [],
       "url_path": "/api/support/deflection/ack/",
       "view": "apps.portal.views_support_deflection.api_support_deflection_ack"
     },
@@ -179412,7 +179464,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 110,
+          "line": 119,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"feedback:help_center\")",
@@ -179942,7 +179994,7 @@
         },
         {
           "kind": "template_url",
-          "line": 73,
+          "line": 74,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -179951,7 +180003,7 @@
         },
         {
           "kind": "template_url",
-          "line": 92,
+          "line": 95,
           "name": "feedback:school_feedback",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:school_feedback' %}",
@@ -180143,7 +180195,7 @@
         },
         {
           "kind": "template_url",
-          "line": 131,
+          "line": 135,
           "name": "feedback:vote_feature",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'feedback:vote_feature' item.pk %}",
@@ -182427,7 +182479,16 @@
         },
         {
           "kind": "reverse",
-          "line": 109,
+          "line": 59,
+          "name": "kb:kb_article",
+          "path": "apps/portal/help_guided_journeys.py",
+          "raw": "reverse(\"kb:kb_article\", kwargs={\"article_slug\": art.slug})",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 114,
           "name": "kb:kb_article",
           "path": "apps/portal/help_search_intelligence.py",
           "raw": "reverse(\"kb:kb_article\", kwargs={\"article_slug\": article.slug})",
@@ -182480,15 +182541,6 @@
           "name": "kb:kb_article",
           "path": "templates/feedback/school_center.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
-          "reason": "requires template context arguments",
-          "status": "OK"
-        },
-        {
-          "kind": "template_url",
-          "line": 11,
-          "name": "kb:kb_article",
-          "path": "templates/partials/help_contextual_drawer.html",
-          "raw": "{% url 'kb:kb_article' slug %}",
           "reason": "requires template context arguments",
           "status": "OK"
         },
@@ -182584,10 +182636,28 @@
         },
         {
           "kind": "template_url",
-          "line": 222,
+          "line": 39,
+          "name": "kb:kb_article",
+          "path": "templates/schools/partials/manager_ai_review_queue_body.html",
+          "raw": "{% url 'kb:kb_article' row.kb_draft_article.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 226,
           "name": "kb:kb_article",
           "path": "templates/schools/partials/manager_help_center_body.html",
           "raw": "{% url 'kb:kb_article' article.slug %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "kb:kb_article",
+          "path": "templates/schools/partials/manager_kb_locale_families_body.html",
+          "raw": "{% url 'kb:kb_article' art.slug %}",
           "reason": "requires template context arguments",
           "status": "OK"
         },
@@ -182920,7 +182990,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 64,
+          "line": 73,
           "name": "kb:kb_home",
           "path": "config/manager_ai_review_queue.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -182929,7 +182999,16 @@
         },
         {
           "kind": "reverse",
-          "line": 111,
+          "line": 63,
+          "name": "kb:kb_home",
+          "path": "config/manager_kb_locale_families.py",
+          "raw": "reverse(\"kb:kb_home\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 120,
           "name": "kb:kb_home",
           "path": "apps/portal/context_processors.py",
           "raw": "reverse(\"kb:kb_home\")",
@@ -190458,7 +190537,7 @@
         },
         {
           "kind": "template_url",
-          "line": 94,
+          "line": 100,
           "name": "siteconfig:ai_center",
           "path": "templates/components/rmc_command_palette.html",
           "raw": "{% url 'siteconfig:ai_center' %}",
@@ -201331,12 +201410,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2759,
+    "reverse_usages": 2765,
     "risk_count": 0,
-    "routes_audited": 7741,
+    "routes_audited": 7742,
     "status": "ROUTE SYSTEM CERTIFIED",
-    "template_href_action_usages": 252,
-    "template_url_usages": 2372
+    "template_href_action_usages": 253,
+    "template_url_usages": 2374
   },
   "urlconfs": {
     "manager": "config.manager_urls",

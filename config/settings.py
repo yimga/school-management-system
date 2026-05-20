@@ -1534,6 +1534,15 @@ CELERY_BEAT_SCHEDULE = {
                 ),
                 "options": {"expires": 7200},
             },
+            "portal-purge-help-telemetry-monthly": {
+                "task": "portal.purge_help_telemetry_monthly",
+                "schedule": (
+                    _celery_crontab(hour=5, minute=0, day_of_month=1)
+                    if _celery_crontab is not None
+                    else 2592000.0
+                ),
+                "options": {"expires": 7200},
+            },
         }
         if CELERY_BEAT_ENABLED
         else {}

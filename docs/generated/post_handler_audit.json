@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T09:53:33.624601+00:00",
+  "generated_at": "2026-05-20T11:16:49.022457+00:00",
   "rows": [
     {
       "bucket": "product",
@@ -1069,7 +1069,7 @@
       "bucket": "product",
       "classification": "protected_candidate",
       "file": "apps/portal/views_ai_gateway.py",
-      "line": "2003",
+      "line": "2021",
       "protective_decorator_nearby": true
     },
     {
@@ -2013,8 +2013,15 @@
     {
       "bucket": "product",
       "classification": "needs_review",
+      "file": "config/manager_help_analytics.py",
+      "line": "50",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
       "file": "config/manager_help_center.py",
-      "line": "207",
+      "line": "230",
       "protective_decorator_nearby": false
     },
     {
@@ -2022,6 +2029,13 @@
       "classification": "needs_review",
       "file": "config/manager_help_engagement.py",
       "line": "28",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "config/manager_kb_locale_families.py",
+      "line": "20",
       "protective_decorator_nearby": false
     },
     {
@@ -2062,15 +2076,15 @@
   ],
   "schema_version": 1,
   "summary_by_bucket": {
-    "product": 290,
+    "product": 292,
     "scripts": 4
   },
   "summary_by_classification": {
-    "needs_review": 105,
+    "needs_review": 107,
     "protected_candidate": 185,
     "scripts_cli": 4
   },
   "totals": {
-    "hits": 294
+    "hits": 296
   }
 }
