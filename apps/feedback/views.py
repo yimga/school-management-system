@@ -1,9 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 
+from .form_widgets import apply_bootstrap_form_styles
 from .forms import FeatureRequestForm, FeedbackSubmissionForm, RoleFeedbackForm, SurveyResponseForm
 from .models import FeatureRequest, FeedbackSubmission, ReleaseNote, RoadmapItem, SurveyResponse
 from .services import (
@@ -226,6 +228,7 @@ def feature_center(request):
     operator_view = is_operator(request.user) and school is None
     if request.method == "POST":
         form = FeatureRequestForm(request.POST)
+        apply_bootstrap_form_styles(form)
         if form.is_valid():
             submit_feature_request(
                 school=school,
@@ -246,6 +249,13 @@ def feature_center(request):
                 "title": request.GET.get("title", ""),
             }
         )
+    qs = (
+        FeatureRequest.objects.all()  # tenant-isolation-allow: operator-feature-center-cross-tenant-read
+        if operator_view
+        else FeatureRequest.objects.filter(school=school)
+    ).order_by("-weighted_score", "-created_at")
+    page = Paginator(qs, 25).get_page(request.GET.get("page"))
+    apply_bootstrap_form_styles(form)
     return render(
         request,
         "feedback/feature_center.html",
@@ -253,11 +263,8 @@ def feature_center(request):
             "school": school,
             "is_operator_view": operator_view,
             "feature_form": form,
-            "feature_requests": (
-                FeatureRequest.objects.all()
-                if operator_view
-                else FeatureRequest.objects.filter(school=school)
-            ).order_by("-weighted_score", "-created_at")[:75],
+            "feature_requests": page.object_list,
+            "feature_requests_page": page,
             "roadmap_items": visible_roadmap_for_user(request.user, school)[:30],
             "you_said_we_did": generate_you_said_we_did_items(school)[:10],
             "support_links": support_entry_points(request),
@@ -266,11 +273,36 @@ def feature_center(request):
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def contact_us(request):
     """Authenticated contact router for tenant users and platform operators."""
     school = get_request_school(request)
     role = (get_user_role(request.user) or "").lower()
     links = support_entry_points(request)
+    if request.method == "POST" and request.POST.get("form_kind") == "platform_message":
+        title = (request.POST.get("title") or "").strip() or "Contact us message"
+        description = (request.POST.get("description") or "").strip()
+        if description:
+            submit_feedback(
+                school=school,
+                user=request.user,
+                title=title[:180],
+                description=description,
+                category=request.POST.get("category")
+                or FeedbackSubmission.Category.GENERAL,
+                module=request.POST.get("module", ""),
+                route=request.POST.get("route", request.path),
+                severity=request.POST.get("severity")
+                or FeedbackSubmission.Severity.MEDIUM,
+                source_channel=FeedbackSubmission.SourceChannel.CONTACT_US,
+                source_url=request.build_absolute_uri(),
+            )
+            messages.success(
+                request,
+                "Message sent — our team will route it to the right lane.",
+            )
+            return redirect(links.get("contact_center") or "feedback:contact_us")
+        messages.error(request, "Please describe how we can help.")
     open_support_count = 0
     open_contact_count = 0
     if school is not None:
@@ -394,7 +426,7 @@ def voice_of_customer(request):
         "feedback/voice_of_customer.html",
         {
             "feedback_items": qs[:100],
-            "feature_requests": FeatureRequest.objects.select_related("school").all()[:100],
+            "feature_requests": FeatureRequest.objects.select_related("school").all()[:100],  # tenant-isolation-allow: voice-of-customer-operator-cross-tenant
             "roadmap_candidates": RoadmapItem.objects.filter(status=RoadmapItem.Status.UNDER_REVIEW)[:50],
             "by_school": summarize_feedback_by_school(),
             "by_role": summarize_feedback_by_role(),
@@ -474,6 +506,7 @@ def add_to_roadmap(request, pk):
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def help_center(request):
     """Role-aware Help Center landing — bridges KB / feedback / contact / release notes / pulse.
 
@@ -483,6 +516,7 @@ def help_center(request):
     role = (get_user_role(request.user) or "").lower()
     school = get_request_school(request)
     is_op = is_operator(request.user)
+    can_request_features = role not in ("parent", "student")
     recent_release_notes = list(
         ReleaseNote.objects.filter(
             is_public=True, published_at__isnull=False
@@ -518,6 +552,65 @@ def help_center(request):
         pinned_feedback_route = "feedback:parent_feedback"
     elif role == "student":
         pinned_feedback_route = "feedback:student_feedback"
+
+    feature_quick_form = FeatureRequestForm(
+        initial={
+            "module": request.GET.get("module", ""),
+            "title": request.GET.get("title", ""),
+            "affected_roles": "ADMIN,TEACHER",
+        }
+    )
+    apply_bootstrap_form_styles(feature_quick_form)
+    if (
+        request.method == "POST"
+        and request.POST.get("form_kind") == "feature_quick"
+        and can_request_features
+    ):
+        feature_quick_form = FeatureRequestForm(request.POST)
+        apply_bootstrap_form_styles(feature_quick_form)
+        if feature_quick_form.is_valid():
+            submit_feature_request(
+                school=school,
+                user=request.user,
+                affected_roles=[
+                    r.strip().upper()
+                    for r in feature_quick_form.cleaned_data["affected_roles"].split(",")
+                    if r.strip()
+                ],
+                **{
+                    k: v
+                    for k, v in feature_quick_form.cleaned_data.items()
+                    if k != "affected_roles"
+                },
+            )
+            messages.success(
+                request,
+                "Feature request received — track it in Feature center.",
+            )
+            return redirect("feedback:help_center")
+
+    recent_features = []
+    if can_request_features:
+        fr_qs = FeatureRequest.objects.filter(  # tenant-isolation-allow: help-center-user-scoped-recent-features
+            submitted_by=request.user,
+        )
+        if school is not None:
+            fr_qs = fr_qs.filter(school=school)
+        recent_features = list(fr_qs.order_by("-created_at")[:5])
+
+    links = support_entry_points(request)
+    deflection_urls = {}
+    try:
+        from django.urls import reverse
+
+        deflection_urls = {
+            "support_deflection_url": reverse("api:support-deflection"),
+            "support_deflection_ack_url": reverse("api:support-deflection-ack"),
+            "kb_search_url": reverse("kb:kb_search"),
+            "kb_typeahead_url": reverse("api:kb-typeahead"),
+        }
+    except Exception:
+        pass
     return render(
         request,
         "feedback/help_center.html",
@@ -525,12 +618,18 @@ def help_center(request):
             "role": role,
             "school": school,
             "is_operator": is_op,
+            "can_request_features": can_request_features,
             "release_notes": recent_release_notes,
             "pinned_feedback_route": pinned_feedback_route,
             "you_said_we_did": generate_you_said_we_did_items(school)[:5] if school else [],
             "help_resources": help_resources,
-            "support_links": support_entry_points(request),
+            "support_links": links,
             "open_support_count": open_support_count,
+            "feature_quick_form": feature_quick_form,
+            "recent_features": recent_features,
+            "feature_center_url": links.get("feature_center") or "",
+            "contact_center_url": links.get("contact_center") or "",
+            **deflection_urls,
         },
     )
 

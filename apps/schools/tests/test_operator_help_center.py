@@ -32,7 +32,7 @@ def _ensure_operator_kb_article(author) -> None:
 
             "icon": "fa-rocket",
 
-            "ordering": 1,
+            "display_order": 1,
 
             "is_active": True,
 
@@ -177,6 +177,25 @@ class OperatorHelpCenterHttpTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_feature_center_renders_200(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get("/feature-center/", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn("Request a capability", body)
+
+    def test_contact_us_renders_200(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get("/contact-us/", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Contact us", response.content)
+
+    def test_product_roadmap_renders_200(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get("/product-roadmap/", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Product roadmap", response.content)
+
 
 
 
@@ -198,6 +217,17 @@ class OperatorHelpCenterAllowlistTests(SimpleTestCase):
             )
 
         )
+
+    def test_engagement_paths_allowlisted(self):
+        for path in (
+            "/feature-center/",
+            "/contact-us/",
+            "/product-roadmap/",
+        ):
+            self.assertTrue(
+                any(path.startswith(prefix) for prefix in MANAGER_HOST_ALLOWED_PREFIXES),
+                msg=path,
+            )
 
 
 

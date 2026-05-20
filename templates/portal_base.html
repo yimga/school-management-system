@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="tenant" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -50,6 +50,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-chrome-variants.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
     <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
@@ -124,6 +125,9 @@
     <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
+    {% if SHOW_MANAGER_CORPORATE_FOOTER %}
+    <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
+    {% endif %}
     {% endif %}
     <style>
       {% block theme_root_variables %}
@@ -174,7 +178,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% if request.public_host_kind == 'manager' %} data-rmc-cp-scroll="document"{% endif %} data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% if request.public_host_kind == 'manager' %} data-rmc-cp-scroll="document"{% endif %} data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -196,7 +200,7 @@
         {% url 'super:command_center' as analytics_url %}
         {% url 'super:command_center' as compliance_url %}
         {% url 'super:dashboard' as portal_home_url %}
-        {% url 'manager_help' as help_center_url %}
+        {% url 'manager_help_center' as help_center_url %}
         {% else %}
         {% url 'accounts:backend_dashboard' as backend_url %}
         {% url 'portal:teacher_dashboard_alias' as teacher_url %}
@@ -208,7 +212,7 @@
         {% url 'analytics:dashboard' as analytics_url %}
         {% url 'compliance:dashboard' as compliance_url %}
         {% url 'accounts:redirect' as portal_home_url %}
-        {% url 'kb:kb_home' as help_center_url %}
+        {% url 'feedback:help_center' as help_center_url %}
         {% endif %}
         <div id="preview-header-brand" class="d-inline-flex align-items-center" data-preview-label="{% trans 'Logo & site name' %}">
         {% comment %} v2.57 (2026-05-15) — adopted rmc_brand_mark across all portal
@@ -439,7 +443,7 @@
             {% endif %}
             {% endblock %}
 
-            <div class="portal-page-body" data-rmc-portal-page-body="1">
+            <div class="portal-page-body" data-rmc-portal-page-body="1"{% if request.public_host_kind == 'manager' %} data-rmc-page-fold-nav="required"{% endif %}>
             {% block content %}{% endblock %}
             </div>
             {% block rmc_os_context_rail %}
@@ -578,7 +582,9 @@
     {% if request.user.is_authenticated %}
       {% include 'components/rmc_command_palette.html' %}
       <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
+      <script src="{% static 'js/rmc-scroll-container.js' %}"></script>
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
+      <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
       {# Phase K (2026-05-12): density toggle for .rmc-data-table tables. #}
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
       {# Phase N (2026-05-12): deterministic avatar gradients. #}
@@ -601,8 +607,20 @@
     <script src="{% static 'js/tooltips.js' %}"></script>
 
     {# Main Footer with Accreditation and Support #}
-    <div data-rmc-shell-footer="portal">{% with portal_footer_partial=PORTAL_FOOTER_PARTIAL|default:"components/footer.html" %}{% include portal_footer_partial %}{% endwith %}</div>
+    <div data-rmc-shell-footer="portal">
+      {% if request.public_host_kind == 'manager' and SHOW_MANAGER_CORPORATE_FOOTER %}
+      <footer class="cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
+        {% include "partials/rmc_operator_footer_compact.html" %}
+      </footer>
+      {% else %}
+      {% with portal_footer_partial=PORTAL_FOOTER_PARTIAL|default:"components/footer.html" %}
+      {% include portal_footer_partial %}
+      {% endwith %}
+      {% endif %}
+    </div>
 
+    {% include "partials/help_proactive_nudge.html" %}
+    {% include "partials/help_contextual_drawer.html" %}
     {% include 'components/contextual_feedback_widget.html' %}
 
     {% include 'components/rum_beacon.html' %}

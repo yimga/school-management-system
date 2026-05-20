@@ -1,0 +1,100 @@
+WARNING 2026-05-19 19:59:29,749 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.
+DEBUG 2026-05-19 19:59:30,115 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)
+INFO 2026-05-19 19:59:30,117 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired
+INFO 2026-05-19 19:59:30,245 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.
+Using existing test database for alias 'default'...
+DEBUG 2026-05-19 20:00:22,666 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=754cbb52-72b9-4a68-861b-c59c7f479186 surface=tenant_plane steps=13 elapsed_ms=2104.78 runtime_trace_id=5f2c6b735cf41876
+.INFO 2026-05-19 20:00:29,440 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:29,441 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:29,456 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:29,456 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:30,652 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:30,652 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 20:00:31,637 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=754cbb52-72b9-4a68-861b-c59c7f479186 surface=tenant_plane steps=13 elapsed_ms=306.89 runtime_trace_id=0ab845bc2ef0988a
+FINFO 2026-05-19 20:00:31,932 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:31,941 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:31,947 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:31,947 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:32,878 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:32,879 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 20:00:33,532 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=754cbb52-72b9-4a68-861b-c59c7f479186 surface=tenant_plane steps=13 elapsed_ms=279.37 runtime_trace_id=dab50b1ef7081803
+FINFO 2026-05-19 20:00:34,271 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:34,272 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:34,283 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:34,283 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:35,411 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:35,411 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 20:00:36,309 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=754cbb52-72b9-4a68-861b-c59c7f479186 surface=tenant_plane steps=13 elapsed_ms=451.08 runtime_trace_id=a4482870c958937d
+FINFO 2026-05-19 20:00:36,493 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:36,494 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:36,498 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:36,498 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 20:00:37,354 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 20:00:37,354 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 20:00:38,038 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=754cbb52-72b9-4a68-861b-c59c7f479186 surface=tenant_plane steps=13 elapsed_ms=351.69 runtime_trace_id=7cb34a6dbe94a866
+E
+======================================================================
+ERROR: test_support_categories_create_support_ticket_from_feedback (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_support_categories_create_support_ticket_from_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 88, in test_support_categories_create_support_ticket_from_feedback
+    feedback = FeedbackSubmission.objects.get(title="Payment receipt missing")
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\models\query.py", line 635, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+apps.feedback.models.FeedbackSubmission.DoesNotExist: FeedbackSubmission matching query does not exist.
+
+======================================================================
+FAIL: test_help_center_renders_for_staff (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_renders_for_staff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 21, in test_help_center_renders_for_staff
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        response.status_code,
+        ^^^^^^^^^^^^^^^^^^^^^
+        200,
+        ^^^^
+        response.get("Location", getattr(response, "url", "")),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: 302 != 200 : /authentication/login/?next=/help/
+
+======================================================================
+FAIL: test_help_center_role_surfaces_linked (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_role_surfaces_linked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 36, in test_help_center_role_surfaces_linked
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        response.status_code,
+        ^^^^^^^^^^^^^^^^^^^^^
+        200,
+        ^^^^
+        response.get("Location", getattr(response, "url", "")),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: 302 != 200 : /authentication/login/?next=/help/
+
+======================================================================
+FAIL: test_help_center_surfaces_kb_and_faq_matches (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_surfaces_kb_and_faq_matches)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 64, in test_help_center_surfaces_kb_and_faq_matches
+    self.assertEqual(response.status_code, 200)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 302 != 200
+
+----------------------------------------------------------------------
+Ran 5 tests in 26.249s
+
+FAILED (failures=3, errors=1)
+Preserving test database for alias 'default'...
+Found 5 test(s).
+System check identified no issues (0 silenced).

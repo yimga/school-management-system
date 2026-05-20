@@ -179,3 +179,27 @@ def apply_support_ticket_ai_triage(ticket_id: str) -> dict[str, Any]:
         except ImportError:
             pass
     return _run()
+
+
+@shared_task(name="portal.reindex_kb_help_embeddings_weekly")
+def reindex_kb_help_embeddings_weekly(limit: int = 0) -> dict[str, Any]:
+    """Weekly KB embedding refresh (batch 1341). No-op when Ollama unavailable."""
+    from django.core.management import call_command
+
+    try:
+        call_command("reindex_kb_help_embeddings", limit=limit or 0)
+        return {"ok": True}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+@shared_task(name="portal.build_code_support_index_weekly")
+def build_code_support_index_weekly() -> dict[str, Any]:
+    """Refresh operator code-support index (batch 1341)."""
+    from django.core.management import call_command
+
+    try:
+        call_command("build_code_support_index")
+        return {"ok": True}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}

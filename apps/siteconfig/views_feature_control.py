@@ -15,6 +15,7 @@ import json
 import logging
 from typing import Any
 
+from django.core.paginator import Paginator
 from django.db import DatabaseError
 from django.core.cache import cache
 from django.contrib import messages
@@ -1587,14 +1588,24 @@ def get_feature_control_audit_entries(request, limit=20):
 @require_http_methods(["GET"])
 def feature_control_audit_log(request):
     """View recent Feature Control changes."""
-    entries = FeatureControlAudit.objects.select_related("user").order_by(
-        "-created_at"
-    )[:50]
+    try:
+        page_no = int(request.GET.get("page") or 1)
+    except (TypeError, ValueError):
+        page_no = 1
+    qs = FeatureControlAudit.objects.select_related("user").order_by("-created_at")
+    paginator = Paginator(qs, 25)
+    page = paginator.get_page(page_no)
+    q = request.GET.copy()
+    q.pop("page", None)
     return render_siteconfig_operator_page(
         request,
         portal_template="siteconfig/feature_control_audit.html",
         body_template="siteconfig/partials/feature_control_audit_body.html",
-        context={"entries": entries},
+        context={
+            "entries": page.object_list,
+            "page_obj": page,
+            "pagination_extra_query": q.urlencode(),
+        },
         cp_title=_("Feature control audit"),
         breadcrumbs=default_operator_breadcrumbs(
             operator_cp_breadcrumb(

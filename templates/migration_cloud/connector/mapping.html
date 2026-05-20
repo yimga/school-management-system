@@ -1,0 +1,16 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% block connector_body %}
+<form method="post">{% csrf_token %}
+  <input type="hidden" name="entity_type" value="{{ entity_type }}">
+  <table class="table rmc-data-table">
+    <thead><tr><th>{% trans "Source" %}</th><th>{% trans "Destination" %}</th><th>{% trans "Status" %}</th></tr></thead>
+    <tbody>
+      {% for m in mappings %}
+      <tr><td>{{ m.source_field }}</td><td>{{ m.destination_field|default:"—" }}</td><td>{{ m.get_status_display }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="submit" class="btn btn-primary">{% trans "Confirm mappings" %}</button>
+</form>
+{% endblock %}

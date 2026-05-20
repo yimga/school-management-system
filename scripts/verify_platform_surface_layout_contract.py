@@ -75,9 +75,10 @@ def main() -> int:
         "control_plane_skeleton.html",
     )
     add(
-        "document_scroll_admin_manager",
-        "Manager Unfold admin shell sets data-rmc-cp-scroll=document",
-        _contains("templates/admin/base_site.html", "data-rmc-cp-scroll"),
+        "main_scroll_admin_manager",
+        "Manager Unfold admin shell sets data-rmc-cp-scroll=main (viewport-trapped #cp-main-content)",
+        _contains("templates/admin/base_site.html", "data-rmc-cp-scroll', 'main'")
+        and _contains("templates/admin/base.html", 'data-rmc-cp-scroll="main"'),
         "admin/base_site.html",
     )
     add(

@@ -1,0 +1,42 @@
+{
+  "architecture_generated_at": "2026-05-20T02:17:46.661657+00:00",
+  "architecture_ref": "docs/generated/tenant_kernel_architecture_review.json",
+  "external_blockers": [
+    "live_postgres_rls_ci_workflow_proof_on_render",
+    "penetration_test_vendor_engagement"
+  ],
+  "failed_gate_count": 0,
+  "focused_test_modules": [
+    "apps.security.tests.test_boundary_penetration",
+    "apps.tenancy.tests.test_rls_boundary_contracts",
+    "apps.accounts.tests.test_impersonation_audit_integrity",
+    "apps.security.tests.test_tenant_route_leakage",
+    "apps.security.tests.test_impersonation_approval"
+  ],
+  "gates": [
+    {
+      "id": "scan_tenant_queryset_safety_baseline_0",
+      "note": "baseline 0, no new unscoped queries",
+      "ok": true
+    },
+    {
+      "id": "scan_tenant_isolation_marker_quality",
+      "note": "no lazy tenant-isolation-allow reasons",
+      "ok": true
+    },
+    {
+      "id": "tenant_kernel_architecture_review",
+      "note": "docs/generated/tenant_kernel_architecture_review.json",
+      "ok": true
+    },
+    {
+      "id": "force_rls_migration_tracked",
+      "note": "Postgres FORCE RLS migration present",
+      "ok": true
+    }
+  ],
+  "generated_at": "2026-05-20T02:17:53.966453+00:00",
+  "repo_scope_only": true,
+  "tenancy_mode": "RLS",
+  "verdict": "TENANT ISOLATION KERNEL READY \u2014 REPO SCOPE"
+}

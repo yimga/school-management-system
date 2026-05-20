@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-05-20T02:17:46.661657+00:00",
+  "host_routing": {
+    "manager_urlconf": "config.manager_urls",
+    "multi_tenant_base_domain": "runmycampus.com",
+    "tenant_urlconf": "config.tenant_urls"
+  },
+  "metadata_only": true,
+  "middleware_tenant_stack": [
+    "apps.api.middleware_tenant_cors.TenantCorsAllowlistMiddleware",
+    "apps.schools.middleware.TenantMiddleware",
+    "apps.tenancy.middleware.TenantContextMiddleware",
+    "apps.platform_runtime.middleware.TenantRuntimeMiddleware",
+    "apps.integrations_marketplace.middleware.TenantEmailBindingMiddleware",
+    "apps.schools.middleware.TenantFreezeMiddleware",
+    "apps.schools.middleware.SentryTenantTagMiddleware",
+    "apps.schools.middleware.TenantLastActivityMiddleware",
+    "apps.schools.middleware.TenantApiQuotaMiddleware",
+    "apps.accounts.middleware.TenantHostControlPlaneIsolationMiddleware",
+    "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",
+    "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware"
+  ],
+  "pii_free": true,
+  "proof_differences": {
+    "postgresql_rls": "app.current_school_id + FORCE RLS bind tenant rows when TENANCY_MODE=RLS.",
+    "postgresql_schema": "django-tenants schema routing when USE_DJANGO_TENANTS=True.",
+    "sqlite": "RLS session GUCs are no-ops; isolation relies on queryset scoping + middleware."
+  },
+  "session_isolation": {
+    "impersonation_require_justification": true,
+    "impersonation_token_max_age": 3600,
+    "jit_impersonation_require_consent": true,
+    "manager_session_cookie": "rmc_manager_sessionid"
+  },
+  "target_apps": [
+    "schools",
+    "tenancy",
+    "customers",
+    "accounts",
+    "siteconfig",
+    "platform_runtime",
+    "security",
+    "compliance"
+  ],
+  "tenancy": {
+    "database_vendor": "sqlite",
+    "force_rls_migration_present": true,
+    "rls_active_on_engine": false,
+    "rls_policy_migration_count": 20,
+    "tenancy_mode": "RLS",
+    "use_django_tenants": false
+  }
+}

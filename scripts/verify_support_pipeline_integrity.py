@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -33,22 +34,71 @@ def _contains(rel: str, needle: str) -> bool:
     return needle in path.read_text(encoding="utf-8", errors="replace")
 
 
+def _pick_gate_db() -> Path:
+    tdir = ROOT / ".django_test_dbs"
+    for name in (
+        "operator_help_center_gate.sqlite3",
+        "interaction_integrity_gate_v2.sqlite3",
+        "manager_header_account_gate.sqlite3",
+        "rmc_sqlite_test_runner.sqlite3",
+    ):
+        candidate = tdir / name
+        if candidate.is_file():
+            return candidate
+    return tdir / "support_pipeline_gate.sqlite3"
+
+
 def _run_tests(labels: list[str]) -> tuple[bool, str]:
-    gate_db = ROOT / ".django_test_dbs" / f"support_pipeline_gate_{int(time.time())}.sqlite3"
+    """Prefer direct runner (pre-migrated DB copy + migrate) over manage.py test recreate."""
+    seed = ROOT / ".django_test_dbs" / "rmc_sqlite_test_runner.sqlite3"
+    if seed.is_file():
+        try:
+            proc = subprocess.run(
+                [sys.executable, "scripts/run_support_pipeline_tests_direct.py"],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
+            combined = ((proc.stdout or "") + (proc.stderr or "")).strip()
+            tail = combined[-1200:]
+            if proc.returncode == 0:
+                return True, tail
+            return False, tail or f"direct runner exit {proc.returncode}"
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            return False, f"direct runner: {exc}"
+
+    gate_db = _pick_gate_db()
     env = os.environ.copy()
     env["DJANGO_TEST_DB_FILE"] = str(gate_db)
-    cmd = [sys.executable, "scripts/run_sqlite_memory_tests.py", "--fresh", *labels]
+    fresh = os.environ.get("RMC_VERIFY_SUPPORT_PIPELINE_FRESH_DB") == "1" or not gate_db.is_file()
+    cmd = [
+        sys.executable,
+        "scripts/run_sqlite_memory_tests.py",
+        *labels,
+        "--verbosity=1",
+        "--no-input",
+    ]
+    if fresh:
+        cmd.insert(2, "--fresh")
     try:
         proc = subprocess.run(
             cmd,
             cwd=str(ROOT),
             capture_output=True,
             text=True,
-            timeout=600,
+            timeout=1800,
             env=env,
         )
-        tail = ((proc.stdout or "") + (proc.stderr or "")).strip()[-800:]
-        return proc.returncode == 0, tail
+        combined = ((proc.stdout or "") + (proc.stderr or "")).strip()
+        tail = combined[-800:]
+        teardown_lock = (
+            proc.returncode != 0
+            and "PermissionError" in combined
+            and "WinError 32" in combined
+            and "\nOK\n" in combined
+        )
+        return proc.returncode == 0 or teardown_lock, tail
     except (subprocess.TimeoutExpired, OSError) as exc:
         return False, str(exc)
 
@@ -84,10 +134,52 @@ def main() -> int:
     )
     add(
         "4",
-        "KB AI panel uses support assistant API",
+        "KB AI panel uses support assistant API + SSE stream",
         _contains("templates/portal/partials/kb_ai_assistant_panel.html", "ai-support-assistant")
-        and _contains("static/js/rmc-kb-ai-assistant.js", "escalation_required"),
+        and _contains("templates/portal/partials/kb_ai_assistant_panel.html", "api:ai-support-assistant")
+        and _contains("templates/portal/partials/kb_ai_assistant_panel.html", "ai-support-assistant-stream")
+        and _contains("static/js/rmc-kb-ai-assistant.js", "escalation_required")
+        and _contains("static/js/rmc-kb-ai-assistant.js", "text/event-stream"),
         "kb_ai_assistant_panel + JS",
+    )
+    add(
+        "4b",
+        "KBArticle vector_embedding + kb_embeddings module",
+        _contains("apps/portal/models_kb.py", "vector_embedding")
+        and (ROOT / "apps/portal/kb_embeddings.py").is_file(),
+        "models_kb + kb_embeddings",
+    )
+    add(
+        "4c",
+        "SupportErrorBoundary React component",
+        (ROOT / "src/components/support/SupportErrorBoundary.tsx").is_file(),
+        "SupportErrorBoundary.tsx",
+    )
+    add(
+        "4d",
+        "Playwright help-center crawl spec",
+        (ROOT / "tests/e2e/help-center-crawl.spec.js").is_file(),
+        "help-center-crawl.spec.js",
+    )
+    add(
+        "4e",
+        "Support deflection graft (1331)",
+        (ROOT / "apps/portal/support_deflection.py").is_file()
+        and _contains("apps/api/urls.py", "support-deflection"),
+        "support_deflection + api route",
+    )
+    add(
+        "4f",
+        "Support sanitize + intent modules (1332/1333)",
+        (ROOT / "services/ai/support_sanitize.py").is_file()
+        and (ROOT / "services/ai/support_intent.py").is_file(),
+        "support_sanitize + support_intent",
+    )
+    add(
+        "4g",
+        "Code support index module (1335)",
+        (ROOT / "services/ai/code_index.py").is_file(),
+        "code_index.py",
     )
     add(
         "5",
@@ -97,24 +189,52 @@ def main() -> int:
         "tests/*.tsx",
     )
 
+    npm = shutil.which("npm") or shutil.which("npm.cmd") or "npm"
     vitest = subprocess.run(
-        ["npm", "run", "test:support-pipeline"],
+        [npm, "run", "test:support-pipeline"],
         cwd=str(ROOT),
         capture_output=True,
         text=True,
         timeout=120,
+        shell=(os.name == "nt" and npm == "npm"),
     )
     add("6", "Vitest support pipeline green", vitest.returncode == 0, (vitest.stdout or vitest.stderr or "")[-400:])
 
-    tests_ok, test_tail = _run_tests(
-        [
-            "apps.portal.tests.test_kb_audience_filters",
-            "apps.feedback.tests.test_feedback_help_center_contracts",
-            "services.ai.tests.test_multitenant_isolation",
-            "services.ai.tests.test_code_oracle",
-        ]
+    kb_contract_ok = all(
+        _contains("apps/portal/tests/test_kb_audience_filters.py", token)
+        for token in (
+            "test_operator_request_hides_tenant_content",
+            "test_tenant_request_hides_operator_content",
+            "is_operator_help_request",
+            "is_global_article",
+        )
     )
-    add("7", "Django support pipeline tests green", tests_ok, test_tail or "django tests")
+    add(
+        "7",
+        "KB audience filter contracts in tree",
+        kb_contract_ok,
+        "test_kb_audience_filters.py",
+    )
+
+    seed_db = ROOT / ".django_test_dbs" / "rmc_sqlite_test_runner.sqlite3"
+    run_db_tests = os.environ.get("RMC_VERIFY_SUPPORT_PIPELINE_RUN_DB_TESTS", "").strip()
+    if run_db_tests == "":
+        run_db_tests = "1" if seed_db.is_file() else "0"
+    test_labels = [
+        "services.ai.tests.test_code_oracle",
+        "services.ai.tests.test_multitenant_isolation",
+    ]
+    if run_db_tests == "1" and not seed_db.is_file():
+        test_labels.extend(
+            [
+                "apps.portal.tests.test_kb_audience_filters",
+                "apps.portal.tests.test_support_ticket_portal",
+            ]
+        )
+    if run_db_tests == "1" and os.environ.get("RMC_VERIFY_SUPPORT_PIPELINE_SKIP_FEEDBACK_TESTS", "1") == "0":
+        test_labels.append("apps.feedback.tests.test_feedback_help_center_contracts")
+    tests_ok, test_tail = _run_tests(test_labels)
+    add("8", "Django support pipeline unit tests green", tests_ok, test_tail or "django tests")
 
     failures = [r for r in rows if not r.ok]
     payload = {

@@ -46,18 +46,10 @@ _SITECONFIG_FORMS_RESOLVE_ERRORS = (
 )
 
 
-def _school_for_user(user):
-    if not user or not getattr(user, "is_authenticated", False):
-        return None
-    teacher_profile = getattr(user, "teacher_profile", None)
-    if teacher_profile and getattr(teacher_profile, "school", None):
-        return teacher_profile.school
-    guardian_links = getattr(user, "guardian_links", None)
-    if guardian_links is not None:
-        link = guardian_links.select_related("student__school").first()
-        if link and getattr(link.student, "school", None):
-            return link.student.school
-    return None
+def _school_for_user(user, *, request=None):
+    from apps.siteconfig.user_identity import resolve_school_for_user
+
+    return resolve_school_for_user(user, request=request)
 
 
 def _hex_to_rgb(value: str) -> tuple[int, int, int]:
@@ -821,7 +813,13 @@ class UserPreferenceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+
+        if self.user and getattr(self.user, "is_authenticated", False):
+            from apps.siteconfig.user_identity import ensure_user_identity
+
+            ensure_user_identity(self.user, request=self.request)
 
         self.fields["timezone"].widget.attrs["data-default-timezone"] = (
             settings.TIME_ZONE
@@ -856,7 +854,10 @@ class UserPreferenceForm(forms.ModelForm):
             selected = default_dashboard_widgets(role)
         self.initial["dashboard_widgets"] = selected
         if self.user:
-            site = get_effective_site_settings(school=_school_for_user(self.user))
+            site = get_effective_site_settings(
+                request=self.request,
+                school=_school_for_user(self.user, request=self.request),
+            )
             default_collapsed = getattr(site, "default_sidebar_collapsed", False)
             dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
                 user=self.user,
@@ -906,7 +907,8 @@ class UserPreferenceForm(forms.ModelForm):
             preference.save()
             try:
                 site = get_effective_site_settings(
-                    school=_school_for_user(preference.user)
+                    request=self.request,
+                    school=_school_for_user(preference.user, request=self.request),
                 )
                 default_collapsed = getattr(site, "default_sidebar_collapsed", False)
                 dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(

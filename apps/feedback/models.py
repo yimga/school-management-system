@@ -3,6 +3,11 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
+from apps.accounts.validators import (
+    validate_file_size_10mb,
+    validate_kb_attachment_file,
+)
+
 
 class FeedbackSubmission(models.Model):
     class SourceChannel(models.TextChoices):
@@ -331,7 +336,10 @@ class FeedbackAttachment(models.Model):
         blank=True,
         related_name="+",
     )
-    file = models.FileField(upload_to="feedback/")
+    file = models.FileField(
+        upload_to="feedback/%Y/%m/",
+        validators=[validate_kb_attachment_file, validate_file_size_10mb],
+    )
     description = models.CharField(max_length=160, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -466,3 +474,197 @@ class SurveyResponse(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [models.Index(fields=["school", "survey_type", "-created_at"])]
+
+
+class SupportDeflectionEvent(models.Model):
+    """Aggregate telemetry for KB deflection (no raw query text)."""
+
+    class Outcome(models.TextChoices):
+        SUGGESTED = "suggested", "Articles suggested"
+        OPENED = "opened", "User opened article"
+        DISMISSED = "dismissed", "User dismissed gate"
+        SUBMITTED = "submitted", "Ticket submitted anyway"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="support_deflection_events",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="support_deflection_events",
+    )
+    surface = models.CharField(max_length=64, db_index=True, default="support_ticket")
+    outcome = models.CharField(max_length=32, choices=Outcome.choices, db_index=True)
+    top_score = models.FloatField(default=0)
+    article_slug = models.CharField(max_length=120, blank=True)
+    query_fingerprint = models.CharField(max_length=64, blank=True, db_index=True)
+    is_operator = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["surface", "-created_at"],
+                name="feedback_sd_surface_idx",
+            ),
+            models.Index(
+                fields=["outcome", "-created_at"],
+                name="feedback_sd_outcome_idx",
+            ),
+        ]
+
+    @staticmethod
+    def fingerprint(text: str) -> str:
+        import hashlib
+
+        normalized = " ".join((text or "").lower().split())[:500]
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:32]
+
+
+class HelpContentGapTask(models.Model):
+    """Operator backlog for repeated zero-result help searches (batch 1354)."""
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        ASSIGNED = "assigned", "Assigned"
+        DRAFTED = "drafted", "KB draft created"
+        DONE = "done", "Done"
+
+    query_fingerprint = models.CharField(max_length=64, unique=True, db_index=True)
+    hit_count = models.PositiveIntegerField(default=1)
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="help_content_gap_tasks",
+    )
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+    )
+    note = models.TextField(blank=True)
+    kb_draft_article = models.ForeignKey(
+        "portal.KBArticle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="content_gap_tasks",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-hit_count", "-updated_at"]
+
+
+class HelpSearchQueryLog(models.Model):
+    """Zero-result and deflection analytics (fingerprinted queries)."""
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="help_search_logs",
+    )
+    query_fingerprint = models.CharField(max_length=64, db_index=True)
+    result_count = models.PositiveSmallIntegerField(default=0)
+    is_operator = models.BooleanField(default=False)
+    locale = models.CharField(max_length=12, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+
+class SupportAIInteractionReview(models.Model):
+    """HITL queue for thumbs-down / failed support AI (no PII payload)."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending review"
+        RESOLVED = "resolved", "Resolved"
+        DISMISSED = "dismissed", "Dismissed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="support_ai_reviews",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="support_ai_reviews",
+    )
+    query_fingerprint = models.CharField(max_length=64, blank=True, db_index=True)
+    active_url = models.CharField(max_length=500, blank=True)
+    outcome = models.CharField(max_length=64, blank=True)
+    thumbs = models.CharField(max_length=16, blank=True)
+    language = models.CharField(max_length=12, blank=True)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    is_operator = models.BooleanField(default=False)
+    note = models.TextField(blank=True, help_text="Operator resolution note (no PII).")
+    kb_draft_article = models.ForeignKey(
+        "portal.KBArticle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="hitl_reviews",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @staticmethod
+    def fingerprint(text: str) -> str:
+        return SupportDeflectionEvent.fingerprint(text)
+
+
+class SupportAISessionRating(models.Model):
+    """Thumbs / stars after support SSE session (batch 1353, fingerprint-only)."""
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="support_ai_session_ratings",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="support_ai_session_ratings",
+    )
+    query_fingerprint = models.CharField(max_length=64, blank=True, db_index=True)
+    task_type = models.CharField(max_length=64, blank=True, db_index=True)
+    thumbs = models.CharField(max_length=8, blank=True)
+    stars = models.PositiveSmallIntegerField(null=True, blank=True)
+    active_url = models.CharField(max_length=500, blank=True)
+    is_operator = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]

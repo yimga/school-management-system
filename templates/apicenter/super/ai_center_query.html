@@ -1,0 +1,16 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main" data-rmc-ai-center-query>
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "Platform query" %}</h1>
+  <form id="ai-center-query-form" method="post" action="{{ ai_query_url }}">
+    {% csrf_token %}
+    <label class="form-label" for="ai-question">{% trans "Question" %}</label>
+    <textarea id="ai-question" name="question" class="form-control" rows="4" required></textarea>
+    <button type="submit" class="btn btn-primary mt-2">{% trans "Submit" %}</button>
+  </form>
+  <div id="ai-center-answer" class="mt-4" aria-live="polite"></div>
+</main>
+{% endblock %}

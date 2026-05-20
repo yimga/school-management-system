@@ -1,0 +1,125 @@
+{
+  "generated_at": "2026-05-20T04:05:20.816903+00:00",
+  "schema_version": 1,
+  "cockpit_routes": [
+    {
+      "role": "operator",
+      "surface": "manager",
+      "path": "/super/",
+      "primary_action": "Setup Studio",
+      "next_action": "Configuration center"
+    },
+    {
+      "role": "operator",
+      "surface": "manager",
+      "path": "/super/configuration/",
+      "primary_action": "Open domains",
+      "next_action": "Studio OS"
+    },
+    {
+      "role": "admin",
+      "surface": "tenant",
+      "path": "/authentication/backend/",
+      "primary_action": "Today",
+      "next_action": "Needs attention"
+    },
+    {
+      "role": "teacher",
+      "surface": "tenant",
+      "path": "/teacher/dashboard/",
+      "primary_action": "Marks",
+      "next_action": "Attendance"
+    },
+    {
+      "role": "parent",
+      "surface": "tenant",
+      "path": "/parent/dashboard/",
+      "primary_action": "Children",
+      "next_action": "Messages"
+    },
+    {
+      "role": "student",
+      "surface": "tenant",
+      "path": "/student360/",
+      "primary_action": "Profile",
+      "next_action": "Schedule"
+    },
+    {
+      "role": "studio",
+      "surface": "manager",
+      "path": "/super/studio/",
+      "primary_action": "Launch",
+      "next_action": "Control"
+    },
+    {
+      "role": "feedback",
+      "surface": "tenant",
+      "path": "/feedback/",
+      "primary_action": "Submit",
+      "next_action": "Roadmap"
+    },
+    {
+      "role": "analytics",
+      "surface": "tenant",
+      "path": "/analytics/",
+      "primary_action": "View report",
+      "next_action": "Export"
+    }
+  ],
+  "template_contracts": [
+    {
+      "role": "operator",
+      "template": "templates/schools/super_dashboard.html",
+      "exists": true,
+      "has_page_header": true,
+      "has_action_bar": true,
+      "has_zero_click": false
+    },
+    {
+      "role": "admin",
+      "template": "templates/accounts/backend_dashboard.html",
+      "exists": true,
+      "has_page_header": true,
+      "has_action_bar": true,
+      "has_zero_click": true
+    },
+    {
+      "role": "teacher",
+      "template": "templates/teacher/dashboard.html",
+      "exists": true,
+      "has_page_header": true,
+      "has_action_bar": true,
+      "has_zero_click": false
+    },
+    {
+      "role": "parent",
+      "template": "templates/parent/dashboard.html",
+      "exists": true,
+      "has_page_header": true,
+      "has_action_bar": true,
+      "has_zero_click": false
+    },
+    {
+      "role": "student",
+      "template": "templates/student360/student_360_page.html",
+      "exists": true,
+      "has_page_header": true,
+      "has_action_bar": true,
+      "has_zero_click": false
+    },
+    {
+      "role": "studio",
+      "template": "templates/studio_os/shell.html",
+      "exists": true,
+      "has_page_header": true,
+      "has_action_bar": true,
+      "has_zero_click": false
+    }
+  ],
+  "template_contract_failures": 0,
+  "apple_class_report_ref": "docs/generated/apple_class_authenticated_browser_report.json",
+  "apple_class_verdict": "APPLE-CLASS UX READY - LOCAL",
+  "apple_class_generated_at": "2026-05-19T03:00:37.159Z",
+  "verdict": "WORKSPACE_COCKPIT_QA_READY",
+  "apple_class_manager_routes_200": 26
+}

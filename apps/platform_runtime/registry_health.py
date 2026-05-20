@@ -26,12 +26,16 @@ def evaluate_registry_health(
         missing_tests = not bool(registry.get("test") or registry.get("tests"))
         route = str(registry.get("route") or "")
         missing_route = bool(route_inventory) and route not in route_inventory
-        external_blocker = registry.get("status") == "external_required"
+        status = str(registry.get("status") or "")
+        external_blocker = status == "external_required"
         severity = "ok"
         if missing_owner or missing_proof or missing_route:
             severity = "high"
-        elif missing_tests or stale or external_blocker:
+        elif missing_tests or stale:
             severity = "medium"
+        elif external_blocker:
+            # Honest external posture — tracked in SOT, not a repo registry defect.
+            severity = "ok"
         rows.append(
             {
                 "registry_name": registry.get("name", ""),

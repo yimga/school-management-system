@@ -329,15 +329,26 @@ def _admin_context(user, request=None):
 @login_required
 def user_profile(request):
     """Profile landing: account overview, org tree (teacher), children tree (parent), change password & edit profile."""
-    context = {}
+    from apps.siteconfig.user_identity import ensure_user_identity
+
+    identity = ensure_user_identity(request.user, request=request)
+    context = {
+        "preferences_url": reverse("siteconfig:user_preferences"),
+        "profile_edit_url": reverse("accounts:profile_edit"),
+    }
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     role = getattr(request.user, "role", None)
-    teacher_profile = (
-        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-        TeacherProfile.objects.filter(user=request.user)
-        .select_related("department", "reports_to")
-        .first()
-    )
+    teacher_profile = identity.get("people_profile")
+    if teacher_profile is None:
+        try:
+            teacher_profile = (
+                # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
+                TeacherProfile.objects.filter(user=request.user)
+                .select_related("department", "reports_to")
+                .first()
+            )
+        except (ProgrammingError, DatabaseError, OperationalError):
+            teacher_profile = None
     if teacher_profile:
         context["org_chain"] = get_org_chain_to_staff(teacher_profile)
     if role == User.Role.TEACHER and teacher_profile:
@@ -363,7 +374,10 @@ def user_profile(request):
             .order_by("-issued_at")[:20]
         )
     if role == User.Role.PARENT:
-        context["parent_children_tree"] = _parent_children_tree(request.user)
+        try:
+            context["parent_children_tree"] = _parent_children_tree(request.user)
+        except (ProgrammingError, DatabaseError, OperationalError):
+            context["parent_children_tree"] = None
     admin_ctx = _admin_context(request.user, request)
     if admin_ctx:
         context["admin_context"] = admin_ctx

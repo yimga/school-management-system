@@ -1,0 +1,81 @@
+{
+  "audit_generated_at": "2026-05-20T03:00:16.500091+00:00",
+  "audit_ref": "docs/generated/policy_entitlement_runtime_audit.json",
+  "external_blockers": [
+    "live_billing_psp_entitlement_sync",
+    "counsel_signed_policy_pack_flip"
+  ],
+  "failed_gate_count": 0,
+  "focused_test_modules": [
+    "apps.platform_runtime.tests.test_entitlement_policy_runtime",
+    "apps.metadata.tests.test_metadata_no_ddl_safety",
+    "apps.registries.tests.test_registry_health_contracts",
+    "apps.setup_studio.tests.test_setup_studio_configuration_flow"
+  ],
+  "gates": [
+    {
+      "id": "module_billing_entitlements",
+      "note": "billing_entitlements present",
+      "ok": true
+    },
+    {
+      "id": "module_entitlement_gates",
+      "note": "entitlement_gates present",
+      "ok": true
+    },
+    {
+      "id": "module_metadata_ddl_safety",
+      "note": "metadata_ddl_safety present",
+      "ok": true
+    },
+    {
+      "id": "module_metadata_governance",
+      "note": "metadata_governance present",
+      "ok": true
+    },
+    {
+      "id": "module_policy_pdp",
+      "note": "policy_pdp present",
+      "ok": true
+    },
+    {
+      "id": "module_policy_registry",
+      "note": "policy_registry present",
+      "ok": true
+    },
+    {
+      "id": "module_registry_health_engine",
+      "note": "registry_health_engine present",
+      "ok": true
+    },
+    {
+      "id": "module_setup_studio_tenant_guard",
+      "note": "setup_studio_tenant_guard present",
+      "ok": true
+    },
+    {
+      "id": "registry_health_ok",
+      "note": "high=0 medium=0",
+      "ok": true
+    },
+    {
+      "id": "audit_ok",
+      "note": "discovery audit self-check",
+      "ok": true
+    },
+    {
+      "id": "metadata_ddl_guard",
+      "note": "DDL patterns blocked on metadata paths",
+      "ok": true
+    },
+    {
+      "id": "entitlement_cache_invalidate",
+      "note": "invalidate_entitlement_cache callable",
+      "ok": true
+    }
+  ],
+  "generated_at": "2026-05-20T03:00:19.910486+00:00",
+  "repo_scope_only": true,
+  "sot_batch_draft": 1323,
+  "verdict": "CONFIGURATION POLICY ENGINE READY \u2014 REPO SCOPE"
+}

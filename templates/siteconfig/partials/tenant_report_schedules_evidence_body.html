@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% load terminology_tags %}
-<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="tenant-report-schedules-evidence" data-admin-replacement-category="reports_scheduled_evidence" data-cp-evidence-surface="tenant-report-schedules" data-rmc-operator-evidence-surface="1" data-rmc-report-bulk-evidence="1099" data-rmc-component-audit="1">
+<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: 56rem;" data-rmc-scroll-policy="paginate" data-page-archetype="operator-report" data-shell-surface="tenant-report-schedules-evidence" data-admin-replacement-category="reports_scheduled_evidence" data-cp-evidence-surface="tenant-report-schedules" data-rmc-operator-evidence-surface="1" data-rmc-report-bulk-evidence="1099" data-rmc-component-audit="1">
   <h1 class="h3 mb-2">{% trans "Tenant scheduled reports (read-only)" %}</h1>
   <p class="text-muted small mb-2">
     {% trans "Evidence-only view of TenantReportSchedule rows for this school. Delivery runs via send_scheduled_reports / automation; this page does not send mail or export data." %}

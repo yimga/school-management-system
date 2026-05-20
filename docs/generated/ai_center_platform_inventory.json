@@ -1,0 +1,447 @@
+{
+  "ai_center_modules": [
+    "services/ai/",
+    "services/ai_center/",
+    "apps/siteconfig/views_ai_center.py",
+    "apps/apicenter/views_ai_center_super.py",
+    "apps/portal/support_ai_context.py",
+    "ai/Modelfile"
+  ],
+  "app_count": 44,
+  "apps": [
+    {
+      "app_label": "academics",
+      "path": "apps/academics/"
+    },
+    {
+      "app_label": "accounts",
+      "path": "apps/accounts/"
+    },
+    {
+      "app_label": "analytics",
+      "path": "apps/analytics/"
+    },
+    {
+      "app_label": "apicenter",
+      "path": "apps/apicenter/"
+    },
+    {
+      "app_label": "automation",
+      "path": "apps/automation/"
+    },
+    {
+      "app_label": "brand_experience",
+      "path": "apps/brand_experience/"
+    },
+    {
+      "app_label": "communication",
+      "path": "apps/communication/"
+    },
+    {
+      "app_label": "compliance",
+      "path": "apps/compliance/"
+    },
+    {
+      "app_label": "customers",
+      "path": "apps/customers/"
+    },
+    {
+      "app_label": "customersuccess",
+      "path": "apps/customersuccess/"
+    },
+    {
+      "app_label": "dashboard",
+      "path": "apps/dashboard/"
+    },
+    {
+      "app_label": "evals",
+      "path": "apps/evals/"
+    },
+    {
+      "app_label": "events",
+      "path": "apps/events/"
+    },
+    {
+      "app_label": "feedback",
+      "path": "apps/feedback/"
+    },
+    {
+      "app_label": "finance",
+      "path": "apps/finance/"
+    },
+    {
+      "app_label": "global_registries",
+      "path": "apps/global_registries/"
+    },
+    {
+      "app_label": "integrations_marketplace",
+      "path": "apps/integrations_marketplace/"
+    },
+    {
+      "app_label": "marketplace",
+      "path": "apps/marketplace/"
+    },
+    {
+      "app_label": "metadata",
+      "path": "apps/metadata/"
+    },
+    {
+      "app_label": "migration_cloud",
+      "path": "apps/migration_cloud/"
+    },
+    {
+      "app_label": "observability",
+      "path": "apps/observability/"
+    },
+    {
+      "app_label": "orchestration",
+      "path": "apps/orchestration/"
+    },
+    {
+      "app_label": "packages",
+      "path": "apps/packages/"
+    },
+    {
+      "app_label": "payroll",
+      "path": "apps/payroll/"
+    },
+    {
+      "app_label": "people",
+      "path": "apps/people/"
+    },
+    {
+      "app_label": "plans_entitlements",
+      "path": "apps/plans_entitlements/"
+    },
+    {
+      "app_label": "platform_runtime",
+      "path": "apps/platform_runtime/"
+    },
+    {
+      "app_label": "policies",
+      "path": "apps/policies/"
+    },
+    {
+      "app_label": "policies_rules",
+      "path": "apps/policies_rules/"
+    },
+    {
+      "app_label": "registries",
+      "path": "apps/registries/"
+    },
+    {
+      "app_label": "reports",
+      "path": "apps/reports/"
+    },
+    {
+      "app_label": "requests",
+      "path": "apps/requests/"
+    },
+    {
+      "app_label": "runtime_blueprints",
+      "path": "apps/runtime_blueprints/"
+    },
+    {
+      "app_label": "sales",
+      "path": "apps/sales/"
+    },
+    {
+      "app_label": "school_events",
+      "path": "apps/school_events/"
+    },
+    {
+      "app_label": "schoolops",
+      "path": "apps/schoolops/"
+    },
+    {
+      "app_label": "schools",
+      "path": "apps/schools/"
+    },
+    {
+      "app_label": "security",
+      "path": "apps/security/"
+    },
+    {
+      "app_label": "setup_studio",
+      "path": "apps/setup_studio/"
+    },
+    {
+      "app_label": "siteconfig",
+      "path": "apps/siteconfig/"
+    },
+    {
+      "app_label": "social_media",
+      "path": "apps/social_media/"
+    },
+    {
+      "app_label": "studio_os",
+      "path": "apps/studio_os/"
+    },
+    {
+      "app_label": "sync_engine",
+      "path": "apps/sync_engine/"
+    },
+    {
+      "app_label": "tenancy",
+      "path": "apps/tenancy/"
+    }
+  ],
+  "generated_at": "2026-05-20T04:53:15.518989+00:00",
+  "generated_proof_artifacts": [
+    "academic_operations_certification.json",
+    "academic_operations_workflow_audit.json",
+    "admin_config_browser_qa_report.json",
+    "admin_config_domain_implementation_matrix.json",
+    "admin_config_domain_route_matrix.json",
+    "admin_config_gap_register.json",
+    "admin_config_permission_boundary_audit.json",
+    "admin_config_test_coverage_matrix.json",
+    "admin_config_wiring_matrix.json",
+    "admin_control_plane_replacement_candidates.json",
+    "admin_gravity_audit.json",
+    "admin_usage_extended_audit.json",
+    "administration_surface_map.json",
+    "agent5_migration_pillar_second_pass_audit.json",
+    "aggressive_stage_execution_readiness.json",
+    "ai_automation_api_engine_room_certification.json",
+    "ai_center_api_contracts.json",
+    "ai_center_audit_observability.json",
+    "ai_center_friction_analysis.json",
+    "ai_center_indexing_contract.json",
+    "ai_center_modelfile_audit.json",
+    "ai_center_platform_inventory.json",
+    "analytics_viz_audit.json",
+    "analytics_viz_full_completion.json",
+    "analytics_viz_gear_up_completion.json",
+    "analytics_viz_prompt_completion.json",
+    "api_ai_center_discovery.json",
+    "api_automation_integration_certification.json",
+    "api_center_open_usable_audit.json",
+    "apple_class_authenticated_browser_report.json",
+    "apple_class_component_coverage.json",
+    "apple_class_ux_browser_report.json",
+    "architecture_certification_scorecard.json",
+    "blueprint_marketplace_depth_discovery.json",
+    "category_scope_review.json",
+    "certifier_failure_triage.json",
+    "compliance_evidence_ledger.json",
+    "config_policy_entitlement_certification.json",
+    "control_plane_sweep_routes.json",
+    "control_plane_template_layout_audit.json",
+    "core_runtime_certification.json",
+    "core_runtime_dependency_audit.json",
+    "dashboard_topology_audit.json",
+    "design_system_audit.json",
+    "dr_drill_log.json",
+    "ecosystem_sovereignty_validation_matrix.json",
+    "edge_surface_browser_qa.json",
+    "edge_surface_routing_audit.json",
+    "emotional_ux_audit.json",
+    "emotional_ux_confidence_audit.json"
+  ],
+  "metadata_only": true,
+  "pii_free": true,
+  "secrets_redacted": true,
+  "url_pattern_sample": [
+    {
+      "file": "config/urls.py",
+      "pattern": "v2/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "offline/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "sw-asset-manifest.json"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "manifest.json"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "manifest-portal.json"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "manifest/icon-<int:size>.png"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "manifest/icon-<int:size>-maskable.png"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "offline/sync/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/tour-steps/public/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "-/version/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "security/csp-report/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/system/version/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "version.json"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "i18n/setlang/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "i18n/setlang/persist/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "internal-admin/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "internal-admin/<path:remaining>"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "admin/siteconfig/customizer/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "admin/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/schema/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/schema/ui/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/openapi.json"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/openapi.yaml"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/docs/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/redoc/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "graphql/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "backend/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "healthz/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/csrf-token/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "health/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "ready/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "status/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "metrics/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/observability/copilot-metrics/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/observability/client-event/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/observability/slo-dashboard/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/observability/runtime-inspect/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/observability/friction/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "admin/dashboard/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/health/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/admin/weather/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/weather/context/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/notifications/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/notifications/mark-all-read/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/activities/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/dashboard/charts/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/ai-copilot/validate/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/ai-copilot/permissions/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/ai-copilot/limits/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "api/ai-copilot/config/"
+    }
+  ]
+}

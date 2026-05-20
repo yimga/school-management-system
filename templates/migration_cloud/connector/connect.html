@@ -1,0 +1,40 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% block connector_body %}
+<form method="post" class="rmc-card p-4" novalidate>
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label" for="profile_key">{% trans "Source platform" %}</label>
+    <select class="form-select" id="profile_key" name="profile_key" required>
+      {% for p in profiles %}
+      <option value="{{ p.key }}">{{ p.display_name }} ({{ p.get_certification_status_display }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="source_url">{% trans "Source platform URL" %}</label>
+    <input class="form-control" type="url" id="source_url" name="source_url" required autocomplete="off">
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="connection_method">{% trans "Connection method" %}</label>
+    <select class="form-select" id="connection_method" name="connection_method">
+      {% for value, label in connection_methods %}
+      <option value="{{ value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="api_token">{% trans "API token (optional)" %}</label>
+    <input class="form-control" type="password" id="api_token" name="api_token" autocomplete="off">
+  </div>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="authorization_confirmed" name="authorization_confirmed" required>
+    <label class="form-check-label" for="authorization_confirmed">{% trans "I confirm I am authorized to access this source system on behalf of my school." %}</label>
+  </div>
+  <div class="form-check mb-4">
+    <input class="form-check-input" type="checkbox" id="terms_acknowledged" name="terms_acknowledged" required>
+    <label class="form-check-label" for="terms_acknowledged">{% trans "I acknowledge automated extraction is limited to authorized exports and official APIs." %}</label>
+  </div>
+  <button type="submit" class="btn btn-primary">{% trans "Verify and continue" %}</button>
+</form>
+{% endblock %}

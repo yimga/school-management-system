@@ -1,11 +1,12 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Help Center" %}{% endblock %}
 {% block backend_title %}{% trans "Help Center" %}{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
+<div class="container-fluid py-4 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-page="help-center">
   <div class="d-flex align-items-center gap-3 mb-3">
     <div class="mkt-advisor-figure mkt-advisor-figure--muted mkt-advisor-figure--reveal d-none d-md-inline-flex" aria-hidden="true">
       {% include "marketing/components/_advisor_character.html" with pose="welcoming" size=140 accessible_label="" %}
@@ -14,6 +15,13 @@
       {% include "studio_os/components/page_header.html" with title=_("Help Center") subtitle=_("Search guidance, contact support, share product feedback, and see what changed.") %}
     </div>
   </div>
+
+  {% include "feedback/partials/help_center_engage_strip.html" %}
+
+  {% include "partials/help_persona_quickstart.html" with kb_search_url=kb_search_url %}
+
+  {% include "partials/help_deflection_strip.html" with deflection_surface="help_center" %}
+  {% include "feedback/partials/help_center_quick_feature.html" %}
 
   <div class="row g-3 mb-4">
     <section class="col-md-6 col-xl-2">
@@ -84,7 +92,7 @@
       <form method="get" action="{% url 'feedback:help_center' %}" class="row g-3 align-items-end">
         <div class="col-lg-8">
           <label class="form-label fw-semibold" for="help-center-q">{% trans "Search across help and feedback context" %}</label>
-          <input id="help-center-q" class="form-control form-control-lg" type="search" name="q" value="{{ help_resources.query }}" placeholder="{% trans 'Try payments, imports, gradebook, login, mobile...' %}">
+          <input id="help-center-q" class="form-control form-control-lg" type="search" name="q" value="{{ help_resources.query }}" placeholder="{% trans 'Try payments, imports, gradebook, login, mobile...' %}" autocomplete="off" data-rmc-help-search-input>
         </div>
         <div class="col-lg-4 d-grid">
           <button class="btn btn-primary btn-lg" type="submit">{% trans "Find help" %}</button>
@@ -192,5 +200,11 @@
       </div>
     </section>
   </div>
+
+  {% include "portal/partials/kb_ai_assistant_panel.html" %}
+
+  {% if kb_typeahead_url %}<div class="d-none" data-kb-typeahead-url="{{ kb_typeahead_url }}"></div>{% endif %}
+  <script src="{% static 'js/rmc-help-search-typeahead.js' %}" defer></script>
+  <script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>
 </div>
 {% endblock %}

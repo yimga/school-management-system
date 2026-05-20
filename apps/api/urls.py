@@ -107,11 +107,13 @@ from apps.portal.views_ai_gateway import (
     api_system_config_explain,
     api_dashboard_pack_recommend,
     api_support_assistant,
+    api_support_assistant_stream,
     api_tenant_maturity,
     api_data_quality_assistant,
     api_marketplace_recommend,
     api_control_plane_intelligence,
     api_ai_feedback,
+    api_support_session_rating,
     api_interop_assistant,
     api_runtime_config_explain,
     api_observability_assistant,
@@ -119,6 +121,11 @@ from apps.portal.views_ai_gateway import (
     api_trust_compliance_assistant,
     api_studio_os_assistant,
 )
+from apps.portal.views_support_deflection import (
+    api_support_deflection,
+    api_support_deflection_ack,
+)
+from apps.portal.views_kb_typeahead import api_kb_typeahead
 from apps.api.lead_capture_api import LeadCaptureAPI
 from apps.api.rosetta_views import RosettaStoneConvertAPI, RosettaStoneScalesAPI
 from apps.api.interop_stubs import (
@@ -507,6 +514,18 @@ urlpatterns = [
         name="ai-dashboard-pack-recommend",
     ),
     path("ai/support-assistant/", api_support_assistant, name="ai-support-assistant"),
+    path(
+        "ai/support-assistant/stream/",
+        api_support_assistant_stream,
+        name="ai-support-assistant-stream",
+    ),
+    path("support/deflection/", api_support_deflection, name="support-deflection"),
+    path(
+        "support/deflection/ack/",
+        api_support_deflection_ack,
+        name="support-deflection-ack",
+    ),
+    path("kb/typeahead/", api_kb_typeahead, name="kb-typeahead"),
     path("ai/command-bar/", api_command_bar_search, name="ai-command-bar"),
     path(
         "ai/smart-settings/",
@@ -571,6 +590,11 @@ urlpatterns = [
         name="ai-studio-os-assistant",
     ),
     path("ai/feedback/", api_ai_feedback, name="ai-feedback"),
+    path(
+        "ai/support-session-rating/",
+        api_support_session_rating,
+        name="ai-support-session-rating",
+    ),
     # Scheduling (Wave 5): conflict check
     path(
         "schedules/<int:schedule_id>/conflicts/",

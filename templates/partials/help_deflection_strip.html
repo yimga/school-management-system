@@ -1,0 +1,11 @@
+{% load i18n static %}
+{% if support_deflection_url %}
+<div
+  data-support-deflection-url="{{ support_deflection_url }}"
+  data-support-deflection-ack-url="{{ support_deflection_ack_url }}"
+  data-deflection-surface="{{ deflection_surface|default:'help_center' }}"
+>
+  <div id="rmc-support-deflection-panel" class="alert alert-info d-none mb-3" role="status" aria-live="polite"></div>
+</div>
+<script src="{% static 'js/rmc-support-deflection.js' %}" defer></script>
+{% endif %}

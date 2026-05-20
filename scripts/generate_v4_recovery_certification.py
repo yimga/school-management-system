@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate ten_x_platform_certification with v4 gates and compliance matrix."""
+"""Regenerate ten_x_platform_certification with v4/v5 recovery gates and compliance matrix."""
 from __future__ import annotations
 
 import json
@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT_JSON = ROOT / "docs" / "generated" / "ten_x_platform_certification.json"
 OUT_MD = ROOT / "docs" / "generated" / "ten_x_platform_certification.md"
+PROMPT_PACK_VERSION = "2026-05-20-orchestrator-v5"
 
 
 def _run(cmd: list[str], timeout: int = 180) -> dict:
@@ -34,7 +35,19 @@ def main() -> int:
         "scan_tenant_queryset": _run([sys.executable, "scripts/scan_tenant_queryset_safety.py", "--compare"]),
         "verify_ai_engine_room": _run([sys.executable, "scripts/verify_ai_engine_room.py"]),
         "verify_migration_tracked": _run([sys.executable, "scripts/verify_migration_files_tracked.py"]),
-        "verify_prompt_pack_v4": _run([sys.executable, "scripts/verify_orchestrator_prompt_pack.py", "--strict"]),
+        "verify_prompt_pack_strict": _run([sys.executable, "scripts/verify_orchestrator_prompt_pack.py", "--strict"]),
+        "verify_orchestrator_v5_bundle": _run(
+            [sys.executable, "scripts/verify_orchestrator_v5_bundle.py"],
+            240,
+        ),
+        "verify_five_pillar_platform": _run(
+            [sys.executable, "scripts/verify_five_pillar_platform_completion.py"],
+            180,
+        ),
+        "verify_help_center_tiers": _run(
+            [sys.executable, "scripts/verify_help_center_tiers.py"],
+            120,
+        ),
         "verify_interaction_integrity": _run(
             [sys.executable, "scripts/verify_interaction_integrity_completion.py"],
             180,
@@ -72,8 +85,9 @@ def main() -> int:
     )
     v3_pct = {str(i): (100 if all_repo_green else 95) for i in range(11)}
     v4_pct = dict(v3_pct)
+    v5_pct = dict(v3_pct)
     if all_repo_green:
-        v3_pct = v4_pct = {str(i): 100 for i in range(11)}
+        v3_pct = v4_pct = v5_pct = {str(i): 100 for i in range(11)}
     ollama_live_ok = verifiers["ollama_live_strict"]["ok"]
     all_green = all(v["ok"] for k, v in verifiers.items() if k != "ollama_live_strict") and not core_gaps
     if all_green and ollama_live_ok:
@@ -82,23 +96,32 @@ def main() -> int:
         verdict = "10X PLATFORM READY — REPO SCOPE (OLLAMA LIVE PENDING)"
     else:
         verdict = "10X PLATFORM PARTIAL — REPO SCOPE"
+    journey_cov = ROOT / "docs" / "generated" / "orchestrator_journey_coverage.json"
+    journey_pct = None
+    if journey_cov.is_file():
+        jc = json.loads(journey_cov.read_text(encoding="utf-8"))
+        journey_pct = jc.get("coverage_pct")
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "prompt_pack_version": "2026-05-20-orchestrator-v4",
+        "prompt_pack_version": PROMPT_PACK_VERSION,
         "northstar": ns,
         "verifiers": verifiers,
         "repo_gaps": repo_gaps,
         "external_blockers": ["render_live_sha", "live_psp_settlement", "soc2_pci"],
         "v3_compliance_pct": v3_pct,
         "v4_compliance_pct": v4_pct,
+        "v5_compliance_pct": v5_pct,
+        "journey_coverage_pct": journey_pct,
         "ollama_live_proof_path": str(ollama_proof.relative_to(ROOT)).replace("\\", "/"),
         "verdict": verdict,
     }
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     OUT_MD.write_text(
-        f"# 10x Platform Certification (v4 recovery)\n\n**Verdict:** {verdict}\n\n"
+        f"# 10x Platform Certification (v5 recovery)\n\n**Verdict:** {verdict}\n\n"
+        f"**Pack:** {PROMPT_PACK_VERSION}\n\n"
         f"**North Star:** {ns.get('total_score', '?')}/75\n\n"
+        f"**Journey coverage:** {journey_pct if journey_pct is not None else 'n/a'}%\n\n"
         f"**Repo gaps:** {', '.join(repo_gaps) or 'none'}\n",
         encoding="utf-8",
     )

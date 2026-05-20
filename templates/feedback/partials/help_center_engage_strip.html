@@ -1,0 +1,40 @@
+{% load i18n %}
+{# Primary customer-voice CTAs — shared pattern with operator help center v2 #}
+<section class="mb-4" aria-label="{% trans 'Primary help actions' %}">
+  <div class="row g-3">
+    {% if support_links.feature_center and role != "parent" and role != "student" %}
+    <div class="col-md-4">
+      <a href="{{ support_links.feature_center }}" class="card shadow-sm h-100 text-decoration-none border-primary border-opacity-25">
+        <div class="card-body">
+          <i class="bi bi-lightbulb-fill fs-2 text-primary" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Request a feature" %}</h2>
+          <p class="small text-muted mb-2">{% trans "Describe a workflow gap — product triage reviews every request." %}</p>
+          <span class="btn btn-sm btn-primary">{% trans "Open feature center" %}</span>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+    <div class="col-md-4">
+      <a href="{% if support_links.contact_center %}{{ support_links.contact_center }}{% elif support_links.support_request %}{{ support_links.support_request }}{% else %}{% url pinned_feedback_route %}{% endif %}" class="card shadow-sm h-100 text-decoration-none">
+        <div class="card-body">
+          <i class="bi bi-chat-dots-fill fs-2 text-secondary" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Contact us" %}</h2>
+          <p class="small text-muted mb-2">{% trans "Support, feedback, and the right lane for your role." %}</p>
+          <span class="btn btn-sm btn-outline-secondary">{% trans "Contact options" %}</span>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{% if support_links.support_request %}{{ support_links.support_request }}{% else %}{% url pinned_feedback_route %}?category=support{% endif %}" class="card shadow-sm h-100 text-decoration-none border-danger border-opacity-25">
+        <div class="card-body">
+          <i class="bi bi-life-preserver fs-2 text-danger" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Urgent support" %}</h2>
+          <p class="small text-muted mb-2">
+            {% if open_support_count %}{{ open_support_count }} {% trans "open request(s)." %}{% else %}{% trans "Blocked today? Open a support ticket." %}{% endif %}
+          </p>
+          <span class="btn btn-sm btn-danger">{% trans "Get help now" %}</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-05-20T04:37:57.783821+00:00",
+  "functions": [
+    "build_platform_index",
+    "index_document",
+    "search_platform_knowledge",
+    "search_by_route",
+    "search_by_role",
+    "search_by_module",
+    "get_feature_evidence",
+    "get_missing_context_reason"
+  ],
+  "document_count": 94
+}

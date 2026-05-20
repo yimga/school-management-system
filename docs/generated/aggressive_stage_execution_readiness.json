@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-05-20T00:55:00+00:00",
+  "git_sha": "9cad00ea",
+  "sot_head_batch": 1318,
+  "architecture_grade": "B+",
+  "architecture_scorecard": "docs/generated/architecture_certification_scorecard.json",
+  "track_recommendation": "A — Deploy-first",
+  "phase0_p0": {
+    "status": "BLOCKED",
+    "untracked_migrations": [
+      "apps/migration_cloud/migrations/0025_migration_cloud_connectors.py",
+      "apps/migration_cloud/migrations/0026_staging_rows_json.py",
+      "apps/people/migrations/0053_ensure_teacherprofile_updated_at_column.py",
+      "apps/portal/migrations/0034_rename_portal_kbar_school_glob_stat_idx_portal_kbar_school__4fc3ce_idx.py",
+      "apps/portal/migrations/0035_kbarticle_vector_embedding.py"
+    ]
+  },
+  "verifier_baseline": {
+    "manage_py_check": {"exit": 0, "status": "PASS"},
+    "verify_test_module_contract": {"exit": 0, "status": "PASS"},
+    "verify_design_system_phase2": {"exit": 0, "status": "PASS"},
+    "verify_shell_surface_inventory": {"exit": 0, "status": "PASS"},
+    "verify_doc_plan_density_discipline": {"exit": 0, "status": "PASS"},
+    "verify_sot_pillar_evidence": {"exit": 0, "status": "PASS"},
+    "verify_sot_batch_id_uniqueness": {"exit": 0, "status": "PASS", "note": "fixed during Stage 0"},
+    "audit_security_surface": {"exit": 0, "status": "PASS"},
+    "audit_tenant_isolation": {"exit": 0, "status": "PASS"},
+    "verify_ai_engine_room": {"exit": 0, "status": "PASS"},
+    "audit_route_surface": {"exit": 1, "status": "FAIL"},
+    "audit_luxury_ui_surface": {"exit": 1, "status": "FAIL"},
+    "run_northstar_audit": {"exit": 1, "status": "FAIL", "score": "67/75"},
+    "run_kill_test": {"exit": 1, "status": "FAIL"},
+    "verify_migration_files_tracked": {"exit": 1, "status": "FAIL"}
+  },
+  "existing_strengths": [
+    "SOT batch 1318 Migration Cloud connectors DONE",
+    "SOT batch 1317 support pipeline + KB isolation DONE",
+    "verify_ai_engine_room PASS (tiers 1-5)",
+    "services/ai/* engine room (25 modules)",
+    "apps/siteconfig/views_ai_center.py + tests",
+    "scan_tenant_queryset_safety baseline 0 per scorecard"
+  ],
+  "stage9_gaps": {
+    "missing_modelfile": true,
+    "missing_ai_center_architecture_docs": true,
+    "missing_generated_api_ai_center_artifacts": true,
+    "partial_engine_room": true
+  },
+  "external_blockers": [
+    "render_live_sha",
+    "live_psp_settlement",
+    "soc2_pci",
+    "live_ollama_runtime"
+  ],
+  "stage0_verdict": "READY — REPO SCOPE",
+  "orchestrator_accept_stage0": true
+}

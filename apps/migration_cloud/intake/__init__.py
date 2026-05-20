@@ -20,6 +20,7 @@ from __future__ import annotations
 from .base import IntakeAdapter, IntakeError, IntakeRegistry, get_adapter, register_adapter
 
 # Side-effect imports register the adapters into the registry.
+from . import api_pull_intake  # noqa: F401
 from . import access_intake  # noqa: F401
 from . import archive_intake  # noqa: F401
 from . import database_intake  # noqa: F401

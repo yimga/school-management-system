@@ -56,8 +56,26 @@ def retrieve_knowledge_snippets(
     lines: list[str] = []
     rag_rows: list[dict[str, Any]] = []
 
-    # Tenant KB/FAQ keyword search (django-tenants schema).
+    # Tenant KB vector + keyword search (django-tenants schema).
     if scope == PlatformTier.SCHOOL_TENANT and school is not None:
+        try:
+            from apps.portal.kb_embeddings import kb_context_lines_from_vector_search
+
+            for line in kb_context_lines_from_vector_search(
+                school=school,
+                user_query=user_query,
+                limit=limit,
+                operator=False,
+            ):
+                lines.append(line)
+                rag_rows.append(
+                    {
+                        "scope": "help",
+                        "metadata": {"source": "kb_vector", "text": line[2:][:400]},
+                    }
+                )
+        except Exception as exc:
+            logger.debug("tenant KB vector search skipped: %s", exc)
         try:
             from apps.portal.support_ai_context import build_kb_context_block
 

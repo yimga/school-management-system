@@ -253,6 +253,35 @@ def record_token_mint(scope: str, success: bool) -> None:
         )
 
 
+def record_connector_verification(tenant_id: Any, *, result: str) -> None:
+    try:
+        tags = {"tenant_id": _hash_tenant_id(tenant_id), "result": str(result)[:32]}
+        _emit_metric("migration_cloud.connector_verifications.count", "counter", 1, tags)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("migration_cloud_metric_emit_failed metric=connector_verification err=%s", type(exc).__name__)
+
+
+def record_connector_discovery(tenant_id: Any, *, duration_ms: int) -> None:
+    try:
+        tags = {"tenant_id": _hash_tenant_id(tenant_id)}
+        _emit_metric(
+            "migration_cloud.connector_discovery.duration_ms",
+            "gauge",
+            float(duration_ms),
+            tags,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("migration_cloud_metric_emit_failed metric=connector_discovery err=%s", type(exc).__name__)
+
+
+def record_connector_import(tenant_id: Any, *, status: str) -> None:
+    try:
+        tags = {"tenant_id": _hash_tenant_id(tenant_id), "status": str(status)[:32]}
+        _emit_metric("migration_cloud.connector_imports.count", "counter", 1, tags)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("migration_cloud_metric_emit_failed metric=connector_import err=%s", type(exc).__name__)
+
+
 def record_legacy_hash_decryption(vendor: str, success: bool) -> None:
     """Counter for a legacy foreign-vendor hash verification attempt."""
     try:
@@ -277,5 +306,8 @@ __all__ = [
     "record_key_rotation",
     "record_webhook_delivery",
     "record_token_mint",
+    "record_connector_verification",
+    "record_connector_discovery",
+    "record_connector_import",
     "record_legacy_hash_decryption",
 ]

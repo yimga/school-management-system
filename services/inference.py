@@ -280,3 +280,76 @@ class OllamaInferenceService:
                 _cache_set(cache_key, text)
             return text, {"provider": "ollama", "cache_hit": False, "region": cluster or "default"}
         return None, {"provider": "ollama", "error": "unavailable", "region": cluster or "default"}
+
+    @classmethod
+    def stream_generate(
+        cls,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        request=None,
+        school=None,
+        country_code: str | None = None,
+        regional_cluster: str | None = None,
+        strip_pii: bool = True,
+    ):
+        """
+        Yield incremental text chunks from Ollama ``stream: true`` NDJSON.
+        """
+        cluster = regional_cluster or cls.resolve_regional_cluster(
+            request=request, school=school, country_code=country_code
+        )
+        base_url, default_model, fallback_model = _get_regional_config(
+            regional_cluster=cluster, country_code=country_code or (cluster or "")
+        )
+        dossier = _build_country_dossier(cluster or country_code or "")
+        full_system = (dossier + "\n\n" + system_prompt).strip() if dossier else system_prompt
+        prompt_for_model = full_system + "\n\n" + (
+            strip_pii_for_inference(user_prompt) if strip_pii else user_prompt
+        )
+        endpoint = f"{base_url}/api/generate"
+        timeout = _request_timeout_seconds()
+
+        def _stream_model(model: str):
+            payload = {
+                "model": model,
+                "prompt": prompt_for_model,
+                "stream": True,
+            }
+            req = urllib.request.Request(
+                endpoint,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                for raw_line in resp:
+                    line = raw_line.decode("utf-8", errors="replace").strip()
+                    if not line:
+                        continue
+                    try:
+                        body = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    chunk = (body.get("response") or "").strip()
+                    if chunk:
+                        yield chunk
+                    if body.get("done"):
+                        return
+
+        try:
+            yielded = False
+            for piece in _stream_model(default_model):
+                yielded = True
+                yield piece
+            if yielded:
+                return
+        except Exception as exc:
+            logger.debug("Ollama stream primary model failed: %s", exc)
+
+        if fallback_model:
+            try:
+                for piece in _stream_model(fallback_model):
+                    yield piece
+            except Exception as exc:
+                logger.debug("Ollama stream fallback failed: %s", exc)

@@ -77,7 +77,11 @@ def ai_center(request: HttpRequest) -> HttpResponse:
             "default_assistant": default_row,
             "provider_status": get_public_ai_provider_status(),
             "ai_governance_url": _resolve_optional("siteconfig:ai_governance"),
-            "help_center_url": _resolve_optional("feedback:help_center"),
+            "help_center_url": _resolve_optional(
+                "manager_help_center"
+                if getattr(request, "public_host_kind", None) == "manager"
+                else "feedback:help_center"
+            ),
             "ai_feedback_url": _resolve_optional("api:ai-feedback"),
             "show_operator_ollama_setup": show_operator_setup,
         },

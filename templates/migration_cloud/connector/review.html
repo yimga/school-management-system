@@ -1,0 +1,9 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% block connector_body %}
+<p>{% trans "Import status" %}: <strong>{{ import_run.status }}</strong></p>
+<p>{{ rollback_card.category_label }}</p>
+<form method="post" action="{% url 'migration_cloud_connector:connector-revoke' connection_id=connection.id %}">{% csrf_token %}
+  <button type="submit" class="btn btn-outline-danger">{% trans "Revoke credentials" %}</button>
+</form>
+{% endblock %}

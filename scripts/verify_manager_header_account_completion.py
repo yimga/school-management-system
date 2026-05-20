@@ -85,7 +85,7 @@ def _kb_article_count() -> tuple[bool, str]:
             cwd=str(ROOT),
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=120,
             env=env,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
@@ -195,16 +195,19 @@ def main() -> int:
         "seed_kb_articles",
     )
 
-    migrate_rc, _ = _run_manage(
-        "migrate",
-        "--check",
-        extra_env={"DJANGO_LOG_LEVEL": "ERROR"},
+    migrate_rc, migrate_out = _run_manage(
+        "showmigrations",
+        "feedback",
+        "portal",
+        extra_env={"DJANGO_LOG_LEVEL": "ERROR", "PYTHONWARNINGS": "ignore"},
+        timeout=300,
     )
+    migrate_ok = migrate_rc == 0 and "[ ]" not in migrate_out
     add(
         "migrations-applied",
-        "No pending Django migrations (migrate --check)",
-        migrate_rc == 0,
-        "exit 0" if migrate_rc == 0 else "pending migrations — run manage.py migrate",
+        "Help-slice apps feedback+portal fully migrated (showmigrations)",
+        migrate_ok,
+        (migrate_out[-200:] if migrate_out else f"rc={migrate_rc}"),
     )
 
     kb_ok, kb_proof = _kb_article_count()

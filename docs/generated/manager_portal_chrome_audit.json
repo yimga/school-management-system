@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T20:52:33.290759+00:00",
+  "generated_at": "2026-05-19T22:33:41.243588+00:00",
   "verdict": "MANAGER_PORTAL_CHROME_PASS",
   "passed": 24,
   "failed": 0,
@@ -93,7 +93,7 @@
       "check_id": "footer_surface_gate",
       "description": "Platform footer surface contract (59-check template sweep)",
       "status": "PASS",
-      "proof": "porate_footer_styles: No non-marketing template includes corporate_footer_styles.html\n[PASS] marketing_base_uses_full_footer: Marketing shell includes full marketing_footer.html (not bundle wrapper)\n[PASS] login_suppresses_skeleton_duplicate: Manager login pages override skeleton footer block\n[PASS] footer_surfaces_css: Platform footer surface stylesheet exists\n\nFOOTER_SURFACE_CONTRACT: 62/62 PASS"
+      "proof": "porate_footer_styles: No non-marketing template includes corporate_footer_styles.html\n[PASS] marketing_base_uses_full_footer: Marketing shell includes full marketing_footer.html (not bundle wrapper)\n[PASS] login_suppresses_skeleton_duplicate: Manager login pages override skeleton footer block\n[PASS] footer_surfaces_css: Platform footer surface stylesheet exists\n\nFOOTER_SURFACE_CONTRACT: 65/65 PASS"
     },
     {
       "area": "platform",

@@ -50,18 +50,10 @@ ALLOWED_LIGHT_CUSTOM_ROLES = {
 }
 
 
-def _school_for_user(user):
-    if not user or not getattr(user, "is_authenticated", False):
-        return None
-    teacher_profile = getattr(user, "teacher_profile", None)
-    if teacher_profile and getattr(teacher_profile, "school", None):
-        return teacher_profile.school
-    student_link = getattr(user, "guardian_links", None)
-    if student_link is not None:
-        link = student_link.select_related("student__school").first()
-        if link and getattr(link.student, "school", None):
-            return link.student.school
-    return None
+def _school_for_user(user, *, request=None):
+    from apps.siteconfig.user_identity import resolve_school_for_user
+
+    return resolve_school_for_user(user, request=request)
 
 
 def _default_sidebar_collapsed(*, request=None, user=None) -> bool:

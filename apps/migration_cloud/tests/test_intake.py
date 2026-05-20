@@ -152,23 +152,32 @@ class ArchiveIntakeTests(TestCase):
 class RegistryTests(TestCase):
     def test_every_intake_method_has_an_adapter(self) -> None:
         for method, _label in IntakeMethod.choices:
-            if method == IntakeMethod.API_PULL:
-                # API_PULL is reserved for Phase U9 accelerators; not in registry yet.
-                continue
             adapter = get_adapter(method)
             self.assertIsNotNone(adapter, f"No adapter for {method}")
 
-    def test_stub_adapter_raises_clear_error(self) -> None:
-        svc = BundleIngestionService()
-        with self.assertRaises(IntakeError) as cm:
-            svc.ingest(
-                BundleSpec(
-                    intake_method=IntakeMethod.DATABASE,
-                    handle="postgres://example.invalid/db",
-                    idempotency_key="smoke-database-stub",
-                )
+
+class DatabaseIntakeTests(TestCase):
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp(prefix="mc_db_test_"))
+        self.svc = BundleIngestionService()
+
+    def test_database_sqlite_intake(self) -> None:
+        import sqlite3
+
+        db_path = self.tmp / "school.db"
+        conn = sqlite3.connect(db_path)
+        conn.execute("CREATE TABLE students (id INTEGER, name TEXT)")
+        conn.execute("INSERT INTO students VALUES (1, 'Ada')")
+        conn.commit()
+        conn.close()
+        result = self.svc.ingest(
+            BundleSpec(
+                intake_method=IntakeMethod.DATABASE,
+                handle=str(db_path),
+                idempotency_key="smoke-sqlite-db",
             )
-        self.assertIn("Phase U7", str(cm.exception))
+        )
+        self.assertGreaterEqual(result.artifacts_registered, 1)
 
 
 class FormatChoicesTests(TestCase):

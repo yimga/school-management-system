@@ -18,7 +18,11 @@ def operator_help_signal_bundle(*, days_7: int = 7, days_30: int = 30) -> dict:
     friction = safe_friction_summary(since_7d, since_30d)
     feedback = safe_feedback_summary(since_7d, since_30d)
     ai = safe_ai_summary(since_7d, since_30d)
+    deflection = safe_deflection_summary(since_7d, since_30d)
     kb = safe_kb_catalog_summary()
+    zero_results = safe_zero_result_summary(since_7d)
+    deflection_metrics = safe_deflection_metrics(since_7d)
+    proactive = safe_proactive_friction_nudges(since_7d)
     total_signal_7d = (
         friction["count_7d"]
         + feedback["count_7d"]
@@ -29,6 +33,10 @@ def operator_help_signal_bundle(*, days_7: int = 7, days_30: int = 30) -> dict:
         "friction": friction,
         "feedback": feedback,
         "ai": ai,
+        "deflection": deflection,
+        "deflection_metrics": deflection_metrics,
+        "zero_results": zero_results,
+        "proactive": proactive,
         "kb": kb,
         "total_signal_7d": total_signal_7d,
         "is_empty": total_signal_7d == 0 and not kb.get("article_count"),
@@ -118,15 +126,43 @@ def safe_ai_summary(since_7d, since_30d) -> dict:
         return {**_empty_period(), "interactions_7d": 0, "interactions_30d": 0}
 
 
+def safe_deflection_summary(since_7d, since_30d) -> dict:
+    try:
+        from django.db.models import Count
+
+        from apps.feedback.models import SupportDeflectionEvent, SupportAIInteractionReview
+    except (ImportError, RuntimeError):
+        return {**_empty_period(), "pending_reviews": 0}
+    try:
+        # tenant-isolation-allow: cross-tenant operator aggregate; fingerprint-only telemetry
+        recent = SupportDeflectionEvent.objects.filter(created_at__gte=since_7d)
+        recent_30d = SupportDeflectionEvent.objects.filter(created_at__gte=since_30d)
+        by_outcome = list(
+            recent.values("outcome").annotate(n=Count("id")).order_by("-n")
+        )
+        pending_reviews = SupportAIInteractionReview.objects.filter(
+            status=SupportAIInteractionReview.Status.PENDING
+        ).count()
+        return {
+            "available": True,
+            "count_7d": recent.count(),
+            "count_30d": recent_30d.count(),
+            "by_outcome": by_outcome,
+            "pending_reviews": pending_reviews,
+        }
+    except Exception:
+        return {**_empty_period(), "pending_reviews": 0}
+
+
 def safe_kb_catalog_summary() -> dict:
     try:
-        from apps.portal.kb_context import filter_kb_articles_for_host
-        from apps.portal.models_kb import KBArticle, KBCategory
+        from apps.portal.kb_context import filter_kb_articles_for_host, published_kb_queryset
+        from apps.portal.models_kb import KBCategory
     except (ImportError, RuntimeError):
         return {"available": False, "article_count": 0, "category_count": 0, "featured": []}
     try:
         base = filter_kb_articles_for_host(
-            KBArticle.objects.filter(status="PUBLISHED"),
+            published_kb_queryset(),
             is_operator=True,
         )
         categories = KBCategory.objects.filter(is_active=True)
@@ -143,6 +179,52 @@ def safe_kb_catalog_summary() -> dict:
         }
     except Exception:
         return {"available": False, "article_count": 0, "category_count": 0, "featured": []}
+
+
+def safe_zero_result_summary(since_7d) -> dict:
+    try:
+        from apps.portal.help_search_intelligence import zero_result_fingerprints
+
+        rows = zero_result_fingerprints(days=7, limit=8)
+        return {"available": True, "top": rows, "count_7d": sum(r.get("count", 0) for r in rows)}
+    except Exception:
+        return {"available": False, "top": [], "count_7d": 0}
+
+
+def safe_deflection_metrics(since_7d) -> dict:
+    try:
+        from apps.portal.help_search_intelligence import deflection_rate_summary
+
+        return deflection_rate_summary(days=7)
+    except Exception:
+        return {"available": False}
+
+
+def safe_proactive_friction_nudges(since_7d) -> dict:
+    """Map friction hotspots to KB search CTAs (batch 1342)."""
+    friction = safe_friction_summary(since_7d, since_7d)
+    if not friction.get("available"):
+        return {"available": False, "nudges": []}
+    try:
+        from django.urls import reverse
+
+        nudges = []
+        for row in friction.get("by_view") or []:
+            view_name = (row.get("view_name") or "").strip()
+            if not view_name:
+                continue
+            q = view_name.replace("_", " ").replace(".", " ")
+            nudges.append(
+                {
+                    "view_name": view_name,
+                    "count": row.get("n", 0),
+                    "kind": row.get("kind", ""),
+                    "kb_search_url": reverse("kb:kb_search") + f"?q={q}",
+                }
+            )
+        return {"available": True, "nudges": nudges[:5]}
+    except Exception:
+        return {"available": False, "nudges": []}
 
 
 def _empty_period() -> dict:

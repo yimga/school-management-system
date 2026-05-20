@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n marketing_public_urls %}
 {% block title %}Find your school{% endblock %}
 {% block content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 btn btn-sm btn-outline-secondary rounded" href="#global-login-discovery-main" style="z-index: 1080;">{% trans "Skip to school login discovery" %}</a>
@@ -12,7 +12,7 @@
           <p class="text-muted mb-3">{% trans "Use email discovery if you belong to a school, or start onboarding if you are creating a new school." %}</p>
           <div class="d-flex flex-wrap gap-2">
             <a href="{% url 'onboard_wizard' %}" class="btn btn-outline-primary btn-sm">{% trans "Create school" %}</a>
-            <a href="{% url 'find_school' %}" class="btn btn-outline-secondary btn-sm">{% trans "Search by school name" %}</a>
+            <a href="{% marketing_public_href 'find_school' %}" class="btn btn-outline-secondary btn-sm">{% trans "Search by school name" %}</a>
             <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-sm">{% trans "Direct login" %}</a>
           </div>
         </div>

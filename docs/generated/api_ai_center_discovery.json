@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-05-20T04:37:57.779972+00:00",
+  "modules": [
+    "apps/apicenter/",
+    "apps/api/",
+    "services/ai/",
+    "services/ai_center/",
+    "apps/siteconfig/views_ai_center.py"
+  ],
+  "routes": [
+    "/api-center/",
+    "/super/ai-center/",
+    "/school/help/ai/",
+    "/api/schema/ui/"
+  ]
+}

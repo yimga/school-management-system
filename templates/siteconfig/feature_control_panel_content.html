@@ -1,6 +1,6 @@
 {% load static i18n %}
 {% load terminology_tags %}
-<div class="container-fluid {% if studio_inline %}py-1 px-0{% else %}py-3{% endif %} professional-page cp-evidence-page" data-shell-surface="feature-control-panel" data-cp-evidence-surface="feature-control" data-rmc-operator-evidence-surface="1">
+<div class="container-fluid {% if studio_inline %}py-1 px-0{% else %}py-3{% endif %} professional-page cp-evidence-page" data-shell-surface="feature-control-panel" data-cp-evidence-surface="feature-control" data-rmc-operator-evidence-surface="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
   <div class="card shadow-sm border-0 overflow-hidden feature-control-card">
     {% if not studio_inline %}
     <div class="card-header feature-control-header bg-light border-bottom py-3 px-4">
@@ -74,7 +74,7 @@
       {# disclosure for power users who need the full view. Search across all #}
       {# categories still filters across hidden tabs. #}
       {% if categories %}
-      <div class="rmc-segmented rmc-segmented--scrollable mb-3 feature-cat-tabs" role="tablist" aria-label="{% trans 'Feature categories' %}" data-feature-cat-tabs="1">
+      <nav class="rmc-segmented rmc-segmented--scrollable mb-3 feature-cat-tabs rmc-page-fold-nav--sticky" role="tablist" aria-label="{% trans 'Feature categories' %}" data-feature-cat-tabs="1">
         {% for cat in categories %}
         <button type="button"
                 class="rmc-segmented__btn feature-cat-tab {% if forloop.first %}active{% endif %}"
@@ -97,7 +97,7 @@
           <i class="bi bi-grid-3x3" aria-hidden="true"></i>
           <span>{% trans "All" %}</span>
         </button>
-      </div>
+      </nav>
       {% endif %}
 
       <form method="post" action="{% url 'siteconfig:feature_control_panel' %}{% if control_next_url %}?next={{ control_next_url|urlencode }}{% endif %}" id="featureControlForm" enctype="multipart/form-data" data-weather-city-url="{% url 'siteconfig:feature_control_weather_cities' %}">
@@ -176,7 +176,8 @@
                    id="feature-cat-pane-{{ cat.id }}"
                    role="tabpanel"
                    aria-labelledby="feature-cat-tab-{{ cat.id }}"
-                   data-category="{{ cat.id }}">
+                   data-category="{{ cat.id }}"
+                   data-rmc-section-anchor="1">
             <div class="border rounded-3 p-3 feature-category-card" style="background: var(--bs-tertiary-bg, #f8f9fa);">
               <div class="d-flex align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom flex-wrap">
                 <div class="d-flex align-items-center gap-2">
@@ -193,7 +194,7 @@
                 {% for item in cat.items %}
                 <li class="feature-toggle-row d-flex align-items-start justify-content-between gap-2 py-2 px-0" data-label="{{ item.label|lower }}" data-desc="{{ item.description|lower }}" data-key="{{ item.key }}" data-depends="{{ item.depends_on|join:',' }}">
                   <div class="d-flex align-items-start gap-2 flex-grow-1 min-w-0">
-                    <label class="form-check form-switch mb-0 flex-shrink-0 feature-switch mt-1" for="feature_{{ item.key }}" title="{{ item.description }}">
+                    <label class="form-check form-switch mb-0 flex-shrink-0 feature-switch mt-1" for="feature_{{ item.key }}">
                       <input
                         class="form-check-input feature-checkbox"
                         type="checkbox"
@@ -207,7 +208,7 @@
                       >
                     </label>
                     <div class="min-w-0 flex-grow-1">
-                      <span class="form-check-label text-break feature-label d-block">{{ item.label }}</span>
+                      <span class="feature-label text-break d-block fw-medium">{{ item.label }}</span>
                       {% if item.description %}
                       <span class="text-muted small d-block feature-desc">{{ item.description }}</span>
                       {% endif %}

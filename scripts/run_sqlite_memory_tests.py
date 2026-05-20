@@ -37,8 +37,10 @@ def main() -> int:
     argv = list(sys.argv[1:])
     fresh = "--fresh" in argv
     if fresh:
-        # Rebuild schema from scratch; --keepdb would reuse a corrupt partial DB.
-        argv = [a for a in argv if a not in ("--fresh", "--keepdb")]
+        # New timestamped TEST file + --keepdb avoids Windows hang on "Destroying old test database".
+        argv = [a for a in argv if a != "--fresh"]
+        if "--keepdb" not in argv:
+            argv.append("--keepdb")
 
     # Stable path for --keepdb reuse; fresh runs use a new file so Windows never
     # blocks on "Destroying old test database" when another process holds the cache.

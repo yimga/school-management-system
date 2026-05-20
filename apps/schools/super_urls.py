@@ -1,6 +1,6 @@
 from functools import partial
 
-from django.urls import path
+from django.urls import include, path
 from django.views.generic import RedirectView
 from apps.marketplace import views as marketplace_views
 from apps.marketplace.views_publisher import (
@@ -265,6 +265,10 @@ urlpatterns = [
         "migration/quarantine-waive/<int:record_id>/",
         require_super_access_with_host(super_migration_quarantine_waive),
         name="migration_quarantine_waive",
+    ),
+    path(
+        "ai-center/",
+        include("apps.apicenter.ai_center_urls"),
     ),
     path(
         "pulse/", require_super_access_with_host(super_views.super_pulse), name="pulse"

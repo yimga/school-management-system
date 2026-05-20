@@ -703,7 +703,9 @@ a.cp-queue-card-header:hover {
 
 /* ========== Layout: document scroll + sticky sidebar (v3.42.7) ========== */
 /* Natural page height — footer follows content; no black void above footer when
-   main column content is shorter than the viewport. Sidebar sticks while body scrolls. */
+   main column content is shorter than the viewport. Sidebar sticks while body scrolls.
+   Manager /admin/ uses data-rmc-cp-scroll="main" instead (see admin-cp-parity.css):
+   viewport-trapped .admin-cp-unified-page with overflow in #cp-main-content. */
 body.control-plane-shell[data-rmc-cp-scroll="document"] {
   display: flex;
   flex-direction: column;
@@ -751,21 +753,14 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout {
   display: flex;
   flex-direction: column;
 }
-body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row {
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row,
+body.control-plane-shell[data-rmc-cp-scroll="document"] .portal-layout-row {
   flex: 1 1 auto;
   min-height: auto;
   overflow: visible;
-  /* v2.66 (2026-05-15): was `align-items: stretch` which forced both
-     columns to match the row's height. When the sidebar had 15 group
-     headers (~1000px) and the main content was shorter, the main column
-     stretched to match the sidebar's height — creating the empty void
-     below the actual content that the user reported across multiple
-     pages (Marketplace governance, App Catalog, Studio Launch, Ministry
-     stubs). `flex-start` lets each column be its own content height;
-     #cp-main-content uses align-self: stretch + min-height: 0 so the main
-     column fills the flex row and scrolls internally, and the sidebar's
-     own `align-self: stretch` keeps it filling its own column
-     for the dark gradient backdrop. */
+  /* v3.43.2: per-column align-self — sidebar column stretches the full row
+     (dark rail fills long pages); main column stays content-height so the
+     canvas does not grow a white void when the nav is taller than the page. */
   align-items: flex-start;
   flex-wrap: nowrap;
 }
@@ -782,11 +777,19 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row {
     overflow: hidden !important;
   }
   body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col {
+    position: relative;
+    align-self: stretch;
+    max-height: none;
+    overflow: hidden !important;
+    background: var(--cp-ink-sidebar, rgba(8, 16, 30, 0.92));
+  }
+  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner {
     position: sticky;
     top: 0;
     align-self: flex-start;
+    width: 100%;
     max-height: 100vh;
-    overflow: visible !important;
+    flex: 0 1 auto;
   }
 }
 .cp-sidebar-col .cp-sidebar-inner {
@@ -833,7 +836,8 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row {
 }
 /* Main column grows with content; document/body scrolls (no trapped viewport void). */
 body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-main-col,
-body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content {
+body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content,
+body.control-plane-shell[data-rmc-cp-scroll="document"] .portal-main-col {
   flex: 1 1 auto !important;
   min-width: 0 !important;
   min-height: auto !important;
@@ -847,6 +851,28 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-main-content {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
+}
+
+/* Manager portal bridge (portal_base on manager host): release trapped viewport
+   scroll from portal-layout-professional so document scroll + sticky inner nav apply. */
+body.control-plane-shell.manager-portal-bridge.portal-body-with-layout[data-rmc-cp-scroll="document"] {
+  overflow-y: auto !important;
+}
+body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap {
+  flex: 1 1 auto;
+  min-height: auto;
+  overflow: visible;
+  display: block;
+}
+body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .portal-layout-row {
+  min-height: auto;
+  overflow: visible;
+}
+body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .portal-main-col,
+body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap #main-content {
+  overflow-y: visible !important;
+  min-height: auto !important;
+  max-height: none !important;
 }
 /* Inner wrappers must not force main to grow; allow main to be the scroll container */
 #cp-main-content > .container-fluid,

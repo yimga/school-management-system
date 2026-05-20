@@ -19,7 +19,8 @@
  * built-in undo for `C:/Program Files/Git/...` and `T:/...` → `/t/...` munging.
  *
  * Requires Django on MANAGER_BASE_URL (default http://manager.runmycampus.com:8012)
- * with host resolver MAP manager.runmycampus.com 127.0.0.1.
+ * and TENANT_BASE_URL for tenant surfaces (default http://demo-school.runmycampus.com:8012).
+ * Host resolver: MAP manager.runmycampus.com 127.0.0.1 and tenant subdomain.
  */
 import { chromium } from 'playwright';
 import fs from 'fs';
@@ -30,6 +31,13 @@ const SESSION = '7911e1';
 const HOST = process.env.VISUAL_QA_MANAGER_HOST || 'manager.runmycampus.com';
 const PORT = process.env.VISUAL_QA_PORT || '8012';
 const BASE = process.env.MANAGER_BASE_URL || `http://${HOST}:${PORT}`;
+const TENANT_SLUG = process.env.TENANT_SWEEP_SLUG || 'demo-school';
+const TENANT_HOST =
+  process.env.VISUAL_QA_TENANT_HOST || `${TENANT_SLUG}.runmycampus.com`;
+const TENANT_BASE =
+  process.env.TENANT_BASE_URL || `http://${TENANT_HOST}:${PORT}`;
+const USE_TENANT_SUBDOMAIN =
+  (process.env.USE_TENANT_SUBDOMAIN || '1').toLowerCase() !== '0';
 const AUTH = path.join(process.cwd(), 'artifacts/manager-playwright-auth.json');
 const HOST_RULES =
   process.env.PLAYWRIGHT_HOST_RULES || `MAP ${HOST} 127.0.0.1`;
@@ -163,12 +171,17 @@ function loadTenantSurfaces() {
       }
       return true;
     })
-    .map((row) => ({
-      surface: 'tenant',
-      url: row.path,
-      scrollRoot: '#main-content',
-      login: 'tenant',
-    }));
+    .map((row) => {
+      const inner = row.inner || row.path.replace(`/t/${TENANT_SLUG}/`, '/');
+      const url = USE_TENANT_SUBDOMAIN ? inner : row.path;
+      return {
+        surface: 'tenant',
+        url,
+        inner,
+        scrollRoot: '#main-content',
+        login: 'tenant',
+      };
+    });
 }
 
 const SURFACES = [...loadManagerSurfaces(), ...loadTenantSurfaces()];
@@ -323,8 +336,9 @@ async function loginManager(page) {
 }
 
 async function loginTenant(page) {
-  const slug = process.env.TENANT_SWEEP_SLUG || 'demo-school';
-  const loginUrl = `/t/${slug}/authentication/login/`;
+  const loginUrl = USE_TENANT_SUBDOMAIN
+    ? '/authentication/login/'
+    : `/t/${TENANT_SLUG}/authentication/login/`;
   await gotoWithRetries(page, loginUrl);
   await page.locator('input[name="username"]').fill('admin');
   await page.locator('input[name="password"]').fill('Sch00l_1234');
@@ -395,9 +409,16 @@ async function main() {
   }
   await mgrCtx.close();
 
-  // --- Tenant surfaces ---
-  const tenCtx = await browser.newContext({
-    baseURL: BASE,
+  // --- Tenant surfaces (separate host + inner paths when USE_TENANT_SUBDOMAIN=1) ---
+  const tenHostRules =
+    process.env.PLAYWRIGHT_TENANT_HOST_RULES ||
+    `MAP ${TENANT_HOST} 127.0.0.1`;
+  const tenBrowser = await chromium.launch({
+    headless: true,
+    args: [`--host-resolver-rules=${tenHostRules}`],
+  });
+  const tenCtx = await tenBrowser.newContext({
+    baseURL: TENANT_BASE,
     viewport: { width: 1400, height: 900 },
   });
   const tenPage = await tenCtx.newPage();
@@ -440,6 +461,7 @@ async function main() {
     skipped += SURFACES.filter((x) => x.surface === 'tenant').length;
   }
   await tenCtx.close();
+  await tenBrowser.close();
   await browser.close();
 
   const failed = results.filter(
@@ -458,6 +480,9 @@ async function main() {
   const tenantTested = results.filter((r) => r.surface === 'tenant').length;
   const summary = {
     sweepTier: process.env.SWEEP_TIER || 'operator',
+    managerBase: BASE,
+    tenantBase: TENANT_BASE,
+    useTenantSubdomain: USE_TENANT_SUBDOMAIN,
     managerPlanned,
     tenantPlanned,
     managerTested,

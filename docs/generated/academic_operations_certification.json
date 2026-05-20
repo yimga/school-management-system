@@ -1,0 +1,53 @@
+{
+  "audit_generated_at": "2026-05-20T03:15:50.248666+00:00",
+  "audit_ref": "docs/generated/academic_operations_workflow_audit.json",
+  "external_blockers": [
+    "live_ministry_emis_submission_endpoint",
+    "production_sms_provider_delivery_proof",
+    "national_exam_board_api_integrations"
+  ],
+  "failed_gate_count": 1,
+  "focused_test_modules": [
+    "apps.academics.tests.test_academics_critical_paths",
+    "apps.academics.tests.test_academic_operations_repo_scope",
+    "apps.evals.tests.test_grade_approval_workflow",
+    "apps.evals.tests.test_bulk_grade_tenant_context",
+    "apps.reports.tests.test_publish_term",
+    "apps.reports.tests.test_export_integrity",
+    "emis.tests",
+    "apps.communication.tests.test_tenant_school_scope",
+    "apps.platform_runtime.tests.test_offline_first_closure_slice",
+    "apps.automation.tests.test_workflow_trigger_catalog_depth"
+  ],
+  "gates": [
+    {
+      "id": "workflow_audit_ok",
+      "note": "academic_operations_workflow_audit.json ok",
+      "ok": true
+    },
+    {
+      "id": "no_unsafe_grade_json_blobs",
+      "note": "relational grades preserved (no compressed JSON blob models)",
+      "ok": true
+    },
+    {
+      "id": "offline_action_conflict_loop",
+      "note": "offline_action_conflict \u2192 platform event \u2192 workflow bridge",
+      "ok": true
+    },
+    {
+      "id": "emis_export_compiler",
+      "note": "EMIS service + mapping + tests",
+      "ok": true
+    },
+    {
+      "id": "focused_academic_ops_tests",
+      "note": "stage-6 contract + EMIS + publish + offline/workflow tests",
+      "ok": false
+    }
+  ],
+  "generated_at": "2026-05-20T04:06:30.158232+00:00",
+  "repo_scope_only": true,
+  "sot_batch_draft": 1325,
+  "verdict": "ACADEMIC OPERATIONS NOT READY \u2014 REPO SCOPE"
+}

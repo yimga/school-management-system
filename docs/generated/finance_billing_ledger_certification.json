@@ -1,0 +1,113 @@
+{
+  "audit_generated_at": "2026-05-20T03:19:59.792410+00:00",
+  "audit_ref": "docs/generated/finance_ledger_precision_audit.json",
+  "external_blockers": [
+    "live_psp_merchant_onboarding",
+    "production_settlement_bank_verification",
+    "per_tenant_psp_credentials"
+  ],
+  "failed_gate_count": 0,
+  "focused_test_modules": [
+    "apps.finance.tests.test_ledger_failures",
+    "apps.billing.tests.test_billing_idempotency",
+    "apps.payroll.tests.test_payroll_decimal_integrity"
+  ],
+  "gates": [
+    {
+      "id": "audit_ok",
+      "note": "precision discovery audit",
+      "ok": true
+    },
+    {
+      "id": "money_float_zero",
+      "note": "money-float scan: 0 call(s)",
+      "ok": true
+    },
+    {
+      "id": "json_decimal_smoke",
+      "note": "amount_str + DecimalJSONEncoder",
+      "ok": true
+    },
+    {
+      "id": "module_billing_platform_charge",
+      "note": "billing_platform_charge",
+      "ok": true
+    },
+    {
+      "id": "module_billing_usage_metering",
+      "note": "billing_usage_metering",
+      "ok": true
+    },
+    {
+      "id": "module_finance_json_decimal",
+      "note": "finance_json_decimal",
+      "ok": true
+    },
+    {
+      "id": "module_finance_post_payment_ledger",
+      "note": "finance_post_payment_ledger",
+      "ok": true
+    },
+    {
+      "id": "module_finance_webhook_claim",
+      "note": "finance_webhook_claim",
+      "ok": true
+    },
+    {
+      "id": "module_finance_webhook_idempotency",
+      "note": "finance_webhook_idempotency",
+      "ok": true
+    },
+    {
+      "id": "module_marketplace_ledger_ops",
+      "note": "marketplace_ledger_ops",
+      "ok": true
+    },
+    {
+      "id": "module_payment_blocker_classification",
+      "note": "payment_blocker_classification",
+      "ok": true
+    },
+    {
+      "id": "module_payment_webhook_ingress",
+      "note": "payment_webhook_ingress",
+      "ok": true
+    },
+    {
+      "id": "module_payroll_calculate",
+      "note": "payroll_calculate",
+      "ok": true
+    },
+    {
+      "id": "decimal_fields_present",
+      "note": "count=79",
+      "ok": true
+    },
+    {
+      "id": "psp_lane_external_honest",
+      "note": "no fake live PSP proof in repo",
+      "ok": true
+    },
+    {
+      "id": "tests_apps_finance_tests_test_ledger_failures",
+      "note": "exit=0",
+      "ok": true
+    }
+  ],
+  "generated_at": "2026-05-20T03:20:13.135586+00:00",
+  "repo_scope_only": true,
+  "sot_batch_draft": 1324,
+  "test_runs": [
+    {
+      "exit_code": 0,
+      "labels": [
+        "apps.finance.tests.test_ledger_failures",
+        "apps.billing.tests.test_billing_idempotency",
+        "apps.payroll.tests.test_payroll_decimal_integrity"
+      ],
+      "ok": true,
+      "output_tail": "r_name=- platform_event: type=invoice_created tenant_id=None school_id=None idempotency_key=None payload_keys=['invoice_id', 'school_id']\nDEBUG 2026-05-19 23:20:11,531 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- Skipping duplicate alert for audit_log 3\n.INFO 2026-05-19 23:20:11,708 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- platform_event: type=payment_success tenant_id=9838eb6c-e935-4d31-ac54-34d9a0ec7975 school_id=9838eb6c-e935-4d31-ac54-34d9a0ec7975 idempotency_key=payment_success:cs_idempotency_stage5_002 payload_keys=['processor_code', 'billing_event_type', 'processor_source_ref', 'funnel_stage']\n.INFO 2026-05-19 23:20:11,905 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- platform_event: type=payment_success tenant_id=f5d171a4-f1b9-411d-b8dd-15e9195a3b0f school_id=f5d171a4-f1b9-411d-b8dd-15e9195a3b0f idempotency_key=payment_success:pi_idempotency_stage5_001 payload_keys=['processor_code', 'billing_event_type', 'processor_source_ref', 'funnel_stage']\n....\n----------------------------------------------------------------------\nRan 9 tests in 1.025s\n\nOK\nPreserving test database for alias 'default'...\n\n"
+    }
+  ],
+  "verdict": "FINANCE LEDGER READY \u2014 REPO SCOPE"
+}

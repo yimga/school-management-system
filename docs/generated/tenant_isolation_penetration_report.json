@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-05-20T02:18:30+00:00",
+  "pii_free": true,
+  "scenario_count": 9,
+  "scenarios": [
+    {
+      "description": "Foreign student PK on wrong tenant host \u2192 not 200",
+      "id": "cross_tenant_pk_guess",
+      "module": "apps.security.tests.test_boundary_penetration"
+    },
+    {
+      "description": "Forged session school_id cannot unlock foreign export",
+      "id": "forged_session_school_id",
+      "module": "apps.security.tests.test_boundary_penetration"
+    },
+    {
+      "description": "Tenant admin blocked from manager /super/ surface",
+      "id": "slug_host_manipulation",
+      "module": "apps.security.tests.test_boundary_penetration"
+    },
+    {
+      "description": "Tenant admin cannot export platform schools CSV",
+      "id": "host_header_manager_export",
+      "module": "apps.security.tests.test_boundary_penetration"
+    },
+    {
+      "description": "rls_school / ORM school filter hides foreign student row",
+      "id": "rls_query_isolation",
+      "module": "apps.security.tests.test_boundary_penetration"
+    },
+    {
+      "description": "switch_to_tenant rejects blank justification",
+      "id": "impersonation_without_reason",
+      "module": "apps.security.tests.test_boundary_penetration"
+    },
+    {
+      "description": "Reason, IP, actor logged; no email in repr",
+      "id": "impersonation_audit_integrity",
+      "module": "apps.accounts.tests.test_impersonation_audit_integrity"
+    },
+    {
+      "description": "FORCE RLS migration + engine proof differences",
+      "id": "rls_force_migration_contract",
+      "module": "apps.tenancy.tests.test_rls_boundary_contracts"
+    },
+    {
+      "description": "Control-plane routes denied on tenant host",
+      "id": "platform_route_from_tenant",
+      "module": "apps.security.tests.test_tenant_route_leakage"
+    }
+  ],
+  "test_run": {
+    "exit_code": 0,
+    "modules": [
+      "apps.security.tests.test_boundary_penetration",
+      "apps.tenancy.tests.test_rls_boundary_contracts",
+      "apps.accounts.tests.test_impersonation_audit_integrity"
+    ],
+    "status": "pass",
+    "summary": "16 OK, 2 skipped (Postgres-only RLS GUC checks)"
+  },
+  "verdict": "PENETRATION SUITE READY \u2014 REPO SCOPE"
+}

@@ -1,0 +1,103 @@
+{% load i18n %}
+<div class="container-fluid py-3" data-page-archetype="product-discovery">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Feature center" %}</h1>
+      <p class="text-tertiary mb-0">{% trans "Turn workflow friction into reviewed product requests, roadmap candidates, pilots, and released improvements." %}</p>
+      <p class="small text-tertiary mb-0">{% trans "Operator view shows requests across all tenants." %}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if help_center_url %}<a class="btn btn-outline-secondary" href="{{ help_center_url }}">{% trans "Help center" %}</a>{% endif %}
+      {% if support_links.voice_of_customer %}<a class="btn btn-outline-primary" href="{{ support_links.voice_of_customer }}">{% trans "Voice of customer" %}</a>{% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <section class="col-xl-5">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-header fw-semibold">{% trans "Request a capability" %}</div>
+        <div class="card-body">
+          <p class="small text-tertiary">{% trans "Use this for product ideas and workflow needs. Urgent operational problems should go to support." %}</p>
+          <form method="post" action="{% url 'manager_feature_center' %}">
+            {% csrf_token %}
+            {% for field in feature_form %}
+            <div class="mb-2">
+              <label class="form-label small fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <button class="btn btn-primary" type="submit">{% trans "Submit feature request" %}</button>
+            {% if support_links.contact_center %}
+            <a class="btn btn-outline-secondary ms-2" href="{{ support_links.contact_center }}">{% trans "Contact us" %}</a>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="col-xl-7">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">{% trans "Current requests" %}</span>
+          <span class="small text-tertiary">{% trans "Votes inform priority; triage decides roadmap." %}</span>
+        </div>
+        <div class="list-group list-group-flush">
+          {% for item in feature_requests %}
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between gap-2">
+              <strong>{{ item.title }}</strong>
+              <span class="badge text-bg-info">{{ item.get_status_display }}</span>
+            </div>
+            <p class="small text-tertiary mb-2">{{ item.problem_statement|truncatewords:24 }}</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span class="small text-tertiary">{{ item.module|default:"General" }} · {{ item.vote_count }} {% trans "signals" %}</span>
+              <form method="post" action="{% url 'feedback:vote_feature' item.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="btn btn-sm btn-outline-primary" type="submit">{% trans "Signal priority" %}</button>
+              </form>
+            </div>
+          </div>
+          {% empty %}
+          <div class="list-group-item text-tertiary">{% trans "No feature requests yet. Start with the workflow problem, not the solution." %}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="row g-3 mt-1">
+    <section class="col-lg-6">
+      <h2 class="h5">{% trans "Roadmap signals" %}</h2>
+      <div class="list-group">
+        {% for item in roadmap_items %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between gap-2">
+            <strong>{{ item.title }}</strong>
+            <span class="badge text-bg-secondary">{{ item.get_status_display }}</span>
+          </div>
+          <div class="small text-tertiary">{{ item.expected_value|default:item.problem|truncatewords:18 }}</div>
+        </div>
+        {% empty %}
+        <div class="list-group-item text-tertiary">{% trans "Roadmap items will appear here as they are promoted." %}</div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="col-lg-6">
+      <h2 class="h5">{% trans "You said / We did" %}</h2>
+      <div class="list-group">
+        {% for item in you_said_we_did %}
+        <div class="list-group-item">
+          <div class="small text-tertiary">{% trans "You said" %}</div>
+          <p class="mb-1">{{ item.you_said|truncatewords:18 }}</p>
+          <div class="small text-tertiary">{% trans "We did" %}</div>
+          <strong>{{ item.we_did|truncatewords:18 }}</strong>
+        </div>
+        {% empty %}
+        <div class="list-group-item text-tertiary">{% trans "Released improvements linked to requests will appear here." %}</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>

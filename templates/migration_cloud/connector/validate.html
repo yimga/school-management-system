@@ -1,0 +1,8 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% block connector_body %}
+{% include "components/apple_class_data_quality_meter.html" with meter_id="connector-quality" title=_("Data quality") value=data_quality_score|default:0 status_label=_("Import readiness") body=_("Resolve quarantine items before import.") %}
+<p>{% trans "Valid" %}: {{ staging_batch.valid_count }} / {{ staging_batch.raw_count }}</p>
+<a class="btn btn-outline-secondary" href="{% url 'migration_cloud_connector:connector-quarantine' connection_id=connection.id batch_id=staging_batch.id %}">{% trans "Review quarantine" %}</a>
+<a class="btn btn-primary ms-2" href="{% url 'migration_cloud_connector:connector-import' connection_id=connection.id batch_id=staging_batch.id %}">{% trans "Continue to import" %}</a>
+{% endblock %}

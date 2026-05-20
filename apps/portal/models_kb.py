@@ -5,6 +5,7 @@ Supports user-contributed content with moderation workflow
 
 import logging
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import DatabaseError, models
 from django.utils.text import slugify
@@ -359,6 +360,35 @@ class KBArticle(models.Model):
             "When true, visible to all schools on this tenant. When false, only the linked school may see it."
         ),
     )
+    vector_embedding = models.JSONField(
+        _("Vector embedding"),
+        default=list,
+        blank=True,
+        help_text=_("Semantic embedding (float list) for KB RAG search."),
+    )
+    locale = models.CharField(
+        _("Locale"),
+        max_length=12,
+        blank=True,
+        default="",
+        help_text=_("BCP-47 language tag (e.g. en, fr). Blank = all locales."),
+    )
+    locale_group_id = models.CharField(
+        _("Locale group"),
+        max_length=36,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=_("Shared UUID linking translated article variants (batch 1350)."),
+    )
+    translation_of = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="translations",
+        verbose_name=_("Translation of"),
+    )
 
     # Regional metadata: filter help content by tenant or GeoIP region (e.g. Cameroon vs Canada)
     country_code = models.CharField(
@@ -417,6 +447,22 @@ class KBArticle(models.Model):
             # Sanitize when content_html is set directly (e.g. admin) to prevent XSS
             self.content_html = sanitize_html(self.content_html)
         super().save(*args, **kwargs)
+        if self.status == "PUBLISHED" and getattr(settings, "KB_EMBEDDING_AUTO_REFRESH", True):
+            from django.db import transaction
+
+            from apps.portal.kb_embeddings import refresh_kb_article_embedding
+
+            pk = self.pk
+
+            def _refresh() -> None:
+                try:
+                    # tenant-isolation-allow: post-save-hook-reloads-same-row-by-primary-key
+                    article = KBArticle.objects.get(pk=pk)
+                except KBArticle.DoesNotExist:
+                    return
+                refresh_kb_article_embedding(article, save=True)
+
+            transaction.on_commit(_refresh)
 
     @property
     def helpful_percentage(self):
@@ -601,3 +647,4 @@ class HostedOfficeDocument(models.Model):
 
     def __str__(self):
         return self.title
+

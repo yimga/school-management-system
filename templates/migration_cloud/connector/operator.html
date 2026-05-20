@@ -1,0 +1,16 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% block cp_shell_page %}
+<main class="rmc-page" data-rmc-migration-cloud-surface>
+  <h1 class="rmc-h1">{{ page_title }}</h1>
+  <p class="text-muted">{% trans "Operator view — credentials are never shown." %}</p>
+  <section class="mb-4">
+    <h2 class="h5">{% trans "Connector registry" %}</h2>
+    <ul>{% for p in profiles %}<li>{{ p.display_name }} — {{ p.certification_status }}</li>{% endfor %}</ul>
+  </section>
+  <section class="mb-4">
+    <h2 class="h5">{% trans "Active connections" %}</h2>
+    <ul>{% for c in active_connections %}<li>{{ c.school }} — {{ c.source_platform_type }}</li>{% empty %}<li class="text-muted">{% trans "None" %}</li>{% endfor %}</ul>
+  </section>
+</main>
+{% endblock %}

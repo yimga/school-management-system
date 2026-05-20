@@ -1,6 +1,6 @@
 # Gear-Up V4 — Category-Defining Bar
 
-**Pack:** `2026-05-20-orchestrator-v4`
+**Pack:** `2026-05-20-orchestrator-v5`
 
 ## GEAR-UP V4 — CATEGORY-DEFINING BAR (mandatory)
 

@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-05-19T03:07:09.738912+00:00",
+  "generated_at": "2026-05-20T09:53:46.085597+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -429,9 +429,39 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "needs_review",
+      "file": "apps/migration_cloud/management/commands/purge_audit_events_pre_approved.py",
+      "line": "187",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/migration_cloud/management/commands/verify_audit_chain.py",
+      "line": "358",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/migration_cloud/tests/test_audit_chain_verifier_and_purge_v3_39.py",
+      "line": "85",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/migration_cloud/tests/test_audit_event_v3_38.py",
+      "line": "455",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/migration_cloud/tests/test_guardian_consent.py",
+      "line": "216",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "test_safe",
       "file": "apps/migration_cloud/tests/test_webhook_secret_encryption.py",
-      "line": "97",
+      "line": "96",
       "pattern": "connection_cursor"
     },
     {
@@ -507,6 +537,24 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "needs_review",
+      "file": "apps/people/schema_repair.py",
+      "line": "16",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/people/schema_repair.py",
+      "line": "31",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/people/tests/test_teacherprofile_updated_at_heal.py",
+      "line": "37",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "test_safe",
       "file": "apps/platform_runtime/tests/support/raw_sql_lint_fixtures.py",
       "line": "38",
@@ -570,6 +618,18 @@
       "classification": "test_safe",
       "file": "apps/platform_runtime/tests/test_lint_raw_sql_usage_script.py",
       "line": "991",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/kb_pgvector.py",
+      "line": "28",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/portal/kb_pgvector.py",
+      "line": "74",
       "pattern": "connection_cursor"
     },
     {
@@ -831,6 +891,12 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "needs_review",
+      "file": "apps/siteconfig/management/commands/backfill_search_indexes.py",
+      "line": "20",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "migration_safe",
       "file": "apps/siteconfig/migrations/0045_remove_sitesettings_preview_banner_text_and_more.py",
       "line": "17",
@@ -1013,6 +1079,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 168
+    "hits": 179
   }
 }

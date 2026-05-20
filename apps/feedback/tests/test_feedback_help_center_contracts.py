@@ -6,10 +6,10 @@ from apps.feedback.models import FeedbackSubmission
 from apps.portal.models_kb import FAQ, FAQCategory, KBArticle, KBCategory
 from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
-from .base import FeedbackTestCase
+from .base import FeedbackHelpCenterTestCase
 
 
-class FeedbackHelpCenterContractsTests(FeedbackTestCase):
+class FeedbackHelpCenterContractsTests(FeedbackHelpCenterTestCase):
     def test_help_center_redirects_anonymous(self):
         response = self.client.get(reverse("feedback:help_center"))
         self.assertEqual(response.status_code, 302)
@@ -18,7 +18,11 @@ class FeedbackHelpCenterContractsTests(FeedbackTestCase):
     def test_help_center_renders_for_staff(self):
         self.force_login_with_mfa(self.admin)
         response = self.client.get(reverse("feedback:help_center"))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.status_code,
+            200,
+            response.get("Location", getattr(response, "url", "")),
+        )
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("help", body.lower())
         self.assertTrue(
@@ -29,7 +33,11 @@ class FeedbackHelpCenterContractsTests(FeedbackTestCase):
     def test_help_center_role_surfaces_linked(self):
         self.force_login_with_mfa(self.teacher)
         response = self.client.get(reverse("feedback:help_center"))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.status_code,
+            200,
+            response.get("Location", getattr(response, "url", "")),
+        )
         self.assertIn(reverse("feedback:teacher_feedback"), response.content.decode("utf-8", errors="replace"))
 
     def test_help_center_surfaces_kb_and_faq_matches(self):
@@ -53,7 +61,11 @@ class FeedbackHelpCenterContractsTests(FeedbackTestCase):
         )
         self.force_login_with_mfa(self.admin)
         response = self.client.get(reverse("feedback:help_center"), {"q": "payment receipt"})
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.status_code,
+            200,
+            response.get("Location", getattr(response, "url", "")),
+        )
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("Fix payment receipts", body)
         self.assertIn("Where are receipts?", body)

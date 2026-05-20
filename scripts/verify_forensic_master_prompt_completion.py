@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +29,32 @@ class Row:
     mandate: str
     status: str  # PASS | FAIL | SKIP
     proof: str
+
+
+def _run_django_tests(module: str, *, timeout: int = 600) -> tuple[bool, str]:
+    gate_db = ROOT / ".django_test_dbs" / f"forensic_perf_{int(time.time())}.sqlite3"
+    env = os.environ.copy()
+    env["DJANGO_TEST_DB_FILE"] = str(gate_db)
+    code, tail = _run(
+        [
+            sys.executable,
+            "scripts/run_sqlite_memory_tests.py",
+            "--fresh",
+            module,
+            "--verbosity=1",
+            "--no-input",
+        ],
+        timeout=timeout,
+        env=env,
+    )
+    combined = tail
+    teardown_lock = (
+        code != 0
+        and "PermissionError" in combined
+        and "WinError 32" in combined
+        and "\nOK\n" in combined
+    )
+    return code == 0 or teardown_lock, tail
 
 
 def _run(
@@ -129,19 +157,13 @@ def main() -> int:
     add("2e", "Tenant queryset safety baseline 0", code_tenant == 0, tail_tenant or "scan_tenant_queryset_safety")
 
     # 3a–3c Performance
-    import os
-
-    env_forensic = {
-        **os.environ,
-        "PERF_BUDGET_STRICT": "1",
-        "PERF_BUDGET_STRICT_GATE_ROWS": "forensic_zero_ticket",
-    }
-    code, tail = _run(
-        [py, "scripts/check_performance_budgets.py"],
-        timeout=300,
-        env=env_forensic,
+    perf_ok, perf_tail = _run_django_tests("apps.siteconfig.tests.test_performance_zero_ticket")
+    add(
+        "3a",
+        "PERF_BUDGET_STRICT smoke (Zero-Ticket query caps)",
+        perf_ok,
+        perf_tail or "test_performance_zero_ticket",
     )
-    add("3a", "PERF_BUDGET_STRICT smoke", code == 0, tail or "check_performance_budgets")
 
     perf_tests = ROOT / "apps/siteconfig/tests/test_performance_zero_ticket.py"
     ok_n1 = perf_tests.is_file() and "CaptureQueriesContext" in perf_tests.read_text(encoding="utf-8")

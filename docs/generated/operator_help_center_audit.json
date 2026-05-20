@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T21:26:29.298772+00:00",
+  "generated_at": "2026-05-20T09:33:14.835221+00:00",
   "verdict": "OPERATOR_HELP_CENTER_PASS",
-  "pass_count": 21,
+  "pass_count": 38,
   "fail_count": 0,
   "rows": [
     {
@@ -21,6 +21,78 @@
       "label": "Manager allowlist includes /help-center/",
       "status": "PASS",
       "proof": "middleware.py"
+    },
+    {
+      "id": "middleware-engage-paths",
+      "label": "Manager allowlist includes feature-center, contact-us, product-roadmap",
+      "status": "PASS",
+      "proof": "middleware.py"
+    },
+    {
+      "id": "manager-engagement-module",
+      "label": "manager_help_engagement view module",
+      "status": "PASS",
+      "proof": "manager_help_engagement.py"
+    },
+    {
+      "id": "manager-engagement-urls",
+      "label": "manager_urls registers engagement routes",
+      "status": "PASS",
+      "proof": "manager_urls.py"
+    },
+    {
+      "id": "engage-css",
+      "label": "Help center engage stylesheet",
+      "status": "PASS",
+      "proof": "rmc-help-center-engage.css"
+    },
+    {
+      "id": "support-entry-manager-aware",
+      "label": "support_entry_points routes manager host to manager_* names",
+      "status": "PASS",
+      "proof": "services.py"
+    },
+    {
+      "id": "partial-manager_feature_center_body",
+      "label": "Template exists: templates/schools/partials/manager_feature_center_body.html",
+      "status": "PASS",
+      "proof": "templates/schools/partials/manager_feature_center_body.html"
+    },
+    {
+      "id": "partial-manager_contact_us_body",
+      "label": "Template exists: templates/schools/partials/manager_contact_us_body.html",
+      "status": "PASS",
+      "proof": "templates/schools/partials/manager_contact_us_body.html"
+    },
+    {
+      "id": "partial-manager_product_roadmap_body",
+      "label": "Template exists: templates/schools/partials/manager_product_roadmap_body.html",
+      "status": "PASS",
+      "proof": "templates/schools/partials/manager_product_roadmap_body.html"
+    },
+    {
+      "id": "partial-help_center_engage_strip",
+      "label": "Template exists: templates/feedback/partials/help_center_engage_strip.html",
+      "status": "PASS",
+      "proof": "templates/feedback/partials/help_center_engage_strip.html"
+    },
+    {
+      "id": "feedback-context-processor",
+      "label": "Global support_links context processor registered",
+      "status": "PASS",
+      "proof": "settings.py"
+    },
+    {
+      "id": "tenant-chrome-help-center",
+      "label": "Tenant sidebar/footer point to feedback:help_center",
+      "status": "PASS",
+      "proof": "tenant chrome"
+    },
+    {
+      "id": "help-center-v2-engage",
+      "label": "Manager help hub includes engage strip + quick feature",
+      "status": "PASS",
+      "proof": "manager_help_center_body.html"
     },
     {
       "id": "dropdown-help-center",
@@ -95,6 +167,18 @@
       "proof": "views_kb.py"
     },
     {
+      "id": "cmdk-help-center",
+      "label": "Command palette uses manager_help_center on manager",
+      "status": "PASS",
+      "proof": "rmc_command_palette.html"
+    },
+    {
+      "id": "no-stale-manager-help-links",
+      "label": "Shell chrome links use manager_help_center (not legacy manager_help)",
+      "status": "PASS",
+      "proof": "key templates clean"
+    },
+    {
       "id": "report-pages-cp-base",
       "label": "Operator report pages extend control_plane_base",
       "status": "PASS",
@@ -125,10 +209,28 @@
       "proof": "views_kb.py faq_detail"
     },
     {
-      "id": "tests",
-      "label": "Operator help center + manager path tests",
+      "id": "help-tier-ai-review",
+      "label": "Manager AI review queue route + template",
       "status": "PASS",
-      "proof": "st_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired\nINFO 2026-05-19 17:26:26,099 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n.........\n----------------------------------------------------------------------\nRan 9 tests in 0.626s\n\nOK"
+      "proof": "manager_ai_review_queue"
+    },
+    {
+      "id": "help-tier-metrics",
+      "label": "Help hub deflection + zero-result + proactive nudges",
+      "status": "PASS",
+      "proof": "tier ladder UI"
+    },
+    {
+      "id": "help-tier-typeahead",
+      "label": "KB typeahead API + JS wired on help hub",
+      "status": "PASS",
+      "proof": "kb typeahead"
+    },
+    {
+      "id": "tests",
+      "label": "Operator help center + manager path + HTTP tests",
+      "status": "PASS",
+      "proof": "contract: tered.\n...............\n----------------------------------------------------------------------\nRan 15 tests in 1.187s\n\nOK\nhttp: skipped (set RMC_VERIFY_OPERATOR_HTTP=1 for full Client HTTP gate)"
     }
   ]
 }

@@ -1,0 +1,459 @@
+{
+  "generated_at": "2026-05-20T10:51:16.769495+00:00",
+  "nav_item_count": 75,
+  "lazy_fallback_count": 0,
+  "targets": [
+    {
+      "id": "super_dashboard",
+      "label": "Dashboard",
+      "url": "/super/",
+      "url_name": "super:dashboard"
+    },
+    {
+      "id": "super_command_center",
+      "label": "Command Center",
+      "url": "/super/command-center/",
+      "url_name": "super:command_center"
+    },
+    {
+      "id": "super_ai_gateway_console",
+      "label": "AI gateway console",
+      "url": "/super/ai-gateway-console/",
+      "url_name": "super:ai_gateway_console"
+    },
+    {
+      "id": "ai_center",
+      "label": "AI Center",
+      "url": "/siteconfig/ai-center/",
+      "url_name": "siteconfig:ai_center"
+    },
+    {
+      "id": "studio_os_shell",
+      "label": "Studio home",
+      "url": "/studio/",
+      "url_name": "studio_os:shell"
+    },
+    {
+      "id": "studio_os",
+      "label": "Studio Experience",
+      "url": "/studio/experience/",
+      "url_name": "studio_os:experience"
+    },
+    {
+      "id": "studio_os_control",
+      "label": "Control Studio",
+      "url": "/studio/control/",
+      "url_name": "studio_os:control"
+    },
+    {
+      "id": "super_schools_list",
+      "label": "Schools list",
+      "url": "/super/schools/",
+      "url_name": "super:schools_list"
+    },
+    {
+      "id": "super_provision",
+      "label": "Setup Studio",
+      "url": "/super/create/",
+      "url_name": "super:create_school_wizard"
+    },
+    {
+      "id": "super_tenant_health",
+      "label": "School Health",
+      "url": "/super/tenant-health/",
+      "url_name": "super:tenant_health"
+    },
+    {
+      "id": "super_district_enterprise",
+      "label": "District & enterprise",
+      "url": "/super/district-enterprise/",
+      "url_name": "super:district_enterprise"
+    },
+    {
+      "id": "super_curriculum_packs",
+      "label": "Curriculum & region packs",
+      "url": "/super/curriculum-packs/",
+      "url_name": "super:curriculum_packs"
+    },
+    {
+      "id": "super_geography",
+      "label": "Geography",
+      "url": "/super/geography/",
+      "url_name": "super:geography"
+    },
+    {
+      "id": "super_education_systems",
+      "label": "Education systems",
+      "url": "/super/education-systems/",
+      "url_name": "super:education_systems"
+    },
+    {
+      "id": "super_learning_delivery",
+      "label": "Learning delivery & institution types",
+      "url": "/super/learning-delivery-packs/",
+      "url_name": "super:learning_delivery_packs"
+    },
+    {
+      "id": "super_ministry_stubs",
+      "label": "Ministry report stubs",
+      "url": "/super/ministry-report-stubs/",
+      "url_name": "super:ministry_report_stubs"
+    },
+    {
+      "id": "super_incidents",
+      "label": "Incidents",
+      "url": "/ops/incidents/",
+      "url_name": ""
+    },
+    {
+      "id": "super_runtime_inspector",
+      "label": "Runtime inspector",
+      "url": "/super/runtime-inspector/",
+      "url_name": "super:runtime_inspector"
+    },
+    {
+      "id": "super_runtime_truth_hub",
+      "label": "Runtime truth hub",
+      "url": "/super/runtime-truth-hub/",
+      "url_name": "super:runtime_truth_hub"
+    },
+    {
+      "id": "super_wedge_index",
+      "label": "Wedge index",
+      "url": "/super/wedge/",
+      "url_name": "super:wedge_index"
+    },
+    {
+      "id": "super_workflow_simulator",
+      "label": "Workflow simulator",
+      "url": "/super/workflow-simulator/",
+      "url_name": "super:workflow_simulator"
+    },
+    {
+      "id": "super_playbook_operator_hub",
+      "label": "Playbook operator hub",
+      "url": "/super/playbook-operator-hub/",
+      "url_name": "super:playbook_operator_hub"
+    },
+    {
+      "id": "super_registries",
+      "label": "Registries",
+      "url": "/super/registries/",
+      "url_name": "super:registries_overview"
+    },
+    {
+      "id": "super_metadata_catalog",
+      "label": "Metadata catalog",
+      "url": "/super/metadata-catalog/",
+      "url_name": "super:metadata_catalog"
+    },
+    {
+      "id": "super_blueprints",
+      "label": "Blueprints",
+      "url": "/super/blueprints/",
+      "url_name": "super:blueprints_catalog"
+    },
+    {
+      "id": "super_policies",
+      "label": "Policies",
+      "url": "/super/policies/",
+      "url_name": "super:policies_catalog"
+    },
+    {
+      "id": "super_workflow_packs",
+      "label": "Workflow Packs",
+      "url": "/super/workflow-packs/",
+      "url_name": "super:workflow_packs_catalog"
+    },
+    {
+      "id": "super_dashboard_packs",
+      "label": "Dashboard Packs",
+      "url": "/super/dashboard-packs/",
+      "url_name": "super:dashboard_packs_catalog"
+    },
+    {
+      "id": "super_governance",
+      "label": "Governance",
+      "url": "/super/marketplace/",
+      "url_name": "super:marketplace_governance"
+    },
+    {
+      "id": "super_blueprint_marketplace",
+      "label": "Blueprint marketplace",
+      "url": "/super/marketplace/blueprints/",
+      "url_name": "super:blueprint_marketplace"
+    },
+    {
+      "id": "super_app_catalog",
+      "label": "App catalog",
+      "url": "/super/marketplace/apps/",
+      "url_name": "super:app_catalog"
+    },
+    {
+      "id": "super_package_rollout",
+      "label": "Package rollout",
+      "url": "/super/marketplace/package-rollout/",
+      "url_name": "super:package_rollout"
+    },
+    {
+      "id": "super_customer_success",
+      "label": "Customer Success",
+      "url": "/super/customer-success/",
+      "url_name": "super:customer_success_dashboard"
+    },
+    {
+      "id": "super_migration",
+      "label": "Migration",
+      "url": "/super/migration/",
+      "url_name": "super:migration_cloud"
+    },
+    {
+      "id": "apicenter_dashboard",
+      "label": "API Center",
+      "url": "/api-center/",
+      "url_name": "apicenter:dashboard"
+    },
+    {
+      "id": "super_one_sis_any_lms",
+      "label": "One SIS, any LMS",
+      "url": "/super/one-sis-any-lms/",
+      "url_name": "super:one_sis_any_lms"
+    },
+    {
+      "id": "super_usage",
+      "label": "Usage",
+      "url": "/super/usage/",
+      "url_name": "super:usage"
+    },
+    {
+      "id": "super_pulse",
+      "label": "Pulse",
+      "url": "/super/pulse/",
+      "url_name": "super:pulse"
+    },
+    {
+      "id": "super_analytics",
+      "label": "Analytics",
+      "url": "/super/analytics/",
+      "url_name": "super:analytics_overview"
+    },
+    {
+      "id": "super_billing",
+      "label": "Billing",
+      "url": "/super/billing/",
+      "url_name": "super:billing_dashboard"
+    },
+    {
+      "id": "super_support",
+      "label": "Support",
+      "url": "/super/support/",
+      "url_name": "super:support_dashboard"
+    },
+    {
+      "id": "super_support_csat",
+      "label": "CSAT",
+      "url": "/super/support/csat/",
+      "url_name": "super:support_csat_dashboard"
+    },
+    {
+      "id": "super_trust_center",
+      "label": "Trust center",
+      "url": "/super/trust/",
+      "url_name": "super:trust_center"
+    },
+    {
+      "id": "super_compliance",
+      "label": "Compliance",
+      "url": "/super/compliance/",
+      "url_name": "super:compliance_overview"
+    },
+    {
+      "id": "super_platform_operator_hub",
+      "label": "Platform operator hub",
+      "url": "/super/platform-operator-hub/",
+      "url_name": "super:platform_operator_hub"
+    },
+    {
+      "id": "super_operator_policy",
+      "label": "Operator policy",
+      "url": "/super/operator-policy/",
+      "url_name": "super:operator_policy"
+    },
+    {
+      "id": "super_backlog_unlock_center",
+      "label": "Backlog unlock center",
+      "url": "/super/backlog-unlock-center/",
+      "url_name": "super:backlog_unlock_center"
+    },
+    {
+      "id": "super_fleet_governed_changes",
+      "label": "Fleet governed changes",
+      "url": "/super/fleet-governed-changes/",
+      "url_name": "super:fleet_governed_changes"
+    },
+    {
+      "id": "config_console",
+      "label": "Config center",
+      "url": "/siteconfig/console/",
+      "url_name": "siteconfig:console_domains_hub"
+    },
+    {
+      "id": "cp_tenant_runtime_hub",
+      "label": "Tenant runtime & settings",
+      "url": "/siteconfig/configuration/runtime/",
+      "url_name": "siteconfig:tenant_runtime_configuration_hub"
+    },
+    {
+      "id": "cp_theme_experience",
+      "label": "Fleet theme & experience hub",
+      "url": "/siteconfig/theme-experience/hub/",
+      "url_name": "siteconfig:theme_experience_hub"
+    },
+    {
+      "id": "cp_feature_control",
+      "label": "Feature control",
+      "url": "/siteconfig/feature-control/",
+      "url_name": "siteconfig:feature_control_panel"
+    },
+    {
+      "id": "cp_region_grading_scales",
+      "label": "Region grading scales",
+      "url": "/siteconfig/grading-scales/region-scales/",
+      "url_name": "siteconfig:region_grading_scales"
+    },
+    {
+      "id": "cp_metadata_operator_hub",
+      "label": "Metadata & lineage hub",
+      "url": "/siteconfig/metadata/operator-hub/",
+      "url_name": "siteconfig:metadata_operator_hub"
+    },
+    {
+      "id": "cp_entity_catalog",
+      "label": "Entity catalog",
+      "url": "/siteconfig/metadata/entity-catalog/",
+      "url_name": "siteconfig:entity_catalog_overview"
+    },
+    {
+      "id": "cp_metadata_dynamic_fields",
+      "label": "Dynamic fields (EAV)",
+      "url": "/siteconfig/metadata/dynamic-fields/",
+      "url_name": "siteconfig:metadata_dynamic_fields_operator"
+    },
+    {
+      "id": "cp_config_mutation_audit_evidence",
+      "label": "Config mutation audit",
+      "url": "/siteconfig/metadata/config-mutation-audit/",
+      "url_name": "siteconfig:config_mutation_audit_evidence"
+    },
+    {
+      "id": "cp_region_validation",
+      "label": "Region validation",
+      "url": "/siteconfig/regions/validation/",
+      "url_name": "siteconfig:region_validation"
+    },
+    {
+      "id": "cp_region_comparison",
+      "label": "Region comparison",
+      "url": "/siteconfig/regions/comparison/",
+      "url_name": "siteconfig:region_comparison"
+    },
+    {
+      "id": "cp_public_to_product_matrix",
+      "label": "Public-to-Product matrix",
+      "url": "/public-to-product/",
+      "url_name": ""
+    },
+    {
+      "id": "cp_feature_gap_register",
+      "label": "Feature gap register",
+      "url": "/feature-gap-register/",
+      "url_name": ""
+    },
+    {
+      "id": "cp_feedback_loop",
+      "label": "Feedback loop \u00b7 live usage",
+      "url": "/feedback-loop/",
+      "url_name": ""
+    },
+    {
+      "id": "cp_lane2_readiness",
+      "label": "Lane-2 readiness (PSP / SOC2 / pilots)",
+      "url": "/lane2-readiness/",
+      "url_name": ""
+    },
+    {
+      "id": "cp_report_library",
+      "label": "Platform Studio \u00b7 Reports",
+      "url": "/studio/output/?pane=reports",
+      "url_name": ""
+    },
+    {
+      "id": "cp_admin_bridge_integrations",
+      "label": "Integrations registry (admin)",
+      "url": "/admin/integrations_marketplace/integration/",
+      "url_name": "admin:integrations_marketplace_integration_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_marketplace_apps",
+      "label": "Marketplace apps (admin)",
+      "url": "/admin/integrations_marketplace/marketplaceapp/",
+      "url_name": "admin:integrations_marketplace_marketplaceapp_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_packages_installed",
+      "label": "Installed packages (admin)",
+      "url": "/admin/packages/installedpackage/",
+      "url_name": "admin:packages_installedpackage_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_experience_packs",
+      "label": "Experience packs (admin)",
+      "url": "/admin/packages/experiencepack/",
+      "url_name": "admin:packages_experiencepack_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_runtime_defaults",
+      "label": "Runtime defaults (admin)",
+      "url": "/admin/platform_runtime/runtimedefaults/",
+      "url_name": "admin:platform_runtime_runtimedefaults_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_phase_b_domain_snapshots",
+      "label": "Phase B domain snapshots (admin)",
+      "url": "/admin/platform_runtime/platformphasebdomainsnapshot/",
+      "url_name": "admin:platform_runtime_platformphasebdomainsnapshot_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_fleet_governed_changes",
+      "label": "Fleet governed changes (admin)",
+      "url": "/admin/platform_runtime/fleetgovernedchange/",
+      "url_name": "admin:platform_runtime_fleetgovernedchange_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_ai_model_registry",
+      "label": "AI model registry (admin)",
+      "url": "/admin/siteconfig/aimodelregistry/",
+      "url_name": "admin:siteconfig_aimodelregistry_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_global_brand_registry",
+      "label": "Global brand registry (admin)",
+      "url": "/admin/brand_experience/globalbrandregistry/",
+      "url_name": "admin:brand_experience_globalbrandregistry_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_platform_global_branding",
+      "label": "Platform global branding (admin)",
+      "url": "/admin/brand_experience/platformglobalbranding/",
+      "url_name": "admin:brand_experience_platformglobalbranding_changelist"
+    },
+    {
+      "id": "cp_admin_bridge_accounts_users",
+      "label": "Users (admin)",
+      "url": "/admin/accounts/user/",
+      "url_name": "admin:accounts_user_changelist"
+    }
+  ],
+  "findings": [],
+  "verdict": "NAV_LEDGER_PASS"
+}

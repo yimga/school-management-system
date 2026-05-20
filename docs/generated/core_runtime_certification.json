@@ -1,0 +1,61 @@
+{
+  "audit_generated_at": "2026-05-20T01:46:07.329376+00:00",
+  "audit_ref": "docs/generated/core_runtime_dependency_audit.json",
+  "external_blockers": [
+    "live_render_celery_worker_health",
+    "production_redis_channel_layer_proof"
+  ],
+  "failed_gate_count": 0,
+  "focused_test_modules": [
+    "apps.security.tests.test_cors_csrf_tenant_runtime",
+    "apps.accounts.tests.test_mfa_jwt_runtime_contracts",
+    "apps.platform_runtime.tests.test_core_runtime_integrity",
+    "apps.security.tests.test_auth_runtime_boundaries",
+    "apps.observability.tests.test_async_runtime_contracts"
+  ],
+  "gates": [
+    {
+      "id": "cors_no_allow_all",
+      "note": "CORS_ALLOW_ALL_ORIGINS must remain disabled",
+      "ok": true
+    },
+    {
+      "id": "drf_default_authenticated",
+      "note": "DRF default permission is IsAuthenticated",
+      "ok": true
+    },
+    {
+      "id": "jwt_simple_jwt_configured",
+      "note": "SIMPLE_JWT settings block present",
+      "ok": true
+    },
+    {
+      "id": "mfa_middleware_present",
+      "note": "RequireMFAMiddleware wired",
+      "ok": true
+    },
+    {
+      "id": "celery_eager_in_tests",
+      "note": "CELERY_TASK_ALWAYS_EAGER when RUNNING_TESTS",
+      "ok": true
+    },
+    {
+      "id": "route_api_token_obtain_pair",
+      "note": "resolves",
+      "ok": true
+    },
+    {
+      "id": "route_api_token_refresh",
+      "note": "resolves",
+      "ok": true
+    },
+    {
+      "id": "route_api_ai-support-assistant",
+      "note": "resolves",
+      "ok": true
+    }
+  ],
+  "generated_at": "2026-05-20T01:46:11.464767+00:00",
+  "repo_scope_only": true,
+  "verdict": "CORE RUNTIME READY \u2014 REPO SCOPE"
+}

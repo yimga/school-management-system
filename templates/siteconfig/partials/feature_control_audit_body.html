@@ -1,5 +1,5 @@
 {% load i18n static region_format %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate">
   <div class="card shadow-sm border-0">
     <div class="card-header bg-light border-bottom py-3 d-flex justify-content-between align-items-center">
       <div>
@@ -11,7 +11,7 @@
     <div class="card-body p-0">
       {% if entries %}
       <div class="table-responsive">
-        <table class="table table-hover mb-0 table-family align-middle">
+        <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
           <caption class="visually-hidden">{% trans "Feature Control Audit Log" %}</caption>
           <thead class="table-light">
             <tr>
@@ -41,6 +41,7 @@
           </tbody>
         </table>
       </div>
+      <div class="px-3 pb-3">{% include "components/pagination.html" %}</div>
       {% else %}
       <p class="text-muted text-center py-5 mb-0">No audit entries yet.</p>
       {% endif %}

@@ -28,8 +28,8 @@
         {% endif %}
       {% endif %}
     </div>
-    <a href="{% url 'migration_guardian_consent_admin:guardian-consent-campaign-status' intake_id=intake.id %}" class="btn btn-primary">
-      {% trans "View campaign status" %}
+    <a href="{% url 'migration_guardian_consent_admin:guardian-consent-campaign-status' intake_id=intake.id %}" class="btn btn-primary" title="{% trans 'Advanced campaign status' %}">
+      {% trans "View campaign status (admin)" %}
     </a>
   {% else %}
     <div class="card">

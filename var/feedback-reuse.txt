@@ -1,0 +1,137 @@
+WARNING 2026-05-19 18:14:14,051 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.
+DEBUG 2026-05-19 18:14:14,510 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)
+INFO 2026-05-19 18:14:14,537 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired
+INFO 2026-05-19 18:14:14,956 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.
+Found 5 test(s).
+Using existing test database for alias 'default'...
+Traceback (most recent call last):
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such index: people_sep_school_status_idx
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\commands\test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 420, in run_from_argv
+    self.execute(*args, **cmd_options)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 464, in execute
+    output = self.handle(*args, **options)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\commands\test.py", line 63, in handle
+    failures = test_runner.run_tests(test_labels)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\reliable_test_runner.py", line 23, in run_tests
+    return super().run_tests(test_labels, extra_tests=extra_tests, **kwargs)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\runner.py", line 1092, in run_tests
+    old_config = self.setup_databases(
+        aliases=databases,
+        serialized_aliases=suite.serialized_aliases,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\runner.py", line 990, in setup_databases
+    return _setup_databases(
+        self.verbosity,
+    ...<5 lines>...
+        **kwargs,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 204, in setup_databases
+    connection.creation.create_test_db(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        verbosity=verbosity,
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        serialize=False,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\creation.py", line 78, in create_test_db
+    call_command(
+    ~~~~~~~~~~~~^
+        "migrate",
+        ^^^^^^^^^^
+    ...<3 lines>...
+        run_syncdb=True,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 194, in call_command
+    return command.execute(*args, **defaults)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 464, in execute
+    output = self.handle(*args, **options)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 111, in wrapper
+    res = handle_func(*args, **kwargs)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\commands\migrate.py", line 353, in handle
+    post_migrate_state = executor.migrate(
+        targets,
+    ...<3 lines>...
+        fake_initial=fake_initial,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\executor.py", line 135, in migrate
+    state = self._migrate_all_forwards(
+        state, plan, full_plan, fake=fake, fake_initial=fake_initial
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\executor.py", line 167, in _migrate_all_forwards
+    state = self.apply_migration(
+        state, migration, fake=fake, fake_initial=fake_initial
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\executor.py", line 255, in apply_migration
+    state = migration.apply(state, schema_editor)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\migration.py", line 132, in apply
+    operation.database_forwards(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.app_label, schema_editor, old_state, project_state
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\migrations\operations\models.py", line 1138, in database_forwards
+    schema_editor.rename_index(model, old_index, new_index)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\schema.py", line 587, in rename_index
+    self.remove_index(model, old_index)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\schema.py", line 578, in remove_index
+    self.execute(index.remove_sql(model, self))
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\schema.py", line 204, in execute
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\base.py", line 360, in execute
+    return super().execute(query, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: no such index: people_sep_school_status_idx

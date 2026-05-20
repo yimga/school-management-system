@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import re
 import sys
 from dotenv import load_dotenv
 
@@ -184,6 +185,7 @@ INSTALLED_APPS = [
     # REST Framework
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     # OpenAPI / Swagger UI / Redoc auto-generation from DRF code.
     # Exposed at /api/schema/, /api/docs/ (Swagger UI), /api/redoc/.
     "drf_spectacular",
@@ -420,6 +422,9 @@ TEMPLATES = [
                 "apps.schools.context_processors.dashboard_topology_context",
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
+                "apps.portal.context_processors.support_deflection_urls",  # KB deflection on all ticket forms
+                "apps.portal.context_processors.help_contextual",  # Proactive help nudges + contextual drawer
+                "apps.feedback.context_processors.support_links",  # Host-aware help / feature / contact URLs
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
                 "apps.platform_runtime.context_processors.click_tracking_context",
@@ -1510,6 +1515,25 @@ CELERY_BEAT_SCHEDULE = {
                 ),
                 "options": {"queue": "default", "expires": 3600},
             },
+            # Help-center tier batch 1341 — KB freshness + code index weekly.
+            "portal-reindex-kb-embeddings-weekly": {
+                "task": "portal.reindex_kb_help_embeddings_weekly",
+                "schedule": (
+                    _celery_crontab(hour=3, minute=30, day_of_week=0)
+                    if _celery_crontab is not None
+                    else 604800.0
+                ),
+                "options": {"expires": 7200},
+            },
+            "portal-build-code-support-index-weekly": {
+                "task": "portal.build_code_support_index_weekly",
+                "schedule": (
+                    _celery_crontab(hour=4, minute=0, day_of_week=0)
+                    if _celery_crontab is not None
+                    else 604800.0
+                ),
+                "options": {"expires": 7200},
+            },
         }
         if CELERY_BEAT_ENABLED
         else {}
@@ -1924,6 +1948,20 @@ REST_FRAMEWORK = {
     ),
 }
 
+# --- JWT (rest_framework_simplejwt) ---
+from datetime import timedelta as _jwt_timedelta
+
+_jwt_access_minutes = int(os.getenv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "60"))
+_jwt_refresh_days = int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS", "7"))
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": _jwt_timedelta(minutes=max(5, _jwt_access_minutes)),
+    "REFRESH_TOKEN_LIFETIME": _jwt_timedelta(days=max(1, _jwt_refresh_days)),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
 # v3.33.0: SSE deployment transport mode. ``wsgi-fallback`` emits a
 # one-shot snapshot frame and closes (safe under sync Gunicorn workers);
 # ``asgi-daphne`` runs the full 60s long-poll loop. See
@@ -2127,10 +2165,18 @@ CORS_ALLOWED_ORIGINS = [
     for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
     if o.strip()
 ]
+# Never allow wildcard CORS in production — explicit origins + tenant subdomain regex only.
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", "0") == "1"
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://[a-z0-9-]+\.runmycampus\.com$",
-]
+CORS_ALLOWED_ORIGIN_REGEXES = []
+if _multi_tenant_base:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(
+        rf"^https://[a-z0-9-]+\.{re.escape(_multi_tenant_base)}$"
+    )
+for _legacy_base in _legacy_bases:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(
+        rf"^https://[a-z0-9-]+\.{re.escape(_legacy_base)}$"
+    )
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "RunMyCampus API",
@@ -2422,6 +2468,17 @@ SUPPORT_AI_KB_CONTEXT = os.getenv("SUPPORT_AI_KB_CONTEXT", "1").strip().lower() 
     "true",
     "yes",
 )
+# KB RAG: auto-refresh embeddings on publish (batch 1341); pgvector path when column exists (1351).
+KB_EMBEDDING_AUTO_REFRESH = os.getenv("KB_EMBEDDING_AUTO_REFRESH", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+KB_PGVECTOR_ENABLED = os.getenv("KB_PGVECTOR_ENABLED", "0").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
 # First-line support engine room (RAG + topology + constrained Ollama persona).
 AI_ENGINE_ROOM_SUPPORT = os.getenv("AI_ENGINE_ROOM_SUPPORT", "1").strip().lower() in (
     "1",
@@ -2430,6 +2487,25 @@ AI_ENGINE_ROOM_SUPPORT = os.getenv("AI_ENGINE_ROOM_SUPPORT", "1").strip().lower(
 )
 AI_ENGINE_ROOM_TIMEOUT_SECONDS = int(os.getenv("AI_ENGINE_ROOM_TIMEOUT_SECONDS", "15"))
 AI_ENGINE_ROOM_MAX_INPUT_TOKENS = int(os.getenv("AI_ENGINE_ROOM_MAX_INPUT_TOKENS", "6000"))
+# AI Center governed Ollama + RAG (Stage 9 — extends services/ai/ engine room).
+AI_GATEWAY_PROVIDER = (os.getenv("AI_GATEWAY_PROVIDER", "ollama") or "ollama").strip().lower()
+AI_ALLOW_RULES_FALLBACK = os.getenv("AI_ALLOW_RULES_FALLBACK", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+OLLAMA_BASE_URL = (os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434") or "http://127.0.0.1:11434").strip().rstrip("/")
+OLLAMA_MODEL = (os.getenv("OLLAMA_MODEL", "ai-center-master") or "ai-center-master").strip()
+AI_CENTER_LOG_PROMPTS = os.getenv("AI_CENTER_LOG_PROMPTS", "0").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+AI_CENTER_MAX_CONTEXT_DOCS = int(os.getenv("AI_CENTER_MAX_CONTEXT_DOCS", "8"))
+AI_CENTER_TIMEOUT_SECONDS = int(os.getenv("AI_CENTER_TIMEOUT_SECONDS", "30"))
+ENABLE_AI_KNOWLEDGE_INDEX_BEAT = os.getenv(
+    "ENABLE_AI_KNOWLEDGE_INDEX_BEAT", "0"
+).strip().lower() in ("1", "true", "yes")
 # After portal support form creates a GlobalSupportTicket, enqueue async triage (Celery worker required).
 SUPPORT_AI_AUTO_TRIAGE_ON_CREATE = os.getenv(
     "SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", "0"
@@ -2527,6 +2603,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django_otp.plugins.otp_static",
         "rest_framework",
         "rest_framework_simplejwt",
+        "rest_framework_simplejwt.token_blacklist",
         "apps.accounts",
         "apps.schools",
         "apps.security.apps.SecurityConfig",

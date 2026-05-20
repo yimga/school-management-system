@@ -12,6 +12,8 @@ import re
 from django.db import connection
 from django.db.models import Q
 
+from apps.portal.kb_synonyms import expand_query_synonyms
+
 
 _WORD_RE = re.compile(r"[A-Za-z0-9_]+")
 
@@ -36,7 +38,7 @@ def search_kb_articles(
     tenant/visibility). `query` is the raw user query string.
     """
 
-    q = (query or "").strip()
+    q = expand_query_synonyms((query or "").strip())
     if not q:
         return []
 

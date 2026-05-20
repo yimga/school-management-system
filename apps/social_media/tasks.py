@@ -27,6 +27,7 @@ def sync_tenant_feeds(school_id: str | None = None, platform: bool = False) -> i
 @shared_task(name="social_media.process_outbox_batch")
 def process_outbox_batch(limit: int = 25) -> int:
     processed = 0
+    # tenant-isolation-allow: celery-outbox-sweep-processes-pending-rows-per-integration
     rows = (
         SocialPostOutbox.objects.filter(status="pending")
         .select_related("integration")

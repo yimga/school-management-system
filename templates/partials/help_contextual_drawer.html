@@ -1,0 +1,20 @@
+{% load i18n static %}
+{% if show_contextual_help_drawer %}
+<aside class="rmc-help-contextual-drawer border-top mt-2 pt-2" data-rmc-help-contextual-drawer aria-label="{% trans 'Contextual help' %}">
+  <details class="small">
+    <summary class="fw-semibold text-primary">{% trans "Need help on this page?" %}</summary>
+    <div class="mt-2">
+      {% if help_guided_journey %}
+      <p class="text-tertiary mb-1">{% trans "Suggested journey for this area:" %}</p>
+      <ul class="list-unstyled mb-2">
+        {% for slug in help_guided_journey.slug_candidates %}
+        <li><a href="{% url 'kb:kb_article' slug %}">{{ slug }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <a class="btn btn-sm btn-outline-secondary me-1" href="{{ help_contextual_urls.kb_home_url }}">{% trans "Knowledge base" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ help_contextual_urls.help_center_url }}">{% trans "Help center" %}</a>
+    </div>
+  </details>
+</aside>
+{% endif %}

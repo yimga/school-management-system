@@ -816,7 +816,10 @@ def _strict_admin_fallback_labels_product_templates() -> str | None:
                 continue
             if (
                 "{% url" in line
-                and "admin:" in line
+                and (
+                    "{% url 'admin:" in line
+                    or '{% url "admin:' in line
+                )
                 and not _line_has_operator_admin_fallback_label(line)
             ):
                 return f"{rel}:{i}: admin url line missing Advanced/Admin fallback label"

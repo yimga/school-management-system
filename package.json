@@ -5,6 +5,7 @@
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:marketing": "playwright test tests/e2e/marketing-smoke.spec.js",
+    "test:e2e:migration-cloud": "playwright test tests/e2e/migration-cloud.spec.js",
     "test:e2e:ui": "playwright test --ui",
     "test:visual:qa": "node node_modules/playwright/cli.js test tests/e2e/ux-visual-qa.spec.js",
     "test:visual:qa:full": "bash scripts/run_visual_qa.sh",
@@ -28,7 +29,9 @@
     "verify:platform-surface-layout": "python scripts/verify_platform_surface_layout_contract.py --write --run-tests",
     "verify:interaction-integrity": "python scripts/verify_interaction_integrity_completion.py",
     "test:interaction-integrity": "vitest run tests/interaction-integrity.test.tsx",
-    "test:support-pipeline": "vitest run tests/support-pipeline-integrity.test.tsx tests/support-ai-engine.test.tsx",
+    "test:support-pipeline": "vitest run tests/support-pipeline-integrity.test.tsx tests/support-ai-engine.test.tsx src/components/support/support.test.tsx",
+    "test:e2e:help-center": "playwright test tests/e2e/help-center-crawl.spec.js",
+    "test:e2e:help-center:lane2": "bash scripts/run_help_center_e2e_lane2.sh",
     "verify:support-pipeline": "python scripts/verify_support_pipeline_integrity.py",
     "verify:footer-surface": "python scripts/verify_footer_surface_contract.py --write",
     "verify:marketplace-chromatic": "python scripts/verify_marketplace_proof_surface_dark.py",

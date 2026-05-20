@@ -1,0 +1,10 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% block connector_body %}
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
+  <p>{% trans "Import creates a Migration Cloud bundle and purges one-time credentials." %}</p>
+  <button type="submit" class="btn btn-primary">{% trans "Confirm import" %}</button>
+</form>
+{% endblock %}

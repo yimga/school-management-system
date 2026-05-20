@@ -8,7 +8,12 @@
 {% endblock %}
 
 {% block content %}
-<div data-siteconfig-surface="tenant-runtime-hub">
-{% include "siteconfig/partials/tenant_runtime_configuration_hub_body.html" %}
+<div data-siteconfig-surface="tenant-runtime-hub" data-page-header="tenant-runtime-configuration">
+  <nav class="ds-action-bar d-flex flex-wrap gap-2 mb-2" role="toolbar" aria-label="{% trans 'Page actions' %}">
+    {% if guided_configuration_url %}
+    <a href="{{ guided_configuration_url }}" class="btn btn-sm btn-outline-primary ds-btn">{% trans "Guided configuration" %}</a>
+    {% endif %}
+  </nav>
+  {% include "siteconfig/partials/tenant_runtime_configuration_hub_body.html" %}
 </div>
 {% endblock %}

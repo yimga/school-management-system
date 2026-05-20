@@ -30,11 +30,10 @@ def enqueue_cross_post(
     ``providers`` limits to a subset of SocialProvider values.
     """
     school = getattr(request, "school", None)
-    qs = SocialMediaIntegration.objects.filter(is_active=True)
     if school is None:
-        qs = qs.filter(school__isnull=True)
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school__isnull=True)
     else:
-        qs = qs.filter(school=school)
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school=school)
     if providers:
         qs = qs.filter(provider__in=providers)
 

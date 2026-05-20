@@ -1,0 +1,129 @@
+{
+  "app_inventory": [
+    {
+      "app": "people",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "academics",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "evals",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "school_events",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "schoolops",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": false
+    },
+    {
+      "app": "student360",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "reports",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "emis",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "requests",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    },
+    {
+      "app": "communication",
+      "installed": true,
+      "routes_surface": true,
+      "services_surface": true
+    }
+  ],
+  "emis": {
+    "emis_export_service": true,
+    "emis_field_mapping_model": true,
+    "emis_tests": true
+  },
+  "focused_test_modules": [
+    "apps.academics.tests.test_academics_critical_paths",
+    "apps.academics.tests.test_academic_operations_repo_scope",
+    "apps.evals.tests.test_grade_approval_workflow",
+    "apps.evals.tests.test_bulk_grade_tenant_context",
+    "apps.reports.tests.test_publish_term",
+    "apps.reports.tests.test_export_integrity",
+    "emis.tests",
+    "apps.communication.tests.test_tenant_school_scope",
+    "apps.platform_runtime.tests.test_offline_first_closure_slice",
+    "apps.automation.tests.test_workflow_trigger_catalog_depth"
+  ],
+  "focused_tests_present": {
+    "apps.academics.tests.test_academic_operations_repo_scope": true,
+    "apps.academics.tests.test_academics_critical_paths": true,
+    "apps.automation.tests.test_workflow_trigger_catalog_depth": true,
+    "apps.communication.tests.test_tenant_school_scope": true,
+    "apps.evals.tests.test_bulk_grade_tenant_context": true,
+    "apps.evals.tests.test_grade_approval_workflow": true,
+    "apps.platform_runtime.tests.test_offline_first_closure_slice": true,
+    "apps.reports.tests.test_export_integrity": true,
+    "apps.reports.tests.test_publish_term": true,
+    "emis.tests": true
+  },
+  "generated_at": "2026-05-20T03:15:50.248666+00:00",
+  "metadata_only": true,
+  "ok": true,
+  "pii_free": true,
+  "query_hotspots": {
+    "academics_select_related": 33,
+    "emis_select_related": 8,
+    "evals_select_related": 33,
+    "people_select_related": 13,
+    "reports_select_related": 21
+  },
+  "target_apps": [
+    "people",
+    "academics",
+    "evals",
+    "school_events",
+    "schoolops",
+    "student360",
+    "reports",
+    "emis",
+    "requests",
+    "communication"
+  ],
+  "ui_surfaces": {
+    "grade_approval_workflow_tests": true,
+    "reports_publish_term_tests": true,
+    "student360_views": true,
+    "teacher_syllabus_hub": true
+  },
+  "unsafe_grade_json_blob_findings": [],
+  "workflow_loop": {
+    "domain_event_bridge_maps_conflict": true,
+    "offline_action_conflict_in_catalog": true,
+    "offline_queue_emits_conflict_event": true,
+    "playbook_offline_conflict": true
+  }
+}

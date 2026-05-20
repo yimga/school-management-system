@@ -1,5 +1,5 @@
 {
-  "prompt_pack_version": "2026-05-20-orchestrator-v4",
+  "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "plan_ref": ".cursor/plans/9-agent_moderator_wave_11e58d68.plan.md",
   "sot_batches": {
     "moderator_stage0": 1319,
@@ -14,7 +14,8 @@
     "agent9": 1328,
     "agent10": 1329,
     "recovery_v3": 1330,
-    "v3_second_pass": 1331
+    "v3_second_pass": 1331,
+    "orchestrator_v5": 1354
   },
   "agents": [
     {

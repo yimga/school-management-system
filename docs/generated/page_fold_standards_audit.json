@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-05-19T22:44:02.347136+00:00",
+  "pass": true,
+  "rows": [
+    {
+      "check_id": "shell_templates_portal_base.html_back_to_top",
+      "description": "templates/portal_base.html includes back-to-top",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "shell_templates_portal_base.html_fold_assets",
+      "description": "templates/portal_base.html loads page fold standards assets",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "shell_templates_control_plane_skeleton.html_back_to_top",
+      "description": "templates/control_plane_skeleton.html includes back-to-top",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "shell_templates_control_plane_skeleton.html_fold_assets",
+      "description": "templates/control_plane_skeleton.html loads page fold standards assets",
+      "status": "PASS",
+      "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "shell_templates_portal_base.html_manager",
+      "description": "templates/portal_base.html wires 'data-rmc-page-fold-nav=\"required\"'",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "shell_templates_control_plane_base.html_cp-page-body",
+      "description": "templates/control_plane_base.html wires 'data-rmc-page-fold-nav=\"required\"'",
+      "status": "PASS",
+      "proof": "templates/control_plane_base.html"
+    },
+    {
+      "check_id": "scroll_container_js",
+      "description": "rmc-scroll-container.js exists",
+      "status": "PASS",
+      "proof": "static/js/rmc-scroll-container.js"
+    },
+    {
+      "check_id": "fold_standards_js",
+      "description": "rmc-page-fold-standards.js exists",
+      "status": "PASS",
+      "proof": "static/js/rmc-page-fold-standards.js"
+    },
+    {
+      "check_id": "fold_standards_css",
+      "description": "rmc-page-fold-standards.css exists",
+      "status": "PASS",
+      "proof": "static/css/rmc-page-fold-standards.css"
+    },
+    {
+      "check_id": "cursor_rule",
+      "description": "Cursor rule documents fold standards",
+      "status": "PASS",
+      "proof": ".cursor/rules/runmycampus-page-fold-standards.mdc"
+    },
+    {
+      "check_id": "feature_control_fold_nav",
+      "description": "Feature control marks data-rmc-page-fold-nav=required",
+      "status": "PASS",
+      "proof": "feature_control_panel_content.html"
+    },
+    {
+      "check_id": "feature_control_paginate_policy",
+      "description": "Feature control marks data-rmc-scroll-policy=paginate",
+      "status": "PASS",
+      "proof": "feature_control_panel_content.html"
+    },
+    {
+      "check_id": "feature_control_sticky_tabs",
+      "description": "Feature control category tabs are sticky nav",
+      "status": "PASS",
+      "proof": "feature_control_panel_content.html"
+    },
+    {
+      "check_id": "pagination_partial",
+      "description": "Shared numbered pagination partial exists",
+      "status": "PASS",
+      "proof": "components/pagination.html"
+    },
+    {
+      "check_id": "back_to_top_two_fold_threshold",
+      "description": "Back-to-top uses 2-fold scroll threshold",
+      "status": "PASS",
+      "proof": "components__back_to_top.js"
+    }
+  ]
+}

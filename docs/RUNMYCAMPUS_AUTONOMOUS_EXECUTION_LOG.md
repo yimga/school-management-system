@@ -1,5 +1,61 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - recovery wave v4 rerun (2026-05-20)
+
+**A. Scope:** Full recovery verifier stack + `generate_v4_recovery_certification.py` after v5 pack and help-center migrations.
+
+**B. Fixes:** Staged `feedback` 0005–0006 + `portal` 0036–0037; portal help-center tenant queryset markers + `kb_embeddings`/`kb_hitl_publish` school scoping.
+
+**C. Proof:** `audit_admin_gravity --strict` OK; North Star **75/75**; `scan_tenant_queryset_safety` **0**; `verify_migration_files_tracked` **832**; Ollama live strict invoke OK; **`10X PLATFORM READY — REPO SCOPE`**; `ORCHESTRATOR_V5_BUNDLE_PASS`.
+
+**D. Residual:** EXTERNAL only (Render SHA, PSP, SOC2). Migrations staged but not committed unless operator requests.
+
+## Slice - batch 1354 Orchestrator v5 transformational pack (2026-05-20)
+
+**A. Scope:** v5 journeys (27), nav ledger, dual-host Playwright tenant sweep fix, prompt pack v5, master bundle verifier.
+
+**B. Shipped:** `scripts/orchestrator_gear_up_v5.py`, journey manifest/coverage verifiers, `verify_nav_resolves_to_named_route.py`, `verify_orchestrator_v5_bundle.py`, sweep `TENANT_BASE_URL`/`inner`, `tests/e2e/orchestrator-journeys-critical.spec.js`, regenerated `docs/prompts/` + `docs/generated/orchestrator_*`.
+
+**C. Proof:** `ORCHESTRATOR_V5_BUNDLE_PASS`; `JOURNEY_COVERAGE_PASS (27/27)`; `NAV_LEDGER_PASS`; `ORCHESTRATOR_PROMPT_PACK_PASS (181)`; `INTERACTION_INTEGRITY_PASS (17/17)`.
+
+**D. Residual:** v4 recovery cert PARTIAL (untracked migrations); tenant sweep not run (no Django on :8000).
+
+## Slice - batches 1346–1353 Help Center wave 2 (2026-05-20)
+
+**A. Scope:** Implement strategic wave 2 — school-context copilot, universal deflection, HITL→KB draft, north-star analytics, locale corpus fields, pgvector retrieval hook, inline proactive nudges, guided journeys + AI CSAT.
+
+**B. Shipped:** `school_help_context` + gateway inject; `support_deflection_urls` CP + forms on help/feature/contact; `kb_hitl_publish` + review queue button; `manager_help_analytics` dashboard; `locale_group_id`/`translation_of` + `kb_pgvector`; proactive nudge + contextual drawer; `help_guided_journeys` + `SupportAISessionRating` + CSAT JS; migrations portal **0037** feedback **0006**; SW v3.45.0.
+
+**C. Proof:** `verify_help_center_tiers.py` **38 checks PASS**; `verify_operator_help_center_completion.py` **38/38**; `verify_support_deflection.py` + pipeline PASS; `test_help_center_wave2` **6/6 OK** (1 skip); `makemigrations --check` clean.
+
+**D. Honest residual:** Lane 2 pgvector column migrate command; full translation-family admin UX; Playwright deflection CI.
+
+---
+
+## Slice - batches 1339–1345 Help Center tier ladder Great + Category-defining (2026-05-20)
+
+**A. Scope:** Conquer **Great** (measurable deflection, localized journeys, closed HITL) and **Category-defining** (proactive help, offline appliance, content ops) on monolith; extend 1331–1337 without new microservices.
+
+**B. Shipped:** 1339 synonyms/typeahead/zero-result dashboard; 1340 `/help-center/ai-review/` HITL queue; 1341 Celery weekly reindex + publish signals + deflection calibration; 1342 friction→KB nudges; 1343 `KBArticle.locale` + RAG filter; 1344 `OFFLINE_HELP_APPLIANCE.md` + offline panel; 1345 `enable_ai_help_assistant` + `purge_help_telemetry`; unified tenant help center + persona quick-start; SW v3.44.0.
+
+**C. Proof:** `verify_help_center_tiers.py` **HELP_CENTER_TIERS_PASS (19)**; `verify_support_deflection.py` PASS; `test_help_center_tiers` + `test_support_deflection` **10/10 OK**; `makemigrations portal --check` clean.
+
+**D. Honest residual:** Lane 2 live Ollama weekly reindex, pgvector flip, Playwright help crawl, on-prem appliance deploy attestation.
+
+---
+
+## Slice - batches 1339–1345 gap closeout audit (2026-05-20)
+
+**A. Scope:** 100% repo-scope audit of tier-ladder slice — fix bugs/gaps found in review pass.
+
+**B. Fixes:** `SupportAIInteractionReview.note` + migration `0005` (HITL resolve was writing missing field); `resolved_at` on resolve/dismiss; removed duplicate `signals_kb` (kept `KBArticle.save` on_commit embedding refresh); explicit deflection index names in model Meta; SW precache for help-tier JS/CSS; operator verifier +3 checks; `test_manager_ai_review_queue` green.
+
+**C. Proof:** `verify_help_center_tiers.py` **21 checks PASS**; `verify_operator_help_center_completion.py` **38/38 PASS**; `verify_help_center_graft_bundles.py` PASS; `makemigrations feedback portal --check` clean; tier tests **12/12 OK**.
+
+**D. Honest residual:** unchanged Lane 2 external items only.
+
+---
+
 ## Slice - batches 1331–1337 Help Center mega-prompt graft (2026-05-20)
 
 **A. Scope:** Implement mega-prompt graft on monolith (no `/services/ingestion|orchestrator|gateway` trees); multi-tenant operator + tenant help; FERPA sanitize; local-first SSE fallbacks; i18n language in SSE meta + prompts.

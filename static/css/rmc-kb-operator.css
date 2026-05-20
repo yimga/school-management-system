@@ -36,6 +36,31 @@
   overflow-y: auto;
 }
 
+/* Support request — submit always visible on narrow viewports */
+.portal-support-request-read-shell .card-body {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.portal-support-request-read-shell #support-request-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.portal-support-request-read-shell #support-request-form .btn-primary {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 576px) {
+  .portal-support-request-read-shell #support-request-form .btn-primary {
+    width: 100%;
+    position: sticky;
+    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    z-index: 2;
+  }
+}
+
 .rmc-kb-operator__article-body img {
   max-width: 100%;
   height: auto;

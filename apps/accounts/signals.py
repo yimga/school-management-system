@@ -9,6 +9,19 @@ from .models import AccessRole, User
 # Django 4.0 removed LANGUAGE_SESSION_KEY; the session key is now `_language`.
 LANGUAGE_SESSION_KEY = "_language"
 
+logger = logging.getLogger(__name__)
+
+
+@receiver(user_logged_in)
+def ensure_identity_on_login(sender, user, request, **kwargs):
+    """Every login gets portal preferences (and staff TeacherProfile when applicable)."""
+    try:
+        from apps.siteconfig.user_identity import ensure_user_identity
+
+        ensure_user_identity(user, request=request)
+    except Exception:
+        logger.exception("ensure_identity_on_login failed for user_id=%s", getattr(user, "pk", None))
+
 
 @receiver(user_logged_in)
 def apply_preferred_language_on_login(sender, user, request, **kwargs):
@@ -27,7 +40,6 @@ def apply_preferred_language_on_login(sender, user, request, **kwargs):
         return
     request.session[LANGUAGE_SESSION_KEY] = code
 
-logger = logging.getLogger(__name__)
 
 ROLE_TEMPLATES: dict[str, list[str]] = {
     User.Role.SUPERADMIN: ["ADMIN"],
@@ -67,6 +79,21 @@ def _cache_previous_role(sender, instance, **kwargs):
     else:
         previous = None
     instance._previous_role = previous
+
+
+@receiver(post_save, sender=User)
+def _ensure_preferences_on_user_create(sender, instance, created, **kwargs):
+    if not created:
+        return
+    try:
+        from apps.siteconfig.user_identity import ensure_user_portal_preferences
+
+        ensure_user_portal_preferences(instance)
+    except Exception:
+        logger.exception(
+            "ensure preferences on user create failed for user_id=%s",
+            getattr(instance, "pk", None),
+        )
 
 
 @receiver(post_save, sender=User)

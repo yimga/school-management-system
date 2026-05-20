@@ -88,6 +88,27 @@
     </section>
   </div>
 
+  <section class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">{% trans "Message the platform team" %}</div>
+    <div class="card-body">
+      <p class="small text-muted">{% trans "Not sure which lane? Describe your need and we route it to support or product triage." %}</p>
+      {% include "partials/help_deflection_strip.html" with deflection_surface="contact_us" %}
+      <form method="post" action="{% url 'feedback:contact_us' %}" data-deflection-form-auto>
+        {% csrf_token %}
+        <input type="hidden" name="form_kind" value="platform_message">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold" for="contact-title">{% trans "Subject" %}</label>
+          <input id="contact-title" class="form-control" type="text" name="title" maxlength="180">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold" for="contact-description">{% trans "How can we help?" %}</label>
+          <textarea id="contact-description" class="form-control" name="description" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans "Send message" %}</button>
+      </form>
+    </div>
+  </section>
+
   {% if is_operator %}
     <section class="card">
       <div class="card-header fw-semibold">{% trans "Operator lane" %}</div>

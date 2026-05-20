@@ -1,0 +1,16 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "FAQ candidates" %}</h1>
+  <ul>
+    {% for f in faqs %}
+    <li>{{ f.question }} <span class="badge bg-secondary">{{ f.status }}</span></li>
+    {% empty %}
+    <li>{% trans "No candidates." %}</li>
+    {% endfor %}
+  </ul>
+</main>
+{% endblock %}

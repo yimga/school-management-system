@@ -1,31 +1,124 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
-<div class="rmc-kb-operator rmc-help-center" data-rmc-page="help-center" data-page-archetype="decision-console">
+<link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
+<div class="rmc-kb-operator rmc-help-center rmc-help-center--v2" data-rmc-page="help-center" data-page-archetype="decision-console">
   <div class="rmc-kb-operator__hero card border-0 shadow-sm mb-4">
     <div class="card-body">
       <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
         <div>
           <h2 class="h4 mb-1"><i class="bi bi-life-preserver me-2" aria-hidden="true"></i>{% trans "Help center" %}</h2>
           <p class="text-tertiary mb-0 small">
-            {% trans "One front door for operator support — search, AI, live signals, and readiness registers. The knowledge base is a section here, not the whole experience." %}
+            {% trans "Search docs, request features, contact support, and track what we ship — one operator front door." %}
           </p>
         </div>
         {% if feedback_loop_url %}
         <a class="btn btn-sm btn-outline-secondary" href="{{ feedback_loop_url }}">
-          <i class="bi bi-activity me-1"></i>{% trans "Live feedback loop" %}
+          <i class="bi bi-activity me-1"></i>{% trans "Live signals" %}
         </a>
         {% endif %}
       </div>
+
+      {% if engage_actions %}
+      <div class="row g-3 mb-4 rmc-help-center__engage" role="navigation" aria-label="{% trans 'Primary help actions' %}">
+        {% for action in engage_actions %}
+        <div class="col-md-4">
+          <a class="rmc-help-engage-card rmc-help-engage-card--{{ action.accent }} h-100 text-decoration-none" href="{{ action.url }}">
+            <div class="rmc-help-engage-card__icon"><i class="bi {{ action.icon }}" aria-hidden="true"></i></div>
+            <h3 class="h6 mb-1">{{ action.title }}</h3>
+            <p class="small text-tertiary mb-2">{{ action.description }}</p>
+            <span class="btn btn-sm btn-{{ action.accent }}">{{ action.cta }}</span>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       {% if kb_search_url %}
-      <form method="get" action="{{ kb_search_url }}" class="input-group rmc-help-center__search" role="search" id="rmc-help-center-search">
+      <form method="get" action="{{ kb_search_url }}" class="input-group rmc-help-center__search position-relative" role="search" id="rmc-help-center-search">
         <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
         <input type="search" name="q" class="form-control" placeholder="{% trans 'Search articles, FAQs, and runbooks…' %}" aria-label="{% trans 'Search help' %}" autocomplete="off" data-rmc-help-search-input>
         <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
       </form>
       <p class="small text-tertiary mt-2 mb-0"><kbd>?</kbd> {% trans "focus search" %} · <kbd>Ctrl</kbd>+<kbd>K</kbd> {% trans "command palette" %}</p>
+      <div id="rmc-help-typeahead" class="list-group position-absolute w-100 d-none" style="z-index:20;max-height:14rem;overflow:auto" role="listbox" aria-label="{% trans 'Search suggestions' %}"></div>
       {% endif %}
     </div>
   </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm h-100" id="rmc-help-quick-feature">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <h3 class="h6 mb-0"><i class="bi bi-lightbulb me-1"></i>{% trans "Quick feature request" %}</h3>
+          {% if feature_center_url %}<a class="btn btn-link btn-sm" href="{{ feature_center_url }}">{% trans "Full feature center" %} →</a>{% endif %}
+        </div>
+        <div class="card-body">
+          <p class="small text-tertiary">{% trans "Start with the workflow problem. Product triage converts strong requests into roadmap candidates." %}</p>
+          <form method="post" action="{% url 'manager_help_center' %}">
+            {% csrf_token %}
+            <input type="hidden" name="form_kind" value="feature_quick">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="id_title">{% trans "Title" %}</label>
+                {{ feature_quick_form.title }}
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold" for="id_impact">{% trans "Impact" %}</label>
+                {{ feature_quick_form.impact }}
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small fw-semibold" for="id_urgency">{% trans "Urgency" %}</label>
+                {{ feature_quick_form.urgency }}
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold" for="id_problem_statement">{% trans "What problem are you solving?" %}</label>
+                {{ feature_quick_form.problem_statement }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="id_module">{% trans "Module (optional)" %}</label>
+                {{ feature_quick_form.module }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="id_affected_roles">{% trans "Affected roles" %}</label>
+                {{ feature_quick_form.affected_roles }}
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <button type="submit" class="btn btn-primary">{% trans "Submit feature request" %}</button>
+              {% if contact_us_url %}<a class="btn btn-outline-secondary" href="{{ contact_us_url }}">{% trans "Contact us instead" %}</a>{% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header">
+          <h3 class="h6 mb-0">{% trans "Your recent requests" %}</h3>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for item in recent_features %}
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between gap-2">
+              <strong class="small">{{ item.title }}</strong>
+              <span class="badge text-bg-secondary">{{ item.get_status_display }}</span>
+            </div>
+            <p class="small text-tertiary mb-0">{{ item.problem_statement|truncatewords:16 }}</p>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-tertiary small">{% trans "No feature requests yet — use the form or Feature center." %}</li>
+          {% endfor %}
+        </ul>
+        {% if open_feature_count %}
+        <div class="card-footer small text-tertiary">
+          {{ open_feature_count }} {% trans "open request(s) platform-wide in triage." %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% include "partials/help_persona_quickstart.html" with kb_search_url=kb_search_url %}
 
   <div class="row g-3 mb-4 rmc-help-center__metrics">
     <div class="col-6 col-md-3">
@@ -64,6 +157,59 @@
       </div>
     </div>
   </div>
+
+  {% if signals.deflection_metrics.available %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 h-100">
+        <div class="card-body py-3">
+          <div class="small text-tertiary">{% trans "Deflection rate (7d)" %}</div>
+          <div class="h4 mb-0">{{ signals.deflection_metrics.deflection_rate_pct }}%</div>
+          <p class="small text-tertiary mb-0">{{ signals.deflection_metrics.opened }} {% trans "opened" %} · {{ signals.deflection_metrics.submitted }} {% trans "still submitted" %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 h-100">
+        <div class="card-body py-3">
+          <div class="small text-tertiary">{% trans "Content gaps (zero results)" %}</div>
+          {% if signals.zero_results.top %}
+          <ul class="list-unstyled small mb-0">
+            {% for gap in signals.zero_results.top %}
+            <li><code>{{ gap.fingerprint }}</code> × {{ gap.count }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="small text-tertiary mb-0">{% trans "No zero-result fingerprints this week." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 h-100">
+        <div class="card-body py-3">
+          <div class="small text-tertiary">{% trans "AI review queue" %}</div>
+          <div class="h4 mb-0">{{ signals.deflection.pending_reviews|default:0 }}</div>
+          {% if ai_review_url %}<a class="btn btn-sm btn-outline-primary mt-2" href="{{ ai_review_url }}">{% trans "Review failed AI" %}</a>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if signals.proactive.nudges %}
+  <section class="mb-4" aria-labelledby="rmc-proactive-help-heading">
+    <h3 id="rmc-proactive-help-heading" class="h6 text-uppercase text-tertiary">{% trans "Proactive help — friction hotspots" %}</h3>
+    <ul class="list-group list-group-flush border-0">
+      {% for nudge in signals.proactive.nudges %}
+      <li class="list-group-item d-flex flex-wrap justify-content-between gap-2 px-0">
+        <span class="small"><strong>{{ nudge.view_name }}</strong> · {{ nudge.count }} {% trans "events" %}</span>
+        <a class="btn btn-sm btn-link" href="{{ nudge.kb_search_url }}">{% trans "See runbooks" %}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
 
   {% include "portal/partials/kb_ai_assistant_panel.html" %}
 
@@ -107,5 +253,8 @@
   </section>
   {% endfor %}
 </div>
+{% url 'api:kb-typeahead' as kb_typeahead_url %}
+<div class="d-none" data-kb-typeahead-url="{{ kb_typeahead_url }}"></div>
+<script src="{% static 'js/rmc-help-search-typeahead.js' %}" defer></script>
 <script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>
 <script src="{% static 'js/rmc-operator-help-center.js' %}" defer></script>

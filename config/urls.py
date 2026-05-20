@@ -186,16 +186,12 @@ def manager_offline_sync_root_fallback(request):
     )
 
 
-def _coerce_request_user_for_error_pages(request):
-    """
-    Error views may run without AuthenticationMiddleware; tests may set user=None.
-    Auth context processor always supplies ``user`` from request.user — ensure it is never None
-    so base templates can safely reference user.username (AnonymousUser uses empty string).
-    """
-    from django.contrib.auth.models import AnonymousUser
-
-    if getattr(request, "user", None) is None:
-        request.user = AnonymousUser()
+from config.error_handlers import (  # noqa: E402
+    page_not_found,
+    permission_denied,
+    server_error,
+    service_unavailable,
+)
 
 
 def _is_schema_allowed(user):
@@ -240,82 +236,6 @@ _schema_view_raw = cache_page(60)(
 def schema_view(request):
     """API schema (JSON) – same access as schema UI."""
     return _schema_view_raw(request)
-
-
-def permission_denied(request, exception):
-    """Custom 403: friendly message when staff hit Admin without superuser."""
-    _coerce_request_user_for_error_pages(request)
-    is_admin_forbidden = (
-        request.path.startswith("/admin")
-        and request.user.is_authenticated
-        and request.user.is_staff
-        and not request.user.is_superuser
-    )
-    template = (
-        "errors/403_control_plane.html"
-        if getattr(request, "public_host_kind", None) == "manager"
-        else "errors/403.html"
-    )
-    return render(
-        request, template, {"is_admin_forbidden": is_admin_forbidden}, status=403
-    )
-
-
-def page_not_found(request, exception):
-    """Custom 404 page."""
-    _coerce_request_user_for_error_pages(request)
-    template = (
-        "errors/404_control_plane.html"
-        if getattr(request, "public_host_kind", None) == "manager"
-        else "errors/404.html"
-    )
-    return render(request, template, status=404)
-
-
-def server_error(request):
-    """Custom 500 page (SOT batch 1218 hardened).
-
-    Two-stage fallback so the 500 page survives context-processor or middleware
-    crashes that could otherwise chain into a raw 500. Reference incident:
-    `<tenant>.runmycampus.com/school/settings/` returning 500 with no
-    operator-friendly recovery (2026-05-07).
-    """
-    _coerce_request_user_for_error_pages(request)
-    context = {"user": request.user}
-    template = (
-        "errors/500_control_plane.html"
-        if getattr(request, "public_host_kind", None) == "manager"
-        else "errors/500.html"
-    )
-    try:
-        return render(request, template, context, status=500)
-    except Exception:
-        # Self-contained minimal fallback: no base.html, no context_processors,
-        # no template-tag chain. Always renders. Operators see /-/version/ hint.
-        from django.http import HttpResponse
-        from django.template.loader import get_template
-        try:
-            html = get_template("errors/500_minimal.html").render({})
-        except Exception:
-            html = (
-                "<!doctype html><meta charset=utf-8>"
-                "<title>Service interrupted</title>"
-                "<h1>500 - service interrupted</h1>"
-                "<p>Retry once. If it persists, contact support.</p>"
-                "<p><a href='/'>Home</a> &middot; <a href='/-/version/'>Version</a></p>"
-            )
-        return HttpResponse(html, status=500, content_type="text/html; charset=utf-8")
-
-
-def service_unavailable(request, exception=None):
-    """Custom 503 page — maintenance mode and upstream overload."""
-    _coerce_request_user_for_error_pages(request)
-    template = (
-        "errors/503_control_plane.html"
-        if getattr(request, "public_host_kind", None) == "manager"
-        else "errors/503.html"
-    )
-    return render(request, template, status=503)
 
 
 handler403 = permission_denied

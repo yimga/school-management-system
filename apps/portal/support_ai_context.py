@@ -71,7 +71,8 @@ def build_kb_context_block(subject: str, body: str, school: Any) -> str:
         with schema_context(schema):
             from django.db.models import Q
 
-            from apps.portal.models_kb import FAQ, HelpAudience, KBArticle
+            from apps.portal.kb_context import published_kb_queryset
+            from apps.portal.models_kb import FAQ, HelpAudience
 
             audience_q = Q(help_audience__in=[HelpAudience.TENANT, HelpAudience.BOTH])
             token_q = Q()
@@ -83,9 +84,13 @@ def build_kb_context_block(subject: str, body: str, school: Any) -> str:
                 )
 
             lines: list[str] = []
+            school_scope = Q(is_global_article=True) | Q(school__isnull=True)
+            if school is not None:
+                school_scope |= Q(school_id=getattr(school, "pk", None))
             kb_qs = (
-                KBArticle.objects.filter(status="PUBLISHED")
+                published_kb_queryset()
                 .filter(audience_q)
+                .filter(school_scope)
                 .filter(token_q)
                 .distinct()
                 .order_by("-is_featured", "-view_count")[:_MAX_SNIPPETS]

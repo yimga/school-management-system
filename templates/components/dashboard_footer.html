@@ -48,7 +48,11 @@
         <details class="footer-details" open>
           <summary class="segment-title footer-accordion-summary">Support &amp; Help</summary>
           <div class="segment-links">
-            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"><i class="bi bi-book"></i> {% if request.public_host_kind == 'manager' %}Operator Help{% else %}Knowledge Base{% endif %}</a>
+            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' %}{% endif %}"><i class="bi bi-life-preserver"></i> {% trans "Help center" %}</a>
+            {% if request.public_host_kind != 'manager' %}<a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> {% trans "Knowledge base" %}</a>{% endif %}
+            {% if request.public_host_kind == 'manager' %}
+            <a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> {% trans "Knowledge base" %}</a>
+            {% endif %}
             {% if request.public_host_kind != 'manager' and request.user.is_authenticated %}
             <a href="{% url 'portal:support_help_hub' %}"><i class="bi bi-life-preserver"></i> {% trans "Help & support hub" %}</a>
             {% endif %}
@@ -62,7 +66,7 @@
               {% endif %}
               <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
             {% endif %}
-            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:faq_list' %}{% endif %}"><i class="bi bi-patch-question"></i> FAQs</a>
+            <a href="{% url 'kb:faq_list' %}"><i class="bi bi-patch-question"></i> {% trans "FAQs" %}</a>
           </div>
         </details>
       </div>

@@ -43,7 +43,7 @@
       <ol class="mkt-personality-viz__timeline" data-mkt-viz-timeline>
         {% for step in marketing_personality_seed.timeline %}
         <li class="mkt-personality-viz__timeline-step" style="--step-pct: {{ step.pct|default:0 }}">
-          <span class="mkt-personality-viz__timeline-label">{{ step.label|default:step.year }}</span>
+          <span class="mkt-personality-viz__timeline-label">{% firstof step.label step.day %}</span>
         </li>
         {% endfor %}
       </ol>

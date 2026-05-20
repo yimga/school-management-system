@@ -93,13 +93,12 @@ def aggregate_scope_feeds(
     platform_scope: bool = False,
 ) -> list[dict[str, Any]]:
     """Merge all active integrations for a scope into a single timeline."""
-    qs = SocialMediaIntegration.objects.filter(is_active=True)
-    if platform_scope:
-        qs = qs.filter(school__isnull=True)
-    elif school_id:
-        qs = qs.filter(school_id=school_id)
-    else:
+    if not platform_scope and not school_id:
         return []
+    if platform_scope:
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school__isnull=True)
+    else:
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school_id=school_id)
 
     timeline: list[dict[str, Any]] = []
     for integration in qs:
@@ -119,13 +118,12 @@ def read_cached_feed(
     platform_scope: bool = False,
 ) -> list[dict[str, Any]]:
     """Read-only path for UI — never calls external APIs."""
-    qs = SocialMediaIntegration.objects.filter(is_active=True)
-    if platform_scope:
-        qs = qs.filter(school__isnull=True)
-    elif school_id:
-        qs = qs.filter(school_id=school_id)
-    else:
+    if not platform_scope and not school_id:
         return []
+    if platform_scope:
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school__isnull=True)
+    else:
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school_id=school_id)
 
     items: list[dict[str, Any]] = []
     for integration in qs:

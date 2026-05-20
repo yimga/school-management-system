@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-05-20T02:38:52.251726+00:00",
+  "connectors": [
+    {
+      "key": "blackbaud",
+      "certification_status": "pilot_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
+    },
+    {
+      "key": "finalsite",
+      "certification_status": "planned",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "generic_api",
+      "certification_status": "api_experimental",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "generic_browser_export",
+      "certification_status": "browser_export_experimental",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "generic_csv_export",
+      "certification_status": "production_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "google_classroom",
+      "certification_status": "api_experimental",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "open_sis",
+      "certification_status": "file_export_only",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "powerschool",
+      "certification_status": "pilot_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
+    },
+    {
+      "key": "veracross",
+      "certification_status": "pilot_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
+    }
+  ],
+  "canonical_school_payload": "apps.platform_runtime.migration_center.MIGRATION_TEMPLATES"
+}

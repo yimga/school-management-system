@@ -63,6 +63,18 @@
             {% url 'feedback:help_center' as cmdk_help_center_url %}
           {% endif %}
           {% if cmdk_help_center_url %}{"label": "{% trans 'Help Center' %}", "url": "{{ cmdk_help_center_url }}", "icon": "bi-life-preserver", "keywords": "support docs feedback contact hub"},{% endif %}
+          {% if request.public_host_kind == 'manager' %}
+            {% url 'manager_feature_center' as cmdk_feature_center_url %}
+            {% url 'manager_contact_us' as cmdk_contact_us_url %}
+            {% url 'manager_support_request' as cmdk_support_url %}
+          {% else %}
+            {% url 'feedback:feature_center' as cmdk_feature_center_url %}
+            {% url 'feedback:contact_us' as cmdk_contact_us_url %}
+            {% url 'portal:support_request' as cmdk_support_url %}
+          {% endif %}
+          {% if cmdk_feature_center_url %}{"label": "{% trans 'Request a feature' %}", "url": "{{ cmdk_feature_center_url }}", "icon": "bi-lightbulb", "keywords": "feature request product idea roadmap"},{% endif %}
+          {% if cmdk_contact_us_url %}{"label": "{% trans 'Contact us' %}", "url": "{{ cmdk_contact_us_url }}", "icon": "bi-chat-dots", "keywords": "contact support help message"},{% endif %}
+          {% if cmdk_support_url %}{"label": "{% trans 'Urgent support' %}", "url": "{{ cmdk_support_url }}", "icon": "bi-envelope-exclamation", "keywords": "support ticket urgent blocked"},{% endif %}
           {% url 'feedback:release_notes_public' as cmdk_release_notes_url %}
           {% if cmdk_release_notes_url %}{"label": "{% trans 'Release notes' %}", "url": "{{ cmdk_release_notes_url }}", "icon": "bi-stars", "keywords": "changelog whats new updates"},{% endif %}
           {% url 'compliance:data_quality_center' as cmdk_data_quality_url %}

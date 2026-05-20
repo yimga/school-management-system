@@ -1,0 +1,293 @@
+{
+  "generated_at": "2026-05-20T10:51:09.250038+00:00",
+  "prompt_pack_version": "2026-05-20-orchestrator-v5",
+  "journey_count": 27,
+  "stages_covered": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "journeys": [
+    {
+      "journey_id": "S1-J1",
+      "stage": 1,
+      "persona": "operator",
+      "title": "Core runtime health",
+      "proof": {
+        "host": "manager",
+        "verifier": "manage.py check"
+      }
+    },
+    {
+      "journey_id": "S1-J2",
+      "stage": 1,
+      "persona": "operator",
+      "title": "BOLA matrix",
+      "proof": {
+        "host": "manager",
+        "django_test": "apps.api.tests.test_bola_idor_matrix"
+      }
+    },
+    {
+      "journey_id": "S1-J3",
+      "stage": 1,
+      "persona": "operator",
+      "title": "Migration files tracked",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_migration_files_tracked"
+      }
+    },
+    {
+      "journey_id": "S2-J1",
+      "stage": 2,
+      "persona": "operator",
+      "title": "Tenant isolation audit",
+      "proof": {
+        "host": "manager",
+        "verifier": "audit_tenant_isolation"
+      }
+    },
+    {
+      "journey_id": "S2-J2",
+      "stage": 2,
+      "persona": "operator",
+      "title": "Queryset safety baseline",
+      "proof": {
+        "host": "manager",
+        "verifier": "scan_tenant_queryset_safety"
+      }
+    },
+    {
+      "journey_id": "S2-J3",
+      "stage": 2,
+      "persona": "operator",
+      "title": "Boundary penetration tests",
+      "proof": {
+        "host": "manager",
+        "django_test": "apps.analytics.tests.test_governed_query_layer"
+      }
+    },
+    {
+      "journey_id": "S3-J1",
+      "stage": 3,
+      "persona": "operator",
+      "title": "Route surface certified",
+      "proof": {
+        "host": "manager",
+        "verifier": "audit_route_surface"
+      }
+    },
+    {
+      "journey_id": "S3-J2",
+      "stage": 3,
+      "persona": "operator",
+      "title": "Platform chromatic",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_platform_chromatic_compliance"
+      }
+    },
+    {
+      "journey_id": "S3-J3",
+      "stage": 3,
+      "persona": "operator",
+      "title": "Nav ledger",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_nav_resolves_to_named_route"
+      }
+    },
+    {
+      "journey_id": "S4-J1",
+      "stage": 4,
+      "persona": "operator",
+      "title": "Policy entitlement audit",
+      "proof": {
+        "host": "manager",
+        "verifier": "audit_security_surface",
+        "verifier_alias": "audit_policy_entitlement_runtime"
+      }
+    },
+    {
+      "journey_id": "S4-J2",
+      "stage": 4,
+      "persona": "operator",
+      "title": "Five-pillar gate",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_five_pillar_platform_completion"
+      }
+    },
+    {
+      "journey_id": "S4-J3",
+      "stage": 4,
+      "persona": "teacher",
+      "title": "Permission matrix contract",
+      "proof": {
+        "host": "manager",
+        "django_test": "apps.siteconfig.tests.test_interaction_integrity_contract"
+      }
+    },
+    {
+      "journey_id": "S5-J1",
+      "stage": 5,
+      "persona": "operator",
+      "title": "Money float zero",
+      "proof": {
+        "host": "manager",
+        "verifier": "scan_money_float"
+      }
+    },
+    {
+      "journey_id": "S5-J2",
+      "stage": 5,
+      "persona": "operator",
+      "title": "Finance ledger audit",
+      "proof": {
+        "host": "manager",
+        "verifier": "scan_money_float",
+        "verifier_alias": "audit_finance_ledger_precision"
+      }
+    },
+    {
+      "journey_id": "S5-J3",
+      "stage": 5,
+      "persona": "parent",
+      "title": "Payment idempotency tests",
+      "proof": {
+        "host": "manager",
+        "django_test": "apps.finance.tests.test_webhook_claim_concurrent"
+      }
+    },
+    {
+      "journey_id": "S6-J1",
+      "stage": 6,
+      "persona": "teacher",
+      "title": "Academic operations audit",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_page_fold_standards",
+        "verifier_alias": "audit_academic_operations_workflow"
+      }
+    },
+    {
+      "journey_id": "S6-J2",
+      "stage": 6,
+      "persona": "teacher",
+      "title": "Page fold standards",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_page_fold_standards"
+      }
+    },
+    {
+      "journey_id": "S6-J3",
+      "stage": 6,
+      "persona": "student",
+      "title": "EMIS schema lock",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_phases_3_11_gates",
+        "verifier_alias": "verify_emis_schema_lock"
+      }
+    },
+    {
+      "journey_id": "S7-J1",
+      "stage": 7,
+      "persona": "operator",
+      "title": "MC connectors 8/8",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_migration_cloud_connectors"
+      }
+    },
+    {
+      "journey_id": "S7-J2",
+      "stage": 7,
+      "persona": "operator",
+      "title": "Migration cloud spec",
+      "proof": {
+        "host": "manager",
+        "spec": "tests/e2e/migration-cloud.spec.js"
+      }
+    },
+    {
+      "journey_id": "S7-J3",
+      "stage": 7,
+      "persona": "operator",
+      "title": "Intake experience",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_migration_cloud_intake_experience"
+      }
+    },
+    {
+      "journey_id": "S8-J1",
+      "stage": 8,
+      "persona": "operator",
+      "title": "Interaction integrity",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_interaction_integrity_completion"
+      }
+    },
+    {
+      "journey_id": "S8-J2",
+      "stage": 8,
+      "persona": "operator",
+      "title": "Luxury UI 15/15",
+      "proof": {
+        "host": "manager",
+        "verifier": "audit_luxury_ui_surface"
+      }
+    },
+    {
+      "journey_id": "S8-J3",
+      "stage": 8,
+      "persona": "operator",
+      "title": "Critical Playwright journeys",
+      "proof": {
+        "host": "manager",
+        "spec": "tests/e2e/orchestrator-journeys-critical.spec.js"
+      }
+    },
+    {
+      "journey_id": "S9-J1",
+      "stage": 9,
+      "persona": "operator",
+      "title": "AI engine room",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_ai_engine_room"
+      }
+    },
+    {
+      "journey_id": "S9-J2",
+      "stage": 9,
+      "persona": "operator",
+      "title": "Ollama live strict",
+      "proof": {
+        "host": "manager",
+        "verifier": "verify_ollama_live",
+        "verifier_alias": "verify_ollama_live_strict"
+      }
+    },
+    {
+      "journey_id": "S9-J3",
+      "stage": 9,
+      "persona": "operator",
+      "title": "AI center spec",
+      "proof": {
+        "host": "manager",
+        "spec": "tests/e2e/ai-center.spec.js"
+      }
+    }
+  ]
+}

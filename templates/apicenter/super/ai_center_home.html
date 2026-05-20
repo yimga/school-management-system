@@ -1,0 +1,26 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main" data-rmc-page-fold-nav="required">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "AI Center" %}</h1>
+    <p class="rmc-lede">{% trans "Governed platform intelligence — permission-filtered, evidence-backed, zero-hallucination." %}</p>
+  </header>
+  <div class="rmc-metric-grid">
+    <div class="rmc-metric-card">
+      <span class="rmc-metric-card__label">{% trans "Indexed documents" %}</span>
+      <strong class="rmc-metric-card__value">{{ document_count }}</strong>
+    </div>
+    <div class="rmc-metric-card" data-ai-contextual-insight>
+      <span class="rmc-metric-card__label">{% trans "Provider" %}</span>
+      <strong class="rmc-metric-card__value">{{ provider_status.label|default:"checking" }}</strong>
+    </div>
+  </div>
+  <p class="mt-3">
+    <a class="btn btn-primary" href="{{ ai_query_url }}">{% trans "Ask a platform question" %}</a>
+    <a class="btn btn-outline-secondary" href="{% url 'siteconfig:ai_center' %}">{% trans "Open assistant shell" %}</a>
+  </p>
+</main>
+{% endblock %}

@@ -68,7 +68,12 @@ class InteractionIntegrityContractTests(SimpleTestCase):
     def test_user_dropdown_points_to_help_surfaces(self):
         text = (ROOT / "templates/components/user_dropdown.html").read_text(encoding="utf-8")
         self.assertIn("manager_help_center", text)
-        self.assertIn("kb:kb_home", text)
+        self.assertIn("feedback:help_center", text)
+        self.assertIn("feature_center_url", text)
+
+    def test_tenant_sidebar_points_to_help_center_not_kb_only(self):
+        text = (ROOT / "templates/partials/portal_sidebar.html").read_text(encoding="utf-8")
+        self.assertIn("feedback:help_center", text)
 
     def test_manager_admin_footer_wired(self):
         admin_base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
@@ -80,3 +85,25 @@ class InteractionIntegrityContractTests(SimpleTestCase):
         from config.urls import service_unavailable
 
         self.assertIs(tenant_handler503, service_unavailable)
+
+    def test_tenant_urlconf_includes_feedback_help_center(self):
+        from django.urls import reverse
+
+        path = reverse("feedback:help_center", urlconf="config.tenant_urls")
+        self.assertTrue(path.endswith("/help/") or "/help/" in path)
+
+    def test_tenant_urlconf_includes_feedback_namespace(self):
+        text = (ROOT / "config/tenant_urls.py").read_text(encoding="utf-8")
+        self.assertIn('include(("apps.feedback.urls", "feedback")', text)
+        self.assertIn("namespace=\"feedback\"", text)
+
+    def test_tenant_school_templates_use_marketing_public_find_school(self):
+        for rel in (
+            "templates/schools/global_login_discovery.html",
+            "templates/schools/public_support_hub.html",
+            "templates/schools/public_verify_hub.html",
+            "templates/schools/partials/school_finder_bento.html",
+        ):
+            text = (ROOT / rel).read_text(encoding="utf-8")
+            self.assertIn("marketing_public_href", text, rel)
+            self.assertNotIn("{% url 'find_school' %}", text, rel)

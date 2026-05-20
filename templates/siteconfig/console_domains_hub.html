@@ -5,5 +5,8 @@
 {% block title %}{% trans "Configuration Control Center" %}{% endblock %}
 
 {% block content %}
-{% include "siteconfig/partials/console_domains_hub_body.html" %}
+<div data-page-header="configuration-control-center">
+  <nav class="ds-action-bar visually-hidden" aria-hidden="true" data-rmc-action-bar-delegated="1"></nav>
+  {% include "siteconfig/partials/console_domains_hub_body.html" %}
+</div>
 {% endblock %}

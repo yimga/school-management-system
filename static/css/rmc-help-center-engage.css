@@ -1,0 +1,47 @@
+/* Help Center v2 — engage strip, contact lanes, quick feature form */
+
+.rmc-help-center--v2 .rmc-help-engage-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  background: var(--surface-elevated, #fff);
+  color: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.rmc-help-center--v2 .rmc-help-engage-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2, 0 8px 24px rgba(0, 0, 0, 0.08));
+  border-color: var(--brand-primary, #4f46e5);
+}
+
+.rmc-help-engage-card__icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.rmc-help-engage-card--primary .rmc-help-engage-card__icon {
+  color: var(--brand-primary, #4f46e5);
+}
+
+.rmc-help-engage-card--secondary .rmc-help-engage-card__icon {
+  color: var(--text-secondary, #64748b);
+}
+
+.rmc-help-engage-card--danger .rmc-help-engage-card__icon {
+  color: var(--bs-danger, #dc3545);
+}
+
+.rmc-help-contact-lane {
+  border-left: 3px solid var(--hairline, rgba(0, 0, 0, 0.1));
+}
+
+.rmc-help-contact-lane:hover {
+  border-left-color: var(--brand-primary, #4f46e5);
+}
+
+#rmc-help-quick-feature textarea {
+  min-height: 6rem;
+}

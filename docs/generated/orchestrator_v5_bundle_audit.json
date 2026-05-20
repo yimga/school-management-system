@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-05-20T10:51:27.397852+00:00",
+  "prompt_pack_version": "2026-05-20-orchestrator-v5",
+  "verdict": "ORCHESTRATOR_V5_BUNDLE_PASS",
+  "checks": [
+    {
+      "check": "journey_manifest",
+      "ok": true,
+      "proof": "Wrote C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\orchestrator_journey_manifest.json (27 journeys)"
+    },
+    {
+      "check": "journey_coverage",
+      "ok": true,
+      "proof": "JOURNEY_COVERAGE_PASS (27/27, 100.0%)"
+    },
+    {
+      "check": "nav_ledger",
+      "ok": true,
+      "proof": "INFO 2026-05-20 06:51:14,206 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- acc"
+    },
+    {
+      "check": "interaction_contract",
+      "ok": true,
+      "proof": "INTERACTION_INTEGRITY_CONTRACT_PASS (delegated)"
+    },
+    {
+      "check": "prompt_pack",
+      "ok": true,
+      "proof": "ORCHESTRATOR_PROMPT_PACK_PASS (181 checks, 35 files)"
+    },
+    {
+      "check": "journey_count_27",
+      "ok": true,
+      "proof": "27 journeys"
+    }
+  ],
+  "failures": []
+}

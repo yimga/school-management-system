@@ -1,6 +1,6 @@
 # Gear-Up V3 — Platform Escalation
 
-**Pack:** `2026-05-20-orchestrator-v4`
+**Pack:** `2026-05-20-orchestrator-v5`
 
 ## GEAR-UP V3 — PLATFORM ESCALATION (all agents)
 

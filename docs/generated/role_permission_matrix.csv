@@ -240,6 +240,7 @@ ai/live-preview-explain/,api_live_preview_explain,apps/api/urls.py,apps/portal/v
 ai/system-config-explain/,api_system_config_explain,apps/api/urls.py,apps/portal/views_ai_gateway.py,func,require_http_methods(['POST']) | csrf_protect | login_required,,,,1,0,0,0,0,,0,0
 ai/dashboard-pack-recommend/,api_dashboard_pack_recommend,apps/api/urls.py,apps/portal/views_ai_gateway.py,func,require_http_methods(['POST']) | csrf_protect | login_required,,,,1,0,0,0,0,,0,0
 ai/support-assistant/,api_support_assistant,apps/api/urls.py,apps/portal/views_ai_gateway.py,func,require_http_methods(['POST']) | csrf_protect | login_required,,,,1,0,0,0,0,,0,0
+ai/support-assistant/stream/,api_support_assistant_stream,apps/api/urls.py,apps/portal/views_ai_gateway.py,func,require_http_methods(['POST']) | csrf_protect | login_required,,,,1,0,0,0,0,,0,0
 ai/command-bar/,api_command_bar_search,apps/api/urls.py,apps/portal/views_command_bar.py,func,"require_http_methods(['GET', 'POST']) | csrf_protect | login_required",,,,1,0,0,0,0,,0,0
 ai/smart-settings/,api_smart_settings_assistant,apps/api/urls.py,apps/portal/views_ai_product.py,func,require_http_methods(['POST']) | csrf_protect | login_required,,,,1,0,0,0,0,,0,0
 ai/import-error-resolver/,api_import_error_resolver,apps/api/urls.py,apps/portal/views_ai_product.py,func,require_http_methods(['POST']) | csrf_protect | login_required,,,,1,0,0,0,0,,0,0
@@ -456,8 +457,8 @@ student/feedback/,views.role_feedback_center,apps/feedback/urls.py,apps/feedback
 school/roadmap/,views.school_roadmap,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
 feature-center/,views.feature_center,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
 school/feature-center/,views.feature_center,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
-contact-us/,views.contact_us,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
-school/contact-us/,views.contact_us,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
+contact-us/,views.contact_us,apps/feedback/urls.py,apps/feedback/views.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
+school/contact-us/,views.contact_us,apps/feedback/urls.py,apps/feedback/views.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
 feature/<int:pk>/vote/,views.vote_feature,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 contextual/,views.contextual_feedback,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 pulse/,views.pulse_survey,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
@@ -466,7 +467,7 @@ super/product-feedback/,views.voice_of_customer,apps/feedback/urls.py,apps/feedb
 super/product-roadmap/,views.product_roadmap,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
 super/feedback/<int:pk>/action/,views.operator_feedback_action,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 super/feature/<int:pk>/roadmap/,views.add_to_roadmap,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
-help/,views.help_center,apps/feedback/urls.py,apps/feedback/views.py,func,login_required,,,,1,0,0,0,0,,0,0
+help/,views.help_center,apps/feedback/urls.py,apps/feedback/views.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
 release-notes/,views.release_notes_public,apps/feedback/urls.py,apps/feedback/views.py,func,,,,,1,0,0,0,0,intentionally public — filters is_public=True at QS level,0,0
 ,dashboard,apps/finance/urls.py,apps/finance/views_dashboard.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 payment-setup/,payment_readiness_setup,apps/finance/urls.py,apps/finance/views_payment_setup.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
@@ -598,6 +599,16 @@ command-center/,views_command_center.MigrationCloudCommandCenterView.as_view,app
 smoke/trigger/,views_smoke_trigger.SmokeRunTriggerView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_smoke_trigger.py,class,staff_member_required,,View,,1,0,0,0,0,super-staff-migration-cloud-smoke-on-demand-trigger,0,0
 dsar/runbook/,views_dsar_admin.DSARRunbookView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_dsar_admin.py,class,staff_member_required,,View,,1,0,0,0,0,super-staff-dsar-runbook-view-record,0,0
 smoke/history/,views_smoke_history.SmokeRunHistoryView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_smoke_history.py,class,staff_member_required,,View,,1,0,0,0,0,super-staff-migration-cloud-smoke-history,0,0
+connectors/operator/,views_connectors.MigrationCloudConnectorOperatorView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | TemplateView,,1,0,0,0,1,,0,0
+,views_connectors.MigrationCloudConnectorHomeView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | TemplateView,,1,0,0,0,1,,0,0
+connect/,views_connectors.MigrationCloudConnectorConnectView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,csrf_protect,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+<uuid:connection_id>/discover/,views_connectors.MigrationCloudConnectorDiscoverView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+<uuid:connection_id>/discover/<uuid:run_id>/mapping/,views_connectors.MigrationCloudConnectorMappingView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+<uuid:connection_id>/discover/<uuid:run_id>/validate/,views_connectors.MigrationCloudConnectorValidateView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+<uuid:connection_id>/quarantine/<uuid:batch_id>/,views_connectors.MigrationCloudConnectorQuarantineView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | TemplateView,,1,0,0,0,1,,0,0
+<uuid:connection_id>/import/<uuid:batch_id>/,views_connectors.MigrationCloudConnectorImportView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+<uuid:connection_id>/review/<uuid:import_run_id>/,views_connectors.MigrationCloudConnectorReviewView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | TemplateView,,1,0,0,0,1,,0,0
+<uuid:connection_id>/revoke/,views_connectors.MigrationCloudConnectorRevokeView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,csrf_protect,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 ,views_customer.MigrationIntakeListView.as_view,apps/migration_cloud/urls_customer.py,apps/migration_cloud/views_customer.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 start/,views_customer.MigrationIntakeStartView.as_view,apps/migration_cloud/urls_customer.py,apps/migration_cloud/views_customer.py,class,csrf_protect,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 <uuid:id>/sign-maa/,views_customer.MigrationIntakeMAASignView.as_view,apps/migration_cloud/urls_customer.py,apps/migration_cloud/views_customer.py,class,csrf_protect,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0

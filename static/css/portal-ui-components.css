@@ -688,6 +688,13 @@
     }
   }
 
+/* --- Page context help FAB (control_plane_skeleton / admin base_site) --- */
+.rmc-page-help-fab {
+  z-index: 1040;
+  bottom: 1rem;
+  right: 1rem;
+}
+
 /* --- from templates/components/back_to_top.html --- */
 .back-to-top-btn {
     position: fixed;

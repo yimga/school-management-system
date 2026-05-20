@@ -38,9 +38,19 @@
           var t = document.querySelector(hash);
           if (!t) { return; }
           e.preventDefault();
-          var topOffset = 64; /* sticky header height */
-          var y = t.getBoundingClientRect().top + window.scrollY - topOffset;
-          window.scrollTo({ top: y, behavior: "smooth" });
+          var topOffset = 72;
+          var container =
+            window.RMC && window.RMC.getScrollContainer
+              ? window.RMC.getScrollContainer()
+              : null;
+          var y = t.getBoundingClientRect().top + (container ? container.scrollTop : window.scrollY) - topOffset;
+          if (window.RMC && window.RMC.scrollToY) {
+            window.RMC.scrollToY(container, Math.max(0, y), "smooth");
+          } else if (container) {
+            container.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+          } else {
+            window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+          }
           history.replaceState(null, "", hash);
           markActive(a);
         });

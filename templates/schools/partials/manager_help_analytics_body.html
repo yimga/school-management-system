@@ -1,0 +1,79 @@
+{% load i18n %}
+<div class="rmc-help-center" data-rmc-page="help-analytics">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-1"><i class="bi bi-graph-up-arrow me-2"></i>{% trans "Help north-star analytics" %}</h2>
+      <p class="small text-tertiary mb-0">{% trans "Deflection, search quality, AI CSAT, and KB corpus health (last {{ north_star.days }} days)." %}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ help_center_url }}">{% trans "Help hub" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ ai_review_url }}">{% trans "AI review queue" %}</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-tertiary">{% trans "Help searches" %}</div>
+          <div class="h3 mb-0">{{ north_star.searches|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-tertiary">{% trans "Deflection events" %}</div>
+          <div class="h3 mb-0">{{ north_star.deflection_events|default:0 }}</div>
+          {% if north_star.deflection.deflection_rate_pct %}
+          <div class="small text-tertiary">{% trans "Rate" %}: {{ north_star.deflection.deflection_rate_pct }}%</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-tertiary">{% trans "AI CSAT responses" %}</div>
+          <div class="h3 mb-0">{{ north_star.ai_csat_count|default:0 }}</div>
+          {% if north_star.ai_csat_positive_pct %}
+          <div class="small text-success">{% trans "Positive" %}: {{ north_star.ai_csat_positive_pct }}%</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-tertiary">{% trans "Pending AI reviews" %}</div>
+          <div class="h3 mb-0">{{ north_star.ai_reviews_pending|default:0 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header fw-semibold">{% trans "Zero-result search fingerprints" %}</div>
+        <ul class="list-group list-group-flush">
+          {% for row in north_star.zero_results %}
+          <li class="list-group-item small"><code>{{ row.fingerprint }}</code> — {{ row.count }}</li>
+          {% empty %}
+          <li class="list-group-item small text-tertiary">{% trans "No zero-result clusters in window." %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header fw-semibold">{% trans "KB corpus" %}</div>
+        <div class="card-body small">
+          <p class="mb-1">{% trans "Published" %}: <strong>{{ north_star.kb_published|default:0 }}</strong></p>
+          <p class="mb-1">{% trans "Drafts" %}: <strong>{{ north_star.kb_drafts|default:0 }}</strong></p>
+          <p class="mb-0">{% trans "Translation groups" %}: <strong>{{ north_star.kb_translation_groups|default:0 }}</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

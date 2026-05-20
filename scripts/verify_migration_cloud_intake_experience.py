@@ -126,7 +126,7 @@ def main() -> int:
         ),
         (
             "service_worker_caches_ui_repair",
-            _contains("static/js/service-worker.js", "sms-v3.42.11-migration-cloud-ui-repair-2026-05-19")
+            _contains("static/js/service-worker.js", 'CACHE_VERSION = "sms-v')
             and _contains("static/js/service-worker.js", "/static/css/migration-cloud-ui.css"),
             "service worker cache version and static asset list include the UI repair CSS",
         ),

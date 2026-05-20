@@ -14,6 +14,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 REQUIRED_FILES = (
+    "services/ai_center/__init__.py",
+    "services/ai_center/query_service.py",
+    "services/ai_center/indexing.py",
+    "services/ai_center/ollama_client.py",
+    "services/ai_center/kb_generator.py",
+    "services/ai_center/friction_analysis.py",
+    "services/ai_center/contextual_insights.py",
+    "services/ai_center/audit.py",
+    "ai/Modelfile",
+    "apps/apicenter/views_ai_center_super.py",
+    "apps/apicenter/ai_center_urls.py",
     "services/ai/__init__.py",
     "services/ai/gateway.py",
     "services/ai/prompts.py",
@@ -95,6 +106,9 @@ SETTINGS_MARKERS = (
     "AI_ENGINE_ROOM_SUPPORT",
     "AI_ENGINE_ROOM_TIMEOUT_SECONDS",
     "AI_ENGINE_ROOM_MAX_INPUT_TOKENS",
+    "AI_CENTER_MAX_CONTEXT_DOCS",
+    "OLLAMA_BASE_URL",
+    "AI_GATEWAY_PROVIDER",
 )
 
 

@@ -880,6 +880,20 @@ jobs:
             payment.tests.test_webhook_ingress \
             --verbosity=1
 
+  orchestrator-prompt-pack:
+    name: Orchestrator agent prompt pack completeness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify prompt pack (strict)
+        run: |
+          python scripts/verify_orchestrator_prompt_pack.py --strict
+
   theme-visibility-platform:
     name: "Theme visibility: shell wiring + main-content utility baseline"
     runs-on: ubuntu-latest

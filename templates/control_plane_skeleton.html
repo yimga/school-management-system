@@ -83,6 +83,7 @@
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
     {# Phase G (2026-05-12): platform-wide long-page grammar. #}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
@@ -118,11 +119,14 @@
       {% include 'components/ai_copilot.html' %}
       {# Phase G: ⌘K command palette + section-nav helper for long control-plane pages. #}
       {% include 'components/rmc_command_palette.html' %}
-      <button type="button" class="btn btn-outline-primary btn-sm position-fixed rmc-page-help-fab" data-rmc-page-help style="z-index:1040; bottom:1rem; right:1rem;" title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
+      <button type="button" class="btn btn-outline-primary btn-sm position-fixed rmc-page-help-fab" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
         <i class="bi bi-question-circle" aria-hidden="true"></i> {% trans "Help" %}
       </button>
       <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
+      {% include 'components/back_to_top.html' %}
+      <script src="{% static 'js/rmc-scroll-container.js' %}"></script>
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
+      <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
       <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>

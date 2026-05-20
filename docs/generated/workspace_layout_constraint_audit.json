@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-05-20T04:05:20.744748+00:00",
+  "schema_version": 1,
+  "verdict": "WORKSPACE_LAYOUT_READY",
+  "checks": [
+    {
+      "id": "sticky_overflow_hidden_baseline_zero",
+      "status": "PASS",
+      "detail": "scan_sticky_with_overflow_hidden.py exit 0",
+      "proof": "sticky+overflow:hidden scan: 0 violation(s)\nbaseline: 0"
+    },
+    {
+      "id": "page_fold_standards",
+      "status": "PASS",
+      "detail": "verify_page_fold_standards.py exit 0",
+      "proof": "[PASS] cursor_rule: Cursor rule documents fold standards\n[PASS] feature_control_fold_nav: Feature control marks data-rmc-page-fold-nav=required\n[PASS] feature_control_paginate_policy: Feature control marks data-rmc-scroll-policy=paginate\n[PASS] feature_control_sticky_tabs: Feature control category tabs are sticky nav\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n\nPAGE_FOLD_STANDARDS: 15/15 PASS"
+    },
+    {
+      "id": "platform_chromatic_compliance",
+      "status": "PASS",
+      "detail": "verify_platform_chromatic_compliance.py exit 0",
+      "proof": "K] safety_net_bg_light_triple_theme: dark-mode-safety-net remaps .bg-light under all dark theme attributes\n[OK] safety_net_text_bg_light: dark-mode-safety-net remaps Bootstrap text-bg-light badges\n[OK] safety_net_pre_cardbody_bg_light: dark-mode-safety-net covers pre/card-body bg-light slabs\n[OK] contrast_dark_table_tokens: theme-platform-contrast dark table token block mirrors light\n[OK] incidents_no_alert_light: platform incidents console dropped alert-light\n\nPLATFORM_CHROMATIC_COMPLIANCE_PASS"
+    },
+    {
+      "id": "luxury_ui_severe_integration",
+      "status": "PASS",
+      "detail": "audit_luxury_ui_surface.py exit 0 (no shell inline / severe table violations)",
+      "proof": "audit_luxury_ui_surface: OK -> C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\luxury_ui_audit.json | score=15/15 verdict=ULTRA-LUXURY gate=PASS"
+    },
+    {
+      "id": "studio_os_workspace_layout",
+      "status": "PASS",
+      "detail": "verify_studio_workspace_layout.py exit 0",
+      "proof": "verify_studio_workspace_layout: OK"
+    },
+    {
+      "id": "workspace_tables_paginate_or_family",
+      "status": "PASS",
+      "detail": "tables without .rmc-data-table or paginate policy: 0",
+      "proof": ""
+    },
+    {
+      "id": "feedback_help_center_loop",
+      "status": "PASS",
+      "detail": "help center ships You said / We did loop",
+      "proof": "templates/feedback/help_center.html"
+    },
+    {
+      "id": "four_shell_workspace_assets",
+      "status": "PASS",
+      "detail": "portal/cp/studio shells wire fold + workspace CSS",
+      "proof": ""
+    }
+  ],
+  "failure_count": 0
+}

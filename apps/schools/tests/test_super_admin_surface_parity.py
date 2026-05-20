@@ -136,6 +136,21 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertContains(response, "Find campus")
         self.assertContains(response, "rmc-footer-surfaces.css")
 
+    def test_manager_portal_bridge_feature_control_compact_footer(self):
+        """portal_base manager pages (e.g. Feature Control) use operator-compact footer."""
+        url = reverse(
+            "siteconfig:feature_control_panel",
+            urlconf="config.manager_urls",
+        )
+        response = self.client.get(url, HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-rmc-footer-surface="operator-compact"')
+        self.assertContains(response, "data-rmc-manager-operator-footer")
+        self.assertContains(response, "rmc-manager-login-footer")
+        self.assertContains(response, "manager-corporate-footer.css")
+        self.assertNotContains(response, 'data-rmc-footer-surface="tenant-standard"')
+        self.assertNotContains(response, "mkt-footer-command")
+
     def test_admin_waive_subscription_hides_workspace_strip(self):
         school = School.objects.create(
             name="Sweep Waive School",
@@ -170,6 +185,9 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertIn("cp-admin-index", html)
         self.assertIn("Platform Backoffice", html)
         self.assertIn('id="cp-main-content"', html)
+        self.assertIn('data-rmc-cp-scroll="main"', html)
+        self.assertIn("cp-admin-app-list", html)
+        self.assertIn("Applications", html)
 
     def test_manager_super_and_admin_share_operator_topbar(self):
         super_resp = self.client.get("/super/", HTTP_HOST=self.host)

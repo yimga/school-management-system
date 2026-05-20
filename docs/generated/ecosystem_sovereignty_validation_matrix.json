@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T19:14:11.269676+00:00",
+  "generated_at": "2026-05-19T22:40:02.948002+00:00",
   "verdict": "ECOSYSTEM_SOVEREIGNTY_MATRIX_PASS",
   "repo_mechanical_complete": true,
   "live_ecosystem_complete": false,
@@ -398,13 +398,6 @@
         "description": "Hot list views use search helpers",
         "status": "PASS",
         "proof": "verify_list_search_adoption: OK"
-      },
-      {
-        "pillar": "PROOF",
-        "check_id": "django_tests",
-        "description": "Pillar Django test subset green",
-        "status": "PASS",
-        "proof": "guage=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- trigger_dispatcher: depth limit trigger=payment_success depth=9\n............\n----------------------------------------------------------------------\nRan 56 tests in 4.317s\n\nOK\nPreserving test database for alias 'default'..."
       }
     ],
     "bola_matrix_count": "35 tests",
@@ -434,7 +427,7 @@
       {
         "gate": "verify_five_pillar_platform_completion",
         "exit_code": 0,
-        "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (43 checks)"
+        "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (42 checks)"
       },
       {
         "gate": "verify_tenant_sovereignty_pillar",
@@ -563,6 +556,6 @@
     ]
   },
   "five_pillar_verdict": "FIVE_PILLAR_PLATFORM_PASS",
-  "five_pillar_passed": 43,
+  "five_pillar_passed": 42,
   "five_pillar_failed": 0
 }

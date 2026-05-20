@@ -1,5 +1,7 @@
 {% load i18n static %}
-{% url 'api_v1:ai-support-assistant' as support_assistant_url %}
+{% url 'api:ai-support-assistant' as support_assistant_url %}
+{% url 'api:ai-support-assistant-stream' as support_assistant_stream_url %}
+{% url 'api:ai-support-session-rating' as support_session_rating_url %}
 {% url 'siteconfig:ai_center' as ai_center_url %}
 {% if request.public_host_kind == 'manager' %}
   {% url 'manager_support_request' as escalate_url %}
@@ -8,9 +10,11 @@
 {% endif %}
 <section class="rmc-kb-ai-panel card border-0 shadow-sm mb-4" data-rmc-kb-ai-panel data-rmc-support-error-boundary
   {% if support_assistant_url %}data-support-assistant-url="{{ support_assistant_url }}"{% endif %}
+  {% if support_assistant_stream_url %}data-support-assistant-stream-url="{{ support_assistant_stream_url }}"{% endif %}
   {% if escalate_url %}data-escalate-url="{{ escalate_url }}"{% endif %}
   {% if kb_article_slug %}data-kb-article-slug="{{ kb_article_slug }}"{% endif %}
-  {% if kb_article_title %}data-kb-article-title="{{ kb_article_title }}"{% endif %}>
+  {% if kb_article_title %}data-kb-article-title="{{ kb_article_title }}"{% endif %}
+  {% if support_session_rating_url %}data-support-session-rating-url="{{ support_session_rating_url }}"{% endif %}>
   <div class="card-body">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
       <h2 class="h6 mb-0"><i class="bi bi-stars me-1"></i>{% trans "Ask with AI" %}</h2>
@@ -26,8 +30,16 @@
       <a class="btn btn-outline-danger btn-sm d-none" href="#" data-rmc-kb-ai-escalate>{% trans "Escalate to human agent" %}</a>
     </div>
     <div class="rmc-kb-ai-panel__answer mt-3 small d-none" data-rmc-kb-ai-answer role="status" aria-live="polite"></div>
+    <div class="d-none mt-2 d-flex gap-2 align-items-center" data-rmc-kb-ai-csat role="group" aria-label="{% trans 'Rate this answer' %}">
+      <span class="small text-tertiary">{% trans "Helpful?" %}</span>
+      <button type="button" class="btn btn-sm btn-outline-success" data-rmc-kb-ai-csat-up>{% trans "Yes" %}</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-kb-ai-csat-down>{% trans "No" %}</button>
+    </div>
     <div class="alert alert-warning small mt-2 d-none" data-rmc-kb-ai-fallback role="alert">
       {% trans "AI is temporarily unavailable. Use the article below or open a support request." %}
+    </div>
+    <div class="alert alert-secondary small mt-2 d-none" data-rmc-kb-ai-offline role="status">
+      <i class="bi bi-wifi-off me-1"></i>{% trans "Offline help mode — search KB articles and runbooks; AI answers resume when connectivity returns." %}
     </div>
   </div>
 </section>

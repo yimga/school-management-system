@@ -316,11 +316,18 @@ body.admin-manager-shell .admin-cp-unified-page {
 body.admin-manager-shell .admin-cp-unified-page > header,
 body.admin-manager-shell .admin-cp-unified-page > nav,
 body.admin-manager-shell .admin-cp-unified-page > .preview-cue,
-body.admin-manager-shell .admin-cp-unified-page > a.skip-link-theme {
+body.admin-manager-shell .admin-cp-unified-page > a.skip-link-theme,
+body.admin-manager-shell .admin-cp-unified-page > a.visually-hidden-focusable {
   flex: 0 0 auto !important;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
+}
+
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .px-4,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > nav[aria-label="Breadcrumb"],
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > #admin-manager-sticky-slot {
+  flex-shrink: 0 !important;
 }
 
 body.admin-manager-shell .admin-cp-unified-page #cp-sidebar-col {
@@ -352,7 +359,102 @@ body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   width: 100% !important;
+  overflow-x: hidden !important;
   overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
+  padding-bottom: 2.5rem;
+}
+
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content::-webkit-scrollbar {
+  width: 8px;
+}
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: white-overlay */
+  border-radius: 4px;
+  margin: 4px 0;
+}
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28); /* off-token-allow: white-overlay */
+  border-radius: 4px;
+  min-height: 40px;
+}
+
+/* Manager /admin/: main-column scroll — overrides document-scroll rules on control-plane-shell */
+body.admin-manager-shell[data-rmc-cp-scroll="main"] {
+  overflow: hidden !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page .cp-layout,
+body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page .cp-layout > .row {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  align-items: stretch !important;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page .cp-main-col,
+body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page #cp-main-content {
+  align-self: stretch !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page #cp-sidebar-col {
+  align-self: stretch !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="main"] .admin-cp-unified-page #cp-sidebar-col .cp-sidebar-inner {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Unfold inner wrappers must not re-trap overflow (long changelist/index). */
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .grow,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > div.grow {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content #content,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content .cp-admin-index {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+html[data-resolved-theme="light"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content,
+html[data-bs-theme="light"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
+  scrollbar-color: rgba(0, 0, 0, 0.28) rgba(0, 0, 0, 0.06); /* off-token-allow: black-overlay */
+}
+html[data-resolved-theme="light"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content::-webkit-scrollbar-track,
+html[data-bs-theme="light"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.06); /* off-token-allow: black-overlay */
+}
+html[data-resolved-theme="light"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content::-webkit-scrollbar-thumb,
+html[data-bs-theme="light"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.28); /* off-token-allow: black-overlay */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.admin-manager-shell .admin-cp-unified-page #cp-main-content {
+    scroll-behavior: auto;
+  }
 }
 
 /* Readable muted copy on admin index in both resolved themes */

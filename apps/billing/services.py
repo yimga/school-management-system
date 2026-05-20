@@ -248,6 +248,12 @@ def sync_subscription_entitlements(
         source__in=[Entitlement.Source.PLAN, Entitlement.Source.ADDON],
     ).exclude(code__in=touched)
     stale_qs.update(is_enabled=False, effective_until=as_of)
+    try:
+        from apps.platform_runtime.entitlement_gates import invalidate_entitlement_cache
+
+        invalidate_entitlement_cache(school)
+    except (ImportError, AttributeError, TypeError):
+        pass
     return touched
 
 

@@ -1,0 +1,341 @@
+{
+  "decimal_field_inventory": {
+    "field_count": 79,
+    "non_two_decimal_places": [],
+    "rows_sample": [
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "min_wage",
+        "max_digits": 12,
+        "model": "ComplianceProfile"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "cap_amount",
+        "max_digits": 12,
+        "model": "ContributionRule"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "debit",
+        "max_digits": 14,
+        "model": "JournalLine"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "credit",
+        "max_digits": 14,
+        "model": "JournalLine"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "FeeItem"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "FeeInstallment"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "transaction_fee_percent",
+        "max_digits": 5,
+        "model": "PaymentMethod"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "fixed_fee",
+        "max_digits": 10,
+        "model": "PaymentMethod"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "min_amount",
+        "max_digits": 12,
+        "model": "PaymentMethod"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "max_amount",
+        "max_digits": 12,
+        "model": "PaymentMethod"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "total_amount",
+        "max_digits": 12,
+        "model": "Invoice"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "balance_amount",
+        "max_digits": 12,
+        "model": "Invoice"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "unit_price",
+        "max_digits": 12,
+        "model": "InvoiceLine"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "InvoiceLine"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "Payment"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "platform_fee",
+        "max_digits": 12,
+        "model": "Payment"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "allocated_amount",
+        "max_digits": 12,
+        "model": "InvoicePayerShare"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "paid_amount",
+        "max_digits": 12,
+        "model": "InvoicePayerShare"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "late_fee_amount",
+        "max_digits": 12,
+        "model": "InvoicePayerShare"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "InvoicePayerSharePaymentAllocation"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "balance",
+        "max_digits": 12,
+        "model": "ParentWallet"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "WalletTransaction"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "balance_after",
+        "max_digits": 12,
+        "model": "WalletTransaction"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "Transaction"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "RefundRequest"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "total_payments",
+        "max_digits": 15,
+        "model": "PaymentReconciliation"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "total_refunds",
+        "max_digits": 15,
+        "model": "PaymentReconciliation"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "total_fees",
+        "max_digits": 15,
+        "model": "PaymentReconciliation"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "net_amount",
+        "max_digits": 15,
+        "model": "PaymentReconciliation"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "discrepancy_amount",
+        "max_digits": 15,
+        "model": "PaymentReconciliation"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "ReferralReward"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "total_amount",
+        "max_digits": 14,
+        "model": "Budget"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 14,
+        "model": "BudgetLine"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 14,
+        "model": "Grant"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 14,
+        "model": "GrantAllocation"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "uploaded_amount",
+        "max_digits": 12,
+        "model": "PaymentProofUpload"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "BankStatementEntry"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "balance_after",
+        "max_digits": 12,
+        "model": "BankStatementEntry"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "SuspensePayment"
+      },
+      {
+        "app": "finance",
+        "decimal_places": 2,
+        "field": "amount",
+        "max_digits": 12,
+        "model": "SuspensePaymentAllocation"
+      }
+    ],
+    "two_decimal_places_count": 79
+  },
+  "focused_test_modules": [
+    "apps.finance.tests.test_ledger_failures",
+    "apps.billing.tests.test_billing_idempotency",
+    "apps.payroll.tests.test_payroll_decimal_integrity"
+  ],
+  "generated_at": "2026-05-20T03:19:59.792410+00:00",
+  "idempotency_surfaces": {
+    "billing_processor_snapshot_dedupe": true,
+    "finance_webhook_claim": true,
+    "finance_webhook_idempotency_bucket": true,
+    "payment_webhook_ingress": true
+  },
+  "json_decimal_smoke": {
+    "amount_str": "0.30",
+    "encoded": "{\"amount\": \"0.30\"}",
+    "ok": true
+  },
+  "metadata_only": true,
+  "money_float_scan": {
+    "exit_code": 0,
+    "finding_count": 0,
+    "ok": true,
+    "stderr": "",
+    "stdout": "money-float scan: 0 call(s)"
+  },
+  "ok": true,
+  "pii_free": true,
+  "psp_posture": {
+    "classification_doc": "docs/payments/PAYMENT_BLOCKER_CLASSIFICATION.md",
+    "lane": "EXTERNAL",
+    "note": "Live PSP settlement proof requires operator credentials; repo ships metadata checks and idempotent ledger guards only.",
+    "repo_honest": true
+  },
+  "required_modules": {
+    "billing_platform_charge": true,
+    "billing_usage_metering": true,
+    "finance_json_decimal": true,
+    "finance_post_payment_ledger": true,
+    "finance_webhook_claim": true,
+    "finance_webhook_idempotency": true,
+    "marketplace_ledger_ops": true,
+    "payment_blocker_classification": true,
+    "payment_webhook_ingress": true,
+    "payroll_calculate": true
+  },
+  "target_apps": [
+    "finance",
+    "billing",
+    "payroll",
+    "payment",
+    "marketplace"
+  ]
+}

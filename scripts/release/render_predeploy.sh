@@ -43,6 +43,9 @@ if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
     run "${PYTHON_BIN}" manage.py migrate_schools_to_tenants
     # New schools may get schemas here; apply tenant migrations again before later steps.
     run "${PYTHON_BIN}" manage.py migrate_schemas --tenant --noinput
+    # Legacy people_* tables in public schema never get migrate_schemas --tenant; heal drift.
+    run "${PYTHON_BIN}" manage.py repair_teacherprofile_updated_at
+    run "${PYTHON_BIN}" manage.py ensure_all_user_identities --active-only
   else
     run "${PYTHON_BIN}" manage.py migrate --noinput
   fi

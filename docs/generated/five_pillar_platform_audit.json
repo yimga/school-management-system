@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T20:07:19.610183+00:00",
+  "generated_at": "2026-05-20T08:12:10.592165+00:00",
   "verdict": "FIVE_PILLAR_PLATFORM_PASS",
-  "passed": 43,
+  "passed": 42,
   "failed": 0,
   "rows": [
     {
@@ -58,7 +58,7 @@
       "check_id": "middleware_order",
       "description": "Middleware stack order gate",
       "status": "PASS",
-      "proof": "equest_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired"
+      "proof": "_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
     },
     {
       "pillar": "Shopify",
@@ -297,13 +297,6 @@
       "description": "Hot list views use search helpers",
       "status": "PASS",
       "proof": "verify_list_search_adoption: OK"
-    },
-    {
-      "pillar": "PROOF",
-      "check_id": "django_tests",
-      "description": "Pillar Django test subset green",
-      "status": "PASS",
-      "proof": "guage=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- trigger_dispatcher: depth limit trigger=payment_success depth=9\n............\n----------------------------------------------------------------------\nRan 56 tests in 7.934s\n\nOK\nPreserving test database for alias 'default'..."
     }
   ]
 }

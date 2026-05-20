@@ -158,6 +158,17 @@ def support_request(request):
                 priority = GlobalSupportTicket.Priority.NORMAL
                 if plan_slug in ("powerhouse", "enterprise", "pro"):
                     priority = GlobalSupportTicket.Priority.HIGH
+                from django.utils import timezone
+
+                deflection_ack = request.POST.get("deflection_acknowledged") == "1"
+                ticket_metadata = {
+                    "country_code": country_code,
+                    "plan_slug": plan_slug,
+                    "category": form.cleaned_data["category"],
+                    "deflection_acknowledged": deflection_ack,
+                }
+                if deflection_ack:
+                    ticket_metadata["deflected_at"] = timezone.now().isoformat()
                 ticket = GlobalSupportTicket.objects.create(
                     school=school,
                     user=request.user,
@@ -165,12 +176,31 @@ def support_request(request):
                     body=body,
                     priority=priority,
                     status=GlobalSupportTicket.Status.OPEN,
-                    metadata={
-                        "country_code": country_code,
-                        "plan_slug": plan_slug,
-                        "category": form.cleaned_data["category"],
-                    },
+                    metadata=ticket_metadata,
                 )
+                try:
+                    from apps.feedback.models import SupportDeflectionEvent
+                    from apps.portal.support_deflection import record_deflection_event
+
+                    query_text = " ".join(
+                        [
+                            form.cleaned_data.get("subject") or "",
+                            form.cleaned_data.get("message") or "",
+                        ]
+                    ).strip()
+                    record_deflection_event(
+                        request,
+                        query_text=query_text,
+                        articles=[],
+                        outcome=(
+                            SupportDeflectionEvent.Outcome.DISMISSED
+                            if deflection_ack
+                            else SupportDeflectionEvent.Outcome.SUBMITTED
+                        ),
+                        surface="support_ticket",
+                    )
+                except SUPPORT_TICKET_SOFT_FAILURES:
+                    pass
             except SUPPORT_TICKET_SOFT_FAILURES:
                 ticket = None
         recipient = _pick_support_owner()

@@ -1,0 +1,745 @@
+WARNING 2026-05-19 14:08:01,984 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.
+DEBUG 2026-05-19 14:08:02,007 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)
+INFO 2026-05-19 14:08:02,009 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired
+INFO 2026-05-19 14:08:02,046 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.
+Found 5 test(s).
+Creating test database for alias 'default'...
+Destroying old test database for alias 'default'...
+INFO 2026-05-19 14:23:39,117 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud_webhook_secret_wrap_forward
+INFO 2026-05-19 14:23:43,235 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud_companion_keypair_encrypt_forward
+INFO 2026-05-19 14:23:46,022 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud_companion_keypair_per_tenant_backfill_forward
+System check identified no issues (0 silenced).
+DEBUG 2026-05-19 14:30:51,635 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=5bfee89c-883a-4986-92e0-f087edbc2840 surface=tenant_plane steps=13 elapsed_ms=547.58 runtime_trace_id=e97b39a3420a515c
+ERROR 2026-05-19 14:30:55,123 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- Internal Server Error: /help/
+EINFO 2026-05-19 14:30:57,696 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:30:57,697 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:30:57,699 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:30:57,699 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:30:57,838 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:30:57,839 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 14:30:58,868 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=64257494-28ef-472c-8ad4-46bf4a611668 surface=tenant_plane steps=13 elapsed_ms=672.39 runtime_trace_id=884b9be01434e8a6
+INFO 2026-05-19 14:30:58,896 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:30:58,896 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+ERROR 2026-05-19 14:31:08,368 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- Internal Server Error: /help/
+EINFO 2026-05-19 14:31:10,954 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:10,954 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:31:10,956 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:10,957 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:31:11,076 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:11,077 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 14:31:12,349 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=1610e472-8fa5-4045-b194-92ea85c546a8 surface=tenant_plane steps=13 elapsed_ms=878.43 runtime_trace_id=fddd2ef770e7fcc8
+INFO 2026-05-19 14:31:12,381 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:12,382 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+ERROR 2026-05-19 14:31:22,571 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- Internal Server Error: /help/
+EINFO 2026-05-19 14:31:25,371 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:25,371 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:31:25,375 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:25,376 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:31:25,499 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:25,499 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 14:31:26,559 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=ed978d97-a49e-4da7-a06f-5e0385940924 surface=tenant_plane steps=13 elapsed_ms=703.98 runtime_trace_id=1e91add7bd3ce212
+INFO 2026-05-19 14:31:26,591 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:26,591 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+ERROR 2026-05-19 14:31:36,144 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- Internal Server Error: /help/
+EINFO 2026-05-19 14:31:38,605 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:38,605 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:31:38,607 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:38,607 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+INFO 2026-05-19 14:31:38,730 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:38,731 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+DEBUG 2026-05-19 14:31:39,837 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- runtime_resolution_complete school_id=965ccd7b-7f19-4784-873d-2e23422ec8e2 surface=tenant_plane steps=13 elapsed_ms=761.09 runtime_trace_id=bb56698f64c2a5e5
+INFO 2026-05-19 14:31:39,872 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key
+INFO 2026-05-19 14:31:39,873 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped
+ERROR 2026-05-19 14:31:50,900 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- Internal Server Error: /feedback/
+E
+======================================================================
+ERROR: test_help_center_redirects_anonymous (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_redirects_anonymous)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    callback, callback_args, callback_kwargs = self.resolve_request(request)
+                                               ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 313, in resolve_request
+    resolver_match = resolver.resolve(request.path_info)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 705, in resolve
+    raise Resolver404({"tried": tried, "path": new_path})
+django.urls.exceptions.Resolver404: {'tried': [[<URLPattern '' [name='home']>], [<URLPattern 'activation/first-action/' [name='activation_first_action']>], [<URLPattern 'demo/flow/' [name='demo_flow_index']>], [<URLPattern 'demo/flow/attendance/' [name='demo_flow_attendance']>], [<URLPattern 'demo/flow/attendance/complete/' [name='demo_flow_attendance_complete']>], [<URLPattern 'demo/flow/marks/' [name='demo_flow_marks']>], [<URLPattern 'demo/flow/marks/complete/' [name='demo_flow_marks_complete']>], [<URLPattern 'demo/flow/report/' [name='demo_flow_report']>], [<URLPattern 'demo/flow/report/complete/' [name='demo_flow_report_complete']>], [<URLPattern 'demo/flow/complete/' [name='demo_flow_complete']>], [<URLPattern 'favicon.ico'>], [<URLPattern 'manifest.json' [name='pwa_manifest_platform']>], [<URLPattern 'manifest-portal.json' [name='pwa_manifest_portal']>], [<URLPattern 'manifest/icon-<int:size>.png' [name='pwa_manifest_icon_any']>], [<URLPattern 'manifest/icon-<int:size>-maskable.png' [name='pwa_manifest_icon_maskable']>], [<URLPattern 'internal-admin/' [name='internal_admin']>], [<URLPattern 'internal-admin/<path:remaining>'>], [<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLPattern 'configuration/' [name='tenant_configuration_forbidden']>], [<URLPattern 'configuration/<path:remaining>'>], [<URLPattern 'school/settings/' [name='school_configuration_center']>], [<URLPattern 'school/configuration/' [name='school_configuration_center_canonical']>], [<URLPattern 'school/setup/blueprints/' [name='tenant_blueprint_setup']>], [<URLPattern 'school/setup/packs/' [name='tenant_pack_setup']>], [<URLPattern 'school/setup/imports/' [name='school_setup_imports']>], [<URLPattern 'school/apps/' [name='school_apps']>], [<URLPattern 'school/billing/' [name='school_billing']>], [<URLPattern 'school/money/' [name='school_money']>], [<URLPattern 'school/workflows/' [name='school_workflows']>], [<URLPattern 'school/offline/' [name='school_offline']>], [<URLPattern 'school/audit/' [name='school_audit']>], [<URLPattern 'school/security/' [name='school_security']>], [<URLPattern 'api/schema/' [name='api-schema']>], [<URLPattern 'api/schema/ui/' [name='api-schema-ui']>], [<URLPattern 'backend/'>], [<URLPattern 'healthz/' [name='healthz']>], [<URLPattern 'health/' [name='health']>], [<URLPattern 'ready/' [name='ready']>], [<URLPattern 'status/' [name='status']>], [<URLPattern 'metrics/' [name='metrics']>], [<URLPattern 'api/observability/copilot-metrics/' [name='copilot_metrics_json']>], [<URLPattern 'api/observability/slo-dashboard/' [name='api_operational_slo_dashboard']>], [<URLPattern 'admin/dashboard/' [name='admin_dashboard']>], [<URLPattern 'api/health/' [name='api_health']>], [<URLPattern 'api/admin/weather/' [name='api_admin_weather']>], [<URLPattern 'api/weather/context/' [name='api_weather_context']>], [<URLPattern 'api/notifications/' [name='api_notifications']>], [<URLPattern 'api/notifications/mark-all-read/' [name='api_notifications_mark_all_read']>], [<URLPattern 'api/activities/' [name='api_activities']>], [<URLPattern 'api/dashboard/charts/' [name='api_dashboard_charts']>], [<URLPattern 'api/ai-copilot/validate/' [name='ai_copilot_query']>], [<URLPattern 'api/ai-copilot/permissions/' [name='ai_permissions']>], [<URLPattern 'api/ai-copilot/limits/' [name='ai_copilot_limits']>], [<URLPattern 'api/ai-copilot/config/' [name='ai_copilot_config']>], [<URLPattern 'api/ai-copilot/audit/' [name='ai_copilot_audit']>], [<URLPattern 'api/ai/health/' [name='ai_health']>], [<URLResolver <module 'apps.studio_os.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\studio_os\\urls.py'> (studio_os:studio_os) 'studio/'>], [<URLPattern 'verify/<str:token>/' [name='verify_student_id']>], [<URLResolver <module 'apps.api.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls.py'> (api:api) 'api/'>], [<URLResolver <module 'apps.api.urls_v1' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls_v1.py'> (api_v1:api_v1) 'api/v1/'>], [<URLPattern 'siteconfig/school-configuration/' [name='siteconfig_school_configuration']>], [<URLResolver <module 'apps.siteconfig.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\siteconfig\\urls.py'> (siteconfig:siteconfig) 'siteconfig/'>], [<URLResolver <module 'apps.marketplace.tenant_urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\marketplace\\tenant_urls.py'> (marketplace:marketplace) 'marketplace/'>], [<URLPattern 'api/internal/click-tracking/' [name='record_click_event']>], [<URLPattern 'internal/click-measurement/' [name='click_measurement_dashboard']>], [<URLPattern 'settings/installed-apps/' [name='tenant_installed_apps']>], [<URLPattern 'settings/app-catalog/' [name='tenant_app_catalog']>], [<URLPattern 'settings/install-impact-preview/' [name='tenant_install_impact_preview']>], [<URLPattern 'settings/install-app/' [name='tenant_install_app']>], [<URLPattern 'settings/uninstall-app/' [name='tenant_uninstall_app']>], [<URLPattern 'settings/save-installation-config/' [name='tenant_save_installation_config']>], [<URLPattern 'settings/scope-consent/' [name='tenant_scope_consent']>], [<URLPattern 'settings/approve-scope/' [name='tenant_approve_scope']>], [<URLPattern 'settings/activate-installation/' [name='tenant_activate_installation']>], [<URLResolver <module 'apps.apicenter.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\apicenter\\urls.py'> (apicenter:apicenter) 'api-center/'>], [<URLResolver <module 'apps.events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\events\\urls.py'> (events:events) 'domain-events/'>], [<URLResolver <module 'apps.automation.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\automation\\urls.py'> (automation:automation) 'automation/'>], [<URLResolver <module 'apps.accounts.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\accounts\\urls.py'> (accounts:accounts) 'authentication/'>], [<URLResolver <module 'apps.evals.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\evals\\urls.py'> (evals:evals) 'evals/'>], [<URLResolver <module 'apps.academics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\academics\\urls.py'> (academics:academics) 'academics/'>], [<URLPattern 'portal/console/' [name='portal_console']>], [<URLPattern 'portal/configure/' [name='portal_configure']>], [<URLResolver <module 'apps.portal.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls.py'> (portal:portal) 'portal/'>], [<URLPattern 'portal'>], [<URLResolver <module 'apps.school_events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\school_events\\urls.py'> (school_events:school_events) 'events/'>], [<URLResolver <module 'apps.portal.urls_kb' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls_kb.py'> (kb:kb) 'kb/'>], [<URLResolver <module 'apps.reports.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\reports\\urls.py'> (reports:reports) 'reports/'>], [<URLResolver <module 'apps.analytics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\analytics\\urls.py'> (analytics:analytics) 'analytics/'>], [<URLResolver <module 'apps.platform_runtime.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\platform_runtime\\urls.py'> (platform_runtime:platform_runtime) 'platform-runtime/'>], [<URLResolver <module 'apps.finance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\finance\\urls.py'> (finance:finance) 'finance/'>], [<URLResolver <module 'apps.payroll.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\payroll\\urls.py'> (payroll:payroll) 'payroll/'>], [<URLResolver <module 'apps.compliance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\compliance\\urls.py'> (compliance:compliance) 'compliance/'>], [<URLResolver <module 'apps.communication.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\communication\\urls.py'> (communication:communication) 'communication/'>], [<URLResolver <module 'emis.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\emis\\urls.py'> (emis:emis) 'emis/'>], [<URLResolver <module 'apps.requests.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\requests\\urls.py'> (requests:requests) 'requests/'>], [<URLPattern 'organization/network/' [name='organization_network_dashboard']>], [<URLPattern 'api/tenant/domains/' [name='api_domains_list_or_create']>], [<URLPattern 'api/tenant/domains/<uuid:school_domain_id>/verify/' [name='api_domains_verify']>], [<URLPattern 'account-frozen/' [name='account_frozen']>], [<URLPattern 'privacy/' [name='marketing_privacy']>], [<URLPattern 'terms/' [name='marketing_terms']>], [<URLPattern 'cookie-policy/' [name='marketing_cookie_policy']>]], 'path': 'help/'}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 14, in test_help_center_redirects_anonymous
+    response = self.client.get(reverse("feedback:help_center"))
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1087, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 802, in check_exception
+    raise exc_value
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 165, in get_exception_response
+    response = callback(request, exception=exception)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\tenant_urls.py", line 156, in page_not_found
+    return school_not_found(request)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\schools\error_views.py", line 16, in school_not_found
+    return render(
+        request,
+        "schools/404_tenant.html",
+        status=404,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 172, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 550, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'find_school' not found. 'find_school' is not a valid view function or pattern name.
+
+======================================================================
+ERROR: test_help_center_renders_for_staff (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_renders_for_staff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    callback, callback_args, callback_kwargs = self.resolve_request(request)
+                                               ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 313, in resolve_request
+    resolver_match = resolver.resolve(request.path_info)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 705, in resolve
+    raise Resolver404({"tried": tried, "path": new_path})
+django.urls.exceptions.Resolver404: {'tried': [[<URLPattern '' [name='home']>], [<URLPattern 'activation/first-action/' [name='activation_first_action']>], [<URLPattern 'demo/flow/' [name='demo_flow_index']>], [<URLPattern 'demo/flow/attendance/' [name='demo_flow_attendance']>], [<URLPattern 'demo/flow/attendance/complete/' [name='demo_flow_attendance_complete']>], [<URLPattern 'demo/flow/marks/' [name='demo_flow_marks']>], [<URLPattern 'demo/flow/marks/complete/' [name='demo_flow_marks_complete']>], [<URLPattern 'demo/flow/report/' [name='demo_flow_report']>], [<URLPattern 'demo/flow/report/complete/' [name='demo_flow_report_complete']>], [<URLPattern 'demo/flow/complete/' [name='demo_flow_complete']>], [<URLPattern 'favicon.ico'>], [<URLPattern 'manifest.json' [name='pwa_manifest_platform']>], [<URLPattern 'manifest-portal.json' [name='pwa_manifest_portal']>], [<URLPattern 'manifest/icon-<int:size>.png' [name='pwa_manifest_icon_any']>], [<URLPattern 'manifest/icon-<int:size>-maskable.png' [name='pwa_manifest_icon_maskable']>], [<URLPattern 'internal-admin/' [name='internal_admin']>], [<URLPattern 'internal-admin/<path:remaining>'>], [<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLPattern 'configuration/' [name='tenant_configuration_forbidden']>], [<URLPattern 'configuration/<path:remaining>'>], [<URLPattern 'school/settings/' [name='school_configuration_center']>], [<URLPattern 'school/configuration/' [name='school_configuration_center_canonical']>], [<URLPattern 'school/setup/blueprints/' [name='tenant_blueprint_setup']>], [<URLPattern 'school/setup/packs/' [name='tenant_pack_setup']>], [<URLPattern 'school/setup/imports/' [name='school_setup_imports']>], [<URLPattern 'school/apps/' [name='school_apps']>], [<URLPattern 'school/billing/' [name='school_billing']>], [<URLPattern 'school/money/' [name='school_money']>], [<URLPattern 'school/workflows/' [name='school_workflows']>], [<URLPattern 'school/offline/' [name='school_offline']>], [<URLPattern 'school/audit/' [name='school_audit']>], [<URLPattern 'school/security/' [name='school_security']>], [<URLPattern 'api/schema/' [name='api-schema']>], [<URLPattern 'api/schema/ui/' [name='api-schema-ui']>], [<URLPattern 'backend/'>], [<URLPattern 'healthz/' [name='healthz']>], [<URLPattern 'health/' [name='health']>], [<URLPattern 'ready/' [name='ready']>], [<URLPattern 'status/' [name='status']>], [<URLPattern 'metrics/' [name='metrics']>], [<URLPattern 'api/observability/copilot-metrics/' [name='copilot_metrics_json']>], [<URLPattern 'api/observability/slo-dashboard/' [name='api_operational_slo_dashboard']>], [<URLPattern 'admin/dashboard/' [name='admin_dashboard']>], [<URLPattern 'api/health/' [name='api_health']>], [<URLPattern 'api/admin/weather/' [name='api_admin_weather']>], [<URLPattern 'api/weather/context/' [name='api_weather_context']>], [<URLPattern 'api/notifications/' [name='api_notifications']>], [<URLPattern 'api/notifications/mark-all-read/' [name='api_notifications_mark_all_read']>], [<URLPattern 'api/activities/' [name='api_activities']>], [<URLPattern 'api/dashboard/charts/' [name='api_dashboard_charts']>], [<URLPattern 'api/ai-copilot/validate/' [name='ai_copilot_query']>], [<URLPattern 'api/ai-copilot/permissions/' [name='ai_permissions']>], [<URLPattern 'api/ai-copilot/limits/' [name='ai_copilot_limits']>], [<URLPattern 'api/ai-copilot/config/' [name='ai_copilot_config']>], [<URLPattern 'api/ai-copilot/audit/' [name='ai_copilot_audit']>], [<URLPattern 'api/ai/health/' [name='ai_health']>], [<URLResolver <module 'apps.studio_os.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\studio_os\\urls.py'> (studio_os:studio_os) 'studio/'>], [<URLPattern 'verify/<str:token>/' [name='verify_student_id']>], [<URLResolver <module 'apps.api.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls.py'> (api:api) 'api/'>], [<URLResolver <module 'apps.api.urls_v1' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls_v1.py'> (api_v1:api_v1) 'api/v1/'>], [<URLPattern 'siteconfig/school-configuration/' [name='siteconfig_school_configuration']>], [<URLResolver <module 'apps.siteconfig.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\siteconfig\\urls.py'> (siteconfig:siteconfig) 'siteconfig/'>], [<URLResolver <module 'apps.marketplace.tenant_urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\marketplace\\tenant_urls.py'> (marketplace:marketplace) 'marketplace/'>], [<URLPattern 'api/internal/click-tracking/' [name='record_click_event']>], [<URLPattern 'internal/click-measurement/' [name='click_measurement_dashboard']>], [<URLPattern 'settings/installed-apps/' [name='tenant_installed_apps']>], [<URLPattern 'settings/app-catalog/' [name='tenant_app_catalog']>], [<URLPattern 'settings/install-impact-preview/' [name='tenant_install_impact_preview']>], [<URLPattern 'settings/install-app/' [name='tenant_install_app']>], [<URLPattern 'settings/uninstall-app/' [name='tenant_uninstall_app']>], [<URLPattern 'settings/save-installation-config/' [name='tenant_save_installation_config']>], [<URLPattern 'settings/scope-consent/' [name='tenant_scope_consent']>], [<URLPattern 'settings/approve-scope/' [name='tenant_approve_scope']>], [<URLPattern 'settings/activate-installation/' [name='tenant_activate_installation']>], [<URLResolver <module 'apps.apicenter.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\apicenter\\urls.py'> (apicenter:apicenter) 'api-center/'>], [<URLResolver <module 'apps.events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\events\\urls.py'> (events:events) 'domain-events/'>], [<URLResolver <module 'apps.automation.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\automation\\urls.py'> (automation:automation) 'automation/'>], [<URLResolver <module 'apps.accounts.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\accounts\\urls.py'> (accounts:accounts) 'authentication/'>], [<URLResolver <module 'apps.evals.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\evals\\urls.py'> (evals:evals) 'evals/'>], [<URLResolver <module 'apps.academics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\academics\\urls.py'> (academics:academics) 'academics/'>], [<URLPattern 'portal/console/' [name='portal_console']>], [<URLPattern 'portal/configure/' [name='portal_configure']>], [<URLResolver <module 'apps.portal.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls.py'> (portal:portal) 'portal/'>], [<URLPattern 'portal'>], [<URLResolver <module 'apps.school_events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\school_events\\urls.py'> (school_events:school_events) 'events/'>], [<URLResolver <module 'apps.portal.urls_kb' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls_kb.py'> (kb:kb) 'kb/'>], [<URLResolver <module 'apps.reports.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\reports\\urls.py'> (reports:reports) 'reports/'>], [<URLResolver <module 'apps.analytics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\analytics\\urls.py'> (analytics:analytics) 'analytics/'>], [<URLResolver <module 'apps.platform_runtime.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\platform_runtime\\urls.py'> (platform_runtime:platform_runtime) 'platform-runtime/'>], [<URLResolver <module 'apps.finance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\finance\\urls.py'> (finance:finance) 'finance/'>], [<URLResolver <module 'apps.payroll.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\payroll\\urls.py'> (payroll:payroll) 'payroll/'>], [<URLResolver <module 'apps.compliance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\compliance\\urls.py'> (compliance:compliance) 'compliance/'>], [<URLResolver <module 'apps.communication.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\communication\\urls.py'> (communication:communication) 'communication/'>], [<URLResolver <module 'emis.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\emis\\urls.py'> (emis:emis) 'emis/'>], [<URLResolver <module 'apps.requests.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\requests\\urls.py'> (requests:requests) 'requests/'>], [<URLPattern 'organization/network/' [name='organization_network_dashboard']>], [<URLPattern 'api/tenant/domains/' [name='api_domains_list_or_create']>], [<URLPattern 'api/tenant/domains/<uuid:school_domain_id>/verify/' [name='api_domains_verify']>], [<URLPattern 'account-frozen/' [name='account_frozen']>], [<URLPattern 'privacy/' [name='marketing_privacy']>], [<URLPattern 'terms/' [name='marketing_terms']>], [<URLPattern 'cookie-policy/' [name='marketing_cookie_policy']>]], 'path': 'help/'}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 20, in test_help_center_renders_for_staff
+    response = self.client.get(reverse("feedback:help_center"))
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1087, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 802, in check_exception
+    raise exc_value
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 165, in get_exception_response
+    response = callback(request, exception=exception)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\tenant_urls.py", line 156, in page_not_found
+    return school_not_found(request)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\schools\error_views.py", line 16, in school_not_found
+    return render(
+        request,
+        "schools/404_tenant.html",
+        status=404,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 172, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 550, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'find_school' not found. 'find_school' is not a valid view function or pattern name.
+
+======================================================================
+ERROR: test_help_center_role_surfaces_linked (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_role_surfaces_linked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    callback, callback_args, callback_kwargs = self.resolve_request(request)
+                                               ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 313, in resolve_request
+    resolver_match = resolver.resolve(request.path_info)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 705, in resolve
+    raise Resolver404({"tried": tried, "path": new_path})
+django.urls.exceptions.Resolver404: {'tried': [[<URLPattern '' [name='home']>], [<URLPattern 'activation/first-action/' [name='activation_first_action']>], [<URLPattern 'demo/flow/' [name='demo_flow_index']>], [<URLPattern 'demo/flow/attendance/' [name='demo_flow_attendance']>], [<URLPattern 'demo/flow/attendance/complete/' [name='demo_flow_attendance_complete']>], [<URLPattern 'demo/flow/marks/' [name='demo_flow_marks']>], [<URLPattern 'demo/flow/marks/complete/' [name='demo_flow_marks_complete']>], [<URLPattern 'demo/flow/report/' [name='demo_flow_report']>], [<URLPattern 'demo/flow/report/complete/' [name='demo_flow_report_complete']>], [<URLPattern 'demo/flow/complete/' [name='demo_flow_complete']>], [<URLPattern 'favicon.ico'>], [<URLPattern 'manifest.json' [name='pwa_manifest_platform']>], [<URLPattern 'manifest-portal.json' [name='pwa_manifest_portal']>], [<URLPattern 'manifest/icon-<int:size>.png' [name='pwa_manifest_icon_any']>], [<URLPattern 'manifest/icon-<int:size>-maskable.png' [name='pwa_manifest_icon_maskable']>], [<URLPattern 'internal-admin/' [name='internal_admin']>], [<URLPattern 'internal-admin/<path:remaining>'>], [<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLPattern 'configuration/' [name='tenant_configuration_forbidden']>], [<URLPattern 'configuration/<path:remaining>'>], [<URLPattern 'school/settings/' [name='school_configuration_center']>], [<URLPattern 'school/configuration/' [name='school_configuration_center_canonical']>], [<URLPattern 'school/setup/blueprints/' [name='tenant_blueprint_setup']>], [<URLPattern 'school/setup/packs/' [name='tenant_pack_setup']>], [<URLPattern 'school/setup/imports/' [name='school_setup_imports']>], [<URLPattern 'school/apps/' [name='school_apps']>], [<URLPattern 'school/billing/' [name='school_billing']>], [<URLPattern 'school/money/' [name='school_money']>], [<URLPattern 'school/workflows/' [name='school_workflows']>], [<URLPattern 'school/offline/' [name='school_offline']>], [<URLPattern 'school/audit/' [name='school_audit']>], [<URLPattern 'school/security/' [name='school_security']>], [<URLPattern 'api/schema/' [name='api-schema']>], [<URLPattern 'api/schema/ui/' [name='api-schema-ui']>], [<URLPattern 'backend/'>], [<URLPattern 'healthz/' [name='healthz']>], [<URLPattern 'health/' [name='health']>], [<URLPattern 'ready/' [name='ready']>], [<URLPattern 'status/' [name='status']>], [<URLPattern 'metrics/' [name='metrics']>], [<URLPattern 'api/observability/copilot-metrics/' [name='copilot_metrics_json']>], [<URLPattern 'api/observability/slo-dashboard/' [name='api_operational_slo_dashboard']>], [<URLPattern 'admin/dashboard/' [name='admin_dashboard']>], [<URLPattern 'api/health/' [name='api_health']>], [<URLPattern 'api/admin/weather/' [name='api_admin_weather']>], [<URLPattern 'api/weather/context/' [name='api_weather_context']>], [<URLPattern 'api/notifications/' [name='api_notifications']>], [<URLPattern 'api/notifications/mark-all-read/' [name='api_notifications_mark_all_read']>], [<URLPattern 'api/activities/' [name='api_activities']>], [<URLPattern 'api/dashboard/charts/' [name='api_dashboard_charts']>], [<URLPattern 'api/ai-copilot/validate/' [name='ai_copilot_query']>], [<URLPattern 'api/ai-copilot/permissions/' [name='ai_permissions']>], [<URLPattern 'api/ai-copilot/limits/' [name='ai_copilot_limits']>], [<URLPattern 'api/ai-copilot/config/' [name='ai_copilot_config']>], [<URLPattern 'api/ai-copilot/audit/' [name='ai_copilot_audit']>], [<URLPattern 'api/ai/health/' [name='ai_health']>], [<URLResolver <module 'apps.studio_os.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\studio_os\\urls.py'> (studio_os:studio_os) 'studio/'>], [<URLPattern 'verify/<str:token>/' [name='verify_student_id']>], [<URLResolver <module 'apps.api.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls.py'> (api:api) 'api/'>], [<URLResolver <module 'apps.api.urls_v1' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls_v1.py'> (api_v1:api_v1) 'api/v1/'>], [<URLPattern 'siteconfig/school-configuration/' [name='siteconfig_school_configuration']>], [<URLResolver <module 'apps.siteconfig.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\siteconfig\\urls.py'> (siteconfig:siteconfig) 'siteconfig/'>], [<URLResolver <module 'apps.marketplace.tenant_urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\marketplace\\tenant_urls.py'> (marketplace:marketplace) 'marketplace/'>], [<URLPattern 'api/internal/click-tracking/' [name='record_click_event']>], [<URLPattern 'internal/click-measurement/' [name='click_measurement_dashboard']>], [<URLPattern 'settings/installed-apps/' [name='tenant_installed_apps']>], [<URLPattern 'settings/app-catalog/' [name='tenant_app_catalog']>], [<URLPattern 'settings/install-impact-preview/' [name='tenant_install_impact_preview']>], [<URLPattern 'settings/install-app/' [name='tenant_install_app']>], [<URLPattern 'settings/uninstall-app/' [name='tenant_uninstall_app']>], [<URLPattern 'settings/save-installation-config/' [name='tenant_save_installation_config']>], [<URLPattern 'settings/scope-consent/' [name='tenant_scope_consent']>], [<URLPattern 'settings/approve-scope/' [name='tenant_approve_scope']>], [<URLPattern 'settings/activate-installation/' [name='tenant_activate_installation']>], [<URLResolver <module 'apps.apicenter.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\apicenter\\urls.py'> (apicenter:apicenter) 'api-center/'>], [<URLResolver <module 'apps.events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\events\\urls.py'> (events:events) 'domain-events/'>], [<URLResolver <module 'apps.automation.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\automation\\urls.py'> (automation:automation) 'automation/'>], [<URLResolver <module 'apps.accounts.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\accounts\\urls.py'> (accounts:accounts) 'authentication/'>], [<URLResolver <module 'apps.evals.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\evals\\urls.py'> (evals:evals) 'evals/'>], [<URLResolver <module 'apps.academics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\academics\\urls.py'> (academics:academics) 'academics/'>], [<URLPattern 'portal/console/' [name='portal_console']>], [<URLPattern 'portal/configure/' [name='portal_configure']>], [<URLResolver <module 'apps.portal.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls.py'> (portal:portal) 'portal/'>], [<URLPattern 'portal'>], [<URLResolver <module 'apps.school_events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\school_events\\urls.py'> (school_events:school_events) 'events/'>], [<URLResolver <module 'apps.portal.urls_kb' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls_kb.py'> (kb:kb) 'kb/'>], [<URLResolver <module 'apps.reports.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\reports\\urls.py'> (reports:reports) 'reports/'>], [<URLResolver <module 'apps.analytics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\analytics\\urls.py'> (analytics:analytics) 'analytics/'>], [<URLResolver <module 'apps.platform_runtime.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\platform_runtime\\urls.py'> (platform_runtime:platform_runtime) 'platform-runtime/'>], [<URLResolver <module 'apps.finance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\finance\\urls.py'> (finance:finance) 'finance/'>], [<URLResolver <module 'apps.payroll.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\payroll\\urls.py'> (payroll:payroll) 'payroll/'>], [<URLResolver <module 'apps.compliance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\compliance\\urls.py'> (compliance:compliance) 'compliance/'>], [<URLResolver <module 'apps.communication.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\communication\\urls.py'> (communication:communication) 'communication/'>], [<URLResolver <module 'emis.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\emis\\urls.py'> (emis:emis) 'emis/'>], [<URLResolver <module 'apps.requests.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\requests\\urls.py'> (requests:requests) 'requests/'>], [<URLPattern 'organization/network/' [name='organization_network_dashboard']>], [<URLPattern 'api/tenant/domains/' [name='api_domains_list_or_create']>], [<URLPattern 'api/tenant/domains/<uuid:school_domain_id>/verify/' [name='api_domains_verify']>], [<URLPattern 'account-frozen/' [name='account_frozen']>], [<URLPattern 'privacy/' [name='marketing_privacy']>], [<URLPattern 'terms/' [name='marketing_terms']>], [<URLPattern 'cookie-policy/' [name='marketing_cookie_policy']>]], 'path': 'help/'}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 31, in test_help_center_role_surfaces_linked
+    response = self.client.get(reverse("feedback:help_center"))
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1087, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 802, in check_exception
+    raise exc_value
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 165, in get_exception_response
+    response = callback(request, exception=exception)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\tenant_urls.py", line 156, in page_not_found
+    return school_not_found(request)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\schools\error_views.py", line 16, in school_not_found
+    return render(
+        request,
+        "schools/404_tenant.html",
+        status=404,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 172, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 550, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'find_school' not found. 'find_school' is not a valid view function or pattern name.
+
+======================================================================
+ERROR: test_help_center_surfaces_kb_and_faq_matches (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_help_center_surfaces_kb_and_faq_matches)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    callback, callback_args, callback_kwargs = self.resolve_request(request)
+                                               ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 313, in resolve_request
+    resolver_match = resolver.resolve(request.path_info)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 705, in resolve
+    raise Resolver404({"tried": tried, "path": new_path})
+django.urls.exceptions.Resolver404: {'tried': [[<URLPattern '' [name='home']>], [<URLPattern 'activation/first-action/' [name='activation_first_action']>], [<URLPattern 'demo/flow/' [name='demo_flow_index']>], [<URLPattern 'demo/flow/attendance/' [name='demo_flow_attendance']>], [<URLPattern 'demo/flow/attendance/complete/' [name='demo_flow_attendance_complete']>], [<URLPattern 'demo/flow/marks/' [name='demo_flow_marks']>], [<URLPattern 'demo/flow/marks/complete/' [name='demo_flow_marks_complete']>], [<URLPattern 'demo/flow/report/' [name='demo_flow_report']>], [<URLPattern 'demo/flow/report/complete/' [name='demo_flow_report_complete']>], [<URLPattern 'demo/flow/complete/' [name='demo_flow_complete']>], [<URLPattern 'favicon.ico'>], [<URLPattern 'manifest.json' [name='pwa_manifest_platform']>], [<URLPattern 'manifest-portal.json' [name='pwa_manifest_portal']>], [<URLPattern 'manifest/icon-<int:size>.png' [name='pwa_manifest_icon_any']>], [<URLPattern 'manifest/icon-<int:size>-maskable.png' [name='pwa_manifest_icon_maskable']>], [<URLPattern 'internal-admin/' [name='internal_admin']>], [<URLPattern 'internal-admin/<path:remaining>'>], [<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLPattern 'configuration/' [name='tenant_configuration_forbidden']>], [<URLPattern 'configuration/<path:remaining>'>], [<URLPattern 'school/settings/' [name='school_configuration_center']>], [<URLPattern 'school/configuration/' [name='school_configuration_center_canonical']>], [<URLPattern 'school/setup/blueprints/' [name='tenant_blueprint_setup']>], [<URLPattern 'school/setup/packs/' [name='tenant_pack_setup']>], [<URLPattern 'school/setup/imports/' [name='school_setup_imports']>], [<URLPattern 'school/apps/' [name='school_apps']>], [<URLPattern 'school/billing/' [name='school_billing']>], [<URLPattern 'school/money/' [name='school_money']>], [<URLPattern 'school/workflows/' [name='school_workflows']>], [<URLPattern 'school/offline/' [name='school_offline']>], [<URLPattern 'school/audit/' [name='school_audit']>], [<URLPattern 'school/security/' [name='school_security']>], [<URLPattern 'api/schema/' [name='api-schema']>], [<URLPattern 'api/schema/ui/' [name='api-schema-ui']>], [<URLPattern 'backend/'>], [<URLPattern 'healthz/' [name='healthz']>], [<URLPattern 'health/' [name='health']>], [<URLPattern 'ready/' [name='ready']>], [<URLPattern 'status/' [name='status']>], [<URLPattern 'metrics/' [name='metrics']>], [<URLPattern 'api/observability/copilot-metrics/' [name='copilot_metrics_json']>], [<URLPattern 'api/observability/slo-dashboard/' [name='api_operational_slo_dashboard']>], [<URLPattern 'admin/dashboard/' [name='admin_dashboard']>], [<URLPattern 'api/health/' [name='api_health']>], [<URLPattern 'api/admin/weather/' [name='api_admin_weather']>], [<URLPattern 'api/weather/context/' [name='api_weather_context']>], [<URLPattern 'api/notifications/' [name='api_notifications']>], [<URLPattern 'api/notifications/mark-all-read/' [name='api_notifications_mark_all_read']>], [<URLPattern 'api/activities/' [name='api_activities']>], [<URLPattern 'api/dashboard/charts/' [name='api_dashboard_charts']>], [<URLPattern 'api/ai-copilot/validate/' [name='ai_copilot_query']>], [<URLPattern 'api/ai-copilot/permissions/' [name='ai_permissions']>], [<URLPattern 'api/ai-copilot/limits/' [name='ai_copilot_limits']>], [<URLPattern 'api/ai-copilot/config/' [name='ai_copilot_config']>], [<URLPattern 'api/ai-copilot/audit/' [name='ai_copilot_audit']>], [<URLPattern 'api/ai/health/' [name='ai_health']>], [<URLResolver <module 'apps.studio_os.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\studio_os\\urls.py'> (studio_os:studio_os) 'studio/'>], [<URLPattern 'verify/<str:token>/' [name='verify_student_id']>], [<URLResolver <module 'apps.api.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls.py'> (api:api) 'api/'>], [<URLResolver <module 'apps.api.urls_v1' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls_v1.py'> (api_v1:api_v1) 'api/v1/'>], [<URLPattern 'siteconfig/school-configuration/' [name='siteconfig_school_configuration']>], [<URLResolver <module 'apps.siteconfig.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\siteconfig\\urls.py'> (siteconfig:siteconfig) 'siteconfig/'>], [<URLResolver <module 'apps.marketplace.tenant_urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\marketplace\\tenant_urls.py'> (marketplace:marketplace) 'marketplace/'>], [<URLPattern 'api/internal/click-tracking/' [name='record_click_event']>], [<URLPattern 'internal/click-measurement/' [name='click_measurement_dashboard']>], [<URLPattern 'settings/installed-apps/' [name='tenant_installed_apps']>], [<URLPattern 'settings/app-catalog/' [name='tenant_app_catalog']>], [<URLPattern 'settings/install-impact-preview/' [name='tenant_install_impact_preview']>], [<URLPattern 'settings/install-app/' [name='tenant_install_app']>], [<URLPattern 'settings/uninstall-app/' [name='tenant_uninstall_app']>], [<URLPattern 'settings/save-installation-config/' [name='tenant_save_installation_config']>], [<URLPattern 'settings/scope-consent/' [name='tenant_scope_consent']>], [<URLPattern 'settings/approve-scope/' [name='tenant_approve_scope']>], [<URLPattern 'settings/activate-installation/' [name='tenant_activate_installation']>], [<URLResolver <module 'apps.apicenter.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\apicenter\\urls.py'> (apicenter:apicenter) 'api-center/'>], [<URLResolver <module 'apps.events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\events\\urls.py'> (events:events) 'domain-events/'>], [<URLResolver <module 'apps.automation.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\automation\\urls.py'> (automation:automation) 'automation/'>], [<URLResolver <module 'apps.accounts.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\accounts\\urls.py'> (accounts:accounts) 'authentication/'>], [<URLResolver <module 'apps.evals.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\evals\\urls.py'> (evals:evals) 'evals/'>], [<URLResolver <module 'apps.academics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\academics\\urls.py'> (academics:academics) 'academics/'>], [<URLPattern 'portal/console/' [name='portal_console']>], [<URLPattern 'portal/configure/' [name='portal_configure']>], [<URLResolver <module 'apps.portal.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls.py'> (portal:portal) 'portal/'>], [<URLPattern 'portal'>], [<URLResolver <module 'apps.school_events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\school_events\\urls.py'> (school_events:school_events) 'events/'>], [<URLResolver <module 'apps.portal.urls_kb' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls_kb.py'> (kb:kb) 'kb/'>], [<URLResolver <module 'apps.reports.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\reports\\urls.py'> (reports:reports) 'reports/'>], [<URLResolver <module 'apps.analytics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\analytics\\urls.py'> (analytics:analytics) 'analytics/'>], [<URLResolver <module 'apps.platform_runtime.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\platform_runtime\\urls.py'> (platform_runtime:platform_runtime) 'platform-runtime/'>], [<URLResolver <module 'apps.finance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\finance\\urls.py'> (finance:finance) 'finance/'>], [<URLResolver <module 'apps.payroll.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\payroll\\urls.py'> (payroll:payroll) 'payroll/'>], [<URLResolver <module 'apps.compliance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\compliance\\urls.py'> (compliance:compliance) 'compliance/'>], [<URLResolver <module 'apps.communication.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\communication\\urls.py'> (communication:communication) 'communication/'>], [<URLResolver <module 'emis.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\emis\\urls.py'> (emis:emis) 'emis/'>], [<URLResolver <module 'apps.requests.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\requests\\urls.py'> (requests:requests) 'requests/'>], [<URLPattern 'organization/network/' [name='organization_network_dashboard']>], [<URLPattern 'api/tenant/domains/' [name='api_domains_list_or_create']>], [<URLPattern 'api/tenant/domains/<uuid:school_domain_id>/verify/' [name='api_domains_verify']>], [<URLPattern 'account-frozen/' [name='account_frozen']>], [<URLPattern 'privacy/' [name='marketing_privacy']>], [<URLPattern 'terms/' [name='marketing_terms']>], [<URLPattern 'cookie-policy/' [name='marketing_cookie_policy']>]], 'path': 'help/'}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 55, in test_help_center_surfaces_kb_and_faq_matches
+    response = self.client.get(reverse("feedback:help_center"), {"q": "payment receipt"})
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1087, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 802, in check_exception
+    raise exc_value
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 165, in get_exception_response
+    response = callback(request, exception=exception)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\tenant_urls.py", line 156, in page_not_found
+    return school_not_found(request)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\schools\error_views.py", line 16, in school_not_found
+    return render(
+        request,
+        "schools/404_tenant.html",
+        status=404,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 172, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 550, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'find_school' not found. 'find_school' is not a valid view function or pattern name.
+
+======================================================================
+ERROR: test_support_categories_create_support_ticket_from_feedback (apps.feedback.tests.test_feedback_help_center_contracts.FeedbackHelpCenterContractsTests.test_support_categories_create_support_ticket_from_feedback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    callback, callback_args, callback_kwargs = self.resolve_request(request)
+                                               ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\base.py", line 313, in resolve_request
+    resolver_match = resolver.resolve(request.path_info)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 705, in resolve
+    raise Resolver404({"tried": tried, "path": new_path})
+django.urls.exceptions.Resolver404: {'tried': [[<URLPattern '' [name='home']>], [<URLPattern 'activation/first-action/' [name='activation_first_action']>], [<URLPattern 'demo/flow/' [name='demo_flow_index']>], [<URLPattern 'demo/flow/attendance/' [name='demo_flow_attendance']>], [<URLPattern 'demo/flow/attendance/complete/' [name='demo_flow_attendance_complete']>], [<URLPattern 'demo/flow/marks/' [name='demo_flow_marks']>], [<URLPattern 'demo/flow/marks/complete/' [name='demo_flow_marks_complete']>], [<URLPattern 'demo/flow/report/' [name='demo_flow_report']>], [<URLPattern 'demo/flow/report/complete/' [name='demo_flow_report_complete']>], [<URLPattern 'demo/flow/complete/' [name='demo_flow_complete']>], [<URLPattern 'favicon.ico'>], [<URLPattern 'manifest.json' [name='pwa_manifest_platform']>], [<URLPattern 'manifest-portal.json' [name='pwa_manifest_portal']>], [<URLPattern 'manifest/icon-<int:size>.png' [name='pwa_manifest_icon_any']>], [<URLPattern 'manifest/icon-<int:size>-maskable.png' [name='pwa_manifest_icon_maskable']>], [<URLPattern 'internal-admin/' [name='internal_admin']>], [<URLPattern 'internal-admin/<path:remaining>'>], [<URLResolver <URLPattern list> (admin:admin) 'admin/'>], [<URLPattern 'configuration/' [name='tenant_configuration_forbidden']>], [<URLPattern 'configuration/<path:remaining>'>], [<URLPattern 'school/settings/' [name='school_configuration_center']>], [<URLPattern 'school/configuration/' [name='school_configuration_center_canonical']>], [<URLPattern 'school/setup/blueprints/' [name='tenant_blueprint_setup']>], [<URLPattern 'school/setup/packs/' [name='tenant_pack_setup']>], [<URLPattern 'school/setup/imports/' [name='school_setup_imports']>], [<URLPattern 'school/apps/' [name='school_apps']>], [<URLPattern 'school/billing/' [name='school_billing']>], [<URLPattern 'school/money/' [name='school_money']>], [<URLPattern 'school/workflows/' [name='school_workflows']>], [<URLPattern 'school/offline/' [name='school_offline']>], [<URLPattern 'school/audit/' [name='school_audit']>], [<URLPattern 'school/security/' [name='school_security']>], [<URLPattern 'api/schema/' [name='api-schema']>], [<URLPattern 'api/schema/ui/' [name='api-schema-ui']>], [<URLPattern 'backend/'>], [<URLPattern 'healthz/' [name='healthz']>], [<URLPattern 'health/' [name='health']>], [<URLPattern 'ready/' [name='ready']>], [<URLPattern 'status/' [name='status']>], [<URLPattern 'metrics/' [name='metrics']>], [<URLPattern 'api/observability/copilot-metrics/' [name='copilot_metrics_json']>], [<URLPattern 'api/observability/slo-dashboard/' [name='api_operational_slo_dashboard']>], [<URLPattern 'admin/dashboard/' [name='admin_dashboard']>], [<URLPattern 'api/health/' [name='api_health']>], [<URLPattern 'api/admin/weather/' [name='api_admin_weather']>], [<URLPattern 'api/weather/context/' [name='api_weather_context']>], [<URLPattern 'api/notifications/' [name='api_notifications']>], [<URLPattern 'api/notifications/mark-all-read/' [name='api_notifications_mark_all_read']>], [<URLPattern 'api/activities/' [name='api_activities']>], [<URLPattern 'api/dashboard/charts/' [name='api_dashboard_charts']>], [<URLPattern 'api/ai-copilot/validate/' [name='ai_copilot_query']>], [<URLPattern 'api/ai-copilot/permissions/' [name='ai_permissions']>], [<URLPattern 'api/ai-copilot/limits/' [name='ai_copilot_limits']>], [<URLPattern 'api/ai-copilot/config/' [name='ai_copilot_config']>], [<URLPattern 'api/ai-copilot/audit/' [name='ai_copilot_audit']>], [<URLPattern 'api/ai/health/' [name='ai_health']>], [<URLResolver <module 'apps.studio_os.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\studio_os\\urls.py'> (studio_os:studio_os) 'studio/'>], [<URLPattern 'verify/<str:token>/' [name='verify_student_id']>], [<URLResolver <module 'apps.api.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls.py'> (api:api) 'api/'>], [<URLResolver <module 'apps.api.urls_v1' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\api\\urls_v1.py'> (api_v1:api_v1) 'api/v1/'>], [<URLPattern 'siteconfig/school-configuration/' [name='siteconfig_school_configuration']>], [<URLResolver <module 'apps.siteconfig.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\siteconfig\\urls.py'> (siteconfig:siteconfig) 'siteconfig/'>], [<URLResolver <module 'apps.marketplace.tenant_urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\marketplace\\tenant_urls.py'> (marketplace:marketplace) 'marketplace/'>], [<URLPattern 'api/internal/click-tracking/' [name='record_click_event']>], [<URLPattern 'internal/click-measurement/' [name='click_measurement_dashboard']>], [<URLPattern 'settings/installed-apps/' [name='tenant_installed_apps']>], [<URLPattern 'settings/app-catalog/' [name='tenant_app_catalog']>], [<URLPattern 'settings/install-impact-preview/' [name='tenant_install_impact_preview']>], [<URLPattern 'settings/install-app/' [name='tenant_install_app']>], [<URLPattern 'settings/uninstall-app/' [name='tenant_uninstall_app']>], [<URLPattern 'settings/save-installation-config/' [name='tenant_save_installation_config']>], [<URLPattern 'settings/scope-consent/' [name='tenant_scope_consent']>], [<URLPattern 'settings/approve-scope/' [name='tenant_approve_scope']>], [<URLPattern 'settings/activate-installation/' [name='tenant_activate_installation']>], [<URLResolver <module 'apps.apicenter.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\apicenter\\urls.py'> (apicenter:apicenter) 'api-center/'>], [<URLResolver <module 'apps.events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\events\\urls.py'> (events:events) 'domain-events/'>], [<URLResolver <module 'apps.automation.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\automation\\urls.py'> (automation:automation) 'automation/'>], [<URLResolver <module 'apps.accounts.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\accounts\\urls.py'> (accounts:accounts) 'authentication/'>], [<URLResolver <module 'apps.evals.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\evals\\urls.py'> (evals:evals) 'evals/'>], [<URLResolver <module 'apps.academics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\academics\\urls.py'> (academics:academics) 'academics/'>], [<URLPattern 'portal/console/' [name='portal_console']>], [<URLPattern 'portal/configure/' [name='portal_configure']>], [<URLResolver <module 'apps.portal.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls.py'> (portal:portal) 'portal/'>], [<URLPattern 'portal'>], [<URLResolver <module 'apps.school_events.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\school_events\\urls.py'> (school_events:school_events) 'events/'>], [<URLResolver <module 'apps.portal.urls_kb' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\portal\\urls_kb.py'> (kb:kb) 'kb/'>], [<URLResolver <module 'apps.reports.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\reports\\urls.py'> (reports:reports) 'reports/'>], [<URLResolver <module 'apps.analytics.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\analytics\\urls.py'> (analytics:analytics) 'analytics/'>], [<URLResolver <module 'apps.platform_runtime.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\platform_runtime\\urls.py'> (platform_runtime:platform_runtime) 'platform-runtime/'>], [<URLResolver <module 'apps.finance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\finance\\urls.py'> (finance:finance) 'finance/'>], [<URLResolver <module 'apps.payroll.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\payroll\\urls.py'> (payroll:payroll) 'payroll/'>], [<URLResolver <module 'apps.compliance.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\compliance\\urls.py'> (compliance:compliance) 'compliance/'>], [<URLResolver <module 'apps.communication.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\communication\\urls.py'> (communication:communication) 'communication/'>], [<URLResolver <module 'emis.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\emis\\urls.py'> (emis:emis) 'emis/'>], [<URLResolver <module 'apps.requests.urls' from 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\requests\\urls.py'> (requests:requests) 'requests/'>], [<URLPattern 'organization/network/' [name='organization_network_dashboard']>], [<URLPattern 'api/tenant/domains/' [name='api_domains_list_or_create']>], [<URLPattern 'api/tenant/domains/<uuid:school_domain_id>/verify/' [name='api_domains_verify']>], [<URLPattern 'account-frozen/' [name='account_frozen']>], [<URLPattern 'privacy/' [name='marketing_privacy']>], [<URLPattern 'terms/' [name='marketing_terms']>], [<URLPattern 'cookie-policy/' [name='marketing_cookie_policy']>]], 'path': 'feedback/'}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\feedback\tests\test_feedback_help_center_contracts.py", line 63, in test_support_categories_create_support_ticket_from_feedback
+    response = self.client.post(
+        reverse("feedback:school_feedback"),
+    ...<12 lines>...
+        },
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1153, in post
+    response = super().post(
+        path,
+    ...<5 lines>...
+        **extra,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 499, in post
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<6 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 1087, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\client.py", line 802, in check_exception
+    raise exc_value
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\handlers\exception.py", line 165, in get_exception_response
+    response = callback(request, exception=exception)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\tenant_urls.py", line 156, in page_not_found
+    return school_not_found(request)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\schools\error_views.py", line 16, in school_not_found
+    return render(
+        request,
+        "schools/404_tenant.html",
+        status=404,
+    )
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 172, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 114, in instrumented_test_render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 550, in render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 1018, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\base.py", line 979, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'find_school' not found. 'find_school' is not a valid view function or pattern name.
+
+----------------------------------------------------------------------
+Ran 5 tests in 63.577s
+
+FAILED (errors=5)
+Destroying test database for alias 'default'...
+Traceback (most recent call last):
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\commands\test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 420, in run_from_argv
+    self.execute(*args, **cmd_options)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 464, in execute
+    output = self.handle(*args, **options)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\commands\test.py", line 63, in handle
+    failures = test_runner.run_tests(test_labels)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\reliable_test_runner.py", line 23, in run_tests
+    return super().run_tests(test_labels, extra_tests=extra_tests, **kwargs)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\runner.py", line 1106, in run_tests
+    self.teardown_databases(old_config)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\reliable_test_runner.py", line 29, in teardown_databases
+    return super().teardown_databases(old_config, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\runner.py", line 1034, in teardown_databases
+    _teardown_databases(
+    ~~~~~~~~~~~~~~~~~~~^
+        old_config,
+        ^^^^^^^^^^^
+    ...<2 lines>...
+        keepdb=self.keepdb,
+        ^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\test\utils.py", line 379, in teardown_databases
+    connection.creation.destroy_test_db(old_name, verbosity, keepdb)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\base\creation.py", line 311, in destroy_test_db
+    self._destroy_test_db(test_database_name, verbosity)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\db\backends\sqlite3\creation.py", line 112, in _destroy_test_db
+    os.remove(test_database_name)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\.django_test_dbs\\rmc_sqlite_test_runner_fresh_1779214077.sqlite3'

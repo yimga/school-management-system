@@ -1,0 +1,128 @@
+{
+  "generated_at": "2026-05-20T02:39:28.710152+00:00",
+  "sot_batch": 1326,
+  "extends_batch": 1318,
+  "verdict": "MIGRATION CLOUD CONNECTORS READY \u2014 REPO SCOPE",
+  "gate": {
+    "verify_migration_cloud_connectors": {
+      "pass": true,
+      "stdout": "MIGRATION_CLOUD_CONNECTORS_PASS 8",
+      "checks": 8
+    }
+  },
+  "repo_scope_certified": [
+    "models_connectors (8 models)",
+    "connector services (credentials, discovery, mapping, import, rollback, audit, bundle_bridge)",
+    "intake (api_pull_intake, database_intake sqlite)",
+    "connectors registry (generic + vendor export adapters)",
+    "tenant wizard /school/setup/migration-cloud/",
+    "operator /super/migration/connectors/",
+    "migrations 0025_migration_cloud_connectors + 0026_staging_rows_json"
+  ],
+  "test_modules": [
+    "apps.migration_cloud.tests.test_connector_registry",
+    "apps.migration_cloud.tests.test_vendor_connectors",
+    "apps.migration_cloud.tests.test_api_pull_intake",
+    "apps.migration_cloud.tests.test_field_mapping",
+    "apps.migration_cloud.tests.test_data_quality_quarantine",
+    "apps.migration_cloud.tests.test_import_engine",
+    "apps.migration_cloud.tests.test_rollback_posture",
+    "apps.migration_cloud.tests.test_migration_cloud_tenant_isolation",
+    "apps.migration_cloud.tests.test_migration_cloud_audit",
+    "apps.migration_cloud.tests.test_source_connection_security",
+    "apps.migration_cloud.tests.test_source_discovery",
+    "apps.migration_cloud.tests.test_operator_migration_cloud"
+  ],
+  "tests": {
+    "command": "python scripts/run_sqlite_memory_tests.py <12 connector modules>",
+    "total": 30,
+    "passed": 30,
+    "failed": 0,
+    "status": "OK"
+  },
+  "connectors": [
+    {
+      "key": "blackbaud",
+      "certification_status": "pilot_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
+    },
+    {
+      "key": "finalsite",
+      "certification_status": "planned",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "generic_api",
+      "certification_status": "api_experimental",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "generic_browser_export",
+      "certification_status": "browser_export_experimental",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "generic_csv_export",
+      "certification_status": "production_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "google_classroom",
+      "certification_status": "api_experimental",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "open_sis",
+      "certification_status": "file_export_only",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
+    },
+    {
+      "key": "powerschool",
+      "certification_status": "pilot_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
+    },
+    {
+      "key": "veracross",
+      "certification_status": "pilot_ready",
+      "supported_methods": [
+        "file_export"
+      ],
+      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
+    }
+  ],
+  "tenant_isolation": "PASS \u2014 school FK scoping on connector models; cross-tenant filter tests",
+  "security": "PASS \u2014 no credential logging; memory-only default; authorization gates on import",
+  "external_deferrals": [
+    "Live vendor REST/OAuth against production SIS APIs",
+    "FACTS/Skyward write paths (counsel-blocked)",
+    "Ed-Fi production connector"
+  ],
+  "e2e": {
+    "spec": "tests/e2e/migration-cloud.spec.js",
+    "playwright_required": true
+  }
+}

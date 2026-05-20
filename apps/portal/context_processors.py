@@ -65,3 +65,68 @@ def announcements(request):
     except (DatabaseError, TransactionManagementError):
         _reset_db_state()
         return {"announcements": []}
+
+
+def support_deflection_urls(request):
+    """Universal deflection API URLs for ticket-like forms (batch 1347)."""
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return {}
+    try:
+        from django.urls import reverse
+
+        return {
+            "support_deflection_url": reverse("api:support-deflection"),
+            "support_deflection_ack_url": reverse("api:support-deflection-ack"),
+        }
+    except Exception:
+        return {}
+
+
+def help_contextual(request):
+    """Proactive nudges + contextual help drawer (batches 1346/1352/1353)."""
+    from apps.portal.help_proactive_inline import proactive_nudge_for_request
+    from apps.portal.school_help_context import contextual_help_drawer_enabled
+
+    nudge = proactive_nudge_for_request(request)
+    drawer = contextual_help_drawer_enabled(request)
+    journey = None
+    journey_articles: list = []
+    if drawer:
+        try:
+            from apps.portal.help_guided_journeys import (
+                journey_for_path,
+                resolve_journey_articles,
+            )
+            from apps.portal.kb_context import is_operator_help_request
+
+            path = getattr(request, "path", "")
+            operator = is_operator_help_request(request)
+            journey = journey_for_path(path, operator=operator)
+            journey_articles = resolve_journey_articles(
+                school=getattr(request, "school", None),
+                path=path,
+                operator=operator,
+            )
+        except Exception:
+            journey = None
+            journey_articles = []
+    urls: dict[str, str] = {}
+    if drawer or nudge:
+        try:
+            from django.urls import reverse
+
+            urls = {
+                "help_center_url": reverse("feedback:help_center"),
+                "kb_home_url": reverse("kb:kb_home"),
+            }
+            if getattr(request, "public_host_kind", None) == "manager":
+                urls["help_center_url"] = reverse("manager_help_center")
+        except Exception:
+            pass
+    return {
+        "proactive_help_nudge": nudge,
+        "show_contextual_help_drawer": drawer,
+        "help_guided_journey": journey,
+        "help_guided_journey_articles": journey_articles,
+        "help_contextual_urls": urls,
+    }

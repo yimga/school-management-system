@@ -1,0 +1,14 @@
+{% load i18n %}
+{% if proactive_help_nudge %}
+<div class="alert alert-light border mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="status" data-rmc-proactive-help-nudge>
+  <span class="small mb-0">
+    <i class="bi bi-compass me-1"></i>
+    {% trans "Having trouble on this page?" %}
+    {% trans "Check guided help before opening a ticket." %}
+  </span>
+  <span class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-primary" href="{{ proactive_help_nudge.kb_url }}">{% trans "Browse KB" %}</a>
+    <a class="btn btn-sm btn-primary" href="{{ proactive_help_nudge.help_url }}">{% trans "Help center" %}</a>
+  </span>
+</div>
+{% endif %}

@@ -1,0 +1,915 @@
+{
+  "generated_at": "2026-05-20T10:51:27.378602+00:00",
+  "prompt_pack_version": "2026-05-20-orchestrator-v5",
+  "verdict": "ORCHESTRATOR_PROMPT_PACK_PASS",
+  "pass_count": 181,
+  "fail_count": 0,
+  "checks": [
+    {
+      "id": "file:README.md",
+      "ok": true,
+      "proof": "3623 bytes"
+    },
+    {
+      "id": "file:00-global-execution-rules.md",
+      "ok": true,
+      "proof": "7729 bytes"
+    },
+    {
+      "id": "file:00-moderator-chief-orchestrator.md",
+      "ok": true,
+      "proof": "15164 bytes"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:Chief Platform Orchestrator",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:orchestrator_execution_matrix",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:orchestrator_gap_burndown",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:RERUN REQUIRED",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:Stage 9",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:Agent 10",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-moderator-chief-orchestrator.md:Recovery wave",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:00-platform-wide-clause.md",
+      "ok": true,
+      "proof": "2666 bytes"
+    },
+    {
+      "id": "file:00-moderator-addendum.md",
+      "ok": true,
+      "proof": "2070 bytes"
+    },
+    {
+      "id": "file:00-gear-up-v3-escalation.md",
+      "ok": true,
+      "proof": "1867 bytes"
+    },
+    {
+      "id": "marker:00-gear-up-v3-escalation.md:GEAR-UP V3",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v3-escalation.md:v3_delta",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v3-escalation.md:75/75 ELITE",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v3-escalation.md:audit_admin_gravity.py --strict",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:00-gear-up-v4-category-defining.md",
+      "ok": true,
+      "proof": "2411 bytes"
+    },
+    {
+      "id": "marker:00-gear-up-v4-category-defining.md:GEAR-UP V4",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v4-category-defining.md:ollama_live_proof",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v4-category-defining.md:v4_competitive_wins",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v4-category-defining.md:category-defining",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:00-gear-up-v5-transformational.md",
+      "ok": true,
+      "proof": "1864 bytes"
+    },
+    {
+      "id": "marker:00-gear-up-v5-transformational.md:GEAR-UP V5",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v5-transformational.md:orchestrator_journey_manifest",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v5-transformational.md:TENANT_BASE_URL",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:00-gear-up-v5-transformational.md:journey_coverage_pct",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:phase-0-p0-deploy-gate.md",
+      "ok": true,
+      "proof": "9057 bytes"
+    },
+    {
+      "id": "marker:phase-0-p0-deploy-gate.md:verify_migration_files_tracked",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:phase-0-p0-deploy-gate.md:bootstrap_at_risk_registry",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:phase-0-p0-deploy-gate.md:render_predeploy",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-00-current-state-validation.md",
+      "ok": true,
+      "proof": "11609 bytes"
+    },
+    {
+      "id": "marker:stage-00-current-state-validation.md:READY FOR STAGE 1",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-00-current-state-validation.md:aggressive_stage_execution_readiness",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-00-current-state-validation.md:audit_route_surface",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-01-core-runtime.md",
+      "ok": true,
+      "proof": "9906 bytes"
+    },
+    {
+      "id": "marker:stage-01-core-runtime.md:CORE RUNTIME READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-01-core-runtime.md:core_runtime_dependency_audit",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-01-core-runtime.md:test_cors_csrf_tenant_runtime",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-02-tenant-isolation.md",
+      "ok": true,
+      "proof": "9622 bytes"
+    },
+    {
+      "id": "marker:stage-02-tenant-isolation.md:TENANT ISOLATION KERNEL READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-02-tenant-isolation.md:tenant_kernel_architecture_review",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-02-tenant-isolation.md:test_boundary_penetration",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-03-edge-routing-branding.md",
+      "ok": true,
+      "proof": "10291 bytes"
+    },
+    {
+      "id": "marker:stage-03-edge-routing-branding.md:EDGE SURFACES READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-03-edge-routing-branding.md:edge_surface_routing_audit",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-03-edge-routing-branding.md:four shell",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-04-policy-entitlements.md",
+      "ok": true,
+      "proof": "9163 bytes"
+    },
+    {
+      "id": "marker:stage-04-policy-entitlements.md:CONFIGURATION POLICY ENGINE READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-04-policy-entitlements.md:policy_entitlement_runtime_audit",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-05-finance-ledger.md",
+      "ok": true,
+      "proof": "8879 bytes"
+    },
+    {
+      "id": "marker:stage-05-finance-ledger.md:FINANCE LEDGER READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-05-finance-ledger.md:finance_ledger_precision_audit",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-05-finance-ledger.md:scan_money_float",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-06-academics-operations.md",
+      "ok": true,
+      "proof": "9049 bytes"
+    },
+    {
+      "id": "marker:stage-06-academics-operations.md:ACADEMIC OPERATIONS READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-06-academics-operations.md:academic_operations_workflow_audit",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-07-migration-cloud.md",
+      "ok": true,
+      "proof": "9351 bytes"
+    },
+    {
+      "id": "marker:stage-07-migration-cloud.md:MIGRATION CLOUD CONNECTORS READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-07-migration-cloud.md:migration_cloud_connector_certification",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-07-migration-cloud.md:CanonicalSchoolPayload",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-08-workspace-ux.md",
+      "ok": true,
+      "proof": "9329 bytes"
+    },
+    {
+      "id": "marker:stage-08-workspace-ux.md:WORKSPACE COCKPITS READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-08-workspace-ux.md:workspace_layout_constraint_audit",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-09-api-automation-base.md",
+      "ok": true,
+      "proof": "8991 bytes"
+    },
+    {
+      "id": "file:stage-09-ai-center-expanded.md",
+      "ok": true,
+      "proof": "23046 bytes"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:FEATURE CODESPACE DISCONNECT",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:DATA DEFAULTER",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:ai/Modelfile",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:RUNMYCAMPUS_AI_CENTER.md",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:generate_ai_center_inventory",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:PHASE 19",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:API CENTER + AI CENTER READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-09-ai-center-expanded.md:test_ai_center_security",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:stage-10-final-certification.md",
+      "ok": true,
+      "proof": "10171 bytes"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:ten_x_platform_certification",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:10X PLATFORM READY",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:75/75",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:audit_admin_gravity.py --strict",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "marker:stage-10-final-certification.md:v3_compliance_pct",
+      "ok": true,
+      "proof": "found"
+    },
+    {
+      "id": "file:pillar-prompts-01-07.md",
+      "ok": true,
+      "proof": "5461 bytes"
+    },
+    {
+      "id": "file:agent-assignment-index.json",
+      "ok": true,
+      "proof": "4108 bytes"
+    },
+    {
+      "id": "file:worker-paste/moderator.md",
+      "ok": true,
+      "proof": "34315 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent0-stage-0.md",
+      "ok": true,
+      "proof": "39831 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent1-stage-1.md",
+      "ok": true,
+      "proof": "29385 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent2-stage-2.md",
+      "ok": true,
+      "proof": "29070 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent3-stage-3.md",
+      "ok": true,
+      "proof": "30494 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent4-stage-4.md",
+      "ok": true,
+      "proof": "28290 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent5-stage-5.md",
+      "ok": true,
+      "proof": "27872 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent6-stage-6.md",
+      "ok": true,
+      "proof": "28116 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent7-stage-7.md",
+      "ok": true,
+      "proof": "28010 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent8-stage-8.md",
+      "ok": true,
+      "proof": "29535 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent9-stage-9.md",
+      "ok": true,
+      "proof": "42113 bytes"
+    },
+    {
+      "id": "file:worker-paste/agent10-stage-10.md",
+      "ok": true,
+      "proof": "28832 bytes"
+    },
+    {
+      "id": "manifest:agents_count",
+      "ok": true,
+      "proof": "12 agents"
+    },
+    {
+      "id": "manifest:agent:Moderator",
+      "ok": true,
+      "proof": "00-moderator-chief-orchestrator.md"
+    },
+    {
+      "id": "manifest:worker_paste:Moderator",
+      "ok": true,
+      "proof": "worker-paste/moderator.md"
+    },
+    {
+      "id": "worker_paste:Moderator:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Moderator:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Moderator:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Moderator:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Moderator:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent0",
+      "ok": true,
+      "proof": "stage-00-current-state-validation.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent0",
+      "ok": true,
+      "proof": "worker-paste/agent0-stage-0.md"
+    },
+    {
+      "id": "worker_paste:Agent0:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent0:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent0:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent0:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent0:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent1",
+      "ok": true,
+      "proof": "stage-01-core-runtime.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent1",
+      "ok": true,
+      "proof": "worker-paste/agent1-stage-1.md"
+    },
+    {
+      "id": "worker_paste:Agent1:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent1:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent1:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent1:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent1:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent2",
+      "ok": true,
+      "proof": "stage-02-tenant-isolation.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent2",
+      "ok": true,
+      "proof": "worker-paste/agent2-stage-2.md"
+    },
+    {
+      "id": "worker_paste:Agent2:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent2:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent2:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent2:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent2:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent3",
+      "ok": true,
+      "proof": "stage-03-edge-routing-branding.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent3",
+      "ok": true,
+      "proof": "worker-paste/agent3-stage-3.md"
+    },
+    {
+      "id": "worker_paste:Agent3:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent3:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent3:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent3:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent3:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent4",
+      "ok": true,
+      "proof": "stage-04-policy-entitlements.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent4",
+      "ok": true,
+      "proof": "worker-paste/agent4-stage-4.md"
+    },
+    {
+      "id": "worker_paste:Agent4:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent4:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent4:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent4:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent4:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent5",
+      "ok": true,
+      "proof": "stage-05-finance-ledger.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent5",
+      "ok": true,
+      "proof": "worker-paste/agent5-stage-5.md"
+    },
+    {
+      "id": "worker_paste:Agent5:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent5:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent5:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent5:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent5:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent6",
+      "ok": true,
+      "proof": "stage-06-academics-operations.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent6",
+      "ok": true,
+      "proof": "worker-paste/agent6-stage-6.md"
+    },
+    {
+      "id": "worker_paste:Agent6:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent6:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent6:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent6:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent6:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent7",
+      "ok": true,
+      "proof": "stage-07-migration-cloud.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent7",
+      "ok": true,
+      "proof": "worker-paste/agent7-stage-7.md"
+    },
+    {
+      "id": "worker_paste:Agent7:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent7:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent7:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent7:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent7:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent8",
+      "ok": true,
+      "proof": "stage-08-workspace-ux.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent8",
+      "ok": true,
+      "proof": "worker-paste/agent8-stage-8.md"
+    },
+    {
+      "id": "worker_paste:Agent8:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent8:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent8:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent8:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent8:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent9",
+      "ok": true,
+      "proof": "stage-09-ai-center-expanded.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent9",
+      "ok": true,
+      "proof": "worker-paste/agent9-stage-9.md"
+    },
+    {
+      "id": "worker_paste:Agent9:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent9:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent9:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent9:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent9:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "manifest:agent:Agent10",
+      "ok": true,
+      "proof": "stage-10-final-certification.md"
+    },
+    {
+      "id": "manifest:worker_paste:Agent10",
+      "ok": true,
+      "proof": "worker-paste/agent10-stage-10.md"
+    },
+    {
+      "id": "worker_paste:Agent10:has_global_rules",
+      "ok": true,
+      "proof": "global rules embedded"
+    },
+    {
+      "id": "worker_paste:Agent10:has_report_back",
+      "ok": true,
+      "proof": "report-back block"
+    },
+    {
+      "id": "worker_paste:Agent10:has_gear_up_v3",
+      "ok": true,
+      "proof": "gear-up v3 embedded"
+    },
+    {
+      "id": "worker_paste:Agent10:has_gear_up_v4",
+      "ok": true,
+      "proof": "gear-up v4 embedded"
+    },
+    {
+      "id": "worker_paste:Agent10:has_gear_up_v5",
+      "ok": true,
+      "proof": "gear-up v5 embedded"
+    },
+    {
+      "id": "stage9:expanded_gt_base",
+      "ok": true,
+      "proof": "expanded=23258 base=9111"
+    }
+  ],
+  "failures": []
+}

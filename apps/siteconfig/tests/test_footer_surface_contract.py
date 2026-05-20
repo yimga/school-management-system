@@ -27,6 +27,8 @@ class FooterSurfaceContractTests(SimpleTestCase):
         self.assertNotIn("marketing_footer.html", text)
         self.assertIn("PORTAL_FOOTER_PARTIAL", text)
         self.assertIn("rmc-footer-surfaces.css", text)
+        self.assertIn("rmc_operator_footer_compact.html", text)
+        self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
 
     def test_base_manager_login_uses_compact_not_bundle(self):
         text = Path("templates/base.html").read_text(encoding="utf-8")

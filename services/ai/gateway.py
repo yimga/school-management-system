@@ -177,7 +177,9 @@ def process_platform_query(
     interaction_history: str = "",
 ) -> dict[str, Any]:
     started = time.perf_counter()
-    query = (user_query or "").strip()
+    from services.ai.support_sanitize import sanitize_support_query
+
+    query = sanitize_support_query((user_query or "").strip())
     if len(query) > _MAX_USER_QUERY_CHARS:
         query = query[:_MAX_USER_QUERY_CHARS]
     active = (active_url or "/").strip() or "/"
@@ -231,6 +233,15 @@ def process_platform_query(
         )
         return out
 
+    try:
+        from apps.portal.school_help_context import build_school_help_context_block
+
+        school_block = build_school_help_context_block(
+            school=school, user=user_profile
+        )
+    except Exception:
+        school_block = ""
+
     knowledge_lines, rag_snippets = retrieve_knowledge_snippets(
         user=user_profile,
         school=school,
@@ -240,6 +251,8 @@ def process_platform_query(
         actor_is_staff=actor_is_staff,
         actor_is_superuser=actor_is_superuser,
     )
+    if school_block:
+        knowledge_lines = [school_block] + list(knowledge_lines)
 
     if not knowledge_lines:
         from services.ai.code_oracle import build_route_manual_outline

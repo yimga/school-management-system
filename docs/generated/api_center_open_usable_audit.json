@@ -1,36 +1,26 @@
 {
-  "all_reverse_ok": true,
-  "generated_at": "2026-05-19T09:03:47.950862+00:00",
+  "generated_at": "2026-05-20T04:37:57.781531+00:00",
   "routes": [
     {
-      "name": "apicenter:dashboard",
-      "ok": true,
-      "path": "/api-center/"
+      "path": "/api-center/",
+      "auth": "control_plane_or_tenant_flag",
+      "primary_action": "manage_integrations"
     },
     {
-      "name": "apicenter:api_portal_docs",
-      "ok": true,
-      "path": "/api-center/docs/"
+      "path": "/api-center/docs/",
+      "auth": "login",
+      "primary_action": "read_docs"
     },
     {
-      "name": "apicenter:api_keys",
-      "ok": true,
-      "path": "/api-center/keys/"
+      "path": "/api-center/keys/",
+      "auth": "login",
+      "primary_action": "manage_keys"
     },
     {
-      "name": "api-schema",
-      "ok": true,
-      "path": "/api/schema/"
-    },
-    {
-      "name": "api-schema-ui",
-      "ok": true,
-      "path": "/api/schema/ui/"
+      "path": "/api/schema/ui/",
+      "auth": "role_gated",
+      "primary_action": "browse_openapi"
     }
   ],
-  "schema_version": 1,
-  "tests": [
-    "apps.apicenter.tests.test_api_center_open_and_usable",
-    "apps.apicenter.tests.test_developer_platform_e2e"
-  ]
+  "dummy_cta_count": 0
 }

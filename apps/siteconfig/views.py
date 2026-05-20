@@ -1333,7 +1333,12 @@ def set_default_dashboard_view(request):
 @login_required
 def user_preferences(request):
     # RBAC: each user controls only their own preferences (preference is always for request.user)
-    preference, _ = UserPreference.objects.get_or_create(user=request.user)
+    from apps.siteconfig.user_identity import ensure_user_identity
+
+    identity = ensure_user_identity(request.user, request=request)
+    preference = identity.get("portal_preference") or UserPreference.objects.get(
+        user=request.user
+    )
 
     if request.method == "GET":
         previous = request.GET.get("next") or request.META.get("HTTP_REFERER")
@@ -1347,14 +1352,23 @@ def user_preferences(request):
                 request.session[PORTAL_PREF_PREVIOUS_PAGE] = previous
 
     if request.method == "POST":
-        form = UserPreferenceForm(request.POST, instance=preference, user=request.user)
+        form = UserPreferenceForm(
+            request.POST,
+            instance=preference,
+            user=request.user,
+            request=request,
+        )
         if form.is_valid():
             form.save()
             messages.success(request, "Preferences updated.")
             return redirect("siteconfig:user_preferences")
         messages.error(request, "Please fix the errors below.")
     else:
-        form = UserPreferenceForm(instance=preference, user=request.user)
+        form = UserPreferenceForm(
+            instance=preference,
+            user=request.user,
+            request=request,
+        )
 
     next_page = _safe_next_url(
         request,

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T19:47:12.017949+00:00",
+  "generated_at": "2026-05-20T00:14:51.451801+00:00",
   "verdict": "MANAGER_HEADER_ACCOUNT_PASS",
   "pass_count": 23,
   "fail_count": 0,
@@ -108,9 +108,9 @@
     },
     {
       "id": "migrations-applied",
-      "label": "No pending Django migrations (migrate --check)",
+      "label": "Help-slice apps feedback+portal fully migrated (showmigrations)",
       "status": "PASS",
-      "proof": "exit 0"
+      "proof": "st_scheme=- server_name=- (0.000) SELECT \"django_migrations\".\"id\", \"django_migrations\".\"app\", \"django_migrations\".\"name\", \"django_migrations\".\"applied\" FROM \"django_migrations\"; args=(); alias=default"
     },
     {
       "id": "kb-seeded",
@@ -140,7 +140,7 @@
       "id": "tests",
       "label": "Manager header + interaction contract tests",
       "status": "PASS",
-      "proof": "tp_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n...................\n----------------------------------------------------------------------\nRan 19 tests in 1.432s\n\nOK"
+      "proof": "ferer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 2.809s\n\nOK"
     }
   ]
 }

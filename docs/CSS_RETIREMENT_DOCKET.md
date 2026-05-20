@@ -1,6 +1,58 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-19 (v3.41.1 — Footer surface contract, batch 1300)
+**Last updated:** 2026-05-19 (v3.43.7 — Page fold sweep)
+
+## 2026-05-19 — v3.43.7 Page fold sweep (shell + audit + tables)
+
+**Status:** SHIPPED. SW `sms-v3.43.7-page-fold-sweep-2026-05-19`.
+
+| Layer | Change |
+|-------|--------|
+| `portal_base.html` / `control_plane_base.html` | Shell-level `data-rmc-page-fold-nav="required"` on all manager portal + CP pages |
+| `rmc-page-fold-standards.js` | Auto section nav from `h2[id]`; client table pagination (25 rows); fold remeasure |
+| `feature_control_audit` | Server `Paginator(25)` + `components/pagination.html` |
+| 15× `siteconfig/partials/*_body.html` | `data-rmc-scroll-policy="paginate"` on table-heavy operator pages |
+| Gate | `verify_page_fold_standards.py` **15/15** |
+
+## 2026-05-19 — v3.43.5 Page fold standards (3–4 fold rule)
+
+**Status:** SHIPPED. SW `sms-v3.43.5-page-fold-standards-2026-05-19`.
+
+| Layer | Change |
+|-------|--------|
+| `.cursor/rules/runmycampus-page-fold-standards.mdc` + `.cursorrules` | Enforce 4-fold max, 2-fold back-to-top + section nav, paginate vs discovery scroll policies |
+| `rmc-scroll-container.js` | Shared scroll root for document-scroll manager + portal |
+| `rmc-page-fold-standards.js` / `.css` | Fold measurement, task list client pagination (20/page), sticky category nav |
+| `components__back_to_top.js` | 2-fold threshold; uses scroll container helper |
+| `control_plane_skeleton.html` | Back-to-top + fold assets |
+| `feature_control_panel_content.html` | `data-rmc-page-fold-nav`, `data-rmc-scroll-policy=paginate`, sticky category tabs |
+| `verify_page_fold_standards.py` | **13/13** gate; wired into `verify_phases_3_11_gates.py` |
+
+## 2026-05-19 — v3.43.3 Manager footer bridge on portal_base
+
+## 2026-05-19 — v3.43.3 Manager footer bridge on portal_base
+
+**Status:** SHIPPED. SW `sms-v3.43.3-manager-footer-bridge-2026-05-19`.
+
+| Layer | Change |
+|-------|--------|
+| `portal_base.html` | Manager host: compact `rmc_operator_footer_compact` via `cp-corporate-footer` (not tenant `dashboard_footer` mega-footer); `cp-shell-has-operator-footer` body class; `manager-corporate-footer.css` |
+| `rmc-footer-surfaces.css` | `manager-portal-bridge` document-scroll footer flex rhythm + hide leaked `.dashboard-footer` |
+| `context_processors.py` | `PORTAL_FOOTER_PARTIAL` defaults to compact partial on manager host |
+| Gates | `verify_footer_surface_contract.py` **65/65**; HTTP test on Feature Control |
+
+## 2026-05-19 — v3.43.2 Manager sidebar rail + portal bridge layout
+
+**Status:** SHIPPED. SW `sms-v3.43.2-manager-sidebar-layout-2026-05-19`.
+
+| Layer | Change |
+|-------|--------|
+| `manager-control-plane.css` | Document-scroll rows: sidebar **column** `align-self: stretch` + panel background; **inner** `.cp-sidebar-inner` sticky (`max-height: 100vh`); main/portal columns `align-self: flex-start`; `portal-layout-row` parity; manager-portal-bridge releases trapped viewport scroll from `portal-layout-professional.css` |
+| `dashboard-topology-shell.css` | `overflow: hidden` no longer applies when `data-rmc-cp-scroll="document"` |
+| `portal_base.html` | Manager host sets `data-surface="control-plane"` (footer + chromatic contracts) |
+| `feature_control_panel_content.html` | Feature rows: drop misplaced `form-check-label` + duplicate `title` on switch label (ghosted text) |
+
+**Deploy:** `collectstatic` + hard refresh on manager host (`manager.runmycampus.com`).
 
 ## 2026-05-19 — v3.41.1 Footer surface contract (batch 1300)
 

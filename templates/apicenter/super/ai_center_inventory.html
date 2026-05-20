@@ -1,0 +1,11 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "Platform inventory" %}</h1>
+  <p class="rmc-lede">{% trans "Metadata-only index for RAG (no secrets, no PII)." %}</p>
+  <p>{% blocktrans with n=index_summary.document_count %}Documents indexed: {{ n }}{% endblocktrans %}</p>
+</main>
+{% endblock %}

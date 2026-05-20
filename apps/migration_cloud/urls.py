@@ -20,6 +20,7 @@ from . import (
     views,
     views_audit_admin,
     views_command_center,
+    views_connectors,
     views_dsar_admin,
     views_health,
     views_maa_promotion,
@@ -119,4 +120,14 @@ urlpatterns = [
     # v3.40.0 Agent 13 — DSAR runbook recorder + smoke run history archive view.
     path("dsar/runbook/", views_dsar_admin.DSARRunbookView.as_view(), name="migration_cloud_dsar_runbook"),  # rbac-allow: super-staff-dsar-runbook-view-record
     path("smoke/history/", views_smoke_history.SmokeRunHistoryView.as_view(), name="migration_cloud_smoke_history"),  # rbac-allow: super-staff-migration-cloud-smoke-history
+    # Connector wizard (operator mount mirrors tenant grammar under /connectors/).
+    path(
+        "connectors/",
+        include(("apps.migration_cloud.urls_connectors", "migration_cloud_connector")),
+    ),
+    path(
+        "connectors/operator/",
+        views_connectors.MigrationCloudConnectorOperatorView.as_view(),
+        name="connector_operator_dashboard",
+    ),  # rbac-allow: super-staff-migration-cloud-connector-operator
 ]

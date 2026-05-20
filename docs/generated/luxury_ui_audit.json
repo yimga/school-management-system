@@ -10,7 +10,7 @@
     },
     "click_depth": {
       "max": 2,
-      "score": 1
+      "score": 2
     },
     "component_consistency": {
       "max": 2,
@@ -50,7 +50,7 @@
       ]
     }
   },
-  "generated_at": "2026-05-19T09:09:29.115572+00:00",
+  "generated_at": "2026-05-20T09:54:11.812977+00:00",
   "high_impact_templates_total": 222,
   "inline_styles": {
     "count": 47,
@@ -110,11 +110,12 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 98,
-    "needs_review_count": 98,
+    "count": 99,
+    "needs_review_count": 99,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
+      "templates/control_plane_skeleton.html",
       "templates/marketplace/tenant_installed_apps.html",
       "templates/portal_base.html",
       "templates/reports/promotion_preview.html",
@@ -216,16 +217,15 @@
     "violation_paths": []
   },
   "missing_table_family": {
-    "count": 7,
-    "needs_review_count": 7,
+    "count": 6,
+    "needs_review_count": 6,
     "needs_review_paths": [
       "templates/reports/annual_report_cameroon.html",
       "templates/reports/statistical_return.html",
       "templates/reports/term_report_cameroon.html",
       "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
       "templates/siteconfig/partials/workflow_flow_gallery_body.html",
-      "templates/siteconfig/permission_matrix_simulator.html",
-      "templates/studio_os/partials/launch_school_infrastructure_body.html"
+      "templates/siteconfig/permission_matrix_simulator.html"
     ],
     "violation_count": 0,
     "violation_paths": []
@@ -306,21 +306,12 @@
     "violation": 0
   },
   "schema_version": 2,
-  "score_out_of_15": 14,
+  "score_out_of_15": 15,
   "screen_headers_actions": {
-    "action_bar_violations": [
-      "templates/siteconfig/tenant_runtime_configuration_hub.html",
-      "templates/siteconfig/billing_plan_readonly.html",
-      "templates/siteconfig/console_domains_hub.html"
-    ],
-    "header_violations": [
-      "templates/schools/super_dashboard.html",
-      "templates/siteconfig/tenant_runtime_configuration_hub.html",
-      "templates/siteconfig/billing_plan_readonly.html",
-      "templates/siteconfig/console_domains_hub.html"
-    ],
-    "missing_action_bars": 3,
-    "missing_headers": 4,
+    "action_bar_violations": [],
+    "header_violations": [],
+    "missing_action_bars": 0,
+    "missing_headers": 0,
     "rows": [
       {
         "action_bar": true,
@@ -331,7 +322,7 @@
       {
         "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
         "path": "templates/schools/super_dashboard.html"
       },
       {
@@ -395,21 +386,21 @@
         "path": "templates/student360/student_360_page.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
         "path": "templates/siteconfig/tenant_runtime_configuration_hub.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
         "path": "templates/siteconfig/billing_plan_readonly.html"
       },
       {
-        "action_bar": false,
+        "action_bar": true,
         "exists": true,
-        "header": false,
+        "header": true,
         "path": "templates/siteconfig/console_domains_hub.html"
       },
       {
@@ -498,7 +489,7 @@
         "path": "templates/accounts/backend_dashboard.html",
         "permission_denied": false,
         "retry": false,
-        "zero_click_shell_or_exempt": false
+        "zero_click_shell_or_exempt": true
       },
       {
         "empty": true,
@@ -538,7 +529,7 @@
         "path": "templates/marketplace/tenant_app_catalog.html",
         "permission_denied": false,
         "retry": true,
-        "zero_click_shell_or_exempt": false
+        "zero_click_shell_or_exempt": true
       },
       {
         "empty": false,
@@ -548,7 +539,7 @@
         "path": "templates/marketplace/tenant_installed_apps.html",
         "permission_denied": false,
         "retry": false,
-        "zero_click_shell_or_exempt": false
+        "zero_click_shell_or_exempt": true
       },
       {
         "empty": false,
@@ -922,19 +913,10 @@
       "template_paths": []
     },
     "page_header_action_bar_contract": {
-      "action_bar_violations": [
-        "templates/siteconfig/tenant_runtime_configuration_hub.html",
-        "templates/siteconfig/billing_plan_readonly.html",
-        "templates/siteconfig/console_domains_hub.html"
-      ],
-      "header_violations": [
-        "templates/schools/super_dashboard.html",
-        "templates/siteconfig/tenant_runtime_configuration_hub.html",
-        "templates/siteconfig/billing_plan_readonly.html",
-        "templates/siteconfig/console_domains_hub.html"
-      ],
-      "missing_action_bars": 3,
-      "missing_headers": 4,
+      "action_bar_violations": [],
+      "header_violations": [],
+      "missing_action_bars": 0,
+      "missing_headers": 0,
       "rows": [
         {
           "action_bar": true,
@@ -945,7 +927,7 @@
         {
           "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
           "path": "templates/schools/super_dashboard.html"
         },
         {
@@ -1009,21 +991,21 @@
           "path": "templates/student360/student_360_page.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
           "path": "templates/siteconfig/tenant_runtime_configuration_hub.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
           "path": "templates/siteconfig/billing_plan_readonly.html"
         },
         {
-          "action_bar": false,
+          "action_bar": true,
           "exists": true,
-          "header": false,
+          "header": true,
           "path": "templates/siteconfig/console_domains_hub.html"
         },
         {
@@ -1105,11 +1087,11 @@
     }
   },
   "zero_click_contract": {
-    "failure_count": 3,
+    "failure_count": 0,
     "rows": [
       {
         "path": "templates/accounts/backend_dashboard.html",
-        "zero_click_resolved": false
+        "zero_click_resolved": true
       },
       {
         "path": "templates/schools/super_dashboard.html",
@@ -1125,11 +1107,11 @@
       },
       {
         "path": "templates/marketplace/tenant_app_catalog.html",
-        "zero_click_resolved": false
+        "zero_click_resolved": true
       },
       {
         "path": "templates/marketplace/tenant_installed_apps.html",
-        "zero_click_resolved": false
+        "zero_click_resolved": true
       },
       {
         "path": "templates/teacher/dashboard.html",

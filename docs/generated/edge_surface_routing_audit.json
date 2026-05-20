@@ -1,0 +1,284 @@
+{
+  "generated_at": "2026-05-20T02:23:08.346069+00:00",
+  "git_sha": "9cad00ea",
+  "agent": "stage-3-agent-3",
+  "four_shells_verified": true,
+  "seven_layer_cascade_documented": true,
+  "cascade_layers": [
+    "apps/platform_runtime/runtime_defaults_first_class.py",
+    "apps/platform_runtime/migrations (RuntimeDefaults typed columns)",
+    "RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES",
+    "apps/siteconfig/domain_ownership.py EXACT_FIELD_OWNERS",
+    "SiteSettings.brand_payload",
+    "apps/siteconfig/context_processors.py",
+    "templates/partials/rmc_theme_meta.html",
+    "static/js/theme-preference-bootstrap.js",
+    "static/css/design-tokens.css var(--*) consumption"
+  ],
+  "four_shells": [
+    {
+      "surface": "marketing",
+      "host": "runmycampus.com",
+      "template": "templates/marketing/base_marketing.html",
+      "data_surface": "marketing",
+      "exists": true,
+      "markers": {
+        "partials/rmc_theme_meta.html": true,
+        "js/theme-preference-bootstrap.js": true
+      }
+    },
+    {
+      "surface": "control_plane",
+      "host": "manager.runmycampus.com",
+      "template": "templates/control_plane_skeleton.html",
+      "data_surface": "control-plane",
+      "exists": true,
+      "markers": {
+        "partials/rmc_theme_meta.html": true,
+        "js/theme-preference-bootstrap.js": true
+      }
+    },
+    {
+      "surface": "tenant_portal",
+      "host": "{school}.runmycampus.com",
+      "template": "templates/portal_base.html",
+      "data_surface": "tenant",
+      "exists": true,
+      "markers": {
+        "partials/rmc_theme_meta.html": true,
+        "js/theme-preference-bootstrap.js": true
+      }
+    },
+    {
+      "surface": "admin",
+      "host": "/admin/ (manager + tenant urlconfs)",
+      "template": "templates/admin/base_site.html",
+      "data_surface": null,
+      "exists": true,
+      "markers": {
+        "partials/rmc_theme_meta.html": true,
+        "js/theme-preference-bootstrap.js": true
+      }
+    }
+  ],
+  "cascade_file_checks": [
+    {
+      "layer": "apps/platform_runtime/runtime_defaults_first_class.py",
+      "path": "apps\\platform_runtime\\runtime_defaults_first_class.py",
+      "exists": true
+    },
+    {
+      "layer": "apps/platform_runtime/migrations (RuntimeDefaults typed columns)",
+      "exists": true,
+      "note": "documented"
+    },
+    {
+      "layer": "RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES",
+      "exists": true,
+      "path": "apps\\platform_runtime\\runtime_defaults_first_class.py"
+    },
+    {
+      "layer": "apps/siteconfig/domain_ownership.py EXACT_FIELD_OWNERS",
+      "exists": true,
+      "path": "apps\\siteconfig\\domain_ownership.py"
+    },
+    {
+      "layer": "SiteSettings.brand_payload",
+      "exists": true,
+      "path": "apps\\siteconfig\\models.py"
+    },
+    {
+      "layer": "apps/siteconfig/context_processors.py",
+      "path": "apps\\siteconfig\\context_processors.py",
+      "exists": true
+    },
+    {
+      "layer": "templates/partials/rmc_theme_meta.html",
+      "path": "templates\\partials\\rmc_theme_meta.html",
+      "exists": true
+    },
+    {
+      "layer": "static/js/theme-preference-bootstrap.js",
+      "path": "static\\js\\theme-preference-bootstrap.js",
+      "exists": true
+    },
+    {
+      "layer": "static/css/design-tokens.css var(--*) consumption",
+      "exists": true,
+      "path": "static\\css\\design-tokens.css"
+    }
+  ],
+  "host_matrix": [
+    {
+      "host": "runmycampus.com",
+      "expected": "base",
+      "actual": "base",
+      "ok": true
+    },
+    {
+      "host": "www.runmycampus.com",
+      "expected": "base",
+      "actual": "base",
+      "ok": true
+    },
+    {
+      "host": "manager.runmycampus.com",
+      "expected": "manager",
+      "actual": "manager",
+      "ok": true
+    },
+    {
+      "host": "verify.runmycampus.com",
+      "expected": "verify",
+      "actual": "verify",
+      "ok": true
+    },
+    {
+      "host": "support.runmycampus.com",
+      "expected": "support",
+      "actual": "support",
+      "ok": true
+    },
+    {
+      "host": "api.runmycampus.com",
+      "expected": "api",
+      "actual": "api",
+      "ok": true
+    },
+    {
+      "host": "demo-school.runmycampus.com",
+      "expected": null,
+      "actual": null,
+      "ok": true
+    },
+    {
+      "host": "localhost",
+      "expected": "local",
+      "actual": "local",
+      "ok": true
+    },
+    {
+      "host": "127.0.0.1",
+      "expected": "local",
+      "actual": "local",
+      "ok": true
+    }
+  ],
+  "path_routing_expectations": [
+    {
+      "host_kind": "manager",
+      "path": "/super/",
+      "expectation": "allowed"
+    },
+    {
+      "host_kind": "manager",
+      "path": "/configuration/",
+      "expectation": "allowed"
+    },
+    {
+      "host_kind": "manager",
+      "path": "/internal-admin/",
+      "expectation": "allowed"
+    },
+    {
+      "host_kind": "manager",
+      "path": "/admin/",
+      "expectation": "allowed"
+    },
+    {
+      "host_kind": "manager",
+      "path": "/-/version/",
+      "expectation": "allowed"
+    },
+    {
+      "host_kind": "base",
+      "path": "/super/",
+      "expectation": "redirect_to_manager"
+    },
+    {
+      "host_kind": "tenant",
+      "path": "/super/",
+      "expectation": "redirect_to_manager"
+    }
+  ],
+  "middleware_stack": [
+    "django.middleware.security.SecurityMiddleware",
+    "apps.api.middleware_tenant_cors.TenantCorsAllowlistMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
+    "config.middleware.BlockScannerPathsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "apps.accounts.middleware.ManagerCookieIsolationMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",
+    "apps.schools.middleware.UrlConfSwitcherMiddleware",
+    "apps.schools.middleware.ReservedPublicHostAccessMiddleware",
+    "apps.schools.middleware.PublicPathRedirectMiddleware",
+    "apps.schools.middleware.TenantMiddleware",
+    "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
+    "apps.schools.middleware.RlsResetOnExceptionMiddleware",
+    "apps.tenancy.middleware.TenantContextMiddleware",
+    "apps.platform_runtime.middleware.TenantRuntimeMiddleware",
+    "apps.integrations_marketplace.middleware.TenantEmailBindingMiddleware",
+    "apps.schools.middleware.TenantFreezeMiddleware",
+    "apps.schools.middleware.SentryTenantTagMiddleware",
+    "apps.schools.middleware.TenantLastActivityMiddleware",
+    "apps.schools.middleware.ModuleActivationMiddleware",
+    "apps.schools.middleware.TenantApiQuotaMiddleware",
+    "config.middleware.GlobalHotPathRateLimitMiddleware",
+    "config.middleware.RequestTimeoutMiddleware",
+    "apps.schools.middleware.DynamicThemeMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",
+    "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
+    "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",
+    "apps.schools.middleware_activation_gate.ActivationGateMiddleware",
+    "apps.marketplace.middleware.AppApiContextMiddleware",
+    "apps.accounts.middleware.ImpossibleTravelMiddleware",
+    "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
+    "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",
+    "apps.accounts.middleware.TenantHostControlPlaneIsolationMiddleware",
+    "apps.accounts.middleware.ImpersonationReadOnlyGuardMiddleware",
+    "apps.schools.middleware_dashboard_topology.DashboardTopologyRBACMiddleware",
+    "apps.accounts.middleware.ModuleAccessMiddleware",
+    "apps.accounts.middleware.RequireMFAMiddleware",
+    "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",
+    "apps.schools.middleware.SuperAdminRateLimitMiddleware",
+    "apps.schools.middleware_enterprise_security.EnterpriseSuperHttpAuditMiddleware",
+    "apps.schools.middleware.FeatureGatekeeperMiddleware",
+    "apps.schools.middleware.UsageLimitMiddleware",
+    "apps.compliance.middleware.ComplianceGuardMiddleware",
+    "django_otp.middleware.OTPMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware",
+    "apps.siteconfig.middleware.OperatorSiteconfigManagerShellMiddleware",
+    "apps.siteconfig.middleware.MaintenanceModeMiddleware",
+    "apps.siteconfig.middleware.preview_mode.PreviewModeMiddleware",
+    "apps.compliance.middleware.IPCountryAccessMiddleware",
+    "apps.compliance.middleware.AuditLoggingMiddleware",
+    "apps.compliance.middleware.AccessControlMiddleware",
+    "apps.observability.middleware.RequestIdLoggingMiddleware",
+    "apps.observability.middleware.ObservabilityMiddleware",
+    "apps.billing.middleware_metering.DBSessionMeteringMiddleware",
+    "apps.schools.middleware_residency.DataResidencyMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.security.csp_middleware.ContentSecurityPolicyMiddleware",
+    "apps.migration_cloud.api.rate_limiting.SoftWarnHeaderMiddleware"
+  ],
+  "urlconf_modules": {
+    "public": true,
+    "manager": true,
+    "tenant": true
+  },
+  "theme_bootstrap_contract": {
+    "documents_v3_effective_theme": true,
+    "sets_data_theme_preference": true,
+    "does_not_write_system_to_data_theme": true
+  },
+  "findings": [],
+  "finding_count": 0,
+  "verdict": "PASS"
+}

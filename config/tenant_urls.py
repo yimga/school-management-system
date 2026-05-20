@@ -26,6 +26,7 @@ from apps.portal.views_ai_copilot import (
     ai_health,
 )
 from apps.portal.views_configure import portal_configure_hub
+from apps.siteconfig.views_school_help_ai import school_help_ai
 from config.admin import tenant_admin_site
 from apps.schools.activation_views import activation_first_action
 from apps.schools.demo_conversion_views import (
@@ -186,7 +187,7 @@ handler403 = permission_denied
 handler404 = page_not_found
 handler500 = server_error
 
-from config.urls import service_unavailable as handler503  # noqa: E402
+from config.error_handlers import service_unavailable as handler503  # noqa: E402
 
 from apps.siteconfig.views_manifest import (  # noqa: E402
     platform_manifest as _platform_manifest,
@@ -247,6 +248,13 @@ urlpatterns = [
     path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
     path("school/setup/packs/", tenant_pack_setup, name="tenant_pack_setup"),
     path("school/setup/imports/", school_surface_redirect, {"surface": "imports"}, name="school_setup_imports"),
+    path(
+        "school/setup/migration-cloud/",
+        include(
+            ("apps.migration_cloud.urls_connectors", "migration_cloud_connector"),
+            namespace="migration_cloud_connector",
+        ),
+    ),
     path("school/apps/", school_surface_redirect, {"surface": "apps"}, name="school_apps"),
     path("school/billing/", school_surface_redirect, {"surface": "billing"}, name="school_billing"),
     path("school/money/", school_surface_redirect, {"surface": "money"}, name="school_money"),
@@ -254,6 +262,7 @@ urlpatterns = [
     path("school/offline/", school_surface_redirect, {"surface": "offline"}, name="school_offline"),
     path("school/audit/", school_surface_redirect, {"surface": "audit"}, name="school_audit"),
     path("school/security/", school_surface_redirect, {"surface": "security"}, name="school_security"),
+    path("school/help/ai/", school_help_ai, name="school_help_ai"),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path(

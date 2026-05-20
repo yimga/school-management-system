@@ -12,7 +12,7 @@ from typing import Any
 
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError, IntegrityError
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
@@ -1147,6 +1147,18 @@ def api_dashboard_pack_recommend(request):
         )
 
 
+def _parse_support_assistant_body(request):
+    from services.ai.support_sanitize import sanitize_support_query
+
+    body = json.loads(request.body) if request.body else {}
+    query = sanitize_support_query((body.get("query") or "").strip()[:8000])
+    active_url = (body.get("active_url") or body.get("path") or "").strip()[:500]
+    history = sanitize_support_query(
+        (body.get("history") or body.get("interaction_history") or "").strip()[:2000]
+    )
+    return query, active_url, history
+
+
 # --- Wave 2: Support assistant (productized) ---
 @require_http_methods(["POST"])
 @csrf_protect
@@ -1156,11 +1168,15 @@ def api_support_assistant(request):
     rate_err = _gateway_rate_limit(request)
     if rate_err:
         return rate_err
+    from apps.portal.help_governance import ai_help_enabled_for_request
+
+    if not ai_help_enabled_for_request(request):
+        return JsonResponse(
+            {"success": False, "error": "ai_help_disabled", "offline_mode": True},
+            status=403,
+        )
     try:
-        body = json.loads(request.body) if request.body else {}
-        query = (body.get("query") or "").strip()[:2000]
-        active_url = (body.get("active_url") or body.get("path") or "").strip()[:500]
-        history = (body.get("history") or body.get("interaction_history") or "").strip()[:2000]
+        query, active_url, history = _parse_support_assistant_body(request)
         if not query:
             return JsonResponse(
                 {"success": False, "error": "query required"}, status=400
@@ -1241,6 +1257,62 @@ def api_support_assistant(request):
         log_view_exception(
             request,
             "portal.views_ai_gateway: Support assistant failed",
+            extra={"error": str(e)},
+        )
+        return JsonResponse(
+            {"success": False, "error": "Service unavailable"}, status=503
+        )
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_support_assistant_stream(request):
+    """POST JSON → ``text/event-stream`` (delta + done frames)."""
+    rate_err = _gateway_rate_limit(request)
+    if rate_err:
+        return rate_err
+    from apps.portal.help_governance import ai_help_enabled_for_request
+
+    if not ai_help_enabled_for_request(request):
+        return JsonResponse(
+            {"success": False, "error": "ai_help_disabled", "offline_mode": True},
+            status=403,
+        )
+    try:
+        query, active_url, history = _parse_support_assistant_body(request)
+        if not query:
+            return JsonResponse(
+                {"success": False, "error": "query required"}, status=400
+            )
+        from django.conf import settings as dj_settings
+
+        if not getattr(dj_settings, "AI_ENGINE_ROOM_SUPPORT", True):
+            return JsonResponse(
+                {"success": False, "error": "AI engine room disabled"}, status=503
+            )
+        from services.ai.support_stream import iter_support_assistant_sse
+
+        school = getattr(request, "school", None)
+        stream = iter_support_assistant_sse(
+            request.user,
+            active_url,
+            query,
+            school=school,
+            actor_roles=_actor_roles(request),
+            actor_is_staff=bool(getattr(request.user, "is_staff", False)),
+            actor_is_superuser=bool(getattr(request.user, "is_superuser", False)),
+            interaction_history=history,
+            request=request,
+        )
+        response = StreamingHttpResponse(stream, content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+    except GATEWAY_VIEW_ERRORS as e:
+        log_view_exception(
+            request,
+            "portal.views_ai_gateway: Support assistant stream failed",
             extra={"error": str(e)},
         )
         return JsonResponse(
@@ -1845,6 +1917,27 @@ def api_ai_feedback(request):
             sensitivity=AuditLog.Sensitivity.LOW,
             new_values={"feature": feature, **feedback_meta},
         )
+        if accepted is False or manual_correction is True:
+            try:
+                from apps.feedback.models import SupportAIInteractionReview
+                from apps.portal.kb_context import is_operator_help_request
+                from django.utils import translation
+
+                query_raw = str(body.get("query") or "")[:500]
+                SupportAIInteractionReview.objects.create(
+                    school=getattr(request, "school", None),
+                    user=request.user,
+                    query_fingerprint=SupportAIInteractionReview.fingerprint(
+                        query_raw
+                    ),
+                    active_url=str(body.get("active_url") or "")[:500],
+                    outcome=str(body.get("outcome") or task_type)[:64],
+                    thumbs="down" if accepted is False else "corrected",
+                    language=(translation.get_language() or "")[:12],
+                    is_operator=is_operator_help_request(request),
+                )
+            except Exception:
+                pass
         return JsonResponse({"success": True, "meta": feedback_meta})
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
@@ -1862,6 +1955,66 @@ def api_ai_feedback(request):
         return JsonResponse(
             {"success": False, "error": "Service unavailable"}, status=503
         )
+
+
+@require_http_methods(["POST"])
+@csrf_protect
+@login_required
+def api_support_session_rating(request):
+    """POST: CSAT thumbs/stars after support SSE (batch 1353, fingerprint-only)."""
+    rate_err = _gateway_rate_limit(request)
+    if rate_err:
+        return rate_err
+    try:
+        body = json.loads(request.body) if request.body else {}
+        thumbs = str(body.get("thumbs") or "").strip().lower()[:8]
+        stars_raw = body.get("stars")
+        stars = None
+        if stars_raw is not None:
+            stars = int(stars_raw)
+            if stars < 1 or stars > 5:
+                return JsonResponse(
+                    {"success": False, "error": "stars must be 1-5"}, status=400
+                )
+        if thumbs not in ("up", "down") and stars is None:
+            return JsonResponse(
+                {"success": False, "error": "thumbs or stars required"}, status=400
+            )
+        query_raw = str(body.get("query") or "")[:500]
+        from apps.feedback.models import SupportAISessionRating, SupportDeflectionEvent
+        from apps.portal.kb_context import is_operator_help_request
+
+        SupportAISessionRating.objects.create(
+            school=getattr(request, "school", None),
+            user=request.user,
+            query_fingerprint=SupportDeflectionEvent.fingerprint(query_raw),
+            task_type=str(body.get("task_type") or "support_assistant")[:64],
+            thumbs=thumbs,
+            stars=stars,
+            active_url=str(body.get("active_url") or "")[:500],
+            is_operator=is_operator_help_request(request),
+        )
+        if thumbs == "down":
+            try:
+                from apps.feedback.models import SupportAIInteractionReview
+
+                SupportAIInteractionReview.objects.create(
+                    school=getattr(request, "school", None),
+                    user=request.user,
+                    query_fingerprint=SupportAIInteractionReview.fingerprint(
+                        query_raw
+                    ),
+                    active_url=str(body.get("active_url") or "")[:500],
+                    outcome=str(body.get("task_type") or "support_assistant")[:64],
+                    thumbs="down",
+                    language=(body.get("language") or "")[:12],
+                    is_operator=is_operator_help_request(request),
+                )
+            except Exception:
+                pass
+        return JsonResponse({"success": True})
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 
 
 # --- Migration suggest ---

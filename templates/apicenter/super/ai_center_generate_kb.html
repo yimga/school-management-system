@@ -1,0 +1,17 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "Generate KB draft" %}</h1>
+  <form method="post">
+    {% csrf_token %}
+    <label class="form-label" for="route">{% trans "Route" %}</label>
+    <input id="route" name="route" class="form-control" value="{{ route }}" />
+    <button type="submit" class="btn btn-primary mt-2">{% trans "Generate" %}</button>
+  </form>
+  {% if error %}<p class="text-danger">{{ error }}</p>{% endif %}
+  {% if draft %}<pre class="mt-3">{{ draft.body }}</pre>{% endif %}
+</main>
+{% endblock %}

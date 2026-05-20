@@ -34,6 +34,10 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertNotIn("corporate_footer_bundle.html", text)
         self.assertNotIn("marketing_footer.html", text)
         self.assertIn("PORTAL_FOOTER_PARTIAL", text)
+        self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
+        self.assertIn("rmc_operator_footer_compact.html", text)
+        self.assertIn('data-rmc-footer-surface="operator-compact"', text)
+        self.assertIn("manager-corporate-footer.css", text)
 
     def test_control_plane_skeleton_document_scroll_contract(self):
         text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")

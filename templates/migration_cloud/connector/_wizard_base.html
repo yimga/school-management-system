@@ -1,0 +1,12 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block content %}
+<main class="rmc-page rmc-page--migration-connector" id="main" data-rmc-migration-connector-wizard data-rmc-migration-cloud-surface data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+  <header class="rmc-page__header mb-4">
+    <h1 class="rmc-h1">{{ page_title }}</h1>
+    <p class="rmc-lede text-muted">{% trans "Authorized migration only. We never store plaintext passwords in logs. Credentials purge after import unless you opt into a reusable connector." %}</p>
+  </header>
+  {% block connector_body %}{% endblock %}
+</main>
+{% endblock %}

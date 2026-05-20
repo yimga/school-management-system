@@ -87,7 +87,7 @@
       <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}">
         <i class="bi bi-bell me-2"></i>{% trans "Notifications" %}
       </a>
-      <a class="nav-link nav-pill" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}" title="{% trans 'Knowledge Base' %}">
+      <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}" title="{% trans 'Knowledge Base' %}">
         <i class="bi bi-journal-text me-2"></i>{% trans "Knowledge Base" %}
       </a>
       {% if request.user.role == 'TEACHER' %}
@@ -318,7 +318,7 @@
 <!-- Phase 19: Global Help link in sidebar footer for discoverability -->
 {% if request.user.is_authenticated %}
 <div class="portal-sidebar-footer mt-3">
-  <a class="nav-link nav-pill" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}" title="{% trans 'Help & Knowledge Base' %}">
+  <a class="nav-link nav-pill" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' %}{% endif %}" title="{% trans 'Help center' %}">
     <i class="bi bi-question-circle me-2"></i>{% trans "Help" %}
   </a>
 </div>

@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% load terminology_tags %}
-<div class="container py-3 cp-evidence-page" style="max-width: 52rem;" data-page-archetype="operator-report" data-shell-surface="billing-plan-readonly">
+<div class="container py-3 cp-evidence-page" style="max-width: 52rem;" data-rmc-scroll-policy="paginate" data-page-archetype="operator-report" data-shell-surface="billing-plan-readonly">
   <h1 class="h3 mb-2">{% trans "Plan & entitlements" %}</h1>
   <p class="text-muted small mb-3">
     {% trans "Summary of the subscription plan assigned to this tenant and coarse usage versus plan limits. When your operator has configured Stripe, you can start checkout or open the billing portal from here. Otherwise, controls stay disabled with a clear setup state." %}

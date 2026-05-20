@@ -62,12 +62,23 @@ def _user_role_codes(request) -> frozenset[str]:
         return frozenset()
 
 
-def filter_kb_articles_by_school(queryset: QuerySet, request) -> QuerySet:
+def published_kb_queryset():
+    """Published KB rows; callers chain host/region/school filters."""
+    from apps.portal.models_kb import KBArticle
+
+    # tenant-isolation-allow: kb-base-qs-scoped-by-caller-filter-kb-articles-by-school
+    return KBArticle.objects.filter(status="PUBLISHED")
+
+
+def filter_kb_articles_by_school(queryset: QuerySet, request_or_school) -> QuerySet:
     """
     School-scoped manuals: global rows OR rows for the active school only.
     Never expose another school's private articles on the same tenant schema.
     """
-    school = getattr(request, "school", None)
+    if hasattr(request_or_school, "META"):
+        school = getattr(request_or_school, "school", None)
+    else:
+        school = request_or_school
     if school is None:
         return queryset.filter(
             Q(is_global_article=True) | Q(school__isnull=True)
@@ -109,7 +120,7 @@ def kb_categories_for_request(request, country_code: str, plan_tier: str):
     from apps.portal.models_kb import KBArticle, KBCategory
 
     is_op = is_operator_help_request(request)
-    arts = KBArticle.objects.filter(status="PUBLISHED")
+    arts = published_kb_queryset()
     arts = filter_kb_articles_for_host(arts, is_operator=is_op)
     arts = filter_kb_articles_by_region(arts, country_code, plan_tier)
     arts = filter_kb_articles_by_school(arts, request)

@@ -28,6 +28,7 @@ from apps.portal.kb_context import (
     filter_kb_articles_for_host,
     is_operator_help_request,
     kb_categories_for_request,
+    published_kb_queryset,
 )
 
 from .models_kb import (
@@ -94,11 +95,14 @@ def _get_kb_region(request):
 def _published_kb_for_request(request):
     country, plan = _get_kb_region(request)
     is_op = is_operator_help_request(request)
-    qs = KBArticle.objects.filter(status="PUBLISHED")
+    qs = published_kb_queryset()
     qs = filter_kb_articles_for_host(qs, is_operator=is_op)
     qs = filter_kb_articles_by_region(qs, country, plan)
     qs = filter_kb_articles_by_school(qs, request)
     qs = filter_by_target_roles(qs, request)
+    from apps.portal.kb_embeddings import filter_kb_queryset_by_locale
+
+    qs = filter_kb_queryset_by_locale(qs)
     return qs
 
 
@@ -631,6 +635,9 @@ def kb_search(request):
     from apps.portal.kb_search import search_kb_articles
 
     base_qs = _published_kb_for_request(request)
+    persona = (request.GET.get("persona") or "").strip().upper()
+    if persona:
+        base_qs = base_qs.filter(target_roles__contains=[persona])
     ranked = search_kb_articles(base_qs, query, limit=100)
     # Preserve the legacy QuerySet API for the existing template / paginator,
     # but order by relevance.
@@ -659,8 +666,21 @@ def kb_search(request):
     articles_page = paginator_articles.get_page(request.GET.get("articles_page"))
     faqs_page = paginator_faqs.get_page(request.GET.get("faqs_page"))
 
+    try:
+        from apps.portal.help_search_intelligence import log_help_search
+
+        article_count = articles_page.paginator.count if hasattr(articles_page, "paginator") else len(articles)
+        log_help_search(
+            request,
+            query=query,
+            result_count=article_count + (faqs_page.paginator.count if hasattr(faqs_page, "paginator") else 0),
+        )
+    except Exception:
+        pass
+
     context = {
         "query": query,
+        "persona": persona,
         "articles_page": articles_page,
         "faqs_page": faqs_page,
         "is_operator_help": is_operator_help_request(request),
@@ -693,7 +713,7 @@ def user_contributions(request):
 
     # User's FAQs and articles
     user_faqs = FAQ.objects.filter(submitted_by=request.user)
-    user_articles = KBArticle.objects.filter(author=request.user)
+    user_articles = published_kb_queryset().filter(author=request.user)
 
     context = {
         "total_points": total_points,

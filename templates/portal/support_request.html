@@ -32,10 +32,17 @@
   </div>
 </details>
 
+<div
+  class="visually-hidden"
+  data-support-deflection-url="{% url 'api:support-deflection' %}"
+  data-support-deflection-ack-url="{% url 'api:support-deflection-ack' %}"
+></div>
+<div id="rmc-support-deflection-panel" class="alert alert-info d-none mb-3" role="status" aria-live="polite"></div>
 <div class="card">
   <div class="card-body">
     <form method="post" id="support-request-form" dir="auto" data-draft-key="support_request" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced message' %}">
       {% csrf_token %}
+      <input type="hidden" name="deflection_acknowledged" id="deflection_acknowledged" value="0">
       {{ form.as_p }}
       {% if next_url %}
         <input type="hidden" name="next" value="{{ next_url }}">
@@ -51,4 +58,5 @@
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 {# FormDraftSave.init is called by the page script after the library loads. #}
 <script src="{% static 'js/_pages/portal__support_request.js' %}"></script>
+<script src="{% static 'js/rmc-support-deflection.js' %}"></script>
 {% endblock %}

@@ -1,7 +1,7 @@
 # Stage 10 — 10x Platform Final Certification
 
-**Pack:** `2026-05-20-orchestrator-v4`  
-**Prerequisites:** [`00-global-execution-rules.md`](00-global-execution-rules.md), [`00-platform-wide-clause.md`](00-platform-wide-clause.md), [`00-moderator-addendum.md`](00-moderator-addendum.md), [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md), [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md)
+**Pack:** `2026-05-20-orchestrator-v5`  
+**Prerequisites:** [`00-global-execution-rules.md`](00-global-execution-rules.md), [`00-platform-wide-clause.md`](00-platform-wide-clause.md), [`00-moderator-addendum.md`](00-moderator-addendum.md), [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md), [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md), [`00-gear-up-v5-transformational.md`](00-gear-up-v5-transformational.md)
 
 
 
@@ -32,6 +32,7 @@ Apply the full clause from [`00-platform-wide-clause.md`](00-platform-wide-claus
 5. Attempt full Django suite if feasible (document skip reason on Windows DB lock)
 6. Run **full standard verifier stack** including `audit_luxury_ui_surface.py`
 7. Create [`docs/generated/ten_x_platform_certification.json`](../generated/ten_x_platform_certification.json) and [`.md`](../generated/ten_x_platform_certification.md)
+8. Record per-stage `v3_compliance_pct` and `v4_compliance_pct` from recovery cert (must be **100** for REPO SCOPE READY)
 
 ## GRADE DIMENSIONS (all required in JSON)
 
@@ -71,7 +72,7 @@ A–I Stage summaries | J Tests | K Verifiers | L Full suite | M Live/Render | N
 
 ## GEAR-UP V3 — ESCALATION LAYER (mandatory)
 
-Read [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md) and [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md).
+Read [`00-gear-up-v3-escalation.md`](00-gear-up-v3-escalation.md), [`00-gear-up-v4-category-defining.md`](00-gear-up-v4-category-defining.md), and [`00-gear-up-v5-transformational.md`](00-gear-up-v5-transformational.md).
 
 ## GEAR-UP V3 — PLATFORM ESCALATION (all agents)
 
@@ -147,11 +148,48 @@ Add to certification JSON:
 ```
 
 
-### Stage 10 V4
-- Verdict `10X PLATFORM READY — REPO SCOPE` only when: North Star 75/75, admin_gravity strict PASS, ollama live proof exists, all stage certs have `v4` block, zero OPEN repo gaps.
-- `v4_competitive_readiness_score` 1–10 with evidence (honest ≤8 until LIVE Render+PSP).
-- Full verifier table in `ten_x_platform_certification.json`.
-- Include `v3_compliance_pct` and `v4_compliance_pct` per stage 0–10 in certification JSON.
+## GEAR-UP V5 — TRANSFORMATIONAL BAR (mandatory)
+
+**Pack:** `2026-05-20-orchestrator-v5` — supersedes v4. Repo proof = **journeys + verifiers**, not narrative.
+
+### Non-negotiables
+
+1. **Journey coverage** — `docs/generated/orchestrator_journey_manifest.json` lists **27** journeys (3 per stage 1–9). Stage ACCEPTED only when its journeys are `PASS` in `orchestrator_journey_coverage.json`.
+2. **Dual-host contract** — manager chrome on `manager.runmycampus.com`; tenant on `{slug}.runmycampus.com` or `/t/{slug}/`. `verify_platform_abrupt_end_sweep.mjs` uses `TENANT_BASE_URL` for tenant context.
+3. **Nav ledger** — `verify_nav_resolves_to_named_route.py` → **0** lazy dashboard-root fallbacks in operator sidebar chrome.
+4. **Pixel-perfect bundle** — interaction integrity, dead hrefs, page fold, chromatic (Stage 8+ cross-cutting).
+5. **Continuous cert** — append `journeys` block to stage certification JSON; Agent 10 requires `journey_coverage_pct: 100`.
+6. **v5_measurable_wins[]** — each stage cert adds ≥1 metric `{name, baseline, after, competitor}` (honest numbers only).
+7. **Git truth** — Stage 0 records `uncommitted_files_count`; wave cannot claim READY if critical paths are only local.
+
+### V5 verifier bundle
+
+```bash
+python scripts/generate_orchestrator_journey_manifest.py --write
+python scripts/verify_stage_journey_coverage.py
+python scripts/verify_nav_resolves_to_named_route.py --strict
+python scripts/verify_interaction_integrity_contract.py
+python scripts/verify_orchestrator_v5_bundle.py
+python scripts/verify_orchestrator_prompt_pack.py --strict
+```
+
+### Proof artifact (every agent)
+
+```json
+"v5": {
+  "prompt_pack_version": "2026-05-20-orchestrator-v5",
+  "journeys_pass": 3,
+  "journeys_total": 3,
+  "measurable_wins": [],
+  "nav_ledger_pass": true
+}
+```
+
+
+### Stage 10 V5
+- `journey_coverage_pct` must be **100** in `ten_x_platform_certification.json`.
+- `repo_readiness_pct` vs `live_readiness_pct` split (Render/PSP/SOC2 EXTERNAL).
+- Run `python scripts/verify_orchestrator_v5_bundle.py` before verdict.
 
 
 ---

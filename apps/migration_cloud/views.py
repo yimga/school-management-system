@@ -371,7 +371,7 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
             try:
                 result = BundleIngestionService().ingest(spec)
                 bundle_id = result.bundle_id
-                bundle = MigrationBundle.objects.get(pk=bundle_id)
+                bundle = MigrationBundle.objects.get(pk=bundle_id, school_id=school_id)
                 self._apply_intake_options(bundle=bundle, values=intake_options)
             except Exception as exc:  # noqa: BLE001 — surface intake failures inline
                 logger.exception("migration_cloud.views: intake failed for method=%s", method)

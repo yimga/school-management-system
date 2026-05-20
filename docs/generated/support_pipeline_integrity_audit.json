@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-05-20T09:33:02.786373+00:00",
+  "verdict": "SUPPORT_PIPELINE_PASS",
+  "pass_count": 14,
+  "fail_count": 0,
+  "rows": [
+    {
+      "id": "1",
+      "label": "KB school + global scope fields",
+      "status": "PASS",
+      "proof": "models_kb + kb_context"
+    },
+    {
+      "id": "2",
+      "label": "KB download uses published visibility filter",
+      "status": "PASS",
+      "proof": "views_kb kb_article_download_pdf"
+    },
+    {
+      "id": "3",
+      "label": "Engine room code oracle + token manager",
+      "status": "PASS",
+      "proof": "services/ai"
+    },
+    {
+      "id": "4",
+      "label": "KB AI panel uses support assistant API + SSE stream",
+      "status": "PASS",
+      "proof": "kb_ai_assistant_panel + JS"
+    },
+    {
+      "id": "4b",
+      "label": "KBArticle vector_embedding + kb_embeddings module",
+      "status": "PASS",
+      "proof": "models_kb + kb_embeddings"
+    },
+    {
+      "id": "4c",
+      "label": "SupportErrorBoundary React component",
+      "status": "PASS",
+      "proof": "SupportErrorBoundary.tsx"
+    },
+    {
+      "id": "4d",
+      "label": "Playwright help-center crawl spec",
+      "status": "PASS",
+      "proof": "help-center-crawl.spec.js"
+    },
+    {
+      "id": "4e",
+      "label": "Support deflection graft (1331)",
+      "status": "PASS",
+      "proof": "support_deflection + api route"
+    },
+    {
+      "id": "4f",
+      "label": "Support sanitize + intent modules (1332/1333)",
+      "status": "PASS",
+      "proof": "support_sanitize + support_intent"
+    },
+    {
+      "id": "4g",
+      "label": "Code support index module (1335)",
+      "status": "PASS",
+      "proof": "code_index.py"
+    },
+    {
+      "id": "5",
+      "label": "Vitest support pipeline suites",
+      "status": "PASS",
+      "proof": "tests/*.tsx"
+    },
+    {
+      "id": "6",
+      "label": "Vitest support pipeline green",
+      "status": "PASS",
+      "proof": " High/beta/school-management-system\n\n \u00e2\u0153\u201c tests/support-ai-engine.test.tsx (3 tests) 8ms\n \u00e2\u0153\u201c tests/support-pipeline-integrity.test.tsx (4 tests) 88ms\n \u00e2\u0153\u201c src/components/support/support.test.tsx (2 tests) 202ms\n\n Test Files  3 passed (3)\n      Tests  9 passed (9)\n   Start at  05:32:47\n   Duration  4.68s (transform 386ms, setup 1.34s, collect 529ms, tests 298ms, environment 6.97s, prepare 1.29s)\n\n"
+    },
+    {
+      "id": "7",
+      "label": "KB audience filter contracts in tree",
+      "status": "PASS",
+      "proof": "test_kb_audience_filters.py"
+    },
+    {
+      "id": "8",
+      "label": "Django support pipeline unit tests green",
+      "status": "PASS",
+      "proof": "ebhook_query) ... ok\ntest_troubleshooting_from_error_token (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_troubleshooting_from_error_token) ... ok\ntest_ui_help_from_navigation_phrase (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_ui_help_from_navigation_phrase) ... ok\ntest_active_locale_read_for_sse_meta (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_active_locale_read_for_sse_meta) ... ok\ntest_meta_frame_includes_language_on_escalation_path (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_meta_frame_includes_language_on_escalation_path) ... ok\ntest_search_returns_list (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_search_returns_list) ... ok\ntest_staff_visibility_skips_operator_only_paths (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_staff_visibility_skips_operator_only_paths) ... ok\ntest_sliding_window_overlap (apps.portal.tests.test_support_ingest.SupportIngestChunkTests.test_sliding_window_overlap) ... ok\n\n----------------------------------------------------------------------\nRan 26 tests in 2.368s\n\nOK"
+    }
+  ]
+}

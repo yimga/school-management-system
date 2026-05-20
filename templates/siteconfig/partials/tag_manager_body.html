@@ -1,6 +1,6 @@
 {% load i18n %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Tag Manager" %}</h1>
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <p class="text-muted small mb-4">
     {% trans "No hardcoded columns — all nuance is data-driven." %}

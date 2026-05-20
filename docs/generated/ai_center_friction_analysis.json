@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-05-20T04:37:57.786127+00:00",
+  "topics": [
+    {
+      "route": "/api-center/",
+      "friction_score": 1,
+      "kind": "route"
+    }
+  ],
+  "modules": [
+    {
+      "module": "apicenter",
+      "score": 1
+    }
+  ],
+  "signals": [
+    {
+      "signal": "help_click",
+      "score": 1
+    }
+  ],
+  "event_count": 1,
+  "pii_free": true
+}

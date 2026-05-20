@@ -71,3 +71,17 @@ class SupportTicketPortalDetailTests(TestCase):
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.csat_score, 5)
         self.assertIn("Great", self.ticket.csat_comment)
+
+    def test_other_school_user_cannot_view_ticket(self):
+        other_school = School.objects.create(
+            name="Other School",
+            slug="other-ticket-school",
+            subdomain="other-ticket-school",
+            is_active=True,
+        )
+        url = reverse("portal:support_ticket_detail", kwargs={"ticket_id": self.ticket.pk})
+        request = _session_request(self.factory, self.user, other_school, url)
+        from django.http import Http404
+
+        with self.assertRaises(Http404):
+            support_ticket_detail(request, ticket_id=self.ticket.pk)

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T20:52:33.088803+00:00",
+  "generated_at": "2026-05-19T22:33:39.287546+00:00",
   "pass": true,
-  "templates_scanned": 1053,
+  "templates_scanned": 1057,
   "rows": [
     {
       "check_id": "forbid_bundle_templates_control_plane_skeleton.html",
@@ -322,6 +322,24 @@
       "proof": "templates/portal_base.html"
     },
     {
+      "check_id": "require_rmc_operator_footer__templates_portal_base.html",
+      "description": "templates/portal_base.html wires 'rmc_operator_footer_compact.html'",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "require_SHOW_MANAGER_CORPORA_templates_portal_base.html",
+      "description": "templates/portal_base.html wires 'SHOW_MANAGER_CORPORATE_FOOTER'",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
+      "check_id": "require_data-rmc-footer-surf_templates_portal_base.html",
+      "description": "templates/portal_base.html wires 'data-rmc-footer-surface=\"operator-compact\"'",
+      "status": "PASS",
+      "proof": "templates/portal_base.html"
+    },
+    {
       "check_id": "require_operator-compact_static_css_rmc-footer-surfaces.css",
       "description": "static/css/rmc-footer-surfaces.css wires 'operator-compact'",
       "status": "PASS",
@@ -343,7 +361,7 @@
       "check_id": "sweep_non_marketing_no_bundle",
       "description": "No non-marketing template includes corporate_footer_bundle.html",
       "status": "PASS",
-      "proof": "1053 templates scanned"
+      "proof": "1057 templates scanned"
     },
     {
       "check_id": "sweep_non_marketing_no_mkt_command",

@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-05-20T12:00:00+00:00",
+  "agent": "stage-3-agent-3",
+  "harness": "repo-static-plus-django-client",
+  "playwright_available": false,
+  "note": "Full four-host Playwright matrix is EXTERNAL (requires Django + hosts file). Repo scope uses Django Client + template/cascade static contracts in platform_runtime edge tests.",
+  "checks": [
+    {
+      "surface": "marketing",
+      "host": "runmycampus.com",
+      "method": "django_client",
+      "status": "covered_by_test_edge_surface_routing"
+    },
+    {
+      "surface": "control_plane",
+      "host": "manager.runmycampus.com",
+      "method": "django_client",
+      "status": "covered_by_test_edge_surface_routing"
+    },
+    {
+      "surface": "tenant",
+      "host": "tenant-subdomain.runmycampus.com",
+      "method": "django_client",
+      "status": "covered_by_test_edge_surface_routing"
+    },
+    {
+      "surface": "admin",
+      "path": "/admin/",
+      "method": "url_resolve",
+      "status": "covered_by_test_admin_surface_boundaries"
+    }
+  ],
+  "finding_count": 0,
+  "verdict": "PASS"
+}

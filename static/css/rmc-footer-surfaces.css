@@ -24,6 +24,35 @@ html[data-surface="control-plane"] body.control-plane-shell .cp-shell-content > 
   flex-shrink: 0;
 }
 
+/* Manager portal bridge (portal_base on manager host): footer follows document scroll */
+html[data-surface="control-plane"] body.manager-portal-bridge.cp-shell-has-operator-footer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+html[data-surface="control-plane"] body.manager-portal-bridge > .portal-layout-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+html[data-surface="control-plane"] body.manager-portal-bridge > [data-rmc-shell-footer="portal"] {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 0;
+  padding: 0;
+}
+
+html[data-surface="control-plane"] body.manager-portal-bridge > [data-rmc-shell-footer="portal"] .cp-corporate-footer {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+/* Belt: never show tenant mega-footer markup on manager bridge */
+html[data-surface="control-plane"] body.manager-portal-bridge [data-rmc-shell-footer="portal"] .dashboard-footer {
+  display: none !important;
+}
+
 /* Platform admin (/admin/ on manager host): footer inside #cp-main-content flex column */
 html[data-surface="control-plane"] .admin-cp-unified-page #cp-main-content > .cp-corporate-footer {
   flex-shrink: 0;

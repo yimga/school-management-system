@@ -25,7 +25,8 @@
         <div class="card-header fw-semibold">{% trans "Request a capability" %}</div>
         <div class="card-body">
           <p class="small text-muted">{% trans "Use this for product ideas and workflow needs. Urgent operational problems should go to support so they are worked immediately." %}</p>
-          <form method="post" action="{% url 'feedback:feature_center' %}">
+          {% include "partials/help_deflection_strip.html" with deflection_surface="feature_center" %}
+          <form method="post" action="{% url 'feedback:feature_center' %}" data-deflection-form-auto>
             {% csrf_token %}
             {{ feature_form.as_p }}
             <button class="btn btn-primary" type="submit">{% trans "Submit feature request" %}</button>
@@ -64,6 +65,11 @@
             <div class="list-group-item text-muted">{% trans "No feature requests yet. Start with the workflow problem, not the solution." %}</div>
           {% endfor %}
         </div>
+        {% if feature_requests_page and feature_requests_page.paginator.num_pages > 1 %}
+        <div class="card-footer">
+          {% include "components/pagination.html" with page_obj=feature_requests_page %}
+        </div>
+        {% endif %}
       </div>
     </section>
   </div>

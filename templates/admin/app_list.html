@@ -101,9 +101,9 @@
         </a>
       </li>
       <li>
-        <a href="{% url 'manager_help' %}" class="admin-sidebar-link {% if '/help/' in request.path %}active{% endif %}">
+        <a href="{% url 'manager_help_center' %}" class="admin-sidebar-link {% if '/help-center/' in request.path or '/help/' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Operator Help" %}</span>
+          <span class="admin-sidebar-link-text">{% trans "Help center" %}</span>
         </a>
       </li>
       {% else %}
@@ -116,7 +116,7 @@
       </li>
       {% endif %}
       <li>
-        <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}" class="admin-sidebar-link {% if '/kb/' in request.path %}active{% endif %}">
+        <a href="{% url 'kb:kb_home' %}" class="admin-sidebar-link {% if '/kb/' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>
           <span class="admin-sidebar-link-text">{% trans "Knowledge Base" %}</span>
         </a>

@@ -1,0 +1,16 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "AI Center settings" %}</h1>
+  <table class="table rmc-data-table">
+    <tbody>
+      {% for key, val in settings_rows %}
+      <tr><th>{{ key }}</th><td>{{ val }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</main>
+{% endblock %}

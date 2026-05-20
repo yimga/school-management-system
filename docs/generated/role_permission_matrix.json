@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-05-19T20:09:05.613874+00:00",
+  "generated_at": "2026-05-20T00:35:52.928319+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 925,
-  "views_indexed": 1785,
+  "row_count": 936,
+  "views_indexed": 1799,
   "summary": {
-    "login_gated": 880,
+    "login_gated": 891,
     "role_gated": 74,
     "permission_gated": 98,
     "has_inline_auth_check": 55,
-    "auth_mixin_gated": 74,
+    "auth_mixin_gated": 84,
     "rbac_allow_reason": 67,
     "candidate_anonymous": 13,
     "unresolved": 28
@@ -5385,6 +5385,29 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "ai/support-assistant/stream/",
+      "view_symbol": "api_support_assistant_stream",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_ai_gateway.py",
+      "kind": "func",
+      "decorators": [
+        "require_http_methods(['POST'])",
+        "csrf_protect",
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "ai/command-bar/",
       "view_symbol": "api_command_bar_search",
       "urls_file": "apps/api/urls.py",
@@ -10300,7 +10323,8 @@
       "view_file": "apps/feedback/views.py",
       "kind": "func",
       "decorators": [
-        "login_required"
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -10321,7 +10345,8 @@
       "view_file": "apps/feedback/views.py",
       "kind": "func",
       "decorators": [
-        "login_required"
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -10515,7 +10540,8 @@
       "view_file": "apps/feedback/views.py",
       "kind": "func",
       "decorators": [
-        "login_required"
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -13377,6 +13403,230 @@
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "connectors/operator/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorOperatorView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "TemplateView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "",
+      "view_symbol": "views_connectors.MigrationCloudConnectorHomeView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "TemplateView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "connect/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorConnectView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_protect"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:connection_id>/discover/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorDiscoverView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:connection_id>/discover/<uuid:run_id>/mapping/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorMappingView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:connection_id>/discover/<uuid:run_id>/validate/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorValidateView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:connection_id>/quarantine/<uuid:batch_id>/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorQuarantineView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "TemplateView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:connection_id>/import/<uuid:batch_id>/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorImportView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:connection_id>/review/<uuid:import_run_id>/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorReviewView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "TemplateView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "<uuid:connection_id>/revoke/",
+      "view_symbol": "views_connectors.MigrationCloudConnectorRevokeView.as_view",
+      "urls_file": "apps/migration_cloud/urls_connectors.py",
+      "view_file": "apps/migration_cloud/views_connectors.py",
+      "kind": "class",
+      "decorators": [
+        "csrf_protect"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
       "candidate_anonymous": false
     },
     {

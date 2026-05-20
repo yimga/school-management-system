@@ -1,0 +1,75 @@
+/**
+ * Page fold standards — sticky section nav, task list pagers, fold warnings.
+ */
+
+:root {
+  --rmc-fold-nav-sticky-top: 4.25rem;
+}
+
+/* Sticky in-page section / category nav (2+ fold pages) */
+[data-rmc-page-fold-nav="required"] .rmc-page-fold-nav,
+[data-rmc-page-fold-nav="required"] .feature-cat-tabs.rmc-page-fold-nav--sticky,
+.portal-page-body[data-rmc-page-fold-nav="required"] .rmc-page-fold-nav--sticky,
+.cp-page-body[data-rmc-page-fold-nav="required"] .rmc-section-nav.rmc-page-fold-nav--sticky {
+  position: sticky;
+  top: var(--rmc-fold-nav-sticky-top);
+  z-index: 1020;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.75rem;
+  background: color-mix(
+    in oklab,
+    var(--surface-canvas, #fff) 92%,
+    transparent
+  );
+  border-bottom: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+html[data-surface="control-plane"] [data-rmc-page-fold-nav="required"] .feature-cat-tabs.rmc-page-fold-nav--sticky {
+  background: color-mix(
+    in oklab,
+    var(--cp-ink-sidebar, rgba(8, 16, 30, 0.92)) 18%,
+    var(--surface-canvas, #0a0a0f) 82%
+  );
+}
+
+/* Task UI: paginated lists — no internal scroll trap on tbody */
+[data-rmc-scroll-policy="paginate"] .table-responsive,
+[data-rmc-scroll-policy="paginate"] .rmc-data-table-wrap {
+  max-height: none;
+  overflow: visible;
+}
+
+.rmc-task-pager {
+  border-top: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  padding-top: 0.5rem;
+}
+
+/* Dev / QA: subtle indicator when page exceeds 4 folds */
+html[data-rmc-exceeds-4-folds="1"]::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--school-primary, #4f46e5),
+    var(--school-accent, #10b981)
+  );
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Back-to-top: ensure visible above manager footer */
+html[data-rmc-exceeds-2-folds="1"] .back-to-top-btn {
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+html[data-surface="control-plane"] body.cp-shell-has-operator-footer .back-to-top-btn {
+  bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+}

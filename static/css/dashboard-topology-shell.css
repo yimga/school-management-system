@@ -10,7 +10,7 @@ html[data-rmc-premium-shell="portal"] {
   height: 100%;
 }
 
-body.control-plane-shell,
+body.control-plane-shell:not([data-rmc-cp-scroll="document"]),
 body.portal-shell-body,
 body.backend-shell-body {
   min-height: 100vh;
@@ -18,6 +18,22 @@ body.backend-shell-body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="document"] {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+/* Manager /admin/: main-column scroll inside .admin-cp-unified-page (see admin-cp-parity.css). */
+body.control-plane-shell[data-rmc-cp-scroll="main"] {
+  overflow: hidden !important;
+  height: 100vh;
+  max-height: 100vh;
 }
 
 .cp-shell-content,

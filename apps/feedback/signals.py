@@ -11,7 +11,7 @@ from typing import Iterable
 
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from apps.feedback.models import (
@@ -102,23 +102,77 @@ def _email_submitters_on_release(sender, instance: ReleaseNote, created, **kwarg
     )
 
 
+@receiver(pre_save, sender=FeedbackSubmission)
+def _cache_feedback_prior_status(sender, instance: FeedbackSubmission, **kwargs):
+    if not instance.pk:
+        instance._prior_status = None
+        return
+    try:
+        instance._prior_status = (
+            FeedbackSubmission.objects.filter(pk=instance.pk)  # tenant-isolation-allow: signal-status-cache-by-pk
+            .values_list("status", flat=True)
+            .first()
+        )
+    except Exception:
+        instance._prior_status = None
+
+
+@receiver(pre_save, sender=FeatureRequest)
+def _cache_feature_prior_status(sender, instance: FeatureRequest, **kwargs):
+    if not instance.pk:
+        instance._prior_status = None
+        return
+    try:
+        instance._prior_status = (
+            FeatureRequest.objects.filter(pk=instance.pk)  # tenant-isolation-allow: signal-status-cache
+            .values_list("status", flat=True)
+            .first()
+        )
+    except Exception:
+        instance._prior_status = None
+
+
+@receiver(post_save, sender=FeatureRequest)
+def _email_submitter_on_feature_request(sender, instance: FeatureRequest, created, **kwargs):
+    user = getattr(instance, "submitted_by", None)
+    if user is None or not getattr(user, "email", None):
+        return
+    if created:
+        title = (instance.title or "your feature request").strip()
+        _send_quiet(
+            subject=f"Feature request received: {title[:80]}",
+            body=(
+                "Hi,\n\n"
+                f"We received your feature request: {title}.\n"
+                "Product triage will review it and you will get updates as the status changes.\n\n"
+                "— RunMyCampus\n"
+            ),
+            recipients=[user.email],
+        )
+        return
+    prior = getattr(instance, "_prior_status", None)
+    if prior is None or prior == instance.status:
+        return
+    title = (instance.title or "your feature request").strip()
+    _send_quiet(
+        subject=f"Feature update: {title[:60]}",
+        body=(
+            "Hi,\n\n"
+            f"Your feature request ({title}) is now: {instance.get_status_display()}.\n\n"
+            "— RunMyCampus\n"
+        ),
+        recipients=[user.email],
+    )
+
+
 @receiver(post_save, sender=FeedbackSubmission)
 def _email_submitter_on_state_change(sender, instance: FeedbackSubmission, created, **kwargs):
-    """When a FeedbackSubmission's status changes from new -> something else,
-    drop the submitter a confirmation email.
-
-    We avoid the post_save spam loop by only firing on rows that have an
-    `updated_at - created_at > 1s` heuristic; the goal is to acknowledge real
-    triage state-changes, not the initial create.
-    """
+    """Email submitter when triage status actually changes (not on every field edit)."""
 
     if created:
         return
-    try:
-        delta = (instance.updated_at - instance.created_at).total_seconds() if instance.updated_at and instance.created_at else 0
-    except TypeError:
-        delta = 0
-    if delta < 1:
+    prior = getattr(instance, "_prior_status", None)
+    if prior is None or prior == instance.status:
         return
     user = getattr(instance, "user", None)
     if user is None or not getattr(user, "email", None):

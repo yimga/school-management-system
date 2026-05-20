@@ -69,7 +69,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.43.0-operator-help-center-v2-2026-05-19";
+const CACHE_VERSION = "sms-v3.45.0-help-center-wave2-1346-1353-2026-05-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -161,6 +161,12 @@ const STATIC_ASSETS = [
   "/static/js/offline-status-bar.js",
   "/static/js/auto-pilot.js",
   "/static/js/migration_cloud_wizard.js",
+  "/static/js/rmc-help-search-typeahead.js",
+  "/static/js/rmc-support-deflection.js",
+  "/static/js/rmc-kb-ai-assistant.js",
+  "/static/js/rmc-operator-help-center.js",
+  "/static/css/rmc-help-center-engage.css",
+  "/static/css/rmc-kb-operator.css",
   "/static/images/logo.png",
   "/static/images/brand/runmycampus-logo-mark.svg",
   "/static/images/brand/runmycampus-logo-lockup.png",

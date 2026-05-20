@@ -1,0 +1,78 @@
+{% load i18n %}
+<div class="container-fluid py-3" data-page-archetype="contact-routing">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Contact us" %}</h1>
+      <p class="text-tertiary mb-0">{% trans "Choose the right lane: urgent platform support, product feedback, feature requests, or public contact." %}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if help_center_url %}<a class="btn btn-outline-secondary" href="{{ help_center_url }}">{% trans "Help center" %}</a>{% endif %}
+      {% if support_links.kb_home %}<a class="btn btn-outline-secondary" href="{{ support_links.kb_home }}">{% trans "Knowledge base" %}</a>{% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100 border-0 shadow-sm rmc-help-contact-lane">
+        <div class="card-body">
+          <i class="bi bi-life-preserver fs-2 text-danger" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Urgent platform support" %}</h2>
+          <p class="small text-tertiary">{% trans "Login, billing, imports, mobile, accessibility, or production blockers." %}</p>
+          {% if manager_support_url %}
+          <a class="btn btn-danger btn-sm" href="{{ manager_support_url }}">{% trans "Open support request" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100 border-0 shadow-sm rmc-help-contact-lane">
+        <div class="card-body">
+          <i class="bi bi-lightbulb fs-2 text-primary" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Request a feature" %}</h2>
+          <p class="small text-tertiary">{% trans "Product ideas and workflow gaps enter triage and roadmap review." %}</p>
+          {% if open_feature_count %}<p class="small text-tertiary">{{ open_feature_count }} {% trans "open in triage." %}</p>{% endif %}
+          <a class="btn btn-primary btn-sm" href="{% url 'manager_feature_center' %}">{% trans "Feature center" %}</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100 border-0 shadow-sm rmc-help-contact-lane">
+        <div class="card-body">
+          <i class="bi bi-chat-square-text fs-2" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Product feedback" %}</h2>
+          <p class="small text-tertiary">{% trans "Bugs, workflow pain, and suggestions — routed to voice-of-customer triage." %}</p>
+          {% if support_links.voice_of_customer %}
+          <a class="btn btn-outline-primary btn-sm" href="{{ support_links.voice_of_customer }}">{% trans "Voice of customer" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="col-md-6 col-xl-3">
+      <div class="card h-100 border-0 shadow-sm rmc-help-contact-lane">
+        <div class="card-body">
+          <i class="bi bi-globe2 fs-2" aria-hidden="true"></i>
+          <h2 class="h6 mt-2">{% trans "Public & partner contact" %}</h2>
+          <p class="small text-tertiary">{% trans "Marketing contact form for prospects and partners outside the operator shell." %}</p>
+          {% if support_links.contact_us %}
+          <a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_us }}">{% trans "Public contact page" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Not sure which lane?" %}</h2>
+      <ul class="small text-tertiary mb-0">
+        <li>{% trans "Blocked today → Urgent platform support." %}</li>
+        <li>{% trans "Want a new capability → Feature center." %}</li>
+        <li>{% trans "Something is broken or confusing → Voice of customer / feedback." %}</li>
+        <li>{% trans "Prospect or partner outreach → Public contact page." %}</li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -1,49 +1,52 @@
-  (function() {
-    var scrollThreshold = 400;
-    var btn = document.getElementById('back-to-top-btn');
-    if (!btn) return;
-    function isScrollable(el) {
-      if (!el) return false;
-      var style = window.getComputedStyle(el);
-      var overflowY = style.overflowY;
-      var canScroll = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay';
-      return canScroll && el.scrollHeight > el.clientHeight + 1;
-    }
-    function getScrollContainer() {
-      var main = document.getElementById('main');
-      if (isScrollable(main)) return main;
-      var cpMain = document.getElementById('cp-main-content') || document.querySelector('.cp-main-col');
-      if (isScrollable(cpMain)) return cpMain;
-      var portalMain = document.getElementById('main-content') || document.querySelector('.portal-main-col');
-      if (isScrollable(portalMain)) return portalMain;
-      return null;
-    }
-    function getScrollTop(container) {
-      return container ? container.scrollTop : (window.scrollY || document.documentElement.scrollTop);
-    }
-    function updateVisibility() {
-      var container = getScrollContainer();
-      var top = getScrollTop(container);
-      if (top >= scrollThreshold) {
-        btn.removeAttribute('hidden');
-      } else {
-        btn.setAttribute('hidden', '');
-      }
-    }
-    function scrollToTop() {
-      var container = getScrollContainer();
-      if (container) {
-        container.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }
+(function () {
+  var fold =
+    window.RMC && window.RMC.getFoldHeight
+      ? window.RMC.getFoldHeight()
+      : Math.max(window.innerHeight || 0, 320);
+  var scrollThreshold = fold * 2;
+  var btn = document.getElementById("back-to-top-btn");
+  if (!btn) return;
+
+  function getScrollContainer() {
+    return window.RMC && window.RMC.getScrollContainer
+      ? window.RMC.getScrollContainer()
+      : null;
+  }
+
+  function getScrollTop(container) {
+    return window.RMC && window.RMC.getScrollTop
+      ? window.RMC.getScrollTop(container)
+      : container
+        ? container.scrollTop
+        : window.scrollY || document.documentElement.scrollTop;
+  }
+
+  function scrollToTop() {
     var container = getScrollContainer();
-    if (container) {
-      container.addEventListener('scroll', updateVisibility, { passive: true });
+    if (window.RMC && window.RMC.scrollToY) {
+      window.RMC.scrollToY(container, 0, "smooth");
+    } else if (container) {
+      container.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      window.addEventListener('scroll', updateVisibility, { passive: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    btn.addEventListener('click', scrollToTop);
-    updateVisibility();
-  })();
+  }
+
+  function updateVisibility() {
+    var container = getScrollContainer();
+    var top = getScrollTop(container);
+    if (top >= scrollThreshold) {
+      btn.removeAttribute("hidden");
+    } else {
+      btn.setAttribute("hidden", "");
+    }
+  }
+
+  var container = getScrollContainer();
+  if (container) {
+    container.addEventListener("scroll", updateVisibility, { passive: true });
+  }
+  window.addEventListener("scroll", updateVisibility, { passive: true });
+  btn.addEventListener("click", scrollToTop);
+  updateVisibility();
+})();

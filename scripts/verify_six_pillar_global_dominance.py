@@ -130,7 +130,7 @@ def main() -> int:
     code, tail = _run([py, "scripts/verify_ai_engine_room.py"])
     add("GOOGLE_AI_ENGINE", "verify_ai_engine_room", code, tail)
 
-    code, tail = _run([py, "scripts/verify_forensic_master_prompt_completion.py"], timeout=600)
+    code, tail = _run([py, "scripts/verify_forensic_master_prompt_completion.py"], timeout=1200)
     add("FORENSIC_ZERO_EXCEPTION", "verify_forensic_master_prompt_completion", code, tail)
 
     failed = [r for r in rows if r.status == "FAIL"]

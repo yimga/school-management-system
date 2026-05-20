@@ -235,6 +235,10 @@ def main(argv: list[str] | None = None) -> int:
         "Public developer section: runmycampus.com routes, nav, discovery APIs",
     )
     run(
+        [py, _script_path("verify_manager_admin_cp_layout.py"), "--css-only", *base_args],
+        "Manager /admin/: unified CP layout + main-column scroll contract",
+    )
+    run(
         [py, _script_path("verify_doc_plan_density_discipline.py"), *base_args],
         "Docs discipline: single-source plan density non-growth",
     )
@@ -465,6 +469,14 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [py, _script_path("verify_glocal_closeout_completion.py"), *base_args],
         "Glocal closeout: G-01..G-22 repo proofs + i18n/money-float sub-gates",
+    )
+    run(
+        [py, _script_path("verify_page_fold_standards.py"), "--write", *base_args],
+        "Page fold: 4-fold cap, back-to-top, task pagination markers",
+    )
+    run(
+        [py, _script_path("verify_footer_surface_contract.py"), "--write", *base_args],
+        "Footer surface: operator-compact vs tenant vs marketing",
     )
     run(
         [py, _script_path("verify_platform_chromatic_compliance.py")],

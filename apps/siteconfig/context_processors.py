@@ -1026,7 +1026,13 @@ def site_settings(request):
             ctx.setdefault("PORTAL_FOOTER_PARTIAL", "components/footer.html")
     else:
         ctx.setdefault("PORTAL_HEADER_VARIANT", "statement")
-        ctx.setdefault("PORTAL_FOOTER_PARTIAL", "components/footer.html")
+        if host_kind == "manager":
+            ctx.setdefault(
+                "PORTAL_FOOTER_PARTIAL",
+                "partials/rmc_operator_footer_compact.html",
+            )
+        else:
+            ctx.setdefault("PORTAL_FOOTER_PARTIAL", "components/footer.html")
     return ctx
 
 

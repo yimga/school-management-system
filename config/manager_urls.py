@@ -26,8 +26,8 @@ from apps.schools.control_plane import (
 )
 from config.admin import platform_admin_site
 
-# Reuse main urlconf error handlers and Phase B legacy redirects.
-from config.urls import (
+# Shared error handlers (avoid circular import via config.urls during urlconf load).
+from config.error_handlers import (
     page_not_found as handler404_view,
     permission_denied as handler403_view,
     server_error as handler500_view,
@@ -572,6 +572,42 @@ urlpatterns = [
         ).manager_help_center,
         name="manager_help_center",
     ),
+    path(
+        "help-center/ai-review/",
+        __import__(
+            "config.manager_ai_review_queue", fromlist=["manager_ai_review_queue"]
+        ).manager_ai_review_queue,
+        name="manager_ai_review_queue",
+    ),
+    path(
+        "help-center/analytics/",
+        __import__(
+            "config.manager_help_analytics", fromlist=["manager_help_analytics"]
+        ).manager_help_analytics,
+        name="manager_help_analytics",
+    ),
+    path(
+        "feature-center/",
+        __import__(
+            "config.manager_help_engagement", fromlist=["manager_feature_center"]
+        ).manager_feature_center,
+        name="manager_feature_center",
+    ),
+    path(
+        "contact-us/",
+        __import__(
+            "config.manager_help_engagement", fromlist=["manager_contact_us"]
+        ).manager_contact_us,
+        name="manager_contact_us",
+    ),
+    path(
+        "product-roadmap/",
+        __import__(
+            "config.manager_help_engagement", fromlist=["manager_product_roadmap"]
+        ).manager_product_roadmap,
+        name="manager_product_roadmap",
+    ),
+    path("", include(("apps.feedback.urls", "feedback"), namespace="feedback")),
     path("support/", manager_support_request, name="manager_support_request"),
     path("feedback/", manager_feedback, name="manager_feedback"),
     path("notifications/", manager_notifications, name="manager_notifications"),

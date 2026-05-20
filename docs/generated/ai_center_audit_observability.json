@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-05-20T04:37:57.787541+00:00",
+  "event_types": [
+    "ai_answer_generated",
+    "ai_contextual_tip_generated",
+    "ai_feature_absent",
+    "ai_friction_topic_detected",
+    "ai_gateway_disabled_fallback",
+    "ai_gateway_error",
+    "ai_kb_draft_created",
+    "ai_missing_context",
+    "ai_query_submitted"
+  ]
+}

@@ -235,6 +235,35 @@
           <span>{% trans "Knowledge Base" %}</span>
         </a>
       </li>
+      {% if request.public_host_kind == 'manager' %}
+      <li>
+        <a class="dropdown-item" href="{% url 'manager_feature_center' %}">
+          <i class="bi bi-lightbulb"></i>
+          <span>{% trans "Request a feature" %}</span>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'manager_contact_us' %}">
+          <i class="bi bi-chat-dots"></i>
+          <span>{% trans "Contact us" %}</span>
+        </a>
+      </li>
+      {% elif feature_center_url %}
+      <li>
+        <a class="dropdown-item" href="{{ feature_center_url }}">
+          <i class="bi bi-lightbulb"></i>
+          <span>{% trans "Request a feature" %}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% if contact_center_url %}
+      <li>
+        <a class="dropdown-item" href="{{ contact_center_url }}">
+          <i class="bi bi-chat-dots"></i>
+          <span>{% trans "Contact us" %}</span>
+        </a>
+      </li>
+      {% endif %}
       <li>
         {% url 'manager_support_request' as manager_support_url %}
         {% url 'portal:support_request' as portal_support_url %}
@@ -253,11 +282,11 @@
         {% endif %}
       </li>
       <li>
-        {% url 'manager_feedback' as manager_feedback_url %}
-        {% if request.public_host_kind == 'manager' and manager_feedback_url %}
-        <a class="dropdown-item" href="{{ manager_feedback_url }}" title="{% trans 'Send Feedback' %}">
+        {% url 'feedback:voice_of_customer' as manager_voc_url %}
+        {% if request.public_host_kind == 'manager' and manager_voc_url %}
+        <a class="dropdown-item" href="{{ manager_voc_url }}" title="{% trans 'Voice of customer' %}">
           <i class="bi bi-chat-left-text"></i>
-          <span>{% trans "Send Feedback" %}</span>
+          <span>{% trans "Voice of customer" %}</span>
         </a>
         {% elif portal_support_url %}
         <a class="dropdown-item" href="{{ portal_support_url }}?type=feedback&amp;next={{ request.path|urlencode }}" title="{% trans 'Send Feedback' %}">
