@@ -2,6 +2,17 @@
 {% load terminology_tags %}
 {% load accounts_extras %}
 
+{% comment %}
+v3.56.0 (2026-05-21): tenant workspace context (child selector + online dot +
+sibling chips). Gated by `request.public_host_kind != 'manager'` so the operator
+sidebar never receives the tenant child-context card. Partial internally checks
+`cockpit.workspace_context_tenant.enabled` — default False, operator opt-in via
+SiteSettings.cockpit_payload.
+{% endcomment %}
+{% if request.public_host_kind != 'manager' %}
+{% include "partials/cockpit/_workspace_context_tenant.html" %}
+{% endif %}
+
 <!-- Collapse toggle (desktop): toggles icon-only strip -->
 <div class="portal-sidebar-collapse-wrap d-none d-lg-block mb-2">
   <button type="button" class="btn btn-sm btn-outline-secondary portal-sidebar-collapse-toggle" aria-label="{% trans 'Collapse sidebar' %}" title="{% trans 'Collapse sidebar to icons' %}">

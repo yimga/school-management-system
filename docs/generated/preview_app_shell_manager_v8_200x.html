@@ -1,0 +1,2935 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMC v3.55.0 app-shell preview — manager control plane · 200x</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Inlined design tokens (extends v7 dark token palette)
+   ============================================================ */
+:root {
+  --surface-bg: #f5f5f7;
+  --surface-canvas: #fbfbfd;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #ebebef;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.14);
+  --text-primary: #1d1d1f;
+  --text-secondary: #424245;
+  --text-tertiary: #6e6e73;
+  --text-muted: #6c6c70;
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --elev-3: 0 18px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08);
+  --elev-luxury: 0 24px 68px rgba(8, 11, 28, 0.55), 0 2px 4px rgba(255,255,255,0.04) inset;
+  --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-slow: 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --school-primary: #4f46e5;
+  --school-accent: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --success: #22c55e;
+  /* Dark surface for the manager chrome (header/sidebar are dark in manager) */
+  --cp-chrome-bg: #07091a;
+  --cp-chrome-bg-deep: #04060f;
+  --cp-chrome-surface: #0f1530;
+  --cp-chrome-surface-2: #131a35;
+  --cp-chrome-hairline: rgba(255, 255, 255, 0.08);
+  --cp-chrome-hairline-strong: rgba(255, 255, 255, 0.14);
+  --cp-chrome-text: #f1f5f9;
+  --cp-chrome-text-muted: #94a3b8;
+  --cp-chrome-text-faint: #64748b;
+  --cp-glow-indigo: 99, 102, 241;
+  --cp-glow-emerald: 16, 185, 129;
+  --cp-glow-amber: 245, 158, 11;
+  --cp-glow-rose: 239, 68, 68;
+  --cp-glow-sky: 96, 165, 250;
+  --serif: "Source Serif 4", "Iowan Old Style", "Apple Garamond", Georgia, serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; }
+
+/* ============================================================
+   rmc-app-shell.css — extended with right rail for copilot
+   ============================================================ */
+html, body { height: 100%; overflow: hidden; }
+
+.rmc-app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr var(--rmc-app-shell-copilot-w, 44px);
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  isolation: isolate;
+  transition: grid-template-columns var(--motion-slow);
+}
+
+.rmc-app-shell[data-copilot="expanded"] {
+  --rmc-app-shell-copilot-w: 360px;
+}
+
+.rmc-app-shell__header {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo), 0.20), transparent 60%),
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald), 0.16), transparent 60%),
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg) 100%);
+  color: var(--cp-chrome-text);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  position: relative;
+  z-index: 40;
+  min-width: 0;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.rmc-app-shell__sidebar {
+  grid-row: 2;
+  grid-column: 1;
+  background:
+    linear-gradient(180deg, var(--cp-chrome-bg) 0%, var(--cp-chrome-bg-deep) 100%);
+  color: var(--cp-chrome-text);
+  border-right: 1px solid var(--cp-chrome-hairline);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  min-width: 0;
+  z-index: 30;
+  box-shadow: var(--elev-1);
+}
+
+.rmc-app-shell__canvas {
+  grid-row: 2;
+  grid-column: 2;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(1200px 500px at 18% -5%, rgba(var(--cp-glow-indigo), 0.05), transparent 60%),
+    radial-gradient(1100px 500px at 82% -10%, rgba(var(--cp-glow-emerald), 0.04), transparent 60%),
+    var(--surface-bg);
+  scroll-padding-top: var(--rmc-app-shell-header-h, 104px);
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.rmc-app-shell__copilot {
+  grid-row: 2;
+  grid-column: 3;
+  background:
+    linear-gradient(180deg, rgba(15, 21, 48, 0.92) 0%, rgba(7, 9, 26, 0.95) 100%);
+  border-left: 1px solid var(--cp-chrome-hairline);
+  color: var(--cp-chrome-text);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  z-index: 32;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: -12px 0 32px rgba(0,0,0,0.30);
+  overflow: hidden;
+}
+
+.rmc-app-shell__canvas-body { flex: 1 0 auto; min-width: 0; display: flex; flex-direction: column; }
+.rmc-app-shell__footer {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  min-width: 0;
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  z-index: 35;
+}
+
+/* Scrollbar — thin, fade on hover */
+.rmc-app-shell__canvas, .rmc-app-shell__sidebar, .rmc-app-shell__copilot {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover, .rmc-app-shell__canvas:focus-within { scrollbar-color: var(--hairline-strong) transparent; }
+.rmc-app-shell__sidebar:hover, .rmc-app-shell__sidebar:focus-within { scrollbar-color: rgba(255,255,255,0.18) transparent; }
+
+.rmc-app-shell__canvas::-webkit-scrollbar,
+.rmc-app-shell__sidebar::-webkit-scrollbar,
+.rmc-app-shell__copilot::-webkit-scrollbar { width: 8px; height: 8px; }
+.rmc-app-shell__canvas::-webkit-scrollbar-track,
+.rmc-app-shell__sidebar::-webkit-scrollbar-track,
+.rmc-app-shell__copilot::-webkit-scrollbar-track { background: transparent; }
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb,
+.rmc-app-shell__sidebar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: var(--radius-pill);
+  transition: background var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.rmc-app-shell__sidebar:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); }
+
+@media (max-width: 1199.98px) {
+  .rmc-app-shell { grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr; }
+  .rmc-app-shell__copilot { display: none; }
+}
+@media (max-width: 991.98px) {
+  .rmc-app-shell { grid-template-columns: 1fr; }
+  .rmc-app-shell__sidebar { display: none; }
+  .rmc-app-shell__canvas { grid-column: 1 / -1; }
+}
+
+/* ============================================================
+   Manager surface chrome — header, sidebar, content styling
+   ============================================================ */
+.cp-header { display: flex; flex-direction: column; }
+
+.cp-header__row {
+  display: grid;
+  grid-template-columns: minmax(200px, auto) 1fr minmax(200px, auto);
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  min-height: 52px;
+}
+
+.cp-header__row--utility {
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+
+.cp-header__row > .cp-brand { justify-self: start; }
+.cp-header__row > .cp-search { justify-self: center; width: 100%; max-width: 560px; }
+.cp-header__row > .cp-util-actions { justify-self: end; }
+
+.cp-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--cp-chrome-text);
+  text-decoration: none;
+}
+
+.cp-brand__mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--school-primary), #7c3aed 60%, #a855f7);
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 6px 18px rgba(99,102,241,0.45), 0 0 0 1px rgba(255,255,255,0.08) inset;
+  position: relative;
+}
+.cp-brand__mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.25), transparent 50%);
+  pointer-events: none;
+}
+
+.cp-brand__pill {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #422006;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-left: 4px;
+  box-shadow: 0 4px 12px rgba(245,158,11,0.35);
+}
+
+.cp-search {
+  flex: 1 1 auto;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  color: var(--cp-chrome-text-muted);
+  font-size: 13px;
+  transition: border-color var(--motion-fast), background var(--motion-fast);
+}
+.cp-search:hover { background: rgba(255,255,255,0.08); border-color: var(--cp-chrome-hairline-strong); }
+
+.cp-search__kbd {
+  margin-left: auto;
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--cp-chrome-text-muted);
+}
+
+.cp-util-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--cp-chrome-hairline);
+  background: rgba(255,255,255,0.04);
+  color: var(--cp-chrome-text);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--motion-fast), border-color var(--motion-fast);
+}
+
+.cp-pill:hover { background: rgba(255,255,255,0.1); border-color: var(--cp-chrome-hairline-strong); }
+
+.cp-bell {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(239,68,68,0.18);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #fecaca;
+  cursor: pointer;
+}
+
+.cp-bell__dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--danger);
+  color: white;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border: 2px solid var(--cp-chrome-bg);
+}
+
+.cp-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-user__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+}
+
+.cp-user__meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  font-size: 12px;
+}
+
+.cp-user__meta strong { color: var(--cp-chrome-text); }
+.cp-user__meta span { color: var(--cp-chrome-text-muted); font-size: 11px; }
+
+/* === 200x ELEMENT 10: Operator presence indicator =========== */
+.cp-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--cp-chrome-hairline);
+}
+.cp-presence__avatars {
+  display: inline-flex;
+  align-items: center;
+}
+.cp-presence__avatars span {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border: 2px solid var(--cp-chrome-bg);
+  margin-left: -6px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+.cp-presence__avatars span:first-child { margin-left: 0; }
+.cp-presence__avatars span:nth-child(2) { background: linear-gradient(135deg, #10b981, #059669); }
+.cp-presence__avatars span:nth-child(3) { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.cp-presence__count {
+  font-size: 11px;
+  color: var(--cp-chrome-text-muted);
+  white-space: nowrap;
+}
+.cp-presence__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #bbf7d0;
+  padding-left: 10px;
+  border-left: 1px solid var(--cp-chrome-hairline);
+}
+.cp-presence__status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
+  animation: cp-pulse-soft 2.2s ease-in-out infinite;
+}
+.cp-presence__quote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--cp-chrome-text-muted);
+  padding-left: 10px;
+  border-left: 1px solid var(--cp-chrome-hairline);
+}
+
+@keyframes cp-pulse-soft {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+  50% { box-shadow: 0 0 0 6px rgba(34,197,94,0.04); }
+}
+
+/* Brand tagline — sits below the wordmark */
+.cp-brand__tagline {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--cp-chrome-text-muted);
+}
+
+/* Live activity ticker — Bloomberg-style horizontal scrolling */
+.cp-activity-ticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 4px 20px;
+  background: linear-gradient(90deg, rgba(239,68,68,0.04) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 100%);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  font-size: 11px;
+  color: var(--cp-chrome-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.cp-activity-ticker__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: #fecaca;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.cp-activity-ticker__badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: cp-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cp-ticker-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.cp-activity-ticker__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
+}
+
+.cp-activity-ticker__track {
+  display: inline-flex;
+  gap: 36px;
+  animation: cp-ticker-scroll 60s linear infinite;
+  will-change: transform;
+}
+
+.cp-activity-ticker:hover .cp-activity-ticker__track {
+  animation-play-state: paused;
+}
+
+@keyframes cp-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-activity-ticker__track { animation: none; }
+}
+
+.cp-activity-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-activity-event__text { color: var(--cp-chrome-text); }
+.cp-activity-event__time { color: var(--cp-chrome-text-muted); font-size: 10px; }
+.cp-activity-event--success .cp-activity-event__icon { color: var(--success); }
+.cp-activity-event--warn .cp-activity-event__icon { color: var(--warning); }
+.cp-activity-event--danger .cp-activity-event__icon { color: var(--danger); }
+.cp-activity-event--info .cp-activity-event__icon { color: #60a5fa; }
+
+/* Primary nav row */
+.cp-primary-nav {
+  display: flex;
+  gap: 4px;
+  padding: 6px 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-primary-nav__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--cp-chrome-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+
+.cp-primary-nav__item:hover { background: rgba(255,255,255,0.06); color: var(--cp-chrome-text); }
+
+.cp-primary-nav__item[aria-current="page"] {
+  background: linear-gradient(135deg, rgba(99,102,241,0.30), rgba(168,85,247,0.20));
+  color: #ddd6fe;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(99,102,241,0.30), 0 6px 18px rgba(99,102,241,0.20);
+}
+
+/* Sidebar */
+.cp-sidebar-inner {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Workspace context block */
+.cp-workspace-context {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background:
+    linear-gradient(135deg, rgba(99,102,241,0.10), rgba(16,185,129,0.06));
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+}
+.cp-workspace-context::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(closest-side, rgba(99,102,241,0.18), transparent);
+  pointer-events: none;
+}
+
+.cp-workspace-context__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.cp-workspace-context__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(99,102,241,0.40);
+}
+
+.cp-workspace-context__who {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+  flex: 1;
+}
+.cp-workspace-context__who strong {
+  color: var(--cp-chrome-text);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-workspace-context__who span {
+  color: var(--cp-chrome-text-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-workspace-context__scope-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.cp-workspace-context__scope {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--cp-chrome-hairline);
+  font-size: 11px;
+  color: var(--cp-chrome-text);
+  cursor: pointer;
+}
+.cp-workspace-context__scope:hover { background: rgba(255, 255, 255, 0.12); }
+
+.cp-workspace-context__scope-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.cp-workspace-context__collapse {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--cp-chrome-hairline);
+  background: transparent;
+  color: var(--cp-chrome-text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+.cp-workspace-context__collapse:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cp-chrome-text);
+}
+
+.cp-sidebar__section {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-chrome-text-muted);
+  padding: 12px 12px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-sidebar__group { margin: 0; padding: 0; }
+.cp-sidebar__group > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.cp-sidebar__group > summary::-webkit-details-marker { display: none; }
+.cp-sidebar__group > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform var(--motion-fast);
+  color: var(--cp-chrome-text-muted);
+}
+.cp-sidebar__group[open] > summary::before { transform: rotate(90deg); }
+.cp-sidebar__group > summary:hover { color: var(--cp-chrome-text); }
+.cp-sidebar__group > .cp-sidebar__item { padding-left: 28px; }
+
+.cp-sidebar__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--cp-chrome-text);
+  text-decoration: none;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+
+.cp-sidebar__item:hover { background: rgba(255,255,255,0.06); }
+
+.cp-sidebar__item[aria-current="page"] {
+  background: linear-gradient(135deg, rgba(79,70,229,0.4), rgba(16,185,129,0.3));
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.30);
+}
+
+.cp-sidebar__item-label { display: flex; align-items: center; gap: 8px; }
+.cp-sidebar__pin { opacity: 0; color: var(--cp-chrome-text-muted); font-size: 14px; }
+.cp-sidebar__item:hover .cp-sidebar__pin { opacity: 0.6; }
+
+/* Canvas content */
+.cp-canvas-body {
+  padding: 20px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.cp-page-h1 {
+  margin: 0;
+  font-size: 28px;
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cp-page-h1-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+  margin-top: 2px;
+  letter-spacing: 0;
+}
+
+/* Platform Pulse */
+.cp-platform-pulse { display: flex; flex-direction: column; gap: 8px; }
+
+.cp-platform-pulse__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-platform-pulse__live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: cp-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+.cp-platform-pulse__cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 1280px) {
+  .cp-platform-pulse__cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .cp-platform-pulse__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.cp-pulse-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: border-color var(--motion-fast), transform var(--motion-fast), box-shadow var(--motion-fast);
+  position: relative;
+  overflow: hidden;
+}
+.cp-pulse-card:hover {
+  border-color: rgba(99,102,241,0.40);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10), 0 1px 0 rgba(99,102,241,0.20);
+}
+.cp-pulse-card__spark {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 56px;
+  height: 18px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.cp-pulse-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+.cp-pulse-card__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+.cp-pulse-card__dot--warn { background: var(--warning); }
+.cp-pulse-card__dot--danger { background: var(--danger); }
+.cp-pulse-card__dot--info { background: #60a5fa; }
+
+.cp-pulse-card__value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.cp-pulse-card__label { font-size: 11px; color: var(--text-secondary); }
+.cp-pulse-card__delta {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.cp-pulse-card__delta--up { color: var(--success); }
+.cp-pulse-card__delta--down { color: var(--danger); }
+
+/* Breadcrumb + page header row */
+.cp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.cp-breadcrumb a { color: var(--text-tertiary); text-decoration: none; }
+.cp-breadcrumb a:hover { color: var(--text-secondary); }
+.cp-breadcrumb__separator { color: var(--text-muted); opacity: 0.45; font-weight: 400; }
+.cp-breadcrumb__current { color: var(--text-secondary); }
+
+.cp-page-h1-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: -8px;
+}
+.cp-page-h1-row__actions { display: flex; gap: 8px; }
+
+.cp-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--surface-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+}
+
+.cp-tabs__tab {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cp-tabs__tab[aria-current="page"] {
+  background: linear-gradient(135deg, var(--surface-sunken), #e0e0e6);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cp-command-card {
+  background:
+    radial-gradient(800px 300px at 100% 0%, rgba(99,102,241,0.30), transparent 60%),
+    radial-gradient(700px 300px at 0% 100%, rgba(16,185,129,0.18), transparent 60%),
+    linear-gradient(135deg, #1a2049, #0a0d22 70%);
+  color: white;
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr clamp(260px, 28%, 360px);
+  gap: 24px;
+  box-shadow: var(--elev-luxury);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.cp-command-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(closest-side at 18% 8%, rgba(255,255,255,0.10), transparent 60%);
+  pointer-events: none;
+}
+
+.cp-command-card__eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a5b4fc;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.cp-command-card h2 {
+  margin: 0 0 12px;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+.cp-command-card h2 em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  color: #c4b5fd;
+}
+.cp-command-card p { margin: 0 0 18px; opacity: 0.82; line-height: 1.6; max-width: 60ch; font-size: 14px; }
+
+.cp-command-card__actions { display: flex; gap: 10px; }
+.cp-btn-primary, .cp-btn-secondary {
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+.cp-btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.45);
+}
+.cp-btn-secondary { background: transparent; color: white; border-color: rgba(255,255,255,0.20); }
+.cp-btn-secondary:hover { background: rgba(255,255,255,0.06); }
+
+.cp-confidence {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  position: relative;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.cp-confidence__eyebrow {
+  font-size: 10px;
+  color: #a5b4fc;
+  margin-bottom: 6px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.cp-confidence h3 { margin: 0 0 8px; font-size: 14px; }
+.cp-confidence p { margin: 0; font-size: 12px; opacity: 0.75; line-height: 1.6; }
+
+.cp-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cp-kpi {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  min-width: 0;
+  box-shadow: var(--elev-1);
+}
+
+.cp-kpi__label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.cp-kpi__value { font-size: 28px; font-weight: 700; margin: 4px 0 0; color: var(--text-primary); letter-spacing: -0.02em; }
+.cp-kpi__hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.cp-status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.cp-status-pills__pill {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+}
+
+.cp-status-pills__pill--warning { color: #92400e; background: #fef3c7; border-color: #fde68a; }
+.cp-status-pills__pill--ok { color: #166534; background: #dcfce7; border-color: #bbf7d0; }
+
+.cp-risk-drawer {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--elev-1);
+}
+
+.cp-risk-drawer__head { display: flex; justify-content: space-between; align-items: center; }
+.cp-risk-drawer__head h3 { margin: 0; font-size: 13px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.cp-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cp-risk-card {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  min-width: 0;
+}
+
+.cp-risk-card h4 { margin: 0 0 10px; font-size: 14px; }
+.cp-risk-card p { margin: 6px 0; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+.cp-pill-tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--warning);
+  color: #422006;
+  font-weight: 700;
+}
+
+.cp-link { color: var(--school-primary); text-decoration: underline; font-size: 12px; }
+
+.cp-detailed-board-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+}
+.cp-detailed-board-btn:hover { border-color: var(--hairline-strong); }
+
+/* ===========================================================
+   200x — SHARED LUXURY CARD CHROME
+   =========================================================== */
+.lx-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--elev-1);
+  position: relative;
+  overflow: hidden;
+}
+.lx-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.lx-card__eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+}
+.lx-card__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 2px 0 0;
+  letter-spacing: -0.01em;
+}
+.lx-card__title em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.lx-card__meta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* 200x ELEMENT 2: Live world map ============================ */
+.lx-world {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  background:
+    radial-gradient(900px 400px at 100% 0%, rgba(99,102,241,0.05), transparent 60%),
+    var(--surface-elevated);
+}
+.lx-world__map { position: relative; min-height: 200px; }
+.lx-world__svg { width: 100%; height: 100%; display: block; }
+.lx-world__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+.lx-world__count {
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.lx-world__count-sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+.lx-world__legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+}
+.lx-world__legend-row strong { color: var(--text-primary); font-weight: 600; }
+.lx-world__legend-row__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@keyframes lx-world-pulse {
+  0%, 100% { opacity: 0.65; r: 4; }
+  50% { opacity: 1; r: 7; }
+}
+@keyframes lx-world-ring {
+  0% { opacity: 0.55; r: 4; }
+  100% { opacity: 0; r: 22; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-world__dot { animation: none !important; }
+  .lx-world__ring { animation: none !important; opacity: 0.20 !important; }
+}
+
+/* 200x ELEMENT 3: Forecast lane ============================== */
+.lx-forecast {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.lx-forecast__card {
+  position: relative;
+  padding: 16px 18px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1);
+  overflow: hidden;
+}
+.lx-forecast__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+}
+.lx-forecast__value {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+.lx-forecast__pred {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.lx-forecast__svg {
+  display: block;
+  width: 100%;
+  height: 56px;
+  margin-top: 10px;
+}
+.lx-forecast__caption {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 200x ELEMENT 5: Tenant heatmap ============================ */
+.lx-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lx-heatmap__grid {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 4px;
+}
+@media (max-width: 1200px) {
+  .lx-heatmap__grid { grid-template-columns: repeat(15, minmax(0, 1fr)); }
+}
+.lx-heatmap__tile {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: rgba(34,197,94,0.40);
+  position: relative;
+  cursor: pointer;
+  transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+}
+.lx-heatmap__tile:hover {
+  transform: scale(1.4);
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(15,23,42,0.25);
+}
+.lx-heatmap__tile--healthy { background: rgba(34,197,94,0.70); }
+.lx-heatmap__tile--okay { background: rgba(34,197,94,0.40); }
+.lx-heatmap__tile--warn { background: rgba(245,158,11,0.70); }
+.lx-heatmap__tile--danger { background: rgba(239,68,68,0.75); }
+.lx-heatmap__tile--idle { background: rgba(148,163,184,0.35); }
+.lx-heatmap__tile[data-label]::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0b1020;
+  color: white;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--motion-fast);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.30);
+  z-index: 3;
+}
+.lx-heatmap__tile:hover::after { opacity: 1; }
+.lx-heatmap__legend {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.lx-heatmap__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.lx-heatmap__legend span::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.lx-heatmap__legend .lx-l-healthy::before { background: rgba(34,197,94,0.70); }
+.lx-heatmap__legend .lx-l-okay::before { background: rgba(34,197,94,0.40); }
+.lx-heatmap__legend .lx-l-warn::before { background: rgba(245,158,11,0.70); }
+.lx-heatmap__legend .lx-l-danger::before { background: rgba(239,68,68,0.75); }
+.lx-heatmap__legend .lx-l-idle::before { background: rgba(148,163,184,0.35); }
+
+/* 200x ELEMENT 6: Revenue waterfall ========================= */
+.lx-waterfall { padding: 18px 20px 22px; }
+.lx-waterfall__svg { width: 100%; height: 220px; display: block; }
+.lx-waterfall__legend {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 11px;
+}
+.lx-waterfall__legend > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+}
+.lx-waterfall__legend strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.lx-waterfall__legend small {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+/* 200x ELEMENT 7: Structured audit feed ====================== */
+.lx-audit { padding: 0; }
+.lx-audit__head {
+  padding: 16px 20px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--hairline);
+}
+.lx-audit__title { font-weight: 700; font-size: 15px; }
+.lx-audit__title em { font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--text-secondary); }
+.lx-audit__filter {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  font-family: var(--mono);
+}
+.lx-audit__table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.lx-audit__table thead th {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--surface-canvas);
+  border-bottom: 1px solid var(--hairline);
+}
+.lx-audit__table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+.lx-audit__table tbody tr:last-child td { border-bottom: 0; }
+.lx-audit__table tbody tr {
+  position: relative;
+  transition: background var(--motion-fast);
+}
+.lx-audit__table tbody tr:hover { background: var(--surface-canvas); }
+.lx-audit__sev {
+  display: inline-block;
+  width: 3px;
+  border-radius: 2px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.lx-audit__sev--info { background: #60a5fa; }
+.lx-audit__sev--ok { background: var(--success); }
+.lx-audit__sev--warn { background: var(--warning); }
+.lx-audit__sev--danger { background: var(--danger); }
+.lx-audit__time { color: var(--text-tertiary); font-family: var(--mono); font-size: 11px; }
+.lx-audit__actor { color: var(--text-primary); font-weight: 600; font-size: 12px; }
+.lx-audit__event { color: var(--text-primary); }
+.lx-audit__scope { color: var(--text-tertiary); font-family: var(--mono); font-size: 11px; }
+.lx-audit__sev-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+.lx-audit__sev-label--info { color: #1d4ed8; background: #dbeafe; }
+.lx-audit__sev-label--ok { color: #166534; background: #dcfce7; }
+.lx-audit__sev-label--warn { color: #92400e; background: #fef3c7; }
+.lx-audit__sev-label--danger { color: #991b1b; background: #fee2e2; }
+
+/* 200x ELEMENT 8: Trust nutrition label ====================== */
+.lx-trust {
+  padding: 0;
+}
+.lx-trust__head {
+  padding: 18px 20px 8px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.lx-trust__head h3 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 18px;
+  margin: 0;
+  font-style: italic;
+  color: var(--text-primary);
+}
+.lx-trust__head small {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+}
+.lx-trust__rule {
+  height: 6px;
+  background: var(--text-primary);
+  margin: 0 20px;
+}
+.lx-trust__rows {
+  padding: 8px 20px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.lx-trust__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 12px;
+}
+.lx-trust__row:last-child { border-bottom: 0; }
+.lx-trust__label { color: var(--text-secondary); }
+.lx-trust__value {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.lx-trust__value--ok { color: #166534; }
+.lx-trust__value--warn { color: #92400e; }
+.lx-trust__value--danger { color: #991b1b; }
+.lx-trust__caption {
+  padding: 12px 20px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+}
+
+/* 200x ELEMENT 9: Live SLO clocks ============================ */
+.lx-slo {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 980px) {
+  .lx-slo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.lx-slo__card {
+  background: linear-gradient(135deg, #0a0d22, #131a35);
+  color: var(--cp-chrome-text);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--elev-2);
+}
+.lx-slo__card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(closest-side at 100% 0%, rgba(99,102,241,0.20), transparent 60%);
+  pointer-events: none;
+}
+.lx-slo__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--cp-chrome-text-muted);
+  font-weight: 700;
+}
+.lx-slo__value {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+  color: white;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.lx-slo__value small { font-size: 12px; color: var(--cp-chrome-text-muted); font-weight: 500; }
+.lx-slo__name {
+  font-size: 12px;
+  color: var(--cp-chrome-text-muted);
+  margin-top: 4px;
+}
+.lx-slo__dot {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 4px rgba(34,197,94,0.20);
+  animation: cp-pulse-soft 2.4s ease-in-out infinite;
+}
+.lx-slo__dot--warn { background: var(--warning); box-shadow: 0 0 0 4px rgba(245,158,11,0.18); }
+.lx-slo__dot--info { background: #60a5fa; box-shadow: 0 0 0 4px rgba(96,165,250,0.18); }
+@media (prefers-reduced-motion: reduce) {
+  .lx-slo__dot { animation: none; }
+}
+
+/* ===========================================================
+   200x ELEMENT 1: AI Copilot persistent rail
+   =========================================================== */
+.lx-copilot {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.lx-copilot__collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 14px;
+  width: 100%;
+}
+.rmc-app-shell[data-copilot="expanded"] .lx-copilot__collapsed { display: none; }
+
+.lx-copilot__toggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: white;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(99,102,241,0.40);
+  font-family: inherit;
+}
+.lx-copilot__rail-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--cp-chrome-text-muted);
+  border: 1px solid var(--cp-chrome-hairline);
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  font-size: 13px;
+}
+.lx-copilot__rail-icon:hover { background: rgba(255,255,255,0.10); color: white; }
+.lx-copilot__kbd {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--cp-chrome-text-faint);
+  margin-top: auto;
+  margin-bottom: 12px;
+  letter-spacing: 0.10em;
+}
+
+.lx-copilot__expanded {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+}
+.rmc-app-shell[data-copilot="expanded"] .lx-copilot__expanded { display: flex; }
+
+.lx-copilot__header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lx-copilot__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cp-chrome-text);
+}
+.lx-copilot__title-mark {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 800;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(99,102,241,0.40);
+}
+.lx-copilot__close {
+  background: transparent;
+  border: 1px solid var(--cp-chrome-hairline);
+  color: var(--cp-chrome-text-muted);
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-family: inherit;
+}
+.lx-copilot__insight {
+  margin: 12px 16px;
+  padding: 12px 14px;
+  background:
+    radial-gradient(closest-side at 0% 0%, rgba(99,102,241,0.25), transparent 70%),
+    rgba(255,255,255,0.04);
+  border: 1px solid rgba(99,102,241,0.30);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--cp-chrome-text);
+  line-height: 1.5;
+  position: relative;
+}
+.lx-copilot__insight::before {
+  content: "★";
+  color: #c4b5fd;
+  margin-right: 6px;
+  font-size: 11px;
+}
+.lx-copilot__insight em {
+  font-family: var(--serif);
+  font-style: italic;
+  color: #c4b5fd;
+}
+
+.lx-copilot__thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lx-copilot__msg {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 92%;
+}
+.lx-copilot__msg--user {
+  background: rgba(99,102,241,0.20);
+  border: 1px solid rgba(99,102,241,0.30);
+  align-self: flex-end;
+  color: white;
+}
+.lx-copilot__msg--ai {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--cp-chrome-hairline);
+  align-self: flex-start;
+  color: var(--cp-chrome-text);
+}
+.lx-copilot__msg em {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--cp-chrome-text-muted);
+}
+.lx-copilot__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0 8px;
+}
+.lx-copilot__suggestion {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--cp-chrome-hairline);
+  color: var(--cp-chrome-text);
+  cursor: pointer;
+  font-family: inherit;
+}
+.lx-copilot__suggestion:hover { background: rgba(99,102,241,0.18); border-color: rgba(99,102,241,0.30); }
+
+.lx-copilot__input-wrap {
+  border-top: 1px solid var(--cp-chrome-hairline);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(7, 9, 26, 0.45);
+}
+.lx-copilot__input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--cp-chrome-text);
+  font-size: 12px;
+  resize: none;
+  font-family: inherit;
+  min-height: 64px;
+}
+.lx-copilot__input::placeholder { color: var(--cp-chrome-text-faint); font-family: var(--serif); font-style: italic; }
+.lx-copilot__input:focus {
+  outline: none;
+  border-color: rgba(99,102,241,0.50);
+  background: rgba(255,255,255,0.08);
+}
+.lx-copilot__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--cp-chrome-text-faint);
+}
+.lx-copilot__cmdk {
+  font-family: var(--mono);
+  padding: 2px 6px;
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 5px;
+  font-size: 10px;
+  color: var(--cp-chrome-text-muted);
+}
+.lx-copilot__send {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ============================================================
+   200x ELEMENT 4: Operator notebook quick-capture (floating)
+   ============================================================ */
+.lx-notebook {
+  position: fixed;
+  bottom: 100px;
+  right: 80px;
+  width: 320px;
+  background: rgba(15, 21, 48, 0.88);
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--elev-luxury);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  z-index: 50;
+  color: var(--cp-chrome-text);
+}
+.lx-notebook__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.lx-notebook__title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--cp-chrome-text-muted);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lx-notebook__title::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+.lx-notebook__min {
+  background: transparent;
+  border: 1px solid var(--cp-chrome-hairline);
+  color: var(--cp-chrome-text-muted);
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+}
+.lx-notebook__field {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--cp-chrome-text);
+  font-size: 12px;
+  resize: vertical;
+  min-height: 52px;
+  font-family: var(--serif);
+  font-style: italic;
+}
+.lx-notebook__field::placeholder { color: var(--cp-chrome-text-faint); }
+.lx-notebook__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 8px;
+}
+.lx-notebook__mic {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(239,68,68,0.30), rgba(245,158,11,0.18));
+  border: 1px solid rgba(239,68,68,0.35);
+  color: #fecaca;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
+.lx-notebook__save {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-left: auto;
+  box-shadow: 0 4px 12px rgba(79,70,229,0.40);
+}
+.lx-notebook__hint {
+  font-size: 10px;
+  color: var(--cp-chrome-text-faint);
+  margin-top: 8px;
+}
+
+/* Two-column layout helpers for canvas */
+.lx-cols-2 {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 1100px) {
+  .lx-cols-2 { grid-template-columns: 1fr; }
+}
+
+/* Footer */
+.cp-footer-inner {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cp-footer-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.cp-footer-pill {
+  display: inline-flex; gap: 6px; align-items: center;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: var(--surface-sunken); color: var(--text-secondary);
+}
+.cp-footer-pill--live { background: #dcfce7; color: #166534; }
+
+.cp-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cp-footer-grid__item {
+  padding: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+}
+.cp-footer-grid__label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #16a34a; font-weight: 700; margin-bottom: 4px; }
+.cp-footer-legal { display: flex; gap: 14px; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--hairline); font-size: 11px; color: var(--text-muted); }
+.cp-footer-legal a { color: var(--text-muted); margin-left: 12px; text-decoration: none; }
+
+/* Preview banner */
+.preview-banner {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: linear-gradient(135deg, #1e293b, #0b1020);
+  color: white;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  box-shadow: var(--elev-3);
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.preview-banner strong { color: #fbbf24; }
+.preview-banner em { font-family: var(--serif); font-style: italic; color: #c4b5fd; font-weight: 500; margin-left: 6px; }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  PREVIEW v8 · <strong>200x luxury</strong><em>cockpit-grade · 10 new elements layered over v7</em>
+</div>
+
+<div class="rmc-app-shell" data-copilot="expanded">
+
+  <!-- =========================================================
+       HEADER
+       ========================================================= -->
+  <header class="rmc-app-shell__header" role="banner">
+    <div class="cp-header">
+
+      <!-- Row 1: brand + search + utility actions -->
+      <div class="cp-header__row cp-header__row--utility">
+        <a href="#" class="cp-brand">
+          <span class="cp-brand__mark">C</span>
+          <span>
+            RUNMYCAMPUS
+            <span class="cp-brand__pill">MANAGER</span>
+            <span class="cp-brand__tagline">The cockpit you sit in to run a school platform.</span>
+          </span>
+        </a>
+
+        <div class="cp-search">
+          <span>⌕</span>
+          <span>Search schools, incidents, audit events, operators…</span>
+          <span class="cp-search__kbd">⌘ K</span>
+        </div>
+
+        <div class="cp-util-actions">
+          <!-- 200x ELEMENT 10: Operator presence indicator -->
+          <div class="cp-presence" role="status" aria-label="Operators online and platform status">
+            <span class="cp-presence__avatars" aria-hidden="true">
+              <span>AD</span><span>EM</span><span>JN</span>
+            </span>
+            <span class="cp-presence__count">3 operators online</span>
+            <span class="cp-presence__status">All systems handling well</span>
+          </div>
+          <a href="#" class="cp-pill">⌘ Studio</a>
+          <a href="#" class="cp-pill">⚙ Config</a>
+          <div class="cp-bell">🔔<span class="cp-bell__dot">12</span></div>
+          <a href="#" class="cp-pill" style="padding:6px 10px;">☀</a>
+          <div class="cp-user">
+            <div class="cp-user__avatar">AD</div>
+            <div class="cp-user__meta">
+              <strong>admin</strong>
+              <span>Super Administrator</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 1.2: Live activity ticker -->
+      <div class="cp-activity-ticker" role="region" aria-label="Live platform activity">
+        <span class="cp-activity-ticker__badge">LIVE</span>
+        <div class="cp-activity-ticker__viewport">
+          <div class="cp-activity-ticker__track">
+            <span class="cp-activity-event cp-activity-event--success"><span class="cp-activity-event__icon">🆕</span><span class="cp-activity-event__text">New school provisioned — Saint Sebastien Academy</span><span class="cp-activity-event__time">· 12s ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success"><span class="cp-activity-event__icon">↗</span><span class="cp-activity-event__text">MRR up $420 this week</span><span class="cp-activity-event__time">· 1m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--danger"><span class="cp-activity-event__icon">🚨</span><span class="cp-activity-event__text">Tenant #567 webhook drift detected</span><span class="cp-activity-event__time">· 2m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info"><span class="cp-activity-event__icon">🎫</span><span class="cp-activity-event__text">5 new support tickets</span><span class="cp-activity-event__time">· 4m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success"><span class="cp-activity-event__icon">✓</span><span class="cp-activity-event__text">Migration sync complete for 12 schools</span><span class="cp-activity-event__time">· 6m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--warn"><span class="cp-activity-event__icon">⚠</span><span class="cp-activity-event__text">2 schools approaching invoice due date</span><span class="cp-activity-event__time">· 8m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info"><span class="cp-activity-event__icon">⚡</span><span class="cp-activity-event__text">Marketplace app "Attendance Pro" updated</span><span class="cp-activity-event__time">· 15m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success" aria-hidden="true"><span class="cp-activity-event__icon">🆕</span><span class="cp-activity-event__text">New school provisioned — Saint Sebastien Academy</span><span class="cp-activity-event__time">· 12s ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success" aria-hidden="true"><span class="cp-activity-event__icon">↗</span><span class="cp-activity-event__text">MRR up $420 this week</span><span class="cp-activity-event__time">· 1m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--danger" aria-hidden="true"><span class="cp-activity-event__icon">🚨</span><span class="cp-activity-event__text">Tenant #567 webhook drift detected</span><span class="cp-activity-event__time">· 2m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info" aria-hidden="true"><span class="cp-activity-event__icon">🎫</span><span class="cp-activity-event__text">5 new support tickets</span><span class="cp-activity-event__time">· 4m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success" aria-hidden="true"><span class="cp-activity-event__icon">✓</span><span class="cp-activity-event__text">Migration sync complete for 12 schools</span><span class="cp-activity-event__time">· 6m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--warn" aria-hidden="true"><span class="cp-activity-event__icon">⚠</span><span class="cp-activity-event__text">2 schools approaching invoice due date</span><span class="cp-activity-event__time">· 8m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info" aria-hidden="true"><span class="cp-activity-event__icon">⚡</span><span class="cp-activity-event__text">Marketplace app "Attendance Pro" updated</span><span class="cp-activity-event__time">· 15m ago</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: primary nav -->
+      <nav class="cp-primary-nav" aria-label="Primary">
+        <a href="#" class="cp-primary-nav__item" aria-current="page">🏠 Home</a>
+        <a href="#" class="cp-primary-nav__item">⎈ Studio</a>
+        <a href="#" class="cp-primary-nav__item">⚡ Operations</a>
+        <a href="#" class="cp-primary-nav__item">🛒 Marketplace</a>
+        <a href="#" class="cp-primary-nav__item">📈 Analytics</a>
+        <a href="#" class="cp-primary-nav__item">☁ Migration Cloud</a>
+        <a href="#" class="cp-primary-nav__item">🎧 Support</a>
+        <a href="#" class="cp-primary-nav__item">🛡 Control</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       SIDEBAR
+       ========================================================= -->
+  <aside class="rmc-app-shell__sidebar" aria-label="Control plane navigation">
+    <div class="cp-sidebar-inner">
+      <div class="cp-workspace-context">
+        <div class="cp-workspace-context__identity">
+          <div class="cp-workspace-context__avatar">AD</div>
+          <div class="cp-workspace-context__who">
+            <strong>admin</strong>
+            <span>Super Administrator</span>
+          </div>
+        </div>
+        <div class="cp-workspace-context__scope-row">
+          <button type="button" class="cp-workspace-context__scope" aria-haspopup="listbox" aria-label="Change tenant scope">
+            <span class="cp-workspace-context__scope-label">🌐 All tenants · Global</span>
+            <span aria-hidden="true">▾</span>
+          </button>
+          <button type="button" class="cp-workspace-context__collapse" aria-label="Collapse sidebar" title="Collapse sidebar">◧</button>
+        </div>
+      </div>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">PLATFORM OVERVIEW</summary>
+        <a href="#" class="cp-sidebar__item" aria-current="page"><span class="cp-sidebar__item-label">📊 Dashboard</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⌧ Command Center</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">✦ AI gateway console</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">✦ AI Center</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">STUDIO OS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⌧ Mission cockpit</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⎈ Experience workbench</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚙ Automation studio</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📤 Output console</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🚀 Launch control</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🛡 Governance</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">TENANTS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🏫 All schools</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚡ Provision new</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔍 Impersonate</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">CURRICULUM &amp; REGION</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🌍 Region packs</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📚 Curriculum frameworks</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🗣 Locale matrix</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">RUNTIME &amp; GOVERNANCE</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🎛 Runtime defaults</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔐 RBAC &amp; permissions</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📋 Policy decisions log</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">BLUEPRINTS &amp; POLICIES</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📐 Page blueprints</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚖ Policy engine</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">WORKFLOWS &amp; DASHBOARDS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔁 Process definitions</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📊 Dashboards catalog</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⏱ Run history</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">MARKETPLACE</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🛒 App catalog</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">👤 Publishers</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⭐ Ratings &amp; reviews</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">MIGRATION &amp; INTEGRATIONS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">☁ Migration Cloud</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔌 Companion siblings</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📜 Audit chain</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">OBSERVABILITY &amp; BILLING</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📈 Metrics</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📊 Health dashboards</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">💳 Billing &amp; invoices</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">SUPPORT &amp; SUCCESS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🎧 Tickets</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📚 Knowledge base</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">TRUST &amp; COMPLIANCE</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔒 Security center</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚖ DPA &amp; DSAR</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">DEVELOPER TOOLS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🛠 API console</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🪝 Webhooks</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">EXTENDED CONFIG</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🎨 Theme &amp; brand</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🌐 Domain routing</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       CANVAS
+       ========================================================= -->
+  <div class="rmc-app-shell__canvas">
+    <div class="rmc-app-shell__canvas-body">
+
+      <div class="cp-canvas-body">
+        <nav class="cp-breadcrumb" aria-label="Breadcrumb">
+          <a href="#">Platform</a>
+          <span class="cp-breadcrumb__separator">›</span>
+          <a href="#">Control Plane</a>
+          <span class="cp-breadcrumb__separator">›</span>
+          <span class="cp-breadcrumb__current">Dashboard</span>
+        </nav>
+        <div class="cp-page-h1-row">
+          <div>
+            <h1 class="cp-page-h1">Control Plane</h1>
+            <div class="cp-page-h1-sub">The cockpit you sit in to run a school platform.</div>
+          </div>
+          <div class="cp-page-h1-row__actions">
+            <button class="cp-detailed-board-btn">⤓ Export PDF</button>
+            <button class="cp-btn-primary" style="padding: 8px 14px; font-size: 12px;">＋ Quick action</button>
+          </div>
+        </div>
+
+        <!-- Platform Pulse cards (kept from v7, with subtle inline sparklines added) -->
+        <section class="cp-platform-pulse" aria-labelledby="cp-platform-pulse-label">
+          <div class="cp-platform-pulse__label" id="cp-platform-pulse-label">
+            <span class="cp-platform-pulse__live-dot"></span>
+            Platform pulse · live
+          </div>
+          <div class="cp-platform-pulse__cards">
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot"></span>Schools</div>
+              <div class="cp-pulse-card__value">168</div>
+              <div class="cp-pulse-card__label">Healthy</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ +3 this week</div>
+              <svg class="cp-pulse-card__spark" viewBox="0 0 56 18" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,14 8,12 16,13 24,9 32,10 40,6 48,7 56,3" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot cp-pulse-card__dot--warn"></span>Incidents</div>
+              <div class="cp-pulse-card__value">12</div>
+              <div class="cp-pulse-card__label">Open</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ 4 vs 7d avg</div>
+              <svg class="cp-pulse-card__spark" viewBox="0 0 56 18" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,12 8,11 16,9 24,10 32,7 40,9 48,4 56,3" fill="none" stroke="#f59e0b" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot cp-pulse-card__dot--info"></span>Countries</div>
+              <div class="cp-pulse-card__value">2 / 249</div>
+              <div class="cp-pulse-card__label">Live coverage</div>
+              <div class="cp-pulse-card__delta">→ no change</div>
+              <svg class="cp-pulse-card__spark" viewBox="0 0 56 18" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,10 8,10 16,10 24,10 32,10 40,10 48,10 56,10" fill="none" stroke="#60a5fa" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot"></span>MRR</div>
+              <div class="cp-pulse-card__value">$42k</div>
+              <div class="cp-pulse-card__label">Recurring</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ +$420 wk</div>
+              <svg class="cp-pulse-card__spark" viewBox="0 0 56 18" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,15 8,13 16,12 24,10 32,9 40,7 48,5 56,3" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot"></span>Webhooks</div>
+              <div class="cp-pulse-card__value">0</div>
+              <div class="cp-pulse-card__label">Drift</div>
+              <div class="cp-pulse-card__delta">— stable</div>
+              <svg class="cp-pulse-card__spark" viewBox="0 0 56 18" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,14 8,14 16,14 24,14 32,14 40,14 48,14 56,14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot cp-pulse-card__dot--info"></span>Pipeline</div>
+              <div class="cp-pulse-card__value">3</div>
+              <div class="cp-pulse-card__label">Onboarding</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ 1 new today</div>
+              <svg class="cp-pulse-card__spark" viewBox="0 0 56 18" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,13 8,12 16,11 24,12 32,10 40,9 48,8 56,5" fill="none" stroke="#60a5fa" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </article>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             200x ELEMENT 9: Live SLO clocks (dark cards inset)
+             ========================================================= -->
+        <section class="lx-slo" aria-label="Live SLO clocks">
+          <div class="lx-slo__card">
+            <span class="lx-slo__dot"></span>
+            <div class="lx-slo__label">P99 latency budget</div>
+            <div class="lx-slo__value">32<small>m left</small></div>
+            <div class="lx-slo__name">api · 28d window</div>
+          </div>
+          <div class="lx-slo__card">
+            <span class="lx-slo__dot lx-slo__dot--info"></span>
+            <div class="lx-slo__label">Audit chain verify</div>
+            <div class="lx-slo__value">4d<small>6h</small></div>
+            <div class="lx-slo__name">scheduled Mon · 02:00 UTC</div>
+          </div>
+          <div class="lx-slo__card">
+            <span class="lx-slo__dot lx-slo__dot--warn"></span>
+            <div class="lx-slo__label">Next key rotation</div>
+            <div class="lx-slo__value">14d<small>02h</small></div>
+            <div class="lx-slo__name">MultiFernet · monthly</div>
+          </div>
+          <div class="lx-slo__card">
+            <span class="lx-slo__dot"></span>
+            <div class="lx-slo__label">Backup drill</div>
+            <div class="lx-slo__value">21d<small>11h</small></div>
+            <div class="lx-slo__name">DR cadence · quarterly</div>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             200x ELEMENT 2: Live world map (with KPI block)
+             ========================================================= -->
+        <section class="lx-card lx-world" aria-label="Live world map of tenant locations">
+          <div class="lx-world__map">
+            <svg class="lx-world__svg" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <radialGradient id="lx-globe-bg" cx="50%" cy="40%" r="60%">
+                  <stop offset="0%" stop-color="rgba(99,102,241,0.18)"/>
+                  <stop offset="100%" stop-color="rgba(99,102,241,0.02)"/>
+                </radialGradient>
+                <radialGradient id="lx-heat-1" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="rgba(99,102,241,0.45)"/>
+                  <stop offset="100%" stop-color="rgba(99,102,241,0)"/>
+                </radialGradient>
+                <radialGradient id="lx-heat-2" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="rgba(16,185,129,0.40)"/>
+                  <stop offset="100%" stop-color="rgba(16,185,129,0)"/>
+                </radialGradient>
+              </defs>
+              <rect x="0" y="0" width="600" height="280" fill="url(#lx-globe-bg)" rx="14"/>
+              <!-- stylized continent silhouettes (abstract, not geographic) -->
+              <g fill="rgba(148,163,184,0.15)" stroke="rgba(148,163,184,0.30)" stroke-width="0.6">
+                <path d="M48,90 Q70,72 100,80 Q124,86 140,108 Q156,128 142,148 Q130,162 100,160 Q72,158 60,142 Q42,120 48,90 Z"/>
+                <path d="M170,72 Q210,64 246,80 Q282,98 290,128 Q294,158 268,176 Q236,192 200,178 Q166,168 158,140 Q152,108 170,72 Z"/>
+                <path d="M310,86 Q350,72 396,82 Q436,92 458,120 Q470,140 460,164 Q448,184 410,188 Q368,192 336,172 Q304,148 302,118 Q302,98 310,86 Z"/>
+                <path d="M480,108 Q510,104 538,118 Q558,128 564,148 Q568,170 552,184 Q524,200 502,188 Q478,176 474,152 Q472,124 480,108 Z"/>
+                <path d="M140,196 Q172,188 198,200 Q220,210 222,224 Q220,238 196,242 Q168,246 148,234 Q132,222 140,196 Z"/>
+                <path d="M376,206 Q408,200 432,212 Q452,222 450,238 Q446,254 420,256 Q394,258 378,246 Q362,232 376,206 Z"/>
+              </g>
+              <!-- concentration heatmap halos -->
+              <circle cx="120" cy="120" r="60" fill="url(#lx-heat-1)"/>
+              <circle cx="240" cy="130" r="70" fill="url(#lx-heat-2)"/>
+              <circle cx="400" cy="140" r="80" fill="url(#lx-heat-1)"/>
+              <!-- pulsing dots for active tenants -->
+              <g>
+                <circle class="lx-world__ring" cx="120" cy="120" r="4" fill="none" stroke="#6366f1" stroke-width="1.5" style="animation: lx-world-ring 2.4s ease-out infinite;"/>
+                <circle class="lx-world__dot" cx="120" cy="120" r="4" fill="#a5b4fc" stroke="#fff" stroke-width="0.6" style="animation: lx-world-pulse 2.4s ease-in-out infinite;"/>
+              </g>
+              <g>
+                <circle class="lx-world__ring" cx="240" cy="130" r="4" fill="none" stroke="#10b981" stroke-width="1.5" style="animation: lx-world-ring 2.8s ease-out infinite; animation-delay: 0.3s;"/>
+                <circle class="lx-world__dot" cx="240" cy="130" r="4" fill="#6ee7b7" stroke="#fff" stroke-width="0.6" style="animation: lx-world-pulse 2.8s ease-in-out infinite; animation-delay: 0.3s;"/>
+              </g>
+              <g>
+                <circle class="lx-world__ring" cx="400" cy="140" r="4" fill="none" stroke="#6366f1" stroke-width="1.5" style="animation: lx-world-ring 3.0s ease-out infinite; animation-delay: 0.7s;"/>
+                <circle class="lx-world__dot" cx="400" cy="140" r="4" fill="#a5b4fc" stroke="#fff" stroke-width="0.6" style="animation: lx-world-pulse 3.0s ease-in-out infinite; animation-delay: 0.7s;"/>
+              </g>
+              <g>
+                <circle class="lx-world__ring" cx="510" cy="150" r="4" fill="none" stroke="#f59e0b" stroke-width="1.5" style="animation: lx-world-ring 2.6s ease-out infinite; animation-delay: 1.0s;"/>
+                <circle class="lx-world__dot" cx="510" cy="150" r="4" fill="#fcd34d" stroke="#fff" stroke-width="0.6" style="animation: lx-world-pulse 2.6s ease-in-out infinite; animation-delay: 1.0s;"/>
+              </g>
+              <g>
+                <circle class="lx-world__ring" cx="200" cy="220" r="4" fill="none" stroke="#10b981" stroke-width="1.5" style="animation: lx-world-ring 2.5s ease-out infinite; animation-delay: 1.3s;"/>
+                <circle class="lx-world__dot" cx="200" cy="220" r="4" fill="#6ee7b7" stroke="#fff" stroke-width="0.6" style="animation: lx-world-pulse 2.5s ease-in-out infinite; animation-delay: 1.3s;"/>
+              </g>
+              <!-- meridian lines for cockpit feel -->
+              <g stroke="rgba(99,102,241,0.10)" stroke-width="0.5" fill="none">
+                <ellipse cx="300" cy="140" rx="280" ry="120"/>
+                <ellipse cx="300" cy="140" rx="220" ry="90"/>
+                <ellipse cx="300" cy="140" rx="160" ry="60"/>
+              </g>
+            </svg>
+          </div>
+          <div class="lx-world__legend">
+            <div class="lx-card__eyebrow">Global footprint</div>
+            <div class="lx-world__count">127 <small style="font-size:14px;color:var(--text-tertiary);font-weight:500;">schools live</small></div>
+            <div class="lx-world__count-sub">Across 18 districts · 2 countries today</div>
+            <div class="lx-world__legend-row"><span><span class="lx-world__legend-row__dot" style="background:#a5b4fc"></span> Northeast US</span><strong>62</strong></div>
+            <div class="lx-world__legend-row"><span><span class="lx-world__legend-row__dot" style="background:#6ee7b7"></span> West Africa</span><strong>41</strong></div>
+            <div class="lx-world__legend-row"><span><span class="lx-world__legend-row__dot" style="background:#fcd34d"></span> EMEA pilot</span><strong>14</strong></div>
+            <div class="lx-world__legend-row"><span><span class="lx-world__legend-row__dot" style="background:#fcd34d"></span> APAC pilot</span><strong>10</strong></div>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             200x ELEMENT 3: Forecast lane
+             ========================================================= -->
+        <section aria-label="Seven-day forecast">
+          <div class="cp-platform-pulse__label" style="margin-bottom:8px;">
+            <span class="cp-platform-pulse__live-dot" style="background:#a5b4fc;"></span>
+            Forecast · next 7 days
+          </div>
+          <div class="lx-forecast">
+            <div class="lx-forecast__card">
+              <div class="lx-forecast__label">MRR projection</div>
+              <div class="lx-forecast__value">$45.8k</div>
+              <div class="lx-forecast__pred">predicted Wed +$3.8k</div>
+              <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="lx-fc-mrr" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(34,197,94,0.30)"/>
+                    <stop offset="100%" stop-color="rgba(34,197,94,0)"/>
+                  </linearGradient>
+                </defs>
+                <!-- confidence band (future segment) -->
+                <path d="M120,28 Q150,18 180,16 Q210,14 240,12 L240,32 Q210,30 180,28 Q150,26 120,28 Z" fill="rgba(34,197,94,0.10)"/>
+                <!-- past trace solid -->
+                <polyline points="0,42 20,40 40,38 60,34 80,32 100,28 120,26" fill="none" stroke="#22c55e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- future dashed -->
+                <polyline points="120,26 140,22 160,20 180,18 200,16 220,14 240,12" fill="none" stroke="#22c55e" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+                <!-- "today" tick -->
+                <line x1="120" y1="6" x2="120" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+                <circle cx="120" cy="26" r="2.4" fill="#22c55e" stroke="white" stroke-width="0.8"/>
+              </svg>
+              <div class="lx-forecast__caption"><span>past 7d</span><span style="font-family:var(--serif);font-style:italic;color:#16a34a;">→ ahead of plan</span></div>
+            </div>
+
+            <div class="lx-forecast__card">
+              <div class="lx-forecast__label">New schools (predicted)</div>
+              <div class="lx-forecast__value">4–6</div>
+              <div class="lx-forecast__pred">avg confidence 78%</div>
+              <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
+                <!-- confidence band (future) -->
+                <path d="M120,32 Q150,26 180,22 Q210,18 240,16 L240,38 Q210,38 180,36 Q150,34 120,32 Z" fill="rgba(99,102,241,0.12)"/>
+                <polyline points="0,44 20,42 40,40 60,38 80,36 100,34 120,32" fill="none" stroke="#6366f1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="120,32 140,30 160,26 180,22 200,20 220,18 240,16" fill="none" stroke="#6366f1" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+                <line x1="120" y1="6" x2="120" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+                <circle cx="120" cy="32" r="2.4" fill="#6366f1" stroke="white" stroke-width="0.8"/>
+              </svg>
+              <div class="lx-forecast__caption"><span>past 7d</span><span style="font-family:var(--serif);font-style:italic;">→ steady pipeline</span></div>
+            </div>
+
+            <div class="lx-forecast__card">
+              <div class="lx-forecast__label">Incidents (predicted)</div>
+              <div class="lx-forecast__value">3</div>
+              <div class="lx-forecast__pred">low-severity · Sat &amp; Mon</div>
+              <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M120,28 Q150,24 180,28 Q210,30 240,26 L240,46 Q210,44 180,46 Q150,46 120,42 Z" fill="rgba(245,158,11,0.12)"/>
+                <polyline points="0,30 20,32 40,26 60,28 80,24 100,30 120,28" fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="120,28 140,28 160,26 180,28 200,30 220,28 240,26" fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+                <line x1="120" y1="6" x2="120" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+                <circle cx="120" cy="28" r="2.4" fill="#f59e0b" stroke="white" stroke-width="0.8"/>
+              </svg>
+              <div class="lx-forecast__caption"><span>past 7d</span><span style="font-family:var(--serif);font-style:italic;">→ within tolerance</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tabs -->
+        <div class="cp-tabs">
+          <a href="#" class="cp-tabs__tab" aria-current="page">Tenant risk quick profile</a>
+          <a href="#" class="cp-tabs__tab">Platform Pulse · Health, incidents, open apps</a>
+          <a href="#" class="cp-tabs__tab">Revenue &amp; ledger</a>
+          <a href="#" class="cp-tabs__tab">Audit</a>
+        </div>
+
+        <!-- Hero command card -->
+        <div class="cp-command-card">
+          <div>
+            <div class="cp-command-card__eyebrow">PLATFORM OPERATORS</div>
+            <h2>Platform Command Center <em>— quietly in control.</em></h2>
+            <p>Operate platform health, tenant risk, implementation pipeline, revenue and payment readiness, marketplace governance, security &amp; compliance, and the proof ledger from one premium command center.</p>
+            <div class="cp-command-card__actions">
+              <button class="cp-btn-primary">Setup Studio</button>
+              <button class="cp-btn-secondary">Configuration center</button>
+            </div>
+          </div>
+          <div class="cp-confidence">
+            <div class="cp-confidence__eyebrow">★ Operator confidence</div>
+            <h3>Top risks, blockers, approvals</h3>
+            <p>Surface external blockers, queued approvals, and deep configuration opens — visible end-to-end without anything clipped.</p>
+          </div>
+        </div>
+
+        <!-- =========================================================
+             200x ELEMENT 5 + 8 side-by-side: heatmap + trust nutrition
+             ========================================================= -->
+        <div class="lx-cols-2">
+          <section class="lx-card lx-heatmap" aria-label="Tenant heatmap by health">
+            <div class="lx-card__head">
+              <div>
+                <div class="lx-card__eyebrow">Tenants · health grid</div>
+                <h3 class="lx-card__title">Every school, <em>one tile each</em></h3>
+              </div>
+              <div class="lx-card__meta">168 tenants · last refreshed 14s ago</div>
+            </div>
+            <div class="lx-heatmap__grid" role="list">
+              <!-- 60 tiles, mostly healthy w/ scattered states -->
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Sebastien Academy · healthy" role="listitem"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Bishop Brennan · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--okay" data-label="Cardinal Heights · okay"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Oak Ridge Prep · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--warn" data-label="Westbrook · webhook drift"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Mercy Catholic · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Holyrood Day · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--okay" data-label="Saint Andrew · okay"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Gilead Tech High · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Joseph Prep · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Bright Horizons · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Crescent Hill · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Trinity Day · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--okay" data-label="Lakeside Charter · okay"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Riverside Prep · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Iron Gate School · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--idle" data-label="Pilot tenant · idle"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Mark · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--danger" data-label="Tenant #567 · webhook drift critical"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Luke · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Beacon Hill Academy · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--okay" data-label="Hilltop Christian · okay"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Paul · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Cedar Grove · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Peter · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint James · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--idle" data-label="Pilot tenant · idle"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint John · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Anne · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--warn" data-label="Maple Crest · invoice due in 2d"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Patrick · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Thomas · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Catherine · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Pinewood · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--okay" data-label="Sterling Academy · okay"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Frances · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Stephen · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Theresa · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--idle" data-label="Pilot tenant · idle"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Vincent · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Whitestone · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Michael · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--warn" data-label="Brookfield · approaching cap"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Gabriel · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Raphael · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Bernard · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--okay" data-label="North Star · okay"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Clare · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Agnes · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--idle" data-label="Pilot tenant · idle"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Cecilia · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Helena · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Lucia · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Rose · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Monica · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--okay" data-label="Saint Lydia · okay"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Martha · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Veronica · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Mary · healthy"></div>
+              <div class="lx-heatmap__tile lx-heatmap__tile--healthy" data-label="Saint Margaret · healthy"></div>
+            </div>
+            <div class="lx-heatmap__legend">
+              <span class="lx-l-healthy">Healthy</span>
+              <span class="lx-l-okay">Okay</span>
+              <span class="lx-l-warn">Watch</span>
+              <span class="lx-l-danger">Critical</span>
+              <span class="lx-l-idle">Idle / pilot</span>
+              <span style="margin-left:auto;color:var(--text-muted);font-family:var(--serif);font-style:italic;">hover any tile for tenant name</span>
+            </div>
+          </section>
+
+          <!-- 200x ELEMENT 8: Trust nutrition label -->
+          <section class="lx-card lx-trust" aria-label="Trust nutrition label">
+            <div class="lx-trust__head">
+              <h3>Trust nutrition</h3>
+              <small>per Apple Watch complications</small>
+            </div>
+            <div class="lx-trust__rule"></div>
+            <div class="lx-trust__rows">
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">Uptime · 30d</span>
+                <span class="lx-trust__value lx-trust__value--ok">99.987%</span>
+              </div>
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">Audit completeness</span>
+                <span class="lx-trust__value lx-trust__value--ok">100%</span>
+              </div>
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">Webhook drift</span>
+                <span class="lx-trust__value lx-trust__value--ok">0</span>
+              </div>
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">MAA signed</span>
+                <span class="lx-trust__value lx-trust__value--ok">166 / 168</span>
+              </div>
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">Key rotation due</span>
+                <span class="lx-trust__value lx-trust__value--warn">14d 02h</span>
+              </div>
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">Audit chain verify</span>
+                <span class="lx-trust__value lx-trust__value--ok">Mon · 02:00</span>
+              </div>
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">PII logging smell</span>
+                <span class="lx-trust__value lx-trust__value--ok">0 findings</span>
+              </div>
+              <div class="lx-trust__row">
+                <span class="lx-trust__label">DR drill</span>
+                <span class="lx-trust__value lx-trust__value--warn">21d 11h</span>
+              </div>
+            </div>
+            <div class="lx-trust__caption">A buyer can read this card and know within seconds whether they should keep talking.</div>
+          </section>
+        </div>
+
+        <!-- =========================================================
+             200x ELEMENT 6: Revenue waterfall card
+             ========================================================= -->
+        <section class="lx-card lx-waterfall" aria-label="Monthly recurring revenue waterfall">
+          <div class="lx-card__head">
+            <div>
+              <div class="lx-card__eyebrow">MRR waterfall · this month</div>
+              <h3 class="lx-card__title">From $39.2k <em>to a closing</em> $42.1k</h3>
+            </div>
+            <div class="lx-card__meta">closing day 18 of 31 · pacing +7.4%</div>
+          </div>
+          <svg class="lx-waterfall__svg" viewBox="0 0 760 220" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="lx-wf-up" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#22c55e"/>
+                <stop offset="100%" stop-color="#16a34a"/>
+              </linearGradient>
+              <linearGradient id="lx-wf-down" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f87171"/>
+                <stop offset="100%" stop-color="#dc2626"/>
+              </linearGradient>
+              <linearGradient id="lx-wf-anchor" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#4338ca"/>
+              </linearGradient>
+            </defs>
+            <!-- axis baseline -->
+            <line x1="20" y1="180" x2="740" y2="180" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+            <!-- starting MRR (anchor bar from 0 → top) -->
+            <rect x="40" y="60" width="100" height="120" rx="6" fill="url(#lx-wf-anchor)"/>
+            <text x="90" y="50" text-anchor="middle" font-size="11" fill="#1d1d1f" font-weight="700">$39.2k</text>
+            <text x="90" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Starting MRR</text>
+            <!-- new business +$3.8k -->
+            <rect x="190" y="22" width="100" height="38" rx="6" fill="url(#lx-wf-up)"/>
+            <text x="240" y="14" text-anchor="middle" font-size="11" fill="#16a34a" font-weight="700">+$3.8k</text>
+            <text x="240" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">New business</text>
+            <!-- connector line -->
+            <line x1="140" y1="60" x2="190" y2="60" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+            <!-- expansion +$1.2k -->
+            <rect x="340" y="10" width="100" height="12" rx="6" fill="url(#lx-wf-up)"/>
+            <text x="390" y="6" text-anchor="middle" font-size="11" fill="#16a34a" font-weight="700">+$1.2k</text>
+            <text x="390" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Expansion</text>
+            <line x1="290" y1="22" x2="340" y2="22" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+            <!-- churn -$2.1k -->
+            <rect x="490" y="10" width="100" height="20" rx="6" fill="url(#lx-wf-down)"/>
+            <text x="540" y="6" text-anchor="middle" font-size="11" fill="#dc2626" font-weight="700">-$2.1k</text>
+            <text x="540" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Churn</text>
+            <line x1="440" y1="10" x2="490" y2="10" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+            <!-- ending MRR -->
+            <rect x="640" y="30" width="100" height="150" rx="6" fill="url(#lx-wf-anchor)"/>
+            <text x="690" y="22" text-anchor="middle" font-size="11" fill="#1d1d1f" font-weight="700">$42.1k</text>
+            <text x="690" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Ending MRR</text>
+            <line x1="590" y1="30" x2="640" y2="30" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+            <!-- arrow between start and end -->
+            <path d="M150,52 Q400,-10 630,42" fill="none" stroke="rgba(99,102,241,0.35)" stroke-width="1.4" stroke-dasharray="4 4"/>
+          </svg>
+          <div class="lx-waterfall__legend">
+            <div><small>Starting</small><strong>$39.2k</strong></div>
+            <div><small>New</small><strong style="color:#16a34a;">+$3.8k</strong></div>
+            <div><small>Expansion</small><strong style="color:#16a34a;">+$1.2k</strong></div>
+            <div><small>Churn</small><strong style="color:#dc2626;">-$2.1k</strong></div>
+            <div><small>Ending</small><strong>$42.1k</strong></div>
+          </div>
+        </section>
+
+        <!-- =========================================================
+             200x ELEMENT 7: Structured audit feed
+             ========================================================= -->
+        <section class="lx-card lx-audit" aria-label="Audit feed">
+          <div class="lx-audit__head">
+            <div class="lx-audit__title">Audit feed <em>— every consequential write</em></div>
+            <div class="lx-audit__filter">scope: super-admin · last 24h</div>
+          </div>
+          <table class="lx-audit__table">
+            <thead>
+              <tr>
+                <th style="width:120px;">Time</th>
+                <th style="width:140px;">Actor</th>
+                <th>Event</th>
+                <th style="width:200px;">Scope</th>
+                <th style="width:90px;">Severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="lx-audit__time">14:38:02</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok"></span>admin</td>
+                <td class="lx-audit__event">companion.upload accepted</td>
+                <td class="lx-audit__scope">tenant#a4f1 · key v3</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
+              </tr>
+              <tr>
+                <td class="lx-audit__time">14:31:55</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--info"></span>system</td>
+                <td class="lx-audit__event">webhook.subscription.created (api)</td>
+                <td class="lx-audit__scope">tenant#7c2e · scope=migration.*</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--info">INFO</span></td>
+              </tr>
+              <tr>
+                <td class="lx-audit__time">14:14:11</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--warn"></span>operator/em</td>
+                <td class="lx-audit__event">token.mint · operator-issued</td>
+                <td class="lx-audit__scope">tenant#9b30 · scope=bundles:write</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--warn">WATCH</span></td>
+              </tr>
+              <tr>
+                <td class="lx-audit__time">13:58:09</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--danger"></span>system</td>
+                <td class="lx-audit__event">webhook.delivery.replay · idempotency-bypass</td>
+                <td class="lx-audit__scope">tenant#567 · approved by admin</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--danger">RISK</span></td>
+              </tr>
+              <tr>
+                <td class="lx-audit__time">13:42:48</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok"></span>system</td>
+                <td class="lx-audit__event">maa.sign · v1.0</td>
+                <td class="lx-audit__scope">tenant#dd17 · counsel-blessed body</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
+              </tr>
+              <tr>
+                <td class="lx-audit__time">13:30:01</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--info"></span>system</td>
+                <td class="lx-audit__event">key.rotate · MultiFernet head bump</td>
+                <td class="lx-audit__scope">global · key v4 active</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--info">INFO</span></td>
+              </tr>
+              <tr>
+                <td class="lx-audit__time">13:12:22</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok"></span>admin</td>
+                <td class="lx-audit__event">legacy_hash.decrypt</td>
+                <td class="lx-audit__scope">tenant#a4f1 · vendor=PowerSchool</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
+              </tr>
+              <tr>
+                <td class="lx-audit__time">12:48:00</td>
+                <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--warn"></span>operator/jn</td>
+                <td class="lx-audit__event">token.revoke · grace_until +7d</td>
+                <td class="lx-audit__scope">tenant#7c2e · scope=tokens:manage</td>
+                <td><span class="lx-audit__sev-label lx-audit__sev-label--warn">WATCH</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Status pills row -->
+        <div class="cp-status-pills">
+          <span class="cp-status-pills__pill cp-status-pills__pill--warning">Platform WARNING</span>
+          <span class="cp-status-pills__pill">Open incidents 12</span>
+          <span class="cp-status-pills__pill cp-status-pills__pill--ok">Countries live 2/249</span>
+          <span class="cp-status-pills__pill">Webhook drift 0</span>
+          <span class="cp-status-pills__pill cp-status-pills__pill--ok">Schools needing attention 2</span>
+        </div>
+
+        <!-- KPI row -->
+        <div class="cp-kpi-row">
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Readiness</div>
+            <div class="cp-kpi__value">2</div>
+            <div class="cp-kpi__hint">North Star</div>
+          </div>
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Risk</div>
+            <div class="cp-kpi__value" style="color:var(--warning);font-size:22px;">warning</div>
+            <div class="cp-kpi__hint">Platform health</div>
+          </div>
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Next step</div>
+            <div class="cp-kpi__value" style="font-size:22px;">Setup</div>
+            <div class="cp-kpi__hint">Primary action</div>
+          </div>
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Blockers</div>
+            <div class="cp-kpi__value">1</div>
+            <div class="cp-kpi__hint">External · medium</div>
+          </div>
+        </div>
+
+        <!-- Action shortcuts row -->
+        <div class="cp-status-pills">
+          <a class="cp-status-pills__pill" href="#">Queues</a>
+          <a class="cp-status-pills__pill" href="#">Billing</a>
+          <a class="cp-status-pills__pill" href="#">Migration</a>
+          <a class="cp-status-pills__pill" href="#">Marketplace</a>
+          <a class="cp-status-pills__pill" href="#">Incidents</a>
+          <a class="cp-status-pills__pill" href="#">Export PDF</a>
+        </div>
+
+        <!-- Risk drawer -->
+        <div class="cp-risk-drawer">
+          <div class="cp-risk-drawer__head">
+            <h3>★ RISK DRAWER — Tenant risk quick profile</h3>
+            <button class="cp-detailed-board-btn">Open risk queue</button>
+          </div>
+          <div class="cp-risk-grid">
+            <div class="cp-risk-card">
+              <h4>★ Platform Pulse</h4>
+              <p>Health, incidents, open approvals, and support pressure are visible immediately.</p>
+              <span class="cp-pill-tag">warning</span>
+              <p><a class="cp-link" href="#">Open queues</a></p>
+            </div>
+            <div class="cp-risk-card">
+              <h4>External blockers <span class="cp-pill-tag">medium</span></h4>
+              <p>This item is blocked until the owner completes the listed next step.</p>
+              <p><strong>Owner:</strong> Platform operator<br>
+                 <strong>Boundary:</strong> PSP, settlement, and live certification remain external proof<br>
+                 <strong>Next step:</strong> Collect proof before claiming readiness</p>
+            </div>
+            <div class="cp-risk-card">
+              <h4>★ Proof Ledger</h4>
+              <p>Local proof and pending live parity stay separate so buyers see honest readiness.</p>
+              <span class="cp-pill-tag" style="background:#dcfce7;color:#166534;">Local only</span>
+              <p><a class="cp-link" href="#">View proof</a></p>
+            </div>
+          </div>
+        </div>
+
+        <button class="cp-detailed-board-btn">Open detailed operating board</button>
+
+        <div style="height: 240px; display:flex; align-items:center; justify-content:center; color:var(--text-tertiary); font-size:13px; border:1px dashed var(--hairline); border-radius:var(--radius-md); margin-top:8px; font-family:var(--serif); font-style:italic;">
+          The canvas keeps scrolling — header, sidebar, copilot rail, and footer stay anchored.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       200x ELEMENT 1: AI Copilot persistent rail (right column)
+       ========================================================= -->
+  <aside class="rmc-app-shell__copilot" aria-label="AI copilot">
+    <div class="lx-copilot">
+
+      <!-- collapsed state (44px rail) -->
+      <div class="lx-copilot__collapsed">
+        <button class="lx-copilot__toggle" type="button" title="Open AI copilot" aria-label="Open AI copilot">✦</button>
+        <div class="lx-copilot__rail-icon" title="Suggested actions">⚡</div>
+        <div class="lx-copilot__rail-icon" title="Recent threads">⌘</div>
+        <div class="lx-copilot__rail-icon" title="Notebook">✎</div>
+        <div class="lx-copilot__kbd">⌘ K</div>
+      </div>
+
+      <!-- expanded state (360px panel) -->
+      <div class="lx-copilot__expanded">
+        <div class="lx-copilot__header">
+          <div class="lx-copilot__title">
+            <span class="lx-copilot__title-mark">✦</span>
+            <span>Copilot <span style="font-family:var(--serif);font-style:italic;font-weight:500;color:var(--cp-chrome-text-muted);font-size:12px;">— always listening</span></span>
+          </div>
+          <button class="lx-copilot__close" aria-label="Collapse copilot rail">→</button>
+        </div>
+
+        <div class="lx-copilot__insight">
+          The AI noticed <em>Tenant #567 webhook drift</em> has tripped 4 retries in 14 minutes. Want me to draft a delivery-replay with idempotency bypass for review?
+        </div>
+
+        <div class="lx-copilot__thread">
+          <div class="lx-copilot__msg lx-copilot__msg--ai">Morning, admin. <em>Platform is handling well.</em> 12 incidents open, 2 schools need attention, MRR pacing +7.4%.</div>
+          <div class="lx-copilot__msg lx-copilot__msg--user">Summarise Saint Sebastien Academy onboarding status.</div>
+          <div class="lx-copilot__msg lx-copilot__msg--ai">Provisioned 12s ago via migration cloud. MAA v1.0 signed. Companion upload accepted (key v3). Awaiting first sync — ETA 4m. <em>Nothing requires you yet.</em></div>
+          <div class="lx-copilot__msg lx-copilot__msg--user">Anything I should be worrying about today?</div>
+          <div class="lx-copilot__msg lx-copilot__msg--ai">Three quiet flags: webhook drift on #567, invoice due in 2d for Maple Crest &amp; Brookfield, key rotation in 14d. I can draft outreach for any of these.</div>
+
+          <div class="lx-copilot__suggestions">
+            <button class="lx-copilot__suggestion">Draft #567 replay</button>
+            <button class="lx-copilot__suggestion">Outreach to Maple Crest</button>
+            <button class="lx-copilot__suggestion">Pre-stage key rotation</button>
+          </div>
+        </div>
+
+        <div class="lx-copilot__input-wrap">
+          <textarea class="lx-copilot__input" placeholder="Ask anything about your platform…"></textarea>
+          <div class="lx-copilot__row">
+            <span class="lx-copilot__cmdk">⌘ K · command palette</span>
+            <button class="lx-copilot__send" type="button">Send →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       200x ELEMENT 4: Operator notebook (floating widget)
+       ========================================================= -->
+  <aside class="lx-notebook" aria-label="Operator notebook quick-capture">
+    <div class="lx-notebook__head">
+      <div class="lx-notebook__title">Add to notebook</div>
+      <button class="lx-notebook__min" aria-label="Minimize notebook">—</button>
+    </div>
+    <textarea class="lx-notebook__field" placeholder="Capture a thought, decision, or question…"></textarea>
+    <div class="lx-notebook__row">
+      <button class="lx-notebook__mic" aria-label="Dictate note">🎙</button>
+      <button class="lx-notebook__save" type="button">Save →</button>
+    </div>
+    <div class="lx-notebook__hint">Notebook entries attach to your audit trail under <span style="font-family:var(--mono);">operator/em · private</span>.</div>
+  </aside>
+
+  <!-- v3.55.0 STATIC FOOTER -->
+  <footer class="rmc-app-shell__footer" role="contentinfo">
+    <div class="cp-footer-inner">
+      <div class="cp-footer-row">
+        <strong>RUNMYCAMPUS MANAGER</strong>
+        <span style="color:var(--text-tertiary);">Corporate gateway · operator sign-in</span>
+      </div>
+      <div class="cp-footer-row">
+        <span class="cp-footer-pill cp-footer-pill--live">● PLATFORM STATUS</span>
+        <span class="cp-footer-pill">⊕ Control plane</span>
+        <span class="cp-footer-pill">⌕ Find campus</span>
+        <span class="cp-footer-pill">↗ Public site</span>
+      </div>
+      <div class="cp-footer-grid">
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">LIVE</div>
+          <div>Uptime &amp; incidents</div>
+        </div>
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">READY</div>
+          <div>Procurement</div>
+        </div>
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">TRUST</div>
+          <div>Security center</div>
+        </div>
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">PORTAL</div>
+          <div>Tenant login</div>
+        </div>
+      </div>
+      <div class="cp-footer-legal">
+        <span>© 2026 RunMyCampus</span>
+        <div>
+          <a href="#">Security</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</body>
+</html>

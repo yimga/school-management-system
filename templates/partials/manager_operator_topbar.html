@@ -6,6 +6,11 @@
       {% url 'super:dashboard' as bm_dashboard_url %}
       <div class="rmc-platform-header__brand">
         {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
+        {% comment %} v3.55.0: brand tagline under the wordmark/pill. CONFIGURABLE: cockpit.brand.tagline (SiteSettings).
+           Renders only when configured non-empty so existing surfaces aren't visually changed. {% endcomment %}
+        {% if cockpit.brand.tagline %}
+        <span class="rmc-cockpit-tagline">{{ cockpit.brand.tagline }}</span>
+        {% endif %}
       </div>
       <button class="navbar-toggler border-light d-lg-none flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
         <span class="navbar-toggler-icon"></span>

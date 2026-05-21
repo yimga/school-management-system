@@ -1,0 +1,56 @@
+{% load static i18n %}
+{% comment %} v3.57.0 (2026-05-21): 200x front-office Element 6 — AI-suggested fixes feed.
+
+   Feed of Copilot-generated suggestions with apply / dismiss CTAs.
+   For v3.57.0 this consumes A8 stub data; real wiring lands in A8.
+
+   CONFIGURABLE via cockpit.ai_fixes_feed (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .title
+     .title_em
+     .meta_text
+     .suggestions  list — [{slug, summary, rationale, confidence, impact,
+                           apply_url, dismiss_url, created}]
+        impact ∈ {"high","medium","low"}
+     .empty_state_text
+{% endcomment %}
+
+{# a8-wire-pending: ai-fixes-feed — A8 owns CONTENT wiring; this partial renders the surface only. #}
+{% if cockpit.ai_fixes_feed.enabled %}
+<section class="lx-card lx-aifix" aria-label="{% trans 'AI-suggested fixes feed' %}">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.ai_fixes_feed.eyebrow|default:_("AI · suggested fixes") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.ai_fixes_feed.title|default:_("Copilot suggestions") }}
+        {% if cockpit.ai_fixes_feed.title_em %} <em>{{ cockpit.ai_fixes_feed.title_em }}</em>{% endif %}
+      </h3>
+    </div>
+    {% if cockpit.ai_fixes_feed.meta_text %}<div class="lx-card__meta">{{ cockpit.ai_fixes_feed.meta_text }}</div>{% endif %}
+  </div>
+  {% if cockpit.ai_fixes_feed.suggestions %}
+  <ol class="lx-aifix__list" role="list">
+    {% for s in cockpit.ai_fixes_feed.suggestions %}
+    <li class="lx-aifix__row lx-aifix__row--{{ s.impact|default:'medium' }}" data-rmc-ai-fix-slug="{{ s.slug }}">
+      <div class="lx-aifix__head">
+        <span class="lx-aifix__impact lx-aifix__impact--{{ s.impact|default:'medium' }}">{{ s.impact|default:'medium'|upper }}</span>
+        <span class="lx-aifix__summary">{{ s.summary }}</span>
+        {% if s.confidence %}<span class="lx-aifix__conf">{{ s.confidence }}</span>{% endif %}
+      </div>
+      {% if s.rationale %}<div class="lx-aifix__rationale"><em>{{ s.rationale }}</em></div>{% endif %}
+      <div class="lx-aifix__row-foot">
+        <span class="lx-aifix__when">{{ s.created|default:"—" }}</span>
+        <span class="lx-aifix__cta">
+          {% if s.apply_url %}<a href="{{ s.apply_url }}" class="lx-aifix__apply">{% trans "Review →" %}</a>{% endif %}
+          {% if s.dismiss_url %}<a href="{{ s.dismiss_url }}" class="lx-aifix__dismiss">{% trans "Dismiss" %}</a>{% endif %}
+        </span>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="lx-aifix__empty"><em>{{ cockpit.ai_fixes_feed.empty_state_text|default:_("No suggestions right now — Copilot will surface ideas as signals appear.") }}</em></p>
+  {% endif %}
+</section>
+{% endif %}

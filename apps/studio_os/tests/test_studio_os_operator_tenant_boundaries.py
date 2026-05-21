@@ -38,40 +38,54 @@ class OperatorHostGateTests(SimpleTestCase):
     == 'manager' guard."""
 
     def test_operator_only_tokens_sit_inside_manager_host_guard(self) -> None:
+        # For each token, find every occurrence that ACTUALLY RENDERS the
+        # value (i.e. inside an href= / {{ }} interpolation / button label,
+        # not inside an outer `{% if A or B or token %}` predicate that
+        # merely checks for at-least-one-truthy). Each such render-site
+        # must be inside a `request.public_host_kind == 'manager'` guard.
         for partial, token in OPERATOR_ONLY_PARTIALS_AND_TOKENS:
             with self.subTest(partial=partial, token=token):
                 src = _read(partial)
-                # Find the token, then walk backward for the nearest opening
-                # {% if ... manager ... %} and ensure no {% endif %} between
-                # the guard and the token.
-                idx = src.find(token)
-                self.assertGreater(
-                    idx, -1, f"{partial}: token {token!r} not found"
-                )
-                preceding = src[:idx]
-                # The token must have at least one matching manager-host guard
-                # without a closing endif between it and the token.
-                guards = list(
-                    re.finditer(
-                        r"\{%\s*if\s+request\.public_host_kind\s*==\s*['\"]manager['\"]",
-                        preceding,
-                    )
-                )
+                # Find render-sites: lines where the token appears inside
+                # an href= attribute or {{ }} interpolation. Predicate-only
+                # uses (the outer `{% if A or B or C %}` master gate) are
+                # ignored — they don't render the value.
+                render_sites = []
+                for m in re.finditer(
+                    rf'(?:href="\{{\{{[^}}]*{re.escape(token)}|{{{{\s*{re.escape(token)}\b)',
+                    src,
+                ):
+                    render_sites.append(m.start())
                 self.assertTrue(
-                    guards,
-                    f"{partial}: token {token!r} not preceded by any "
-                    f"`request.public_host_kind == 'manager'` guard",
+                    render_sites,
+                    f"{partial}: no render-site found for token {token!r} "
+                    f"(value never actually rendered into the DOM)",
                 )
-                # Get text after last guard, ensure it doesn't close before token.
-                last_guard_end = guards[-1].end()
-                between = preceding[last_guard_end:]
-                opens = len(re.findall(r"\{%\s*if\b", between))
-                closes = len(re.findall(r"\{%\s*endif\b", between))
-                self.assertGreaterEqual(
-                    opens, closes,
-                    f"{partial}: token {token!r} lives outside its host guard "
-                    f"(endif count {closes} >= if count {opens} between guard and token)",
-                )
+                # Every render-site must sit inside an open manager-host guard.
+                for idx in render_sites:
+                    preceding = src[:idx]
+                    guards = list(
+                        re.finditer(
+                            r"\{%\s*if\s+request\.public_host_kind\s*==\s*['\"]manager['\"]",
+                            preceding,
+                        )
+                    )
+                    self.assertTrue(
+                        guards,
+                        f"{partial}: render-site at offset {idx} for token "
+                        f"{token!r} is not preceded by any "
+                        f"`request.public_host_kind == 'manager'` guard",
+                    )
+                    last_guard_end = guards[-1].end()
+                    between = preceding[last_guard_end:]
+                    opens = len(re.findall(r"\{%\s*if\b", between))
+                    closes = len(re.findall(r"\{%\s*endif\b", between))
+                    self.assertGreater(
+                        opens, closes,
+                        f"{partial}: token {token!r} render-site at offset "
+                        f"{idx} lives outside its host guard "
+                        f"(endif count {closes} >= if count {opens})",
+                    )
 
 
 class NoPiiInAuditListTests(SimpleTestCase):
@@ -81,14 +95,36 @@ class NoPiiInAuditListTests(SimpleTestCase):
 
     def test_shell_control_audit_uses_actor_display_not_pii(self) -> None:
         src = SHELL_PATH.read_text(encoding="utf-8")
-        # Find the control-mode audit list block.
-        match = re.search(
-            r"current_mode\s*==\s*['\"]control['\"].*?(?=\{%\s*el)",
+        # The control branch we want is the one inside the right-rail
+        # <aside> cascade, NOT the rail-nav aria-current logic. Anchor on
+        # the "Impact" heading that introduces it.
+        anchor = re.search(
+            r"current_mode\s*==\s*['\"]control['\"]\s*%\}\s*\n\s*<p[^>]*>\s*\{%\s*trans\s+['\"]Impact['\"]",
             src,
+        )
+        self.assertIsNotNone(
+            anchor,
+            "Right-rail control branch (introduced by Impact heading) not "
+            "found in shell.html. The control audit block has moved or been "
+            "removed — check shell.html v3.54.0 structure.",
+        )
+        # Take a generous window after the anchor up to the next {% elif/else.
+        start = anchor.start()
+        rest = src[start:]
+        end_m = re.search(r"\{%\s*el(?:if|se)\b", rest)
+        end_idx = end_m.start() if end_m else len(rest)
+        block = rest[:end_idx]
+        # Strip Django + HTML comments so a documentation comment that
+        # mentions `_email/_username/_slug` (as a what-NOT-to-do note)
+        # doesn't trip the assertion.
+        block = re.sub(r"\{#.*?#\}", "", block, flags=re.DOTALL)
+        block = re.sub(
+            r"\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}",
+            "",
+            block,
             flags=re.DOTALL,
         )
-        self.assertIsNotNone(match, "control branch not found in shell.html")
-        block = match.group(0)
+        block = re.sub(r"<!--.*?-->", "", block, flags=re.DOTALL)
         for field in self.PII_FIELDS:
             with self.subTest(field=field):
                 self.assertNotIn(

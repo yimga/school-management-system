@@ -19,6 +19,13 @@
     if (mode === "document") {
       return null;
     }
+    // v3.55.0: shell-canvas scroll mode — the .rmc-app-shell__canvas is the
+    // single scrollable surface. Falls through to legacy resolution if absent.
+    if (mode === "canvas") {
+      var shellCanvas = document.querySelector(".rmc-app-shell__canvas");
+      if (isScrollable(shellCanvas)) return shellCanvas;
+      if (shellCanvas) return shellCanvas;
+    }
     if (mode === "main") {
       var scrollPane = document.querySelector(".cp-admin-main-scroll-pane");
       if (isScrollable(scrollPane)) return scrollPane;
@@ -29,6 +36,10 @@
       if (scrollPane) return scrollPane;
       if (adminMain) return adminMain;
     }
+    // Legacy fallback chain. Shell canvas is checked first so it wins when
+    // present without the body opting in via data-rmc-cp-scroll=canvas.
+    var shellCanvasFallback = document.querySelector(".rmc-app-shell__canvas");
+    if (isScrollable(shellCanvasFallback)) return shellCanvasFallback;
     var main = document.getElementById("main");
     if (isScrollable(main)) return main;
     var cpMain =

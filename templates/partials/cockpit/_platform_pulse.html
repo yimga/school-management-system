@@ -1,0 +1,45 @@
+{% load i18n %}
+{% comment %} v3.55.0 (2026-05-21): Platform Pulse cards row.
+
+   Rendered at top of canvas body, below the breadcrumb + h1 row.
+   Six small cards giving operators at-a-glance read of platform state.
+   Each card pulls live counts/values from the cockpit context.
+
+   CONFIGURABLE via cockpit.pulse_metrics (SiteSettings → context processor):
+     .label           string  — section label (default: "Platform pulse · live")
+     .show_live_dot   bool    — pulsing dot in the label (default: True)
+     .cards           list    — ordered list of metric cards. Operators reorder
+                                or hide cards from /super/configure/cockpit-metrics/
+
+   Each card shape:
+     {
+       head: "Schools",           # uppercase head label
+       severity: "ok",            # ok | warn | danger | info — dot color
+       value: "168",              # big value (string or number)
+       label: "Healthy",          # sub-label below value
+       delta: "▲ +3 this week",   # delta line (optional)
+       delta_direction: "up"      # up | down | flat — colors the delta
+     }
+   If `cards` is empty/missing, the section doesn't render. {% endcomment %}
+
+{% if cockpit.pulse_metrics.cards %}
+<section class="rmc-cockpit-pulse" aria-labelledby="rmc-cockpit-pulse-label">
+  <div class="rmc-cockpit-pulse__label" id="rmc-cockpit-pulse-label">
+    {% if cockpit.pulse_metrics.show_live_dot|default:True %}<span class="rmc-cockpit-pulse__live-dot" aria-hidden="true"></span>{% endif %}
+    {{ cockpit.pulse_metrics.label|default:_("Platform pulse · live") }}
+  </div>
+  <div class="rmc-cockpit-pulse__cards">
+    {% for card in cockpit.pulse_metrics.cards %}
+    <article class="rmc-cockpit-pulse-card">
+      <div class="rmc-cockpit-pulse-card__head">
+        <span class="rmc-cockpit-pulse-card__dot{% if card.severity %} rmc-cockpit-pulse-card__dot--{{ card.severity }}{% endif %}" aria-hidden="true"></span>
+        {{ card.head }}
+      </div>
+      <div class="rmc-cockpit-pulse-card__value">{{ card.value|default:"—" }}</div>
+      {% if card.label %}<div class="rmc-cockpit-pulse-card__label">{{ card.label }}</div>{% endif %}
+      {% if card.delta %}<div class="rmc-cockpit-pulse-card__delta{% if card.delta_direction %} rmc-cockpit-pulse-card__delta--{{ card.delta_direction }}{% endif %}">{{ card.delta }}</div>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

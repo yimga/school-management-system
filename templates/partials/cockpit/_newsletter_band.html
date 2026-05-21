@@ -1,0 +1,56 @@
+{% load static i18n %}
+{% comment %}
+Tenant newsletter signup band — v3.55.2 (2026-05-21)
+
+Gradient banner above the footer with email signup + privacy notice.
+
+Configurability (cockpit.newsletter_band.*):
+  enabled              bool          # default False; operator opt-in
+  title                str           # e.g. "Stay in the loop · weekly family digest"
+  subtitle             str           # e.g. "Term highlights · upcoming events · 1 email every Sunday"
+  placeholder          str           # email field placeholder
+  cta_label            str           # submit button label
+  submit_url           str           # form POST target (operator-controlled endpoint, e.g. Mailchimp / Klaviyo proxy)
+  privacy_url          str           # privacy notice link
+  privacy_label        str
+
+Visibility:
+  - host kind:   never on manager surface (cockpit_context returns no newsletter_band for non-tenants)
+  - per-tenant:  cockpit.newsletter_band.enabled must be True
+  - per-page:    `{% block portal_community_band %}{% endblock %}` override suppresses (shared with community band)
+
+Security:
+  - CSRF token included only when submit_url is in-platform (relative path)
+  - External submit_url (mailchimp etc) does NOT receive a CSRF token (would leak to 3rd party)
+{% endcomment %}
+{% if cockpit.newsletter_band.enabled %}
+  {% with n=cockpit.newsletter_band %}
+  <section class="rmc-newsletter-band" aria-label="{% trans 'Subscribe to family digest' %}">
+    <div class="rmc-newsletter-band__copy">
+      <strong>{{ n.title|default:_("Stay in the loop · weekly family digest") }}</strong>
+      <span>{{ n.subtitle|default:_("Term highlights · upcoming events · 1 email every Sunday") }}</span>
+    </div>
+    <form class="rmc-newsletter-band__form"
+          action="{{ n.submit_url|default:'#' }}"
+          method="post"
+          autocomplete="off">
+      {% if n.submit_url|slice:":1" == "/" %}
+        {# In-platform endpoint — include CSRF. External endpoints (mailchimp etc) do NOT get the CSRF token. #}
+        {% csrf_token %}
+      {% endif %}
+      <input type="email"
+             name="email"
+             class="rmc-newsletter-band__input"
+             placeholder="{{ n.placeholder|default:'parent@email.com' }}"
+             aria-label="{% trans 'Email address' %}"
+             required>
+      <button type="submit" class="rmc-newsletter-band__btn">{{ n.cta_label|default:_("Subscribe →") }}</button>
+      {% if n.privacy_url %}
+      <span class="rmc-newsletter-band__small">
+        {% blocktrans with link='<a href="'|add:n.privacy_url|add:'">'|add:n.privacy_label|default:_("privacy notice")|add:'</a>' %}By subscribing you agree to our {{ link }}.{% endblocktrans %}
+      </span>
+      {% endif %}
+    </form>
+  </section>
+  {% endwith %}
+{% endif %}

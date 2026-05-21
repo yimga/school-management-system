@@ -435,6 +435,26 @@
 
       fetch(pageData.url_super_api_create_school, fetchOpts)
         .then(function (r) {
+          // v3.54.0 (2026-05-21): diagnostic improvement. Previously this chain
+          // unconditionally called r.json(); when the server returned HTML
+          // (500 debug page, 403 CSRF/login redirect, 502 gateway), r.json()
+          // threw SyntaxError → the generic ".catch Network error" branch
+          // fired and the operator had no way to see the real cause. Now we
+          // detect non-JSON responses up front and surface the HTTP status +
+          // a body snippet so the real error is visible in the wizard's
+          // error region without leaving the page.
+          var contentType = (r.headers && r.headers.get("content-type")) || "";
+          if (contentType.indexOf("application/json") === -1) {
+            return r.text().then(function (text) {
+              var snippet = (text || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240);
+              var label = "Server returned " + r.status + " " + (r.statusText || "");
+              errorEl.textContent = snippet ? label + ": " + snippet : label;
+              errorEl.classList.remove("d-none");
+              if (typeof console !== "undefined" && console.error) {
+                console.error("[create-school] non-JSON response", { status: r.status, contentType: contentType, body: text });
+              }
+            });
+          }
           return r.json().then(function (data) {
             if (r.ok) {
               var msg =
@@ -490,9 +510,17 @@
             }
           });
         })
-        .catch(function () {
-          errorEl.textContent = "Network error. Try again.";
+        .catch(function (err) {
+          // v3.54.0 (2026-05-21): surface the underlying exception message
+          // when the fetch chain throws (TypeError on dropped connection,
+          // SyntaxError on malformed JSON, etc.). Falls back to the generic
+          // copy so existing screenshots / tests still match.
+          var detail = (err && err.message) ? " (" + err.message + ")" : "";
+          errorEl.textContent = "Network error. Try again." + detail;
           errorEl.classList.remove("d-none");
+          if (typeof console !== "undefined" && console.error) {
+            console.error("[create-school] fetch failure:", err);
+          }
         });
     });
 

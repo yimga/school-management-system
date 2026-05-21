@@ -1,0 +1,31 @@
+{% load i18n %}
+{% comment %}
+Life event timeline — v3.57.0 (2026-05-21)
+
+Graduations, birthdays, milestones. Event tones:
+  "" | "graduation" | "birthday" | "milestone"
+{% endcomment %}
+{% if cockpit.life_event_timeline.enabled and cockpit.life_event_timeline.events %}
+{% with le=cockpit.life_event_timeline %}
+<section class="tp-life-events" aria-label="{{ le.title }}" data-rmc-tp-life-events>
+  <header class="tp-life-events__head">
+    <h3 class="tp-life-events__title">{{ le.title|default:_("Life events") }}</h3>
+  </header>
+  <ol class="tp-life-events__list" role="list">
+    {% for e in le.events %}
+    <li class="tp-life-events__event{% if e.tone %} tp-life-events__event--{{ e.tone }}{% endif %}">
+      <span class="tp-life-events__icon" aria-hidden="true">{{ e.icon|default:"★" }}</span>
+      <div class="tp-life-events__body">
+        <div class="tp-life-events__row">
+          <strong>{{ e.title }}</strong>
+          {% if e.day_label %}<span class="tp-life-events__day">{{ e.day_label }}</span>{% endif %}
+        </div>
+        {% if e.sub %}<span class="tp-life-events__sub">{{ e.sub }}</span>{% endif %}
+        {% if e.iso %}<time class="tp-life-events__iso" datetime="{{ e.iso }}">{{ e.iso }}</time>{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endwith %}
+{% endif %}

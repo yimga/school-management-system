@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %}
+Financial timeline — v3.57.0 (2026-05-21)
+
+Vertical timeline of fees + payments + balance events. Amounts are
+ALWAYS rendered from `*_display` strings — the view is responsible for
+Decimal formatting; never a raw Decimal here.
+
+Event tones: "fee" | "payment" | "discount" | "balance"
+{% endcomment %}
+{% if cockpit.financial_timeline.enabled and cockpit.financial_timeline.events %}
+{% with ft=cockpit.financial_timeline %}
+<section class="tp-fin-timeline" aria-label="{{ ft.title }}" data-rmc-tp-fin-timeline>
+  <header class="tp-fin-timeline__head">
+    <h3 class="tp-fin-timeline__title">{{ ft.title|default:_("Financial timeline") }}</h3>
+    {% if ft.balance_display %}
+    <span class="tp-fin-timeline__balance{% if ft.balance_tone %} tp-fin-timeline__balance--{{ ft.balance_tone }}{% endif %}">
+      {{ ft.balance_display }}
+    </span>
+    {% endif %}
+  </header>
+  <ol class="tp-fin-timeline__list" role="list">
+    {% for e in ft.events %}
+    <li class="tp-fin-timeline__event tp-fin-timeline__event--{{ e.tone|default:'fee' }}">
+      <span class="tp-fin-timeline__dot" aria-hidden="true">{{ e.icon|default:"·" }}</span>
+      <div class="tp-fin-timeline__body">
+        <div class="tp-fin-timeline__row">
+          <strong>{{ e.label }}</strong>
+          {% if e.amount_display %}<span class="tp-fin-timeline__amount">{{ e.amount_display }}</span>{% endif %}
+        </div>
+        {% if e.iso %}<time class="tp-fin-timeline__time" datetime="{{ e.iso }}">{{ e.iso }}</time>{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endwith %}
+{% endif %}

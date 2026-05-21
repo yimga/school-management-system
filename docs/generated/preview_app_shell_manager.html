@@ -1,0 +1,1458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMC v3.55.0 app-shell preview — manager control plane</title>
+<style>
+/* ============================================================
+   Inlined design tokens (minimal subset, normally in design-tokens.css)
+   ============================================================ */
+:root {
+  --surface-bg: #f5f5f7;
+  --surface-canvas: #fbfbfd;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #ebebef;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.14);
+  --text-primary: #1d1d1f;
+  --text-secondary: #424245;
+  --text-tertiary: #6e6e73;
+  --text-muted: #6c6c70;
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --school-primary: #4f46e5;
+  --school-accent: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --success: #22c55e;
+  /* Dark surface for the manager chrome (header/sidebar are dark in manager) */
+  --cp-chrome-bg: #0b1020;
+  --cp-chrome-surface: #131a35;
+  --cp-chrome-hairline: rgba(255, 255, 255, 0.08);
+  --cp-chrome-text: #f1f5f9;
+  --cp-chrome-text-muted: #94a3b8;
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; }
+
+/* ============================================================
+   rmc-app-shell.css — pasted in for preview portability
+   (mirrors what's in static/css/rmc-app-shell.css)
+   ============================================================ */
+html, body { height: 100%; overflow: hidden; }
+
+.rmc-app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  isolation: isolate;
+}
+
+.rmc-app-shell__header {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  background: var(--cp-chrome-bg);
+  color: var(--cp-chrome-text);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  position: relative;
+  z-index: 40;
+  min-width: 0;
+}
+
+.rmc-app-shell__sidebar {
+  grid-row: 2;
+  grid-column: 1;
+  background: var(--cp-chrome-bg);
+  color: var(--cp-chrome-text);
+  border-right: 1px solid var(--cp-chrome-hairline);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  min-width: 0;
+  z-index: 30;
+  box-shadow: var(--elev-1);
+}
+
+.rmc-app-shell__canvas {
+  grid-row: 2;
+  grid-column: 2;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-bg);
+  scroll-padding-top: var(--rmc-app-shell-header-h, 104px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.rmc-app-shell__canvas-body { flex: 1 0 auto; min-width: 0; display: flex; flex-direction: column; }
+.rmc-app-shell__footer {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  min-width: 0;
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  z-index: 35;
+}
+
+/* Scrollbar — thin, fade on hover */
+.rmc-app-shell__canvas, .rmc-app-shell__sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover, .rmc-app-shell__canvas:focus-within { scrollbar-color: var(--hairline-strong) transparent; }
+.rmc-app-shell__sidebar:hover, .rmc-app-shell__sidebar:focus-within { scrollbar-color: rgba(255,255,255,0.18) transparent; }
+
+.rmc-app-shell__canvas::-webkit-scrollbar,
+.rmc-app-shell__sidebar::-webkit-scrollbar { width: 8px; height: 8px; }
+.rmc-app-shell__canvas::-webkit-scrollbar-track,
+.rmc-app-shell__sidebar::-webkit-scrollbar-track { background: transparent; }
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb,
+.rmc-app-shell__sidebar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: var(--radius-pill);
+  transition: background var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.rmc-app-shell__sidebar:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); }
+
+@media (max-width: 991.98px) {
+  .rmc-app-shell { grid-template-columns: 1fr; }
+  .rmc-app-shell__sidebar { display: none; }
+  .rmc-app-shell__canvas { grid-column: 1 / -1; }
+}
+
+/* ============================================================
+   Manager surface chrome — header, sidebar, content styling
+   (representative of what cp-* CSS files do; trimmed for preview)
+   ============================================================ */
+.cp-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-header__row {
+  display: grid;
+  grid-template-columns: minmax(200px, auto) 1fr minmax(200px, auto);
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  min-height: 52px;
+}
+
+.cp-header__row--utility {
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+
+/* Each cell in the 3-col header row carries its own alignment intent. */
+.cp-header__row > .cp-brand { justify-self: start; }
+.cp-header__row > .cp-search { justify-self: center; width: 100%; max-width: 560px; }
+.cp-header__row > .cp-util-actions { justify-self: end; }
+
+.cp-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--cp-chrome-text);
+  text-decoration: none;
+}
+
+.cp-brand__mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--school-primary), #7c3aed);
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.cp-brand__pill {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #422006;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-left: 4px;
+}
+
+.cp-search {
+  flex: 1 1 auto;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  color: var(--cp-chrome-text-muted);
+  font-size: 13px;
+}
+
+.cp-search__kbd {
+  margin-left: auto;
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: var(--cp-chrome-text-muted);
+}
+
+.cp-util-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--cp-chrome-hairline);
+  background: rgba(255,255,255,0.04);
+  color: var(--cp-chrome-text);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cp-pill:hover { background: rgba(255,255,255,0.1); }
+
+.cp-bell {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(239,68,68,0.18);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #fecaca;
+  cursor: pointer;
+}
+
+.cp-bell__dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--danger);
+  color: white;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border: 2px solid var(--cp-chrome-bg);
+}
+
+.cp-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-user__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.cp-user__meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  font-size: 12px;
+}
+
+.cp-user__meta strong { color: var(--cp-chrome-text); }
+.cp-user__meta span { color: var(--cp-chrome-text-muted); font-size: 11px; }
+
+/* Operator pulse strip — live platform metrics, thin row in the header */
+.cp-pulse-strip {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+  padding: 6px 20px;
+  background: linear-gradient(90deg, rgba(99,102,241,0.06) 0%, rgba(16,185,129,0.06) 50%, rgba(99,102,241,0.06) 100%);
+  border-top: 1px solid var(--cp-chrome-hairline);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  font-size: 12px;
+  color: var(--cp-chrome-text-muted);
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+/* Brand tagline — sits below the wordmark to give the brand area more presence */
+.cp-brand__tagline {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cp-chrome-text-muted);
+}
+
+/* Live activity ticker — Bloomberg-style horizontal scrolling feed
+   of recent platform events. Auto-scrolls; pauses on hover for read. */
+.cp-activity-ticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 4px 20px;
+  background: linear-gradient(90deg, rgba(239,68,68,0.04) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 100%);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  font-size: 11px;
+  color: var(--cp-chrome-text-muted);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.cp-activity-ticker__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: #fecaca;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.cp-activity-ticker__badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: cp-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes cp-ticker-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.cp-activity-ticker__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
+}
+
+.cp-activity-ticker__track {
+  display: inline-flex;
+  gap: 36px;
+  animation: cp-ticker-scroll 60s linear infinite;
+  will-change: transform;
+}
+
+.cp-activity-ticker:hover .cp-activity-ticker__track {
+  animation-play-state: paused;
+}
+
+@keyframes cp-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-activity-ticker__track { animation: none; }
+}
+
+.cp-activity-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-activity-event__text { color: var(--cp-chrome-text); }
+.cp-activity-event__time { color: var(--cp-chrome-text-muted); font-size: 10px; }
+.cp-activity-event--success .cp-activity-event__icon { color: var(--success); }
+.cp-activity-event--warn .cp-activity-event__icon { color: var(--warning); }
+.cp-activity-event--danger .cp-activity-event__icon { color: var(--danger); }
+.cp-activity-event--info .cp-activity-event__icon { color: #60a5fa; }
+.cp-pulse-strip::-webkit-scrollbar { display: none; }
+
+.cp-pulse-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cp-pulse-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+.cp-pulse-pill__dot--warn { background: var(--warning); }
+.cp-pulse-pill__dot--ok { background: var(--success); }
+.cp-pulse-pill__dot--info { background: #60a5fa; }
+
+.cp-pulse-pill__label { color: var(--cp-chrome-text-muted); }
+.cp-pulse-pill__value { color: var(--cp-chrome-text); font-weight: 600; }
+.cp-pulse-divider { color: rgba(255,255,255,0.15); font-size: 10px; }
+
+/* Primary nav row (the second header row — Home/Studio/Operations/...) */
+.cp-primary-nav {
+  display: flex;
+  gap: 4px;
+  padding: 6px 20px;
+  align-items: center;
+  justify-content: center;  /* v3: center the nav pills horizontally */
+}
+
+.cp-primary-nav__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--cp-chrome-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cp-primary-nav__item:hover { background: rgba(255,255,255,0.06); color: var(--cp-chrome-text); }
+
+.cp-primary-nav__item[aria-current="page"] {
+  background: rgba(99,102,241,0.2);
+  color: #c7d2fe;
+  font-weight: 600;
+}
+
+/* Sidebar */
+.cp-sidebar-inner {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Workspace context block — fills the empty space below the logo with
+   useful operator orientation: who you are, what scope, collapse toggle. */
+.cp-workspace-context {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: var(--radius-md);
+}
+
+.cp-workspace-context__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cp-workspace-context__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.cp-workspace-context__who {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+  flex: 1;
+}
+.cp-workspace-context__who strong {
+  color: var(--cp-chrome-text);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-workspace-context__who span {
+  color: var(--cp-chrome-text-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-workspace-context__scope-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-workspace-context__scope {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--cp-chrome-hairline);
+  font-size: 11px;
+  color: var(--cp-chrome-text);
+  cursor: pointer;
+}
+.cp-workspace-context__scope:hover { background: rgba(255, 255, 255, 0.09); }
+
+.cp-workspace-context__scope-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.cp-workspace-context__collapse {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--cp-chrome-hairline);
+  background: transparent;
+  color: var(--cp-chrome-text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+.cp-workspace-context__collapse:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--cp-chrome-text);
+}
+
+.cp-sidebar__section {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-chrome-text-muted);
+  padding: 12px 12px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Collapsible group (native <details>) — click summary to expand/collapse.
+   Children are visually indented and shown only when [open] is set. */
+.cp-sidebar__group {
+  margin: 0;
+  padding: 0;
+}
+.cp-sidebar__group > summary {
+  list-style: none;       /* hide native disclosure triangle */
+  cursor: pointer;
+  user-select: none;
+}
+.cp-sidebar__group > summary::-webkit-details-marker { display: none; }
+.cp-sidebar__group > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform var(--motion-fast);
+  color: var(--cp-chrome-text-muted);
+}
+.cp-sidebar__group[open] > summary::before { transform: rotate(90deg); }
+.cp-sidebar__group > summary:hover { color: var(--cp-chrome-text); }
+.cp-sidebar__group > .cp-sidebar__item {
+  padding-left: 28px; /* indent children of expanded sections */
+}
+
+.cp-sidebar__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--cp-chrome-text);
+  text-decoration: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cp-sidebar__item:hover { background: rgba(255,255,255,0.06); }
+
+.cp-sidebar__item[aria-current="page"] {
+  background: linear-gradient(135deg, rgba(79,70,229,0.4), rgba(16,185,129,0.3));
+  color: white;
+  font-weight: 600;
+}
+
+.cp-sidebar__item-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-sidebar__pin {
+  opacity: 0;
+  color: var(--cp-chrome-text-muted);
+  font-size: 14px;
+}
+
+.cp-sidebar__item:hover .cp-sidebar__pin { opacity: 0.6; }
+
+/* Canvas content */
+.cp-canvas-body {
+  padding: 20px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cp-page-h1 { margin: 0; font-size: 22px; color: var(--text-primary); font-weight: 700; }
+
+/* Platform Pulse — relocated from header in v7. Six small cards giving
+   operators an at-a-glance read of platform-wide state. Each card grows
+   into a sparkline + delta in v8. */
+.cp-platform-pulse {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cp-platform-pulse__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-platform-pulse__live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: cp-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+.cp-platform-pulse__cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 1280px) {
+  .cp-platform-pulse__cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .cp-platform-pulse__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.cp-pulse-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: border-color var(--motion-fast), transform var(--motion-fast);
+}
+.cp-pulse-card:hover {
+  border-color: var(--hairline-strong);
+  transform: translateY(-1px);
+}
+
+.cp-pulse-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+.cp-pulse-card__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+.cp-pulse-card__dot--warn { background: var(--warning); }
+.cp-pulse-card__dot--danger { background: var(--danger); }
+.cp-pulse-card__dot--info { background: #60a5fa; }
+
+.cp-pulse-card__value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.cp-pulse-card__label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.cp-pulse-card__delta {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.cp-pulse-card__delta--up { color: var(--success); }
+.cp-pulse-card__delta--down { color: var(--danger); }
+
+/* Breadcrumb + page header row — fills the canvas top-left properly */
+.cp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.cp-breadcrumb a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+.cp-breadcrumb a:hover { color: var(--text-secondary); }
+.cp-breadcrumb__separator {
+  color: var(--text-muted);
+  opacity: 0.45;
+  font-weight: 400;
+}
+.cp-breadcrumb__current { color: var(--text-secondary); }
+
+.cp-page-h1-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: -8px;
+}
+.cp-page-h1-row__actions { display: flex; gap: 8px; }
+
+.cp-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px;
+  background: var(--surface-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+}
+
+.cp-tabs__tab {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cp-tabs__tab[aria-current="page"] {
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cp-command-card {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr clamp(260px, 28%, 360px);
+  gap: 24px;
+}
+
+.cp-command-card__eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a5b4fc;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.cp-command-card h2 { margin: 0 0 12px; font-size: 22px; }
+.cp-command-card p { margin: 0 0 16px; opacity: 0.85; line-height: 1.55; max-width: 60ch; }
+
+.cp-command-card__actions { display: flex; gap: 10px; }
+.cp-btn-primary, .cp-btn-secondary {
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.cp-btn-primary { background: #2563eb; color: white; }
+.cp-btn-secondary { background: transparent; color: white; border-color: rgba(255,255,255,0.2); }
+
+.cp-confidence {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.cp-confidence__eyebrow {
+  font-size: 10px;
+  color: #a5b4fc;
+  margin-bottom: 6px;
+}
+
+.cp-confidence h3 { margin: 0 0 8px; font-size: 14px; }
+.cp-confidence p { margin: 0; font-size: 12px; opacity: 0.7; }
+
+.cp-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cp-kpi {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  min-width: 0;
+}
+
+.cp-kpi__label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+.cp-kpi__value { font-size: 28px; font-weight: 700; margin: 4px 0 0; color: var(--text-primary); }
+.cp-kpi__hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.cp-status-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cp-status-pills__pill {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+}
+
+.cp-status-pills__pill--warning { color: #92400e; background: #fef3c7; border-color: #fde68a; }
+.cp-status-pills__pill--ok { color: #166534; background: #dcfce7; border-color: #bbf7d0; }
+
+.cp-risk-drawer {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cp-risk-drawer__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cp-risk-drawer__head h3 { margin: 0; font-size: 13px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.cp-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cp-risk-card {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  min-width: 0;
+}
+
+.cp-risk-card h4 { margin: 0 0 10px; font-size: 14px; }
+.cp-risk-card p { margin: 6px 0; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+.cp-pill-tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--warning);
+  color: #422006;
+  font-weight: 700;
+}
+
+.cp-link { color: var(--school-primary); text-decoration: underline; font-size: 12px; }
+
+.cp-detailed-board-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Footer */
+.cp-footer-inner {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cp-footer-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.cp-footer-pill {
+  display: inline-flex; gap: 6px; align-items: center;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: var(--surface-sunken); color: var(--text-secondary);
+}
+.cp-footer-pill--live { background: #dcfce7; color: #166534; }
+
+.cp-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cp-footer-grid__item {
+  padding: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+}
+.cp-footer-grid__label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #16a34a; font-weight: 700; margin-bottom: 4px; }
+.cp-footer-legal { display: flex; gap: 14px; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--hairline); font-size: 11px; color: var(--text-muted); }
+.cp-footer-legal a { color: var(--text-muted); margin-left: 12px; text-decoration: none; }
+
+/* Comparison frame */
+.preview-banner {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: #1e293b;
+  color: white;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  box-shadow: var(--elev-2);
+  pointer-events: none;
+}
+.preview-banner strong { color: #fbbf24; }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  PREVIEW v7 · <strong>pulse metrics moved to canvas KPI row · lighter header · every surface marked CONFIGURABLE</strong>
+</div>
+
+<div class="rmc-app-shell">
+
+  <!-- =========================================================
+       HEADER — both rows live inside ONE static element
+       (this fixes finding #3: header height locks deterministically)
+       ========================================================= -->
+  <header class="rmc-app-shell__header" role="banner">
+    <div class="cp-header">
+
+      <!-- Row 1: brand + search + utility actions -->
+      <div class="cp-header__row cp-header__row--utility">
+        <!-- CONFIGURABLE: cockpit.brand.{wordmark,product_pill,tagline} (SiteSettings) -->
+        <a href="#" class="cp-brand">
+          <span class="cp-brand__mark">C</span>
+          <span>
+            RUNMYCAMPUS
+            <span class="cp-brand__pill">MANAGER</span>
+            <span class="cp-brand__tagline">Operator command surface</span>
+          </span>
+        </a>
+
+        <div class="cp-search">
+          <span>🔍</span>
+          <span>Search schools, incidents…</span>
+          <span class="cp-search__kbd">Ctrl K</span>
+        </div>
+
+        <div class="cp-util-actions">
+          <a href="#" class="cp-pill">⌘ Studio</a>
+          <a href="#" class="cp-pill">⚙ Config</a>
+          <a href="#" class="cp-pill">Workspace ▾</a>
+          <div class="cp-bell">🔔<span class="cp-bell__dot">12</span></div>
+          <a href="#" class="cp-pill" style="padding:6px 10px;">☀</a>
+          <div class="cp-user">
+            <div class="cp-user__avatar">AD</div>
+            <div class="cp-user__meta">
+              <strong>admin</strong>
+              <span>Super Administrator</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 1.2: Live activity ticker — auto-scrolling platform events.
+           Track content is duplicated for seamless infinite scroll. Pauses on hover.
+           CONFIGURABLE: cockpit.activity_feed.{enabled,scroll_seconds,event_types,max_events} (SiteSettings) -->
+      <div class="cp-activity-ticker" role="region" aria-label="Live platform activity">
+        <span class="cp-activity-ticker__badge">LIVE</span>
+        <div class="cp-activity-ticker__viewport">
+          <div class="cp-activity-ticker__track">
+            <span class="cp-activity-event cp-activity-event--success"><span class="cp-activity-event__icon">🆕</span><span class="cp-activity-event__text">New school provisioned — Saint Sebastien Academy</span><span class="cp-activity-event__time">· 12s ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success"><span class="cp-activity-event__icon">↗</span><span class="cp-activity-event__text">MRR up $420 this week</span><span class="cp-activity-event__time">· 1m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--danger"><span class="cp-activity-event__icon">🚨</span><span class="cp-activity-event__text">Tenant #567 webhook drift detected</span><span class="cp-activity-event__time">· 2m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info"><span class="cp-activity-event__icon">🎫</span><span class="cp-activity-event__text">5 new support tickets</span><span class="cp-activity-event__time">· 4m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success"><span class="cp-activity-event__icon">✓</span><span class="cp-activity-event__text">Migration sync complete for 12 schools</span><span class="cp-activity-event__time">· 6m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--warn"><span class="cp-activity-event__icon">⚠</span><span class="cp-activity-event__text">2 schools approaching invoice due date</span><span class="cp-activity-event__time">· 8m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info"><span class="cp-activity-event__icon">⚡</span><span class="cp-activity-event__text">Marketplace app "Attendance Pro" updated</span><span class="cp-activity-event__time">· 15m ago</span></span>
+            <!-- duplicate for seamless infinite scroll -->
+            <span class="cp-activity-event cp-activity-event--success" aria-hidden="true"><span class="cp-activity-event__icon">🆕</span><span class="cp-activity-event__text">New school provisioned — Saint Sebastien Academy</span><span class="cp-activity-event__time">· 12s ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success" aria-hidden="true"><span class="cp-activity-event__icon">↗</span><span class="cp-activity-event__text">MRR up $420 this week</span><span class="cp-activity-event__time">· 1m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--danger" aria-hidden="true"><span class="cp-activity-event__icon">🚨</span><span class="cp-activity-event__text">Tenant #567 webhook drift detected</span><span class="cp-activity-event__time">· 2m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info" aria-hidden="true"><span class="cp-activity-event__icon">🎫</span><span class="cp-activity-event__text">5 new support tickets</span><span class="cp-activity-event__time">· 4m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--success" aria-hidden="true"><span class="cp-activity-event__icon">✓</span><span class="cp-activity-event__text">Migration sync complete for 12 schools</span><span class="cp-activity-event__time">· 6m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--warn" aria-hidden="true"><span class="cp-activity-event__icon">⚠</span><span class="cp-activity-event__text">2 schools approaching invoice due date</span><span class="cp-activity-event__time">· 8m ago</span></span>
+            <span class="cp-activity-event cp-activity-event--info" aria-hidden="true"><span class="cp-activity-event__icon">⚡</span><span class="cp-activity-event__text">Marketplace app "Attendance Pro" updated</span><span class="cp-activity-event__time">· 15m ago</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- v7: pulse strip removed from header — relocated to canvas top as KPI cards.
+           See `.cp-platform-pulse` block below. The header chrome is lighter and the
+           pulse metrics get proper visual treatment in the canvas. -->
+
+      <!-- Row 2: primary nav
+           CONFIGURABLE: cockpit.primary_nav.items (SiteSettings) — operators reorder/hide entries. -->
+      <nav class="cp-primary-nav" aria-label="Primary">
+        <a href="#" class="cp-primary-nav__item" aria-current="page">🏠 Home</a>
+        <a href="#" class="cp-primary-nav__item">⎈ Studio</a>
+        <a href="#" class="cp-primary-nav__item">⚡ Operations</a>
+        <a href="#" class="cp-primary-nav__item">🛒 Marketplace</a>
+        <a href="#" class="cp-primary-nav__item">📈 Analytics</a>
+        <a href="#" class="cp-primary-nav__item">☁ Migration Cloud</a>
+        <a href="#" class="cp-primary-nav__item">🎧 Support</a>
+        <a href="#" class="cp-primary-nav__item">🛡 Control</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       SIDEBAR — own scroll, fixed grid column
+       (this fixes finding #2: sidebar no longer overlaps content)
+       ========================================================= -->
+  <aside class="rmc-app-shell__sidebar" aria-label="Control plane navigation">
+    <div class="cp-sidebar-inner">
+      <!-- Workspace context block — operator identity + scope + collapse toggle.
+           CONFIGURABLE: cockpit.workspace_context.{enabled,scope_dropdown,show_role} (SiteSettings) -->
+      <div class="cp-workspace-context">
+        <div class="cp-workspace-context__identity">
+          <div class="cp-workspace-context__avatar">AD</div>
+          <div class="cp-workspace-context__who">
+            <strong>admin</strong>
+            <span>Super Administrator</span>
+          </div>
+        </div>
+        <div class="cp-workspace-context__scope-row">
+          <button type="button" class="cp-workspace-context__scope" aria-haspopup="listbox" aria-label="Change tenant scope">
+            <span class="cp-workspace-context__scope-label">🌐 All tenants · Global</span>
+            <span aria-hidden="true">▾</span>
+          </button>
+          <button type="button" class="cp-workspace-context__collapse" aria-label="Collapse sidebar" title="Collapse sidebar">◧</button>
+        </div>
+      </div>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">PLATFORM OVERVIEW</summary>
+        <a href="#" class="cp-sidebar__item" aria-current="page"><span class="cp-sidebar__item-label">📊 Dashboard</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⌧ Command Center</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">✦ AI gateway console</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">✦ AI Center</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">STUDIO OS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⌧ Mission cockpit</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⎈ Experience workbench</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚙ Automation studio</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📤 Output console</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🚀 Launch control</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🛡 Governance</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">TENANTS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🏫 All schools</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚡ Provision new</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔍 Impersonate</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">CURRICULUM &amp; REGION</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🌍 Region packs</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📚 Curriculum frameworks</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🗣 Locale matrix</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">RUNTIME &amp; GOVERNANCE</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🎛 Runtime defaults</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔐 RBAC &amp; permissions</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📋 Policy decisions log</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">BLUEPRINTS &amp; POLICIES</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📐 Page blueprints</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚖ Policy engine</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">WORKFLOWS &amp; DASHBOARDS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔁 Process definitions</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📊 Dashboards catalog</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⏱ Run history</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">MARKETPLACE</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🛒 App catalog</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">👤 Publishers</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⭐ Ratings &amp; reviews</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">MIGRATION &amp; INTEGRATIONS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">☁ Migration Cloud</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔌 Companion siblings</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📜 Audit chain</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">OBSERVABILITY &amp; BILLING</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📈 Metrics</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📊 Health dashboards</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">💳 Billing &amp; invoices</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">SUPPORT &amp; SUCCESS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🎧 Tickets</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">📚 Knowledge base</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">TRUST &amp; COMPLIANCE</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🔒 Security center</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">⚖ DPA &amp; DSAR</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">DEVELOPER TOOLS</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🛠 API console</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🪝 Webhooks</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+
+      <details class="cp-sidebar__group" open>
+        <summary class="cp-sidebar__section">EXTENDED CONFIG</summary>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🎨 Theme &amp; brand</span><span class="cp-sidebar__pin">📌</span></a>
+        <a href="#" class="cp-sidebar__item"><span class="cp-sidebar__item-label">🌐 Domain routing</span><span class="cp-sidebar__pin">📌</span></a>
+      </details>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       CANVAS — single scrollable surface, own scrollbar
+       Footer lives at end of canvas-body flex (NOT viewport-pinned)
+       (this fixes findings #1 + #5)
+       ========================================================= -->
+  <div class="rmc-app-shell__canvas">
+    <div class="rmc-app-shell__canvas-body">
+
+      <div class="cp-canvas-body">
+        <nav class="cp-breadcrumb" aria-label="Breadcrumb">
+          <a href="#">Platform</a>
+          <span class="cp-breadcrumb__separator">›</span>
+          <a href="#">Control Plane</a>
+          <span class="cp-breadcrumb__separator">›</span>
+          <span class="cp-breadcrumb__current">Dashboard</span>
+        </nav>
+        <div class="cp-page-h1-row">
+          <h1 class="cp-page-h1">Control Plane</h1>
+          <div class="cp-page-h1-row__actions">
+            <button class="cp-detailed-board-btn">⤓ Export PDF</button>
+            <button class="cp-btn-primary" style="padding: 8px 14px; font-size: 12px;">＋ Quick action</button>
+          </div>
+        </div>
+
+        <!-- CONFIGURABLE: cockpit.pulse_metrics (SiteSettings)
+             Operators pick which counts surface here. Order + visibility configurable.
+             See /super/configure/cockpit-metrics/ when wired. -->
+        <section class="cp-platform-pulse" aria-labelledby="cp-platform-pulse-label">
+          <div class="cp-platform-pulse__label" id="cp-platform-pulse-label">
+            <span class="cp-platform-pulse__live-dot"></span>
+            Platform pulse · live
+          </div>
+          <div class="cp-platform-pulse__cards">
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot"></span>Schools</div>
+              <div class="cp-pulse-card__value">168</div>
+              <div class="cp-pulse-card__label">Healthy</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ +3 this week</div>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot cp-pulse-card__dot--warn"></span>Incidents</div>
+              <div class="cp-pulse-card__value">12</div>
+              <div class="cp-pulse-card__label">Open</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ 4 vs 7d avg</div>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot cp-pulse-card__dot--info"></span>Countries</div>
+              <div class="cp-pulse-card__value">2 / 249</div>
+              <div class="cp-pulse-card__label">Live coverage</div>
+              <div class="cp-pulse-card__delta">→ no change</div>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot"></span>MRR</div>
+              <div class="cp-pulse-card__value">$42k</div>
+              <div class="cp-pulse-card__label">Recurring</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ +$420 wk</div>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot"></span>Webhooks</div>
+              <div class="cp-pulse-card__value">0</div>
+              <div class="cp-pulse-card__label">Drift</div>
+              <div class="cp-pulse-card__delta">— stable</div>
+            </article>
+            <article class="cp-pulse-card">
+              <div class="cp-pulse-card__head"><span class="cp-pulse-card__dot cp-pulse-card__dot--info"></span>Pipeline</div>
+              <div class="cp-pulse-card__value">3</div>
+              <div class="cp-pulse-card__label">Onboarding</div>
+              <div class="cp-pulse-card__delta cp-pulse-card__delta--up">▲ 1 new today</div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Tabs -->
+        <div class="cp-tabs">
+          <a href="#" class="cp-tabs__tab" aria-current="page">Tenant risk quick profile</a>
+          <a href="#" class="cp-tabs__tab">Platform Pulse · Health, incidents, open apps</a>
+        </div>
+
+        <!-- Hero command card with the previously-clipped "Operator confidence" -->
+        <div class="cp-command-card">
+          <div>
+            <div class="cp-command-card__eyebrow">PLATFORM OPERATORS</div>
+            <h2>Platform Command Center</h2>
+            <p>Operate platform health, tenant risk, implementation pipeline, revenue/payment readiness, marketplace governance, security/compliance, and proof ledger from one premium command center.</p>
+            <div class="cp-command-card__actions">
+              <button class="cp-btn-primary">Setup Studio</button>
+              <button class="cp-btn-secondary">Configuration center</button>
+            </div>
+          </div>
+          <div class="cp-confidence">
+            <div class="cp-confidence__eyebrow">★</div>
+            <h3>Operator confidence</h3>
+            <p>Top risks, external blockers, queued approvals, and deep configuration opens — all visible end-to-end here without the right side getting clipped.</p>
+          </div>
+        </div>
+
+        <!-- Status pills row -->
+        <div class="cp-status-pills">
+          <span class="cp-status-pills__pill cp-status-pills__pill--warning">Platform WARNING</span>
+          <span class="cp-status-pills__pill">Open incidents 12</span>
+          <span class="cp-status-pills__pill cp-status-pills__pill--ok">Countries live 2/249</span>
+          <span class="cp-status-pills__pill">Webhook drift 0</span>
+          <span class="cp-status-pills__pill cp-status-pills__pill--ok">Schools needing attention 2</span>
+        </div>
+
+        <!-- KPI row — 4th card now visible (was offscreen before) -->
+        <div class="cp-kpi-row">
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Readiness</div>
+            <div class="cp-kpi__value">2</div>
+            <div class="cp-kpi__hint">North Star</div>
+          </div>
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Risk</div>
+            <div class="cp-kpi__value" style="color:var(--warning);font-size:22px;">warning</div>
+            <div class="cp-kpi__hint">Platform health</div>
+          </div>
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Next step</div>
+            <div class="cp-kpi__value" style="font-size:22px;">Setup</div>
+            <div class="cp-kpi__hint">Primary action</div>
+          </div>
+          <div class="cp-kpi">
+            <div class="cp-kpi__label">Blockers</div>
+            <div class="cp-kpi__value">1</div>
+            <div class="cp-kpi__hint">External · medium</div>
+          </div>
+        </div>
+
+        <!-- Action shortcuts row -->
+        <div class="cp-status-pills">
+          <a class="cp-status-pills__pill" href="#">Queues</a>
+          <a class="cp-status-pills__pill" href="#">Billing</a>
+          <a class="cp-status-pills__pill" href="#">Migration</a>
+          <a class="cp-status-pills__pill" href="#">Marketplace</a>
+          <a class="cp-status-pills__pill" href="#">Incidents</a>
+          <a class="cp-status-pills__pill" href="#">Export PDF</a>
+        </div>
+
+        <!-- Risk drawer (3-card grid, all visible) -->
+        <div class="cp-risk-drawer">
+          <div class="cp-risk-drawer__head">
+            <h3>★ RISK DRAWER — Tenant risk quick profile</h3>
+            <button class="cp-detailed-board-btn">Open risk queue</button>
+          </div>
+          <div class="cp-risk-grid">
+            <div class="cp-risk-card">
+              <h4>★ Platform Pulse</h4>
+              <p>Health, incidents, open approvals, and support pressure are visible immediately.</p>
+              <span class="cp-pill-tag">warning</span>
+              <p><a class="cp-link" href="#">Open queues</a></p>
+            </div>
+            <div class="cp-risk-card">
+              <h4>External blockers <span class="cp-pill-tag">medium</span></h4>
+              <p>This item is blocked until the owner completes the listed next step.</p>
+              <p><strong>Owner:</strong> Platform operator<br>
+                 <strong>Boundary:</strong> PSP, settlement, and live certification remain external proof<br>
+                 <strong>Next step:</strong> Collect proof before claiming readiness</p>
+            </div>
+            <div class="cp-risk-card">
+              <h4>★ Proof Ledger</h4>
+              <p>Local proof and pending live parity stay separate so buyers see honest readiness.</p>
+              <span class="cp-pill-tag" style="background:#dcfce7;color:#166534;">Local only</span>
+              <p><a class="cp-link" href="#">View proof</a></p>
+            </div>
+          </div>
+        </div>
+
+        <button class="cp-detailed-board-btn">Open detailed operating board</button>
+
+        <!-- Spacer to demonstrate the scrollable canvas (scroll inside the canvas, not the page) -->
+        <div style="height: 600px; display:flex; align-items:center; justify-content:center; color:var(--text-tertiary); font-size:13px; border:1px dashed var(--hairline); border-radius:var(--radius-md); margin-top:8px;">
+          ↓ Tall spacer — scroll inside the canvas to reach the bottom. Header and footer stay pinned. ↓
+        </div>
+
+      </div>
+    </div>
+
+  <!-- v3.55.0 STATIC FOOTER: grid row 3, sibling of canvas, viewport-pinned.
+       CONFIGURABLE: cockpit.footer.{trust_pillars,quick_links,legal_links,tagline} (SiteSettings) -->
+  <footer class="rmc-app-shell__footer" role="contentinfo">
+    <div class="cp-footer-inner">
+      <div class="cp-footer-row">
+        <strong>RUNMYCAMPUS MANAGER</strong>
+        <span style="color:var(--text-tertiary);">Corporate gateway · operator sign-in</span>
+      </div>
+      <div class="cp-footer-row">
+        <span class="cp-footer-pill cp-footer-pill--live">● PLATFORM STATUS</span>
+        <span class="cp-footer-pill">⊕ Control plane</span>
+        <span class="cp-footer-pill">⌕ Find campus</span>
+        <span class="cp-footer-pill">↗ Public site</span>
+      </div>
+      <div class="cp-footer-grid">
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">LIVE</div>
+          <div>Uptime &amp; incidents</div>
+        </div>
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">READY</div>
+          <div>Procurement</div>
+        </div>
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">TRUST</div>
+          <div>Security center</div>
+        </div>
+        <div class="cp-footer-grid__item">
+          <div class="cp-footer-grid__label">PORTAL</div>
+          <div>Tenant login</div>
+        </div>
+      </div>
+      <div class="cp-footer-legal">
+        <span>© 2026 RunMyCampus</span>
+        <div>
+          <a href="#">Security</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</body>
+</html>

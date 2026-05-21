@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMC v3.55.0 shell — tenant portal preview</title>
+<style>
+/* ============================================================
+   Tenant Portal preview
+   ------------------------------------------------------------
+   Same .rmc-app-shell grid as the manager (header / sidebar /
+   canvas / footer). DIFFERENT content, DIFFERENT chrome:
+
+     - LIGHT chrome (not dark like manager)
+     - SCHOOL brand (not RunMyCampus operator brand)
+     - PARENT/STUDENT/TEACHER content (NOT operator data)
+     - NO live activity ticker (operator-only artifact)
+     - NO platform pulse cards (operator-only artifact)
+     - Tenant-scoped equivalents instead:
+         · Child selector in sidebar top (parent context)
+         · Today's snapshot cards in canvas (child-scoped)
+         · Recent activity card (THIS school only)
+
+   THE BLEED-PROVE: nothing here references operator state.
+   No "All tenants", no "MRR", no "12 incidents", no platform
+   metrics. Parents see ONLY their child's school's data.
+   ============================================================ */
+
+:root {
+  --surface-bg: #f5f5f7;
+  --surface-canvas: #fbfbfd;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #ebebef;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.14);
+  --text-primary: #1d1d1f;
+  --text-secondary: #424245;
+  --text-tertiary: #6e6e73;
+  --text-muted: #6c6c70;
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* This school's brand — Gilead Tech High example. Tenant SiteSettings overrides. */
+  --school-primary: #1e6f3a;       /* gilead green */
+  --school-accent: #c19a26;        /* gilead gold */
+  --school-primary-light: rgba(30, 111, 58, 0.12);
+  --school-accent-light: rgba(193, 154, 38, 0.14);
+
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; }
+html, body { height: 100%; overflow: hidden; }
+
+/* SAME shell pattern as manager — proves the layout primitive is portable. */
+.rmc-app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: clamp(260px, 20vw, 320px) 1fr;
+  height: 100dvh;
+  width: 100%;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+.rmc-app-shell__header {
+  grid-row: 1; grid-column: 1 / -1;
+  background: var(--surface-elevated);
+  border-bottom: 1px solid var(--hairline);
+  z-index: 40; min-width: 0;
+}
+
+.rmc-app-shell__sidebar {
+  grid-row: 2; grid-column: 1;
+  background: var(--surface-canvas);
+  border-right: 1px solid var(--hairline);
+  overflow-y: auto; overflow-x: hidden;
+  min-height: 0; min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+.rmc-app-shell__sidebar:hover { scrollbar-color: var(--hairline-strong) transparent; }
+.rmc-app-shell__sidebar::-webkit-scrollbar { width: 8px; }
+.rmc-app-shell__sidebar::-webkit-scrollbar-track { background: transparent; }
+.rmc-app-shell__sidebar::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-pill); transition: background var(--motion-normal); }
+.rmc-app-shell__sidebar:hover::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
+
+.rmc-app-shell__canvas {
+  grid-row: 2; grid-column: 2;
+  min-width: 0; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column;
+  background: var(--surface-bg);
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover { scrollbar-color: var(--hairline-strong) transparent; }
+.rmc-app-shell__canvas::-webkit-scrollbar { width: 8px; }
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-pill); transition: background var(--motion-normal); }
+.rmc-app-shell__canvas:hover::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
+
+.rmc-app-shell__canvas-body { flex: 1 0 auto; min-width: 0; display: flex; flex-direction: column; }
+
+.rmc-app-shell__footer {
+  grid-row: 3; grid-column: 1 / -1;
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  z-index: 35;
+}
+
+/* ============================================================
+   Tenant Portal chrome — LIGHT theme
+   ============================================================ */
+
+/* Header */
+.tp-header { display: flex; flex-direction: column; }
+.tp-header__row {
+  display: grid;
+  grid-template-columns: minmax(220px, auto) 1fr minmax(220px, auto);
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  min-height: 56px;
+}
+
+.tp-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+  justify-self: start;
+}
+.tp-brand__mark {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
+  color: white;
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 14px;
+}
+.tp-brand__text { line-height: 1.15; }
+.tp-brand__name { color: var(--text-primary); font-weight: 700; font-size: 14px; letter-spacing: 0.02em; }
+.tp-brand__pill {
+  margin-left: 6px;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.tp-brand__tagline {
+  display: block;
+  margin-top: 1px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.tp-search {
+  justify-self: center;
+  width: 100%; max-width: 480px;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+.tp-search__kbd {
+  margin-left: auto;
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: var(--text-muted);
+}
+
+.tp-actions {
+  justify-self: end;
+  display: flex; align-items: center; gap: 10px;
+}
+.tp-bell {
+  position: relative;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.tp-bell__badge {
+  position: absolute; top: -3px; right: -3px;
+  background: var(--school-primary);
+  color: white;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  padding: 1px 5px;
+  border: 2px solid var(--surface-elevated);
+}
+.tp-user {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 10px 4px 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  cursor: pointer;
+}
+.tp-user__avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
+  color: white;
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 12px;
+}
+.tp-user__meta { line-height: 1.15; font-size: 12px; }
+.tp-user__meta strong { color: var(--text-primary); font-weight: 600; }
+.tp-user__meta span { display: block; color: var(--text-tertiary); font-size: 10px; }
+
+/* Primary nav — tenant scope */
+.tp-primary-nav {
+  display: flex; gap: 6px;
+  padding: 0 24px 8px;
+  align-items: center;
+  justify-content: center;
+}
+.tp-primary-nav__item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.tp-primary-nav__item:hover { background: var(--surface-canvas); color: var(--text-primary); }
+.tp-primary-nav__item[aria-current="page"] {
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  font-weight: 600;
+}
+
+/* Sidebar (light) */
+.tp-sidebar-inner {
+  padding: 16px 12px;
+  display: flex; flex-direction: column;
+  gap: 4px;
+}
+
+/* Child selector card — TENANT EQUIVALENT of the manager's workspace context */
+.tp-child-context {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
+}
+.tp-child-context__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+}
+.tp-child-context__active {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: var(--school-primary-light);
+}
+.tp-child-context__avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
+  color: white;
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 14px;
+}
+.tp-child-context__who { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; flex: 1; }
+.tp-child-context__who strong { color: var(--text-primary); font-size: 13px; font-weight: 600; }
+.tp-child-context__who span { color: var(--text-secondary); font-size: 11px; }
+.tp-child-context__siblings {
+  display: flex; gap: 6px; align-items: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.tp-child-context__sibling {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  font-weight: 600; font-size: 11px;
+  cursor: pointer;
+}
+.tp-child-context__sibling:hover { border-color: var(--school-primary); color: var(--school-primary); }
+.tp-child-context__sibling-plus {
+  border: 1px dashed var(--hairline);
+  color: var(--text-tertiary);
+}
+
+.tp-sidebar__group {
+  margin: 0; padding: 0;
+}
+.tp-sidebar__group > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  padding: 12px 12px 4px;
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 700;
+}
+.tp-sidebar__group > summary::-webkit-details-marker { display: none; }
+.tp-sidebar__group > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 10px;
+  transition: transform var(--motion-fast);
+  color: var(--text-tertiary);
+}
+.tp-sidebar__group[open] > summary::before { transform: rotate(90deg); }
+
+.tp-sidebar__item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 13px;
+}
+.tp-sidebar__item:hover { background: var(--surface-canvas); }
+.tp-sidebar__item[aria-current="page"] {
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  font-weight: 600;
+}
+
+/* Canvas content */
+.tp-canvas-body { padding: 24px 28px 32px; display: flex; flex-direction: column; gap: 18px; }
+
+.tp-breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.tp-breadcrumb a { color: var(--text-tertiary); text-decoration: none; }
+.tp-breadcrumb__separator { color: var(--text-muted); opacity: 0.45; font-weight: 400; }
+.tp-breadcrumb__current { color: var(--text-secondary); }
+
+.tp-page-h1-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.tp-page-h1 { margin: 0; font-size: 24px; color: var(--text-primary); font-weight: 700; }
+.tp-greeting { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+.tp-actions-row { display: flex; gap: 10px; }
+.tp-btn-primary, .tp-btn-secondary {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.tp-btn-primary { background: var(--school-primary); color: white; }
+.tp-btn-secondary { background: var(--surface-elevated); color: var(--text-primary); border-color: var(--hairline); }
+
+/* Today snapshot — TENANT EQUIVALENT of platform pulse, but child-scoped */
+.tp-snapshot {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.tp-snapshot__label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); font-weight: 700;
+}
+.tp-snapshot__cards {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+}
+@media (max-width: 1200px) { .tp-snapshot__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tp-snap-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.tp-snap-card__head { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); }
+.tp-snap-card__value { font-size: 24px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-top: 2px; }
+.tp-snap-card__label { font-size: 11px; color: var(--text-secondary); }
+.tp-snap-card__delta { font-size: 10px; color: var(--text-tertiary); margin-top: 4px; }
+.tp-snap-card__delta--success { color: var(--success); }
+.tp-snap-card__delta--warn { color: var(--warning); }
+
+/* Hero "welcome" card */
+.tp-welcome {
+  background: linear-gradient(135deg, var(--school-primary), color-mix(in oklab, var(--school-primary) 60%, var(--school-accent)));
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  display: grid;
+  grid-template-columns: 1fr clamp(220px, 30%, 320px);
+  gap: 20px;
+  align-items: center;
+}
+.tp-welcome__eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.tp-welcome h2 { margin: 0 0 8px; font-size: 22px; }
+.tp-welcome p { margin: 0; opacity: 0.9; line-height: 1.5; font-size: 14px; }
+.tp-welcome__actions { display: flex; flex-direction: column; gap: 8px; }
+.tp-welcome__action {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  text-decoration: none;
+  text-align: left;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.tp-welcome__action:hover { background: rgba(255, 255, 255, 0.22); }
+
+/* Recent activity card */
+.tp-activity {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+}
+.tp-activity__head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.tp-activity__head h3 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+.tp-activity__link { color: var(--school-primary); text-decoration: none; font-size: 12px; font-weight: 600; }
+.tp-activity__list { display: flex; flex-direction: column; gap: 12px; }
+.tp-activity__item { display: flex; gap: 10px; align-items: flex-start; }
+.tp-activity__icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+.tp-activity__body { flex: 1; min-width: 0; }
+.tp-activity__text { color: var(--text-primary); font-size: 13px; line-height: 1.4; }
+.tp-activity__time { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+
+/* Footer — school-scoped */
+.tp-footer-inner { padding: 18px 28px; display: flex; flex-direction: column; gap: 12px; font-size: 12px; color: var(--text-secondary); }
+.tp-footer-brand { display: flex; gap: 12px; align-items: center; }
+.tp-footer-brand strong { color: var(--text-primary); }
+.tp-footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
+.tp-footer-links a { color: var(--text-secondary); text-decoration: none; }
+.tp-footer-legal { display: flex; gap: 14px; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--hairline); font-size: 11px; color: var(--text-muted); }
+.tp-footer-legal a { color: var(--text-muted); margin-left: 12px; text-decoration: none; }
+
+/* Bleed-prove callout — visible reminder of what's NOT here */
+.bleed-callout {
+  position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+  background: #166534; color: white; padding: 8px 16px;
+  border-radius: var(--radius-pill); font-size: 12px;
+  box-shadow: var(--elev-2); z-index: 9999;
+  pointer-events: none; font-weight: 600;
+}
+.bleed-callout strong { color: #bbf7d0; }
+</style>
+</head>
+<body>
+
+<div class="bleed-callout">
+  TENANT PORTAL preview · <strong>same shell, school-scoped chrome</strong> · NO operator content leaks here
+</div>
+
+<div class="rmc-app-shell">
+
+  <!-- ==========================================================
+       HEADER — light chrome, school brand, parent context
+       ========================================================== -->
+  <header class="rmc-app-shell__header">
+    <div class="tp-header">
+
+      <div class="tp-header__row">
+        <a href="#" class="tp-brand">
+          <span class="tp-brand__mark">G</span>
+          <span class="tp-brand__text">
+            <span class="tp-brand__name">GILEAD TECH HIGH<span class="tp-brand__pill">Parent</span></span>
+            <span class="tp-brand__tagline">Family portal · 2026/27 school year</span>
+          </span>
+        </a>
+
+        <div class="tp-search">
+          <span>🔍</span>
+          <span>Search announcements, grades, fees…</span>
+          <span class="tp-search__kbd">Ctrl K</span>
+        </div>
+
+        <div class="tp-actions">
+          <div class="tp-bell">🔔<span class="tp-bell__badge">3</span></div>
+          <div class="tp-user">
+            <div class="tp-user__avatar">MA</div>
+            <div class="tp-user__meta">
+              <strong>Marie Adebayo</strong>
+              <span>Parent · 2 children</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTE: NO activity ticker here. That's operator-only artifact.
+           Tenant header stays clean. -->
+
+      <nav class="tp-primary-nav" aria-label="Primary">
+        <a href="#" class="tp-primary-nav__item" aria-current="page">🏠 Home</a>
+        <a href="#" class="tp-primary-nav__item">📚 Academics</a>
+        <a href="#" class="tp-primary-nav__item">💳 Finance</a>
+        <a href="#" class="tp-primary-nav__item">💬 Communications</a>
+        <a href="#" class="tp-primary-nav__item">📅 Calendar</a>
+        <a href="#" class="tp-primary-nav__item">⚙ Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+       SIDEBAR — child selector + tenant nav (light surface)
+       ========================================================== -->
+  <aside class="rmc-app-shell__sidebar">
+    <div class="tp-sidebar-inner">
+
+      <!-- Child selector — TENANT equivalent of manager workspace context -->
+      <div class="tp-child-context">
+        <div class="tp-child-context__label">Viewing child</div>
+        <div class="tp-child-context__active">
+          <div class="tp-child-context__avatar">SA</div>
+          <div class="tp-child-context__who">
+            <strong>Samuel Adebayo</strong>
+            <span>Grade 10 · Section B</span>
+          </div>
+        </div>
+        <div class="tp-child-context__siblings">
+          Switch:
+          <button type="button" class="tp-child-context__sibling" title="Esther Adebayo · Grade 7">E</button>
+          <button type="button" class="tp-child-context__sibling tp-child-context__sibling-plus" title="Add child">+</button>
+        </div>
+      </div>
+
+      <details class="tp-sidebar__group" open>
+        <summary>Quick access</summary>
+        <a href="#" class="tp-sidebar__item" aria-current="page">🏠 Home dashboard</a>
+        <a href="#" class="tp-sidebar__item">📊 Latest report card</a>
+        <a href="#" class="tp-sidebar__item">📅 This week's schedule</a>
+      </details>
+
+      <details class="tp-sidebar__group" open>
+        <summary>Academics</summary>
+        <a href="#" class="tp-sidebar__item">📝 Assignments &amp; homework</a>
+        <a href="#" class="tp-sidebar__item">📈 Grades &amp; progress</a>
+        <a href="#" class="tp-sidebar__item">🎓 Teachers</a>
+        <a href="#" class="tp-sidebar__item">📚 Subjects</a>
+      </details>
+
+      <details class="tp-sidebar__group" open>
+        <summary>Finance</summary>
+        <a href="#" class="tp-sidebar__item">💳 Pay fees</a>
+        <a href="#" class="tp-sidebar__item">📃 Invoices &amp; receipts</a>
+        <a href="#" class="tp-sidebar__item">🍱 Meal plan balance</a>
+        <a href="#" class="tp-sidebar__item">🚌 Transport plan</a>
+      </details>
+
+      <details class="tp-sidebar__group">
+        <summary>Communications</summary>
+        <a href="#" class="tp-sidebar__item">💬 Messages</a>
+        <a href="#" class="tp-sidebar__item">📢 Announcements</a>
+        <a href="#" class="tp-sidebar__item">📅 Events &amp; calendar</a>
+      </details>
+
+      <details class="tp-sidebar__group">
+        <summary>People</summary>
+        <a href="#" class="tp-sidebar__item">🎓 Teachers directory</a>
+        <a href="#" class="tp-sidebar__item">🏫 School administration</a>
+      </details>
+
+      <details class="tp-sidebar__group">
+        <summary>My account</summary>
+        <a href="#" class="tp-sidebar__item">👤 Profile</a>
+        <a href="#" class="tp-sidebar__item">🔔 Notification preferences</a>
+        <a href="#" class="tp-sidebar__item">🔒 Privacy &amp; security</a>
+      </details>
+
+      <!-- NOTE: NO "All tenants", NO "RBAC & permissions", NO "Marketplace catalog",
+           NO platform-level admin tools. Tenant sidebar is school-scoped only. -->
+    </div>
+  </aside>
+
+  <!-- ==========================================================
+       CANVAS — parent dashboard content (THIS school only)
+       ========================================================== -->
+  <div class="rmc-app-shell__canvas">
+    <div class="rmc-app-shell__canvas-body">
+      <div class="tp-canvas-body">
+
+        <nav class="tp-breadcrumb" aria-label="Breadcrumb">
+          <a href="#">Gilead Tech High</a>
+          <span class="tp-breadcrumb__separator">›</span>
+          <a href="#">Family portal</a>
+          <span class="tp-breadcrumb__separator">›</span>
+          <span class="tp-breadcrumb__current">Home</span>
+        </nav>
+
+        <div class="tp-page-h1-row">
+          <div>
+            <h1 class="tp-page-h1">Welcome back, Marie</h1>
+            <p class="tp-greeting">Here's what's happening with <strong>Samuel</strong> today.</p>
+          </div>
+          <div class="tp-actions-row">
+            <button class="tp-btn-secondary">📄 Download report</button>
+            <button class="tp-btn-primary">💳 Pay outstanding fees</button>
+          </div>
+        </div>
+
+        <!-- Today snapshot — TENANT equivalent of platform pulse, but child-scoped -->
+        <section class="tp-snapshot">
+          <div class="tp-snapshot__label">Today · Samuel</div>
+          <div class="tp-snapshot__cards">
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head">Attendance</div>
+              <div class="tp-snap-card__value">Present</div>
+              <div class="tp-snap-card__label">Checked in 7:48 AM</div>
+              <div class="tp-snap-card__delta tp-snap-card__delta--success">▲ 98% this term</div>
+            </article>
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head">Assignments</div>
+              <div class="tp-snap-card__value">2 due</div>
+              <div class="tp-snap-card__label">This week</div>
+              <div class="tp-snap-card__delta tp-snap-card__delta--warn">⚠ Math due Thursday</div>
+            </article>
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head">Meal plan</div>
+              <div class="tp-snap-card__value">$24.50</div>
+              <div class="tp-snap-card__label">Remaining balance</div>
+              <div class="tp-snap-card__delta">~ 6 lunches left</div>
+            </article>
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head">Fees</div>
+              <div class="tp-snap-card__value">$420</div>
+              <div class="tp-snap-card__label">Outstanding</div>
+              <div class="tp-snap-card__delta tp-snap-card__delta--warn">Due 2026-06-15</div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Hero welcome card — school's color story -->
+        <section class="tp-welcome">
+          <div>
+            <div class="tp-welcome__eyebrow">School news</div>
+            <h2>Parent-teacher conferences open for booking</h2>
+            <p>Conference week begins Monday, May 26. Each teacher has 15-minute slots available. Bookings close Friday at midnight.</p>
+          </div>
+          <div class="tp-welcome__actions">
+            <a href="#" class="tp-welcome__action">📅 Book a slot <span>→</span></a>
+            <a href="#" class="tp-welcome__action">📄 See full agenda <span>→</span></a>
+          </div>
+        </section>
+
+        <!-- Recent activity — SCHOOL-SCOPED only (NOT platform-wide events) -->
+        <section class="tp-activity">
+          <div class="tp-activity__head">
+            <h3>Recent activity · this week</h3>
+            <a href="#" class="tp-activity__link">View all →</a>
+          </div>
+          <div class="tp-activity__list">
+            <div class="tp-activity__item">
+              <div class="tp-activity__icon">📝</div>
+              <div class="tp-activity__body">
+                <div class="tp-activity__text">Samuel received <strong>B+</strong> on the Algebra II midterm (Mrs. Okonkwo)</div>
+                <div class="tp-activity__time">Yesterday · 2:14 PM</div>
+              </div>
+            </div>
+            <div class="tp-activity__item">
+              <div class="tp-activity__icon">💬</div>
+              <div class="tp-activity__body">
+                <div class="tp-activity__text"><strong>Mr. Diallo</strong> sent a message about the upcoming science fair</div>
+                <div class="tp-activity__time">Yesterday · 9:42 AM</div>
+              </div>
+            </div>
+            <div class="tp-activity__item">
+              <div class="tp-activity__icon">📅</div>
+              <div class="tp-activity__body">
+                <div class="tp-activity__text">School calendar updated: <strong>Term break starts June 28</strong></div>
+                <div class="tp-activity__time">2 days ago</div>
+              </div>
+            </div>
+            <div class="tp-activity__item">
+              <div class="tp-activity__icon">🎓</div>
+              <div class="tp-activity__body">
+                <div class="tp-activity__text">Esther moved up to <strong>Reading Group A</strong> (Grade 7)</div>
+                <div class="tp-activity__time">3 days ago</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- NOTE: NO platform metrics. NO "schools healthy", NO "MRR", NO operator KPIs.
+             Parents NEVER see operator-scope data. The cockpit_context processor
+             returns {} for tenant subdomains so its partials short-circuit. -->
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================
+       FOOTER — school-scoped (NOT RunMyCampus operator footer)
+       ========================================================== -->
+  <footer class="rmc-app-shell__footer">
+    <div class="tp-footer-inner">
+      <div class="tp-footer-brand">
+        <strong>Gilead Tech High</strong>
+        <span style="color:var(--text-tertiary);">Family portal · est. 2018</span>
+      </div>
+      <div class="tp-footer-links">
+        <a href="#">📞 Contact school office</a>
+        <a href="#">🏫 School website</a>
+        <a href="#">🆘 Help &amp; support</a>
+        <a href="#">📅 School calendar</a>
+      </div>
+      <div class="tp-footer-legal">
+        <span>© 2026 Gilead Tech High · Powered by RunMyCampus</span>
+        <div>
+          <a href="#">Privacy policy</a>
+          <a href="#">Terms of use</a>
+          <a href="#">Accessibility</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</body>
+</html>

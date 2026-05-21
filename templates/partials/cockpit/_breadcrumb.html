@@ -1,0 +1,28 @@
+{% load i18n %}
+{% comment %} v3.55.0 (2026-05-21): cockpit breadcrumb partial.
+
+   Renders the canvas-top breadcrumb. Sourced from the page-level
+   `breadcrumb_trail` context var. Each trail entry: {label, url, is_current}.
+
+   CONFIGURABLE via cockpit.breadcrumb (SiteSettings → context processor):
+     .show_root_link   bool   — link "Platform" home (default: True)
+     .separator        string — separator glyph (default: "›")
+
+   If the trail is empty/missing, the partial doesn't render. {% endcomment %}
+
+{% if breadcrumb_trail %}
+<nav class="rmc-cockpit-breadcrumb" aria-label="{% trans 'Breadcrumb' %}">
+  {% for crumb in breadcrumb_trail %}
+    {% if crumb.is_current %}
+      <span class="rmc-cockpit-breadcrumb__current">{{ crumb.label }}</span>
+    {% elif crumb.url %}
+      <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+    {% else %}
+      <span>{{ crumb.label }}</span>
+    {% endif %}
+    {% if not forloop.last %}
+      <span class="rmc-cockpit-breadcrumb__separator" aria-hidden="true">{{ cockpit.breadcrumb.separator|default:"›" }}</span>
+    {% endif %}
+  {% endfor %}
+</nav>
+{% endif %}

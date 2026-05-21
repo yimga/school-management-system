@@ -1,0 +1,54 @@
+{% load i18n %}
+{% comment %}
+Parent-teacher inline thread — v3.57.0 (2026-05-21)
+
+Last 5 messages + reply box. Visible only when cockpit.parent_teacher_thread
+is enabled AND at least one message exists OR a reply URL is configured.
+
+Configurability:
+  cockpit.parent_teacher_thread:
+    enabled, title, teacher_name,
+    messages: [{author_initials, author_label, body, sent_iso, mine}],
+    reply: {url, placeholder, cta}
+{% endcomment %}
+{% if cockpit.parent_teacher_thread.enabled %}
+{% with th=cockpit.parent_teacher_thread %}
+<section class="tp-pt-thread" aria-label="{{ th.title }}" data-rmc-tp-pt-thread>
+  <header class="tp-pt-thread__head">
+    <h3 class="tp-pt-thread__title">{{ th.title|default:_("Teacher thread") }}</h3>
+    {% if th.teacher_name %}<span class="tp-pt-thread__teacher">{{ th.teacher_name }}</span>{% endif %}
+  </header>
+  {% if th.messages %}
+  <ol class="tp-pt-thread__list" role="list">
+    {% for m in th.messages %}
+    <li class="tp-pt-thread__msg{% if m.mine %} tp-pt-thread__msg--mine{% endif %}">
+      <span class="tp-pt-thread__avatar" aria-hidden="true">{{ m.author_initials|default:"··" }}</span>
+      <div class="tp-pt-thread__body">
+        <div class="tp-pt-thread__meta">
+          <strong>{{ m.author_label }}</strong>
+          {% if m.sent_iso %}<time datetime="{{ m.sent_iso }}">{{ m.sent_iso }}</time>{% endif %}
+        </div>
+        <p>{{ m.body }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <p class="tp-pt-thread__empty">{% trans "No messages yet." %}</p>
+  {% endif %}
+  {% if th.reply.url %}
+  <form method="post" action="{{ th.reply.url }}" class="tp-pt-thread__reply">
+    {% csrf_token %}
+    <label class="visually-hidden" for="tp-pt-thread-reply">{{ th.reply.placeholder|default:_("Reply") }}</label>
+    <input id="tp-pt-thread-reply"
+           type="text"
+           name="body"
+           class="tp-pt-thread__input"
+           placeholder="{{ th.reply.placeholder|default:_('Reply…') }}"
+           autocomplete="off">
+    <button type="submit" class="tp-pt-thread__cta">{{ th.reply.cta|default:_("Send") }}</button>
+  </form>
+  {% endif %}
+</section>
+{% endwith %}
+{% endif %}

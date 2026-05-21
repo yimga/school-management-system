@@ -1,0 +1,919 @@
+/* ============================================================
+   rmc-admin-mirror.css — Django admin mirror of cockpit grammar
+   ------------------------------------------------------------
+   v3.57.0 / 2026-05-21 — Introduced (Agent A2).
+
+   Makes Django admin (`/admin/**`) visually IDENTICAL to `/super/**`.
+   Maps every Django admin selector ( `.module`, `.results`, `.object-tools`,
+   `.submit-row`, `.form-row`, `.fieldset`, `#changelist`, `.paginator`,
+   `.filtered`, etc.) onto the cockpit grammar shipped at v3.55.0+ in
+   rmc-cp-200x.css (`.lx-*` luxury elements) + design-tokens.css.
+
+   Operator should feel zero "different app" jolt switching between
+   `/admin/` and `/super/`.
+
+   TOKEN POLICY
+   - Reuses existing semantic tokens (--surface-*, --text-*, --hairline,
+     --elev-*, --radius-*, --motion-*).
+   - Every color literal carries an `off-token-allow:` marker with a
+     categorical reason. Honors `scan_off_token_colors.py` zero-tolerance.
+   - Every project-prefixed class defined here is consumed by the
+     `templates/admin/**` overrides in the same wave.
+   ============================================================ */
+
+
+/* ============================================================
+   Section 0 — body chrome + content surface
+   Mirrors /super/ control_plane_base background + min-height.
+   ============================================================ */
+body.change-list,
+body.change-form,
+body.delete-confirmation,
+body.dashboard {
+  background: var(--surface-bg, var(--surface-canvas));
+}
+
+#content-main,
+#content {
+  background: transparent;
+}
+
+/* The Django admin `.module` is the structural sibling of /super/'s
+   `.rmc-card` — re-paint it to match cockpit chrome. */
+.module {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-1);
+  padding: 0;
+  margin-bottom: var(--space-4, 1rem);
+  overflow: hidden;
+}
+
+.module h2,
+.module caption {
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--hairline);
+  margin: 0;
+}
+
+
+/* ============================================================
+   Section 1 — change_list table (`.results`, `#result_list`)
+   Mirrors `.lx-audit__table` grammar from rmc-cp-200x.css.
+   ============================================================ */
+.results {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  overflow: hidden;
+  box-shadow: var(--elev-1);
+}
+
+#result_list {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: transparent;
+}
+
+#result_list thead th {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--surface-canvas);
+  border-bottom: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+
+#result_list thead th a,
+#result_list thead th a:link,
+#result_list thead th a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+#result_list thead th a:hover {
+  color: var(--text-primary);
+}
+
+#result_list tbody td,
+#result_list tbody th {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  vertical-align: middle;
+  background: transparent;
+}
+
+#result_list tbody tr:last-child td,
+#result_list tbody tr:last-child th {
+  border-bottom: 0;
+}
+
+#result_list tbody tr {
+  transition: background var(--motion-fast, 150ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+#result_list tbody tr:hover {
+  background: var(--surface-canvas);
+}
+
+/* Severity stripe — applied via `data-rmc-row-severity` attribute on
+   <tr>. Mirrors `.lx-audit__sev` from rmc-cp-200x.css. */
+#result_list tbody tr[data-rmc-row-severity] {
+  position: relative;
+}
+
+#result_list tbody tr[data-rmc-row-severity]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+#result_list tbody tr[data-rmc-row-severity="info"]::before  { background: #60a5fa; /* off-token-allow: dark-chrome-audit-stripe-info */ }
+#result_list tbody tr[data-rmc-row-severity="ok"]::before    { background: var(--success, #22c55e); /* off-token-allow: var-fallback-when-token-missing */ }
+#result_list tbody tr[data-rmc-row-severity="warn"]::before  { background: var(--warning, #f59e0b); /* off-token-allow: var-fallback-when-token-missing */ }
+#result_list tbody tr[data-rmc-row-severity="danger"]::before { background: var(--danger, #ef4444); /* off-token-allow: var-fallback-when-token-missing */ }
+
+/* Active-row default severity (used by tests without explicit attribute). */
+#result_list tbody tr.row1 td:first-child,
+#result_list tbody tr.row2 td:first-child {
+  position: relative;
+}
+
+/* Time / actor / event columns (mirrors `.lx-audit__time/actor/event`). */
+#result_list .field-created_at,
+#result_list .field-updated_at,
+#result_list .field-timestamp,
+#result_list .field-when {
+  color: var(--text-tertiary);
+  font-family: var(--mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+#result_list .field-username,
+#result_list .field-actor,
+#result_list .field-user,
+#result_list .field-owner {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+#result_list .field-name,
+#result_list .field-title,
+#result_list .field-label {
+  color: var(--text-primary);
+}
+
+
+/* ============================================================
+   Section 2 — Cockpit pagination (`.paginator`, `.rmc-pagination`)
+   Wraps Django's `.paginator` in cockpit pagination grammar.
+   ============================================================ */
+.paginator {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+}
+
+.paginator a,
+.paginator a:link,
+.paginator a:visited {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.paginator a:hover,
+.paginator a:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+.paginator .this-page,
+.paginator .end {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--text-primary);
+  color: var(--surface-elevated);
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   Section 3 — `.object-tools` (changelist "Add" + "History" chips)
+   Mirrors cockpit chip grammar.
+   ============================================================ */
+.object-tools {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.object-tools li {
+  list-style: none;
+}
+
+.object-tools a,
+.object-tools .addlink,
+.object-tools .historylink,
+.object-tools .viewsitelink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: background var(--motion-fast, 150ms cubic-bezier(0.4, 0, 0.2, 1)),
+              border-color var(--motion-fast, 150ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.object-tools a:hover,
+.object-tools .addlink:hover,
+.object-tools .historylink:hover {
+  background: var(--surface-canvas);
+  border-color: var(--text-tertiary);
+}
+
+.object-tools .addlink {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); /* off-token-allow: cockpit-primary-action-chip */
+  border-color: transparent;
+  color: white; /* off-token-allow: cockpit-primary-action-chip */
+}
+
+
+/* ============================================================
+   Section 4 — change_form (`.form-row`, `fieldset.module`, `.submit-row`)
+   Mirrors cockpit form grammar (`.rmc-form-system`).
+   ============================================================ */
+.rmc-form-system {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+fieldset.module,
+.rmc-form-system fieldset {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-1);
+  padding: 0;
+  overflow: hidden;
+}
+
+fieldset.module h2,
+fieldset.module > .fieldset-heading {
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font-family: var(--serif, var(--font-family-sans));
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--hairline);
+  margin: 0;
+}
+
+.form-row {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-row:last-child {
+  border-bottom: 0;
+}
+
+.form-row label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.form-row .help,
+.form-row .helptext {
+  font-family: var(--serif, var(--font-family-sans));
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row input[type="url"],
+.form-row input[type="password"],
+.form-row input[type="number"],
+.form-row input[type="search"],
+.form-row textarea,
+.form-row select {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.form-row input:focus,
+.form-row textarea:focus,
+.form-row select:focus {
+  outline: none;
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18); /* off-token-allow: cockpit-focus-ring */
+}
+
+/* Sticky action bar */
+.submit-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  background: var(--surface-elevated);
+  border-top: 1px solid var(--hairline);
+  border-radius: 0 0 var(--radius-lg, 16px) var(--radius-lg, 16px);
+  padding: 12px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06); /* off-token-allow: cockpit-sticky-shadow */
+}
+
+.submit-row input,
+.submit-row .button,
+.submit-row a.button {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--motion-fast, 150ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.submit-row input.default,
+.submit-row input[name="_save"] {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); /* off-token-allow: cockpit-primary-action-chip */
+  border-color: transparent;
+  color: white; /* off-token-allow: cockpit-primary-action-chip */
+}
+
+.submit-row .deletelink,
+.submit-row a.deletelink {
+  color: #991b1b; /* off-token-allow: cockpit-destructive-action-ink */
+  background: var(--surface-elevated);
+}
+
+
+/* ============================================================
+   Section 5 — index.html app catalog (cp-stat tiles + lx-trust)
+   ============================================================ */
+.cp-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-1);
+  min-width: 0;
+}
+
+.cp-stat__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+}
+
+.cp-stat__value {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-top: 6px;
+  line-height: 1;
+}
+
+.cp-stat__caption {
+  font-family: var(--serif, var(--font-family-sans));
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+}
+
+.cp-stat--up    .cp-stat__value { color: #16a34a; /* off-token-allow: cockpit-stat-trend-up */ }
+.cp-stat--down  .cp-stat__value { color: #dc2626; /* off-token-allow: cockpit-stat-trend-down */ }
+
+
+/* Admin mini-cockpit landing grid */
+.rmc-admin-mirror-cockpit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.rmc-admin-mirror-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.rmc-admin-mirror-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+
+/* ============================================================
+   Section 6 — Filter sidebar as `.cp-segmented` chip rail
+   ============================================================ */
+#changelist-filter {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  padding: 14px 16px;
+  box-shadow: var(--elev-1);
+  font-size: 12px;
+}
+
+#changelist-filter h2 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  margin: 0 0 10px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+#changelist-filter h3,
+#changelist-filter details > summary {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  font-weight: 700;
+  margin: 12px 0 6px;
+  cursor: pointer;
+  list-style: none;
+}
+
+#changelist-filter details > summary::-webkit-details-marker {
+  display: none;
+}
+
+#changelist-filter ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+#changelist-filter ul li {
+  list-style: none;
+}
+
+#changelist-filter ul li a {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#changelist-filter ul li a:hover {
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+#changelist-filter ul li.selected a {
+  background: var(--text-primary);
+  color: var(--surface-elevated);
+  border-color: transparent;
+}
+
+/* .cp-segmented standalone grammar — same chip pattern. */
+.cp-segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+}
+
+.cp-segmented__chip {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill, 999px);
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.cp-segmented__chip[aria-current="page"],
+.cp-segmented__chip.is-active {
+  background: var(--text-primary);
+  color: var(--surface-elevated);
+}
+
+
+/* ============================================================
+   Section 7 — Cmd+K style search input
+   Mirrors `.rmc-cmdk` + universal search grammar.
+   ============================================================ */
+#toolbar form#changelist-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#toolbar form#changelist-search > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+#toolbar #searchbar {
+  flex: 1;
+  min-width: 240px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+#toolbar #searchbar::placeholder {
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-family: var(--serif, var(--font-family-sans));
+}
+
+#toolbar #searchbar:focus {
+  outline: none;
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18); /* off-token-allow: cockpit-focus-ring */
+}
+
+#toolbar form#changelist-search input[type="submit"] {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill, 999px);
+  border: 0;
+  background: var(--text-primary);
+  color: var(--surface-elevated);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#toolbar form#changelist-search .small.quiet {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: var(--mono);
+}
+
+
+/* ============================================================
+   Section 8 — delete_confirmation danger card
+   Mirrors `.lx-card` + danger tint.
+   ============================================================ */
+.rmc-admin-mirror-danger-card {
+  background: var(--surface-elevated);
+  border: 1px solid #fecaca; /* off-token-allow: cockpit-danger-card-border */
+  border-left: 4px solid var(--danger, #ef4444); /* off-token-allow: var-fallback-when-token-missing */
+  border-radius: var(--radius-lg, 16px);
+  padding: 18px 20px;
+  box-shadow: var(--elev-1);
+  margin-bottom: 16px;
+}
+
+.rmc-admin-mirror-danger-card h2 {
+  font-family: var(--serif, var(--font-family-sans));
+  font-style: italic;
+  font-weight: 500;
+  font-size: 18px;
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+
+.rmc-admin-mirror-danger-card__eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: #991b1b; /* off-token-allow: cockpit-danger-card-eyebrow */
+  background: #fee2e2; /* off-token-allow: cockpit-danger-card-eyebrow */
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.rmc-admin-mirror-danger-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.rmc-admin-mirror-danger-card ul#deleted-objects {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  padding: 10px 14px 10px 28px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-height: 320px;
+  overflow: auto;
+}
+
+
+/* ============================================================
+   Section 9 — login + password_change civic forms
+   Mirrors `manager-login-civic` chrome.
+   ============================================================ */
+.rmc-admin-mirror-civic-form {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 28px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-2);
+}
+
+.rmc-admin-mirror-civic-form__brand {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.rmc-admin-mirror-civic-form__brand strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.rmc-admin-mirror-civic-form__brand small {
+  display: block;
+  font-family: var(--serif, var(--font-family-sans));
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.rmc-admin-mirror-civic-form h1,
+.rmc-admin-mirror-civic-form h2 {
+  font-family: var(--serif, var(--font-family-sans));
+  font-weight: 500;
+  font-size: 22px;
+  margin: 0 0 16px;
+  color: var(--text-primary);
+}
+
+
+/* ============================================================
+   Section 10 — `.filtered` 2-column layout + breadcrumbs
+   ============================================================ */
+.filtered {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 24vw, 300px);
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .filtered {
+    grid-template-columns: 1fr;
+  }
+}
+
+.breadcrumbs,
+.rmc-admin-breadcrumb {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: transparent;
+  padding: 6px 0 14px;
+  border: 0;
+}
+
+.breadcrumbs a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  color: var(--text-primary);
+}
+
+
+/* ============================================================
+   Section 11 — Misc admin pieces (errors, messages, help)
+   ============================================================ */
+.errornote {
+  background: #fee2e2; /* off-token-allow: cockpit-error-card-bg */
+  color: #991b1b;      /* off-token-allow: cockpit-error-card-ink */
+  border: 1px solid #fecaca; /* off-token-allow: cockpit-error-card-border */
+  border-left: 4px solid var(--danger, #ef4444); /* off-token-allow: var-fallback-when-token-missing */
+  border-radius: var(--radius-sm, 8px);
+  padding: 10px 14px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+ul.errorlist {
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+
+ul.errorlist li {
+  color: #991b1b; /* off-token-allow: cockpit-error-card-ink */
+  font-size: 11px;
+}
+
+
+/* ============================================================
+   Section 12 — Inline formsets + tabular sub-tables
+   ============================================================ */
+.inline-group,
+.inline-related {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.inline-group h2,
+.inline-related h3 {
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  margin: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+table.inline-related,
+.tabular table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tabular table thead th {
+  background: var(--surface-canvas);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hairline);
+  text-align: left;
+}
+
+.tabular table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+
+
+/* ============================================================
+   Section 13 — Reduced motion + dark-mode aware overrides.
+   Semantic tokens already flip; this section only handles
+   admin-specific holdouts (selection row stripe colors).
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  #result_list tbody tr,
+  .object-tools a,
+  .submit-row input {
+    transition: none;
+  }
+}
+
+[data-theme="dark"] .rmc-admin-mirror-danger-card,
+[data-bs-theme="dark"] .rmc-admin-mirror-danger-card {
+  border-color: var(--hairline);
+}
+
+[data-theme="dark"] .errornote,
+[data-bs-theme="dark"] .errornote {
+  background: rgba(239, 68, 68, 0.10); /* off-token-allow: cockpit-error-card-bg-dark */
+  color: #fecaca; /* off-token-allow: cockpit-error-card-ink-dark */
+  border-color: rgba(239, 68, 68, 0.30); /* off-token-allow: cockpit-error-card-border-dark */
+}
+
+
+/* ============================================================
+   Section 14 — Admin landing audit feed (`.lx-audit` wrapper)
+   Already defined in rmc-cp-200x.css; here we ensure the
+   admin index render lands at the same density (no padding
+   collisions with Unfold's flex containers).
+   ============================================================ */
+.rmc-admin-mirror-audit-feed .lx-audit {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-1);
+  overflow: hidden;
+}
+
+
+/* ============================================================
+   Section 15 — Print: collapse extra chrome.
+   ============================================================ */
+@media print {
+  .object-tools,
+  .submit-row,
+  #changelist-filter,
+  .paginator {
+    display: none !important;
+  }
+  .module,
+  .results,
+  fieldset.module {
+    box-shadow: none;
+    border: 1px solid var(--hairline);
+  }
+}

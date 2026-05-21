@@ -1,0 +1,83 @@
+{
+  "doc": "studio_os_ai_contextual_guidance_audit",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "scope": "AI / contextual guidance surfaces inside Studio OS. Pulls from existing v3.51-v3.53 AI infrastructure plus v3.54.0 cockpit touches.",
+  "ai_gateway_invariants": {
+    "all_calls_route_through": "services.ai_helpers",
+    "preserve_list_untouched": [
+      "ai/Modelfile",
+      "services/ai_gateway.py",
+      "services/ai_helpers.py",
+      "apps/apicenter/",
+      "apps/schools/super_views_create_school_wizard.py"
+    ],
+    "scan_ai_gateway_boundary_baseline": 0,
+    "tenant_pii_safety": "school slug → sha256[:8] in all logs/payloads/prompts (per batch 1372 R2)",
+    "deployment_posture": "Cloud-first via LiteLLM on Render; Ollama for offline schools (batch 1370)"
+  },
+  "studio_os_ai_surfaces": {
+    "studio_guidance_panel": {
+      "partial": "templates/studio_os/partials/studio_guidance_panel.html",
+      "service": "apps/studio_os/studio_guidance.py",
+      "v3_54_0_changes": [
+        "Upgraded with primary/secondary/preview action structure",
+        "Blocker pill added when guidance returns a blocker",
+        "Renders on Overview (when not current_mode) AND per-mode bodies (Experience body includes it explicitly)"
+      ],
+      "tenant_safe": true,
+      "operator_safe": true
+    },
+    "persistent_copilot_rail": {
+      "service": "apps/studio_os/copilot_rail_service.py (v3.53.1)",
+      "view": "apps/studio_os/views_copilot_rail.py",
+      "endpoints": [
+        "studio_os:copilot_rail_context (POST)",
+        "studio_os:copilot_rail_insights (POST)"
+      ],
+      "js": "static/js/rmc-copilot-rail.js (90s rotation; armed-attribute compliant)",
+      "v3_54_0_changes": ["light edits — host-kind badge + preview microlist"],
+      "tenant_pii_safety": "cross-tenant leak rejection in cloud responses (test_cross_tenant_leak_in_cloud_response_falls_back); slug hashed",
+      "cloud_first": "via services.ai_helpers.invoke_with_request",
+      "fallback_chain": "cloud → rules layer → view exception caught (3-tier graceful)"
+    },
+    "command_palette": {
+      "trigger": "Ctrl+K (cmd+k on macOS)",
+      "shell_button": "shell.html lines 41 — id='studio-command-palette-btn'",
+      "palette_div": "shell.html lines 282-289 — id='studio-cmd-palette' with role='dialog' aria-modal='true' aria-describedby",
+      "registry": "apps/siteconfig/command_bar_registry.py (v3.53.0, 246 lines, 33 actions, role + tenant scoped, no cross-tenant URL leakage)",
+      "v3_54_0_changes": ["none — preserved as-is"],
+      "tenant_safe": true,
+      "scope": "filtered per request.user role + tenant via registry"
+    },
+    "ai_guided_assistant_card": {
+      "include": "{% include 'components/ai_guided_assistant_card.html' with assistant_key='studio_os_assistant' ... %}",
+      "shell_line": "shell.html line 55",
+      "card_title_trans": "Studio guided assistant",
+      "card_hint_trans": "Suggests next steps across Studio modes. Apply packages and automations only through existing preview and rollback flows.",
+      "v3_54_0_changes": ["none — preserved"]
+    }
+  },
+  "examples_meeting_the_bar": {
+    "bad": "Review your automation settings.",
+    "good": "This automation cannot be launched because no trigger is active. Go to Studio OS → Automation → Trigger Map and enable one trigger before launch.",
+    "actual_v3_54_0_compliance": "studio_guidance_panel + per-section preview panes follow the GOOD pattern — they reference concrete next routes (e.g. 'Open Theme & colors', 'Open Workflow center') AND show the blocker (e.g. 'Simulation engine coming online') rather than generic 'review your settings'."
+  },
+  "data_defaulter_and_feature_codespace_disconnect_states": {
+    "honest_empty_states_per_section": [
+      "Overview: cockpit_signal_strip renders data-state='unknown' when overview_signals value is None",
+      "Experience: live preview pane renders 'Preview unavailable — select a tenant context' when role-preview entries absent",
+      "Automation: simulation pane renders 'Simulation engine coming online' when no payload",
+      "Output: readiness pane renders 'Readiness service offline' when service unreachable",
+      "Launch: readiness pane renders 'Checklist coming online' when timeline/approvals empty",
+      "Control: governance pane renders 'No governance change staged' when no staged change",
+      "Studio guidance: returns honest 'No actions queued' when no recommendation"
+    ]
+  },
+  "what_is_blocked_v3_55_plus": [
+    "Live cockpit AI personalization (cloud-first gateway wired; per-section AI guidance hooks deferred)",
+    "Real-time multi-operator collaboration",
+    "Full Render-deployed AI Center posture sweep (operator action)",
+    "Tone-aware AI recommendation prompts for cockpit signal tiles (E1 v3.52+ exists; not yet wired to overview_signals)"
+  ]
+}

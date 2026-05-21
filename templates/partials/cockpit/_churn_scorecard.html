@@ -1,0 +1,61 @@
+{% load static i18n %}
+{% comment %} v3.57.0 (2026-05-21): 200x front-office Element 5 — Tenant churn-risk scorecard.
+
+   Top 10 tenants by churn-risk score. NEVER displays raw tenant slugs;
+   uses operator-chosen short alias + 12-hex hash.
+
+   CONFIGURABLE via cockpit.churn_scorecard (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .title
+     .title_em
+     .meta_text
+     .rows  list — [{rank, tenant_hash, tenant_alias, score, tier, signals, last_activity}]
+        tier ∈ {"critical","high","medium","low"}
+     .legend_text
+{% endcomment %}
+
+{% if cockpit.churn_scorecard.enabled and cockpit.churn_scorecard.rows %}
+<section class="lx-card lx-churn" aria-label="{% trans 'Tenant churn-risk scorecard' %}">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.churn_scorecard.eyebrow|default:_("Churn risk · top 10") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.churn_scorecard.title|default:_("At-risk tenants") }}
+        {% if cockpit.churn_scorecard.title_em %} <em>{{ cockpit.churn_scorecard.title_em }}</em>{% endif %}
+      </h3>
+    </div>
+    {% if cockpit.churn_scorecard.meta_text %}<div class="lx-card__meta">{{ cockpit.churn_scorecard.meta_text }}</div>{% endif %}
+  </div>
+  <table class="lx-churn__table">
+    <thead>
+      <tr>
+        <th class="lx-churn__col-rank">#</th>
+        <th class="lx-churn__col-tenant">{% trans "Tenant" %}</th>
+        <th class="lx-churn__col-score">{% trans "Score" %}</th>
+        <th class="lx-churn__col-tier">{% trans "Tier" %}</th>
+        <th class="lx-churn__col-signals">{% trans "Signals" %}</th>
+        <th class="lx-churn__col-last">{% trans "Last seen" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in cockpit.churn_scorecard.rows %}
+      <tr class="lx-churn__row lx-churn__row--{{ row.tier|default:'medium' }}">
+        <td class="lx-churn__rank">{{ row.rank }}</td>
+        <td class="lx-churn__tenant">
+          <span class="lx-churn__alias">{{ row.tenant_alias|default:"—" }}</span>
+          <span class="lx-churn__hash">{{ row.tenant_hash|default:"" }}</span>
+        </td>
+        <td class="lx-churn__score">{{ row.score|default:"—" }}</td>
+        <td><span class="lx-churn__tier-pill lx-churn__tier-pill--{{ row.tier|default:'medium' }}">{{ row.tier|default:'medium'|upper }}</span></td>
+        <td class="lx-churn__signals">
+          {% for s in row.signals %}<span class="lx-churn__signal">{{ s }}</span>{% endfor %}
+        </td>
+        <td class="lx-churn__last">{{ row.last_activity|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if cockpit.churn_scorecard.legend_text %}<div class="lx-churn__legend"><em>{{ cockpit.churn_scorecard.legend_text }}</em></div>{% endif %}
+</section>
+{% endif %}

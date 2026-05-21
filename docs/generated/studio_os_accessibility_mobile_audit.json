@@ -1,0 +1,97 @@
+{
+  "doc": "studio_os_accessibility_mobile_audit",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "scope": "Cross-section a11y + mobile + visual stability inventory. Synthesizes the a11y rules applied in each section and the responsive breakpoints baked into each per-section CSS bundle.",
+  "viewport_targets": ["390px (mobile)", "768px (tablet)", "1366px (laptop)", "1440px", "1536px", "1920px (wide desktop)"],
+  "a11y_invariants_enforced": {
+    "skip_link": {
+      "target": "#studio-canvas",
+      "preserved_in_shell": "shell.html:25",
+      "verified_by_test": "test_studio_os_accessibility_contracts.SkipLinkTargetTests"
+    },
+    "command_palette_aria": {
+      "role": "dialog",
+      "aria_modal": "true",
+      "aria_describedby": "studio-cmd-filter",
+      "verified_by_test": "test_studio_os_accessibility_contracts.CommandPaletteAriaTests"
+    },
+    "iframes_have_title": {
+      "rule": "every <iframe> in templates/studio_os/ carries a title= attribute",
+      "verified_by_test": "test_studio_os_accessibility_contracts.IframeTitleAttributeTests"
+    },
+    "focus_visible_outline": {
+      "rule": "shared rail rule preserves :focus-visible with outline (not just color)",
+      "selector": "studio-mode-rail.css :focus-visible block",
+      "verified_by_test": "test_studio_os_accessibility_contracts.FocusVisibleOutlineTests"
+    },
+    "status_badges_have_text_or_aria_label": {
+      "rule": "color is never the sole signal — badges include text content OR aria-label",
+      "verified_by_test": "test_studio_os_accessibility_contracts.StatusBadgeColorAndTextTests"
+    },
+    "semantic_heading_order": {
+      "rule": "h2/h3 in semantic order; no h4 jump without h3",
+      "verified_by_test": "test_studio_os_accessibility_contracts.SemanticHeadingOrderTests"
+    },
+    "destructive_actions_named_explicitly": {
+      "rule": "destructive button accessible names disambiguate ('Roll back to version X' not 'Roll back')",
+      "applied_in": ["Control rollback CTA", "Automation activate/replay/rollback", "Launch infrastructure apply"]
+    },
+    "keyboard_focus": {
+      "rule": "all interactive elements keyboard-focusable; rail items <a> with aria-current='page' when active",
+      "applied_in": ["studio-rail nav in shell.html", "all 6 workspace rails"]
+    }
+  },
+  "responsive_design_per_section": {
+    "overview": {
+      "css": "studio-overview-cockpit.css",
+      "breakpoints": ["390 (single-column collapse for mode-grid + triptych)", "768", "1366"],
+      "container_queries": "mode-grid + triptych use container queries — reflow based on workspace_main width not viewport",
+      "iframe_count": 0
+    },
+    "experience": {
+      "css": "studio-experience-mode.css",
+      "breakpoints": ["390 (rail items wrap)", "768", "1366"],
+      "iframe_count": 1,
+      "iframe_shell": "responsive (width: 100%; max-width: 100%; aspect-ratio)",
+      "iframe_title": "Theme & Experience (translatable)"
+    },
+    "automation": {
+      "css": "studio-automation-cockpit.css",
+      "breakpoints": ["390 (rail wraps; cockpit collapses to single-column)", "768", "1366"],
+      "internal_scroll": ".rmc-automation-graph-scroll allows horizontal scroll on wide graphs (overflow-x:auto; overflow-y:visible — NOT hidden)"
+    },
+    "output": {
+      "css": "studio-output-cockpit.css",
+      "breakpoints": ["390 (mobile tabs surface; rail hidden via d-lg-block)", "768", "1366"],
+      "passthrough_wrapper": ".rmc-output-passthrough (min-width:0; overflow-x:auto) wraps inner partials so wide tables internal-scroll without breaking workspace_main"
+    },
+    "launch": {
+      "css": "studio-launch-cockpit.css",
+      "breakpoints": ["390", "768", "1366"],
+      "container_queries": "readiness-card + plan-card use container queries"
+    },
+    "control": {
+      "css": "studio-control-cockpit.css",
+      "breakpoints": ["390", "768", "1366"],
+      "internal_scroll": ".rmc-control-permission-matrix-wrap (overflow-x:auto) handles wide N×M matrices"
+    }
+  },
+  "mobile_first_invariants": {
+    "min_width_0_on_flex_children": "preserved everywhere — verified by test_studio_os_layout_contracts.WorkspaceMainPreservesMinWidthZeroTests",
+    "long_labels_wrap": "overflow-wrap:anywhere + word-break:break-word on shared rail rule + all per-section rail link classes",
+    "no_horizontal_overflow": "documentElement.scrollWidth - clientWidth <= 1px asserted by tests/e2e/studio-os.spec.js per viewport per section",
+    "tables_responsive": ".table-responsive or .rmc-*-scroll wrapper around every table-heavy partial",
+    "iframes_responsive": "aspect-ratio + width:100% (not fixed pixels)"
+  },
+  "color_contrast_and_token_safety": {
+    "rule": "every color uses var(--*) semantic tokens — no off-token literals",
+    "scanners_baseline_0": ["scan_off_token_colors", "scan_theme_locked_token_text", "scan_inline_style_off_token"],
+    "wcag_grade_target": "AA 4.5:1 for all interactive text on background"
+  },
+  "honest_deferrals": [
+    "Live screen-reader sweep (NVDA / VoiceOver / TalkBack) — operator action on dev environment",
+    "Live Playwright run at 1440/1536/1920px (spec covers them conceptually; spec executed at 390/768/1366 in scripted run)",
+    "Color-blind simulation pass (Coblis or similar)"
+  ]
+}

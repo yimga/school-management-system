@@ -135,6 +135,53 @@ class SiteSettings(models.Model):
     maintenance_mode = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # v3.56 cockpit configurability cascade — operator-editable nested config
+    # for the 3 cockpit blocks emitted by apps.siteconfig.cockpit_context
+    # (footer, community_band, newsletter_band). Schema mirrors the SOT in
+    # cockpit_context.py:
+    #
+    #     cockpit_payload = {
+    #       "footer": {
+    #         "brand": {"wordmark": str, "motto": str, "founded_year": int|None, "descriptor": str},
+    #         "trust_pillars": [{"label": str, "tone": "secure"|"cert"|"neutral"}, ...],
+    #         "language": {"label": str, "current_locale": str, "has_switcher": bool},
+    #         "app_badges": [{"label": str, "glyph": str, "url": str}, ...],
+    #         "social":     [{"platform": str, "glyph": str, "url": str, "label": str}, ...],
+    #         "contacts":   [{"kind": str, "value": str, "href": str, "glyph": str}, ...],
+    #         "stat_line": str,
+    #         "legal_links":[{"label": str, "url": str}, ...],
+    #         "copyright_holder": str,
+    #         "powered_by": {"label": str, "url": str},
+    #       },
+    #       "community_band": {
+    #         "enabled": bool,
+    #         "achievement": {
+    #           "enabled": bool, "title": str, "period_label": str,
+    #           "student_initials": str, "student_name": str, "student_subline": str,
+    #           "teacher_quote": str, "teacher_cite": str,
+    #         },
+    #         "testimonial": {
+    #           "enabled": bool, "title": str, "quotes": list[str], "interval_ms": int,
+    #         },
+    #         "map": {
+    #           "enabled": bool, "title": str, "period_label": str,
+    #           "address_line_1": str, "address_line_2": str,
+    #           "maps_url": str, "cta_label": str,
+    #         },
+    #       },
+    #       "newsletter_band": {
+    #         "enabled": bool, "title": str, "subtitle": str,
+    #         "placeholder": str, "cta_label": str, "submit_url": str,
+    #         "privacy_url": str, "privacy_label": str,
+    #       },
+    #     }
+    #
+    # Read by apps.siteconfig.cockpit_context.cockpit_context() — the
+    # context processor merges this dict over per-host defaults so the
+    # tenant footer + community + newsletter bands render operator-published
+    # values. Nullable-with-default ({}) so legacy rows render the defaults.
+    cockpit_payload = models.JSONField(default=dict, blank=True)
+
     class Meta:
         verbose_name = "Site Settings"
         verbose_name_plural = "Site Settings"

@@ -1,0 +1,76 @@
+{% load static i18n %}
+{% comment %} v3.55.0+ (2026-05-21): 200x Element 2 — Live world map card.
+
+   Stylized continents + pulsing tenant dots + heatmap halos + mega-number
+   "schools live" count + regional legend. SVG visuals are decorative
+   wrappers; data points come from context.
+
+   CONFIGURABLE via cockpit.live_world_map (SiteSettings → context processor):
+     .enabled              bool
+     .eyebrow              str
+     .schools_live         str         — big number (string for honest "—")
+     .schools_live_label   str         — "schools live" suffix
+     .subline              str         — italic line below
+     .regional_breakdown   list        — [{label, count, dot_color_token}]
+     .tenant_dots          list        — pulse dots [{cx, cy, color_token, ring_color, delay_s}]
+{% endcomment %}
+
+{% if cockpit.live_world_map.enabled %}
+<section class="lx-card lx-world" aria-label="{% trans 'Live world map of tenant locations' %}">
+  <div class="lx-world__map">
+    <svg class="lx-world__svg" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="lx-globe-bg" cx="50%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="rgba(99,102,241,0.18)"/>
+          <stop offset="100%" stop-color="rgba(99,102,241,0.02)"/>
+        </radialGradient>
+        <radialGradient id="lx-heat-1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(99,102,241,0.45)"/>
+          <stop offset="100%" stop-color="rgba(99,102,241,0)"/>
+        </radialGradient>
+        <radialGradient id="lx-heat-2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(16,185,129,0.40)"/>
+          <stop offset="100%" stop-color="rgba(16,185,129,0)"/>
+        </radialGradient>
+      </defs>
+      <rect x="0" y="0" width="600" height="280" fill="url(#lx-globe-bg)" rx="14"/>
+      <g fill="rgba(148,163,184,0.15)" stroke="rgba(148,163,184,0.30)" stroke-width="0.6">
+        <path d="M48,90 Q70,72 100,80 Q124,86 140,108 Q156,128 142,148 Q130,162 100,160 Q72,158 60,142 Q42,120 48,90 Z"/>
+        <path d="M170,72 Q210,64 246,80 Q282,98 290,128 Q294,158 268,176 Q236,192 200,178 Q166,168 158,140 Q152,108 170,72 Z"/>
+        <path d="M310,86 Q350,72 396,82 Q436,92 458,120 Q470,140 460,164 Q448,184 410,188 Q368,192 336,172 Q304,148 302,118 Q302,98 310,86 Z"/>
+        <path d="M480,108 Q510,104 538,118 Q558,128 564,148 Q568,170 552,184 Q524,200 502,188 Q478,176 474,152 Q472,124 480,108 Z"/>
+        <path d="M140,196 Q172,188 198,200 Q220,210 222,224 Q220,238 196,242 Q168,246 148,234 Q132,222 140,196 Z"/>
+        <path d="M376,206 Q408,200 432,212 Q452,222 450,238 Q446,254 420,256 Q394,258 378,246 Q362,232 376,206 Z"/>
+      </g>
+      <circle cx="120" cy="120" r="60" fill="url(#lx-heat-1)"/>
+      <circle cx="240" cy="130" r="70" fill="url(#lx-heat-2)"/>
+      <circle cx="400" cy="140" r="80" fill="url(#lx-heat-1)"/>
+      {% for dot in cockpit.live_world_map.tenant_dots %}
+      <g>
+        <circle class="lx-world__ring" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="4" fill="none" stroke="{{ dot.ring_color|default:'#6366f1' }}" stroke-width="1.5"/>
+        <circle class="lx-world__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="4" fill="{{ dot.color_token|default:'#a5b4fc' }}" stroke="#fff" stroke-width="0.6"/>
+      </g>
+      {% endfor %}
+      <g stroke="rgba(99,102,241,0.10)" stroke-width="0.5" fill="none">
+        <ellipse cx="300" cy="140" rx="280" ry="120"/>
+        <ellipse cx="300" cy="140" rx="220" ry="90"/>
+        <ellipse cx="300" cy="140" rx="160" ry="60"/>
+      </g>
+    </svg>
+  </div>
+  <div class="lx-world__legend">
+    <div class="lx-card__eyebrow">{{ cockpit.live_world_map.eyebrow|default:_("Global footprint") }}</div>
+    <div class="lx-world__count">
+      {{ cockpit.live_world_map.schools_live|default:"—" }}
+      <small class="lx-world__count-suffix">{{ cockpit.live_world_map.schools_live_label|default:_("schools live") }}</small>
+    </div>
+    {% if cockpit.live_world_map.subline %}<div class="lx-world__count-sub">{{ cockpit.live_world_map.subline }}</div>{% endif %}
+    {% for row in cockpit.live_world_map.regional_breakdown %}
+    <div class="lx-world__legend-row">
+      <span><span class="lx-world__legend-row__dot" data-rmc-dot-color="{{ row.dot_color_token|default:'indigo' }}"></span>{{ row.label }}</span>
+      <strong>{{ row.count }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

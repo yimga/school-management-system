@@ -1,0 +1,126 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Cockpit configuration" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/super/">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Cockpit configuration" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="configuration-form">
+  <header class="mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase mb-1">{% trans "Cockpit configurability cascade" %}</div>
+        <h1 class="h4 mb-1 fw-bold page-h1">{% trans "Cockpit configuration" %}</h1>
+        <p class="small mb-0 text-muted">
+          {% trans "Operator-published values for the footer, community band, and newsletter band. Empty fields fall through to per-host defaults." %}
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="/" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+          {% trans "Preview tenant footer" %}
+        </a>
+      </div>
+    </div>
+  </header>
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}" role="status">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <form method="post" action="{{ cockpit_configure_url }}" novalidate>
+    {% csrf_token %}
+    {{ form.cockpit_payload.as_hidden }}
+
+    {# ---- Footer fieldset ------------------------------------------------ #}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="footer">
+      <legend class="h6 px-2 fw-bold">{% trans "Footer" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Civic 4-tier footer — wordmark, motto, trust pillars, language switcher, app badges, social, contacts, stat line, legal links, copyright." %}
+      </p>
+      <div class="row g-3">
+        {% for field in footer_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {# ---- Community band fieldset ---------------------------------------- #}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="community-band">
+      <legend class="h6 px-2 fw-bold">{% trans "Community band" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Student-of-the-month, parent testimonial rotator, and district map. Master enable + per-sub-block enable + content." %}
+      </p>
+      <div class="row g-3">
+        {% for field in community_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {# ---- Newsletter band fieldset --------------------------------------- #}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="newsletter-band">
+      <legend class="h6 px-2 fw-bold">{% trans "Newsletter band" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Gradient signup banner above the footer. Empty submit_url disables CSRF (external service like Mailchimp)." %}
+      </p>
+      <div class="row g-3">
+        {% for field in newsletter_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
+      <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"
+              formnovalidate
+              data-confirm="{% trans 'Reset cockpit configuration to defaults?' %}">
+        {% trans "Reset to defaults" %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

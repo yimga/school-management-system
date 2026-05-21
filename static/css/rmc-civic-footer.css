@@ -1,0 +1,260 @@
+/*
+ * rmc-civic-footer.css — v3.55.0 (2026-05-21)
+ *
+ * Civic centered 4-tier footer pattern shared by:
+ *   - Tenant portal       (.rmc-civic-footer)                        via templates/components/dashboard_footer.html
+ *   - Studio OS           (inherits via portal_base.html)
+ *   - Manager operator    (.rmc-civic-footer.rmc-civic-footer--dark) via templates/partials/rmc_operator_footer_compact.html
+ *
+ * Densified 4-tier centered layout: brand+motto | trust+lang+app+social | contacts+stat | legal.
+ * Targets ~25% vertical reduction vs the legacy dense-accordion tenant footer + the multi-row
+ * manager gateway footer, while packing ~3x the content density via inline luxury elements.
+ *
+ * All values configurable via cockpit.footer.* context (see apps/siteconfig/cockpit_context.py).
+ * Dark variant (`.rmc-civic-footer--dark`) flips chrome via scoped token overrides — no off-token
+ * color violations (every literal is wrapped in a tokenized variable).
+ */
+
+/* ------------------------------------------------------------------ */
+/* Shared container                                                    */
+/* ------------------------------------------------------------------ */
+.rmc-civic-footer {
+  --rmc-civic-fg:          var(--text-secondary);
+  --rmc-civic-fg-strong:   var(--text-primary);
+  --rmc-civic-fg-muted:    var(--text-tertiary);
+  --rmc-civic-fg-faint:    var(--text-muted);
+  --rmc-civic-surface:     var(--surface-elevated, #fff);
+  --rmc-civic-surface-sunken: var(--surface-sunken, #eef2f6);
+  --rmc-civic-hairline:    var(--hairline);
+  --rmc-civic-accent:      var(--school-primary, var(--brand-primary, var(--rmc-civic-fg-muted)));
+
+  width: 100%;
+  padding: 18px clamp(20px, 4vw, 40px) 14px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--rmc-civic-fg);
+  background: var(--rmc-civic-surface);
+  border-top: 1px solid var(--rmc-civic-hairline);
+  box-sizing: border-box;
+}
+
+.rmc-civic-footer__inner {
+  margin: 0 auto;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Tier 1 — brand + motto + est                                        */
+/* ------------------------------------------------------------------ */
+.rmc-civic-footer__brand {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.2;
+}
+.rmc-civic-footer__brand strong { color: var(--rmc-civic-fg-strong); font-weight: 700; letter-spacing: 0.01em; }
+.rmc-civic-footer__motto {
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--rmc-civic-fg-muted);
+  letter-spacing: 0.015em;
+}
+.rmc-civic-footer__est { color: var(--rmc-civic-fg-muted); font-size: 11.5px; }
+
+/* ------------------------------------------------------------------ */
+/* Tier 2 — trust + lang + app + social (single dense row)             */
+/* ------------------------------------------------------------------ */
+.rmc-civic-footer__strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.rmc-civic-footer__pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--rmc-civic-surface-sunken);
+  font-size: 10.5px;
+  color: var(--rmc-civic-fg);
+  white-space: nowrap;
+}
+.rmc-civic-footer__pill--secure {
+  background: var(--success-soft, rgba(34,197,94,0.12));
+  color: var(--success, #16a34a);
+  font-weight: 700;
+}
+.rmc-civic-footer__pill--cert {
+  background: var(--info-soft, rgba(59,130,246,0.12));
+  color: var(--info, #2563eb);
+  font-weight: 700;
+}
+
+.rmc-civic-footer__divider {
+  display: inline-block;
+  width: 1px; height: 14px;
+  background: var(--rmc-civic-hairline);
+  margin: 0 4px;
+  align-self: center;
+}
+
+/* Language switcher chip */
+.rmc-civic-footer__lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px 3px 8px;
+  border: 1px solid var(--rmc-civic-hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--rmc-civic-surface);
+  color: var(--rmc-civic-fg);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+.rmc-civic-footer__lang:hover,
+.rmc-civic-footer__lang:focus-visible {
+  border-color: var(--rmc-civic-accent);
+  color: var(--rmc-civic-fg-strong);
+  transform: translateY(-1px);
+}
+.rmc-civic-footer__lang-caret { font-size: 9px; opacity: 0.6; }
+
+/* App badges */
+.rmc-civic-footer__appbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--rmc-civic-hairline);
+  background: var(--rmc-civic-surface);
+  color: var(--rmc-civic-fg-strong);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+.rmc-civic-footer__appbadge:hover,
+.rmc-civic-footer__appbadge:focus-visible {
+  border-color: var(--rmc-civic-accent);
+  transform: translateY(-1px);
+}
+.rmc-civic-footer__appbadge-glyph { font-size: 11px; }
+
+/* Social row */
+.rmc-civic-footer__social {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rmc-civic-footer__social-label {
+  font-size: 10.5px;
+  color: var(--rmc-civic-fg-muted);
+  margin-right: 2px;
+}
+.rmc-civic-footer__social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--rmc-civic-hairline);
+  background: var(--rmc-civic-surface);
+  color: var(--rmc-civic-fg);
+  text-decoration: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.rmc-civic-footer__social-icon:hover,
+.rmc-civic-footer__social-icon:focus-visible {
+  border-color: var(--rmc-civic-accent);
+  color: var(--rmc-civic-accent);
+  transform: translateY(-1px);
+}
+
+/* ------------------------------------------------------------------ */
+/* Tier 3 — contacts + social-proof stat                               */
+/* ------------------------------------------------------------------ */
+.rmc-civic-footer__contacts {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 10.5px;
+  justify-content: center;
+  align-items: center;
+}
+.rmc-civic-footer__contact { display: inline-flex; align-items: center; gap: 4px; }
+.rmc-civic-footer__contact a { text-decoration: none; color: inherit; }
+.rmc-civic-footer__contact a:hover { color: var(--rmc-civic-fg-strong); }
+.rmc-civic-footer__stat {
+  font-size: 10.5px;
+  color: var(--rmc-civic-fg-muted);
+  letter-spacing: 0.01em;
+}
+.rmc-civic-footer__stat strong { color: var(--rmc-civic-fg); font-weight: 700; }
+
+/* ------------------------------------------------------------------ */
+/* Tier 4 — legal single-line                                          */
+/* ------------------------------------------------------------------ */
+.rmc-civic-footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 14px;
+  padding-top: 10px;
+  margin-top: 2px;
+  border-top: 1px solid var(--rmc-civic-hairline);
+  font-size: 10.5px;
+  color: var(--rmc-civic-fg-faint);
+  width: 100%;
+  max-width: 1100px;
+}
+.rmc-civic-footer__legal-copy { letter-spacing: 0.01em; }
+.rmc-civic-footer__legal-sep { color: var(--rmc-civic-fg-muted); opacity: 0.6; }
+.rmc-civic-footer__legal a { color: var(--rmc-civic-fg-faint); text-decoration: none; }
+.rmc-civic-footer__legal a:hover { color: var(--rmc-civic-fg); }
+
+/* ------------------------------------------------------------------ */
+/* Dark variant (manager operator footer)                              */
+/* ------------------------------------------------------------------ */
+.rmc-civic-footer--dark {
+  --rmc-civic-fg:          rgba(255, 255, 255, 0.78); /* off-token-allow: dark-chrome-text */
+  --rmc-civic-fg-strong:   rgba(255, 255, 255, 0.95); /* off-token-allow: dark-chrome-text-strong */
+  --rmc-civic-fg-muted:    rgba(255, 255, 255, 0.55); /* off-token-allow: dark-chrome-text-muted */
+  --rmc-civic-fg-faint:    rgba(255, 255, 255, 0.42); /* off-token-allow: dark-chrome-text-faint */
+  --rmc-civic-surface:     rgba(255, 255, 255, 0.04); /* off-token-allow: dark-chrome-surface */
+  --rmc-civic-surface-sunken: rgba(255, 255, 255, 0.08); /* off-token-allow: dark-chrome-surface-sunken */
+  --rmc-civic-hairline:    rgba(255, 255, 255, 0.10); /* off-token-allow: dark-chrome-hairline */
+  --rmc-civic-accent:      var(--rmc-cockpit-chrome-text-bright, rgba(255, 255, 255, 0.88)); /* off-token-allow: dark-chrome-accent-fallback */
+  background: transparent; /* sits over the operator dark canvas */
+  border-top-color: var(--rmc-civic-hairline);
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion                                                      */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .rmc-civic-footer__lang,
+  .rmc-civic-footer__appbadge,
+  .rmc-civic-footer__social-icon { transition: none; }
+  .rmc-civic-footer__lang:hover,
+  .rmc-civic-footer__appbadge:hover,
+  .rmc-civic-footer__social-icon:hover { transform: none; }
+}

@@ -120,6 +120,10 @@ class NoDeadElifInShellTests(SimpleTestCase):
 
     def test_no_duplicate_launch_elif_branch_in_shell(self) -> None:
         src = SHELL.read_text(encoding="utf-8")
+        # Strip Django {% comment %} and {# ... #} blocks first — the
+        # v3.54.0 removal note mentions the dead elif inside a comment
+        # which would otherwise trip a naive regex count.
+        src = _strip_comments(src)
         # Count occurrences of `current_mode == 'launch'` in elif tokens.
         # One occurrence is correct (the upper launch branch); two would
         # mean the dead duplicate has been re-introduced.
@@ -130,7 +134,8 @@ class NoDeadElifInShellTests(SimpleTestCase):
         self.assertLessEqual(
             len(elif_launch), 1,
             f"shell.html has {len(elif_launch)} `{{% elif current_mode == 'launch' %}}` "
-            f"branches. v3.54.0 removed the dead duplicate; only the first one is reachable.",
+            f"branches outside comments. v3.54.0 removed the dead duplicate; "
+            f"only the first one is reachable.",
         )
 
 

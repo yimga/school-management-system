@@ -1,0 +1,42 @@
+{% load static i18n %}
+{% comment %} v3.55.0+ (2026-05-21): 200x Element 4 — Operator notebook quick-capture.
+
+   Bottom-right floating frosted-dark widget. Renders outside the canvas
+   (it's a position: fixed widget). Manager-host only.
+
+   CONFIGURABLE via cockpit.operator_notebook (SiteSettings → context processor):
+     .enabled       bool
+     .title         str   — uppercase tiny title
+     .placeholder   str   — serif-italic textarea placeholder
+     .mic_enabled   bool  — show dictation mic button
+     .save_url      str   — POST endpoint for saving entries
+     .save_label    str
+     .hint_text     str
+     .hint_em       str   — italic fragment of the hint
+{% endcomment %}
+
+{% if cockpit.operator_notebook.enabled %}
+<aside class="lx-notebook" aria-label="{% trans 'Operator notebook quick-capture' %}" data-rmc-operator-notebook>
+  <div class="lx-notebook__head">
+    <div class="lx-notebook__title">{{ cockpit.operator_notebook.title|default:_("Add to notebook") }}</div>
+    <button type="button" class="lx-notebook__min" aria-label="{% trans 'Minimize notebook' %}">—</button>
+  </div>
+  <form method="post" action="{{ cockpit.operator_notebook.save_url|default:'' }}" class="lx-notebook__form">
+    {% csrf_token %}
+    <label class="visually-hidden" for="rmc-notebook-field">{% trans 'Notebook entry' %}</label>
+    <textarea id="rmc-notebook-field" name="entry" class="lx-notebook__field" placeholder="{{ cockpit.operator_notebook.placeholder|default:_('Capture a thought, decision, or question…') }}"></textarea>
+    <div class="lx-notebook__row">
+      {% if cockpit.operator_notebook.mic_enabled %}
+        <button type="button" class="lx-notebook__mic" aria-label="{% trans 'Dictate note' %}">🎙</button>
+      {% endif %}
+      <button type="submit" class="lx-notebook__save">{{ cockpit.operator_notebook.save_label|default:_("Save →") }}</button>
+    </div>
+  </form>
+  {% if cockpit.operator_notebook.hint_text %}
+  <div class="lx-notebook__hint">
+    {{ cockpit.operator_notebook.hint_text }}
+    {% if cockpit.operator_notebook.hint_em %} <span class="lx-notebook__hint-em">{{ cockpit.operator_notebook.hint_em }}</span>{% endif %}
+  </div>
+  {% endif %}
+</aside>
+{% endif %}

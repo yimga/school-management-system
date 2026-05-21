@@ -1,0 +1,246 @@
+/* rmc-email-civic.css — v3.57.0 (2026-05-21)
+ *
+ * Inline-safe (or `<style>`-block-safe) CSS for the civic 4-tier email
+ * pattern that mirrors the v3.55.0 web footer + v3.57.0 100x tenant
+ * grammar across transactional email surfaces:
+ *
+ *   - Welcome / activation emails
+ *   - Low-balance notifications (schoolops)
+ *   - Migration Cloud receipts (MAA signed, upload received)
+ *   - Webhook delivery confirmations
+ *
+ * Email client compatibility:
+ *   - Designed for the lowest-common-denominator: Outlook 2016 desktop,
+ *     Gmail web/mobile, Apple Mail. Uses table-based layout primitives —
+ *     templates SHOULD inline these selectors via premailer-style tooling
+ *     OR embed this stylesheet inside a `<style>` tag in the email head.
+ *   - No CSS custom properties (`var(--*)`) used anywhere — Outlook strips
+ *     them silently. All colors are LITERAL hex with categorical
+ *     off-token-allow markers per the platform's color contract.
+ *   - No `@import`, no flexbox, no grid, no position:absolute/fixed.
+ *
+ * Brand cascade:
+ *   - Operators publish brand colors via SiteSettings.cockpit_payload.email.brand_*
+ *     and the Django email template renderer inlines them as literal hex
+ *     into the markup BEFORE this stylesheet's defaults apply. This sheet
+ *     ships sensible neutral defaults that won't clash with school brand.
+ *
+ * Token contract:
+ *   - This is the ONE intentional exception to the no-hex-literal rule.
+ *     Every color literal carries an `off-token-allow: email-client-strips-css-vars`
+ *     marker so the scanner allowlists it categorically.
+ *
+ * Accessibility:
+ *   - Civic 4-tier (brand / trust / contacts / legal) renders linearly so
+ *     screen readers in the operator's mail client read it as a logical
+ *     sequence.
+ *   - All link text is descriptive (no bare "click here"); markup contract
+ *     owns this rule.
+ */
+
+/* ============================================================
+ * Base wrapper — body-level reset for the email document.
+ * ============================================================ */
+body.rmc-email,
+.rmc-email body {
+  margin: 0; /* off-token-allow: email-client-strips-css-vars */
+  padding: 0; /* off-token-allow: email-client-strips-css-vars */
+  background: #f6f5f1; /* off-token-allow: email-client-strips-css-vars */
+  color: #1c1a17; /* off-token-allow: email-client-strips-css-vars */
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+.rmc-email__container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  background: #ffffff; /* off-token-allow: email-client-strips-css-vars */
+  border: 1px solid #e9e6dc; /* off-token-allow: email-client-strips-css-vars */
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* ============================================================
+ * Tier 1 — Brand block (wordmark + motto)
+ * ============================================================ */
+.rmc-email__brand {
+  padding: 24px 28px 16px 28px;
+  border-bottom: 1px solid #e9e6dc; /* off-token-allow: email-client-strips-css-vars */
+  background: #ffffff; /* off-token-allow: email-client-strips-css-vars */
+  text-align: center;
+}
+
+.rmc-email__wordmark {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1c1a17; /* off-token-allow: email-client-strips-css-vars */
+  line-height: 1.1;
+  margin: 0 0 4px 0;
+}
+
+.rmc-email__motto {
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 13px;
+  color: #6b655d; /* off-token-allow: email-client-strips-css-vars */
+  margin: 0;
+}
+
+/* ============================================================
+ * Body content
+ * ============================================================ */
+.rmc-email__body {
+  padding: 24px 28px;
+}
+
+.rmc-email__h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1c1a17; /* off-token-allow: email-client-strips-css-vars */
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+}
+
+.rmc-email__h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1c1a17; /* off-token-allow: email-client-strips-css-vars */
+  margin: 18px 0 8px 0;
+  line-height: 1.3;
+}
+
+.rmc-email__p {
+  margin: 0 0 12px 0;
+  color: #2f2b25; /* off-token-allow: email-client-strips-css-vars */
+}
+
+.rmc-email__meta {
+  color: #6b655d; /* off-token-allow: email-client-strips-css-vars */
+  font-size: 13px;
+}
+
+/* CTA button — solid + bordered so it still reads as a button when Gmail
+ * strips inline styles. Use VML-fallback table wrapper in the template
+ * markup for Outlook 2016. */
+.rmc-email__cta {
+  display: inline-block;
+  padding: 12px 22px;
+  margin: 8px 0 16px 0;
+  background: #4f46e5; /* off-token-allow: email-client-strips-css-vars */
+  color: #ffffff !important; /* off-token-allow: email-client-strips-css-vars */
+  border: 1px solid #4f46e5; /* off-token-allow: email-client-strips-css-vars */
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1;
+  mso-padding-alt: 0; /* Outlook fix */
+}
+
+/* ============================================================
+ * Tier 2 — Trust pillars (compliance badges row)
+ * ============================================================ */
+.rmc-email__trust {
+  padding: 12px 28px;
+  background: #f9f7f1; /* off-token-allow: email-client-strips-css-vars */
+  border-top: 1px solid #e9e6dc; /* off-token-allow: email-client-strips-css-vars */
+  text-align: center;
+  font-size: 12px;
+  color: #6b655d; /* off-token-allow: email-client-strips-css-vars */
+}
+
+.rmc-email__trust-item {
+  display: inline-block;
+  padding: 0 8px;
+}
+
+/* ============================================================
+ * Tier 3 — Contacts strip
+ * ============================================================ */
+.rmc-email__contacts {
+  padding: 12px 28px;
+  background: #ffffff; /* off-token-allow: email-client-strips-css-vars */
+  border-top: 1px solid #e9e6dc; /* off-token-allow: email-client-strips-css-vars */
+  font-size: 13px;
+  color: #2f2b25; /* off-token-allow: email-client-strips-css-vars */
+  text-align: center;
+}
+
+.rmc-email__contacts a {
+  color: #4f46e5; /* off-token-allow: email-client-strips-css-vars */
+  text-decoration: none;
+}
+
+.rmc-email__contacts a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+ * Tier 4 — Legal / unsubscribe footer
+ * ============================================================ */
+.rmc-email__legal {
+  padding: 16px 28px 20px 28px;
+  background: #f3f1ea; /* off-token-allow: email-client-strips-css-vars */
+  border-top: 1px solid #e9e6dc; /* off-token-allow: email-client-strips-css-vars */
+  text-align: center;
+  font-size: 11px;
+  color: #595550; /* off-token-allow: email-client-strips-css-vars */
+  line-height: 1.5;
+}
+
+.rmc-email__legal a {
+  color: #6b655d; /* off-token-allow: email-client-strips-css-vars */
+  text-decoration: underline;
+  padding: 0 4px;
+}
+
+/* Plaintext-twin parity hint — the corresponding .txt template MUST mirror
+ * the civic 4-tier sections so plaintext readers (CLI mail, accessibility
+ * tooling, search indexers) receive the same information. Enforced by the
+ * scan_email_plaintext_twin.py scanner (Wave deferred-list — to land in
+ * v3.58+). The hint is a CSS comment, not markup. */
+
+/* ============================================================
+ * Dark-mode notice
+ * ============================================================
+ * Email clients honor `@media (prefers-color-scheme: dark)` in <style>
+ * blocks. This block ONLY applies in clients that support it (Apple Mail,
+ * iOS Mail, Outlook macOS); Outlook desktop ignores it harmlessly.
+ */
+@media (prefers-color-scheme: dark) {
+  body.rmc-email,
+  .rmc-email body {
+    background: #0e0d0b !important; /* off-token-allow: dark-chrome-email-bg */
+    color: #efece4 !important; /* off-token-allow: dark-chrome-email-ink */
+  }
+  .rmc-email__container {
+    background: #19171a !important; /* off-token-allow: dark-chrome-email-surface */
+    border-color: #2a262e !important; /* off-token-allow: dark-chrome-email-hairline */
+  }
+  .rmc-email__brand,
+  .rmc-email__contacts {
+    background: #19171a !important; /* off-token-allow: dark-chrome-email-surface */
+    border-color: #2a262e !important; /* off-token-allow: dark-chrome-email-hairline */
+  }
+  .rmc-email__trust {
+    background: #1d1b20 !important; /* off-token-allow: dark-chrome-email-tray */
+  }
+  .rmc-email__legal {
+    background: #0e0d0b !important; /* off-token-allow: dark-chrome-email-bg */
+    color: #8a857c !important; /* off-token-allow: dark-chrome-email-muted */
+  }
+  .rmc-email__wordmark,
+  .rmc-email__h1,
+  .rmc-email__h2,
+  .rmc-email__p {
+    color: #efece4 !important; /* off-token-allow: dark-chrome-email-ink */
+  }
+  .rmc-email__motto,
+  .rmc-email__meta {
+    color: #b8b1a4 !important; /* off-token-allow: dark-chrome-email-meta */
+  }
+}

@@ -1,0 +1,37 @@
+{% load static i18n %}
+{% comment %} v3.55.0+ (2026-05-21): 200x Element 10 — Operator presence indicator.
+
+   Header capsule with 3 overlapping avatar dots + "N operators online" +
+   green status pulse dot + "All systems handling well" status pill.
+
+   CONFIGURABLE via cockpit.operator_presence (SiteSettings → context processor):
+     .enabled
+     .avatars                 list — [{initials, gradient_slug}]
+        gradient_slug ∈ {"indigo", "emerald", "amber"}
+     .operators_online_count  int
+     .operators_online_label  str  — "operators online"
+     .status_pill_text        str  — "All systems handling well"
+     .aria_label              str  — capsule aria-label
+{% endcomment %}
+
+{% if cockpit.operator_presence.enabled %}
+<div class="cp-presence" role="status" aria-label="{{ cockpit.operator_presence.aria_label|default:_('Operators online and platform status') }}">
+  {% if cockpit.operator_presence.avatars %}
+  <span class="cp-presence__avatars" aria-hidden="true">
+    {% for avatar in cockpit.operator_presence.avatars %}
+      <span class="cp-presence__avatar cp-presence__avatar--{{ avatar.gradient_slug|default:'indigo' }}">{{ avatar.initials }}</span>
+    {% endfor %}
+  </span>
+  {% endif %}
+  <span class="cp-presence__count">
+    {% blocktrans count counter=cockpit.operator_presence.operators_online_count trimmed %}
+      {{ counter }} operator online
+    {% plural %}
+      {{ counter }} operators online
+    {% endblocktrans %}
+  </span>
+  {% if cockpit.operator_presence.status_pill_text %}
+  <span class="cp-presence__status">{{ cockpit.operator_presence.status_pill_text }}</span>
+  {% endif %}
+</div>
+{% endif %}

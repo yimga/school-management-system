@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}
+Quick actions grid — v3.56.0 (2026-05-21)
+
+6-tile (or fewer) quick action grid. Mirrors v3 preview's `.tp-quick-grid`.
+
+Configurability (cockpit.quick_actions.*):
+  enabled       bool         # default False; operator opt-in
+  section_label str          # e.g. "Quick actions"
+  tiles         list[{
+                  url, icon, title, sub, badge,
+                }]
+
+Visibility:
+  - host kind:   never on manager surface
+  - per-tenant:  cockpit.quick_actions.enabled must be True
+  - per-page:    `{% block portal_quick_actions %}{% endblock %}` override suppresses
+
+PII safety:
+  Tile titles/subtitles must be operator-published copy, NOT raw user data.
+{% endcomment %}
+{% if cockpit.quick_actions.enabled and cockpit.quick_actions.tiles %}
+{% with qa=cockpit.quick_actions %}
+<section aria-label="{% trans 'Quick actions' %}">
+  <div class="tp-section-label tp-section-label--tight">
+    <div class="tp-section-label__title">{{ qa.section_label|default:_("Quick actions") }}</div>
+  </div>
+  <div class="tp-quick-grid">
+    {% for tile in qa.tiles %}
+    <a href="{{ tile.url|default:'#' }}" class="tp-quick-tile" data-rmc-tp-quick-tile>
+      {% if tile.icon %}<span class="tp-quick-tile__icon" aria-hidden="true">{{ tile.icon }}</span>{% endif %}
+      <span class="tp-quick-tile__title">{{ tile.title }}</span>
+      {% if tile.sub %}<span class="tp-quick-tile__sub">{{ tile.sub }}</span>{% endif %}
+      {% if tile.badge %}<span class="tp-quick-tile__badge" aria-label="{% blocktrans with n=tile.badge %}{{ n }} pending{% endblocktrans %}">{{ tile.badge }}</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endwith %}
+{% endif %}

@@ -1,0 +1,44 @@
+{% load i18n %}
+{% comment %}
+Sibling comparison — v3.57.0 (2026-05-21)
+
+Privacy-gated, opt-in ONLY. Names never appear — initials only.
+Requires BOTH .enabled AND .opt_in True to render.
+{% endcomment %}
+{% if cockpit.sibling_compare.enabled and cockpit.sibling_compare.opt_in and cockpit.sibling_compare.metrics %}
+{% with sc=cockpit.sibling_compare %}
+<section class="tp-sibling-compare" aria-label="{{ sc.title }}" data-rmc-tp-sibling-compare>
+  <header class="tp-sibling-compare__head">
+    <h3 class="tp-sibling-compare__title">{{ sc.title|default:_("Sibling comparison") }}</h3>
+    {% if sc.privacy_notice %}<p class="tp-sibling-compare__privacy">{{ sc.privacy_notice }}</p>{% endif %}
+  </header>
+  <ul class="tp-sibling-compare__metrics" role="list">
+    {% for m in sc.metrics %}
+    <li class="tp-sibling-compare__metric">
+      <div class="tp-sibling-compare__metric-label">{{ m.metric_label }}</div>
+      <div class="tp-sibling-compare__siblings">
+        {% for sib in m.siblings %}
+        <div class="tp-sibling-compare__sibling">
+          <span class="tp-sibling-compare__initials" aria-hidden="true">{{ sib.initials|default:"··" }}</span>
+          <span class="tp-sibling-compare__value">{{ sib.value_display }}</span>
+          {% if sib.spark_points %}
+          <svg class="tp-sibling-compare__spark"
+               viewBox="0 0 100 24"
+               preserveAspectRatio="none"
+               role="img"
+               aria-label="{{ sib.initials }} trend">
+            <polyline points="{{ sib.spark_points }}"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"></polyline>
+          </svg>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endwith %}
+{% endif %}

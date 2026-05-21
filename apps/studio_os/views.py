@@ -1370,13 +1370,26 @@ def studio_shell(request, mode=None):
         # shape is consumed by templates/studio_os/partials/cockpit_signal_strip.html +
         # overview_command_cockpit.html. Keys may be int or None; None renders as honest
         # "—" placeholder with data-state="unknown" rather than fabricated zeros.
-        context["overview_signals"] = {
-            "pending_launches": None,
-            "draft_experiences": None,
-            "active_automations": None,
-            "output_readiness_pct": None,
-            "open_blockers": None,
-        }
+        # Backend wiring landed in v3.54.0 closeout via services.get_overview_signals;
+        # the helper is defensive and returns None for any signal whose source is
+        # unavailable, preserving the honest "unknown" UI state.
+        try:
+            from apps.studio_os.services import get_overview_signals
+
+            context["overview_signals"] = get_overview_signals(request)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            log_exception_with_context(
+                "studio_shell overview: get_overview_signals failed",
+                **request_context_for_log(request),
+                extra={"mode": "overview"},
+            )
+            context["overview_signals"] = {
+                "pending_launches": None,
+                "draft_experiences": None,
+                "active_automations": None,
+                "output_readiness_pct": None,
+                "open_blockers": None,
+            }
         # Mirror launch_health_summary + launch_ready into Overview context so the
         # right-rail "Studio readiness" branch (shell.html v3.54.0) has signal.
         # Honest empty state when school absent or setup_studio payload unavailable.
@@ -1509,6 +1522,19 @@ def studio_shell(request, mode=None):
         context["launch_ready"] = False
 
     if mode == "launch":
+        # v3.54.0: readiness summary for the launch readiness preview pane.
+        # Defensive — honest empty dict on any failure.
+        try:
+            from apps.studio_os.services import get_launch_readiness_summary
+
+            context["launch_readiness_summary"] = get_launch_readiness_summary(request)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            log_exception_with_context(
+                "studio_shell launch: get_launch_readiness_summary failed",
+                **request_context_for_log(request),
+                extra={"mode": "launch"},
+            )
+            context["launch_readiness_summary"] = {}
         launch_base = reverse("studio_os:launch")
         context["launch_studio_base_url"] = launch_base
         context["launch_left_rail"] = [
@@ -1755,6 +1781,20 @@ def studio_shell(request, mode=None):
         context["output_pack_preview_cards"] = get_output_report_pack_preview_cards(
             out_base=out_base
         )
+        # v3.54.0: readiness summary for the readiness preview pane + cockpit.
+        # Defensive — honest empty dict on any failure; templates fall back to
+        # derived counts from output_dependency_graph.
+        try:
+            from apps.studio_os.services import get_output_readiness_summary
+
+            context["output_readiness_summary"] = get_output_readiness_summary()
+        except (ImportError, AttributeError, TypeError, ValueError):
+            log_exception_with_context(
+                "studio_shell output: get_output_readiness_summary failed",
+                **request_context_for_log(request),
+                extra={"mode": "output"},
+            )
+            context["output_readiness_summary"] = {}
         _focus_pack = (request.GET.get("pack") or "").strip()
         context["output_focus_pack_code"] = _focus_pack[:160] if _focus_pack else ""
         context["output_doc_library"] = None

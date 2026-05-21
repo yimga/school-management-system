@@ -1,0 +1,56 @@
+{% load i18n %}
+{% comment %}
+Teacher spotlight card — v3.56.0 (2026-05-21)
+
+Italic Source Serif pull-quote card. Mirrors v3 preview's `.tp-spotlight`.
+
+Configurability (cockpit.teacher_spotlight.*):
+  enabled         bool      # default False; operator opt-in
+  title           str       # e.g. "Teacher spotlight"
+  sub             str       # e.g. "This week's featured staff member"
+  avatar_initials str       # 2-char initials, NEVER full name in avatar
+  teacher_name    str       # operator-published display name
+  teacher_role    str       # e.g. "Mathematics · Grade 10 Section B"
+  quote           str       # pull-quote body
+  actions         list[{label, url, glyph}]
+
+Visibility:
+  - host kind:   never on manager surface
+  - per-tenant:  cockpit.teacher_spotlight.enabled must be True
+  - per-page:    `{% block portal_teacher_spotlight %}{% endblock %}` override suppresses
+
+PII safety:
+  Teacher names + photos require the operator to opt them in via SiteSettings
+  AND the teacher's own consent flag (enforced upstream). The partial only
+  renders what landed in cockpit.teacher_spotlight.* — never reaches into
+  the directory.
+{% endcomment %}
+{% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}
+{% with ts=cockpit.teacher_spotlight %}
+<section class="tp-spotlight" aria-label="{% trans 'Teacher spotlight' %}">
+  <div class="tp-spotlight__head">
+    <h3 class="tp-spotlight__title">{{ ts.title|default:_("Teacher spotlight") }}</h3>
+    {% if ts.sub %}<div class="tp-spotlight__sub">{{ ts.sub }}</div>{% endif %}
+  </div>
+  <div class="tp-spotlight__teacher">
+    <div class="tp-spotlight__avatar" aria-hidden="true">{{ ts.avatar_initials|default:"··" }}</div>
+    <div>
+      <div class="tp-spotlight__name">{{ ts.teacher_name }}</div>
+      {% if ts.teacher_role %}<div class="tp-spotlight__role">{{ ts.teacher_role }}</div>{% endif %}
+    </div>
+  </div>
+  {% if ts.quote %}
+  <blockquote class="tp-spotlight__quote">{{ ts.quote }}</blockquote>
+  {% endif %}
+  {% if ts.actions %}
+  <div class="tp-spotlight__action">
+    {% for action in ts.actions %}
+    <a href="{{ action.url|default:'#' }}" class="tp-spotlight__chip">
+      {% if action.glyph %}<span aria-hidden="true">{{ action.glyph }}</span> {% endif %}{{ action.label }}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endwith %}
+{% endif %}

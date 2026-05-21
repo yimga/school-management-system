@@ -1,0 +1,44 @@
+{% load static i18n %}
+{% comment %} v3.55.0+ (2026-05-21): 200x Element 5 — Tenant heatmap.
+
+   20-col dense grid (≤60 visible tiles) colored by tenant health.
+   CSS-only hover labels (no JS).
+
+   CONFIGURABLE via cockpit.tenant_heatmap (SiteSettings → context processor):
+     .enabled       bool
+     .eyebrow       str
+     .title         str
+     .title_em      str   — italic tail
+     .meta_text     str
+     .tiles         list  — [{label, status}]
+        status ∈ {"healthy", "okay", "warn", "danger", "idle"}
+     .legend_hint   str
+{% endcomment %}
+
+{% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles %}
+<section class="lx-card lx-heatmap" aria-label="{% trans 'Tenant heatmap by health' %}">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.tenant_heatmap.eyebrow|default:_("Tenants · health grid") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.tenant_heatmap.title|default:_("Every school,") }}
+        {% if cockpit.tenant_heatmap.title_em %} <em>{{ cockpit.tenant_heatmap.title_em }}</em>{% endif %}
+      </h3>
+    </div>
+    {% if cockpit.tenant_heatmap.meta_text %}<div class="lx-card__meta">{{ cockpit.tenant_heatmap.meta_text }}</div>{% endif %}
+  </div>
+  <div class="lx-heatmap__grid" role="list">
+    {% for tile in cockpit.tenant_heatmap.tiles %}
+      <div class="lx-heatmap__tile lx-heatmap__tile--{{ tile.status|default:'okay' }}" role="listitem" data-label="{{ tile.label }}"></div>
+    {% endfor %}
+  </div>
+  <div class="lx-heatmap__legend" aria-label="{% trans 'Heatmap legend' %}">
+    <span class="lx-l-healthy">{% trans "Healthy" %}</span>
+    <span class="lx-l-okay">{% trans "Okay" %}</span>
+    <span class="lx-l-warn">{% trans "Watch" %}</span>
+    <span class="lx-l-danger">{% trans "Critical" %}</span>
+    <span class="lx-l-idle">{% trans "Idle / pilot" %}</span>
+    {% if cockpit.tenant_heatmap.legend_hint %}<span class="lx-heatmap__legend-hint">{{ cockpit.tenant_heatmap.legend_hint }}</span>{% endif %}
+  </div>
+</section>
+{% endif %}

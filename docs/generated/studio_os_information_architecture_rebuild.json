@@ -1,0 +1,97 @@
+{
+  "doc": "studio_os_information_architecture_rebuild",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "scope": "Cross-section information architecture as rebuilt in the v3.54.0 wave. For each section: title / purpose / primary action / secondary action / next best action / preview action / blocker indicator / help link.",
+  "global_navigation": {
+    "rail_order": ["Overview", "Experience", "Automation", "Outputs", "Launch", "Control"],
+    "rail_template": "templates/studio_os/shell.html lines 71-79",
+    "command_palette": "Ctrl+K — open studio command palette (33 actions per v3.53.0 registry)",
+    "skip_link": "#studio-canvas (preserved at shell.html:25)",
+    "host_indicator": "operator-only when request.public_host_kind == 'manager'"
+  },
+  "sections": {
+    "overview": {
+      "title": "Overview",
+      "purpose": "Studio OS home — single cockpit surface answering what needs attention, what is ready, what changed, what is blocked",
+      "primary_action": "Open next-best-action (hero CTA from studio_recommendations[0])",
+      "secondary_action": "Open any of the 5 mode cards (Experience / Automation / Output / Launch / Control)",
+      "next_best_action": "Surfaced in mission hero — driven by studio_recommendations[0]",
+      "preview_action": "Live previews triptych card (driven by studio_role_preview_entries)",
+      "blocker_indicator": "Open blockers signal-strip tile (overview_signals['open_blockers']); honest unknown placeholder when None",
+      "help": "Studio guidance panel",
+      "operator_only": ["RBAC hub chip", "Feature control hub chip"],
+      "tenant_safe": ["all 5 mode openers", "approval/workflow/import/document/report-library hub chips for own tenant"]
+    },
+    "experience": {
+      "title": "Experience",
+      "purpose": "Visual experience control room — design surfaces, tenant-safe live preview, theme/page/component state",
+      "primary_action": "Theme & colors (open editor)",
+      "secondary_action": "Customizer overview",
+      "next_best_action": "Open Compare or AI recommendations",
+      "preview_action": "experience_live_preview_pane.html — iframe + role selector + state badges",
+      "blocker_indicator": "theme_contrast_report status pill in workbench context column",
+      "help": "Studio guidance panel + Customizer overview CTA",
+      "operator_only": ["platform template pack management", "cross-tenant Compare"],
+      "tenant_safe": ["theme tokens edit (draft)", "publish own tenant", "preview as role (own tenant)"]
+    },
+    "automation": {
+      "title": "Automation",
+      "purpose": "Workflow simulation cockpit — trigger/action map, simulation preview, approval state, rollback posture",
+      "primary_action": "Open Workflow center",
+      "secondary_action": "Open Approval hub",
+      "next_best_action": "Run simulation on a draft workflow",
+      "preview_action": "automation_simulation_preview_pane.html — trigger context + projected actions + risks + affected-record count",
+      "blocker_indicator": "Risk warnings on workflow health panel; failing_count + paused_count from extended workflow health service",
+      "help": "Flow gallery CTA in right-rail when current_mode='automation'",
+      "operator_only": ["platform template publish", "cross-tenant approval"],
+      "tenant_safe": ["draft workflow", "simulate", "request activation"]
+    },
+    "output": {
+      "title": "Outputs",
+      "purpose": "Output readiness center — report/document/export/public/portal output preview + publish readiness + version state",
+      "primary_action": "Open Document library",
+      "secondary_action": "Open Report card builder",
+      "next_best_action": "Resolve missing-data warnings on packs with missing deps",
+      "preview_action": "output_readiness_preview_pane.html — per-pack state badges + readiness service-state indicator",
+      "blocker_indicator": "packs_missing_deps count from get_output_readiness_summary",
+      "help": "Branding inheritance chain visualization",
+      "operator_only": ["platform template publish", "cross-tenant export"],
+      "tenant_safe": ["draft report/document", "publish own", "export own"]
+    },
+    "launch": {
+      "title": "Launch",
+      "purpose": "Launch readiness command center — checklist, rollout timeline, blockers, approvals, operator vs tenant responsibilities",
+      "primary_action": "Preview infrastructure (school_infrastructure_preview_api)",
+      "secondary_action": "Validate (dry-run) infrastructure",
+      "next_best_action": "Request platform apply (operator-gated + data-rmc-confirm)",
+      "preview_action": "launch_readiness_preview_pane.html — per-role preview + readiness summary",
+      "blocker_indicator": "Active blockers via launch_readiness_summary (deferred — empty list today)",
+      "help": "Guided onboarding CTA",
+      "operator_only": ["infrastructure apply", "platform plan management"],
+      "tenant_safe": ["infrastructure preview", "validate (dry-run)", "role preview", "request platform apply"]
+    },
+    "control": {
+      "title": "Control",
+      "purpose": "Governance cockpit — audit summary, rollback control, dependency graph, permissions, feature flags bridge, risk state",
+      "primary_action": "View audit summary",
+      "secondary_action": "Open Feature control (external bridge link)",
+      "next_best_action": "Review impact before rollback",
+      "preview_action": "control_governance_preview_pane.html — proposed change + impact + dependency + audit-trail + rollback plan",
+      "blocker_indicator": "Risk state tiles (active flags, pending rollbacks, recent destructive — backend deferred)",
+      "help": "Why-enabled summary + impact analysis",
+      "operator_only": ["rollback (data-rmc-confirm + perm gate)", "AI cleanup", "system config console", "cross-tenant feature flag toggles"],
+      "tenant_safe": ["view audit (own school only)", "view impact analysis"]
+    }
+  },
+  "no_dead_ends": "Every section has a primary action that resolves to a real route or an honest empty state. Pre-existing v3.53 button-as-link in cockpit_copilot_rail.html was converted to <button> in the v3.54.0 closeout — zero NEW href=\"#\" in any v3.54.0 partial.",
+  "right_rail_branches": [
+    "current_mode == 'experience' (lines 152-183 in shell.html)",
+    "current_mode == 'launch' (184-201)",
+    "current_mode == 'automation' (202-208)",
+    "current_mode == 'output' (209-214)",
+    "current_mode == 'control' (217-243 — now with PII-safe actor_display)",
+    "not current_mode (244-265 — NEW v3.54.0 Overview branch with launch-readiness mirror + NBA CTA)",
+    "else fallback (266-268 — generic 'Preview, compare, and publish from the canvas')"
+  ]
+}

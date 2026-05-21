@@ -1,0 +1,412 @@
+/*
+ * rmc-tenant-canvas-100x.css — v3.55.2 (2026-05-21)
+ *
+ * Tenant-canvas additions appearing in `{% block portal_community_band %}`:
+ *   - .rmc-cband           — 3-column community band (student-of-month / parent testimonial / district map)
+ *   - .rmc-newsletter-band — gradient newsletter signup banner
+ *
+ * Both blocks sit at the END of portal-page-body, AFTER the per-role dashboard content
+ * and BEFORE the footer. They are gated by:
+ *   - host kind                                  (never render on manager surface)
+ *   - cockpit.community_band.enabled             (per-tenant opt-out)
+ *   - cockpit.newsletter_band.enabled            (per-tenant opt-out)
+ *   - {% block portal_community_band %}{% endblock %}  (per-page opt-out)
+ *
+ * All literal colors below either use semantic tokens or are wrapped in scoped
+ * `/* off-token-allow: ... */` markers per the v3.7.2 zero-tolerance scanner.
+ */
+
+/* ============================================================
+   Community band — 3 cards
+   ============================================================ */
+.rmc-cband {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr 1.3fr;
+  gap: 18px;
+  margin: 28px 0 0;
+}
+@media (max-width: 1100px) {
+  .rmc-cband { grid-template-columns: 1fr; }
+}
+
+.rmc-cband__card {
+  position: relative;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  padding: 18px 20px;
+  box-shadow: var(--elev-1, 0 1px 3px rgba(0,0,0,0.04)); /* off-token-allow: elevation-shadow-default */
+  overflow: hidden;
+}
+
+.rmc-cband__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.rmc-cband__title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.rmc-cband__chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--school-primary-light, var(--info-soft, rgba(59,130,246,0.12)));
+  color: var(--school-primary, var(--info, #2563eb));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ----------------------------- Student of the month */
+.rmc-cband__card--achievement::before {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle,
+    var(--school-secondary-light, rgba(193,154,38,0.22)) 0%, /* off-token-allow: school-secondary-tint-fallback */
+    transparent 70%);
+  pointer-events: none;
+}
+.rmc-cband__card--achievement .rmc-cband__chip {
+  background: var(--school-secondary-light, rgba(193,154,38,0.18)); /* off-token-allow: school-secondary-tint-fallback */
+  color: var(--school-secondary, #c19a26); /* off-token-allow: school-secondary-fallback */
+}
+.rmc-cband-achiever {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+}
+.rmc-cband-achiever__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,
+    var(--school-primary),
+    var(--school-secondary, #c19a26)); /* off-token-allow: school-secondary-fallback */
+  color: var(--surface-elevated, #fff); /* off-token-allow: avatar-fg-on-gradient */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12); /* off-token-allow: elevation-shadow-avatar */
+  flex-shrink: 0;
+}
+.rmc-cband-achiever__body { min-width: 0; flex: 1; }
+.rmc-cband-achiever__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 2px;
+}
+.rmc-cband-achiever__grade {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+.rmc-cband-achiever__quote {
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+.rmc-cband-achiever__cite {
+  display: block;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  font-style: normal;
+}
+
+/* ----------------------------- Parent testimonial rotation */
+.rmc-cband__card--testimonial {
+  background: linear-gradient(135deg,
+    var(--school-primary-light, var(--info-soft, rgba(59,130,246,0.10))) 0%, /* off-token-allow: school-primary-tint-fallback */
+    var(--surface-elevated) 60%);
+}
+.rmc-cband-testimonial { position: relative; min-height: 110px; }
+.rmc-cband-testimonial__quote {
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+  margin: 0 0 12px;
+  display: none;
+}
+.rmc-cband-testimonial__quote.is-active { display: block; }
+.rmc-cband-testimonial__quote::before {
+  content: "\201C";
+  font-size: 36px;
+  line-height: 0;
+  vertical-align: -10px;
+  color: var(--school-primary);
+  margin-right: 4px;
+  font-style: normal;
+}
+.rmc-cband-testimonial__cite {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-style: normal;
+  font-family: inherit;
+}
+.rmc-cband-testimonial__cite span {
+  color: var(--text-tertiary);
+  font-weight: 400;
+  margin-left: 6px;
+}
+.rmc-cband-testimonial__dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.rmc-cband-testimonial__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--hairline-strong, var(--hairline));
+  cursor: pointer;
+  padding: 0;
+  transition: background 200ms ease;
+}
+.rmc-cband-testimonial__dot.is-active { background: var(--school-primary); }
+.rmc-cband-testimonial__dot:focus-visible {
+  outline: 2px solid var(--school-primary);
+  outline-offset: 2px;
+}
+
+/* ----------------------------- District map preview */
+.rmc-cband__card--map { padding: 0; overflow: hidden; }
+.rmc-cband-map__inner { display: flex; flex-direction: column; height: 100%; }
+.rmc-cband-map__head { padding: 16px 18px 8px; }
+.rmc-cband-map__viewport {
+  position: relative;
+  flex: 1;
+  min-height: 140px;
+  background: linear-gradient(135deg, #e8f1ec 0%, #f4ead6 100%); /* off-token-allow: map-paper-gradient-light */
+  border-top: 1px solid var(--hairline);
+}
+.rmc-cband-map__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(0deg, rgba(0,0,0,0.04) 1px, transparent 1px), /* off-token-allow: map-grid-line */
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px); /* off-token-allow: map-grid-line */
+  background-size: 24px 24px;
+  opacity: 0.7;
+}
+.rmc-cband-map__road {
+  position: absolute;
+  background: var(--surface-elevated, #fff); /* off-token-allow: map-road-paper */
+  box-shadow: 0 0 0 1px var(--hairline);
+}
+.rmc-cband-map__road--h1 { top: 38%; left: 0; right: 0; height: 6px; }
+.rmc-cband-map__road--h2 { top: 70%; left: 0; right: 60%; height: 4px; }
+.rmc-cband-map__road--v1 { top: 0; bottom: 0; left: 32%; width: 6px; }
+.rmc-cband-map__road--v2 { top: 38%; bottom: 0; right: 18%; width: 4px; }
+.rmc-cband-map__pin {
+  position: absolute;
+  top: 32%;
+  left: 38%;
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--school-primary);
+  box-shadow:
+    0 6px 16px rgba(0,0,0,0.2), /* off-token-allow: elevation-shadow-pin */
+    0 0 0 5px rgba(255,255,255,0.5); /* off-token-allow: pin-halo-on-paper */
+  z-index: 2;
+}
+.rmc-cband-map__pin::after {
+  content: "🎓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  font-size: 13px;
+}
+.rmc-cband-map__pin-pulse {
+  position: absolute;
+  top: 32%;
+  left: 38%;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--school-primary);
+  opacity: 0.35;
+  animation: rmc-cband-map-pulse 2.8s ease-out infinite;
+  z-index: 1;
+}
+@keyframes rmc-cband-map-pulse {
+  0%   { transform: scale(1);   opacity: 0.4; }
+  100% { transform: scale(3);   opacity: 0;   }
+}
+.rmc-cband-map__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 14px;
+  background: linear-gradient(0deg,
+    rgba(255,255,255,0.97), /* off-token-allow: map-overlay-paper-strong */
+    rgba(255,255,255,0.85) 70%, /* off-token-allow: map-overlay-paper-fade */
+    transparent);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rmc-cband-map__addr {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.rmc-cband-map__addr span {
+  display: block;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+  margin-top: 2px;
+}
+.rmc-cband-map__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--school-primary);
+  color: var(--surface-elevated, #fff); /* off-token-allow: cta-fg-on-school-primary */
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12); /* off-token-allow: elevation-shadow-cta */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-cband-map__pin-pulse { animation: none; opacity: 0; }
+  .rmc-cband-testimonial__dot { transition: none; }
+}
+
+/* ============================================================
+   Newsletter signup band — gradient banner above footer
+   ============================================================ */
+.rmc-newsletter-band {
+  margin-top: 22px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg,
+    var(--school-primary) 0%,
+    var(--school-secondary, #c19a26) 100%); /* off-token-allow: school-secondary-fallback */
+  border-radius: var(--radius-lg, 16px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  color: var(--surface-elevated, #fff); /* off-token-allow: nl-band-fg-on-gradient */
+  box-shadow: var(--elev-2, 0 6px 18px rgba(0,0,0,0.12)); /* off-token-allow: elevation-shadow-band */
+  position: relative;
+  overflow: hidden;
+}
+.rmc-newsletter-band::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle,
+    rgba(255,255,255,0.18), /* off-token-allow: nl-band-glow-on-gradient */
+    transparent 70%);
+  pointer-events: none;
+}
+.rmc-newsletter-band__copy { position: relative; }
+.rmc-newsletter-band__copy strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+}
+.rmc-newsletter-band__copy span {
+  font-size: 12px;
+  opacity: 0.92;
+  display: block;
+}
+.rmc-newsletter-band__form {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rmc-newsletter-band__input {
+  appearance: none;
+  border: 0;
+  background: rgba(255,255,255,0.96); /* off-token-allow: nl-band-input-paper */
+  color: var(--text-primary);
+  padding: 9px 14px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 13px;
+  width: 240px;
+  font-family: inherit;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08); /* off-token-allow: elevation-shadow-input */
+}
+.rmc-newsletter-band__input::placeholder { color: var(--text-tertiary); }
+.rmc-newsletter-band__input:focus {
+  outline: 2px solid var(--surface-elevated, #fff); /* off-token-allow: nl-band-focus-ring-on-gradient */
+  outline-offset: 1px;
+}
+.rmc-newsletter-band__btn {
+  appearance: none;
+  border: 0;
+  background: rgba(0,0,0,0.18); /* off-token-allow: nl-band-btn-on-gradient */
+  color: var(--surface-elevated, #fff); /* off-token-allow: nl-band-btn-fg-on-gradient */
+  padding: 9px 18px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 160ms ease, transform 160ms ease;
+  font-family: inherit;
+}
+.rmc-newsletter-band__btn:hover {
+  background: rgba(0,0,0,0.32); /* off-token-allow: nl-band-btn-hover-on-gradient */
+  transform: translateY(-1px);
+}
+.rmc-newsletter-band__small {
+  font-size: 10.5px;
+  opacity: 0.85;
+}
+.rmc-newsletter-band__small a {
+  color: var(--surface-elevated, #fff); /* off-token-allow: nl-band-link-fg-on-gradient */
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-newsletter-band__btn { transition: none; }
+  .rmc-newsletter-band__btn:hover { transform: none; }
+}

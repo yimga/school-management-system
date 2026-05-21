@@ -54,6 +54,21 @@ backend-shell dashboard-page-backend
   {% admin_health as health %}
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 
+  {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings. {% endcomment %}
+  <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
+    {% include "partials/cockpit/_today_snapshot.html" %}
+    {% include "partials/cockpit/_quick_actions_grid.html" %}
+    {% include "partials/cockpit/_upcoming_events_strip.html" %}
+    <div class="tp-grid-2">
+      {% include "partials/cockpit/_activity_timeline.html" %}
+      <div class="tp-grid-stack">
+        {% include "partials/cockpit/_achievements_card.html" %}
+        {% include "partials/cockpit/_teacher_spotlight_card.html" %}
+      </div>
+    </div>
+  </div>
+
+
   {# 1012: Same breadcrumb chrome as portal_base; actions DRY via backend_portal_breadcrumb_actions (no nested blocks). #}
   {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.tenant_portal_breadcrumb_surface %}
   {% include "partials/breadcrumbs.html" %}

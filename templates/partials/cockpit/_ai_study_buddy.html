@@ -1,0 +1,45 @@
+{% load i18n %}
+{% comment %}
+AI study buddy chip — v3.57.0 (2026-05-21)
+
+Per-student AI study buddy chip. Stub-only — A8 owns the real AI service
+wiring. Defaults gated on cockpit.ai_study_buddy.enabled (default False
+at helper level; canonical home routes override to True).
+
+Configurability (cockpit.ai_study_buddy.*):
+  enabled         bool
+  label           str
+  greeting        str
+  suggestions     list[{icon, label, url}]
+  a8_wire_pending bool   # True = no real AI call yet
+
+PII safety:
+  No raw student data flows in here. Operator-published copy only.
+{% endcomment %}
+{% if cockpit.ai_study_buddy.enabled %}
+{% with sb=cockpit.ai_study_buddy %}
+{# a8-wire-pending: real AI gateway call replaces the stub here #}
+<section class="tp-ai-buddy" aria-label="{{ sb.label }}" data-rmc-tp-ai-buddy>
+  <div class="tp-ai-buddy__head">
+    <span class="tp-ai-buddy__avatar" aria-hidden="true">★</span>
+    <div class="tp-ai-buddy__title">
+      <strong>{{ sb.label|default:_("Study buddy") }}</strong>
+      {% if sb.a8_wire_pending %}<span class="tp-ai-buddy__pending" aria-label="{% trans 'Preview' %}">{% trans "Preview" %}</span>{% endif %}
+    </div>
+  </div>
+  {% if sb.greeting %}<p class="tp-ai-buddy__greeting">{{ sb.greeting }}</p>{% endif %}
+  {% if sb.suggestions %}
+  <ul class="tp-ai-buddy__suggestions" role="list">
+    {% for s in sb.suggestions %}
+    <li class="tp-ai-buddy__suggestion">
+      <a href="{{ s.url|default:'#' }}">
+        {% if s.icon %}<span aria-hidden="true">{{ s.icon }}</span>{% endif %}
+        {{ s.label }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endwith %}
+{% endif %}

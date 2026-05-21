@@ -1,0 +1,134 @@
+{% load static i18n %}
+{% comment %}
+Tenant community band — v3.55.2 (2026-05-21)
+
+3-column band: Student of the month / Parent testimonial rotation / District map.
+
+Configurability (cockpit.community_band.*):
+  enabled              bool          # default False; operator opt-in
+  achievement:
+    enabled            bool
+    title              str (e.g. "Student of the month")
+    period_label       str           # e.g. "May 2026"
+    student_initials   str (avatar)
+    student_name       str
+    student_subline    str (grade · activity)
+    teacher_quote      str
+    teacher_cite       str
+  testimonial:
+    enabled            bool
+    title              str
+    quotes             list[{body, cite_name, cite_role}]   # 2..N quotes auto-rotate
+    interval_ms        int           # default 7000
+  map:
+    enabled            bool
+    title              str
+    period_label       str (e.g. "Open weekdays")
+    address_line_1     str
+    address_line_2     str (sub-line)
+    maps_url           str
+    cta_label          str
+
+Visibility:
+  - host kind:   never on manager surface (cockpit_context returns no community_band for non-tenants)
+  - per-tenant:  cockpit.community_band.enabled must be True
+  - per-page:    `{% block portal_community_band %}{% endblock %}` override suppresses
+
+PII safety:
+  Student names / teacher names appear here. These ARE PII at the tenant
+  scope. They render ONLY when an operator (or per-tenant feature workflow)
+  has explicitly published the values in SiteSettings — never via auto-extract
+  from the platform's user data.
+{% endcomment %}
+{% if cockpit.community_band.enabled %}
+<section class="rmc-cband" aria-label="{% trans 'Community spotlight' %}">
+
+  {% if cockpit.community_band.achievement.enabled %}
+    {% with ach=cockpit.community_band.achievement %}
+    <article class="rmc-cband__card rmc-cband__card--achievement">
+      <div class="rmc-cband__head">
+        <h3 class="rmc-cband__title">🏅 {{ ach.title|default:_("Student of the month") }}</h3>
+        {% if ach.period_label %}<span class="rmc-cband__chip">{{ ach.period_label }}</span>{% endif %}
+      </div>
+      <div class="rmc-cband-achiever">
+        <div class="rmc-cband-achiever__avatar" aria-hidden="true">{{ ach.student_initials|default:"·" }}</div>
+        <div class="rmc-cband-achiever__body">
+          <div class="rmc-cband-achiever__name">{{ ach.student_name }}{% if ach.student_subline %} · {{ ach.student_subline }}{% endif %}</div>
+          {% if ach.teacher_quote %}
+          <p class="rmc-cband-achiever__quote">
+            &ldquo;{{ ach.teacher_quote }}&rdquo;
+            {% if ach.teacher_cite %}<cite class="rmc-cband-achiever__cite">— {{ ach.teacher_cite }}</cite>{% endif %}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% endwith %}
+  {% endif %}
+
+  {% if cockpit.community_band.testimonial.enabled and cockpit.community_band.testimonial.quotes %}
+    {% with t=cockpit.community_band.testimonial %}
+    <article class="rmc-cband__card rmc-cband__card--testimonial">
+      <div class="rmc-cband__head">
+        <h3 class="rmc-cband__title">💬 {{ t.title|default:_("Parent voices") }}</h3>
+        <span class="rmc-cband__chip">{% trans "Live" %}</span>
+      </div>
+      <div class="rmc-cband-testimonial"
+           data-rmc-testimonial
+           data-rmc-testimonial-interval-ms="{{ t.interval_ms|default:7000 }}">
+        {% for q in t.quotes %}
+        <p class="rmc-cband-testimonial__quote{% if forloop.first %} is-active{% endif %}" data-rmc-testimonial-quote>
+          {{ q.body }}
+          <cite class="rmc-cband-testimonial__cite">— {{ q.cite_name }}{% if q.cite_role %}<span>{{ q.cite_role }}</span>{% endif %}</cite>
+        </p>
+        {% endfor %}
+        <div class="rmc-cband-testimonial__dots" role="tablist" aria-label="{% trans 'Testimonial selector' %}">
+          {% for q in t.quotes %}
+          <button type="button"
+                  class="rmc-cband-testimonial__dot{% if forloop.first %} is-active{% endif %}"
+                  data-rmc-testimonial-dot="{{ forloop.counter0 }}"
+                  aria-label="{% blocktrans with n=forloop.counter %}Show testimonial {{ n }}{% endblocktrans %}"></button>
+          {% endfor %}
+        </div>
+      </div>
+    </article>
+    {% endwith %}
+  {% endif %}
+
+  {% if cockpit.community_band.map.enabled %}
+    {% with m=cockpit.community_band.map %}
+    <article class="rmc-cband__card rmc-cband__card--map">
+      <div class="rmc-cband-map__inner">
+        <div class="rmc-cband-map__head">
+          <div class="rmc-cband__head" style="margin-bottom:0;">
+            <h3 class="rmc-cband__title">📍 {{ m.title|default:_("Visit us") }}</h3>
+            {% if m.period_label %}<span class="rmc-cband__chip">{{ m.period_label }}</span>{% endif %}
+          </div>
+        </div>
+        <div class="rmc-cband-map__viewport" aria-label="{% trans 'Map preview' %}">
+          <div class="rmc-cband-map__grid" aria-hidden="true"></div>
+          <span class="rmc-cband-map__road rmc-cband-map__road--h1" aria-hidden="true"></span>
+          <span class="rmc-cband-map__road rmc-cband-map__road--h2" aria-hidden="true"></span>
+          <span class="rmc-cband-map__road rmc-cband-map__road--v1" aria-hidden="true"></span>
+          <span class="rmc-cband-map__road rmc-cband-map__road--v2" aria-hidden="true"></span>
+          <span class="rmc-cband-map__pin-pulse" aria-hidden="true"></span>
+          <span class="rmc-cband-map__pin" aria-hidden="true"></span>
+          <div class="rmc-cband-map__overlay">
+            <div class="rmc-cband-map__addr">
+              {{ m.address_line_1|default:"" }}
+              {% if m.address_line_2 %}<span>{{ m.address_line_2 }}</span>{% endif %}
+            </div>
+            {% if m.maps_url %}
+            <a href="{{ m.maps_url }}" target="_blank" rel="noopener noreferrer" class="rmc-cband-map__cta">
+              {{ m.cta_label|default:_("Open in maps ↗") }}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </article>
+    {% endwith %}
+  {% endif %}
+
+</section>
+{% endif %}

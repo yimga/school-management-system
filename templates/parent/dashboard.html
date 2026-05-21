@@ -17,6 +17,19 @@
 
 {% block content %}
 {% with widgets=display_widgets %}
+{% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings. {% endcomment %}
+<div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="parent">
+  {% include "partials/cockpit/_today_snapshot.html" %}
+  {% include "partials/cockpit/_quick_actions_grid.html" %}
+  {% include "partials/cockpit/_upcoming_events_strip.html" %}
+  <div class="tp-grid-2">
+    {% include "partials/cockpit/_activity_timeline.html" %}
+    <div class="tp-grid-stack">
+      {% include "partials/cockpit/_achievements_card.html" %}
+      {% include "partials/cockpit/_teacher_spotlight_card.html" %}
+    </div>
+  </div>
+</div>
 <div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home" data-rmc-page="parent-portal">
   <div class="container-lg py-4">
     {% phase8_dashboard_declaration "parent/dashboard.html" %}

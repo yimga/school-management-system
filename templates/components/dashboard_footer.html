@@ -1,156 +1,144 @@
 {% load static i18n %}
 {% load accounts_extras %}
-<footer class="dashboard-footer" id="dashboardFooter" data-rmc-footer-surface="tenant-standard">
-  {% if PUBLIC_BRAND_MODE %}
-  <div class="footer-shell footer-platform-only">
-    <div class="footer-meta small">
-      <span>&copy; {% now "Y" %} {{ PUBLIC_BRAND_NAME }}. All rights reserved.</span>
-      <span class="meta-powered">Powered by <strong>{{ PUBLIC_BRAND_NAME }}</strong></span>
-    </div>
-  </div>
-  {% else %}
-  {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
-  <div class="footer-shell" id="preview-footer-bg" data-preview-label="Footer background &amp; colors">
-    <div class="footer-top">
-      <div class="footer-card brand-card" id="preview-footer-brand" data-preview-label="Logo, company name &amp; accreditation">
-        <div class="brand-logo">
-          {% if SITE_LOGO_URL %}
-            <img src="{{ SITE_LOGO_URL }}" alt="{{ SITE.company_name|default:'School Management System' }}" width="48" height="48" loading="lazy">
-          {% else %}
-            <img src="{% static 'images/logo.png' %}" alt="{{ SITE.company_name|default:'School Management System' }}" width="48" height="48" loading="lazy">
-          {% endif %}
-        </div>
-        <div class="brand-body">
-          <div class="brand-title">{{ SITE.company_name|default:SITE.site_name|default:"School" }}</div>
-          <div class="brand-pill">{{ SITE.footer_accreditation_text|default:"Ministry of Education | UNESCO Standards Compliant" }}</div>
-          <p class="brand-micro">{{ SITE.footer_accreditation_subtext|default:"Certified for educational institutions worldwide | ISO 9001:2015 Quality Management" }}</p>
-          <p class="brand-global-reach text-muted small mb-0 mt-1" aria-label="{% trans 'Global reach' %}">{% trans "Built for schools worldwide · Any region · Any currency · Any language" %}</p>
-        </div>
+{% comment %}
+Tenant civic footer — v3.55.0 (2026-05-21)
+Densified 4-tier centered layout shared with the manager operator footer.
+Configurability: cockpit.footer.{brand, trust_pillars, language, app_badges,
+social, contacts, stat_line, legal_links, copyright_holder, powered_by}.
+Falls back to SITE-model values when cockpit.footer.* is empty.
+{% endcomment %}
+<footer class="rmc-civic-footer" id="dashboardFooter" data-rmc-footer-surface="tenant-standard" role="contentinfo">
+  <div class="rmc-civic-footer__inner">
+
+    {% if PUBLIC_BRAND_MODE %}
+      {# Minimal platform-only mode (white-label resellers) #}
+      <div class="rmc-civic-footer__brand">
+        <strong>{{ PUBLIC_BRAND_NAME }}</strong>
       </div>
-      <div class="footer-card help-card" id="preview-footer-help" data-preview-label="Support hours &amp; contact">
-        <div class="help-title">Need extra help?</div>
-        <div class="help-hours">{{ SITE.footer_support_hours|default:"Mon-Fri: 8AM-6PM | Sat: 9AM-4PM" }}</div>
-        {% if SITE.whatsapp_support_number or SITE.footer_whatsapp_url %}
-          {% if SITE.whatsapp_support_number %}
-            {# Prefer wa.me link built from configured support number #}
-            <a class="pill-button success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I need help with the school management system.'|urlencode }}" target="_blank" rel="noopener noreferrer">WhatsApp Support</a>
-          {% else %}
-            <a class="pill-button success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noopener noreferrer">WhatsApp Support</a>
+      <div class="rmc-civic-footer__legal">
+        <span class="rmc-civic-footer__legal-copy">&copy; {% now "Y" %} {{ PUBLIC_BRAND_NAME }}. {% trans "All rights reserved." %}</span>
+        <span class="rmc-civic-footer__legal-sep">·</span>
+        <span>{% trans "Powered by" %} <strong>{{ PUBLIC_BRAND_NAME }}</strong></span>
+      </div>
+    {% else %}
+
+      {# Tier 1 — brand wordmark + motto + est. (single inline row) #}
+      <div class="rmc-civic-footer__brand">
+        <strong>{{ cockpit.footer.brand.wordmark|default:SITE.company_name|default:SITE.site_name|default:"School" }}</strong>
+        {% with footer_motto=cockpit.footer.brand.motto|default:SITE.footer_motto %}
+          {% if footer_motto %}
+            <span class="rmc-civic-footer__motto">&ldquo;{{ footer_motto }}&rdquo;</span>
           {% endif %}
-        {% else %}
-          <a class="pill-button success" href="mailto:{{ SITE.company_email|default:'support@school.com' }}">Email Support</a>
+        {% endwith %}
+        <span class="rmc-civic-footer__est">
+          · {{ cockpit.footer.brand.descriptor|default:"Family portal" }}
+          {% with founded=cockpit.footer.brand.founded_year|default:SITE.footer_founded_year %}{% if founded %} · {% trans "Est." %} {{ founded }}{% endif %}{% endwith %}
+        </span>
+      </div>
+
+      {# Tier 2 — trust pillars + language switcher + app badges + social #}
+      <div class="rmc-civic-footer__strip">
+        {# Trust pillars #}
+        {% with trust_pillars=cockpit.footer.trust_pillars %}
+          {% if trust_pillars %}
+            {% for pillar in trust_pillars %}
+              <span class="rmc-civic-footer__pill{% if pillar.tone == 'secure' %} rmc-civic-footer__pill--secure{% elif pillar.tone == 'cert' %} rmc-civic-footer__pill--cert{% endif %}">{{ pillar.label }}</span>
+            {% endfor %}
+          {% else %}
+            {# Default trust pillar when nothing is configured #}
+            <span class="rmc-civic-footer__pill rmc-civic-footer__pill--secure">🔒 FERPA · ISO 27001 · WCAG 2.1 AA</span>
+          {% endif %}
+        {% endwith %}
+
+        {# Language switcher #}
+        {% if cockpit.footer.language.has_switcher or LANGUAGES %}
+          <button type="button" class="rmc-civic-footer__lang" aria-haspopup="listbox" aria-label="{% trans 'Change language' %}" data-rmc-lang-switcher>
+            🌐 {{ cockpit.footer.language.label|default:LANGUAGE_NAME_LOCAL|default:"English" }}
+            <span class="rmc-civic-footer__lang-caret" aria-hidden="true">▾</span>
+          </button>
         {% endif %}
-      </div>
-    </div>
 
-    <div class="footer-grid footer-grid-accordion">
-      <div class="footer-card list-card footer-accordion-card">
-        <details class="footer-details" open>
-          <summary class="segment-title footer-accordion-summary">Support &amp; Help</summary>
-          <div class="segment-links">
-            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' %}{% endif %}"><i class="bi bi-life-preserver"></i> {% trans "Help center" %}</a>
-            {% if request.public_host_kind != 'manager' %}<a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> {% trans "Knowledge base" %}</a>{% endif %}
-            {% if request.public_host_kind == 'manager' %}
-            <a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> {% trans "Knowledge base" %}</a>
-            {% endif %}
-            {% if request.public_host_kind != 'manager' and request.user.is_authenticated %}
-            <a href="{% url 'portal:support_help_hub' %}"><i class="bi bi-life-preserver"></i> {% trans "Help & support hub" %}</a>
-            {% endif %}
-            {% if request.public_host_kind == 'manager' %}
-            <a href="{% url 'super:command_center' %}"><i class="bi bi-activity"></i> Command Center</a>
-            {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
-              {% if is_backend_context %}
-              <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-shield-lock"></i> Backend Dashboard</a>
-              {% else %}
-              <a href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-shield-lock"></i> {% trans "Config center" %}</a>
-              {% endif %}
-              <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
-            {% endif %}
-            <a href="{% url 'kb:faq_list' %}"><i class="bi bi-patch-question"></i> {% trans "FAQs" %}</a>
-          </div>
-        </details>
-      </div>
-      <div class="footer-card list-card footer-accordion-card">
-        <details class="footer-details" open>
-          <summary class="segment-title footer-accordion-summary">Quick Links</summary>
-          <div class="segment-links">
-            {% if request.public_host_kind == 'manager' %}
-              <a href="{% url 'super:dashboard' %}"><i class="bi bi-kanban"></i> Control Plane</a>
-              <a href="{% url 'super:billing_dashboard' %}"><i class="bi bi-receipt"></i> Platform Billing</a>
-              <a href="{% url 'super:create_school_wizard' %}"><i class="bi bi-building-add"></i> Add school</a>
-            {% elif can_settings or can_data_access %}
-              <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban"></i> Backend Dashboard</a>
-            {% endif %}
-            {% if request.public_host_kind != 'manager' and request.user|has_role:"TEACHER" and can_reports %}
-              <a href="{% url 'evals:teacher_dashboard' %}"><i class="bi bi-mortarboard"></i> Teacher Portal</a>
-              <a href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pen"></i> Marks Entry</a>
-            {% endif %}
-            {% if request.public_host_kind != 'manager' and request.user|has_role:"PARENT" %}
-              {% if can_finance_view or can_finance_manage %}
-                <a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices</a>
-              {% endif %}
-            {% endif %}
-            {% if request.public_host_kind != 'manager' and can_reports and not request.user|has_role:"PARENT" %}
-              <a href="{% url 'accounts:backend_dashboard' %}#reports"><i class="bi bi-graph-up"></i> Reports</a>
-            {% endif %}
-          </div>
-        </details>
-      </div>
-      <div class="footer-card list-card footer-accordion-card">
-        <details class="footer-details" open>
-          <summary class="segment-title footer-accordion-summary">Contact &amp; Status</summary>
-          <div class="segment-links">
-            <a href="mailto:{{ SITE.company_email|default:'support@school.com' }}"><i class="bi bi-envelope-open"></i> {{ SITE.company_email|default:"support@school.com" }}</a>
-            <a href="tel:{{ SITE.company_phone|default:'+15551234567' }}"><i class="bi bi-telephone"></i> {{ SITE.company_phone|default:"+1 (555) 123-4567" }}</a>
-            {% if MARKETING_BASE_URL %}
-            <a href="{{ MARKETING_BASE_URL }}/uptime/" target="_blank" rel="noopener noreferrer"><i class="bi bi-activity"></i> Platform Status</a>
-            {% endif %}
-            <span class="status-chip">All Systems Operational</span>
-          </div>
-        </details>
-      </div>
-      <div class="footer-card list-card footer-accordion-card">
-        <details class="footer-details" open>
-          <summary class="segment-title footer-accordion-summary">Legal &amp; Info</summary>
-          <div class="segment-links">
-            {% if SITE.footer_links %}
-              {% for item in SITE.footer_links %}
-                {% if item.enabled|default:True %}
-                  {% if not item.roles or request.user.role|default_if_none:''|upper in item.roles %}
-                    {% if item.url %}
-                      <a href="{{ item.url }}"><i class="bi bi-link-45deg"></i> {{ item.label }}</a>
-                    {% else %}
-                      <span class="muted-link"><i class="bi bi-dot"></i> {{ item.label }}</span>
-                    {% endif %}
-                  {% endif %}
-                {% endif %}
+        {# App badges #}
+        {% with app_badges=cockpit.footer.app_badges %}
+          {% for badge in app_badges %}
+            <a href="{{ badge.url|default:'#' }}" class="rmc-civic-footer__appbadge" aria-label="{{ badge.label }}"{% if badge.url %} target="_blank" rel="noopener noreferrer"{% endif %}>
+              <span class="rmc-civic-footer__appbadge-glyph" aria-hidden="true">{{ badge.glyph }}</span> {{ badge.label }}
+            </a>
+          {% endfor %}
+        {% endwith %}
+
+        {# Divider + social #}
+        {% with social=cockpit.footer.social %}
+          {% if social %}
+            <span class="rmc-civic-footer__divider" aria-hidden="true"></span>
+            <span class="rmc-civic-footer__social" aria-label="{% trans 'Follow' %} {{ cockpit.footer.brand.wordmark|default:SITE.company_name|default:'us' }}">
+              <span class="rmc-civic-footer__social-label">{% trans "Follow" %}</span>
+              {% for link in social %}
+                <a class="rmc-civic-footer__social-icon" href="{{ link.url|default:'#' }}" aria-label="{{ link.label|default:link.platform }}" title="{{ link.label|default:link.platform }}"{% if link.url %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.glyph }}</a>
               {% endfor %}
-            {% endif %}
-            <span class="muted-link">Version {{ system_version|default:"3.2.1" }}</span>
-          </div>
-        </details>
+            </span>
+          {% endif %}
+        {% endwith %}
       </div>
-    </div>
 
-    <div class="footer-status-row">
-      <span class="status-pill">Live Chat Ready</span>
-      <span class="status-pill">API Status: Nominal</span>
-      {% for badge in SITE.footer_badges %}
-                <span class="status-pill {{ badge.tone|default:"" }}">{{ badge.label }}</span>
-      {% endfor %}
-    </div>
+      {# Tier 3 — contacts + social-proof stat #}
+      <div class="rmc-civic-footer__contacts">
+        {% with contacts=cockpit.footer.contacts %}
+          {% if contacts %}
+            {% for c in contacts %}
+              <span class="rmc-civic-footer__contact">{{ c.glyph|default:"·" }}{% if c.href %} <a href="{{ c.href }}">{{ c.value }}</a>{% else %} {{ c.value }}{% endif %}</span>
+            {% endfor %}
+          {% else %}
+            {# Fall back to SITE-model contact info #}
+            {% if SITE.company_phone %}<span class="rmc-civic-footer__contact">📞 <a href="tel:{{ SITE.company_phone }}">{{ SITE.company_phone }}</a></span>{% endif %}
+            {% if SITE.company_email %}<span class="rmc-civic-footer__contact">📧 <a href="mailto:{{ SITE.company_email }}">{{ SITE.company_email }}</a></span>{% endif %}
+            {% if SITE.company_address %}<span class="rmc-civic-footer__contact">📍 {{ SITE.company_address }}</span>{% endif %}
+            {% if MARKETING_BASE_URL %}<span class="rmc-civic-footer__contact">📡 <a href="{{ MARKETING_BASE_URL }}/uptime/" target="_blank" rel="noopener noreferrer">{% trans "Platform status" %}</a></span>{% endif %}
+          {% endif %}
+        {% endwith %}
 
-    <div class="footer-meta small" id="preview-footer-meta" data-preview-label="Copyright &amp; company name">
-      <span>&copy; {% now "Y" %} {{ SITE.company_name|default:SITE.site_name|default:"School" }}. All rights reserved.</span>
-      <span class="meta-powered">Powered by <strong>RunMyCampus</strong></span>
-      {% if MARKETING_BASE_URL %}
-      <a href="{{ MARKETING_BASE_URL }}/" target="_blank" rel="noopener noreferrer" class="ms-2">RunMyCampus</a>
-      <a href="{{ MARKETING_BASE_URL }}/pricing/" target="_blank" rel="noopener noreferrer" class="ms-2">Pricing</a>
-      {% endif %}
-    </div>
+        {% with stat_line=cockpit.footer.stat_line %}
+          {% if stat_line %}
+            <span class="rmc-civic-footer__divider" aria-hidden="true"></span>
+            <span class="rmc-civic-footer__stat">{{ stat_line|safe }}</span>
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      {# Tier 4 — single-line legal #}
+      <div class="rmc-civic-footer__legal">
+        <span class="rmc-civic-footer__legal-copy">&copy; {% now "Y" %} {{ cockpit.footer.copyright_holder|default:SITE.company_name|default:SITE.site_name|default:"School" }}</span>
+        {% with legal_links=cockpit.footer.legal_links %}
+          {% if legal_links %}
+            {% for link in legal_links %}
+              <span class="rmc-civic-footer__legal-sep">·</span>
+              <a href="{{ link.url|default:'#' }}">{{ link.label }}</a>
+            {% endfor %}
+          {% elif SITE.footer_links %}
+            {% for item in SITE.footer_links %}
+              {% if item.enabled|default:True %}
+                <span class="rmc-civic-footer__legal-sep">·</span>
+                {% if item.url %}<a href="{{ item.url }}">{{ item.label }}</a>{% else %}<span>{{ item.label }}</span>{% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% with powered=cockpit.footer.powered_by %}
+          {% if powered.label %}
+            <span class="rmc-civic-footer__legal-sep">·</span>
+            <span>{% trans "Powered by" %}
+              {% if powered.url %}<a href="{{ powered.url }}" target="_blank" rel="noopener noreferrer"><strong>{{ powered.label }}</strong></a>{% else %}<strong>{{ powered.label }}</strong>{% endif %}
+            </span>
+          {% else %}
+            <span class="rmc-civic-footer__legal-sep">·</span>
+            <span>{% trans "Powered by" %} <strong>RunMyCampus</strong></span>
+          {% endif %}
+        {% endwith %}
+      </div>
+
+    {% endif %}
   </div>
-  {% endwith %}
-  {% endif %}
 </footer>
 
 <script src="{% static 'js/_pages/components__dashboard_footer.js' %}"></script>

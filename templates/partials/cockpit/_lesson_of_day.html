@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %}
+Lesson of the day — v3.57.0 (2026-05-21)
+
+Today's lesson card. Operator-published content; never auto-rendered
+from raw student PII (teacher name is fine; child name omitted).
+{% endcomment %}
+{% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}
+{% with lo=cockpit.lesson_of_day %}
+<section class="tp-lesson" aria-label="{{ lo.title }}" data-rmc-tp-lesson>
+  <header class="tp-lesson__head">
+    <span class="tp-lesson__label">{{ lo.title|default:_("Lesson of the day") }}</span>
+    {% if lo.time_window %}<span class="tp-lesson__time">{{ lo.time_window }}</span>{% endif %}
+  </header>
+  <div class="tp-lesson__body">
+    {% if lo.subject %}<span class="tp-lesson__subject">{{ lo.subject }}</span>{% endif %}
+    <h3 class="tp-lesson__title">{{ lo.lesson_title }}</h3>
+    {% if lo.teacher_name %}<span class="tp-lesson__teacher">{{ lo.teacher_name }}</span>{% endif %}
+    {% if lo.summary %}<p class="tp-lesson__summary">{{ lo.summary }}</p>{% endif %}
+  </div>
+  {% if lo.resources %}
+  <ul class="tp-lesson__resources" role="list">
+    {% for r in lo.resources %}
+    <li class="tp-lesson__resource">
+      <a href="{{ r.url|default:'#' }}">
+        {% if r.icon %}<span aria-hidden="true">{{ r.icon }}</span>{% endif %}
+        {{ r.label }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if lo.cta.url %}
+  <a class="tp-lesson__cta" href="{{ lo.cta.url }}">{{ lo.cta.label|default:_("Open lesson") }} →</a>
+  {% endif %}
+</section>
+{% endwith %}
+{% endif %}

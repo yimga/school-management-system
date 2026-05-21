@@ -24,6 +24,8 @@
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+    {# v3.55.2 (2026-05-21): parent testimonial auto-rotation (community band). #}
+    <script src="{% static 'js/_pages/rmc-testimonial-rotate.js' %}" defer></script>
     {% include "partials/rmc_shortcuts_i18n.html" %}
     <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
@@ -52,6 +54,12 @@
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-chrome-variants.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
+    {# v3.55.0 (2026-05-21): civic 4-tier centered footer (tenant + manager dark variant). #}
+    <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
+    {# v3.55.2 (2026-05-21): tenant canvas community band + newsletter signup band. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
+    {# v3.56.0 (2026-05-21): tenant per-role dashboard v2 (today snapshot + quick actions + events + activity + achievements + spotlight + child context). #}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
     <link rel="stylesheet" href="{% static 'css/glass-surface-recipe.css' %}">
@@ -452,6 +460,17 @@
 
             <div class="portal-page-body" data-rmc-portal-page-body="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
             {% block content %}{% endblock %}
+
+            {# v3.55.2 (2026-05-21): tenant community + newsletter bands.
+               Never render on manager surface (cockpit_context returns no
+               community_band/newsletter_band for non-tenants). Per-page
+               opt-out: override `{% block portal_community_band %}{% endblock %}`. #}
+            {% if request.public_host_kind != 'manager' %}
+            {% block portal_community_band %}
+              {% include "partials/cockpit/_community_band.html" %}
+              {% include "partials/cockpit/_newsletter_band.html" %}
+            {% endblock %}
+            {% endif %}
             </div>
             {% block rmc_os_context_rail %}
             {% include "components/rmc_os_context_rail.html" %}

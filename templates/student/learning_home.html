@@ -7,6 +7,19 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 {% endblock %}
 {% block content %}
+{% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings. {% endcomment %}
+<div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="student">
+  {% include "partials/cockpit/_today_snapshot.html" %}
+  {% include "partials/cockpit/_quick_actions_grid.html" %}
+  {% include "partials/cockpit/_upcoming_events_strip.html" %}
+  <div class="tp-grid-2">
+    {% include "partials/cockpit/_activity_timeline.html" %}
+    <div class="tp-grid-stack">
+      {% include "partials/cockpit/_achievements_card.html" %}
+      {% include "partials/cockpit/_teacher_spotlight_card.html" %}
+    </div>
+  </div>
+</div>
 <div class="container-lg py-3" data-page-archetype="role-home" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-task="student_home" data-task-step="student:dashboard">
   {% phase8_dashboard_declaration "student/learning_home.html" %}
   {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}

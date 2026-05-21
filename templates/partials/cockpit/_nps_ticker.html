@@ -1,0 +1,52 @@
+{% load static i18n %}
+{% comment %} v3.57.0 (2026-05-21): 200x front-office Element 2 — NPS sentiment ticker.
+
+   Rolling 30-day NPS score with promoter/passive/detractor split + verbatim ticker.
+
+   CONFIGURABLE via cockpit.nps_ticker (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .score             str  — big number ("62" / "—")
+     .score_status      str  — "promoter"|"passive"|"detractor"
+     .delta_text        str
+     .delta_tone        str  — "up"|"down"|"flat"
+     .breakdown         list — [{label, count, pct, kind}]
+     .verbatim          list — [{quote, score_tag}]
+     .caption           str
+{% endcomment %}
+
+{% if cockpit.nps_ticker.enabled %}
+<section class="lx-card lx-nps" aria-label="{% trans 'NPS sentiment ticker' %}">
+  <div class="lx-card__head">
+    <div class="lx-card__eyebrow">{{ cockpit.nps_ticker.eyebrow|default:_("Net promoter · rolling 30d") }}</div>
+    {% if cockpit.nps_ticker.delta_text %}
+      <div class="lx-nps__delta lx-nps__delta--{{ cockpit.nps_ticker.delta_tone|default:'flat' }}">{{ cockpit.nps_ticker.delta_text }}</div>
+    {% endif %}
+  </div>
+  <div class="lx-nps__score-row">
+    <div class="lx-nps__score lx-nps__score--{{ cockpit.nps_ticker.score_status|default:'passive' }}">{{ cockpit.nps_ticker.score|default:"—" }}</div>
+    {% if cockpit.nps_ticker.breakdown %}
+    <ul class="lx-nps__breakdown">
+      {% for item in cockpit.nps_ticker.breakdown %}
+      <li class="lx-nps__breakdown-row lx-nps__breakdown-row--{{ item.kind|default:'passives' }}">
+        <small>{{ item.label }}</small>
+        <strong>{{ item.count|default:"—" }}</strong>
+        <span class="lx-nps__pct">{{ item.pct|default:"" }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  {% if cockpit.nps_ticker.verbatim %}
+  <div class="lx-nps__verbatim" role="list" aria-label="{% trans 'Recent verbatim quotes' %}">
+    {% for v in cockpit.nps_ticker.verbatim %}
+    <blockquote class="lx-nps__quote" role="listitem">
+      <em>{{ v.quote }}</em>
+      {% if v.score_tag %}<span class="lx-nps__quote-tag">{{ v.score_tag }}</span>{% endif %}
+    </blockquote>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if cockpit.nps_ticker.caption %}<div class="lx-nps__caption"><em>{{ cockpit.nps_ticker.caption }}</em></div>{% endif %}
+</section>
+{% endif %}

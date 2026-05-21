@@ -1,0 +1,61 @@
+{% load i18n %}
+{% comment %}
+Recent activity timeline — v3.56.0 (2026-05-21)
+
+Vertical-rail recent activity card. Mirrors v3 preview's `.tp-activity`.
+
+Configurability (cockpit.activity_timeline.*):
+  enabled        bool        # default False; operator opt-in
+  title          str         # e.g. "Recent activity"
+  title_suffix   str         # e.g. "· this week"
+  view_all_link:
+    label        str
+    url          str
+  items          list[{
+                   icon, tone, text_html, meta_left, meta_right,
+                 }]
+                 # tone: "" | "success" | "warn" | "info"
+                 # text_html may carry <strong> per copy template (operator-controlled)
+
+Visibility:
+  - host kind:   never on manager surface
+  - per-tenant:  cockpit.activity_timeline.enabled must be True
+  - per-page:    `{% block portal_activity_timeline %}{% endblock %}` override suppresses
+
+PII safety:
+  Activity entries surface only operator-published events. Free-text from
+  external user-generated content must be sanitized upstream before
+  landing in `text_html` — the partial renders with template autoescape
+  ENABLED for the meta lines and the icon, and `text_html` is wrapped in
+  `|safe` for operator-template-rendered HTML only.
+{% endcomment %}
+{% if cockpit.activity_timeline.enabled and cockpit.activity_timeline.items %}
+{% with at=cockpit.activity_timeline %}
+<section class="tp-activity" aria-label="{% trans 'Recent activity' %}">
+  <div class="tp-activity__head">
+    <h3>{{ at.title|default:_("Recent activity") }}{% if at.title_suffix %} <span>{{ at.title_suffix }}</span>{% endif %}</h3>
+    {% if at.view_all_link.url %}
+    <a href="{{ at.view_all_link.url }}" class="tp-activity__link">{{ at.view_all_link.label|default:_("View all →") }}</a>
+    {% endif %}
+  </div>
+  <div class="tp-activity__timeline">
+    {% for item in at.items %}
+    <div class="tp-activity__item">
+      <div class="tp-activity__icon{% if item.tone == 'success' %} tp-activity__icon--success{% elif item.tone == 'warn' %} tp-activity__icon--warn{% elif item.tone == 'info' %} tp-activity__icon--info{% endif %}"
+           aria-hidden="true">{{ item.icon|default:"·" }}</div>
+      <div class="tp-activity__body">
+        <div class="tp-activity__text">{% if item.text_html %}{{ item.text_html|safe }}{% else %}{{ item.text|default:"" }}{% endif %}</div>
+        {% if item.meta_left or item.meta_right %}
+        <div class="tp-activity__meta">
+          {% if item.meta_left %}<span>{{ item.meta_left }}</span>{% endif %}
+          {% if item.meta_left and item.meta_right %} · {% endif %}
+          {% if item.meta_right %}<span>{{ item.meta_right }}</span>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endwith %}
+{% endif %}

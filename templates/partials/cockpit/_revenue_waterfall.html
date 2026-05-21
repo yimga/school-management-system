@@ -1,0 +1,69 @@
+{% load static i18n %}
+{% comment %} v3.55.0+ (2026-05-21): 200x Element 6 — Revenue waterfall card.
+
+   760×220 SVG bars (Starting / New / Expansion / Churn / Ending) with
+   connector dashes + a soft dashed arc + bottom legend grid.
+
+   CONFIGURABLE via cockpit.revenue_waterfall (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .title           — "From $39.2k"
+     .title_em        — italic "to a closing"
+     .title_end       — "$42.1k"
+     .meta_text
+     .bars            list[5] — Starting/New/Expansion/Churn/Ending
+        {slug, label, value, x, y, width, height, gradient_id, value_color}
+     .connector_dashes list — [{x1,y1,x2,y2}]
+     .legend_rows     list  — [{label, value, value_color}]
+{% endcomment %}
+
+{% if cockpit.revenue_waterfall.enabled and cockpit.revenue_waterfall.bars %}
+<section class="lx-card lx-waterfall" aria-label="{% trans 'Monthly recurring revenue waterfall' %}">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.revenue_waterfall.eyebrow|default:_("MRR waterfall · this month") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.revenue_waterfall.title }}
+        {% if cockpit.revenue_waterfall.title_em %} <em>{{ cockpit.revenue_waterfall.title_em }}</em>{% endif %}
+        {{ cockpit.revenue_waterfall.title_end }}
+      </h3>
+    </div>
+    {% if cockpit.revenue_waterfall.meta_text %}<div class="lx-card__meta">{{ cockpit.revenue_waterfall.meta_text }}</div>{% endif %}
+  </div>
+  <svg class="lx-waterfall__svg" viewBox="0 0 760 220" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="lx-wf-up" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22c55e"/>
+        <stop offset="100%" stop-color="#16a34a"/>
+      </linearGradient>
+      <linearGradient id="lx-wf-down" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f87171"/>
+        <stop offset="100%" stop-color="#dc2626"/>
+      </linearGradient>
+      <linearGradient id="lx-wf-anchor" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#6366f1"/>
+        <stop offset="100%" stop-color="#4338ca"/>
+      </linearGradient>
+    </defs>
+    <line x1="20" y1="180" x2="740" y2="180" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+    {% for dash in cockpit.revenue_waterfall.connector_dashes %}
+      <line x1="{{ dash.x1 }}" y1="{{ dash.y1 }}" x2="{{ dash.x2 }}" y2="{{ dash.y2 }}" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+    {% endfor %}
+    {% for bar in cockpit.revenue_waterfall.bars %}
+      <rect x="{{ bar.x }}" y="{{ bar.y }}" width="{{ bar.width }}" height="{{ bar.height }}" rx="6" fill="url(#{{ bar.gradient_id|default:'lx-wf-anchor' }})"/>
+      {% with text_x=bar.x|add:"50" %}
+      <text x="{{ text_x }}" y="{{ bar.y|add:'-10' }}" text-anchor="middle" font-size="11" fill="{{ bar.value_color|default:'#1d1d1f' }}" font-weight="700">{{ bar.value }}</text>
+      <text x="{{ text_x }}" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">{{ bar.label }}</text>
+      {% endwith %}
+    {% endfor %}
+  </svg>
+  <div class="lx-waterfall__legend">
+    {% for row in cockpit.revenue_waterfall.legend_rows %}
+      <div>
+        <small>{{ row.label }}</small>
+        <strong class="lx-waterfall__legend-value lx-waterfall__legend-value--{{ row.tone|default:'neutral' }}">{{ row.value }}</strong>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

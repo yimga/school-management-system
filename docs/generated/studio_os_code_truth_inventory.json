@@ -1,0 +1,162 @@
+{
+  "doc": "studio_os_code_truth_inventory",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "scope": "Code-truth inventory of everything that physically exists in the apps/studio_os/ app + templates/studio_os/ + static/css/studio-*.css + tests/e2e/studio-os.spec.js after the v3.54.0 wave. Pulls from filesystem, not from documented claims.",
+  "app_module": {
+    "path": "apps/studio_os/",
+    "files": {
+      "__init__.py": "package marker",
+      "apps.py": "Django AppConfig",
+      "urls.py": "39 URL patterns wired into the studio_os namespace",
+      "views.py": "~2440 lines; studio_shell main entrypoint plus 30+ mode-specific views",
+      "services.py": "~1430 lines after v3.54.0 cockpit-helper additions (get_overview_signals, get_output_readiness_summary, get_launch_readiness_summary)",
+      "studio_guidance.py": "studio guidance panel service",
+      "school_infrastructure.py": "infra preview/validate/apply",
+      "deep_links.py": "URL resolver helpers",
+      "embed_render.py": "iframe canvas embed helper",
+      "navigation.py": "STUDIO_MODES + nav config",
+      "copilot_rail_service.py": "v3.53.1 persistent AI rail (preserved)",
+      "views_copilot_rail.py": "v3.53.1 rail context + insights endpoints"
+    }
+  },
+  "url_namespace": {
+    "name": "studio_os",
+    "route_count": 39,
+    "modes_routed": ["overview (shell root)", "experience", "automation", "output", "launch", "control"],
+    "api_endpoints": [
+      "studio_os:preview",
+      "studio_os:publish",
+      "studio_os:save_draft",
+      "studio_os:version_history",
+      "studio_os:global_search",
+      "studio_os:recommendations",
+      "studio_os:audit",
+      "studio_os:rollback",
+      "studio_os:school_infrastructure_preview_api",
+      "studio_os:school_infrastructure_validate_api",
+      "studio_os:school_infrastructure_apply_api",
+      "studio_os:copilot_rail_context",
+      "studio_os:copilot_rail_insights"
+    ]
+  },
+  "templates": {
+    "directory": "templates/studio_os/",
+    "shell_templates": [
+      "shell.html",
+      "shell_control_plane.html",
+      "shell_subpage_wrap.html",
+      "studio_embed_body_shell.html",
+      "studio_embed_minimal.html",
+      "studio_subpage_embed.html"
+    ],
+    "mode_templates": [
+      "modes/experience.html",
+      "modes/automation.html",
+      "modes/output.html",
+      "modes/launch.html",
+      "modes/control.html"
+    ],
+    "partial_count": 40,
+    "components": ["action_bar.html", "card.html", "loading_empty_states.html", "page_header.html", "workspace_layout.html"],
+    "v3_54_0_new_partials": [
+      "overview_command_cockpit.html",
+      "experience_live_preview_pane.html",
+      "automation_simulation_preview_pane.html",
+      "output_readiness_preview_pane.html",
+      "launch_readiness_preview_pane.html",
+      "control_governance_preview_pane.html"
+    ]
+  },
+  "css_bundles": {
+    "shared": [
+      "studio-os-cockpit.css (v3.53.0 cockpit chrome)",
+      "studio-workspace.css (workspace layout primitives)",
+      "studio-mode-rail.css (shared mode rail — v3.54.0 systemic overflow fix here)",
+      "studio-shell-layout.css (shell-level layout)",
+      "studio-command-deck.css",
+      "studio-focus-layout.css",
+      "studio-guidance.css",
+      "studio-mode-hero.css",
+      "studio-operator-toolbar.css",
+      "studio-control-inline.css",
+      "studio-control-mode-canvas.css",
+      "studio-embed-minimal.css",
+      "studio-system-config-console.css"
+    ],
+    "v3_54_0_new_per_section": [
+      "studio-overview-cockpit.css (~570 lines)",
+      "studio-experience-mode.css (~260 lines)",
+      "studio-automation-cockpit.css (~360 lines)",
+      "studio-output-cockpit.css (~480 lines)",
+      "studio-launch-cockpit.css",
+      "studio-control-cockpit.css (34 selectors)"
+    ]
+  },
+  "javascript": {
+    "shell_js": "static/js/_pages/studio_os__shell.js (v3.54.0 adds shared data-rmc-confirm handler IIFE)",
+    "supporting": [
+      "static/js/rmc-copilot-rail.js (v3.53.1, persistent AI rail)",
+      "static/js/rmc-command-bar.js (v3.53.0, cmd+k)",
+      "static/js/rmc-signature-motion.css companion JS"
+    ]
+  },
+  "tests": {
+    "section_modules": [
+      "test_overview_next_realm.py (23 tests)",
+      "test_experience_overflow_invariants.py (7)",
+      "test_experience_workbench.py (extended +2)",
+      "test_experience_rollback.py",
+      "test_batch949_experience_compare_view.py",
+      "test_automation_simulation_cockpit.py",
+      "test_launch_and_automation_rails.py (extended +6)",
+      "test_output_native_builder.py (extended +2)",
+      "test_output_readiness_cockpit.py (10)",
+      "test_launch_readiness_cockpit.py",
+      "test_school_infrastructure.py (extended +4)",
+      "test_studio_control_inline.py (extended +2)",
+      "test_control_governance_cockpit.py (9)"
+    ],
+    "cross_cutting_modules_v3_54_0": [
+      "test_studio_os_layout_contracts.py",
+      "test_studio_os_live_previews.py",
+      "test_studio_os_operator_tenant_boundaries.py",
+      "test_studio_os_navigation_integrity.py",
+      "test_studio_os_accessibility_contracts.py"
+    ],
+    "existing_modules_preserved": [
+      "test_cockpit_shell_contract.py",
+      "test_command_bar_registry.py",
+      "test_copilot_rail_service.py",
+      "test_copilot_rail_views.py",
+      "test_cp_bridge_policy_1100.py",
+      "test_deep_links.py",
+      "test_phase_05_granular_taskers.py",
+      "test_phase5_mechanical_gate.py",
+      "test_preview_context.py",
+      "test_studio_embed_chrome.py",
+      "test_studio_focus_layout.py",
+      "test_studio_guidance.py",
+      "test_studio_operator_toolbar.py",
+      "test_studio_os_world_class_experience.py",
+      "test_studio_overview_deck.py",
+      "test_studio_rail_resolution.py",
+      "test_studio_ux_waves_mechanical_gate.py",
+      "test_studio_workspace_layout.py",
+      "test_batch963_command_palette_launch_panes.py"
+    ],
+    "cross_cutting_run_status": "27/27 PASS on Windows in 0.2s (SimpleTestCase-only — no DB lock)"
+  },
+  "e2e": {
+    "spec": "tests/e2e/studio-os.spec.js (v3.54.0 new)",
+    "coverage": "6 modes × 3 viewports (390/768/1366) + skip-link + rail + data-rmc-confirm + tenant boundary tests",
+    "execution": "deferred — requires Playwright + Django dev server"
+  },
+  "preserved_features": [
+    "v3.53.0 Mission Cockpit chrome (signal strip + canvas + co-pilot rail)",
+    "v3.53.1 persistent AI rail",
+    "v3.51 onwards command palette",
+    "Existing operator toolbar + bottom bar",
+    "Studio guidance panel service"
+  ]
+}

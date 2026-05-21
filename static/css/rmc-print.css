@@ -23,7 +23,10 @@
     margin-top: 12mm;
   }
 
-  /* Reset surfaces to print-safe — pure white background, dark ink, no shadows. */
+  /* Reset surfaces to print-safe — pure white background, dark ink, no shadows.
+     v3.55.0: override the .rmc-app-shell document lock so multi-page print works.
+     Without this, html/body { overflow: hidden } from rmc-app-shell.css would
+     prevent the browser from generating pages 2+. */
   html, body {
     background: #ffffff !important; /* off-token-allow: hex-literal-decorative */
     color: #000000 !important; /* off-token-allow: hex-literal-decorative */
@@ -32,6 +35,23 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
     color-scheme: light;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Unfold the shell grid for print so the canvas body flows naturally
+     across pages instead of staying confined to the viewport-height column. */
+  .rmc-app-shell {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .rmc-app-shell__canvas,
+  .rmc-app-shell__canvas-body {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   /* Hide shell chrome by default. Pages that mark printable content use
@@ -40,7 +60,8 @@
   .rmc-section-nav, .rmc-shell-switcher, .toast-container,
   .breadcrumb, .skip-link, #cp-context-drawer-shell,
   .rmc-no-print, [data-rmc-no-print="1"], .btn-back-outline,
-  .rmc-form-savebar, .htmx-progress-bar {
+  .rmc-form-savebar, .htmx-progress-bar,
+  .rmc-app-shell__header, .rmc-app-shell__sidebar, .rmc-app-shell__footer {
     display: none !important;
   }
 

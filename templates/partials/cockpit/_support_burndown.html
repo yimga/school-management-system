@@ -1,0 +1,63 @@
+{% load static i18n %}
+{% comment %} v3.57.0 (2026-05-21): 200x front-office Element 3 — Support-queue burndown.
+
+   Sparkline-style burndown of open support tickets vs SLA ceiling.
+
+   CONFIGURABLE via cockpit.support_burndown (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .title
+     .title_em
+     .counts        list — left pills: [{label, value, tone}]
+     .sparkline     dict — {points, stroke_color, fill_color, target_y, width, height}
+     .sla_caption   str
+     .legend_rows   list — [{label, value, tone}]
+{% endcomment %}
+
+{% if cockpit.support_burndown.enabled %}
+<section class="lx-card lx-burndown" aria-label="{% trans 'Support queue burndown' %}">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.support_burndown.eyebrow|default:_("Support queue · burndown") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.support_burndown.title|default:_("Open tickets") }}
+        {% if cockpit.support_burndown.title_em %} <em>{{ cockpit.support_burndown.title_em }}</em>{% endif %}
+      </h3>
+    </div>
+    {% if cockpit.support_burndown.sla_caption %}<div class="lx-card__meta"><em>{{ cockpit.support_burndown.sla_caption }}</em></div>{% endif %}
+  </div>
+  <div class="lx-burndown__body">
+    {% if cockpit.support_burndown.counts %}
+    <ul class="lx-burndown__counts">
+      {% for c in cockpit.support_burndown.counts %}
+      <li class="lx-burndown__count lx-burndown__count--{{ c.tone|default:'neutral' }}">
+        <small>{{ c.label }}</small>
+        <strong>{{ c.value|default:"—" }}</strong>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% with sp=cockpit.support_burndown.sparkline %}
+    {% if sp.points %}
+    <svg class="lx-burndown__svg" viewBox="0 0 {{ sp.width|default:'240' }} {{ sp.height|default:'56' }}" preserveAspectRatio="none" aria-hidden="true">
+      {% if sp.target_y %}<line x1="0" y1="{{ sp.target_y }}" x2="{{ sp.width|default:'240' }}" y2="{{ sp.target_y }}" stroke="rgba(244,114,182,0.55)" stroke-width="1" stroke-dasharray="3 3"/>{% endif %}
+      <polyline points="{% for p in sp.points %}{{ p.0 }},{{ p.1 }} {% endfor %}" fill="none" stroke="{{ sp.stroke_color|default:'#6366f1' }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      {% if sp.fill_color %}
+        <polyline points="{% for p in sp.points %}{{ p.0 }},{{ p.1 }} {% endfor %}" fill="{{ sp.fill_color }}" stroke="none" opacity="0.32"/>
+      {% endif %}
+    </svg>
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% if cockpit.support_burndown.legend_rows %}
+  <div class="lx-burndown__legend">
+    {% for row in cockpit.support_burndown.legend_rows %}
+      <div class="lx-burndown__legend-row lx-burndown__legend-row--{{ row.tone|default:'neutral' }}">
+        <small>{{ row.label }}</small>
+        <strong>{{ row.value }}</strong>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

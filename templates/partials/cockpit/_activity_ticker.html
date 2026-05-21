@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %} v3.55.0 (2026-05-21): live platform activity feed.
+
+   Rendered inside the manager header (.rmc-app-shell__header) below the
+   topbar row. Bloomberg-style auto-scrolling ticker. Pauses on hover.
+
+   CONFIGURABLE via cockpit.activity_feed (SiteSettings → context processor):
+     .enabled          bool  — gate the whole row (default: True)
+     .scroll_seconds   int   — animation duration; lower = faster (default: 60)
+     .events           list  — ordered list of {icon, severity, text, time_label}
+                               severity ∈ {success, warn, danger, info}
+   Each event renders as one inline span. The track is duplicated below so the
+   CSS keyframe (`translateX(-50%)`) produces a seamless infinite loop. If the
+   list is empty the ticker doesn't render. {% endcomment %}
+
+{% if cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
+<div class="rmc-cockpit-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
+     {% if cockpit.activity_feed.scroll_seconds %}style="--rmc-cockpit-ticker-seconds: {{ cockpit.activity_feed.scroll_seconds }}s;"{% endif %}>
+  <span class="rmc-cockpit-ticker__badge">{% trans "LIVE" %}</span>
+  <div class="rmc-cockpit-ticker__viewport">
+    <div class="rmc-cockpit-ticker__track">
+      {% for event in cockpit.activity_feed.events %}
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ event.severity|default:'info' }}">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ event.icon }}</span>
+        <span class="rmc-cockpit-ticker__event-text">{{ event.text }}</span>
+        {% if event.time_label %}<span class="rmc-cockpit-ticker__event-time">· {{ event.time_label }}</span>{% endif %}
+      </span>
+      {% endfor %}
+      {# Duplicate track for seamless infinite scroll — keyframe slides -50% #}
+      {% for event in cockpit.activity_feed.events %}
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ event.severity|default:'info' }}" aria-hidden="true">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ event.icon }}</span>
+        <span class="rmc-cockpit-ticker__event-text">{{ event.text }}</span>
+        {% if event.time_label %}<span class="rmc-cockpit-ticker__event-time">· {{ event.time_label }}</span>{% endif %}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}

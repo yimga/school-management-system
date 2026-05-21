@@ -1,0 +1,48 @@
+{% load static i18n %}
+{% comment %} v3.55.0+ (2026-05-21): 200x Element 7 — Audit feed (structured columns).
+
+   Tabular audit feed with Time / Actor / Event / Scope / Severity columns,
+   3px left severity stripe on the actor cell, colored severity pill.
+
+   CONFIGURABLE via cockpit.audit_feed (SiteSettings → context processor):
+     .enabled
+     .title
+     .title_em      — italic tail
+     .filter_text   — scope filter caption
+     .events        list — [{time, actor, event, scope, severity, severity_label}]
+        severity ∈ {"ok", "info", "warn", "danger"}
+{% endcomment %}
+
+{% if cockpit.audit_feed.enabled and cockpit.audit_feed.events %}
+<section class="lx-card lx-audit" aria-label="{% trans 'Audit feed' %}">
+  <div class="lx-audit__head">
+    <div class="lx-audit__title">
+      {{ cockpit.audit_feed.title|default:_("Audit feed") }}
+      {% if cockpit.audit_feed.title_em %} <em>— {{ cockpit.audit_feed.title_em }}</em>{% endif %}
+    </div>
+    {% if cockpit.audit_feed.filter_text %}<div class="lx-audit__filter">{{ cockpit.audit_feed.filter_text }}</div>{% endif %}
+  </div>
+  <table class="lx-audit__table">
+    <thead>
+      <tr>
+        <th class="lx-audit__col-time">{% trans "Time" %}</th>
+        <th class="lx-audit__col-actor">{% trans "Actor" %}</th>
+        <th>{% trans "Event" %}</th>
+        <th class="lx-audit__col-scope">{% trans "Scope" %}</th>
+        <th class="lx-audit__col-sev">{% trans "Severity" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in cockpit.audit_feed.events %}
+      <tr>
+        <td class="lx-audit__time">{{ event.time }}</td>
+        <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--{{ event.severity|default:'info' }}" aria-hidden="true"></span>{{ event.actor }}</td>
+        <td class="lx-audit__event">{{ event.event }}</td>
+        <td class="lx-audit__scope">{{ event.scope }}</td>
+        <td><span class="lx-audit__sev-label lx-audit__sev-label--{{ event.severity|default:'info' }}">{{ event.severity_label|default:event.severity|upper }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}

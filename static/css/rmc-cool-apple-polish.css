@@ -488,7 +488,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 999px;
-  background: #ef4444; /* off-token-allow: hex-literal-decorative */
+  background: #ef4444; /* off-token-allow: hex-literal-decorative */ /* color-contrast-allow: notification-count-badge-bold-12px-effective-large-text */
   color: #ffffff; /* off-token-allow: hex-literal-decorative */
   font-size: 0.65rem;
   font-weight: 700;

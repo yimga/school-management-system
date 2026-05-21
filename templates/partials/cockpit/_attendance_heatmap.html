@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}
+Attendance heatmap — v3.57.0 (2026-05-21)
+
+Month-grid heatmap. Cell tone routes through CSS custom property
+`--tp-heat-<tone>` so school brand still wins on warm/cool overlay.
+
+Cell schema: {day, tone, tooltip, is_today}
+Tones: "" | "present" | "absent" | "late" | "excused" | "weekend"
+{% endcomment %}
+{% if cockpit.attendance_heatmap.enabled and cockpit.attendance_heatmap.cells %}
+{% with ah=cockpit.attendance_heatmap %}
+<section class="tp-heatmap" aria-label="{{ ah.title }}" data-rmc-tp-heatmap>
+  <header class="tp-heatmap__head">
+    <h3 class="tp-heatmap__title">{{ ah.title|default:_("Attendance heatmap") }}</h3>
+    {% if ah.month_label %}<span class="tp-heatmap__month">{{ ah.month_label }}</span>{% endif %}
+  </header>
+  <div class="tp-heatmap__grid" role="grid">
+    {% for c in ah.cells %}
+    <div class="tp-heatmap__cell{% if c.tone %} tp-heatmap__cell--{{ c.tone }}{% endif %}{% if c.is_today %} is-today{% endif %}"
+         role="gridcell"
+         title="{{ c.tooltip|default:c.day }}"
+         aria-label="{{ c.tooltip|default:c.day }}">
+      <span aria-hidden="true">{{ c.day }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% if ah.legend %}
+  <ul class="tp-heatmap__legend" role="list">
+    {% for l in ah.legend %}
+    <li class="tp-heatmap__legend-item">
+      <span class="tp-heatmap__legend-dot{% if l.tone %} tp-heatmap__legend-dot--{{ l.tone }}{% endif %}" aria-hidden="true"></span>
+      {{ l.label }}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endwith %}
+{% endif %}

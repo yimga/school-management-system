@@ -1,0 +1,67 @@
+{% load static i18n %}
+{% comment %} v3.57.0 (2026-05-21): 200x front-office Element 1 — Revenue cohort retention chart.
+
+   Cohort × month heatmap (rows = signup cohort, columns = months since signup).
+   Each cell is colored by retention % via .lx-cohort__cell--h{0-9} or --hx (empty).
+
+   CONFIGURABLE via cockpit.revenue_cohort (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .title
+     .title_em
+     .meta_text
+     .month_labels  list[str]
+     .cohorts       list[dict] — [{label, count, cells: [{retention, heat}]}]
+     .legend        list[dict] — [{label, swatch: "0".."9"}]
+{% endcomment %}
+
+{% if cockpit.revenue_cohort.enabled and cockpit.revenue_cohort.cohorts %}
+<section class="lx-card lx-cohort" aria-label="{% trans 'Revenue cohort retention chart' %}">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.revenue_cohort.eyebrow|default:_("Revenue retention · by cohort") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.revenue_cohort.title|default:_("Stickiness") }}
+        {% if cockpit.revenue_cohort.title_em %} <em>{{ cockpit.revenue_cohort.title_em }}</em>{% endif %}
+      </h3>
+    </div>
+    {% if cockpit.revenue_cohort.meta_text %}<div class="lx-card__meta">{{ cockpit.revenue_cohort.meta_text }}</div>{% endif %}
+  </div>
+  <div class="lx-cohort__scroll">
+    <table class="lx-cohort__table">
+      <thead>
+        <tr>
+          <th class="lx-cohort__col-label">{% trans "Cohort" %}</th>
+          <th class="lx-cohort__col-count">{% trans "Size" %}</th>
+          {% for m in cockpit.revenue_cohort.month_labels %}
+            <th class="lx-cohort__col-month">{{ m }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for cohort in cockpit.revenue_cohort.cohorts %}
+        <tr>
+          <th class="lx-cohort__row-label" scope="row">{{ cohort.label }}</th>
+          <td class="lx-cohort__row-count">{{ cohort.count|default:"—" }}</td>
+          {% for cell in cohort.cells %}
+            <td class="lx-cohort__cell lx-cohort__cell--h{{ cell.heat|default:'x' }}">
+              {% if cell.heat == "x" %}<span aria-hidden="true">·</span>{% else %}{{ cell.retention|default:"—" }}{% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if cockpit.revenue_cohort.legend %}
+  <div class="lx-cohort__legend" aria-label="{% trans 'Cohort heatmap legend' %}">
+    {% for row in cockpit.revenue_cohort.legend %}
+      <span class="lx-cohort__legend-row">
+        <span class="lx-cohort__legend-swatch lx-cohort__cell--h{{ row.swatch|default:'5' }}" aria-hidden="true"></span>
+        <small>{{ row.label }}</small>
+      </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

@@ -1,0 +1,86 @@
+{% load static i18n %}
+{% comment %} v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot persistent rail.
+
+   Right-column persistent rail (44px collapsed / 360px expanded). Lives
+   inside the .rmc-app-shell grid as a sibling of canvas. Manager-host
+   only — gated by request.public_host_kind == "manager" via the cockpit
+   context processor.
+
+   CONFIGURABLE via cockpit.ai_copilot_rail (SiteSettings → context processor):
+     .enabled            bool        — master switch (default: False)
+     .default_state      str         — "collapsed" | "expanded"
+     .title              str         — header title
+     .title_em           str         — italic serif tail
+     .insight_text       str         — top insight pill text
+     .insight_em         str         — italic serif fragment inside insight
+     .messages           list        — thread messages [{role, text, em_text}]
+     .suggested_actions  list[str]   — suggestion pill labels
+     .input_placeholder  str         — textarea placeholder
+     .cmdk_hint          str         — bottom-left ⌘K label
+     .send_label         str         — send button label
+
+   The toggle/keyboard wiring lives in static/js/_pages/rmc-copilot-rail.js
+   which flips data-copilot on the .rmc-app-shell ancestor. {% endcomment %}
+
+{% if cockpit.ai_copilot_rail.enabled %}
+<aside class="rmc-app-shell__copilot" aria-label="{% trans 'AI copilot' %}" data-rmc-copilot-rail>
+  <div class="lx-copilot">
+    {# Collapsed state — 44px vertical icon rail. #}
+    <div class="lx-copilot__collapsed">
+      <button class="lx-copilot__toggle" type="button" data-rmc-copilot-toggle title="{% trans 'Open AI copilot' %}" aria-label="{% trans 'Open AI copilot' %}">✦</button>
+      <div class="lx-copilot__rail-icon" title="{% trans 'Suggested actions' %}" aria-hidden="true">⚡</div>
+      <div class="lx-copilot__rail-icon" title="{% trans 'Recent threads' %}" aria-hidden="true">⌘</div>
+      <div class="lx-copilot__rail-icon" title="{% trans 'Notebook' %}" aria-hidden="true">✎</div>
+      <div class="lx-copilot__kbd" aria-hidden="true">⌘ K</div>
+    </div>
+
+    {# Expanded state — 360px panel with header, insight, thread, input. #}
+    <div class="lx-copilot__expanded">
+      <div class="lx-copilot__header">
+        <div class="lx-copilot__title">
+          <span class="lx-copilot__title-mark" aria-hidden="true">✦</span>
+          <span>
+            {{ cockpit.ai_copilot_rail.title|default:_("Copilot") }}
+            {% if cockpit.ai_copilot_rail.title_em %}
+              <span class="lx-copilot__title-em">— <em>{{ cockpit.ai_copilot_rail.title_em }}</em></span>
+            {% endif %}
+          </span>
+        </div>
+        <button class="lx-copilot__close" type="button" data-rmc-copilot-toggle aria-label="{% trans 'Collapse copilot rail' %}">→</button>
+      </div>
+
+      {% if cockpit.ai_copilot_rail.insight_text %}
+      <div class="lx-copilot__insight">
+        {{ cockpit.ai_copilot_rail.insight_text }}
+        {% if cockpit.ai_copilot_rail.insight_em %} <em>{{ cockpit.ai_copilot_rail.insight_em }}</em>{% endif %}
+      </div>
+      {% endif %}
+
+      <div class="lx-copilot__thread">
+        {% for msg in cockpit.ai_copilot_rail.messages %}
+          <div class="lx-copilot__msg lx-copilot__msg--{{ msg.role|default:'ai' }}">
+            {{ msg.text }}{% if msg.em_text %} <em>{{ msg.em_text }}</em>{% endif %}
+          </div>
+        {% endfor %}
+
+        {% if cockpit.ai_copilot_rail.suggested_actions %}
+        <div class="lx-copilot__suggestions" role="group" aria-label="{% trans 'Suggested actions' %}">
+          {% for action in cockpit.ai_copilot_rail.suggested_actions %}
+            <button type="button" class="lx-copilot__suggestion">{{ action }}</button>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="lx-copilot__input-wrap">
+        <label class="visually-hidden" for="rmc-copilot-input">{% trans 'Message the copilot' %}</label>
+        <textarea id="rmc-copilot-input" class="lx-copilot__input" data-rmc-copilot-input placeholder="{{ cockpit.ai_copilot_rail.input_placeholder|default:_('Ask anything about your platform…') }}"></textarea>
+        <div class="lx-copilot__row">
+          <span class="lx-copilot__cmdk" aria-hidden="true">{{ cockpit.ai_copilot_rail.cmdk_hint|default:_("⌘ K · command palette") }}</span>
+          <button class="lx-copilot__send" type="button">{{ cockpit.ai_copilot_rail.send_label|default:_("Send →") }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+{% endif %}

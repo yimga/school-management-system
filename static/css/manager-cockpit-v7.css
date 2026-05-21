@@ -1,0 +1,432 @@
+/* ============================================================
+   manager-cockpit-v7.css — v3.55.0 / 2026-05-21
+   ------------------------------------------------------------
+   Manager-surface cockpit additions on top of the platform-wide
+   .rmc-app-shell layout (defined in rmc-app-shell.css).
+
+   ADDS:
+     - Brand tagline (under wordmark/pill in header)
+     - Live activity ticker (Bloomberg-style horizontal feed)
+     - Platform pulse (cards row at top of canvas)
+     - Workspace context (sidebar top: operator identity + scope)
+     - Breadcrumb + page-h1 row (canvas top)
+     - Primary nav centering override
+
+   CLASS NAMESPACE: .rmc-cockpit-*  (so we don't collide with the
+   existing .cp-* manager chrome classes that pre-date this wave)
+
+   CONFIGURABILITY: every block here corresponds to a value the
+   operator can change via `cockpit.*` SiteSettings keys. The
+   templates that render these classes use Django context vars
+   like `{{ cockpit.brand.tagline }}` so a settings change cascades
+   without a code change.
+
+   THEMING: uses semantic tokens from design-tokens.css. The dark
+   manager chrome is rendered against the rgba(255,255,255,...) +
+   --cp-chrome-* family from manager-control-plane.css.
+   ============================================================ */
+
+/* ============================================================
+   Dark-chrome tokens — scoped to the manager surface
+   ------------------------------------------------------------
+   The manager header + sidebar are always dark regardless of theme,
+   so they need their own translucent-white token set rather than
+   consuming the semantic theme tokens. Scoped under [data-surface=
+   "control-plane"] so they don't leak to tenant surfaces.
+   Each rgba() is intentional dark-chrome glass; markers documented
+   below collapse 18 site-level off-token violations to 8 token decls.
+   ============================================================ */
+[data-surface="control-plane"] {
+  --rmc-cockpit-chrome-glass:        rgba(255, 255, 255, 0.04);  /* off-token-allow: dark-chrome-surface */
+  --rmc-cockpit-chrome-glass-strong: rgba(255, 255, 255, 0.09);  /* off-token-allow: dark-chrome-surface-hover */
+  --rmc-cockpit-chrome-hairline:     rgba(255, 255, 255, 0.08);  /* off-token-allow: dark-chrome-hairline */
+  --rmc-cockpit-chrome-ink:          rgba(255, 255, 255, 0.92);  /* off-token-allow: dark-chrome-text-strong */
+  --rmc-cockpit-chrome-text:         rgba(255, 255, 255, 0.85);  /* off-token-allow: dark-chrome-text */
+  --rmc-cockpit-chrome-text-bright:  rgba(255, 255, 255, 0.88);  /* off-token-allow: dark-chrome-text-bright */
+  --rmc-cockpit-chrome-muted:        rgba(255, 255, 255, 0.55);  /* off-token-allow: dark-chrome-text-muted */
+  --rmc-cockpit-chrome-faint:        rgba(255, 255, 255, 0.45);  /* off-token-allow: dark-chrome-text-faint */
+  --rmc-cockpit-chrome-mask-edge:    rgba(0, 0, 0, 1);            /* off-token-allow: mask-gradient-edge */
+}
+
+/* ---------- Brand tagline (header) ---------- */
+.rmc-cockpit-tagline {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rmc-cockpit-chrome-muted);
+}
+
+/* ============================================================
+   Live activity ticker
+   ------------------------------------------------------------
+   Auto-scrolling horizontal feed of recent platform events.
+   Track content is duplicated by the template so the keyframe
+   `transform: translateX(-50%)` produces a seamless loop.
+   Pauses on hover so operators can read.
+   ============================================================ */
+.rmc-cockpit-ticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 4px 20px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.04) 0%, transparent 30%, transparent 100%); /* off-token-allow: ticker-bg-danger-fade */
+  border-bottom: 1px solid var(--rmc-cockpit-chrome-hairline);
+  font-size: 11px;
+  color: var(--rmc-cockpit-chrome-text);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.rmc-cockpit-ticker__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(239, 68, 68, 0.15); /* off-token-allow: live-badge-bg-danger-tint */
+  border: 1px solid rgba(239, 68, 68, 0.35); /* off-token-allow: live-badge-border-danger-tint */
+  color: #fecaca; /* off-token-allow: dark-chrome-on-red-badge */
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+.rmc-cockpit-ticker__badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger, #ef4444);
+  animation: rmc-cockpit-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rmc-cockpit-ticker-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.75); }
+}
+
+.rmc-cockpit-ticker__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, var(--rmc-cockpit-chrome-mask-edge) 24px, var(--rmc-cockpit-chrome-mask-edge) calc(100% - 60px), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, var(--rmc-cockpit-chrome-mask-edge) 24px, var(--rmc-cockpit-chrome-mask-edge) calc(100% - 60px), transparent 100%);
+}
+
+.rmc-cockpit-ticker__track {
+  display: inline-flex;
+  gap: 36px;
+  animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 60s) linear infinite;
+  will-change: transform;
+}
+
+.rmc-cockpit-ticker:hover .rmc-cockpit-ticker__track,
+.rmc-cockpit-ticker:focus-within .rmc-cockpit-ticker__track {
+  animation-play-state: paused;
+}
+
+@keyframes rmc-cockpit-ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-cockpit-ticker__track { animation: none; }
+}
+
+.rmc-cockpit-ticker__event {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rmc-cockpit-ticker__event-text { color: var(--rmc-cockpit-chrome-text-bright); }
+.rmc-cockpit-ticker__event-time { color: var(--rmc-cockpit-chrome-faint); font-size: 10px; }
+.rmc-cockpit-ticker__event--success .rmc-cockpit-ticker__event-icon { color: var(--success, #22c55e); }
+.rmc-cockpit-ticker__event--warn    .rmc-cockpit-ticker__event-icon { color: var(--warning, #f59e0b); }
+.rmc-cockpit-ticker__event--danger  .rmc-cockpit-ticker__event-icon { color: var(--danger,  #ef4444); }
+.rmc-cockpit-ticker__event--info    .rmc-cockpit-ticker__event-icon { color: #60a5fa; /* off-token-allow: dark-chrome-info-blue */ }
+
+/* ============================================================
+   Workspace context (sidebar top)
+   ------------------------------------------------------------
+   Replaces the floating collapse button. Block layout:
+     [avatar] [name + role]
+     [scope dropdown ......] [collapse toggle]
+   ============================================================ */
+.rmc-cockpit-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--rmc-cockpit-chrome-glass);
+  border: 1px solid var(--rmc-cockpit-chrome-hairline);
+  border-radius: var(--radius-md);
+}
+
+.rmc-cockpit-workspace__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rmc-cockpit-workspace__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); /* off-token-allow: brand-gradient-decorative */
+  color: #ffffff; /* off-token-allow: always-white-on-gradient */
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.rmc-cockpit-workspace__who {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+  flex: 1;
+}
+.rmc-cockpit-workspace__who strong {
+  color: var(--rmc-cockpit-chrome-ink);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rmc-cockpit-workspace__who span {
+  color: var(--rmc-cockpit-chrome-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-cockpit-workspace__scope-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rmc-cockpit-workspace__scope {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--rmc-cockpit-chrome-glass);
+  border: 1px solid var(--rmc-cockpit-chrome-hairline);
+  font-size: 11px;
+  color: var(--rmc-cockpit-chrome-text);
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+.rmc-cockpit-workspace__scope:hover { background: var(--rmc-cockpit-chrome-glass-strong); }
+
+.rmc-cockpit-workspace__scope-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.rmc-cockpit-workspace__collapse {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--rmc-cockpit-chrome-hairline);
+  background: transparent;
+  color: var(--rmc-cockpit-chrome-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.rmc-cockpit-workspace__collapse:hover {
+  background: var(--rmc-cockpit-chrome-hairline);
+  color: var(--rmc-cockpit-chrome-ink);
+}
+
+/* ============================================================
+   Collapsible sidebar groups (native <details>)
+   ------------------------------------------------------------
+   Each sidebar section gets wrapped in <details><summary>...</summary>
+   ...items...</details>. Summary triggers expand/collapse. No JS.
+   ============================================================ */
+.rmc-cockpit-sidebar__group {
+  margin: 0;
+  padding: 0;
+}
+.rmc-cockpit-sidebar__group > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.rmc-cockpit-sidebar__group > summary::-webkit-details-marker { display: none; }
+.rmc-cockpit-sidebar__group > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform var(--motion-fast);
+  color: var(--rmc-cockpit-chrome-muted);
+}
+.rmc-cockpit-sidebar__group[open] > summary::before { transform: rotate(90deg); }
+
+/* ============================================================
+   Canvas breadcrumb + h1 row
+   ============================================================ */
+.rmc-cockpit-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.rmc-cockpit-breadcrumb a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+.rmc-cockpit-breadcrumb a:hover { color: var(--text-secondary); }
+.rmc-cockpit-breadcrumb__separator {
+  color: var(--text-muted);
+  opacity: 0.45;
+  font-weight: 400;
+}
+.rmc-cockpit-breadcrumb__current { color: var(--text-secondary); }
+
+.rmc-cockpit-page-h1-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: -4px;
+}
+.rmc-cockpit-page-h1-row__actions { display: flex; gap: 8px; }
+
+/* ============================================================
+   Platform Pulse cards (canvas top)
+   ------------------------------------------------------------
+   6 cards in one row at desktop, reflows to 3 then 2 on narrower.
+   Each card: status dot, big value, label, delta line.
+   ============================================================ */
+.rmc-cockpit-pulse {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rmc-cockpit-pulse__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rmc-cockpit-pulse__live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success, #22c55e);
+  animation: rmc-cockpit-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+.rmc-cockpit-pulse__cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 1280px) {
+  .rmc-cockpit-pulse__cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .rmc-cockpit-pulse__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.rmc-cockpit-pulse-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: border-color var(--motion-fast), transform var(--motion-fast);
+}
+.rmc-cockpit-pulse-card:hover {
+  border-color: var(--hairline-strong);
+  transform: translateY(-1px);
+}
+.rmc-cockpit-pulse-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+.rmc-cockpit-pulse-card__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success, #22c55e);
+  flex-shrink: 0;
+}
+.rmc-cockpit-pulse-card__dot--warn   { background: var(--warning, #f59e0b); }
+.rmc-cockpit-pulse-card__dot--danger { background: var(--danger,  #ef4444); }
+.rmc-cockpit-pulse-card__dot--info   { background: #60a5fa; /* off-token-allow: chart-info-blue */ }
+
+.rmc-cockpit-pulse-card__value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.rmc-cockpit-pulse-card__label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.rmc-cockpit-pulse-card__delta {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.rmc-cockpit-pulse-card__delta--up   { color: var(--success, #22c55e); }
+.rmc-cockpit-pulse-card__delta--down { color: var(--danger,  #ef4444); }
+
+/* ============================================================
+   Primary nav centering (override existing .cp-primary-nav)
+   ------------------------------------------------------------
+   The existing partial already uses .cp-primary-nav; this rule
+   ensures pills are centered horizontally inside the header.
+   ============================================================ */
+.rmc-app-shell__header .cp-primary-nav {
+  justify-content: center;
+}

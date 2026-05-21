@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %}
+Upcoming events strip — v3.56.0 (2026-05-21)
+
+Horizontal scrolling events strip with urgency pills. Mirrors v3 `.tp-events`.
+
+Configurability (cockpit.upcoming_events.*):
+  enabled        bool       # default False; operator opt-in
+  section_label  str        # e.g. "📅 Upcoming · next 14 days"
+  view_all_link:
+    label        str
+    url          str
+  events         list[{
+                   url, day, month, pill_label, pill_tone, title, meta, is_today,
+                 }]
+                 # pill_tone: "" | "today" | "soon" | "info"
+
+Visibility:
+  - host kind:   never on manager surface
+  - per-tenant:  cockpit.upcoming_events.enabled must be True
+  - per-page:    `{% block portal_upcoming_events %}{% endblock %}` override suppresses
+
+PII safety:
+  Event titles/meta lines are operator-published copy or come from a
+  school-calendar feed already authorized for the requesting role.
+{% endcomment %}
+{% if cockpit.upcoming_events.enabled and cockpit.upcoming_events.events %}
+{% with ue=cockpit.upcoming_events %}
+<section aria-label="{% trans 'Upcoming events' %}">
+  <div class="tp-section-label tp-section-label--tight">
+    <div class="tp-section-label__title">{{ ue.section_label|default:_("Upcoming · next 14 days") }}</div>
+    {% if ue.view_all_link.url %}
+    <a href="{{ ue.view_all_link.url }}" class="tp-section-label__link">
+      {{ ue.view_all_link.label|default:_("View calendar →") }}
+    </a>
+    {% endif %}
+  </div>
+  <div class="tp-events" role="list">
+    {% for ev in ue.events %}
+    <a href="{{ ev.url|default:'#' }}"
+       class="tp-event{% if ev.is_today %} tp-event--today{% endif %}"
+       role="listitem"
+       data-rmc-tp-event>
+      <div class="tp-event__date">
+        <span class="tp-event__day">{{ ev.day }}</span>
+        <span class="tp-event__month">{{ ev.month }}</span>
+        {% if ev.pill_label %}
+        <span class="tp-event__pill{% if ev.pill_tone == 'today' %} tp-event__pill--today{% elif ev.pill_tone == 'soon' %} tp-event__pill--soon{% elif ev.pill_tone == 'info' %} tp-event__pill--info{% endif %}">
+          {{ ev.pill_label }}
+        </span>
+        {% endif %}
+      </div>
+      {% if ev.title %}<div class="tp-event__title">{{ ev.title }}</div>{% endif %}
+      {% if ev.meta %}<div class="tp-event__meta">{{ ev.meta }}</div>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endwith %}
+{% endif %}

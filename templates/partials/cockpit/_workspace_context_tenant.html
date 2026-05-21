@@ -1,0 +1,82 @@
+{% load i18n %}
+{% comment %}
+Workspace context (TENANT variant) — v3.56.0 (2026-05-21)
+
+Sidebar-top child-context card. Mirrors v3 preview's `.tp-child-context`.
+
+Distinct from `_workspace_context.html` which is the operator/manager
+variant. This one is family-scoped: child name + grade + online dot +
+sibling chips + sibling-add affordance.
+
+Configurability (cockpit.workspace_context_tenant.*):
+  enabled         bool        # default False; operator opt-in
+  label           str         # e.g. "Active child"
+  live_chip       str         # e.g. "✓ Live"; falsy hides the chip
+  child:
+    initials      str         # 2-char avatar initials, NEVER full name
+    name          str
+    subline       str         # e.g. "Grade 10B · 2026/27"
+    online        bool        # default True; show green dot
+  stats           list[{glyph, label, tone}]   # tone: "" | "ok"
+  siblings        list[{initials, label, url}]   # 0..N
+  siblings_label  str         # e.g. "Family"
+  add_child:
+    label         str         # e.g. "Add child"
+    url           str         # falsy hides the plus-tile
+
+Visibility:
+  - host kind:   never on manager surface
+  - per-tenant:  cockpit.workspace_context_tenant.enabled must be True
+
+PII safety:
+  Child name is FIRST-NAME-only by operator convention. The partial renders
+  whatever lands in cockpit.workspace_context_tenant.* — sanitization is
+  the helper module's responsibility. Initials NEVER contain dots/dashes
+  that could reveal full last name. Sibling chip labels are operator-set.
+{% endcomment %}
+{% if cockpit.workspace_context_tenant.enabled %}
+{% with wc=cockpit.workspace_context_tenant %}
+<div class="tp-child-context" data-rmc-tp-child-context>
+  <div class="tp-child-context__label">
+    <span>{{ wc.label|default:_("Active child") }}</span>
+    {% if wc.live_chip %}<span class="tp-child-context__label-chip">{{ wc.live_chip }}</span>{% endif %}
+  </div>
+  <div class="tp-child-context__active">
+    <div class="tp-child-context__avatar{% if wc.child.online|default:True %} is-online{% endif %}" aria-hidden="true">
+      {{ wc.child.initials|default:"··" }}
+    </div>
+    <div class="tp-child-context__who">
+      <strong>{{ wc.child.name|default:_("Select a child") }}</strong>
+      {% if wc.child.subline %}<span>{{ wc.child.subline }}</span>{% endif %}
+      {% if wc.stats %}
+      <div class="tp-child-context__stats">
+        {% for stat in wc.stats %}
+        <span class="tp-child-context__stat{% if stat.tone == 'ok' %} tp-child-context__stat--ok{% endif %}">
+          {% if stat.glyph %}<span aria-hidden="true">{{ stat.glyph }}</span> {% endif %}{{ stat.label }}
+        </span>
+        {% if not forloop.last %}<span class="tp-child-context__stat-divider" aria-hidden="true">·</span>{% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% if wc.siblings or wc.add_child.url %}
+  <div class="tp-child-context__siblings">
+    {% if wc.siblings_label %}<span class="tp-child-context__siblings-label">{{ wc.siblings_label }}</span>{% endif %}
+    {% for sib in wc.siblings %}
+    <a href="{{ sib.url|default:'#' }}"
+       class="tp-child-context__sibling"
+       title="{{ sib.label }}"
+       aria-label="{% blocktrans with label=sib.label %}Switch to {{ label }}{% endblocktrans %}">{{ sib.initials|default:"·" }}</a>
+    {% endfor %}
+    {% if wc.add_child.url %}
+    <a href="{{ wc.add_child.url }}"
+       class="tp-child-context__sibling tp-child-context__sibling-plus"
+       title="{{ wc.add_child.label|default:_('Add child') }}"
+       aria-label="{{ wc.add_child.label|default:_('Add child') }}">+</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endwith %}
+{% endif %}

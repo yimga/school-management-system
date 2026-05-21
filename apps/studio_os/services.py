@@ -1193,19 +1193,225 @@ def get_automation_workflow_health_summary() -> dict[str, int]:
     Returns a lightweight summary for the Automation rail card:
     - pack_count: number of WorkflowPack records
     - template_count: number of WorkflowTemplate records
+    - paused_count: WorkflowPack records flagged inactive (v3.54.0)
+    - failing_count: WorkflowDelivery records in failed terminal state (v3.54.0)
     """
     try:
         from apps.runtime_blueprints.models import WorkflowPack, WorkflowTemplate
 
         pack_count = int(WorkflowPack.objects.all().count())
         template_count = int(WorkflowTemplate.objects.all().count())
+        # v3.54.0: paused + failing extension. Best-effort — different
+        # WorkflowPack schemas across waves may not have `is_active`; defensive.
+        paused_count = 0
+        try:
+            paused_count = int(
+                WorkflowPack.objects.filter(is_active=False).count()
+            )
+        except _STUDIO_SOFT_FAILURES:
+            paused_count = 0
+        # Failing count: try common delivery-table names. Defensive lookup —
+        # absence reports 0, not crash.
+        failing_count = 0
+        try:
+            from apps.orchestration.models import ProcessRun  # type: ignore[import-not-found]
+
+            failing_count = int(
+                ProcessRun.objects.filter(status__iexact="failed").count()
+            )
+        except _STUDIO_SOFT_FAILURES:
+            failing_count = 0
         return {
             "pack_count": pack_count,
             "template_count": template_count,
+            "paused_count": paused_count,
+            "failing_count": failing_count,
         }
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_automation_workflow_health_summary: %s", e)
         return {
             "pack_count": 0,
             "template_count": 0,
+            "paused_count": 0,
+            "failing_count": 0,
         }
+
+
+# ---------------------------------------------------------------------------
+# v3.54.0 (2026-05-21): Next-realm cockpit helpers.
+# Backfill the 4 deferred services flagged by the 6-agent fan-out:
+#   - get_overview_signals       — 5-key cockpit signal strip data
+#   - get_output_readiness_summary — Output cockpit readiness panels
+#   - get_launch_readiness_summary — Launch cockpit timeline + approvals + risk
+# Each helper is best-effort: defensive try/except, honest None / 0 fallback,
+# never raises. Templates render `data-state="unknown"` placeholder for None.
+# ---------------------------------------------------------------------------
+
+
+def get_overview_signals(request: Any) -> dict[str, Any]:
+    """v3.54.0: Mission cockpit signal-strip data for Overview mode.
+
+    Returns a 5-key dict consumed by:
+      - templates/studio_os/partials/cockpit_signal_strip.html
+      - templates/studio_os/partials/overview_command_cockpit.html
+
+    Each value is either an int (real count) or None (honest "unknown" state).
+    Templates render `data-state="unknown"` placeholder when value is None.
+
+    Keys:
+      - pending_launches: schools / tenants with incomplete onboarding
+      - draft_experiences: theme/experience drafts pending publish
+      - active_automations: enabled WorkflowPack count
+      - output_readiness_pct: 0..100 percentage of report packs with all deps green
+      - open_blockers: count of currently-open critical issues
+    """
+    signals: dict[str, Any] = {
+        "pending_launches": None,
+        "draft_experiences": None,
+        "active_automations": None,
+        "output_readiness_pct": None,
+        "open_blockers": None,
+    }
+    # Pending launches: setup_studio payload + per-tenant launch_ready=False.
+    try:
+        from apps.schools.models import School  # type: ignore[import-not-found]
+        from apps.setup_studio.services import get_setup_studio_payload
+
+        pending = 0
+        # Best-effort: walk a small sample (max 50) to avoid heavy queries.
+        # tenant-isolation-allow: overview-aggregate-readonly-count-only
+        for sch in School.objects.all()[:50]:
+            try:
+                payload = get_setup_studio_payload(sch)
+                if not bool(payload.get("launch_ready", False)):
+                    pending += 1
+            except _STUDIO_SOFT_FAILURES:
+                continue
+        signals["pending_launches"] = pending
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_overview_signals.pending_launches: %s", e)
+    # Active automations: WorkflowPack count where is_active=True (best-effort).
+    try:
+        from apps.runtime_blueprints.models import WorkflowPack  # type: ignore[import-not-found]
+
+        try:
+            signals["active_automations"] = int(
+                WorkflowPack.objects.filter(is_active=True).count()
+            )
+        except _STUDIO_SOFT_FAILURES:
+            # Schema doesn't carry is_active — fall back to total count.
+            signals["active_automations"] = int(WorkflowPack.objects.all().count())
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_overview_signals.active_automations: %s", e)
+    # Output readiness pct: derived from dependency graph.
+    try:
+        graph = get_output_dependency_graph()
+        if graph:
+            ready = sum(1 for node in graph if not node.get("missing_deps"))
+            signals["output_readiness_pct"] = int(round(100.0 * ready / len(graph)))
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_overview_signals.output_readiness_pct: %s", e)
+    # Draft experiences + open blockers: not yet implemented backend-side.
+    # Templates render honest unknown state.
+    return signals
+
+
+def get_output_readiness_summary() -> dict[str, Any]:
+    """v3.54.0: Output cockpit readiness summary.
+
+    Consumed by templates/studio_os/partials/output_readiness_preview_pane.html
+    + workspace/output_canvas.html. Coordinator task #7 from the 6-agent wave.
+
+    Returns:
+      - packs_total: int — total report packs
+      - packs_with_deps: int — packs whose dependencies are all available
+      - packs_missing_deps: int — packs with at least one missing dep
+      - documents_total: int — total documents in library (best-effort)
+      - documents_published: int — published documents (best-effort)
+      - service_online: bool — true if at least one count resolved successfully
+    """
+    summary: dict[str, Any] = {
+        "packs_total": 0,
+        "packs_with_deps": 0,
+        "packs_missing_deps": 0,
+        "documents_total": 0,
+        "documents_published": 0,
+        "service_online": False,
+    }
+    try:
+        graph = get_output_dependency_graph()
+        summary["packs_total"] = len(graph)
+        summary["packs_with_deps"] = sum(
+            1 for node in graph if not node.get("missing_deps")
+        )
+        summary["packs_missing_deps"] = summary["packs_total"] - summary[
+            "packs_with_deps"
+        ]
+        summary["service_online"] = True
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_output_readiness_summary.graph: %s", e)
+    # Documents: best-effort. Different document apps across waves —
+    # try a couple of common names.
+    for module_path, model_name in (
+        ("apps.reports.models", "Report"),
+        ("apps.reports.models", "ReportPack"),
+    ):
+        try:
+            mod = __import__(module_path, fromlist=[model_name])
+            model = getattr(mod, model_name)
+            summary["documents_total"] = int(model.objects.all().count())
+            try:
+                summary["documents_published"] = int(
+                    model.objects.filter(is_published=True).count()
+                )
+            except _STUDIO_SOFT_FAILURES:
+                pass
+            summary["service_online"] = True
+            break
+        except _STUDIO_SOFT_FAILURES:
+            continue
+    return summary
+
+
+def get_launch_readiness_summary(request: Any) -> dict[str, Any]:
+    """v3.54.0: Launch cockpit readiness summary.
+
+    Consumed by templates/studio_os/partials/launch_readiness_preview_pane.html
+    + the Launch mode canvas. Coordinator task #12 from the 6-agent wave.
+
+    Returns:
+      - timeline: list of dicts (label/status/due_at)  — empty when service absent
+      - approvals_pending: int — count of approval-queue items awaiting action
+      - risk_summary: str — one-line risk summary or empty string
+      - service_online: bool — true if any field resolved
+    """
+    summary: dict[str, Any] = {
+        "timeline": [],
+        "approvals_pending": 0,
+        "risk_summary": "",
+        "service_online": False,
+    }
+    school = getattr(request, "school", None) if request is not None else None
+    # Approvals pending: best-effort count from approval-workflow domain.
+    try:
+        from apps.accounts.models_workflow import ApprovalWorkflow  # type: ignore[import-not-found]
+
+        qs = ApprovalWorkflow.objects.all()
+        if school is not None:
+            try:
+                # tenant-isolation-allow: launch-cockpit-tenant-scoped-approval-count
+                qs = qs.filter(school=school)
+            except _STUDIO_SOFT_FAILURES:
+                pass
+        try:
+            qs = qs.filter(status__iexact="pending")
+        except _STUDIO_SOFT_FAILURES:
+            pass
+        summary["approvals_pending"] = int(qs.count())
+        summary["service_online"] = True
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_launch_readiness_summary.approvals_pending: %s", e)
+    # Timeline + risk summary: not yet implemented backend-side.
+    # Templates render honest empty list / empty string.
+    return summary
+

@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}
+School calendar + weather overlay — v3.57.0 (2026-05-21)
+
+7-day strip — each cell carries the school event AND the weather glyph
+in a tight pair. Weather data is operator-published / future cron-fed.
+{% endcomment %}
+{% if cockpit.calendar_weather.enabled and cockpit.calendar_weather.days %}
+{% with cw=cockpit.calendar_weather %}
+<section class="tp-cal-weather" aria-label="{{ cw.title }}" data-rmc-tp-cal-weather>
+  <header class="tp-cal-weather__head">
+    <h3 class="tp-cal-weather__title">{{ cw.title|default:_("Week ahead") }}</h3>
+  </header>
+  <ol class="tp-cal-weather__strip" role="list">
+    {% for d in cw.days %}
+    <li class="tp-cal-weather__day{% if d.is_today %} is-today{% endif %}">
+      <span class="tp-cal-weather__day-short">{{ d.day_short }}</span>
+      <span class="tp-cal-weather__day-num">{{ d.day_num }}</span>
+      {% if d.weather_icon %}<span class="tp-cal-weather__icon" aria-hidden="true">{{ d.weather_icon }}</span>{% endif %}
+      {% if d.temp_display %}<span class="tp-cal-weather__temp">{{ d.temp_display }}</span>{% endif %}
+      {% if d.event_label %}<span class="tp-cal-weather__event" title="{{ d.event_label }}">{{ d.event_label }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endwith %}
+{% endif %}

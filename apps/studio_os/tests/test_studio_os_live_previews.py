@@ -86,6 +86,10 @@ class LivePreviewPaneHonestEmptyStateTests(SimpleTestCase):
         "service coming",
         "No outputs",
         "Readiness will populate",
+        "no governance",
+        "No governance change staged",
+        "Start a change",
+        "No change staged",
     )
 
     def test_every_preview_pane_has_honest_empty_state(self) -> None:

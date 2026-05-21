@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}
+Achievements card — v3.56.0 (2026-05-21)
+
+School-gradient background with orbital decoration + achievement chips.
+Mirrors v3 preview's `.tp-achievements`.
+
+Configurability (cockpit.achievements.*):
+  enabled       bool          # default False; operator opt-in
+  title         str           # e.g. "🏆 Samuel's achievements"
+  count_label   str           # e.g. "8 of 24"
+  list          list[{icon, label}]
+
+Visibility:
+  - host kind:   never on manager surface
+  - per-tenant:  cockpit.achievements.enabled must be True
+  - per-page:    `{% block portal_achievements %}{% endblock %}` override suppresses
+
+PII safety:
+  Title may contain a child's first name when the operator opts in. NEVER
+  contains DOB / SSN / full address. Counts are bucketed, not raw IDs.
+{% endcomment %}
+{% if cockpit.achievements.enabled and cockpit.achievements.list %}
+{% with ach=cockpit.achievements %}
+<section class="tp-achievements" aria-label="{% trans 'Achievements' %}">
+  <div class="tp-achievements__head">
+    <h3 class="tp-achievements__title">{{ ach.title|default:_("Achievements") }}</h3>
+    {% if ach.count_label %}<span class="tp-achievements__count">{{ ach.count_label }}</span>{% endif %}
+  </div>
+  <div class="tp-achievements__list">
+    {% for item in ach.list %}
+    <div class="tp-achievement">
+      <div class="tp-achievement__icon" aria-hidden="true">{{ item.icon|default:"⭐" }}</div>
+      <div class="tp-achievement__label">{{ item.label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endwith %}
+{% endif %}

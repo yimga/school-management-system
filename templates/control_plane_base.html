@@ -19,73 +19,89 @@
 
 {% block cp_shell_content_attrs %} data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}{% endblock %}
 
-{% block cp_shell_page %}
+{% comment %} v3.55.0 (2026-05-21): app-shell adoption — header + sidebar + canvas in separate
+   shell blocks instead of one monolithic cp_shell_page override. Legacy block names
+   inside the canvas-body (cp_content, breadcrumbs, etc.) preserved for child templates. {% endcomment %}
+
+{% block cp_shell_header %}
 {% comment %}
   WCAG 1.3.1 / 2.4.10: child pages own the page h1 (.page-h1 grammar). Injecting a
   hidden product-title h1 here would create duplicate top-level headings on every
   control-plane page.
+
+  v3.55.0: topbar + (NEW) live activity ticker + primary nav consolidated inside the
+  single .rmc-app-shell__header element so the header row's height locks
+  deterministically. The legacy .rmc-control-plane-chrome wrapper is preserved so
+  rmc-cp-chrome-offset.js still measures the right element.
+
+  Activity ticker is configurable + opt-out via cockpit.activity_feed.enabled.
 {% endcomment %}
 <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
 {% include "partials/manager_operator_topbar.html" %}
+{% include "partials/cockpit/_activity_ticker.html" %}
 {% include "partials/control_plane_primary_nav.html" %}
 </div>
+{% endblock %}
 
-{% comment %}
-Skip-link must come before the main nav so keyboard users hit it first.
-Targets the existing #cp-main-content landmark (line ~76 below).
-{% endcomment %}
-<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded"
-   href="#cp-main-content"
-   aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
+{% block cp_shell_sidebar %}
+<div id="cp-sidebar-col" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
+  <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
+    {% comment %} v3.55.0: workspace context block at top of sidebar — operator
+       identity + scope + collapse toggle. Configurable via cockpit.workspace_context. {% endcomment %}
+    {% include "partials/cockpit/_workspace_context.html" %}
+    {% block control_plane_sidebar %}
+      {% include "partials/control_plane_sidebar.html" %}
+    {% endblock %}
+  </div>
+</div>
+{% endblock %}
 
+{% block cp_shell_canvas_body %}
+{% comment %} v3.55.0: cockpit breadcrumb + platform pulse render at the top of the
+   canvas body, before the operator surface strip. Both partials are no-ops if their
+   data isn't in context, so existing pages without breadcrumb_trail or
+   cockpit.pulse_metrics.cards are unaffected. {% endcomment %}
+{% include "partials/cockpit/_breadcrumb.html" %}
+{% include "partials/cockpit/_platform_pulse.html" %}
 {% block rmc_operator_surface_strip %}
 {% include "components/rmc_operator_surface_strip.html" %}
 {% endblock %}
 
-<div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
-  <div class="row g-2 flex-grow-1 min-h-0">
-    <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col" aria-label="{% trans 'Control plane navigation' %}" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
-      <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
-        {% block control_plane_sidebar %}
-          {% include "partials/control_plane_sidebar.html" %}
-        {% endblock %}
-      </div>
-    </aside>
-    <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane">
-      {% include "partials/shell_chrome_django_messages_control_plane.html" %}
-      {% include "partials/shell_chrome_impersonation_session_strip.html" %}
-      {% if cp_show_operator_disclaimer %}
-      <p class="text-secondary small mb-2" role="note">
-        {% trans "Platform Studio and system tools here are operator-facing. For school workflows and live tenant previews, use Open as school (impersonation) from the dashboard." %}
-      </p>
-      {% endif %}
-      {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.control_plane_breadcrumb_surface shell_chrome_breadcrumb_row_extra_class="cp-page-header" %}
-        {% block breadcrumbs %}{% endblock %}
-      {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
-        {% block breadcrumb_actions %}{% endblock %}
-      {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
-      {% if request.user.is_authenticated %}
-      {% block cp_workspace_header %}
-      {% include "components/rmc_os_page_header.html" %}
-      {% endblock %}
-      <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
-        {% block rmc_os_shell_primary_action %}{% endblock %}
-      </div>
-      {% block cp_status_strip %}
-      {% include "components/rmc_os_status_strip.html" %}
-      {% endblock %}
-      {% endif %}
-      {% if request.user.is_authenticated %}
-      {% block rmc_zero_click_strip %}
-      {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#cp-main-content" %}
-      {% endblock %}
-      {% endif %}
-      <div class="cp-page-body" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
-      {% block cp_content %}<h1 class="visually-hidden">{% trans "Control plane" %}</h1>{% endblock %}
-      </div>
-      {% block cp_sticky_action_bar %}{# Page-level sticky actions (override in child templates) #}{% endblock %}
-    </main>
-  </div>
+<div class="container-fluid px-3 py-2 cp-layout d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
+  <main id="cp-main-content" class="cp-main-col rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane">
+    {% include "partials/shell_chrome_django_messages_control_plane.html" %}
+    {% include "partials/shell_chrome_impersonation_session_strip.html" %}
+    {% if cp_show_operator_disclaimer %}
+    <p class="text-secondary small mb-2" role="note">
+      {% trans "Platform Studio and system tools here are operator-facing. For school workflows and live tenant previews, use Open as school (impersonation) from the dashboard." %}
+    </p>
+    {% endif %}
+    {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.control_plane_breadcrumb_surface shell_chrome_breadcrumb_row_extra_class="cp-page-header" %}
+      {% block breadcrumbs %}{% endblock %}
+    {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
+      {% block breadcrumb_actions %}{% endblock %}
+    {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
+    {% if request.user.is_authenticated %}
+    {% block cp_workspace_header %}
+    {% include "components/rmc_os_page_header.html" %}
+    {% endblock %}
+    <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
+      {% block rmc_os_shell_primary_action %}{% endblock %}
+    </div>
+    {% block cp_status_strip %}
+    {% include "components/rmc_os_status_strip.html" %}
+    {% endblock %}
+    {% endif %}
+    {% if request.user.is_authenticated %}
+    {% block rmc_zero_click_strip %}
+    {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#cp-main-content" %}
+    {% endblock %}
+    {% endif %}
+    <div class="cp-page-body" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
+    {% block cp_content %}<h1 class="visually-hidden">{% trans "Control plane" %}</h1>{% endblock %}
+    </div>
+    {% block cp_sticky_action_bar %}{# Page-level sticky actions (override in child templates) #}{% endblock %}
+  </main>
 </div>
 {% endblock %}
 

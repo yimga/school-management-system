@@ -148,6 +148,7 @@ from .views_tenant_studio_hub import (
     TenantStudioDay1Act3LockView,
     TenantStudioDay1ResetView,
 )
+from .views_cockpit_admin import CockpitConfigureView
 
 app_name = "siteconfig"
 
@@ -588,5 +589,13 @@ urlpatterns = [
         "studio/day1/reset/",
         TenantStudioDay1ResetView.as_view(),
         name="tenant_studio_day1_reset",
+    ),
+    # v3.56 cockpit configurability cascade — operator admin UI for the
+    # 3 configurable cockpit blocks (footer, community_band, newsletter_band).
+    # Realized URL on the control plane: /siteconfig/super/configure/cockpit/
+    path(
+        "super/configure/cockpit/",
+        CockpitConfigureView.as_view(),
+        name="cockpit_configure",
     ),
 ]

@@ -1,0 +1,77 @@
+{% load i18n %}
+{% comment %}
+Today snapshot — v3.56.0 (2026-05-21)
+
+4-KPI snapshot card row. Mirrors the v3 preview's `.tp-snapshot` design.
+
+Configurability (cockpit.today_snapshot.*):
+  enabled        bool             # default False; operator opt-in
+  section_label  str              # e.g. "Today · Samuel · live"
+  live_dot       bool             # default True; show pulsing live dot
+  switch_link:
+    label        str
+    url          str
+  cards          list[{
+                   icon, head, value, label,
+                   spark_points,    # space-separated polyline points e.g. "0,18 14,16 28,12 …"
+                   spark_color,     # CSS color or var()
+                   delta_text,
+                   delta_tone,      # "" | "success" | "warn"
+                 }]
+
+Visibility:
+  - host kind:   never on manager surface (cockpit_context returns no today_snapshot for non-tenants)
+  - per-tenant:  cockpit.today_snapshot.enabled must be True
+  - per-page:    `{% block portal_today_snapshot %}{% endblock %}` override suppresses
+
+PII safety:
+  Card values are operator-published in SiteSettings or computed from the
+  child currently in context — NEVER auto-rendered from raw user PII (the
+  child's name is fine here; SSN / DOB / address must never appear).
+{% endcomment %}
+{% if cockpit.today_snapshot.enabled and cockpit.today_snapshot.cards %}
+{% with ts=cockpit.today_snapshot %}
+<section class="tp-snapshot" aria-label="{% trans 'Today snapshot' %}">
+  <div class="tp-section-label">
+    <div class="tp-section-label__title">
+      {% if ts.live_dot|default:True %}<span class="tp-section-label__live-dot" aria-hidden="true"></span>{% endif %}
+      {{ ts.section_label|default:_("Today · live") }}
+    </div>
+    {% if ts.switch_link.url %}
+    <a href="{{ ts.switch_link.url }}" class="tp-section-label__link">
+      {{ ts.switch_link.label|default:_("Switch →") }}
+    </a>
+    {% endif %}
+  </div>
+  <div class="tp-snapshot__cards">
+    {% for card in ts.cards %}
+    <article class="tp-snap-card" data-rmc-tp-snap-card>
+      <div class="tp-snap-card__head">
+        {% if card.icon %}<span class="tp-snap-card__icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+        {{ card.head }}
+      </div>
+      <div class="tp-snap-card__value">{{ card.value }}</div>
+      {% if card.label %}<div class="tp-snap-card__label">{{ card.label }}</div>{% endif %}
+      {% if card.spark_points %}
+      <svg class="tp-snap-card__spark"
+           viewBox="0 0 100 24"
+           preserveAspectRatio="none"
+           role="img"
+           aria-label="{% blocktrans with head=card.head %}{{ head }} sparkline{% endblocktrans %}">
+        <polyline points="{{ card.spark_points }}"
+                  fill="none"
+                  stroke="{{ card.spark_color|default:'currentColor' }}"
+                  stroke-width="2"></polyline>
+      </svg>
+      {% endif %}
+      {% if card.delta_text %}
+      <div class="tp-snap-card__delta{% if card.delta_tone == 'success' %} tp-snap-card__delta--success{% elif card.delta_tone == 'warn' %} tp-snap-card__delta--warn{% endif %}">
+        {{ card.delta_text }}
+      </div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endwith %}
+{% endif %}

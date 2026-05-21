@@ -324,6 +324,52 @@ class DashboardLayoutAdmin(ModelAdmin):
     }
 
 
+# v3.56 — Admin form that overlays the cockpit_payload editor onto the
+# existing TenantSettingsAdminForm. The flat cockpit fields are declared
+# on CockpitPayloadForm and re-used here so the operator sees the same
+# UX in /admin/ as on /siteconfig/super/configure/cockpit/.
+from .forms_cockpit import CockpitPayloadForm as _CockpitPayloadForm
+
+
+class TenantSettingsAdminFormWithCockpit(TenantSettingsAdminForm):
+    """Subclass that injects the v3.56 cockpit-payload editor fields.
+
+    The parent form (``TenantSettingsAdminForm``) dynamically pulls every
+    concrete field on ``SiteSettings`` — so the JSON column itself is
+    already a member. We hide that raw JSON widget, declare the flat
+    fields from ``CockpitPayloadForm``, and re-use its parse / serialize
+    helpers in ``__init__`` / ``clean()`` so admin saves write the same
+    nested dict the operator UI writes.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Append every flat field from the cockpit form. ``deepcopy``
+        # isn't required — these field descriptors are stateless.
+        for field_name, field in _CockpitPayloadForm.base_fields.items():
+            # Skip the underlying JSON field — the parent form already
+            # has it (or will, via dynamic-fields enumeration).
+            if field_name == "cockpit_payload":
+                continue
+            self.fields[field_name] = field
+        # Hide the raw JSON field if present.
+        if "cockpit_payload" in self.fields:
+            self.fields["cockpit_payload"].widget = forms.HiddenInput()
+            self.fields["cockpit_payload"].required = False
+        # Seed initials from the existing payload.
+        _CockpitPayloadForm._seed_initial_from_payload(
+            self, getattr(self.instance, "cockpit_payload", None) or {}
+        )
+
+    def clean(self):
+        cleaned = super().clean() or {}
+        payload = _CockpitPayloadForm._build_payload(self, cleaned)
+        cleaned["cockpit_payload"] = payload
+        if self.instance is not None:
+            self.instance.cockpit_payload = payload
+        return cleaned
+
+
 class TenantSettingsAdmin(ModelAdmin):
     """
     Main Site Customizer UI.
@@ -331,7 +377,7 @@ class TenantSettingsAdmin(ModelAdmin):
     """
 
     change_form_template = "admin/siteconfig/sitesettings/change_form.html"
-    form = TenantSettingsAdminForm
+    form = TenantSettingsAdminFormWithCockpit
     # form assigned below after TenantSettingsAdminForm definition
 
     def get_form(self, request, obj=None, **kwargs):
@@ -461,6 +507,22 @@ class TenantSettingsAdmin(ModelAdmin):
             },
         ),
         (
+            "Cockpit configuration",
+            {
+                "classes": ("tab",),
+                "description": (
+                    "v3.56 cockpit configurability cascade — operator-published "
+                    "values for the footer, community band, and newsletter band. "
+                    "Empty fields fall through to per-host defaults."
+                ),
+                "fields": (
+                    _CockpitPayloadForm.FOOTER_FIELDS
+                    + _CockpitPayloadForm.COMMUNITY_FIELDS
+                    + _CockpitPayloadForm.NEWSLETTER_FIELDS
+                ),
+            },
+        ),
+        (
             "Metadata",
             {
                 "classes": ("tab",),
@@ -483,6 +545,7 @@ class TenantSettingsAdmin(ModelAdmin):
             [
                 ("Operations", "operations"),
                 ("Compliance pointer", "compliance-pointer"),
+                ("Cockpit configuration", "cockpit-configuration"),
                 ("Where did my settings go?", "where-did-settings-go"),
                 ("Metadata", "metadata"),
             ],

@@ -1,0 +1,47 @@
+{% load i18n %}
+{% comment %} v3.55.0 (2026-05-21): Workspace context block (sidebar top).
+
+   Fills the empty zone under the logo. Operator identity + scope + the
+   sidebar collapse toggle anchored to its right.
+
+   CONFIGURABLE via cockpit.workspace_context (SiteSettings → context processor):
+     .enabled          bool   — gate the whole block (default: True)
+     .show_role        bool   — show role line under operator name (default: True)
+     .scope_dropdown   bool   — show the tenant scope dropdown (default: True)
+     .collapse_toggle  bool   — show the sidebar collapse button (default: True)
+
+   PII safety: operator avatar uses `actor_display.initials` (NEVER raw email
+   or username). Operator name uses `actor_display.label`. Role uses
+   `actor_display.role_label`. All sourced from a PII-safe view helper. {% endcomment %}
+
+{% if cockpit.workspace_context.enabled|default:True %}
+<div class="rmc-cockpit-workspace" data-rmc-cockpit-workspace="1">
+  <div class="rmc-cockpit-workspace__identity">
+    <div class="rmc-cockpit-workspace__avatar" aria-hidden="true">{{ actor_display.initials|default:"··" }}</div>
+    <div class="rmc-cockpit-workspace__who">
+      <strong>{{ actor_display.label|default:request.user.get_username|default:_("Operator") }}</strong>
+      {% if cockpit.workspace_context.show_role|default:True %}
+        <span>{{ actor_display.role_label|default:_("Operator") }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% if cockpit.workspace_context.scope_dropdown|default:True or cockpit.workspace_context.collapse_toggle|default:True %}
+  <div class="rmc-cockpit-workspace__scope-row">
+    {% if cockpit.workspace_context.scope_dropdown|default:True %}
+    <button type="button" class="rmc-cockpit-workspace__scope" aria-haspopup="listbox"
+            aria-label="{% trans 'Change tenant scope' %}"
+            data-rmc-tenant-scope-trigger="1">
+      <span class="rmc-cockpit-workspace__scope-label">🌐 {{ cockpit.workspace_context.scope_label|default:_("All tenants · Global") }}</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    {% endif %}
+    {% if cockpit.workspace_context.collapse_toggle|default:True %}
+    <button type="button" class="rmc-cockpit-workspace__collapse"
+            aria-label="{% trans 'Collapse sidebar' %}"
+            title="{% trans 'Collapse sidebar' %}"
+            data-rmc-shell-sidebar-toggle>◧</button>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}

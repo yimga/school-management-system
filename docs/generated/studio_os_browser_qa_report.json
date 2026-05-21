@@ -1,0 +1,84 @@
+{
+  "doc": "studio_os_browser_qa_report",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "scope": "Spec-based browser QA report. The E2E spec was written and parses cleanly; live execution is deferred to dev environment (Playwright + Django dev server required). This report documents what the spec asserts and the static contract verification that DID run.",
+  "spec_path": "tests/e2e/studio-os.spec.js",
+  "spec_parse_status": "OK (Node parser)",
+  "execution_status": "DEFERRED",
+  "execution_blockers": [
+    "Requires Django dev server running on MANAGER_HOST (default manager.runmycampus.com:8000)",
+    "Requires E2E_LOGIN_USER + E2E_LOGIN_PASSWORD env vars",
+    "Operator action: run `npx playwright test tests/e2e/studio-os.spec.js` from dev environment"
+  ],
+  "tests_in_spec": {
+    "responsive_sweep": {
+      "count": 18,
+      "shape": "6 sections × 3 viewports (390 mobile / 768 tablet / 1366 laptop)",
+      "assertions_per_test": [
+        "Section renders with expected heading",
+        "No horizontal overflow (documentElement.scrollWidth - clientWidth <= 1px)",
+        "No NEW dummy href=\"#\" anchors (tolerance: 1 for pre-existing v3.53 cockpit_copilot_rail anchor — NOW FIXED in v3.54.0 closeout, so tolerance can drop to 0 after rebuild)",
+        "No console errors during render"
+      ]
+    },
+    "studio_rail_links_all_six_modes": {
+      "viewport": "1366",
+      "asserts": "nav[aria-label*='Studio modes'] contains an <a href> ending at each section's path"
+    },
+    "skip_link_target_reachable": {
+      "viewport": "1366",
+      "asserts": "#studio-canvas element is attached to DOM"
+    },
+    "data_rmc_confirm_handler_loaded": {
+      "viewport": "1366",
+      "asserts": "Capture-phase handler injected by shell.js stops native click when window.confirm returns false. Verified by synthetic button injection."
+    },
+    "tenant_boundary_sweep": {
+      "guard": "skip when TENANT_HOST + E2E_LOGIN_USER not set",
+      "tests": [
+        "Tenant overview does NOT expose 'RBAC & permissions' chip (operator-only)",
+        "Tenant control does NOT show 'System config console' (operator-only)"
+      ]
+    }
+  },
+  "static_contract_verification_that_did_run": {
+    "tag_balance_studio_os_templates": "90/90 balanced (comment-aware stack walk)",
+    "python_ast_parse_views_py": "OK",
+    "python_ast_parse_services_py": "OK",
+    "node_parser_service_worker_js": "OK",
+    "node_parser_studio_os_shell_js": "OK",
+    "node_parser_studio_os_spec_js": "OK",
+    "cross_cutting_test_suite": "27/27 PASS on Windows in 0.2s (SimpleTestCase, no DB)",
+    "new_href_hash_introduced": 0,
+    "pre_existing_href_hash_removed": 1,
+    "sticky_overflow_hidden_combos_in_new_css": 0,
+    "data_theme_system_writes_in_new_css": 0,
+    "all_new_rmc_classes_defined_in_css_bundles": true,
+    "audit_template_render_safety_in_studio_os_scope": "no scan run this wave; assumes baseline 0 (last verified batch 1370)"
+  },
+  "expected_outcomes_on_live_run": {
+    "responsive_sweep": "PASS for all 18 (the systemic studio-mode-rail.css fix removes the horizontal overflow root cause; preview panes render honest empty states without bugs)",
+    "studio_rail_links_all_six_modes": "PASS (all 6 URL names exist in urls.py and shell.html rail renders them)",
+    "skip_link_target_reachable": "PASS (shell.html:25 anchor + shell.html:81 main element preserved)",
+    "data_rmc_confirm_handler_loaded": "PASS (studio_os__shell.js IIFE appended at v3.54.0)",
+    "tenant_boundary_sweep": "PASS (template-level {% if request.public_host_kind == 'manager' %} gates verified by test_studio_os_operator_tenant_boundaries.OperatorHostGateTests static check)"
+  },
+  "risk_register": [
+    {
+      "risk": "Live LiteLLM/Ollama unreachable during render",
+      "impact": "co-pilot rail falls back to rules layer (3-tier graceful)",
+      "mitigation": "shipped — services.ai_helpers handles fallback transparently"
+    },
+    {
+      "risk": "Bootstrap version drift",
+      "impact": "responsive helpers (.col-md-6, .table-responsive) could behave differently",
+      "mitigation": "v3.54.0 uses .rmc-* classes for cockpit layouts (semantic tokens), not raw Bootstrap utilities"
+    },
+    {
+      "risk": "Tenant-host TLS misconfig blocking E2E",
+      "impact": "tenant boundary tests can't run on live TENANT_HOST",
+      "mitigation": "tests skip cleanly via test.skip when TENANT_HOST env unset; static OperatorHostGateTests still verify the gate at template level"
+    }
+  ]
+}

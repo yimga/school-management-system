@@ -1,0 +1,43 @@
+{% load i18n %}
+{% comment %}
+Gradebook trend — v3.57.0 (2026-05-21)
+
+Rolling per-subject sparkline. Subject schema:
+  subject, current_value, delta_text, delta_tone,
+  spark_points (polyline e.g. "0,18 20,14 …")
+
+Stroke color defaults to currentColor — brand cascade flows in.
+{% endcomment %}
+{% if cockpit.gradebook_trend.enabled and cockpit.gradebook_trend.subjects %}
+{% with gt=cockpit.gradebook_trend %}
+<section class="tp-grade-trend" aria-label="{{ gt.title }}" data-rmc-tp-grade-trend>
+  <header class="tp-grade-trend__head">
+    <h3 class="tp-grade-trend__title">{{ gt.title|default:_("Gradebook trend") }}</h3>
+    {% if gt.sub %}<span class="tp-grade-trend__sub">{{ gt.sub }}</span>{% endif %}
+  </header>
+  <ul class="tp-grade-trend__list" role="list">
+    {% for s in gt.subjects %}
+    <li class="tp-grade-trend__item">
+      <div class="tp-grade-trend__label">
+        <strong>{{ s.subject }}</strong>
+        <span>{{ s.current_value }}</span>
+      </div>
+      <svg class="tp-grade-trend__spark"
+           viewBox="0 0 100 24"
+           preserveAspectRatio="none"
+           role="img"
+           aria-label="{% blocktrans with sub=s.subject %}{{ sub }} trend{% endblocktrans %}">
+        <polyline points="{{ s.spark_points }}"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"></polyline>
+      </svg>
+      {% if s.delta_text %}
+      <span class="tp-grade-trend__delta{% if s.delta_tone == 'success' %} tp-grade-trend__delta--success{% elif s.delta_tone == 'warn' %} tp-grade-trend__delta--warn{% endif %}">{{ s.delta_text }}</span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endwith %}
+{% endif %}

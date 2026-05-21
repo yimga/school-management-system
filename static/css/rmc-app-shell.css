@@ -1,0 +1,325 @@
+/* ============================================================
+   rmc-app-shell.css — Platform-wide layout shell contract
+   ------------------------------------------------------------
+   v3.55.0 / 2026-05-21 — Introduced.
+
+   PURPOSE
+   The single layout grid that all dashboard surfaces inherit:
+   manager control-plane, tenant portal, Studio OS workspace,
+   backend (tenant + manager), and any future cockpit shell.
+   Replaces ad-hoc `position: fixed` headers, sibling-floating
+   sidebars, and document-level scroll surfaces that produced
+   the "horizontal cut-off" + "footer adrift" + "sidebar
+   overlapping canvas" bugs visible platform-wide before v3.55.
+
+   CONTRACT (read this before editing)
+   - The DOCUMENT never scrolls (`html, body { overflow: hidden }`)
+   - The CANVAS is the single scrollable surface; it owns the
+     viewport scrollbar visually
+   - The HEADER is static (grid row 1, never moves with scroll)
+   - The SIDEBAR is static with its OWN internal scroll (own column)
+   - The FOOTER lives at the END of the canvas flow (appears when
+     the user scrolls to the bottom of the canvas)
+   - Inner content panes that overflow horizontally must use
+     `.rmc-app-shell__scroll-x` wrappers; NEVER set overflow on a
+     sticky element (v3.27.1 trap — scanner enforced)
+
+   ROOT CLASSES (defined here so scan_undefined_css_classes is clean)
+   - .rmc-app-shell                — grid container (root of every shell)
+   - .rmc-app-shell__header        — grid row 1, full width, static
+   - .rmc-app-shell__sidebar       — grid col 1 (row 2), own scroll
+   - .rmc-app-shell__canvas        — grid col 2 (row 2), own scroll
+   - .rmc-app-shell__canvas-body   — flex 1 inside canvas (pushes footer)
+   - .rmc-app-shell__footer        — end-of-canvas footer block
+   - .rmc-app-shell__scroll-x      — horizontal-scroll wrapper for tables
+   - .rmc-app-shell--no-sidebar    — modifier when sidebar is absent
+
+   THEME / TOKEN POLICY
+   Uses ONLY semantic surface tokens from design-tokens.css.
+   No hex literals. No platform-specific surface tokens. Tenant
+   brand cascades through `--surface-bg/canvas/elevated/popover`.
+   ============================================================ */
+
+/* ---------- Document lock ----------
+   The shell takes the viewport; the document never scrolls.
+   `100dvh` ensures iOS Safari doesn't add phantom rows when the
+   address bar collapses. Print resets this — see rmc-print.css. */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Allow the shell pattern to coexist with legacy non-shell pages.
+   Pages that don't opt in keep their default `overflow: visible` by
+   wrapping in `<html data-rmc-shell="off">`. Default IS shell-locked. */
+html[data-rmc-shell="off"],
+html[data-rmc-shell="off"] body {
+  overflow: visible;
+  height: auto;
+}
+
+/* ---------- Grid container ----------
+   Three rows: header / content / footer. Both header AND footer are static
+   (viewport-pinned via grid). Only the canvas in the middle row scrolls.
+   When a surface has no footer slot it simply doesn't render the
+   .rmc-app-shell__footer element — the `auto` row collapses to 0. */
+.rmc-app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  isolation: isolate; /* keeps shell stacking contexts predictable */
+}
+
+.rmc-app-shell--no-sidebar {
+  grid-template-columns: 1fr;
+}
+
+/* ---------- Header (static, grid row 1) ---------- */
+.rmc-app-shell__header {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  background: var(--surface-elevated);
+  border-bottom: 1px solid var(--hairline);
+  position: relative; /* anchor for any sub-popovers */
+  z-index: 40;        /* above canvas content, below modals (1050) */
+  min-width: 0;
+}
+
+/* ---------- Sidebar (static col, own scroll) ---------- */
+.rmc-app-shell__sidebar {
+  grid-row: 2;
+  grid-column: 1;
+  background: var(--surface-canvas);
+  border-right: 1px solid var(--hairline);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  min-width: 0;
+  z-index: 30; /* below header, above canvas */
+  /* Apple HIG: subtle hairline elevation rather than hard border. */
+  box-shadow: var(--elev-1);
+}
+
+.rmc-app-shell--no-sidebar .rmc-app-shell__sidebar {
+  display: none;
+}
+
+/* ---------- Canvas (the SINGLE scrollable surface) ----------
+   Three invariants live here:
+   1. `min-width: 0` — flex/grid children allow inner content to
+      shrink past intrinsic min-size (the v3.27.1 + v3.54.0 lesson)
+   2. `overflow-x: hidden` — anything wider than canvas is clipped
+      ON THE CANVAS, not on `<body>` (so document never gets a
+      horizontal scrollbar)
+   3. `overflow-y: auto` — the page scrolls inside the canvas
+   `scroll-padding-top` reserves space for the static header so
+   anchor links + focus-rings don't land underneath it.            */
+.rmc-app-shell__canvas {
+  grid-row: 2;
+  grid-column: 2;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-bg);
+  scroll-padding-top: var(--rmc-app-shell-header-h, 64px);
+  /* iOS momentum scrolling — modern Safari respects this. */
+  -webkit-overflow-scrolling: touch;
+  /* Smooth anchor-jump within the canvas. */
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-app-shell__canvas {
+    scroll-behavior: auto;
+  }
+}
+
+.rmc-app-shell--no-sidebar .rmc-app-shell__canvas {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Canvas body ----------
+   Flex column inside the canvas. With the v3.55 static-footer pattern,
+   the footer lives as a sibling grid row (NOT inside the canvas), so the
+   canvas-body just expands to fill the canvas naturally. `flex: 1 0 auto`
+   preserves any existing pages that relied on flex-pushed content.       */
+.rmc-app-shell__canvas-body {
+  flex: 1 0 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Footer (static, grid row 3) ----------
+   Spans both sidebar + canvas columns (`grid-column: 1 / -1`) so the
+   manager footer's full corporate-row + trust grid + legal bar render
+   end-to-end. Footer is NOT inside the canvas — it's a sibling grid
+   child, viewport-pinned by the grid itself. The middle row (`1fr`)
+   absorbs all remaining vertical space so the canvas can scroll
+   between header and footer.                                            */
+.rmc-app-shell__footer {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  min-width: 0;
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  z-index: 35; /* above canvas content, below header (40) + modals (1050) */
+  /* Defensive: if footer content is taller than expected, allow internal scroll
+     instead of pushing layout. Rarely needed; safety net. */
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+/* ---------- Internal horizontal-scroll wrapper ----------
+   For wide tables / permission matrices / diff views inside the
+   canvas. Uses the v3.27.1-lesson pattern: scroll on Y is auto,
+   scroll on X is auto — NEVER set `overflow: hidden` on a sticky
+   element inside this wrapper (scanner-enforced). */
+.rmc-app-shell__scroll-x {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* ============================================================
+   Scrollbar styling — thin, fade-on-hover, accessible
+   ------------------------------------------------------------
+   Pattern: the scrollbar is always functional but visually
+   recessive when idle. Hovering the canvas or sidebar reveals
+   the thumb. Pointer-coarse devices get a slightly thicker bar
+   so it's reachable with a finger.
+   ============================================================ */
+
+/* Firefox */
+.rmc-app-shell__canvas,
+.rmc-app-shell__sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover,
+.rmc-app-shell__canvas:focus-within,
+.rmc-app-shell__sidebar:hover,
+.rmc-app-shell__sidebar:focus-within {
+  scrollbar-color: var(--hairline-strong) transparent;
+}
+
+/* WebKit (Safari + Chromium) */
+.rmc-app-shell__canvas::-webkit-scrollbar,
+.rmc-app-shell__sidebar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.rmc-app-shell__canvas::-webkit-scrollbar-track,
+.rmc-app-shell__sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb,
+.rmc-app-shell__sidebar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: var(--radius-pill);
+  transition: background var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover::-webkit-scrollbar-thumb,
+.rmc-app-shell__canvas:focus-within::-webkit-scrollbar-thumb,
+.rmc-app-shell__sidebar:hover::-webkit-scrollbar-thumb,
+.rmc-app-shell__sidebar:focus-within::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+}
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb:hover,
+.rmc-app-shell__sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Coarse-pointer devices: bigger track so the bar is reachable. */
+@media (pointer: coarse) {
+  .rmc-app-shell__canvas::-webkit-scrollbar,
+  .rmc-app-shell__sidebar::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* ============================================================
+   Responsive — sidebar collapses to offcanvas on small screens
+   ------------------------------------------------------------
+   The actual offcanvas widget (with toggle button, ESC-to-close,
+   focus trap) is rendered by the per-shell template; here we
+   only handle the grid reflow so the sidebar's grid column
+   collapses to zero width and the canvas spans full width.
+
+   Templates that want the offcanvas to be drawer-style (slides
+   in over the canvas) set `data-rmc-shell-sidebar="offcanvas"`
+   on the .rmc-app-shell root.
+   ============================================================ */
+@media (max-width: 991.98px) {
+  .rmc-app-shell {
+    grid-template-columns: 1fr;
+  }
+  .rmc-app-shell__sidebar {
+    display: none;
+  }
+  .rmc-app-shell__canvas {
+    grid-column: 1 / -1;
+  }
+  /* Offcanvas drawer mode: sidebar slides over the canvas when
+     toggled, instead of being hidden by grid reflow. */
+  [data-rmc-shell-sidebar="offcanvas"] .rmc-app-shell__sidebar {
+    display: block;
+    position: fixed;
+    top: var(--rmc-app-shell-header-h, 64px);
+    left: 0;
+    bottom: 0;
+    width: min(320px, 86vw);
+    transform: translateX(-100%);
+    transition: transform var(--motion-normal);
+    z-index: 50;
+  }
+  [data-rmc-shell-sidebar="offcanvas"][data-rmc-shell-sidebar-open="true"] .rmc-app-shell__sidebar {
+    transform: translateX(0);
+  }
+}
+
+/* ============================================================
+   Accessibility — focus + reduced motion + high-contrast
+   ============================================================ */
+
+/* Skip-link target inside the canvas — focus lands here when the
+   user activates the "Skip to main content" anchor. */
+.rmc-app-shell__canvas:focus {
+  outline: none; /* keyboard focus shouldn't ring the entire canvas */
+}
+.rmc-app-shell__canvas-body:focus,
+.rmc-app-shell__canvas-body:focus-visible {
+  outline: 2px solid var(--school-primary);
+  outline-offset: -2px;
+}
+
+@media (prefers-contrast: more) {
+  .rmc-app-shell__header,
+  .rmc-app-shell__sidebar,
+  .rmc-app-shell__footer {
+    border-color: var(--hairline-strong);
+  }
+}
+
+/* ============================================================
+   Compatibility — legacy shells coexisting during migration
+   ------------------------------------------------------------
+   While Tier-1 bases (control_plane_skeleton.html, portal_base.html,
+   studio_os/shell.html) are being migrated to .rmc-app-shell, pages
+   that haven't adopted yet still expect the document to scroll.
+   They opt out by setting `data-rmc-shell="off"` on `<html>`.
+   Once Phase 3 lands, all Tier-1 templates use `.rmc-app-shell` and
+   never write `data-rmc-shell="off"`.
+   ============================================================ */

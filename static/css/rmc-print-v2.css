@@ -1,0 +1,224 @@
+/* rmc-print-v2.css — v3.57.0 (2026-05-21)
+ *
+ * Civic-grammar print layer that EXTENDS (does not replace) `rmc-print.css`.
+ * The v1 sheet handles document-class chrome (.rmc-print-document /
+ * .rmc-print-invoice) — this v2 sheet adds the brand cascade contract:
+ *
+ *   1. School wordmark + motto + crest in the running header on every page
+ *      (via @page :left/:right margin boxes where supported, plus a static
+ *      `.rmc-print-v2__brand-block` injected at the top of long documents).
+ *   2. "Confidential · printed YYYY-MM-DD" stamp in the running footer.
+ *   3. Watermark `.rmc-print-v2__watermark` for DRAFT / VOID / FINAL stages.
+ *   4. Per-tenant brand color cascade via CSS custom properties — falls back
+ *      to neutral grayscale when no tenant brand is in effect.
+ *   5. Page-X-of-Y counter rendered via CSS `counter()` so it works without
+ *      JavaScript even in print preview / headless rendering.
+ *
+ * Adoption: opt-in. Print templates that want the v2 grammar add the second
+ * stylesheet AFTER `rmc-print.css` and wrap content in `.rmc-print-v2`.
+ *
+ * Token contract: brand color sources `var(--brand-primary)` /
+ * `var(--brand-accent)` per the platform brand cascade. No hex literals.
+ * Grayscale fallbacks use semantic `var(--text-*)` tokens which serialize
+ * print-safely under the @media print reset in rmc-print.css.
+ *
+ * Accessibility:
+ *   - Print is inherently inaccessible — but we keep semantic markup so
+ *     screen readers / OCR pipelines (Adobe Acrobat / Foxit) can still
+ *     extract structure when generating PDFs.
+ *   - Brand-color elements never carry meaning by color alone; the wordmark
+ *     and watermark text remain readable in monochrome printers.
+ */
+
+@media print {
+  .rmc-print-v2 {
+    /* Inherit the v1 reset (.rmc-print-document covers most of this); these
+     * vars are the per-tenant brand cascade hooks. Operator-configurable via
+     * SiteSettings.cockpit_payload.print.brand_*. */
+    --rmc-print-brand-primary: var(--brand-primary, var(--text-primary));
+    --rmc-print-brand-accent: var(--brand-accent, var(--text-secondary));
+    --rmc-print-rule-color: var(--hairline);
+  }
+
+  .rmc-print-v2__brand-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 8pt;
+    margin-bottom: 12pt;
+    border-bottom: 1pt solid var(--rmc-print-rule-color);
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .rmc-print-v2__brand-block .rmc-print-v2__wordmark {
+    font-size: 16pt;
+    font-weight: 700;
+    color: var(--rmc-print-brand-primary);
+    line-height: 1.1;
+  }
+
+  .rmc-print-v2__brand-block .rmc-print-v2__motto {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-style: italic;
+    font-size: 9pt;
+    color: var(--rmc-print-brand-accent);
+    line-height: 1.2;
+  }
+
+  .rmc-print-v2__brand-block .rmc-print-v2__crest {
+    flex: 0 0 auto;
+    max-block-size: 14mm;
+    max-inline-size: 14mm;
+  }
+
+  .rmc-print-v2__meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 8pt;
+    font-size: 8pt;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rmc-print-v2__doc-title {
+    font-size: 14pt;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4pt 0;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .rmc-print-v2__doc-subtitle {
+    font-size: 10pt;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin: 0 0 12pt 0;
+  }
+
+  /* Section header rule — civic editorial style. */
+  .rmc-print-v2__section-title {
+    margin: 18pt 0 6pt 0;
+    padding-bottom: 2pt;
+    border-bottom: 0.5pt solid var(--rmc-print-rule-color);
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--rmc-print-brand-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Watermark — pinned diagonally across each page. Reserved values:
+   * DRAFT / VOID / FINAL / CONFIDENTIAL. Always grayscale + low opacity
+   * so it doesn't interfere with readability. */
+  .rmc-print-v2__watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-30deg);
+    font-size: 96pt;
+    font-weight: 700;
+    color: var(--text-secondary);
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 9999;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* Confidentiality + print-date stamp. Renders inline at the bottom of
+   * each printed page when added to .rmc-print-v2__page-footer. */
+  .rmc-print-v2__page-footer {
+    margin-top: 18pt;
+    padding-top: 6pt;
+    border-top: 0.5pt solid var(--rmc-print-rule-color);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 7.5pt;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Page-X-of-Y via CSS counter — works without JS. Consumer adds
+   * .rmc-print-v2__page-counter::after { content: "Page " counter(page) " of " counter(pages); }
+   * via a small template inline-style; the base reset here keeps it tidy. */
+  .rmc-print-v2__page-counter {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Repeat table headers across pages — extends the v1 sheet which already
+   * sets thead { display: table-header-group }. */
+  .rmc-print-v2 table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+  .rmc-print-v2 table thead {
+    display: table-header-group;
+  }
+  .rmc-print-v2 table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .rmc-print-v2 table th,
+  .rmc-print-v2 table td {
+    padding: 4pt 6pt;
+    border-bottom: 0.5pt solid var(--rmc-print-rule-color);
+    text-align: start;
+    vertical-align: top;
+  }
+  .rmc-print-v2 table th {
+    background: transparent;
+    color: var(--rmc-print-brand-primary);
+    font-weight: 700;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  /* Signature block — pinned to the bottom of the final page. */
+  .rmc-print-v2__signature-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: 36pt;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .rmc-print-v2__signature {
+    flex: 1 1 0;
+    border-top: 0.5pt solid var(--text-primary);
+    padding-top: 4pt;
+    text-align: center;
+    font-size: 9pt;
+    color: var(--text-secondary);
+  }
+  .rmc-print-v2__signature-name {
+    font-size: 10pt;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: block;
+  }
+}
+
+/* Screen-mode preview — operators occasionally preview the print layout
+ * in-app (e.g. transcript builder preview pane). Light-touch reset so
+ * the print rules don't visually collapse on screen. */
+@media screen {
+  .rmc-print-v2--preview {
+    max-inline-size: 794px; /* ≈ A4 portrait width in CSS px */
+    margin: 0 auto;
+    padding: 16mm 14mm;
+    background: var(--surface-bg);
+    border: 1px solid var(--hairline);
+    border-radius: 0.5rem;
+    box-shadow: var(--elev-2, 0 4px 16px rgba(0,0,0,0.08)); /* off-token-allow: shadow-fallback-grayscale */
+  }
+}

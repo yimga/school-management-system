@@ -1,0 +1,45 @@
+{% load static i18n %}
+{% comment %} v3.57.0 (2026-05-21): 200x front-office Element 4 — Deploy pipeline status.
+
+   Last 5 deploys with sha / version / stage / duration / status.
+
+   CONFIGURABLE via cockpit.deploy_pipeline (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .title
+     .title_em
+     .meta_text
+     .deploys  list — exactly 5 entries
+        [{sha_short, version, slug, actor, started, duration, status, stage}]
+        status ∈ {"success","failed","in_progress","canceled"}
+{% endcomment %}
+
+{% if cockpit.deploy_pipeline.enabled and cockpit.deploy_pipeline.deploys %}
+<section class="lx-card lx-deploy" aria-label="{% trans 'Deploy pipeline status' %}">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.deploy_pipeline.eyebrow|default:_("Deploy pipeline · last 5") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.deploy_pipeline.title|default:_("Releases") }}
+        {% if cockpit.deploy_pipeline.title_em %} <em>{{ cockpit.deploy_pipeline.title_em }}</em>{% endif %}
+      </h3>
+    </div>
+    {% if cockpit.deploy_pipeline.meta_text %}<div class="lx-card__meta">{{ cockpit.deploy_pipeline.meta_text }}</div>{% endif %}
+  </div>
+  <ol class="lx-deploy__list" role="list">
+    {% for d in cockpit.deploy_pipeline.deploys %}
+    <li class="lx-deploy__row lx-deploy__row--{{ d.status|default:'success' }}">
+      <span class="lx-deploy__dot" aria-hidden="true"></span>
+      <span class="lx-deploy__sha">{{ d.sha_short }}</span>
+      <span class="lx-deploy__version">{{ d.version }}</span>
+      {% if d.slug %}<span class="lx-deploy__slug">{{ d.slug }}</span>{% endif %}
+      <span class="lx-deploy__stage">{{ d.stage|default:"—" }}</span>
+      <span class="lx-deploy__when">{{ d.started }}</span>
+      <span class="lx-deploy__dur">{{ d.duration|default:"—" }}</span>
+      <span class="lx-deploy__status lx-deploy__status--{{ d.status|default:'success' }}">{{ d.status|default:'success'|upper }}</span>
+      <span class="lx-deploy__actor">{{ d.actor|default:"—" }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}

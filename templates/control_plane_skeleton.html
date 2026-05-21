@@ -97,31 +97,83 @@
     {# v3.53.0 (2026-05-21): signature motion + command bar styles. #}
     <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
+    {% comment %} v3.55.0 (2026-05-21): Platform-wide app-shell — grid layout + own-scroll canvas + static header/sidebar.
+       Loaded LAST among layout sheets so the shell grid wins specificity over legacy chrome rules. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-app-shell.css' %}">
+    {% comment %} v3.55.0: manager-specific cockpit additions (brand tagline, activity ticker,
+       platform pulse, workspace context, breadcrumb). Loaded after shell so cockpit components
+       can override shell defaults where needed. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
+    {% comment %} v3.55.0+ (2026-05-21): 200x luxury cockpit — 10 elements layered over v7
+       (AI Copilot rail, world map, forecast lane, operator notebook, tenant heatmap,
+       revenue waterfall, audit feed, trust nutrition, SLO clocks, operator presence).
+       Loaded LAST among cockpit sheets so 200x rules win where they refine v7. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
     {% block extrastyle %}{% endblock %}
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
+    {# v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). #}
+    <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
   </head>
-  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="document" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
+  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="canvas" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %}>
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% block content %}
-    <div class="cp-shell-content d-flex flex-column flex-grow-1 min-h-0{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}"{% block cp_shell_content_attrs %}{% endblock %}>
-      {% block cp_shell_page %}{% endblock %}
+    {% comment %} v3.55.0 (2026-05-21): .rmc-app-shell — platform-wide grid contract.
+       header (row 1, static) + sidebar (col 1, own scroll) + canvas (col 2, own scroll).
+       Legacy `cp-shell-content` class kept on canvas-body for back-compat with existing
+       CSS rules; behavior delegated to the shell grid above it. {% endcomment %}
+    <div class="rmc-app-shell"{% block rmc_app_shell_attrs %}{% endblock %}{% block cp_shell_content_attrs %}{% endblock %}>
+      {% block rmc_app_shell_inner %}
+      <header class="rmc-app-shell__header" role="banner">
+        {% block cp_shell_header %}{% endblock %}
+        {# v3.55.0+ (2026-05-21): 200x Element 10 — operator presence indicator. Self-gates on cockpit.operator_presence.enabled. #}
+        {% include "partials/cockpit/_operator_presence.html" %}
+      </header>
+      <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Control plane navigation' %}">
+        {% block cp_shell_sidebar %}{% endblock %}
+      </aside>
+      <div class="rmc-app-shell__canvas">
+        <div class="rmc-app-shell__canvas-body cp-shell-content{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}">
+          {% comment %} v3.55.0+ (2026-05-21): 200x cockpit elements 2,3,5,6,7,8,9 — each
+             self-gates on its own `cockpit.<section>.enabled` flag and renders nothing
+             until operator opts in via SiteSettings. Order: world map → forecast lane →
+             SLO clocks → tenant heatmap → revenue waterfall → audit feed → trust nutrition. {% endcomment %}
+          {% include "partials/cockpit/_live_world_map.html" %}
+          {% include "partials/cockpit/_forecast_lane.html" %}
+          {% include "partials/cockpit/_slo_clocks.html" %}
+          {% include "partials/cockpit/_tenant_heatmap.html" %}
+          {% include "partials/cockpit/_revenue_waterfall.html" %}
+          {% include "partials/cockpit/_audit_feed.html" %}
+          {% include "partials/cockpit/_trust_nutrition.html" %}
+          {# Legacy block: pages extending skeleton directly render here. #}
+          {% block cp_shell_page %}{% endblock %}
+          {# New shell-aware block: cleaner adoption for shell-native pages. #}
+          {% block cp_shell_canvas_body %}{% endblock %}
+        </div>
+      </div>
+      {# v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot rail (grid col 3). Self-gates on cockpit.ai_copilot_rail.enabled. #}
+      {% include "partials/cockpit/_ai_copilot_rail.html" %}
+      {% comment %} v3.55.0: footer is a sibling grid child (row 3), NOT inside the canvas.
+         This pins it to the viewport bottom alongside the static header. {% endcomment %}
       {% block cp_shell_footer %}
       {% if SHOW_MANAGER_CORPORATE_FOOTER %}
-      <footer class="cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
+      <footer class="rmc-app-shell__footer cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
         {% include "partials/rmc_operator_footer_compact.html" %}
       </footer>
       {% endif %}
+      {% endblock %}
       {% endblock %}
     </div>
     {% if request.user.is_authenticated %}
       {% include "partials/help_proactive_nudge.html" %}
       {% include "partials/help_contextual_drawer.html" %}
     {% endif %}
+    {# v3.55.0+ (2026-05-21): 200x Element 4 — Operator notebook floating widget. Self-gates on cockpit.operator_notebook.enabled. #}
+    {% include "partials/cockpit/_operator_notebook.html" %}
     {% block cp_shell_after %}{% endblock %}
     {% endblock %}
     {% comment %} Phase E (2026-05-12): AI copilot is mounted on every authenticated shell so
@@ -152,6 +204,11 @@
     {% endif %}
     <script src="{% static 'js/rmc-dashboard-widget-boundary.js' %}" defer></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    {% comment %} v3.55.0 (2026-05-21): App-shell runtime — anchor-scroll retarget + modal portal + scroll helper.
+       Loaded AFTER Bootstrap so the show.bs.modal / show.bs.offcanvas listeners are bound after BS init. {% endcomment %}
+    <script src="{% static 'js/_pages/rmc-app-shell.js' %}" defer></script>
+    {# v3.55.0+ (2026-05-21): AI Copilot rail expand/collapse + Cmd/Ctrl+K focus. #}
+    <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     {% include "partials/rmc_tour_bootstrap.html" %}

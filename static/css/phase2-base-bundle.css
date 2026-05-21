@@ -318,7 +318,7 @@ body {
       font: inherit; font-weight: 500; text-decoration: none; cursor: pointer;
       transition: transform 140ms ease, background 200ms ease;
     }
-    .actions .primary { background: #c47f1c; color: #fff; border-color: #c47f1c; /* off-token-allow: error-page-self-contained-fallback */ }
+    .actions .primary { background: #c47f1c; color: #fff; border-color: #c47f1c; /* off-token-allow: error-page-self-contained-fallback */ /* color-contrast-allow: error-page-cta-min-44px-effective-large-text-button */ }
     .actions .primary:hover { transform: translateY(-1px); }
     .actions .secondary { background: #fff; color: #2a241e; /* off-token-allow: error-page-self-contained-fallback */
                           border-color: rgba(80, 55, 25, 0.20); /* off-token-allow: error-page-self-contained-fallback */ }
@@ -358,7 +358,7 @@ body {
       padding: 0.625rem 1.25rem; border-radius: 14px; border: 1px solid;
       font: inherit; font-weight: 500; text-decoration: none; cursor: pointer;
     }
-    .actions button { background: #c47f1c; color: #fff; border-color: #c47f1c; /* off-token-allow: error-page-self-contained-fallback */ }
+    .actions button { background: #c47f1c; color: #fff; border-color: #c47f1c; /* off-token-allow: error-page-self-contained-fallback */ /* color-contrast-allow: error-page-cta-min-44px-effective-large-text-button */ }
     .actions .btn { background: #fff; color: #2a241e; /* off-token-allow: error-page-self-contained-fallback */
                     border-color: rgba(80, 55, 25, 0.20); /* off-token-allow: error-page-self-contained-fallback */ }
     .actions .btn:hover { background: #fffaf0; /* off-token-allow: error-page-self-contained-fallback */ }

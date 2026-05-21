@@ -1,0 +1,82 @@
+{
+  "doc": "studio_os_structural_teardown_audit",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "scope": "Cross-section structural classification synthesizing the 6 per-section audits. Each section graded on Architecture / UX / Workflow / Engineering / Action.",
+  "axes": {
+    "architecture": ["coherent", "fragmented", "template-only", "missing-service", "broken-wiring", "stale-proof"],
+    "ux": ["premium", "acceptable", "dense", "clipped", "horizontally-broken", "missing-primary-action", "poor-mobile"],
+    "workflow": ["clear-flow", "partial", "dead-end", "missing-preview", "missing-next-action"],
+    "engineering": ["test-backed", "untested", "route-backed", "template-only", "hardcoded", "unsafe-tenant-boundary"],
+    "action": ["keep", "minor-repair", "aggressive-refactor", "coordinator-task"]
+  },
+  "sections": {
+    "overview": {
+      "architecture": "coherent (post-v3.54.0)",
+      "ux": "premium (cockpit + triptych + hub rail)",
+      "workflow": "clear-flow",
+      "engineering": "test-backed (23 + cross-cutting)",
+      "action_taken": "aggressive-refactor — new overview_command_cockpit.html, signal strip rewritten, guidance panel upgraded, new CSS, right-rail Overview branch added",
+      "before_v3_54": "fragmented — inline mode-cards + ops-hubs rows; no NBA hero; no triptych; right-rail fell through to generic message",
+      "after_v3_54": "command cockpit composition; honest signal placeholders; PII-safe right-rail audit"
+    },
+    "experience": {
+      "architecture": "coherent",
+      "ux": "premium (workbench context rebuilt; live preview pane added)",
+      "workflow": "clear-flow",
+      "engineering": "test-backed (7 overflow invariants + 2 extended)",
+      "action_taken": "aggressive-refactor + primary owner of systemic horizontal-overflow fix",
+      "before_v3_54": "10 overflow risks catalogued (file:line table in audit); workbench context under-built",
+      "after_v3_54": "9 fixes in section files + 1 systemic at shared rail rule; real context column"
+    },
+    "automation": {
+      "architecture": "coherent",
+      "ux": "premium (workflow simulation cockpit + 13-tool rail)",
+      "workflow": "partial — simulation engine backend payload deferred to v3.55+",
+      "engineering": "test-backed (new + extended)",
+      "action_taken": "aggressive-refactor — new simulation preview pane, dependency-graph wrapped in overflow-x:auto;overflow-y:visible, 13-tool rail",
+      "before_v3_54": "missing preview pane; rail less complete; dependency graph could overflow",
+      "after_v3_54": "honest simulation 'coming online' empty state; rail complete; graph responsive"
+    },
+    "output": {
+      "architecture": "coherent",
+      "ux": "premium (readiness center)",
+      "workflow": "partial — output_readiness_summary backend wired in v3.54.0 closeout",
+      "engineering": "test-backed (10 + 2 extended)",
+      "action_taken": "aggressive-refactor — readiness preview pane added, 12 partials updated, .rmc-output-passthrough wrappers around pass-through inner partials",
+      "before_v3_54": "missing readiness summary; pass-through partials could carry wide tables",
+      "after_v3_54": "real readiness service wired (v3.54.0 closeout); passthrough wrapper responsive"
+    },
+    "launch": {
+      "architecture": "coherent",
+      "ux": "premium (readiness command center)",
+      "workflow": "partial — launch_timeline/approvals deferred; readiness_summary wired",
+      "engineering": "test-backed (~6 classes + 4 extended in school_infrastructure)",
+      "action_taken": "aggressive-refactor — readiness preview pane, honest 'Coming soon' select-plan, operator-only Apply via data-rmc-confirm",
+      "before_v3_54": "fake apply path (apply_api returns 501); plan body absent honest state",
+      "after_v3_54": "Apply explicitly operator-gated + confirm-gated; plan body 'Coming soon' honest"
+    },
+    "control": {
+      "architecture": "coherent",
+      "ux": "premium (governance cockpit)",
+      "workflow": "clear-flow",
+      "engineering": "test-backed (9 + 2 extended)",
+      "action_taken": "aggressive-refactor — 6-tile governance grid (preserves v3.33 inline feature-control panel), governance preview pane, external feature-control bridge link",
+      "before_v3_54": "rail had no-URL items; audit list rendered raw email",
+      "after_v3_54": "perm-gated rollback CTA, PII-safe actor_display, governance preview pane with risk + audit + rollback plan"
+    }
+  },
+  "coordinator_integrations": [
+    "static/css/studio-mode-rail.css:5-20 — shared rail overflow safety (systemic fix)",
+    "templates/studio_os/shell.html — Overview include + right-rail Overview branch + PII-safe actor + dead-elif removal + overview CSS link",
+    "apps/studio_os/views.py — overview_signals + launch mirror + output_readiness_summary + launch_readiness_summary wirings",
+    "apps/studio_os/services.py — get_overview_signals / get_output_readiness_summary / get_launch_readiness_summary + paused/failing extension to automation health",
+    "static/js/_pages/studio_os__shell.js — shared data-rmc-confirm capture-phase handler",
+    "static/js/service-worker.js — CACHE_VERSION bump",
+    "docs/CSS_RETIREMENT_DOCKET.md — § v3.54.0 entry",
+    "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md — § batch 1373",
+    "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md — § Slice batch 1373",
+    "memory/project_studio_os_next_realm_v3_54_2026_05_21.md + MEMORY.md index",
+    "templates/studio_os/partials/cockpit_copilot_rail.html — pre-existing v3.53 href=# anchor → <button> (closeout fix)"
+  ]
+}
