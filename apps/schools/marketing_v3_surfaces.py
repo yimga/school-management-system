@@ -244,6 +244,79 @@ def marketing_solutions_persona_by_slug(slug: str) -> dict | None:
     return None
 
 
+def marketing_solution_buyer_worlds() -> list[dict]:
+    """Six institution worlds for the public Solutions operating map."""
+    worlds = [
+        {
+            "slug": "private-schools",
+            "name": _("Private Schools"),
+            "lead": _("Growth, fee confidence, and parent trust without disconnected tools."),
+            "problem": _("Turn inquiry pressure, tuition clarity, and family experience into one operating picture."),
+            "url_name": "marketing_solutions_private_schools",
+            "fallback": "/solutions/private-schools/",
+            "asset": "images/marketing/solution-private-growth-engine.svg",
+            "asset_alt": _("Private school growth workflow visual with inquiry, fee, and parent engagement signals."),
+        },
+        {
+            "slug": "international-schools",
+            "name": _("International Schools"),
+            "lead": _("Global operating models for calendars, programs, currencies, and reporting."),
+            "problem": _("Keep mobile families and multi-program campuses governed from one school core."),
+            "url_name": "marketing_solutions_international_schools",
+            "fallback": "/solutions/international-schools/",
+            "asset": "images/marketing/solution-international-global-model.svg",
+            "asset_alt": _("International school model visual with programs, currencies, and calendars."),
+        },
+        {
+            "slug": "k12-schools",
+            "name": _("K-12 Schools"),
+            "lead": _("A learner lifecycle across attendance, academics, and family engagement."),
+            "problem": _("Run the daily chain from register to report card without losing student context."),
+            "url_name": "marketing_solutions_k12_schools",
+            "fallback": "/solutions/k12-schools/",
+            "asset": "images/marketing/solution-k12-lifecycle.svg",
+            "asset_alt": _("K-12 learner lifecycle visual from attendance to progress and family action."),
+        },
+        {
+            "slug": "multi-campus",
+            "name": _("Multi-Campus Groups"),
+            "lead": _("Network command, campus comparison, and standards with local execution."),
+            "problem": _("Give leadership rollups without forcing every campus into the same operating day."),
+            "url_name": "marketing_solutions_multi_campus",
+            "fallback": "/solutions/multi-campus/",
+            "asset": "images/marketing/solution-multi-campus-command-center.svg",
+            "asset_alt": _("Multi-campus command visual comparing campus finance, academic, and attendance signals."),
+        },
+        {
+            "slug": "faith-based-schools",
+            "name": _("Faith-Based Schools"),
+            "lead": _("Community operations where announcements, fees, and family responses stay clear."),
+            "problem": _("Support mission-led communication with disciplined records and finance visibility."),
+            "url_name": "marketing_solutions_faith_based_schools",
+            "fallback": "/solutions/faith-based-schools/",
+            "asset": "images/marketing/solution-faith-community-hub.svg",
+            "asset_alt": _("Community operations visual showing announcements, attendance, fees, and family responses."),
+        },
+        {
+            "slug": "growing-school-networks",
+            "name": _("Growing School Networks"),
+            "lead": _("Repeatable launch playbooks for every campus added to the network."),
+            "problem": _("Template rollout phases and readiness checks instead of rebuilding each opening."),
+            "url_name": "marketing_solutions_growing_school_networks",
+            "fallback": "/solutions/growing-school-networks/",
+            "asset": "images/marketing/solution-growing-network-playbook.svg",
+            "asset_alt": _("Growing school network rollout visual with readiness score, phases, and template reuse."),
+        },
+    ]
+    return [
+        {
+            **world,
+            "url": _p(world["url_name"], world["fallback"]),
+        }
+        for world in worlds
+    ]
+
+
 def marketing_navbar_verb_primary() -> list[dict]:
     """Verb-first nav (Phase 3) — Run / Teach / Pay / Communicate / Grow."""
     run_path = _p("marketing_run_hub", "/run/")
@@ -333,19 +406,6 @@ def marketing_verb_hub_links(verb: str) -> list[dict]:
     return []
 
 
-# Legacy /platform/* → verb paths (Phase 3 redirects).
-MARKETING_PLATFORM_TO_VERB_REDIRECTS: dict[str, str] = {
-    "platform/admissions/": "run/admissions/",
-    "platform/attendance/": "run/attendance/",
-    "platform/analytics/": "run/analytics/",
-    "platform/workflows/": "run/workflows/",
-    "platform/offline-first/": "run/offline/",
-    "platform/grading-report-cards/": "teach/gradebook/",
-    "platform/student-information-system/": "teach/academics/",
-    "platform/teacher-portal/": "teach/workspace/",
-    "platform/fees-payments/": "pay/fees/",
-    "platform/parent-portal/": "communicate/inbox/",
-    "platform/communications/": "communicate/announcements/",
-    "platform/marketplace/": "grow/marketplace/",
-    "platform/migration-cloud/": "grow/migration/",
-}
+# Retired in the enterprise marketing IA: /platform/* routes are canonical
+# product pages and must not silently redirect into verb hubs.
+MARKETING_PLATFORM_TO_VERB_REDIRECTS: dict[str, str] = {}

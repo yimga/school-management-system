@@ -1,31 +1,31 @@
-{% load i18n %}
-<div class="mkt-v3-solutions-overview" data-mkt-page="solutions-overview">
+{% load i18n static %}
+<div class="mkt-v3-solutions-overview" data-mkt-page="solutions-overview" data-mkt-buyer-world-hub>
   <header class="mkt-edt-container mkt-v3-section mkt-personality-hero rmc-reveal" data-mkt-reveal>
-    <p class="mkt-personality-hero__eyebrow mkt-v3-eyebrow">{% trans "Solutions · by role" %}</p>
-    <h2 class="mkt-v3-section-headline">{% trans "Five roles. Five Tuesdays." %}</h2>
-    <p class="mkt-v3-lead">{% trans "Same school day — different surfaces. Pick a role to see the dashboard they actually open." %}</p>
+    <p class="mkt-personality-hero__eyebrow mkt-v3-eyebrow">{% trans "Solutions - buyer worlds" %}</p>
+    <h2 class="mkt-v3-section-headline">{{ page.headline }}</h2>
+    <p class="mkt-v3-lead">{{ page.subheadline }}</p>
   </header>
 
-  {% if solutions_personas %}
-  <section class="mkt-v3-section" data-mkt-persona-tabs>
-    <div class="mkt-edt-container">
-      <div class="mkt-v3-persona-tabs" role="tablist" aria-label="{% trans 'School roles' %}">
-        {% for persona in solutions_personas %}
-        <button type="button" class="mkt-v3-persona-tabs__btn" role="tab" data-persona-tab="{{ persona.slug }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"{% if not forloop.first %} tabindex="-1"{% endif %}>{{ persona.name }}</button>
-        {% endfor %}
-      </div>
-      <div class="mkt-v3-persona-tabs__panels">
-        {% for persona in solutions_personas %}
-        <article class="mkt-v3-persona-tabs__panel" data-persona-panel="{{ persona.slug }}" role="tabpanel"{% if not forloop.first %} hidden{% endif %}>
-          <p class="mkt-edt-lead">{{ persona.lead }}</p>
-          {% if persona.dashboard_partial %}
-          {% include "marketing/components/_dashboard_frame.html" with frame_title=persona.name dashboard_partial=persona.dashboard_partial %}
-          {% endif %}
-          <p><a href="{{ persona.url }}" class="mkt-edt-link">{% blocktrans with role=persona.name %}Read the full Tuesday for the {{ role }} →{% endblocktrans %}</a></p>
-        </article>
-        {% endfor %}
-      </div>
+  <section class="mkt-edt-container mkt-v3-section rmc-reveal" aria-label="{% trans 'School model solutions' %}">
+    <div class="mkt-v3-segment-grid mkt-v3-buyer-world-grid">
+      {% for world in solution_buyer_worlds %}
+      <article class="mkt-v3-segment-card mkt-v3-buyer-world-card" data-mkt-buyer-world="{{ world.slug }}">
+        <img class="mkt-v3-buyer-world-card__visual" src="{% static world.asset %}" alt="{{ world.asset_alt }}" width="720" height="420" loading="lazy" decoding="async">
+        <div class="mkt-v3-buyer-world-card__copy">
+          <h2 class="h4">{{ world.name }}</h2>
+          <p class="mkt-v3-buyer-world-card__lead">{{ world.lead }}</p>
+          <p class="small text-muted">{{ world.problem }}</p>
+          <a href="{{ world.url }}" class="mkt-edt-cta mkt-edt-cta--secondary mkt-v3-buyer-world-card__cta" data-cta="solution-world" data-solution-world="{{ world.slug }}">
+            {% blocktrans with world_name=world.name %}Explore {{ world_name }}{% endblocktrans %}
+          </a>
+        </div>
+      </article>
+      {% endfor %}
     </div>
   </section>
-  {% endif %}
+
+  <section class="mkt-edt-container mkt-v3-page__close rmc-reveal mkt-v3-page__close--split" aria-label="{% trans 'Solutions conversion' %}">
+    <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo" data-page="solutions-hub">{% trans "Book a buyer-world walkthrough" %}</a>
+    <a href="{% url 'marketing_platform' %}" class="mkt-edt-cta mkt-edt-cta--secondary" data-cta="platform" data-page="solutions-hub">{% trans "See the platform operating map" %}</a>
+  </section>
 </div>

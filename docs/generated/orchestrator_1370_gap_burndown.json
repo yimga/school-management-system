@@ -1,0 +1,31 @@
+{
+  "generated_at_utc": "2026-05-20T21:30:00Z",
+  "orchestrator_run_id": "rmc-orch-1370-2026-05-20",
+  "target_batch_id": "1370",
+  "gaps": [
+    {"gap_id": "G1370-001", "domain": "AI cloud direction", "owner_agent": "A4", "severity": "high", "repo_side": true, "description": "Verify services/ai_deployment_posture.py maps RMC_DEPLOYMENT_PROFILE=online with LITELLM_PROXY_URL to tier chain [litellm,ollama,rules] and without to [ollama,rules]. Tests must cover both branches.", "proof_artifact": "docs/generated/ai_cloud_direction_certification.json", "status": "open"},
+    {"gap_id": "G1370-002", "domain": "AI cloud direction", "owner_agent": "A4", "severity": "high", "repo_side": true, "description": "scripts/verify_render_online_ai_posture.py untracked. Confirm it gates the contract correctly.", "proof_artifact": "docs/generated/orchestrator_1370_verifier_stack_run.json", "status": "open"},
+    {"gap_id": "G1370-003", "domain": "AI Center UX", "owner_agent": "A4", "severity": "med", "repo_side": true, "description": "posture_mode badge must switch live_cloud / live_local / guided / unavailable in templates/siteconfig/partials/ai_center_body.html + static/js/rmc-ai-health-pill.js.", "proof_artifact": "docs/generated/ai_center_friction_analysis.json", "status": "open"},
+    {"gap_id": "G1370-004", "domain": "Migration Cloud MAA counsel activate", "owner_agent": "A5", "severity": "high", "repo_side": true, "description": "New apps/migration_cloud/views_maa_counsel_activate.py + migration 0027 + models_maa_state.py + test_maa_counsel_activate.py. Activation must be gated behind HMAC-compared approval token and emit audit event.", "proof_artifact": "docs/generated/migration_cloud_maa_counsel_activate_audit.json", "status": "open"},
+    {"gap_id": "G1370-005", "domain": "Migration Cloud retention", "owner_agent": "A5", "severity": "med", "repo_side": true, "description": "purge_completed_migration_bundles + tasks_retention + test_retention_purge + docs/MIGRATION_CLOUD_DATA_RETENTION.md form a retention flow. Counsel-pending behavior + dry-run default + audit event emission required.", "proof_artifact": "docs/generated/migration_cloud_retention_purge_audit.json", "status": "open"},
+    {"gap_id": "G1370-006", "domain": "Tenant studio + theme dual-plane + chrome", "owner_agent": "A3", "severity": "high", "repo_side": true, "description": "23 new files for tenant studio hub + 22 for theme experience dual-plane + 9 for platform chrome premium. Verify URL wiring + template includes + tests pass.", "proof_artifact": "docs/generated/studio_os_end_to_end_ux_audit.json", "status": "open"},
+    {"gap_id": "G1370-007", "domain": "IDE-opened support_copilot.html", "owner_agent": "A8", "severity": "med", "repo_side": true, "description": "User opened templates/customersuccess/support_copilot.html in IDE. Verify route + tenant isolation + cloud-AI guided fallback wiring (not on-device).", "proof_artifact": "docs/generated/support_copilot_template_audit.json", "status": "open"},
+    {"gap_id": "G1370-008", "domain": "SOT batch 1370 entry", "owner_agent": "A0", "severity": "high", "repo_side": true, "description": "Append batch 1370 entry to SOT only after Phase 6 validator PASS.", "proof_artifact": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md", "status": "open"},
+    {"gap_id": "G1370-009", "domain": "Routes + marketing", "owner_agent": "A2", "severity": "med", "repo_side": true, "description": "8 modified marketing tests + 16 modified marketing templates + super wizard. Verify test_marketing_v3_phases + nav contract + super admin parity.", "proof_artifact": "docs/generated/end_to_end_app_route_inventory.json", "status": "open"},
+    {"gap_id": "G1370-010", "domain": "Marketplace governance", "owner_agent": "A9", "severity": "low", "repo_side": true, "description": "6 marketplace templates + new marketplace_hub_links partial + verify_marketplace_cp_compact_contract.", "proof_artifact": "docs/generated/marketplace_app_catalog_operating_audit.json", "status": "open"},
+    {"gap_id": "G1370-011", "domain": "i18n locale catalog", "owner_agent": "A8", "severity": "low", "repo_side": true, "description": "All 20 locale .po files modified. Run scan_locale_coverage; assert no regression.", "proof_artifact": "docs/generated/feedback_loop_ux_audit.json", "status": "open"},
+    {"gap_id": "G1370-012", "domain": "Service worker version bump", "owner_agent": "A3", "severity": "high", "repo_side": true, "description": "static/js/service-worker.js CACHE_VERSION must bump to sms-vX.Y.Z-cloud-ai-1370-2026-05-20 per CLAUDE.md deploy checklist.", "proof_artifact": "docs/generated/orchestrator_1370_verifier_stack_run.json", "status": "open"},
+    {"gap_id": "G1370-EXT-001", "domain": "MAA v2.0 counsel signoff", "owner_agent": "A5", "severity": "n/a", "repo_side": false, "external_action_required": "External counsel signs PDF. Repo plumbing complete; one-config flip staged.", "status": "external"},
+    {"gap_id": "G1370-EXT-002", "domain": "FACTS/Skyward write paths", "owner_agent": "A5", "severity": "n/a", "repo_side": false, "external_action_required": "External counsel answers CFAA/DMCA questions per docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md.", "status": "external"},
+    {"gap_id": "G1370-EXT-003", "domain": "Render deploy of batch 1370", "owner_agent": "A0", "severity": "n/a", "repo_side": false, "external_action_required": "Operator git push + Render deploy with RMC_DEPLOYMENT_PROFILE=online + LITELLM_PROXY_URL + LITELLM_API_KEY + LITELLM_MODEL.", "status": "external"},
+    {"gap_id": "G1370-EXT-004", "domain": "Live Ollama on Render proof", "owner_agent": "A4", "severity": "n/a", "repo_side": false, "external_action_required": "REMOVED per user directive 2026-05-20: cloud-first via LITELLM; Ollama is edge-only, NOT a Render blocker.", "status": "closed_by_redirection"}
+  ],
+  "total_open": 12,
+  "total_external": 3,
+  "total_closed_by_redirection": 1,
+  "critical_open": 0,
+  "high_open": 5,
+  "med_open": 5,
+  "low_open": 2,
+  "verdict": "PHASE_1_GATE_PASS"
+}

@@ -538,6 +538,7 @@ def _manager_search_static_catalog(urlconf=None):
     ]
 
 
+from apps.siteconfig.command_bar_registry import CommandBarActionsView  # noqa: E402
 from apps.siteconfig.views_manifest import (  # noqa: E402
     platform_manifest as _platform_manifest,
     portal_manifest as _portal_manifest,
@@ -555,6 +556,10 @@ from apps.portal.views_ai_copilot import (  # noqa: E402
 urlpatterns = [
     path("", manager_home, name="home"),
     path("", manager_home, name="manager_home"),
+    # Universal command bar (v3.53.0): mirror of config.urls path so the
+    # cmd+k overlay loaded into every manager-host shell can reverse the
+    # action-registry endpoint. # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant
+    path("api/command-bar/actions/", CommandBarActionsView.as_view(), name="command_bar_actions"),
     path("offline/", offline_page, name="offline"),
     path("offline/sync/", manager_offline_sync_center, name="manager_offline_sync_center"),
     path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),

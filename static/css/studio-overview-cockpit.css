@@ -1,0 +1,570 @@
+/* ============================================================
+   Studio OS Overview Cockpit (v3.54.0, 2026-05-21)
+   ------------------------------------------------------------
+   Per-section CSS for the OVERVIEW (current_mode is None) state
+   of the Studio OS shell. Owned by Agent 1 of the v3.54 fan-out.
+
+   Coordinator-owned files (DO NOT EDIT from this file):
+     - static/css/studio-os-cockpit.css  (cockpit chrome)
+     - static/css/studio-workspace.css   (legacy studio-os grid)
+     - static/css/design-tokens.css      (semantic tokens SOT)
+
+   Contract:
+     - All visual properties consume var(--*) tokens from
+       design-tokens.css. No raw hex / rgb / cubic-bezier.
+     - Every flex/grid child carries min-width: 0 so long
+       content (tenant name, blocker summary, etc.) cannot
+       force horizontal overflow at 390/768/1366/1440/1536/1920.
+     - All `.rmc-overview-*` classes are defined right here so
+       scan_undefined_css_classes stays at 0.
+     - The signal strip, command cockpit body, guidance panel,
+       and co-pilot rail patches all key off the existing
+       cockpit chrome and degrade gracefully when context vars
+       are missing (data-state="unknown" surface).
+   ============================================================ */
+
+/* -----------------------------------------------------------
+   Mission-signal tile strip
+   -----------------------------------------------------------
+   Replaces the v3.53.0 3-pulse signal strip with a 6-tile
+   responsive grid. Wraps on narrow viewports. Tiles render
+   honestly: when a context var is missing, the tile shows
+   `—` and gets data-state="unknown" so it dims out.
+   ----------------------------------------------------------- */
+
+.rmc-overview-signal-strip {
+  /* Flex strip with wrapping — never overflows the parent. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.rmc-overview-signal-tile {
+  /* Each tile is a soft elevated chip; min-width: 0 keeps
+     long content from blowing out the row. */
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  color: var(--text-primary);
+  transition: box-shadow var(--motion-normal, 220ms),
+              border-color var(--motion-normal, 220ms);
+}
+
+.rmc-overview-signal-tile:hover {
+  box-shadow: var(--elev-2);
+}
+
+.rmc-overview-signal-tile__label {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  /* Allow long labels to truncate quietly. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-overview-signal-tile__value {
+  font-size: 1.125rem;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--text-primary);
+  /* Numbers + short words; truncate with title= fallback on the element. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-overview-signal-tile__hint {
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--text-secondary);
+  min-width: 0;
+  /* Two-line clamp via line-height + max-height, falling back
+     to natural wrap when the browser does not support clamp. */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Unknown-state tile — honest placeholder when the underlying
+   service has not been wired yet. Dimmer + dashed border so the
+   operator instantly reads "no data" rather than "zero". */
+.rmc-overview-signal-tile[data-state="unknown"] {
+  border-style: dashed;
+  box-shadow: none;
+  background: var(--surface-canvas);
+}
+
+.rmc-overview-signal-tile[data-state="unknown"] .rmc-overview-signal-tile__value {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* Tone variants drive off semantic state tokens; no raw hex. */
+.rmc-overview-signal-tile[data-tone="warning"] {
+  border-color: var(--school-warning, var(--hairline-strong));
+}
+
+.rmc-overview-signal-tile[data-tone="risk"] {
+  border-color: var(--school-danger, var(--hairline-strong));
+}
+
+.rmc-overview-signal-tile[data-tone="success"] {
+  border-color: var(--school-accent, var(--hairline-strong));
+}
+
+/* Operator-mode tile sits visually distinct because it changes
+   the entire mental model of what the cockpit is showing. */
+.rmc-overview-signal-tile--mode {
+  background: var(--surface-canvas);
+}
+
+.rmc-overview-signal-tile--mode .rmc-overview-signal-tile__value {
+  /* Lower contrast — it's a tag, not a metric. */
+  font-size: 0.9rem;
+}
+
+/* -----------------------------------------------------------
+   Command cockpit body (Overview-only)
+   -----------------------------------------------------------
+   Wraps:
+     - Mission hero ("Next best action")
+     - Mode cards (5 cards, responsive grid)
+     - Readiness + Recently edited + Live previews triptych
+     - Operational hubs action row
+   ----------------------------------------------------------- */
+
+.rmc-overview-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.rmc-overview-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-overview-hero__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rmc-overview-hero__eyebrow {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.rmc-overview-hero__title {
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  /* No truncation here — multi-line wrap is fine. */
+  min-width: 0;
+}
+
+.rmc-overview-hero__detail {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin: 0;
+  min-width: 0;
+}
+
+.rmc-overview-hero__cta {
+  /* Cluster the primary + secondary actions on the right. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Mode-card responsive grid. Uses CSS Grid (not Bootstrap row/col)
+   so density is consistent across viewports and there is no
+   horizontal overflow risk from col-auto. */
+.rmc-overview-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.rmc-overview-mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  color: var(--text-primary);
+  text-decoration: none;
+  min-width: 0;
+  transition: box-shadow var(--motion-normal, 220ms),
+              transform var(--motion-normal, 220ms);
+}
+
+.rmc-overview-mode-card:hover,
+.rmc-overview-mode-card:focus-visible {
+  box-shadow: var(--elev-2);
+  transform: translateY(-1px);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.rmc-overview-mode-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rmc-overview-mode-card__title {
+  font-size: 0.95rem;
+  line-height: 1.3;
+  font-weight: 600;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-overview-mode-card__icon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.rmc-overview-mode-card__desc {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin: 0;
+  min-width: 0;
+  /* 3-line clamp so cards stay even-height even with long copy. */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.rmc-overview-mode-card__cta {
+  margin-top: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* -----------------------------------------------------------
+   Readiness / Recent / Preview triptych
+   ----------------------------------------------------------- */
+
+.rmc-overview-triptych {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.rmc-overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-overview-card__title {
+  font-size: 0.78rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.rmc-overview-card__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rmc-overview-card__list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rmc-overview-card__list-item a {
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+  text-decoration: none;
+  /* Truncate long labels but expose full via title=. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-overview-card__list-item a:hover,
+.rmc-overview-card__list-item a:focus-visible {
+  text-decoration: underline;
+  color: var(--text-primary);
+}
+
+.rmc-overview-card__list-item-meta {
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--text-tertiary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-overview-card__empty {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* -----------------------------------------------------------
+   Operational hubs action rail
+   -----------------------------------------------------------
+   Replaces the shell.html lines 113-123 .row.g-2 .col-auto chain
+   with a true flex-wrap rail. No fixed widths.
+   ----------------------------------------------------------- */
+
+.rmc-overview-hub-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rmc-overview-hub-rail__chip {
+  /* Use the existing Bootstrap btn primitives via additive class. */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  line-height: 1.3;
+  text-decoration: none;
+  min-width: 0;
+  /* Truncate long labels quietly. */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background var(--motion-normal, 220ms),
+              border-color var(--motion-normal, 220ms);
+}
+
+.rmc-overview-hub-rail__chip:hover,
+.rmc-overview-hub-rail__chip:focus-visible {
+  background: var(--surface-overlay, var(--surface-canvas));
+  border-color: var(--hairline-strong, var(--hairline));
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+/* Operator-only chip variant — visually marked so the operator
+   knows the link crosses a tenant boundary. */
+.rmc-overview-hub-rail__chip--operator {
+  border-color: var(--school-primary, var(--hairline-strong));
+  background: var(--surface-overlay, var(--surface-canvas));
+}
+
+/* -----------------------------------------------------------
+   Studio guidance panel — primary/secondary action + preview row
+   ----------------------------------------------------------- */
+
+.rmc-studio-guidance__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  min-width: 0;
+}
+
+.rmc-studio-guidance__blocker {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  border: 1px dashed var(--school-warning, var(--hairline-strong));
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.rmc-studio-guidance__blocker strong {
+  font-weight: 600;
+}
+
+/* -----------------------------------------------------------
+   Co-pilot rail — mode badge + preview microlist
+   ----------------------------------------------------------- */
+
+.rmc-copilot-rail__mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-overlay, var(--surface-canvas));
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.rmc-copilot-rail__mode-badge[data-rmc-host-kind="manager"] {
+  border-color: var(--school-primary, var(--hairline-strong));
+  color: var(--text-primary);
+}
+
+.rmc-copilot-rail__preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rmc-copilot-rail__preview-list a {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+  text-decoration: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
+}
+
+.rmc-copilot-rail__preview-list a:hover,
+.rmc-copilot-rail__preview-list a:focus-visible {
+  text-decoration: underline;
+}
+
+/* -----------------------------------------------------------
+   Responsive guards
+   -----------------------------------------------------------
+   Cockpit grid + tile strip must not horizontally overflow at
+   any of the supported breakpoints. We do not set fixed pixel
+   widths above `max-width: 100%`; flex/grid handles wrapping.
+   ----------------------------------------------------------- */
+
+@media (max-width: 1366px) {
+  .rmc-overview-mode-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .rmc-overview-signal-tile {
+    flex-basis: calc(50% - 4px);
+  }
+
+  .rmc-overview-mode-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .rmc-overview-triptych {
+    grid-template-columns: 1fr;
+  }
+
+  .rmc-overview-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .rmc-overview-signal-tile {
+    flex-basis: 100%;
+  }
+
+  .rmc-overview-mode-grid {
+    grid-template-columns: 1fr;
+  }
+}

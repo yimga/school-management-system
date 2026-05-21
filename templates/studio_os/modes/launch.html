@@ -4,6 +4,8 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
+{# v3.54.0 (2026-05-21): Next-realm Launch readiness command center grammar. #}
+<link rel="stylesheet" href="{% static 'css/studio-launch-cockpit.css' %}">
 {% endblock %}
 
 {% block studio_canvas %}
@@ -11,6 +13,7 @@
   <div id="studio-launch-hero">
     {% include "studio_os/partials/_mode_hero.html" with mode_label=_("Launch") mode_purpose=_("Plan, role-preview, and infrastructure for going live. Guided onboarding is the fastest path.") primary_cta_url=legacy_urls.guided_onboarding primary_cta_label=_("Guided onboarding") mode_health_label=launch_payload.health_score|stringformat:"s%% ready" mode_health_status=launch_payload.launch_ready|yesno:"ok,warn,warn" %}
   </div>
+  {% include "studio_os/partials/studio_guidance_panel.html" %}
   {% include "studio_os/partials/launch_mode_canvas.html" %}
 </section>
 {% endblock %}

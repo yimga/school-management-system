@@ -23,7 +23,6 @@ Six scenarios:
 
 from __future__ import annotations
 
-import importlib
 import json
 import pathlib
 import sys

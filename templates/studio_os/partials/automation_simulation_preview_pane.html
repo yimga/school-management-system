@@ -1,0 +1,84 @@
+{% load i18n %}
+{# v3.54 (2026-05-21, Agent 3): Simulation preview pane. #}
+{# Honest empty state when no simulation has been run. Never fabricates results. #}
+{# CTA routes to apps.automation:visual_workflow_simulate when URL resolves. #}
+<section class="rmc-automation-simulation"
+         data-rmc-automation-simulation-pane="1"
+         aria-labelledby="rmc-automation-simulation-title"
+         aria-live="polite">
+  <header class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
+    <h3 id="rmc-automation-simulation-title" class="rmc-automation-simulation__title">
+      {% trans "Simulation preview" %}
+    </h3>
+    {% if automation_environment.workflow_simulation_ready %}
+    <span class="rmc-automation-badge rmc-automation-badge--ok" role="status">
+      <span class="visually-hidden">{% trans "Simulation status:" %}</span>
+      {% trans "Simulation ready" %}
+    </span>
+    {% else %}
+    <span class="rmc-automation-badge rmc-automation-badge--muted" role="status">
+      <span class="visually-hidden">{% trans "Simulation status:" %}</span>
+      {% trans "Simulation engine: coming online" %}
+    </span>
+    {% endif %}
+  </header>
+  <p class="rmc-automation-simulation__caption">
+    {% trans "Dry-run preview — projected actions, risks, and affected-record counts. Simulation never writes to production." %}
+  </p>
+
+  {% if automation_simulation_preview %}
+  {# Coordinator note: shell context populates automation_simulation_preview when wired. #}
+  {# Today this branch is dormant until coordinator surfaces the context var. #}
+  <dl class="rmc-automation-simulation__row">
+    <dt>{% trans "Trigger" %}</dt>
+    <dd>{{ automation_simulation_preview.trigger_label|default:_("—") }}</dd>
+    <dt>{% trans "Projected actions" %}</dt>
+    <dd>{{ automation_simulation_preview.projected_actions|default:_("—") }}</dd>
+    <dt>{% trans "Affected records (projected)" %}</dt>
+    <dd>{{ automation_simulation_preview.affected_record_count|default:0 }}</dd>
+    <dt>{% trans "Risks" %}</dt>
+    <dd>
+      {% if automation_simulation_preview.risks %}
+      <ul class="list-unstyled mb-0">
+        {% for risk in automation_simulation_preview.risks %}
+        <li>
+          <span class="rmc-automation-badge rmc-automation-badge--warn">
+            <span class="visually-hidden">{% trans "Risk:" %}</span>
+            {{ risk.label }}
+          </span>
+          {% if risk.detail %}<span class="ms-1 text-muted">{{ risk.detail }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <span class="rmc-automation-badge rmc-automation-badge--ok">{% trans "No risks flagged" %}</span>
+      {% endif %}
+    </dd>
+    {% if automation_simulation_preview.ran_at_iso %}
+    <dt>{% trans "Ran at" %}</dt>
+    <dd>{{ automation_simulation_preview.ran_at_iso }}</dd>
+    {% endif %}
+  </dl>
+  {% else %}
+  <p class="rmc-automation-simulation__empty">
+    {% trans "No simulation has been recorded for this workspace. Run a simulation from Workflow center to preview impact before activating." %}
+  </p>
+  {% endif %}
+
+  <div class="rmc-automation-simulation__actions">
+    {% if automation_simulation_pane_url %}
+    <a href="{{ automation_simulation_pane_url }}"
+       class="btn btn-sm btn-primary"
+       data-rmc-automation-cta="open-simulation-guidance">
+      {% trans "Open simulation engine" %}
+    </a>
+    {% endif %}
+    {% if automation_workflow_center_pane_url %}
+    <a href="{{ automation_workflow_center_pane_url }}"
+       class="btn btn-sm btn-outline-secondary"
+       data-rmc-automation-cta="open-workflow-center">
+      {% trans "Open Workflow center" %}
+    </a>
+    {% endif %}
+  </div>
+</section>

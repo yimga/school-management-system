@@ -106,7 +106,6 @@ def tokenize_file(path: Path, dry_run: bool) -> tuple[int, str]:
         if not stripped or VAR_DEF.match(stripped):
             new_lines.append(line)
             continue
-        orig = line
         # Order: shadow first (some lines might theoretically overlap — rare)
         if RAW_SHADOW_PROP.match(line.rstrip("\n")):
             line = sub_shadow(line)

@@ -21,6 +21,7 @@ from apps.compliance.models import AuditLog
 from django.core.cache import cache
 from apps.portal.ai_provider import (
     generate_ai_response,
+    get_ai_provider_status,
     get_public_ai_provider_status,
     probe_ai_provider_reachable,
 )
@@ -519,14 +520,19 @@ def ai_copilot_config(request):
     )
     model = None
     providers = status.get("providers", {})
-    for provider in status.get("preference", []):
-        provider_state = providers.get(provider, {})
-        if provider == "ollama" and provider_state.get("configured"):
-            model = provider_state.get("model")
-            break
-        if provider == "rules":
-            model = "rules-fallback"
-            break
+    if status.get("live_provider_kind") == "cloud":
+        litellm_state = providers.get("litellm", {})
+        if litellm_state.get("configured"):
+            model = litellm_state.get("model")
+    if model is None:
+        for provider in status.get("preference", []):
+            provider_state = providers.get(provider, {})
+            if provider == "ollama" and provider_state.get("configured"):
+                model = provider_state.get("model")
+                break
+            if provider == "rules":
+                model = "rules-fallback"
+                break
     try:
         from apps.platform_runtime.helpers import log_ai_action
 
@@ -564,18 +570,27 @@ def ai_health(request):
     silently when Ollama is down. Cached for 60s server-side.
     """
     health = probe_ai_provider_reachable()
-    cfg = get_public_ai_provider_status()
-    return JsonResponse({
+    status = get_ai_provider_status()
+    reachable = bool(health.get("reachable"))
+    payload = {
         "success": True,
-        "reachable": bool(health.get("reachable")),
+        "reachable": reachable,
         "provider": health.get("provider", "none"),
         "latency_ms": health.get("latency_ms"),
         "fallback_active": bool(health.get("fallback_active")),
         "degraded": bool(health.get("degraded")),
         "checked_at": health.get("checked_at"),
-        "preference": cfg.get("preference", []),
-        "rules_fallback_enabled": bool(cfg.get("rules_fallback_enabled")),
-    })
+        "ollama_configured": bool(status.get("ollama_configured")),
+        "preference": status.get("preference", []),
+        "rules_fallback_enabled": bool(status.get("rules_fallback_enabled")),
+        "deployment_profile": health.get("deployment_profile"),
+        "litellm_configured": health.get("litellm_configured"),
+        "posture_mode": health.get("posture_mode"),
+        "posture_label": health.get("posture_label"),
+        "live_provider_kind": health.get("live_provider_kind"),
+        "gateway_tier_chain": health.get("gateway_tier_chain"),
+    }
+    return JsonResponse(payload)
 
 
 @require_GET

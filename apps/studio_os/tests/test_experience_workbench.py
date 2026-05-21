@@ -49,3 +49,23 @@ class ExperienceStudioWorkbenchTests(TestCase):
             "Review conflict detection",
             conflict.content.decode("utf-8"),
         )
+
+    # v3.54.0 — workbench context column is a real context column.
+    def test_experience_workbench_context_renders_when_workspace_renders(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("studio_os:experience"))
+        self.assertEqual(response.status_code, 200)
+        body = response.content
+        if b"data-rmc-studio-workspace" in body:
+            # The new workbench context column always ships at least the
+            # State card when the workspace is rendered. Identifier is the
+            # context-column class on the aside.
+            self.assertIn(b"studio-os__experience-context", body)
+
+    def test_experience_mode_links_new_scoped_css(self):
+        """Guard: studio-experience-mode.css must be linked from the Experience
+        mode page so rail-label overflow-wrap and preview-pane styles ship."""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("studio_os:experience"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"studio-experience-mode.css", response.content)

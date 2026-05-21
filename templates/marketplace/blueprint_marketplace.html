@@ -1,161 +1,153 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
-{% load region_format %}
+{% load static i18n %}
 
-{% block cp_title %}Blueprint marketplace{% endblock %}
+{% block cp_title %}{% trans "Blueprint marketplace" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="catalog">
+<div class="container-fluid py-4 control-plane-shell rmc-cp-compact" data-page-archetype="catalog" data-rmc-scroll-policy="paginate">
   {% include "components/next_action_strip.html" %}
-  <section class="cp-hero cp-hero-compact mb-4">
-    <div class="cp-hero-grid">
-      <div>
-        <div class="cp-eyebrow">RunMyCampus Manager</div>
-        <h1 class="cp-hero-title">Blueprint marketplace</h1>
-        <p class="cp-hero-copy">
-          Get curriculum and policy alignment—Cameroon Francophone, UAE MoE+IB, UK GCSE/A-Level—for a school. Preview policy keys and impact before applying; roll back to the previous bundle if needed.
-        </p>
-      </div>
-      <div class="cp-hero-actions">
-        <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Governance</a>
-        <a href="{% url 'super:app_catalog' %}" class="btn btn-outline-light btn-sm">App catalog</a>
-        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Control plane</a>
-      </div>
-      {% if catalog_counts %}
-      <div class="cp-chip-row mt-2">
-        <span class="cp-chip">First-party apps {{ catalog_counts.first_party_apps|default:0 }}</span>
-        <span class="cp-chip">Blueprint packs {{ catalog_counts.blueprint_packs|default:0 }}</span>
-        <span class="cp-chip">Workflow packs {{ catalog_counts.workflow_packs|default:0 }}</span>
-        <span class="cp-chip">Dashboard packs {{ catalog_counts.dashboard_packs|default:0 }}</span>
-        <span class="cp-chip">Policy bundles {{ catalog_counts.policy_bundles|default:0 }}</span>
-      </div>
-      {% endif %}
-    </div>
-  </section>
+  {% url 'super:marketplace_governance' as governance_url %}
+  {% include "components/world_class_page_hero.html" with hero_id="blueprint-marketplace-title" role=_("Platform operators") title=_("Blueprint marketplace") subtitle=_("Apply curriculum and policy packs per school — preview first, paginated catalog, rollback in a disclosure panel.") purpose=_("Blueprint packs") status=_("Preview required") primary_url="#bp-catalog" primary_label=_("Browse packs") secondary_url=governance_url secondary_label=_("Governance") visual_title=_("Align policy before go-live") visual_body=_("Each pack creates a PolicyBundle; revert without scrolling through every school.") %}
+
+  <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
+    <a class="nav-link" href="#bp-glance">{% trans "At a glance" %}</a>
+    <a class="nav-link" href="#bp-catalog">{% trans "Packs" %}</a>
+    <a class="nav-link" href="#bp-rollback">{% trans "Rollback" %}</a>
+    <a class="nav-link" href="#bp-guide">{% trans "Guide" %}</a>
+  </nav>
 
   {% if messages %}
   <div class="mb-3">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button></div>
     {% endfor %}
   </div>
   {% endif %}
 
   {% if preview %}
-  <div class="alert alert-info mb-3">
-    <strong>Preview (24.15)</strong> — Pack: {{ preview.pack_name }} ({{ preview.pack_slug }}) v{{ preview.pack_version }}. Policy keys: {{ preview.policy_keys|join:", "|default:"—" }}. Current bundle ID: {{ preview.current_bundle_id|default:"none" }}. No changes applied.
+  <div class="alert alert-info mb-3" role="status">
+    <strong>{% trans "Preview" %}</strong> — {{ preview.pack_name }} ({{ preview.pack_slug }}) v{{ preview.pack_version }}.
+    {% trans "Policy keys" %}: {{ preview.policy_keys|join:", "|default:"—" }}.
   </div>
   {% endif %}
 
-  <div class="row g-4">
-    <div class="col-12 col-lg-7">
-      <section class="cp-panel rmc-reveal">
-        <div class="cp-panel-header">
-          <span class="cp-panel-eyebrow">Catalog</span>
-          <h2 class="cp-panel-title">Blueprint packs</h2>
-        </div>
-        <div class="cp-list">
-          {% for pack in packs %}
-          <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2">
-            <div>
-              <strong>{{ pack.name }}</strong>
-              <span class="text-muted small ms-1">({{ pack.slug }})</span>
-              {% if pack.category %}<span class="badge bg-secondary ms-1">{{ pack.category }}</span>{% endif %}
-              {% if pack.country_code %}<span class="badge bg-light text-dark ms-1">{{ pack.country_code }}</span>{% endif %}
-              {% if pack.description %}<p class="small text-muted mb-0 mt-1">{{ pack.description|truncatewords:30 }}</p>{% endif %}
-            </div>
-            <form method="post" class="d-flex align-items-center gap-2">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="preview">
-              <input type="hidden" name="pack_id" value="{{ pack.pk }}">
-              <select name="school_id" class="form-select form-select-sm" style="width: auto; min-width: 180px;" required>
-                <option value="">Select school…</option>
-                {% for s in schools %}
-                <option value="{{ s.pk }}">{{ s.name }}</option>
-                {% endfor %}
-              </select>
-              <button type="submit" class="btn btn-outline-secondary btn-sm">Preview</button>
-            </form>
-            <form method="post" class="d-flex align-items-center gap-2">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="apply">
-              <input type="hidden" name="pack_id" value="{{ pack.pk }}">
-              <select name="school_id" class="form-select form-select-sm" style="width: auto; min-width: 180px;" required>
-                <option value="">Select school…</option>
-                {% for s in schools %}
-                <option value="{{ s.pk }}">{{ s.name }}</option>
-                {% endfor %}
-              </select>
-              <button type="submit" class="btn btn-primary btn-sm">Apply</button>
-            </form>
-          </div>
-          {% empty %}
-          <div class="py-3 px-2">
-            {% load i18n %}
-            {% url 'super:marketplace_governance' as governance_url %}
-            {% include "components/dashboard_empty_state.html" with icon="bi-collection" title=_("No active blueprint packs") message=_("Add packs from Marketplace governance.") action_url=governance_url action_text=_("Open Marketplace governance") %}
-          </div>
-          {% endfor %}
-        </div>
-      </section>
+  <section id="bp-glance" data-rmc-section-anchor class="rmc-reveal mb-3">
+    <div class="rmc-cp-compact__glance" role="list">
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ blueprint_stats.packs_total }}</strong>
+        <span>{% trans "active blueprint packs" %}</span>
+      </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ blueprint_stats.showing }}</strong>
+        <span>{% trans "on this page" %}</span>
+      </div>
     </div>
-    <div class="col-12 col-lg-5">
-      <div class="cp-panel mb-3">
-        <div class="cp-panel-header">
-          <span class="cp-panel-eyebrow">24.15 Rollback</span>
-          <h2 class="cp-panel-title">Revert to previous bundle</h2>
+    {% include "marketplace/partials/marketplace_hub_links.html" %}
+  </section>
+
+  <section id="bp-catalog" data-rmc-section-anchor class="cp-panel rmc-reveal mb-4">
+    <div class="cp-panel-header">
+      <span class="cp-panel-eyebrow">{% trans "Catalog" %}</span>
+      <h2 class="cp-panel-title">{% trans "Blueprint packs" %}</h2>
+    </div>
+    <div class="cp-list">
+      {% for pack in packs %}
+      <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2">
+        <div>
+          <strong>{{ pack.name }}</strong>
+          <span class="text-muted small ms-1">({{ pack.slug }})</span>
+          {% if pack.category %}<span class="badge bg-secondary ms-1">{{ pack.category }}</span>{% endif %}
+          {% if pack.country_code %}<span class="badge bg-light text-dark ms-1">{{ pack.country_code }}</span>{% endif %}
+          {% if pack.description %}<p class="small text-muted mb-0 mt-1">{{ pack.description|truncatewords:24 }}</p>{% endif %}
         </div>
-        <div class="p-3">
-          <form method="post" id="rollback-form" onsubmit="return confirm('Revert blueprint for this school? This affects live policy resolution.');">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <form method="post" class="d-flex align-items-center gap-2">
             {% csrf_token %}
-            <input type="hidden" name="action" value="rollback">
-            <div class="mb-2">
-              <label class="form-label small">School</label>
+            <input type="hidden" name="action" value="preview">
+            <input type="hidden" name="pack_id" value="{{ pack.pk }}">
+            <select name="school_id" class="form-select form-select-sm" style="min-width: 11rem;" required aria-label="{% trans 'School for preview' %}">
+              <option value="">{% trans "School…" %}</option>
+              {% for s in schools %}
+              <option value="{{ s.pk }}">{{ s.name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Preview" %}</button>
+          </form>
+          <form method="post" class="d-flex align-items-center gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="apply">
+            <input type="hidden" name="pack_id" value="{{ pack.pk }}">
+            <select name="school_id" class="form-select form-select-sm" style="min-width: 11rem;" required aria-label="{% trans 'School for apply' %}">
+              <option value="">{% trans "School…" %}</option>
+              {% for s in schools %}
+              <option value="{{ s.pk }}">{{ s.name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Apply" %}</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="py-3 px-2">
+        {% include "components/dashboard_empty_state.html" with icon="bi-collection" title=_("No active blueprint packs") message=_("Add packs from Marketplace governance.") action_url=governance_url action_text=_("Governance") %}
+      </div>
+      {% endfor %}
+    </div>
+    {% include "components/pagination.html" %}
+  </section>
+
+  <section id="bp-rollback" data-rmc-section-anchor class="rmc-reveal mb-3">
+    <details class="studio-os__card studio-os__card--disclosure px-3 py-2" open>
+      <summary class="fw-semibold py-1" style="cursor: pointer; list-style: revert;">{% trans "Revert to previous bundle" %}</summary>
+      <div class="p-3 pt-2">
+        <form method="post" id="rollback-form" onsubmit="return confirm('{% trans "Revert blueprint for this school? This affects live policy resolution." %}');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="rollback">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label class="form-label small" for="rollback-school">{% trans "School" %}</label>
               <select name="school_id" class="form-select form-select-sm" id="rollback-school" required>
-                <option value="">Select school…</option>
+                <option value="">{% trans "Select school…" %}</option>
                 {% for sid, data in school_bundles.items %}
                 <option value="{{ sid }}">{{ data.school_name }}</option>
                 {% endfor %}
               </select>
             </div>
-            <div class="mb-2">
-              <label class="form-label small">Bundle (or clear)</label>
+            <div class="col-md-5">
+              <label class="form-label small" for="rollback-bundle">{% trans "Bundle (or clear)" %}</label>
               <select name="bundle_id" class="form-select form-select-sm" id="rollback-bundle">
-                <option value="">— Clear blueprint (no bundle) —</option>
+                <option value="">{% trans "— Clear blueprint —" %}</option>
                 {% for sid, data in school_bundles.items %}
                 {% for b in data.bundles %}
-                <option value="{{ b.id }}" data-school-id="{{ sid }}" {% if data.current_active_id == b.id %}data-current="1"{% endif %}>{{ data.school_name }} — {{ b.name }} ({{ b.created_at|date:"Y-m-d H:i" }}){% if data.current_active_id == b.id %} — current{% endif %}</option>
+                <option value="{{ b.id }}" data-school-id="{{ sid }}">{{ data.school_name }} — {{ b.name }} ({{ b.created_at|date:"Y-m-d" }}){% if data.current_active_id == b.id %} — {% trans "current" %}{% endif %}</option>
                 {% endfor %}
                 {% endfor %}
               </select>
             </div>
-            <div class="mb-2">
-              <label class="form-label small">Confirm <code>ROLLBACK</code> (parity with tenant package rollback)</label>
-              <input type="text" name="confirm_blueprint_rollback" class="form-control form-control-sm" placeholder="ROLLBACK" autocomplete="off" required>
+            <div class="col-md-3">
+              <label class="form-label small" for="rollback-confirm">{% trans "Type ROLLBACK" %}</label>
+              <input type="text" name="confirm_blueprint_rollback" class="form-control form-control-sm" id="rollback-confirm" placeholder="ROLLBACK" autocomplete="off" required>
             </div>
-            <button type="submit" class="btn btn-outline-warning btn-sm">Revert to selected bundle</button>
-          </form>
-          <p class="small text-muted mt-2 mb-0">Sets TenantBlueprint.active_bundle for the school. Pick the bundle to restore (or clear). Policy cache is invalidated. Current bundle is labeled in the list.</p>
-        </div>
+          </div>
+          <button type="submit" class="btn btn-outline-warning btn-sm mt-2">{% trans "Revert bundle" %}</button>
+        </form>
       </div>
-      <div class="cp-panel">
-        <div class="cp-panel-header">
-          <span class="cp-panel-eyebrow">Phase 6</span>
-          <h2 class="cp-panel-title">About blueprint packs</h2>
-        </div>
-        <div class="p-3">
-          <p class="small mb-2">Each pack defines a <code>policy_snapshot</code> (terminology, grading, admissions, features). Applying it creates a PolicyBundle for the selected school and sets TenantBlueprint.active_bundle so <code>get_effective_policy(school)</code> merges from that bundle when <code>POLICY_USE_BUNDLES</code> is True. Use <strong>Preview</strong> before Apply; use <strong>Revert</strong> to restore a previous bundle.</p>
-          <p class="small text-muted mb-0"><strong>Compare:</strong> Run Preview on two packs for the same school to compare policy keys and impact before choosing one to apply.</p>
-        </div>
-      </div>
-    </div>
-  </div>
+    </details>
+  </section>
+
+  <section id="bp-guide" data-rmc-section-anchor class="rmc-cp-compact__guide rmc-reveal">
+    <details>
+      <summary>{% trans "About blueprint packs" %}</summary>
+      <p class="small text-muted mb-0 mt-2">{% trans "Each pack defines a policy_snapshot. Applying creates a PolicyBundle and sets TenantBlueprint.active_bundle. Preview before Apply; use Rollback to restore a prior bundle." %}</p>
+    </details>
+  </section>
 </div>
 <script src="{% static 'js/_pages/marketplace__blueprint_marketplace.js' %}"></script>
 {% endblock %}

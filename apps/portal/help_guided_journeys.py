@@ -15,6 +15,12 @@ JOURNEY_BY_PREFIX: dict[str, list[str]] = {
     "/analytics/": ["analytics-dashboard"],
     "/feedback/": ["help-center-overview", "submit-feedback"],
     "/authentication/backend/": ["admin-dashboard", "user-roles"],
+    "/studio/launch/": ["help-center-overview", "admin-dashboard"],
+    "/studio/experience/": ["help-center-overview"],
+    "/studio/automation/": ["help-center-overview"],
+    "/studio/output/": ["report-cards", "help-center-overview"],
+    "/studio/control/": ["help-center-overview", "admin-dashboard"],
+    "/studio/": ["help-center-overview", "admin-dashboard"],
 }
 
 

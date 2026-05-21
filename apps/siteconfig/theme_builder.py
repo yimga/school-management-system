@@ -16,7 +16,11 @@ DEFAULT_THEME_BUILDER_BLOCKS: list[dict[str, Any]] = [
 
 TOKEN_FIELD_NAMES = ("primary_color", "accent_color", "header_bg_color", "footer_bg_color")
 
-RUNTIME_PAYLOAD_KEY = "theme_builder_layout"
+OPERATOR_RUNTIME_PAYLOAD_KEY = "operator_theme_builder_layout"
+TENANT_SCHOOL_SETTINGS_KEY = "tenant_theme_builder_layout"
+LEGACY_RUNTIME_PAYLOAD_KEY = "theme_builder_layout"
+# Back-compat alias for tests and external references predating dual-plane split.
+RUNTIME_PAYLOAD_KEY = LEGACY_RUNTIME_PAYLOAD_KEY
 
 
 def default_layout() -> dict[str, Any]:

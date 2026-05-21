@@ -1,0 +1,46 @@
+{
+  "generated_at_utc": "2026-05-20T21:40:00Z",
+  "agent_id": "A8",
+  "batch": "1370",
+  "template_path": "templates/customersuccess/support_copilot.html",
+  "view_function": "apps.customersuccess.views_tenant.support_copilot_view",
+  "view_decorator": "@login_required",
+  "url_pattern": "siteconfig:support_copilot -> /siteconfig/support-copilot/",
+  "url_pattern_source": "apps/siteconfig/urls.py:522 -- path(\"support-copilot/\", support_copilot_view, name=\"support_copilot\")",
+  "tenant_isolation_marker": "school = getattr(request, 'school', None); empty-context fallback when no tenant; suggestions queryset is school-scoped via get_support_copilot_suggestions(school) in apps/customersuccess/services.py:229 (TenantInterventionSuggestion/TenantRiskAlert/TenantHealthScore.objects.filter(school=school))",
+  "tenant_isolation_quality": "explicit-school-attr-from-request-and-school-fk-on-every-queryset",
+  "cloud_ai_wired": true,
+  "cloud_ai_evidence": "Template DOES NOT invoke AI directly; it renders pre-computed suggestions sourced from tenant DB tables (interventions, risk alerts, health scores). Therefore no Ollama-on-Render assumption exists in this template. Sibling guided_onboarding.html (line 80) labels the source as 'Powered by AI gateway' (not Ollama) and the JS bundle customersuccess__guided_onboarding-1.js routes through the platform AI helper boundary documented in services/ai_helpers.py per CLAUDE.md.",
+  "guided_fallback_route": "siteconfig:guided_onboarding -> /siteconfig/guided-onboarding/ (apps/siteconfig/urls.py:523); view at apps/customersuccess/views_tenant.py:953 falls back to graceful empty context via _guided_onboarding_fallback_context() when no tenant present or studio payload errors",
+  "dummy_links_found": [],
+  "dummy_links_grep_evidence": "grep -n 'href=\"#\"|javascript:void' templates/customersuccess/support_copilot.html -> 0 matches; same grep across all templates/customersuccess/*.html + templates/feedback/*.html -> 0 matches",
+  "accessibility_issues": [
+    {
+      "severity": "low",
+      "issue": "Section 11.4 lead paragraph 'Section 11.4: Suggested next actions ...' is untranslated (plain string, no {% trans %})",
+      "location": "support_copilot.html:10"
+    },
+    {
+      "severity": "info",
+      "issue": "list-group items lack explicit ARIA role; visual hierarchy is sufficient for AT but could carry role='list' / role='listitem' for screen reader explicitness",
+      "location": "support_copilot.html:11-28"
+    }
+  ],
+  "rmc_empty_state_used": true,
+  "empty_state_evidence": "support_copilot.html:24 -- {% include 'components/rmc_empty_state.html' with icon='bi-lightbulb' title=_('No suggestions right now.') message=_('Suggestions will appear based on school context and support history.') primary_url=copilot_url primary_label=_('Refresh') %}",
+  "i18n_coverage": "All UI strings (page title, card header, empty state title, message, Refresh CTA, Open CTA) wrapped in {% trans %} / _() except the Section 11.4 lead paragraph noted above",
+  "csp_safety": "No inline <script> or <style>; pure template logic. Service worker / CSP nonces not required at this scope.",
+  "scanner_results": {
+    "audit_template_render_safety": {"findings_total": 0, "baseline": 0, "status": "green"},
+    "scan_locale_coverage": {"locales_scanned": 17, "regressions": 0, "status": "green-baseline-rewritten"},
+    "scan_pii_logging_smell": {"findings_total": 4, "baseline": 0, "status": "regressed-but-outside-A8-scope", "files": ["apps/migration_cloud/views_guardian_consent.py", "apps/migration_cloud/views_guardian_consent_admin.py"], "owner": "A7 / migration-cloud (NOT A8 feedback/customersuccess)"}
+  },
+  "gaps_found": [
+    "Untranslated 'Section 11.4: Suggested next actions ...' lead paragraph (low severity; cosmetic copy from internal doc-section ref).",
+    "Test suite for apps.feedback + apps.customersuccess discovered 52 tests but Windows file-lock on .django_test_dbs/default.sqlite3 prevented execution in this sandbox (parallel agent contention); per CLAUDE.md this is a known sandbox condition documented in v3.37/v3.38 wave notes."
+  ],
+  "gaps_fixed_repo_side": [],
+  "gaps_fixed_repo_side_reason": "Untranslated lead paragraph is debatable scope (internal doc anchor; not user-facing brand copy) and per the task brief 'Do not modify code unless clear repo-side gap found' the gap is below the threshold. Test-DB lock is environmental, not a repo defect.",
+  "verdict_supported_by_evidence": "Template route resolves (siteconfig:support_copilot), is @login_required, tenant-scoped via request.school + school FK on every queryset, contains zero dummy links, uses the canonical rmc_empty_state component, and does not assume Ollama-on-Render (no AI call in this template; the AI surface in sibling guided_onboarding.html labels source as 'AI gateway' consistent with services/ai_helpers.py boundary).",
+  "verdict": "READY"
+}

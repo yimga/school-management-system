@@ -1,4 +1,12 @@
-{% comment %}Unpack output_doc_library dict for document library native pane.{% endcomment %}
+{% comment %}
+Unpack output_doc_library dict for the document library native pane.
+The inner partial (portal/partials/document_library_manage_inner.html) is
+owned by the portal app — we wrap it in a min-width:0 / overflow-x:auto
+guard so wide tables can scroll inside our column instead of blowing the
+workspace canvas width.
+{% endcomment %}
 {% with documents=output_doc_library.documents stats=output_doc_library.stats by_type=output_doc_library.by_type document_types=output_doc_library.document_types document_packs=output_doc_library.document_packs lifecycle_choices=output_doc_library.lifecycle_choices current_type=output_doc_library.current_type current_lifecycle=output_doc_library.current_lifecycle current_pack=output_doc_library.current_pack search_query=output_doc_library.search_query embed=output_doc_library.embed studio_output_native=output_doc_library.studio_output_native document_upload_url=output_doc_library.document_upload_url document_library_form_action=output_doc_library.document_library_form_action %}
-{% include "portal/partials/document_library_manage_inner.html" %}
+<div class="min-w-0">
+  {% include "portal/partials/document_library_manage_inner.html" %}
+</div>
 {% endwith %}

@@ -14,6 +14,10 @@ def main() -> int:
     required = [
         ROOT / "apps/siteconfig/views_theme_experience_hub.py",
         ROOT / "apps/siteconfig/theme_experience_surfaces.py",
+        ROOT / "apps/siteconfig/theme_builder_plane.py",
+        ROOT / "templates/siteconfig/theme_experience_hub_control_plane.html",
+        ROOT / "templates/siteconfig/theme_experience_hub_tenant.html",
+        ROOT / "templates/siteconfig/theme_builder_control_plane.html",
         ROOT / "templates/siteconfig/partials/theme_experience_hub_body.html",
         ROOT / "templates/partials/control_plane_operator_brand_style.html",
         ROOT / "static/css/control-plane-operator-brand.css",

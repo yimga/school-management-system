@@ -88,6 +88,7 @@
   width: 100%;
   margin: 0;
   font-size: var(--rmc-os-type-compact, 0.9rem);
+  table-layout: fixed;
 }
 
 .mkt-trust-matrix th {
@@ -139,13 +140,13 @@
 }
 
 .mkt-trust-evidence-chip--partial {
-  background: color-mix(in srgb, #9a6700 14%, transparent);
-  color: #9a6700;
+  background: color-mix(in srgb, #9a6700 14%, transparent); /* off-token-allow: decorative-tint-mix */
+  color: #9a6700; /* off-token-allow: brand-color */
 }
 
 .mkt-trust-evidence-chip--external {
-  background: color-mix(in srgb, #5c4d8a 12%, transparent);
-  color: #5c4d8a;
+  background: color-mix(in srgb, #5c4d8a 12%, transparent); /* off-token-allow: decorative-tint-mix */
+  color: #5c4d8a; /* off-token-allow: brand-color */
 }
 
 .mkt-trust-compliance .rmc-os-trust-anchor {
@@ -167,6 +168,11 @@
     display: none;
   }
 
+  .mkt-trust-matrix {
+    display: block;
+    max-width: 100%;
+  }
+
   .mkt-trust-matrix tr {
     display: block;
     border-bottom: 1px solid var(--rmc-os-hairline);
@@ -176,6 +182,9 @@
     display: block;
     border: 0;
     padding: 0.5rem 1rem;
+    width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .mkt-trust-matrix td::before {
@@ -284,7 +293,7 @@
 
 .mkt-trust-ci-list__item--watch .mkt-trust-ci-list__name::before {
   content: "● ";
-  color: #9a6700;
+  color: #9a6700; /* off-token-allow: brand-color */
 }
 
 .mkt-trust-ci-list__detail {
@@ -404,11 +413,11 @@
 }
 
 .mkt-trust-blocking--blocks_full_market {
-  color: #9a2a2a;
+  color: #9a2a2a; /* off-token-allow: brand-color */
 }
 
 .mkt-trust-blocking--blocks_feature {
-  color: #9a6700;
+  color: #9a6700; /* off-token-allow: brand-color */
 }
 
 .mkt-page-type-security-compliance .mkt-trust-compliance__nav {

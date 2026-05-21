@@ -829,6 +829,7 @@ def site_settings(request):
     # its template context (this just provides the platform default).
     p = (request.path or "").strip()
     own_h1_prefixes = (
+        "/super/",                       # Control plane pages declare canvas h1/hero (suppress redundant strip)
         "/studio/",                      # Studio shell renders own toolbar + h1 in shell_main_content.html
         "/super/marketplace-cms/",       # Marketplace governance has own h1
         "/super/marketplace/",           # marketplace governance alias
@@ -979,6 +980,12 @@ def site_settings(request):
         bool(offline_runtime_settings.get("enable_offline_mode", False))
         and offline_enabled
     )
+    from django.conf import settings as dj_settings
+
+    ctx["RMC_DEPLOYMENT_PROFILE"] = (
+        getattr(dj_settings, "RMC_DEPLOYMENT_PROFILE", None) or "online"
+    ).strip().lower()
+    ctx["RMC_AI_NEEDS_NETWORK"] = True
     flags_ctx = _resolve_backend_feature_flags(request, site)
     # Whether to show the connection status bar (offline pill) in the header.
     ctx["SHOW_OFFLINE_STATUS_BAR"] = ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] and bool(
@@ -1346,24 +1353,27 @@ def ai_copilot_settings(request):
     ai_backend_enabled = False
     ai_provider_name = ""
     try:
-        from apps.portal.ai_provider import get_ai_provider_status
+        from apps.portal.ai_provider import get_public_ai_provider_status
 
-        status = get_ai_provider_status()
+        status = get_public_ai_provider_status(include_health=False)
         ai_backend_enabled = bool(status.get("has_live_provider")) or bool(
             status.get("rules_fallback_enabled")
         )
-        for provider in status.get("preference", []):
-            provider_cfg = (
-                status.get(provider, {})
-                if isinstance(status.get(provider), dict)
-                else {}
-            )
-            if provider == "rules" and status.get("rules_fallback_enabled"):
-                ai_provider_name = "rules"
-                break
-            if provider_cfg.get("configured"):
-                ai_provider_name = provider
-                break
+        live_kind = status.get("live_provider_kind")
+        if status.get("has_live_provider") and live_kind:
+            ai_provider_name = str(live_kind)
+        elif status.get("rules_fallback_enabled"):
+            ai_provider_name = "rules"
+        else:
+            for provider in status.get("preference", []):
+                provider_cfg = (
+                    status.get("providers", {}).get(provider, {})
+                    if isinstance(status.get("providers"), dict)
+                    else {}
+                )
+                if provider_cfg.get("configured"):
+                    ai_provider_name = provider
+                    break
     except (AttributeError, ImportError, TypeError, ValueError):
         ai_backend_enabled = False
         ai_provider_name = ""

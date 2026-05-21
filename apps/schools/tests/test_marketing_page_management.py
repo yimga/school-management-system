@@ -89,6 +89,73 @@ class MarketingPageManagementContractTests(SimpleTestCase):
                 with self.subTest(path=path.relative_to(settings.BASE_DIR)):
                     self.assertNotIn('href="#"', path.read_text(encoding="utf-8"))
 
+    def test_home_walkthrough_is_not_fake_video_when_source_disabled(self):
+        home = (
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "schools"
+            / "marketing_landing_v2.html"
+        ).read_text(encoding="utf-8")
+        portal = (
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "marketing"
+            / "components"
+            / "_video_portal.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("show_video_source=False", home)
+        self.assertNotIn("<source src=\"\"", home + portal)
+        self.assertNotIn("data-mkt-walkthrough-play", home)
+        self.assertIn("Animated product preview", portal)
+
+    def test_demo_and_contact_forms_route_buyer_intent(self):
+        demo = (
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "marketing"
+            / "components"
+            / "_marketing_demo_form.html"
+        ).read_text(encoding="utf-8")
+        contact = (
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "marketing"
+            / "components"
+            / "_marketing_contact_form.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("interest_migration", demo)
+        self.assertIn("interest_offline", demo)
+        self.assertIn("interest_procurement", demo)
+        self.assertIn("developer-integration", contact)
+        self.assertIn('data-cta="contact-submit"', contact)
+
+    def test_solutions_hub_is_a_buyer_world_map(self):
+        data = self._content("solutions")
+        segment_titles = [segment["title"] for segment in data.get("segments") or []]
+        self.assertEqual(
+            segment_titles,
+            [
+                "Private Schools",
+                "International Schools",
+                "K-12 Schools",
+                "Multi-Campus Groups",
+                "Faith-Based Schools",
+                "Growing School Networks",
+            ],
+        )
+
+        template = (
+            Path(settings.BASE_DIR)
+            / "templates"
+            / "marketing"
+            / "pages"
+            / "solutions_overview.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("data-mkt-buyer-world-hub", template)
+        self.assertIn("solution_buyer_worlds", template)
+        self.assertNotIn("Five roles. Five Tuesdays.", template)
+        self.assertNotIn("data-mkt-persona-tabs", template)
+
 
 class MarketingAnalyticsContractTests(SimpleTestCase):
     def test_analytics_javascript_keeps_allowed_anonymous_field_contract(self):
@@ -153,3 +220,24 @@ class MarketingAnalyticsContractTests(SimpleTestCase):
         self.assertIn('data-form-name="contact"', core)
         self.assertIn('data-form-name="demo"', core)
         self.assertIn('data-form-name="newsletter"', footer)
+
+    def test_footer_solution_links_follow_buyer_worlds(self):
+        footer = (Path(settings.BASE_DIR) / "templates" / "marketing" / "marketing_footer.html").read_text(
+            encoding="utf-8"
+        )
+        for route_name in (
+            "marketing_solutions_private_schools",
+            "marketing_solutions_international_schools",
+            "marketing_solutions_k12_schools",
+            "marketing_solutions_multi_campus",
+            "marketing_solutions_faith_based_schools",
+            "marketing_solutions_growing_school_networks",
+        ):
+            self.assertIn(route_name, footer)
+        for retired_route in (
+            "marketing_solutions_higher_ed",
+            "marketing_solutions_k12_districts",
+            "role_teachers",
+            "role_parents",
+        ):
+            self.assertNotIn(retired_route, footer)

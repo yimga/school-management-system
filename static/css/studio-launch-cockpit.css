@@ -1,0 +1,577 @@
+/* ============================================================
+   Studio OS Launch Cockpit (v3.54.0, 2026-05-21)
+   ------------------------------------------------------------
+   Next-realm launch readiness command center for Studio OS.
+   Sits alongside studio-workspace.css + studio-os-cockpit.css;
+   purely additive. .rmc-launch-* grammar — semantic tokens only.
+
+   No raw hex, no inline literal colors, no magic numbers.
+   Every visual flows through design-tokens.css.
+   ============================================================ */
+
+/* Top-level Launch canvas wrapper. Keeps the flex/grid children
+   honest (min-width:0) so wide content like the infrastructure
+   diff table or starter-stack labels cannot blow out narrow
+   viewports. */
+.rmc-launch-canvas {
+  display: block;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.rmc-launch-canvas > * {
+  min-width: 0;
+}
+
+/* ----------------------- Section header --------------------- */
+.rmc-launch-section {
+  margin-bottom: 1rem;
+}
+
+.rmc-launch-section__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.rmc-launch-section__meta {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+/* ------------------ Readiness summary card ------------------ */
+.rmc-launch-readiness {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1);
+  color: var(--text-primary);
+  min-width: 0;
+  transition: box-shadow var(--motion-signature-state),
+              border-color var(--motion-signature-state);
+}
+
+.rmc-launch-readiness:hover {
+  box-shadow: var(--elev-2);
+}
+
+@container (min-width: 720px) {
+  .rmc-launch-readiness {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: center;
+  }
+}
+
+.rmc-launch-readiness__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.rmc-launch-readiness__score-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.rmc-launch-readiness__score {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-launch-readiness__score-unit {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.rmc-launch-readiness__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.rmc-launch-readiness__status[data-tone="ready"] {
+  border-color: var(--school-accent, var(--hairline-strong));
+}
+
+.rmc-launch-readiness__status[data-tone="warn"] {
+  border-color: var(--school-warning, var(--hairline-strong));
+}
+
+.rmc-launch-readiness__status[data-tone="block"] {
+  border-color: var(--school-danger, var(--hairline-strong));
+}
+
+.rmc-launch-readiness__summary {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.rmc-launch-readiness__gauge {
+  position: relative;
+  height: 0.5rem;
+  width: 100%;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  overflow: hidden;
+}
+
+.rmc-launch-readiness__gauge-fill {
+  height: 100%;
+  background: var(--text-primary);
+  transition: width var(--motion-signature-state);
+}
+
+/* ------------------ Mini-metric tile grid ------------------- */
+.rmc-launch-metric-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  margin-bottom: 1rem;
+}
+
+.rmc-launch-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  min-width: 0;
+  transition: box-shadow var(--motion-signature-state);
+}
+
+.rmc-launch-metric:hover {
+  box-shadow: var(--elev-1);
+}
+
+.rmc-launch-metric__label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rmc-launch-metric__value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+
+.rmc-launch-metric__detail {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+/* ------------------- Blocker / risk lists ------------------- */
+.rmc-launch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rmc-launch-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-launch-list-item__icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: var(--text-secondary);
+}
+
+.rmc-launch-list-item__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rmc-launch-list-item__title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.rmc-launch-list-item__detail {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.rmc-launch-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rmc-launch-badge[data-tone="ready"] {
+  border-color: var(--school-accent, var(--hairline-strong));
+}
+
+.rmc-launch-badge[data-tone="warn"] {
+  border-color: var(--school-warning, var(--hairline-strong));
+}
+
+.rmc-launch-badge[data-tone="block"] {
+  border-color: var(--school-danger, var(--hairline-strong));
+}
+
+.rmc-launch-badge[data-tone="operator"] {
+  border-color: var(--hairline-strong, var(--hairline));
+}
+
+/* --------------------- Checklist styling -------------------- */
+.rmc-launch-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmc-launch-checklist__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-launch-checklist__item[data-done="true"] {
+  background: var(--surface-elevated);
+}
+
+.rmc-launch-checklist__check {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.rmc-launch-checklist__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+  font-size: 0.875rem;
+}
+
+.rmc-launch-checklist__detail {
+  width: 100%;
+  margin: 0.25rem 0 0 1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+/* ------------------- Empty / honest states ------------------ */
+.rmc-launch-empty {
+  padding: 1rem 1.25rem;
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: left;
+  min-width: 0;
+}
+
+.rmc-launch-empty__title {
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+/* --------------------- Role preview cards ------------------- */
+.rmc-launch-role-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmc-launch-role-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  min-width: 0;
+  transition: box-shadow var(--motion-signature-state),
+              border-color var(--motion-signature-state);
+}
+
+.rmc-launch-role-card:hover {
+  box-shadow: var(--elev-1);
+  border-color: var(--hairline-strong, var(--hairline));
+}
+
+.rmc-launch-role-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.rmc-launch-role-card__icon {
+  flex-shrink: 0;
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+.rmc-launch-role-card__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  word-break: break-word;
+}
+
+.rmc-launch-role-card__detail {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.rmc-launch-role-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+}
+
+/* ------------------ Confirm-required action box ------------- */
+.rmc-launch-confirm {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-launch-confirm__title {
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.rmc-launch-confirm__body {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.rmc-launch-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ----------------- Table scroll wrapper -------------------- */
+.rmc-launch-table-scroll {
+  overflow-x: auto;
+  min-width: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-elevated);
+}
+
+.rmc-launch-table-scroll > table {
+  margin-bottom: 0;
+}
+
+.rmc-launch-table-scroll td,
+.rmc-launch-table-scroll th {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* ----------------- Infrastructure preview ------------------- */
+.rmc-launch-infra {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.rmc-launch-infra__state-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.rmc-launch-infra__state-cell {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-launch-infra__state-label {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rmc-launch-infra__state-value {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+/* ----------------- Rail polish (additive) ------------------- */
+.rmc-launch-rail-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-primary);
+  text-decoration: none;
+  min-width: 0;
+  word-break: break-word;
+  transition: background var(--motion-signature-state);
+}
+
+.rmc-launch-rail-link:hover,
+.rmc-launch-rail-link:focus-visible {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.rmc-launch-rail-link[aria-current="page"] {
+  background: var(--surface-elevated);
+  font-weight: 600;
+}
+
+.rmc-launch-rail-link__icon {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.rmc-launch-rail-link__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+}
+
+/* -------------- Plan-selection honest empty card ------------ */
+.rmc-launch-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-launch-plan-card__lede {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.rmc-launch-plan-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rmc-launch-plan-card__split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+@container (min-width: 600px) {
+  .rmc-launch-plan-card__split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.rmc-launch-plan-card__pane {
+  padding: 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  min-width: 0;
+}
+
+.rmc-launch-plan-card__pane-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rmc-launch-plan-card__pane-list {
+  margin: 0;
+  padding-left: 1.125rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}

@@ -1,54 +1,140 @@
 {% load static %}
 {% load i18n %}
-<div class="studio-os__card mb-3" data-page-archetype="operational-workbench">
-  <h2 class="h5 mb-2">{% trans "School infrastructure" %}</h2>
-  <p class="small text-muted mb-3">
-    {% trans "Choose a production template to preview workflow, dashboard, and theme packs from the platform catalog. Validation is read-only; applying packs is platform-governed." %}
-  </p>
+{% comment %}
+  v3.54.0 (2026-05-21): Next-realm Launch — School infrastructure cockpit.
+  Preserves JS hooks (studio-infra-* element IDs) used by
+  js/_pages/studio_os__partials__launch_school_infrastructure_body-1.js.
+{% endcomment %}
+<section class="rmc-launch-canvas rmc-launch-infra studio-os__card mb-3 p-3" data-page-archetype="operational-workbench" aria-labelledby="rmc-launch-infra-title">
+  <header class="rmc-launch-section">
+    <h2 id="rmc-launch-infra-title" class="rmc-launch-section__title h5 mb-1">
+      <i class="bi bi-building-gear" aria-hidden="true"></i>
+      <span>{% trans "School infrastructure" %}</span>
+    </h2>
+    <p class="rmc-launch-section__meta mb-0">
+      {% trans "Choose a production template to preview workflow, dashboard, and theme packs from the platform catalog. Validation is read-only; applying packs is platform-governed." %}
+    </p>
+  </header>
+
   {% if not platform_catalog_valid %}
-  <p class="small text-warning mb-2">{% trans "Pack catalog validation reported warnings; previews may be incomplete." %}</p>
+  <div class="rmc-launch-list-item" role="status">
+    <i class="bi bi-exclamation-triangle rmc-launch-list-item__icon" aria-hidden="true"></i>
+    <div class="rmc-launch-list-item__body">
+      <div class="rmc-launch-list-item__title">{% trans "Catalog warnings present" %}</div>
+      <p class="rmc-launch-list-item__detail">{% trans "Pack catalog validation reported warnings; previews may be incomplete." %}</p>
+    </div>
+    <span class="rmc-launch-badge" data-tone="warn"><span>{% trans "warn" %}</span></span>
+  </div>
   {% endif %}
+
+  {# ---- Current infrastructure state ---- #}
   {% if current_blueprint_reference %}
-  <p class="small mb-3">
-    <strong>{% trans "Current blueprint (reference)" %}:</strong>
-    {{ current_blueprint_reference.applied_pack_slug }} —
-    v{{ current_blueprint_reference.applied_pack_version|default:"?" }}
-    {% if current_blueprint_reference.policy_snapshot_size %}
-    · {% blocktrans with n=current_blueprint_reference.policy_snapshot_size %}{{ n }} policy snapshot keys{% endblocktrans %}
-    {% endif %}
-  </p>
+  <section class="rmc-launch-section" aria-labelledby="rmc-launch-infra-current-title">
+    <h3 id="rmc-launch-infra-current-title" class="rmc-launch-section__title h6">
+      <i class="bi bi-layers" aria-hidden="true"></i>
+      <span>{% trans "Current blueprint (reference)" %}</span>
+    </h3>
+    <div class="rmc-launch-infra__state-grid">
+      <div class="rmc-launch-infra__state-cell">
+        <div class="rmc-launch-infra__state-label">{% trans "Pack" %}</div>
+        <div class="rmc-launch-infra__state-value">{{ current_blueprint_reference.applied_pack_slug|default:"—" }}</div>
+      </div>
+      <div class="rmc-launch-infra__state-cell">
+        <div class="rmc-launch-infra__state-label">{% trans "Version" %}</div>
+        <div class="rmc-launch-infra__state-value">v{{ current_blueprint_reference.applied_pack_version|default:"?" }}</div>
+      </div>
+      {% if current_blueprint_reference.policy_snapshot_size %}
+      <div class="rmc-launch-infra__state-cell">
+        <div class="rmc-launch-infra__state-label">{% trans "Policy keys" %}</div>
+        <div class="rmc-launch-infra__state-value">{{ current_blueprint_reference.policy_snapshot_size }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+  {% else %}
+  <div class="rmc-launch-empty" role="status">
+    <h3 class="rmc-launch-empty__title h6">{% trans "No applied blueprint yet" %}</h3>
+    <p class="mb-0">{% trans "Select a template below to preview what would be configured. Applying packs is platform-governed." %}</p>
+  </div>
   {% endif %}
 
-  <div class="mb-3">
-    <label class="form-label small" for="studio-infra-template">{% trans "Template" %}</label>
-    <select id="studio-infra-template" class="form-select form-select-sm" aria-describedby="studio-infra-help">
-      {% for s in school_template_summaries %}
-      <option value="{{ s.template_key }}">{{ s.display_name }} · {{ s.school_type }} (v{{ s.version }})</option>
-      {% empty %}
-      <option value="">{% trans "No templates registered" %}</option>
-      {% endfor %}
-    </select>
-    <p id="studio-infra-help" class="small text-muted mt-1 mb-0">{% trans "Preview loads resolved packs and a diff against your current blueprint reference." %}</p>
-  </div>
+  {# ---- Template picker ---- #}
+  <section class="rmc-launch-section" aria-labelledby="rmc-launch-infra-template-title">
+    <h3 id="rmc-launch-infra-template-title" class="rmc-launch-section__title h6">
+      <i class="bi bi-collection" aria-hidden="true"></i>
+      <span>{% trans "Template" %}</span>
+    </h3>
+    <div class="mb-2">
+      <label class="form-label small" for="studio-infra-template">{% trans "Pick a production template to preview" %}</label>
+      <select id="studio-infra-template" class="form-select form-select-sm" aria-describedby="studio-infra-help">
+        {% for s in school_template_summaries %}
+        <option value="{{ s.template_key }}">{{ s.display_name }} · {{ s.school_type }} (v{{ s.version }})</option>
+        {% empty %}
+        <option value="">{% trans "No templates registered" %}</option>
+        {% endfor %}
+      </select>
+      <p id="studio-infra-help" class="small text-muted mt-1 mb-0">{% trans "Preview loads resolved packs and a diff against your current blueprint reference." %}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <button type="button" class="btn btn-sm btn-outline-primary" id="studio-infra-preview-btn">
+        <i class="bi bi-eye me-1" aria-hidden="true"></i>{% trans "Preview & validate" %}
+      </button>
+      <span class="small text-muted" id="studio-infra-status" role="status" aria-live="polite"></span>
+    </div>
+  </section>
 
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <button type="button" class="btn btn-sm btn-outline-primary" id="studio-infra-preview-btn">{% trans "Preview & validate" %}</button>
-    <span class="small text-muted align-self-center" id="studio-infra-status"></span>
-  </div>
+  {# ---- Preview result + diff ---- #}
+  <section id="studio-infra-result" class="rmc-launch-section" hidden aria-labelledby="rmc-launch-infra-preview-title">
+    <h3 id="rmc-launch-infra-preview-title" class="rmc-launch-section__title h6">
+      <i class="bi bi-bar-chart-steps" aria-hidden="true"></i>
+      <span>{% trans "Preview" %}</span>
+    </h3>
+    <ul class="rmc-launch-list mb-2" id="studio-infra-summary" role="list"></ul>
 
-  <div id="studio-infra-result" class="small" hidden>
-    <h3 class="h6 mt-3">{% trans "Preview" %}</h3>
-    <ul class="list-unstyled mb-2" id="studio-infra-summary"></ul>
-    <h3 class="h6">{% trans "Diff / readiness" %}</h3>
-    <table class="table table-sm table-bordered table-family rmc-data-table mb-2" id="studio-infra-diff" data-rmc-scroll-policy="paginate">
-      <caption class="visually-hidden">{% trans "Diff / readiness" %}</caption>
-      <thead><tr><th>{% trans "Aspect" %}</th><th>{% trans "Before" %}</th><th>{% trans "After" %}</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <p class="text-muted mb-1" id="studio-infra-rollback-note"></p>
-    <p class="text-muted mb-0" id="studio-infra-apply-note"></p>
-  </div>
-</div>
+    <h4 class="rmc-launch-section__title h6">
+      <i class="bi bi-diff" aria-hidden="true"></i>
+      <span>{% trans "Diff / readiness" %}</span>
+    </h4>
+    <div class="rmc-launch-table-scroll mb-2">
+      <table class="table table-sm table-family rmc-data-table mb-0" id="studio-infra-diff" data-rmc-scroll-policy="paginate">
+        <caption class="visually-hidden">{% trans "Diff / readiness" %}</caption>
+        <thead><tr><th scope="col">{% trans "Aspect" %}</th><th scope="col">{% trans "Before" %}</th><th scope="col">{% trans "After" %}</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="rmc-launch-section__meta mb-1" id="studio-infra-rollback-note"></p>
+    <p class="rmc-launch-section__meta mb-0" id="studio-infra-apply-note"></p>
+  </section>
+
+  {# ---- Honest apply: operator-only / platform-governed ---- #}
+  <section class="rmc-launch-section" aria-labelledby="rmc-launch-infra-apply-title">
+    <h3 id="rmc-launch-infra-apply-title" class="rmc-launch-section__title h6">
+      <i class="bi bi-shield-lock" aria-hidden="true"></i>
+      <span>{% trans "Apply pack" %}</span>
+      <span class="rmc-launch-badge" data-tone="operator">
+        <i class="bi bi-person-gear" aria-hidden="true"></i>
+        <span>{% trans "Operator" %}</span>
+      </span>
+    </h3>
+    <div class="rmc-launch-confirm">
+      <p class="rmc-launch-confirm__title">{% trans "Operator action required" %}</p>
+      <p class="rmc-launch-confirm__body">
+        {% trans "Applying an infrastructure pack changes workflow, dashboard, and theme defaults across this tenant. The action is platform-governed: tenants preview here, then request the change from a platform administrator. No data is modified by the preview action above." %}
+      </p>
+      <div class="rmc-launch-confirm__actions">
+        {% if request.public_host_kind == 'manager' %}
+        <button type="button" class="btn btn-sm btn-primary" id="studio-infra-request-apply"
+                data-rmc-confirm="{% trans 'Request infrastructure apply for this tenant? The platform will review the preview and apply manually.' %}">
+          <i class="bi bi-send-check me-1" aria-hidden="true"></i>{% trans "Request platform apply" %}
+        </button>
+        <span class="rmc-launch-section__meta">{% trans "Requires confirmation. Platform apply is the only path that writes." %}</span>
+        {% else %}
+        <span class="rmc-launch-section__meta">{% trans "Tenants cannot apply directly. Share the preview with your platform administrator to request rollout." %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</section>
 <script type="application/json" id="page-data-studio_os__partials__launch_school_infrastructure_body-1">{
   "url_studio_os_school_infrastructure_preview_api": "{% url 'studio_os:school_infrastructure_preview_api' %}",
   "trans_rollback_is_flagged_as_supported_for_this_template_platform_governed": "{% trans "Rollback is flagged as supported for this template (platform-governed)." %}",

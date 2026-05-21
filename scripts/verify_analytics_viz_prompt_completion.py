@@ -78,7 +78,6 @@ def _run(cmd: list[str], timeout: int = 300) -> tuple[int, str]:
 
 def main() -> int:
     rows: list[Row] = []
-    py = sys.executable
 
     def add(phase: str, check_id: str, ok: bool, proof: str) -> None:
         rows.append(Row(phase, check_id, "PASS" if ok else "FAIL", proof))

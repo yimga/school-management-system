@@ -4,22 +4,15 @@ Comprehensive testing of all dashboard, notification, search, and data managemen
 """
 
 import os
-import sys
 import django
 from django.test import Client
 from django.contrib.auth.models import User
 from django.utils import timezone
-from datetime import timedelta
-import json
 
 # Setup Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-from apps.people.models import StudentProfile, TeacherProfile
-from apps.finance.models import Invoice, Payment, Notification
-from apps.academics.models import Classroom, Attendance
-from apps.communication.models import Message, Announcement
 
 
 class APITestSuite:
@@ -88,7 +81,7 @@ class APITestSuite:
                 response = self.client.get(endpoint)
 
                 if response.status_code == 200:
-                    data = response.json()
+                    response.json()
                     print(f"✓ {endpoint} - Status: {response.status_code}")
                     self.results["passed"] += 1
                 else:

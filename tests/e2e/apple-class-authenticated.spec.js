@@ -44,6 +44,8 @@ const TENANT_ROUTES = [
   { route: '/school/setup/blueprints/', required: ['[data-apple-class-tenant-school-admin]', '[data-apple-class-visual-workflow-path]'] },
   { route: '/school/setup/packs/', required: ['[data-apple-class-tenant-school-admin]', '[data-apple-class-visual-workflow-path]'] },
   { route: '/siteconfig/onboarding/', required: ['[data-apple-class-migration-ux]', '[data-apple-class-data-quality-meter]'] },
+  { route: '/school/studio/', required: ['[data-rmc-tenant-studio-launch-path="1"]', '[data-rmc-tenant-studio-readiness="1"]'] },
+  { route: '/school/studio/setup/', required: ['body'] },
   { route: '/school/apps/', required: ['[data-apple-class-app-catalog]'], followsRedirect: true },
   { route: '/school/money/', required: ['[data-apple-class-billing-ux]'], followsRedirect: true },
   { route: '/school/workflows/', required: ['body'], followsRedirect: true },

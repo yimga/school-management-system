@@ -7,7 +7,6 @@ owned in domain_ownership, and evals rankings cache reads via get_cached_site_se
 
 from __future__ import annotations
 
-import ast
 import sys
 from pathlib import Path
 

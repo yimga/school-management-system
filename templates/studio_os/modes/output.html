@@ -4,8 +4,11 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
+{# v3.54.0 (2026-05-21): Output readiness cockpit grammar (.rmc-output-*). #}
+<link rel="stylesheet" href="{% static 'css/studio-output-cockpit.css' %}">
 {% endblock %}
 
 {% block studio_canvas %}
+{% include "studio_os/partials/studio_guidance_panel.html" %}
 {% include "studio_os/partials/output_mode_canvas.html" %}
 {% endblock %}

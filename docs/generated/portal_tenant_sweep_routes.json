@@ -4,6 +4,48 @@
   "count": 200,
   "routes": [
     {
+      "path": "/t/demo-school/school/studio/",
+      "inner": "/school/studio/",
+      "name": "school_studio",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/school/studio/help/",
+      "inner": "/school/studio/help/",
+      "name": "school_studio_help",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/school/studio/launch/",
+      "inner": "/school/studio/launch/",
+      "name": "school_studio_launch",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/school/studio/migration/",
+      "inner": "/school/studio/migration/",
+      "name": "school_studio_migration",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/school/studio/readiness/",
+      "inner": "/school/studio/readiness/",
+      "name": "school_studio_readiness",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/school/studio/setup/",
+      "inner": "/school/studio/setup/",
+      "name": "school_studio_setup",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/authentication/",
       "inner": "/authentication/",
       "name": "root",
@@ -935,6 +977,34 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/portal/forums/",
+      "inner": "/portal/forums/",
+      "name": "forum_home",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/forums/category/",
+      "inner": "/portal/forums/category/",
+      "name": "forum_category",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/forums/new/",
+      "inner": "/portal/forums/new/",
+      "name": "forum_new_topic",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/forums/topic/",
+      "inner": "/portal/forums/topic/",
+      "name": "forum_topic",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/portal/home/",
       "inner": "/portal/home/",
       "name": "portal_home",
@@ -1330,76 +1400,6 @@
       "path": "/t/demo-school/portal/teacher/hr-status/",
       "inner": "/portal/teacher/hr-status/",
       "name": "teacher_hr_status",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/leave/",
-      "inner": "/portal/teacher/leave/",
-      "name": "teacher_leave",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/lesson-notes/",
-      "inner": "/portal/teacher/lesson-notes/",
-      "name": "teacher_lesson_notes",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/lesson-notes/add-resource/",
-      "inner": "/portal/teacher/lesson-notes/add-resource/",
-      "name": "teacher_lesson_plan_add_attachment",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/my-id/",
-      "inner": "/portal/teacher/my-id/",
-      "name": "my_digital_id",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/onboarding/",
-      "inner": "/portal/teacher/onboarding/",
-      "name": "teacher_onboarding",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/pay-history/",
-      "inner": "/portal/teacher/pay-history/",
-      "name": "teacher_pay_history",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/timetable/",
-      "inner": "/portal/teacher/timetable/",
-      "name": "teacher_timetable",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/training-log/",
-      "inner": "/portal/teacher/training-log/",
-      "name": "teacher_training_log",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/wellness/",
-      "inner": "/portal/teacher/wellness/",
-      "name": "teacher_wellness",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/workflow/",
-      "inner": "/portal/teacher/workflow/",
-      "name": "teacher_workflow",
       "slug": "demo-school",
       "sweep": true
     }

@@ -8,6 +8,18 @@
 {% block extrastyle %}
 {{ block.super }}
 {% include "studio_os/partials/shell_extrastyle.html" %}
+{# v3.53.0 (2026-05-21): Studio OS Mission Cockpit chrome (additive). #}
+<link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
+<link rel="stylesheet" href="{% static 'css/studio-os-cockpit.css' %}">
+{# v3.53.1 (2026-05-21): Persistent AI presence on the cockpit rail. #}
+<link rel="stylesheet" href="{% static 'css/rmc-copilot-rail.css' %}">
+{# v3.54.0 (2026-05-21): Overview command cockpit (rendered when current_mode is None). #}
+<link rel="stylesheet" href="{% static 'css/studio-overview-cockpit.css' %}">
+{# Synchronous load (no defer/async) so data-rmc-copilot-rail-armed lands
+   before first paint; CSS skeleton hide-rule keys off the armed attribute,
+   so a JS-load failure leaves the server-rendered skeleton visible instead
+   of stranding a blank rail. #}
+<script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -44,6 +56,19 @@
 
   {% include "components/ai_guided_assistant_card.html" with assistant_key="studio_os_assistant" card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Studio modes. Apply packages and automations only through existing preview and rollback flows.") %}
 
+  {% if not current_mode %}
+  {% include "studio_os/partials/studio_guidance_panel.html" %}
+  {% endif %}
+
+  {# v3.53.0 (2026-05-21): Mission Cockpit chrome wraps the studio-os grid.
+     The 3 cockpit partials (signal / canvas / co-pilot rail) are additive —
+     legacy .studio-os layout continues to render inside the canvas region. #}
+  <div class="rmc-cockpit" data-rmc-cockpit="studio-os">
+    {% include "studio_os/partials/cockpit_signal_strip.html" %}
+    {% include "studio_os/partials/cockpit_canvas.html" with cockpit_inline=True %}
+    {% include "studio_os/partials/cockpit_copilot_rail.html" %}
+  </div>
+
   <div class="studio-os">
     <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation" data-shell-sidebar="{{ rmc_shell.studio_os_sidebar_token|default:'studio-rail' }}" data-shell-sidebar-mount="rail" data-tour="studio-rail">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
@@ -58,41 +83,12 @@
     <main class="studio-os__canvas rmc-shell-main" id="studio-canvas" role="main" tabindex="-1" data-rmc-shell-main="studio-os" data-tour="studio-canvas">
       {% block studio_canvas %}
         {% if not current_mode %}
-          <div class="alert alert-light border mb-3" role="status">
-            <strong>{% trans "Start here" %}</strong>
-            <div class="small text-muted">{% trans "One workspace for experience, automation, outputs, launch, and control. Choose a mode to start." %}</div>
-          </div>
-          {% if request.public_host_kind == 'manager' %}
-          <p class="small text-muted mb-3">{% trans "On the manager host, open a mode below to use Theme & colors, Workflow hub, Report library, Launch checklist, or Feature control. Select a school from the dashboard for embedded preview in the canvas." %}</p>
-          {% endif %}
-          <div class="row g-3">
-            {% for m in studio_modes %}
-              <div class="col-md-6 col-lg-4">
-                <div class="studio-os__card h-100">
-                  <h2 class="h6">{{ m.label }}</h2>
-                  <p class="small text-muted mb-2">{{ m.description }}</p>
-                  {% if m.id == 'experience' %}<a href="{% url 'studio_os:experience' %}" class="btn btn-primary btn-sm">{% trans "Open Experience" %}</a>{% endif %}
-                  {% if m.id == 'automation' %}<a href="{% url 'studio_os:automation' %}" class="btn btn-primary btn-sm">{% trans "Open Automation" %}</a>{% endif %}
-                  {% if m.id == 'output' %}<a href="{% url 'studio_os:output' %}" class="btn btn-primary btn-sm">{% trans "Open Outputs" %}</a>{% endif %}
-                  {% if m.id == 'launch' %}<a href="{% url 'studio_os:launch' %}" class="btn btn-primary btn-sm">{% trans "Open Launch" %}</a>{% endif %}
-                  {% if m.id == 'control' %}<a href="{% url 'studio_os:control' %}" class="btn btn-primary btn-sm">{% trans "Open Control" %}</a>{% endif %}
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-          <h3 class="h6 mt-4 mb-2">{% trans "Operational hubs" %}</h3>
-          <p class="small text-muted mb-3">{% trans "Approvals, workflow, import/export, document and report library, RBAC, feature control, and communications — all from one place." %}</p>
-          <div class="row g-2">
-            {% if legacy_urls.approval_hub %}<div class="col-auto"><a href="{{ legacy_urls.approval_hub }}" class="btn btn-outline-primary btn-sm">{% trans "Approval hub" %}</a></div>{% endif %}
-            {% if legacy_urls.workflow_center %}<div class="col-auto"><a href="{{ legacy_urls.workflow_center }}" class="btn btn-outline-primary btn-sm">{% trans "Workflow center" %}</a></div>{% endif %}
-            {% if legacy_urls.import_hub %}<div class="col-auto"><a href="{{ legacy_urls.import_hub }}" class="btn btn-outline-primary btn-sm">{% trans "Import hub" %}</a></div>{% endif %}
-            {% if legacy_urls.document_library %}<div class="col-auto"><a href="{{ legacy_urls.document_library }}" class="btn btn-outline-primary btn-sm">{% trans "Document library" %}</a></div>{% endif %}
-            {% if legacy_urls.report_library %}<div class="col-auto"><a href="{{ legacy_urls.report_library }}" class="btn btn-outline-primary btn-sm">{% trans "Report library" %}</a></div>{% endif %}
-            {% if legacy_urls.rbac %}<div class="col-auto"><a href="{{ legacy_urls.rbac }}" class="btn btn-outline-primary btn-sm">{% trans "RBAC & permissions" %}</a></div>{% endif %}
-            {% if legacy_urls.feature_control %}<div class="col-auto"><a href="{{ legacy_urls.feature_control }}" class="btn btn-outline-primary btn-sm">{% trans "Feature control" %}</a></div>{% endif %}
-            {% if legacy_urls.communication_groups %}<div class="col-auto"><a href="{{ legacy_urls.communication_groups }}" class="btn btn-outline-primary btn-sm">{% trans "Message groups" %}</a></div>{% endif %}
-            {% if legacy_urls.announcement_create %}<div class="col-auto"><a href="{{ legacy_urls.announcement_create }}" class="btn btn-outline-primary btn-sm">{% trans_term "Announcements" key="announcement" plural=True %}</a></div>{% endif %}
-          </div>
+          {# v3.54.0 (2026-05-21): Overview command cockpit replaces the inline mode-cards +
+             operational-hubs row. The new partial composes: mission hero (next best action),
+             5-card mode grid (with guidance_question/_tip preserved), readiness | recently
+             edited | live previews triptych, and the operational-hubs action rail. Renders
+             honest empty states for every panel when its context list is unpopulated. #}
+          {% include "studio_os/partials/overview_command_cockpit.html" %}
         {% elif embed_url %}
           <div class="small text-muted mb-2">{% trans "Loading mode canvas..." %}</div>
           <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Studio mode content' %}"></iframe>
@@ -218,8 +214,8 @@
           <p class="small text-muted mb-2">{% trans "Reports, documents, and report cards. Download or design from the canvas." %}</p>
           {% if legacy_urls.document_library %}<a href="{{ legacy_urls.document_library }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">{% trans "Document library" %}</a>{% endif %}
           {% if legacy_urls.reportcard_builder %}<a href="{{ legacy_urls.reportcard_builder }}" class="btn btn-outline-secondary btn-sm w-100">{% trans "Report card builder" %}</a>{% endif %}
-        {% elif current_mode == 'launch' %}
-          <p class="small text-muted mb-2">{% trans "Complete setup steps and preview by role. Execute launch when ready." %}</p>
+        {# v3.54.0 (2026-05-21): removed dead-code duplicate {% elif current_mode == 'launch' %}
+           branch (the upper launch branch above always wins; the duplicate was unreachable). #}
         {% elif current_mode == 'control' %}
           <p class="small fw-semibold mb-1">{% trans "Impact" %}</p>
           {% if why_enabled_summary %}<p class="small text-muted mb-2">{{ why_enabled_summary }}</p>{% endif %}
@@ -227,12 +223,45 @@
           {% if control_audit_entries %}
           <ul class="studio-os-activity-list mb-2">
             {% for e in control_audit_entries|slice:":5" %}
-            <li><span class="small">{{ e.action|default:"save" }}</span> <span class="text-muted small">{{ e.created_at|date:"M j H:i" }}</span></li>
+            {# v3.54.0 (2026-05-21): PII-safe actor rendering. Prefer e.actor_display
+               (hashed prefix or displayed_name); never e.actor_email/_username/_slug. #}
+            <li>
+              <span class="small">{{ e.action|default:"save" }}</span>
+              {% if e.actor_display %}<span class="text-muted small">— {{ e.actor_display }}</span>{% endif %}
+              <span class="text-muted small">{{ e.created_at|date:"M j H:i" }}</span>
+            </li>
             {% endfor %}
           </ul>
           <a href="{% url 'siteconfig:feature_control_audit' %}" class="btn btn-outline-secondary btn-sm w-100">{% trans "Full audit" %}</a>
           {% else %}
           <p class="small text-muted mb-2">{% trans "Capabilities and feature flags. Check audit trail before rolling back." %}</p>
+          {% endif %}
+        {% elif not current_mode %}
+          {# v3.54.0 (2026-05-21): Overview-mode right-rail summary. Without this branch,
+             Overview fell through to the generic {% else %} message and lost any signal
+             value. Renders honest empty states when context vars absent. #}
+          <p class="small fw-semibold mb-1">{% trans "Studio readiness" %}</p>
+          {% if launch_health_summary %}
+          <p class="small text-muted mb-2">{{ launch_health_summary }}</p>
+          {% endif %}
+          {% if launch_ready %}
+          <p class="small mb-2"><span class="badge text-bg-success-subtle">{% trans "Ready to launch" %}</span></p>
+          {% elif launch_health_summary %}
+          <p class="small text-muted mb-2">{% trans "Complete setup steps to improve launch confidence." %}</p>
+          {% else %}
+          <p class="small text-muted mb-2">{% trans "Readiness will populate as you stage Experience, Automation, and Output." %}</p>
+          {% endif %}
+          {% if studio_recommendations %}
+          <p class="small fw-semibold mb-1 mt-3">{% trans "Next best action" %}</p>
+          {% with nba=studio_recommendations.0 %}
+          {% if nba.url %}
+          <a href="{{ nba.url }}" class="btn btn-outline-primary btn-sm w-100">{{ nba.label|default:_("Open next action") }}</a>
+          {% else %}
+          <p class="small text-muted mb-0">{{ nba.label|default:_("No actions queued") }}</p>
+          {% endif %}
+          {% endwith %}
+          {% else %}
+          <p class="small text-muted mb-0">{% trans "No actions queued. Open a mode to begin." %}</p>
           {% endif %}
         {% else %}
           <p class="small text-muted mb-0">{% trans "Preview, compare, and publish from the canvas." %}</p>

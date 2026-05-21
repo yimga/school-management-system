@@ -27,6 +27,13 @@ from apps.portal.views_ai_copilot import (
 )
 from apps.portal.views_configure import portal_configure_hub
 from apps.siteconfig.views_school_help_ai import school_help_ai
+from apps.siteconfig.views_tenant_studio_hub import (
+    school_studio_hub,
+    school_studio_redirect_help,
+    school_studio_redirect_launch,
+    school_studio_redirect_migration,
+    school_studio_redirect_setup,
+)
 from config.admin import tenant_admin_site
 from apps.schools.activation_views import activation_first_action
 from apps.schools.demo_conversion_views import (
@@ -189,6 +196,7 @@ handler500 = server_error
 
 from config.error_handlers import service_unavailable as handler503  # noqa: E402
 
+from apps.siteconfig.command_bar_registry import CommandBarActionsView  # noqa: E402
 from apps.siteconfig.views_manifest import (  # noqa: E402
     platform_manifest as _platform_manifest,
     portal_manifest as _portal_manifest,
@@ -200,6 +208,10 @@ from apps.siteconfig.views_manifest_icon import (  # noqa: E402
 
 urlpatterns = [
     path("", home, name="home"),
+    # Universal command bar (v3.53.0): mirror of config.urls / config.manager_urls
+    # path so the cmd+k overlay loaded into every tenant-host shell can reverse the
+    # action-registry endpoint. # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant
+    path("api/command-bar/actions/", CommandBarActionsView.as_view(), name="command_bar_actions"),
     path(
         "activation/first-action/",
         activation_first_action,
@@ -263,6 +275,12 @@ urlpatterns = [
     path("school/audit/", school_surface_redirect, {"surface": "audit"}, name="school_audit"),
     path("school/security/", school_surface_redirect, {"surface": "security"}, name="school_security"),
     path("school/help/ai/", school_help_ai, name="school_help_ai"),
+    path("school/studio/", school_studio_hub, name="school_studio"),
+    path("school/studio/setup/", school_studio_redirect_setup, name="school_studio_setup"),
+    path("school/studio/readiness/", school_studio_hub, name="school_studio_readiness"),
+    path("school/studio/migration/", school_studio_redirect_migration, name="school_studio_migration"),
+    path("school/studio/help/", school_studio_redirect_help, name="school_studio_help"),
+    path("school/studio/launch/", school_studio_redirect_launch, name="school_studio_launch"),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path(

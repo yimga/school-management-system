@@ -98,6 +98,13 @@ def _get_regional_config(
                     return base, default, fallback
         except Exception as e:
             logger.warning("RegionalAIConfig lookup failed for %s: %s", cluster, e)
+    try:
+        from apps.portal.ai_provider import resolve_ollama_connection
+
+        conn = resolve_ollama_connection()
+        return conn["base_url"], conn["model"], ""
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
     endpoint = (
         getattr(settings, "OLLAMA_ENDPOINT", None)
         or os.environ.get("OLLAMA_ENDPOINT")

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import concurrent.futures
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 

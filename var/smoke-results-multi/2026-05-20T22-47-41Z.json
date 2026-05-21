@@ -1,0 +1,36 @@
+{
+  "apply": false,
+  "concurrency": 2,
+  "duration_s": 0.065,
+  "fail_fast": false,
+  "rows": [
+    {
+      "duration_s": 0.054,
+      "error_type": null,
+      "exit_code": 0,
+      "sections_failed": 0,
+      "sections_passed": 1,
+      "sections_skipped": 0,
+      "status": "PASS",
+      "tenant_hash": "8ed3f6ad685b",
+      "vendor": "powerschool"
+    },
+    {
+      "duration_s": 0.059,
+      "error_type": null,
+      "exit_code": 2,
+      "sections_failed": 0,
+      "sections_passed": 0,
+      "sections_skipped": 1,
+      "status": "SKIPPED",
+      "tenant_hash": "f44e64e75f39",
+      "vendor": "powerschool"
+    }
+  ],
+  "started_at_iso": "2026-05-20T22:47:41.490528+00:00",
+  "tenants_failed": 0,
+  "tenants_passed": 1,
+  "tenants_skipped": 1,
+  "tenants_total": 2,
+  "vendor": "powerschool"
+}

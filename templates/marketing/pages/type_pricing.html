@@ -29,7 +29,7 @@
           <li>{{ bullet }}</li>
           {% endfor %}
         </ul>
-        <a href="{{ plan.cta_path }}" class="mkt-edt-cta mkt-edt-cta--secondary" data-cta="pricing">{{ plan.cta_label }}</a>
+        <a href="{{ plan.cta_path }}" class="mkt-edt-cta mkt-edt-cta--secondary" data-cta="pricing" data-plan-name="{{ plan.plan }}" data-cta-label="{{ plan.cta_label }}">{{ plan.cta_label }}</a>
       </article>
       {% endfor %}
     </div>
@@ -54,7 +54,7 @@
   {% if page_extras.pricing_plan_comparison %}
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="pricing-matrix-heading">
     <h2 id="pricing-matrix-heading" class="mkt-v3-section-headline">{% trans "Capability comparison" %}</h2>
-    <div class="mkt-v3-pricing-matrix__scroll">
+    <div class="mkt-v3-pricing-matrix__scroll" role="region" aria-label="{% trans 'Plan capability comparison table' %}" tabindex="0">
       <table class="mkt-v3-pricing-matrix">
         <caption class="visually-hidden">{% trans "Plan capability matrix" %}</caption>
         <thead>

@@ -18,9 +18,11 @@
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 {% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
+
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
-<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   {% url 'super:create_school_wizard' as wcx_create_school_url %}
   {% url 'configuration:center' as wcx_configuration_url %}
@@ -71,7 +73,7 @@
   {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="super-risk-drawer" role=_("Risk drawer") title=_("Tenant risk quick profile") body=_("Operators can review owner, risk, proof, and next action from a side panel instead of page hopping.") primary_url=command_center_url primary_label=_("Open risk queue") %}
 
   {% comment %} Story cards — these tell the situation, not the numbers. {% endcomment %}
-  <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4 rmc-reveal" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
+  <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4 rmc-reveal-stagger" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
     {% include "components/world_class_product_moment_card.html" with title=_("Platform Pulse") outcome=_("Health, incidents, open approvals, and support pressure are visible immediately.") status=platform_health.overall_status action_url=command_center_url action_label=_("Open queues") %}
     {% include "components/world_class_risk_blocker_card.html" with title=_("External blockers") severity="medium" owner=_("Platform operator") boundary=_("PSP, settlement, and live certification remain external proof") next_step=_("Collect proof before claiming readiness") %}
     {% include "components/world_class_product_moment_card.html" with title=_("Proof Ledger") outcome=_("Local proof and pending live parity stay separate so buyers see honest readiness.") status=_("Local only") action_url="/docs/generated/live_browser_ux_certification_report.md" action_label=_("View proof") %}

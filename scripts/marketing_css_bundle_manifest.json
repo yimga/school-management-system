@@ -42,7 +42,7 @@
   ],
   "size_budget_bytes": {
     "critical_max": 45000,
-    "enhanced_max": 280000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (275KB as of 2026-05-20). Deferred load via media=print onload."
+    "enhanced_max": 290000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (284KB as of 2026-05-21 after batch 1372 off-token-allow / theme-locked-allow CI markers preserved through minify). Deferred load via media=print onload."
   }
 }

@@ -114,7 +114,7 @@ def collect_defined_classes() -> set[str]:
                 defined.add(m.group(1))
     # From JS files (classes added via classList.add / className = ...)
     js_class_literal = re.compile(r"""classList\.(?:add|toggle|remove)\s*\(\s*["']([^"']+)["']""")
-    js_add_chain = re.compile(r"""["']([\w-]+)["']\s*(?:,|\))""")
+    re.compile(r"""["']([\w-]+)["']\s*(?:,|\))""")
     for p in JS_ROOT.rglob("*.js"):
         if any(part in EXCLUDE_PARTS for part in p.parts):
             continue
@@ -219,8 +219,8 @@ def main() -> int:
 
     if args.compare:
         base = load_baseline()
-        base_set = {(r["class"], r["uses"]) for r in base.get("findings", [])}
-        new_set = {(r["class"], r["uses"]) for r in undefined}
+        {(r["class"], r["uses"]) for r in base.get("findings", [])}
+        {(r["class"], r["uses"]) for r in undefined}
         # CI fails when a new undefined class appears OR usage of one grows.
         new_classes = {r["class"] for r in undefined} - {r["class"] for r in base.get("findings", [])}
         if new_classes:

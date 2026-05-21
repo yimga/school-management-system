@@ -933,6 +933,14 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         school.is_active = True
         school.save(update_fields=["is_active", "settings", "updated_at"])
         try:
+            from apps.platform_runtime.offline_mode_bundle import (
+                maybe_apply_offline_bundle_on_provision,
+            )
+
+            maybe_apply_offline_bundle_on_provision(school)
+        except ImportError:
+            pass
+        try:
             from apps.policies.policy_registry import invalidate_policy_cache
 
             invalidate_policy_cache(school)

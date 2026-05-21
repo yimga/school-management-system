@@ -144,6 +144,7 @@
 | Student Passport / vault | Implemented | StudentPassport, PassportSchoolInvite; employer_student_transcript |
 | Self-service tenant signup | Implemented | signup_school, verify_signup, api_trial_school, onboarding_wizard |
 | AI narrative feedback | Implemented | achievement_event; LLM narrative optional in feedback flow |
+| AI deployment posture (Render cloud + edge Ollama) | Implemented | `services/ai_deployment_posture.py`; `docs/AI_DEPLOYMENT_POSTURE.md`; batch 1370; `verify_render_online_ai_posture.py` |
 | RTL | Implemented | RegionConfig.is_rtl; portal_base; policies |
 | UK/British term preset | Implemented | signup_views.py term_preset POST; tasks.py apply UK terms at signup; BRITISH_IGCSE in views_v1 |
 | Nested tenancy | Implemented | School.parent_school; GET /api/v1/tenants/children (list child schools + parent for campus switcher) |

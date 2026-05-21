@@ -11,7 +11,13 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.test.client import ContextList
-from django.test import Client, SimpleTestCase, TestCase, override_settings
+from django.test import (
+    Client,
+    SimpleTestCase,
+    TestCase,
+    TransactionTestCase,
+    override_settings,
+)
 from django.core.management import call_command
 from django.urls import reverse
 
@@ -28,6 +34,10 @@ def _store_rendered_templates_without_context_copy(store, signal, sender, templa
     if "context" not in store:
         store["context"] = ContextList()
     store["context"].append(context)
+
+
+class MarketingPublicRouteTransactionCase(TransactionTestCase):
+    """Committed writes keep file-backed SQLite public route sweeps moving."""
 
 
 # URL names exercised by manage.py validate_marketing_urls (and --smoke subset)
@@ -202,7 +212,7 @@ class MarketingUrlResolutionTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
-class MarketingSmokeTests(TestCase):
+class MarketingSmokeTests(MarketingPublicRouteTransactionCase):
     """Key marketing URLs must return 200 on canonical host (same as validate_marketing_urls --smoke)."""
 
     def setUp(self):
@@ -248,7 +258,7 @@ class MarketingSmokeTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
-class MarketingLandingContextTests(TestCase):
+class MarketingLandingContextTests(MarketingPublicRouteTransactionCase):
     """Landing must render required visual assets (NON_NEGOTIABLES 61–66) in HTML.
 
     Uses assertContains instead of response.context: under pytest the test client may
@@ -298,34 +308,27 @@ class MarketingLandingContextTests(TestCase):
         """
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Run your school the way")
+        self.assertContains(resp, "Run every school day from one operating system")
         self.assertContains(resp, "Tuesday · Cedar Ridge Academy")
         self.assertContains(resp, "One platform that bends to each campus.")
         self.assertContains(resp, "Book a demo")
         self.assertContains(resp, "mkt-v3-bell-clock")
 
     def test_landing_nav_has_product_and_solutions_dropdowns(self):
-        """v3 redesign (Phase 3): verb-first nav.
-
-        Replaces "Product" / "Solutions" with Run / Teach / Pay / Communicate /
-        Grow. Each verb opens a mega-menu (still uses Bootstrap dropdown-toggle
-        + mkt-mega-menu chrome). Pricing + Why switch live in the right
-        cluster. The trust pill stays.
-        """
+        """Enterprise IA: Platform / Solutions / Why / Pricing / Resources / More."""
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("dropdown-toggle", body)
-        # Mega-menu header (each verb dropdown renders as a mega menu).
         self.assertIn("mkt-mega-menu", body)
-        # Verb-first nav: Run / Teach / Pay / Communicate / Grow.
-        self.assertIn("/run/", body)
-        self.assertIn("/teach/", body)
-        self.assertIn("/pay/", body)
-        self.assertIn("/communicate/", body)
-        # Utility cluster + trust pill.
+        self.assertIn(">Platform<", body)
+        self.assertIn(">Solutions<", body)
+        self.assertIn(">Why RunMyCampus<", body)
+        self.assertIn(">Resources<", body)
+        self.assertIn(">More<", body)
+        self.assertIn("Operating journey", body)
+        self.assertIn("Inquiry → Enrollment → Attendance → Fees", body)
         self.assertIn("/pricing/", body)
-        self.assertIn("/why-switch/", body)
         self.assertIn("Platform status", body)
         self.assertIn("/trust/", body)
 
@@ -343,7 +346,7 @@ class MarketingLandingContextTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
-class MarketingPageExtrasTests(TestCase):
+class MarketingPageExtrasTests(MarketingPublicRouteTransactionCase):
     """Key marketing subpages must render with page_extras (diagram or data_viz where expected)."""
 
     def setUp(self):
@@ -379,28 +382,28 @@ class MarketingPageExtrasTests(TestCase):
         resp = self.client.get("/onboard/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
 
-    def test_legacy_platform_module_urls_redirect_to_persona_hubs(self):
-        """Marketing v3: module detail URLs permanently redirect to Run/Teach/Pay/Communicate hubs."""
+    def test_platform_module_urls_render_platform_detail_pages(self):
+        """Required platform routes stay clean instead of redirecting to verb hubs."""
         cases = (
-            ("/platform/admissions/", "/run/admissions/"),
-            ("/platform/attendance/", "/run/attendance/"),
-            ("/platform/analytics/", "/run/analytics/"),
-            ("/platform/workflows/", "/run/workflows/"),
-            ("/platform/offline-first/", "/run/offline/"),
-            ("/platform/fees-payments/", "/pay/fees/"),
-            ("/platform/parent-portal/", "/communicate/inbox/"),
-            ("/platform/teacher-portal/", "/teach/workspace/"),
-            ("/platform/communications/", "/communicate/announcements/"),
-            ("/platform/grading-report-cards/", "/teach/gradebook/"),
+            "/platform/student-information-system/",
+            "/platform/admissions/",
+            "/platform/attendance/",
+            "/platform/fees-payments/",
+            "/platform/grading-report-cards/",
+            "/platform/parent-portal/",
+            "/platform/teacher-portal/",
+            "/platform/student-portal/",
+            "/platform/communications/",
+            "/platform/analytics/",
+            "/platform/workflows/",
+            "/platform/offline-first/",
+            "/platform/security/",
         )
-        for old_path, expected_path in cases:
-            resp = self.client.get(old_path, HTTP_HOST=self.host)
-            self.assertEqual(resp.status_code, 301, msg=old_path)
-            location = resp.headers.get("Location") or ""
-            self.assertTrue(
-                location.endswith(expected_path),
-                msg=f"{old_path} -> {location!r}, want */{expected_path}",
-            )
+        for path in cases:
+            with self.subTest(path=path):
+                resp = self.client.get(path, HTTP_HOST=self.host)
+                self.assertEqual(resp.status_code, 200, msg=path)
+                self.assertContains(resp, "data-mkt-archetype")
 
     def test_platform_student_portal_still_renders_detail_page(self):
         resp = self.client.get("/platform/student-portal/", HTTP_HOST=self.host)
@@ -426,7 +429,7 @@ class MarketingJsonLoaderTests(SimpleTestCase):
     SECURE_SSL_REDIRECT=False,
     MARKETING_CONTENT_REGION="eu",
 )
-class MarketingRegionalJsonIntegrationTests(TestCase):
+class MarketingRegionalJsonIntegrationTests(MarketingPublicRouteTransactionCase):
     """MARKETING_CONTENT_REGION picks slug_region.json over slug.json."""
 
     def setUp(self):
@@ -452,8 +455,12 @@ class MarketingRegionalJsonIntegrationTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
-class MarketingFullUrlInventoryTests(TestCase):
+class MarketingFullUrlInventoryTests(MarketingPublicRouteTransactionCase):
     """GET every marketing_* route after CMS seed (aligns with validate_marketing_urls --full --seed-cms)."""
+
+    # seed_marketing_cms writes CMS rows before the request sweep. TestCase keeps
+    # those writes inside an open transaction, which can wedge file-backed SQLite
+    # when request-time marketing code opens another connection under --keepdb.
 
     def setUp(self):
         self.client = Client()
@@ -500,7 +507,7 @@ class MarketingFullUrlInventoryTests(TestCase):
                 )
 
 
-class MarketingAbVariantTests(TestCase):
+class MarketingAbVariantTests(MarketingPublicRouteTransactionCase):
     """Session-sticky A/B: CTA order and hero B subline (see MARKETING_EXECUTION.md)."""
 
     def setUp(self):
@@ -556,12 +563,12 @@ class MarketingAbVariantTests(TestCase):
         session.save()
         resp = self.client.get("/marketing/", HTTP_HOST=self.host, secure=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Run your school the way")
+        self.assertContains(resp, "Run every school day from one operating system")
         self.assertContains(resp, 'data-mkt-edition="editorial"')
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
-class MarketingLegacyCanonicalRedirectTests(TestCase):
+class MarketingLegacyCanonicalRedirectTests(MarketingPublicRouteTransactionCase):
     """Legacy marketing paths 301 to brief-critical canonical URLs."""
 
     def setUp(self):
@@ -626,7 +633,7 @@ class MarketingLegacyCanonicalRedirectTests(TestCase):
     MARKETING_CONTACT_WEBHOOK_URL=None,
     MARKETING_DEMO_WEBHOOK_URL=None,
 )
-class MarketingContactSubmitTests(TestCase):
+class MarketingContactSubmitTests(MarketingPublicRouteTransactionCase):
     """Contact POST-only route and redirect query params."""
 
     def setUp(self):
@@ -678,7 +685,7 @@ class MarketingContactSubmitTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
-class MarketingInstitutionPremiumVisualTests(TestCase):
+class MarketingInstitutionPremiumVisualTests(MarketingPublicRouteTransactionCase):
     """Institution premium layer uses self-hosted static artwork + alt text."""
 
     def setUp(self):
@@ -701,11 +708,15 @@ class MarketingInstitutionPremiumVisualTests(TestCase):
         resp = self.client.get("/solutions/k12-schools/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "/static/images/marketing/module-academics.svg")
-        self.assertContains(resp, 'alt="Illustration of K–12 academics')
+        self.assertContains(resp, 'alt="Illustration of K-12 academics')
 
 
-class DeveloperHubPublicUrlconfTests(TestCase):
+class DeveloperHubPublicUrlconfTests(MarketingPublicRouteTransactionCase):
     """Developer hub must render on runmycampus.com (config.public_urls), not 500 on reverse()."""
+
+    # The developer sweep renders several public-host pages per test. Keep it
+    # outside TestCase's open transaction so file-backed SQLite request hooks
+    # cannot wait on their own route-sweep transaction under --keepdb.
 
     def test_developer_hub_reverses_and_renders_on_public_host(self):
         from django.test import Client
@@ -770,7 +781,7 @@ class DeveloperHubPublicUrlconfTests(TestCase):
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
-class MarketingLocalFirstTiersTests(TestCase):
+class MarketingLocalFirstTiersTests(MarketingPublicRouteTransactionCase):
     """Tier 2–3: security-packet annex, honest case studies, enterprise + marketplace copy."""
 
     def setUp(self):

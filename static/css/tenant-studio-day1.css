@@ -1,0 +1,650 @@
+/*
+ * Day-1 Magic — choreographed 3-act opening sequence stylesheet.
+ *
+ * Layout: hero-stage with a bottom progress rail. Choreography rides on
+ * design-tokens.css motion + ease tokens (--motion-*, --ease-*) which the
+ * E2-pillar ships alongside this batch. All colour comes from semantic
+ * tokens; per-variation palette comes from inline custom properties set on
+ * the variation card (--rmc-day1-primary etc.) so the cascade respects
+ * dark-mode flips for everything outside the swatch fill.
+ *
+ * armed-attribute contract: reveal-only animation runs once data-rmc-tenant-studio-day1-armed
+ * lands on <html>. The matching JS sets the flag synchronously at parse
+ * time, so first-paint never flashes the post-reveal state.
+ */
+
+.rmc-day1-stage {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-6, 1.5rem);
+  min-height: calc(100vh - 8rem);
+  padding-block: var(--space-6, 1.5rem);
+}
+
+.rmc-day1-act-header {
+  text-align: center;
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.rmc-day1-eyebrow {
+  display: inline-block;
+  font-size: var(--type-size-eyebrow, 0.75rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2, 0.5rem);
+}
+
+.rmc-day1-headline {
+  font-size: var(--type-size-hero, 2.25rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3, 0.75rem) 0;
+}
+
+.rmc-day1-lede {
+  color: var(--text-secondary);
+  font-size: var(--type-size-lede, 1.05rem);
+  margin: 0;
+}
+
+/* ----- Act 1: brand reveal ----- */
+
+.rmc-day1-brand-reveal {
+  display: grid;
+  place-items: center;
+  gap: var(--space-5, 1.25rem);
+  padding-block: var(--space-8, 2rem);
+}
+
+.rmc-day1-logo-frame {
+  width: 9rem;
+  height: 9rem;
+  border-radius: var(--radius-xl, 1.25rem);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--elev-2);
+  overflow: hidden;
+}
+
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-logo-frame {
+  animation: rmc-day1-logo-in var(--motion-slow, 700ms) var(--ease-emphasized, ease-out) both;
+}
+
+.rmc-day1-logo-img {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+}
+
+.rmc-day1-logo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--surface-popover);
+}
+
+.rmc-day1-logo-initial {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rmc-day1-brand-meta {
+  text-align: center;
+}
+
+.rmc-day1-brand-name {
+  font-size: var(--type-size-title, 1.5rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2, 0.5rem) 0;
+}
+
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-brand-name {
+  animation: rmc-day1-fade-up var(--motion-medium, 500ms) var(--ease-emphasized, ease-out) both;
+  animation-delay: 240ms;
+}
+
+.rmc-day1-seed-line {
+  color: var(--text-secondary);
+  font-size: var(--type-size-body, 0.95rem);
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.rmc-day1-seed-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-popover);
+  border: 1px solid var(--hairline);
+}
+
+.rmc-day1-seed-swatch {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: var(--rmc-day1-seed-fill);
+  border: 1px solid var(--hairline);
+}
+
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-seed-chip {
+  animation: rmc-day1-fade-up var(--motion-medium, 500ms) var(--ease-emphasized, ease-out) both;
+  animation-delay: 400ms;
+}
+
+/* ----- Act 1: live logo upload widget -----
+ * Drag-and-drop + file-picker surface, shown only when the tenant has no
+ * logo. The zone uses the same elevation tokens as the brand-reveal frame
+ * above so the two compositions read as one surface.
+ */
+
+.rmc-day1-logo-upload {
+  max-width: 36rem;
+  margin-inline: auto;
+  padding: var(--space-5, 1.25rem);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 0.875rem);
+  box-shadow: var(--elev-1);
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+}
+
+.rmc-day1-logo-upload-heading {
+  margin: 0;
+  font-size: var(--type-size-title, 1.25rem);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rmc-day1-logo-upload-lede {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-size-body, 0.95rem);
+}
+
+.rmc-day1-logo-upload-form {
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+}
+
+.rmc-day1-logo-upload-zone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-6, 1.5rem);
+  border: 2px dashed var(--hairline);
+  border-radius: var(--radius-md, 0.625rem);
+  background: var(--surface-popover);
+  color: var(--text-secondary);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 200ms) var(--ease-standard, ease),
+              background var(--motion-fast, 200ms) var(--ease-standard, ease),
+              transform var(--motion-fast, 200ms) var(--ease-standard, ease);
+}
+
+.rmc-day1-logo-upload-zone:hover,
+.rmc-day1-logo-upload-zone:focus-visible {
+  border-color: var(--accent-primary, var(--text-primary));
+  color: var(--text-primary);
+  outline: none;
+}
+
+.rmc-day1-logo-upload-zone.is-dragover {
+  border-color: var(--accent-primary, var(--text-primary));
+  background: var(--surface-elevated);
+  transform: scale(1.01);
+}
+
+.rmc-day1-logo-upload-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.rmc-day1-logo-upload-cta {
+  display: inline-block;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: var(--type-size-body, 0.95rem);
+  pointer-events: none;
+}
+
+.rmc-day1-logo-upload-hint {
+  margin: 0;
+  font-size: var(--type-size-eyebrow, 0.8rem);
+  color: var(--text-secondary);
+}
+
+.rmc-day1-logo-preview {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem);
+  background: var(--surface-popover);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.625rem);
+}
+
+.rmc-day1-logo-preview-img {
+  width: 4rem;
+  height: 4rem;
+  object-fit: contain;
+  border-radius: var(--radius-sm, 0.25rem);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+}
+
+.rmc-day1-logo-preview-meta {
+  margin: 0;
+  font-size: var(--type-size-eyebrow, 0.8rem);
+  color: var(--text-secondary);
+}
+
+.rmc-day1-logo-error {
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  background: var(--surface-popover);
+  color: var(--text-danger, var(--text-primary));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.625rem);
+  font-size: var(--type-size-body, 0.95rem);
+}
+
+.rmc-day1-logo-upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  justify-content: flex-end;
+}
+
+.rmc-day1-logo-upload .is-hidden {
+  display: none !important;
+}
+
+/* ----- Act 2: palette variations ----- */
+
+.rmc-day1-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--space-5, 1.25rem);
+}
+
+.rmc-day1-variation-card {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 0.875rem);
+  background: var(--surface-elevated);
+  padding: var(--space-5, 1.25rem);
+  display: grid;
+  gap: var(--space-4, 1rem);
+  box-shadow: var(--elev-1);
+  transition: transform var(--motion-fast, 200ms) var(--ease-standard, ease),
+              box-shadow var(--motion-fast, 200ms) var(--ease-standard, ease);
+}
+
+.rmc-day1-variation-card:hover,
+.rmc-day1-variation-card:focus-within {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-3);
+}
+
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-variation-card {
+  animation: rmc-day1-fade-up var(--motion-medium, 500ms) var(--ease-emphasized, ease-out) both;
+}
+
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-variation-card:nth-child(1) { animation-delay: 80ms; }
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-variation-card:nth-child(2) { animation-delay: 200ms; }
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-variation-card:nth-child(3) { animation-delay: 320ms; }
+
+.rmc-day1-variation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3, 0.75rem);
+}
+
+.rmc-day1-variation-title {
+  margin: 0;
+  font-size: var(--type-size-title, 1.25rem);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rmc-day1-wcag-badge {
+  font-size: var(--type-size-eyebrow, 0.75rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-popover);
+  color: var(--text-secondary);
+  border: 1px solid var(--hairline);
+}
+
+.rmc-day1-wcag-AAA {
+  color: var(--text-success, var(--text-primary));
+}
+
+.rmc-day1-wcag-fail {
+  color: var(--text-danger, var(--text-primary));
+}
+
+.rmc-day1-variation-previews {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: var(--space-3, 0.75rem);
+}
+
+.rmc-day1-tile {
+  border-radius: var(--radius-md, 0.625rem);
+  padding: var(--space-3, 0.75rem);
+  min-height: 5rem;
+  border: 1px solid var(--hairline);
+}
+
+.rmc-day1-tile-portal {
+  background: var(--rmc-day1-surface);
+  color: var(--rmc-day1-ink);
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-day1-tile-bar {
+  height: 0.5rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--rmc-day1-primary);
+}
+
+.rmc-day1-tile-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-day1-tile-heading {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--type-size-body, 0.95rem);
+  color: var(--rmc-day1-ink);
+}
+
+.rmc-day1-tile-cta {
+  background: var(--rmc-day1-primary);
+  color: var(--rmc-day1-surface);
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: var(--type-size-eyebrow, 0.8rem);
+  cursor: default;
+}
+
+.rmc-day1-tile-marketing {
+  background: var(--rmc-day1-primary-soft);
+  color: var(--rmc-day1-ink);
+  display: grid;
+  gap: var(--space-1, 0.25rem);
+  align-content: center;
+}
+
+.rmc-day1-tile-blurb {
+  margin: 0;
+  font-weight: 600;
+  color: var(--rmc-day1-primary-strong);
+}
+
+.rmc-day1-tile-chip {
+  grid-column: span 2;
+  background: var(--rmc-day1-ink);
+  color: var(--rmc-day1-surface);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  border-radius: var(--radius-pill, 999px);
+}
+
+.rmc-day1-tile-chip-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--rmc-day1-primary-soft);
+}
+
+.rmc-day1-tile-chip-text {
+  font-weight: 600;
+}
+
+.rmc-day1-stops {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-day1-stop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  font-size: var(--type-size-eyebrow, 0.75rem);
+  color: var(--text-secondary);
+}
+
+.rmc-day1-stop-swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-sm, 0.25rem);
+  background: var(--rmc-day1-stop-fill);
+  border: 1px solid var(--hairline);
+  flex-shrink: 0;
+}
+
+.rmc-day1-stop-key,
+.rmc-day1-stop-hex {
+  font-family: var(--font-mono, monospace);
+}
+
+.rmc-day1-variation-choose {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding-top: var(--space-2, 0.5rem);
+  border-top: 1px solid var(--hairline);
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.rmc-day1-variation-card:has(input[type="radio"]:checked) {
+  border-color: var(--rmc-day1-primary);
+  box-shadow: var(--elev-3);
+}
+
+/* ----- Act 3: lock-in ----- */
+
+.rmc-day1-lock-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4, 1rem);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 0.875rem);
+  padding: var(--space-5, 1.25rem);
+  max-width: 36rem;
+  margin-inline: auto;
+}
+
+.rmc-day1-lock-icon {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+}
+
+.rmc-day1-lock-circle {
+  fill: var(--surface-popover);
+  stroke: var(--text-success, var(--text-secondary));
+  stroke-width: 2;
+}
+
+.rmc-day1-lock-check {
+  stroke: var(--text-success, var(--text-primary));
+}
+
+html[data-rmc-tenant-studio-day1-armed] .rmc-day1-lock-check {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: rmc-day1-lock-draw var(--motion-slow, 700ms) var(--ease-emphasized, ease-out) forwards;
+  animation-delay: 200ms;
+}
+
+.rmc-day1-lock-copy {
+  display: grid;
+  gap: var(--space-1, 0.25rem);
+}
+
+.rmc-day1-lock-headline {
+  font-size: var(--type-size-title, 1.25rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rmc-day1-lock-detail {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: var(--type-size-body, 0.95rem);
+}
+
+/* ----- Shared: act actions + progress rail ----- */
+
+.rmc-day1-act-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3, 0.75rem);
+  flex-wrap: wrap;
+}
+
+.rmc-day1-act-actions-full {
+  grid-column: 1 / -1;
+}
+
+.rmc-day1-cta-primary,
+.rmc-day1-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3, 0.75rem) var(--space-5, 1.25rem);
+  border-radius: var(--radius-pill, 999px);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: var(--type-size-body, 0.95rem);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 200ms) var(--ease-standard, ease);
+}
+
+.rmc-day1-cta-primary {
+  background: var(--accent-primary, var(--text-primary));
+  color: var(--surface-bg);
+}
+
+.rmc-day1-cta-primary:hover,
+.rmc-day1-cta-primary:focus-visible {
+  transform: translateY(-1px);
+}
+
+.rmc-day1-cta-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--hairline);
+}
+
+.rmc-day1-cta-secondary:hover,
+.rmc-day1-cta-secondary:focus-visible {
+  color: var(--text-primary);
+}
+
+.rmc-day1-progress-rail {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.rmc-day1-progress-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--space-4, 1rem);
+  align-items: center;
+}
+
+.rmc-day1-progress-step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  color: var(--text-secondary);
+  font-size: var(--type-size-eyebrow, 0.75rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rmc-day1-progress-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--hairline);
+  transition: background var(--motion-medium, 500ms) var(--ease-standard, ease);
+}
+
+.rmc-day1-progress-step.is-active .rmc-day1-progress-dot {
+  background: var(--accent-primary, var(--text-primary));
+}
+
+.rmc-day1-progress-step.is-active .rmc-day1-progress-label {
+  color: var(--text-primary);
+}
+
+/* ----- Animation keyframes ----- */
+
+@keyframes rmc-day1-logo-in {
+  0% { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rmc-day1-fade-up {
+  0% { opacity: 0; transform: translateY(0.5rem); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rmc-day1-lock-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-rmc-tenant-studio-day1-armed] .rmc-day1-logo-frame,
+  html[data-rmc-tenant-studio-day1-armed] .rmc-day1-brand-name,
+  html[data-rmc-tenant-studio-day1-armed] .rmc-day1-seed-chip,
+  html[data-rmc-tenant-studio-day1-armed] .rmc-day1-variation-card,
+  html[data-rmc-tenant-studio-day1-armed] .rmc-day1-lock-check {
+    animation: none !important;
+  }
+}

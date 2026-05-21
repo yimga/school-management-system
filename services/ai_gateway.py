@@ -124,9 +124,9 @@ class TaskType(str, Enum):
     REPORT_CARD_COMMENT = "report_card_comment"
 
 
-# Default tier per task: Ollama (self-hosted) then rules for every product task.
-# Optional vLLM / LiteLLM: set Django settings.AI_GATEWAY_TASK_TIERS to merge per-task lists
-# (e.g. workflow_draft -> ["vllm", "ollama", "rules"]) for operators who run those servers.
+# Default tier per task follows RMC_DEPLOYMENT_PROFILE (services.ai_deployment_posture).
+# online + LITELLM_PROXY_URL → litellm, ollama, rules; edge → ollama, rules.
+# Optional per-task override: Django settings.AI_GATEWAY_TASK_TIERS dict.
 _DEFAULT_OLLAMA_RULES: list[str] = ["ollama", "rules"]
 
 DEFAULT_TASK_TIERS: dict[str, list[str]] = {
@@ -158,16 +158,12 @@ DEFAULT_TASK_TIERS: dict[str, list[str]] = {
 
 
 def _task_tiers() -> dict[str, list[str]]:
-    custom = getattr(settings, "AI_GATEWAY_TASK_TIERS", None) or os.environ.get("AI_GATEWAY_TASK_TIERS")
+    from services.ai_deployment_posture import merge_effective_task_tiers
+
+    custom = getattr(settings, "AI_GATEWAY_TASK_TIERS", None)
     if custom and isinstance(custom, dict):
-        out = dict(DEFAULT_TASK_TIERS)
-        for k, v in custom.items():
-            if isinstance(v, list):
-                out[k] = [str(x).lower() for x in v]
-            elif isinstance(v, str):
-                out[k] = [x.strip().lower() for x in v.split(",") if x.strip()]
-        return out
-    return {k.value: v for k, v in DEFAULT_TASK_TIERS.items()}
+        return merge_effective_task_tiers(custom)
+    return merge_effective_task_tiers(None)
 
 
 def _request_timeout(metadata: dict[str, Any] | None = None) -> int:
@@ -336,7 +332,11 @@ def _audit_log(
 
 
 def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> tuple[str | None, dict[str, Any]]:
+    from services.ollama_runtime import ensure_ollama_reachable
+
+    ensure_ollama_reachable()
     from apps.portal.ai_provider import _call_ollama as _ollama
+
     text = _ollama(prompt, metadata=metadata)
     return text, {"provider": "ollama", "tier": "ollama"}
 
@@ -398,10 +398,18 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
         "max_tokens": 2048,
         "temperature": 0.3,
     }
+    headers = {"Content-Type": "application/json"}
+    api_key = (
+        getattr(settings, "LITELLM_API_KEY", None)
+        or os.environ.get("LITELLM_API_KEY")
+        or ""
+    ).strip()
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
     req = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
     timeout = timeout_sec if timeout_sec is not None else _request_timeout(metadata)
@@ -443,9 +451,20 @@ def _rules_fallback(user_query: str) -> str:
 def _live_provider_configured() -> bool:
     try:
         from apps.portal.ai_provider import get_ai_provider_status
+        from services.ai_deployment_posture import is_litellm_configured
 
-        return bool(get_ai_provider_status().get("has_live_provider"))
+        status = get_ai_provider_status()
+        return is_litellm_configured() or bool(status.get("ollama_configured"))
     except (ImportError, AttributeError, TypeError, ValueError):
+        return False
+
+
+def _live_provider_reachable() -> bool:
+    try:
+        from apps.portal.ai_provider import probe_ai_provider_reachable
+
+        return bool(probe_ai_provider_reachable().get("reachable"))
+    except (ImportError, AttributeError, TypeError, ValueError, OSError):
         return False
 
 
@@ -466,7 +485,8 @@ def _rules_invoke_result(
             task_type=task_key,
             user_query=user_query or "",
             rag_snippets=snippets,
-            live_provider_available=_live_provider_configured(),
+            live_provider_available=_live_provider_reachable(),
+            metadata=metadata,
         )
     if response_schema:
         default = _safe_schema_default(response_schema)
@@ -732,10 +752,12 @@ def _invoke_inner(
             "ai_gateway: blocked likely prompt injection (task=%s)", task_key
         )
         return None, out_meta
+    from apps.portal.ai_provider import ai_rules_fallback_allowed
+
     if not bool(getattr(settings, "AI_GATEWAY_ENABLED", True)):
         request_id = str(uuid4())
         request_date = date.today().isoformat()
-        if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
+        if ai_rules_fallback_allowed():
             result = _rules_invoke_result(
                 task_key, user_query or "", prompt, response_schema, md
             )
@@ -924,7 +946,7 @@ def _invoke_inner(
         errors[tier] = meta.get("error", "unavailable")
 
     elapsed_ms = (time.perf_counter() - start) * 1000
-    if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)) and rules_allowed_for_call:
+    if ai_rules_fallback_allowed() and rules_allowed_for_call:
         result = _rules_invoke_result(
             task_key, user_query or "", prompt, response_schema, md
         )
@@ -944,6 +966,28 @@ def _invoke_inner(
             "latency_ms": round(elapsed_ms, 2),
             "fallback": True,
             **out_meta,
+        }
+    if response_schema == "guided_assistant":
+        from services.ai_unavailable import build_ollama_unavailable_guided
+
+        failure_meta = {
+            "errors": errors,
+            "request_id": request_id,
+            "request_date": request_date,
+            "task_type": task_key,
+            "cost_class": _cost_class_for_tier("none"),
+            "user_id": user_id,
+            "ollama_required": True,
+            "live_ai_unavailable": True,
+        }
+        _audit_log(task_key, "none", "", elapsed_ms, tenant_id, school_id, "ollama_required", failure_meta)
+        return build_ollama_unavailable_guided(user_query=user_query or ""), {
+            "provider": "none",
+            "tier": "none",
+            "latency_ms": round(elapsed_ms, 2),
+            "ollama_required": True,
+            "live_ai_unavailable": True,
+            **failure_meta,
         }
     failure_meta = {
         "errors": errors,

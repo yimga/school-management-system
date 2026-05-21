@@ -21,7 +21,8 @@ body[data-rmc-assist-dock="mounted"] .voc-widget {
 
 body[data-rmc-assist-dock="mounted"] .rmc-page-help-fab,
 body[data-rmc-assist-dock="mounted"] .back-to-top-btn,
-body[data-rmc-assist-dock="mounted"] .portal-chathead {
+body[data-rmc-assist-dock="mounted"] .portal-chathead,
+body[data-rmc-assist-dock="mounted"] .cp-context-drawer-toggle {
   position: static !important;
   bottom: auto !important;
   right: auto !important;
@@ -200,6 +201,10 @@ body.control-plane-shell:has(.rmc-kb-operator) .rmc-assist-dock__secondary:not(:
 
 .rmc-assist-dock__btn--help {
   color: var(--school-accent, var(--school-primary));
+}
+
+.rmc-assist-dock__btn--context {
+  color: var(--text-primary, #f1f5f9);
 }
 
 .rmc-assist-dock__btn--messages {

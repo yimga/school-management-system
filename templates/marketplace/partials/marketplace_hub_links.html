@@ -1,0 +1,8 @@
+{% load i18n %}
+<div class="rmc-cp-compact__hub-links" role="navigation" aria-label="{% trans 'Marketplace surfaces' %}">
+  <a href="{% url 'super:app_catalog' %}" class="btn btn-outline-secondary btn-sm">{% trans "App catalog" %}</a>
+  <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-secondary btn-sm">{% trans "Governance" %}</a>
+  <a href="{% url 'super:blueprint_marketplace' %}" class="btn btn-outline-secondary btn-sm">{% trans "Blueprint marketplace" %}</a>
+  <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-secondary btn-sm">{% trans "Sandbox inspector" %}</a>
+  <a href="{% url 'super:marketplace_compatibility' %}" class="btn btn-outline-secondary btn-sm">{% trans "Compatibility matrix" %}</a>
+</div>

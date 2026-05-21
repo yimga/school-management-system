@@ -1,0 +1,174 @@
+{
+  "wave": "v3.54.0",
+  "section": "overview",
+  "agent": "1",
+  "generated_at": "2026-05-21",
+  "scope": "Studio OS cockpit Overview (current_mode is None) — next-realm rebuild",
+  "ownership_boundary": [
+    "templates/studio_os/partials/cockpit_signal_strip.html",
+    "templates/studio_os/partials/cockpit_copilot_rail.html",
+    "templates/studio_os/partials/studio_guidance_panel.html",
+    "templates/studio_os/partials/launch_studio_overview_body.html",
+    "templates/studio_os/partials/launch_studio_role_preview_pane.html",
+    "templates/studio_os/partials/overview_command_cockpit.html (new)",
+    "static/css/studio-overview-cockpit.css (new)",
+    "apps/studio_os/tests/test_overview_next_realm.py (new)"
+  ],
+  "view_context_vars_available_for_overview_mode": [
+    {"name": "studio_modes", "source": "views.py:1343 STUDIO_MODES constant", "type": "list[dict]", "shape": "id,label,description,guidance_question,guidance_answer,guidance_tip"},
+    {"name": "current_mode", "source": "views.py:1344", "type": "str|None", "shape": "None for overview"},
+    {"name": "legacy_urls", "source": "views.py:1345 via _resolve_legacy_urls", "type": "dict", "shape": "approval_hub,workflow_center,import_hub,document_library,report_library,rbac,feature_control,communication_groups,announcement_create,theme_colors,customizer,workflow_hub,workflow_flow_gallery,guided_onboarding,reportcard_builder"},
+    {"name": "school", "source": "views.py:1347 from request.school", "type": "School|None"},
+    {"name": "studio_activity_feed", "source": "views.py:1348 from get_studio_activity_feed", "type": "list[dict]", "shape": "kind,label,timestamp,actor,detail,url"},
+    {"name": "studio_recommendations", "source": "views.py:1349 from get_studio_recommendations", "type": "list[dict]", "shape": "label,detail,url,tone"},
+    {"name": "studio_command_palette_entries", "source": "views.py:1350", "type": "list[dict]"},
+    {"name": "studio_role_preview_entries", "source": "views.py:1351", "type": "list[dict]"},
+    {"name": "studio_overview_deck", "source": "views.py:1362 — only set when not mode", "type": "dict", "shape": "mode_cards,tenant_banner,tenant_context,quick_stats,operational_hubs,show_command_hint"}
+  ],
+  "missing_context_vars_for_overview_next_realm": [
+    {"name": "overview_signals", "purpose": "Dedicated overview signal-tile payload (pending launches count, draft experiences count, active automations count, output readiness pct, open blockers count, mode tag)", "honest_deferral_strategy": "Render '—' placeholder until coordinator wires the service. Tiles still render structure so layout is stable."},
+    {"name": "launch_health_summary_for_overview", "purpose": "Today the view only sets launch_health_summary/launch_ready when current_mode == 'launch'. Overview should see them too.", "honest_deferral_strategy": "Read existing context vars when present; treat as unknown otherwise."},
+    {"name": "studio_blockers", "purpose": "Aggregated blockers across modes (launch payload blockers, feature control audit warnings, automation conflicts)", "honest_deferral_strategy": "Render only when launch_payload.launch_blockers is present in context."}
+  ],
+  "panel_audit": [
+    {
+      "panel": "cockpit_signal_strip.html",
+      "architecture": "template-only",
+      "ux": "dense / minimal — only 3 pulses (tenant, mode, launch summary). Not a true mission signal strip.",
+      "workflow": "partial — pulses are read-only, no primary action, no preview link",
+      "tenant_boundary": "shared — same render for operator and tenant",
+      "purpose": "Live mission pulse — tenant health, mode focus, launch readiness, blockers, mode indicator",
+      "primary_action": "missing",
+      "preview_link": "missing",
+      "required_action": "aggressive refactor — convert to mission-grade signal-tile strip with 6 tiles, operator-vs-tenant indicator, honest '—' placeholders for missing data"
+    },
+    {
+      "panel": "cockpit_copilot_rail.html",
+      "architecture": "coherent — has live endpoints, server-rendered fallbacks, JS hydration",
+      "ux": "premium — three sections with skeleton rows, hydration",
+      "workflow": "clear — context strip / insights / actions",
+      "tenant_boundary": "shared",
+      "primary_action": "Open command bar (⌘K)",
+      "next_best_action": "Workflow center / Approval hub when legacy_urls present",
+      "preview_link": "served via Quick actions list",
+      "blocker_state": "none surfaced",
+      "required_action": "minor repair — add an operator-mode indicator badge and a preview-shortcuts mini-list. Keep service contract untouched."
+    },
+    {
+      "panel": "studio_guidance_panel.html",
+      "architecture": "coherent — wired to studio_guidance service contract",
+      "ux": "acceptable — bare collapsible Q&A list",
+      "workflow": "partial — surfaces questions only; no primary action, no preview, no blocker info",
+      "tenant_boundary": "shared",
+      "primary_action": "missing",
+      "preview_link": "missing",
+      "required_action": "minor repair — when studio_guidance.primary_action / preview_url / blocker provided, surface them. Defaults remain a graceful fallback when service has no opinion."
+    },
+    {
+      "panel": "shell.html lines 91-110 (mode cards row.g-3)",
+      "architecture": "template-only — duplicated from studio_overview_deck.html which already exists",
+      "ux": "dense — col-md-6 col-lg-4 grid, hand-rolled per-mode if/elif chain",
+      "workflow": "partial — single CTA per card, no preview, no readiness signal",
+      "tenant_boundary": "shared",
+      "required_action": "coordinator-task — recommend including overview_command_cockpit.html which replaces these cards with the next-realm cockpit body. Coordinator must remove lines 91-123 and replace with {% include 'studio_os/partials/overview_command_cockpit.html' %}"
+    },
+    {
+      "panel": "shell.html lines 113-123 (legacy_urls action row .row.g-2)",
+      "architecture": "coherent — drives off legacy_urls",
+      "ux": "horizontally broken — 9 buttons in a row.g-2 .col-auto chain. At ≤768px each becomes a column-auto block and the row will scroll horizontally when content exceeds viewport. flex-wrap is on row, but col-auto can break.",
+      "workflow": "dead-end — links open destinations without context, blocker, or current state.",
+      "tenant_boundary": "shared",
+      "horizontal_overflow_risk": "high at 390px — row.g-2 with 9 col-auto buttons each ~120-150px wide overflows. Bootstrap's row class has flex-wrap by default, so this likely wraps but with tight gap-2 stacking that is visually dense.",
+      "required_action": "coordinator-task — coordinator wraps this row in the new overview_command_cockpit.html include OR adds the d-flex flex-wrap gap-2 row-cols-auto pattern explicitly. Exact lines 113-123."
+    },
+    {
+      "panel": "right rail aside (shell.html lines 155-269)",
+      "architecture": "coherent for modes / dead branch for overview",
+      "ux": "in overview mode: still shows Preview-as / Recommended / Recent activity / Impact-publish (else fallback). The 'Impact & publish' card falls into the {% else %} branch with bare 'Preview, compare, and publish from the canvas.' text — not useful for overview.",
+      "workflow": "missing-next-action in overview — the Impact card has no current_mode match so falls to the generic else branch",
+      "tenant_boundary": "shared",
+      "required_action": "coordinator-task — coordinator adds an overview branch in the cascade (around line 265 where 'else' renders generic copy) to surface tenant context + cross-mode readiness summary."
+    },
+    {
+      "panel": "launch_studio_overview_body.html",
+      "architecture": "coherent — drives off launch_payload",
+      "ux": "acceptable",
+      "workflow": "clear — Health score, registry alignment, checklist, role preview, infrastructure, blueprints, starter stack, migration path",
+      "tenant_boundary": "tenant-safe",
+      "horizontal_overflow_risk": "low — most rows use flex-wrap and justify-between with gap-2",
+      "required_action": "keep — but verify min-width: 0 on flex children and add primary-action emphasis to top card"
+    },
+    {
+      "panel": "launch_studio_role_preview_pane.html",
+      "architecture": "coherent — drives off launch_role_previews",
+      "ux": "acceptable",
+      "workflow": "clear — preview links with detail text",
+      "tenant_boundary": "tenant-safe",
+      "required_action": "keep — minor: ensure d-flex flex-wrap fallback row has min-width: 0"
+    }
+  ],
+  "live_preview_links_map": {
+    "studio_recommendations[i].url": "Real reverse-resolved URLs (studio_os:experience / studio_os:control / studio_os:launch / siteconfig:feature_control_audit). Honest — only added when reverse() succeeds.",
+    "studio_activity_feed[i].url": "Real reverse-resolved URLs to mode shells. Honest.",
+    "legacy_urls.*": "Resolved by _resolve_legacy_urls (views.py) — keys only set when the underlying view exists. Honest — templates guard with {% if %}.",
+    "launch_role_previews[i].url": "From setup_studio payload — points to real role previews (parent / teacher / principal dashboards on tenant host). Honest. Already uses target='_blank' rel='noopener noreferrer'.",
+    "studio_modes mode card CTAs in shell.html lines 102-106": "Reverse for studio_os:<mode> — always works since urls are mounted.",
+    "dummy_href_targets_found": []
+  },
+  "horizontal_overflow_audit": [
+    {"location": "shell.html lines 91-110 (row.g-3 mode cards)", "viewports": ["390"], "verdict": "wraps cleanly — col-md-6 col-lg-4 stacks at sm. Safe."},
+    {"location": "shell.html lines 113-123 (legacy_urls action row)", "viewports": ["390", "768"], "verdict": "row.g-2 with col-auto — Bootstrap row has flex-wrap by default. Each .col-auto sizes to content. At 390 the row will wrap to multiple lines; potential vertical density but no horizontal overflow.", "fix_required": "no — but visual density could be tightened by replacing with .d-flex.flex-wrap.gap-2 (no row/col wrapping)."},
+    {"location": "cockpit_signal_strip.html .rmc-cockpit__signal", "viewports": ["390"], "verdict": "uses flex with gap-3; spacer flex:1. Will collapse poorly with text content longer than viewport. Adding flex-wrap is required.", "fix_required": "yes — apply flex-wrap and min-width:0 on children in new CSS"},
+    {"location": "cockpit_copilot_rail.html .rmc-cockpit__rail", "viewports": ["390"], "verdict": "fixed-width 320px in cockpit grid. At ≤768px the grid template likely collapses; verify."},
+    {"location": "launch_studio_overview_body.html registry_alignment list", "viewports": ["390"], "verdict": "uses d-flex flex-wrap, .text-break on values, justify-between with gap-2 — safe"}
+  ],
+  "coordinator_tasks_required": [
+    {
+      "id": "co-1",
+      "file": "templates/studio_os/shell.html",
+      "lines": "91-123",
+      "task": "Replace the inline overview body (mode cards .row.g-3 + operational hubs paragraph + legacy_urls action row) with a single include: {% include 'studio_os/partials/overview_command_cockpit.html' %}",
+      "rationale": "The new partial composes the signal strip with mode cards + readiness panels + live previews into a single mission-cockpit body. Keeps shell.html lean."
+    },
+    {
+      "id": "co-2",
+      "file": "templates/studio_os/shell.html",
+      "lines": "186-268 (right-rail aside)",
+      "task": "Add an Overview branch to the Impact & publish cascade. Today the {% if current_mode == 'experience' %} chain falls through to {% else %} which renders generic copy when current_mode is None. Insert an Overview branch with: cross-mode readiness summary (operator-only block gated by request.public_host_kind == 'manager'), next-best-action surfacing studio_recommendations[0], and preview-as launch link when launch_role_previews present.",
+      "proposed_diff_snippet": "{% elif not current_mode %}\\n  <p class=\\\"small fw-semibold mb-1\\\">{% trans 'Mission overview' %}</p>\\n  {% if studio_recommendations %}<p class=\\\"small text-muted mb-2\\\">{{ studio_recommendations.0.detail|default:studio_recommendations.0.label }}</p>{% endif %}\\n  {% if request.public_host_kind == 'manager' %}<p class=\\\"small text-muted mb-0\\\">{% trans 'Operator host — cross-tenant view.' %}</p>{% endif %}",
+      "rationale": "Keeps the cascade explicit and tenant-safe."
+    },
+    {
+      "id": "co-3",
+      "file": "apps/studio_os/views.py",
+      "lines": "1342-1369 (studio_shell context dict)",
+      "task": "When not mode, attach an additional 'overview_signals' context dict for the signal strip's tile data. Honest deferral: tiles render '—' until this lands. Shape: {pending_launches:int|None, draft_experiences:int|None, active_automations:int|None, output_readiness_pct:int|None, open_blockers:int|None, mode_indicator:'manager'|'tenant'}. The template tolerates None and renders --rmc-overview-signal-tile--unknown state.",
+      "rationale": "Tiles must NEVER fake data. Coordinator wires real services later."
+    },
+    {
+      "id": "co-4",
+      "file": "apps/studio_os/views.py",
+      "lines": "1449-1479 (launch context for mode == 'launch')",
+      "task": "Mirror launch_health_summary + launch_ready into context EVEN when current_mode is None (overview). Today they are only set under mode == 'launch' branches.",
+      "rationale": "Overview signal tile 'Output / launch readiness' depends on launch payload."
+    }
+  ],
+  "scanner_risks_introduced": [],
+  "non_negotiables_checklist": {
+    "no_hardcoding": "All copy uses {% trans %}; numbers come from context vars",
+    "no_inline_hex": "All CSS uses var(--*) tokens; new file declares no raw hex",
+    "no_dummy_links": "Every anchor either resolves to a real URL or is hidden behind {% if %}",
+    "tenant_safety": "Operator-only tiles gated by {% if request.public_host_kind == 'manager' %}",
+    "a11y": "h2/h3 headings in semantic order; role=region; aria-labels on tile-strip and tiles",
+    "min_width_zero": "Every flex/grid child carries min-width: 0 in the new CSS",
+    "no_dead_markers": "No /* removed */ or // dead in any file"
+  },
+  "out_of_scope": [
+    "Mode-mode template edits (modes/{experience,automation,output,launch,control}.html — owned by other agents)",
+    "Service worker bump (coordinator)",
+    "CLAUDE.md / MEMORY.md / CSS_RETIREMENT_DOCKET.md updates (coordinator)",
+    "Editing studio-os-cockpit.css (coordinator)",
+    "Editing shell.html / shell_control_plane.html / shell_subpage_wrap.html (coordinator)",
+    "Wiring overview_signals service in views.py (coordinator — flagged in coordinator_tasks_required)"
+  ]
+}

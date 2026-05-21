@@ -1,10 +1,12 @@
 {% load i18n static %}
 {% comment %}
-  Accessible video portal — glass frame, muted loop, overlay + chrome controls.
+  Accessible media portal. When no real video source is provided, render a
+  product preview poster instead of a video-shaped fake play control.
 {% endcomment %}
 {% static poster_src|default:"marketing/img/hero-home-poster.svg" as portal_poster_url %}
 {% static video_src|default:"marketing/video/hero-home.mp4" as portal_video_url %}
-<figure class="mkt-video-portal is-paused" data-mkt-video-portal data-autoplay-in-view="1" id="{{ portal_id|default:'mkt-video-portal' }}">
+<figure class="mkt-video-portal is-paused{% if not show_video_source %} is-preview{% endif %}" data-mkt-video-portal data-autoplay-in-view="{% if show_video_source %}1{% else %}0{% endif %}" id="{{ portal_id|default:'mkt-video-portal' }}">
+  {% if show_video_source %}
   <video
     class="mkt-video-portal__media"
     width="1280"
@@ -19,16 +21,29 @@
     controlslist="nodownload noplaybackrate"
     aria-label="{% if portal_label %}{{ portal_label }}{% else %}{% trans 'Product walkthrough' %}{% endif %}"
   >
-    {% if show_video_source %}<source src="{{ portal_video_url }}" type="video/mp4">{% endif %}
+    <source src="{{ portal_video_url }}" type="video/mp4">
   </video>
   <button type="button" class="mkt-video-portal__overlay" data-mkt-video-overlay aria-label="{% trans 'Play video' %}">
-    <span class="mkt-video-portal__overlay-icon" aria-hidden="true">▶</span>
+    <span class="mkt-video-portal__overlay-icon" aria-hidden="true">&#9654;</span>
     <span class="mkt-video-portal__overlay-text">{% trans "Play preview" %}</span>
   </button>
+  {% else %}
+  <div
+    class="mkt-video-portal__media mkt-video-portal__poster"
+    role="img"
+    aria-label="{% if portal_label %}{{ portal_label }}{% else %}{% trans 'Animated product preview' %}{% endif %}"
+  >
+    <img src="{{ portal_poster_url }}" alt="" width="1280" height="720" loading="lazy" decoding="async">
+  </div>
+  {% endif %}
   <figcaption class="mkt-video-portal__chrome">
-    <p class="mkt-video-portal__label">{% if portal_label %}{{ portal_label }}{% else %}{% trans "Product walkthrough" %}{% endif %}</p>
+    <p class="mkt-video-portal__label">
+      {% if portal_label %}{{ portal_label }}{% elif show_video_source %}{% trans "Product walkthrough" %}{% else %}{% trans "Animated product preview" %}{% endif %}
+    </p>
+    {% if show_video_source %}
     <button type="button" class="mkt-video-portal__toggle" data-mkt-video-toggle aria-pressed="false" aria-label="{% trans 'Play video' %}">
-      <span data-mkt-video-icon aria-hidden="true">▶</span>
+      <span data-mkt-video-icon aria-hidden="true">&#9654;</span>
     </button>
+    {% endif %}
   </figcaption>
 </figure>

@@ -7,7 +7,7 @@
     "apps/portal/support_ai_context.py",
     "ai/Modelfile"
   ],
-  "app_count": 44,
+  "app_count": 45,
   "apps": [
     {
       "app_label": "academics",
@@ -126,6 +126,10 @@
       "path": "apps/policies_rules/"
     },
     {
+      "app_label": "portal",
+      "path": "apps/portal/"
+    },
+    {
       "app_label": "registries",
       "path": "apps/registries/"
     },
@@ -186,7 +190,7 @@
       "path": "apps/tenancy/"
     }
   ],
-  "generated_at": "2026-05-20T13:57:50.856166+00:00",
+  "generated_at": "2026-05-21T00:12:18.351622+00:00",
   "generated_proof_artifacts": [
     "academic_operations_certification.json",
     "academic_operations_workflow_audit.json",
@@ -212,6 +216,12 @@
     "ai_center_indexing_contract.json",
     "ai_center_modelfile_audit.json",
     "ai_center_platform_inventory.json",
+    "ai_infrastructure_audit_first_teardown.json",
+    "ai_tenant_studio_audit_first_inventory.json",
+    "ai_tenant_studio_change_decision_matrix.json",
+    "ai_tenant_studio_final_certification.json",
+    "ai_tenant_studio_integration_audit.json",
+    "ai_tenant_studio_second_pass_challenge.json",
     "analytics_viz_audit.json",
     "analytics_viz_full_completion.json",
     "analytics_viz_gear_up_completion.json",
@@ -231,13 +241,7 @@
     "config_policy_entitlement_certification.json",
     "control_plane_sweep_routes.json",
     "control_plane_template_layout_audit.json",
-    "core_runtime_certification.json",
-    "core_runtime_dependency_audit.json",
-    "dashboard_topology_audit.json",
-    "design_system_audit.json",
-    "dr_drill_log.json",
-    "ecosystem_sovereignty_validation_matrix.json",
-    "edge_surface_browser_qa.json"
+    "core_runtime_certification.json"
   ],
   "metadata_only": true,
   "pii_free": true,

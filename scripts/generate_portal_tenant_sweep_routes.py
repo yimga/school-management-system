@@ -131,10 +131,21 @@ def _full_tenant_path(slug: str, inner: str) -> str:
 
 
 PRIORITY_INNER_PREFIXES = (
+    "school/studio/",
     "authentication/",
     "portal/",
     "siteconfig/",
     "school/",
+)
+
+# Always include School Studio routes even when --max caps the list.
+MANDATORY_SCHOOL_STUDIO_INNER = (
+    "/school/studio/",
+    "/school/studio/setup/",
+    "/school/studio/readiness/",
+    "/school/studio/migration/",
+    "/school/studio/help/",
+    "/school/studio/launch/",
 )
 
 
@@ -190,7 +201,10 @@ def main() -> int:
 
     rows.sort(key=lambda r: (_priority(r["inner"]), r["path"]))
     if args.max > 0 and len(rows) > args.max:
-        rows = rows[: args.max]
+        mandatory = [r for r in rows if r["inner"] in MANDATORY_SCHOOL_STUDIO_INNER]
+        rest = [r for r in rows if r["inner"] not in MANDATORY_SCHOOL_STUDIO_INNER]
+        cap = max(args.max - len(mandatory), 0)
+        rows = mandatory + rest[:cap]
 
     payload = {
         "version": "2026-05-18",

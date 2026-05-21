@@ -1,22 +1,31 @@
 {% load i18n %}
-{# Shared: tenant shell + control-plane shell_main_content #}
+{# v3.54 (2026-05-21, Agent 3): mode canvas dispatcher. #}
+{# Tenant shells use workspace_layout; manager host gets the legacy two-pane. #}
+{# Either path loads the environment banner so scope is always visible. #}
 {% if automation_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="automation" workspace_aria_label=_("Automation") workspace_rail_template="studio_os/partials/workspace/automation_rail.html" workspace_canvas_template="studio_os/partials/workspace/automation_canvas.html" %}
 {% else %}
 <div class="rmc-studio-workspace rmc-studio-workspace--automation" data-studio-workspace-mode="automation" data-rmc-studio-workspace="1">
   {% if workflow_entries %}
   <nav class="rmc-studio-workspace__rail studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}">
-    <div class="studio-os__card py-2">
-      <div class="h6 mb-2">{% trans "Workflows" %}</div>
-      <ul class="list-unstyled small mb-2">
+    <div class="rmc-automation-rail">
+      <h2 class="rmc-automation-rail__title">{% trans "Workflows" %}</h2>
+      <ul class="rmc-automation-rail__list mb-2">
         {% for w in workflow_entries %}
-        <li><a href="{{ w.url }}">{{ w.label }}</a></li>
+        <li class="rmc-automation-rail__item">
+          <a href="{{ w.url }}" class="rmc-automation-rail__link">
+            <span class="rmc-automation-rail__label">{{ w.label }}</span>
+          </a>
+        </li>
         {% endfor %}
       </ul>
     </div>
   </nav>
   {% endif %}
   <div class="rmc-studio-workspace__main flex-grow-1 min-w-0" data-rmc-studio-workspace-main="1">
+    {% if automation_environment %}
+      {% include "studio_os/partials/automation_environment_banner.html" %}
+    {% endif %}
     {% if embed_url %}
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Automation view options' %}">
       <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
@@ -24,7 +33,13 @@
     </div>
     <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Automation' %}"></iframe>
     {% else %}
-    <div class="studio-os__card"><a href="{{ legacy_urls.workflow_hub }}" class="btn btn-primary btn-sm">{% trans "Workflow hub" %}</a></div>
+    <div class="studio-os__card">
+      {% if legacy_urls.workflow_hub %}
+      <a href="{{ legacy_urls.workflow_hub }}" class="btn btn-primary btn-sm">{% trans "Workflow hub" %}</a>
+      {% elif legacy_urls.workflow_center %}
+      <a href="{{ legacy_urls.workflow_center }}" class="btn btn-primary btn-sm">{% trans "Workflow center" %}</a>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 </div>

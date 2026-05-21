@@ -207,8 +207,8 @@ html[data-theme="light"] .dash-widget-row select {
 
 .sortable-ghost {
   opacity: 0.4;
-  background: rgba(102, 126, 234, 0.1) !important; /* off-token-allow: rgba-decorative */
-  border: 2px dashed rgba(102, 126, 234, 0.5) !important; /* off-token-allow: rgba-decorative */
+  background: var(--portal-brand-mix-10) !important;
+  border: 2px dashed var(--portal-brand-mix-50) !important;
 }
 
 .sortable-chosen {
@@ -242,7 +242,7 @@ html[data-theme="light"] .dash-widget-row select {
 }
 .dashboard-widget-grip:hover {
   color: var(--bs-primary, var(--school-primary));
-  background: rgba(102, 126, 234, 0.08); /* off-token-allow: rgba-decorative */
+  background: var(--portal-brand-mix-08);
 }
 .dashboard-widget-grip:active {
   cursor: grabbing;
@@ -297,7 +297,7 @@ html[data-theme="light"] .dash-widget-row select {
   color: var(--bs-primary, var(--school-primary));
 }
 .dash-widget-move-btn:hover {
-  background: rgba(102, 126, 234, 0.1); /* off-token-allow: rgba-decorative */
+  background: var(--portal-brand-mix-10);
 }
 #dashboard-layout.drag-mode .dashboard-widget-grip {
   flex-wrap: wrap;

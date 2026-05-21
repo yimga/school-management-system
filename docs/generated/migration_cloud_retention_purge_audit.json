@@ -1,0 +1,94 @@
+{
+  "generated_at_utc": "2026-05-20T21:46:00Z",
+  "agent_id": "A5",
+  "wave": "sms-v3.40.0-batch-1370",
+  "files_audited": [
+    "apps/migration_cloud/management/commands/purge_completed_migration_bundles.py",
+    "apps/migration_cloud/tasks_retention.py",
+    "apps/migration_cloud/tests/test_retention_purge.py",
+    "docs/MIGRATION_CLOUD_DATA_RETENTION.md",
+    "apps/migration_cloud/api/rate_limiting.py",
+    "apps/migration_cloud/tests/test_throttle_saturation.py"
+  ],
+  "dry_run_default_confirmed": {
+    "verified": true,
+    "evidence": [
+      "purge_completed_migration_bundles.py:115-122 --apply is action='store_true' default False",
+      "purge_completed_migration_bundles.py:151 `if apply_:` guards every mutation; default flow lands at line 215 printing `DRY-RUN — no blobs purged.`",
+      "test_dry_run_default_lists_candidates_no_deletion asserts byte_size unchanged after default invocation"
+    ]
+  },
+  "approval_token_gate_confirmed": {
+    "verified": true,
+    "evidence": [
+      "purge_completed_migration_bundles.py:170 hmac.compare_digest(supplied_token, configured_token) — constant-time",
+      "purge_completed_migration_bundles.py:162-168 EMPTY-setting branch ALSO runs compare_digest (line 164) so timing does not leak whether the setting is set — then sys.exit(1)",
+      "purge_completed_migration_bundles.py:181 hmac.compare_digest on --confirm-phrase against 'I AFFIRM MIGRATION DATA RETENTION PURGE'",
+      "test_apply_without_token_setting_refuses + test_apply_with_wrong_token_refuses both assert SystemExit(1)"
+    ]
+  },
+  "audit_event_emitted": {
+    "verified": true,
+    "event_type": "migration.data_retention.purge_applied",
+    "evidence": [
+      "purge_completed_migration_bundles.py:385-396 MigrationCloudAuditEvent.objects.record(event_type='migration.data_retention.purge_applied', payload_summary={tenant_prefix: sha256[:6], bundles_purged_count: int, bytes_freed: int, older_than_days: int})",
+      "models_audit.py:314 MIGRATION_DATA_RETENTION_PURGE_APPLIED TextChoice",
+      "payload deliberately omits keys in _sanitize_payload rejection list (tenant_slug, blob_path, file_path); test_apply_purges_and_emits_audit_event asserts presence of safe keys + ABSENCE of unsafe ones (line 198-204)"
+    ]
+  },
+  "ferpa_seven_year_retention_documented": {
+    "verified": true,
+    "note": "v3.40 retention purge enforces FERPA §99.30 data-minimization on MigrationCloudCiphertextBlob bytes — distinct from v3.38 audit-trail 7-year FERPA retention which lives in docs/MIGRATION_CLOUD_AUDIT_LOG.md (preserved/unchanged this wave).",
+    "evidence": [
+      "docs/MIGRATION_CLOUD_DATA_RETENTION.md § Why this exists — cites FERPA §99.30 + NY Ed Law §2-d + IL SOPPA",
+      "docs/MIGRATION_CLOUD_DATA_RETENTION.md § What is purged vs what is retained — table preserves the audit trail (refs, integrity hashes, metadata) so the chain verifier still walks gap-free; only ciphertext bytes go",
+      "docs/MIGRATION_CLOUD_DATA_RETENTION.md § Retention floor + default — 90-day hard floor, 180-day default with counsel rationale",
+      "docs/MIGRATION_CLOUD_DATA_RETENTION.md § Counsel-pending workflow — 6-step procedure mirroring docs/MIGRATION_CLOUD_AUDIT_LOG.md"
+    ]
+  },
+  "tests_run": [
+    "apps.migration_cloud.tests.test_throttle_saturation (6/6 PASS)",
+    "apps.migration_cloud.tests.test_retention_purge (BLOCKED on environment — see gaps_external)"
+  ],
+  "tests_passed": "6 of 6 runnable",
+  "verifiers_run": [
+    "python manage.py makemigrations --check --dry-run",
+    "python scripts/scan_companion_canonical_headers_drift.py",
+    "python scripts/scan_pii_logging_smell.py",
+    "python scripts/scan_migration_model_imports.py"
+  ],
+  "verifiers_passed": {
+    "makemigrations_check": "PASS (after Agent A5 added migration 0028)",
+    "scan_companion_canonical_headers_drift": "PASS (0)",
+    "scan_pii_logging_smell": "FAIL (4 false positives in Agent 11 paths — see external)",
+    "scan_migration_model_imports": "PASS (0)"
+  },
+  "binding_constraints_honored": {
+    "no_programmatic_sis_login": "PASS",
+    "no_mfa_bypass": "PASS",
+    "no_credential_logging": "PASS — purge_completed_migration_bundles.py emits only tenant_hash[:6] and bundles_purged/bytes_freed counts; raw tenant slug + bundle UUIDs + file paths never logged (see docs/MIGRATION_CLOUD_DATA_RETENTION.md § Never-log assertions)",
+    "facts_skyward_still_blocked": "PASS"
+  },
+  "preserve_list_touched": "none",
+  "gaps_found": [
+    "Same makemigrations drift as the MAA audit (migration 0027 docstring wrongly claims TextChoices additions need no migration)",
+    "Same scan_pii_logging_smell false positives (4 sites in views_guardian_consent*.py — Agent 11 paths)"
+  ],
+  "gaps_fixed_repo_side": [
+    "0028_alter_migrationcloudauditevent_event_type.py captures MIGRATION_DATA_RETENTION_PURGE_APPLIED + MAA_V2_ACTIVATED_BY_OPERATOR + AUDIT_RATE_LIMIT_TRIGGERED + 9 guardian_consent + intake.state_advanced TextChoice additions — single migration covers v3.40 Agents 11/14/15 drift."
+  ],
+  "gaps_external": [
+    "SQLite test DB build fails during the v3.40 migration graph apply (PRAGMA foreign_key_check inside a CreateModel transaction throws TransactionManagementError). Bisect points at a migration between 0022 and 0026 — not A5's 0027/0028. test_retention_purge.py is BLOCKED by the environment, not by Agent A5's code."
+  ],
+  "verdict_supported_by_evidence": [
+    "Dry-run default: --apply is opt-in store_true (line 115-122); test asserts byte_size preserved",
+    "Counsel-token gate: hmac.compare_digest on token AND phrase; sys.exit(1) on mismatch or empty setting",
+    "Audit event: PII-free payload (tenant sha256 prefix + ints only); test asserts unsafe keys absent",
+    "Tenant isolation: filter(tenant_id=tenant.pk) + counted-marker `data-retention-purge-by-tenant-fk-and-cutoff-window`",
+    "90-day floor: hardcoded _MIN_DAYS_FLOOR=90 with override hook MIGRATION_CLOUD_RETENTION_MIN_DAYS",
+    "Atomic transaction: transaction.atomic() wraps the DELETE loop (line 341)",
+    "Monthly beat task is DRY-RUN ONLY: tasks_retention.py:97-174 returns summary dict + emits info-level alerts; never calls --apply",
+    "Throttle saturation hook in rate_limiting.py is wired AFTER soft-warn flag (line 490-500) with sha256-prefixed bucket names, cooldown ledger, and defensive try/except"
+  ],
+  "verdict": "READY — REPO SCOPE"
+}

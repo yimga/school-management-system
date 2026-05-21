@@ -25,7 +25,6 @@ path (per the AI gateway boundary) handles the deny.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 logger = logging.getLogger("services.ai_helpers_quota")
 

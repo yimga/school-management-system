@@ -1,0 +1,56 @@
+{% load i18n %}
+{% comment %}
+  RMC Universal Command Bar (v3.53.0, 2026-05-21)
+  ------------------------------------------------
+  Markup partial for the cmd+k / ctrl+k luxury palette overlay.
+  Action registry is fetched JIT (on first open) from the JSON
+  endpoint exposed by apps/siteconfig/command_bar_registry.py.
+
+  The inline <script> below is data-only (JSON config) and carries
+  nonce="{{ csp_nonce }}" to satisfy the verify_csp_nonce_emission gate.
+{% endcomment %}
+<div id="rmc-command-bar-root"
+     class="rmc-command-bar"
+     role="dialog"
+     aria-modal="true"
+     aria-label="{% trans 'Command bar' %}"
+     aria-hidden="true"
+     data-state="closed"
+     data-actions-url="{% url 'command_bar_actions' %}">
+  <div class="rmc-command-bar__backdrop" aria-hidden="true"></div>
+  <div class="rmc-command-bar__panel" role="combobox" aria-expanded="false" aria-controls="rmc-command-bar-list" aria-haspopup="listbox">
+    <div class="rmc-command-bar__searchwrap">
+      <span class="rmc-command-bar__icon" aria-hidden="true">⌘</span>
+      <input id="rmc-command-bar-input"
+             type="text"
+             class="rmc-command-bar__input"
+             role="searchbox"
+             aria-autocomplete="list"
+             aria-controls="rmc-command-bar-list"
+             autocomplete="off"
+             spellcheck="false"
+             placeholder="{% trans 'Search actions…' %}">
+      <span class="rmc-command-bar__hint" aria-hidden="true">esc</span>
+    </div>
+    <ul id="rmc-command-bar-list"
+        class="rmc-command-bar__list"
+        role="listbox"
+        aria-label="{% trans 'Command bar actions' %}"></ul>
+    <div id="rmc-command-bar-empty"
+         class="rmc-command-bar__empty"
+         role="status"
+         aria-live="polite"
+         hidden>
+      {% trans "No matching commands. Try a different search." %}
+    </div>
+    <div class="rmc-command-bar__footer" aria-hidden="true">
+      <span>{% trans "↑↓ to navigate · ↵ to open · esc to close" %}</span>
+      <span>{% trans "Command bar" %}</span>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-command-bar-i18n">{
+  "openLabel": "{% trans 'Open command bar' %}",
+  "closeLabel": "{% trans 'Close command bar' %}",
+  "noResults": "{% trans 'No matching commands.' %}"
+}</script>

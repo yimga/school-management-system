@@ -48,24 +48,40 @@ def main() -> int:
     if "theme_experience_hub_hero.html" not in hub_body:
         errors.append("hub body must include theme_experience_hub_hero partial")
 
-    builder_html = (ROOT / "templates/siteconfig/theme_builder.html").read_text(
-        encoding="utf-8"
-    )
+    canvas_partial = (
+        ROOT / "templates/siteconfig/partials/theme_builder_canvas_body.html"
+    ).read_text(encoding="utf-8")
     for btn_id in (
         "theme-builder-publish",
         "theme-builder-preview",
         "theme-builder-undo",
     ):
-        if btn_id not in builder_html:
-            errors.append(f"theme_builder.html missing #{btn_id}")
+        if btn_id not in canvas_partial:
+            errors.append(f"theme_builder_canvas_body.html missing #{btn_id}")
+    for template_rel in (
+        "templates/siteconfig/theme_builder.html",
+        "templates/siteconfig/theme_builder_control_plane.html",
+    ):
+        partial_rel = "siteconfig/partials/theme_builder_canvas_body.html"
+        builder_html = (ROOT / template_rel).read_text(encoding="utf-8")
+        if partial_rel not in builder_html:
+            errors.append(f"{template_rel} must include {partial_rel}")
+
+    plane_py = (ROOT / "apps/siteconfig/theme_builder_plane.py").read_text(encoding="utf-8")
+    if "build_hub_glance_context" not in plane_py:
+        errors.append("theme_builder_plane.py missing build_hub_glance_context")
 
     canvas_js = (ROOT / "static/js/theme-builder-canvas.js").read_text(encoding="utf-8")
     for api_path in (
         "/siteconfig/theme-experience/builder/api/publish/",
         "/siteconfig/theme-experience/builder/api/preview/",
+        "/siteconfig/theme-experience/builder/api/publish-log/",
+        "/siteconfig/theme-experience/builder/api/rollback/",
     ):
         if api_path not in canvas_js:
             errors.append(f"theme-builder-canvas.js missing {api_path}")
+    if "theme-builder-rollback" not in canvas_partial:
+        errors.append("theme_builder_canvas_body.html missing #theme-builder-rollback")
 
     if errors:
         print("verify_theme_experience_gear: FAIL", file=sys.stderr)

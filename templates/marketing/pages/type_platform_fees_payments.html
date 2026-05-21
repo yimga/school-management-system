@@ -9,7 +9,7 @@
 {% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-fees-payments mkt-platform-theme--platform-fees-payments{% endblock %}
 {% block marketing_page_inner %}
-<article class="mkt-fees-page" data-mkt-platform-fees-payments="1">
+<article class="mkt-fees-page" data-mkt-platform-fees-payments="1" data-mkt-archetype="finance-control-room">
   <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
     <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
     <span aria-hidden="true">·</span>
@@ -52,7 +52,7 @@
   <section class="mkt-fees-section rmc-reveal" aria-labelledby="mkt-fees-visual-heading">
     <h2 id="mkt-fees-visual-heading">{% trans "Your finance workspace at a glance" %}</h2>
     <p class="section-lead">{% trans "See collection health, invoice status, receipts, arrears, and parent-facing balances in one governed surface—without spreadsheet reconciliation as the source of truth." %}</p>
-    <div class="mkt-fees-visual-wrap">
+    <div class="mkt-fees-visual-wrap" role="region" aria-label="{% trans 'Fees control visual' %}" tabindex="0">
       <img src="{% static 'images/marketing/platform-fees-payments-dashboard.svg' %}" alt="{% trans 'Diagram: fee collection summary, invoices, receipts, arrears panel, parent balance, and finance summary' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-fees-dashboard-visual="1">
     </div>
   </section>

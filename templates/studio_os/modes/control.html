@@ -3,8 +3,11 @@
 
 {% block extrastyle %}
 {{ block.super }}
+{# v3.54 (2026-05-21): governance cockpit grammar (.rmc-control-* classes). #}
+<link rel="stylesheet" href="{% static 'css/studio-control-cockpit.css' %}">
 {% endblock %}
 
 {% block studio_canvas %}
+{% include "studio_os/partials/studio_guidance_panel.html" %}
 {% include "studio_os/partials/control_mode_canvas.html" %}
 {% endblock %}

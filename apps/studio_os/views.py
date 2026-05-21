@@ -1366,6 +1366,36 @@ def studio_shell(request, mode=None):
             activity_feed=activity_feed,
             legacy_urls=legacy_urls,
         )
+        # v3.54.0 (2026-05-21): Overview command cockpit signal strip context. The 5-key
+        # shape is consumed by templates/studio_os/partials/cockpit_signal_strip.html +
+        # overview_command_cockpit.html. Keys may be int or None; None renders as honest
+        # "—" placeholder with data-state="unknown" rather than fabricated zeros.
+        context["overview_signals"] = {
+            "pending_launches": None,
+            "draft_experiences": None,
+            "active_automations": None,
+            "output_readiness_pct": None,
+            "open_blockers": None,
+        }
+        # Mirror launch_health_summary + launch_ready into Overview context so the
+        # right-rail "Studio readiness" branch (shell.html v3.54.0) has signal.
+        # Honest empty state when school absent or setup_studio payload unavailable.
+        _overview_school = getattr(request, "school", None)
+        context["launch_health_summary"] = ""
+        context["launch_ready"] = False
+        if _overview_school is not None:
+            try:
+                from apps.setup_studio.services import get_setup_studio_payload
+
+                _overview_payload = get_setup_studio_payload(_overview_school)
+                context["launch_health_summary"] = _overview_payload.get("health_summary") or ""
+                context["launch_ready"] = bool(_overview_payload.get("launch_ready", False))
+            except (ImportError, AttributeError, TypeError, ValueError):
+                log_exception_with_context(
+                    "studio_shell overview: launch summary mirror failed",
+                    **request_context_for_log(request),
+                    extra={"mode": "overview"},
+                )
 
     school = getattr(request, "school", None)
     if mode == "experience":
@@ -2001,6 +2031,10 @@ def studio_shell(request, mode=None):
 
     context["studio_show_bottom_bar"] = show_bottom_bar
     context["studio_bottom_bar_actions"] = bottom_bar_actions
+
+    from apps.studio_os.studio_guidance import apply_studio_guidance_to_context
+
+    apply_studio_guidance_to_context(context, mode=mode)
 
     if use_control_plane_shell(request):
         context["studio_operator_toolbar"] = get_studio_operator_toolbar(

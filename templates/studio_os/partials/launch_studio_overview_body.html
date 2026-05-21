@@ -1,16 +1,26 @@
 {% load i18n %}
+{# v3.54.0 (2026-05-21): Overview next-realm cockpit — add primary action to top card. #}
 <div class="studio-os__launch-overview" data-page-archetype="operational-workbench">
   <div class="studio-os__card mb-3">
-    <h2 class="h5 mb-2">{% trans "Setup & launch" %}</h2>
-    <p class="small text-muted mb-2"><strong>{% trans "Health score" %}:</strong> {{ launch_payload.health_score|default:0 }}%</p>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+      <h2 class="h5 mb-0 text-break">{% trans "Setup & launch" %}</h2>
+      <span class="small text-muted text-break"><strong>{% trans "Health score" %}:</strong> {{ launch_payload.health_score|default:0 }}%</span>
+    </div>
     {% if launch_payload.launch_ready %}
     <p class="small text-success mb-2">{% trans "Ready to launch" %}</p>
     {% elif launch_payload.launch_blockers %}
     <p class="small text-warning mb-2">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
     {% endif %}
-    {% if launch_payload.health_summary %}<p class="small text-muted mb-0">{{ launch_payload.health_summary }}</p>{% endif %}
+    {% if launch_payload.health_summary %}<p class="small text-muted mb-2">{{ launch_payload.health_summary }}</p>{% endif %}
     {% if launch_payload.recommended_next %}
-    <p class="small mt-2 mb-0"><span class="text-muted">{% trans "Next:" %}</span> {{ launch_payload.recommended_next.label|default:"" }}</p>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="small text-muted">{% trans "Next:" %}</span>
+      {% if launch_payload.recommended_next.link and launch_payload.recommended_next.link != "#" %}
+      <a class="btn btn-sm btn-primary" href="{{ launch_payload.recommended_next.link }}">{{ launch_payload.recommended_next.label|default:_("Continue") }} <i class="bi bi-arrow-right-short" aria-hidden="true"></i></a>
+      {% else %}
+      <span class="small">{{ launch_payload.recommended_next.label|default:"" }}</span>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 

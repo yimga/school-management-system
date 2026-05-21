@@ -63,6 +63,7 @@ INSTITUTION_PREMIUM_LAYER: dict[str, dict] = {
         "stock_photo_static": "images/marketing/solution-k12-lifecycle.svg",
         "stock_photo_alt": "Illustrative K–12 learner lifecycle from admission through graduation",
         "workflow_diagram_static": "images/marketing/module-academics.svg",
+        "workflow_diagram_alt": "Illustration of K-12 academics linking attendance, grading, family portals, and learner progress.",
         "global_config_note": "Your academic calendar, grading model, and fee structures configure once—scalable across campuses when you grow.",
     },
     "k12-schools": {
@@ -82,6 +83,7 @@ INSTITUTION_PREMIUM_LAYER: dict[str, dict] = {
         "stock_photo_static": "images/marketing/solution-k12-lifecycle.svg",
         "stock_photo_alt": "Illustrative K–12 learner lifecycle from admission through graduation",
         "workflow_diagram_static": "images/marketing/module-academics.svg",
+        "workflow_diagram_alt": "Illustration of K-12 academics linking attendance, grading, family portals, and learner progress.",
         "global_config_note": "Your academic calendar, grading model, and fee structures configure once—scalable across campuses when you grow.",
     },
     "multi-campus": {

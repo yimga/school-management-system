@@ -164,6 +164,21 @@ def _gateway_meta_error_response(
             },
             status=400,
         )
+    if meta.get("live_ai_unavailable") and isinstance(result, dict):
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "live_ai_unavailable",
+                "guided": {
+                    "summary": result.get("summary", ""),
+                    "actions": result.get("actions", []),
+                    "cautions": result.get("cautions", []),
+                    "references": result.get("references", []),
+                },
+                "meta": meta,
+            },
+            status=503,
+        )
     if meta.get("provider") == "none":
         error_text = result if isinstance(result, str) and result.strip() else (
             meta.get("error") or "AI providers are currently unavailable and rules fallback is disabled."
@@ -1715,18 +1730,38 @@ def _api_guided_domain_assistant(
         _log_gateway_audit(request, audit_feature, str(task_type), "success", meta)
         out = result if isinstance(result, dict) else {}
         if not str(out.get("summary") or "").strip():
-            from services.ai_guided_fallback import build_guided_fallback
+            from apps.portal.ai_provider import ollama_require_live
 
-            task_key = (
-                task_type.value if hasattr(task_type, "value") else str(task_type or "")
-            )
-            out = build_guided_fallback(
-                task_type=task_key,
-                user_query=query,
-                rag_snippets=rag_citations,
-                live_provider_available=bool(meta.get("provider") not in ("rules", "none")),
-            )
-            meta = {**(meta or {}), "degraded": True, "empty_summary_repaired": True}
+            if ollama_require_live() or meta.get("live_ai_unavailable"):
+                from services.ai_unavailable import build_ollama_unavailable_guided
+
+                out = build_ollama_unavailable_guided(user_query=query)
+                meta = {
+                    **(meta or {}),
+                    "live_ai_unavailable": True,
+                    "empty_summary_repaired": True,
+                }
+            else:
+                from services.ai_guided_fallback import build_guided_fallback
+
+                task_key = (
+                    task_type.value if hasattr(task_type, "value") else str(task_type or "")
+                )
+                out = build_guided_fallback(
+                    task_type=task_key,
+                    user_query=query,
+                    rag_snippets=rag_citations,
+                    live_provider_available=bool(
+                        meta.get("provider") == "ollama" or meta.get("tier") == "ollama"
+                    ),
+                    metadata={
+                        **(meta or {}),
+                        "request": request,
+                        "school": getattr(request, "school", None),
+                        "rag_snippets": rag_citations,
+                    },
+                )
+                meta = {**(meta or {}), "degraded": True, "empty_summary_repaired": True}
         payload = {
             "success": True,
             "guided": {

@@ -18,7 +18,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -157,14 +156,12 @@ def _parse_po_blocks(text: str) -> list[dict]:
     lines = text.splitlines(keepends=True)
     blocks: list[dict] = []
     cur_msgid = None
-    cur_msgid_start = None
     cur_msgstr_start = None
     cur_msgstr_end = None
     i = 0
     while i < len(lines):
         s = lines[i]
         if s.startswith("msgid "):
-            cur_msgid_start = i
             cur_msgid = s[len("msgid "):].strip().strip('"')
             j = i + 1
             while j < len(lines) and lines[j].startswith('"'):
@@ -186,7 +183,6 @@ def _parse_po_blocks(text: str) -> list[dict]:
                 }
             )
             cur_msgid = None
-            cur_msgid_start = None
             i = j
             continue
         i += 1

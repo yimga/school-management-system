@@ -47,6 +47,20 @@
         "cta_label": "Message partnerships",
         "cta_href": "/contact/#contact-form-block",
         "hint": "Choose “Partnership” in the form."
+      },
+      {
+        "title": "Developer / integration",
+        "body": "API, webhook, SSO, LMS, payment, or messaging integration questions.",
+        "cta_label": "Message integrations",
+        "cta_href": "/contact/#contact-form-block",
+        "hint": "Choose “Developer / integration” in the form."
+      },
+      {
+        "title": "General",
+        "body": "Use this when your question does not fit a formal buying, support, or partner path.",
+        "cta_label": "Send a general note",
+        "cta_href": "/contact/#contact-form-block",
+        "hint": "Choose “General” in the form."
       }
     ],
     "contact_support_note": "Existing customers should use in-product support channels for operational issues—we respond fastest there.",

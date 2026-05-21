@@ -259,6 +259,7 @@ from apps.siteconfig.views_manifest_icon import (  # noqa: E402
     icon_maskable as _manifest_icon_maskable,
 )
 from apps.siteconfig.views_tour import tour_steps_public_api  # noqa: E402
+from apps.siteconfig.command_bar_registry import CommandBarActionsView  # noqa: E402
 from apps.schools.marketing_views_v2 import marketing_landing_v2  # noqa: E402
 
 # v3.39.0 Agent 4 — Prometheus HTTP scrape exporter is wired only when
@@ -451,6 +452,14 @@ urlpatterns = [
         name="api_dashboard_charts",
     ),
     # AI Copilot API endpoints (RBAC Protected)
+    # Universal Command Bar (v3.53.0, 2026-05-21) — server-side action
+    # registry consumed by the cmd+k overlay loaded into all 4 dashboard shells.
+    # # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant
+    path(
+        "api/command-bar/actions/",
+        CommandBarActionsView.as_view(),
+        name="command_bar_actions",
+    ),
     path("api/ai-copilot/validate/", ai_copilot_query, name="ai_copilot_query"),
     path("api/ai-copilot/permissions/", ai_permissions, name="ai_permissions"),
     path("api/ai-copilot/limits/", ai_copilot_limits, name="ai_copilot_limits"),
@@ -871,12 +880,14 @@ urlpatterns = [
     ),
     path(
         "platform/workflows/",
-        RedirectView.as_view(url="/run/workflows/", permanent=True),
+        marketing_page,
+        {"page_slug": "platform-workflows"},
         name="marketing_platform_workflows",
     ),
     path(
         "platform/offline-first/",
-        RedirectView.as_view(url="/run/offline/", permanent=True),
+        marketing_page,
+        {"page_slug": "platform-offline-first"},
         name="marketing_platform_offline_first",
     ),
     path(

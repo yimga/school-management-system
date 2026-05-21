@@ -63,7 +63,7 @@ def rating(total: int) -> str:
 def main(argv: list[str] | None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args(argv)
-    root = repo_root()
+    repo_root()
     sot_text = load_sot_text()
     slice_status = parse_sot_north_star_slice_status(sot_text)
     done_cnt = count_slices_done(slice_status)

@@ -217,6 +217,7 @@ def super_dashboard(request):
             "health_schema_stats": health_schema_stats,
             "command_center": command_center,
             "operator_super_dashboard_links": operator_super_dashboard_links,
+            "page_provides_own_h1": True,
         },
     )
 

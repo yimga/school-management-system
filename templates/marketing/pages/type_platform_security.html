@@ -9,7 +9,7 @@
 {% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-security mkt-platform-theme--platform-security{% endblock %}
 {% block marketing_page_inner %}
-<article class="mkt-security-page" data-mkt-platform-security="1">
+<article class="mkt-security-page" data-mkt-platform-security="1" data-mkt-archetype="governance-control-room">
   <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
     <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
     <span aria-hidden="true">·</span>
@@ -50,7 +50,7 @@
   <section class="mkt-security-section rmc-reveal" aria-labelledby="mkt-security-visual-heading">
     <h2 id="mkt-security-visual-heading">{% trans "Governance operators can demonstrate" %}</h2>
     <p class="section-lead">{% trans "Role matrices, audit trails, MFA discipline, and tenant boundaries—so security reviews start with evidence, not slogans." %}</p>
-    <div class="mkt-security-visual-wrap">
+    <div class="mkt-security-visual-wrap" role="region" aria-label="{% trans 'Security governance visual' %}" tabindex="0">
       <img src="{% static 'images/marketing/platform-security-governance.svg' %}" alt="{% trans 'Diagram: role matrix, audit log stream, MFA badge, and campus policy boundaries' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-security-visual="1">
     </div>
   </section>

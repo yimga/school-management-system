@@ -44,9 +44,7 @@ class MarketingPublicStoryResetTests(TestCase):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn(
-            "Run your school the way your school actually runs.", body
-        )
+        self.assertIn("Run every school day from one operating system.", body)
         self.assertIn(
             "One quiet system behind admissions, classrooms, fees",
             body,
@@ -83,7 +81,7 @@ class MarketingPublicStoryResetTests(TestCase):
         resp = self.client.get("/marketing/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn("/for-private-schools/", body)
+        self.assertIn("/solutions/private-schools/", body)
         self.assertIn("/for-school-networks/", body)
         self.assertIn("/roles/finance/", body)
 

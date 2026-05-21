@@ -22,7 +22,7 @@ for tpl in base.rglob("*.html"):
     rel = tpl.relative_to(base)
     try:
         get_template(str(rel))
-    except TemplateSyntaxError as e:
+    except TemplateSyntaxError:
         print("ERROR", tpl)
         traceback.print_exc()
     except Exception as exc:

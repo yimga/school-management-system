@@ -1,6 +1,13 @@
 {% load i18n %}
-<section class="container-fluid py-3" data-page-archetype="configuration-hub" data-rmc-theme-experience-hub="1" data-rmc-plane="{% if operator_plane %}platform{% else %}tenant{% endif %}">
-  <header class="mb-4 rmc-reveal">
+<section
+  class="container-fluid py-3 rmc-cp-compact"
+  data-page-archetype="configuration-hub"
+  data-rmc-theme-experience-hub="1"
+  data-rmc-plane="{% if operator_plane %}platform{% else %}tenant{% endif %}"
+  data-rmc-scroll-policy="paginate"
+  {% if not operator_plane %}data-rmc-page-fold-nav="required"{% endif %}
+>
+  <header class="mb-3 rmc-reveal">
     <p class="small text-muted mb-1">
       {% if operator_plane %}
         <a href="{% url 'configuration:center' %}">{% trans "Platform Configuration Center" %}</a>
@@ -11,9 +18,92 @@
       {% endif %}
       {% trans "Theme & experience" %}
     </p>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      {% if operator_plane %}
+        <span class="badge text-bg-primary">{% trans "Platform operator" %}</span>
+      {% else %}
+        <span class="badge text-bg-success">{% trans "School tenant" %}</span>
+      {% endif %}
+    </div>
     <h1 class="h3 mb-2">{{ hub_title }}</h1>
     <p class="text-muted mb-0">{{ hub_subtitle }}</p>
   </header>
+
+  <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
+    <a class="nav-link" href="#theme-hub-glance">{% trans "At a glance" %}</a>
+    <a class="nav-link" href="#theme-hub-builder">{% trans "Visual builder" %}</a>
+    <a class="nav-link" href="#theme-hub-surfaces">{% trans "Surfaces" %}</a>
+  </nav>
+
+  <section
+    id="theme-hub-glance"
+    data-rmc-section-anchor
+    class="rmc-reveal mb-3 rmc-theme-hub-glance"
+    {% if hub_glance.primary_color or hub_glance.accent_color %}style="{% if hub_glance.primary_color %}--hub-preview-primary: {{ hub_glance.primary_color }};{% endif %}{% if hub_glance.accent_color %} --hub-preview-accent: {{ hub_glance.accent_color }};{% endif %}"{% endif %}
+  >
+    <div class="rmc-cp-compact__glance" role="list">
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <div class="rmc-theme-hub-glance__swatch">
+          {% if hub_glance.primary_color %}
+          <span
+            class="rmc-theme-hub-glance__chip"
+            style="background: {{ hub_glance.primary_color }};"
+            aria-hidden="true"
+          ></span>
+          {% endif %}
+          <strong class="rmc-theme-hub-glance__hex">{{ hub_glance.primary_color|default:"—" }}</strong>
+        </div>
+        <span>{% trans "Primary color" %}</span>
+      </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <div class="rmc-theme-hub-glance__swatch">
+          {% if hub_glance.accent_color %}
+          <span
+            class="rmc-theme-hub-glance__chip"
+            style="background: {{ hub_glance.accent_color }};"
+            aria-hidden="true"
+          ></span>
+          {% endif %}
+          <strong class="rmc-theme-hub-glance__hex">{{ hub_glance.accent_color|default:"—" }}</strong>
+        </div>
+        <span>{% trans "Accent color" %}</span>
+      </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong class="text-capitalize">{{ hub_glance.layout_surface|default:"light" }}</strong>
+        <span>{% trans "Builder surface" %}</span>
+      </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <span
+          class="rmc-theme-hub-contrast-pill"
+          data-contrast-ok="{% if hub_glance.contrast_ok %}true{% else %}false{% endif %}"
+          title="{% trans 'Primary vs accent pair contrast' %}"
+        >
+          {% if hub_glance.contrast_ratio %}
+            {{ hub_glance.contrast_ratio }}:1
+          {% else %}
+            —
+          {% endif %}
+        </span>
+        <span>{% trans "Brand contrast" %}</span>
+      </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ hub_glance.publish_count|default:0 }}</strong>
+        <span>{% trans "Publish events" %}</span>
+      </div>
+      {% if hub_glance.last_publish_at %}
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong class="small">{{ hub_glance.last_publish_at|slice:":16"|default:"—" }}</strong>
+        <span>{% trans "Last publish" %}{% if hub_glance.last_publish_label %} · {{ hub_glance.last_publish_label }}{% endif %}</span>
+      </div>
+      {% endif %}
+      {% if hub_glance.school_name %}
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong class="text-truncate">{{ hub_glance.school_name }}</strong>
+        <span>{% trans "School scope" %}</span>
+      </div>
+      {% endif %}
+    </div>
+  </section>
 
   {% if operator_plane and impersonation_url %}
   <div class="alert alert-info border-0 shadow-sm mb-4 rmc-reveal" role="status">
@@ -27,23 +117,34 @@
   </div>
   {% endif %}
 
-  {% include "siteconfig/partials/theme_experience_hub_hero.html" %}
+  <section id="theme-hub-builder" data-rmc-section-anchor class="mb-4">
+    {% include "siteconfig/partials/theme_experience_hub_hero.html" %}
+  </section>
 
-  <div class="row g-3 rmc-reveal-stagger">
-    {% for surface in surfaces %}
-    <div class="col-12 col-md-6 col-xl-4 rmc-reveal">
-      <article class="card border-0 shadow-sm h-100" data-theme-surface="{{ surface.key }}">
-        <div class="card-body d-flex flex-column">
-          <h2 class="h6 mb-2">{{ surface.title }}</h2>
-          <p class="small text-muted flex-grow-1">{{ surface.description }}</p>
-          <a class="btn btn-primary btn-sm align-self-start" href="{{ surface.url }}">{% trans "Open" %}</a>
-        </div>
-      </article>
+  <section id="theme-hub-surfaces" data-rmc-section-anchor>
+    <h2 class="h5 mb-3">{% trans "Experience surfaces" %}</h2>
+    <div class="row g-3 rmc-reveal-stagger">
+      {% for surface in surfaces %}
+      <div class="col-12 col-md-6 col-xl-4 rmc-reveal">
+        <article class="card border-0 shadow-sm h-100 rmc-theme-surface-card" data-theme-surface="{{ surface.key }}">
+          <div class="card-body d-flex flex-column">
+            <p class="rmc-theme-surface-card__eyebrow mb-1">{% trans "Surface" %}</p>
+            <h3 class="h6 mb-2">{{ surface.title }}</h3>
+            <p class="small text-muted flex-grow-1">{{ surface.description }}</p>
+            <a class="btn btn-primary btn-sm align-self-start" href="{{ surface.url }}">{% trans "Open" %}</a>
+          </div>
+        </article>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="alert alert-warning mb-0">{% trans "No theme surfaces are available on this host. Check URL configuration." %}</div>
+      </div>
+      {% endfor %}
     </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="alert alert-warning mb-0">{% trans "No theme surfaces are available on this host. Check URL configuration." %}</div>
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <div class="mt-3">
+      {% include "components/pagination.html" with page_obj=page_obj %}
     </div>
-    {% endfor %}
-  </div>
+    {% endif %}
+  </section>
 </section>

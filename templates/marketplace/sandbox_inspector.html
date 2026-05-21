@@ -1,45 +1,47 @@
 {% extends "control_plane_base.html" %}
-{% load static phase8_tags %}
+{% load static phase8_tags i18n %}
 
-{% block cp_title %}Sandbox inspector{% endblock %}
+{% block cp_title %}{% trans "Sandbox inspector" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="catalog" data-decision-engine="surface">
+<div class="container-fluid py-4 control-plane-shell rmc-cp-compact" data-page-archetype="catalog" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "marketplace/sandbox_inspector.html" %}
-  <section class="cp-hero cp-hero-compact mb-4">
-    <div class="cp-hero-grid">
-      <div>
-        <div class="cp-eyebrow">RunMyCampus Manager</div>
-        <h1 class="cp-hero-title">Sandbox inspector</h1>
-        <p class="cp-hero-copy">
-          Installations in sandbox (pre-activation). Activate to make the app visible in your school's runtime.
-        </p>
-      </div>
-      <div class="cp-hero-actions">
-        <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm">Back to Dashboard</a>
-        <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">Governance</a>
-        <a href="{% url 'super:marketplace_installation_health' %}" class="btn btn-outline-light btn-sm">Health</a>
-      </div>
-    </div>
-  </section>
+  {% url 'super:marketplace_governance' as governance_url %}
+  {% include "components/world_class_page_hero.html" with hero_id="sandbox-inspector-title" role=_("Platform operators") title=_("Sandbox inspector") subtitle=_("Installations awaiting promotion — paginated list with promote-to-production actions.") purpose=_("Sandbox") status=_("Pre-activation") primary_url="#sandbox-list" primary_label=_("View sandboxes") secondary_url=governance_url secondary_label=_("Governance") visual_title=_("Stage before go-live") visual_body=_("Every install starts in sandbox; promote only after school validation.") %}
+
+  <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
+    <a class="nav-link" href="#sandbox-glance">{% trans "At a glance" %}</a>
+    <a class="nav-link" href="#sandbox-list">{% trans "Installations" %}</a>
+  </nav>
 
   {% if messages %}
   <div class="mb-3">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button></div>
     {% endfor %}
   </div>
   {% endif %}
 
-  <section class="cp-panel rmc-reveal">
+  <section id="sandbox-glance" data-rmc-section-anchor class="rmc-reveal mb-3">
+    <div class="rmc-cp-compact__glance" role="list">
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ page_obj.paginator.count }}</strong>
+        <span>{% trans "sandbox installations" %}</span>
+      </div>
+    </div>
+    {% include "marketplace/partials/marketplace_hub_links.html" %}
+  </section>
+
+  <section id="sandbox-list" data-rmc-section-anchor class="cp-panel rmc-reveal">
     <div class="cp-panel-header">
       <span class="cp-panel-eyebrow">install_phase = sandbox</span>
-      <h2 class="cp-panel-title">Sandbox installations</h2>
+      <h2 class="cp-panel-title">{% trans "Sandbox installations" %}</h2>
     </div>
     <div class="cp-list">
       {% for inst in installations %}
@@ -48,22 +50,22 @@
           <strong>{{ inst.app.name }}</strong>
           <span class="text-muted small ms-1">({{ inst.app.slug }})</span>
           <span class="badge bg-secondary ms-1">@ {{ inst.school.name }}</span>
-          <span class="small text-muted">installed {{ inst.installed_at|timesince }} ago</span>
+          <span class="small text-muted">{% blocktrans with ago=inst.installed_at|timesince %}installed {{ ago }} ago{% endblocktrans %}</span>
         </div>
         <form method="post" action="{% url 'super:marketplace_activate_sandbox' %}" class="d-inline">
           {% csrf_token %}
           <input type="hidden" name="installation_id" value="{{ inst.pk }}">
-          <button type="submit" class="btn btn-primary btn-sm" title="Promote to production (staged rollout)">Promote to production</button>
+          <button type="submit" class="btn btn-primary btn-sm">{% trans "Promote to production" %}</button>
         </form>
       </div>
       {% empty %}
       <div class="py-3 px-2">
-        {% load i18n %}
-        {% url 'tenant_app_catalog' as catalog_url %}
-        {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No sandbox installations.") message=_("Install apps from the catalog to sandbox first, then they will appear here.") action_url=catalog_url action_text=_("App catalog") %}
+        {% url 'super:app_catalog' as catalog_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No sandbox installations.") message=_("Install apps from the catalog to sandbox first.") action_url=catalog_url action_text=_("App catalog") %}
       </div>
       {% endfor %}
     </div>
+    {% include "components/pagination.html" %}
   </section>
 </div>
 {% endblock %}

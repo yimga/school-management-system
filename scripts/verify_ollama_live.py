@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
-Operator Lane 2 — verify live Ollama + AI gateway posture.
+Operator Lane 2 — verify live Ollama on edge/hub/dev hosts.
+
+Render SaaS (`RMC_DEPLOYMENT_PROFILE=online`) uses cloud AI first — see
+`scripts/verify_render_online_ai_posture.py` and docs/AI_DEPLOYMENT_POSTURE.md.
 
 Checks:
   1. AI_GATEWAY_ENABLED and Ollama env/config present
@@ -51,20 +54,29 @@ def main() -> int:
     _setup_django()
     from django.conf import settings
 
-    from apps.portal.ai_provider import get_ai_provider_status, probe_ai_provider_reachable
+    from apps.portal.ai_provider import (
+        get_ai_provider_status,
+        ollama_base_candidates,
+        probe_ai_provider_reachable,
+        resolve_ollama_connection,
+    )
     from services.ai_gateway import TaskType, invoke
 
     gateway_on = bool(getattr(settings, "AI_GATEWAY_ENABLED", False))
     rules_ok = bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True))
     status = get_ai_provider_status()
     ollama = status.get("ollama") or {}
+    conn = resolve_ollama_connection(force_refresh=True)
     health = probe_ai_provider_reachable()
 
     print("RunMyCampus Ollama / AI gateway verification")
     print(f"  AI_GATEWAY_ENABLED={gateway_on}")
     print(f"  AI_ALLOW_RULES_FALLBACK={rules_ok}")
+    print(f"  OLLAMA_AUTO_DISCOVER={getattr(settings, 'OLLAMA_AUTO_DISCOVER', True)}")
     print(f"  OLLAMA configured={ollama.get('configured')}")
     print(f"  OLLAMA model={ollama.get('model')!r}")
+    print(f"  Resolved base={conn.get('base_url')!r} source={conn.get('discovery_source')!r}")
+    print(f"  Candidates ({len(ollama_base_candidates())})={ollama_base_candidates()}")
     print(f"  Reachable={health.get('reachable')} provider={health.get('provider')!r}")
     if health.get("latency_ms") is not None:
         print(f"  Latency_ms={health.get('latency_ms')}")

@@ -1,10 +1,14 @@
 {% load i18n %}
-<nav class="studio-os__output-tabs mb-2" aria-label="{% trans 'Output sections' %}">
-  <ul class="nav nav-tabs flex-nowrap overflow-x-auto pb-0">
+<nav class="studio-os__output-tabs rmc-output-mobile-tabs mb-2"
+     aria-label="{% trans 'Output sections' %}">
+  <ul class="nav nav-tabs flex-nowrap overflow-x-auto pb-0" role="list">
     {% for item in output_left_rail %}
     <li class="nav-item text-nowrap">
       <a href="{{ item.url }}"
-         class="nav-link py-2 px-3 {% if item.pane == output_pane %}active{% endif %}">{{ item.label }}</a>
+         class="nav-link py-2 px-3 {% if item.pane == output_pane %}active{% endif %}"
+         {% if item.pane == output_pane %}aria-current="page"{% endif %}>
+        {{ item.label }}
+      </a>
     </li>
     {% endfor %}
   </ul>

@@ -113,7 +113,7 @@
 }
 .mkt-proof-quote__meta {
   font-size: var(--type-size-sm, 0.875rem);
-  color: var(--mkt-ink-muted, var(--text-secondary));
+  color: var(--text-secondary-readable, var(--mkt-edt-ink-muted, #4b5563));
 }
 .mkt-proof-quote__meta cite {
   font-style: normal;

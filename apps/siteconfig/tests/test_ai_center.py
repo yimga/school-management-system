@@ -122,14 +122,25 @@ class AICenterPageTests(TestCase):
         self.assertIn("Billing &amp; usage explainer", body)
         self.assertIn("aria-selected=\"true\"", body)
 
-    def test_staff_sees_operator_ollama_setup(self):
+    def test_staff_sees_operator_ai_setup(self):
         c, _u = self._staff_client()
         path = reverse("siteconfig:ai_center", urlconf="config.tenant_urls")
         resp = c.get(path)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
-        self.assertIn("verify_ollama_live", body)
-        self.assertIn("Operator: connect live Ollama", body)
+        self.assertIn("data-rmc-ai-health-root", body)
+        self.assertIn("Gateway tiers", body)
+        self.assertIn("LITELLM_PROXY_URL", body)
+        self.assertIn("Render SaaS cloud AI", body)
+
+    @override_settings(RMC_DEPLOYMENT_PROFILE="edge")
+    def test_staff_sees_edge_ollama_operator_block(self):
+        c, _u = self._staff_client()
+        path = reverse("siteconfig:ai_center", urlconf="config.tenant_urls")
+        resp = c.get(path)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn("ollama serve", body)
+        self.assertIn("RMC_DEPLOYMENT_PROFILE=edge", body)
 
     def test_anonymous_redirects_to_login(self):
         c = Client(HTTP_HOST=_T_HOST)

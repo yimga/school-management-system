@@ -34,6 +34,11 @@ def main() -> int:
         action="store_true",
         help="Run Django + vitest topology suites",
     )
+    parser.add_argument(
+        "--base",
+        default=None,
+        help="Repository root override (passed by verify_phases_3_11_gates.py); ignored when unset since REPO_ROOT is computed at import time.",
+    )
     args = parser.parse_args()
 
     rbac = REPO_ROOT / "apps" / "schools" / "dashboard_rbac.py"

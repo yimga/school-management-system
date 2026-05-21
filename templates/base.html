@@ -34,6 +34,8 @@
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
     {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
+    {# v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. #}
+    <script src="{% static 'js/rmc-command-bar.js' %}"></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
@@ -157,9 +159,13 @@
     </style>
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
+    {% include "partials/rmc_platform_chrome_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
+    {# v3.53.0 (2026-05-21): signature motion + command bar styles. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
     {% block extrastyle %}{% endblock %}
   </head>
 
@@ -167,7 +173,7 @@
      focus rings / hover borders / button polish already shipped in form-system.css
      (lines 55-122) actually render. Previously the CSS was loaded but no element
      opted in, so every form ran on raw Bootstrap defaults. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     {% include "partials/rmc_launch_splash.html" %}
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     {# Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. #}
@@ -178,7 +184,7 @@
     -->
     <div class="app-container">
     {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-dark statement-header" aria-label="{% trans 'Site navigation' %}">
+    <nav class="navbar navbar-expand-lg navbar-dark statement-header topbar-sticky" aria-label="{% trans 'Site navigation' %}">
       <div class="container d-flex align-items-center base-topbar">
         {% comment %} v2.57 (2026-05-15) — adopted rmc_brand_mark on the base shell.
            Tenant SITE.logo cascades; PUBLIC_BRAND_NAME / SITE.site_name fall back
@@ -250,7 +256,7 @@
 
       {% include "partials/breadcrumbs.html" %}
 
-      <div class="page-wrap rmc-shell-content-grid" data-rmc-shell-content-grid="1">
+      <div class="page-wrap rmc-shell-content-grid portal-page-body" data-rmc-shell-content-grid="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
         {% block content %}{% endblock %}
       </div>
     </main>
@@ -313,5 +319,10 @@
     {% endif %}
     {% include "partials/rmc_shortcuts_nav_data.html" %}
     {% include "partials/rmc_tour_bootstrap.html" %}
+    {% include "partials/rmc_platform_chrome_scripts.html" %}
+    <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+    {% include 'components/back_to_top.html' %}
+    {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
+    {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}
     </div>
 </html>

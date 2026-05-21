@@ -1,0 +1,621 @@
+/* ============================================================
+   Studio OS — Output cockpit grammar (v3.54.0, 2026-05-21)
+   ------------------------------------------------------------
+   The Output mode of Studio OS is an "output readiness center":
+   reports / documents / report cards / credentials / branding /
+   policy / dependency graph. This stylesheet is additive to
+   studio-shell-layout.css, studio-workspace.css, and
+   studio-os-cockpit.css; it owns ONLY the .rmc-output-* grammar
+   that the Output partials read.
+
+   Tokens only — every visual value flows through
+   design-tokens.css. No raw hex, no magic px sizes, no
+   color-name literals.
+   ============================================================ */
+
+:root {
+  /* Local scoped tokens; sit on top of design-tokens.css. */
+  --rmc-output-gap: clamp(0.5rem, 1.4vw, 0.875rem);
+  --rmc-output-tile-min: 14rem;
+  --rmc-output-radius: var(--radius-md, 12px);
+  --rmc-output-tile-pad: clamp(0.75rem, 1.6vw, 1rem);
+  --rmc-output-swatch-size: clamp(2.25rem, 4vw, 2.75rem);
+  --rmc-output-meter-h: 0.375rem;
+  --rmc-output-iframe-min-h: 70vh;
+}
+
+/* ---------- Readiness cockpit (preview pane) ---------- */
+
+.rmc-output-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rmc-output-gap);
+  min-width: 0;
+  /* Sits inside the workspace main column; guard against the
+     classic flex-child overflow trap. */
+  width: 100%;
+  margin-bottom: var(--rmc-output-gap);
+}
+
+.rmc-output-cockpit__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rmc-output-gap);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.rmc-output-cockpit__title {
+  font-size: clamp(1rem, 1.1vw + 0.85rem, 1.125rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rmc-output-cockpit__subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-cockpit__service-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.rmc-output-cockpit__service-state[data-state="online"] {
+  border-color: var(--school-accent, var(--hairline-strong));
+  color: var(--text-primary);
+}
+
+.rmc-output-cockpit__service-state[data-state="offline"] {
+  border-color: var(--hairline-strong);
+  color: var(--text-secondary);
+}
+
+.rmc-output-cockpit__service-state[data-state="offline"]::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  display: inline-block;
+}
+
+.rmc-output-cockpit__service-state[data-state="online"]::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--school-accent, var(--text-secondary));
+  display: inline-block;
+}
+
+/* ---------- Tile grid ---------- */
+
+.rmc-output-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--rmc-output-tile-min), 1fr));
+  gap: var(--rmc-output-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.rmc-output-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: var(--rmc-output-tile-pad);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rmc-output-radius);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--elev-1);
+  transition: box-shadow var(--motion-signature-state, 180ms ease),
+              border-color var(--motion-signature-state, 180ms ease);
+  min-width: 0;
+  /* Belt-and-suspenders: avoid grid-cell content blowing column width. */
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-tile:hover,
+.rmc-output-tile:focus-within {
+  box-shadow: var(--elev-2);
+  border-color: var(--hairline-strong);
+}
+
+.rmc-output-tile__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.rmc-output-tile__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.3;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rmc-output-tile__count {
+  font-size: clamp(1.5rem, 2.4vw, 1.875rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-output-tile__count[data-tone="unknown"] {
+  color: var(--text-tertiary);
+}
+
+.rmc-output-tile__meta {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-tile__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.rmc-output-tile__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.8rem;
+  transition: background var(--motion-signature-state, 180ms ease),
+              border-color var(--motion-signature-state, 180ms ease);
+}
+
+.rmc-output-tile__link:hover,
+.rmc-output-tile__link:focus-visible {
+  background: var(--surface-overlay);
+  border-color: var(--hairline-strong);
+  color: var(--text-primary);
+}
+
+/* ---------- Status chips (readiness state) ---------- */
+
+.rmc-output-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-canvas);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  /* Belt — never use color alone. The textual label
+     ("Ready", "Missing data", "Unknown") is the source of truth. */
+}
+
+.rmc-output-status[data-state="ready"] {
+  border-color: var(--school-accent, var(--hairline-strong));
+  color: var(--text-primary);
+}
+
+.rmc-output-status[data-state="ready"]::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--school-accent, var(--text-secondary));
+}
+
+.rmc-output-status[data-state="missing"] {
+  border-color: var(--hairline-strong);
+  color: var(--text-primary);
+}
+
+.rmc-output-status[data-state="missing"]::before {
+  content: "!";
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline-strong);
+  color: var(--text-primary);
+  font-size: 0.65rem;
+  line-height: 0.85rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.rmc-output-status[data-state="unknown"] {
+  color: var(--text-tertiary);
+}
+
+.rmc-output-status[data-state="unknown"]::before {
+  content: "?";
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-tertiary);
+  font-size: 0.65rem;
+  line-height: 0.85rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ---------- Per-output preview list ---------- */
+
+.rmc-output-previews {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.rmc-output-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: 0.5rem 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rmc-output-radius);
+  background: var(--surface-elevated);
+  min-width: 0;
+}
+
+.rmc-output-preview__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rmc-output-preview__meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-preview__code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  padding: 0.1rem 0.35rem;
+  background: var(--surface-canvas);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.rmc-output-preview__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ---------- Branding inheritance — token swatches ---------- */
+
+.rmc-output-brand-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.rmc-output-brand-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rmc-output-brand-swatch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  min-width: 0;
+}
+
+.rmc-output-brand-swatch__chip {
+  width: var(--rmc-output-swatch-size);
+  height: var(--rmc-output-swatch-size);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--hairline);
+  background: var(--swatch-color, var(--surface-elevated));
+  flex-shrink: 0;
+}
+
+.rmc-output-brand-swatch__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.rmc-output-brand-swatch__name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-brand-swatch__token {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-brand-chain__flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rmc-output-brand-chain__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-elevated);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-brand-chain__step + .rmc-output-brand-chain__step::before {
+  content: "›";
+  margin-right: 0.1rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* ---------- Policy registry — responsive list ---------- */
+
+.rmc-output-policy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.rmc-output-policy-list__item {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rmc-output-radius);
+  background: var(--surface-elevated);
+  min-width: 0;
+}
+
+.rmc-output-policy-list__label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-output-policy-list__desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+  .rmc-output-policy-list__item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Dependency graph — wrap safety ---------- */
+
+.rmc-output-graph-node {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rmc-output-graph-node code,
+.rmc-output-graph-node .small {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- Wrapper guards for non-owned inner partials ---------- */
+
+.rmc-output-passthrough {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  /* Belt-only — owners of inner partials handle their own widths;
+     this is a safety net so we never blow our column. */
+}
+
+.rmc-output-passthrough .table {
+  /* Encourage tables to behave inside the passthrough wrap. */
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ---------- Iframe fallback safety ---------- */
+
+.rmc-output-iframe-frame {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  /* Aspect-locked at 16:10 below tablet so legacy embeds keep a
+     pleasant ratio; at >=768px we let the iframe stretch to its
+     own min-height (set by .studio-os-iframe). */
+}
+
+@media (max-width: 767.98px) {
+  .rmc-output-iframe-frame {
+    aspect-ratio: 16 / 10;
+    min-height: 24rem;
+  }
+}
+
+/* ---------- Rail link badge ---------- */
+
+.rmc-output-rail__badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-canvas);
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* ---------- Mobile tab wrap fallback (≤390px) ---------- */
+
+.rmc-output-mobile-tabs {
+  min-width: 0;
+}
+
+@media (max-width: 24.375em) /* 390px */ {
+  .rmc-output-mobile-tabs .nav-tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .rmc-output-mobile-tabs .nav-item {
+    flex: 1 0 auto;
+  }
+}
+
+/* ---------- Empty state grammar ---------- */
+
+.rmc-output-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: var(--rmc-output-tile-pad);
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--rmc-output-radius);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.rmc-output-empty__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rmc-output-empty__hint {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Responsive breakpoints ---------- */
+
+@media (max-width: 991.98px) {
+  .rmc-output-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--rmc-output-tile-min), 100%), 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .rmc-output-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rmc-output-preview__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .rmc-output-cockpit__header {
+    align-items: flex-start;
+  }
+
+  .rmc-output-tile {
+    padding: 0.75rem;
+  }
+}

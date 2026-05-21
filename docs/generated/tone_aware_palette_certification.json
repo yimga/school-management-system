@@ -1,0 +1,76 @@
+{
+  "generated_at_utc": "2026-05-21T07:00:00Z",
+  "agent_id": "R4",
+  "batch_id": "1372",
+  "wave_slug": "tone-aware-palette-overload",
+  "files_modified": [
+    "services/ai_palette.py",
+    "services/tests/test_ai_palette.py",
+    "apps/siteconfig/tenant_studio_day1.py",
+    "apps/siteconfig/tests/test_tenant_studio_day1.py"
+  ],
+  "files_created": [
+    "docs/generated/tone_aware_palette_certification.json"
+  ],
+  "backwards_compat_preserved": true,
+  "backwards_compat_proof": {
+    "existing_ai_palette_tests_passing": 14,
+    "existing_day1_tests_passing": 23,
+    "existing_palette_generate_view_tests_passing": 8,
+    "existing_theme_intelligence_tests_passing": 23,
+    "existing_logo_upload_validator_tests_passing": 13,
+    "test_tone_none_preserves_existing_behavior_assertion": "tone=None produces byte-identical stops/surface_chain/text_chain vs the no-kwarg call"
+  },
+  "test_proof": {
+    "tones_implemented": ["classic", "warm", "vibrant", "neutral"],
+    "tests_added": 10,
+    "tests_added_breakdown": {
+      "test_tone_classic_returns_seed_proximate_palette": "hue distance from seed <= 15 deg at anchor stop",
+      "test_tone_warm_shifts_hue_warmer": "warm anchor closer to 30 deg orange than classic; hue distance > 10 deg",
+      "test_tone_vibrant_boosts_saturation": "sum of mid-band saturations >= classic baseline",
+      "test_tone_neutral_desaturates": "mid-band saturation <= 0.45 (post-snap)",
+      "test_tone_propagates_to_palette_result_field": "result.tone == requested tone for all 4 tones",
+      "test_tone_none_preserves_existing_behavior": "byte-identical stops/chains vs no-kwarg call",
+      "test_tone_appears_in_ai_prompt": "captured prompt contains tone substring + metadata.palette_tone set",
+      "test_tone_rules_fallback_diversity": "warm vs classic hue distance > 10 deg + vibrant saturation >= classic",
+      "test_every_tone_passes_wcag_anchor": "WCAG 4.5:1 anchor pair clears for all 4 tones",
+      "test_day1_act2_passes_tone_to_ai_palette": "Day-1 captures classic/warm/vibrant tones in canonical order"
+    },
+    "tests_modified": 0,
+    "tests_modified_note": "Existing 14 ai_palette + 23 day1 tests required zero modification — tone=None default preserves exact behavior",
+    "total_tests_run": 81,
+    "total_tests_passed": 81,
+    "test_run_command": "python manage.py test services.tests.test_ai_palette services.tests.test_theme_intelligence apps.siteconfig.tests.test_palette_generate_view apps.siteconfig.tests.test_tenant_studio_day1 apps.schools.tests.test_logo_upload_validator --settings=config.settings --noinput --keepdb -v 1"
+  },
+  "rules_layer_diversity_proven": true,
+  "rules_layer_diversity_evidence": {
+    "test": "test_tone_rules_fallback_diversity",
+    "seed": "#4F46E5 (RMC indigo, hue ~244 deg)",
+    "warm_vs_classic_hue_distance_assertion": "> 10 deg at anchor stop 500",
+    "vibrant_saturation_assertion": "vibrant anchor saturation >= classic anchor saturation",
+    "implementation": "_apply_tone_shift_to_hs in services/ai_palette.py — warm rotates ~70% of the way toward 30 deg orange; vibrant boosts saturation by +0.15 (clamped to 1.0); neutral collapses saturation to 0.25; classic is no-op"
+  },
+  "ai_prompt_contains_tone_proven": true,
+  "ai_prompt_contains_tone_evidence": {
+    "test": "test_tone_appears_in_ai_prompt",
+    "captured_kwargs": ["prompt", "metadata"],
+    "prompt_substring_assertion": "'warm' literal appears in lowercased prompt text",
+    "metadata_palette_tone_assertion": "metadata['palette_tone'] == 'warm'",
+    "implementation": "_TONE_DIRECTIVES table in services/ai_palette.py + _build_prompt appends directive when tone is not None"
+  },
+  "zero_tolerance_scanners": {
+    "scan_ai_gateway_boundary": 0,
+    "scan_pii_logging_smell": 0
+  },
+  "binding_constraints_held": {
+    "backwards_compatibility": "PASS — 14+23+8+23+13 = 81 existing tests all green",
+    "ai_gateway_boundary": "PASS — still routes via services.ai_helpers.invoke_with_request; never imports services.ai_gateway directly",
+    "wcag_validation": "PASS — test_every_tone_passes_wcag_anchor confirms 500-on-50 >= 4.5:1 for all 4 tones; tone shift happens BEFORE the snap in _build_rules_palette",
+    "no_new_external_dependencies": "PASS — pure-stdlib HSL math; no colormath/colour/colorspacious",
+    "preserve_list_locked": "PASS — preserve list not touched",
+    "no_pii_in_logs": "PASS — Day-1 still hashes school slug via _school_log_label; new logger line uses tone string (not PII) + 8-char tenant hash"
+  },
+  "preserve_list_touched": false,
+  "tones_diversity_proof_quote": "warm anchor hue is closer to 30 deg (orange) than classic anchor; warm vs classic hue distance > 10 deg at stop 500; vibrant saturation >= classic saturation; neutral mid-band saturation <= 0.45 — all measured POST-WCAG-snap so the diversity survives the compliance pass",
+  "verdict": "READY"
+}

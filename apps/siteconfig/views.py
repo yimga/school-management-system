@@ -1649,6 +1649,9 @@ def _theme_post_success_redirect(request):
 @permission_required("settings.manage")
 def theme_colors_page(request):
     """Standalone Color & harmony page: palette studio, presets, preview, and save flows."""
+    from apps.siteconfig.theme_builder_plane import assert_theme_colors_request_plane
+
+    assert_theme_colors_request_plane(request)
     if request.method == "GET":
         if request.GET.get("embed") != "1" and request.GET.get("standalone") != "1":
             from apps.schools.control_plane import user_can_access_studio_on_request

@@ -168,9 +168,15 @@ def main(argv: list[str] | None = None) -> int:
             errors.append(f"Missing required template: {rel}")
             continue
         text = _read(root, rel)
-        href_pat = re.compile(r'href=["\']#' + re.escape(target) + r'["\']')
+        # Accept both literal href="#target" and Django conditional forms like
+        # href="{% if ... %}#alt{% else %}#target{% endif %}" — the verifier
+        # only requires the target fragment to appear inside an href attribute.
+        href_strict = re.compile(r'href=["\']#' + re.escape(target) + r'["\']')
+        href_conditional = re.compile(
+            r'href=["\'][^"\']*#' + re.escape(target) + r'(?:["\'/?#]|\b)[^"\']*["\']'
+        )
         id_pat = re.compile(r'id=["\']' + re.escape(target) + r'["\']')
-        if not href_pat.search(text):
+        if not (href_strict.search(text) or href_conditional.search(text)):
             errors.append(f"{rel}: missing skip-link href '#{target}'")
         search_paths = [text]
         if id_file:

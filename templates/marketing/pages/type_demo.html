@@ -7,6 +7,14 @@
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Book a demo") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
   {% include "marketing/components/_local_first_global_next.html" with compact=True %}
+  <section class="mkt-edt-container mkt-v3-demo-trust rmc-reveal" aria-label="{% trans 'Demo expectations' %}">
+    <ul class="mkt-v3-trust-strip">
+      <li>{% trans "Reply within one business day" %}</li>
+      <li>{% trans "No sales spam" %}</li>
+      <li>{% trans "Migration, offline, and procurement focus available" %}</li>
+      <li>{% trans "Commercial terms only after procurement scoping" %}</li>
+    </ul>
+  </section>
   {% if page.segments %}
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
     <div class="mkt-v3-segment-grid">

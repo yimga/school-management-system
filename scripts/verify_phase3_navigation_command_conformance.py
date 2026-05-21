@@ -20,9 +20,38 @@ from pathlib import Path
 
 DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 
+_INCLUDE_RE = re.compile(r"""\{%\s*include\s+["']([^"']+)["']""")
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _read_with_includes(path: Path, templates_root: Path, *, _seen: set[Path] | None = None) -> str:
+    """Read ``path`` and inline-resolve every ``{% include "..." %}`` it contains.
+
+    Resolves recursively so a base template's includes' includes also count.
+    Cycles are broken by tracking visited paths. Missing includes are skipped
+    silently (the verifier only checks for presence of marker strings, not
+    correctness of every include chain).
+    """
+    if _seen is None:
+        _seen = set()
+    resolved = path.resolve()
+    if resolved in _seen:
+        return ""
+    _seen.add(resolved)
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+    chunks = [text]
+    for match in _INCLUDE_RE.finditer(text):
+        rel = match.group(1).strip()
+        child = (templates_root / rel)
+        if child.is_file():
+            chunks.append(_read_with_includes(child, templates_root, _seen=_seen))
+    return "\n".join(chunks)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -88,19 +117,21 @@ def main(argv: list[str] | None = None) -> int:
                     f"control_plane_primary_nav.html missing canonical nav label: {label}"
                 )
 
-    cp_text = _read(cp_base)
-    if '{% include "partials/control_plane_primary_nav.html" %}' not in cp_text:
+    templates_root = root / "templates"
+    cp_text_direct = _read(cp_base)
+    cp_text = _read_with_includes(cp_base, templates_root)
+    if '{% include "partials/control_plane_primary_nav.html" %}' not in cp_text_direct:
         errors.append("control_plane_base.html must include control_plane_primary_nav.html.")
     if "id=\"cpSearchInput\"" not in cp_text:
-        errors.append("control_plane_base.html missing manager search input id cpSearchInput.")
+        errors.append("control_plane_base.html missing manager search input id cpSearchInput (checked transitively through includes).")
     if "cpShowShortcutsHelp" not in cp_text:
-        errors.append("control_plane_base.html missing keyboard shortcut help trigger.")
+        errors.append("control_plane_base.html missing keyboard shortcut help trigger (checked transitively through includes).")
 
-    admin_bridge_text = _read(admin_bridge)
+    admin_bridge_text = _read_with_includes(admin_bridge, templates_root)
     if "id=\"cpSearchInputAdmin\"" not in admin_bridge_text:
-        errors.append("admin_nav_bridge.html missing manager search input id cpSearchInputAdmin.")
+        errors.append("admin_nav_bridge.html missing manager search input id cpSearchInputAdmin (checked transitively through includes).")
     if "cpShowShortcutsHelp" not in admin_bridge_text:
-        errors.append("admin_nav_bridge.html missing keyboard shortcut help trigger.")
+        errors.append("admin_nav_bridge.html missing keyboard shortcut help trigger (checked transitively through includes).")
 
     shell_js = _read(manager_shell_js)
     if "cpSearchInputAdmin" not in shell_js or "cpSearchInput" not in shell_js:

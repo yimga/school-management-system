@@ -1,20 +1,80 @@
 {% load i18n %}
-<div class="studio-os__automation-overview" data-page-archetype="operational-workbench">
-  <p class="small text-muted mb-3">{% trans "Native overview: pack graph and health. Use the rail for Outcomes, Workflow center (full grid), approvals, and governance tools — iframes load only when you open those panes." %}</p>
-  {% if workflow_center_pane_url or simulation_pane_url %}
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    {% if workflow_center_pane_url %}<a class="btn btn-sm btn-outline-primary" href="{{ workflow_center_pane_url }}">{% trans "Workflow center (edit & simulate)" %}</a>{% endif %}
-    {% if simulation_pane_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ simulation_pane_url }}">{% trans "Simulation engine (preview impact)" %}</a>{% endif %}
+{# v3.54 (2026-05-21, Agent 3): Automation cockpit overview. #}
+{# Summary tiles + simulation preview + dependency graph + workflow health. #}
+{# Every value reads defensively via |default so missing context never breaks render. #}
+<section class="rmc-automation-cockpit" data-page-archetype="operational-workbench" aria-labelledby="rmc-automation-cockpit-title">
+  <header class="rmc-automation-cockpit__header">
+    <div>
+      <h2 id="rmc-automation-cockpit-title" class="rmc-automation-cockpit__title">{% trans "Workflow cockpit" %}</h2>
+      <p class="rmc-automation-cockpit__subtitle">
+        {% trans "Trigger/action map · active state · simulation preview · approval queue · rollback posture." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% if workflow_center_pane_url %}
+      <a class="btn btn-sm btn-outline-primary" href="{{ workflow_center_pane_url }}">
+        {% trans "Workflow center (edit & simulate)" %}
+      </a>
+      {% endif %}
+      {% if simulation_pane_url %}
+      <a class="btn btn-sm btn-outline-secondary" href="{{ simulation_pane_url }}">
+        {% trans "Simulation engine" %}
+      </a>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="rmc-automation-tiles" role="group" aria-label="{% trans 'Automation summary tiles' %}">
+    <div class="rmc-automation-tile rmc-automation-tile--accent">
+      <span class="rmc-automation-tile__label">{% trans "Active packs" %}</span>
+      <span class="rmc-automation-tile__value">{{ pack_count|default:0 }}</span>
+      <span class="rmc-automation-tile__caption">{% trans "Workflow packs currently enabled." %}</span>
+    </div>
+    <div class="rmc-automation-tile">
+      <span class="rmc-automation-tile__label">{% trans "Templates" %}</span>
+      <span class="rmc-automation-tile__value">{{ template_count|default:0 }}</span>
+      <span class="rmc-automation-tile__caption">{% trans "Templates available across active packs." %}</span>
+    </div>
+    <div class="rmc-automation-tile">
+      <span class="rmc-automation-tile__label">{% trans "Simulation" %}</span>
+      <span class="rmc-automation-tile__value">
+        {% if automation_environment.workflow_simulation_ready %}
+          <span class="rmc-automation-badge rmc-automation-badge--ok">{% trans "Ready" %}</span>
+        {% else %}
+          <span class="rmc-automation-badge rmc-automation-badge--muted">{% trans "Limited" %}</span>
+        {% endif %}
+      </span>
+      <span class="rmc-automation-tile__caption">{% trans "Dry-run preview before activating." %}</span>
+    </div>
+    <div class="rmc-automation-tile">
+      <span class="rmc-automation-tile__label">{% trans "Rollback" %}</span>
+      <span class="rmc-automation-tile__value">
+        {% if automation_environment.rollback_readiness.available %}
+          <span class="rmc-automation-badge rmc-automation-badge--ok">{% trans "Available" %}</span>
+        {% else %}
+          <span class="rmc-automation-badge rmc-automation-badge--muted">{% trans "Unavailable" %}</span>
+        {% endif %}
+      </span>
+      <span class="rmc-automation-tile__caption">
+        {% if automation_environment.rollback_readiness.detail %}
+          {{ automation_environment.rollback_readiness.detail|truncatewords:14 }}
+        {% else %}
+          {% trans "Snapshot status not recorded." %}
+        {% endif %}
+      </span>
+    </div>
   </div>
-  {% endif %}
+
+  {% include "studio_os/partials/automation_simulation_preview_pane.html" %}
+
   <div class="row g-3">
-    <div class="col-lg-6">
-      <h2 class="h6 mb-2">{% trans "Pack & template graph" %}</h2>
+    <div class="col-lg-6 min-w-0">
+      <h3 class="h6 mb-2">{% trans "Pack & template graph" %}</h3>
       {% include "studio_os/partials/automation_dependency_graph_body.html" with graph=graph %}
     </div>
-    <div class="col-lg-6">
-      <h2 class="h6 mb-2">{% trans "Workflow health" %}</h2>
+    <div class="col-lg-6 min-w-0">
+      <h3 class="h6 mb-2">{% trans "Workflow health" %}</h3>
       {% include "studio_os/partials/automation_workflow_health_body.html" with pack_count=pack_count template_count=template_count workflow_center_pane_url=workflow_center_pane_url %}
     </div>
   </div>
-</div>
+</section>

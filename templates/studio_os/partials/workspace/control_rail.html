@@ -1,14 +1,45 @@
 {% load i18n %}
+{% comment %}
+v3.54 (2026-05-21): Control governance rail.
+
+Each item resolves through build_control_governance_rail(request) — entries
+without a URL are dropped at the navigation layer, so we never render dummy
+href="#" placeholders here. External entries open in a new tab with
+rel="noopener noreferrer" per RMC operator-link convention.
+
+The rail also surfaces the external Feature control link explicitly so
+operators recognize it as the SOT for capability toggles (Studio links OUT
+and never duplicates).
+{% endcomment %}
 <div class="studio-os__card py-2">
   <div class="h6 mb-2">{% trans "Governance" %}</div>
-  <ul class="list-unstyled small mb-0" id="control-rail-list">
+  <ul class="list-unstyled small mb-0" id="control-rail-list" data-rmc-control-rail="1">
     {% for item in control_left_rail %}
+      {% if item.url %}
+      <li class="mb-1">
+        <a href="{{ item.url }}" class="control-rail-link {% if forloop.first %}active{% endif %}"
+           {% if item.embed %}data-embed="1"{% endif %}
+           {% if item.external %}data-external="1" target="_blank" rel="noopener noreferrer"{% endif %}
+           {% if control_panel_html and forloop.first %}data-panel="1"{% endif %}>{{ item.label }}{% if item.external %} <span class="visually-hidden">{% trans "(opens in new tab)" %}</span>{% endif %}</a>
+      </li>
+      {% endif %}
+    {% empty %}
     <li class="mb-1">
-      <a href="{{ item.url }}" class="control-rail-link {% if forloop.first %}active{% endif %}"
-         {% if item.embed %}data-embed="1"{% endif %}
-         {% if item.external %}data-external="1" target="_blank" rel="noopener noreferrer"{% endif %}
-         {% if control_panel_html and forloop.first %}data-panel="1"{% endif %}>{{ item.label }}{% if item.external %} <span class="visually-hidden">{% trans "(opens in new tab)" %}</span>{% endif %}</a>
+      <span class="text-muted" data-rmc-control-rail-empty="1">{% trans "No governance tools available for this host." %}</span>
     </li>
     {% endfor %}
   </ul>
+
+  {% if legacy_urls.feature_control %}
+  <hr class="my-2" aria-hidden="true">
+  <div class="d-flex flex-wrap gap-1" data-rmc-control-rail-bridge="1">
+    <a href="{{ legacy_urls.feature_control }}"
+       class="btn btn-sm btn-outline-primary"
+       target="_blank" rel="noopener noreferrer"
+       data-rmc-control-rail-feature-control="1">
+      {% trans "Manage in Feature control" %}
+      <span class="visually-hidden">{% trans "(opens in new tab)" %}</span>
+    </a>
+  </div>
+  {% endif %}
 </div>

@@ -2171,7 +2171,11 @@ html[data-resolved-theme="dark"] .tenant-app-catalog-wrap .proof-app-card .text-
 
 /* ========== templates/parent/workflow_center.html ========== */
 .workflow-hero {
-    background: linear-gradient(135deg, rgba(102,126,234,0.14), rgba(118,75,162,0.12)); /* off-token-allow: decorative-gradient */
+    background: linear-gradient(
+      135deg,
+      var(--portal-brand-mix-14),
+      var(--portal-brand-mix-12-accent)
+    );
     border: 1px solid rgba(168, 160, 146,0.22); /* off-token-allow: warm-neutral-overlay */
     border-radius: 18px;
     padding: 1.25rem 1.25rem;
@@ -3000,7 +3004,11 @@ textarea:focus {
 
 /* ========== templates/teacher/workflow_center.html ========== */
 .workflow-hero {
-    background: linear-gradient(135deg, rgba(102,126,234,0.14), rgba(118,75,162,0.12)); /* off-token-allow: decorative-gradient */
+    background: linear-gradient(
+      135deg,
+      var(--portal-brand-mix-14),
+      var(--portal-brand-mix-12-accent)
+    );
     border: 1px solid rgba(168, 160, 146,0.22); /* off-token-allow: warm-neutral-overlay */
     border-radius: 18px;
     padding: 1.25rem 1.25rem;

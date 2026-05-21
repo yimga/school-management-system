@@ -1,16 +1,36 @@
 # Ollama — operations, updates, and patching
 
-RunMyCampus **in-product chat** (`general_chat` / copilot / WebSocket) uses **Ollama** (self-hosted) and **rules** fallback only. This document is the operator workflow for keeping that stack current and safe.
+**Scope:** self-hosted **Ollama on the application server** — primary for **`RMC_DEPLOYMENT_PROFILE=edge`** (LAN hub) and optional dev/on-prem. **Render SaaS (`online`)** uses **LiteLLM / cloud** first; see [AI_DEPLOYMENT_POSTURE.md](AI_DEPLOYMENT_POSTURE.md).
 
-## Practical posture (offline-first + live Ollama)
+All product AI still flows through `services.ai_gateway` (never browser → Ollama directly).
+
+## Practical posture (offline-first + server-side live AI)
 
 | Layer | What to enable | What it does |
 | --- | --- | --- |
-| **School operations** | Tenant `enable_offline_mode` (feature control) | Teachers queue attendance, grades, payments, notes on device; sync when online. **Not AI.** |
-| **Live AI** | Ollama on the **same host as Django** (or a LAN URL the server can reach) | AI Center, copilot, guided assistants, semantic search use natural-language answers. |
-| **Safety net** | `AI_ALLOW_RULES_FALLBACK=1` (default) | When Ollama is down, structured **rules** answers — no 500s. |
+| **School operations** | Tenant `enable_offline_mode` (feature control) | Teachers queue attendance, grades, payments, notes on device; sync when online to **Render or LAN hub**. **Not AI.** See [LOCAL_HUB_MODE.md](LOCAL_HUB_MODE.md). |
+| **Live AI (Render)** | `LITELLM_PROXY_URL` + `LITELLM_API_KEY` on `online` profile | Cloud inference via OpenAI-compatible proxy — no extra VM. |
+| **Live AI (LAN hub)** | Ollama on the **same host as Django** (or URL the server can reach) | AI Center, copilot, guided assistants when `edge` / hybrid on-LAN. |
+| **Safety net** | `AI_ALLOW_RULES_FALLBACK=1` (default) | When live tiers are down, **grounded** answers from KB, topology maps, and task hints — no 500s. |
+| **Auto-start (dev)** | `OLLAMA_AUTO_START=1` when `DEBUG=1` | Before inference, Django may spawn `ollama serve` once per cooldown if the daemon is down. |
 
-**Do not expect** full AI on a teacher phone with zero connectivity. That would require a future slice (on-device model or queued AI questions).
+**Do not expect** full AI on a teacher phone with zero connectivity.
+
+### Live model vs grounded degraded mode
+
+| When | Behavior |
+| --- | --- |
+| Live tier reachable (cloud or Ollama) | Model answers via gateway (`meta.tier` = `litellm` or `ollama`). |
+| Live tiers down (default) | **Intelligent grounded mode**: RAG snippets, help KB, and permission-aware topology matches. |
+| `OLLAMA_REQUIRE_LIVE=1` (opt-in strict) | No rules fallback; UI returns explicit **Live AI unavailable** (operator-only posture). |
+
+Inference calls `services.ollama_runtime.ensure_ollama_reachable()` (probe + optional auto-start). Operator verification remains `python scripts/verify_ollama_live.py --invoke` — that script is **not** run on every user question.
+
+**Tenants:** AI is **per deployment**, not per teacher device. Every school shares the Ollama instance behind Django on that server. Enabling `RUNMYCAMPUS_AI_ENABLED=1` and keeping Ollama running is an **operator** responsibility for the whole fleet on that host.
+
+**Deploy while offline:** Syncing code or Docker images while the server is offline is fine. When the server is **back online**, start Ollama + Django; `OLLAMA_AUTO_DISCOVER` re-resolves the host. AI does **not** run from synced code alone without a running Ollama process on that machine.
+
+**Air-gapped / on-prem:** Bundle Ollama on the **same isolated host** as Django (`docker-compose.ollama.yml` or install Ollama on that VM). Models live in Ollama’s volume — not inside Python wheels.
 
 ### Five-minute operator setup
 
@@ -19,6 +39,13 @@ On the app server (Lane 2 — not committed to git):
 ```bash
 ollama serve
 ollama pull llama3   # or your pinned OLLAMA_MODEL
+
+**One-command ensure (dev host):**
+
+```bash
+python scripts/ensure_ollama_always_on.py --invoke
+# or: npm run ollama:ensure
+```
 ```
 
 Copy into `.env` / host environment (see `.env.example`):
@@ -61,6 +88,36 @@ Live tests **fail** (not skip) when `RMC_AI_REQUIRE_LIVE=1` and Ollama is down. 
 | `AI_ENGINE_ROOM_TIMEOUT_SECONDS` | Ollama latency cap for support assistant (default `15`). |
 | `AI_ENGINE_ROOM_MAX_INPUT_TOKENS` | Prompt budget for RAG + context (default `6000`). |
 | `AI_PROVIDER_PREFERENCE` | Default `ollama,rules`. Legacy token `gemini` is **ignored**. |
+| `OLLAMA_AUTO_DISCOVER` | Default `1` — probe common dev hosts and use the first reachable (see below). |
+| `OLLAMA_BASE_URL_CANDIDATES` | Optional comma-separated extra bases (LAN IP, etc.). |
+
+### Multi-host auto-discover (Windows / WSL / Docker)
+
+Django does **not** embed Ollama; it picks a reachable HTTP base via `apps.portal.ai_provider.resolve_ollama_connection()`.
+
+When `OLLAMA_AUTO_DISCOVER=1` (default), probe order is:
+
+1. `OLLAMA_BASE_URL` / `OLLAMA_ENDPOINT` from env (if set)
+2. `http://127.0.0.1:11434` — Windows native or Linux same-box
+3. `http://localhost:11434`
+4. `http://host.docker.internal:11434` — Django in Docker, Ollama on the desktop host
+5. `http://<WSL-gateway>:11434` — Django in WSL, Ollama on Windows (from `/etc/resolv.conf` nameserver)
+6. Any `OLLAMA_BASE_URL_CANDIDATES` entries
+
+**Typical setups (only start Ollama once on the machine that runs the model):**
+
+| Where Django runs | Where Ollama runs | Usually works without manual URL |
+| --- | --- | --- |
+| Windows native | Windows (tray / `ollama serve`) | `127.0.0.1` |
+| WSL | Windows | WSL gateway IP (auto) |
+| Docker | Windows / Mac host | `host.docker.internal` |
+| Docker Compose sidecar | `ollama` service | set `OLLAMA_BASE_URL=http://ollama:11434` in `web` env |
+
+Pin one host only: `OLLAMA_AUTO_DISCOVER=0` and set `OLLAMA_BASE_URL` or `OLLAMA_ENDPOINT`.
+
+After starting Ollama, refresh discovery: `python scripts/verify_ollama_live.py --invoke` (forces a fresh probe).
+
+Optional Compose stack: `docker compose -f docker-compose.ollama.yml up -d` then point `web` at `http://ollama:11434`.
 
 ### First-line support engine room
 

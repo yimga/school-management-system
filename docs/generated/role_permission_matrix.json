@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-20T00:35:52.928319+00:00",
+  "generated_at": "2026-05-21T16:32:59.323206+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 936,
-  "views_indexed": 1799,
+  "row_count": 953,
+  "views_indexed": 1860,
   "summary": {
-    "login_gated": 891,
+    "login_gated": 908,
     "role_gated": 74,
     "permission_gated": 98,
-    "has_inline_auth_check": 55,
-    "auth_mixin_gated": 84,
-    "rbac_allow_reason": 67,
+    "has_inline_auth_check": 57,
+    "auth_mixin_gated": 90,
+    "rbac_allow_reason": 68,
     "candidate_anonymous": 13,
     "unresolved": 28
   },
@@ -3270,7 +3270,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/analytics/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -5408,6 +5408,74 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "support/deflection/",
+      "view_symbol": "api_support_deflection",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_support_deflection.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "csrf_protect",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "support/deflection/ack/",
+      "view_symbol": "api_support_deflection_ack",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_support_deflection.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "csrf_protect",
+        "require_http_methods(['POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "kb/typeahead/",
+      "view_symbol": "api_kb_typeahead",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_kb_typeahead.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "ai/command-bar/",
       "view_symbol": "api_command_bar_search",
       "urls_file": "apps/api/urls.py",
@@ -5755,6 +5823,29 @@
     {
       "url_pattern": "ai/feedback/",
       "view_symbol": "api_ai_feedback",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/portal/views_ai_gateway.py",
+      "kind": "func",
+      "decorators": [
+        "require_http_methods(['POST'])",
+        "csrf_protect",
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "ai/support-session-rating/",
+      "view_symbol": "api_support_session_rating",
       "urls_file": "apps/api/urls.py",
       "view_file": "apps/portal/views_ai_gateway.py",
       "kind": "func",
@@ -10578,7 +10669,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/analytics/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -13245,6 +13336,29 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "maa/v2-counsel-activate/",
+      "view_symbol": "views_maa_counsel_activate.MAACounselActivateView.as_view",
+      "urls_file": "apps/migration_cloud/urls.py",
+      "view_file": "apps/migration_cloud/views_maa_counsel_activate.py",
+      "kind": "class",
+      "decorators": [
+        "staff_member_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "super-staff-maa-counsel-activate",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "audit/",
       "view_symbol": "views_audit_admin.MigrationCloudAuditView.as_view",
       "urls_file": "apps/migration_cloud/urls.py",
@@ -14094,7 +14208,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/analytics/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -15013,6 +15127,94 @@
       "unresolved": false,
       "login_gated": true,
       "role_gated": true,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "forums/",
+      "view_symbol": "views_forums.forum_home",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_forums.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "forums/new/",
+      "view_symbol": "views_forums.forum_new_topic",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_forums.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "forums/category/<slug:category_slug>/",
+      "view_symbol": "views_forums.forum_category",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_forums.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "forums/topic/<int:topic_id>/",
+      "view_symbol": "views_forums.forum_topic",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_forums.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
@@ -18073,6 +18275,48 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "theme-experience/builder/api/publish-log/",
+      "view_symbol": "ThemeBuilderPublishLogAPIView.as_view",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_theme_builder.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": true,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "theme-experience/builder/api/rollback/",
+      "view_symbol": "ThemeBuilderRollbackAPIView.as_view",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_theme_builder.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": true,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "zero-ticket/",
       "view_symbol": "zero_ticket_hub",
       "urls_file": "apps/siteconfig/urls.py",
@@ -19783,6 +20027,94 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "studio/day1/act1/",
+      "view_symbol": "TenantStudioDay1Act1View.as_view",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_tenant_studio_hub.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "studio/day1/act2/",
+      "view_symbol": "TenantStudioDay1Act2View.as_view",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_tenant_studio_hub.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "studio/day1/act3/lock/",
+      "view_symbol": "TenantStudioDay1Act3LockView.as_view",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_tenant_studio_hub.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "studio/day1/reset/",
+      "view_symbol": "TenantStudioDay1ResetView.as_view",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_tenant_studio_hub.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "",
       "view_symbol": "studio_shell",
       "urls_file": "apps/studio_os/urls.py",
@@ -20784,6 +21116,54 @@
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "copilot/rail/context/",
+      "view_symbol": "CopilotRailContextView.as_view",
+      "urls_file": "apps/studio_os/urls.py",
+      "view_file": "apps/studio_os/views_copilot_rail.py",
+      "kind": "class",
+      "decorators": [
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "copilot/rail/insights/",
+      "view_symbol": "CopilotRailInsightsRefreshView.as_view",
+      "urls_file": "apps/studio_os/urls.py",
+      "view_file": "apps/studio_os/views_copilot_rail.py",
+      "kind": "class",
+      "decorators": [
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
       "candidate_anonymous": false
     },
     {

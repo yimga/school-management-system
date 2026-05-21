@@ -34,3 +34,20 @@ class StudioControlInlineTests(TestCase):
         self.assertIn("data-rmc-studio-inline-control-summary", body)
         # Full-page header chrome should not render inside Studio inline shell.
         self.assertNotIn("feature-control-header", body)
+
+    def test_control_mode_loads_governance_cockpit_stylesheet(self):
+        """v3.54 — modes/control.html links studio-control-cockpit.css."""
+        url = reverse("studio_os:control", urlconf="config.manager_urls")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn("studio-control-cockpit.css", body)
+
+    def test_control_canvas_includes_governance_cockpit(self):
+        """v3.54 — control canvas renders the governance cockpit grid + preview pane."""
+        url = reverse("studio_os:control", urlconf="config.manager_urls")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-control-cockpit="governance"', body)
+        self.assertIn('data-rmc-control-preview-pane="1"', body)

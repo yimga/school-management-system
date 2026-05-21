@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %}
+  Studio OS Cockpit · Canvas (v3.53.0, 2026-05-21)
+  ------------------------------------------------
+  Center region of the Mission Cockpit shell — wraps the legacy
+  {% block studio_canvas %} so existing modes keep rendering with
+  no edits. The outer .rmc-cockpit__canvas establishes the cockpit
+  geometry while the inner content remains the existing studio-os
+  canvas (rail + canvas + right rail) for backward-compat.
+{% endcomment %}
+<section class="rmc-cockpit__canvas" role="region" aria-label="{% trans 'Studio canvas' %}" data-rmc-cockpit-region="canvas">
+  {% block cockpit_canvas_body %}{% endblock %}
+</section>

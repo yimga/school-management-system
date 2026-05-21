@@ -1,0 +1,177 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Day-1 brand reveal" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/tenant-studio-day1.css' %}">
+{% endblock %}
+{% block content %}
+<div
+  class="rmc-day1-stage container py-4"
+  data-rmc-tenant-studio-day1="1"
+  data-rmc-tenant-studio-day1-active-act="1"
+  data-page-archetype="day1-brand"
+  data-shell-surface="tenant-school-studio-day1">
+
+  <header class="rmc-day1-act-header">
+    <span class="rmc-day1-eyebrow">{% trans "Act 1 — Brand" %}</span>
+    <h1 class="rmc-day1-headline">
+      {% blocktrans with school_name=school.name|default:_("Your school") %}Welcome, {{ school_name }}{% endblocktrans %}
+    </h1>
+    <p class="rmc-day1-lede">
+      {% trans "Let's start with how your school looks across the platform — your logo, your colour, your tone." %}
+    </p>
+  </header>
+
+  <section class="rmc-day1-brand-reveal" data-rmc-day1-act1-reveal>
+    <div class="rmc-day1-logo-frame" aria-hidden="false" data-rmc-day1-logo-frame>
+      {% if school.logo_url %}
+        <img
+          class="rmc-day1-logo-img"
+          src="{{ school.logo_url }}"
+          data-rmc-day1-logo-img
+          alt="{% blocktrans with school_name=school.name|default:_('School') %}{{ school_name }} logo{% endblocktrans %}">
+      {% else %}
+        <div class="rmc-day1-logo-placeholder" role="img"
+             data-rmc-day1-logo-placeholder
+             aria-label="{% trans 'No logo uploaded yet' %}">
+          <span class="rmc-day1-logo-initial">{{ school.name|slice:":1"|default:"S" }}</span>
+        </div>
+      {% endif %}
+    </div>
+    <div class="rmc-day1-brand-meta">
+      <p class="rmc-day1-brand-name">{{ school.name|default:_("Your school") }}</p>
+      <p class="rmc-day1-seed-line">
+        {% trans "Brand seed:" %}
+        <span class="rmc-day1-seed-chip"
+              data-rmc-day1-seed-hex="{{ seed_hex }}"
+              data-rmc-day1-seed-chip
+              style="--rmc-day1-seed-fill: {{ seed_hex }};">
+          <span class="rmc-day1-seed-swatch" aria-hidden="true" data-rmc-day1-seed-swatch></span>
+          <code data-rmc-day1-seed-code>{{ seed_hex }}</code>
+        </span>
+        <span class="rmc-day1-seed-source small" data-rmc-day1-seed-source>
+          {% if seed_source == "logo" %}{% trans "(extracted from logo)" %}
+          {% elif seed_source == "primary_color" %}{% trans "(from your primary colour)" %}
+          {% else %}{% trans "(default — pick a colour in Act 2)" %}{% endif %}
+        </span>
+      </p>
+    </div>
+  </section>
+
+  {% if not school.logo_url %}
+  <section
+    class="rmc-day1-logo-upload"
+    data-rmc-day1-logo-upload
+    data-rmc-day1-logo-upload-url="{{ logo_upload_url }}"
+    aria-labelledby="rmc-day1-logo-upload-heading">
+
+    <h2 id="rmc-day1-logo-upload-heading" class="rmc-day1-logo-upload-heading">
+      {% trans "Upload your school logo" %}
+    </h2>
+    <p class="rmc-day1-logo-upload-lede">
+      {% trans "PNG, JPEG, or WebP up to 1.5 MB. SVG is not accepted." %}
+    </p>
+
+    <form
+      class="rmc-day1-logo-upload-form"
+      data-rmc-day1-logo-upload-form
+      method="post"
+      enctype="multipart/form-data"
+      action="{{ logo_upload_url }}"
+      novalidate>
+      {% csrf_token %}
+
+      <div
+        class="rmc-day1-logo-upload-zone"
+        data-rmc-day1-logo-upload-zone
+        role="button"
+        tabindex="0"
+        aria-label="{% trans 'Drop your logo here, or press Enter to choose a file' %}">
+        <input
+          class="rmc-day1-logo-upload-input"
+          data-rmc-day1-logo-upload-input
+          type="file"
+          name="logo"
+          id="rmc-day1-logo-upload-input"
+          accept="image/png,image/jpeg,image/webp"
+          aria-describedby="rmc-day1-logo-upload-hint">
+        <label
+          for="rmc-day1-logo-upload-input"
+          class="rmc-day1-logo-upload-cta"
+          data-rmc-day1-logo-upload-cta>
+          {% trans "Choose a file or drop one here" %}
+        </label>
+        <p id="rmc-day1-logo-upload-hint" class="rmc-day1-logo-upload-hint">
+          {% trans "Your logo will be used to seed the brand colour." %}
+        </p>
+      </div>
+
+      <div
+        class="rmc-day1-logo-preview is-hidden"
+        data-rmc-day1-logo-preview
+        aria-live="polite"
+        aria-hidden="true">
+        <img
+          class="rmc-day1-logo-preview-img"
+          data-rmc-day1-logo-preview-img
+          alt="">
+        <p class="rmc-day1-logo-preview-meta" data-rmc-day1-logo-preview-meta></p>
+      </div>
+
+      <div
+        class="rmc-day1-logo-error is-hidden"
+        data-rmc-day1-logo-error
+        role="alert"
+        aria-live="assertive"></div>
+
+      <div class="rmc-day1-logo-upload-actions">
+        <button
+          type="submit"
+          class="rmc-day1-cta-primary is-hidden"
+          data-rmc-day1-logo-upload-submit
+          aria-disabled="true">
+          {% trans "Upload logo" %}
+        </button>
+        <button
+          type="button"
+          class="rmc-day1-cta-secondary is-hidden"
+          data-rmc-day1-logo-upload-reset>
+          {% trans "Choose a different file" %}
+        </button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+
+  <nav class="rmc-day1-act-actions" aria-label="{% trans 'Brand session navigation' %}">
+    <a class="rmc-day1-cta-primary"
+       href="{{ act2_url }}"
+       data-rmc-day1-act-next="2">
+      {% trans "See three palette options" %}
+    </a>
+    <a class="rmc-day1-cta-secondary"
+       href="{{ skip_url }}">
+      {% trans "Skip — take me to the cockpit" %}
+    </a>
+  </nav>
+
+  <nav class="rmc-day1-progress-rail" aria-label="{% trans 'Day-1 progress' %}">
+    <ol class="rmc-day1-progress-steps">
+      <li class="rmc-day1-progress-step is-active">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Brand" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Palette" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Lock in" %}</span>
+      </li>
+    </ol>
+  </nav>
+</div>
+<script src="{% static 'js/rmc-tenant-studio-day1.js' %}"></script>
+{% endblock %}

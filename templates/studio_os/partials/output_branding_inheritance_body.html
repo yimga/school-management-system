@@ -1,10 +1,81 @@
 {% load i18n %}
-<div class="container-fluid py-2 studio-output-native-pane" data-studio-output-native="branding">
+<div class="container-fluid py-2 studio-output-native-pane min-w-0" data-studio-output-native="branding">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <div class="studio-os__card py-3 px-3 ds-card">
-    <p class="mb-2">{% trans "Reports and documents inherit school and theme branding (primary color, logo, accent) from the current theme. Configure theme and colors to control how outputs and document exports appear." %}</p>
-    {% if theme_colors_url %}
-    <p class="mb-0"><a href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a> — {% trans "Set primary color, accent, and logo used in reports and document outputs." %}</p>
-    {% endif %}
+  <div class="studio-os__card py-3 px-3 ds-card min-w-0">
+    <div class="rmc-output-brand-chain min-w-0">
+      <p class="mb-0">
+        {% trans "Reports and documents inherit your school's theme tokens at render time. The same tokens that style the portal also style your printed and exported outputs — so when you change theme colors, every output downstream picks them up." %}
+      </p>
+
+      <div class="min-w-0">
+        <p class="rmc-output-cockpit__subtitle mb-2 small fw-semibold text-uppercase">
+          {% trans "Tokens consumed by outputs" %}
+        </p>
+        <ul class="rmc-output-brand-swatches" role="list">
+          <li class="rmc-output-brand-swatch">
+            <span class="rmc-output-brand-swatch__chip"
+                  style="--swatch-color: var(--school-primary);"
+                  aria-hidden="true"></span>
+            <span class="rmc-output-brand-swatch__meta">
+              <span class="rmc-output-brand-swatch__name">{% trans "Primary" %}</span>
+              <code class="rmc-output-brand-swatch__token">--school-primary</code>
+            </span>
+          </li>
+          <li class="rmc-output-brand-swatch">
+            <span class="rmc-output-brand-swatch__chip"
+                  style="--swatch-color: var(--school-accent);"
+                  aria-hidden="true"></span>
+            <span class="rmc-output-brand-swatch__meta">
+              <span class="rmc-output-brand-swatch__name">{% trans "Accent" %}</span>
+              <code class="rmc-output-brand-swatch__token">--school-accent</code>
+            </span>
+          </li>
+          <li class="rmc-output-brand-swatch">
+            <span class="rmc-output-brand-swatch__chip"
+                  style="--swatch-color: var(--surface-elevated);"
+                  aria-hidden="true"></span>
+            <span class="rmc-output-brand-swatch__meta">
+              <span class="rmc-output-brand-swatch__name">{% trans "Surface" %}</span>
+              <code class="rmc-output-brand-swatch__token">--surface-elevated</code>
+            </span>
+          </li>
+          <li class="rmc-output-brand-swatch">
+            <span class="rmc-output-brand-swatch__chip"
+                  style="--swatch-color: var(--text-primary);"
+                  aria-hidden="true"></span>
+            <span class="rmc-output-brand-swatch__meta">
+              <span class="rmc-output-brand-swatch__name">{% trans "Text" %}</span>
+              <code class="rmc-output-brand-swatch__token">--text-primary</code>
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="min-w-0">
+        <p class="rmc-output-cockpit__subtitle mb-2 small fw-semibold text-uppercase">
+          {% trans "Inheritance chain" %}
+        </p>
+        <ol class="rmc-output-brand-chain__flow" role="list">
+          <li class="rmc-output-brand-chain__step">{% trans "Tenant defaults" %}</li>
+          <li class="rmc-output-brand-chain__step">{% trans "Site settings" %}</li>
+          <li class="rmc-output-brand-chain__step">{% trans "Context processor" %}</li>
+          <li class="rmc-output-brand-chain__step">{% trans "Theme meta bridge" %}</li>
+          <li class="rmc-output-brand-chain__step">{% trans "Design tokens" %}</li>
+          <li class="rmc-output-brand-chain__step">{% trans "Report templates" %}</li>
+        </ol>
+      </div>
+
+      {% if theme_colors_url %}
+      <p class="mb-0">
+        <a href="{{ theme_colors_url }}" class="rmc-output-tile__link">
+          {% trans "Open theme & colors" %}
+        </a>
+        <span class="text-muted small ms-1">
+          —
+          {% trans "set primary color, accent, and logo used by every output." %}
+        </span>
+      </p>
+      {% endif %}
+    </div>
   </div>
 </div>

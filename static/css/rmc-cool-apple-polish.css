@@ -481,13 +481,9 @@
 
 .cp-topbar-bell__badge {
   position: absolute;
-  top: 0;
-  right: 0;
-  /* Anchor the badge at the bell's top-right corner and nudge it outward by
-     ~35% in each axis. Keeps the badge visibly attached to the bell at any
-     count width (1-digit "5", 2-digit "20", 3-char "99+") without the prior
-     top:-2/right:-2 offsets that drifted up into the navbar's clip region. */
-  transform: translate(35%, -35%);
+  top: 0.15rem;
+  right: 0.15rem;
+  transform: none;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;

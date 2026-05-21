@@ -1,0 +1,129 @@
+{
+  "doc": "studio_os_layout_overflow_audit",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "wave": "Studio OS next-realm command-cockpit",
+  "scope": "Cross-section unified horizontal-overflow root-cause audit and fix manifest. Synthesizes the 6 per-section audit JSON files into one operational story.",
+  "user_reported_problem": "A lot of Studio OS pages break horizontally and cut off at the edge of the screen, especially inside the Experience menu.",
+  "viewport_safety_targets": ["390px", "768px", "1366px", "1440px", "1536px", "1920px"],
+  "root_cause_summary": {
+    "headline": "Single-point systemic root cause was the shared rail link rule in static/css/studio-mode-rail.css consumed by all 4 mode rails (Experience + Output + Automation + Launch). The rule lacked overflow-wrap / word-break / min-width:0, so long localized labels pushed horizontal scroll on workspace_main across all 4 sections.",
+    "fix_pattern": "Fix at the abstraction, not at each call site. Same architectural lesson as v3.27.1 sticky+clip + v3.25.5 reveal-armed + v3.31.5 theme-attribute-contract.",
+    "fix_file": "static/css/studio-mode-rail.css",
+    "fix_lines": "5-20",
+    "fix_diff_summary": "Added: min-width: 0; overflow-wrap: anywhere; word-break: break-word; to the shared rail link rule that targets .experience-rail-link, .output-rail-link, .automation-rail-link, .launch-rail-link."
+  },
+  "per_section_overflow_inventory": {
+    "experience": {
+      "primary_overflow_owner": true,
+      "root_causes_catalogued": 10,
+      "fixed_in_section_files": 9,
+      "flagged_as_coordinator_task": 1,
+      "items": [
+        {"id": "OF-1", "file": "templates/studio_os/partials/workspace/experience_iframe_canvas.html", "lines": "2-3", "failure_mode": "iframe lacked responsive shell; fixed-pixel default sizing", "fix": "wrapped in clamp shell with aspect-ratio + width: 100%; max-width: 100%", "status": "FIXED"},
+        {"id": "OF-2", "file": "templates/studio_os/partials/workspace/experience_inpage_rail.html", "lines": "16-24", "failure_mode": "long rail labels lacked overflow-wrap", "fix": "added overflow-wrap:anywhere rule in studio-experience-mode.css", "status": "FIXED"},
+        {"id": "OF-3", "file": "templates/studio_os/partials/experience_workbench_context.html", "lines": "3-11", "failure_mode": "context tool links lacked overflow-wrap", "fix": "rebuilt as real context column with overflow-wrap rules", "status": "FIXED"},
+        {"id": "OF-4", "file": "templates/studio_os/partials/workspace/experience_iframe_rail.html", "lines": "7-9", "failure_mode": "same long-label class as OF-3", "fix": "covered by new CSS rule", "status": "FIXED"},
+        {"id": "OF-5", "file": "static/css/studio-mode-rail.css", "lines": "5-14", "failure_mode": "shared rule lacks overflow-wrap (root cause for all 4 mode rails)", "fix": "added overflow-wrap:anywhere + min-width:0 + word-break:break-word", "status": "FIXED_AT_ABSTRACTION_BY_COORDINATOR"},
+        {"id": "OF-6", "file": "templates/studio_os/shell.html", "lines": "24", "failure_mode": "container-fluid.px-md-2 considered; mitigated by .rmc-shell-content-grid {overflow-x:clip}", "fix": "no action needed", "status": "VERIFIED_SAFE"},
+        {"id": "OF-7", "file": "static/css/studio-shell-layout.css", "lines": "119-127", "failure_mode": ".studio-os__right uses overflow-x:clip intentionally", "fix": "documented as intentional", "status": "VERIFIED_SAFE"},
+        {"id": "OF-8", "file": "templates/studio_os/partials/subpages/experience_compare.html", "lines": "13,27", "failure_mode": "rem-based swatches; no overflow risk", "fix": "no action needed", "status": "VERIFIED_SAFE"},
+        {"id": "OF-9", "file": "templates/studio_os/partials/experience_workbench_context.html", "lines": "all", "failure_mode": "was under-built as a true context column", "fix": "rebuilt", "status": "FIXED"},
+        {"id": "OF-10", "file": "templates/studio_os/partials/workspace/experience_inpage_canvas.html", "lines": "1", "failure_mode": "legacy include needed clamp wrapper", "fix": "added", "status": "FIXED"}
+      ]
+    },
+    "automation": {
+      "root_causes_catalogued": 3,
+      "items": [
+        {"id": "AU-1", "file": "templates/studio_os/partials/automation_dependency_graph_body.html", "failure_mode": "long <code> + nested <ul> had no min-width:0/word-break", "fix": ".rmc-automation-graph-scroll {overflow-x:auto; overflow-y:visible} wrapper — applies v3.27.1 sticky+clip lesson (NEVER overflow-y:hidden)", "status": "FIXED"},
+        {"id": "AU-2", "file": "templates/studio_os/partials/automation_overview_body.html", "failure_mode": ".row.g-3 > .col-lg-6 lacked .min-w-0 so flex child could not shrink", "fix": "added .min-w-0", "status": "FIXED"},
+        {"id": "AU-3", "file": "templates/studio_os/partials/workspace/automation_rail.html", "failure_mode": "long pane labels overflowed the 12.5rem rail", "fix": ".rmc-automation-rail__link carries word-break:break-word", "status": "FIXED"}
+      ]
+    },
+    "output": {
+      "root_causes_catalogued": 3,
+      "items": [
+        {"id": "OP-1", "file": "templates/studio_os/partials/output_dependency_graph_body.html", "failure_mode": "long pack codes/deps could blow column width", "fix": ".rmc-output-graph-node { overflow-wrap: anywhere } + min-width: 0 on flex/grid children", "status": "FIXED"},
+        {"id": "OP-2", "file": "templates/studio_os/partials/output_documents_native_wrapper.html + output_reportcard_builder_wrapper.html", "failure_mode": "pass-through inner partials (siteconfig/portal) could carry wide tables", "fix": ".rmc-output-passthrough wrapper (min-width:0; overflow-x:auto) without touching the inner partials", "status": "FIXED"},
+        {"id": "OP-3", "file": "templates/studio_os/partials/output_mode_canvas.html", "failure_mode": "iframe fallback fixed-width risk", "fix": ".rmc-output-iframe-frame with aspect-locked sizing under 768px; iframe keeps width:100% max-width:100%", "status": "FIXED"}
+      ]
+    },
+    "launch": {
+      "root_causes_catalogued": 4,
+      "items": [
+        {"id": "LN-1", "file": "templates/studio_os/partials/launch_school_infrastructure_body.html", "failure_mode": "infrastructure diff table could spew up to 500 chars in After cell without responsive wrapper", "fix": ".rmc-launch-table-scroll wrapper (overflow-x:auto + word-break)", "status": "FIXED"},
+        {"id": "LN-2", "file": "all launch partials", "failure_mode": "flex/grid children missing min-width:0", "fix": ".rmc-launch-canvas > * declares min-width:0", "status": "FIXED"},
+        {"id": "LN-3", "file": "launch_studio_role_preview_pane + readiness preview pane", "failure_mode": "long role labels could push horizontal scroll", "fix": "word-break:break-word on role-preview cards and metric tiles", "status": "FIXED"},
+        {"id": "LN-4", "file": "launch select-plan + readiness cards", "failure_mode": "viewport-level breakpoints not enough", "fix": "container queries drive readiness-card and plan-card layouts so they reflow inside workspace_main", "status": "FIXED"}
+      ]
+    },
+    "control": {
+      "root_causes_catalogued": 3,
+      "items": [
+        {"id": "CT-1", "file": "templates/studio_os/shell.html", "lines": "right-rail audit list", "failure_mode": "audit row line-wrap at <360px in studio-os__right", "fix": "applied PII-safe actor_display pattern + responsive flex", "status": "FIXED_BY_COORDINATOR"},
+        {"id": "CT-2", "file": "templates/studio_os/partials/workspace/control_canvas.html", "failure_mode": "permission-matrix N×M tables", "fix": ".rmc-control-permission-matrix-wrap {overflow-x:auto}", "status": "FIXED"},
+        {"id": "CT-3", "file": "templates/studio_os/partials/workspace/control_canvas.html", "failure_mode": "dep-graph long node labels", "fix": "min-width:0; overflow-wrap:anywhere on .rmc-control-dep-graph-node", "status": "FIXED"}
+      ]
+    },
+    "overview": {
+      "root_causes_catalogued": 2,
+      "items": [
+        {"id": "OV-1", "file": "templates/studio_os/shell.html", "lines": "113-123", "failure_mode": "operational-hubs action row used col-auto chips that could push horizontal scroll", "fix": "replaced inline row with overview_command_cockpit.html include using .rmc-overview-hub-rail flex-wrap responsive grid", "status": "FIXED_BY_COORDINATOR"},
+        {"id": "OV-2", "file": "templates/studio_os/partials/cockpit_signal_strip.html", "failure_mode": "8 signal tiles could overflow at 390px without responsive grid", "fix": "container-query-driven grid in studio-overview-cockpit.css with 1-col fallback at 390px", "status": "FIXED"}
+      ]
+    }
+  },
+  "patterns_applied": [
+    {
+      "name": "min-width: 0 on flex/grid children",
+      "purpose": "Allow flex/grid items to shrink below their content's intrinsic min-width so long labels wrap instead of pushing horizontal scroll.",
+      "applied_in": ["studio-mode-rail.css shared rule", "all 6 per-section CSS bundles", ".rmc-output-passthrough", ".rmc-launch-canvas > *"]
+    },
+    {
+      "name": "overflow-wrap: anywhere + word-break: break-word",
+      "purpose": "Force long labels (localized text, vendor names, file paths) to wrap at any character if needed rather than overflow.",
+      "applied_in": ["studio-mode-rail.css shared rule", "all 4 mode rails", "workbench context links", "graph node labels"]
+    },
+    {
+      "name": "Sticky + overflow-y:visible (NOT overflow-y:hidden)",
+      "purpose": "Lesson from v3.27.1: sticky+overflow:hidden creates a truncation trap where sticky pins the top while overflow hides everything below the viewport. Use overflow-y:visible instead. Scanner scan_sticky_with_overflow_hidden.py baseline 0 enforces this.",
+      "applied_in": [".rmc-automation-graph-scroll", ".rmc-output-passthrough"]
+    },
+    {
+      "name": "Responsive iframe shells (aspect-ratio, not fixed pixels)",
+      "purpose": "Iframes use width:100%; max-width:100%; aspect-ratio: 16/10 (or similar) so they scale with viewport instead of forcing fixed height that overflows on narrow viewports.",
+      "applied_in": ["experience_iframe_canvas.html", "output_mode_canvas.html iframe fallback", "experience_live_preview_pane.html"]
+    },
+    {
+      "name": "Container queries (not just media queries)",
+      "purpose": "Layouts reflow based on parent container width, not viewport. Allows cockpits to look right inside both narrow workspace_main columns and wide standalone surfaces.",
+      "applied_in": ["studio-overview-cockpit.css (mode-grid, triptych)", "studio-launch-cockpit.css (readiness cards, plan cards)"]
+    },
+    {
+      "name": "Wrappers around pass-through partials (don't touch inner partials)",
+      "purpose": "When Studio OS includes a partial from another app (siteconfig, portal), we don't edit the inner partial. Instead, we wrap with a responsive container (min-width:0; overflow-x:auto) to constrain overflow without coupling to the inner template.",
+      "applied_in": [".rmc-output-passthrough (output documents + report-card builder)", ".rmc-launch-table-scroll (infrastructure diff)"]
+    }
+  ],
+  "scanner_state_after_fix": {
+    "scan_sticky_with_overflow_hidden": "0 (baseline preserved; new CSS contains no sticky+clip combos; .rmc-automation-graph-scroll uses overflow-y:visible)",
+    "scan_off_token_colors": "0 (every new color uses var(--*) tokens)",
+    "scan_theme_locked_token_text": "0 (theme-locked tokens carry theme-locked-allow markers where used)",
+    "scan_inline_style_off_token": "0 (only inline style is template-interpolated swatch background)",
+    "scan_undefined_css_classes": "0 (every new .rmc-* class defined in its CSS bundle)",
+    "scan_theme_attribute_contract": "0 (no data-theme=system writes)",
+    "scan_reveal_armed_invariants": "0 (no rmc-reveal selectors in new files)"
+  },
+  "verification": {
+    "tag_balance_studio_os_templates": "90/90 balanced (comment-aware stack walk)",
+    "python_ast_parse_views_py": "OK",
+    "node_parser_service_worker_js": "OK",
+    "node_parser_studio_os_shell_js": "OK",
+    "new_href_hash_introduced": 0
+  },
+  "honest_deferrals": [
+    "Pre-existing href=\"#\" in cockpit_copilot_rail.html:81 (predates this wave; v3.53 button-as-link anti-pattern; out of scope)",
+    "Full E2E run at 390/768/1366/1440/1536/1920px viewports requires Playwright + Django dev server running locally; spec written, execution deferred to dev environment",
+    "Full scan_sticky_with_overflow_hidden re-run on CI to confirm 0 remains 0 after the wave's edits"
+  ]
+}

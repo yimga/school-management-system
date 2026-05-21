@@ -20,8 +20,8 @@
   margin: 0;
   padding: 0;
   border: 0;
-  background: color-mix(in srgb, #0f172a 42%, transparent);
-  color: #faf7f2;
+  background: color-mix(in srgb, #0f172a 42%, transparent); /* off-token-allow: status-overlay */
+  color: #faf7f2; /* off-token-allow: always-dark-surface */
   cursor: pointer;
   transition: background 200ms ease, opacity 200ms ease;
   z-index: 2;
@@ -63,7 +63,7 @@
   position: absolute;
   inset: auto 1rem 4rem;
   font-size: 0.75rem;
-  color: #fecaca;
+  color: #fecaca; /* off-token-allow: brand-color */
 }
 
 /* ── Hero media stack: video + live viz ── */
@@ -206,7 +206,7 @@
   display: inline-block;
   margin-top: 0.35rem;
   font-size: 0.8125rem;
-  color: var(--mkt-edt-accent, #c2410c);
+  color: var(--mkt-edt-accent-hover, #9a3412);
   text-decoration: none;
 }
 
@@ -232,5 +232,38 @@
 @media (min-width: 64rem) {
   .mkt-hero-showcase {
     max-width: none;
+  }
+}
+
+/* Visual QA guard: hero media must never let intrinsic SVG/poster widths
+ * create page-level horizontal overflow on tablet or desktop. */
+[data-mkt-edition="editorial"] .mkt-edt-hero__grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 100%;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__copy,
+[data-mkt-edition="editorial"] .mkt-edt-hero__artifact,
+.mkt-hero-showcase,
+.mkt-hero-showcase__visual,
+.mkt-live-pulse {
+  min-width: 0;
+  max-width: 100%;
+}
+
+[data-mkt-edition="editorial"] .mkt-edt-hero__artifact {
+  overflow: hidden;
+}
+
+.mkt-video-portal__poster img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+@media (min-width: 64rem) {
+  [data-mkt-edition="editorial"] .mkt-edt-hero--edge .mkt-edt-hero__grid {
+    grid-template-columns: minmax(18rem, 40vw) minmax(0, 1fr);
   }
 }

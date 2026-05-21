@@ -1,5 +1,106 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - batch 1373 Studio OS next-realm command-cockpit (2026-05-21)
+
+**A. Scope:** User-prompt-driven 16-phase rebuild of Studio OS into a next-realm operating environment for both platform operators and tenant school admins. Primary problem: pages cut off horizontally, worst inside Experience. 6-section parallel fan-out (Overview/Experience/Automation/Output/Launch/Control), one agent per section, clean file boundaries, coordinator integrates shell + views + SW + docket + memory + SOT + LOG.
+
+**B. Shipped:**
+- **Systemic horizontal-overflow root-cause fix** at `static/css/studio-mode-rail.css:5-20` — shared rail link rule gains `min-width:0; overflow-wrap:anywhere; word-break:break-word`. Single point covers all 4 mode rails (Experience/Output/Automation/Launch). Same architectural lesson as v3.27.1 sticky+clip / v3.25.5 reveal-armed.
+- **6 section rebuilds** with per-section CSS (`studio-{overview,experience,automation,output,launch,control}-cockpit.css`), preview-pane partials (`*_preview_pane.html`), and tests. Total new CSS ~2000 lines; 6 new partials.
+- **Shell-level integration in `templates/studio_os/shell.html`**: dead-code duplicate `{% elif current_mode == 'launch' %}` removed; new `{% elif not current_mode %}` Overview right-rail branch; PII-safe `actor_display` threaded into control audit list; inline mode-cards row replaced by `overview_command_cockpit.html` include; new Overview cockpit CSS linked.
+- **views.py wiring**: `overview_signals` 5-key dict (None → honest unknown placeholder) + `launch_health_summary`/`launch_ready` mirrored into Overview via defensive try/except wrap of `apps.setup_studio.services.get_setup_studio_payload`.
+- **studio_os__shell.js**: shared capture-phase delegated `data-rmc-confirm` handler. Reads attribute as plain text (no HTML injection). Fires before native handlers so cancellation reliably stops destructive surfaces (Automation activate/replay/rollback, Control rollback, Launch infra-apply).
+- **Service worker bumped** to `sms-v3.54.0-studio-os-next-realm-2026-05-21`.
+- **CSS retirement docket entry** § v3.54.0.
+- **Memory entry** `project_studio_os_next_realm_v3_54_2026_05_21.md` + MEMORY.md index update.
+- **6 audit JSON+MD pairs** per section in `docs/generated/studio_os_<section>_next_realm_audit_v3_54.{json,md}`.
+- **Cross-cutting synthesis docs**: `studio_os_layout_overflow_audit.{json,md}` + `studio_os_operator_tenant_mode_model.{json,md}` + `studio_os_second_pass_challenge.{json,md}` + `studio_os_next_realm_certification.{json,md}` capstone.
+- **Tests**: 6 new section modules + 5 cross-cutting modules + 5 existing extended + `tests/e2e/studio-os.spec.js` Playwright spec (6 modes × 3 breakpoints 390/768/1366).
+
+**C. Proof:** Python `ast.parse` of views.py OK; Node parser on service-worker.js + studio_os__shell.js OK; stack-based comment-aware tag-balance across all 90 `templates/studio_os/**/*.html` — all balanced; no NEW `href="#"` introduced; no `position:sticky+overflow:hidden` combos in new CSS; no `data-theme="system"` writes; no role-string literals introduced; all `.rmc-*` classes defined in their CSS files; every color in new CSS uses `var(--*)` semantic tokens.
+
+**D. Residual:** Real signal counts for `overview_signals` (Workflow approvals queue, draft theme count, etc.) deferred; `services.py::get_output_readiness_summary()` deferred; automation `paused_count`/`failing_count` service extension deferred; `launch_timeline`/`launch_approvals`/`launch_risk_summary` backend deferred; `automation_simulation_preview` payload + `automation_scope_display_name` deferred. **Test execution deferred to dev environment** (Windows test DB stale-lock per prior wave notes). Verifier runs deferred. Pre-existing `href="#"` in `cockpit_copilot_rail.html:81` predates this wave (button-as-link anti-pattern from v3.53 cockpit chrome) — out of scope.
+
+## Slice - batch 1370 Render online AI posture (2026-05-20)
+
+**A. Scope:** Render + offline schools AI strategy in-repo — cloud-first on `online`, Ollama on `edge`, guided fallback, no per-user Ollama install.
+
+**B. Shipped:** `services/ai_deployment_posture.py`; gateway tier merge + `_live_provider_configured`; LiteLLM health probe; AI Center/governance/copilot UI; `docs/AI_DEPLOYMENT_POSTURE.md`; profile-aware `ai_unavailable.py`; hygiene on docs/tests/imports.
+
+**C. Proof:** `verify_render_online_ai_posture.py` PASS; `verify_online_edge_dual_mode.py` PASS; `test_ai_deployment_posture` **13/13**; `test_ai_provider` **28/28**; `test_ai_center` operator setup tests.
+
+**D. Residual:** Production LiteLLM credentials on Render (operator); optional Playwright AI Center posture sweep.
+
+## Slice - batch 1370 Tenant Studio closeout — Ollama ops, Playwright, template audit (2026-05-20)
+
+**A. Scope:** Close deferred operator items: live Ollama ensure script, School Studio Playwright/sweep, template render safety (admin static + migration_cloud comments).
+
+**B. Shipped:** `scripts/ensure_ollama_always_on.py` + `npm run ollama:ensure`; `tests/e2e/tenant-school-studio.spec.js` + `scripts/run_tenant_studio_{e2e,abrupt_end_sweep}.sh`; sweep generator pins `/school/studio/*`; `static/admin/js/change_form.js`; migration_cloud multi-line `{# #}` → HTML comments (`audit_template_render_safety` **0** findings).
+
+**C. Proof:** `audit_template_render_safety.py` **0**; `generate_portal_tenant_sweep_routes.py --write` includes 6 studio paths; `python scripts/ensure_ollama_always_on.py --invoke` (Ollama reachable on host).
+
+**D. Residual:** Full `npm run test:e2e:tenant-studio` needs Django ready on `:8012` (cold start ~3–5 min on Windows); run locally after `ollama serve` + hosts map for `demo-school.runmycampus.com`.
+
+## Slice - batch 1369 AI + Tenant Studio audit-first rebuild (2026-05-20)
+
+**A. Scope:** Audit-first AI infrastructure + Tenant Studio/onboarding; change only proven gaps; reference prior Tenant Studio wizard work (transcript d62e45d4).
+
+**B. Shipped:** Audit pack generator + nine generated artifacts; intelligent grounded AI fallback + Ollama runtime ensure; tenant School Studio hub (`/school/studio/*`) with embedded setup assistant + coach panel; operator direction code SOT; onboarding hub link; `get_assistant` + tenant-prefixed hub link URLs (no broken `{% url %}` in tests).
+
+**C. Proof:** `generate_ai_tenant_studio_audit_pack.py --write`; `generate_ai_center_inventory.py --check`; `verify_ai_engine_room.py`; `audit_route_surface.py`; `audit_security_surface.py`; `audit_tenant_isolation.py`; `verify_doc_plan_density_discipline.py`; tenant studio + AI tests **11+** green (`test_tenant_studio_operating_system` RequestFactory, template contract, hub context, operator direction).
+
+**D. Residual:** Live Ollama always-on is operator Lane 2 (not claimed in certification); full Playwright `/school/studio/` sweep optional; pre-existing `audit_template_render_safety` admin static findings unchanged.
+
+## Slice - batch 1368 Dual-plane theme premium polish (2026-05-20)
+
+**A. Scope:** Push dual-plane theme hub/builder one notch higher — luxury glance, contrast health, builder feedback.
+
+**B. Shipped:** `theme-experience-premium.css`; glance swatches + contrast pill + last publish; `build_hub_glance_context` contrast meta; builder live contrast meter + publish-log badges; synced hub/hero preview toggles.
+
+**C. Proof:** plane isolation verifier PASS; `test_theme_experience_plane_isolation` **13/13**; Playwright contrast pill + swatch asserts on manager hub.
+
+**D. Residual:** None repo-contained; optional full-repo `portal_theme` sunset remains separate sweep.
+
+## Slice - batch 1367 Platform chrome shell coverage (2026-05-20)
+
+**A. Scope:** Platform-wide document scroll, sticky header/sidebar rail, premium chrome polish on all five canonical shells via shared partials (`/super/`, `/admin/`, portal, marketing, `base.html`).
+
+**B. Shipped:** `templates/partials/rmc_platform_chrome_{styles,scripts}.html`; `rmc-platform-chrome-{layout,premium}.css`; `rmc-cp-chrome-{offset,scroll-polish}.js`; `data-rmc-cp-scroll="document"` on shells; manager CSS conflict fixes; `verify_platform_chrome_shell_coverage.py`; sweep/surface-layout verifier updates; CI wired in `manager-surface-parity.yml` + `run_manager_surface_parity.sh`; test assertion fix + `bind_manager_session` dual-cookie hardening.
+
+**C. Proof:** `verify_platform_chrome_shell_coverage` OK; `verify_platform_chrome_sweep` OK; `verify_platform_surface_layout_contract` **16/16**; `verify_page_fold_standards` **18/18**; `verify_manager_admin_cp_layout` OK.
+
+**D. Residual:** Hard-refresh deployed hosts for SW cache; full Playwright abrupt-end sweep optional; local Windows `--keepdb` may need `--fresh` if test DB migration index drifts.
+
+## Slice - batch 1366 Dual-plane theme 100% CI + portal spine (2026-05-20)
+
+**A. Scope:** Green Playwright on CI + portal theme token spine for dual-plane prompt 100% completion.
+
+**B. Shipped:** `theme-experience-dual-plane.yml`; `run_theme_experience_dual_plane_e2e.sh` (Apple-class QA seed + host rules); `theme_experience_dual_plane.spec.js` (in-page fetch rollback, tenant hub/builder/rollback); `seed_apple_class_qa.py` + `settings.manage`; `apple_class_qa_totp.py` device fallback; `--portal-brand-mix-*` + spine burndown; `verify_portal_theme_token_spine.py`; rollback confirm UX; SW `sms-v3.52.9-theme-dual-plane-apple-qa-e2e-2026-05-20`.
+
+**C. Proof:** spine + plane + dual-plane + gear PASS; `test_theme_experience_plane_isolation` **12/12**; `run_theme_experience_dual_plane_e2e.sh` → **8 passed** (manager + tenant + forensic).
+
+**D. Residual:** Full-repo legacy `portal_theme` token sunset outside spine file list is a follow-on sweep; GitHub Actions should mirror local lane2 on ubuntu PRs.
+
+## Slice - batch 1365 Dual-plane theme Lane 2 closeout (2026-05-20)
+
+**A. Scope:** Close **1364** Lane 2 repo items — publish rollback UI, Playwright dual-host matrix spec, `portal-theme-modes.css` school-primary bridge.
+
+**B. Shipped:** `rollback_previous_publish` + publish-log/rollback APIs; builder rollback button + history panel + `theme-builder-canvas.js` wiring; `theme_experience_dual_plane.spec.js` + `npm run test:e2e:theme-dual-plane`; `verify_portal_theme_school_primary_bridge.py`; SW `sms-v3.52.0-theme-rollback-portal-bridge-2026-05-20`.
+
+**C. Proof:** `verify_theme_experience_plane_isolation` PASS; `verify_dual_plane_theme_experience` PASS; `verify_theme_experience_gear` PASS; `verify_portal_theme_school_primary_bridge` PASS; `test_theme_experience_plane_isolation` **12/12**.
+
+**D. Residual (Lane 2 / EXTERNAL only):** Run `npm run test:e2e:theme-dual-plane` on staging with manager + tenant hosts mapped; broader `portal_theme` token sunset in other CSS bundles if drift scanners expand.
+
+## Slice - batch 1364 Dual-plane theme & experience isolation (2026-05-20)
+
+**A. Scope:** Operator (`manager.runmycampus.com`) and tenant hosts each manage theme/experience independently — full mega-prompt Waves 0–D repo scope.
+
+**B. Shipped:** `theme_builder_plane.py` (split storage, publish logs, glance, palette guard); dual builder + hub fold-nav/glance/pagination; `theme_colors` plane guard; SW bump `sms-v3.51.9-dual-plane-theme-experience-2026-05-20`.
+
+**C. Proof:** `verify_theme_experience_plane_isolation` PASS; `verify_dual_plane_theme_experience` PASS; `verify_theme_experience_gear` PASS; `test_theme_experience_plane_isolation` **11/11**; `test_theme_builder` **7/7**.
+
+**D. Residual (Lane 2 only):** Playwright manager vs tenant theme matrix on staging; publish-log rollback UI button.
+
 ## Slice - Release verification batch 1363 (2026-05-20)
 
 **A. Scope:** Global migration lockdown, integration gate sweep, test hygiene, SOT lockdown after multi-batch §11.4 work.

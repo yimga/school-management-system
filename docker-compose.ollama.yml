@@ -1,0 +1,21 @@
+# Optional local stack: Ollama sidecar for Django-in-Docker dev.
+# Usage:
+#   docker compose -f docker-compose.ollama.yml up -d
+#   # On the Django container / .env:
+#   OLLAMA_BASE_URL=http://ollama:11434
+#   OLLAMA_AUTO_DISCOVER=0
+#
+# When Django runs on the host (not in this compose file), prefer OLLAMA_AUTO_DISCOVER=1
+# so host.docker.internal / 127.0.0.1 are tried automatically.
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

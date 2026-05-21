@@ -224,14 +224,14 @@ html[data-mkt-personality="platform-admissions"] .mkt-lane-admissions__step.is-a
 
 /* Admissions cinematic hero keeps dark band but personality stripe */
 html[data-mkt-personality="platform-admissions"] .mkt-admissions-hero.mkt-personality-hero {
-  color: #f8fafc;
+  color: #f8fafc; /* off-token-allow: always-dark-surface */
   background:
     var(--mkt-personality-hero-wash),
     linear-gradient(125deg, #0f172a 0%, #1e293b 48%, #312e81 100%); /* off-token-allow: decorative-gradient */
 }
 html[data-mkt-personality="platform-admissions"] .mkt-admissions-hero .mkt-personality-hero__eyebrow,
 html[data-mkt-personality="platform-admissions"] .mkt-admissions-hero .detail-eyebrow {
-  color: #a5b4fc;
+  color: #a5b4fc; /* off-token-allow: brand-color */
 }
 
 /* Platform hub module rail accent */

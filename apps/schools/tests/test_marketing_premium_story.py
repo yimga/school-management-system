@@ -34,7 +34,7 @@ class MarketingPremiumStoryTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
 
-        self.assertIn("Run your school the way your school actually runs.", body)
+        self.assertIn("Run every school day from one operating system.", body)
         self.assertIn("marketing/css/marketing-landing-v2.css", body)
         self.assertIn('data-rmc-premium-shell="marketing"', body)
         self.assertIn('data-rmc-page-purpose="public-story"', body)

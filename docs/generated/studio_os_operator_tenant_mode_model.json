@@ -1,0 +1,137 @@
+{
+  "doc": "studio_os_operator_tenant_mode_model",
+  "version": "v3.54.0",
+  "generated_at": "2026-05-21",
+  "wave": "Studio OS next-realm command-cockpit",
+  "scope": "Defines who sees / can do what across the 6 Studio OS sections, with explicit operator vs tenant capability table and the enforcement mechanism for each gate.",
+  "host_resolution": {
+    "manager_host": "request.public_host_kind == 'manager' (manager.runmycampus.com)",
+    "tenant_host": "request.public_host_kind != 'manager' (per-tenant subdomain)",
+    "tenant_resolved_from": "request.school (NEVER from POST body / query string)",
+    "tenant_isolation_marker": "# tenant-isolation-allow: <3+-part-reason> on any cross-tenant query"
+  },
+  "role_taxonomy": {
+    "operator_manager": {
+      "host": "manager",
+      "capabilities": ["platform-wide RBAC/feature-control", "cross-tenant audit", "platform-level templates", "approval queue across tenants", "infrastructure apply (rate-limited)"],
+      "auth_signals": ["request.user.is_staff", "request.user.is_superuser", "@staff_member_required decorator", "rbac-allow: super-staff-* markers"]
+    },
+    "operator_implementation_support": {
+      "host": "manager",
+      "capabilities": ["read-only audit for assigned tenants", "tenant-scoped impact preview", "limited rollback (after approval)"],
+      "auth_signals": ["request.user.is_staff with tenant-scoped permissions"]
+    },
+    "tenant_school_admin": {
+      "host": "tenant",
+      "capabilities": ["theme + experience packs for own school", "school-scoped workflows", "school-scoped reports", "school-scoped launch tasks", "school-scoped feature toggles"],
+      "auth_signals": ["request.user authenticated", "request.school.id == request.user.school_id (or membership)", "@login_required"]
+    },
+    "tenant_implementor": {
+      "host": "tenant",
+      "capabilities": ["draft mode for theme/automation/output", "request approval", "view simulation previews"],
+      "auth_signals": ["request.user.has_perm + tenant scope"]
+    }
+  },
+  "per_section_capability_matrix": {
+    "overview": {
+      "operator_sees": ["all 8 mission-signal tiles including cross-tenant counts (when overview_signals real values land)", "operator-only RBAC + feature-control chips in hub rail (--operator chip variant)", "platform-readiness summary in right-rail"],
+      "tenant_sees": ["6 of 8 mission-signal tiles (Pending launches / Draft experiences / Active automations / Output readiness % / Open blockers / Mode indicator)", "no RBAC chip", "no platform-wide feature-control chip", "tenant-scoped readiness summary"],
+      "shared": ["mode card grid (5 cards routing to each section)", "studio_guidance_panel", "recommended next action"],
+      "tenant_safe_controls": ["all 5 mode openers", "tenant-scoped readiness mirror"],
+      "operator_only_controls": ["RBAC chip", "Feature control chip"],
+      "audit_required": [],
+      "destructive_reversible": [],
+      "approval_required": [],
+      "enforcement": "Template-level: {% if request.public_host_kind == 'manager' %} gate in overview_command_cockpit.html lines 179-190."
+    },
+    "experience": {
+      "operator_sees": ["platform-level theme packs", "cross-tenant theme tokens (preview only)", "Customizer overview button"],
+      "tenant_sees": ["theme & colors (own tenant)", "school-website blocks (own)", "communication style packs (own)", "experience packs (own)", "import-from-website (own)"],
+      "shared": ["theme tokens panel", "portal shell layouts", "dashboard visual packs"],
+      "tenant_safe_controls": ["theme tokens edit (draft)", "publish own tenant", "preview as role (own tenant)"],
+      "operator_only_controls": ["platform template pack management", "cross-tenant Compare view"],
+      "audit_required": ["theme publish (writes to studio_audit + studio_version_history)"],
+      "destructive_reversible": ["rollback to prior version"],
+      "approval_required": [],
+      "enforcement": "View-level: apps/siteconfig/views.py::theme_colors gates by tenant; apps/studio_os/views.py::studio_experience_compare scopes to request.school."
+    },
+    "automation": {
+      "operator_sees": ["platform-level automation templates", "approval queue across tenants", "cross-tenant workflow health", "natural-language workflow builder"],
+      "tenant_sees": ["own school workflows", "own approval queue", "own simulation previews"],
+      "shared": ["dependency graph (scoped)", "conflict detection (scoped)", "staged activation (scoped)"],
+      "tenant_safe_controls": ["draft workflow", "simulate", "request activation"],
+      "operator_only_controls": ["platform template publish", "cross-tenant approval"],
+      "audit_required": ["all activate/deactivate/replay/rollback events"],
+      "destructive_reversible": ["replay (creates new delivery row)", "rollback to prior workflow state"],
+      "approval_required": ["activate (with destructive triggers)", "replay (data-rmc-confirm gate)"],
+      "enforcement": "Template-level: data-rmc-confirm attribute on destructive buttons → shared studio_os__shell.js handler. View-level: apps/studio_os/views.py automation views scope by tenant."
+    },
+    "output": {
+      "operator_sees": ["platform document templates", "report card builder (admin)", "cross-tenant readiness counts"],
+      "tenant_sees": ["own school documents", "own school reports", "own school credentials", "own publish/export readiness"],
+      "shared": ["dependency graph (scoped)", "branding inheritance chain"],
+      "tenant_safe_controls": ["draft report/document", "publish own", "export own"],
+      "operator_only_controls": ["platform template publish", "cross-tenant export"],
+      "audit_required": ["publish/export events"],
+      "destructive_reversible": ["unpublish (preserves version)"],
+      "approval_required": [],
+      "money_format_rule": "Use Decimal helpers (apps.finance.json_decimal.amount_str) — NEVER float() per scan_money_float baseline 0",
+      "enforcement": "Template-level: tenant-scoped iframe sources for documents/builder."
+    },
+    "launch": {
+      "operator_sees": ["platform-level infrastructure apply (rate-limited)", "cross-tenant launch readiness", "select-plan management (operator-only mutation)"],
+      "tenant_sees": ["own school infrastructure preview", "own school plan selection (read-only until approval)", "own role previews (Admin/Teacher/Parent/Student)", "own go-live state"],
+      "shared": ["infrastructure validate (dry-run)", "checklist progress"],
+      "tenant_safe_controls": ["infrastructure preview", "validate (dry-run)", "role preview", "request platform apply"],
+      "operator_only_controls": ["infrastructure apply (data-rmc-confirm + permission gate)", "platform plan management"],
+      "audit_required": ["all apply/launch events"],
+      "destructive_reversible": ["infrastructure rollback (via separate API)"],
+      "approval_required": ["infrastructure apply (operator data-rmc-confirm gated; tenant request triggers operator approval workflow)"],
+      "money_format_rule": "Plan pricing uses Decimal helpers; no float() — current select-plan body uses honest 'Coming soon' state per Agent 5 audit",
+      "enforcement": "Template-level: launch_school_infrastructure_body operator-only Apply button gated by {% if request.public_host_kind == 'manager' %} + perm check + data-rmc-confirm. View-level: school_infrastructure_apply_api returns 501 in current state (intentional — counsel docket; per memory)."
+    },
+    "control": {
+      "operator_sees": ["all audit entries (cross-tenant when staff)", "rollback control (perm-gated)", "system config console", "AI cleanup", "feature flag bridge (links external)", "dependency graph"],
+      "tenant_sees": ["own school audit entries only", "own school rollback (perm-gated)", "feature flag READS for own school", "impact analysis for own school"],
+      "shared": ["audit detail view"],
+      "tenant_safe_controls": ["view audit", "view impact analysis"],
+      "operator_only_controls": ["rollback (data-rmc-confirm + perm gate)", "AI cleanup (data-rmc-confirm + perm gate)", "system config console", "cross-tenant feature flag toggles"],
+      "audit_required": ["all rollback/cleanup/config changes — emit audit-log entries"],
+      "destructive_reversible": ["rollback (irreversible after audit-trail cutoff)"],
+      "destructive_irreversible": ["AI cleanup (purges chat history)"],
+      "approval_required": ["rollback (data-rmc-confirm + permission)", "AI cleanup (data-rmc-confirm + permission)"],
+      "pii_safety": "Audit entries render actor_display (hashed prefix OR displayed_name) — NEVER raw actor_email / _username / _slug. Same pattern as Migration Cloud audit log per CLAUDE.md.",
+      "enforcement": "View-level: studio_audit_api / studio_rollback / studio_ai_cleanup scope by user and tenant. Template-level: data-rmc-confirm + {% if perms.X %} gate on destructive buttons. shell.html control branch renders e.actor_display (PII-safe)."
+    }
+  },
+  "tenant_safety_invariants": [
+    "Tenant cannot see another tenant's previews / data — preview routes scope to request.school via tenant middleware.",
+    "Tenant cannot perform platform-level mutations — gated by request.public_host_kind == 'manager' OR @staff_member_required.",
+    "Operator cannot accidentally bleed cross-tenant audit data into tenant views — audit list filters by request.school for tenant users.",
+    "PII (email/username/slug) never rendered raw in audit lists — actor_display field used instead.",
+    "Destructive actions require data-rmc-confirm AND permission check — both gates must pass.",
+    "Role names come from apps.platform_runtime.role_registry / User.Role TextChoices — never hardcoded string literals (scan_role_strings baseline 268 holds).",
+    "AI guidance does not leak operator internals into tenant context (school slug → sha256[:8] in all logs/payloads per batch 1372 R2)."
+  ],
+  "enforcement_layer_summary": {
+    "template": ["{% if request.public_host_kind == 'manager' %}", "{% if perms.X %}", "data-rmc-confirm attribute", "{% trans %} wrapping for copy"],
+    "view": ["@login_required", "@staff_member_required for operator-only", "request.school scoping on querysets", "tenant-isolation-allow markers on intentional cross-tenant"],
+    "service": ["lazy-import + try/except for optional services", "log_exception_with_context with request_context_for_log (PII-hashed)"],
+    "javascript": ["capture-phase data-rmc-confirm handler in studio_os__shell.js — runs BEFORE native handlers so cancellation stops destructive actions"],
+    "scanner": ["scan_tenant_queryset_safety baseline 0", "scan_pii_logging_smell baseline 0", "scan_role_strings baseline 268 (pinned)", "scan_drf_schema_coverage baseline 0"]
+  },
+  "tests_proving_boundaries": [
+    "test_control_governance_cockpit.py::test_non_staff_user_blocked_from_control_canvas",
+    "test_control_governance_cockpit.py::test_audit_list_renders_actor_display_not_email",
+    "test_control_governance_cockpit.py::test_role_names_come_from_registry_not_literal",
+    "test_control_governance_cockpit.py::test_rollback_button_has_confirm_pattern_and_perm_gate",
+    "test_launch_readiness_cockpit.py::test_operator_only_apply_button_hidden_for_tenants",
+    "test_studio_os_operator_tenant_boundaries.py (cross-cutting; v3.54.0 new module)",
+    "test_overview_next_realm.py::test_operator_only_hub_chips_hidden_when_not_manager_host"
+  ],
+  "honest_deferrals": [
+    "operator_school resolution UI exists (studio_os:set_operator_school) — coordinator did not audit this wave",
+    "tenant role-preview routes per audience (Admin/Teacher/Parent/Student) use existing studio_role_preview_entries shape — real per-audience preview routes are a v3.55+ wave",
+    "automation tenant-scoped approval workflow real implementation deferred — cockpit shows honest 'no automations queued' empty state"
+  ]
+}

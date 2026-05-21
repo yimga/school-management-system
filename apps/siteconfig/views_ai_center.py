@@ -65,7 +65,7 @@ def ai_center(request: HttpRequest) -> HttpResponse:
                 break
 
     user = request.user
-    show_operator_setup = bool(
+    show_operator_ai_setup = bool(
         getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
     )
     return render_siteconfig_operator_page(
@@ -83,7 +83,7 @@ def ai_center(request: HttpRequest) -> HttpResponse:
                 else "feedback:help_center"
             ),
             "ai_feedback_url": _resolve_optional("api:ai-feedback"),
-            "show_operator_ollama_setup": show_operator_setup,
+            "show_operator_ai_setup": show_operator_ai_setup,
         },
         cp_title=_("AI Center"),
         breadcrumbs=default_operator_breadcrumbs(

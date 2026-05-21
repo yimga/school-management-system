@@ -1,11 +1,9 @@
 // @ts-check
 /** Forensic master prompt §1d — theme experience hub + builder E2E smoke. */
 const { test, expect } = require('@playwright/test');
-const { loginManager } = require('./helpers/manager-login');
+const { loginManager, MANAGER_BASE_URL } = require('./helpers/manager-login');
 
-const BASE =
-  process.env.MANAGER_BASE_URL ||
-  `http://manager.runmycampus.com:${process.env.VISUAL_QA_PORT || '8012'}`;
+const BASE = process.env.MANAGER_BASE_URL || MANAGER_BASE_URL;
 
 test.describe('Theme experience forensic', () => {
   test.beforeEach(async ({ page }) => {
@@ -30,6 +28,8 @@ test.describe('Theme experience forensic', () => {
     await expect(page.locator('#theme-builder-canvas')).toBeVisible();
     await expect(page.locator('#theme-builder-publish')).toBeVisible();
     await expect(page.locator('#theme-builder-preview')).toBeVisible();
-    await expect(page.locator('#theme-builder-block-list li')).not.toHaveCount(0);
+    await expect(page.locator('#theme-builder-block-list li').first()).toBeVisible({
+      timeout: 20000,
+    });
   });
 });

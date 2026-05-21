@@ -109,10 +109,13 @@ def _draft_status_panel() -> dict[str, Any]:
         settings, "MIGRATION_CLOUD_MAA_DEFAULT_VERSION", "v1.0",
     )
     try:
+        # v3.40.0 Agent 15 — consult the dynamic get_draft_versions()
+        # helper so the panel reflects MAAActiveVersionState (counsel-
+        # activate flips v2.0 out of the draft set without a code change).
         from apps.migration_cloud.services.maa_text import (
-            MAA_TEXT_DRAFT_VERSIONS,
+            get_draft_versions,
         )
-        draft_set = sorted(MAA_TEXT_DRAFT_VERSIONS)
+        draft_set = sorted(get_draft_versions())
     except Exception as exc:  # noqa: BLE001
         logger.warning(
             "maa_v2_promotion_dashboard_draft_set_unreadable exc_type=%s",

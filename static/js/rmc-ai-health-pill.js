@@ -66,17 +66,65 @@
 
   function describe(payload) {
     if (!payload) { return ["error", "Offline"]; }
-    if (payload.reachable && payload.provider === "ollama") {
+    if (payload.posture_label) {
       var latency = payload.latency_ms != null ? " · " + payload.latency_ms + "ms" : "";
-      return ["ok", "Online" + latency];
+      if (payload.reachable) {
+        return ["ok", payload.posture_label + latency];
+      }
+      if (payload.rules_fallback_enabled) {
+        return ["degraded", payload.posture_label];
+      }
+    }
+    if (payload.reachable && payload.provider === "litellm") {
+      var cloudLatency = payload.latency_ms != null ? " · " + payload.latency_ms + "ms" : "";
+      return ["ok", "Live — cloud AI" + cloudLatency];
+    }
+    if (payload.reachable && payload.provider === "ollama") {
+      var localLatency = payload.latency_ms != null ? " · " + payload.latency_ms + "ms" : "";
+      return ["ok", "Live — Ollama online" + localLatency];
+    }
+    if (payload.litellm_configured && payload.deployment_profile === "online") {
+      return ["degraded", "Cloud AI configured — not reachable"];
+    }
+    if (payload.ollama_configured) {
+      return ["degraded", "Ollama configured — not reachable"];
     }
     if (payload.fallback_active) {
-      return ["degraded", "Limited mode"];
+      return ["degraded", "Guided — help center & maps"];
     }
     if (payload.rules_fallback_enabled) {
-      return ["degraded", "Limited mode"];
+      return ["degraded", "Guided mode"];
     }
     return ["error", "Offline"];
+  }
+
+  function syncBadgeLabel(state, text) {
+    var label = (text || "").split(" · ")[0];
+    healthPills().forEach(function (pill) {
+      var badge = pill.querySelector("[data-rmc-ai-health-badge]");
+      if (!badge) { return; }
+      if (
+        label.indexOf("Guided") >= 0
+        || label.indexOf("help center") >= 0
+        || label.indexOf("unavailable") >= 0
+        || label.indexOf("cloud AI") >= 0
+        || label.indexOf("Ollama on server") >= 0
+      ) {
+        badge.textContent = label;
+        return;
+      }
+      if (state === "ok" && label.indexOf("cloud") >= 0) {
+        badge.textContent = "Live — cloud AI";
+      } else if (state === "ok") {
+        badge.textContent = "Live — Ollama online";
+      } else if (state === "degraded" && label.indexOf("not reachable") >= 0) {
+        badge.textContent = label.indexOf("Cloud") >= 0 ? "Cloud AI — not reachable" : "Ollama configured — not reachable";
+      } else if (state === "degraded") {
+        badge.textContent = "Guided mode";
+      } else if (state === "error") {
+        badge.textContent = "Offline";
+      }
+    });
   }
 
   function probe() {
@@ -87,6 +135,7 @@
       .then(function (json) {
         var pair = describe(json);
         applyState(pair[0], pair[1]);
+        syncBadgeLabel(pair[0], pair[1]);
       })
       .catch(function () { applyState("error", "Offline"); });
   }

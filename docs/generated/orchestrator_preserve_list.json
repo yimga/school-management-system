@@ -1,0 +1,101 @@
+{
+  "generated_at_utc": "2026-05-20T21:30:00Z",
+  "orchestrator_run_id": "rmc-orch-1370-2026-05-20",
+  "policy": "Every agent must read this list before any teardown. Touching any file in `paths_locked` without explicit handoff record is FAILURE per orchestrator N11.",
+  "preserve_list_locked": true,
+  "categories": {
+    "ai_runtime_core": {
+      "rationale": "Batch 1369 explicitly preserved AI gateway + Modelfile + grounded fallback. New cloud direction extends but does not replace these.",
+      "paths_locked": [
+        "services/ai_helpers.py",
+        "services/ai_gateway.py",
+        "services/ai_deployment_posture.py",
+        "services/ai_guided_fallback.py",
+        "services/ai_unavailable.py",
+        "services/ollama_runtime.py",
+        "ai/Modelfile"
+      ]
+    },
+    "api_center_surface": {
+      "rationale": "API Center already certified open-and-usable in prior waves (v3.31 productionization). Do not rebuild.",
+      "paths_locked": [
+        "apps/apicenter/",
+        "templates/apicenter/",
+        "docs/architecture/RUNMYCAMPUS_AI_CENTER.md",
+        "docs/architecture/RUNMYCAMPUS_AI_CENTER_API_CONTRACTS.md"
+      ]
+    },
+    "super_create_school_wizard": {
+      "rationale": "Operator-tested wizard; brand upload flow + transcript d62e45d4 guidance preserved per batch 1369.",
+      "paths_locked": [
+        "apps/schools/super_views_create_school_wizard.py",
+        "templates/schools/super_create_school_wizard.html",
+        "static/js/_pages/schools__super_create_school_wizard-1.js",
+        "apps/schools/school_brand_assets.py"
+      ]
+    },
+    "tenant_school_studio_hub": {
+      "rationale": "Batch 1369 shipped /school/studio/ hub + setup assistant + onboarding operator direction. Preserve verbatim; extend only.",
+      "paths_locked": [
+        "apps/siteconfig/tenant_studio_hub_context.py",
+        "apps/siteconfig/views_tenant_studio_hub.py",
+        "apps/platform_runtime/tenant_onboarding_operator_direction.py",
+        "templates/siteconfig/tenant_studio_hub.html"
+      ]
+    },
+    "theme_experience_dual_plane": {
+      "rationale": "Batches 1364–1366 hardened operator vs tenant theme isolation. The plane separation is load-bearing for tenant brand precedence.",
+      "paths_locked": [
+        "apps/siteconfig/theme_builder_plane.py",
+        "scripts/verify_theme_experience_plane_isolation.py",
+        "scripts/verify_dual_plane_theme_experience.py",
+        "scripts/verify_theme_experience_gear.py",
+        "scripts/verify_portal_theme_token_spine.py",
+        "docs/THEME_SYSTEM.md"
+      ]
+    },
+    "manager_assist_dock": {
+      "rationale": "Batch 1361 unified rmc-assist-dock retired fab-stack; preserve as the canonical operator helper surface.",
+      "paths_locked": [
+        "static/css/rmc-assist-dock.css",
+        "static/js/rmc-assist-dock.js",
+        "templates/partials/rmc_assist_dock_labels.html"
+      ]
+    },
+    "migration_cloud_canonical_csv_read_path": {
+      "rationale": "Read path canonical-CSV ingest is operator-attested. Vendor write paths remain counsel-blocked per [[feedback-companion-siblings-no-programmatic-sis-login]]. Read = preserve. Write = forbidden until counsel signoff.",
+      "paths_locked": [
+        "apps/migration_cloud/services/canonical_csv.py",
+        "apps/migration_cloud/api/canonical_template_views.py",
+        "companion-extension/src/vendors/",
+        "docs/COMPANION_SIBLINGS.md",
+        "docs/COMPANION_SIBLINGS_HANDSHAKE_AND_CSV_INGEST.md",
+        "docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md"
+      ]
+    },
+    "ai_deployment_posture_docs": {
+      "rationale": "Canonical cloud-first AI direction documented in batch 1370 pre-work. No agent may rewrite the policy; agents extend or wire UI to it.",
+      "paths_locked": [
+        "docs/AI_DEPLOYMENT_POSTURE.md",
+        "docs/LOCAL_HUB_MODE.md",
+        "docs/OLLAMA_OPERATIONS_AND_UPDATES.md",
+        "docs/OPERATOR_OLLAMA_AND_RENDER.md"
+      ]
+    },
+    "engineering_guides": {
+      "rationale": "CLAUDE.md + AGENTS.md are operator-curated. Agents may suggest edits but must not silently rewrite them.",
+      "paths_locked": [
+        "CLAUDE.md",
+        "AGENTS.md"
+      ]
+    },
+    "ci_zero_tolerance_baselines": {
+      "rationale": "Every var/security-audit-baseline-*.json is operator-baselined to a known finding_count. Agents NEVER bump a baseline to silence a new violation.",
+      "paths_locked": [
+        "var/security-audit-baseline-*.json"
+      ]
+    }
+  },
+  "preservation_check_required": "Every agent must list which preserve_list categories its domain intersects and confirm zero unsanctioned modifications in its final report.",
+  "verdict": "PRESERVE_LIST_LOCKED"
+}

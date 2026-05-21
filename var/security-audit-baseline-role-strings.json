@@ -7,7 +7,7 @@
   "excluded_tails": [
     "management/commands"
   ],
-  "finding_count": 268,
+  "finding_count": 285,
   "findings": [
     {
       "line": 44,
@@ -130,32 +130,32 @@
       "role": "PROPRIETOR"
     },
     {
-      "line": 33,
-      "path": "apps/accounts/signals.py",
-      "role": "ADMIN"
-    },
-    {
-      "line": 34,
+      "line": 45,
       "path": "apps/accounts/signals.py",
       "role": "ADMIN"
     },
     {
       "line": 46,
       "path": "apps/accounts/signals.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 58,
+      "path": "apps/accounts/signals.py",
       "role": "TEACHER"
     },
     {
-      "line": 50,
+      "line": 62,
       "path": "apps/accounts/signals.py",
       "role": "PROPRIETOR"
     },
     {
-      "line": 55,
+      "line": 67,
       "path": "apps/accounts/signals.py",
       "role": "PARENT"
     },
     {
-      "line": 56,
+      "line": 68,
       "path": "apps/accounts/signals.py",
       "role": "STUDENT"
     },
@@ -165,37 +165,37 @@
       "role": "ADMIN"
     },
     {
-      "line": 1012,
+      "line": 1063,
       "path": "apps/accounts/views.py",
       "role": "PARENT"
     },
     {
-      "line": 1016,
+      "line": 1067,
       "path": "apps/accounts/views.py",
       "role": "TEACHER"
     },
     {
-      "line": 2480,
+      "line": 2557,
       "path": "apps/accounts/views.py",
       "role": "ADMIN"
     },
     {
-      "line": 2482,
+      "line": 2559,
       "path": "apps/accounts/views.py",
       "role": "PROPRIETOR"
     },
     {
-      "line": 2485,
+      "line": 2562,
       "path": "apps/accounts/views.py",
       "role": "PARENT"
     },
     {
-      "line": 2485,
+      "line": 2562,
       "path": "apps/accounts/views.py",
       "role": "STUDENT"
     },
     {
-      "line": 2485,
+      "line": 2562,
       "path": "apps/accounts/views.py",
       "role": "TEACHER"
     },
@@ -360,7 +360,7 @@
       "role": "STUDENT"
     },
     {
-      "line": 40,
+      "line": 39,
       "path": "apps/api/entity_api.py",
       "role": "ADMIN"
     },
@@ -495,32 +495,32 @@
       "role": "PROPRIETOR"
     },
     {
-      "line": 93,
+      "line": 134,
       "path": "apps/api/views_v1.py",
       "role": "PARENT"
     },
     {
-      "line": 1877,
+      "line": 1889,
       "path": "apps/api/views_v1.py",
       "role": "TEACHER"
     },
     {
-      "line": 1878,
+      "line": 1890,
       "path": "apps/api/views_v1.py",
       "role": "ADMIN"
     },
     {
-      "line": 1970,
+      "line": 1982,
       "path": "apps/api/views_v1.py",
       "role": "ADMIN"
     },
     {
-      "line": 2095,
+      "line": 2107,
       "path": "apps/api/views_v1.py",
       "role": "ADMIN"
     },
     {
-      "line": 38,
+      "line": 56,
       "path": "apps/apicenter/views.py",
       "role": "ADMIN"
     },
@@ -635,7 +635,7 @@
       "role": "STUDENT"
     },
     {
-      "line": 194,
+      "line": 198,
       "path": "apps/compliance/models_audit.py",
       "role": "ADMIN"
     },
@@ -745,52 +745,62 @@
       "role": "ADMIN"
     },
     {
-      "line": 126,
+      "line": 164,
       "path": "apps/feedback/models.py",
       "role": "STUDENT"
     },
     {
-      "line": 22,
+      "line": 24,
       "path": "apps/feedback/services.py",
       "role": "ADMIN"
     },
     {
-      "line": 28,
+      "line": 30,
       "path": "apps/feedback/services.py",
       "role": "PROPRIETOR"
     },
     {
-      "line": 67,
+      "line": 77,
       "path": "apps/feedback/services.py",
       "role": "PARENT"
     },
     {
-      "line": 67,
+      "line": 77,
       "path": "apps/feedback/services.py",
       "role": "STUDENT"
     },
     {
-      "line": 87,
+      "line": 211,
       "path": "apps/feedback/services.py",
       "role": "STUDENT"
     },
     {
-      "line": 194,
+      "line": 393,
       "path": "apps/feedback/services.py",
       "role": "TEACHER"
     },
     {
-      "line": 196,
+      "line": 395,
       "path": "apps/feedback/services.py",
       "role": "PARENT"
     },
     {
-      "line": 34,
+      "line": 222,
+      "path": "apps/feedback/views.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 225,
+      "path": "apps/feedback/views.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 46,
       "path": "apps/finance/api_views.py",
       "role": "ADMIN"
     },
     {
-      "line": 127,
+      "line": 139,
       "path": "apps/finance/api_views.py",
       "role": "ADMIN"
     },
@@ -800,7 +810,7 @@
       "role": "STUDENT"
     },
     {
-      "line": 1289,
+      "line": 1305,
       "path": "apps/finance/services.py",
       "role": "PARENT"
     },
@@ -815,22 +825,22 @@
       "role": "ADMIN"
     },
     {
-      "line": 277,
+      "line": 283,
       "path": "apps/observability/views.py",
       "role": "ADMIN"
     },
     {
-      "line": 298,
+      "line": 304,
       "path": "apps/observability/views.py",
       "role": "ADMIN"
     },
     {
-      "line": 1481,
+      "line": 1477,
       "path": "apps/observability/views.py",
       "role": "ADMIN"
     },
     {
-      "line": 870,
+      "line": 878,
       "path": "apps/people/models.py",
       "role": "STUDENT"
     },
@@ -840,7 +850,7 @@
       "role": "ADMIN"
     },
     {
-      "line": 524,
+      "line": 523,
       "path": "apps/people/views_backend.py",
       "role": "ADMIN"
     },
@@ -870,12 +880,12 @@
       "role": "ADMIN"
     },
     {
-      "line": 390,
+      "line": 394,
       "path": "apps/platform_runtime/administration_catalog.py",
       "role": "ADMIN"
     },
     {
-      "line": 402,
+      "line": 406,
       "path": "apps/platform_runtime/administration_catalog.py",
       "role": "TEACHER"
     },
@@ -920,17 +930,17 @@
       "role": "TEACHER"
     },
     {
-      "line": 152,
+      "line": 154,
       "path": "apps/portal/views_ai_copilot.py",
       "role": "ADMIN"
     },
     {
-      "line": 574,
+      "line": 606,
       "path": "apps/portal/views_ai_copilot.py",
       "role": "ADMIN"
     },
     {
-      "line": 611,
+      "line": 643,
       "path": "apps/portal/views_ai_copilot.py",
       "role": "ADMIN"
     },
@@ -1025,6 +1035,31 @@
       "role": "ADMIN"
     },
     {
+      "line": 39,
+      "path": "apps/schools/dashboard_rbac.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 42,
+      "path": "apps/schools/dashboard_rbac.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 52,
+      "path": "apps/schools/dashboard_rbac.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 53,
+      "path": "apps/schools/dashboard_rbac.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 54,
+      "path": "apps/schools/dashboard_rbac.py",
+      "role": "STUDENT"
+    },
+    {
       "line": 19,
       "path": "apps/schools/hierarchy_helpers.py",
       "role": "ADMIN"
@@ -1035,17 +1070,17 @@
       "role": "PROPRIETOR"
     },
     {
-      "line": 921,
+      "line": 954,
       "path": "apps/schools/section8_views.py",
       "role": "ADMIN"
     },
     {
-      "line": 923,
+      "line": 956,
       "path": "apps/schools/section8_views.py",
       "role": "TEACHER"
     },
     {
-      "line": 925,
+      "line": 958,
       "path": "apps/schools/section8_views.py",
       "role": "PARENT"
     },
@@ -1090,12 +1125,22 @@
       "role": "ADMIN"
     },
     {
-      "line": 111,
+      "line": 172,
+      "path": "apps/siteconfig/command_bar_registry.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 172,
+      "path": "apps/siteconfig/command_bar_registry.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 129,
       "path": "apps/siteconfig/context_processors.py",
       "role": "TEACHER"
     },
     {
-      "line": 112,
+      "line": 130,
       "path": "apps/siteconfig/context_processors.py",
       "role": "PARENT"
     },
@@ -1245,34 +1290,59 @@
       "role": "TEACHER"
     },
     {
-      "line": 268,
+      "line": 273,
       "path": "apps/siteconfig/models_support.py",
       "role": "ADMIN"
     },
     {
-      "line": 269,
+      "line": 274,
       "path": "apps/siteconfig/models_support.py",
       "role": "ADMIN"
     },
     {
-      "line": 270,
+      "line": 275,
       "path": "apps/siteconfig/models_support.py",
       "role": "ADMIN"
     },
     {
-      "line": 314,
+      "line": 319,
       "path": "apps/siteconfig/models_support.py",
       "role": "TEACHER"
     },
     {
-      "line": 315,
+      "line": 320,
       "path": "apps/siteconfig/models_support.py",
       "role": "TEACHER"
     },
     {
-      "line": 315,
+      "line": 320,
       "path": "apps/siteconfig/models_support.py",
       "role": "TEACHER"
+    },
+    {
+      "line": 97,
+      "path": "apps/siteconfig/permission_matrix_simulator.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 97,
+      "path": "apps/siteconfig/permission_matrix_simulator.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 99,
+      "path": "apps/siteconfig/permission_matrix_simulator.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 105,
+      "path": "apps/siteconfig/permission_matrix_simulator.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 144,
+      "path": "apps/siteconfig/permission_matrix_simulator.py",
+      "role": "ADMIN"
     },
     {
       "line": 253,
@@ -1335,12 +1405,12 @@
       "role": "ADMIN"
     },
     {
-      "line": 438,
+      "line": 439,
       "path": "apps/siteconfig/views.py",
       "role": "ADMIN"
     },
     {
-      "line": 508,
+      "line": 509,
       "path": "apps/siteconfig/views.py",
       "role": "ADMIN"
     },
@@ -1348,9 +1418,24 @@
       "line": 30,
       "path": "apps/siteconfig/views_package_rollback.py",
       "role": "ADMIN"
+    },
+    {
+      "line": 115,
+      "path": "apps/siteconfig/views_zero_ticket_hub.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 157,
+      "path": "apps/siteconfig/views_zero_ticket_hub.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 184,
+      "path": "apps/siteconfig/views_zero_ticket_hub.py",
+      "role": "TEACHER"
     }
   ],
-  "generated_at": "2026-05-17T22:29:58+00:00",
+  "generated_at": "2026-05-21T11:24:55+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

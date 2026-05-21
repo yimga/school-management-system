@@ -23,6 +23,7 @@ from . import (
     views_connectors,
     views_dsar_admin,
     views_health,
+    views_maa_counsel_activate,
     views_maa_promotion,
     views_smoke_history,
     views_smoke_trigger,
@@ -105,6 +106,8 @@ urlpatterns = [
     path("operator/webhooks/<int:sub_id>/deactivate/", views_webhook_admin.MigrationCloudWebhookDeactivateView.as_view(), name="operator_webhook_deactivate"),  # rbac-allow: super-staff-webhook-subscription-deactivate
     # v3.35.0 Agent 3 — MAA v2.0 promotion-readiness operator dashboard.
     path("maa-v2-promotion/", views_maa_promotion.MAA_V2_PromotionDashboardView.as_view(), name="maa_v2_promotion_dashboard"),  # rbac-allow: super-staff-view-maa-promotion-status
+    # v3.40.0 Agent 15 — MAA v2.0 counsel-activate UI (operator GET + POST flip).
+    path("maa/v2-counsel-activate/", views_maa_counsel_activate.MAACounselActivateView.as_view(), name="maa_counsel_activate"),  # rbac-allow: super-staff-maa-counsel-activate
     # v3.38.0 Agent 5 — tamper-evident audit log dashboard + JSONL export.
     path("audit/", views_audit_admin.MigrationCloudAuditView.as_view(), name="audit_dashboard"),  # rbac-allow: super-staff-audit-event-dashboard
     path("audit/export/", views_audit_admin.MigrationCloudAuditExportView.as_view(), name="audit_export"),  # rbac-allow: super-staff-audit-event-export

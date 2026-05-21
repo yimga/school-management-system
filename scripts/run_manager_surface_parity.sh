@@ -33,6 +33,10 @@ fi
 
 "${PYTHON_CMD}" scripts/verify_theme_visibility_platform.py
 "${PYTHON_CMD}" scripts/verify_backend_base_shell_routing.py
+"${PYTHON_CMD}" scripts/verify_platform_chrome_shell_coverage.py
+"${PYTHON_CMD}" scripts/verify_platform_chrome_sweep.py
+"${PYTHON_CMD}" scripts/verify_platform_surface_layout_contract.py
+"${PYTHON_CMD}" scripts/verify_page_fold_standards.py
 "${PYTHON_CMD}" scripts/verify_manager_admin_cp_layout.py
 "${PYTHON_CMD}" scripts/verify_super_admin_surface_parity.py --write
 "${PYTHON_CMD}" manage.py test \

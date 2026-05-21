@@ -1,13 +1,13 @@
 # Marketing frontend conversion defect log
 
-- **Generated:** `2026-05-19T11:30:02Z`
+- **Generated:** `2026-05-21T10:50:47Z`
 - **Surface:** runmycampus.com public marketing (Django templates + static/marketing/)
 - **Wave:** v3.35.3 + v3.37.1 impact + v3.37.2 gear-up — see `docs/CSS_RETIREMENT_DOCKET.md`
 
 ## Bundle metrics (post-fix)
 
-- Critical min.css: **15,929** bytes
-- Enhanced min.css: **246,204** bytes (deferred)
+- Critical min.css: **21,451** bytes
+- Enhanced min.css: **284,220** bytes (deferred)
 
 ## Defect register
 
@@ -26,7 +26,7 @@
 | I1 | high | UX / impact | fixed | Bell timeline + persona tabs showed full-screen dashboards with low narrative impact | Single-panel bell clock + constrained mkt-v3-dashboard-frame--impact + story metric column |
 | I2 | high | UX / contrast | fixed | World map labels used #1F2937 on cinematic dark background (illegible / blurred) | mkt-world-map currentColor labels + HTML caption block + marketing-impact.css cinematic tokens |
 | I3 | medium | conversion | fixed | Hero lacked live simulated campus dashboard (prompt live-campus pulse) | _hero_live_campus_pulse.html + mkt-live-campus-pulse.js SVG/CSS animations |
-| I4 | medium | media | fixed | Walkthrough lacked accessible glass video portal with play/pause | _video_portal.html + mkt-video-portal.js on marketing_landing_v2.html |
+| I4 | medium | media | fixed | Walkthrough needed an accessible preview surface without fake video controls | _video_portal.html poster-mode preview + animated walkthrough when footage is absent |
 | I5 | medium | IA / lanes | fixed | No short routes or lane-aware chrome accents for academics/admissions/finance | /academics/ /admissions/ /finance/ redirects + mkt-lane-chrome.js + lane tokens in tokens-marketing.css |
 | I6 | low | i18n | fixed | Pricing matrix could clip on verbose locales | marketing-impact.css table-layout fixed + overflow-wrap anywhere on mkt-v3-pricing-matrix |
 | Q1 | high | Sweep 2 QA | fixed | Responsive impact sections not gated for horizontal scroll on mobile | tests/e2e/marketing-impact-responsive.spec.js + verify_marketing_sweep2.py |

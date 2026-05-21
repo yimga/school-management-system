@@ -3,11 +3,21 @@
  * Prevents hidden footer actions and clipped chart panels across breakpoints.
  */
 
-html[data-rmc-shell-root="control-plane-skeleton"],
 html[data-rmc-shell-root="portal"],
 html[data-rmc-shell-root="backend"],
 html[data-rmc-premium-shell="portal"] {
   height: 100%;
+}
+
+/* Document scroll: let html grow with body (sticky chrome + sidebar need this). */
+html[data-rmc-shell-root="control-plane-skeleton"]:has(
+    body.control-plane-shell[data-rmc-cp-scroll="document"]
+  ),
+html[data-rmc-shell-root="control-plane-skeleton"]:has(
+    body.admin-manager-shell[data-rmc-cp-scroll="document"]
+  ) {
+  height: auto;
+  min-height: 100%;
 }
 
 body.control-plane-shell:not([data-rmc-cp-scroll="document"]),
@@ -20,13 +30,17 @@ body.backend-shell-body {
   overflow: hidden;
 }
 
-body.control-plane-shell[data-rmc-cp-scroll="document"] {
+body.control-plane-shell[data-rmc-cp-scroll="document"],
+body.portal-body-with-layout[data-rmc-cp-scroll="document"],
+body.backend-shell[data-rmc-cp-scroll="document"] {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-x: clip;
   overflow-y: auto;
+  height: auto;
+  max-height: none;
 }
 
 /* Manager /admin/: main-column scroll inside .admin-cp-unified-page (see admin-cp-parity.css). */
@@ -36,9 +50,9 @@ body.control-plane-shell[data-rmc-cp-scroll="main"] {
   max-height: 100vh;
 }
 
-.cp-shell-content,
-[data-rmc-shell-main-scroll],
-#dashboard-layout {
+body.control-plane-shell:not([data-rmc-cp-scroll="document"]) .cp-shell-content,
+body:not([data-rmc-cp-scroll="document"]) [data-rmc-shell-main-scroll],
+body:not([data-rmc-cp-scroll="document"]) #dashboard-layout {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;

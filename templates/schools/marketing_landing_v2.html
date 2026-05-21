@@ -2,7 +2,7 @@
 {% load static i18n %}
 {% load terminology_tags %}
 
-{% block title %}RunMyCampus · Run your school the way your school actually runs{% endblock %}
+{% block title %}RunMyCampus · Education operating system for modern schools{% endblock %}
 
 {% block extrastyle %}
   {{ block.super }}
@@ -18,7 +18,6 @@
   {{ block.super }}
   <script src="{% static 'marketing/js/mkt-live-campus-pulse.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-video-portal.js' %}" defer></script>
-  <script src="{% static 'marketing/js/mkt-walkthrough-play.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-day-role-toggle.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-globe-tooltips.js' %}" defer></script>
   {% include "partials/rmc_analytics_viz_bundle.html" %}
@@ -111,6 +110,10 @@
 
   <hr class="mkt-edt-rule">
 
+  {% include "marketing/components/_home_category_proof_rails.html" %}
+
+  <hr class="mkt-edt-rule">
+
   {# ───────── 2.5  "WHAT CHANGES" — ROI PANEL ───────── #}
   <section class="mkt-edt-section mkt-edt-roi mkt-edt-roi--edge rmc-reveal" aria-labelledby="roi-headline" data-mkt-reveal data-tour="mkt-roi">
     <div class="mkt-edt-container mkt-edt-container--wide">
@@ -159,7 +162,7 @@
     <span class="mkt-section-divider__mark">{% include "components/_bell_clock_mark.html" with size=24 filled_segments=3 accessible_label="" %}</span>
   </div>
 
-  {# ───────── 2.97  60-SECOND WALKTHROUGH VIDEO ───────── #}
+  {# ───────── 2.97  60-SECOND PRODUCT WALKTHROUGH ───────── #}
   <section class="mkt-edt-section mkt-edt-walkthrough mkt-edt-walkthrough--edge mkt-v3-cinematic rmc-reveal" aria-labelledby="walkthrough-headline" data-mkt-reveal data-mkt-section="walkthrough" data-tour="mkt-walkthrough">
     <div class="mkt-edt-container mkt-edt-container--wide">
       <header class="mkt-edt-walkthrough__intro">
@@ -168,52 +171,39 @@
           {% trans "The shape of a school day, in one minute." %}
         </h2>
         <p class="mkt-edt-lead">
-          {% trans "Watch the rhythm move through the platform — from the morning bell at Cedar Ridge to the night-time reconciliation that sets up tomorrow." %}
+          {% trans "Follow the rhythm through the platform — from the morning bell at Cedar Ridge to the night-time reconciliation that sets up tomorrow." %}
         </p>
       </header>
 
       {% comment %}
-      Auto-cycling preview that swaps to a real <video> the moment we have
-      walkthrough footage. The progressive-enhancement pattern: <video>
-      falls back to its poster SVG, poster SVG falls back to the inlined
-      animated reel. Anchor wrapper keeps the whole thing clickable.
+      Auto-cycling preview until real walkthrough footage exists. The media
+      portal renders a poster-only product preview here, and the inlined SVG
+      reel below is the canonical visual tour.
       {% endcomment %}
       <div class="mkt-edt-walkthrough__portal-wrap rmc-reveal">
         {% include "marketing/components/_video_portal.html" with portal_id="mkt-walkthrough-portal" portal_label=_("Animated product preview") show_video_source=False poster_src="marketing/img/hero-home-poster.svg" %}
       </div>
 
-      <button type="button" class="mkt-edt-walkthrough__poster mkt-edt-walkthrough__poster--secondary" aria-label="{% trans 'Play the 60-second walkthrough' %}" data-mkt-walkthrough-play data-mkt-tactile>
+      <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-walkthrough__poster mkt-edt-walkthrough__poster--secondary" aria-label="{% trans 'Open the product walkthrough' %}" data-mkt-tactile data-cta="product-tour" data-page="home-walkthrough">
         <figure class="mkt-edt-walkthrough__stage" aria-hidden="true">
-          {% comment %} Poster intentionally omitted — the inlined SVG reel
-             at .mkt-edt-walkthrough__reel below provides the visual fallback
-             until real <source> footage is wired in. {% endcomment %}
-          {% comment %} <video> + empty <source> intentionally absent — they created an empty
-             <source src=""> request and some browsers logged decode warnings. The
-             inlined SVG reel below is the canonical visual until real walkthrough
-             footage is wired in. Drop a <video> block back in here (with a real
-             <source>) once footage exists. {% endcomment %}
+          {% comment %} The inlined SVG reel is the canonical visual walkthrough
+             until real footage exists. {% endcomment %}
           <div class="mkt-edt-walkthrough__reel">
             {% include "schools/_v2/_decoration_walkthrough_reel.svg.html" %}
           </div>
           <div class="mkt-edt-walkthrough__overlay">
-            <div class="mkt-edt-walkthrough__play">
-              <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="32" cy="32" r="30" fill="rgba(31,41,55,0.92)" stroke="rgba(250,247,242,0.4)" stroke-width="1"/>
-                <path d="M 26 22 L 26 42 L 44 32 Z" fill="#FAF7F2"/>
-              </svg>
-            </div>
             <div class="mkt-edt-walkthrough__chip">
               <span class="mkt-edt-walkthrough__dot" aria-hidden="true"></span>
-              <span>{% trans "60-second walkthrough" %}</span>
+              <span>{% trans "Animated product walkthrough" %}</span>
             </div>
           </div>
         </figure>
         <div class="mkt-edt-walkthrough__caption">
           <span class="mkt-edt-walkthrough__chapter">{% trans "5 scenes · 0:60 total" %}</span>
           <span class="mkt-edt-walkthrough__chapter-title">{% trans "Morning bell → stand-up → lunch → dismissal → close" %}</span>
-          <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-walkthrough__tour-link">{% trans "Full product tour" %} →</a>
+          <span class="mkt-edt-walkthrough__tour-link">{% trans "Full product tour" %} →</span>
         </div>
-      </button>
+      </a>
 
       <ul class="mkt-edt-walkthrough__index" aria-label="{% trans 'Walkthrough chapters' %}">
         <li><strong>02</strong> · {% trans "Migration weeks (4 min)" %}</li>

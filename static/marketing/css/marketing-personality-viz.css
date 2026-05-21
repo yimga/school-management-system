@@ -136,9 +136,9 @@ html[data-mkt-personality-os="communicate"] .mkt-personality-viz {
 /* Developers — dark terminal band */
 html[data-mkt-personality="developers"] .mkt-personality-viz {
   background: color-mix(in srgb, #0f172a 92%, var(--mkt-edt-bg) 8%); /* off-token-allow: decorative-gradient */
-  color: #e2e8f0;
+  color: #e2e8f0; /* off-token-allow: always-dark-surface */
 }
 html[data-mkt-personality="developers"] .mkt-personality-viz__metric-value,
 html[data-mkt-personality="developers"] .mkt-personality-viz__caption {
-  color: #f1f5f9;
+  color: #f1f5f9; /* off-token-allow: always-dark-surface */
 }

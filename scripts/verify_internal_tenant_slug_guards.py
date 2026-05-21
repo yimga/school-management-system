@@ -31,7 +31,7 @@ _RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    args = parser.parse_args()
+    parser.parse_args()
     failures: list[str] = []
     for rel, needles in _RULES:
         path = ROOT / rel

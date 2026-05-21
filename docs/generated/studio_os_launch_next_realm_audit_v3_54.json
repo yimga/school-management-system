@@ -1,0 +1,172 @@
+{
+  "wave": "studio-os-next-realm-launch-section-v3.54",
+  "agent": "Agent 5 (Launch)",
+  "date": "2026-05-21",
+  "scope": "templates/studio_os/modes/launch.html + launch partials + workspace/launch_{rail,canvas}.html + launch CSS + launch tests",
+
+  "launch_surface_inventory": {
+    "mode_shell": "templates/studio_os/modes/launch.html",
+    "routes": [
+      "studio_os:launch (mode=launch)",
+      "studio_os:launch_select_plan",
+      "studio_os:school_infrastructure_preview_api",
+      "studio_os:school_infrastructure_validate_api",
+      "studio_os:school_infrastructure_apply_api"
+    ],
+    "panes": [
+      "overview", "onboarding", "create_school", "plan",
+      "blueprints", "infrastructure", "branding", "migration",
+      "role_preview", "checklist"
+    ],
+    "iframe_panes": ["onboarding", "create_school", "blueprints", "branding", "checklist", "migration"],
+    "native_panes": ["overview", "plan", "role_preview", "infrastructure"],
+    "context_vars_provided_by_studio_shell": [
+      "launch_payload (dict|None)",
+      "launch_role_previews (list)",
+      "launch_health_summary (str)",
+      "launch_ready (bool)",
+      "launch_studio_base_url (str)",
+      "launch_left_rail (list of {label, url, pane})",
+      "launch_pane (str)",
+      "launch_iframe_src (str)",
+      "school_template_summaries (list)",
+      "platform_catalog_valid (bool)",
+      "current_blueprint_reference (dict|None)"
+    ],
+    "launch_payload_keys_observed": [
+      "current_step_key", "current_step", "completed_keys",
+      "progress_percent", "step_state", "recommendations",
+      "role_previews", "preview_cards", "preview_workspace",
+      "launch_checklist", "launch_blockers", "launch_orchestration",
+      "health_score", "health_breakdown", "health_summary",
+      "launch_ready", "recommended_blueprint", "blueprint_rankings",
+      "recommended_starter_stack", "migration_path_flow",
+      "data_path_choices", "recommended_next", "registry_alignment",
+      "steps"
+    ]
+  },
+
+  "overflow_risks": [
+    {
+      "file": "templates/studio_os/partials/launch_school_infrastructure_body.html",
+      "issue": "diff table (#studio-infra-diff) is .table-bordered without explicit scroll wrapper; 'After' column gets a stringified module list capped at 500 chars (school_infrastructure.py L246) which can blow out narrow viewports",
+      "severity": "high",
+      "fix": "wrap in .rmc-launch-table-scroll with overflow-x:auto; min-width:0 on flex parents; rmc-data-table already has scroll-policy but the cell content needs wrapping (word-break: break-word)"
+    },
+    {
+      "file": "templates/studio_os/partials/launch_studio_overview_body.html",
+      "issue": "starter stack rendered as comma-joined inline list (line 112); registry_alignment.key_rows have 'value' with text-break but long values can still push the flex-row",
+      "severity": "medium",
+      "fix": "ensure all key_rows / starter stack cells inherit min-width:0 from token-driven .rmc-launch-row"
+    },
+    {
+      "file": "templates/studio_os/partials/launch_studio_role_preview_pane.html",
+      "issue": "role-preview <li> uses btn block with detail wrapped d-block; long detail strings overflow when role label is long",
+      "severity": "low",
+      "fix": "min-width:0 + word-break:break-word on .rmc-launch-role-card"
+    },
+    {
+      "file": "templates/studio_os/partials/workspace/launch_canvas.html",
+      "issue": "iframe canvas uses .studio-os-iframe with no explicit width:100% guarantee on the parent .rmc-studio-workspace__main when launch_left_rail is wide on narrow viewports",
+      "severity": "low",
+      "fix": "ensure .rmc-launch-canvas { min-width: 0 }"
+    },
+    {
+      "file": "templates/studio_os/partials/launch_mode_canvas.html",
+      "issue": "manager-host branch (request.public_host_kind == 'manager' && launch_left_rail) drops the side rail but still renders inside the same workspace wrapper — fine; no overflow",
+      "severity": "none"
+    }
+  ],
+
+  "launch_readiness_model": {
+    "launch_ready": "Set by apps.setup_studio.services.compile_setup_studio(): launch_ready = not launch_blockers",
+    "health_score": "Computed in _score(step_state) — 0..100",
+    "checklist": "launch_payload.steps[] -- each {key, order, label, description, done, status, group, link, recommended_choice, evidence}",
+    "blockers": "launch_payload.launch_blockers[] -- list of dicts surfacing what's not done (specific shape varies; payload uses len() and existence checks only)",
+    "approvals_required": "NOT explicitly modeled today. There is no 'approvals' field on the payload. Operator gating is by request.public_host_kind == 'manager' for cross-tenant actions only.",
+    "rollout_timeline": "NOT in context. migration_path_flow exists for migration-from-old-SIS but is not a rollout timeline.",
+    "launch_blockers_present": "Yes, surfaced as count text but no detail list rendering in current templates",
+    "gaps": [
+      "No 'approvals' list (counsel / billing / IT signoff) in payload",
+      "No discrete 'rollout_timeline' context var (T-7 day / launch-day / T+7 day)",
+      "No 'risk_summary' field",
+      "Launch blockers shown as count only — never rendered as list with severity tones",
+      "execute_launch() service exists in setup_studio/services.py but no UI button calls it (good — operator gating, but no visible 'Go live' affordance)"
+    ]
+  },
+
+  "operator_vs_tenant_responsibility_map": {
+    "operator_only": [
+      "Apply school infrastructure pack (apply API returns 501; platform-governed)",
+      "Approve plan provisioning / billing entitlement",
+      "Govern blueprint rollback",
+      "Execute go-live (execute_launch service)"
+    ],
+    "tenant_responsibilities": [
+      "Complete onboarding steps (school profile, term, theme, content)",
+      "Sign roles / invite staff",
+      "Preview by role to validate trust + brand before go-live",
+      "Choose plan tier (when productized)",
+      "Configure school infrastructure template selection (preview only; apply requested via operator)"
+    ],
+    "gating_signal": "request.public_host_kind == 'manager' separates operator UI from tenant UI"
+  },
+
+  "role_preview_pane_audit": {
+    "file": "templates/studio_os/partials/launch_studio_role_preview_pane.html",
+    "current_behavior": "Renders launch_role_previews list as buttons with optional detail strings; empty state with onboarding + overview CTAs",
+    "data_source": "launch_payload.role_previews from setup_studio.services",
+    "roles_supported": "Whatever setup_studio populates — typically admin/teacher/parent/student/portal (driven by school context)",
+    "honest_empty_state_already_in_place": true,
+    "improvements_needed": "Apply Apple-tier polish + rmc-launch-* grammar; per-role iconography via Bootstrap Icons (existing pattern); show role-pillar at-a-glance grid not just buttons; ensure no overflow on long role names"
+  },
+
+  "required_actions_per_file": {
+    "templates/studio_os/modes/launch.html": "MINOR: link new studio-launch-cockpit.css; keep mode hero",
+    "templates/studio_os/partials/launch_mode_canvas.html": "MINOR REPAIR: pass-through fine; consider wrapper class for cockpit framing",
+    "templates/studio_os/partials/launch_school_infrastructure_body.html": "AGGRESSIVE REFACTOR: add current-state panel + preview-of-apply card + validation errors list + 'Open platform admin' CTA replacing fake Apply (apply API returns 501)",
+    "templates/studio_os/partials/launch_select_plan_body.html": "AGGRESSIVE REFACTOR: build honest 'coming soon' card with what tenants/operators can do today; pricing display via Decimal helpers when productized",
+    "templates/studio_os/partials/launch_studio_overview_body.html": "AGGRESSIVE REFACTOR: convert from card-list to launch readiness command center — health % gauge, blockers list with severity, checklist progress, approvals (operator-only, honest empty), timeline section (honest empty if no context var), go-live status, risk summary",
+    "templates/studio_os/partials/launch_studio_role_preview_pane.html": "MINOR REPAIR: extend with rmc-launch-* polish",
+    "templates/studio_os/partials/workspace/launch_canvas.html": "MINOR REPAIR: keep dispatch; canvas wrapper class",
+    "templates/studio_os/partials/workspace/launch_rail.html": "MINOR REPAIR: enrich with Bootstrap icons per pane; preserve all existing entries; add aria-current",
+    "NEW templates/studio_os/partials/launch_readiness_preview_pane.html": "CREATE: honest per-role preview cockpit",
+    "NEW static/css/studio-launch-cockpit.css": "CREATE: .rmc-launch-* grammar — semantic tokens only",
+    "NEW apps/studio_os/tests/test_launch_readiness_cockpit.py": "CREATE: render + a11y + gating + overflow guard + money-float scan"
+  },
+
+  "coordinator_tasks_for_other_agents": [
+    {
+      "to": "Agent owning apps/studio_os/views.py + apps/setup_studio/services.py",
+      "task": "Add 'launch_timeline' context var to studio_shell mode=='launch' branch (list of {label, date, status_tone, detail, ok}). Honest empty list when not modeled. Optionally extend setup_studio payload with 'approvals' (list of {label, owner, status, ok}) and 'risk_summary' (list of {tone, text, mitigation}).",
+      "rationale": "Required for next-realm readiness command center. Current launch_payload has health + blockers + checklist but not timeline or approvals."
+    },
+    {
+      "to": "Agent owning apps/studio_os/views.py",
+      "task": "Confirm launch_studio_overview_body.html is owned by Launch (Agent 5). Name 'studio_overview' is misleading. If kept in Launch, Agent 5 has refactored aggressively. If it's actually consumed by Overview/Agent 1, revert to regression-only patch.",
+      "rationale": "Filename ambiguity flagged in handoff."
+    },
+    {
+      "to": "Agent owning apps/studio_os/views.py",
+      "task": "Consider exposing a 'launch_can_request_apply' bool when current_blueprint_reference is set + tenant_safe_apply==false; today UI must infer from preview JSON.",
+      "rationale": "Tightens operator-vs-tenant gating."
+    }
+  ],
+
+  "missing_context_vars_handled_honestly": [
+    "launch_timeline -- rendered with 'Timeline coming online' empty state",
+    "launch_approvals -- rendered with 'Approvals tracker pending' empty state, operator-only",
+    "launch_risk_summary -- rendered with 'No risks flagged' empty state"
+  ],
+
+  "scanner_risks_pre_check": {
+    "scan_money_float": "No float() on money values; select-plan body has no pricing rendered (placeholder), school_infrastructure has no money",
+    "scan_inline_style_off_token": "All values via var(--*); no inline literal colors/transitions",
+    "scan_undefined_css_classes": "New .rmc-launch-* classes will all be defined in studio-launch-cockpit.css",
+    "scan_off_token_colors": "No literal hex/rgb — semantic tokens only",
+    "scan_theme_locked_token_text": "Semantic tokens (--text-primary, --surface-elevated, --hairline, etc.) used as first-pick",
+    "scan_sticky_with_overflow_hidden": "No position:sticky combined with overflow:hidden in new CSS",
+    "audit_template_render_safety": "Will keep includes balanced + no orphan tokens",
+    "scan_role_strings": "No hardcoded role strings — labels come from context"
+  }
+}

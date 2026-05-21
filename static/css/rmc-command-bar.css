@@ -1,0 +1,193 @@
+/* ============================================================
+   RMC Universal Command Bar (v3.53.0, 2026-05-21)
+   ------------------------------------------------------------
+   Luxury palette overlay opened via cmd+k / ctrl+k from any of
+   the 4 dashboard shells. Companion stylesheet to rmc-command-bar.js.
+
+   Semantic tokens only. The fade-in / drop-in uses signature
+   motion tokens so the bar feels like part of the same product
+   as the cockpit. ARIA-visibility is driven by the data-state
+   attribute set by JS.
+   ============================================================ */
+
+.rmc-command-bar {
+  /* Hidden by default — JS flips data-state="open" to reveal. */
+  position: fixed;
+  inset: 0;
+  z-index: 1090;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--motion-signature-reveal, 360ms ease),
+              visibility 0s linear var(--motion-stage-3, 360ms);
+}
+
+.rmc-command-bar[data-state="open"] {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--motion-signature-reveal, 360ms ease),
+              visibility 0s linear 0s;
+}
+
+.rmc-command-bar__backdrop {
+  position: absolute;
+  inset: 0;
+  /* Honor the semantic overlay token; falls back to the
+     theme-aware --surface-overlay-strong then transparent. */
+  background: var(--surface-overlay-strong, var(--surface-overlay, transparent));
+  backdrop-filter: var(--material-blur, blur(8px));
+  -webkit-backdrop-filter: var(--material-blur, blur(8px));
+}
+
+.rmc-command-bar__panel {
+  position: relative;
+  width: min(640px, 92vw);
+  background: var(--surface-popover, var(--surface-elevated));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-3);
+  color: var(--text-primary);
+  overflow: hidden;
+  transform: translateY(-8px);
+  transition: transform var(--motion-signature-reveal, 360ms ease);
+}
+
+.rmc-command-bar[data-state="open"] .rmc-command-bar__panel {
+  transform: translateY(0);
+}
+
+.rmc-command-bar__searchwrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+}
+
+.rmc-command-bar__icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-tertiary);
+  flex: 0 0 auto;
+}
+
+.rmc-command-bar__input {
+  flex: 1 1 auto;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.rmc-command-bar__input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.rmc-command-bar__hint {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-canvas);
+  color: var(--text-tertiary);
+}
+
+.rmc-command-bar__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.rmc-command-bar__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  transition: background var(--motion-signature-micro, 120ms ease);
+}
+
+.rmc-command-bar__option:hover,
+.rmc-command-bar__option[data-active="true"] {
+  background: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+.rmc-command-bar__option-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-tertiary);
+  flex: 0 0 auto;
+}
+
+.rmc-command-bar__option-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-command-bar__option-kind {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.rmc-command-bar__empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+}
+
+.rmc-command-bar__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-tertiary);
+  font-size: 0.72rem;
+}
+
+/* Reduced-motion users get an immediate snap. */
+@media (prefers-reduced-motion: reduce) {
+  .rmc-command-bar,
+  .rmc-command-bar__panel,
+  .rmc-command-bar__option {
+    transition: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .rmc-command-bar {
+    padding-top: 6vh;
+  }
+
+  .rmc-command-bar__panel {
+    width: 96vw;
+  }
+}

@@ -8,11 +8,12 @@
 {% block extra_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/theme-builder-canvas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-experience-premium.css' %}">
   <link rel="stylesheet" href="{% static 'css/site-settings-preview.css' %}">
 {% endblock %}
 
 {% block backend_page %}
-  <section class="container-fluid py-3" data-rmc-theme-builder="1" data-page-archetype="theme-builder">
+  <section class="container-fluid py-3" data-rmc-theme-builder="1" data-rmc-plane="tenant" data-page-archetype="theme-builder">
     <header class="mb-3 rmc-reveal">
       <p class="small text-muted mb-1">
         <a href="{% url 'siteconfig:theme_experience_hub' %}">{% trans "Theme & experience" %}</a>
@@ -21,59 +22,16 @@
       </p>
       <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
         <div>
+          <span class="badge text-bg-success mb-2">{{ theme_builder_plane_label }}{% if theme_builder_school_name %}: {{ theme_builder_school_name }}{% endif %}</span>
           <h1 class="h3 mb-1">{% trans "Theme builder" %}</h1>
-          <p class="text-muted mb-0">{% trans "Drag sections, toggle light/dark, and preview contrast before you publish." %}</p>
+          <p class="text-muted mb-0">{{ theme_builder_plane_hint }}</p>
         </div>
         <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:theme_colors' %}?standalone=1">{% trans "Advanced palette editor" %}</a>
       </div>
     </header>
 
-    <div class="row g-3 rmc-reveal-stagger">
-      <aside class="col-12 col-lg-3">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <h2 class="h6">{% trans "Sections" %}</h2>
-            <p class="small text-muted">{% trans "Drag to reorder. Toggle visibility on the canvas." %}</p>
-            <ul id="theme-builder-block-list" class="list-unstyled theme-builder-block-list mb-0" aria-label="{% trans 'Theme sections' %}"></ul>
-          </div>
-        </div>
-      </aside>
-
-      <div class="col-12 col-lg-6">
-        <div class="card border-0 shadow-sm">
-          <div class="card-body">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-              <div class="preview-surface-switch" role="group" aria-label="{% trans 'Effective theme surface' %}">
-                <button type="button" class="preview-surface-btn active" data-preview-surface="light">{% trans "Light" %}</button>
-                <button type="button" class="preview-surface-btn" data-preview-surface="dark">{% trans "Dark" %}</button>
-              </div>
-              <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="theme-builder-undo" disabled>{% trans "Undo" %}</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="theme-builder-redo" disabled>{% trans "Redo" %}</button>
-                <button type="button" class="btn btn-outline-primary btn-sm" id="theme-builder-preview">{% trans "Preview site" %}</button>
-                <button type="button" class="btn btn-primary btn-sm" id="theme-builder-save">{% trans "Save layout" %}</button>
-                <button type="button" class="btn btn-success btn-sm" id="theme-builder-publish">{% trans "Publish" %}</button>
-              </div>
-            <div id="theme-builder-canvas" class="theme-builder-canvas" data-preview-surface="light" aria-live="polite"></div>
-            <div id="theme-builder-status" class="small text-muted mt-2" role="status"></div>
-          </div>
-        </div>
-        {% include "admin/components/theme_preview_section.html" %}
-      </div>
-
-      <aside class="col-12 col-lg-3">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <h2 class="h6">{% trans "Brand tokens" %}</h2>
-            <p class="small text-muted">{% trans "Quick edits sync to the live preview below." %}</p>
-            <div id="theme-builder-token-panel" class="theme-builder-token-panel"></div>
-          </div>
-        </div>
-      </aside>
-    </div>
+    {% include "siteconfig/partials/theme_builder_canvas_body.html" %}
   </section>
-
-  {{ theme_builder_layout_json|json_script:"theme-builder-initial-layout" }}
 {% endblock %}
 
 {% block extra_js %}

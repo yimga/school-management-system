@@ -1,0 +1,200 @@
+{% load i18n %}
+{% comment %}
+  Studio OS · Overview Command Cockpit (v3.54.0, 2026-05-21)
+  ----------------------------------------------------------
+  Body partial rendered when current_mode is None. Replaces the
+  inline mode-cards + operational hubs blocks in shell.html.
+
+  Composes:
+    1. Mission hero (next best action)            — driven by studio_recommendations[0]
+    2. Mode card grid (5 cards)                   — driven by studio_modes
+    3. Triptych: Readiness | Recently edited | Live previews
+       — Readiness:        launch_health_summary + launch_ready
+       — Recently edited:  studio_activity_feed
+       — Live previews:    studio_role_preview_entries
+    4. Operational hubs action rail                — driven by legacy_urls
+
+  Honest deferrals:
+    - Every panel renders an empty-state when its context list is empty.
+    - No href="#" anywhere. Each link is gated by an {% if %}.
+    - Operator-only links carry --operator chip variant.
+
+  Coordinator task (audit co-1): include this partial from shell.html
+  in place of lines 91-123.
+{% endcomment %}
+<div class="rmc-overview-cockpit" data-rmc-overview-cockpit="1" data-page-archetype="operational-workbench">
+
+  {# ---------- 1. Mission hero — "Next best action" ---------- #}
+  {% if studio_recommendations %}
+  {% with nba=studio_recommendations.0 %}
+  <section class="rmc-overview-hero" aria-labelledby="rmc-overview-hero-title" data-rmc-overview-hero="1">
+    <div class="rmc-overview-hero__body">
+      <span class="rmc-overview-hero__eyebrow">{% trans "Next best action" %}</span>
+      <h2 id="rmc-overview-hero-title" class="rmc-overview-hero__title">{{ nba.label|default:_("Open Studio") }}</h2>
+      {% if nba.detail %}<p class="rmc-overview-hero__detail">{{ nba.detail }}</p>{% endif %}
+    </div>
+    <div class="rmc-overview-hero__cta">
+      {% if nba.url %}
+      <a href="{{ nba.url }}" class="btn btn-sm btn-primary" data-rmc-overview-nba="primary">{% trans "Open" %} <i class="bi bi-arrow-right-short" aria-hidden="true"></i></a>
+      {% endif %}
+      {% if studio_recommendations|length > 1 %}
+      {% with second=studio_recommendations.1 %}
+      {% if second.url %}
+      <a href="{{ second.url }}" class="btn btn-sm btn-outline-secondary" data-rmc-overview-nba="secondary" title="{{ second.detail|default:second.label }}">{{ second.label|truncatechars:32 }}</a>
+      {% endif %}
+      {% endwith %}
+      {% endif %}
+    </div>
+  </section>
+  {% endwith %}
+  {% else %}
+  <section class="rmc-overview-hero" aria-labelledby="rmc-overview-hero-title" data-rmc-overview-hero="empty">
+    <div class="rmc-overview-hero__body">
+      <span class="rmc-overview-hero__eyebrow">{% trans "Studio overview" %}</span>
+      <h2 id="rmc-overview-hero-title" class="rmc-overview-hero__title">{% trans "Choose a mode to start" %}</h2>
+      <p class="rmc-overview-hero__detail">{% trans "Experience, automation, outputs, launch, and control — unified preview, publish, and rollback." %}</p>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ---------- 2. Mode-card grid ---------- #}
+  <section aria-labelledby="rmc-overview-modes-heading" data-rmc-overview-modes="1">
+    <h2 id="rmc-overview-modes-heading" class="visually-hidden">{% trans "Studio work modes" %}</h2>
+    <div class="rmc-overview-mode-grid">
+      {% for m in studio_modes %}
+      {% if m.id == 'experience' %}{% url 'studio_os:experience' as mode_url %}
+      {% elif m.id == 'automation' %}{% url 'studio_os:automation' as mode_url %}
+      {% elif m.id == 'output' %}{% url 'studio_os:output' as mode_url %}
+      {% elif m.id == 'launch' %}{% url 'studio_os:launch' as mode_url %}
+      {% elif m.id == 'control' %}{% url 'studio_os:control' as mode_url %}
+      {% else %}{% url 'studio_os:shell' as mode_url %}{% endif %}
+      <a href="{{ mode_url }}" class="rmc-overview-mode-card" data-rmc-overview-mode-id="{{ m.id }}">
+        <div class="rmc-overview-mode-card__head">
+          <h3 class="rmc-overview-mode-card__title" title="{{ m.label }}">{{ m.label }}</h3>
+          <span class="rmc-overview-mode-card__icon" aria-hidden="true">
+            {% if m.id == 'experience' %}<i class="bi bi-palette2"></i>
+            {% elif m.id == 'automation' %}<i class="bi bi-diagram-3"></i>
+            {% elif m.id == 'output' %}<i class="bi bi-file-earmark-richtext"></i>
+            {% elif m.id == 'launch' %}<i class="bi bi-rocket-takeoff"></i>
+            {% elif m.id == 'control' %}<i class="bi bi-sliders2"></i>
+            {% else %}<i class="bi bi-box"></i>{% endif %}
+          </span>
+        </div>
+        {% if m.description %}<p class="rmc-overview-mode-card__desc">{{ m.description }}</p>{% endif %}
+        <span class="rmc-overview-mode-card__cta">{% trans "Open" %} <i class="bi bi-arrow-right-short" aria-hidden="true"></i></span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ---------- 3. Triptych: Readiness | Recently edited | Live previews ---------- #}
+  <section class="rmc-overview-triptych" aria-labelledby="rmc-overview-triptych-heading" data-rmc-overview-triptych="1">
+    <h2 id="rmc-overview-triptych-heading" class="visually-hidden">{% trans "Studio readiness, recent activity, and live previews" %}</h2>
+
+    {# ---- Card A: Launch readiness ---- #}
+    <article class="rmc-overview-card" data-rmc-overview-card="readiness">
+      <h3 class="rmc-overview-card__title">{% trans "Launch readiness" %}</h3>
+      {% if launch_health_summary %}
+      <p class="rmc-overview-card__empty">{{ launch_health_summary|truncatechars:200 }}</p>
+      {% elif launch_ready %}
+      <p class="rmc-overview-card__empty">{% trans "Ready to launch." %}</p>
+      {% else %}
+      <p class="rmc-overview-card__empty">{% trans "Select a tenant to see launch confidence here." %}</p>
+      {% endif %}
+      {% url 'studio_os:launch' as launch_url %}
+      {% if launch_url %}
+      <a href="{{ launch_url }}" class="btn btn-sm btn-outline-secondary mt-auto align-self-start">
+        {% trans "Open Launch" %} <i class="bi bi-arrow-right-short" aria-hidden="true"></i>
+      </a>
+      {% endif %}
+    </article>
+
+    {# ---- Card B: Recently edited ---- #}
+    <article class="rmc-overview-card" data-rmc-overview-card="recent-activity">
+      <h3 class="rmc-overview-card__title">{% trans "Recently edited" %}</h3>
+      {% if studio_activity_feed %}
+      <ul class="rmc-overview-card__list">
+        {% for a in studio_activity_feed|slice:":5" %}
+        <li class="rmc-overview-card__list-item">
+          {% if a.url %}<a href="{{ a.url }}" title="{{ a.label }}">{{ a.label }}</a>
+          {% else %}<span title="{{ a.label }}">{{ a.label }}</span>{% endif %}
+          {% if a.timestamp %}<span class="rmc-overview-card__list-item-meta">{{ a.timestamp }}{% if a.actor %} · {{ a.actor }}{% endif %}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rmc-overview-card__empty">{% trans "No recent activity yet." %}</p>
+      {% endif %}
+    </article>
+
+    {# ---- Card C: Live previews ---- #}
+    <article class="rmc-overview-card" data-rmc-overview-card="live-previews">
+      <h3 class="rmc-overview-card__title">{% trans "Live previews" %}</h3>
+      {% if studio_role_preview_entries %}
+      <ul class="rmc-overview-card__list">
+        {% for r in studio_role_preview_entries|slice:":5" %}
+        <li class="rmc-overview-card__list-item">
+          {% if r.url %}<a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" title="{{ r.label|default:r.role }}">{{ r.label|default:r.role|default:_("Preview") }}</a>
+          {% else %}<span title="{{ r.label|default:r.role }}">{{ r.label|default:r.role|default:_("Preview") }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rmc-overview-card__empty">{% trans "Select a tenant context to enable role previews." %}</p>
+      {% endif %}
+    </article>
+  </section>
+
+  {# ---------- 4. Operational hubs action rail ---------- #}
+  {% if legacy_urls.approval_hub or legacy_urls.workflow_center or legacy_urls.import_hub or legacy_urls.document_library or legacy_urls.report_library or legacy_urls.rbac or legacy_urls.feature_control or legacy_urls.communication_groups %}
+  <section aria-labelledby="rmc-overview-hubs-heading" data-rmc-overview-hubs="1">
+    <h2 id="rmc-overview-hubs-heading" class="h6 mb-2">{% trans "Operational hubs" %}</h2>
+    <p class="small text-muted mb-2">{% trans "Approvals, workflow, import/export, document and report library, RBAC, feature control, and communications — all from one place." %}</p>
+    <div class="rmc-overview-hub-rail" role="list">
+      {% if legacy_urls.approval_hub %}
+      <a href="{{ legacy_urls.approval_hub }}" class="rmc-overview-hub-rail__chip" role="listitem">
+        <i class="bi bi-check2-circle" aria-hidden="true"></i>{% trans "Approval hub" %}
+      </a>
+      {% endif %}
+      {% if legacy_urls.workflow_center %}
+      <a href="{{ legacy_urls.workflow_center }}" class="rmc-overview-hub-rail__chip" role="listitem">
+        <i class="bi bi-bezier2" aria-hidden="true"></i>{% trans "Workflow center" %}
+      </a>
+      {% endif %}
+      {% if legacy_urls.import_hub %}
+      <a href="{{ legacy_urls.import_hub }}" class="rmc-overview-hub-rail__chip" role="listitem">
+        <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>{% trans "Import hub" %}
+      </a>
+      {% endif %}
+      {% if legacy_urls.document_library %}
+      <a href="{{ legacy_urls.document_library }}" class="rmc-overview-hub-rail__chip" role="listitem">
+        <i class="bi bi-folder2-open" aria-hidden="true"></i>{% trans "Document library" %}
+      </a>
+      {% endif %}
+      {% if legacy_urls.report_library %}
+      <a href="{{ legacy_urls.report_library }}" class="rmc-overview-hub-rail__chip" role="listitem">
+        <i class="bi bi-journal-text" aria-hidden="true"></i>{% trans "Report library" %}
+      </a>
+      {% endif %}
+      {% if request.public_host_kind == 'manager' %}
+        {% if legacy_urls.rbac %}
+        <a href="{{ legacy_urls.rbac }}" class="rmc-overview-hub-rail__chip rmc-overview-hub-rail__chip--operator" role="listitem">
+          <i class="bi bi-shield-lock" aria-hidden="true"></i>{% trans "RBAC & permissions" %}
+        </a>
+        {% endif %}
+        {% if legacy_urls.feature_control %}
+        <a href="{{ legacy_urls.feature_control }}" class="rmc-overview-hub-rail__chip rmc-overview-hub-rail__chip--operator" role="listitem">
+          <i class="bi bi-toggles" aria-hidden="true"></i>{% trans "Feature control" %}
+        </a>
+        {% endif %}
+      {% endif %}
+      {% if legacy_urls.communication_groups %}
+      <a href="{{ legacy_urls.communication_groups }}" class="rmc-overview-hub-rail__chip" role="listitem">
+        <i class="bi bi-chat-dots" aria-hidden="true"></i>{% trans "Message groups" %}
+      </a>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>

@@ -5,7 +5,6 @@ Run from project root: python scripts/dev/test_theme_visibility.py
 """
 
 import os
-import re
 import sys
 
 

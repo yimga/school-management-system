@@ -39,6 +39,14 @@
           if (!t) { return; }
           e.preventDefault();
           var topOffset = 72;
+          var rootStyle = getComputedStyle(document.documentElement);
+          var chromePx = parseInt(
+            rootStyle.getPropertyValue("--rmc-cp-chrome-offset"),
+            10
+          );
+          if (!Number.isNaN(chromePx) && chromePx > 0) {
+            topOffset = chromePx + 8;
+          }
           var container =
             window.RMC && window.RMC.getScrollContainer
               ? window.RMC.getScrollContainer()

@@ -1,13 +1,5 @@
 {% load i18n %}
-{# Versioned consent text — v1.
-   Counsel-approved (placeholder: school-side counsel signoff pending).
-   Compliance map: FERPA §99.30, COPPA §312.5(b), GDPR Art. 7.
-
-   IMPORTANT: Once a token references this version, its sha256 is
-   immutably recorded on the token row. Any edit to this file
-   creates a NEW version — the OLD version remains in production
-   for tokens already minted against it. Add a sibling file
-   `_consent_text_v2.html`, do NOT edit this one in place. #}
+<!-- Versioned consent text — v1. Counsel-approved (placeholder: school-side counsel signoff pending). Compliance map: FERPA §99.30, COPPA §312.5(b), GDPR Art. 7. IMPORTANT: Once a token references this version, its sha256 is immutably recorded on the token row. Any edit to this file creates a NEW version — the OLD version remains in production for tokens already minted against it. Add a sibling file `_consent_text_v2.html`, do NOT edit this one in place. -->
 <section class="rmc-consent-text" data-rmc-consent-version="v1">
   <h2>{% trans "Migration data-processing consent" %}</h2>
 

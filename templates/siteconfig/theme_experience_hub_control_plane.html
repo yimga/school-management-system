@@ -3,9 +3,11 @@
 
 {% block cp_title %}{{ hub_title }}{% endblock %}
 
-{% block extra_css %}
+{% block extrastyle %}
   {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-builder-canvas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-experience-premium.css' %}">
   <link rel="stylesheet" href="{% static 'css/site-settings-preview.css' %}">
 {% endblock %}
 

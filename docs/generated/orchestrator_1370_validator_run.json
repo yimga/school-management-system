@@ -1,0 +1,94 @@
+{
+  "agents_ready_or_external": 11,
+  "failure_count": 0,
+  "scanner_state": {
+    "scan_ai_gateway_boundary": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_assert_in_production": {
+      "baseline": 0,
+      "current": null
+    },
+    "scan_bare_except": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_companion_canonical_headers_drift": {
+      "baseline": null,
+      "current": null
+    },
+    "scan_drf_schema_coverage": {
+      "baseline": 0,
+      "current": null
+    },
+    "scan_inline_style_off_token": {
+      "baseline": 0,
+      "current": null
+    },
+    "scan_migration_model_imports": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_money_float": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_off_token_colors": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_pii_logging_smell": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_print_statements": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_pwa_manifest_coverage": {
+      "baseline": 0,
+      "current": null
+    },
+    "scan_reveal_armed_invariants": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_sentry_boundary": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_sri_required": {
+      "baseline": 0,
+      "current": null
+    },
+    "scan_sticky_with_overflow_hidden": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_subprocess_shell_true": {
+      "baseline": null,
+      "current": null
+    },
+    "scan_tenant_isolation_marker_quality": {
+      "baseline": 0,
+      "current": null
+    },
+    "scan_tenant_queryset_safety": {
+      "baseline": null,
+      "current": null
+    },
+    "scan_theme_attribute_contract": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_theme_locked_token_text": {
+      "baseline": 0,
+      "current": 0
+    },
+    "scan_undefined_css_classes": {
+      "baseline": 0,
+      "current": null
+    }
+  }
+}

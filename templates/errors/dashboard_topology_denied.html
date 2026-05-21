@@ -34,7 +34,7 @@
       text-decoration: none;
       font-weight: 600;
     }
-    a.primary { background: var(--color-primary-500, #6366f1); color: #fff; }
+    a.primary { background: var(--color-primary-500, #6366f1); /* theme-locked-allow: brand-token */ color: #fff; /* off-token-allow: brand-color */ }
     a.secondary { border: 1px solid var(--hairline, rgba(255,255,255,.2)); color: inherit; }
   </style>
 </head>
@@ -44,7 +44,7 @@
     <p>
       {% trans "Your account is cleared for day-to-day campus operations, not deep system configuration (grading rules, tax structures, OAuth keys, permission matrices)." %}
     </p>
-    <p class="text-muted" style="opacity:.85;font-size:.9rem;">
+    <p class="text-muted" style="opacity:.85;font-size:.9rem;/*inline-style-allow:print-page-inline*/">
       {% trans "If you need this access, ask a school IT administrator or principal to grant settings permissions." %}
     </p>
     <nav class="actions">

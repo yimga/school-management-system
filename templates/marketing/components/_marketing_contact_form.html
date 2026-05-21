@@ -39,6 +39,7 @@
         <option value="implementation">{% trans "Implementation planning" %}</option>
         <option value="support">{% trans "Support (existing customer)" %}</option>
         <option value="partnership">{% trans "Partnership" %}</option>
+        <option value="developer-integration">{% trans "Developer / integration" %}</option>
         <option value="general">{% trans "General" %}</option>
       </select>
     </div>
@@ -47,7 +48,7 @@
       <textarea id="contact-message" name="message" class="form-control" rows="5" maxlength="4000" required></textarea>
     </div>
     <div class="col-12">
-      <button type="submit" class="mkt-edt-cta">{% trans "Submit inquiry" %}</button>
+      <button type="submit" class="mkt-edt-cta" data-cta="contact-submit" data-cta-label="{% trans 'Submit contact inquiry' %}">{% trans "Submit inquiry" %}</button>
     </div>
   </form>
 </section>

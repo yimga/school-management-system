@@ -1,16 +1,49 @@
 {% load i18n %}
-<div class="container-fluid py-2 studio-output-native-pane" data-studio-output-native="policy">
+<div class="container-fluid py-2 studio-output-native-pane min-w-0" data-studio-output-native="policy">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <div class="studio-os__card py-3 px-3 ds-card">
-    <p class="mb-2">{% trans "Report packs and outputs align with the policy registry (blueprints, grading, terms) and metadata registry (lineage, fields). Use Output Studio · Report library & letters for packs and letters; govern policy and lineage from Control Studio." %}</p>
-    {% if report_library_url %}
-    <p class="mb-1"><a href="{{ report_library_url }}">{% trans "Report library & letters" %}</a> — {% trans "Hub linking pack graph, bulk letters, and report card builder." %}</p>
-    {% endif %}
-    {% if blueprints_url %}
-    <p class="mb-1"><a href="{{ blueprints_url }}">{% trans "Blueprints & policy packs" %}</a> — {% trans "Policy and blueprint governance; link from Control Studio." %}</p>
-    {% endif %}
-    {% if lineage_url %}
-    <p class="mb-0"><a href="{{ lineage_url }}">{% trans "Lineage & registry" %}</a> — {% trans "Metadata lineage and field registry; trace report dependencies." %}</p>
+  <div class="studio-os__card py-3 px-3 ds-card min-w-0">
+    <p class="mb-3">
+      {% trans "Report packs and outputs align with the policy registry (blueprints, grading, terms) and metadata registry (lineage, fields). Use Output Studio · Report library & letters for packs and letters; govern policy and lineage from Control Studio." %}
+    </p>
+    <ul class="rmc-output-policy-list" role="list">
+      {% if report_library_url %}
+      <li class="rmc-output-policy-list__item">
+        <p class="rmc-output-policy-list__label">
+          <a href="{{ report_library_url }}">{% trans "Report library & letters" %}</a>
+        </p>
+        <p class="rmc-output-policy-list__desc">
+          {% trans "Hub linking pack graph, bulk letters, and report card builder." %}
+        </p>
+      </li>
+      {% endif %}
+      {% if blueprints_url %}
+      <li class="rmc-output-policy-list__item">
+        <p class="rmc-output-policy-list__label">
+          <a href="{{ blueprints_url }}">{% trans "Blueprints & policy packs" %}</a>
+        </p>
+        <p class="rmc-output-policy-list__desc">
+          {% trans "Policy and blueprint governance — set the rules every output respects." %}
+        </p>
+      </li>
+      {% endif %}
+      {% if lineage_url %}
+      <li class="rmc-output-policy-list__item">
+        <p class="rmc-output-policy-list__label">
+          <a href="{{ lineage_url }}">{% trans "Lineage & registry" %}</a>
+        </p>
+        <p class="rmc-output-policy-list__desc">
+          {% trans "Metadata lineage and field registry — trace report dependencies end-to-end." %}
+        </p>
+      </li>
+      {% endif %}
+    </ul>
+    {% if not report_library_url and not blueprints_url and not lineage_url %}
+    <div class="rmc-output-empty mt-2" role="note">
+      <p class="rmc-output-empty__title">{% trans "Policy registry unavailable" %}</p>
+      <p class="rmc-output-empty__hint">
+        {% trans "The policy and lineage hubs are not configured for this tenant. Configure them in Control Studio to enable cross-output policy governance." %}
+      </p>
+    </div>
     {% endif %}
   </div>
 </div>

@@ -1,33 +1,33 @@
 {
-  "surface": "Voice of Customer + Feedback Loop",
-  "routes_checked": [
-    "/feedback/",
-    "/school/feedback/",
-    "/teacher/feedback/",
-    "/parent/feedback/",
-    "/student/feedback/",
-    "/school/roadmap/",
-    "/super/voice-of-customer/",
-    "/super/product-roadmap/"
+  "generated_at_utc": "2026-05-20T21:40:00Z",
+  "agent_id": "A8",
+  "batch": "1370",
+  "scope": "apps/feedback + templates/feedback flow integrity",
+  "url_patterns_canonical": [
+    {"name": "feedback:public_status", "route": "status/", "auth": "public (rbac-allow marker for status.runmycampus.com)"},
+    {"name": "feedback:public_status_json", "route": "status/api/", "auth": "public (rbac-allow marker)"},
+    {"name": "feedback:school_feedback", "route": "feedback/", "auth": "login required via view"},
+    {"name": "feedback:role_feedback (teacher/parent/student)", "route": "<role>/feedback/", "auth": "login + role"},
+    {"name": "feedback:feature_center", "route": "feature-center/", "auth": "login"},
+    {"name": "feedback:vote_feature", "route": "feature/<int:pk>/vote/", "auth": "login"},
+    {"name": "feedback:contextual", "route": "contextual/", "auth": "login"},
+    {"name": "feedback:pulse", "route": "pulse/", "auth": "login"},
+    {"name": "feedback:voice_of_customer", "route": "super/voice-of-customer/", "auth": "super-staff"},
+    {"name": "feedback:product_roadmap", "route": "super/product-roadmap/", "auth": "super-staff"},
+    {"name": "feedback:operator_feedback_action", "route": "super/feedback/<int:pk>/action/", "auth": "super-staff"},
+    {"name": "feedback:help_center", "route": "help/", "auth": "login"},
+    {"name": "feedback:release_notes_public", "route": "release-notes/", "auth": "public (filters is_public=True at QS level per rbac-allow note)"}
   ],
-  "accessibility": {
-    "forms_have_labels": true,
-    "keyboard_usable": true,
-    "csrf_protected": true,
-    "no_dummy_href_action": true,
-    "student_public_posting_disabled": true
-  },
-  "ux_rules": {
-    "minimal_fields_first": true,
-    "role_specific_categories": true,
-    "privacy_language_present": true,
-    "status_language_present": true,
-    "contextual_widget_on_authenticated_shells": true,
-    "you_said_we_did_visible": true
-  },
-  "risk_notes": [
-    "The current templates use Django form rendering for speed and consistency; a later pass can replace this with hand-laid progressive disclosure fields.",
-    "The contextual widget captures route/module/role, but browser device parsing is stored as raw request metadata until a client-side parser is added."
+  "db_readiness_pattern": "apps/feedback/db_readiness.py implements feedback_schema_ready() (@lru_cache size=1) returning False on missing tables, plus queryset factories (feature_request_queryset, feedback_submission_queryset, roadmap_queryset) returning .none() when tables absent, plus run_feedback_query wrapper. Aligns with batch 1361 SOT: graceful empty state on missing tables.",
+  "tenant_isolation": "Feedback models intentionally span tenants for voice-of-customer + product-roadmap (super-staff views). Tenant-isolation-allow markers in db_readiness.py document each manager-global query with categorical 3+-part reason (e.g. 'manager-global-open-count-public-schema-help-center', 'caller-scoped-queryset-factory-manager-and-feedback-views').",
+  "templates_present": [
+    "contact_us.html", "feature_center.html", "help_center.html", "product_roadmap.html",
+    "public_status.html", "release_notes_public.html", "role_center.html", "school_center.html",
+    "school_roadmap.html", "voice_of_customer.html", "partials/"
   ],
-  "verdict": "UX foundation ready for repo scope"
+  "dummy_links_in_feedback_templates": [],
+  "dummy_links_evidence": "grep href=\"#\"|javascript:void across templates/feedback/*.html -> 0 matches",
+  "render_safety": "audit_template_render_safety.py -> 0 findings across all 1232 templates",
+  "i18n_freshness_signal": "All 17 locales scanned by scan_locale_coverage.py; en at 100% (10849 msgids), translated locales above stub-threshold, 5 stubs (ha/pid/sw/yo and zh subsidiaries) ship intentionally empty and fall back per memory v3.13. Baseline rewritten this run -- no regression detected.",
+  "verdict": "READY"
 }

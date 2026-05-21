@@ -173,7 +173,7 @@ def _semantic_first_choice(prop: str, value: str) -> str | None:
             sem = _text_semantic_for(darkness)
         # Wrap: original `var(--color-base-900)` becomes `var(--text-primary, var(--color-base-900))`
         prefix = m.group(1)
-        rest = value[m.end():]
+        value[m.end():]
         # value started with "  var(--color-base-900<rest_until_;>"; we need to
         # find the matching close paren of the outer var() and wrap everything.
         return _wrap_with(value, prefix, sem)

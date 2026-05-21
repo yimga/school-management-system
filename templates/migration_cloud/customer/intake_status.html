@@ -5,7 +5,7 @@
 
 {% block extrastyle %}
   {% if not sse_enabled and not intake.is_terminal %}
-    {# No-SSE fallback: refresh every 30s so terminal-state pages don't reload. #}
+    <!-- No-SSE fallback: refresh every 30s so terminal-state pages don't reload. -->
     <meta http-equiv="refresh" content="30">
   {% endif %}
 {% endblock %}

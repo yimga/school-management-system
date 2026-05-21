@@ -2,13 +2,13 @@
 AI provider abstraction for sovereign/local-first execution.
 
 Priority order is configurable and defaults to:
-    ollama -> rules (local-first).
+    ollama -> rules (local-first on edge/hub).
 
-All generative chat for the product goes through ``services.ai_gateway.invoke`` when
-``AI_GATEWAY_ENABLED`` is true; this module supplies Ollama delegation and status for
-operators. External cloud LLMs (removed: former Gemini path) are not used — inference
-defaults to self-hosted Ollama via the gateway, then rules. vLLM/LiteLLM are optional
-only when enabled per-task in Django ``AI_GATEWAY_TASK_TIERS``.
+All generative chat goes through ``services.ai_gateway.invoke`` when
+``AI_GATEWAY_ENABLED`` is true. Gateway tier chains follow ``RMC_DEPLOYMENT_PROFILE``
+(see ``services.ai_deployment_posture``): **online** Render SaaS prefers LiteLLM
+when ``LITELLM_PROXY_URL`` is set, then Ollama, then rules; **edge** hubs prefer
+Ollama then rules. This module supplies reachability probes and operator-facing status.
 
 Set ``AI_PROVIDER_PREFERENCE`` to e.g. ``ollama,rules`` (default). Legacy values
 mentioning ``gemini`` are ignored.
@@ -89,18 +89,247 @@ def _request_timeout_seconds() -> int:
         return 20
 
 
-def _ollama_config() -> tuple[str, str]:
+def _ollama_auto_discover_enabled() -> bool:
+    if hasattr(settings, "OLLAMA_AUTO_DISCOVER"):
+        return bool(getattr(settings, "OLLAMA_AUTO_DISCOVER"))
+    raw = os.environ.get("OLLAMA_AUTO_DISCOVER", "1")
+    return str(raw).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _wsl_windows_host_ip() -> str | None:
+    """WSL2: /etc/resolv.conf nameserver is usually the Windows host running Ollama."""
+    try:
+        from pathlib import Path
+
+        resolv = Path("/etc/resolv.conf")
+        if not resolv.is_file():
+            return None
+        for line in resolv.read_text(encoding="utf-8", errors="ignore").splitlines():
+            line = line.strip()
+            if not line.startswith("nameserver "):
+                continue
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            ip = parts[1].strip()
+            if ip and ip not in {"127.0.0.1", "::1"}:
+                return ip
+    except OSError:
+        return None
+    return None
+
+
+def _ollama_env_overrides() -> tuple[str, str]:
     endpoint = (
         getattr(settings, "OLLAMA_ENDPOINT", None)
         or os.environ.get("OLLAMA_ENDPOINT")
-        or "http://localhost:11434/api/generate"
+        or ""
     ).strip()
+    base_url = (
+        getattr(settings, "OLLAMA_BASE_URL", None)
+        or os.environ.get("OLLAMA_BASE_URL")
+        or ""
+    ).strip().rstrip("/")
+    return endpoint, base_url
+
+
+def _base_from_endpoint(endpoint: str) -> str:
+    import urllib.parse
+
+    parsed = urllib.parse.urlparse(endpoint)
+    if parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+    return ""
+
+
+def ollama_base_candidates() -> list[str]:
+    """
+    Ordered hosts to try when auto-discovering Ollama.
+
+    Covers Windows native (127.0.0.1), Docker Desktop (host.docker.internal),
+    and WSL Django + Windows Ollama (resolv.conf gateway).
+    """
+    endpoint, base_url = _ollama_env_overrides()
+    candidates: list[str] = []
+    for raw in (base_url, _base_from_endpoint(endpoint) if endpoint else ""):
+        item = (raw or "").strip().rstrip("/")
+        if item and item not in candidates:
+            candidates.append(item)
+
+    for host in (
+        "http://127.0.0.1:11434",
+        "http://localhost:11434",
+        "http://host.docker.internal:11434",
+    ):
+        if host not in candidates:
+            candidates.append(host)
+
+    wsl_host = _wsl_windows_host_ip()
+    if wsl_host:
+        wsl_base = f"http://{wsl_host}:11434"
+        if wsl_base not in candidates:
+            candidates.append(wsl_base)
+
+    extra = (
+        getattr(settings, "OLLAMA_BASE_URL_CANDIDATES", None)
+        or os.environ.get("OLLAMA_BASE_URL_CANDIDATES")
+        or ""
+    )
+    for part in str(extra).split(","):
+        item = part.strip().rstrip("/")
+        if item and item not in candidates:
+            candidates.append(item)
+    return candidates
+
+
+def _probe_ollama_base(base_url: str, *, timeout_sec: float = 2.0) -> tuple[bool, int | None]:
+    import time as _t
+    import urllib.request
+
+    url = f"{base_url.rstrip('/')}/api/tags"
+    try:
+        t0 = _t.monotonic()
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=timeout_sec) as resp:  # noqa: S310
+            ok = 200 <= resp.status < 500
+        if not ok:
+            return False, None
+        return True, int((_t.monotonic() - t0) * 1000)
+    except _AI_GATEWAY_INVOKE_ERRORS:
+        return False, None
+    except Exception:  # noqa: BLE001
+        return False, None
+
+
+def _pick_reachable_ollama_base(candidates: list[str]) -> tuple[str | None, int | None, str | None]:
+    for base in candidates:
+        ok, latency_ms = _probe_ollama_base(base)
+        if ok:
+            return base, latency_ms, base
+    return None, None, None
+
+
+def _connection_from_base(
+    base_url: str,
+    *,
+    model: str,
+    discovery_source: str | None = None,
+) -> dict[str, Any]:
+    base = base_url.strip().rstrip("/")
+    return {
+        "base_url": base,
+        "generate_endpoint": f"{base}/api/generate",
+        "model": model,
+        "configured": bool(base and model),
+        "discovery_source": discovery_source or base,
+        "auto_discover": _ollama_auto_discover_enabled(),
+    }
+
+
+def resolve_ollama_connection(*, force_refresh: bool = False) -> dict[str, Any]:
+    """
+    Single resolver for Ollama host + generate URL + model.
+
+    With ``OLLAMA_AUTO_DISCOVER=1`` (default), probes common dev hosts in order
+    (env override first, then 127.0.0.1, localhost, host.docker.internal, WSL gateway)
+    and uses the first reachable base. Pin a host with ``OLLAMA_BASE_URL`` or
+    ``OLLAMA_ENDPOINT`` only — set ``OLLAMA_AUTO_DISCOVER=0`` to disable scanning.
+    """
+    from django.core.cache import cache
+
     model = (
         getattr(settings, "OLLAMA_MODEL", None)
         or os.environ.get("OLLAMA_MODEL")
         or "llama3"
     ).strip()
-    return endpoint, model
+    candidates = ollama_base_candidates()
+    default_base = candidates[0] if candidates else "http://127.0.0.1:11434"
+
+    if not _ollama_auto_discover_enabled():
+        return _connection_from_base(default_base, model=model, discovery_source="pinned")
+
+    cache_key = "ai:ollama:resolved-connection"
+    if not force_refresh:
+        try:
+            cached = cache.get(cache_key)
+        except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+            cached = None
+        if isinstance(cached, dict) and cached.get("base_url"):
+            cached_model = str(cached.get("model") or model).strip() or model
+            return _connection_from_base(
+                str(cached["base_url"]),
+                model=cached_model,
+                discovery_source=str(cached.get("discovery_source") or cached["base_url"]),
+            )
+
+    picked, _latency_ms, source = _pick_reachable_ollama_base(candidates)
+    base_url = picked or default_base
+    conn = _connection_from_base(
+        base_url,
+        model=model,
+        discovery_source=source or ("unreachable-default" if not picked else source),
+    )
+    ttl = int(getattr(settings, "AI_HEALTH_CACHE_TTL_SECONDS", 60) or 60)
+    try:
+        cache.set(
+            cache_key,
+            {
+                "base_url": conn["base_url"],
+                "model": model,
+                "discovery_source": conn.get("discovery_source"),
+            },
+            ttl,
+        )
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        pass
+    if picked:
+        logger.debug(
+            "ollama auto-discover: using %s (candidates=%s)",
+            conn["base_url"],
+            len(candidates),
+        )
+    else:
+        logger.warning(
+            "ollama auto-discover: no reachable host among %s; defaulting to %s",
+            candidates,
+            conn["base_url"],
+        )
+    return conn
+
+
+def ollama_require_live() -> bool:
+    """
+    When true, the product must not serve rules-template \"AI answers\" (guided fallback).
+
+    Default: on in production / cloud deploy; off in local DEBUG and during tests.
+    """
+    if hasattr(settings, "OLLAMA_REQUIRE_LIVE"):
+        return bool(getattr(settings, "OLLAMA_REQUIRE_LIVE"))
+    raw = os.environ.get("OLLAMA_REQUIRE_LIVE", "0")
+    return str(raw).strip().lower() in ("1", "true", "yes", "on")
+
+
+def ai_rules_fallback_allowed() -> bool:
+    """Rules tier is allowed only when live Ollama is not mandatory or explicit dev fallback is on."""
+    if ollama_require_live():
+        return False
+    return bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True))
+
+
+def invalidate_ollama_connection_cache() -> None:
+    """Clear cached auto-discovered base (e.g. after starting ``ollama serve``)."""
+    try:
+        from django.core.cache import cache
+
+        cache.delete("ai:ollama:resolved-connection")
+        cache.delete("ai:health:provider-reachability")
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        pass
+
+
+def _ollama_config() -> tuple[str, str]:
+    conn = resolve_ollama_connection()
+    return conn["generate_endpoint"], conn["model"]
 
 
 def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> str | None:
@@ -108,6 +337,9 @@ def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> str | N
     Single Ollama entry point: delegates to OllamaInferenceService (region, dossier, cache, fallback).
     Resolves school/tenant/country from metadata; no direct HTTP here (F.1).
     """
+    from services.ollama_runtime import ensure_ollama_reachable
+
+    ensure_ollama_reachable()
     from services.inference import OllamaInferenceService
 
     md = metadata or {}
@@ -139,42 +371,65 @@ def _is_policy_denied(user_query: str) -> bool:
 
 
 def get_ai_provider_status() -> dict[str, Any]:
-    endpoint, ollama_model = _ollama_config()
+    from services.ai_deployment_posture import is_litellm_configured, normalize_deployment_profile
+
+    conn = resolve_ollama_connection()
     rules_enabled = bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True))
-    has_live = bool(endpoint and ollama_model)
+    configured = bool(conn.get("configured"))
+    litellm = is_litellm_configured()
     return {
         "preference": _provider_preference(),
-        "has_live_provider": has_live,
+        "deployment_profile": normalize_deployment_profile(),
+        "ollama_configured": configured,
+        "litellm_configured": litellm,
+        # Back-compat: env configured for any live tier — use get_public_ai_provider_status for reachability.
+        "has_live_provider": litellm or configured,
         "rules_fallback_enabled": rules_enabled,
         "ollama": {
-            "configured": bool(endpoint and ollama_model),
-            "endpoint": endpoint,
-            "model": ollama_model or None,
+            "configured": configured,
+            "endpoint": conn.get("generate_endpoint"),
+            "model": conn.get("model") or None,
         },
     }
 
 
-def get_public_ai_provider_status() -> dict[str, Any]:
+def get_public_ai_provider_status(*, include_health: bool = True) -> dict[str, Any]:
     """
     Return frontend-safe provider status.
 
     This intentionally omits provider secrets and internal connection details such
     as the Ollama endpoint URL. Frontend widgets need capability/state visibility,
     not infrastructure coordinates.
+
+    When ``include_health`` is true (default), ``has_live_provider`` means a live
+    tier answered a reachability probe (LiteLLM on online/hybrid, or Ollama on edge).
     """
+    from services.ai_deployment_posture import enrich_public_provider_status
+
     status = get_ai_provider_status()
-    return {
+    configured = bool(status.get("ollama_configured"))
+    health: dict[str, Any] = {}
+    if include_health:
+        health = probe_ai_provider_reachable()
+    reachable = bool(health.get("reachable"))
+    base = {
         "preference": list(status.get("preference", [])),
-        "has_live_provider": bool(status.get("has_live_provider")),
+        "ollama_configured": configured,
+        "has_live_provider": reachable,
+        "reachable": reachable,
+        "fallback_active": bool(health.get("fallback_active")),
+        "degraded": bool(health.get("degraded")) if include_health else (not reachable),
+        "latency_ms": health.get("latency_ms"),
         "rules_fallback_enabled": bool(status.get("rules_fallback_enabled")),
         "providers": {
             "ollama": {
-                "configured": bool(status.get("ollama", {}).get("configured")),
+                "configured": configured,
                 "model": status.get("ollama", {}).get("model"),
                 "exposure": "local",
             },
         },
     }
+    return enrich_public_provider_status(base, health=health if include_health else None)
 
 
 def probe_ai_provider_reachable() -> dict[str, Any]:
@@ -182,18 +437,19 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
     Lightweight reachability probe — does the configured provider answer a TCP ping?
 
     Result is cached for AI_HEALTH_CACHE_TTL seconds (default 60) so the copilot UI
-    can surface degraded mode without hammering Ollama. Returns:
-        {
-          "reachable": bool,
-          "provider": "ollama" | "rules" | "none",
-          "latency_ms": int | None,
-          "fallback_active": bool,
-          "degraded": bool,
-          "checked_at": ISO-8601 timestamp,
-        }
+    can surface degraded mode without hammering backends. Returns reachability,
+    deployment profile, posture fields, and provider id (`litellm` | `ollama` | `rules` | `none`).
     """
     from datetime import datetime, timezone
+
     from django.core.cache import cache
+
+    from services.ai_deployment_posture import (
+        build_posture_fields,
+        is_litellm_configured,
+        normalize_deployment_profile,
+        probe_litellm_reachable,
+    )
 
     cache_key = "ai:health:provider-reachability"
     cached = None
@@ -207,6 +463,7 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
     status = get_ai_provider_status()
     preference = status.get("preference", [])
     rules_enabled = bool(status.get("rules_fallback_enabled"))
+    profile = normalize_deployment_profile()
     result: dict[str, Any] = {
         "reachable": False,
         "provider": "none",
@@ -214,33 +471,43 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
         "fallback_active": False,
         "degraded": True,
         "checked_at": datetime.now(timezone.utc).isoformat(),
+        "deployment_profile": profile,
+        "litellm_configured": is_litellm_configured(),
     }
 
-    if "ollama" in preference and status.get("ollama", {}).get("configured"):
-        endpoint, _model = _ollama_config()
-        try:
-            import time as _t
-            import urllib.parse
-            import urllib.request
+    if profile in {"online", "hybrid"} and is_litellm_configured():
+        ok, latency_ms = probe_litellm_reachable()
+        if ok:
+            result.update({
+                "reachable": True,
+                "provider": "litellm",
+                "latency_ms": latency_ms,
+                "degraded": False,
+            })
 
-            parsed = urllib.parse.urlparse(endpoint)
-            base = f"{parsed.scheme}://{parsed.netloc}/api/tags"
-            t0 = _t.monotonic()
-            req = urllib.request.Request(base, method="GET")
-            with urllib.request.urlopen(req, timeout=2.5) as resp:  # noqa: S310
-                ok = 200 <= resp.status < 500
-            latency_ms = int((_t.monotonic() - t0) * 1000)
+    if not result["reachable"] and "ollama" in preference and status.get("ollama", {}).get("configured"):
+        conn = resolve_ollama_connection()
+        ok, latency_ms = _probe_ollama_base(str(conn.get("base_url") or ""))
+        if ok:
+            result.update({
+                "reachable": True,
+                "provider": "ollama",
+                "latency_ms": latency_ms,
+                "degraded": False,
+                "ollama_discovery_source": conn.get("discovery_source"),
+            })
+        elif _ollama_auto_discover_enabled():
+            invalidate_ollama_connection_cache()
+            conn = resolve_ollama_connection(force_refresh=True)
+            ok, latency_ms = _probe_ollama_base(str(conn.get("base_url") or ""))
             if ok:
                 result.update({
                     "reachable": True,
                     "provider": "ollama",
                     "latency_ms": latency_ms,
                     "degraded": False,
+                    "ollama_discovery_source": conn.get("discovery_source"),
                 })
-        except _AI_GATEWAY_INVOKE_ERRORS:
-            result["reachable"] = False
-        except Exception:  # noqa: BLE001 — last-resort defensive
-            result["reachable"] = False
 
     if not result["reachable"] and rules_enabled:
         result.update({
@@ -248,6 +515,18 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
             "fallback_active": True,
             "degraded": True,
         })
+
+    result.update(
+        build_posture_fields(
+            deployment_profile=profile,
+            reachable=bool(result.get("reachable")),
+            provider=str(result.get("provider") or "none"),
+            litellm_configured=is_litellm_configured(),
+            ollama_configured=bool(status.get("ollama_configured")),
+            rules_fallback_enabled=rules_enabled,
+            fallback_active=bool(result.get("fallback_active")),
+        )
+    )
 
     ttl = int(getattr(settings, "AI_HEALTH_CACHE_TTL_SECONDS", 60) or 60)
     try:
@@ -283,7 +562,7 @@ def generate_ai_response(
                     "denied": True,
                 },
             )
-        if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
+        if ai_rules_fallback_allowed():
             return _rules_fallback(user_query), {
                 "provider": "rules",
                 "errors": {"gateway": "disabled"},
@@ -329,20 +608,23 @@ def generate_ai_response(
         return str(result), gateway_meta
     except _AI_GATEWAY_INVOKE_ERRORS as e:
         logger.warning("AI gateway invoke failed: %s", e)
-        if bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True)):
+        if ai_rules_fallback_allowed():
             return _rules_fallback(user_query), {
                 "provider": "rules",
                 "errors": {"gateway": "unavailable"},
                 "fallback": True,
                 "gateway": True,
             }
+        from services.ai_unavailable import ollama_unavailable_message
+
         return (
-            "AI providers are currently unavailable and rules fallback is disabled.",
+            ollama_unavailable_message(),
             {
                 "provider": "none",
                 "errors": {"gateway": "unavailable"},
                 "fallback": False,
                 "gateway": True,
+                "live_ai_unavailable": True,
             },
         )
 

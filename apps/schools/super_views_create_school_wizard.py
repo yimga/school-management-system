@@ -24,6 +24,7 @@ from apps.siteconfig.tenant_config import REGIONAL_POLICY_PACKS
 
 from .models import School
 from .super_views_helpers import canonical_country_alpha2 as _canonical_country_alpha2
+from .tenant_studio_guidance import wizard_context
 
 # Pack code (from Geography / REGIONAL_POLICY_PACKS) -> default country alpha-2 for wizard pre-select
 _CREATE_SCHOOL_PACK_TO_COUNTRY = {
@@ -175,9 +176,8 @@ def create_school_wizard(request):
             for loc in locations
             if not default_country_alpha3 or loc.region_id == default_country_alpha3
         ]
-    return render(
-        request,
-        "schools/super_create_school_wizard.html",
+    ctx = wizard_context()
+    ctx.update(
         {
             "regions": regions,
             "countries": countries,
@@ -197,5 +197,6 @@ def create_school_wizard(request):
             "initial_pack_name": initial_pack_name,
             "parent_school_id": parent_school_id,
             "parent_school_name": parent_school_name,
-        },
+        }
     )
+    return render(request, "schools/super_create_school_wizard.html", ctx)

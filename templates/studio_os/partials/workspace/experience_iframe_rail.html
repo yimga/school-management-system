@@ -1,10 +1,16 @@
 {% load i18n %}
+{# v3.54.0 (2026-05-21): Experience iframe rail. Long-label wrap from
+   static/css/studio-experience-mode.css. The first item is marked
+   aria-current="page" since the iframe canvas auto-loads experience_left_rail.0.url. #}
 <div class="studio-os__card py-2">
   <div class="h6 mb-2">{% trans "Experience" %}</div>
   <ul class="list-unstyled small mb-0" id="experience-rail-list" data-studio-rail="experience">
     {% for item in experience_left_rail %}
     <li class="mb-1">
-      <a href="{{ item.url }}" class="experience-rail-link {% if forloop.first %}active{% endif %}"
+      <a href="{{ item.url }}"
+         class="experience-rail-link {% if forloop.first %}active{% endif %}"
+         {% if forloop.first %}aria-current="page"{% endif %}
+         title="{{ item.label }}"
          {% if item.embed %}data-embed="1"{% endif %}
          {% if item.external %}data-external="1" target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.label }}</a>
     </li>

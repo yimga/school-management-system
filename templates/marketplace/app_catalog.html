@@ -7,12 +7,13 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/marketplace-app-catalog.css' %}">
 {% endblock %}
 
 {% block cp_content %}
 <div
-  class="container-fluid py-4 control-plane-shell rmc-mkt-catalog"
+  class="container-fluid py-4 control-plane-shell rmc-cp-compact rmc-mkt-catalog"
   data-page-archetype="catalog"
   data-ux-qa-marker="app-catalog"
   data-decision-engine="surface"
@@ -25,7 +26,7 @@
   {% url 'super:marketplace_governance' as marketplace_governance_url %}
   {% include "components/world_class_page_hero.html" with hero_id="platform-app-catalog-title" role=_("Platform marketplace operators") title=_("App Catalog Governance") subtitle=_("Browse installable apps with trust signals, scope review, and sandbox-first rollout — without endless scrolling.") purpose=_("Marketplace governance") status=_("Sandbox first") primary_url="#catalog-browse" primary_label=_("Browse apps") secondary_url=marketplace_governance_url secondary_label=_("Governance console") visual_title=_("Install with confidence") visual_body=_("Pick a school once, preview impact per app, then install to sandbox.") %}
 
-  <nav class="rmc-page-fold-nav rmc-section-nav rmc-mkt-catalog__fold-nav" aria-label="{% trans 'On this page' %}">
+  <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
     <a class="nav-link" href="#catalog-glance">{% trans "At a glance" %}</a>
     <a class="nav-link" href="#catalog-browse">{% trans "Browse apps" %}</a>
     <a class="nav-link" href="#catalog-guide">{% trans "Safety guide" %}</a>
@@ -33,20 +34,20 @@
 
   <section id="catalog-glance" data-rmc-section-anchor class="rmc-reveal mb-3">
     {% include "components/world_class_summary_strip.html" with readiness="Sandbox" readiness_label=_("Install impact") risk=_("Scopes") risk_label=_("Permission review") next_step=_("Preview") next_step_label=_("Impact modal") blockers=_("Settlement") blockers_label=_("External honesty") %}
-    <div class="rmc-mkt-catalog__glance" role="list">
-      <div class="rmc-mkt-catalog__stat" role="listitem">
+    <div class="rmc-cp-compact__glance" role="list">
+      <div class="rmc-cp-compact__stat" role="listitem">
         <strong>{{ catalog_stats.apps|default:0 }}</strong>
         <span>{% trans "installable apps" %}</span>
       </div>
-      <div class="rmc-mkt-catalog__stat" role="listitem">
+      <div class="rmc-cp-compact__stat" role="listitem">
         <strong>{{ catalog_stats.verified_publishers|default:0 }}</strong>
         <span>{% trans "verified publishers" %}</span>
       </div>
-      <div class="rmc-mkt-catalog__stat" role="listitem">
+      <div class="rmc-cp-compact__stat" role="listitem">
         <strong>{{ catalog_stats.installed_pairs|default:0 }}</strong>
         <span>{% trans "live installs" %}</span>
       </div>
-      <div class="rmc-mkt-catalog__stat" role="listitem">
+      <div class="rmc-cp-compact__stat" role="listitem">
         <strong>{{ catalog_stats.filtered_total|default:0 }}</strong>
         <span>{% trans "matching filter" %}</span>
       </div>
@@ -60,12 +61,7 @@
         {% include "components/apple_class_dependency_graph.html" with graph_id="app-permission-scope-graph" title=_("App permission scope visual") source=_("App") dependency=_("Scopes and sandbox") target=_("Tenant install impact") %}
       </div>
     </details>
-    <div class="d-flex flex-wrap gap-2 small">
-      <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-secondary btn-sm">{% trans "Marketplace governance" %}</a>
-      <a href="{% url 'super:blueprint_marketplace' %}" class="btn btn-outline-secondary btn-sm">{% trans "Blueprint marketplace" %}</a>
-      <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-secondary btn-sm">{% trans "Sandbox inspector" %}</a>
-      <a href="{% url 'super:marketplace_compatibility' %}" class="btn btn-outline-secondary btn-sm">{% trans "Compatibility matrix" %}</a>
-    </div>
+    {% include "marketplace/partials/marketplace_hub_links.html" %}
   </section>
 
   {% if messages %}

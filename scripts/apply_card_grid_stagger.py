@@ -94,7 +94,7 @@ def process(text: str) -> tuple[str, int, int]:
         out.append(text[pos:m.start()])
 
         attrs_pre = m.group(1)   # leading attrs before class= (and class= itself opening)
-        quote = m.group(2)
+        m.group(2)
         class_content = m.group(3)
         attrs_post = m.group(4)  # everything from closing-quote onward to >
         full_attr_block = attrs_pre + class_content + attrs_post
@@ -111,14 +111,14 @@ def process(text: str) -> tuple[str, int, int]:
             pos = m.end()
             continue
 
-        row_body = text[m.end():close_idx - len("</div>")]
+        text[m.end():close_idx - len("</div>")]
 
         # Find the direct child columns. Use a depth-aware walk to ensure we
         # only touch DIRECT children of this row, not nested grids inside cards.
         # Cheap approximation: scan COL_OPEN matches whose position has equal
         # opens/closes between the row start and that match.
         child_cols: list[tuple[int, re.Match[str], str]] = []  # (abs_start, match, child_body)
-        body_offset = m.end()
+        m.end()
         depth_re = re.compile(r"<div\b|</div\s*>", re.IGNORECASE)
 
         # Walk the body, tracking depth manually so we only collect col-* divs
@@ -165,7 +165,7 @@ def process(text: str) -> tuple[str, int, int]:
             # Append everything between last cursor and this child's start.
             out.append(text[last:start_abs])
             col_attrs_pre = col_m.group(1)
-            col_quote = col_m.group(2)
+            col_m.group(2)
             col_class = col_m.group(3)
             col_attrs_post = col_m.group(4)
             col_full_attr = col_attrs_pre + col_class + col_attrs_post

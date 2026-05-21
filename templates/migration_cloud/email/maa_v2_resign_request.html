@@ -5,7 +5,7 @@
   <title>{% trans "Action requested: re-sign Migration Authorization Agreement (v2.0)" %}</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; color: #1f2937;">
-  <h1 style="font-size: 20px; margin-bottom: 16px;">
+  <h1 style="font-size: 20px; margin-bottom: 16px;/*inline-style-allow:email-template-inline*/">
     {% trans "Action requested: re-sign Migration Authorization Agreement (v2.0)" %}
   </h1>
   <p>{% blocktrans with name=recipient_name|default:"there" %}Hello {{ name }},{% endblocktrans %}</p>
@@ -14,7 +14,7 @@
     {% blocktrans %}RunMyCampus has updated the Migration Authorization Agreement (MAA) you previously signed for migration of source-vendor data into your tenant. The new version (v2.0) expands the data-protection language we are committing to, with five clauses that did not appear in v1.0:{% endblocktrans %}
   </p>
 
-  <ol style="line-height: 1.7;">
+  <ol style="line-height: 1.7;/*inline-style-allow:email-template-inline*/">
     <li><strong>{% trans "Scope of access" %}</strong> &mdash; {% trans "the agreement is now explicitly limited to the data domains you select in the Companion at extraction time." %}</li>
     <li><strong>{% trans "Data minimization" %}</strong> &mdash; {% trans "fields that are not mapped to our canonical ontology are quarantined and never written into your tenant unless you explicitly map them." %}</li>
     <li><strong>{% trans "No retention beyond migration" %}</strong> &mdash; {% trans "raw migration artifacts are purged within 90 days of successful apply, or earlier on written withdrawal." %}</li>
@@ -26,20 +26,20 @@
     {% blocktrans %}Your existing v1.0 signature remains valid for migrations already accepted by RunMyCampus. The v2.0 agreement only applies to future uploads. To keep using the Migration Cloud for new uploads, please re-sign v2.0 within the next 30 days:{% endblocktrans %}
   </p>
 
-  <p style="margin: 24px 0;">
-    <a href="{{ resign_url }}" style="display: inline-block; background: #4f46e5; color: #ffffff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+  <p style="margin: 24px 0;/*inline-style-allow:email-template-inline*/">
+    <a href="{{ resign_url }}" style="display: inline-block; background: #4f46e5; color: #ffffff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: 600;/*inline-style-allow:email-template-inline*/">
       {% trans "Review &amp; re-sign MAA v2.0" %}
     </a>
   </p>
 
-  <p style="font-size: 14px; color: #4b5563;">
+  <p style="font-size: 14px; color: #4b5563;/*inline-style-allow:email-template-inline*/">
     {% blocktrans %}If you have questions, reply to this email or contact partner-success@runmycampus.com. The full text of v2.0 is shown on the sign page.{% endblocktrans %}
   </p>
 
   <p>{% trans "Thank you," %}<br>{% trans "The RunMyCampus team" %}</p>
 
-  <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;">
-  <p style="font-size: 12px; color: #6b7280;">
+  <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 24px 0;/*inline-style-allow:email-template-inline*/">
+  <p style="font-size: 12px; color: #6b7280;/*inline-style-allow:email-template-inline*/">
     {% trans "This is a transactional email tied to your existing Migration Authorization Agreement." %}<br>
     {% trans "Campaign:" %} {{ campaign_version }}<br>
     {% trans "Agreement reference:" %} #{{ agreement_id }}

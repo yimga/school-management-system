@@ -582,15 +582,31 @@ def _section_counsel() -> dict[str, Any]:
         return {"error": type(exc).__name__}
 
     try:
+        # v3.40.0 Agent 15 — prefer the DB-persisted active version
+        # (MAAActiveVersionState singleton) over the env default, with
+        # defensive fallback to the env setting on import / read failure.
         active_version = getattr(
             settings, "MIGRATION_CLOUD_MAA_DEFAULT_VERSION", "v1.0",
         )
-        draft_versions = getattr(
-            settings, "MAA_TEXT_DRAFT_VERSIONS", set(),
-        )
-        if not isinstance(draft_versions, (set, list, tuple)):
-            draft_versions = set()
-        v2_draft = "v2.0" in set(draft_versions)
+        draft_versions: set[str] = set()
+        try:
+            from apps.migration_cloud.models_maa_state import (
+                MAAActiveVersionState,
+            )
+            from apps.migration_cloud.services.maa_text import (
+                get_draft_versions,
+            )
+            db_active = (MAAActiveVersionState.get_active_version() or "").strip()
+            if db_active:
+                active_version = db_active
+            draft_versions = set(get_draft_versions())
+        except Exception:  # noqa: BLE001 — defensive
+            settings_drafts = getattr(
+                settings, "MAA_TEXT_DRAFT_VERSIONS", set(),
+            )
+            if isinstance(settings_drafts, (set, list, tuple)):
+                draft_versions = set(settings_drafts)
+        v2_draft = "v2.0" in draft_versions
 
         # tenant-isolation-allow: command-center-cross-tenant-snapshot-staff-only
         active_signed = (

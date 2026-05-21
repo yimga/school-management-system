@@ -1,0 +1,120 @@
+{% load i18n static %}
+{% comment %}
+  Studio OS Cockpit · Signal Strip (v3.54.0, 2026-05-21)
+  ------------------------------------------------------
+  Mission-grade signal strip — 6 tiles surface the live state
+  the operator/tenant needs at a glance:
+
+    1. Tenant / platform indicator        (always)
+    2. Active mode                         (always)
+    3. Pending launches                    (overview_signals.pending_launches)
+    4. Draft experiences                   (overview_signals.draft_experiences)
+    5. Active automations                  (overview_signals.active_automations)
+    6. Output / launch readiness %         (launch_health_summary OR overview_signals.output_readiness_pct)
+    7. Open blockers                       (overview_signals.open_blockers OR launch_payload blockers count)
+    8. Operator / tenant mode indicator    (request.public_host_kind)
+
+  Tiles render an honest "—" placeholder with data-state="unknown"
+  whenever the underlying context var is missing. Never fakes data.
+
+  Stylesheet contract:
+    - Top-level cockpit chrome from static/css/studio-os-cockpit.css
+      (coordinator-owned) provides the .rmc-cockpit__signal grid area.
+    - This partial uses the .rmc-overview-signal-* grammar from
+      static/css/studio-overview-cockpit.css (agent-owned, loaded
+      from this partial via {% static %} link below).
+
+  v3.54.0 (2026-05-21): Overview next-realm cockpit — refactor
+  from 3 decorative pulses to a true mission-signal tile strip.
+{% endcomment %}
+{# v3.54.0 (2026-05-21): Overview next-realm cockpit — link agent-owned CSS once per render. #}
+<link rel="stylesheet" href="{% static 'css/studio-overview-cockpit.css' %}">
+<div class="rmc-cockpit__signal" role="region" aria-label="{% trans 'Studio mission signal strip' %}" data-rmc-cockpit-region="signal" data-rmc-overview-signal-strip="1">
+  <div class="rmc-overview-signal-strip" data-rmc-overview-signal-tiles="1">
+
+    {# ---- Tile 1: Tenant / platform indicator ---- #}
+    <div class="rmc-overview-signal-tile rmc-overview-signal-tile--mode" data-rmc-overview-tile="tenant" data-tone="success">
+      <span class="rmc-overview-signal-tile__label">{% trans "Tenant" %}</span>
+      <span class="rmc-overview-signal-tile__value" title="{% if school %}{{ school.name|default:_('Tenant') }}{% else %}{% trans 'Platform' %}{% endif %}">
+        {% if school %}{{ school.name|default:_('Tenant') }}{% else %}{% trans "Platform" %}{% endif %}
+      </span>
+    </div>
+
+    {# ---- Tile 2: Active mode ---- #}
+    <div class="rmc-overview-signal-tile rmc-overview-signal-tile--mode" data-rmc-overview-tile="mode">
+      <span class="rmc-overview-signal-tile__label">{% trans "Focus" %}</span>
+      <span class="rmc-overview-signal-tile__value">
+        {% if current_mode %}{{ current_mode|capfirst }}{% else %}{% trans "Overview" %}{% endif %}
+      </span>
+    </div>
+
+    {# ---- Tile 3: Pending launches ---- #}
+    {% with pending_launches=overview_signals.pending_launches %}
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="pending-launches"{% if pending_launches is None %} data-state="unknown"{% endif %}{% if pending_launches and pending_launches > 0 %} data-tone="warning"{% endif %}>
+      <span class="rmc-overview-signal-tile__label">{% trans "Pending launches" %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if pending_launches is not None %}{{ pending_launches }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__hint">{% trans "Tenants waiting to go live." %}</span>
+    </div>
+    {% endwith %}
+
+    {# ---- Tile 4: Draft experiences ---- #}
+    {% with draft_experiences=overview_signals.draft_experiences %}
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="draft-experiences"{% if draft_experiences is None %} data-state="unknown"{% endif %}>
+      <span class="rmc-overview-signal-tile__label">{% trans "Draft experiences" %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if draft_experiences is not None %}{{ draft_experiences }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__hint">{% trans "Theme & layout edits not yet published." %}</span>
+    </div>
+    {% endwith %}
+
+    {# ---- Tile 5: Active automations ---- #}
+    {% with active_automations=overview_signals.active_automations %}
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="active-automations"{% if active_automations is None %} data-state="unknown"{% endif %}>
+      <span class="rmc-overview-signal-tile__label">{% trans "Active automations" %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if active_automations is not None %}{{ active_automations }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__hint">{% trans "Workflows currently running." %}</span>
+    </div>
+    {% endwith %}
+
+    {# ---- Tile 6: Output / launch readiness ---- #}
+    {% with output_readiness=overview_signals.output_readiness_pct %}
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="readiness"{% if output_readiness is None and not launch_ready %} data-state="unknown"{% endif %}{% if launch_ready %} data-tone="success"{% elif output_readiness and output_readiness < 60 %} data-tone="warning"{% endif %}>
+      <span class="rmc-overview-signal-tile__label">{% trans "Launch readiness" %}</span>
+      <span class="rmc-overview-signal-tile__value" title="{% if launch_health_summary %}{{ launch_health_summary }}{% endif %}">
+        {% if output_readiness is not None %}{{ output_readiness }}%{% elif launch_ready %}{% trans "Ready" %}{% else %}—{% endif %}
+      </span>
+      {% if launch_health_summary %}
+      <span class="rmc-overview-signal-tile__hint">{{ launch_health_summary|truncatechars:64 }}</span>
+      {% else %}
+      <span class="rmc-overview-signal-tile__hint">{% trans "Setup completion across modes." %}</span>
+      {% endif %}
+    </div>
+    {% endwith %}
+
+    {# ---- Tile 7: Open blockers ---- #}
+    {% with open_blockers=overview_signals.open_blockers %}
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="blockers"{% if open_blockers is None %} data-state="unknown"{% endif %}{% if open_blockers and open_blockers > 0 %} data-tone="risk"{% endif %}>
+      <span class="rmc-overview-signal-tile__label">{% trans "Open blockers" %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if open_blockers is not None %}{{ open_blockers }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__hint">{% trans "Items blocking launch or rollout." %}</span>
+    </div>
+    {% endwith %}
+
+    {# ---- Tile 8: Operator / tenant host indicator ---- #}
+    {# tenant-isolation-allow: cockpit-signal-host-kind-explicit-mode-indicator #}
+    <div class="rmc-overview-signal-tile rmc-overview-signal-tile--mode" data-rmc-overview-tile="host-kind" data-rmc-host-kind="{{ request.public_host_kind|default:'tenant' }}">
+      <span class="rmc-overview-signal-tile__label">{% trans "Host mode" %}</span>
+      <span class="rmc-overview-signal-tile__value">
+        {% if request.public_host_kind == 'manager' %}{% trans "Operator" %}{% else %}{% trans "Tenant" %}{% endif %}
+      </span>
+      <span class="rmc-overview-signal-tile__hint">
+        {% if request.public_host_kind == 'manager' %}{% trans "Cross-tenant control plane." %}{% else %}{% trans "Single-tenant workspace." %}{% endif %}
+      </span>
+    </div>
+
+  </div>
+  <span class="rmc-cockpit__signal-spacer" aria-hidden="true"></span>
+  <span class="rmc-cockpit__signal-kbd" aria-hidden="true">⌘K</span>
+  <span class="rmc-cockpit__signal-pulse" aria-label="{% trans 'Open command bar hint' %}">
+    <span>{% trans "Press ⌘K for commands" %}</span>
+  </span>
+</div>

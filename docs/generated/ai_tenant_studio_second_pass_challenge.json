@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-05-21T00:33:02+00:00",
+  "ai_center": {
+    "only_changed_failed": true,
+    "evidence_backed_degraded": true,
+    "live_claims_honest": true
+  },
+  "tenant_studio": {
+    "only_changed_failed": true,
+    "five_second_next_action": "partial_improved_via_hub",
+    "dead_ends": false,
+    "mobile_safe": "portal_base_inherited"
+  },
+  "weak_items_fixed_before_finalize": [
+    "missing school/studio routes",
+    "missing operator direction export",
+    "embedded AI panel on school_studio_hub"
+  ]
+}

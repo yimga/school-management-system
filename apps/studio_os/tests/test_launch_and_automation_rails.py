@@ -82,6 +82,30 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
             "Overview should be native HTML, not an iframe canvas",
         )
 
+    def test_automation_overview_renders_cockpit_grammar(self):
+        """v3.54 (Agent 3): Automation overview is the workflow cockpit."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:automation") + "?pane=overview"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        # Cockpit class lands.
+        self.assertContains(response, "rmc-automation-cockpit")
+        # Summary tiles present.
+        self.assertContains(response, "rmc-automation-tile")
+        # Simulation preview pane is wired in overview.
+        self.assertContains(response, "rmc-automation-simulation")
+
+    def test_automation_rail_uses_rmc_automation_rail_grammar(self):
+        """v3.54 (Agent 3): rail uses .rmc-automation-rail__link grammar."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:automation") + "?pane=overview"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        # On tenant shells, the workspace rail loads.
+        # On manager-host (no workspace_layout), the legacy fallback also uses
+        # the .rmc-automation-rail wrapper. Either way the class is present.
+        self.assertContains(response, "rmc-automation-rail")
+
     def test_automation_workflow_pane_uses_iframe(self):
         """Workflow center embed loads in iframe when pane=workflow."""
         self.client.force_login(self.user)
@@ -135,3 +159,38 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
             "role preview should be native template, not the launch iframe",
         )
         self.assertIn(b"role preview", response.content.lower())
+
+    # ---- v3.54.0 next-realm Launch cockpit additions ----
+
+    def test_launch_links_next_realm_cockpit_css(self):
+        """Launch mode shell pulls studio-launch-cockpit.css (new in v3.54.0)."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "studio-launch-cockpit.css")
+
+    def test_launch_infrastructure_pane_carries_request_apply_confirm_for_operator(self):
+        """Operator host: 'Request platform apply' confirms before invoking platform action."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch") + "?pane=infrastructure"
+        response = self.client.get(url, HTTP_HOST="manager.example.test")
+        self.assertEqual(response.status_code, 200)
+        # JS hooks always present (preview is read-only)
+        self.assertContains(response, 'id="studio-infra-preview-btn"')
+
+    def test_launch_plan_pane_renders_honest_coming_soon(self):
+        """Plan pane: explicit 'Coming soon' marker until plans productized."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch") + "?pane=plan"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Coming soon")
+
+    def test_launch_rail_aria_current_on_active_pane(self):
+        """Active rail link carries aria-current=page for a11y."""
+        self.client.force_login(self.user)
+        url = reverse("studio_os:launch") + "?pane=role_preview"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-current="page"')

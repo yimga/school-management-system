@@ -26,9 +26,24 @@ OUT_ENHANCED = REPO / "static" / "marketing" / "css" / "marketing-enhanced.min.c
 OUT_HASH_MANIFEST = REPO / "static" / "marketing" / "css" / "marketing-bundles.manifest.json"
 
 
+_ALLOW_MARKER_PRESERVE = re.compile(
+    r"/\*\s*(?:off-token-allow|theme-locked-allow|sticky-overflow-allow|theme-attr-contract-allow)\s*:[^*]*\*/"
+)
+
+
 def _minify_css(text: str) -> str:
-    """Conservative CSS minifier (stdlib only). Preserves strings and calc/var()."""
-    text = re.sub(r"/\*[^*]*\*+(?:[^/*][^*]*\*+)*/", "", text)
+    """Conservative CSS minifier (stdlib only). Preserves strings and calc/var().
+
+    Preserves scanner allow markers (off-token-allow, theme-locked-allow,
+    sticky-overflow-allow, theme-attr-contract-allow) so categorical
+    CI-marker categories survive bundle regeneration.
+    """
+    def _strip_comments(m: re.Match) -> str:
+        body = m.group(0)
+        if _ALLOW_MARKER_PRESERVE.search(body):
+            return body
+        return ""
+    text = re.sub(r"/\*[^*]*\*+(?:[^/*][^*]*\*+)*/", _strip_comments, text)
     text = re.sub(r"\s+", " ", text)
     text = re.sub(r"\s*([{}:;,>+~])\s*", r"\1", text)
     text = text.replace(";}", "}")

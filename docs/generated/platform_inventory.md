@@ -1,25 +1,25 @@
 # Platform Inventory
 
 - Installed app modules: `48`
-- Python files: `4430`
-- HTML templates: `1217`
+- Python files: `4440`
+- HTML templates: `1226`
 - Markdown files: `1374`
-- Migration files: `883`
+- Migration files: `884`
 - Management commands: `258` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2159`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `68`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `33`
+- `SiteSettings` refs (gross scan): `2156`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `65`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `30`
 - `get_solo()` refs: `211`
-- `except Exception`: `1280`
+- `except Exception`: `1296`
 - `cursor.execute()` (gross): `395`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `40`
 - `csrf_exempt` (substring, gross): `447`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `51`
 - `AllowAny`: `138`
-- `print()` (gross all `.py`): `2076`
-- `print()` (`apps` product paths): `0`; `scripts/`: `1910`
-- `gilead` matches (gross corpus): `16730` across `195` files
-- `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `5`
+- `print()` (gross all `.py`): `2086`
+- `print()` (`apps` product paths): `0`; `scripts/`: `1922`
+- `gilead` matches (gross corpus): `16733` across `196` files
+- `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `8`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
 - Scoped-gravity **history** (last writes): `scripts/generated/scoped_gravity_trend.json` (updated with `generate_platform_inventory.py --write`; excluded from gross `gilead` JSON scan).
@@ -77,17 +77,17 @@ Total: `258` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/schools/marketing_views.py`: `4091` lines / `163812` bytes
+- `apps/schools/marketing_views.py`: `4076` lines / `163184` bytes
 - `apps/schools/marketing_page_definitions.py`: `3056` lines / `143830` bytes
-- `config/settings.py`: `2808` lines / `132074` bytes
+- `config/settings.py`: `2934` lines / `137390` bytes
 - `apps/accounts/views.py`: `3334` lines / `130653` bytes
 - `apps/evals/views.py`: `3270` lines / `125763` bytes
 - `apps/api/views_v1.py`: `2890` lines / `119211` bytes
 - `apps/migration_cloud/views.py`: `2608` lines / `111317` bytes
-- `apps/siteconfig/views.py`: `2828` lines / `106976` bytes
+- `apps/siteconfig/views.py`: `2831` lines / `107110` bytes
 - `apps/finance/models.py`: `3037` lines / `106339` bytes
 - `apps/siteconfig/admin.py`: `2816` lines / `99012` bytes
-- `apps/studio_os/views.py`: `2418` lines / `96234` bytes
+- `apps/studio_os/views.py`: `2422` lines / `96373` bytes
 - `apps/finance/tasks.py`: `2075` lines / `83551` bytes
 
 ## Documentation Drift

@@ -131,7 +131,6 @@ def _finalize_model_text(
     scope: PlatformTier,
 ) -> tuple[str, bool]:
     """Validate structure; escalate on fluff or missing sections."""
-    escalation = False
     blob = (text or "").strip()
     if not blob or looks_like_hallucinated_fluff(blob):
         return _escalation_for_scope(scope), True

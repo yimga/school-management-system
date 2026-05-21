@@ -48,7 +48,7 @@ EXEMPT_SUBSTRINGS = (
 
 
 def _is_exempt(rel: str, snippet: str) -> bool:
-    s = rel.replace("\\", "/") + " " + snippet[:200].lower()
+    rel.replace("\\", "/") + " " + snippet[:200].lower()
     if "noscript" in snippet.lower() and "<style" in snippet.lower():
         return True
     for x in EXEMPT_SUBSTRINGS:

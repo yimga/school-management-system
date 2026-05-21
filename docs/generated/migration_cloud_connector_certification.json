@@ -1,128 +1,43 @@
 {
-  "generated_at": "2026-05-20T02:39:28.710152+00:00",
-  "sot_batch": 1326,
-  "extends_batch": 1318,
-  "verdict": "MIGRATION CLOUD CONNECTORS READY \u2014 REPO SCOPE",
-  "gate": {
-    "verify_migration_cloud_connectors": {
-      "pass": true,
-      "stdout": "MIGRATION_CLOUD_CONNECTORS_PASS 8",
-      "checks": 8
-    }
+  "generated_at_utc": "2026-05-20T21:46:30Z",
+  "agent_id": "A5",
+  "wave": "sms-v3.40.0-batch-1370",
+  "extends_prior_batch": 1326,
+  "scope": "Confirm canonical CSV ingest path preserved and counsel-blocked FACTS/Skyward write paths still honest-stub.",
+  "canonical_csv_path_preserved": {
+    "verified": true,
+    "evidence": [
+      "Canonical CSV implementations live OUTSIDE the Django subtree at companion-docker/app/canonical_csv.py and companion-tauri/src-tauri/src/canonical_csv.rs — observed-only, NOT modified by Agent A5",
+      "scripts/scan_companion_canonical_headers_drift.py reports 0 unallowed drift; 23 SOT domains identical across both companion JSON mirrors and the Django SOT",
+      "apps/migration_cloud/services/ contains no canonical_csv.py — the Django side reads canonical headers from the companion JSON mirrors (DOMAIN_CANONICAL_HEADERS SOT)"
+    ]
   },
-  "repo_scope_certified": [
-    "models_connectors (8 models)",
-    "connector services (credentials, discovery, mapping, import, rollback, audit, bundle_bridge)",
-    "intake (api_pull_intake, database_intake sqlite)",
-    "connectors registry (generic + vendor export adapters)",
-    "tenant wizard /school/setup/migration-cloud/",
-    "operator /super/migration/connectors/",
-    "migrations 0025_migration_cloud_connectors + 0026_staging_rows_json"
-  ],
-  "test_modules": [
-    "apps.migration_cloud.tests.test_connector_registry",
-    "apps.migration_cloud.tests.test_vendor_connectors",
-    "apps.migration_cloud.tests.test_api_pull_intake",
-    "apps.migration_cloud.tests.test_field_mapping",
-    "apps.migration_cloud.tests.test_data_quality_quarantine",
-    "apps.migration_cloud.tests.test_import_engine",
-    "apps.migration_cloud.tests.test_rollback_posture",
-    "apps.migration_cloud.tests.test_migration_cloud_tenant_isolation",
-    "apps.migration_cloud.tests.test_migration_cloud_audit",
-    "apps.migration_cloud.tests.test_source_connection_security",
-    "apps.migration_cloud.tests.test_source_discovery",
-    "apps.migration_cloud.tests.test_operator_migration_cloud"
-  ],
-  "tests": {
-    "command": "python scripts/run_sqlite_memory_tests.py <12 connector modules>",
-    "total": 30,
-    "passed": 30,
-    "failed": 0,
-    "status": "OK"
+  "facts_write_path_still_honest_stub": {
+    "verified": true,
+    "evidence": [
+      "companion-tauri/src-tauri/src/extractors/facts.rs:14 docstring 'EXPLICIT # honest-stub: write-path counsel-blocked marker'",
+      "companion-tauri/src-tauri/src/extractors/facts.rs:71 + 75 '// honest-stub: write-path counsel-blocked'",
+      "companion-docker/app/extractors/facts.py:11 docstring; lines 48 + 51 '# honest-stub: write-path counsel-blocked'"
+    ]
   },
-  "connectors": [
-    {
-      "key": "blackbaud",
-      "certification_status": "pilot_ready",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
-    },
-    {
-      "key": "finalsite",
-      "certification_status": "planned",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
-    },
-    {
-      "key": "generic_api",
-      "certification_status": "api_experimental",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
-    },
-    {
-      "key": "generic_browser_export",
-      "certification_status": "browser_export_experimental",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
-    },
-    {
-      "key": "generic_csv_export",
-      "certification_status": "production_ready",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
-    },
-    {
-      "key": "google_classroom",
-      "certification_status": "api_experimental",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
-    },
-    {
-      "key": "open_sis",
-      "certification_status": "file_export_only",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_connector_registry"
-    },
-    {
-      "key": "powerschool",
-      "certification_status": "pilot_ready",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
-    },
-    {
-      "key": "veracross",
-      "certification_status": "pilot_ready",
-      "supported_methods": [
-        "file_export"
-      ],
-      "test_evidence": "apps.migration_cloud.tests.test_vendor_connectors"
-    }
-  ],
-  "tenant_isolation": "PASS \u2014 school FK scoping on connector models; cross-tenant filter tests",
-  "security": "PASS \u2014 no credential logging; memory-only default; authorization gates on import",
-  "external_deferrals": [
-    "Live vendor REST/OAuth against production SIS APIs",
-    "FACTS/Skyward write paths (counsel-blocked)",
-    "Ed-Fi production connector"
-  ],
-  "e2e": {
-    "spec": "tests/e2e/migration-cloud.spec.js",
-    "playwright_required": true
-  }
+  "skyward_write_path_still_honest_stub": {
+    "verified": true,
+    "evidence": [
+      "companion-tauri/src-tauri/src/extractors/skyward.rs:15 docstring; lines 76 + 80 '// honest-stub: write-path counsel-blocked'",
+      "companion-docker/app/extractors/skyward.py:11 docstring; lines 56 + 59 '# honest-stub: write-path counsel-blocked'"
+    ]
+  },
+  "counsel_docket_intact": {
+    "verified": true,
+    "evidence": [
+      "docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md not modified by Agent A5 — preserve-list honored"
+    ]
+  },
+  "binding_constraints_honored": {
+    "no_programmatic_sis_login": "PASS — A5 added zero SIS-login code; companion-* extractor write paths remain honest-stub",
+    "no_mfa_bypass": "PASS",
+    "no_credential_logging": "PASS",
+    "facts_skyward_still_blocked": "PASS"
+  },
+  "verdict": "READY — REPO SCOPE"
 }

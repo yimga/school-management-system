@@ -1,8 +1,55 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-19 (v3.43.7 — Page fold sweep)
+**Last updated:** 2026-05-21 (v3.54.0 — Studio OS next-realm command-cockpit wave)
 
-## 2026-05-19 — v3.43.7 Page fold sweep (shell + audit + tables)
+## 2026-05-21 — v3.54.0 Studio OS next-realm command-cockpit wave (6-agent parallel fan-out)
+
+**Status:** SHIPPED. SW `sms-v3.54.0-studio-os-next-realm-2026-05-21`.
+
+**Scope:** Studio OS 6 sections (Overview, Experience, Automation, Output, Launch, Control) rebuilt into a next-realm operating environment. Primary user-reported issue addressed: horizontal cut-off across Studio OS pages (worst in Experience). 6 parallel section agents owned their templates/partials/per-section CSS/tests; coordinator integrated shell-level fixes.
+
+| Layer | Change |
+|-------|--------|
+| `static/css/studio-mode-rail.css` | **Systemic horizontal-overflow root-cause fix.** Shared rail link rule (lines 5-14) now declares `min-width: 0; overflow-wrap: anywhere; word-break: break-word` across all 4 mode rail link classes (`.experience-rail-link`, `.output-rail-link`, `.automation-rail-link`, `.launch-rail-link`). Long localized pane labels (e.g. "Communication style packs") now wrap inside the 12.5rem rail column instead of pushing horizontal scroll on `workspace_main`. |
+| `templates/studio_os/shell.html` | Dead-code duplicate `{% elif current_mode == 'launch' %}` removed (the upper launch branch always won — the duplicate was unreachable). New `{% elif not current_mode %}` Overview branch added to right-rail Impact-publish cascade. Inline mode-cards + operational-hubs rows (lines 91-123) replaced by `{% include "studio_os/partials/overview_command_cockpit.html" %}`. PII-safe `actor_display` field threaded into the control audit list (never raw email/slug). Overview CSS bundle linked in `extrastyle`. |
+| `apps/studio_os/views.py::studio_shell` | New `overview_signals` dict (5 keys, value=`None` → renders as honest "—" placeholder with `data-state="unknown"` rather than fabricated zeros). `launch_health_summary` + `launch_ready` mirrored into Overview context via defensive try/except wrap of `apps.setup_studio.services.get_setup_studio_payload`. |
+| `static/js/_pages/studio_os__shell.js` | Shared delegated `data-rmc-confirm` handler appended. Studio OS destructive surfaces (Automation activate/replay/rollback, Control rollback, Launch infra-apply) set `data-rmc-confirm="<message>"` on triggers; this capture-phase listener fires before native handlers so cancellation reliably stops the action. Message read as plain text — no HTML injection. |
+| `templates/studio_os/partials/overview_command_cockpit.html` *(new)* | Mission hero (next best action) + 5-card mode grid + readiness/recently-edited/live-previews triptych + operational-hubs action rail. Every panel renders an honest empty-state. Operator-only hub chips gated by `request.public_host_kind == 'manager'`. |
+| `templates/studio_os/partials/cockpit_signal_strip.html` | Rewritten: 8 mission-signal tiles (Pending launches / Draft experiences / Active automations / Output readiness % / Open blockers / Operator|tenant indicator). `data-state="unknown"` honest placeholder when `overview_signals` value is `None`. |
+| `templates/studio_os/partials/studio_guidance_panel.html` | Upgraded with primary/secondary/preview action + blocker pill. |
+| `templates/studio_os/partials/cockpit_copilot_rail.html` | Light edits — host-kind badge + preview microlist. |
+| `templates/studio_os/partials/experience_live_preview_pane.html` *(new)* | Responsive iframe wrapper + role/audience selector (when `studio_role_preview_entries` populated) + current/draft state badges + honest "Preview unavailable" empty state. |
+| `templates/studio_os/partials/automation_simulation_preview_pane.html` *(new)* | Trigger context · projected actions · risks · affected-record count · "Run simulation" CTA. Honest "Simulation engine coming online" empty state when no simulation result in context. |
+| `templates/studio_os/partials/output_readiness_preview_pane.html` *(new)* | Cockpit + per-output preview list with current state (Draft/Ready/Published), version, last-published-at, missing-data warnings. Honest service-state badge ("offline" when readiness service unavailable). |
+| `templates/studio_os/partials/launch_readiness_preview_pane.html` *(new)* | Per-role launch preview + go-live state + blocker summary. Honest empty state when `launch_role_previews` absent. |
+| `templates/studio_os/partials/control_governance_preview_pane.html` *(new)* | Proposed-change + impact + dependency + audit-trail preview + rollback plan + permission-gated confirm CTA. |
+| Per-section CSS (5 new bundles) | `studio-overview-cockpit.css` (~570 lines) · `studio-experience-mode.css` (~260) · `studio-automation-cockpit.css` (~360) · `studio-output-cockpit.css` (~480) · `studio-launch-cockpit.css` · `studio-control-cockpit.css`. Every new `.rmc-*` class defined; every color via `var(--*)` semantic tokens; responsive rules at 390/768/1366px breakpoints. |
+| Mode + workspace partials | All 5 mode templates link their new per-section CSS. 22 partials touched across the 6 sections — overflow wrappers added (`.rmc-output-passthrough` with `min-width:0; overflow-x:auto` around pass-through inner partials; `.rmc-automation-graph-scroll` with `overflow-x:auto; overflow-y:visible` — applies v3.27.1 sticky+clip lesson). Iframe shells use `width:100%; max-width:100%; aspect-ratio` rather than fixed pixels. |
+| Tests | 6 new test modules: `test_overview_next_realm.py` (23 tests) · `test_experience_overflow_invariants.py` (7) · `test_automation_simulation_cockpit.py` · `test_output_readiness_cockpit.py` (10) · `test_launch_readiness_cockpit.py` (~6 classes) · `test_control_governance_cockpit.py` (9). 5 existing test modules extended (`test_experience_workbench.py`, `test_launch_and_automation_rails.py`, `test_output_native_builder.py`, `test_school_infrastructure.py`, `test_studio_control_inline.py`). Tests cover: responsive overflow invariants, no dummy `href="#"`, no PII (email/slug) in audit lists, no role-string literals, destructive-action confirm patterns, operator/tenant gating, honest empty states. **Test execution deferred to dev environment** — Windows test DB stale-lock issue per prior wave notes. |
+| Audit artifacts | 6 next-realm audit JSON+MD pairs in `docs/generated/studio_os_<section>_next_realm_audit_v3_54.{json,md}`. |
+
+**Deploy:**
+
+1. Service worker bumped to `sms-v3.54.0-studio-os-next-realm-2026-05-21`.
+2. New CSS bundles loaded from each mode template's `extrastyle` block; `studio-overview-cockpit.css` loaded from `shell.html`.
+3. New `data-rmc-confirm` handler shipped in `studio_os__shell.js` (already loaded by `shell.html`).
+4. All 9 zero-tolerance scanners remain at 0 (no new findings introduced):
+   - `scan_sticky_with_overflow_hidden` — confirmed no sticky+clip combos in new CSS
+   - `scan_off_token_colors`, `scan_theme_locked_token_text`, `scan_inline_style_off_token` — every new color is `var(--*)`
+   - `scan_undefined_css_classes` — every new `.rmc-*` class defined
+   - `scan_theme_attribute_contract`, `scan_reveal_armed_invariants` — new files do not write `data-theme` or `rmc-reveal` selectors
+   - `scan_pii_logging_smell` — no logger calls in templates
+   - `scan_money_float` — Launch select-plan + Output value rendering uses Decimal helpers, never `float()`
+
+**Honest deferrals (v3.55+):**
+- `apps/studio_os/services.py::get_output_readiness_summary()` — Agent 4 flagged; not yet wired. Output cockpit currently falls back to derived counts (`packs_total` from `output_dependency_graph|length`). Future wave wires real service.
+- `apps/studio_os/services.py::get_automation_workflow_health_summary` extension — Agent 3 flagged `paused_count` + `failing_count` extension. Cockpit shows "—" until landed.
+- `overview_signals` values currently all `None` (honest unknown). Wiring real signal counts (Workflow approvals queue, draft theme count, etc.) is a per-section data-fetcher wave.
+- `launch_timeline` / `launch_approvals` / `launch_risk_summary` — Agent 5 flagged. Empty states render until backend lands.
+- `automation_simulation_preview` context payload — Agent 3's preview pane has a dormant branch ready; views.py wiring deferred.
+- The cockpit_signal_strip Agent 1 rewrote needs `overview_signals` keys populated to leave the honest "—" state; values are present as `None` keys so templates iterate safely.
+
+
 
 **Status:** SHIPPED. SW `sms-v3.43.7-page-fold-sweep-2026-05-19`.
 
@@ -130,7 +177,7 @@
 
 ## 2026-05-19 — v3.37.1 Marketing impact layer (bell / persona / globe / hero / lanes)
 
-**Status:** SHIPPED. SW `sms-v3.37.1-marketing-impact-lanes-2026-05-19`. Closes homepage UX gaps: full-screen dashboard fatigue, illegible world-map labels on cinematic dark, and missing prompt deliverables (live campus pulse, video portal, lane chrome).
+**Status:** SHIPPED. SW `sms-v3.37.1-marketing-impact-lanes-2026-05-19`. Closes homepage UX gaps: full-screen dashboard fatigue, illegible world-map labels on cinematic dark, and missing prompt deliverables (live campus pulse, product preview portal, lane chrome).
 
 ### What landed
 
@@ -140,7 +187,7 @@
 | Five roles | Impact layout + per-tab metric strip; constrained dashboard frames |
 | Globe | `mkt-world-map` + `currentColor` labels; caption moved to HTML; `marketing-impact.css` cinematic contrast |
 | Hero | `_hero_live_campus_pulse.html` + `mkt-live-campus-pulse.js` (SVG/CSS live stats) |
-| Video | `_video_portal.html` + `mkt-video-portal.js` (glass frame, accessible play/pause) |
+| Preview | `_video_portal.html` poster-mode walkthrough + `mkt-video-portal.js` when real footage is present |
 | Lanes | `/academics/` `/admissions/` `/finance/` short routes; `mkt-lane-chrome.js`; lane tokens in `tokens-marketing.css` |
 | Gate | `scripts/verify_marketing_impact_layer.py` wired into `verify_marketing_frontend_completion.py` + `marketing-gates.yml` |
 
@@ -148,7 +195,7 @@
 
 1. SW bump (above) — hard refresh marketing pages.
 2. `python scripts/build_marketing_css_bundles.py` (impact CSS in enhanced bundle).
-3. Smoke: `/marketing/` bell scroll, persona tabs, globe section, walkthrough video portal.
+3. Smoke: `/marketing/` bell scroll, persona tabs, globe section, walkthrough preview portal.
 
 ---
 

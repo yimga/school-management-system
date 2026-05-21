@@ -95,3 +95,65 @@ class SchoolInfrastructureApiContractTests(SimpleTestCase):
         self.assertEqual(resp.status_code, 501)
         data = json.loads(resp.content.decode())
         self.assertFalse(data.get("supported"))
+
+
+# ----- v3.54.0 next-realm Launch infrastructure body partial -----
+
+class SchoolInfrastructureBodyPartialV3_54Tests(SimpleTestCase):
+    """launch_school_infrastructure_body.html — next-realm rendering invariants."""
+
+    PARTIAL = "studio_os/partials/launch_school_infrastructure_body.html"
+
+    def _render(self, public_host_kind: str = "tenant", **extra) -> str:
+        from django.template import Context, Template
+
+        rf = RequestFactory()
+        req = rf.get("/studio/launch/?pane=infrastructure")
+        req.public_host_kind = public_host_kind
+        ctx = {
+            "request": req,
+            "school_template_summaries": [
+                {"template_key": "private_school", "display_name": "Private", "school_type": "K-12", "version": "1.0"}
+            ],
+            "platform_catalog_valid": True,
+            "current_blueprint_reference": None,
+        }
+        ctx.update(extra)
+        tpl = Template("{% load i18n %}{% include '" + self.PARTIAL + "' %}")
+        return tpl.render(Context(ctx))
+
+    def test_tenant_host_hides_request_apply_button(self):
+        html = self._render(public_host_kind="tenant")
+        self.assertNotIn('id="studio-infra-request-apply"', html)
+        self.assertIn("Share the preview with your platform administrator", html)
+
+    def test_operator_host_shows_request_apply_with_confirm(self):
+        html = self._render(public_host_kind="manager")
+        self.assertIn('id="studio-infra-request-apply"', html)
+        self.assertIn("data-rmc-confirm", html)
+
+    def test_js_hooks_preserved_for_existing_page_data_consumer(self):
+        html = self._render()
+        for hook in (
+            'id="studio-infra-template"',
+            'id="studio-infra-preview-btn"',
+            'id="studio-infra-result"',
+            'id="studio-infra-summary"',
+            'id="studio-infra-diff"',
+            'id="studio-infra-rollback-note"',
+            'id="studio-infra-apply-note"',
+            'id="page-data-studio_os__partials__launch_school_infrastructure_body-1"',
+        ):
+            self.assertIn(hook, html, f"missing JS hook {hook}")
+
+    def test_current_blueprint_state_grid_rendered_when_present(self):
+        html = self._render(
+            current_blueprint_reference={
+                "applied_pack_slug": "elementary-pack",
+                "applied_pack_version": "1.2.0",
+                "policy_snapshot_size": 17,
+            }
+        )
+        self.assertIn("elementary-pack", html)
+        self.assertIn("v1.2.0", html)
+        self.assertIn("rmc-launch-infra__state-grid", html)

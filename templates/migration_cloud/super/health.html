@@ -1,22 +1,7 @@
 {% extends "control_plane_skeleton.html" %}
 {% load i18n %}
 
-{# v3.38.0 Agent 4 — Migration Cloud operator health dashboard.
-
-   Six panels in a 3-col grid for incident response:
-
-     1. Webhook deliveries (last 24h, by status)
-     2. MAA signs (last 7d, by version)
-     3. Companion uploads (last 24h, count + bytes per HASHED tenant)
-     4. Active Companion keypairs (per HASHED tenant)
-     5. Pending legacy hash sunsets (single count)
-     6. Zero-tolerance scanner baselines (8 rows)
-
-   Hard contract: this template NEVER renders raw tenant slugs (only
-   the 12-hex sha256 prefix the view computed), and NEVER renders
-   signature bytes / MAA body / private key material. Auto-refreshes
-   every 60s via meta refresh so an operator can keep it open.
-#}
+<!-- v3.38.0 Agent 4 — Migration Cloud operator health dashboard. Six panels in a 3-col grid for incident response: 1. Webhook deliveries (last 24h, by status) 2. MAA signs (last 7d, by version) 3. Companion uploads (last 24h, count + bytes per HASHED tenant) 4. Active Companion keypairs (per HASHED tenant) 5. Pending legacy hash sunsets (single count) 6. Zero-tolerance scanner baselines (8 rows) Hard contract: this template NEVER renders raw tenant slugs (only the 12-hex sha256 prefix the view computed), and NEVER renders signature bytes / MAA body / private key material. Auto-refreshes every 60s via meta refresh so an operator can keep it open. -->
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — operator health" }}{% endblock %}
 
@@ -37,7 +22,7 @@
 
   <div class="rmc-grid rmc-grid--3col rmc-grid--migration-cloud-health">
 
-    {# ── Panel 1 — Last-24h webhook deliveries ─────────────────────── #}
+    <!-- ── Panel 1 — Last-24h webhook deliveries ─────────────────────── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-webhooks-heading">
       <h2 id="health-webhooks-heading" class="rmc-h2">{% trans "Webhook deliveries (24h)" %}</h2>
       <p class="rmc-metric-ticker">
@@ -68,7 +53,7 @@
       {% endif %}
     </section>
 
-    {# ── Panel 2 — Last-7d MAA signs ──────────────────────────────── #}
+    <!-- ── Panel 2 — Last-7d MAA signs ──────────────────────────────── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-maa-heading">
       <h2 id="health-maa-heading" class="rmc-h2">{% trans "MAA signs (7d)" %}</h2>
       <p class="rmc-metric-ticker">
@@ -99,7 +84,7 @@
       {% endif %}
     </section>
 
-    {# ── Panel 3 — Last-24h Companion uploads (count + bytes per HASHED tenant) ── #}
+    <!-- ── Panel 3 — Last-24h Companion uploads (count + bytes per HASHED tenant) ── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-uploads-heading">
       <h2 id="health-uploads-heading" class="rmc-h2">{% trans "Companion uploads (24h)" %}</h2>
       <p class="rmc-metric-ticker">
@@ -135,7 +120,7 @@
       {% endif %}
     </section>
 
-    {# ── Panel 4 — Active companion keypairs per HASHED tenant ────── #}
+    <!-- ── Panel 4 — Active companion keypairs per HASHED tenant ────── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-keypairs-heading">
       <h2 id="health-keypairs-heading" class="rmc-h2">{% trans "Active Companion keypairs" %}</h2>
       <p class="rmc-metric-ticker">
@@ -166,7 +151,7 @@
       {% endif %}
     </section>
 
-    {# ── Panel 5 — Pending legacy hash sunsets ─────────────────────── #}
+    <!-- ── Panel 5 — Pending legacy hash sunsets ─────────────────────── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-sunsets-heading">
       <h2 id="health-sunsets-heading" class="rmc-h2">{% trans "Pending legacy-hash sunsets" %}</h2>
       <p class="rmc-metric-ticker">
@@ -182,7 +167,7 @@
       {% endif %}
     </section>
 
-    {# ── Panel 6 — Zero-tolerance scanner baselines ────────────────── #}
+    <!-- ── Panel 6 — Zero-tolerance scanner baselines ────────────────── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-scanners-heading">
       <h2 id="health-scanners-heading" class="rmc-h2">{% trans "Zero-tolerance scanner status" %}</h2>
       <table class="rmc-data-table rmc-data-table--mc-health">

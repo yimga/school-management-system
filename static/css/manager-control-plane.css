@@ -704,7 +704,7 @@ a.cp-queue-card-header:hover {
 /* ========== Layout: document scroll + sticky sidebar (v3.42.7) ========== */
 /* Natural page height — footer follows content; no black void above footer when
    main column content is shorter than the viewport. Sidebar sticks while body scrolls.
-   Manager /admin/ uses data-rmc-cp-scroll="main" instead (see admin-cp-parity.css):
+   Manager /admin/ uses data-rmc-cp-scroll="document" (see admin-cp-parity.css; main mode is rollback only):
    viewport-trapped .admin-cp-unified-page with overflow in #cp-main-content. */
 body.control-plane-shell[data-rmc-cp-scroll="document"] {
   display: flex;
@@ -776,14 +776,10 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] .portal-layout-row {
     flex-direction: column !important;
     overflow: hidden !important;
   }
+  /* Sticky rail + inner scroll: rmc-platform-chrome-layout.css (do not override here). */
   body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col {
-    position: relative;
-    align-self: stretch;
-    max-height: none;
-    overflow: hidden !important;
     background: var(--cp-ink-sidebar, rgba(8, 16, 30, 0.92));
   }
-  /* Inner rail fill + scroll: rmc-sidebar-rail-contract.css (platform contract) */
 }
 .cp-sidebar-col .cp-sidebar-inner {
   flex: 1 1 auto;

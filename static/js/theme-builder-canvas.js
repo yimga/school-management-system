@@ -7,10 +7,15 @@
   const statusEl = document.getElementById("theme-builder-status");
   const saveBtn = document.getElementById("theme-builder-save");
   const publishBtn = document.getElementById("theme-builder-publish");
+  const rollbackBtn = document.getElementById("theme-builder-rollback");
+  const publishLogEl = document.getElementById("theme-builder-publish-log");
   const previewBtn = document.getElementById("theme-builder-preview");
   const undoBtn = document.getElementById("theme-builder-undo");
   const redoBtn = document.getElementById("theme-builder-redo");
   const tokenPanel = document.getElementById("theme-builder-token-panel");
+  const contrastMeter = document.getElementById("theme-builder-contrast-meter");
+  const contrastValue = document.getElementById("theme-builder-contrast-value");
+  const CONTRAST_PAIR_MIN = 1.6;
   const surfaceButtons = Array.from(
     document.querySelectorAll(".preview-surface-btn[data-preview-surface]")
   );
@@ -26,9 +31,20 @@
     layout: "/siteconfig/theme-experience/builder/api/layout/",
     publish: "/siteconfig/theme-experience/builder/api/publish/",
     preview: "/siteconfig/theme-experience/builder/api/preview/",
+    publishLog: "/siteconfig/theme-experience/builder/api/publish-log/",
+    rollback: "/siteconfig/theme-experience/builder/api/rollback/",
   };
 
-  let layout = { version: 1, surface: "light", blocks: [] };
+  const FALLBACK_BLOCKS = [
+    { id: "sidebar", type: "sidebar", label: "Navigation sidebar", enabled: true },
+    { id: "hero", type: "hero", label: "Hero header", enabled: true },
+    { id: "metrics", type: "metrics", label: "Metric cards", enabled: true },
+    { id: "chart", type: "chart", label: "Activity chart", enabled: true },
+    { id: "announcement", type: "announcement", label: "Announcement bar", enabled: true },
+    { id: "cta", type: "cta", label: "Call to action", enabled: true },
+    { id: "footer", type: "footer", label: "Footer strip", enabled: false },
+  ];
+  let layout = { version: 1, surface: "light", blocks: FALLBACK_BLOCKS.map((b) => ({ ...b })) };
   let dragId = null;
   const history = [];
   let historyIndex = -1;
@@ -61,6 +77,51 @@
       if (val) colors[name] = val;
     });
     return colors;
+  };
+
+  const parseHex = (hex) => {
+    let value = String(hex || "").trim().replace(/^#/, "");
+    if (value.length === 3) value = value.split("").map((c) => c + c).join("");
+    if (value.length !== 6) return null;
+    return [
+      parseInt(value.slice(0, 2), 16),
+      parseInt(value.slice(2, 4), 16),
+      parseInt(value.slice(4, 6), 16),
+    ];
+  };
+
+  const luminance = (rgb) => {
+    const channel = (c) => {
+      const n = c / 255;
+      return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]);
+  };
+
+  const contrastRatio = (a, b) => {
+    const rgbA = parseHex(a);
+    const rgbB = parseHex(b);
+    if (!rgbA || !rgbB) return 0;
+    const l1 = luminance(rgbA);
+    const l2 = luminance(rgbB);
+    const lighter = Math.max(l1, l2);
+    const darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+
+  const syncContrastMeter = () => {
+    if (!contrastMeter || !contrastValue) return;
+    const primary = getField("primary_color")?.value;
+    const accent = getField("accent_color")?.value;
+    if (!primary || !accent) {
+      contrastMeter.hidden = true;
+      return;
+    }
+    const ratio = contrastRatio(primary, accent);
+    const ok = ratio >= CONTRAST_PAIR_MIN;
+    contrastMeter.hidden = false;
+    contrastMeter.dataset.ok = ok ? "true" : "false";
+    contrastValue.textContent = `${ratio.toFixed(1)}:1`;
   };
 
   const ensureHiddenFields = () => {
@@ -97,8 +158,10 @@
         renderCanvas();
         scheduleAutoSave();
         document.dispatchEvent(new CustomEvent("rmc-theme-builder-colors"));
+        syncContrastMeter();
       });
     });
+    syncContrastMeter();
   };
 
   const cloneLayout = () => JSON.parse(JSON.stringify(layout));
@@ -251,6 +314,43 @@
     autoSaveTimer = setTimeout(() => saveLayout(true), 1800);
   };
 
+  const renderPublishLog = (entries) => {
+    if (!publishLogEl) return;
+    const list = Array.isArray(entries) ? entries : [];
+    if (!list.length) {
+      publishLogEl.innerHTML = "<li class=\"text-muted\">No publishes yet.</li>";
+      if (rollbackBtn) rollbackBtn.disabled = true;
+      return;
+    }
+    const restorable = list.filter((e) => e && e.summary && e.summary.layout);
+    if (rollbackBtn) rollbackBtn.disabled = restorable.length < 2;
+    publishLogEl.innerHTML = list
+      .slice(-5)
+      .reverse()
+      .map((entry) => {
+        const at = (entry.at || "").replace("T", " ").slice(0, 16);
+        const type = entry.type || "publish";
+        const badge =
+          type.indexOf("rollback") >= 0
+            ? "text-bg-warning"
+            : type.indexOf("tenant") >= 0 || type.indexOf("operator") >= 0
+              ? "text-bg-primary"
+              : "text-bg-secondary";
+        return `<li><span class="badge ${badge} me-1">${type}</span><span class="text-muted">${at}</span></li>`;
+      })
+      .join("");
+  };
+
+  const refreshPublishLog = async () => {
+    try {
+      const resp = await fetch(API.publishLog, { credentials: "same-origin" });
+      const data = await resp.json();
+      if (resp.ok) renderPublishLog(data.entries);
+    } catch (_e) {
+      /* non-blocking */
+    }
+  };
+
   const publishLayout = async () => {
     setStatus("Publishing…");
     try {
@@ -265,8 +365,41 @@
       } else {
         setStatus("Published.");
       }
+      await refreshPublishLog();
     } catch (err) {
       setStatus(`Publish failed: ${err.message || err}`);
+    }
+  };
+
+  const rollbackPublish = async () => {
+    if (
+      rollbackBtn &&
+      !window.confirm(
+        "Restore the previous published theme on this plane? Unsaved draft changes stay in the editor."
+      )
+    ) {
+      return;
+    }
+    setStatus("Rolling back…");
+    try {
+      const data = await postJson(API.rollback, {});
+      if (data.layout) {
+        layout = data.layout;
+        pushHistory();
+        renderBlockList();
+        renderCanvas();
+      }
+      if (data.colors) {
+        TOKEN_FIELDS.forEach(({ name }) => {
+          const field = getField(name);
+          if (field && data.colors[name]) field.value = data.colors[name];
+        });
+        document.dispatchEvent(new CustomEvent("rmc-theme-builder-colors"));
+      }
+      setStatus("Restored previous publish.");
+      await refreshPublishLog();
+    } catch (err) {
+      setStatus(`Rollback failed: ${err.message || err}`);
     }
   };
 
@@ -286,8 +419,15 @@
 
   const wireHubHeroPreview = () => {
     const hero = document.querySelector("[data-rmc-theme-hub-hero]");
+    const glance = document.getElementById("theme-hub-glance");
     if (!hero) return;
     const mini = hero.querySelector(".theme-hub-mini-preview");
+    if (glance) {
+      const primary = glance.style.getPropertyValue("--hub-preview-primary");
+      const accent = glance.style.getPropertyValue("--hub-preview-accent");
+      if (primary) hero.style.setProperty("--hub-preview-primary", primary.trim());
+      if (accent) hero.style.setProperty("--hub-preview-accent", accent.trim());
+    }
     hero.querySelectorAll(".preview-surface-btn[data-preview-surface]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const surface = btn.dataset.previewSurface || "light";
@@ -295,13 +435,40 @@
         hero.querySelectorAll(".preview-surface-btn").forEach((b) => {
           b.classList.toggle("active", b === btn);
         });
+        if (glance) {
+          glance.querySelectorAll(".preview-surface-btn").forEach((b) => {
+            b.classList.toggle("active", b.dataset.previewSurface === surface);
+          });
+        }
       });
     });
+    if (glance) {
+      glance.querySelectorAll(".preview-surface-btn[data-preview-surface]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const surface = btn.dataset.previewSurface || "light";
+          if (mini) mini.dataset.previewSurface = surface;
+          glance.querySelectorAll(".preview-surface-btn").forEach((b) => {
+            b.classList.toggle("active", b === btn);
+          });
+          hero.querySelectorAll(".preview-surface-btn").forEach((b) => {
+            b.classList.toggle("active", b.dataset.previewSurface === surface);
+          });
+        });
+      });
+    }
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     const initial = readLayout();
-    if (initial && Array.isArray(initial.blocks)) layout = initial;
+    if (initial && typeof initial === "object") {
+      layout = { ...layout, ...initial };
+      if (Array.isArray(initial.blocks) && initial.blocks.length) {
+        layout.blocks = initial.blocks.map((b) => ({ ...b }));
+      }
+    }
+    if (!Array.isArray(layout.blocks) || !layout.blocks.length) {
+      layout.blocks = FALLBACK_BLOCKS.map((b) => ({ ...b }));
+    }
     ensureHiddenFields();
     buildTokenPanel();
     pushHistory();
@@ -316,7 +483,9 @@
     });
     if (saveBtn) saveBtn.addEventListener("click", () => saveLayout(false));
     if (publishBtn) publishBtn.addEventListener("click", publishLayout);
+    if (rollbackBtn) rollbackBtn.addEventListener("click", rollbackPublish);
     if (previewBtn) previewBtn.addEventListener("click", openPreview);
+    refreshPublishLog();
     if (undoBtn) {
       undoBtn.addEventListener("click", () => {
         if (historyIndex <= 0) return;
@@ -335,7 +504,10 @@
         scheduleAutoSave();
       });
     }
-    document.addEventListener("rmc-theme-builder-colors", () => renderCanvas());
+    document.addEventListener("rmc-theme-builder-colors", () => {
+      renderCanvas();
+      syncContrastMeter();
+    });
     wireHubHeroPreview();
   });
 })();

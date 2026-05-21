@@ -1,0 +1,154 @@
+/**
+ * Tenant Studio — create-school wizard (control plane).
+ */
+
+.tenant-studio-wizard .tenant-studio-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tenant-studio-wizard .tenant-studio-stepper__item {
+  flex: 1 1 auto;
+  min-width: 7rem;
+}
+
+.tenant-studio-wizard .tenant-studio-stepper__btn {
+  width: 100%;
+  text-align: start;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--surface-elevated, rgba(255, 255, 255, 0.04));
+  color: var(--text-secondary, #94a3b8);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  transition: border-color var(--motion-fast, 0.15s), color var(--motion-fast, 0.15s);
+}
+
+.tenant-studio-wizard .tenant-studio-stepper__btn.is-active {
+  border-color: var(--brand-primary, #6366f1);
+  color: var(--text-primary, #f8fafc);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-primary, #6366f1) 35%, transparent);
+}
+
+.tenant-studio-wizard .tenant-studio-stepper__btn.is-done {
+  color: var(--text-primary, #e2e8f0);
+}
+
+.tenant-studio-wizard .tenant-studio-stepper__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tenant-studio-wizard .tenant-studio-layout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 992px) {
+  .tenant-studio-wizard .tenant-studio-layout {
+    grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.tenant-studio-wizard .tenant-studio-form-card {
+  max-width: 42rem;
+}
+
+.tenant-studio-wizard .tenant-studio-brand-preview {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 1rem;
+  background: var(--surface-canvas, rgba(0, 0, 0, 0.2));
+}
+
+.tenant-studio-wizard .tenant-studio-brand-preview__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md, 0.5rem);
+  margin-bottom: 0.75rem;
+}
+
+.tenant-studio-wizard .tenant-studio-brand-preview__favicon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 0.2rem;
+  background: var(--surface-elevated, #fff);
+  font-size: 0.55rem;
+  line-height: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.tenant-studio-wizard .tenant-studio-brand-preview__favicon--empty {
+  display: inline-block;
+  border: 1px dashed var(--hairline, rgba(255, 255, 255, 0.25));
+}
+
+.tenant-studio-wizard .tenant-studio-brand-preview__logo {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+  border-radius: var(--radius-sm, 0.35rem);
+  background: var(--surface-elevated, #fff);
+}
+
+.tenant-studio-wizard .tenant-studio-brand-preview__logo--empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--type-size-caption, 0.75rem);
+  color: var(--text-secondary, #94a3b8);
+}
+
+.tenant-studio-wizard .tenant-studio-logo-drop {
+  border: 2px dashed var(--hairline, rgba(255, 255, 255, 0.2));
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 0.15s);
+}
+
+.tenant-studio-wizard .tenant-studio-logo-drop.is-dragover {
+  border-color: var(--brand-primary, #6366f1);
+}
+
+.tenant-studio-wizard .tenant-studio-logo-drop input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.tenant-studio-wizard .tenant-studio-advanced summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--type-size-body-sm, 0.875rem);
+}
+
+.tenant-studio-wizard .tenant-studio-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline, rgba(255, 255, 255, 0.1));
+}
+
+.tenant-studio-label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}

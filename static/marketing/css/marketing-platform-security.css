@@ -42,7 +42,7 @@
 
 .mkt-security-hero-copy .detail-subheadline {
   font-size: 1.05rem;
-  color: rgba(226, 232, 240, 0.9); /* off-token-allow: slate-text-on-dark */
+  color: #2c241d; /* off-token-allow: hex-literal-decorative */
   line-height: 1.55;
   max-width: 38rem;
 }

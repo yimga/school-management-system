@@ -1,7 +1,20 @@
 {% load i18n static %}
+{% comment %}
+v3.54 (2026-05-21): Next-realm Control canvas.
+
+This canvas renders BOTH the (preserved) inline feature-control panel/iframe
+AND a new governance cockpit grid that surfaces audit + risk + permission +
+dependency + feature-flag bridge tiles.
+
+Cockpit additions are additive on top of the existing in-shell control panel
+path — the v3.33 inline feature-control surface is preserved verbatim.
+{% endcomment %}
+
+{# ---- Existing inline feature control panel (v3.33 contract — preserved) ---- #}
 {% if control_panel_html %}
 <div class="studio-os__control-in-shell" id="control-panel-wrap">{{ control_panel_html|safe }}</div>
 {% endif %}
+
 {% if control_left_rail %}
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__control-native-fallback" role="region" aria-label="{% trans 'Control view options' %}">
   <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
@@ -18,3 +31,214 @@
   {% if legacy_urls.feature_control %}<a href="{{ legacy_urls.feature_control }}" class="btn btn-primary btn-sm mt-2">{% trans "Feature control" %}</a>{% endif %}
 </div>
 {% endif %}
+
+{# ---- v3.54 governance cockpit grid (additive) ---- #}
+<section class="rmc-control-cockpit"
+         data-rmc-control-cockpit="governance"
+         aria-label="{% trans 'Governance cockpit' %}">
+
+  {# Tile 1 — Audit summary #}
+  <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-audit">
+    <header class="rmc-control-cockpit__tile-head">
+      <h3 id="rmc-control-tile-audit" class="rmc-control-cockpit__tile-title">
+        {% trans "Audit summary" %}
+      </h3>
+      <span class="rmc-control-cockpit__tile-kicker">{% trans "Last 15" %}</span>
+    </header>
+    <div class="rmc-control-cockpit__tile-body">
+      {% if control_audit_entries %}
+      <ul class="rmc-control-audit-list" data-rmc-control-audit-list="1">
+        {% for entry in control_audit_entries|slice:":10" %}
+        <li class="rmc-control-audit-row">
+          <span class="rmc-control-audit-row__action">
+            {{ entry.action|default:_("save") }}
+          </span>
+          {% comment %} Never render raw email/slug. user_id is a numeric primary key, NOT
+            a slug or email — safe to display only as an internal opaque marker. We render
+            "operator" instead of leaking PII; the legacy_urls.feature_control_audit log
+            view shows actor details to permitted operators. {% endcomment %}
+          <span class="rmc-control-audit-row__actor">
+            {% if entry.user_id %}{% trans "operator" %}{% else %}{% trans "system" %}{% endif %}
+          </span>
+          <time class="rmc-control-audit-row__time" datetime="{{ entry.created_at|date:'c' }}">
+            {{ entry.created_at|date:"M j H:i" }}
+          </time>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rmc-control-empty">
+        {% if user.is_authenticated %}
+          {% trans "No audit entries to display yet. Feature changes will appear here." %}
+        {% else %}
+          {% trans "No audit access. Sign in as an operator to view governance history." %}
+        {% endif %}
+      </p>
+      {% endif %}
+    </div>
+    <footer class="rmc-control-cockpit__tile-footer">
+      <a href="{% url 'siteconfig:feature_control_audit' %}"
+         class="btn btn-sm btn-outline-primary"
+         data-rmc-control-audit-full="1">
+        {% trans "View full audit log" %}
+      </a>
+    </footer>
+  </article>
+
+  {# Tile 2 — Risk state (honest empty state when no risk engine wired) #}
+  <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-risk">
+    <header class="rmc-control-cockpit__tile-head">
+      <h3 id="rmc-control-tile-risk" class="rmc-control-cockpit__tile-title">
+        {% trans "Risk state" %}
+      </h3>
+      <span class="rmc-control-cockpit__tile-kicker">{% trans "Live" %}</span>
+    </header>
+    <div class="rmc-control-cockpit__tile-body">
+      {% if control_risk_state %}
+      <div class="rmc-control-risk-grid">
+        {% if control_risk_state.active_flags is not None %}
+        <div class="rmc-control-risk-cell">
+          <p class="rmc-control-risk-cell__value">{{ control_risk_state.active_flags }}</p>
+          <span class="rmc-control-risk-cell__label">{% trans "Active flags" %}</span>
+        </div>
+        {% endif %}
+        {% if control_risk_state.pending_rollbacks is not None %}
+        <div class="rmc-control-risk-cell">
+          <p class="rmc-control-risk-cell__value">{{ control_risk_state.pending_rollbacks }}</p>
+          <span class="rmc-control-risk-cell__label">{% trans "Pending rollbacks" %}</span>
+        </div>
+        {% endif %}
+        {% if control_risk_state.recent_destructive is not None %}
+        <div class="rmc-control-risk-cell">
+          <p class="rmc-control-risk-cell__value">{{ control_risk_state.recent_destructive }}</p>
+          <span class="rmc-control-risk-cell__label">{% trans "Destructive (24h)" %}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="rmc-control-risk-empty">
+        {% trans "Risk monitor coming online. Audit summary, feature flag changes, and rollbacks aggregate here when the platform risk engine ships." %}
+      </p>
+      {% endif %}
+    </div>
+  </article>
+
+  {# Tile 3 — Permission overview #}
+  <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-perms">
+    <header class="rmc-control-cockpit__tile-head">
+      <h3 id="rmc-control-tile-perms" class="rmc-control-cockpit__tile-title">
+        {% trans "Permission overview" %}
+      </h3>
+      <span class="rmc-control-cockpit__tile-kicker">{% trans "Roles" %}</span>
+    </header>
+    <div class="rmc-control-cockpit__tile-body">
+      <p class="rmc-control-empty">
+        {% trans "Review who can change what. The role-permission matrix lives in RBAC; the CI-generated matrix mirrors role coverage across views." %}
+      </p>
+    </div>
+    <footer class="rmc-control-cockpit__tile-footer">
+      {% if legacy_urls.rbac %}
+      <a href="{{ legacy_urls.rbac }}"
+         class="btn btn-sm btn-outline-primary"
+         data-rmc-control-perms-link="1">
+        {% trans "Open RBAC & permissions" %}
+      </a>
+      {% endif %}
+    </footer>
+  </article>
+
+  {# Tile 4 — Dependency graph teaser #}
+  <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-dep">
+    <header class="rmc-control-cockpit__tile-head">
+      <h3 id="rmc-control-tile-dep" class="rmc-control-cockpit__tile-title">
+        {% trans "Dependency graph" %}
+      </h3>
+      <span class="rmc-control-cockpit__tile-kicker">{% trans "Teaser" %}</span>
+    </header>
+    <div class="rmc-control-cockpit__tile-body">
+      {% if dependency_warnings %}
+      <ul class="rmc-control-dep-graph" data-rmc-control-dep-graph="1">
+        {% for warning in dependency_warnings|slice:":8" %}
+        <li class="rmc-control-dep-node">{{ warning }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rmc-control-empty">
+        {% trans "No dependency warnings detected. Diff / impact summary surfaces upstream and downstream effects of a staged change." %}
+      </p>
+      {% endif %}
+    </div>
+    <footer class="rmc-control-cockpit__tile-footer">
+      <a href="{% url 'studio_os:control_impact' %}"
+         class="btn btn-sm btn-outline-primary"
+         data-rmc-control-dep-link="1">
+        {% trans "Open impact summary" %}
+      </a>
+    </footer>
+  </article>
+
+  {# Tile 5 — Feature flag bridge (links OUT, never duplicates) #}
+  <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-flags">
+    <header class="rmc-control-cockpit__tile-head">
+      <h3 id="rmc-control-tile-flags" class="rmc-control-cockpit__tile-title">
+        {% trans "Feature flags" %}
+      </h3>
+      <span class="rmc-control-cockpit__tile-kicker">{% trans "External" %}</span>
+    </header>
+    <div class="rmc-control-cockpit__tile-body">
+      <div class="rmc-control-flag-bridge">
+        <p class="rmc-control-flag-bridge__hint">
+          {% trans "Feature control is the single source of truth for capability toggles. Studio links to it; it never duplicates the toggle UI." %}
+        </p>
+      </div>
+    </div>
+    <footer class="rmc-control-cockpit__tile-footer">
+      {% if legacy_urls.feature_control %}
+      <a href="{{ legacy_urls.feature_control }}"
+         class="btn btn-sm btn-primary"
+         data-rmc-control-flags-link="1">
+        {% trans "Manage in Feature control" %}
+      </a>
+      {% endif %}
+      <a href="{% url 'studio_os:ai_cleanup' %}"
+         class="btn btn-sm btn-outline-secondary"
+         data-rmc-control-cleanup-link="1">
+        {% trans "AI cleanup suggestions" %}
+      </a>
+    </footer>
+  </article>
+
+  {# Tile 6 — Rollback control (gated + confirm pattern) #}
+  <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-rollback">
+    <header class="rmc-control-cockpit__tile-head">
+      <h3 id="rmc-control-tile-rollback" class="rmc-control-cockpit__tile-title">
+        {% trans "Rollback control" %}
+      </h3>
+      <span class="rmc-control-cockpit__tile-kicker">{% trans "Destructive" %}</span>
+    </header>
+    <div class="rmc-control-cockpit__tile-body">
+      <p class="rmc-control-empty">
+        {% trans "Roll back the most recent feature control change. The full preview, audit-trail entry, and rollback plan render in the governance preview pane below." %}
+      </p>
+    </div>
+    <footer class="rmc-control-cockpit__tile-footer">
+      {% if perms.settings.feature_control %}
+      <a href="{% url 'siteconfig:feature_control_panel' %}?embed=1"
+         class="btn btn-sm btn-outline-danger"
+         data-rmc-control-rollback-cta="1"
+         data-confirm-prompt="{% trans 'This will open the rollback UI. Roll back the most recent feature control change?' %}"
+         aria-label="{% trans 'Roll back the most recent feature control change' %}">
+        {% trans "Roll back recent change" %}
+      </a>
+      {% else %}
+      <span class="rmc-control-empty" role="status" data-rmc-control-rollback-blocked="1">
+        {% trans "Permission required: settings.feature_control" %}
+      </span>
+      {% endif %}
+    </footer>
+  </article>
+
+</section>
+
+{# ---- Governance preview pane (uses studio_control_impact data when present) ---- #}
+{% include "studio_os/partials/control_governance_preview_pane.html" %}

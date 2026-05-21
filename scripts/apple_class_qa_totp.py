@@ -29,7 +29,15 @@ def main() -> None:
         raise SystemExit(f"user not found: {username}")
     device = TOTPDevice.objects.filter(user=user, name=DEVICE_NAME, confirmed=True).first()
     if device is None:
-        raise SystemExit(f"no confirmed TOTP device {DEVICE_NAME!r} for {username}; run seed_apple_class_qa.py")
+        device = (
+            TOTPDevice.objects.filter(user=user, confirmed=True)
+            .order_by("id")
+            .first()
+        )
+    if device is None:
+        raise SystemExit(
+            f"no confirmed TOTP for {username}; run: python scripts/seed_apple_class_qa.py"
+        )
     print(str(totp(device.bin_key)).zfill(6))
 
 

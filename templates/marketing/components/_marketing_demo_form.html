@@ -75,12 +75,35 @@
         {% endfor %}
       </select>
     </div>
+    <fieldset class="col-12">
+      <legend class="form-label">{% trans "What should the walkthrough emphasize?" %}</legend>
+      <div class="row g-2" role="group" aria-label="{% trans 'Demo interest areas' %}">
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="demo-interest-migration" name="interest_migration" value="1">
+            <label class="form-check-label" for="demo-interest-migration">{% trans "Migration readiness" %}</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="demo-interest-offline" name="interest_offline" value="1">
+            <label class="form-check-label" for="demo-interest-offline">{% trans "Offline / edge resilience" %}</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="demo-interest-procurement" name="interest_procurement" value="1">
+            <label class="form-check-label" for="demo-interest-procurement">{% trans "Procurement / security review" %}</label>
+          </div>
+        </div>
+      </div>
+    </fieldset>
     <div class="col-12">
       <label for="demo-message" class="form-label">{% trans_term "Message" key="message" %}</label>
       <textarea id="demo-message" name="message" class="form-control" rows="4" maxlength="2000"></textarea>
     </div>
     <div class="col-12">
-      <button type="submit" class="mkt-edt-cta" data-cta="demo">{% trans "Submit request" %}</button>
+      <button type="submit" class="mkt-edt-cta" data-cta="demo-submit" data-cta-label="{% trans 'Submit demo request' %}">{% trans "Submit request" %}</button>
     </div>
   </form>
 </section>

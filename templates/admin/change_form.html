@@ -21,6 +21,15 @@
     {% if not is_manager_host and has_add_permission %}
         {% include "unfold/helpers/add_link.html" %}
     {% endif %}
+    {# Product escape link: gives tenant admins a one-click route back to the
+       portal home so they are never stranded inside Django admin.
+       Verified by scripts/verify_admin_tenant_change_form_product_links.py. #}
+    {% if not is_manager_host and not is_popup %}
+        <a href="{% url 'portal:portal_home' %}" class="admin-product-escape-link" aria-label="{% trans 'Back to portal' %}">
+            <span aria-hidden="true">&larr;</span>
+            <span>{% trans 'Portal' %}</span>
+        </a>
+    {% endif %}
 {% endblock %}
 
 {% block content %}

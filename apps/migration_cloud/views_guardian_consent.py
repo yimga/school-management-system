@@ -157,13 +157,13 @@ class GuardianConsentLandingView(View):
         token, completed = _resolve_token_or_completed(request, raw_token)
         if completed is not None:
             return completed
-        assert token is not None  # for type-checker
+        assert token is not None  # for type-checker  # assert-allow: type-narrowing-after-resolve-helper-guarantees-not-none
 
         # Stamp first-seen-at once.
         try:
             token.mark_first_seen()
         except Exception as exc:  # noqa: BLE001 — never break landing
-            logger.warning(
+            logger.warning(  # pii-logging-smell-allow: sha256-prefix-not-raw-token
                 "migration_cloud.guardian_consent: first_seen_mark_failed "
                 "token_sha_prefix=%s err=%s",
                 (token.token_sha256 or "")[:8], type(exc).__name__,
@@ -194,12 +194,12 @@ class GuardianConsentAcceptView(View):
         token, completed = _resolve_token_or_completed(request, raw_token)
         if completed is not None:
             return completed
-        assert token is not None
+        assert token is not None  # assert-allow: type-narrowing-after-resolve-helper-guarantees-not-none
         # Anti-clickjack one-time-confirm: form posts a hidden field
         # confirm=on; we tolerate its absence (some accessibility tools
         # strip hidden inputs) but log when it's missing.
         if request.POST.get("confirm") != "on":
-            logger.info(
+            logger.info(  # pii-logging-smell-allow: sha256-prefix-not-raw-token
                 "migration_cloud.guardian_consent: accept_without_confirm "
                 "token_sha_prefix=%s",
                 (token.token_sha256 or "")[:8],
@@ -209,7 +209,7 @@ class GuardianConsentAcceptView(View):
         except GuardianConsentTokenError as exc:
             # Token race-decided between landing and accept — treat as
             # already-decided.
-            logger.info(
+            logger.info(  # pii-logging-smell-allow: sha256-prefix-not-raw-token
                 "migration_cloud.guardian_consent: accept_race "
                 "token_sha_prefix=%s err=%s",
                 (token.token_sha256 or "")[:8], type(exc).__name__,
@@ -231,7 +231,7 @@ class GuardianConsentDeclineView(View):
         token, completed = _resolve_token_or_completed(request, raw_token)
         if completed is not None:
             return completed
-        assert token is not None
+        assert token is not None  # assert-allow: type-narrowing-after-resolve-helper-guarantees-not-none
         try:
             token.decline(request=request)
         except GuardianConsentTokenError:

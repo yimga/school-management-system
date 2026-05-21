@@ -1,0 +1,100 @@
+{
+  "generated_at_utc": "2026-05-21T00:00:00Z",
+  "agent_id": "R3",
+  "batch_id": "1372",
+  "ship_label": "day1-logo-upload-widget-2026-05-21",
+  "files_created": [
+    "apps/siteconfig/tests/test_tenant_studio_day1_logo_upload.py",
+    "scripts/verify_day1_logo_upload_contract.py",
+    "docs/generated/day1_logo_upload_widget_certification.json"
+  ],
+  "files_modified": [
+    "apps/siteconfig/tenant_studio_day1.py",
+    "apps/siteconfig/views_tenant_studio_hub.py",
+    "apps/siteconfig/urls.py",
+    "templates/siteconfig/partials/tenant_studio_day1_act1_brand.html",
+    "static/css/tenant-studio-day1.css",
+    "static/js/rmc-tenant-studio-day1.js"
+  ],
+  "preserve_list_touched": false,
+  "tests_run": 20,
+  "tests_passed": 20,
+  "regression": {
+    "test_tenant_studio_day1.py": "23/23 OK",
+    "verify_tenant_studio_day1_contract.py": "PASS"
+  },
+  "zero_tolerance_gates": {
+    "scan_pii_logging_smell": 0,
+    "scan_tenant_queryset_safety": 0
+  },
+  "contracts": {
+    "verify_day1_logo_upload_contract.py": "PASS",
+    "makemigrations_check_dry_run": "No changes detected"
+  },
+  "mime_sniff_validated": {
+    "evidence": "LogoUploadValidator(image_bytes) is invoked in apps/siteconfig/tenant_studio_day1.py::accept_logo_upload; the validator sniffs magic bytes (PNG 89 50 4E 47, JPEG FF D8 FF, WebP RIFF+WEBP) and rejects SVG via the same path. Tests test_pdf_disguised_as_png_rejected_via_mime_sniff (service) and test_pdf_disguised_as_png_rejected_via_mime_sniff (view) prove a renamed PDF with content_type=image/png is still rejected with error_code=unsupported_mime."
+  },
+  "csrf_protected": {
+    "evidence": "TenantStudioDay1Act1LogoUploadView has no csrf_exempt decorator (verifier regex check); the partial emits {% csrf_token %} inside the upload form; the JS sends X-CSRFToken in fetch headers + csrfmiddlewaretoken in FormData. The verifier explicitly fails if @csrf_exempt or method_decorator(csrf_exempt) appears in the views module."
+  },
+  "tenant_isolation_proof": {
+    "request_resolution": "school = getattr(request, 'school', None); no POST-body school resolution anywhere in TenantStudioDay1Act1LogoUploadView",
+    "storage_keying": "_persist_day1_logo_bytes() builds storage_path = tenant_media_path(school.pk, 'brand/logo.{ext}') — keyed strictly on the request-resolved school.pk",
+    "marker": "tenant-isolation-allow: day1-logo-upload-storage-keyed-on-school-pk-only",
+    "tests": [
+      "test_tenant_isolation_storage_path_keyed_on_school_pk (service)",
+      "test_tenant_isolation_school_resolved_from_request_not_post_body (view) — sends school_id=attacker-tenant in POST body; asserts bytes land under real-tenant only"
+    ]
+  },
+  "pii_clean": {
+    "evidence": "School slug hashed to sha256[:8] via _school_log_label() before any logger call; original_filename never logged; file bytes never logged; size and sniffed MIME logged only.",
+    "tests": [
+      "test_logs_never_contain_slug_filename_or_bytes",
+      "test_happy_path_persists_logo_and_returns_seed (asserts slug + filename absent in cm.output)"
+    ]
+  },
+  "atomic_transaction": {
+    "evidence": "Day1MagicService.accept_logo_upload wraps school.save(update_fields=['branding_metadata', 'logo_url']) + branding_metadata mutation inside `with transaction.atomic():`",
+    "fields_updated_atomically": [
+      "School.logo_url",
+      "School.branding_metadata.logo_uploaded_at",
+      "School.branding_metadata.primary_color",
+      "School.branding_metadata.logo_storage_path",
+      "School.branding_metadata.primary"
+    ]
+  },
+  "test_coverage_map": {
+    "happy_path_png": "test_happy_path_persists_logo_and_returns_seed, test_happy_path_returns_200_with_payload",
+    "jpeg_accepted": "test_jpeg_accepted_via_magic_bytes",
+    "oversize_rejected": "test_oversize_upload_rejected_with_oversize_code, test_oversize_rejected_400",
+    "svg_forbidden": "test_svg_rejected, test_svg_rejected_400",
+    "pdf_disguised_as_png": "test_pdf_disguised_as_png_rejected_via_mime_sniff (service + view)",
+    "empty_upload": "test_empty_bytes_rejected",
+    "missing_file_field": "test_missing_logo_field_returns_400",
+    "wrong_http_method": "test_get_method_returns_405",
+    "non_operator": "test_non_operator_rejected_403",
+    "no_school_on_request": "test_no_school_on_request_rejected_403",
+    "cross_tenant_post_body": "test_tenant_isolation_school_resolved_from_request_not_post_body",
+    "theme_intelligence_import_error": "test_theme_intelligence_importerror_falls_back_to_deterministic_seed",
+    "log_hygiene": "test_logs_never_contain_slug_filename_or_bytes",
+    "url_resolution": "test_url_name_resolves"
+  },
+  "endpoint": {
+    "url_name": "siteconfig:tenant_studio_day1_act1_logo_upload",
+    "path": "/studio/day1/act1/logo-upload/",
+    "method": "POST",
+    "auth": "LoginRequiredMixin + tenant_operator_hub_eligible",
+    "rbac_marker": "# rbac-allow: tenant-admin-or-staff-day1-logo-upload",
+    "max_bytes_default": 1500000,
+    "max_bytes_setting": "settings.MAX_LOGO_UPLOAD_BYTES (defaults to DAY1_DEFAULT_LOGO_MAX_BYTES = 1_500_000)"
+  },
+  "client_side_contract": {
+    "form_data_field": "logo",
+    "csrf_field": "csrfmiddlewaretoken",
+    "csrf_header": "X-CSRFToken",
+    "custom_event": "rmc:day1:logo-uploaded (CustomEvent — Act 2 listens for transition)",
+    "drag_drop_zone": "[data-rmc-day1-logo-upload-zone] — keyboard-activated (Enter/Space), role=button, tabindex=0",
+    "client_validation_classes": "ALLOWED_LOGO_MIME (png/jpeg/webp), FORBIDDEN_LOGO_MIME (svg), CLIENT_LOGO_MAX_BYTES (mirrors server)"
+  },
+  "verdict": "READY"
+}

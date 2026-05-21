@@ -4,6 +4,8 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
+{# v3.54 (2026-05-21): Automation cockpit per-section CSS (Agent 3 ownership). #}
+<link rel="stylesheet" href="{% static 'css/studio-automation-cockpit.css' %}">
 {% endblock %}
 
 {% block studio_canvas %}
@@ -11,6 +13,7 @@
   <div id="studio-automation-hero">
     {% include "studio_os/partials/_mode_hero.html" with mode_label=_("Automation") mode_purpose=_("Workflows, triggers, simulations, and conflict detection. Preview before publishing; rollback is one click.") primary_cta_url=automation_workflow_center_pane_url primary_cta_label=_("Workflow center") secondary_cta_url=automation_simulation_pane_url secondary_cta_label=_("Simulation engine") %}
   </div>
+  {% include "studio_os/partials/studio_guidance_panel.html" %}
   {% include "studio_os/partials/automation_mode_canvas.html" %}
 </section>
 {% endblock %}

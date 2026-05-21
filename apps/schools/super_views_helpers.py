@@ -28,6 +28,13 @@ def safe_school_timeline_url(school_id) -> str:
         return ""
 
 
+def safe_tenant_360_url(school_id) -> str:
+    try:
+        return reverse("super:tenant_360", args=[school_id])
+    except NoReverseMatch:
+        return ""
+
+
 # Underscore names: same behavior (tests and super_views re-export use these).
 _safe_school_timeline_url = safe_school_timeline_url
 

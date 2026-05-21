@@ -1,4 +1,6 @@
 {% extends "schools/marketing_page_layout.html" %}
+{% load static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-solutions-hub{% endblock %}
 {% block marketing_page_inner %}
 {% include "marketing/pages/solutions_overview.html" %}

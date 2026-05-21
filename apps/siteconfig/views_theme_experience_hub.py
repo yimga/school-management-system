@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
 from apps.schools.control_plane import is_control_plane_request, user_has_control_plane_access
+from apps.siteconfig.theme_builder_plane import build_hub_glance_context
 from apps.siteconfig.theme_experience_surfaces import (
     build_platform_theme_experience_surfaces,
     build_tenant_theme_experience_surfaces,
     resolve_operator_school_impersonation_url,
 )
+
+_HUB_SURFACES_PER_PAGE = 9
 
 
 @login_required
@@ -53,15 +57,21 @@ def theme_experience_hub(request):
         )
         template_name = "siteconfig/theme_experience_hub_tenant.html"
 
+    paginator = Paginator(surfaces, _HUB_SURFACES_PER_PAGE)
+    page_number = request.GET.get("page") or 1
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         template_name,
         {
-            "surfaces": surfaces,
+            "surfaces": list(page_obj.object_list),
+            "page_obj": page_obj,
             "hub_title": title,
             "hub_subtitle": subtitle,
             "operator_plane": operator_plane,
             "impersonation_url": impersonation_url,
+            "hub_glance": build_hub_glance_context(request),
             "page_marker": "rmc-theme-experience-hub",
         },
     )

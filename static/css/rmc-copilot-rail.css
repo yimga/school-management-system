@@ -1,0 +1,221 @@
+/* ============================================================
+   Studio OS Co-pilot Rail (v3.53.1, 2026-05-21)
+   ------------------------------------------------------------
+   Persistent AI presence panel — 3 stacked sections inside the
+   cockpit rail (context strip / insights pulse / quick actions).
+
+   Composes on top of studio-os-cockpit.css and rmc-signature-motion.css.
+   Only semantic tokens are consumed here — no raw hex, no
+   inline colors, no per-shell color literals.
+   ============================================================ */
+
+.rmc-copilot-rail__section + .rmc-copilot-rail__section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* ---- 1. Context strip ---- */
+
+.rmc-copilot-rail__context-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.rmc-copilot-rail__context-mode {
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.rmc-copilot-rail__context-sep {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.rmc-copilot-rail__context-tenant {
+  color: var(--text-secondary);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rmc-copilot-rail__context-posture {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  transition: border-color var(--motion-signature-state, 200ms ease);
+}
+
+.rmc-copilot-rail__context-posture[data-state="live_cloud"],
+.rmc-copilot-rail__context-posture[data-state="live_local"] {
+  border-color: var(--school-accent, var(--text-secondary));
+  color: var(--text-primary);
+}
+
+.rmc-copilot-rail__context-posture[data-state="guided"] {
+  border-color: var(--school-warning, var(--hairline-strong, var(--hairline)));
+  color: var(--text-primary);
+}
+
+.rmc-copilot-rail__context-posture[data-state="unavailable"] {
+  opacity: 0.7;
+}
+
+.rmc-copilot-rail__context-selection {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.7rem;
+}
+
+/* ---- 2. Insights pulse ---- */
+
+.rmc-copilot-rail__insights-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rmc-copilot-rail__insight {
+  padding: 8px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  transition:
+    border-color var(--motion-signature-state, 200ms ease),
+    box-shadow var(--motion-signature-state, 200ms ease);
+}
+
+.rmc-copilot-rail__insight:hover {
+  border-color: var(--school-accent, var(--hairline));
+  box-shadow: var(--elev-1);
+}
+
+.rmc-copilot-rail__insight[data-source="cloud"] {
+  border-left: 2px solid var(--school-accent, var(--hairline));
+}
+
+.rmc-copilot-rail__insight[data-source="rules"] {
+  border-left: 2px solid var(--hairline-strong, var(--hairline));
+}
+
+.rmc-copilot-rail__insight--empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 12px;
+}
+
+.rmc-copilot-rail__insight-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.rmc-copilot-rail__insight-body {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.rmc-copilot-rail__insights-source {
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+/* ---- Skeleton state (visible until JS hydrates) ---- */
+
+.rmc-copilot-rail__insight--skeleton {
+  background: var(--surface-elevated);
+  border-color: var(--hairline);
+}
+
+.rmc-copilot-rail__skeleton-line {
+  height: 8px;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  margin: 4px 0;
+  opacity: 0.7;
+  animation: rmc-copilot-rail-skel-pulse 1.6s ease-in-out infinite;
+}
+
+.rmc-copilot-rail__skeleton-line--title {
+  width: 55%;
+  height: 10px;
+}
+
+@keyframes rmc-copilot-rail-skel-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.85; }
+}
+
+/* Once JS arms the rail we can swap skeleton style; if JS never loads the
+   skeleton stays visible (intended). */
+html[data-rmc-copilot-rail-armed] .rmc-copilot-rail__insight--skeleton {
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-copilot-rail__skeleton-line { animation: none; }
+}
+
+/* ---- 3. Quick actions ---- */
+
+.rmc-copilot-rail__actions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rmc-copilot-rail__actions-list .rmc-cockpit__rail-action {
+  /* Compose on the existing cockpit action grammar — minimal extension. */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-md, 8px);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background var(--motion-signature-state, 200ms ease);
+}
+
+.rmc-copilot-rail__actions-list .rmc-cockpit__rail-action:hover {
+  background: var(--surface-popover, var(--surface-elevated));
+}
+
+.rmc-copilot-rail__actions-list .rmc-cockpit__rail-action[data-kind="palette"] {
+  /* No color literal — uses the brand accent token to signal the surface
+     specialization without locking to a theme value. */
+  border-left: 2px solid var(--school-accent, var(--hairline));
+  padding-left: 6px;
+}
+
+.rmc-copilot-rail__actions-list .rmc-cockpit__rail-action[data-kind="health"] {
+  border-left: 2px solid var(--hairline-strong, var(--hairline));
+  padding-left: 6px;
+}

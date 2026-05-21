@@ -208,6 +208,11 @@ html[data-bs-theme="light"] #cp-main-content {
   margin-top: 1rem;
 }
 
+/* Manager backoffice: page body follows /super/ cp-page-body (no flex scroll-host margin trap). */
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .cp-admin-page-body {
+  margin-top: 0 !important;
+}
+
 #cp-main-content .row.g-3 + .row.g-3,
 #cp-main-content .card + .card {
   margin-top: 1rem;

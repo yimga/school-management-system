@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <title>{% trans "Low meal plan balance" %}</title>
 </head>
-<body style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
+<body style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;/*inline-style-allow:email-template-inline*/">
   <p>{% trans "Hello," %}</p>
   <p>
     {% blocktrans with first=student_first_name last=student_last_name %}This is a courtesy notice that <strong>{{ first }} {{ last }}</strong>'s meal plan balance is now at or below the configured low-balance threshold.{% endblocktrans %}
   </p>
   <table cellpadding="6" cellspacing="0" border="0"
-         style="border-collapse: collapse; margin: 12px 0;">
+         style="border-collapse: collapse; margin: 12px 0;/*inline-style-allow:email-template-inline*/">
     <tr>
       <td><strong>{% trans "Plan" %}</strong></td>
       <td>{{ plan_label }}</td>
@@ -27,7 +27,7 @@
   <p>
     {% trans "Please consider topping up the balance to avoid service interruption." %}
   </p>
-  <p style="color: #6b7280; font-size: 12px;">
+  <p style="color: #6b7280; font-size: 12px;/*inline-style-allow:email-template-inline*/">
     {% trans "You are receiving this notification because you are registered as a guardian for this student. To adjust notification preferences, visit the parent portal." %}
   </p>
   <p>{% trans "Thank you," %}<br>RunMyCampus</p>

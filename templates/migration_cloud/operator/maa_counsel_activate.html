@@ -1,0 +1,141 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+<!-- v3.40.0 Agent 15 — operator-side MAA v2.0 counsel-activate UI. Three sections: current state, v2.0 verbatim body, and the activation form. Form values are NEVER logged; the v2.0 body content is rendered for operator review only and is NOT echoed back into hidden form fields. No inline <style> blocks (project zero-tolerance gate enforces this). -->
+
+{% block page_title %}{{ page_title|default:"Migration Cloud — MAA v2.0 counsel-activate" }}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--maa-counsel-activate" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "MAA v2.0 — counsel-activate" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Flip the platform-wide MAA default from v1.0 to v2.0 after counsel has signed the v2.0 PDF. Activation is single-direction (no auto-rollback). NEVER perform this without the counsel-signoff PDF on file." %}
+    </p>
+    <p class="rmc-page__header-actions">
+      <a class="rmc-link" href="{{ back_url }}">{% trans "← Back to Command Center" %}</a>
+    </p>
+  </header>
+
+  {% if form_errors %}
+  <section class="rmc-card rmc-card--maa-counsel-activate-error" aria-labelledby="maa-activate-errors-heading">
+    <h2 id="maa-activate-errors-heading" class="rmc-h2">{% trans "Activation refused" %}</h2>
+    <ul class="rmc-list rmc-list--errors">
+      {% for err in form_errors %}
+      <li>{{ err }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <!-- ── Section 1 — current state ─────────────────────────────────── -->
+  <section class="rmc-card rmc-card--maa-counsel-activate-state" aria-labelledby="maa-activate-state-heading">
+    <h2 id="maa-activate-state-heading" class="rmc-h2">{% trans "Current state" %}</h2>
+    <dl class="rmc-data-table rmc-data-table--maa-counsel-activate-state">
+      <div>
+        <dt>{% trans "Active MAA version" %}</dt>
+        <dd><code class="rmc-kbd">{{ state.active_version }}</code></dd>
+      </div>
+      <div>
+        <dt>{% trans "v2.0 status" %}</dt>
+        <dd>
+          {% if state.is_v2_active %}
+          <span class="rmc-badge rmc-badge--success">{% trans "ACTIVE" %}</span>
+          {% elif state.is_v2_draft %}
+          <span class="rmc-badge rmc-badge--warning">{% trans "DRAFT — awaiting activation" %}</span>
+          {% else %}
+          <span class="rmc-badge rmc-badge--muted">{% trans "unregistered" %}</span>
+          {% endif %}
+        </dd>
+      </div>
+      {% if state.is_v2_active %}
+      <div>
+        <dt>{% trans "Activated at" %}</dt>
+        <dd>{% if state.activated_at %}{{ state.activated_at|date:"Y-m-d H:i:s" }} UTC{% else %}—{% endif %}</dd>
+      </div>
+      <div>
+        <dt>{% trans "Activated by" %}</dt>
+        <dd>{{ state.activated_by_label|default:"—" }}</dd>
+      </div>
+      <div>
+        <dt>{% trans "Counsel signoff PDF" %}</dt>
+        <dd>
+          {% if state.counsel_signoff_pdf_url %}
+          <a class="rmc-link" href="{{ state.counsel_signoff_pdf_url }}" rel="noopener">{% trans "view PDF" %}</a>
+          {% else %}—{% endif %}
+        </dd>
+      </div>
+      {% endif %}
+    </dl>
+  </section>
+
+  <!-- ── Section 2 — v2.0 verbatim body for review ─────────────────── -->
+  <section class="rmc-card rmc-card--maa-counsel-activate-text" aria-labelledby="maa-activate-text-heading">
+    <h2 id="maa-activate-text-heading" class="rmc-h2">{% trans "v2.0 verbatim body" %}</h2>
+    <p class="rmc-hint">
+      {% trans "Review the verbatim text BELOW carefully. Once activated, every new operator signing the MAA will be bound to this body. Older signed agreements (v1.0) retain their snapshot of the v1.0 body and are unaffected." %}
+    </p>
+    <pre class="rmc-code-block rmc-code-block--maa-text">{{ v2_full_text }}</pre>
+  </section>
+
+  <!-- ── Section 3 — activation form ────────────────────────────────── -->
+  {% if not state.is_v2_active %}
+  <section class="rmc-card rmc-card--maa-counsel-activate-form" aria-labelledby="maa-activate-form-heading">
+    <h2 id="maa-activate-form-heading" class="rmc-h2">{% trans "Activate v2.0" %}</h2>
+    <p class="rmc-callout rmc-callout--danger">
+      <strong>{% trans "WARNING — single-direction action." %}</strong>
+      {% trans "This flips the platform-wide MAA default. There is no in-product rollback. Confirm the counsel-signoff PDF is on file and accessible at the URL below before submitting." %}
+    </p>
+    <form method="post" action="" class="rmc-form rmc-form--maa-counsel-activate" autocomplete="off">
+      {% csrf_token %}
+      <input type="hidden" name="confirm_token" value="{{ confirm_token }}">
+      <p class="rmc-hint">
+        {% blocktrans with token_sha=confirm_token_sha_prefix %}One-time confirmation token issued (fingerprint {{ token_sha }}…); expires in 5 minutes.{% endblocktrans %}
+      </p>
+      <p class="rmc-form__row">
+        <label class="rmc-label" for="id_counsel_signoff_pdf_url">{% trans "Counsel signoff PDF URL" %}</label>
+        <input class="rmc-input rmc-input--lg" type="url" id="id_counsel_signoff_pdf_url" name="counsel_signoff_pdf_url"
+               value="{{ form_values.counsel_signoff_pdf_url }}"
+               placeholder="https://..."
+               maxlength="2048" required>
+        <small class="rmc-help">{% trans "http(s) URL where the counsel-signed v2.0 PDF lives." %}</small>
+      </p>
+      <p class="rmc-form__row">
+        <label class="rmc-label" for="id_counsel_attestation_name">{% trans "Operator legal name" %}</label>
+        <input class="rmc-input rmc-input--lg" type="text" id="id_counsel_attestation_name" name="counsel_attestation_name"
+               value="{{ form_values.counsel_attestation_name }}"
+               placeholder="Jane Q. Operator"
+               maxlength="256" required>
+        <small class="rmc-help">{% trans "Your full legal name. Persisted alongside the attestation fingerprint." %}</small>
+      </p>
+      <p class="rmc-form__row">
+        <label class="rmc-label" for="id_counsel_attestation_text">{% trans "Operator attestation" %}</label>
+        <textarea class="rmc-input rmc-input--multiline" id="id_counsel_attestation_text" name="counsel_attestation_text"
+                  rows="6" maxlength="8192" required
+                  placeholder="{% trans 'Paste your attestation that counsel has reviewed and signed the v2.0 PDF.' %}"></textarea>
+        <small class="rmc-help">{% trans "Only the sha256 fingerprint of this text is persisted. The raw text is discarded after hashing." %}</small>
+      </p>
+      <p class="rmc-form__row">
+        <label class="rmc-label" for="id_confirm_typed_phrase">{% trans "Confirmation phrase" %}</label>
+        <input class="rmc-input rmc-input--lg" type="text" id="id_confirm_typed_phrase" name="confirm_typed_phrase"
+               value="{{ form_values.confirm_typed_phrase }}"
+               maxlength="128" required>
+        <small class="rmc-help">
+          {% blocktrans with phrase=confirm_phrase_expected %}Type verbatim: <code>{{ phrase }}</code>{% endblocktrans %}
+        </small>
+      </p>
+      <p class="rmc-form__actions">
+        <button class="rmc-btn rmc-btn--danger rmc-btn--lg" type="submit">{% trans "Activate v2.0" %}</button>
+      </p>
+    </form>
+  </section>
+  {% else %}
+  <section class="rmc-card rmc-card--maa-counsel-activate-done" aria-labelledby="maa-activate-done-heading">
+    <h2 id="maa-activate-done-heading" class="rmc-h2">{% trans "Activation complete" %}</h2>
+    <p>
+      {% trans "v2.0 is now the platform default. New signers will be bound to v2.0. Pre-existing v1.0 signatures retain their snapshot and are unaffected." %}
+    </p>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

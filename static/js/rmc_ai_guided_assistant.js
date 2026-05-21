@@ -124,7 +124,9 @@
 
   function renderGuided(out, g, meta, cites) {
     var lines = [];
-    if (meta && meta.degraded) {
+    if (meta && meta.live_ai_unavailable) {
+      lines.push("Live AI is unavailable on this server. The answer below is not from a language model.");
+    } else if (meta && meta.degraded) {
       lines.push("Degraded mode: using retrieved docs and platform hints (live model not used).");
     }
     if (meta && meta.schema_validation_failed) {
@@ -251,6 +253,10 @@
           _setBusy(false);
           if (!out) return;
           if (!res.ok || !res.data || res.data.success === false) {
+            if (res.data && res.data.guided && res.data.error === "live_ai_unavailable") {
+              renderGuided(out, res.data.guided, res.data.meta || {}, res.data.citations);
+              return;
+            }
             _showOut(friendlyError(res.data, res.status));
             return;
           }

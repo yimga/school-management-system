@@ -15,7 +15,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -105,8 +104,7 @@ def _insert_allow_marker(path: Path, line_no: int, reason: str) -> bool:
     idx = line_no - 1
     if idx < 0 or idx >= len(lines):
         return False
-    marker = f"    # tenant-isolation-allow: {reason}"
-    existing = lines[idx].lstrip()
+    lines[idx].lstrip()
     if "tenant-isolation-allow:" in lines[idx] or (
         idx > 0 and "tenant-isolation-allow:" in lines[idx - 1]
     ):

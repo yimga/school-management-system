@@ -1,0 +1,155 @@
+{
+  "audit_version": "v3.54",
+  "audit_date": "2026-05-21",
+  "agent": "Agent 6 (CONTROL)",
+  "owned_files": [
+    "templates/studio_os/modes/control.html",
+    "templates/studio_os/partials/control_mode_canvas.html",
+    "templates/studio_os/partials/workspace/control_canvas.html",
+    "templates/studio_os/partials/workspace/control_rail.html",
+    "static/css/studio-control-cockpit.css",
+    "templates/studio_os/partials/control_governance_preview_pane.html",
+    "apps/studio_os/tests/test_studio_control_inline.py",
+    "apps/studio_os/tests/test_control_governance_cockpit.py"
+  ],
+  "control_surface_inventory": {
+    "shell_view": {
+      "name": "studio_shell(mode='control')",
+      "file": "apps/studio_os/views.py:1296",
+      "context_vars_populated_for_control_mode": {
+        "control_audit_entries": "list[dict] via get_feature_control_audit_entries(request, limit=15); empty list on import/attribute failures (graceful degradation)",
+        "control_left_rail": "list[dict] via build_control_governance_rail(request); 11 entries (config center, feature control, audit log, runtime inspector, metadata governance, lineage, integrations, blueprints, policy diff, plans, impact, ai cleanup)",
+        "control_outcome_sections": "list[dict] via build_control_studio_rail_sections(request) — outcome-based 9 sections from siteconfig.control_outcome_center",
+        "why_enabled_summary": "WHY_ENABLED_SUMMARY constant — translatable copy explaining the feature-control rationale",
+        "operator_control_model": "list[dict] of 6 numbered paragraphs explaining capability families/grouped controls/etc",
+        "control_outcome_hub": "Always [] in v3.53 — placeholder for future outcome hub",
+        "control_panel_html": "Rendered feature_control_panel_partial.html (in-shell) ONLY when request.user.has_perm('settings.feature_control'); else None",
+        "embed_url": "None when control_panel_html populated; otherwise mode-resolved embed if available"
+      }
+    },
+    "subviews": [
+      {"name": "studio_system_config_console", "file": "apps/studio_os/views.py:216", "destructive": false},
+      {"name": "studio_control_impact", "file": "apps/studio_os/views.py:317", "destructive": false, "purpose": "preview pane data — impact_summary + dependency_warnings"},
+      {"name": "studio_ai_cleanup", "file": "apps/studio_os/views.py:344", "destructive": false},
+      {"name": "studio_audit_api", "file": "apps/studio_os/views.py:2319", "destructive": false, "method": "GET", "rbac": "user_can_access_studio_on_request; returns empty list when unauthed"},
+      {"name": "studio_rollback", "file": "apps/studio_os/views.py:2090", "destructive": true, "method": "GET/POST", "rbac": "user_can_access_studio_on_request; mode=experience requires POST; mode=control redirects to feature control panel"}
+    ],
+    "external_hubs": {
+      "legacy_urls.feature_control": "Authoritative feature control toggle UI",
+      "siteconfig:feature_control_audit": "Full audit log (paginated 25/page) — feature_control_audit_log view",
+      "siteconfig:feature_control_panel": "Inline-renderable panel (templates/siteconfig/feature_control_panel_partial.html)"
+    }
+  },
+  "horizontal_overflow_risks": [
+    {
+      "site": "Audit list rows in studio-os shell sidebar (templates/studio_os/shell.html:255-260)",
+      "risk": "Action text + timestamp on the same line — narrow studio-os__right column at <360px can clip 'action' or wrap timestamp awkwardly",
+      "owner": "Agent 1/2 (cockpit_canvas/shell) — flag as coordinator task",
+      "mitigation_plan": "In control_governance_preview_pane we use min-width:0 flex children + text-overflow:ellipsis on action labels"
+    },
+    {
+      "site": "Bento outcome cells — wide chiplet rows can overflow on tablet",
+      "risk": "Article > flex-wrap row of btn-sm chips inside auto-fit minmax(280px,1fr) — existing CSS already accommodates this",
+      "owner": "Existing — no fix needed"
+    },
+    {
+      "site": "Permission matrix (when added) — N roles x M permissions can be 12+ columns",
+      "risk": "Horizontal scroll required",
+      "mitigation_plan": "Wrap in .table-responsive + .rmc-control-permission-matrix-wrap with overflow-x:auto"
+    },
+    {
+      "site": "Dependency graph teaser",
+      "risk": "Long node labels can overflow flex children without min-width:0",
+      "mitigation_plan": "min-width:0 + overflow-wrap:anywhere on .rmc-control-dep-node"
+    }
+  ],
+  "governance_model_findings": {
+    "audit_data": {
+      "source": "FeatureControlAudit model (apps/siteconfig/models_dashboard.py:464)",
+      "fields": ["user FK (nullable, SET_NULL)", "action CharField(32) — save/revert/import", "changes JSONField (before/after diff)", "created_at"],
+      "accessor": "get_feature_control_audit_entries(request, limit=20) returns id/action/created_at/user_id only — does NOT include user emails/slugs, only user_id; safe for hashed-or-id rendering"
+    },
+    "rollback_wired": {
+      "experience_mode": "Real rollback — POST replays theme_previous_state from session",
+      "control_mode": "Redirects to siteconfig:feature_control_panel?embed=1 (Revert button lives there) — Studio rollback does NOT directly mutate feature flags. Document this honestly."
+    },
+    "feature_flags_location": "siteconfig:feature_control_panel — single SOT. Do NOT duplicate in studio_os."
+  },
+  "permissions_visibility": {
+    "current_state": "NO permission overview surfaced inside Studio control mode today. Operator must context-switch to RBAC (legacy_urls.rbac) to see role/permission matrix.",
+    "matrix_artifact": "docs/generated/role_permission_matrix.{json,csv} — written by audit_role_permission_matrix.py CI scanner; NOT linked from Studio Control today.",
+    "proposed": "Add a 'Permission overview' tile linking to legacy_urls.rbac AND a 'View role/permission matrix' link to the generated CSV/JSON when those exist."
+  },
+  "risk_state_surface": {
+    "current_state": "NO risk-state aggregator exists. why_enabled_summary is rationale copy, not a health signal. control_audit_entries is recent activity, not risk.",
+    "gap": "Risk monitor for: pending rollbacks count, active critical flags, open admin actions, recent destructive changes, integrity-hash drift signal. The Migration Cloud Audit Log (v3.38) has a richer SOT but is migration-specific.",
+    "honest_deferral": "Render 'Risk monitor coming online' empty state in the risk tile."
+  },
+  "destructive_actions_inventory": [
+    {
+      "action": "Rollback (control mode)",
+      "current_pattern": "GET-redirect to siteconfig:feature_control_panel — no confirmation needed here because actual revert happens in the panel UI.",
+      "gating": "Implicit: feature_control_panel requires permission 'settings.feature_control'",
+      "v3.54_enhancement": "Add explicit confirm CTA in Studio control governance preview pane before redirecting; require {% if perms.settings.feature_control %} render gate."
+    },
+    {
+      "action": "AI cleanup",
+      "current_pattern": "Read-only suggestion list (no auto-apply)",
+      "gating": "user_can_access_studio_on_request",
+      "v3.54_enhancement": "None — already read-only"
+    },
+    {
+      "action": "System config console",
+      "current_pattern": "Link list — each link respects its target's own perm gate",
+      "gating": "user_can_access_studio_on_request to enter; each external link enforces its own perms",
+      "v3.54_enhancement": "None"
+    }
+  ],
+  "required_actions": [
+    {
+      "id": "A",
+      "label": "Promote control mode canvas to a governance cockpit grid: audit summary tile + risk-state tile + permission overview tile + dependency graph teaser + feature flag bridge — replace the current single-h2 outcomes card",
+      "treatment": "minor-repair-plus-additive"
+    },
+    {
+      "id": "B",
+      "label": "Create control_governance_preview_pane.html — proposed-change preview with confirm CTA, permission gate, and rollback plan summary",
+      "treatment": "new-partial"
+    },
+    {
+      "id": "C",
+      "label": "Render control_audit_entries safely — hide user_id behind a 'sys' or 'operator' label fallback when no displayed_name; never render raw email/slug",
+      "treatment": "minor-repair"
+    },
+    {
+      "id": "D",
+      "label": "Control rail rewrite — keep existing structure but add 'Manage in Feature Control' link to legacy_urls.feature_control external; ensure no dummy href='#'",
+      "treatment": "minor-repair"
+    },
+    {
+      "id": "E",
+      "label": "New CSS file static/css/studio-control-cockpit.css with .rmc-control-* grammar (cockpit grid, audit row, risk tile, permission matrix wrap, dep-graph node)",
+      "treatment": "new-file"
+    },
+    {
+      "id": "F",
+      "label": "New test file test_control_governance_cockpit.py — operator access, audit empty state, rollback confirm pattern + perm gate, no raw PII, no role literals outside trans, no dummy hrefs",
+      "treatment": "new-test"
+    },
+    {
+      "id": "G",
+      "label": "Coordinator task — propose minor edits to studio-control-mode-canvas.css to import or coordinate with new studio-control-cockpit.css (currently read-only for Agent 6); minimal — Agent 6 simply links the new file from modes/control.html",
+      "treatment": "coordinator-task-only"
+    }
+  ],
+  "scanner_risks_at_zero": [
+    "scan_role_strings — addressed by using {% trans %} blocks + role_registry constants; no role literals outside trans",
+    "scan_undefined_css_classes — every new .rmc-control-* class defined in studio-control-cockpit.css",
+    "scan_inline_style_off_token — no inline style attributes added; all colors via var()",
+    "scan_off_token_colors — new CSS uses semantic tokens only",
+    "scan_theme_locked_token_text — same",
+    "scan_pii_logging_smell — no PII interpolated in logger calls",
+    "audit_template_render_safety — all {% if/for %} balanced; all {% include %} targets valid",
+    "scan_reveal_armed_invariants — no .rmc-reveal* opacity:0 rules; defer/async unchanged"
+  ]
+}

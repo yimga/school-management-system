@@ -1,0 +1,211 @@
+/**
+ * Platform chrome layout — manager /super/, /admin/, manager portal bridge.
+ * Document scroll: sticky top chrome, sticky sidebar rail with internal scroll,
+ * main column grows naturally; footer follows content (not viewport-trapped).
+ */
+
+:root {
+  --rmc-primary-nav-block: 3.25rem;
+  --rmc-cp-chrome-offset: calc(
+    var(--rmc-manager-header-height, 64px) + var(--rmc-primary-nav-block)
+  );
+}
+
+/* Admin manager has topbar only (no horizontal primary nav in shell). */
+body.admin-manager-shell[data-rmc-cp-scroll="document"] {
+  --rmc-cp-chrome-offset: var(--rmc-manager-header-height, 64px);
+}
+
+/* Do not trap scroll on shell wrapper — body/document scroll owns vertical motion. */
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-shell-content,
+body.manager-portal-bridge[data-rmc-cp-scroll="document"] .cp-shell-content {
+  overflow: visible !important;
+  min-height: auto !important;
+  max-height: none !important;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome,
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1040;
+  flex-shrink: 0;
+  width: 100%;
+  background: var(--cp-ink-canvas, var(--surface-canvas, var(--color-base-900)));
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--color-base-0) 10%, transparent);
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-shell-content,
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-shell-content {
+  min-height: auto !important;
+  flex-grow: 0 !important;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout.min-h-0,
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row.min-h-0,
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-layout.min-h-0,
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-layout .row.min-h-0 {
+  min-height: auto !important;
+  flex-grow: 0 !important;
+}
+
+@media (min-width: 992px) {
+  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col,
+  body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-sidebar-col,
+  body.manager-portal-bridge[data-rmc-cp-scroll="document"] .cp-sidebar-col,
+  body.manager-portal-bridge[data-rmc-cp-scroll="document"] #portal-sidebar-col,
+  body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col,
+  body.admin-manager-shell[data-rmc-cp-scroll="document"] #cp-sidebar-col {
+    position: sticky !important;
+    top: var(--rmc-cp-chrome-offset, 64px) !important;
+    align-self: flex-start !important;
+    max-height: calc(100vh - var(--rmc-cp-chrome-offset, 64px)) !important;
+    height: auto !important;
+    overflow: hidden !important; /* sticky-overflow-allow: sidebar-rail-outer-clip-inner-scrolls-via-cp-sidebar-inner */
+  }
+
+  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner,
+  body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-sidebar-col .cp-sidebar-inner,
+  body.manager-portal-bridge[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner,
+  body.admin-manager-shell[data-rmc-cp-scroll="document"] #cp-sidebar-col .cp-sidebar-inner {
+    position: relative !important;
+    top: auto !important;
+    max-height: calc(100vh - var(--rmc-cp-chrome-offset, 64px)) !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Bell badge: stay inside the icon hit target (no viewport leak). */
+.rmc-platform-header__actions {
+  overflow: visible;
+  padding-inline-end: 0.35rem;
+}
+
+.cp-navbar .cp-topbar-bell.rmc-platform-header__icon-btn {
+  position: relative;
+  overflow: visible;
+}
+
+.cp-navbar .cp-topbar-bell__badge,
+[data-rmc-platform-header="manager"] .cp-topbar-bell__badge {
+  position: absolute !important;
+  top: 0.15rem !important;
+  right: 0.15rem !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  max-width: 2.1rem;
+  padding: 0 0.35rem;
+  font-size: 0.625rem;
+  line-height: 1.1;
+  box-shadow: 0 0 0 2px var(--cp-ink-canvas, rgba(11, 17, 32, 0.92));
+}
+
+/* Manager portal bridge: sticky tenant topbar (no .rmc-control-plane-chrome wrapper). */
+body.manager-portal-bridge[data-rmc-cp-scroll="document"] #portalHeader.topbar-sticky,
+body.manager-portal-bridge[data-rmc-cp-scroll="document"] #portalHeader.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+}
+
+/* Tenant + backend portal: document scroll + sticky header (all portal_body hosts). */
+body.portal-body-with-layout[data-rmc-cp-scroll="document"],
+body.backend-shell[data-rmc-cp-scroll="document"] {
+  overflow-x: clip;
+  overflow-y: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+  max-height: none;
+}
+
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] .portal-layout-wrap,
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] .portal-layout-row,
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] #main-content,
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] .page-wrap,
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] .portal-page-body {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] #portalHeader.topbar-sticky,
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] #portalHeader.statement-header {
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+}
+
+@media (min-width: 992px) {
+  body.portal-body-with-layout[data-rmc-cp-scroll="document"] .portal-sidebar-col,
+  body.portal-body-with-layout[data-rmc-cp-scroll="document"] #portal-sidebar-col {
+    position: sticky !important;
+    top: var(--rmc-cp-chrome-offset, var(--portal-shell-sticky-offset, 4.75rem)) !important;
+    align-self: flex-start !important;
+    max-height: calc(100vh - var(--rmc-cp-chrome-offset, 5rem)) !important;
+    overflow: hidden !important; /* sticky-overflow-allow: portal-sidebar-rail-outer-clip-inner-scrolls */
+  }
+
+  body.portal-body-with-layout[data-rmc-cp-scroll="document"] .portal-sidebar-col .sidebar,
+  body.portal-body-with-layout[data-rmc-cp-scroll="document"] #portal-sidebar-col .sidebar {
+    position: relative !important;
+    top: auto !important;
+    max-height: calc(100vh - var(--rmc-cp-chrome-offset, 5rem)) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* Portal topbar notification badges — keep inside icon buttons. */
+#portalHeader .topbar-icon-btn.position-relative {
+  overflow: visible;
+}
+
+#portalHeader .topbar-icon-badge {
+  top: 0.12rem !important;
+  right: 0.12rem !important;
+  left: auto !important;
+  transform: none !important;
+  font-size: 0.625rem;
+  line-height: 1.1;
+  min-width: 1.125rem;
+  padding: 0.1rem 0.35rem;
+}
+
+/* Marketing: sticky public header, natural document scroll. */
+html[data-surface="marketing"] .mkt-platform-header {
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+  background: var(--mkt-nav-bg, var(--surface-canvas, #faf8f4));
+}
+
+html[data-surface="marketing"] body {
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+/* Long-page section rail uses measured chrome offset (see rmc-cp-chrome-offset.js). */
+.rmc-page-fold-nav--sticky {
+  top: var(--rmc-cp-chrome-offset, 72px);
+}
+
+/* Workspace strip on dark control-plane canvas (Bootstrap bg-body-tertiary is too faint). */
+body.control-plane-shell #cp-main-content .rmc-os-page-header {
+  background: var(--surface-elevated, rgba(255, 255, 255, 0.06)) !important;
+  border-color: var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+}
+
+body.control-plane-shell #cp-main-content .rmc-os-page-header .text-muted,
+body.control-plane-shell #cp-main-content .rmc-os-page-header .text-uppercase {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72)) !important;
+}
+
+body.control-plane-shell #cp-main-content .rmc-os-page-header__title,
+body.control-plane-shell #cp-main-content .rmc-os-page-header .text-body {
+  color: var(--text-primary, rgba(255, 255, 255, 0.96)) !important;
+}

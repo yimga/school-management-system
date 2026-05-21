@@ -1,0 +1,17 @@
+{
+  "generated_at_utc": "2026-05-21T01:55:00Z",
+  "agent_id": "A4",
+  "scope": "apps/apicenter/ (preserve list — observed only; this is the A4 observation supplement; the canonical file api_center_open_usable_audit.json is owned by apicenter test suite and unchanged)",
+  "canonical_audit_file_present": "docs/generated/api_center_open_usable_audit.json (4 routes, 0 dummy CTAs, generated 2026-05-20T04:37:57Z; A4 did not touch)",
+  "git_modified_in_apicenter": false,
+  "apicenter_url_routes_count": 13,
+  "apicenter_urls_import_clean": true,
+  "apicenter_files_present_count": 18,
+  "apicenter_test_modules_count": 13,
+  "key_observations": [
+    "apps/apicenter/ai_center_urls.py separately wires the super-tier AI Center; the user-tier AI Center surface (siteconfig:ai_center) is the one wired to cloud-AI posture work",
+    "apicenter remains the bounded surface for API keys / OAuth / developer platform / extension marketplace — distinct from the AI direction surface owned by A4",
+    "no A4 edits to apicenter in this audit"
+  ],
+  "verdict": "PRESERVED — apicenter unmodified; canonical audit file untouched; 13 urlpatterns import cleanly under config.settings."
+}

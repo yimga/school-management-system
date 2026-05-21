@@ -2,7 +2,6 @@
 """Verify advisory-board view-layer pages: definitions, URLs, templates, viz wiring."""
 from __future__ import annotations
 
-import re
 import sys
 from pathlib import Path
 

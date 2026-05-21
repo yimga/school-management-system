@@ -355,3 +355,21 @@ class SchemaTests(SimpleTestCase):
         self.assertEqual(extract_json_from_text('pre {"a": 1} post'), {"a": 1})
         self.assertIsNone(extract_json_from_text("no json"))
         self.assertIsNone(extract_json_from_text(""))
+
+    @override_settings(
+        LITELLM_PROXY_URL="https://proxy.example/v1",
+        LITELLM_API_KEY="secret-key",
+        LITELLM_MODEL="test-model",
+    )
+    @patch("services.ai_gateway.urllib.request.urlopen")
+    def test_call_litellm_sends_authorization_header(self, mock_urlopen):
+        from services.ai_gateway import _call_litellm
+
+        mock_urlopen.return_value.__enter__.return_value.read.return_value = (
+            b'{"choices":[{"message":{"content":"ok"}}]}'
+        )
+        text, meta = _call_litellm("hello")
+        self.assertEqual(text, "ok")
+        self.assertEqual(meta.get("tier"), "litellm")
+        req = mock_urlopen.call_args[0][0]
+        self.assertEqual(req.headers.get("Authorization"), "Bearer secret-key")

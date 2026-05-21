@@ -1,0 +1,87 @@
+{% load i18n %}
+{# v3.54.0 (2026-05-21): Experience live preview pane — visual experience
+   control room. Responsive iframe (aspect-ratio 16/10), role/audience
+   selector when studio_role_preview_entries is populated, applied/draft
+   badges from theme_contrast_report + theme_recent_change_meta. All routes
+   are real (studio_role_preview_entries comes from get_setup_studio_payload
+   or fallback to accounts:backend_dashboard / portal:parent_dashboard).
+   When empty, shows an honest "Preview unavailable" state — never fakes.
+
+   Classes are defined in static/css/studio-experience-mode.css. #}
+<section class="rmc-studio-experience-preview studio-os__card mt-3"
+         aria-labelledby="rmc-studio-experience-preview-heading"
+         data-rmc-studio-experience-preview="1">
+  <header class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <h2 id="rmc-studio-experience-preview-heading" class="h6 mb-0 me-2">{% trans "Live preview" %}</h2>
+    <div class="rmc-studio-experience-state-badges" aria-label="{% trans 'Preview state' %}">
+      {% if theme_recent_change_meta %}
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn"
+            title="{% trans 'Unpublished theme changes detected on this tenant.' %}">{% trans "Draft" %}</span>
+      {% else %}
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok"
+            title="{% trans 'Theme on disk matches the last published state.' %}">{% trans "Applied" %}</span>
+      {% endif %}
+      {% if theme_contrast_report %}
+        {% if theme_contrast_report.status == "ok" %}
+        <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok">{% trans "Contrast: pass" %}</span>
+        {% else %}
+        <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Contrast: check" %}</span>
+        {% endif %}
+      {% endif %}
+    </div>
+  </header>
+
+  {% if studio_role_preview_entries %}
+  <div class="rmc-studio-experience-preview__toolbar">
+    <label for="rmc-studio-experience-preview-role">{% trans "Preview as" %}</label>
+    <select id="rmc-studio-experience-preview-role"
+            class="form-select form-select-sm rmc-studio-experience-preview__role-select"
+            data-rmc-studio-experience-preview-role="1"
+            aria-controls="rmc-studio-experience-preview-frame">
+      {% for r in studio_role_preview_entries %}
+        {% if r.url %}
+        <option value="{{ r.url }}">{{ r.label|default:r.role }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    <noscript><span class="small text-muted">{% trans "Open a role link below to preview." %}</span></noscript>
+  </div>
+
+  <div class="rmc-studio-experience-preview__frame" id="rmc-studio-experience-preview-frame">
+    {% with first=studio_role_preview_entries.0 %}
+      {% if first.url %}
+      <iframe id="rmc-studio-experience-preview-iframe"
+              title="{% trans 'Tenant role preview' %}"
+              src="{{ first.url }}"
+              loading="lazy"
+              referrerpolicy="same-origin"></iframe>
+      {% else %}
+      <span class="rmc-studio-experience-preview__empty">{% trans "Preview unavailable — no preview URL on the first role entry." %}</span>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <ul class="list-unstyled small mt-2 mb-0">
+    {% for r in studio_role_preview_entries %}
+      {% if r.url %}
+      <li class="mb-1"><a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.label|default:r.role }}</a> <span class="text-muted">— {% trans "open in new tab" %}</span></li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+
+  <script>
+  (function () {
+    var sel = document.getElementById('rmc-studio-experience-preview-role');
+    var frame = document.getElementById('rmc-studio-experience-preview-iframe');
+    if (!sel || !frame) { return; }
+    sel.addEventListener('change', function () {
+      if (sel.value) { frame.src = sel.value; }
+    });
+  })();
+  </script>
+  {% else %}
+  <div class="rmc-studio-experience-preview__empty" role="status" aria-live="polite">
+    <span>{% trans "Preview unavailable — no tenant context selected. Select a school context to render role-scoped previews." %}</span>
+  </div>
+  {% endif %}
+</section>

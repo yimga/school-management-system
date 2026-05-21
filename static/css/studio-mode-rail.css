@@ -11,6 +11,12 @@
   border-radius: var(--token-radius-sm, 4px);
   color: var(--ds-text-muted, var(--color-base-700));
   text-decoration: none;
+  /* v3.54.0 (2026-05-21): shared rail overflow safety. Long pane labels (e.g. localized */
+  /* "Communication style packs") must wrap inside the rail's 12.5rem column instead of */
+  /* pushing horizontal scroll on the workspace_main. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .studio-os__output-rail a.output-rail-link:hover,
 .studio-os__automation-rail a.automation-rail-link:hover,

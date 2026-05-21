@@ -1,0 +1,31 @@
+{% load i18n static %}
+<section class="mkt-edt-section mkt-v3-section mkt-v3-category-proof rmc-reveal" aria-labelledby="category-proof-heading" data-mkt-section="category-proof" data-mkt-reveal>
+  <div class="mkt-edt-container">
+    <header>
+      <p class="mkt-edt-eyebrow mkt-v3-eyebrow">{% trans "Infrastructure proof" %}</p>
+      <h2 id="category-proof-heading" class="mkt-edt-section-headline mkt-v3-section-headline">
+        {% trans "Built for the parts of school operations that usually break." %}
+      </h2>
+      <p class="mkt-edt-lead mkt-v3-lead">
+        {% trans "Offline capture, governed extensions, and procurement evidence are treated as core platform surfaces, not afterthoughts." %}
+      </p>
+    </header>
+    <div class="mkt-v3-segment-grid">
+      <article class="mkt-v3-segment-card" data-mkt-home-proof="offline">
+        <img src="{% static 'images/marketing/platform-offline-sync-console.svg' %}" alt="{% trans 'Edge sync console showing queued attendance, marks, receipts, conflict review, and successful sync' %}" width="420" height="220" loading="lazy" decoding="async" class="img-fluid mb-3">
+        <h3 class="h5">{% trans "When the network drops, the school day does not." %}</h3>
+        <p>{% trans "Attendance, marks, and receipts queue locally, reconcile on reconnect, and leave an audit trail for conflict review." %}</p>
+      </article>
+      <article class="mkt-v3-segment-card" data-mkt-home-proof="marketplace">
+        <img src="{% static 'images/marketing/ecosystem-diagram.svg' %}" alt="{% trans 'Governed marketplace diagram with approved apps, APIs, integrations, tenant controls, and rollout boundaries' %}" width="420" height="220" loading="lazy" decoding="async" class="img-fluid mb-3">
+        <h3 class="h5">{% trans "Marketplace and APIs with governance." %}</h3>
+        <p>{% trans "Approved apps, modules, integrations, API boundaries, and tenant controls extend the platform without creating shadow systems." %}</p>
+      </article>
+      <article class="mkt-v3-segment-card" data-mkt-home-proof="procurement">
+        <img src="{% static 'images/marketing/platform-security-governance-center.svg' %}" alt="{% trans 'Governance control room with role coverage, audit events, risk flags, and access exceptions' %}" width="420" height="220" loading="lazy" decoding="async" class="img-fluid mb-3">
+        <h3 class="h5">{% trans "Procurement teams get buyer-readable evidence." %}</h3>
+        <p>{% trans "Permissions, audit logs, data isolation, dependency boundaries, and honest certification status are routed through the Trust surface." %}</p>
+      </article>
+    </div>
+  </div>
+</section>

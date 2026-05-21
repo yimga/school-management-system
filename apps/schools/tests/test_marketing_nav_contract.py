@@ -29,13 +29,16 @@ class MarketingNavContractTests(SimpleTestCase):
                 "Why RunMyCampus",
                 "Pricing",
                 "Resources",
+                "More",
             ],
         )
         why = next(i for i in nav if i["label"] == "Why RunMyCampus")
         self.assertTrue(why.get("mega_columns"))
         self.assertNotIn("Trust", labels)
+        more = next(i for i in nav if i["label"] == "More")
+        self.assertTrue(more.get("mega_columns"))
 
-    def test_solutions_dropdown_maps_buyer_segments(self):
+    def test_solutions_dropdown_is_only_buyer_worlds(self):
         from apps.schools.marketing_v3_surfaces import marketing_verb_nav_enabled
 
         if marketing_verb_nav_enabled():
@@ -43,12 +46,20 @@ class MarketingNavContractTests(SimpleTestCase):
         nav = _marketing_navbar_primary()
         sol = next(i for i in nav if i["label"] == "Solutions")
         child_labels = [c["label"] for c in sol["children"] if not c.get("is_header")]
-        self.assertIn("Private schools", child_labels)
-        self.assertIn("School networks", child_labels)
-        self.assertIn("Low-connectivity schools", child_labels)
-        self.assertIn("Finance teams", child_labels)
-        self.assertIn("Teachers & academics", child_labels)
-        self.assertIn("Parents & families", child_labels)
+        self.assertEqual(
+            child_labels,
+            [
+                "Solutions overview",
+                "Private Schools",
+                "International Schools",
+                "K-12 Schools",
+                "Multi-Campus Groups",
+                "Faith-Based Schools",
+                "Growing School Networks",
+            ],
+        )
+        column_titles = [col["title"] for col in sol["mega_columns"]]
+        self.assertEqual(column_titles, ["School models", "Networks & communities"])
 
     def test_topical_nav_featured_is_bounded_and_subset_of_full(self):
         full = _topical_nav()

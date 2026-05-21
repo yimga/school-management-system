@@ -1,0 +1,126 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Day-1 palette choice" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/tenant-studio-day1.css' %}">
+{% endblock %}
+{% block content %}
+<div
+  class="rmc-day1-stage container py-4"
+  data-rmc-tenant-studio-day1="1"
+  data-rmc-tenant-studio-day1-active-act="2"
+  data-page-archetype="day1-palette"
+  data-shell-surface="tenant-school-studio-day1">
+
+  <header class="rmc-day1-act-header">
+    <span class="rmc-day1-eyebrow">{% trans "Act 2 — Palette" %}</span>
+    <h1 class="rmc-day1-headline">{% trans "Three ways your brand can sing" %}</h1>
+    <p class="rmc-day1-lede">
+      {% blocktrans with seed_hex=seed_hex %}Generated from your brand seed <code>{{ seed_hex }}</code>. Pick the tone that feels most like your school.{% endblocktrans %}
+    </p>
+  </header>
+
+  <form
+    method="post"
+    action="{{ act3_url }}"
+    class="rmc-day1-palette-grid"
+    data-rmc-day1-act2-form="1">
+    {% csrf_token %}
+    {% for v in variations %}
+    <article
+      class="rmc-day1-variation-card"
+      data-rmc-day1-variation-id="{{ v.id }}"
+      data-rmc-day1-variation-tone="{{ v.tone }}"
+      style="--rmc-day1-primary: {{ v.stops.primary }};
+             --rmc-day1-primary-strong: {{ v.stops.primary_strong }};
+             --rmc-day1-primary-soft: {{ v.stops.primary_soft }};
+             --rmc-day1-surface: {{ v.stops.surface }};
+             --rmc-day1-ink: {{ v.stops.ink }};">
+      <header class="rmc-day1-variation-header">
+        <h2 class="rmc-day1-variation-title">
+          {% if v.tone == "classic" %}{% trans "Classic" %}
+          {% elif v.tone == "warm" %}{% trans "Warm" %}
+          {% else %}{% trans "Vibrant" %}{% endif %}
+        </h2>
+        <span class="rmc-day1-wcag-badge rmc-day1-wcag-{{ v.wcag_grade }}">
+          {% trans "Contrast" %} {{ v.wcag_grade }}
+        </span>
+      </header>
+
+      <div class="rmc-day1-variation-previews">
+        <div class="rmc-day1-tile rmc-day1-tile-portal" aria-label="{% trans 'Portal tile preview' %}">
+          <div class="rmc-day1-tile-bar"></div>
+          <div class="rmc-day1-tile-body">
+            <p class="rmc-day1-tile-heading">{% trans "Portal" %}</p>
+            <button type="button" class="rmc-day1-tile-cta" tabindex="-1">
+              {% trans "Open" %}
+            </button>
+          </div>
+        </div>
+        <div class="rmc-day1-tile rmc-day1-tile-marketing" aria-label="{% trans 'Marketing tile preview' %}">
+          <p class="rmc-day1-tile-heading">{% trans "Marketing" %}</p>
+          <p class="rmc-day1-tile-blurb">{% trans "Apply now" %}</p>
+        </div>
+        <div class="rmc-day1-tile rmc-day1-tile-chip" aria-label="{% trans 'Login chip preview' %}">
+          <span class="rmc-day1-tile-chip-dot" aria-hidden="true"></span>
+          <span class="rmc-day1-tile-chip-text">{% trans "Sign in" %}</span>
+        </div>
+      </div>
+
+      <ul class="rmc-day1-stops">
+        {% for key, hex in v.stops.items %}
+        <li class="rmc-day1-stop">
+          <span class="rmc-day1-stop-swatch"
+                aria-hidden="true"
+                style="--rmc-day1-stop-fill: {{ hex }};"></span>
+          <code class="rmc-day1-stop-key">{{ key }}</code>
+          <code class="rmc-day1-stop-hex">{{ hex }}</code>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <label class="rmc-day1-variation-choose">
+        <input type="radio"
+               name="variation_id"
+               value="{{ v.id }}"
+               data-rmc-day1-variation-radio="1"
+               required>
+        <span>{% trans "Choose this palette" %}</span>
+      </label>
+    </article>
+    {% endfor %}
+
+    <nav class="rmc-day1-act-actions rmc-day1-act-actions-full" aria-label="{% trans 'Palette navigation' %}">
+      <a class="rmc-day1-cta-secondary"
+         href="{{ act1_url }}"
+         data-rmc-day1-act-prev="1">
+        {% trans "Back to brand" %}
+      </a>
+      <button type="submit"
+              class="rmc-day1-cta-primary"
+              data-rmc-day1-act-lock>
+        {% trans "Lock in this palette" %}
+      </button>
+    </nav>
+  </form>
+
+  <nav class="rmc-day1-progress-rail" aria-label="{% trans 'Day-1 progress' %}">
+    <ol class="rmc-day1-progress-steps">
+      <li class="rmc-day1-progress-step is-active">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Brand" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step is-active">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Palette" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Lock in" %}</span>
+      </li>
+    </ol>
+  </nav>
+</div>
+<script src="{% static 'js/rmc-tenant-studio-day1.js' %}"></script>
+{% endblock %}

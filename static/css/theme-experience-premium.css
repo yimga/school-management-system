@@ -1,0 +1,145 @@
+/* Dual-plane theme & experience — premium hub + builder polish */
+
+.rmc-theme-hub-glance {
+  --hub-preview-primary: var(--school-primary, var(--color-primary, #4f46e5));
+  --hub-preview-accent: var(--school-accent, var(--color-success, #059669));
+}
+
+.rmc-theme-hub-glance__swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rmc-theme-hub-glance__chip {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.12));
+  box-shadow: var(--elev-1, 0 1px 2px rgba(15, 23, 42, 0.08));
+  flex-shrink: 0;
+}
+
+.rmc-theme-hub-glance__hex {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.rmc-theme-hub-contrast-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: var(--type-size-eyebrow, 0.75rem);
+  font-weight: 600;
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.1));
+  background: var(--surface-elevated, #fff);
+  color: var(--text-secondary, #475569);
+}
+
+.rmc-theme-hub-contrast-pill[data-contrast-ok="true"] {
+  border-color: color-mix(in srgb, var(--color-success, #059669) 35%, transparent);
+  color: var(--color-success, #059669);
+  background: color-mix(in srgb, var(--color-success, #059669) 8%, var(--surface-elevated, #fff));
+}
+
+.rmc-theme-hub-contrast-pill[data-contrast-ok="false"] {
+  border-color: color-mix(in srgb, var(--color-warning, #d97706) 40%, transparent);
+  color: var(--color-warning, #b45309);
+  background: color-mix(in srgb, var(--color-warning, #d97706) 10%, var(--surface-elevated, #fff));
+}
+
+[data-rmc-theme-hub-hero] {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--hub-preview-primary, #4f46e5) 6%, var(--surface-elevated, #fff)) 0%,
+    var(--surface-elevated, #fff) 48%,
+    color-mix(in srgb, var(--hub-preview-accent, #059669) 5%, var(--surface-elevated, #fff)) 100%
+  );
+}
+
+[data-rmc-theme-hub-hero] .theme-hub-mini-sidebar {
+  background: var(--hub-preview-primary, var(--school-primary, #4f46e5));
+}
+
+[data-rmc-theme-hub-hero] .theme-hub-mini-cards span:first-child {
+  background: color-mix(
+    in srgb,
+    var(--hub-preview-accent, var(--school-accent, #059669)) 55%,
+    var(--surface-elevated, #fff)
+  );
+}
+
+.rmc-theme-surface-card {
+  transition:
+    transform var(--motion-fast, 160ms) var(--ease-standard, ease),
+    box-shadow var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+
+.rmc-theme-surface-card:hover,
+.rmc-theme-surface-card:focus-within {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2, 0 8px 24px rgba(15, 23, 42, 0.1));
+}
+
+.rmc-theme-surface-card .card-body {
+  position: relative;
+}
+
+.rmc-theme-surface-card__eyebrow {
+  font-size: var(--type-size-eyebrow, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+}
+
+.theme-builder-publish-log li {
+  position: relative;
+  padding-left: 0.85rem;
+  margin-bottom: 0.45rem;
+}
+
+.theme-builder-publish-log li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--school-primary, var(--color-primary, #4f46e5));
+}
+
+.theme-builder-contrast-meter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 0.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.1));
+  background: var(--surface-canvas, #f8fafc);
+  font-size: var(--type-size-caption, 0.8125rem);
+}
+
+.theme-builder-contrast-meter[data-ok="true"] {
+  border-color: color-mix(in srgb, var(--color-success, #059669) 30%, transparent);
+}
+
+.theme-builder-contrast-meter[data-ok="false"] {
+  border-color: color-mix(in srgb, var(--color-warning, #d97706) 35%, transparent);
+}
+
+.theme-builder-contrast-meter strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-builder-block-item:focus-visible {
+  outline: 2px solid var(--school-primary, var(--color-primary, #4f46e5));
+  outline-offset: 2px;
+}

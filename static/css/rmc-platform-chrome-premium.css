@@ -1,0 +1,366 @@
+/**
+ * Platform chrome premium — glass sticky header, scroll progress, sidebar rail
+ * affordances, notification badge polish, long-page section nav, WCX card depth.
+ * Load after rmc-platform-chrome-layout.css.
+ */
+
+:root {
+  --rmc-chrome-glass: color-mix(
+    in oklab,
+    var(--cp-ink-canvas, var(--surface-canvas, #0b1120)) 82%,
+    transparent
+  );
+  --rmc-chrome-hairline: color-mix(
+    in oklab,
+    var(--school-primary, var(--color-primary-500, #6366f1)) 28%,
+    var(--hairline, rgba(255, 255, 255, 0.12))
+  );
+  --rmc-sidebar-scroll-fade: 2.75rem;
+  --rmc-doc-scroll-progress: 0;
+}
+
+/* --- Sticky chrome: frosted material when the document has scrolled --- */
+body.control-plane-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome,
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome {
+  isolation: isolate;
+  transition:
+    background-color var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+    box-shadow var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+    backdrop-filter var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+body[data-rmc-cp-chrome-scrolled="1"].control-plane-shell[data-rmc-cp-scroll="document"]
+  .rmc-control-plane-chrome,
+body[data-rmc-cp-chrome-scrolled="1"].admin-manager-shell[data-rmc-cp-scroll="document"]
+  .rmc-control-plane-chrome {
+  background: var(--rmc-chrome-glass) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow:
+    0 1px 0 var(--rmc-chrome-hairline),
+    0 12px 40px color-mix(in oklab, var(--color-base-900, #000) 42%, transparent);
+}
+
+/* Scroll depth indicator under chrome */
+body.control-plane-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome::after,
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  pointer-events: none;
+  z-index: 2;
+  transform: scaleX(var(--rmc-doc-scroll-progress, 0));
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    var(--school-primary, var(--color-primary-500, #6366f1)),
+    var(--school-accent, var(--color-emerald-500, #10b981))
+  );
+  opacity: 0.92;
+  transition: transform 80ms linear;
+}
+
+/* Primary nav pills — calmer inactive, luminous active */
+body.control-plane-shell .cp-primary-nav.rmc-horizontal-nav-rail {
+  gap: 0.35rem;
+  padding-block: 0.5rem !important;
+}
+
+body.control-plane-shell .cp-primary-nav__pill {
+  border-radius: 999px;
+  transition:
+    background-color var(--dur-fast, 140ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+    box-shadow var(--dur-fast, 140ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+    transform var(--dur-fast, 140ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+body.control-plane-shell .cp-primary-nav__pill--active {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--school-primary, #6366f1) 55%, transparent),
+    0 8px 24px color-mix(in oklab, var(--school-primary, #6366f1) 32%, transparent);
+}
+
+body.control-plane-shell .cp-primary-nav__pill:not(.cp-primary-nav__pill--active):hover {
+  transform: translateY(-1px);
+}
+
+/* --- Sidebar rail: luxury scrollbar + scroll fade masks --- */
+@media (min-width: 992px) {
+  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner,
+  body.admin-manager-shell[data-rmc-cp-scroll="document"] #cp-sidebar-col .cp-sidebar-inner {
+    position: relative;
+    border-radius: var(--radius-lg, 0.75rem);
+    border: 1px solid color-mix(in oklab, var(--color-base-0, #fff) 8%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-base-0, #fff) 6%, transparent),
+      0 12px 32px color-mix(in oklab, var(--color-base-900, #000) 38%, transparent);
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--school-primary, #6366f1) 45%, transparent)
+      transparent;
+  }
+
+  body.control-plane-shell[data-rmc-cp-scroll="document"]
+    .cp-sidebar-inner[data-rmc-sidebar-scrollable="1"]::before,
+  body.admin-manager-shell[data-rmc-cp-scroll="document"]
+    #cp-sidebar-col .cp-sidebar-inner[data-rmc-sidebar-scrollable="1"]::before {
+    content: "";
+    position: sticky;
+    top: 0;
+    display: block;
+    height: var(--rmc-sidebar-scroll-fade);
+    margin-bottom: calc(-1 * var(--rmc-sidebar-scroll-fade));
+    z-index: 3;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      var(--cp-ink-sidebar, rgba(8, 16, 30, 0.98)) 0%,
+      transparent 100%
+    );
+    opacity: var(--rmc-sidebar-fade-top, 0);
+    transition: opacity var(--dur-fast, 140ms) ease;
+  }
+
+  body.control-plane-shell[data-rmc-cp-scroll="document"]
+    .cp-sidebar-inner[data-rmc-sidebar-scrollable="1"]::after,
+  body.admin-manager-shell[data-rmc-cp-scroll="document"]
+    #cp-sidebar-col .cp-sidebar-inner[data-rmc-sidebar-scrollable="1"]::after {
+    content: "";
+    position: sticky;
+    bottom: 0;
+    display: block;
+    height: var(--rmc-sidebar-scroll-fade);
+    margin-top: calc(-1 * var(--rmc-sidebar-scroll-fade));
+    z-index: 3;
+    pointer-events: none;
+    background: linear-gradient(
+      to top,
+      var(--cp-ink-sidebar, rgba(8, 16, 30, 0.98)) 0%,
+      transparent 100%
+    );
+    opacity: var(--rmc-sidebar-fade-bottom, 0);
+    transition: opacity var(--dur-fast, 140ms) ease;
+  }
+
+  .cp-sidebar-inner::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .cp-sidebar-inner::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--school-primary, #6366f1) 50%, transparent);
+  }
+
+  .cp-sidebar-inner::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* --- Notification badge: contained, legible, subtle pulse --- */
+.cp-navbar .cp-topbar-bell__badge,
+[data-rmc-platform-header="manager"] .cp-topbar-bell__badge {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  border-radius: 999px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--bs-danger, #ef4444) 92%, #fff),
+    var(--bs-danger, #dc2626)
+  ) !important;
+  color: var(--color-base-0, #fff) !important;
+  box-shadow:
+    0 0 0 2px var(--cp-ink-canvas, rgba(11, 17, 32, 0.92)),
+    0 4px 12px color-mix(in oklab, var(--bs-danger, #ef4444) 45%, transparent) !important;
+}
+
+body[data-rmc-cp-notify-pulse="1"] .cp-topbar-bell__badge {
+  animation: rmc-cp-badge-pulse 2.8s var(--ease-apple, ease-in-out) infinite;
+}
+
+@keyframes rmc-cp-badge-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* --- Long-page section nav (control plane dark canvas) --- */
+html[data-surface="control-plane"]
+  [data-rmc-page-fold-nav="required"]
+  .rmc-page-fold-nav--sticky,
+html[data-surface="control-plane"]
+  [data-rmc-page-fold-nav="required"]
+  .rmc-section-nav.rmc-page-fold-nav--sticky {
+  top: calc(var(--rmc-cp-chrome-offset, 72px) + 0.5rem);
+  margin-inline: 0;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--rmc-chrome-hairline);
+  background: color-mix(
+    in oklab,
+    var(--cp-ink-canvas, #0b1120) 88%,
+    transparent
+  );
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow: var(--elev-2, 0 8px 28px rgba(0, 0, 0, 0.22));
+}
+
+html[data-surface="control-plane"]
+  [data-rmc-page-fold-nav="required"]
+  .rmc-page-fold-nav--sticky a.is-active,
+html[data-surface="control-plane"]
+  [data-rmc-page-fold-nav="required"]
+  .rmc-section-nav.rmc-page-fold-nav--sticky a[aria-current="true"] {
+  background: color-mix(in oklab, var(--school-primary, #6366f1) 22%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--school-primary, #6366f1) 40%, transparent);
+}
+
+/* Anchor scroll respects measured chrome */
+body.control-plane-shell .cp-page-body [id][data-rmc-section-anchor],
+body.control-plane-shell .cp-admin-page-body [id][data-rmc-section-anchor],
+body.portal-body-with-layout .portal-page-body [id][data-rmc-section-anchor] {
+  scroll-margin-top: calc(var(--rmc-cp-chrome-offset, 72px) + 3.5rem);
+}
+
+/* Command center hero — editorial depth without extra markup */
+body.control-plane-shell [data-rmc-premium-command-center="1"] .rmc-wcx-hero {
+  border-radius: var(--radius-xl, 1rem);
+  padding: 1.35rem 1.5rem;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--school-primary, #6366f1) 14%, var(--cp-ink-canvas, #0b1120)),
+    color-mix(in oklab, var(--school-accent, #10b981) 8%, var(--cp-ink-sidebar, #08101e))
+  );
+  border: 1px solid var(--rmc-chrome-hairline);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-base-0, #fff) 7%, transparent),
+    0 20px 48px color-mix(in oklab, var(--school-primary, #6366f1) 16%, transparent);
+}
+
+body.control-plane-shell [data-rmc-premium-command-center="1"] .rmc-wcx-hero__title {
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+body.control-plane-shell [data-rmc-premium-command-center="1"] .rmc-wcx-visual-panel {
+  background: color-mix(in oklab, var(--cp-ink-canvas, #0b1120) 55%, transparent);
+  border-color: color-mix(in oklab, var(--school-accent, #10b981) 22%, var(--hairline, rgba(255, 255, 255, 0.1)));
+}
+
+body.control-plane-shell [data-rmc-premium-command-center="1"] .cp-chip-row .cp-chip {
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+
+body.control-plane-shell [data-rmc-premium-command-center="1"] .cp-chip-row .cp-chip:hover {
+  transform: translateY(-1px);
+}
+
+/* --- WCX story cards on command center --- */
+body.control-plane-shell #cp-main-content .rmc-wcx-grid {
+  gap: 1.15rem;
+}
+
+body.control-plane-shell #cp-main-content .rmc-wcx-product-card,
+body.control-plane-shell #cp-main-content .rmc-wcx-risk-card {
+  border-radius: var(--radius-lg, 0.75rem);
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--surface-elevated, #fff) 8%, var(--cp-ink-canvas, #0b1120)),
+    color-mix(in oklab, var(--cp-ink-sidebar, #08101e) 65%, var(--cp-ink-canvas, #0b1120))
+  );
+  border: 1px solid color-mix(in oklab, var(--school-primary, #6366f1) 18%, var(--hairline, rgba(255, 255, 255, 0.1)));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-base-0, #fff) 5%, transparent),
+    0 10px 32px color-mix(in oklab, var(--color-base-900, #000) 28%, transparent);
+  transition:
+    transform var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+    box-shadow var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+    border-color var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+body.control-plane-shell #cp-main-content .rmc-wcx-product-card:hover,
+body.control-plane-shell #cp-main-content .rmc-wcx-risk-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--school-primary, #6366f1) 38%, var(--hairline, rgba(255, 255, 255, 0.12)));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-base-0, #fff) 8%, transparent),
+    0 16px 40px color-mix(in oklab, var(--school-primary, #6366f1) 18%, transparent);
+}
+
+body.control-plane-shell #cp-main-content .rmc-wcx-icon {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--school-primary, #6366f1) 25%, transparent);
+}
+
+/* Portal + marketing sticky headers */
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] #portalHeader.topbar-sticky,
+body.portal-body-with-layout[data-rmc-cp-scroll="document"] #portalHeader.statement-header {
+  transition:
+    background-color var(--dur-base, 220ms) ease,
+    box-shadow var(--dur-base, 220ms) ease,
+    backdrop-filter var(--dur-base, 220ms) ease;
+}
+
+body[data-rmc-cp-chrome-scrolled="1"].portal-body-with-layout[data-rmc-cp-scroll="document"]
+  #portalHeader.topbar-sticky,
+body[data-rmc-cp-chrome-scrolled="1"].portal-body-with-layout[data-rmc-cp-scroll="document"]
+  #portalHeader.statement-header {
+  background: color-mix(in oklab, var(--surface-canvas, #fff) 88%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  backdrop-filter: blur(16px) saturate(1.1);
+  box-shadow: 0 8px 28px color-mix(in oklab, var(--color-base-900, #000) 12%, transparent);
+}
+
+html[data-surface="marketing"] body[data-rmc-cp-chrome-scrolled="1"] .mkt-platform-header {
+  background: color-mix(in oklab, var(--mkt-nav-bg, #faf8f4) 90%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 6px 24px color-mix(in oklab, var(--color-base-900, #000) 8%, transparent);
+}
+
+/* base.html — login, home, errors, lightweight tenant public pages */
+body.base-document-shell[data-rmc-cp-scroll="document"] {
+  overflow-x: clip;
+  overflow-y: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body.base-document-shell[data-rmc-cp-scroll="document"] nav.statement-header.topbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+  transition:
+    background-color var(--dur-base, 220ms) ease,
+    box-shadow var(--dur-base, 220ms) ease,
+    backdrop-filter var(--dur-base, 220ms) ease;
+}
+
+body[data-rmc-cp-chrome-scrolled="1"].base-document-shell[data-rmc-cp-scroll="document"]
+  nav.statement-header.topbar-sticky {
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow: 0 8px 28px color-mix(in oklab, var(--color-base-900, #000) 14%, transparent);
+}
+
+body.base-document-shell .portal-page-body {
+  scroll-margin-top: calc(var(--rmc-cp-chrome-offset, 4rem) + 2rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-rmc-cp-notify-pulse="1"] .cp-topbar-bell__badge {
+    animation: none;
+  }
+
+  body.control-plane-shell #cp-main-content .rmc-wcx-product-card:hover,
+  body.control-plane-shell #cp-main-content .rmc-wcx-risk-card:hover {
+    transform: none;
+  }
+}

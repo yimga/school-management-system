@@ -21,264 +21,300 @@
 {% endblock %}
 
 {% block cp_content %}
-  <div class="container-fluid py-4" data-page-archetype="setup-studio" data-ux-qa-marker="tenant-studio">
+  <link rel="stylesheet" href="{% static 'css/studio-guidance.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tenant-studio-wizard.css' %}">
+
+  <div class="container-fluid py-4 tenant-studio-wizard" data-page-archetype="setup-studio" data-ux-qa-marker="tenant-studio">
     <section class="cp-hero cp-hero-compact mb-4">
       <div class="cp-hero-grid">
         <div>
           <div class="cp-eyebrow">{% trans "RunMyCampus Manager" %}</div>
-          <h1 class="cp-hero-title">{% trans "Tenant Studio" %}</h1>
+          <h1 class="cp-hero-title">{% trans "Create a school" %}</h1>
           <p class="cp-hero-copy">
-            {% trans "Create a school through one guided launch flow: identity, region, branding, domain, and plan posture in one surface instead of scattered settings." %}
+            {% trans "Four quick steps — who they are, where they operate, how they look, and how users reach them. Every field has guidance; advanced options stay tucked away until you need them." %}
           </p>
-          <div class="cp-chip-row">
-            <span class="cp-chip">{% trans "Identity and domain" %}</span>
-            <span class="cp-chip">{% trans "Registry-backed region defaults" %}</span>
-            <span class="cp-chip">{% trans "Brand and theme bootstrap" %}</span>
-            <span class="cp-chip">{% trans "Plan and provisioning setup" %}</span>
-          </div>
         </div>
         <div class="cp-hero-actions">
-          <div class="cp-action-stack">
-            <div class="cp-hero-stat">
-              <span class="cp-hero-stat-label">Launch flow</span>
-              <strong class="cp-hero-stat-value">4 steps</strong>
-              <span class="cp-hero-stat-subtitle">Identity, region, branding, and domain before provisioning.</span>
-            </div>
-            <div class="cp-action-row">
-              <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-light btn-sm">School health</a>
-              <a href="{% url 'super:blueprints_catalog' %}" class="btn btn-outline-light btn-sm">Blueprints</a>
-              <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
-            </div>
+          <div class="cp-hero-stat">
+            <span class="cp-hero-stat-label">{% trans "Launch flow" %}</span>
+            <strong class="cp-hero-stat-value" id="wizard-progress-text">{% trans "Step 1 of 4" %}</strong>
+            <span class="cp-hero-stat-subtitle" id="wizard-progress-headline">{% trans "Identity" %}</span>
           </div>
         </div>
       </div>
     </section>
 
     <div class="row justify-content-center">
-      <div class="col-lg-8">
+      <div class="col-xl-11">
         <div class="card shadow-sm">
-          <div class="card-header d-flex justify-content-between align-items-start flex-wrap gap-2">
-            <div class="nav-tabs-wrap">
-            <ul class="nav nav-tabs card-header-tabs" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1" type="button" role="tab">1. {% trans "Identity" %}</button>
+          <div class="card-header">
+            <ol class="tenant-studio-stepper" id="wizard-stepper" role="list">
+              {% for step in wizard_steps_meta %}
+              <li class="tenant-studio-stepper__item" role="listitem">
+                <button
+                  type="button"
+                  class="tenant-studio-stepper__btn{% if forloop.first %} is-active{% endif %}"
+                  id="step{{ forloop.counter }}-tab"
+                  data-step-index="{{ forloop.counter0 }}"
+                  aria-current="{% if forloop.first %}step{% else %}false{% endif %}"
+                  {% if not forloop.first %}disabled{% endif %}
+                >
+                  <span class="d-block fw-semibold">{{ forloop.counter }}. {{ step.label }}</span>
+                </button>
               </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="step2-tab" data-bs-toggle="tab" data-bs-target="#step2" type="button" role="tab">2. {% trans "Region" %}</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button" role="tab">3. {% trans "Branding" %}</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="step4-tab" data-bs-toggle="tab" data-bs-target="#step4" type="button" role="tab">4. {% trans "Domain" %}</button>
-              </li>
-            </ul>
-            <p class="mb-0 mt-2 small text-muted" id="wizard-progress-text">Step 1 of 4</p>
-            </div>
-            <div class="text-muted small">Tenant Studio keeps the full provisioning flow visible from one page.</div>
+              {% endfor %}
+            </ol>
           </div>
           <div class="card-body">
             {% if initial_pack_name %}
             <p class="alert alert-info small mb-3" role="status">{% blocktrans with name=initial_pack_name %}Pre-selected region pack: <strong>{{ name }}</strong>. Country and defaults are set for this pack.{% endblocktrans %}</p>
             {% endif %}
             {% if parent_school_name %}
-            <p class="alert alert-secondary small mb-3" role="status">{% blocktrans with name=parent_school_name %}Adding as campus under: <strong>{{ name }}</strong>. The new school will be linked as a child of this group.{% endblocktrans %}</p>
+            <p class="alert alert-secondary small mb-3" role="status">{% blocktrans with name=parent_school_name %}Adding as campus under: <strong>{{ name }}</strong>.{% endblocktrans %}</p>
             <input type="hidden" id="parent_school_id" name="parent_school_id" value="{{ parent_school_id }}">
             {% endif %}
-            <form
-              id="wizard-form"
-              data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}"
-              data-timeline-url-template="{% url 'super:api_school_timeline' '00000000-0000-0000-0000-000000000000' %}"
-              data-city-search-url="{% url 'super:api_geo_cities' %}"
-              data-profile-search-url="{% url 'super:api_education_profiles' %}"
-              data-provinces-url="{% url 'super:api_provinces' %}"
-              data-plans-configurator-url="{% url 'super:api_plans_configurator' %}"
-            >
-              {% csrf_token %}
-              <div class="tab-content">
-                <div class="tab-pane fade show active" id="step1" role="tabpanel">
-                  <div class="mb-3">
-                    <label class="form-label" for="name">School name *</label>
-                    <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. GHS Limbe">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="slug">Slug *</label>
-                    <input type="text" class="form-control" id="slug" name="slug" required placeholder="ghs-limbe">
-                    <div class="form-text">URL-friendly identifier; will be used for subdomain if not set.</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="subdomain">Subdomain</label>
-                    <input type="text" class="form-control" id="subdomain" name="subdomain" placeholder="ghs-limbe">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="contact_email">Contact email</label>
-                    <input type="email" class="form-control" id="contact_email" name="contact_email" placeholder="admin@school.edu">
-                    <div class="form-text">Used to create or link the first admin user.</div>
-                  </div>
-                </div>
-                <div class="tab-pane fade" id="step2" role="tabpanel">
-                  <div class="mb-3">
-                    <label class="form-label" for="country_code">Country</label>
-                    <select class="form-select" id="country_code" name="country_code">
-                      {% for country in countries %}
-                        <option value="{{ country.code }}" data-alpha3="{{ country.code_alpha3|default:country.code }}" {% if country.code == default_country_code %}selected{% endif %}>{{ country.name }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="subdivision_id">Province / State / Region (optional)</label>
-                    <select class="form-select" id="subdivision_id" name="subdivision_id">
-                      <option value="">— None —</option>
-                    </select>
-                    <div class="form-text">Registry-backed subdivisions are optional and country-specific.</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="city_id">City</label>
-                    <input
-                      type="search"
-                      class="form-control mb-2"
-                      id="city_search"
-                      placeholder="Type city name (e.g. Kampala)"
-                      autocomplete="off"
-                    >
-                    <select class="form-select" id="city_id" name="city_id">
-                      {% for city in cities %}
-                        <option value="{{ city.id }}" data-country="{{ city.country_code }}" data-country-alpha3="{{ city.country_code_alpha3|default:city.country_code }}" data-timezone="{{ city.timezone }}">
-                          {{ city.city }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                    <div class="form-text">Select country first, then city for timezone and regional defaults.</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="region_code">Region code</label>
-                    <input type="text" class="form-control" id="region_code" name="region_code" readonly>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="timezone_preview">Timezone</label>
-                    <input type="text" class="form-control" id="timezone_preview" readonly>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="sub_system">Sub-system</label>
-                    <select class="form-select" id="sub_system" name="sub_system">
-                      <option value="EN" {% if default_sub_system == "EN" %}selected{% endif %}>English</option>
-                      <option value="FR" {% if default_sub_system == "FR" %}selected{% endif %}>Francophone</option>
-                      <option value="INT" {% if default_sub_system == "INT" %}selected{% endif %}>International</option>
-                    </select>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="education_level_codes">Education levels</label>
-                    <select class="form-select" id="education_level_codes" name="education_level_codes" multiple size="3">
-                      {% for level in education_levels %}
-                        <option value="{{ level.code }}">{{ level.global_name }}</option>
-                      {% endfor %}
-                    </select>
-                    <div class="form-text">Select all levels the school serves.</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="primary_sector">Primary sector (Wedges 14–22)</label>
-                    <select class="form-select" id="primary_sector" name="primary_sector">
-                      <option value="">— Select sector —</option>
-                      {% for item in sector_types_14_22 %}
-                        <option value="{{ item.code }}">{{ item.name }}{% if item.description %} — {{ item.description|truncatewords:8 }}{% endif %}</option>
-                      {% endfor %}
-                    </select>
-                    <div class="form-text">Every school has at least one system type (Public, Private, Charter, International, Faith-based, Home-school, Government/ministry, NGO, Multi-campus).</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="education_system_type_codes">Education system types</label>
-                    <select class="form-select" id="education_system_type_codes" name="education_system_type_codes" multiple size="6">
-                      {% for system_type in education_system_types %}
-                        <option value="{{ system_type.code }}">{{ system_type.name }}</option>
-                      {% endfor %}
-                    </select>
-                    <div class="form-text">Choose the canonical system types for onboarding and analytics. Include at least one sector from the list above.</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="education_profile_code">Education template (primary)</label>
-                    <select class="form-select" id="education_profile_code" name="education_profile_code">
-                      <option value="">Auto by Country and Sub-system (Recommended)</option>
-                      <optgroup label="One-click templates">
-                        {% for t in education_templates_standard %}
-                        <option value="{{ t.code }}">{{ t.name }} — {{ t.description }}</option>
-                        {% endfor %}
-                      </optgroup>
-                      <optgroup label="By country / region">
-                        {% for profile in education_profiles %}
-                        <option value="{{ profile.code }}">{{ profile.name }}{% if profile.is_auto_generated %} (Auto pack){% endif %}</option>
-                        {% endfor %}
-                      </optgroup>
-                    </select>
-                    <div class="form-text">Primary template for provisioning. Spotlight templates come from approved education profiles; optional additional systems can be layered below.</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="education_system_ids">Additional education systems (optional, multiple)</label>
-                    <select class="form-select" id="education_system_ids" name="education_system_ids" multiple size="4">
-                      {% for profile in education_profiles %}
-                        <option value="{{ profile.code }}">{{ profile.name }}{% if profile.is_auto_generated %} (Auto){% endif %}</option>
-                      {% endfor %}
-                    </select>
-                    <div class="form-text">Hold Ctrl/Cmd to select multiple. Combined with primary template for feature set.</div>
-                  </div>
-                  <hr class="my-3">
-                  <h6 class="text-muted">Plan & billing (optional)</h6>
-                  <div class="mb-3">
-                    <label class="form-label" for="plan_id">Plan</label>
-                    <select class="form-select" id="plan_id" name="plan_id">
-                      <option value="">— None (set later) —</option>
-                    </select>
-                  </div>
-                  <div class="mb-3 d-none" id="addons-container" >
-                    <label class="form-label">Add-ons</label>
-                    <div id="addons-list"></div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="estimated_students">Estimated students (for price)</label>
-                    <input type="number" class="form-control" id="estimated_students" name="estimated_students" min="0" value="100" placeholder="100">
-                  </div>
-                  <p class="small text-muted" id="estimated-price-display">Select country and plan to see estimated price.</p>
-                </div>
-                <div class="tab-pane fade" id="step3" role="tabpanel">
-                  <p class="text-muted small mb-3">You can set branding and custom domain later in School settings.</p>
-                  <div class="mb-3">
-                    <label class="form-label" for="theme_choice">Admin theme</label>
-                    <select class="form-select" id="theme_choice" name="theme_choice">
-                      <option value="UNFOLD" selected>Unfold (Modern) — recommended</option>
-                      <option value="JAZZMIN">Jazzmin (Classic)</option>
-                      <option value="SNEAT">Sneat (Enterprise)</option>
-                    </select>
-                    <div class="form-text">You can change this later in School settings → Theme & branding.</div>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="primary_color">Primary color</label>
-                    <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="accent_color">Accent color</label>
-                    <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color">
-                  </div>
-                  <p class="text-muted small">Logo upload can be done after creation in school settings.</p>
-                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="skip-branding">Skip for now</button>
-                </div>
-                <div class="tab-pane fade" id="step4" role="tabpanel">
-                  <p class="text-muted small mb-3">You can set a custom domain later in School settings.</p>
-                  <div class="mb-3">
-                    <label class="form-label" for="custom_domain">Custom domain (optional)</label>
-                    <input type="text" class="form-control" id="custom_domain" name="custom_domain" placeholder="portal.school.edu">
-                    <div class="form-text">If the school will use their own domain (e.g. portal.greenwood.edu), enter it here. After creation, they must add a CNAME record pointing to your platform; then verify in school settings.</div>
-                  </div>
-                  <p class="text-muted small">Otherwise the school will use the subdomain from Step 1 (e.g. <code>slug.yoursystem.com</code>).</p>
-                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="skip-domain">Skip for now</button>
-                </div>
+
+            <div class="tenant-studio-layout">
+              <div id="wizard-guidance-host">
+                {% with step=wizard_steps_meta.0 %}
+                {% include "studio_os/partials/studio_guidance_panel.html" with studio_guidance=step %}
+                {% endwith %}
               </div>
-              <div class="d-flex justify-content-between mt-4">
-                <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">Cancel</a>
-                <button type="button" class="btn btn-primary" id="btn-next">Next</button>
-                <button type="submit" class="btn btn-success d-none" id="btn-submit">Create Tenant</button>
+
+              <div class="tenant-studio-form-card">
+                <form
+                  id="wizard-form"
+                  enctype="multipart/form-data"
+                  data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}"
+                  data-timeline-url-template="{% url 'super:api_school_timeline' '00000000-0000-0000-0000-000000000000' %}"
+                  data-city-search-url="{% url 'super:api_geo_cities' %}"
+                  data-profile-search-url="{% url 'super:api_education_profiles' %}"
+                  data-provinces-url="{% url 'super:api_provinces' %}"
+                  data-plans-configurator-url="{% url 'super:api_plans_configurator' %}"
+                >
+                  {% csrf_token %}
+                  <div class="tab-content">
+                    <div class="tab-pane fade show active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
+                      <h2 class="h5 mb-3">{{ wizard_steps_meta.0.headline }}</h2>
+                      {% trans "School name" as ts_lbl_name %}
+                      {% trans "Web address (slug)" as ts_lbl_slug %}
+                      {% trans "Subdomain" as ts_lbl_subdomain %}
+                      {% trans "First admin email" as ts_lbl_email %}
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="name" label=ts_lbl_name required=1 tag_title=wizard_field_tags.name.title tag_body=wizard_field_tags.name.body %}
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="{% trans 'e.g. Gilead Tech High' %}">
+                      </div>
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="slug" label=ts_lbl_slug required=1 tag_title=wizard_field_tags.slug.title tag_body=wizard_field_tags.slug.body %}
+                        <input type="text" class="form-control" id="slug" name="slug" required placeholder="gilead-tech" autocomplete="off">
+                        <div class="form-text">{% trans "Lowercase letters, numbers, and hyphens only." %}</div>
+                      </div>
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="subdomain" label=ts_lbl_subdomain tag_title=wizard_field_tags.subdomain.title tag_body=wizard_field_tags.subdomain.body %}
+                        <input type="text" class="form-control" id="subdomain" name="subdomain" placeholder="gilead-tech" autocomplete="off">
+                      </div>
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="contact_email" label=ts_lbl_email required=1 tag_title=wizard_field_tags.contact_email.title tag_body=wizard_field_tags.contact_email.body %}
+                        <input type="email" class="form-control" id="contact_email" name="contact_email" required placeholder="admin@school.edu">
+                      </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="step2" role="tabpanel" aria-labelledby="step2-tab">
+                      <h2 class="h5 mb-3">{{ wizard_steps_meta.1.headline }}</h2>
+                      {% trans "Country" as ts_lbl_country %}
+                      {% trans "City" as ts_lbl_city %}
+                      {% trans "Language / system" as ts_lbl_subsystem %}
+                      {% trans "Province / state / region" as ts_lbl_province %}
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="country_code" label=ts_lbl_country tag_title=wizard_field_tags.country_code.title tag_body=wizard_field_tags.country_code.body %}
+                        <select class="form-select" id="country_code" name="country_code">
+                          {% for country in countries %}
+                            <option value="{{ country.code }}" data-alpha3="{{ country.code_alpha3|default:country.code }}" {% if country.code == default_country_code %}selected{% endif %}>{{ country.name }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="city_id" label=ts_lbl_city tag_title=wizard_field_tags.city_id.title tag_body=wizard_field_tags.city_id.body %}
+                        <input type="search" class="form-control mb-2" id="city_search" placeholder="{% trans 'Search city (e.g. Buea, Kampala)' %}" autocomplete="off">
+                        <select class="form-select" id="city_id" name="city_id">
+                          {% for city in cities %}
+                            <option value="{{ city.id }}" data-country="{{ city.country_code }}" data-country-alpha3="{{ city.country_code_alpha3|default:city.country_code }}" data-timezone="{{ city.timezone }}">{{ city.city }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="sub_system" label=ts_lbl_subsystem tag_title=wizard_field_tags.sub_system.title tag_body=wizard_field_tags.sub_system.body %}
+                        <select class="form-select" id="sub_system" name="sub_system">
+                          <option value="EN" {% if default_sub_system == "EN" %}selected{% endif %}>{% trans "English" %}</option>
+                          <option value="FR" {% if default_sub_system == "FR" %}selected{% endif %}>{% trans "Francophone" %}</option>
+                          <option value="INT" {% if default_sub_system == "INT" %}selected{% endif %}>{% trans "International" %}</option>
+                        </select>
+                      </div>
+
+                      <details class="tenant-studio-advanced mb-2">
+                        <summary class="mb-3">{% trans "Advanced options (optional)" %}</summary>
+                        <div class="mb-3">
+                          {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="subdivision_id" label=ts_lbl_province tag_title=wizard_field_tags.subdivision_id.title tag_body=wizard_field_tags.subdivision_id.body %}
+                          <select class="form-select" id="subdivision_id" name="subdivision_id">
+                            <option value="">{% trans "— None —" %}</option>
+                          </select>
+                        </div>
+                        <div class="row g-3 mb-3">
+                          <div class="col-md-6">
+                            <label class="form-label" for="region_code">{% trans "Region code" %}</label>
+                            <input type="text" class="form-control" id="region_code" name="region_code" readonly>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label" for="timezone_preview">{% trans "Timezone" %}</label>
+                            <input type="text" class="form-control" id="timezone_preview" readonly>
+                          </div>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="education_level_codes">{% trans "Education levels" %}</label>
+                          <select class="form-select" id="education_level_codes" name="education_level_codes" multiple size="3">
+                            {% for level in education_levels %}
+                              <option value="{{ level.code }}">{{ level.global_name }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="primary_sector">{% trans "Primary sector" %}</label>
+                          <select class="form-select" id="primary_sector" name="primary_sector">
+                            <option value="">{% trans "— Auto (Private or International) —" %}</option>
+                            {% for item in sector_types_14_22 %}
+                              <option value="{{ item.code }}">{{ item.name }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="education_system_type_codes">{% trans "Education system types" %}</label>
+                          <select class="form-select" id="education_system_type_codes" name="education_system_type_codes" multiple size="4">
+                            {% for system_type in education_system_types %}
+                              <option value="{{ system_type.code }}">{{ system_type.name }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="education_profile_code">{% trans "Education template" %}</label>
+                          <select class="form-select" id="education_profile_code" name="education_profile_code">
+                            <option value="">{% trans "Auto by country (recommended)" %}</option>
+                            <optgroup label="{% trans 'One-click templates' %}">
+                              {% for t in education_templates_standard %}
+                              <option value="{{ t.code }}">{{ t.name }} — {{ t.description }}</option>
+                              {% endfor %}
+                            </optgroup>
+                            <optgroup label="{% trans 'By country / region' %}">
+                              {% for profile in education_profiles %}
+                              <option value="{{ profile.code }}">{{ profile.name }}{% if profile.is_auto_generated %} ({% trans "Auto pack" %}){% endif %}</option>
+                              {% endfor %}
+                            </optgroup>
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="education_system_ids">{% trans "Additional education systems" %}</label>
+                          <select class="form-select" id="education_system_ids" name="education_system_ids" multiple size="3">
+                            {% for profile in education_profiles %}
+                              <option value="{{ profile.code }}">{{ profile.name }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <hr class="my-3">
+                        <h6 class="text-muted">{% trans "Plan & billing (optional)" %}</h6>
+                        <div class="mb-3">
+                          <label class="form-label" for="plan_id">{% trans "Plan" %}</label>
+                          <select class="form-select" id="plan_id" name="plan_id">
+                            <option value="">{% trans "— Set later —" %}</option>
+                          </select>
+                        </div>
+                        <div class="mb-3 d-none" id="addons-container">
+                          <label class="form-label">{% trans "Add-ons" %}</label>
+                          <div id="addons-list"></div>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label" for="estimated_students">{% trans "Estimated students" %}</label>
+                          <input type="number" class="form-control" id="estimated_students" name="estimated_students" min="0" value="100">
+                        </div>
+                        <p class="small text-muted mb-0" id="estimated-price-display">{% trans "Open advanced options and pick a plan to see an estimate." %}</p>
+                      </details>
+                    </div>
+
+                    <div class="tab-pane fade" id="step3" role="tabpanel" aria-labelledby="step3-tab">
+                      <h2 class="h5 mb-3">{{ wizard_steps_meta.2.headline }}</h2>
+                      {% trans "Upload school logo" as ts_lbl_logo %}
+                      {% trans "Favicon (optional)" as ts_lbl_favicon %}
+                      {% trans "Admin theme" as ts_lbl_theme %}
+                      {% trans "Primary color" as ts_lbl_primary %}
+                      {% trans "Accent color" as ts_lbl_accent %}
+                      <div class="tenant-studio-brand-preview mb-4" id="brand-preview" aria-live="polite">
+                        <div class="tenant-studio-brand-preview__header" id="brand-preview-header" style="--preview-primary: #0d6efd; --preview-accent: #198754;">
+                          <span class="tenant-studio-brand-preview__favicon tenant-studio-brand-preview__favicon--empty" id="brand-preview-favicon" title="{% trans 'Favicon' %}">{% trans "Tab" %}</span>
+                          <span class="tenant-studio-brand-preview__logo tenant-studio-brand-preview__logo--empty" id="brand-preview-logo">{% trans "Logo" %}</span>
+                          <div>
+                            <div class="fw-semibold" id="brand-preview-name">{% trans "Your school" %}</div>
+                            <div class="small opacity-75">{% trans "Live preview" %}</div>
+                          </div>
+                        </div>
+                        <p class="small text-muted mb-0">{% trans "This is how login and portal chrome will approximate your choices." %}</p>
+                      </div>
+                      <div class="mb-3">
+                        <label class="tenant-studio-logo-drop d-block position-relative" for="school_logo" id="logo-drop-zone">
+                          {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="school_logo" label=ts_lbl_logo tag_title=wizard_field_tags.logo.title tag_body=wizard_field_tags.logo.body %}
+                          <input type="file" id="school_logo" name="school_logo" accept="image/png,image/jpeg,image/webp,image/svg+xml,.png,.jpg,.jpeg,.webp,.svg">
+                          <p class="small text-muted mb-0 mt-2" id="logo-file-hint">{% trans "PNG, JPEG, WebP, or SVG — max 2 MB. Drag and drop or click to browse." %}</p>
+                        </label>
+                      </div>
+                      <div class="mb-3">
+                        <label class="tenant-studio-logo-drop d-block position-relative" for="school_favicon" id="favicon-drop-zone">
+                          {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="school_favicon" label=ts_lbl_favicon tag_title=wizard_field_tags.favicon.title tag_body=wizard_field_tags.favicon.body %}
+                          <input type="file" id="school_favicon" name="school_favicon" accept="image/png,image/x-icon,image/vnd.microsoft.icon,.png,.ico">
+                          <p class="small text-muted mb-0 mt-2" id="favicon-file-hint">{% trans "PNG or ICO — max 512 KB. Shown in browser tabs after provisioning." %}</p>
+                        </label>
+                      </div>
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="theme_choice" label=ts_lbl_theme tag_title=wizard_field_tags.theme_choice.title tag_body=wizard_field_tags.theme_choice.body %}
+                        <select class="form-select" id="theme_choice" name="theme_choice">
+                          <option value="UNFOLD" selected>{% trans "Unfold (Modern) — recommended" %}</option>
+                          <option value="JAZZMIN">{% trans "Jazzmin (Classic)" %}</option>
+                          <option value="SNEAT">{% trans "Sneat (Enterprise)" %}</option>
+                        </select>
+                      </div>
+                      <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                          {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="primary_color" label=ts_lbl_primary tag_title=wizard_field_tags.primary_color.title tag_body=wizard_field_tags.primary_color.body %}
+                          <input type="color" class="form-control form-control-color w-100" id="primary_color" name="primary_color" value="#0d6efd">
+                        </div>
+                        <div class="col-sm-6">
+                          {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="accent_color" label=ts_lbl_accent tag_title=wizard_field_tags.accent_color.title tag_body=wizard_field_tags.accent_color.body %}
+                          <input type="color" class="form-control form-control-color w-100" id="accent_color" name="accent_color" value="#198754">
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="step4" role="tabpanel" aria-labelledby="step4-tab">
+                      <h2 class="h5 mb-3">{{ wizard_steps_meta.3.headline }}</h2>
+                      {% trans "Custom domain (optional)" as ts_lbl_domain %}
+                      <p class="text-muted small">{% trans "Most schools use the subdomain from step 1 until IT is ready for a custom hostname." %}</p>
+                      <div class="mb-3">
+                        {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="custom_domain" label=ts_lbl_domain tag_title=wizard_field_tags.custom_domain.title tag_body=wizard_field_tags.custom_domain.body %}
+                        <input type="text" class="form-control" id="custom_domain" name="custom_domain" placeholder="portal.school.edu" autocomplete="off">
+                      </div>
+                      <p class="small text-muted" id="subdomain-hint"></p>
+                    </div>
+                  </div>
+
+                  <div class="tenant-studio-footer">
+                    <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary js-return-to-origin" data-fallback="{% url 'super:dashboard' %}">{% trans "Cancel" %}</a>
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-outline-light d-none" id="btn-back">{% trans "Back" %}</button>
+                      <button type="button" class="btn btn-primary" id="btn-next">{% trans "Next" %}</button>
+                      <button type="submit" class="btn btn-success d-none" id="btn-submit">{% trans "Create school" %}</button>
+                    </div>
+                  </div>
+                </form>
+                <div id="wizard-success" class="alert alert-success mt-3 d-none" role="alert"></div>
+                <div id="wizard-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
               </div>
-            </form>
-            <div id="wizard-success" class="alert alert-success mt-3 d-none" role="alert"></div>
-            <div id="wizard-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -287,6 +323,8 @@
 
   <script type="application/json" id="page-data-schools__super_create_school_wizard-1">{
   "url_super_api_create_school": "{% url "super:api_create_school" %}",
-  "trans_at_least_one_sector_primary_sector_or_education_system_types_is_required": "{% trans "At least one sector (Primary sector or Education system types) is required." %}"
-}</script><script src="{% static 'js/_pages/schools__super_create_school_wizard-1.js' %}"></script>
+  "trans_at_least_one_sector_primary_sector_or_education_system_types_is_required": "{% trans "At least one sector (Primary sector or Education system types) is required." %}",
+  "wizard_steps": {{ wizard_steps_json }}
+}</script>
+  <script src="{% static 'js/_pages/schools__super_create_school_wizard-1.js' %}"></script>
 {% endblock %}

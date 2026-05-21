@@ -1692,6 +1692,24 @@ CELERY_BEAT_SCHEDULE = {
         ),
         "options": {"queue": "low_priority", "expires": 3600},
     },
+    # v3.40.0 Agent 15 — monthly retention audit (DRY-RUN). First-of-month
+    # 05:00 UTC; sweeps every tenant and counts purge-eligible ciphertext
+    # blobs older than MIGRATION_CLOUD_RETENTION_DEFAULT_DAYS. Emits one
+    # ``severity="info"`` alert per tenant with non-zero candidates so
+    # the operator can schedule the actual ``--apply`` invocation behind
+    # counsel signoff. NEVER mutates.
+    "migration-cloud-retention-audit-monthly": {
+        "task": (
+            "apps.migration_cloud.tasks_retention."
+            "purge_completed_migration_bundles_audit_task"
+        ),
+        "schedule": (
+            _celery_crontab(day_of_month=1, hour=5, minute=0)
+            if _celery_crontab is not None
+            else 2592000.0  # ~30 days fallback when crontab unavailable
+        ),
+        "options": {"queue": "low_priority", "expires": 3600},
+    },
 }
 # Public demo refresh: set ENSURE_DEMO_CRON_SLUG (e.g. demo-school) and run Celery beat.
 _ensure_demo_cron_slug = (os.getenv("ENSURE_DEMO_CRON_SLUG") or "").strip()
@@ -2198,6 +2216,72 @@ try:
 except (TypeError, ValueError):
     OPERATOR_ALERT_RATE_LIMIT_PER_HOUR = 50
 
+# v3.40.0 Agent 15 — Migration data retention purge config (FERPA §99.30).
+#
+# Counterpart to ``MIGRATION_CLOUD_AUDIT_PURGE_APPROVAL_TOKEN`` — gates
+# the ``purge_completed_migration_bundles`` management command. Empty
+# string (default) makes the command print a counsel-pending message
+# on --apply and exit 1.
+#
+#   MIGRATION_CLOUD_RETENTION_MIN_DAYS
+#     Hard floor on --older-than-days. The command refuses N < this.
+#     Default 90 (FERPA + counsel-blessed minimum).
+#
+#   MIGRATION_CLOUD_RETENTION_DEFAULT_DAYS
+#     Default cadence the monthly audit task uses when sweeping
+#     tenants. Default 180.
+#
+#   MIGRATION_CLOUD_DATA_RETENTION_APPROVAL_TOKEN
+#     Token compared with ``hmac.compare_digest`` when --apply is set.
+#     NEVER commit a literal value here; read from the environment.
+#
+# See ``docs/MIGRATION_CLOUD_DATA_RETENTION.md`` for the operator
+# playbook.
+try:
+    MIGRATION_CLOUD_RETENTION_MIN_DAYS = max(
+        1, int(os.environ.get("MIGRATION_CLOUD_RETENTION_MIN_DAYS", "90"))
+    )
+except (TypeError, ValueError):
+    MIGRATION_CLOUD_RETENTION_MIN_DAYS = 90
+try:
+    MIGRATION_CLOUD_RETENTION_DEFAULT_DAYS = max(
+        MIGRATION_CLOUD_RETENTION_MIN_DAYS,
+        int(os.environ.get("MIGRATION_CLOUD_RETENTION_DEFAULT_DAYS", "180")),
+    )
+except (TypeError, ValueError):
+    MIGRATION_CLOUD_RETENTION_DEFAULT_DAYS = 180
+MIGRATION_CLOUD_DATA_RETENTION_APPROVAL_TOKEN = (
+    os.environ.get("MIGRATION_CLOUD_DATA_RETENTION_APPROVAL_TOKEN", "") or ""
+).strip()
+
+# v3.40.0 Agent 15 — Throttle-bucket saturation alert hook.
+#
+# When any rate-limit bucket exceeds ratio R in a 1m window the
+# ``TenantRateLimiter._check_saturation_alert`` hook emits a
+# ``severity="warning"`` alert (Agent 12's surface). Bucket name is
+# sha256-prefixed in the alert title; no raw bucket keys land in the
+# log aggregator.
+#
+#   MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_RATIO
+#     Ratio threshold (default 0.95). Floats accepted.
+#
+#   MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_DISABLED
+#     Emergency kill switch. Set to "1" to suppress all saturation
+#     alerts. Default OFF.
+try:
+    MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_RATIO = float(
+        os.environ.get(
+            "MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_RATIO", "0.95"
+        ) or "0.95"
+    )
+except (TypeError, ValueError):
+    MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_RATIO = 0.95
+MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_DISABLED = (
+    os.environ.get(
+        "MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_DISABLED", "0"
+    ).strip() == "1"
+)
+
 # Pass 12: CORS allowlist. Strict by default; SiteConfig can extend per tenant
 # at request time via a middleware (django-cors-headers honors the dynamic list
 # through CORS_ALLOWED_ORIGINS_REGEXES at startup).
@@ -2494,14 +2578,28 @@ AI_GATEWAY_ENABLED = os.getenv("AI_GATEWAY_ENABLED", "1").strip().lower() in (
 AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY = int(
     os.getenv("AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY", "0")
 )
-# Default gateway inference: Ollama then rules for every task (services.ai_gateway.DEFAULT_TASK_TIERS).
-# Optional: merge vLLM/LiteLLM per task via settings.AI_GATEWAY_TASK_TIERS dict (not env string).
+# Default gateway inference follows RMC_DEPLOYMENT_PROFILE (services.ai_deployment_posture):
+# online + LITELLM_PROXY_URL → litellm, ollama, rules; edge/hybrid → ollama, rules (hybrid adds litellm when configured).
+# Optional: merge per task via settings.AI_GATEWAY_TASK_TIERS dict (not env string).
 # VLLM_ENDPOINT, VLLM_MODEL / LITELLM_PROXY_URL, LITELLM_MODEL only apply when those tiers are enabled.
 # Embeddings default to Ollama when AI_EMBEDDING_BACKEND is unset (services/embeddings.py).
 # AI_EMBEDDING_BACKEND=ollama|openai_compatible; AI_EMBEDDING_ENDPOINT, AI_EMBEDDING_MODEL, AI_EMBEDDING_API_KEY
 # Request metadata: sensitivity_class, latency_target, output_type, allowed_backends (see ai_orchestration.md)
 # Optional: internal Open WebUI URL for Control Plane "AI Ops" link (env: OPEN_WEBUI_URL)
 OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "").strip() or None
+
+# Online (Render) | edge (LAN hub) | hybrid (Render + hub_base_url fallback). See docs/LOCAL_HUB_MODE.md.
+RMC_DEPLOYMENT_PROFILE = (
+    os.getenv("RMC_DEPLOYMENT_PROFILE", "online").strip().lower() or "online"
+)
+RMC_HUB_BASE_URL = (os.getenv("RMC_HUB_BASE_URL", "") or "").strip().rstrip("/")
+RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION = os.getenv(
+    "RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+# Premium cloud tier (OpenAI-compatible). Point at LiteLLM proxy or provider gateway; no extra VM required.
+LITELLM_PROXY_URL = (os.getenv("LITELLM_PROXY_URL", "") or "").strip().rstrip("/")
+LITELLM_MODEL = (os.getenv("LITELLM_MODEL", "") or "gpt-3.5-turbo").strip()
+LITELLM_API_KEY = (os.getenv("LITELLM_API_KEY", "") or "").strip()
 
 # Support ticket AI: prepend tenant KB/FAQ excerpts to ``support_suggest`` prompts (1 = on).
 SUPPORT_AI_KB_CONTEXT = os.getenv("SUPPORT_AI_KB_CONTEXT", "1").strip().lower() in (
@@ -2528,7 +2626,7 @@ AI_ENGINE_ROOM_SUPPORT = os.getenv("AI_ENGINE_ROOM_SUPPORT", "1").strip().lower(
 )
 AI_ENGINE_ROOM_TIMEOUT_SECONDS = int(os.getenv("AI_ENGINE_ROOM_TIMEOUT_SECONDS", "15"))
 AI_ENGINE_ROOM_MAX_INPUT_TOKENS = int(os.getenv("AI_ENGINE_ROOM_MAX_INPUT_TOKENS", "6000"))
-# AI Center governed Ollama + RAG (Stage 9 — extends services/ai/ engine room).
+# Legacy label for engine-room dashboards; tier routing uses ai_deployment_posture + ai_gateway.
 AI_GATEWAY_PROVIDER = (os.getenv("AI_GATEWAY_PROVIDER", "ollama") or "ollama").strip().lower()
 AI_ALLOW_RULES_FALLBACK = os.getenv("AI_ALLOW_RULES_FALLBACK", "1").strip().lower() in (
     "1",
@@ -2537,6 +2635,34 @@ AI_ALLOW_RULES_FALLBACK = os.getenv("AI_ALLOW_RULES_FALLBACK", "1").strip().lowe
 )
 OLLAMA_BASE_URL = (os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434") or "http://127.0.0.1:11434").strip().rstrip("/")
 OLLAMA_MODEL = (os.getenv("OLLAMA_MODEL", "ai-center-master") or "ai-center-master").strip()
+# Probe common dev hosts (127.0.0.1, localhost, host.docker.internal, WSL gateway) when unset or unreachable.
+OLLAMA_AUTO_DISCOVER = os.getenv("OLLAMA_AUTO_DISCOVER", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+# Optional comma-separated extra bases, e.g. http://192.168.1.10:11434
+OLLAMA_BASE_URL_CANDIDATES = (os.getenv("OLLAMA_BASE_URL_CANDIDATES", "") or "").strip()
+# Optional strict posture: block rules fallback and return explicit unavailable copy (off by default).
+OLLAMA_REQUIRE_LIVE = os.getenv("OLLAMA_REQUIRE_LIVE", "0").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+# Best-effort ``ollama serve`` when inference runs and the daemon is down (dev/on-prem; off in cloud).
+_OLLAMA_AUTO_START_DEFAULT = (
+    "0"
+    if (RUNNING_TESTS or _IS_CLOUD_DEPLOYED)
+    else ("1" if DEBUG else "0")
+)
+OLLAMA_AUTO_START = os.getenv("OLLAMA_AUTO_START", _OLLAMA_AUTO_START_DEFAULT).strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 AI_CENTER_LOG_PROMPTS = os.getenv("AI_CENTER_LOG_PROMPTS", "0").strip().lower() in (
     "1",
     "true",

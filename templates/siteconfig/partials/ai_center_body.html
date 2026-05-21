@@ -20,43 +20,91 @@
   <div class="alert border d-flex flex-wrap align-items-center gap-2 py-2 mb-3 rmc-surface-muted-panel"
        data-rmc-ai-health-root
        data-health-url="{% url 'ai_health' %}"
+       data-deployment-profile="{{ provider_status.deployment_profile|default:'online' }}"
        role="status"
        aria-live="polite">
     <span
       data-rmc-ai-health-pill
-      data-state="{% if provider_status.has_live_provider %}ok{% else %}degraded{% endif %}"
+      data-state="{% if provider_status.reachable %}ok{% elif provider_status.rules_fallback_enabled %}degraded{% else %}error{% endif %}"
       id="aiCenterHealthPill"
     >
       <span
-        class="badge text-bg-{% if provider_status.has_live_provider %}success{% else %}warning{% endif %}"
+        class="badge text-bg-{% if provider_status.reachable %}success{% elif provider_status.rules_fallback_enabled %}warning{% else %}danger{% endif %}"
         data-rmc-ai-health-badge
       >
-        {% if provider_status.has_live_provider %}{% trans "Live provider ready" %}{% else %}{% trans "Degraded — grounded hints until Ollama is connected" %}{% endif %}
+        {% if provider_status.posture_label %}{{ provider_status.posture_label }}
+        {% elif provider_status.reachable %}{% trans "Live — AI online" %}
+        {% elif provider_status.rules_fallback_enabled %}{% trans "Guided — help center & maps" %}
+        {% else %}{% trans "AI unavailable — check server config" %}{% endif %}
       </span>
       <small class="text-muted mb-0 ms-1" data-rmc-ai-health-text>
-        {% trans "Preference order" %}: <code>{{ provider_status.preference|join:", " }}</code>
-        {% if provider_status.rules_fallback_enabled %}· {% trans "Fallback enabled" %}{% endif %}
+        {% if provider_status.reachable and provider_status.latency_ms %}{% trans "Latency" %}: {{ provider_status.latency_ms }}ms · {% endif %}
+        {% trans "Profile" %}: <code>{{ provider_status.deployment_profile|default:"online" }}</code>
+        · {% trans "Gateway tiers" %}: <code>{{ provider_status.gateway_tier_chain|join:", " }}</code>
+        {% if provider_status.rules_fallback_enabled %}· {% trans "Guided fallback enabled" %}{% endif %}
       </small>
     </span>
     <small class="text-muted mb-0 d-none" data-rmc-ai-browser-offline>
-      {% trans "Browser offline — attendance and grades can still queue when offline mode is on; AI answers need connectivity to the school server." %}
+      {% trans "Browser offline — attendance and grades can still queue when offline mode is on; live AI answers need connectivity to your school server (Render or LAN hub)." %}
     </small>
   </div>
   {% endif %}
 
-  {% if show_operator_ollama_setup %}
+  {% if provider_status.litellm_configured and not provider_status.reachable and provider_status.deployment_profile == "online" %}
+  <div class="alert alert-warning py-2 mb-3 small" role="alert">
+    {% trans "Cloud AI is configured but the app server cannot reach the LiteLLM proxy. Check" %}
+    <code>LITELLM_PROXY_URL</code>, <code>LITELLM_API_KEY</code>,
+    {% trans "and outbound HTTPS from Render. Until then, assistants use guided help-center fallback." %}
+  </div>
+  {% elif provider_status.ollama_configured and not provider_status.reachable and provider_status.deployment_profile != "online" %}
+  <div class="alert alert-warning py-2 mb-3 small" role="alert">
+    {% trans "Ollama is set in the environment but the app server cannot reach it. Start" %}
+    <code>ollama serve</code>
+    {% trans "on the Django host, pull your model, then run" %}
+    <code>python scripts/verify_ollama_live.py --invoke</code>.
+    {% trans "Until then, assistants use grounded rules fallback (not live model answers)." %}
+  </div>
+  {% elif provider_status.ollama_configured and not provider_status.reachable and provider_status.deployment_profile == "online" and not provider_status.litellm_configured %}
+  <div class="alert alert-warning py-2 mb-3 small" role="alert">
+    {% trans "No cloud AI proxy is configured and Ollama is not reachable from Render. Set" %}
+    <code>LITELLM_PROXY_URL</code>
+    {% trans "for SaaS live AI, or run Ollama only on a LAN hub (edge profile)." %}
+  </div>
+  {% endif %}
+
+  {% if show_operator_ai_setup %}
   <details class="mb-3 small border rounded p-2 rmc-surface-muted-panel">
-    <summary class="fw-semibold">{% trans "Operator: connect live Ollama (optional)" %}</summary>
+    <summary class="fw-semibold">
+      {% if provider_status.operator_setup_kind == "render_cloud" %}
+        {% trans "Operator: Render SaaS cloud AI" %}
+      {% elif provider_status.operator_setup_kind == "hybrid_cloud" %}
+        {% trans "Operator: hybrid cloud + optional hub" %}
+      {% else %}
+        {% trans "Operator: connect live Ollama on hub" %}
+      {% endif %}
+    </summary>
     <p class="text-muted mb-2 mt-2">
-      {% trans "Offline-first mode queues attendance and grades on devices; it does not run AI locally. Live answers need Ollama reachable from the app server." %}
+      {% trans "Offline-first mode queues attendance and grades on devices; it does not run models on teacher phones. Live answers need the app server online (Render or LAN hub)." %}
     </p>
+    {% if provider_status.operator_setup_kind == "render_cloud" or provider_status.operator_setup_kind == "hybrid_cloud" %}
+    <pre class="small mb-2 border rounded p-2 mb-0 rmc-surface-elevated-pre"><code># Render / online SaaS (.env)
+RMC_DEPLOYMENT_PROFILE=online
+AI_GATEWAY_ENABLED=1
+AI_ALLOW_RULES_FALLBACK=1
+LITELLM_PROXY_URL=https://your-openai-compatible-endpoint/v1
+LITELLM_API_KEY=...
+LITELLM_MODEL=gpt-3.5-turbo</code></pre>
+    <p class="text-muted mb-2">{% trans "Optional on-prem fallback on the same dyno (unusual on Render):" %} <code>OLLAMA_BASE_URL=...</code></p>
+    {% else %}
     <pre class="small mb-2 border rounded p-2 mb-0 rmc-surface-elevated-pre"><code>ollama serve
 ollama pull llama3
-# .env on the Django host
+# .env on the hub host
+RMC_DEPLOYMENT_PROFILE=edge
 AI_GATEWAY_ENABLED=1
 OLLAMA_ENDPOINT=http://localhost:11434/api/generate
 OLLAMA_MODEL=llama3</code></pre>
-    <p class="text-muted mb-0">{% trans "Verify:" %} <code>python scripts/verify_ollama_live.py --invoke</code> · {% trans "Docs:" %} <code>docs/OLLAMA_OPERATIONS_AND_UPDATES.md</code></p>
+    {% endif %}
+    <p class="text-muted mb-0">{% trans "Docs:" %} <code>docs/LOCAL_HUB_MODE.md</code> · <code>docs/OLLAMA_OPERATIONS_AND_UPDATES.md</code></p>
   </details>
   {% endif %}
 

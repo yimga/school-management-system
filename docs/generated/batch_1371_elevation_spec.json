@@ -1,0 +1,105 @@
+{
+  "generated_at_utc": "2026-05-21T04:30:00Z",
+  "batch_id": "1371",
+  "batch_title": "Studio OS / Tenant Studio / Theme — cinema-grade elevation wave",
+  "mission": "Take Studio OS, Tenant School Studio, and the theme experience to a whole new level — operator cockpit, day-1 magic, intelligent palette, signature motion. Make it visibly, durably better.",
+  "user_directive_2026_05_21": "Aggressive push, whole new level — verbatim.",
+  "depends_on_batch": "1370 (in-flight; cloud-first AI direction)",
+  "ai_runtime_pin": "Cloud-first via LiteLLM (RMC_DEPLOYMENT_PROFILE=online). No Ollama on Render. Edge profile = Ollama on LAN hub.",
+  "pillars": [
+    {
+      "pillar_id": "P1",
+      "name": "Intelligent Palette System (theme brain)",
+      "owner_agent": "E1",
+      "vision": "Theme builder gains an intelligent palette generator. Operator picks one brand color (or uploads a logo) → AI gateway generates a complete WCAG-AA-compliant 11-stop palette (50/100/200…900) with surface + text + accent variants, dark-mode harmonized, contrast-locked. Brand-from-logo extracts dominant colors via in-process quantization (no external dep). Cloud-first via existing services.ai_helpers boundary.",
+      "concrete_deliverables": [
+        "services/ai_palette.py — generate_palette_from_seed(seed_hex, mode=light|dark|dual) → PaletteResult{stops, surface_chain, text_chain, accent, wcag_grade}",
+        "services/theme_intelligence.py — extract_dominant_colors_from_image(bytes) (stdlib + Pillow if available, else honest fallback); harmonize_for_dark(palette_dict); wcag_contrast_ratio(fg_hex, bg_hex)",
+        "services/tests/test_ai_palette.py — covers cloud-tier dispatch + rules-fallback + WCAG validation + dark harmonization",
+        "services/tests/test_theme_intelligence.py — covers quantization determinism + contrast math + harmonization",
+        "apps/siteconfig/views_theme_builder.py — add POST /siteconfig/theme/palette/generate/ endpoint (staff or tenant-scoped) that returns generated palette",
+        "templates/siteconfig/theme_builder_control_plane.html + theme_builder.html — wire a 'Generate palette' button + result panel",
+        "docs/generated/intelligent_palette_certification.json — proof artifact"
+      ],
+      "binding_constraints": [
+        "App code imports services.ai_helpers, not services.ai_gateway directly (scan_ai_gateway_boundary baseline 0)",
+        "No Ollama-on-Render assumption; cloud tier (litellm) is primary on online profile",
+        "WCAG contrast checks must use the standard 4.5:1 (AA normal) / 3:1 (AA large) thresholds",
+        "Brand-from-logo runs in-process (no external image-analysis API)",
+        "All new CSS uses semantic tokens; no off-token color literals"
+      ]
+    },
+    {
+      "pillar_id": "P2",
+      "name": "Studio OS Cockpit + Universal Command Bar",
+      "owner_agent": "E2",
+      "vision": "Studio OS shell upgrades to a 3-region cockpit (signal strip / canvas / co-pilot rail) with a persistent universal command bar (cmd+k) wired across all 4 dashboard shells. Operator can hit cmd+k anywhere and run any major operation: navigate, install pack, generate palette, check health, deploy. Signature motion language unifies transitions.",
+      "concrete_deliverables": [
+        "static/css/studio-os-cockpit.css — 3-region grid with --cockpit-* tokens routed through design-tokens.css",
+        "static/css/rmc-signature-motion.css — shared --ease-signature-* + --motion-stage-* tokens; used by cockpit + command bar + day-1 sequence",
+        "static/js/rmc-command-bar.js — cmd+k / ctrl+k toggle; keyboard-first; ARIA-compliant combobox; lazy-loads action registry",
+        "static/css/rmc-command-bar.css — luxury palette panel; semantic tokens only",
+        "templates/partials/rmc_command_bar.html — markup partial; included by base.html + portal_base.html + control_plane_skeleton.html + admin/base_site.html",
+        "apps/siteconfig/command_bar_registry.py — Python registry of actions (kind, label, icon, url, scope, role_required); JSON endpoint at /api/command-bar/actions/ returning role-filtered subset",
+        "templates/studio_os/shell.html + partials — upgrade to cockpit layout",
+        "apps/studio_os/tests/test_command_bar_registry.py + test_cockpit_shell_contract.py",
+        "scripts/verify_studio_os_cockpit_contract.py + verify_command_bar_coverage.py — drift gates",
+        "docs/generated/studio_os_cockpit_certification.json"
+      ],
+      "binding_constraints": [
+        "CSP nonce on inline <script> (verify_csp_nonce_emission baseline 0)",
+        "All CSS uses semantic tokens or theme-aware fallbacks (scan_off_token_colors + scan_theme_locked_token_text baseline 0)",
+        "Command bar registry is tenant + role scoped (scan_tenant_queryset_safety baseline 0)",
+        "No third-party CDN without SRI (scan_sri_required baseline 0)",
+        "Command bar JS loads with the armed-attribute pattern from CLAUDE.md (no defer/async)"
+      ]
+    },
+    {
+      "pillar_id": "P3",
+      "name": "Tenant School Studio — Day-1 Magic opening sequence",
+      "owner_agent": "E3",
+      "vision": "Tenant operator opens /school/studio/ for the first time → they see a 3-act opening sequence: (Act 1) brand extraction from their school logo + name → (Act 2) AI-generated palette previews across portal+marketing surfaces simultaneously → (Act 3) operator picks one variation + locks. Story-arc onboarding replaces generic dashboard. Subsequent visits show the live cockpit with the operator's branded surfaces.",
+      "concrete_deliverables": [
+        "apps/siteconfig/tenant_studio_day1.py — Day1MagicService that resolves brand seed, calls services.ai_palette.generate_palette_from_seed, builds 3 preview variations, persists choice",
+        "apps/siteconfig/views_tenant_studio_hub.py — extend with day1_sequence_view + 3 act endpoints; resume_or_start logic",
+        "templates/siteconfig/tenant_studio_hub.html — conditional render of day1 sequence vs cockpit",
+        "templates/siteconfig/partials/tenant_studio_day1_act1_brand.html + _act2_palette.html + _act3_lock.html",
+        "static/css/tenant-studio-day1.css — choreographed sequence with rmc-signature-motion tokens",
+        "static/js/rmc-tenant-studio-day1.js — act transitions, palette preview swap, lock confirmation",
+        "apps/siteconfig/tests/test_tenant_studio_day1.py — covers fresh-tenant → day1; returning-tenant → cockpit; partial-progress resume",
+        "apps/schools/school_brand_assets.py — extend to accept logo upload + delegate dominant-color extraction to services.theme_intelligence",
+        "scripts/verify_tenant_studio_day1_contract.py — assert day1 sequence wired + resume key present + cockpit fallback",
+        "docs/generated/tenant_studio_day1_certification.json"
+      ],
+      "binding_constraints": [
+        "Tenant isolation: brand assets + palette choice live on School / SiteSettings under tenant_id (scan_tenant_queryset_safety baseline 0)",
+        "No PII in logger calls during day1 (scan_pii_logging_smell baseline 0)",
+        "Logo upload: size + MIME validated; no raw bytes logged",
+        "Returning tenants bypass day1 — sequence is one-time-only unless operator opts to re-run",
+        "AI palette call honors AI_ALLOW_RULES_FALLBACK setting; degrades to deterministic palette if cloud unreachable"
+      ]
+    }
+  ],
+  "cross_cutting_requirements": {
+    "service_worker_bump": "static/js/service-worker.js CACHE_VERSION → sms-v3.53.0-studio-cockpit-day1-magic-1371-2026-05-21",
+    "zero_tolerance_scanners_must_stay_zero": [
+      "scan_off_token_colors (currently 107 — elevation wave does NOT touch marketing files; agents declare zero new findings in their owned files)",
+      "scan_theme_locked_token_text (currently 9 — same)",
+      "scan_inline_style_off_token (currently 68 — same)",
+      "all 19 other scanners currently at 0 must stay at 0"
+    ],
+    "preserve_list_locked": [
+      "ai/Modelfile",
+      "services/ai_helpers.py (boundary)",
+      "services/ai_gateway.py (preserved from v3.39)",
+      "apps/apicenter/",
+      "apps/schools/super_views_create_school_wizard.py"
+    ],
+    "ai_direction": "Cloud-first. No Ollama on Render. Edge = Ollama on LAN.",
+    "sot_format": "§11.4 forward queue - batch 1371 (Studio OS / Tenant Studio / Theme cinema-grade elevation - 2026-05-21): VERDICT",
+    "max_reruns_per_agent": 3,
+    "ship_floor": "All 3 elevation agents READY OR EXTERNALLY BLOCKED; orchestrator validator PASS"
+  },
+  "honest_dependency_on_batch_1370_punch_list": "The 184 marketing CSS marker findings from batch 1370 are scoped to marketing surface files (8 CSS bundles). The elevation wave does NOT touch those files. After batch 1371 ships, the operator runs the 1370 marker burndown separately to clear the validator's last 2 scanner regressions. Batch 1371's validator measures only the 3 elevation pillars; full repo-validator stays at FAIL until 1370 marker burndown completes.",
+  "verdict_when_complete": "STUDIO ELEVATION READY — REPO SCOPE (cinema-grade Studio OS cockpit + Tenant Studio day-1 magic + intelligent palette wired)"
+}

@@ -74,3 +74,22 @@ class OutputNativeReportCardBuilderTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-studio-output-pack-previews")
         self.assertContains(response, "preview-pack-tabs")
+
+    # ---- v3.54.0 extensions: readiness cockpit grammar ----
+
+    def test_dependency_pane_includes_readiness_cockpit(self):
+        """v3.54.0: readiness cockpit pane renders above dependency content."""
+        response = self.client.get(reverse("studio_os:output") + "?pane=dependency")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-rmc-output-cockpit="1"')
+        self.assertContains(response, "rmc-output-tiles")
+
+    def test_dependency_pane_has_readiness_service_state(self):
+        """v3.54.0: readiness pane is honest about service state (derived vs offline)."""
+        response = self.client.get(reverse("studio_os:output") + "?pane=dependency")
+        body = response.content.decode("utf-8", errors="replace")
+        # One of three honest states must appear; never a fake "Live" without basis.
+        self.assertTrue(
+            ('data-state="online"' in body) or ('data-state="offline"' in body),
+            msg="Readiness cockpit must declare an honest service state.",
+        )

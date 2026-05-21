@@ -1,12 +1,118 @@
 {% load i18n %}
-{% if experience_context_tool_links %}
-<aside class="studio-os__card py-2 studio-os__experience-context" aria-labelledby="experience-context-heading">
-  <h2 id="experience-context-heading" class="h6 mb-2">{% trans "Related tools" %}</h2>
-  <p class="small text-muted mb-2">{% trans "Jump to native Studio pages in this shell (no embedded school site)." %}</p>
-  <ul class="list-unstyled small mb-0">
-    {% for link in experience_context_tool_links %}
-    <li class="mb-1"><a href="{{ link.url }}">{{ link.label }}</a></li>
-    {% endfor %}
-  </ul>
+{# v3.54.0 (2026-05-21): Experience workbench context column — real context.
+   Renders: (1) token property summary from theme_token_values,
+   (2) contrast badge from theme_contrast_report, (3) version history from
+   studio_version_history, (4) audit feed from studio_audit, (5) Preview as
+   role links, (6) Open in Customizer / Related tools.
+   All inner cells inherit overflow-wrap:anywhere via studio-experience-mode.css. #}
+<aside class="studio-os__experience-context" aria-labelledby="experience-context-heading">
+  <h2 id="experience-context-heading" class="visually-hidden">{% trans "Experience context" %}</h2>
+
+  {# State badges #}
+  <div class="studio-os__card py-2 mb-2">
+    <div class="h6 mb-1">{% trans "State" %}</div>
+    <div class="rmc-studio-experience-state-badges">
+      {% if theme_recent_change_meta %}
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Draft" %}</span>
+      {% else %}
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok">{% trans "Applied" %}</span>
+      {% endif %}
+      {% if theme_contrast_report %}
+        {% if theme_contrast_report.status == "ok" %}
+        <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok">{% trans "Contrast pass" %}</span>
+        {% else %}
+        <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Contrast check" %}</span>
+        {% endif %}
+      {% endif %}
+      {% if preview_mode_active %}
+      <span class="rmc-studio-experience-state-badge">{% trans "Preview mode on" %}</span>
+      {% endif %}
+    </div>
+    {% if theme_publish_guarded_count %}
+    <p class="small text-muted mb-0 mt-1">
+      {% blocktrans count counter=theme_publish_guarded_count %}{{ counter }} field guarded on publish.{% plural %}{{ counter }} fields guarded on publish.{% endblocktrans %}
+    </p>
+    {% endif %}
+  </div>
+
+  {# Token property summary #}
+  {% if theme_token_values %}
+  <div class="studio-os__card py-2 mb-2" data-rmc-studio-experience-tokens="1">
+    <div class="h6 mb-1">{% trans "Tokens (draft)" %}</div>
+    <ul class="list-unstyled mb-0">
+      {% for key, value in theme_token_values.items %}
+      <li class="rmc-studio-experience-token-row">
+        {% if value %}<span class="rmc-studio-experience-token-swatch" style="background: {{ value }};" aria-hidden="true"></span>{% endif %}
+        <span class="rmc-studio-experience-token-label">{{ key }}</span>
+        <code class="rmc-studio-experience-token-value">{{ value|default:"—" }}</code>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {# Preview as role #}
+  {% if studio_role_preview_entries %}
+  <div class="studio-os__card py-2 mb-2">
+    <div class="h6 mb-1">{% trans "Preview as role" %}</div>
+    <ul class="list-unstyled small mb-0">
+      {% for r in studio_role_preview_entries %}
+        {% if r.url %}
+        <li class="mb-1"><a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" title="{{ r.label|default:r.role }}">{{ r.label|default:r.role }}</a></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {# Recent version history #}
+  {% if studio_version_history %}
+  <div class="studio-os__card py-2 mb-2">
+    <div class="h6 mb-1">{% trans "Recent changes" %}</div>
+    <ul class="list-unstyled small mb-0">
+      {% for v in studio_version_history %}
+      <li class="mb-1 rmc-studio-experience-audit-entry">
+        <span class="text-muted">{{ v.timestamp|default:v.created_at|default:"" }}</span>
+        {% if v.label %} — {{ v.label }}{% endif %}
+        {% if v.actor %} <span class="text-muted">({{ v.actor }})</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {# Audit feed #}
+  {% if studio_audit %}
+  <div class="studio-os__card py-2 mb-2">
+    <div class="h6 mb-1">{% trans "Audit" %}</div>
+    <ul class="list-unstyled small mb-0">
+      {% for a in studio_audit %}
+      <li class="mb-1 rmc-studio-experience-audit-entry">
+        <span class="text-muted">{{ a.timestamp|default:a.created_at|default:"" }}</span>
+        {% if a.event %} — {{ a.event }}{% endif %}
+        {% if a.actor %} <span class="text-muted">({{ a.actor }})</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {# Related tools (preserves the original purpose of this column) #}
+  {% if experience_context_tool_links %}
+  <div class="studio-os__card py-2 mb-2">
+    <div class="h6 mb-1">{% trans "Related tools" %}</div>
+    <ul class="list-unstyled small mb-0">
+      {% for link in experience_context_tool_links %}
+      <li class="mb-1"><a href="{{ link.url }}" title="{{ link.label }}">{{ link.label }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {# Customizer CTA #}
+  {% if legacy_urls.customizer %}
+  <div class="studio-os__card py-2">
+    <a href="{{ legacy_urls.customizer }}" class="btn btn-sm btn-outline-primary w-100">{% trans "Open Customizer" %}</a>
+  </div>
+  {% endif %}
 </aside>
-{% endif %}

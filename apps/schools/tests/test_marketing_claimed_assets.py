@@ -59,6 +59,12 @@ class MarketingClaimedAssetsTests(SimpleTestCase):
         ):
             self.assertIn(name, text, f"README must document {name}")
 
+    def test_readme_rejects_placeholder_proof_language(self) -> None:
+        text = README.read_text(encoding="utf-8")
+        self.assertIn("must not be presented as customer screenshots", text)
+        self.assertIn("Do not use them as proof.", text)
+        self.assertNotIn("Default placeholder SVGs", text)
+
     def test_templates_do_not_reference_missing_marketing_svgs(self) -> None:
         templates_root = REPO / "templates"
         referenced: set[str] = set()

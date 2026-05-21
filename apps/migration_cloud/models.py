@@ -1429,3 +1429,11 @@ from apps.migration_cloud.models_intake import (  # noqa: E402, F401
     MigrationIntakeState,
     MigrationIntakeStateError,
 )
+
+# v3.40.0 Agent 15 — MAA v2.0 counsel-activate singleton state.
+# Persists the operator's counsel-signoff flip from v1.0 to v2.0 across
+# worker restarts. See ``apps/migration_cloud/models_maa_state.py``.
+from apps.migration_cloud.models_maa_state import (  # noqa: E402, F401
+    MAAActiveVersionState,
+    MAAAlreadyActiveError,
+)

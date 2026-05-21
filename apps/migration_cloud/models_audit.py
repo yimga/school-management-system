@@ -298,6 +298,23 @@ class MigrationCloudAuditEventType(models.TextChoices):
         "audit.rate_limit_triggered",
         "Audit event volume rate-limit triggered for a tenant",
     )
+    # v3.40.0 Agent 15 — MAA v2.0 counsel-review activation flip.
+    # Emitted by ``MAAActiveVersionState.activate_v2`` when an operator
+    # with counsel signoff on file advances the platform default from
+    # v1.0 to v2.0. Payload contains operator_user_id + attestation
+    # fingerprint prefix + activated_at; raw attestation text is
+    # NEVER logged.
+    MAA_V2_ACTIVATED_BY_OPERATOR = (
+        "migration.maa.v2_activated_by_operator",
+        "MAA v2.0 activated by operator (counsel signoff on file)",
+    )
+    # v3.40.0 Agent 15 — Migration data retention purge applied.
+    # Emitted by ``purge_completed_migration_bundles`` command on
+    # --apply. PII-free payload (tenant_sha256_prefix + counts only).
+    MIGRATION_DATA_RETENTION_PURGE_APPLIED = (
+        "migration.data_retention.purge_applied",
+        "Migration data retention purge applied (counsel-approved)",
+    )
 
 
 GENESIS_SENTINEL = "genesis"

@@ -1,22 +1,42 @@
 {% load i18n %}
-<div class="studio-os__card py-2">
-  <div class="h6 mb-2">{% trans "Launch" %}</div>
-  <ul class="list-unstyled small mb-0" id="launch-rail-list">
+{% comment %}
+  v3.54.0 (2026-05-21): Next-realm Launch — rail polish.
+  Per-pane Bootstrap icons + aria-current; preserves existing
+  launch_left_rail entries verbatim. Honest readiness summary.
+{% endcomment %}
+<div class="studio-os__card py-2 rmc-launch-canvas">
+  <div class="h6 mb-2">
+    <i class="bi bi-rocket-takeoff me-1" aria-hidden="true"></i>{% trans "Launch" %}
+  </div>
+  <ul class="list-unstyled small mb-0" id="launch-rail-list" role="list">
     {% for item in launch_left_rail %}
     <li class="mb-1">
       <a href="{{ item.url }}"
-         class="launch-rail-link {% if item.pane == launch_pane %}active{% endif %}">{{ item.label }}</a>
+         class="rmc-launch-rail-link launch-rail-link{% if item.pane == launch_pane %} active{% endif %}"
+         {% if item.pane == launch_pane %}aria-current="page"{% endif %}>
+        <i class="bi {% if item.pane == 'overview' %}bi-grid-1x2{% elif item.pane == 'onboarding' %}bi-compass{% elif item.pane == 'create_school' %}bi-building-add{% elif item.pane == 'plan' %}bi-tag{% elif item.pane == 'blueprints' %}bi-layers{% elif item.pane == 'infrastructure' %}bi-building-gear{% elif item.pane == 'branding' %}bi-palette{% elif item.pane == 'migration' %}bi-arrow-left-right{% elif item.pane == 'role_preview' %}bi-eye{% elif item.pane == 'checklist' %}bi-list-check{% else %}bi-dot{% endif %} rmc-launch-rail-link__icon" aria-hidden="true"></i>
+        <span class="rmc-launch-rail-link__label">{{ item.label }}</span>
+        {% if item.info_title %}
+        {% include "partials/rmc_info_tag.html" with title=item.info_title body=item.info_body label=item.label placement="right" %}
+        {% endif %}
+      </a>
     </li>
     {% endfor %}
   </ul>
   {% if launch_payload %}
   <hr class="my-2">
-  <div class="h6 mb-1 small">{% trans "Progress" %}</div>
+  <div class="h6 mb-1 small">
+    <i class="bi bi-activity me-1" aria-hidden="true"></i>{% trans "Progress" %}
+  </div>
   <p class="small mb-1"><strong>{% trans "Health:" %} {{ launch_payload.health_score|default:0 }}%</strong></p>
   {% if launch_payload.launch_ready %}
-  <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+  <p class="small text-success mb-1">
+    <i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "Ready to launch" %}
+  </p>
   {% elif launch_payload.launch_blockers %}
-  <p class="small text-warning mb-1">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
+  <p class="small text-warning mb-1">
+    <i class="bi bi-exclamation-octagon me-1" aria-hidden="true"></i>{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}
+  </p>
   {% endif %}
   {% endif %}
 </div>

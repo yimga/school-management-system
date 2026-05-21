@@ -1,4 +1,11 @@
-{% comment %}Unpack output_reportcard_builder for native Output Studio pane.{% endcomment %}
+{% comment %}
+Unpack output_reportcard_builder for the native Output Studio pane.
+The inner partial (siteconfig/partials/reportcard_builder_inner.html) is
+owned by siteconfig — we only wrap it in a min-width:0 guard so the
+workspace column never gets blown by the inner builder UI's preview iframes.
+{% endcomment %}
 {% with site_settings=output_reportcard_builder.site_settings|default:output_reportcard_builder.settings styles=output_reportcard_builder.styles assignments=output_reportcard_builder.assignments preview_students=output_reportcard_builder.preview_students preview_default_style_slug=output_reportcard_builder.preview_default_style_slug preview_default_student_id=output_reportcard_builder.preview_default_student_id total_classroom_count=output_reportcard_builder.total_classroom_count assigned_classroom_count=output_reportcard_builder.assigned_classroom_count unassigned_classroom_count=output_reportcard_builder.unassigned_classroom_count style_form=output_reportcard_builder.style_form assignment_form=output_reportcard_builder.assignment_form selection_form=output_reportcard_builder.selection_form workflow_step=output_reportcard_builder.workflow_step studio_output_native=output_reportcard_builder.studio_output_native %}
-{% include "siteconfig/partials/reportcard_builder_inner.html" %}
+<div class="min-w-0">
+  {% include "siteconfig/partials/reportcard_builder_inner.html" %}
+</div>
 {% endwith %}

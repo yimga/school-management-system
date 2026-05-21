@@ -1,7 +1,7 @@
 # AI Center platform inventory (metadata-only)
 
-**Generated:** 2026-05-20T13:57:50.856166+00:00
-**Apps:** 44
+**Generated:** 2026-05-21T00:12:18.351622+00:00
+**Apps:** 45
 
 This inventory contains **no secrets, credentials, or tenant-private records**.
 

@@ -2,7 +2,9 @@
 <!-- Admin Navigation Bridge: on manager host use same navbar as /super/ for unified high-end UX -->
 
 {% if is_manager_host %}
+<div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1">
 {% include "partials/manager_operator_topbar.html" %}
+</div>
 {% else %}
 <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}">
 
@@ -36,6 +38,15 @@
         </div>
         
         <div class="admin-nav-bridge__actions">
+            {# Tenant-admin command palette anchor: keyboard shortcut help + command search input.
+               Mirrors the manager-host topbar contract (cpSearchInput / cpShowShortcutsHelp)
+               so authenticated-shell-manager.js can bind the same wiring on tenant hosts.
+               Verified by scripts/verify_phase3_navigation_command_conformance.py. #}
+            <label class="visually-hidden" for="cpSearchInputAdmin">{% trans "Search admin" %}</label>
+            <input type="search" id="cpSearchInputAdmin" class="admin-nav-bridge__search form-control form-control-sm" placeholder="{% trans 'Search…' %}" autocomplete="off" aria-label="{% trans 'Search admin' %}">
+            <button type="button" class="admin-nav-bridge__shortcuts-btn" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
+                <span aria-hidden="true">⌘?</span>
+            </button>
             {% if is_manager_host %}
                 <a href="{% url 'super:dashboard' %}" class="admin-nav-bridge__home-btn">{% trans "Control plane" %}</a>
                 <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>

@@ -1,0 +1,36 @@
+{% load i18n static %}
+{# Day-1 Magic — orchestrator partial that conditionally renders the active act. #}
+{# Inputs: ``day1_active_act`` (1|2|3) and the per-act context that act expects. #}
+<section
+  class="rmc-day1-stage"
+  data-rmc-tenant-studio-day1="1"
+  data-rmc-tenant-studio-day1-active-act="{{ day1_active_act|default:1 }}"
+  aria-label="{% trans 'Day-1 brand session' %}">
+  <link rel="stylesheet" href="{% static 'css/tenant-studio-day1.css' %}">
+  <div class="rmc-day1-hero" data-rmc-day1-hero="1">
+    {% if day1_active_act == 1 or active_act == 1 %}
+      {% include "siteconfig/partials/tenant_studio_day1_act1_brand.html" %}
+    {% elif day1_active_act == 2 or active_act == 2 %}
+      {% include "siteconfig/partials/tenant_studio_day1_act2_palette.html" %}
+    {% elif day1_active_act == 3 or active_act == 3 %}
+      {% include "siteconfig/partials/tenant_studio_day1_act3_lock.html" %}
+    {% endif %}
+  </div>
+  <nav class="rmc-day1-progress-rail" aria-label="{% trans 'Day-1 progress' %}">
+    <ol class="rmc-day1-progress-steps">
+      <li class="rmc-day1-progress-step{% if active_act >= 1 %} is-active{% endif %}">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Brand" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step{% if active_act >= 2 %} is-active{% endif %}">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Palette" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step{% if active_act >= 3 %} is-active{% endif %}">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Lock in" %}</span>
+      </li>
+    </ol>
+  </nav>
+</section>
+<script src="{% static 'js/rmc-tenant-studio-day1.js' %}"></script>

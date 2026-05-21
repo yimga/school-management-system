@@ -20,9 +20,13 @@
       return null;
     }
     if (mode === "main") {
+      var scrollPane = document.querySelector(".cp-admin-main-scroll-pane");
+      if (isScrollable(scrollPane)) return scrollPane;
       var adminMain =
         document.getElementById("cp-main-content") ||
         document.querySelector(".cp-main-col");
+      if (isScrollable(adminMain)) return adminMain;
+      if (scrollPane) return scrollPane;
       if (adminMain) return adminMain;
     }
     var main = document.getElementById("main");

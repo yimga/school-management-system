@@ -1,0 +1,54 @@
+/**
+ * Tenant Studio in-context guidance (Q&A panel + rail info tags).
+ */
+
+.rmc-studio-guidance__panel {
+  background: var(--surface-elevated, var(--color-base-0));
+  border-color: var(--hairline, rgba(0, 0, 0, 0.1)) !important;
+}
+
+.rmc-studio-guidance__summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.rmc-studio-guidance__summary::-webkit-details-marker {
+  display: none;
+}
+
+.rmc-studio-guidance__summary::after {
+  content: "▾";
+  margin-inline-start: auto;
+  font-size: var(--type-size-caption, 0.75rem);
+  opacity: 0.6;
+}
+
+.rmc-studio-guidance__panel:not([open]) .rmc-studio-guidance__summary::after {
+  content: "▸";
+}
+
+.rmc-studio-guidance__item:last-child {
+  margin-bottom: 0 !important;
+}
+
+.studio-os__card .rmc-studio-guidance-tip {
+  border-inline-start: 3px solid var(--brand-success, #10b981);
+  padding-inline-start: 0.75rem;
+}
+
+.launch-rail-link {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+}
+
+.launch-rail-link.active {
+  font-weight: 600;
+}
+
+.studio-os__card .studio-mode-card-tip {
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--text-secondary);
+}

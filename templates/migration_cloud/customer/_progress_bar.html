@@ -1,8 +1,5 @@
 {% load i18n %}
-{# v3.40.0 Agent 7 — customer-facing 7-stage progress bar.
-   Renders ``intake`` (MigrationIntakeRequest) + ``stages`` (list of
-   (state_value, label) tuples) into a flat ARIA-friendly horizontal
-   bar. No inline styles — relies on .rmc-* class grammar. #}
+<!-- v3.40.0 Agent 7 — customer-facing 7-stage progress bar. Renders ``intake`` (MigrationIntakeRequest) + ``stages`` (list of (state_value, label) tuples) into a flat ARIA-friendly horizontal bar. No inline styles — relies on .rmc-* class grammar. -->
 <div class="rmc-progress-stages" data-intake-id="{{ intake.id }}" data-intake-state="{{ intake.state }}" data-pct-complete="{{ intake.pct_complete }}" role="group" aria-label="{% trans 'Migration progress' %}">
   <ol class="rmc-progress-stages__list">
     {% for stage_value, stage_label in stages %}

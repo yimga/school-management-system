@@ -7,7 +7,6 @@ from pathlib import Path
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 
 from apps.schools.marketing_v3_surfaces import (
-    MARKETING_PLATFORM_TO_VERB_REDIRECTS,
     marketing_module_rail_modules,
     marketing_navbar_verb_primary,
     marketing_verb_nav_enabled,
@@ -24,8 +23,8 @@ class MarketingVerbNavTest(SimpleTestCase):
         self.assertIn("Teach", [str(x) for x in labels])
         self.assertGreaterEqual(len(labels), 5)
 
-    def test_platform_to_verb_redirect_map_nonempty(self) -> None:
-        self.assertGreaterEqual(len(MARKETING_PLATFORM_TO_VERB_REDIRECTS), 5)
+    def test_enterprise_platform_nav_disabled_redirect_by_default(self) -> None:
+        self.assertFalse(marketing_verb_nav_enabled())
 
     def test_differentiated_platform_templates_registered(self) -> None:
         from apps.schools.marketing_views import _MARKETING_PLATFORM_DIFFERENTIATED_TEMPLATES
@@ -164,10 +163,10 @@ class MarketingTrustAndVerbRoutesHttpTest(TestCase):
                     msg=path,
                 )
 
-    def test_platform_workflows_redirects_to_run_workflows(self) -> None:
+    def test_platform_workflows_renders_clean_platform_route(self) -> None:
         response = self.client.get("/platform/workflows/", HTTP_HOST="runmycampus.com")
-        self.assertEqual(response.status_code, 301)
-        self.assertTrue(response.headers.get("Location", "").endswith("/run/workflows/"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-mkt-archetype="workflow-automation"')
 
 
 class MarketingModuleRailTest(SimpleTestCase):
@@ -256,22 +255,28 @@ class MarketingV3PagesHttpTest(TestCase):
                 )
 
 
-class MarketingPlatformVerbRedirectsTest(SimpleTestCase):
-    """Legacy /platform/* module paths must inline 301 RedirectView (not marketing_page)."""
+class MarketingPlatformRouteOwnershipTest(SimpleTestCase):
+    """Enterprise platform routes must render platform pages, not verb redirects."""
 
-    def test_platform_paths_use_redirectview_inline(self) -> None:
+    def test_platform_paths_use_marketing_page_inline(self) -> None:
         text = Path("config/public_urls.py").read_text(encoding="utf-8")
-        for src, dst in MARKETING_PLATFORM_TO_VERB_REDIRECTS.items():
+        for src in (
+            "platform/student-information-system/",
+            "platform/admissions/",
+            "platform/attendance/",
+            "platform/fees-payments/",
+            "platform/grading-report-cards/",
+            "platform/parent-portal/",
+            "platform/teacher-portal/",
+            "platform/student-portal/",
+            "platform/communications/",
+            "platform/analytics/",
+            "platform/workflows/",
+            "platform/offline-first/",
+            "platform/security/",
+        ):
             idx = text.find(f'"{src}"')
             self.assertGreater(idx, -1, f"missing route for {src}")
             window = text[idx : idx + 280]
-            self.assertIn(
-                "RedirectView.as_view",
-                window,
-                f"{src} must use RedirectView inline (appended patterns lose to earlier routes)",
-            )
-            self.assertIn(
-                f'"/{dst.rstrip("/")}/"',
-                window,
-                f"{src} must target /{dst}",
-            )
+            self.assertNotIn("RedirectView.as_view", window, f"{src} must not redirect")
+            self.assertIn("marketing_page", window, f"{src} must render marketing_page")

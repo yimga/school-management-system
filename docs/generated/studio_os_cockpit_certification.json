@@ -1,0 +1,108 @@
+{
+  "generated_at_utc": "2026-05-21T05:02:00Z",
+  "agent_id": "E2",
+  "batch_id": "1371",
+  "pillar_id": "P2",
+  "wave_slug": "sms-v3.53.0-studio-cockpit-day1-magic-1371-2026-05-21",
+  "files_created": {
+    "static/css/studio-os-cockpit.css": 193,
+    "static/css/rmc-signature-motion.css": 51,
+    "static/css/rmc-command-bar.css": 193,
+    "static/js/rmc-command-bar.js": 341,
+    "apps/siteconfig/command_bar_registry.py": 246,
+    "templates/partials/rmc_command_bar.html": 56,
+    "templates/studio_os/partials/cockpit_signal_strip.html": 32,
+    "templates/studio_os/partials/cockpit_canvas.html": 13,
+    "templates/studio_os/partials/cockpit_copilot_rail.html": 46,
+    "apps/studio_os/tests/test_cockpit_shell_contract.py": 102,
+    "apps/studio_os/tests/test_command_bar_registry.py": 126,
+    "apps/siteconfig/tests/test_command_bar_actions_view.py": 122,
+    "scripts/verify_studio_os_cockpit_contract.py": 87,
+    "scripts/verify_command_bar_coverage.py": 101
+  },
+  "files_modified": [
+    "templates/base.html",
+    "templates/portal_base.html",
+    "templates/control_plane_skeleton.html",
+    "templates/admin/base_site.html",
+    "templates/studio_os/shell.html",
+    "config/urls.py",
+    "static/js/service-worker.js"
+  ],
+  "shells_wired": [
+    "templates/base.html",
+    "templates/portal_base.html",
+    "templates/control_plane_skeleton.html",
+    "templates/admin/base_site.html"
+  ],
+  "command_bar_action_count": 33,
+  "command_bar_endpoint": "/api/command-bar/actions/",
+  "command_bar_url_name": "command_bar_actions",
+  "cockpit_partials": [
+    "templates/studio_os/partials/cockpit_signal_strip.html",
+    "templates/studio_os/partials/cockpit_canvas.html",
+    "templates/studio_os/partials/cockpit_copilot_rail.html"
+  ],
+  "scanner_results": {
+    "scan_off_token_colors": {
+      "total": 107,
+      "baseline": 107,
+      "delta": 0,
+      "new_findings_in_new_files": 0
+    },
+    "verify_csp_nonce_emission": {
+      "violations": 0,
+      "shells_checked": 5
+    },
+    "scan_reveal_armed_invariants": {
+      "violations": 0,
+      "invariants": [
+        "css_armed_scoping",
+        "js_arms_at_parse",
+        "shells_load_sync",
+        "no_duplicate_class_attrs"
+      ]
+    },
+    "scan_print_statements": 0,
+    "scan_bare_except": 0,
+    "scan_pii_logging_smell": 0,
+    "verify_studio_os_cockpit_contract": "PASS",
+    "verify_command_bar_coverage": "PASS"
+  },
+  "tests_run": 26,
+  "tests_passed": 26,
+  "tests": [
+    {
+      "module": "apps.studio_os.tests.test_cockpit_shell_contract",
+      "count": 11,
+      "status": "OK"
+    },
+    {
+      "module": "apps.studio_os.tests.test_command_bar_registry",
+      "count": 10,
+      "status": "OK"
+    },
+    {
+      "module": "apps.siteconfig.tests.test_command_bar_actions_view",
+      "count": 5,
+      "status": "OK"
+    }
+  ],
+  "verifiers": {
+    "verify_studio_os_cockpit_contract.py": "PASS",
+    "verify_command_bar_coverage.py": "PASS"
+  },
+  "armed_attribute_compliance": {
+    "data_rmc_command_bar_armed_set_synchronously": true,
+    "rmc_command_bar_js_loaded_without_defer_async": true,
+    "shells_verified": 4
+  },
+  "tenant_scoping": {
+    "anonymous_sees_zero_actions": true,
+    "tenant_user_without_school_sees_zero": true,
+    "no_cross_tenant_url_leakage": true,
+    "url_filter_strategy": "server-side reverse() with same-process URL resolution"
+  },
+  "preserve_list_touched": false,
+  "verdict": "READY"
+}

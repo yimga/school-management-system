@@ -1,0 +1,196 @@
+{
+  "version": "v3.54.0",
+  "date": "2026-05-21",
+  "agent": "Agent 4 — OUTPUT",
+  "section": "studio_os Output mode",
+  "scope": {
+    "url_root": "/studio/output/",
+    "shell_view": "apps.studio_os.views.studio_shell (mode='output' branch, ~lines 1708-1905)",
+    "subviews": [
+      "studio_output_dependency_graph (apps/studio_os/views.py:689)",
+      "studio_output_branding_inheritance (apps/studio_os/views.py:720)",
+      "studio_output_policy_registry (apps/studio_os/views.py:750)"
+    ]
+  },
+  "context_vars": {
+    "primary": [
+      "output_pane",
+      "output_left_rail",
+      "output_iframe_src",
+      "output_dependency_graph",
+      "output_pack_preview_cards",
+      "output_focus_pack_code",
+      "output_doc_library",
+      "output_documents_denied",
+      "output_reports_native",
+      "output_reports_denied",
+      "output_credentials_native",
+      "output_branding_native",
+      "output_policy_native",
+      "output_reportcard_builder",
+      "output_builder_denied"
+    ],
+    "missing_for_next_realm": {
+      "output_readiness_summary": "No 'ready to publish' tile feed; not present on context. Honest fallback in template.",
+      "output_last_published_at": "Per-output last-published timestamp not exposed.",
+      "output_pack_readiness": "Per-pack readiness (missing fields / broken templates) not exposed; can derive from output_dependency_graph.dependencies length only.",
+      "output_doc_library_stats": "Document counts available via output_doc_library.stats — wired into readiness tile."
+    }
+  },
+  "output_categories": {
+    "reports": {
+      "route": "studio_os:output?pane=reports",
+      "real": true,
+      "needs_settings_perm": true
+    },
+    "documents": {
+      "route": "studio_os:output?pane=documents",
+      "real": true,
+      "needs_settings_perm": true
+    },
+    "report_cards": {
+      "route": "studio_os:output?pane=builder",
+      "real": true,
+      "needs_settings_perm": true
+    },
+    "credentials": {
+      "route": "studio_os:output?pane=credentials",
+      "real": true,
+      "needs_settings_perm": false
+    },
+    "branding_inheritance": {
+      "route": "studio_os:output?pane=branding",
+      "real": true,
+      "needs_settings_perm": false
+    },
+    "policy_registry": {
+      "route": "studio_os:output?pane=policy",
+      "real": true,
+      "needs_settings_perm": false
+    },
+    "dependency_graph": {
+      "route": "studio_os:output?pane=dependency",
+      "real": true,
+      "needs_settings_perm": false
+    },
+    "public_output": {
+      "route": null,
+      "real": false,
+      "note": "No 'public output' surface today. Hidden when absent — not a dummy link."
+    },
+    "portal_output": {
+      "route": null,
+      "real": false,
+      "note": "Portal outputs (per role) consumed downstream; no aggregate page yet. Hidden."
+    },
+    "exports_queue": {
+      "route": null,
+      "real": false,
+      "note": "No exports queue surface today; honest empty in readiness tile."
+    }
+  },
+  "horizontal_overflow_risks": [
+    {
+      "file": "templates/studio_os/partials/output_dependency_graph_body.html",
+      "risk": "Long pack codes / dependency item joins can blow line width.",
+      "today": "wraps as inline list, no max-width on <code>.",
+      "fix": "Allow wrapping via word-break + max-width on inner list items in studio-output-cockpit.css."
+    },
+    {
+      "file": "templates/studio_os/partials/output_reportcard_builder_wrapper.html",
+      "risk": "Inner siteconfig partial may carry fixed-width preview iframes.",
+      "today": "passes through to siteconfig/partials/reportcard_builder_inner.html (NOT ours).",
+      "fix": "Wrap include in min-width:0 container; cannot touch inner siteconfig partial."
+    },
+    {
+      "file": "templates/studio_os/partials/output_documents_native_wrapper.html",
+      "risk": "portal/document_library_manage_inner may carry wide tables.",
+      "today": "passes through; out of ownership.",
+      "fix": "Wrap in min-width:0 + .table-responsive scope guard via CSS."
+    },
+    {
+      "file": "templates/studio_os/partials/workspace/output_mobile_tabs.html",
+      "risk": "nav-tabs flex-nowrap overflow-x-auto already in place; OK at 390px.",
+      "today": "scrolls horizontally; fine for thumb-scroll. Add wrap+stack option for better polish.",
+      "fix": "Optional wrap fallback in studio-output-cockpit.css under 390px."
+    },
+    {
+      "file": "templates/studio_os/partials/workspace/output_canvas.html",
+      "risk": "iframe id=studio-output-iframe sized via .studio-os-iframe (min-height:80vh, width:100%) — OK but not aspect-locked.",
+      "today": "width:100% max-width:100% already; min-height 80vh.",
+      "fix": "Keep — already responsive."
+    }
+  ],
+  "readiness_today": {
+    "definition": "Pack readiness today == is_active=True ReportPack with non-empty dependency_schema; nothing tracks 'ready vs draft' state machine.",
+    "version_state": "ReportPack has created_at/updated_at; no version column; no draft↔published flag.",
+    "missing_data_state": "Implicit: 0 dependencies in normalize_report_pack_dependencies(pack) means pack lacks declared deps.",
+    "diff_last_vs_draft": "Not implemented anywhere. Honest 'Readiness service offline' fallback acceptable."
+  },
+  "branding_chain": {
+    "documentation_today": "1 paragraph in output_branding_inheritance_body.html — no visual evidence.",
+    "real_chain": [
+      "RuntimeDefaults typed columns (primary, accent, logo)",
+      "SiteSettings.brand_payload",
+      "siteconfig.context_processors.site_brand",
+      "templates/partials/rmc_theme_meta.html",
+      "static/js/theme-preference-bootstrap.js (sets html[data-resolved-theme])",
+      "design-tokens.css consumes --school-primary / --school-accent",
+      "report templates inherit via the same tokens at print time"
+    ]
+  },
+  "tenant_scope": {
+    "studio_shell": "user_can_access_studio_on_request(request) gates all output panes.",
+    "manager_host": "When request.public_host_kind == 'manager', falls back to legacy iframe path (no left rail) — confirmed by output_mode_canvas.html guard.",
+    "report_packs": "ReportPack is global — same SOT across tenants — but per-tenant readiness pulled via tenant-scoped views downstream. OK."
+  },
+  "required_actions": {
+    "keep": [
+      "output_dependency_graph_body.html copy structure (already typographic)",
+      "output_documents_native_wrapper.html pass-through include",
+      "output_reportcard_builder_wrapper.html pass-through include",
+      "output_credentials_body.html (already real-link-only)"
+    ],
+    "minor_repair": [
+      "output_mode_canvas.html: replace inline btn-primary CTA with rmc-output-cockpit empty state",
+      "output_canvas.html: add readiness preview pane above per-pane content on dependency view (entry point); wrap iframe fallback in min-width-0 container",
+      "output_branding_inheritance_body.html: add token-swatch visualization of theme → output chain",
+      "output_policy_registry_body.html: convert paragraphs into a .rmc-output-list responsive list",
+      "output_reports_library_body.html: add readiness chips alongside pack preview cards",
+      "output_rail.html: tag rail items with hub badge when route is real-external (document library, report card builder)",
+      "output_mobile_tabs.html: add 390px wrap fallback class"
+    ],
+    "aggressive_refactor": [
+      "Build NEW partial output_readiness_preview_pane.html — readiness tiles + per-output preview entry",
+      "Author NEW CSS studio-output-cockpit.css with .rmc-output-* grammar",
+      "Author NEW test file test_output_readiness_cockpit.py (do not execute)"
+    ],
+    "coordinator_task": [
+      {
+        "owner": "views.py (read-only for me)",
+        "diff_hint": "Add context['output_readiness_summary'] computed from existing get_output_dependency_graph() — counts: packs_total, packs_with_deps, packs_missing_deps. Honest 'unknown' when service raises.",
+        "rationale": "Lets readiness tile show real counts; today tile honestly falls back to graph-derived counts client-side via |length filters.",
+        "blocking": false
+      },
+      {
+        "owner": "services.py (read-only for me)",
+        "diff_hint": "Add get_output_readiness_summary() -> dict[str, Any] returning {packs_total, packs_with_deps, packs_missing_deps, documents_total, documents_published, last_pack_updated_at, service_online}.",
+        "rationale": "Single source of truth for the readiness cockpit; current code derives from get_output_dependency_graph() — works but expensive.",
+        "blocking": false
+      }
+    ]
+  },
+  "scanner_risks": {
+    "scan_money_float": "0 expected — no money rendering in Output partials. README of preview pane does not touch monetary fields.",
+    "scan_off_token_colors": "0 expected — only var(--*) used in new CSS.",
+    "scan_theme_attribute_contract": "0 expected — no data-theme writes in Output partials.",
+    "scan_sticky_with_overflow_hidden": "0 expected — no position:sticky in new CSS.",
+    "scan_reveal_armed_invariants": "Not applicable — no rmc-reveal* in Output partials.",
+    "scan_pii_logging_smell": "0 expected — no logging in templates."
+  },
+  "deferred": {
+    "readiness_service_dataclass": "We render derived counts client-side. Real readiness service deferred — view coordinator task above.",
+    "version_state_per_pack": "Requires reports.ReportPack schema change — out of scope.",
+    "publish_workflow": "Out of scope; today there is no draft↔published FSM."
+  }
+}

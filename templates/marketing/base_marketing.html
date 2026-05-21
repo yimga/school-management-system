@@ -41,6 +41,7 @@
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  {% include "partials/rmc_platform_chrome_styles.html" %}
   <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-critical.min.css' %}">
   <link rel="prefetch" href="{% static 'marketing/css/marketing-enhanced.min.css' %}" as="style">
@@ -50,12 +51,12 @@
   {% block extrastyle %}{% endblock %}
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
-<body class="{% block body_class %}marketing-surface{% endblock %}{% if LANGUAGE_BIDI or is_rtl %} bidi-rtl{% else %} bidi-ltr{% endif %}" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story"{% block body_extra_attrs %} data-mkt-edition="editorial" data-mkt-section="{% with s=marketing_page_slug|default:'platform' %}{% if 'platform' in s or 'sis' in s or 'admissions' in s or 'attendance' in s or 'fees' in s or 'grading' in s or 'parent-portal' in s or 'teacher-portal' in s or 'student-portal' in s or 'communications' in s or 'analytics' in s or 'workflows' in s or 'offline' in s or 'security' in s %}platform{% elif 'solutions' in s or 'for-private' in s or 'for-school' in s or 'k12' in s or 'international' in s or 'multi-campus' in s or 'faith' in s or 'payments-readiness' in s %}solutions{% elif 'pricing' in s %}pricing{% elif 'resources' in s or 'developer' in s or 'blog' in s or 'guides' in s or 'case-studies' in s or 'help-center' in s or 'product-tour' in s %}resources{% elif 'trust' in s or 'compliance' in s %}trust{% elif 'migrate' in s or 'migration' in s %}migrate{% elif 'compare' in s %}compare{% elif 'company' in s or 'about' in s or 'contact' in s or 'demo' in s %}company{% else %}platform{% endif %}{% endwith %}"{% endblock %}>
+<body class="{% block body_class %}marketing-surface{% endblock %}{% if LANGUAGE_BIDI or is_rtl %} bidi-rtl{% else %} bidi-ltr{% endif %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story"{% block body_extra_attrs %} data-mkt-edition="editorial" data-mkt-section="{% with s=marketing_page_slug|default:'platform' %}{% if 'platform' in s or 'sis' in s or 'admissions' in s or 'attendance' in s or 'fees' in s or 'grading' in s or 'parent-portal' in s or 'teacher-portal' in s or 'student-portal' in s or 'communications' in s or 'analytics' in s or 'workflows' in s or 'offline' in s or 'security' in s %}platform{% elif 'solutions' in s or 'for-private' in s or 'for-school' in s or 'k12' in s or 'international' in s or 'multi-campus' in s or 'faith' in s or 'payments-readiness' in s %}solutions{% elif 'pricing' in s %}pricing{% elif 'resources' in s or 'developer' in s or 'blog' in s or 'guides' in s or 'case-studies' in s or 'help-center' in s or 'product-tour' in s %}resources{% elif 'trust' in s or 'compliance' in s %}trust{% elif 'migrate' in s or 'migration' in s %}migrate{% elif 'compare' in s %}compare{% elif 'company' in s or 'about' in s or 'contact' in s or 'demo' in s %}company{% else %}platform{% endif %}{% endwith %}"{% endblock %}>
   {# Public marketing: no tenant launch splash (avoids CLS + wasted paint on cold acquisition traffic). #}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% include 'marketing/marketing_header.html' %}
 
-  <main id="main-content" class="mkt-main {% block marketing_main_extra_classes %}container py-4{% endblock %}" role="main">
+  <main id="main-content" class="mkt-main {% block marketing_main_extra_classes %}container py-4{% endblock %}" role="main" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
     {% if messages %}
       <div class="mb-3">
         {% for message in messages %}
@@ -67,7 +68,10 @@
   </main>
 
   {% include 'marketing/marketing_footer.html' %}
+  {% include 'components/back_to_top.html' %}
 
+  {% include "partials/rmc_platform_chrome_scripts.html" %}
+  <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-motion.js' %}" defer></script>

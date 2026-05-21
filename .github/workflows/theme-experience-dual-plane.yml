@@ -1,0 +1,83 @@
+name: Theme experience dual-plane
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/siteconfig/theme_builder_plane.py"
+      - "apps/siteconfig/views_theme_builder.py"
+      - "apps/siteconfig/views_theme_experience_hub.py"
+      - "templates/siteconfig/**"
+      - "static/js/theme-builder-canvas.js"
+      - "static/css/portal-theme-modes.css"
+      - "static/css/design-tokens.css"
+      - "static/css/workflow-center.css"
+      - "static/css/dashboard-layout-controls.css"
+      - "static/css/phase2-portal-bundle.css"
+      - "static/css/theme-experience-premium.css"
+      - "static/css/rmc-cp-compact-surface.css"
+      - "scripts/verify_theme_experience_plane_isolation.py"
+      - "scripts/verify_dual_plane_theme_experience.py"
+      - "scripts/verify_portal_theme_token_spine.py"
+      - "scripts/run_theme_experience_dual_plane_e2e.sh"
+      - "tests/e2e/theme_experience_dual_plane.spec.js"
+      - "tests/e2e/theme_experience_forensic.spec.js"
+      - ".github/workflows/theme-experience-dual-plane.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  theme-dual-plane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      SECRET_KEY: "ci-theme-dual-plane-not-production-64chars_______________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com,manager.runmycampus.com,apple-class-qa.runmycampus.com,gilead-school.runmycampus.com,demo-school.runmycampus.com"
+      VISUAL_QA_PORT: "8014"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Theme plane verifiers + Django tests
+        run: |
+          python scripts/verify_theme_experience_plane_isolation.py
+          python scripts/verify_dual_plane_theme_experience.py
+          python scripts/verify_theme_experience_gear.py
+          python scripts/verify_portal_theme_token_spine.py
+          python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_experience_plane_isolation --verbosity=1
+
+      - name: Dual-plane Playwright (manager + tenant hosts)
+        run: bash scripts/run_theme_experience_dual_plane_e2e.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-experience-dual-plane-artifacts
+          path: |
+            artifacts/theme-experience-dual-plane
+            test-results
+          if-no-files-found: ignore

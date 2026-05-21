@@ -9,9 +9,21 @@
       <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
       <a class="btn btn-sm btn-outline-primary" href="{{ embed_url }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
     </div>
-    <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Outputs' %}"></iframe>
+    <div class="rmc-output-iframe-frame">
+      <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Outputs' %}" loading="lazy"></iframe>
+    </div>
     {% else %}
-    <div class="studio-os__card"><a href="{% url 'studio_os:output' %}?pane=dependency" class="btn btn-primary btn-sm">{% trans "Open Outputs" %}</a></div>
+    <div class="rmc-output-empty" role="status">
+      <p class="rmc-output-empty__title">{% trans "Outputs are not loaded in this view" %}</p>
+      <p class="rmc-output-empty__hint">
+        {% trans "Open the Output Studio workspace to see reports, documents, report cards, credentials, and branding readiness in one place." %}
+      </p>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <a href="{% url 'studio_os:output' %}?pane=dependency" class="btn btn-sm btn-primary">
+          {% trans "Open Outputs" %}
+        </a>
+      </div>
+    </div>
     {% endif %}
   </div>
 </div>

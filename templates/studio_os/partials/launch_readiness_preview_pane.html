@@ -1,0 +1,57 @@
+{% load i18n %}
+{% comment %}
+  v3.54.0 next-realm Launch: per-role readiness preview cockpit.
+  Honors launch_role_previews; honest empty state when absent.
+{% endcomment %}
+<section class="rmc-launch-canvas" data-page-archetype="operational-workbench" aria-labelledby="rmc-launch-readiness-preview-title">
+  <header class="rmc-launch-section">
+    <h2 id="rmc-launch-readiness-preview-title" class="rmc-launch-section__title h5">
+      <i class="bi bi-eye" aria-hidden="true"></i>
+      <span>{% trans "Readiness preview" %}</span>
+    </h2>
+    <p class="rmc-launch-section__meta mb-0">
+      {% trans "Open each role's experience in a new tab to validate tone, brand, and trust before go-live. Use the preview token where supported so the tenant context is preserved." %}
+    </p>
+  </header>
+
+  {% if launch_role_previews %}
+  <ul class="rmc-launch-role-grid" role="list">
+    {% for r in launch_role_previews %}
+    <li class="rmc-launch-role-card">
+      <div class="rmc-launch-role-card__head">
+        <i class="bi {% if r.icon %}{{ r.icon }}{% else %}bi-person-badge{% endif %} rmc-launch-role-card__icon" aria-hidden="true"></i>
+        <span class="rmc-launch-role-card__label">{{ r.label|default:r.role|default:_("Role") }}</span>
+        {% if r.status %}
+        <span class="rmc-launch-badge" data-tone="{% if r.ok %}ready{% else %}warn{% endif %}">
+          {% if r.ok %}<i class="bi bi-check-circle" aria-hidden="true"></i>{% else %}<i class="bi bi-exclamation-triangle" aria-hidden="true"></i>{% endif %}
+          <span>{{ r.status }}</span>
+        </span>
+        {% endif %}
+      </div>
+      {% if r.detail %}<p class="rmc-launch-role-card__detail">{{ r.detail }}</p>{% endif %}
+      {% if r.url %}
+      <div class="rmc-launch-role-card__actions">
+        <a class="btn btn-sm btn-outline-primary" href="{{ r.url }}" target="_blank" rel="noopener noreferrer">
+          <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{% trans "Open preview" %}
+          <span class="visually-hidden">{% blocktrans with label=r.label|default:r.role %}for {{ label }}{% endblocktrans %}</span>
+        </a>
+      </div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="rmc-launch-empty" role="status">
+    <h3 class="rmc-launch-empty__title h6 mb-1">{% trans "Role previews coming online" %}</h3>
+    <p class="mb-2">{% trans "Choose a school context, or finish baseline onboarding, and per-role preview links will appear here." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% if legacy_urls.guided_onboarding %}
+      <a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-sm btn-primary">{% trans "Guided onboarding" %}</a>
+      {% endif %}
+      {% if launch_studio_base_url %}
+      <a href="{{ launch_studio_base_url }}?pane=overview" class="btn btn-sm btn-outline-primary">{% trans "Launch overview" %}</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</section>

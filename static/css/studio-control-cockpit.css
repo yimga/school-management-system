@@ -1,0 +1,322 @@
+/**
+ * studio-control-cockpit.css — v3.54 governance cockpit grammar.
+ *
+ * Adds the .rmc-control-* component grammar that the Studio OS Control mode
+ * cockpit composes — audit summary, risk-state tiles, permission overview,
+ * dependency-graph teaser, feature-flag bridge, governance preview pane.
+ *
+ * Read-only siblings:
+ *   - static/css/studio-control-inline.css
+ *   - static/css/studio-control-mode-canvas.css
+ *
+ * Design tokens come from static/css/design-tokens.css; nothing here defines
+ * a literal color/spacing — every value routes through a var() token so the
+ * tenant brand wins and dark mode flips correctly.
+ */
+
+/* ---- 1. Cockpit grid ---- */
+
+.rmc-control-cockpit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--space-3, 0.75rem);
+  align-items: stretch;
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.rmc-control-cockpit__tile {
+  background: var(--surface-elevated, #ffffff);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--token-radius-md, 0.5rem);
+  box-shadow: var(--elev-1, 0 1px 2px rgba(15, 23, 42, 0.06));
+  padding: var(--space-3, 0.75rem);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100%;
+}
+
+.rmc-control-cockpit__tile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2, 0.5rem);
+  margin-bottom: var(--space-2, 0.5rem);
+  min-width: 0;
+}
+
+.rmc-control-cockpit__tile-title {
+  font-size: var(--type-size-body, 0.875rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-control-cockpit__tile-kicker {
+  font-size: var(--type-size-micro, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.rmc-control-cockpit__tile-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rmc-control-cockpit__tile-footer {
+  margin-top: var(--space-2, 0.5rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 0.25rem);
+  align-items: center;
+}
+
+/* ---- 2. Audit summary list ---- */
+
+.rmc-control-audit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+}
+
+.rmc-control-audit-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-1, 0.25rem) 0;
+  border-bottom: 1px solid var(--hairline, rgba(0, 0, 0, 0.06));
+  min-width: 0;
+}
+
+.rmc-control-audit-row:last-child {
+  border-bottom: 0;
+}
+
+.rmc-control-audit-row__action {
+  font-weight: 500;
+  font-size: var(--type-size-body, 0.875rem);
+  color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+}
+
+.rmc-control-audit-row__actor {
+  font-size: var(--type-size-micro, 0.6875rem);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.rmc-control-audit-row__time {
+  font-size: var(--type-size-micro, 0.6875rem);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.rmc-control-audit-row__link {
+  font-size: var(--type-size-micro, 0.6875rem);
+  flex: 0 0 auto;
+}
+
+/* ---- 3. Risk state tiles ---- */
+
+.rmc-control-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-control-risk-cell {
+  background: var(--surface-canvas, #fbfbfd);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--token-radius-sm, 0.375rem);
+  padding: var(--space-2, 0.5rem);
+  min-width: 0;
+}
+
+.rmc-control-risk-cell__value {
+  font-size: var(--type-size-h5, 1.125rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.rmc-control-risk-cell__value--unknown {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.rmc-control-risk-cell__label {
+  font-size: var(--type-size-micro, 0.6875rem);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: var(--space-1, 0.25rem);
+  display: block;
+}
+
+.rmc-control-risk-empty {
+  font-size: var(--type-size-body, 0.875rem);
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-3, 0.75rem) 0;
+}
+
+/* ---- 4. Permission matrix wrap (horizontally scrollable) ---- */
+
+.rmc-control-permission-matrix-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--token-radius-sm, 0.375rem);
+  background: var(--surface-canvas);
+  min-width: 0;
+}
+
+.rmc-control-permission-matrix-wrap > table {
+  margin-bottom: 0;
+  min-width: 32rem;
+}
+
+/* ---- 5. Dependency graph teaser ---- */
+
+.rmc-control-dep-graph {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 0.25rem);
+  min-width: 0;
+}
+
+.rmc-control-dep-node {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--token-radius-pill, 999rem);
+  font-size: var(--type-size-micro, 0.6875rem);
+  color: var(--text-secondary, var(--text-primary));
+  min-width: 0;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+/* ---- 6. Feature flag bridge ---- */
+
+.rmc-control-flag-bridge {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+}
+
+.rmc-control-flag-bridge__hint {
+  font-size: var(--type-size-micro, 0.6875rem);
+  color: var(--text-muted);
+}
+
+/* ---- 7. Governance preview pane ---- */
+
+.rmc-control-preview-pane {
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--token-radius-md, 0.5rem);
+  background: var(--surface-elevated, #ffffff);
+  padding: var(--space-3, 0.75rem);
+  margin-top: var(--space-3, 0.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-control-preview-pane__title {
+  font-size: var(--type-size-body, 0.875rem);
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.rmc-control-preview-pane__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+  min-width: 0;
+}
+
+.rmc-control-preview-pane__section-label {
+  font-size: var(--type-size-micro, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.rmc-control-preview-pane__body {
+  font-size: var(--type-size-body, 0.875rem);
+  color: var(--text-secondary, var(--text-primary));
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-control-preview-pane__warnings {
+  list-style: disc;
+  padding-left: var(--space-3, 0.75rem);
+  margin: 0;
+  color: var(--text-secondary, var(--text-primary));
+  font-size: var(--type-size-body, 0.875rem);
+}
+
+.rmc-control-preview-pane__warnings li {
+  margin-bottom: var(--space-1, 0.25rem);
+}
+
+.rmc-control-preview-pane__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin-top: var(--space-2, 0.5rem);
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--space-2, 0.5rem);
+}
+
+.rmc-control-preview-pane__empty {
+  font-size: var(--type-size-body, 0.875rem);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ---- 8. Honest empty states (audit / risk / permissions) ---- */
+
+.rmc-control-empty {
+  font-size: var(--type-size-body, 0.875rem);
+  color: var(--text-muted);
+  padding: var(--space-2, 0.5rem) 0;
+  margin: 0;
+}
+
+.rmc-control-empty--centered {
+  text-align: center;
+  padding: var(--space-3, 0.75rem) 0;
+}
+
+/* ---- 9. Responsive: collapse permission matrix gracefully ---- */
+
+@media (max-width: 36rem) {
+  .rmc-control-cockpit {
+    grid-template-columns: 1fr;
+  }
+  .rmc-control-risk-grid {
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+  }
+}

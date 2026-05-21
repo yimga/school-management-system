@@ -91,7 +91,6 @@ def process_file(path: Path, *, dry_run: bool = False) -> tuple[int, int]:
     """Process one file. Returns (replacements_made, allows_added)."""
     raw = path.read_text(encoding="utf-8", errors="replace")
     new_text = raw
-    pos = 0
     out: list[str] = []
     stack_is_theme: list[bool] = [False]
     replacements = 0

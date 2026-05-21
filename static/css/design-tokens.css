@@ -141,7 +141,38 @@
   --portal-shadow-hover: var(--elev-3, 0 20px 40px rgba(15, 23, 42, 0.2));
   --portal-nav-pill: #495057;
   --portal-nav-pill-hover: var(--school-primary);
-  --portal-nav-pill-bg-hover: rgba(79, 70, 229, 0.08);
+  /* Portal brand spine — school-primary mixes (replaces legacy indigo rgba literals). */
+  --portal-brand-mix-50: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 50%,
+    transparent
+  );
+  --portal-brand-mix-22: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 22%,
+    transparent
+  );
+  --portal-brand-mix-14: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 14%,
+    transparent
+  );
+  --portal-brand-mix-12-accent: color-mix(
+    in srgb,
+    var(--school-accent, var(--color-secondary, #764ba2)) 12%,
+    transparent
+  );
+  --portal-brand-mix-10: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 10%,
+    transparent
+  );
+  --portal-brand-mix-08: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 8%,
+    transparent
+  );
+  --portal-nav-pill-bg-hover: var(--portal-brand-mix-08);
   --portal-nav-pill-bg-active: var(--school-primary-light);
 
   /* Backend console (theme files override) */

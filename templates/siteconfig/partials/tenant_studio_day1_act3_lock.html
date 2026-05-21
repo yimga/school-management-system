@@ -1,0 +1,69 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Day-1 palette locked" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/tenant-studio-day1.css' %}">
+{% endblock %}
+{% block content %}
+<div
+  class="rmc-day1-stage container py-4"
+  data-rmc-tenant-studio-day1="1"
+  data-rmc-tenant-studio-day1-active-act="3"
+  data-page-archetype="day1-lock"
+  data-shell-surface="tenant-school-studio-day1">
+
+  <header class="rmc-day1-act-header">
+    <span class="rmc-day1-eyebrow">{% trans "Act 3 — Locked in" %}</span>
+    <h1 class="rmc-day1-headline">{% trans "Your palette is live across the platform" %}</h1>
+    <p class="rmc-day1-lede">
+      {% trans "The portal, marketing surface, and login chrome now wear your brand. You can re-run this session from the cockpit anytime." %}
+    </p>
+  </header>
+
+  <section class="rmc-day1-lock-summary">
+    <div class="rmc-day1-lock-icon" aria-hidden="true">
+      <svg viewBox="0 0 32 32" focusable="false">
+        <circle cx="16" cy="16" r="14" class="rmc-day1-lock-circle"></circle>
+        <path d="M10 16 L14 20 L22 12" class="rmc-day1-lock-check"
+              fill="none"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+      </svg>
+    </div>
+    <div class="rmc-day1-lock-copy">
+      <p class="rmc-day1-lock-headline">{% trans "Saved." %}</p>
+      <p class="rmc-day1-lock-detail">
+        {% trans "Your palette is stored on the school record and mirrored to tenant settings." %}
+      </p>
+    </div>
+  </section>
+
+  <nav class="rmc-day1-act-actions" aria-label="{% trans 'Continue to cockpit' %}">
+    <a class="rmc-day1-cta-primary"
+       href="{{ cockpit_url }}"
+       data-rmc-day1-cockpit-link>
+      {% trans "Open the School Studio cockpit" %}
+    </a>
+  </nav>
+
+  <nav class="rmc-day1-progress-rail" aria-label="{% trans 'Day-1 progress' %}">
+    <ol class="rmc-day1-progress-steps">
+      <li class="rmc-day1-progress-step is-active">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Brand" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step is-active">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Palette" %}</span>
+      </li>
+      <li class="rmc-day1-progress-step is-active">
+        <span class="rmc-day1-progress-dot" aria-hidden="true"></span>
+        <span class="rmc-day1-progress-label">{% trans "Lock in" %}</span>
+      </li>
+    </ol>
+  </nav>
+</div>
+<script src="{% static 'js/rmc-tenant-studio-day1.js' %}"></script>
+{% endblock %}

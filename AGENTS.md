@@ -79,6 +79,12 @@ After a fresh migrate, run `python3 manage.py ensure_superuser --password Sch00l
 
 Local development can use SQLite. If `.env.local` contains a Windows-style temp-path `DB_FILE` and you are on Linux/Cursor Cloud, override it with `DB_FILE=db_working.sqlite3`.
 
+### AI deployment posture
+
+- **Canonical:** [docs/AI_DEPLOYMENT_POSTURE.md](docs/AI_DEPLOYMENT_POSTURE.md) — `online` (Render) = LiteLLM cloud first; `edge` = Ollama on hub; offline mode = school ops only (not on-device LLM).
+- **Code:** `services/ai_deployment_posture.py` → `services/ai_gateway._task_tiers()`; status in `apps/portal/ai_provider.py`.
+- **Verify:** `python scripts/verify_render_online_ai_posture.py` (SaaS); `python scripts/verify_ollama_live.py` (edge/dev Ollama).
+
 ### Running tests and checks
 
 ```bash

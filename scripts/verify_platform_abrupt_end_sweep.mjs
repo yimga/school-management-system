@@ -10,7 +10,7 @@
  *   bash scripts/run_platform_abrupt_end_sweep.sh
  *
  * Env:
- *   SWEEP_TIER=operator | operator+admin | all (default operator)
+ *   SWEEP_TIER=operator | operator+admin | tenant | all (default operator)
  *   SWEEP_PATHS=comma-separated path prefixes (manager routes; tenant uses SWEEP_TENANT_PATHS)
  *   SWEEP_TENANT_PATHS=comma prefixes for tenant JSON routes only (if unset, all tenant routes)
  *   SWEEP_GOTO_RETRIES=3  SWEEP_GOTO_MS=90000
@@ -121,6 +121,18 @@ const FALLBACK_SURFACES = [
     scrollRoot: '#main-content',
     login: 'tenant',
   },
+  {
+    surface: 'tenant',
+    url: '/school/studio/',
+    scrollRoot: '#main-content',
+    login: 'tenant',
+  },
+  {
+    surface: 'tenant',
+    url: '/school/studio/setup/',
+    scrollRoot: '#main-content',
+    login: 'tenant',
+  },
 ];
 
 function loadManagerSurfaces() {
@@ -189,9 +201,12 @@ function loadTenantSurfaces() {
 
 const INCLUDE_TENANT =
   (process.env.SWEEP_INCLUDE_TENANT || '1').toLowerCase() !== '0';
+const SWEEP_TIER = process.env.SWEEP_TIER || 'operator';
 const SURFACES = [
-  ...loadManagerSurfaces(),
-  ...(INCLUDE_TENANT ? loadTenantSurfaces() : []),
+  ...(SWEEP_TIER !== 'tenant' ? loadManagerSurfaces() : []),
+  ...(INCLUDE_TENANT && SWEEP_TIER !== 'admin_changelist'
+    ? loadTenantSurfaces()
+    : []),
 ];
 
 function isInfraOrNonHtmlSkip(error) {

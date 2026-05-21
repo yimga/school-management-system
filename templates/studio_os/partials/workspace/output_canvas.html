@@ -1,8 +1,16 @@
 {% load i18n %}
+{# v3.54.0 (2026-05-21): Readiness preview pane lives on the default
+   `dependency` view (the landing pane). Other panes show their own
+   focused workspace. The pane is honest about service state. #}
 {% if output_pane == 'dependency' %}
-  {% include "studio_os/partials/output_dependency_graph_body.html" with graph=output_dependency_graph pack_preview_cards=output_pack_preview_cards focus_pack_code=output_focus_pack_code %}
+  {% include "studio_os/partials/output_readiness_preview_pane.html" %}
+  <div class="min-w-0" data-rmc-output-pane="dependency">
+    {% include "studio_os/partials/output_dependency_graph_body.html" with graph=output_dependency_graph pack_preview_cards=output_pack_preview_cards focus_pack_code=output_focus_pack_code %}
+  </div>
 {% elif output_pane == 'documents' and output_doc_library %}
-  {% include "studio_os/partials/output_documents_native_wrapper.html" %}
+  <div class="rmc-output-passthrough" data-rmc-output-pane="documents">
+    {% include "studio_os/partials/output_documents_native_wrapper.html" %}
+  </div>
 {% elif output_pane == 'documents' and output_documents_denied %}
 <div class="studio-os__card ds-card p-3" role="alert">
   <p class="mb-2 fw-semibold">{% trans "Document library" %}</p>
@@ -22,7 +30,9 @@
 {% elif output_pane == 'policy' and output_policy_native %}
   {% include "studio_os/partials/output_policy_registry_body.html" with page_title=output_policy_native.page_title page_subtitle=output_policy_native.page_subtitle report_library_url=output_policy_native.report_library_url blueprints_url=output_policy_native.blueprints_url lineage_url=output_policy_native.lineage_url action_url=output_policy_native.action_url action_text=output_policy_native.action_text %}
 {% elif output_pane == 'builder' and output_reportcard_builder %}
-  {% include "studio_os/partials/output_reportcard_builder_wrapper.html" %}
+  <div class="rmc-output-passthrough" data-rmc-output-pane="builder">
+    {% include "studio_os/partials/output_reportcard_builder_wrapper.html" %}
+  </div>
 {% elif output_pane == 'builder' and output_builder_denied %}
 <div class="studio-os__card ds-card p-3" role="alert">
   <p class="mb-2 fw-semibold">{% trans "Report card builder" %}</p>
@@ -34,10 +44,13 @@
   <a id="studio-output-open-full" class="btn btn-sm btn-outline-primary"
      href="{{ output_iframe_src }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
 </div>
-<iframe id="studio-output-iframe" class="studio-os-iframe" title="{% trans 'Outputs' %}"
-        src="{{ output_iframe_src }}"></iframe>
+<div class="rmc-output-iframe-frame">
+  <iframe id="studio-output-iframe" class="studio-os-iframe" title="{% trans 'Outputs' %}"
+          src="{{ output_iframe_src }}" loading="lazy"></iframe>
+</div>
 {% else %}
-<div class="studio-os__card">
-  <p class="text-muted mb-0">{% trans "This output pane could not be loaded. Use the rail or open in a full window from Site settings." %}</p>
+<div class="rmc-output-empty" role="status">
+  <p class="rmc-output-empty__title">{% trans "This output pane could not be loaded" %}</p>
+  <p class="rmc-output-empty__hint">{% trans "Use the rail to pick another output, or open this pane in a full window from Site settings." %}</p>
 </div>
 {% endif %}

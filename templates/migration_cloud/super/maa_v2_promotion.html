@@ -13,7 +13,7 @@
     </p>
   </header>
 
-  {# ── Panel 1 — readiness (pre-flight verifier) ───────────────────────── #}
+  <!-- ── Panel 1 — readiness (pre-flight verifier) ───────────────────────── -->
   <section class="rmc-card rmc-card--maa-readiness" aria-labelledby="maa-readiness-heading">
     <h2 id="maa-readiness-heading" class="rmc-h2">{% trans "Readiness (verifier)" %}</h2>
     <p class="rmc-meta">
@@ -43,7 +43,7 @@
     </p>
   </section>
 
-  {# ── Panel 2 — draft status (settings + draft set) ───────────────────── #}
+  <!-- ── Panel 2 — draft status (settings + draft set) ───────────────────── -->
   <section class="rmc-card rmc-card--maa-draft-status" aria-labelledby="maa-draft-heading">
     <h2 id="maa-draft-heading" class="rmc-h2">{% trans "Draft / default state" %}</h2>
     <dl class="rmc-data-grid">
@@ -83,7 +83,7 @@
     </dl>
   </section>
 
-  {# ── Panel 3 — counsel attestations ──────────────────────────────────── #}
+  <!-- ── Panel 3 — counsel attestations ──────────────────────────────────── -->
   <section class="rmc-card rmc-card--maa-counsel" aria-labelledby="maa-counsel-heading">
     <h2 id="maa-counsel-heading" class="rmc-h2">{% trans "Counsel attestations" %}</h2>
     {% if attestations.load_error %}
@@ -134,7 +134,7 @@
     {% endif %}
   </section>
 
-  {# ── Panel 4 — campaign progress ─────────────────────────────────────── #}
+  <!-- ── Panel 4 — campaign progress ─────────────────────────────────────── -->
   <section class="rmc-card rmc-card--maa-campaign" aria-labelledby="maa-campaign-heading">
     <h2 id="maa-campaign-heading" class="rmc-h2">{% trans "Re-sign campaign progress" %}</h2>
     {% if campaign.load_error %}

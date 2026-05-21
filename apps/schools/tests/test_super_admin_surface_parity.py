@@ -47,12 +47,7 @@ class SuperAdminSurfaceParityTests(TestCase):
             is_superuser=True,
         )
         self.client = Client(HTTP_HOST=self.host)
-        logged_in = self.client.login(
-            username=self.user.username,
-            password=self.password,
-            HTTP_HOST=self.host,
-        )
-        self.assertTrue(logged_in, "manager login must succeed for HTTP chrome tests")
+        self.client.force_login(self.user)
         bind_manager_session(self.client)
 
     def test_surface_parity_matrix_is_green(self):
@@ -123,6 +118,16 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertContains(response, "data-rmc-manager-operator-footer")
         self.assertNotContains(response, "mkt-footer-command")
         self.assertNotContains(response, "mkt-footer-newsletter")
+        self.assertContains(response, "rmc-platform-chrome-premium.css")
+        self.assertContains(response, "rmc-cp-chrome-scroll-polish.js")
+        self.assertContains(response, "dashboard-topology-shell.css")
+        self.assertContains(response, 'data-rmc-cp-scroll="document"')
+        self.assertContains(response, 'data-rmc-control-plane-chrome="1"')
+        self.assertNotContains(response, 'data-rmc-os-page-header="1"')
+        html = response.content.decode()
+        mcp_pos = html.rfind("manager-control-plane.css")
+        chrome_pos = html.rfind("rmc-platform-chrome-layout.css")
+        self.assertGreater(chrome_pos, mcp_pos)
 
     def test_super_schools_list_shows_admin_bridge_chip(self):
         response = self.client.get(
@@ -220,13 +225,23 @@ class SuperAdminSurfaceParityTests(TestCase):
             self.assertNotIn('data-shell-nav-family="control-plane"', html, path)
 
     def test_manager_admin_index_renders_backoffice_content(self):
-        response = self.client.get("/admin/", HTTP_HOST=self.host)
+        response = self.client.get("/admin/", HTTP_HOST=self.host, follow=False)
+        self.assertIn(
+            response.status_code,
+            (200, 302),
+            msg=f"unexpected admin index status; Location={response.get('Location', '')}",
+        )
+        if response.status_code == 302:
+            response = self.client.get(response["Location"], HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
         self.assertIn("cp-admin-index", html)
         self.assertIn("Platform Backoffice", html)
         self.assertIn('id="cp-main-content"', html)
-        self.assertIn('data-rmc-cp-scroll="main"', html)
+        self.assertIn("admin-manager-shell", html)
+        self.assertIn('data-rmc-control-plane-chrome="1"', html)
+        self.assertIn("rmc-platform-chrome-layout.css", html)
+        self.assertIn('data-rmc-cp-scroll="document"', html)
         self.assertIn("cp-admin-app-list", html)
         self.assertIn("Applications", html)
         self.assertIn("data-rmc-page-fold-nav", html)

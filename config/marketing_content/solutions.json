@@ -1,42 +1,42 @@
 {
   "label": "Solutions",
   "seo_title": "Solutions | RunMyCampus",
-  "seo_description": "Outcome-first paths for private schools, networks, low-connectivity campuses, finance teams, teachers, and families.",
-  "headline": "Solutions that match how schools actually operate.",
-  "subheadline": "Pick your segment—each path focuses on outcomes first: calmer operations, clearer families, and honest payment and offline posture.",
+  "seo_description": "Buyer-world solutions for private schools, international schools, K-12 schools, faith-based schools, multi-campus groups, and growing school networks.",
+  "headline": "Solutions aligned to the school you operate.",
+  "subheadline": "Choose the buyer world closest to your operating model, then inspect the workflows, visuals, modules, trust notes, and rollout path built for it.",
   "schema_type": "CollectionPage",
   "segments": [
     {
-      "title": "Private schools",
-      "body": "Admissions depth, branded family experience, and fee clarity without a pile of disconnected tools."
+      "title": "Private Schools",
+      "body": "Growth, fee confidence, admissions depth, and parent trust on one operating spine."
     },
     {
-      "title": "School networks",
-      "body": "Standards and visibility across campuses without smothering local execution."
+      "title": "International Schools",
+      "body": "Programs, currencies, calendars, reporting models, and family communication with global configuration."
     },
     {
-      "title": "Low-connectivity schools",
-      "body": "Offline-first capture and sync queues you can reconcile when connectivity returns."
+      "title": "K-12 Schools",
+      "body": "Attendance, academics, family engagement, and student progress across the daily learner lifecycle."
     },
     {
-      "title": "Finance teams",
-      "body": "Invoices, receipts, arrears, and reporting leadership can defend—see payment readiness for rails scope."
+      "title": "Multi-Campus Groups",
+      "body": "Campus comparison, collection posture, academic indicators, and network governance."
     },
     {
-      "title": "Teachers & academics",
-      "body": "Attendance, marks, and parent messaging in one workspace instead of shadow channels."
+      "title": "Faith-Based Schools",
+      "body": "Community operations with clear announcements, attendance, fee status, and family response paths."
     },
     {
-      "title": "Parents & families",
-      "body": "One portal for fees, attendance, announcements, and report cards."
+      "title": "Growing School Networks",
+      "body": "Repeatable launch readiness, rollout phases, template reuse, and campus onboarding playbooks."
     }
   ],
   "extras": {
     "metrics": [
       {
         "value": "6",
-        "label": "buyer paths",
-        "detail": "Aligned to the same segments surfaced in global navigation."
+        "label": "buyer worlds",
+        "detail": "The same school models surfaced in global navigation and footer routing."
       },
       {
         "value": "1",
@@ -46,7 +46,7 @@
       {
         "value": "1",
         "label": "honest payment stance",
-        "detail": "Regional rails depend on deployment—documented on payment readiness."
+        "detail": "Regional rails depend on deployment - documented on payment readiness."
       },
       {
         "value": "100%",
@@ -56,8 +56,8 @@
     ],
     "execution_blocks": [
       {
-        "title": "Segment-first evaluation",
-        "body": "Start from the job you need done—not from a flat list of product modules."
+        "title": "Buyer-world evaluation",
+        "body": "Start with the school operating model procurement and leadership need to validate."
       },
       {
         "title": "Pilot-friendly rollout",
@@ -71,11 +71,11 @@
     "faqs": [
       {
         "question": "How do solutions relate to the platform?",
-        "answer": "The platform is one governed stack; solutions describe the buyer journeys you care about first."
+        "answer": "The platform is one governed stack; solutions describe the school operating models you care about first."
       },
       {
-        "question": "Do you support schools with unreliable internet?",
-        "answer": "Yes—offline-first workflows and sync queues are designed for capture-first operations when links drop."
+        "question": "Do buyer worlds still cover offline operations?",
+        "answer": "Yes. Offline-first workflows remain a platform differentiator and can be evaluated inside the school model that matches your rollout."
       },
       {
         "question": "How do multi-campus groups stay aligned?",
@@ -83,7 +83,7 @@
       },
       {
         "question": "Can each school keep its own domain?",
-        "answer": "Yes—tenant-scoped routing and branding keep boundaries explicit for each school."
+        "answer": "Yes. Tenant-scoped routing and branding keep boundaries explicit for each school."
       }
     ]
   }

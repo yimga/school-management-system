@@ -42,8 +42,16 @@ html[data-bs-theme="dark"] {
   --portal-shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.35);
   --portal-nav-pill: #d9d0c2;
   --portal-nav-pill-hover: #ede4d6;
-  --portal-nav-pill-bg-hover: rgba(102, 126, 234, 0.2);
-  --portal-nav-pill-bg-active: rgba(102, 126, 234, 0.25);
+  --portal-nav-pill-bg-hover: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 22%,
+    transparent
+  );
+  --portal-nav-pill-bg-active: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 28%,
+    transparent
+  );
 }
 
 html[data-bs-theme="dark"] body {
@@ -180,7 +188,11 @@ html[data-bs-theme="dark"] .dropdown-item {
 
 html[data-bs-theme="dark"] .dropdown-item:hover,
 html[data-bs-theme="dark"] .dropdown-item:focus {
-  background: rgba(102, 126, 234, 0.25) !important;
+  background: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 25%,
+    transparent
+  ) !important;
   color: #f5eedd !important;
 }
 
@@ -242,13 +254,21 @@ html[data-bs-theme="dark"] .section-title {
 
 /* Buttons remain visible */
 html[data-bs-theme="dark"] .btn-outline-primary {
-  border-color: rgba(102, 126, 234, 0.6) !important;
-  color: #e6a052 !important;
+  border-color: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 60%,
+    transparent
+  ) !important;
+  color: var(--school-primary, var(--color-primary, #4f46e5)) !important;
 }
 
 html[data-bs-theme="dark"] .btn-outline-primary:hover {
-  background: rgba(102, 126, 234, 0.25) !important;
-  color: #c7d2fe !important;
+  background: color-mix(
+    in srgb,
+    var(--school-primary, var(--color-primary, #4f46e5)) 25%,
+    transparent
+  ) !important;
+  color: var(--text-primary, #f5eedd) !important;
 }
 
 html[data-bs-theme="dark"] .btn-outline-secondary {

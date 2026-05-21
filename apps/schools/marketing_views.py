@@ -49,8 +49,9 @@ from apps.siteconfig.global_catalog import GlobalGeoCatalog
 MARKETING_CONTENT_DIR = os.path.join(
     getattr(settings, "BASE_DIR", os.getcwd()), "config", "marketing_content"
 )
-# Single source of truth: how many primary nav items show in the bar before "More" dropdown (IMPROVEMENTS_RUNBOOK 3.1).
-MARKETING_NAVBAR_VISIBLE_COUNT = 5
+# Single source of truth: Platform / Solutions / Why RunMyCampus / Pricing /
+# Resources / More render before the persistent Book demo CTA.
+MARKETING_NAVBAR_VISIBLE_COUNT = 6
 
 _MARKETING_PAGE_TYPE_TEMPLATES: dict[str, str] = {
     "pricing": "marketing/pages/type_pricing.html",
@@ -108,7 +109,7 @@ def _marketing_page_type_template(slug: str) -> str | None:
 
 
 def _marketing_more_nav_mega_columns() -> list[dict]:
-    """Premium mega panel for overflow 'More' nav (utility routes + demo CTA)."""
+    """Utility-only mega panel for the explicit 'More' nav item."""
 
     def p(name: str, fallback: str, **kwargs) -> str:
         u = _safe_reverse(name, kwargs=kwargs if kwargs else None)
@@ -134,9 +135,19 @@ def _marketing_more_nav_mega_columns() -> list[dict]:
                     "blurb": "Governed apps and packs—extend the OS without shadow IT sprawl.",
                 },
                 {
+                    "label": "Developers",
+                    "path": p("marketing_developers", "/developers/"),
+                    "blurb": "API, webhook, and integration entry point for technical teams.",
+                },
+                {
                     "label": "Platform status",
                     "path": p("status", "/status/"),
                     "blurb": "Live operational status for public surfaces.",
+                },
+                {
+                    "label": "Login",
+                    "path": p("global_login_discovery", "/login/"),
+                    "blurb": "Find the right campus, tenant, or operator sign-in surface.",
                 },
             ],
         },
@@ -149,19 +160,14 @@ def _marketing_more_nav_mega_columns() -> list[dict]:
                     "blurb": "Route integrity, accessibility, and honest security evidence.",
                 },
                 {
-                    "label": "Compare",
-                    "path": p("marketing_compare", "/compare/"),
-                    "blurb": "Evaluation framing for serious procurement.",
-                },
-                {
                     "label": "Privacy",
                     "path": p("marketing_privacy", "/privacy/"),
                     "blurb": "Data handling and privacy commitments.",
                 },
                 {
-                    "label": "Need help choosing?",
-                    "path": p("marketing_demo", "/demo/"),
-                    "blurb": "Book a demo — we map your school type to the right surfaces.",
+                    "label": "Legal",
+                    "path": p("marketing_terms", "/terms/"),
+                    "blurb": "Commercial and platform legal terms when configured.",
                 },
             ],
         },
@@ -320,8 +326,13 @@ def _marketing_navbar_primary() -> list[dict]:
 
     platform_mega_columns = [
         {
-            "title": "Core school operations",
+            "title": "Core Operations",
             "links": [
+                _nav_mega_link(
+                    "Operating journey",
+                    platform_path,
+                    "Inquiry → Enrollment → Attendance → Fees → Assessment → Report Card → Parent Portal → Leadership Dashboard.",
+                ),
                 _nav_mega_link(
                     "Student Information System",
                     sis,
@@ -350,7 +361,7 @@ def _marketing_navbar_primary() -> list[dict]:
             ],
         },
         {
-            "title": "Portals & role workspaces",
+            "title": "Role Workspaces",
             "links": [
                 _nav_mega_link(
                     "Teacher workspace",
@@ -375,7 +386,7 @@ def _marketing_navbar_primary() -> list[dict]:
             ],
         },
         {
-            "title": "Finance & governance",
+            "title": "Finance & Governance",
             "links": [
                 _nav_mega_link(
                     "Fees & payments",
@@ -400,7 +411,7 @@ def _marketing_navbar_primary() -> list[dict]:
             ],
         },
         {
-            "title": "Infrastructure & automation",
+            "title": "Infrastructure / Automation / Offline",
             "links": [
                 _nav_mega_link(
                     "Workflows",
@@ -431,7 +442,7 @@ def _marketing_navbar_primary() -> list[dict]:
     ]
 
     solutions_path = p("marketing_solutions", "/solutions/")
-    priv = p("marketing_story_private_schools", "/for-private-schools/")
+    priv = p("marketing_solutions_private_schools", "/solutions/private-schools/")
     intl = p("marketing_solutions_international_schools", "/solutions/international-schools/")
     k12 = p("marketing_solutions_k12_schools", "/solutions/k12-schools/")
     multi = p("marketing_solutions_multi_campus", "/solutions/multi-campus/")
@@ -440,80 +451,49 @@ def _marketing_navbar_primary() -> list[dict]:
         "marketing_solutions_growing_school_networks",
         "/solutions/growing-school-networks/",
     )
-    offline_story = p("marketing_story_offline_first", "/offline-first/")
-    networks_story = p("marketing_story_school_networks", "/for-school-networks/")
-    finance_role = p("role_finance", "/roles/finance/")
-    teachers_role = p("role_teachers", "/roles/teachers/")
-    parents_role = p("role_parents", "/roles/parents/")
-
     solutions_mega_columns = [
         {
-            "title": "By school type",
-            "links": [
-                _nav_mega_link(
-                    "Private schools",
-                    priv,
-                    "Enrollment velocity, parent trust, and fee clarity without chaos.",
-                ),
-                _nav_mega_link(
-                    "International schools",
-                    intl,
-                    "Global families, flexible calendars, and multi-currency readiness.",
-                ),
-                _nav_mega_link(
-                    "K–12 schools",
-                    k12,
-                    "Full learner lifecycle, divisions, and parent communication in sync.",
-                ),
-                _nav_mega_link(
-                    "Multi-campus groups",
-                    multi,
-                    "Executive rollups, standards, and governance across campuses.",
-                ),
-                _nav_mega_link(
-                    "Faith-based schools",
-                    faith,
-                    "Community trust, family communication, and mission-aligned operations.",
-                ),
-                _nav_mega_link(
-                    "Growing school networks",
-                    grow,
-                    "Repeatable launch playbooks and shared configuration at scale.",
-                ),
-            ],
-        },
-        {
-            "title": "Operating context & roles",
+            "title": "School models",
             "links": [
                 _nav_mega_link(
                     "Solutions overview",
                     solutions_path,
-                    "Map buyer journeys to the right proof points.",
+                    "Choose the buyer world that matches how your school operates.",
                 ),
                 _nav_mega_link(
-                    "Low-connectivity schools",
-                    offline_story,
-                    "Keep teaching and attendance moving when the network drops.",
+                    "Private Schools",
+                    priv,
+                    "Enrollment velocity, parent trust, and fee clarity without chaos.",
                 ),
                 _nav_mega_link(
-                    "School networks",
-                    networks_story,
-                    "How groups standardize without suffocating each campus.",
+                    "International Schools",
+                    intl,
+                    "Global families, flexible calendars, and multi-currency readiness.",
                 ),
                 _nav_mega_link(
-                    "Finance teams",
-                    finance_role,
-                    "Billing, collections, and audit-friendly money workflows.",
+                    "K-12 Schools",
+                    k12,
+                    "Full learner lifecycle, divisions, and parent communication in sync.",
+                ),
+            ],
+        },
+        {
+            "title": "Networks & communities",
+            "links": [
+                _nav_mega_link(
+                    "Multi-Campus Groups",
+                    multi,
+                    "Executive rollups, standards, and governance across campuses.",
                 ),
                 _nav_mega_link(
-                    "Teachers & academics",
-                    teachers_role,
-                    "Classroom execution with less admin overhead.",
+                    "Faith-Based Schools",
+                    faith,
+                    "Community trust, family communication, and mission-aligned operations.",
                 ),
                 _nav_mega_link(
-                    "Parents & families",
-                    parents_role,
-                    "Guardian experience that feels intentional, not bolted on.",
+                    "Growing School Networks",
+                    grow,
+                    "Repeatable launch playbooks and shared configuration at scale.",
                 ),
             ],
         },
@@ -695,6 +675,11 @@ def _marketing_navbar_primary() -> list[dict]:
             "path": resources_path,
             "children": resources_children,
             "mega_columns": resources_mega_columns,
+        },
+        {
+            "label": "More",
+            "path": p("marketing_company", "/company/"),
+            "mega_columns": _marketing_more_nav_mega_columns(),
         },
     ]
 
@@ -1142,7 +1127,7 @@ def _marketing_context(
                 "Parent / teacher / student portal entry points",
                 "Standard support",
             ],
-            "cta_label": "Get a quote",
+            "cta_label": "Talk to us about Starter",
             "cta_path": _safe_reverse("marketing_demo") or "/demo/",
         },
         {
@@ -1154,7 +1139,7 @@ def _marketing_context(
                 "Grading, exams, and published report cards",
                 "Analytics for leadership reviews",
             ],
-            "cta_label": "Get a quote",
+            "cta_label": "Book a Growth walkthrough",
             "cta_path": _safe_reverse("marketing_demo") or "/demo/",
         },
         {
@@ -1166,7 +1151,7 @@ def _marketing_context(
                 "Advanced analytics & audit-heavy governance",
                 "Priority implementation support",
             ],
-            "cta_label": "Book enterprise walkthrough",
+            "cta_label": "Plan a network rollout",
             "cta_path": _safe_reverse("marketing_demo") or "/demo/",
         },
     ]
@@ -2645,9 +2630,9 @@ def marketing_page(request, page_slug: str):
 
         ctx["module_rail_modules"] = marketing_module_rail_modules()
     if normalized_slug == "solutions":
-        from apps.schools.marketing_v3_surfaces import marketing_solutions_personas
+        from apps.schools.marketing_v3_surfaces import marketing_solution_buyer_worlds
 
-        ctx["solutions_personas"] = marketing_solutions_personas()
+        ctx["solution_buyer_worlds"] = marketing_solution_buyer_worlds()
     if normalized_slug in TRUST_COMPLIANCE_ANCHOR_SLUGS:
         trust_ctx = build_trust_compliance_context(
             country_code=base_ctx.get("country_code") or ""

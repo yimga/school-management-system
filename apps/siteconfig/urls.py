@@ -76,9 +76,12 @@ from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
 from .views_theme_experience_hub import theme_experience_hub
 from .views_theme_builder import (
+    PaletteGenerateView,
     ThemeBuilderLayoutAPIView,
     ThemeBuilderPreviewAPIView,
     ThemeBuilderPublishAPIView,
+    ThemeBuilderPublishLogAPIView,
+    ThemeBuilderRollbackAPIView,
     theme_builder,
 )
 from .views_zero_ticket_hub import (
@@ -137,6 +140,13 @@ from .views_console_ai_rag import ingest_policy_docs as ai_rag_ingest_policy_doc
 from .legacy_redirects import (
     legacy_customizer_clear_preview_redirect,
     legacy_customizer_redirect,
+)
+from .views_tenant_studio_hub import (
+    TenantStudioDay1Act1LogoUploadView,
+    TenantStudioDay1Act1View,
+    TenantStudioDay1Act2View,
+    TenantStudioDay1Act3LockView,
+    TenantStudioDay1ResetView,
 )
 
 app_name = "siteconfig"
@@ -303,6 +313,21 @@ urlpatterns = [
         "theme-experience/builder/api/preview/",
         ThemeBuilderPreviewAPIView.as_view(),
         name="theme_builder_preview_api",
+    ),
+    path(
+        "theme-experience/builder/api/publish-log/",
+        ThemeBuilderPublishLogAPIView.as_view(),
+        name="theme_builder_publish_log_api",
+    ),
+    path(
+        "theme-experience/builder/api/rollback/",
+        ThemeBuilderRollbackAPIView.as_view(),
+        name="theme_builder_rollback_api",
+    ),
+    path(  # rbac-allow: tenant-or-staff-palette-generate
+        "theme/palette/generate/",
+        PaletteGenerateView.as_view(),
+        name="palette_generate",
     ),
     path("zero-ticket/", zero_ticket_hub, name="zero_ticket_hub"),
     path(
@@ -537,5 +562,31 @@ urlpatterns = [
         "console/ai/rag/ingest/",
         ai_rag_ingest_policy_docs,
         name="ai_rag_ingest_policy_docs",
+    ),
+    # Day-1 Magic — 3-act opening sequence for first /school/studio/ visit.
+    path(
+        "studio/day1/act1/",
+        TenantStudioDay1Act1View.as_view(),
+        name="tenant_studio_day1_act1",
+    ),
+    path(  # rbac-allow: tenant-admin-or-staff-day1-logo-upload
+        "studio/day1/act1/logo-upload/",
+        TenantStudioDay1Act1LogoUploadView.as_view(),
+        name="tenant_studio_day1_act1_logo_upload",
+    ),
+    path(
+        "studio/day1/act2/",
+        TenantStudioDay1Act2View.as_view(),
+        name="tenant_studio_day1_act2",
+    ),
+    path(
+        "studio/day1/act3/lock/",
+        TenantStudioDay1Act3LockView.as_view(),
+        name="tenant_studio_day1_act3_lock",
+    ),
+    path(
+        "studio/day1/reset/",
+        TenantStudioDay1ResetView.as_view(),
+        name="tenant_studio_day1_reset",
     ),
 ]

@@ -1,0 +1,26 @@
+{
+  "generated_at_utc": "2026-05-20T21:40:00Z",
+  "agent_id": "A8",
+  "batch": "1370",
+  "product_voice_surfaces": {
+    "voice_of_customer": "feedback:voice_of_customer -> /super/voice-of-customer/ (super-staff aggregation)",
+    "product_roadmap": "feedback:product_roadmap -> /super/product-roadmap/ (super-staff)",
+    "operator_feedback_action": "feedback:operator_feedback_action -> /super/feedback/<int:pk>/action/ (super-staff)",
+    "add_to_roadmap": "feedback:add_to_roadmap -> /super/feature/<int:pk>/roadmap/ (super-staff)"
+  },
+  "tenant_success_surfaces": {
+    "tenant_health_dashboard": "templates/customersuccess/tenant_health_dashboard.html (tenant-scoped)",
+    "support_copilot": "templates/customersuccess/support_copilot.html (tenant-scoped via request.school; render verified READY in support_copilot_template_audit.json)",
+    "super_dashboard": "templates/customersuccess/super_dashboard.html (super-staff aggregation)",
+    "guided_onboarding": "templates/customersuccess/guided_onboarding.html (tenant-scoped; AI coach panel)"
+  },
+  "intelligence_layer": "apps/customersuccess/intelligence.py + tasks.py + auto_ticket_runner.py present; ticket-rule + risk-alert + intervention-suggestion engine wired into services.get_support_copilot_suggestions (caps result list at 15 items sorted by priority)",
+  "data_models_in_play": [
+    "TenantInterventionSuggestion (school FK, dismissed_at, priority)",
+    "TenantRiskAlert (school FK, severity red|amber|green, acknowledged_at, suggested_action)",
+    "TenantHealthScore (school FK, score, computed_at)"
+  ],
+  "soft_failure_handling": "TENANT_CUSTOMER_SUCCESS_SOFT_FAILURES = (AttributeError, DatabaseError, TypeError, ValueError); view degrades to empty suggestions list rather than 500-ing; aligned with batch 1361 SOT graceful-empty-state pattern",
+  "feedback_loop_closes": "Help-center -> contextual feedback -> pulse survey -> voice-of-customer -> operator action -> add-to-roadmap -> product-roadmap path is fully wired in apps/feedback/urls.py; signals.py owns notify-submitters flow per memory four-strategic-moves v3.27",
+  "verdict": "READY"
+}

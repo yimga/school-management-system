@@ -36,7 +36,8 @@ async function loginManager(page, opts = {}) {
   const username = opts.username || process.env.VISUAL_QA_USERNAME || 'visualqa_admin';
   const password = opts.password || process.env.VISUAL_QA_PASSWORD || 'VisualQaPass123!';
 
-  await page.goto('/authentication/login/', {
+  const loginUrl = `${MANAGER_BASE_URL.replace(/\/$/, '')}/authentication/login/`;
+  await page.goto(loginUrl, {
     waitUntil: 'domcontentloaded',
     timeout: 60000,
   });
@@ -103,7 +104,7 @@ async function hasManagerSession(page) {
  */
 async function ensureManagerSession(page, opts = {}) {
   await ensureManagerHost(page);
-  await page.goto('/super/', {
+  await page.goto(`${MANAGER_BASE_URL.replace(/\/$/, '')}/super/`, {
     waitUntil: 'domcontentloaded',
     timeout: 60000,
   });
@@ -112,7 +113,7 @@ async function ensureManagerSession(page, opts = {}) {
     /\/authentication\/login\/?$/i.test(new URL(page.url()).pathname);
   if (onLogin) {
     await loginManager(page, opts);
-    await page.goto('/super/', {
+    await page.goto(`${MANAGER_BASE_URL.replace(/\/$/, '')}/super/`, {
       waitUntil: 'domcontentloaded',
       timeout: 60000,
     });

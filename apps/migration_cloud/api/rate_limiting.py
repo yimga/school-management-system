@@ -26,7 +26,10 @@ content, secret material, or token plaintext.
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone as _stdlib_tz
 
@@ -213,6 +216,18 @@ class TenantRateLimiter:
                 "count=%s soft_limit=%s limit=%s",
                 tenant_id, current, self.soft_limit, self.hour_quota,
             )
+        # v3.40.0 Agent 15 — saturation alert AFTER the soft-warn log line.
+        # Bucket name here is the tenant-webhook cache key; sha256-prefixed
+        # in the alert so the raw key never leaks.
+        try:
+            _check_saturation_alert(
+                bucket_name=f"tenant-webhook:{tenant_id}",
+                current=int(current),
+                limit=int(self.hour_quota),
+            )
+        except Exception:  # pylint: disable=broad-except
+            # Never let alerting break the throttle path.
+            pass
         return QuotaDecision(
             allowed=True,
             current_count=current,
@@ -472,6 +487,18 @@ class MigrationCloudGlobalThrottle(SimpleRateThrottle):
         except Exception:  # pragma: no cover — defensive
             pass
 
+        # v3.40.0 Agent 15 — saturation alert AFTER soft-warn flag set.
+        # The bucket name = "<scope>:<cache_key>" so a single overloaded
+        # token still maps to one stable bucket sha256 prefix.
+        try:
+            _check_saturation_alert(
+                bucket_name=f"{self.scope}:{self.key}",
+                current=int(len(self.history) + 1),  # +1 for current
+                limit=int(self.num_requests),
+            )
+        except Exception:  # pylint: disable=broad-except
+            pass
+
         return self.throttle_success()
 
 
@@ -498,6 +525,161 @@ class SoftWarnHeaderMiddleware:
         except Exception:  # pragma: no cover — never break the response cycle
             pass
         return response
+
+
+# ─── v3.40.0 Agent 15 — throttle saturation alert hook ─────────────────────
+#
+# When a bucket's ``current/limit`` ratio exceeds the configured
+# saturation threshold (default 0.95), emit a ``severity="warning"``
+# alert via Agent 12's ``apps.migration_cloud.alerts.alert``. The hook
+# carries its own in-memory cooldown (1h per bucket sha256 prefix) so a
+# saturated bucket sends at most one alert per hour even if every
+# subsequent request also crosses the line — defense in depth on top of
+# Agent 12's own dedupe table.
+
+#: Default ratio above which a bucket is considered saturated.
+DEFAULT_SATURATION_ALERT_RATIO = 0.95
+
+#: TTL on the per-bucket cooldown lock (seconds). One hour aligns with
+#: the alert module's own dedupe window so the two systems don't fight.
+_SATURATION_COOLDOWN_TTL_SECONDS = 3600
+
+#: Module-level cooldown ledger. Keys are sha256-prefixed bucket names;
+#: values are the wall-clock seconds at which the alert was emitted.
+#: Intentionally in-memory — worker restart resets the ledger, which is
+#: fine because the alert module's PagerDuty dedupe handles upstream.
+_saturation_cooldown_lock = threading.Lock()
+_saturation_cooldown_seen: dict[str, float] = {}
+
+
+def _saturation_bucket_sha_prefix(bucket_name: str, n: int = 12) -> str:
+    """sha256 prefix used in alert titles + the cooldown key.
+
+    Never logs the raw bucket name; only the prefix.
+    """
+    h = hashlib.sha256(
+        (bucket_name or "").encode("utf-8", errors="replace")
+    ).hexdigest()
+    return h[:n]
+
+
+def _saturation_ratio_threshold() -> float:
+    """Read the configured ratio, defaulting to 0.95."""
+    try:
+        from django.conf import settings
+        v = getattr(
+            settings,
+            "MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_RATIO",
+            DEFAULT_SATURATION_ALERT_RATIO,
+        )
+        if v is not None:
+            return float(v)
+    except Exception:  # pragma: no cover — django absent
+        pass
+    return DEFAULT_SATURATION_ALERT_RATIO
+
+
+def _saturation_alert_disabled() -> bool:
+    """Read the emergency kill-switch flag, defaulting to False."""
+    try:
+        from django.conf import settings
+        return bool(
+            getattr(
+                settings,
+                "MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_DISABLED",
+                False,
+            )
+        )
+    except Exception:  # pragma: no cover — django absent
+        return False
+
+
+def _should_emit_saturation_alert(bucket_sha_prefix: str) -> bool:
+    """Cooldown-gated 1-per-hour-per-bucket admission check.
+
+    Returns True when an alert should be emitted (and updates the
+    ledger). Returns False if the same bucket fired within the last
+    hour.
+    """
+    now = time.monotonic()
+    with _saturation_cooldown_lock:
+        # Lazy eviction of stale entries.
+        stale = [
+            k for k, t in _saturation_cooldown_seen.items()
+            if (now - t) > _SATURATION_COOLDOWN_TTL_SECONDS
+        ]
+        for k in stale:
+            _saturation_cooldown_seen.pop(k, None)
+        if bucket_sha_prefix in _saturation_cooldown_seen:
+            return False
+        _saturation_cooldown_seen[bucket_sha_prefix] = now
+        return True
+
+
+def _check_saturation_alert(
+    bucket_name: str, current: int, limit: int,
+) -> None:
+    """Fire a warning alert when ``current/limit`` > saturation ratio.
+
+    Defensive in three layers:
+      1. Kill-switch (``..._DISABLED``) short-circuits early.
+      2. Cooldown ledger suppresses repeat alerts within 1h.
+      3. ``apps.migration_cloud.alerts`` is imported lazily; any
+         import / emit failure is swallowed (alerts must NEVER
+         cascade into the throttle path).
+    """
+    if _saturation_alert_disabled():
+        return
+    if not bucket_name or not limit or limit <= 0:
+        return
+    try:
+        ratio = float(current) / float(limit)
+    except (TypeError, ValueError, ZeroDivisionError):
+        return
+    threshold = _saturation_ratio_threshold()
+    if ratio <= threshold:
+        return
+    bucket_sha = _saturation_bucket_sha_prefix(bucket_name)
+    if not _should_emit_saturation_alert(bucket_sha):
+        return
+    try:
+        from apps.migration_cloud.alerts import alert  # noqa: WPS433
+    except Exception:  # pylint: disable=broad-except
+        # Agent 12 mid-deploy or absent — silent skip. The structured
+        # log line below still records the saturation observation.
+        logger.info(
+            "migration_cloud_throttle_saturation_no_alerter "
+            "bucket_sha=%s current=%s limit=%s ratio=%.3f",
+            bucket_sha, current, limit, ratio,
+        )
+        return
+    try:
+        alert(
+            severity="warning",
+            title=(
+                f"Migration Cloud rate-limit saturation: bucket "
+                f"{bucket_sha}"
+            ),
+            body=(
+                f"Bucket reached {ratio:.1%} of its hourly quota "
+                f"({current}/{limit}). Investigate upstream caller "
+                f"behaviour; this is one warning per bucket per hour."
+            ),
+            dedupe_key=f"throttle-saturation-{bucket_sha}",
+        )
+    except Exception as exc:  # pylint: disable=broad-except
+        # NEVER let the alert path break the throttle path.
+        logger.warning(
+            "migration_cloud_throttle_saturation_alert_failed "
+            "bucket_sha=%s err_type=%s",
+            bucket_sha, type(exc).__name__,
+        )
+
+
+def _reset_saturation_cooldown_for_tests() -> None:
+    """Test-only hook — wipe the cooldown ledger between cases."""
+    with _saturation_cooldown_lock:
+        _saturation_cooldown_seen.clear()
 
 
 # ─── Module-level singleton ───────────────────────────────────────────────

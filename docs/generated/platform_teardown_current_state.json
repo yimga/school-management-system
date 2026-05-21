@@ -1,0 +1,262 @@
+{
+  "generated_at_utc": "2026-05-20T21:30:00Z",
+  "orchestrator_run_id": "rmc-orch-1370-2026-05-20",
+  "current_sot_verdict": "AI CENTER + TENANT STUDIO READY — FOCUSED REPO SCOPE (batch 1369)",
+  "in_flight_dirty_domains": [
+    {
+      "domain": "AI cloud-first deployment posture",
+      "agent_owner": "A4",
+      "files_in_flight": [
+        "services/ai_deployment_posture.py [NEW]",
+        "services/ollama_runtime.py [NEW]",
+        "services/ai_unavailable.py [NEW]",
+        "services/ai_guided_fallback.py",
+        "services/ai_gateway.py",
+        "services/embeddings.py",
+        "services/inference.py",
+        "apps/portal/ai_provider.py",
+        "apps/portal/views_ai_gateway.py",
+        "apps/portal/views_ai_copilot.py",
+        "apps/portal/help_guided_journeys.py",
+        "apps/portal/tests/test_ai_provider.py",
+        "apps/portal/tests/test_ai_guided_fallback_intelligent.py [NEW]",
+        "apps/portal/tests/test_ollama_runtime.py [NEW]",
+        "apps/siteconfig/views_ai_center.py",
+        "apps/siteconfig/ai_assistants.py",
+        "apps/siteconfig/tests/test_ai_center.py",
+        "apps/platform_runtime/tests/test_ai_deployment_posture.py [NEW]",
+        "scripts/verify_render_online_ai_posture.py [NEW]",
+        "scripts/verify_online_edge_dual_mode.py [NEW]",
+        "scripts/ensure_ollama_always_on.py [NEW]",
+        "docs/AI_DEPLOYMENT_POSTURE.md [NEW]",
+        "docs/LOCAL_HUB_MODE.md"
+      ]
+    },
+    {
+      "domain": "Tenant Studio hub + onboarding operator direction",
+      "agent_owner": "A3",
+      "files_in_flight": [
+        "apps/siteconfig/tenant_studio_hub_context.py [NEW]",
+        "apps/siteconfig/views_tenant_studio_hub.py [NEW]",
+        "apps/siteconfig/tests/test_tenant_studio_operating_system.py [NEW]",
+        "apps/siteconfig/tests/test_tenant_studio_hub_context.py [NEW]",
+        "apps/siteconfig/tests/test_tenant_studio_template_contract.py [NEW]",
+        "apps/schools/tenant_studio_guidance.py [NEW]",
+        "apps/schools/school_brand_assets.py [NEW]",
+        "apps/schools/tests/test_tenant_studio_wizard_brand.py [NEW]",
+        "apps/studio_os/studio_guidance.py [NEW]",
+        "apps/studio_os/tests/test_studio_guidance.py [NEW]",
+        "apps/platform_runtime/tenant_onboarding_operator_direction.py [NEW]",
+        "apps/platform_runtime/tests/test_tenant_onboarding_operator_direction.py [NEW]",
+        "templates/siteconfig/tenant_studio_hub.html [NEW]",
+        "templates/schools/partials/tenant_studio_wizard_field_label.html [NEW]",
+        "templates/studio_os/partials/studio_guidance_panel.html [NEW]",
+        "static/css/tenant-studio-wizard.css [NEW]",
+        "static/css/studio-guidance.css [NEW]",
+        "scripts/verify_studio_guidance_contract.py [NEW]",
+        "scripts/run_tenant_studio_abrupt_end_sweep.sh [NEW]",
+        "scripts/run_tenant_studio_e2e.sh [NEW]",
+        "tests/e2e/tenant-school-studio.spec.js [NEW]"
+      ]
+    },
+    {
+      "domain": "Theme experience dual-plane (operator vs tenant)",
+      "agent_owner": "A3",
+      "files_in_flight": [
+        "apps/siteconfig/theme_builder_plane.py [NEW]",
+        "apps/siteconfig/theme_builder.py",
+        "apps/siteconfig/views_theme_builder.py",
+        "apps/siteconfig/views_theme_experience_hub.py",
+        "apps/siteconfig/tests/test_theme_experience_plane_isolation.py [NEW]",
+        "apps/siteconfig/tests/test_theme_builder.py",
+        "templates/siteconfig/theme_builder.html",
+        "templates/siteconfig/theme_builder_control_plane.html [NEW]",
+        "templates/siteconfig/theme_experience_hub_control_plane.html",
+        "templates/siteconfig/theme_experience_hub_tenant.html",
+        "templates/siteconfig/partials/theme_builder_canvas_body.html [NEW]",
+        "templates/siteconfig/partials/theme_experience_hub_body.html",
+        "templates/siteconfig/partials/theme_experience_hub_hero.html",
+        "static/css/theme-experience-premium.css [NEW]",
+        "static/js/theme-builder-canvas.js",
+        "scripts/verify_theme_experience_plane_isolation.py [NEW]",
+        "scripts/verify_portal_theme_token_spine.py [NEW]",
+        "scripts/verify_portal_theme_school_primary_bridge.py [NEW]",
+        "scripts/run_theme_experience_dual_plane_e2e.sh [NEW]",
+        "tests/e2e/theme_experience_dual_plane.spec.js [NEW]",
+        "tests/e2e/theme_experience_forensic.spec.js"
+      ]
+    },
+    {
+      "domain": "Migration Cloud MAA counsel activation + retention",
+      "agent_owner": "A5",
+      "files_in_flight": [
+        "apps/migration_cloud/models.py",
+        "apps/migration_cloud/models_audit.py",
+        "apps/migration_cloud/models_maa_state.py [NEW]",
+        "apps/migration_cloud/services/maa_text.py",
+        "apps/migration_cloud/views_maa_promotion.py",
+        "apps/migration_cloud/views_maa_counsel_activate.py [NEW]",
+        "apps/migration_cloud/views_command_center.py",
+        "apps/migration_cloud/urls.py",
+        "apps/migration_cloud/api/rate_limiting.py",
+        "apps/migration_cloud/management/commands/purge_completed_migration_bundles.py [NEW]",
+        "apps/migration_cloud/migrations/0027_maa_active_version_state.py [NEW]",
+        "apps/migration_cloud/tasks_retention.py [NEW]",
+        "apps/migration_cloud/tests/test_maa_counsel_activate.py [NEW]",
+        "apps/migration_cloud/tests/test_retention_purge.py [NEW]",
+        "apps/migration_cloud/tests/test_throttle_saturation.py [NEW]",
+        "templates/migration_cloud/operator/maa_counsel_activate.html [NEW]",
+        "docs/MIGRATION_CLOUD_DATA_RETENTION.md [NEW]"
+      ]
+    },
+    {
+      "domain": "Marketplace governance + chrome",
+      "agent_owner": "A9",
+      "files_in_flight": [
+        "apps/marketplace/views.py",
+        "templates/marketplace/app_catalog.html",
+        "templates/marketplace/blueprint_marketplace.html",
+        "templates/marketplace/compatibility_matrix.html",
+        "templates/marketplace/governance_console.html",
+        "templates/marketplace/installation_health.html",
+        "templates/marketplace/sandbox_inspector.html",
+        "templates/marketplace/partials/marketplace_hub_links.html [NEW]",
+        "static/css/marketplace-app-catalog.css",
+        "scripts/verify_marketplace_cp_compact_contract.py [NEW]"
+      ]
+    },
+    {
+      "domain": "Platform chrome + control plane premium",
+      "agent_owner": "A3",
+      "files_in_flight": [
+        "static/css/rmc-platform-chrome-layout.css [NEW]",
+        "static/css/rmc-platform-chrome-premium.css [NEW]",
+        "static/css/rmc-cp-compact-surface.css [NEW]",
+        "static/js/rmc-cp-chrome-offset.js [NEW]",
+        "static/js/rmc-cp-chrome-scroll-polish.js [NEW]",
+        "templates/partials/rmc_platform_chrome_scripts.html [NEW]",
+        "templates/partials/rmc_platform_chrome_styles.html [NEW]",
+        "scripts/verify_platform_chrome_shell_coverage.py [NEW]",
+        "scripts/verify_platform_chrome_sweep.py [NEW]"
+      ]
+    },
+    {
+      "domain": "Marketing v3 surface + analytics",
+      "agent_owner": "A2",
+      "files_in_flight": [
+        "apps/schools/marketing_views.py",
+        "apps/schools/marketing_v3_surfaces.py",
+        "apps/schools/super_views_create_school_wizard.py",
+        "apps/schools/super_views_dashboard_surfaces.py",
+        "apps/schools/super_views_helpers.py",
+        "apps/schools/super_views_provisioning.py",
+        "apps/schools/tasks.py",
+        "apps/schools/templatetags/marketing_public_urls.py",
+        "apps/schools/tests/test_marketing_*.py (8 files)",
+        "apps/schools/tests/test_super_admin_surface_parity.py",
+        "apps/schools/tests/test_tenant_isolation_and_provisioning.py",
+        "config/marketing_content/contact.json",
+        "templates/marketing/* (16 files)",
+        "templates/marketing/components/* (4 files)"
+      ]
+    },
+    {
+      "domain": "i18n locale catalog refresh",
+      "agent_owner": "A8",
+      "files_in_flight": [
+        "locale/ar/LC_MESSAGES/django.po",
+        "locale/de/LC_MESSAGES/django.po",
+        "locale/en/LC_MESSAGES/django.{mo,po}",
+        "locale/es/LC_MESSAGES/django.po",
+        "locale/fa/LC_MESSAGES/django.po",
+        "locale/fr/LC_MESSAGES/django.po",
+        "locale/ha/LC_MESSAGES/django.po",
+        "locale/he/LC_MESSAGES/django.po",
+        "locale/hi/LC_MESSAGES/django.po",
+        "locale/it/LC_MESSAGES/django.po",
+        "locale/ja/LC_MESSAGES/django.po",
+        "locale/pid/LC_MESSAGES/django.po",
+        "locale/pt_BR/LC_MESSAGES/django.po",
+        "locale/ru/LC_MESSAGES/django.po",
+        "locale/sw/LC_MESSAGES/django.po",
+        "locale/tr/LC_MESSAGES/django.po",
+        "locale/ur/LC_MESSAGES/django.po",
+        "locale/yo/LC_MESSAGES/django.po",
+        "locale/zh_Hans/LC_MESSAGES/django.po",
+        "locale/zh_Hant/LC_MESSAGES/django.po"
+      ]
+    }
+  ],
+  "stale_claim_register": [
+    {
+      "sot_claim": "live Ollama on deploy host (external)",
+      "evidence_file": "docs/AI_DEPLOYMENT_POSTURE.md",
+      "evidence_state": "current",
+      "verdict": "Stale framing. New direction (per user 2026-05-20): cloud-first via LiteLLM proxy on Render; Ollama is explicitly NOT for primary inference on Render dynos; only edge LAN hubs run Ollama. The 'live Ollama' residual is reclassified as 'edge profile only — not a Render blocker'."
+    },
+    {
+      "sot_claim": "Playwright tenant studio sweep optional",
+      "evidence_file": "tests/e2e/tenant-school-studio.spec.js",
+      "evidence_state": "current",
+      "verdict": "Optional in batch 1369; required-on-CI in batch 1370 if tests/e2e/tenant-school-studio.spec.js passes locally."
+    },
+    {
+      "sot_claim": "full RAG index beat optional",
+      "evidence_file": "services/embeddings.py",
+      "evidence_state": "current",
+      "verdict": "RAG index beat remains optional. Cloud AI direction does not change this; embeddings backend is pluggable via AI_EMBEDDING_BACKEND."
+    }
+  ],
+  "structurally_weak_sections": [
+    {
+      "section": "AI Center health surface vs cloud posture",
+      "why": "AI Center UI references 'posture_mode' with values {live_cloud, live_local, guided, unavailable}. Need to verify the live_cloud branch is wired and a probe artifact captured.",
+      "severity": "med",
+      "owner_agent": "A4"
+    },
+    {
+      "section": "Migration Cloud counsel-activate MAA flip",
+      "why": "v3.39 ships counsel-pending purge gate with HMAC token; new file views_maa_counsel_activate.py adds activation flow. Need verification activation is gated behind the same counsel token and emits audit event.",
+      "severity": "med",
+      "owner_agent": "A5"
+    },
+    {
+      "section": "315 dirty files unanchored to a batch ID",
+      "why": "Without a batch 1370 SOT entry, the in-flight work is invisible to operators and CI doesn't know what target verdict applies.",
+      "severity": "high",
+      "owner_agent": "A0"
+    },
+    {
+      "section": "support_copilot.html (IDE-opened) wiring",
+      "why": "IDE-opened file is in templates/customersuccess. Verify it has live route, tenant isolation, and renders the cloud-AI guided fallback path correctly.",
+      "severity": "med",
+      "owner_agent": "A8"
+    }
+  ],
+  "external_blockers": [
+    {
+      "item": "MAA v2.0 counsel signoff PDF",
+      "external_action_required": "External counsel produces signed PDF authorizing flip of MIGRATION_CLOUD_MAA_DEFAULT_VERSION from v1.0 to v2.0. Plumbing already in repo (apps/migration_cloud/views_maa_counsel_activate.py); flip is a one-config-change after the signoff lands.",
+      "expected_resolution_date": null
+    },
+    {
+      "item": "FACTS / Skyward write-path counsel signoff",
+      "external_action_required": "External counsel answers CFAA / DMCA §1201 / state computer-trespass / Power Ventures / Sony Betamax questions. Until signed, FACTS and Skyward write paths remain // honest-stub: with no feature-flag workaround.",
+      "expected_resolution_date": null
+    },
+    {
+      "item": "Webhook verifier SDK 1.0.0 graduation",
+      "external_action_required": "90-day field-test window expires 2026-08-17 (90 days from v3.38 ship 2026-05-19). SDK auto-graduates 0.x → 1.0.0 after that.",
+      "expected_resolution_date": "2026-08-17"
+    },
+    {
+      "item": "Render deploy of batch 1370",
+      "external_action_required": "Operator runs `git commit`/`git push` then triggers Render deploy with RMC_DEPLOYMENT_PROFILE=online + LITELLM_PROXY_URL + LITELLM_API_KEY + LITELLM_MODEL set in Render dashboard secrets. Post-deploy: `python manage.py migrate` + `python manage.py seed_global_weather_locations` + optional offline bundle apply.",
+      "expected_resolution_date": null
+    }
+  ],
+  "validation": {
+    "schema_version": "1.0",
+    "verdict": "PHASE_0_GATE_PASS"
+  }
+}

@@ -4,6 +4,10 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
+{# v3.54.0 (2026-05-21): Experience-scoped layout-safety + workbench polish.
+   Scope: ONLY Experience workspace. Layered above shared studio-mode-rail.css
+   so Output/Automation/Launch are not perturbed. #}
+<link rel="stylesheet" href="{% static 'css/studio-experience-mode.css' %}">
 {% endblock %}
 
 {% block studio_canvas %}
@@ -11,6 +15,7 @@
   <div id="studio-experience-hero">
     {% include "studio_os/partials/_mode_hero.html" with mode_label=_("Experience") mode_purpose=_("Brand identity, theme packs, layout. Changes propagate through the configurability cascade so the tenant brand wins.") primary_cta_url=legacy_urls.theme_colors primary_cta_label=_("Theme & colors") secondary_cta_url=legacy_urls.customizer secondary_cta_label=_("Customizer") %}
   </div>
+  {% include "studio_os/partials/studio_guidance_panel.html" %}
   {% include "studio_os/partials/studio_experience_mode_body.html" %}
 </section>
 {% endblock %}

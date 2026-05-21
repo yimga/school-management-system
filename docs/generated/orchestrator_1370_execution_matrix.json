@@ -1,0 +1,120 @@
+{
+  "generated_at_utc": "2026-05-20T21:30:00Z",
+  "orchestrator_run_id": "rmc-orch-1370-2026-05-20",
+  "target_batch_id": "1370",
+  "target_batch_title": "Cloud-first AI posture closeout + 11-domain certification",
+  "execution_mode": "in_tree_audit_and_close",
+  "execution_mode_rationale": "315 dirty files contain in-flight batch 1370 work. Worktree isolation would orphan it. Agents work directly on main tree, constrained by strict non-overlapping owned_paths matrix below.",
+  "file_ownership_validation": "no overlap detected — every dirty file mapped to exactly one agent; preserve list paths are off-limits to all agents",
+  "preserve_list_locked": true,
+  "max_reruns_per_agent": 3,
+  "ship_floor_agents_at_ready_or_external": 10,
+  "agents": [
+    {
+      "agent_id": "A0",
+      "domain": "SOT + log truth validator + orchestrator artifacts",
+      "owned_paths": ["docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md", "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md", "docs/generated/orchestrator_1370_*"],
+      "status": "in_progress",
+      "verdict": null
+    },
+    {
+      "agent_id": "A1",
+      "domain": "Security + Tenant Isolation + RLS + Auth boundaries",
+      "owned_paths": ["docs/generated/security_*", "docs/generated/tenant_isolation_*"],
+      "required_verifiers": ["scripts/audit_security_surface.py", "scripts/audit_tenant_isolation.py", "scripts/scan_tenant_queryset_safety.py", "scripts/scan_pii_logging_smell.py"],
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A2",
+      "domain": "Routes + Actions + Navigation + Marketing surface",
+      "owned_paths": ["apps/schools/marketing_*", "apps/schools/super_views_*", "config/urls.py", "config/tenant_urls.py", "config/public_urls.py", "templates/marketing/**", "static/marketing/css/**"],
+      "required_tests": ["apps.schools.tests.test_marketing_v3_phases", "apps.schools.tests.test_marketing_nav_contract"],
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A3",
+      "domain": "Studio OS + Tenant Studio + Theme dual-plane + Platform chrome",
+      "owned_paths": ["apps/studio_os/**", "apps/siteconfig/theme_builder*", "apps/siteconfig/tenant_studio_hub_context.py", "apps/siteconfig/views_tenant_studio_hub.py", "apps/siteconfig/views_theme_*", "apps/platform_runtime/tenant_onboarding_operator_direction.py", "apps/schools/tenant_studio_guidance.py", "apps/schools/school_brand_assets.py", "apps/schools/super_views_create_school_wizard.py", "templates/studio_os/**", "templates/siteconfig/**", "static/css/rmc-platform-chrome-*", "static/css/theme-experience-premium.css", "static/css/studio-guidance.css", "static/css/tenant-studio-wizard.css", "static/js/rmc-cp-chrome-*", "static/js/theme-builder-canvas.js", "static/js/service-worker.js"],
+      "required_tests": ["apps.siteconfig.tests.test_theme_experience_plane_isolation", "apps.siteconfig.tests.test_tenant_studio_hub_context", "apps.siteconfig.tests.test_tenant_studio_operating_system", "apps.platform_runtime.tests.test_tenant_onboarding_operator_direction", "apps.studio_os.tests.test_studio_guidance", "apps.schools.tests.test_tenant_studio_wizard_brand"],
+      "required_verifiers": ["scripts/verify_theme_experience_plane_isolation.py", "scripts/verify_dual_plane_theme_experience.py", "scripts/verify_studio_guidance_contract.py", "scripts/verify_platform_chrome_shell_coverage.py"],
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A4",
+      "domain": "API Center + AI Center + Cloud-first AI deployment posture (LITELLM via Render)",
+      "owned_paths": ["services/ai_*.py", "services/ollama_runtime.py", "services/embeddings.py", "services/inference.py", "apps/portal/ai_provider.py", "apps/portal/views_ai_*.py", "apps/portal/tests/test_ai_*.py", "apps/portal/tests/test_ollama_*.py", "apps/siteconfig/views_ai_center.py", "apps/siteconfig/ai_assistants.py", "apps/platform_runtime/tests/test_ai_deployment_posture.py", "scripts/verify_render_online_ai_posture.py", "scripts/verify_online_edge_dual_mode.py", "scripts/ensure_ollama_always_on.py", "scripts/verify_ollama_live.py", "docs/AI_DEPLOYMENT_POSTURE.md", "docs/LOCAL_HUB_MODE.md", "docs/OLLAMA_OPERATIONS_AND_UPDATES.md"],
+      "forbidden": ["ai/Modelfile [preserve]", "apps/apicenter/ [preserve]", "services/ai_helpers.py [preserve]"],
+      "required_tests": ["apps.platform_runtime.tests.test_ai_deployment_posture", "apps.portal.tests.test_ai_provider", "apps.portal.tests.test_ai_guided_fallback_intelligent", "apps.portal.tests.test_ollama_runtime", "apps.siteconfig.tests.test_ai_center", "services.tests.test_ai_gateway"],
+      "required_verifiers": ["scripts/verify_render_online_ai_posture.py", "scripts/verify_online_edge_dual_mode.py", "scripts/scan_ai_gateway_boundary.py"],
+      "ai_direction_pin": {
+        "default_profile": "online",
+        "primary_tier": "litellm",
+        "ollama_role": "edge LAN hub only (not Render dyno)",
+        "user_directive_2026_05_20": "Cloud-first via LITELLM. Live Ollama on Render is explicitly NOT a blocker — it is edge-only per docs/AI_DEPLOYMENT_POSTURE.md."
+      },
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A5",
+      "domain": "Migration Cloud (MAA counsel activation + retention purge + audit chain)",
+      "owned_paths": ["apps/migration_cloud/**", "templates/migration_cloud/**", "docs/MIGRATION_CLOUD_DATA_RETENTION.md", "scripts/fix_migration_cloud_template_comments.py"],
+      "forbidden": ["apps/migration_cloud/services/canonical_csv.py [preserve]", "companion-extension/ [preserve, outside scope]", "docs/COMPANION_SIBLINGS.md [preserve]", "docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md [preserve]"],
+      "required_tests": ["apps.migration_cloud.tests.test_maa_counsel_activate", "apps.migration_cloud.tests.test_retention_purge", "apps.migration_cloud.tests.test_throttle_saturation"],
+      "binding_constraints": {
+        "no_programmatic_sis_login": "Verbatim from feedback memory [[feedback-companion-siblings-no-programmatic-sis-login]]. Vendor extraction lives in companion-extension/ ONLY. Tauri/Docker = RMC handshake + canonical-CSV file ingest only.",
+        "facts_skyward_write_path": "Counsel-blocked per docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md. No feature flag workaround.",
+        "no_mfa_bypass": "No MFA/CAPTCHA/paywall bypass.",
+        "no_credential_logging": "No vendor passwords, tokens, signature_text, session cookies in logs/prompts/artifacts."
+      },
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A6",
+      "domain": "Finance + Billing + Marketplace monetization",
+      "owned_paths": ["apps/finance/**", "apps/billing/**", "apps/payroll/**", "payment/**"],
+      "audit_only_this_run": true,
+      "rationale": "No dirty files in this domain. Audit-only confirms ledger integrity unchanged.",
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A7",
+      "domain": "Academics + People + Reports + Communication",
+      "owned_paths": ["apps/academics/**", "apps/people/**", "apps/reports/**", "apps/communication/**", "apps/student360/**", "apps/evals/**", "apps/schoolops/**"],
+      "audit_only_this_run": true,
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A8",
+      "domain": "Feedback + Help + Support + Customer Success + i18n locale catalog",
+      "owned_paths": ["apps/feedback/**", "apps/customersuccess/**", "apps/siteconfig/models_support.py", "templates/customersuccess/**", "templates/feedback/**", "locale/**/LC_MESSAGES/django.{po,mo}", "docs/marketing_front_page_management.md"],
+      "ide_opened_file_focus": "templates/customersuccess/support_copilot.html",
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A9",
+      "domain": "Marketplace governance + Blueprints + Packs + Runtime governance",
+      "owned_paths": ["apps/marketplace/views.py", "apps/runtime_blueprints/**", "apps/integrations_marketplace/**", "apps/packages/**", "apps/orchestration/**", "templates/marketplace/**", "static/css/marketplace-app-catalog.css", "scripts/verify_marketplace_cp_compact_contract.py"],
+      "required_verifiers": ["scripts/verify_marketplace_cp_compact_contract.py"],
+      "status": "pending",
+      "verdict": null
+    },
+    {
+      "agent_id": "A10",
+      "domain": "First School Operating Proof + Final 10X Certification + Architecture scorecard",
+      "owned_paths": ["docs/generated/first_school_operating_proof_readiness.{json,md}", "docs/generated/role_permission_experience_matrix.{json,md}", "docs/generated/public_to_product_promise_matrix.{json,md}", "docs/generated/no_placeholder_audit.{json,md}", "docs/generated/emotional_ux_confidence_audit.{json,md}", "docs/generated/architecture_certification_scorecard.{json,md}", "docs/generated/ten_x_platform_certification.{json,md}"],
+      "runs_last": true,
+      "status": "pending",
+      "verdict": null
+    }
+  ],
+  "file_ownership_overlap_check": {"overlaps_detected": [], "result": "no overlap detected"},
+  "phase_1_verdict": "PHASE_1_GATE_PASS"
+}

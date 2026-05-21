@@ -1,0 +1,29 @@
+# Tenant Studio Simple Operating System Rebuild
+
+Generated: 2026-05-21T00:32:59+00:00
+
+
+```json
+{
+  "generated_at": "2026-05-21T00:32:59+00:00",
+  "launch_path": [
+    "Start setup",
+    "Complete essentials",
+    "Import data",
+    "Configure operations",
+    "Review readiness",
+    "Launch school"
+  ],
+  "hub_url_name": "school_studio",
+  "preserved": [
+    "super/create wizard",
+    "siteconfig/onboarding data-driven steps",
+    "studio_os:/studio/"
+  ],
+  "rebuilt_this_pass": [
+    "school/studio hub",
+    "operator direction model",
+    "onboarding cross-link"
+  ]
+}
+```

@@ -1,46 +1,9 @@
 /**
- * Control-plane app catalog — paginated, friendly browse (manager.runmycampus.com/super/marketplace/apps/)
+ * Control-plane app catalog — paginated browse (extends rmc-cp-compact-surface.css)
  */
 
 .rmc-mkt-catalog {
-  --rmc-mkt-catalog-sticky-top: 4.25rem;
-}
-
-.rmc-mkt-catalog__fold-nav {
-  position: sticky;
-  top: var(--rmc-mkt-catalog-sticky-top);
-  z-index: 1020;
-  padding: 0.35rem 0;
-  margin-bottom: 0.75rem;
-  background: color-mix(in oklab, var(--surface-canvas, #0a0a0f) 92%, transparent);
-  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-}
-
-.rmc-mkt-catalog__glance {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 0.65rem;
-  margin-bottom: 1rem;
-}
-
-.rmc-mkt-catalog__stat {
-  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.1));
-  border-radius: 0.65rem;
-  padding: 0.65rem 0.75rem;
-  background: var(--surface-elevated, rgba(255, 255, 255, 0.04));
-}
-
-.rmc-mkt-catalog__stat strong {
-  display: block;
-  font-size: 1.25rem;
-  line-height: 1.2;
-}
-
-.rmc-mkt-catalog__stat span {
-  font-size: 0.75rem;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.65));
+  --rmc-mkt-catalog-sticky-top: var(--rmc-cp-compact-sticky-top, 4.25rem);
 }
 
 .rmc-mkt-catalog__install-bar {

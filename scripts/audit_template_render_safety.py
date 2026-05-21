@@ -292,7 +292,7 @@ def audit() -> int:
             total_findings += len(findings)
             for _, msg in findings:
                 # Group by issue type prefix
-                key = msg.split("`", 2)[-1][:40] if "`" in msg else msg[:40]
+                msg.split("`", 2)[-1][:40] if "`" in msg else msg[:40]
                 by_class[msg.split(" ")[0]] += 1
 
     # Report

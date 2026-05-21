@@ -1,0 +1,81 @@
+{
+  "generated_at_utc": "2026-05-21T06:50:00Z",
+  "agent_id": "R2",
+  "batch_id": "1372",
+  "wave_slug": "studio-os-copilot-rail-persistent-ai-v3.53.1-2026-05-21",
+  "files_created": [
+    "apps/studio_os/copilot_rail_service.py",
+    "apps/studio_os/views_copilot_rail.py",
+    "apps/studio_os/tests/test_copilot_rail_service.py",
+    "apps/studio_os/tests/test_copilot_rail_views.py",
+    "static/css/rmc-copilot-rail.css",
+    "static/js/rmc-copilot-rail.js",
+    "scripts/verify_copilot_rail_contract.py",
+    "docs/generated/copilot_rail_persistent_ai_certification.json"
+  ],
+  "files_modified": [
+    "apps/studio_os/urls.py",
+    "templates/studio_os/partials/cockpit_copilot_rail.html",
+    "templates/studio_os/shell.html"
+  ],
+  "tests_run": 26,
+  "tests_passed": 26,
+  "ai_boundary_proof": {
+    "import_used": "from services.ai_helpers import invoke_with_request",
+    "direct_gateway_import": false,
+    "scanner_result": "scan_ai_gateway_boundary.py -> 0 violations",
+    "rail_service_quote": "from services.ai_helpers import invoke_with_request  # apps/studio_os/copilot_rail_service.py:44"
+  },
+  "tenant_isolation_proof": {
+    "school_slug_hashed_before_log": true,
+    "hash_alg": "sha256[:8] hex",
+    "cross_tenant_leak_detector_active": true,
+    "cross_tenant_test_passes": "test_cross_tenant_leak_in_cloud_response_falls_back",
+    "no_pii_log_test": "test_logger_does_not_emit_raw_slug (assertLogs asserts raw 'secretslug' never appears in DEBUG log output)",
+    "tenant_queryset_scanner": "scan_tenant_queryset_safety.py -> 0 violations"
+  },
+  "graceful_degradation_proof": {
+    "posture_unavailable_short_circuits_to_rules": true,
+    "gateway_none_returns_rules": true,
+    "unparseable_cloud_response_falls_back_to_rules": true,
+    "view_layer_500_returns_200_with_empty_arrays": true,
+    "js_fetch_failure_keeps_server_rendered_fallback": true,
+    "armed_attribute_synchronous": "data-rmc-copilot-rail-armed set at parse time before any DOMContentLoaded handler"
+  },
+  "cloud_first_proof": {
+    "ollama_assumed": false,
+    "rail_service_picks_backend": false,
+    "posture_resolved_via": "apps.portal.ai_provider.probe_ai_provider_reachable (allowlisted infrastructure)",
+    "rail_only_surfaces_provider_choice": true
+  },
+  "scanner_state_after": {
+    "scan_ai_gateway_boundary": 0,
+    "scan_tenant_queryset_safety": 0,
+    "scan_pii_logging_smell": 0,
+    "scan_reveal_armed_invariants": 0,
+    "scan_off_token_colors": 0,
+    "scan_theme_locked_token_text": 0,
+    "verify_copilot_rail_contract": "PASS"
+  },
+  "preserve_list_touched": false,
+  "preserve_list": [
+    "ai/Modelfile",
+    "services/ai_gateway.py",
+    "services/ai_helpers.py",
+    "apps/apicenter/",
+    "apps/schools/super_views_create_school_wizard.py"
+  ],
+  "endpoints_added": [
+    {
+      "name": "studio_os:copilot_rail_context",
+      "path": "/studio/copilot/rail/context/",
+      "view": "CopilotRailContextView"
+    },
+    {
+      "name": "studio_os:copilot_rail_insights",
+      "path": "/studio/copilot/rail/insights/",
+      "view": "CopilotRailInsightsRefreshView"
+    }
+  ],
+  "verdict": "READY"
+}

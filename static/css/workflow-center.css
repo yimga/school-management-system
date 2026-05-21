@@ -1,6 +1,10 @@
 /* Workflow Center — shared by backend full page and Studio embed (accounts/workflow_center*.html). */
 .workflow-hero {
-  background: linear-gradient(135deg, var(--workflow-hero-bg-start, rgba(102, 126, 234, 0.14)), var(--workflow-hero-bg-end, rgba(118, 75, 162, 0.12)));
+  background: linear-gradient(
+    135deg,
+    var(--workflow-hero-bg-start, var(--portal-brand-mix-14)),
+    var(--workflow-hero-bg-end, var(--portal-brand-mix-12-accent))
+  );
   border: 1px solid var(--workflow-hero-border, rgba(168, 160, 146, 0.22));
   border-radius: 18px;
   padding: 1.25rem 1.25rem;

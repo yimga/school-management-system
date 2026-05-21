@@ -1,11 +1,18 @@
 {% load i18n %}
+{% comment %}
+  v3.54.0 (2026-05-21): Next-realm Launch — canvas dispatch.
+  Wraps each pane in .rmc-launch-canvas (min-width:0) so the workspace
+  flex/grid children cannot blow out narrow viewports. Existing pane
+  semantics + iframe fallback preserved verbatim.
+{% endcomment %}
+<div class="rmc-launch-canvas">
 {% if launch_pane == 'overview' and launch_payload %}
   {% include "studio_os/partials/launch_studio_overview_body.html" %}
 {% elif launch_pane == 'plan' %}
   {% include "studio_os/partials/launch_select_plan_body.html" %}
 {% elif launch_pane == 'overview' and not launch_payload %}
-<div class="studio-os__card">
-  <h2 class="h5 mb-2">{% trans "Launch" %}</h2>
+<div class="studio-os__card rmc-launch-empty" role="status">
+  <h2 class="h5 mb-2 rmc-launch-empty__title">{% trans "Launch" %}</h2>
   <p class="small text-muted mb-3">{% trans "Select a school context for setup health and checklists, or open guided onboarding." %}</p>
   <div class="d-flex flex-wrap gap-2">
     {% if legacy_urls.guided_onboarding %}<a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm">{% trans "Guided onboarding" %}</a>{% endif %}
@@ -24,8 +31,9 @@
 <iframe id="studio-launch-iframe" class="studio-os-iframe" title="{% trans 'Launch' %}"
         src="{{ launch_iframe_src }}"></iframe>
 {% else %}
-<div class="studio-os__card">
+<div class="studio-os__card rmc-launch-empty" role="status">
   <p class="text-muted mb-2">{% trans "This launch pane could not be loaded." %}</p>
   {% if legacy_urls.guided_onboarding %}<a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-primary btn-sm">{% trans "Guided onboarding" %}</a>{% endif %}
 </div>
 {% endif %}
+</div>

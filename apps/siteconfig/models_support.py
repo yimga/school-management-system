@@ -242,6 +242,7 @@ def default_backend_feature_flags():
         "enable_ai_help_assistant": True,
         "help_telemetry_retention_days": 365,
         "kb_search_synonyms": {},
+        "enable_offline_mode": True,
         "enable_offline_form_queue": True,
         "enable_offline_attendance_sync": True,
         "enable_offline_grade_sync": True,

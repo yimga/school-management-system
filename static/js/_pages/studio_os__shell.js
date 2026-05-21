@@ -153,3 +153,31 @@
     }
   });
 })();
+
+// v3.54.0 (2026-05-21): Shared data-rmc-confirm handler.
+// Studio OS destructive surfaces (Automation activate/replay/rollback, Control rollback,
+// Launch apply, Output publish-irreversible) wire confirmation prompts by setting
+// data-rmc-confirm="<message>" on the trigger element. This delegated listener fires
+// before the element's own click handler / form submit / link navigation, so user
+// cancellation reliably stops the action. The message is read as plain text — never
+// rendered as HTML — so callers cannot inject markup through this path.
+(function() {
+  if (typeof document === "undefined") { return; }
+  document.addEventListener("click", function(ev) {
+    var target = ev.target;
+    while (target && target !== document) {
+      if (target.nodeType === 1 && target.hasAttribute && target.hasAttribute("data-rmc-confirm")) {
+        var msg = target.getAttribute("data-rmc-confirm") || "Are you sure?";
+        if (!window.confirm(msg)) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (typeof ev.stopImmediatePropagation === "function") {
+            ev.stopImmediatePropagation();
+          }
+        }
+        return;
+      }
+      target = target.parentNode;
+    }
+  }, true);
+})();

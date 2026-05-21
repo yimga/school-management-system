@@ -4,6 +4,8 @@ This document tracks completion of the Resilient Edge plan and related OFFLINE_M
 
 **Sign-off:** See [RESILIENT_EDGE_COMPLETION_CHECKLIST.md](RESILIENT_EDGE_COMPLETION_CHECKLIST.md) for a one-page verification checklist.
 
+**Dual deployment (2026-05-20):** Online (Render) + edge (LAN hub) operator runbook: [LOCAL_HUB_MODE.md](LOCAL_HUB_MODE.md). Mechanical gate: `python scripts/verify_online_edge_dual_mode.py`. Bundle apply: `python manage.py apply_offline_mode_bundle`.
+
 ---
 
 ## Completed – Core (Section 5 and Section 3)

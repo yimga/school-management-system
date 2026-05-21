@@ -4,204 +4,212 @@
 {% load region_format %}
 {% load phase8_tags %}
 
-{% block cp_title %}Marketplace Governance{% endblock %}
+{% block cp_title %}{% trans "Marketplace governance" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="catalog" data-decision-engine="surface">
+<div
+  class="container-fluid py-4 control-plane-shell rmc-cp-compact"
+  data-page-archetype="catalog"
+  data-decision-engine="surface"
+  data-ux-qa-marker="marketplace-governance"
+  data-rmc-scroll-policy="paginate"
+>
 {% phase8_dashboard_declaration "marketplace/governance_console.html" %}
-  <section class="cp-hero cp-hero-compact mb-4">
-    <div class="cp-hero-grid">
-      <div>
-        <div class="cp-eyebrow">RunMyCampus Manager</div>
-        <h1 class="cp-hero-title">Marketplace governance</h1>
-        <p class="cp-hero-copy">
-          Govern publishers, listing approvals, security reviews, kill switches, and revenue-share obligations from one control-plane surface.
-        </p>
-        <div class="cp-chip-row">
-          <span class="cp-chip">Publishers {{ metrics.publishers_total }}</span>
-          <span class="cp-chip">Approved listings {{ metrics.approved_listings }}</span>
-          <span class="cp-chip">Pending reviews {{ pending_reviews|length }}</span>
-          <span class="cp-chip">Kill switches {{ metrics.kill_switch_apps }}</span>
-        </div>
-        {% if catalog_counts %}
-        <div class="cp-chip-row mt-2">
-          <span class="cp-chip">First-party apps {{ catalog_counts.first_party_apps|default:0 }}</span>
-          <span class="cp-chip">Blueprint packs {{ catalog_counts.blueprint_packs|default:0 }}</span>
-          <span class="cp-chip">Workflow packs {{ catalog_counts.workflow_packs|default:0 }}</span>
-          <span class="cp-chip">Dashboard packs {{ catalog_counts.dashboard_packs|default:0 }}</span>
-          <span class="cp-chip">Policy bundles {{ catalog_counts.policy_bundles|default:0 }}</span>
-        </div>
-        {% endif %}
+
+  {% url 'super:app_catalog' as app_catalog_url %}
+  {% include "components/world_class_page_hero.html" with hero_id="marketplace-governance-title" role=_("Platform marketplace operators") title=_("Marketplace governance") subtitle=_("Publishers, listing reviews, security posture, kill switches, and revenue share — paginated queues so the console stays within page-fold limits.") purpose=_("Marketplace governance") status=_("Governed") primary_url="#gov-queues" primary_label=_("Review queues") secondary_url=app_catalog_url secondary_label=_("App catalog") visual_title=_("Contain blast radius") visual_body=_("Approve listings, triage payouts, and flip kill switches without scrolling through an endless table.") %}
+
+  <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
+    <a class="nav-link" href="#gov-glance">{% trans "At a glance" %}</a>
+    <a class="nav-link" href="#gov-queues">{% trans "Queues" %}</a>
+    <a class="nav-link" href="#gov-listings">{% trans "Listings" %}</a>
+    <a class="nav-link" href="#gov-guide">{% trans "Operator guide" %}</a>
+  </nav>
+
+  <section id="gov-glance" data-rmc-section-anchor class="rmc-reveal mb-3">
+    {% include "components/world_class_summary_strip.html" with readiness=_("Reviews") readiness_label=_("Pending queue") risk=_("Kill switch") risk_label=_("Blast radius") next_step=_("Payouts") next_step_label=_("Revenue share") blockers=_("Security") blockers_label=_("Third-party") %}
+    <div class="rmc-cp-compact__glance" role="list">
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ metrics.publishers_verified }}</strong>
+        <span>{% trans "verified publishers" %} / {{ metrics.publishers_total }}</span>
       </div>
-      <div class="cp-hero-actions">
-        <div class="cp-action-stack">
-          <div class="cp-hero-stat">
-            <span class="cp-hero-stat-label">Publisher payouts queued</span>
-            <strong class="cp-hero-stat-value">{{ metrics.scheduled_payout_total|format_currency }}</strong>
-            <span class="cp-hero-stat-subtitle">Scheduled revenue-share obligations</span>
-          </div>
-          <div class="cp-action-row">
-            <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">Back to Dashboard</a>
-            <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-light btn-sm">Billing</a>
-          </div>
-        </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ metrics.pending_listings }}</strong>
+        <span>{% trans "pending listings" %}</span>
+      </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ metrics.kill_switch_apps }}</strong>
+        <span>{% trans "kill-switched apps" %}</span>
+      </div>
+      <div class="rmc-cp-compact__stat" role="listitem">
+        <strong>{{ metrics.scheduled_payout_total|format_currency }}</strong>
+        <span>{% trans "publisher payouts queued" %}</span>
       </div>
     </div>
+    {% include "marketplace/partials/marketplace_hub_links.html" %}
+    <details class="studio-os__card studio-os__card--disclosure mb-2 px-3 py-2 mt-2" role="region" aria-labelledby="gov-catalog-counts-heading">
+      <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
+        <span id="gov-catalog-counts-heading" class="fw-semibold small">{% trans "Platform catalog counts" %}</span>
+        <span class="text-muted small">{% trans "First-party, blueprint, workflow, dashboard, and policy inventory." %}</span>
+      </summary>
+      {% if catalog_counts %}
+      <div class="d-flex flex-wrap gap-2 pt-2 pb-1 small">
+        <span class="cp-chip">{% trans "First-party apps" %} {{ catalog_counts.first_party_apps|default:0 }}</span>
+        <span class="cp-chip">{% trans "Blueprint packs" %} {{ catalog_counts.blueprint_packs|default:0 }}</span>
+        <span class="cp-chip">{% trans "Workflow packs" %} {{ catalog_counts.workflow_packs|default:0 }}</span>
+        <span class="cp-chip">{% trans "Dashboard packs" %} {{ catalog_counts.dashboard_packs|default:0 }}</span>
+        <span class="cp-chip">{% trans "Policy bundles" %} {{ catalog_counts.policy_bundles|default:0 }}</span>
+      </div>
+      {% endif %}
+    </details>
+    <details class="studio-os__card studio-os__card--disclosure mb-2 px-3 py-2" role="region" aria-labelledby="gov-ai-advisors-heading">
+      <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
+        <span id="gov-ai-advisors-heading" class="fw-semibold small">{% trans "AI advisors" %}</span>
+        <span class="text-muted small">{% trans "Advisory only — collapsed by default." %}</span>
+      </summary>
+      <div class="row g-3 mt-2">
+        <div class="col-lg-6">
+          {% url 'api:ai-marketplace-recommend' as api_mkt_rec %}
+          {% include "components/ai_json_api_card.html" with api_url=api_mkt_rec card_title=_("Marketplace recommendation (JSON)") card_hint=_('POST {"query":"..."} or {"institution_type":"..."}.') field_id="govMktJson" default_body='{"query":"K-12 district prioritizing SIS interoperability"}' %}
+        </div>
+        <div class="col-lg-6">
+          {% include "components/ai_guided_assistant_card.html" with assistant_key="trust_compliance_assistant" card_title=_("Trust & compliance assistant") card_hint=_("Listing review and obligations — not legal advice.") %}
+        </div>
+      </div>
+    </details>
   </section>
 
-  <div class="cp-overview-grid mb-4">
-    <article class="cp-overview-card cp-overview-card-blue rmc-reveal">
-      <span class="cp-overview-label">Verified publishers</span>
-      <strong class="cp-overview-value">{{ metrics.publishers_verified }}</strong>
-      <span class="cp-overview-meta">{{ metrics.publishers_total|add:"-"|add:metrics.publishers_verified }} still need verification</span>
-    </article>
-    <article class="cp-overview-card cp-overview-card-amber rmc-reveal">
-      <span class="cp-overview-label">Pending listings</span>
-      <strong class="cp-overview-value">{{ metrics.pending_listings }}</strong>
-      <span class="cp-overview-meta">Apps blocked from install until review closes</span>
-    </article>
-    <article class="cp-overview-card cp-overview-card-crimson rmc-reveal">
-      <span class="cp-overview-label">Kill-switched apps</span>
-      <strong class="cp-overview-value">{{ metrics.kill_switch_apps }}</strong>
-      <span class="cp-overview-meta">Immediate blast-radius containment</span>
-    </article>
-    <article class="cp-overview-card cp-overview-card-violet rmc-reveal">
-      <span class="cp-overview-label">Third-party apps</span>
-      <strong class="cp-overview-value">{{ metrics.third_party_apps }}</strong>
-      <span class="cp-overview-meta">{{ metrics.pending_security_reviews }} still awaiting security review</span>
-    </article>
-  </div>
-
-  {# v2.68 Wave A: AI advisors are optional tools, not the operator's main path. Collapse by default to reclaim ~400px above the review queue. #}
-  <details class="studio-os__card studio-os__card--disclosure mb-4 px-3 py-2" role="region" aria-labelledby="gov-ai-advisors-heading">
-    <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
-      <span id="gov-ai-advisors-heading" class="fw-semibold small">{% trans "AI advisors" %}</span>
-      <span class="text-muted small">{% trans "Marketplace recommendations and trust/compliance assistant — advisory only." %}</span>
-    </summary>
-    <div class="row g-3 mt-2">
-      <div class="col-lg-6">
-        {% url 'api:ai-marketplace-recommend' as api_mkt_rec %}
-        {% include "components/ai_json_api_card.html" with api_url=api_mkt_rec card_title=_("Marketplace recommendation (JSON)") card_hint=_('POST {"query":"..."} or {"institution_type":"..."}. Response includes recommendations and rationale (JSON).') field_id="govMktJson" default_body='{"query":"K-12 district prioritizing SIS interoperability and attendance dashboards"}' %}
+  <section id="gov-queues" data-rmc-section-anchor class="rmc-reveal mb-4">
+    <div class="rmc-cp-compact__section-head">
+      <div>
+        <h2 class="h5 mb-1">{% trans "Operational queues" %}</h2>
+        <p class="small text-muted mb-0">{% trans "First eight items per queue; full listings table is paginated below." %}</p>
       </div>
-      <div class="col-lg-6">
-        {% include "components/ai_guided_assistant_card.html" with assistant_key="trust_compliance_assistant" card_title=_("Trust & compliance assistant") card_hint=_("Listing review, security reviews, and obligations — advisory only; not legal advice.") %}
-      </div>
+      <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Billing dashboard" %}</a>
     </div>
-  </details>
-
-  <div class="row g-4">
-    <div class="col-12 col-xxl-5">
-      <section class="cp-panel rmc-reveal">
+    <div class="rmc-cp-compact__queue-grid">
+      <section class="cp-panel">
         <div class="cp-panel-header">
-          <div>
-            <span class="cp-panel-eyebrow">Review queue</span>
-            <h2 class="cp-panel-title">Pending reviews</h2>
-          </div>
+          <span class="cp-panel-eyebrow">{% trans "Review queue" %}</span>
+          <h3 class="cp-panel-title h6 mb-0">{% trans "Pending reviews" %} ({{ queue_stats.pending_reviews_total }})</h3>
         </div>
         <div class="cp-list">
-          {% for review in pending_reviews %}
+          {% for review in pending_reviews_preview %}
           <div class="cp-list-row">
             <div>
               <strong>{{ review.listing.app.name }}</strong>
-              <div class="cp-list-meta">{{ review.review_type|title }} | {{ review.listing.publisher.name|default:"Unassigned publisher" }} | v{{ review.app_version|default:review.listing.app.version }}</div>
+              <div class="cp-list-meta">{{ review.review_type|title }} | {{ review.listing.publisher.name|default:"—" }} | v{{ review.app_version|default:review.listing.app.version }}</div>
             </div>
             <span class="cp-status-badge cp-status-badge-{{ review.status }}">{{ review.status|title }}</span>
           </div>
           {% empty %}
           <div class="py-3 px-2">
-            {% load i18n %}
-            {% include "components/dashboard_empty_state.html" with icon="bi-clipboard-check" title=_("No pending marketplace reviews.") message=_("New reviews will appear when listings are submitted for review.") %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-clipboard-check" title=_("No pending marketplace reviews.") message=_("New reviews appear when listings are submitted.") %}
           </div>
           {% endfor %}
         </div>
       </section>
-
-      <section class="cp-panel mt-4 rmc-reveal">
+      <section class="cp-panel">
         <div class="cp-panel-header">
-          <div>
-            <span class="cp-panel-eyebrow">Payout queue</span>
-            <h2 class="cp-panel-title">Publisher revenue share</h2>
-          </div>
+          <span class="cp-panel-eyebrow">{% trans "Payout queue" %}</span>
+          <h3 class="cp-panel-title h6 mb-0">{% trans "Publisher revenue share" %} ({{ queue_stats.scheduled_payouts_total }})</h3>
         </div>
         <div class="cp-list">
-          {% for payout in scheduled_payouts %}
+          {% for payout in scheduled_payouts_preview %}
           <div class="cp-list-row">
             <div>
               <strong>{{ payout.payee_name }}</strong>
-              <div class="cp-list-meta">{{ payout.status|title }} | {{ payout.processor_code|default:"manual" }} | {{ payout.scheduled_for|date:"Y-m-d H:i" }}</div>
+              <div class="cp-list-meta">{{ payout.status|title }} | {{ payout.scheduled_for|date:"Y-m-d H:i" }}</div>
             </div>
             <span class="cp-status-badge cp-status-badge-{{ payout.status|lower }}">{{ payout.net_amount|format_currency }}</span>
           </div>
           {% empty %}
           <div class="py-3 px-2">
-            {% load i18n %}
             {% url 'super:billing_dashboard' as billing_url %}
-            {% include "components/dashboard_empty_state.html" with icon="bi-cash-stack" title=_("No queued publisher payouts.") message=_("Payouts will appear when revenue share is due.") action_url=billing_url action_text=_("Billing dashboard") %}
+            {% include "components/dashboard_empty_state.html" with icon="bi-cash-stack" title=_("No queued publisher payouts.") message=_("Payouts appear when revenue share is due.") action_url=billing_url action_text=_("Billing dashboard") %}
           </div>
           {% endfor %}
         </div>
       </section>
     </div>
+  </section>
 
-    <div class="col-12 col-xxl-7">
-      <section class="cp-panel rmc-reveal">
-        <div class="cp-panel-header">
-          <div>
-            <span class="cp-panel-eyebrow">Catalog posture</span>
-            <h2 class="cp-panel-title">Listings and installability</h2>
-          </div>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle table-family">
-            <caption class="visually-hidden">{% trans "Listings and installability" %}</caption>
-            <thead>
-              <tr>
-                <th>App</th>
-                <th>Publisher</th>
-                <th>Listing (pipeline)</th>
-                <th>Security</th>
-                <th>Certification</th>
-                <th>Installs</th>
-                <th>Revenue share</th>
-                <th>Kill switch</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for listing in listings %}
-              <tr data-rmc-mkt-gov-listing-row="1">
-                <td>
-                  <strong>{{ listing.app.name }}</strong>
-                  <div class="small text-muted">{{ listing.app.slug }} | {{ listing.app.kind|title }} | v{{ listing.app.version }}</div>
-                </td>
-                <td>{{ listing.publisher.name|default:listing.app.publisher.name|default:"-" }}</td>
-                <td data-rmc-mkt-pipeline="{{ listing.status }}"><span class="cp-status-badge cp-status-badge-{{ listing.status }}">{{ listing.get_status_display }}</span></td>
-                <td><span class="cp-status-badge cp-status-badge-{{ listing.security_review_status }}">{{ listing.security_review_status|title }}</span></td>
-                <td><span class="cp-status-badge cp-status-badge-{{ listing.certification_status }}">{{ listing.certification_status|title }}</span></td>
-                <td>{{ listing.installation_count }}</td>
-                <td>{{ listing.revenue_share_percent }}%</td>
-                <td>{% if listing.kill_switch_active %}<span class="cp-status-badge cp-status-badge-danger">Active</span>{% else %}<span class="cp-status-badge cp-status-badge-success">Off</span>{% endif %}</td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="8" class="p-0">
-                  <div class="py-3 px-2">
-                    {% load i18n %}
-                    {% url 'super:marketplace_governance' as gov_url %}
-                    {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No governed listings yet.") message=_("Seed marketplace apps or add listings in admin.") action_url=gov_url action_text=_("Governance") %}
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
+  <section id="gov-listings" data-rmc-section-anchor class="rmc-reveal mb-3">
+    <div class="rmc-cp-compact__section-head">
+      <div>
+        <h2 class="h5 mb-1">{% trans "Listings and installability" %}</h2>
+        <p class="small text-muted mb-0">
+          {% blocktrans with shown=listings|length total=page_obj.paginator.count page=page_obj.number pages=page_obj.paginator.num_pages %}
+          Showing {{ shown }} of {{ total }} listings (page {{ page }} of {{ pages }}).
+          {% endblocktrans %}
+        </p>
+      </div>
     </div>
-  </div>
+    <div class="table-responsive rmc-cp-compact__table-wrap">
+      <table class="table table-sm align-middle table-family rmc-data-table">
+        <caption class="visually-hidden">{% trans "Listings and installability" %}</caption>
+        <thead>
+          <tr>
+            <th>{% trans "App" %}</th>
+            <th>{% trans "Publisher" %}</th>
+            <th>{% trans "Listing" %}</th>
+            <th>{% trans "Security" %}</th>
+            <th>{% trans "Certification" %}</th>
+            <th>{% trans "Installs" %}</th>
+            <th>{% trans "Rev. share" %}</th>
+            <th>{% trans "Kill switch" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for listing in listings %}
+          <tr data-rmc-mkt-gov-listing-row="1">
+            <td>
+              <strong>{{ listing.app.name }}</strong>
+              <div class="small text-muted">{{ listing.app.slug }} | {{ listing.app.kind|title }}</div>
+            </td>
+            <td>{{ listing.publisher.name|default:listing.app.publisher.name|default:"—" }}</td>
+            <td data-rmc-mkt-pipeline="{{ listing.status }}"><span class="cp-status-badge cp-status-badge-{{ listing.status }}">{{ listing.get_status_display }}</span></td>
+            <td><span class="cp-status-badge cp-status-badge-{{ listing.security_review_status }}">{{ listing.security_review_status|title }}</span></td>
+            <td><span class="cp-status-badge cp-status-badge-{{ listing.certification_status }}">{{ listing.certification_status|title }}</span></td>
+            <td>{{ listing.installation_count }}</td>
+            <td>{{ listing.revenue_share_percent }}%</td>
+            <td>{% if listing.kill_switch_active %}<span class="cp-status-badge cp-status-badge-danger">{% trans "Active" %}</span>{% else %}<span class="cp-status-badge cp-status-badge-success">{% trans "Off" %}</span>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="p-0">
+              <div class="py-3 px-2">
+                {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No governed listings yet.") message=_("Seed marketplace apps or add listings in admin.") %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </section>
+
+  <section id="gov-guide" data-rmc-section-anchor class="rmc-cp-compact__guide rmc-reveal mt-2">
+    <details>
+      <summary>{% trans "How governance fits the install path" %}</summary>
+      <ul class="small text-muted mb-0 mt-2">
+        <li>{% trans "Govern listing approvals, security reviews, kill switches, and revenue-share obligations from this console." %}</li>
+        <li>{% trans "Listings must pass review before tenant installs from the app catalog." %}</li>
+        <li>{% trans "Kill switch immediately blocks new installs without deleting historical audit data." %}</li>
+        <li>{% trans "Revenue-share payouts queue here but settle through billing processors." %}</li>
+      </ul>
+    </details>
+    <details>
+      <summary>{% trans "Related control-plane surfaces" %}</summary>
+      <p class="small text-muted mb-2 mt-2">{% trans "Use the hub links above for sandbox inspection, compatibility matrix, and blueprint packs." %}</p>
+    </details>
+  </section>
 </div>
 {% endblock %}

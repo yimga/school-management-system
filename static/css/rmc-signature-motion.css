@@ -1,0 +1,51 @@
+/* ============================================================
+   RMC Signature Motion (v3.53.0, 2026-05-21)
+   ------------------------------------------------------------
+   Shared motion vocabulary for cockpit + command bar + future
+   luxury surfaces. Defines the four-stage easing system so
+   that every elevated surface animates with the same rhythm.
+
+   Stage 1 (120ms): micro-interactions (hover, focus, kbd press).
+   Stage 2 (200ms): UI state changes (toggle, switch, expand).
+   Stage 3 (360ms): surface reveal (overlay fade-in, drawer).
+   Stage stage (480ms): cinematic transitions (page handoff).
+
+   Tokens are scoped under :root so they cascade through every
+   shell with no duplication. Consumers should reference these
+   via var() rather than inline cubic-bezier() literals (see
+   scan_inline_style_off_token gate).
+   ============================================================ */
+
+:root {
+  /* Signature easing curves — Apple HIG / Linear feel.
+     `in`  is for entry (overlay fades up, palette drops in).
+     `out` is for exit / acceleration (modal closing). */
+  --ease-signature-in: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-signature-out: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-signature-pivot: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Four-stage duration grammar. The repeated `--motion-stage-stage`
+     name is intentional — keeps the four stages parallel as named
+     tokens consumers can reach for at a glance. */
+  --motion-stage-1: 120ms;
+  --motion-stage-2: 200ms;
+  --motion-stage-3: 360ms;
+  --motion-stage-stage: 480ms;
+
+  /* Composed shorthand consumers can drop into transition: */
+  --motion-signature-micro: var(--motion-stage-1) var(--ease-signature-in);
+  --motion-signature-state: var(--motion-stage-2) var(--ease-signature-in);
+  --motion-signature-reveal: var(--motion-stage-3) var(--ease-signature-in);
+  --motion-signature-cinema: var(--motion-stage-stage) var(--ease-signature-in);
+}
+
+/* Reduced-motion honor — collapse every stage to a near-instant
+   step so users with vestibular sensitivity never feel a sweep. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-stage-1: 0.01ms;
+    --motion-stage-2: 0.01ms;
+    --motion-stage-3: 0.01ms;
+    --motion-stage-stage: 0.01ms;
+  }
+}

@@ -1,0 +1,59 @@
+{% load i18n static %}
+<div class="row g-3 rmc-reveal-stagger">
+  <aside class="col-12 col-lg-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">{% trans "Sections" %}</h2>
+        <p class="small text-muted">{% trans "Drag to reorder. Toggle visibility on the canvas." %}</p>
+        <ul id="theme-builder-block-list" class="list-unstyled theme-builder-block-list mb-0" aria-label="{% trans 'Theme sections' %}"></ul>
+      </div>
+    </div>
+  </aside>
+
+  <div class="col-12 col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div class="preview-surface-switch" role="group" aria-label="{% trans 'Effective theme surface' %}">
+            <button type="button" class="preview-surface-btn active" data-preview-surface="light">{% trans "Light" %}</button>
+            <button type="button" class="preview-surface-btn" data-preview-surface="dark">{% trans "Dark" %}</button>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="theme-builder-undo" disabled>{% trans "Undo" %}</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="theme-builder-redo" disabled>{% trans "Redo" %}</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="theme-builder-preview">{% trans "Preview site" %}</button>
+            <button type="button" class="btn btn-primary btn-sm" id="theme-builder-save">{% trans "Save layout" %}</button>
+                <button type="button" class="btn btn-success btn-sm" id="theme-builder-publish">{% trans "Publish" %}</button>
+                <button type="button" class="btn btn-outline-warning btn-sm" id="theme-builder-rollback" title="{% trans 'Restore the previous published snapshot on this plane' %}">{% trans "Rollback" %}</button>
+          </div>
+        </div>
+        <div id="theme-builder-canvas" class="theme-builder-canvas" data-preview-surface="light" aria-live="polite"></div>
+        <div id="theme-builder-status" class="small text-muted mt-2" role="status"></div>
+      </div>
+    </div>
+    {% include "admin/components/theme_preview_section.html" %}
+  </div>
+
+  <aside class="col-12 col-lg-3">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="h6">{% trans "Publish history" %}</h2>
+        <p class="small text-muted">{% trans "Rollback restores the previous publish on this plane only." %}</p>
+        <ul id="theme-builder-publish-log" class="list-unstyled small mb-0 theme-builder-publish-log" aria-live="polite"></ul>
+      </div>
+    </div>
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6">{% trans "Brand tokens" %}</h2>
+        <p class="small text-muted">{% trans "Quick edits sync to the live preview below." %}</p>
+        <div id="theme-builder-contrast-meter" class="theme-builder-contrast-meter" data-ok="true" hidden>
+          <span>{% trans "Primary vs accent" %}</span>
+          <strong id="theme-builder-contrast-value">—</strong>
+        </div>
+        <div id="theme-builder-token-panel" class="theme-builder-token-panel"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+{{ theme_builder_layout_json|json_script:"theme-builder-initial-layout" }}

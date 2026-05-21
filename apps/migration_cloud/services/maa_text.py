@@ -339,7 +339,19 @@ AGREEMENT_VERSIONS: dict[str, str] = {
 # Versions that are DRAFT only — the UI must surface a "preview only"
 # badge and refuse to bind the operator. The platform default
 # (AGREEMENT_VERSION_CURRENT) is NEVER in this set.
+#
+# v3.40.0 Agent 15 — kept as a *static fallback* for backward-compat
+# with callers that ``from apps.migration_cloud.services.maa_text import
+# MAA_TEXT_DRAFT_VERSIONS``. The canonical runtime source of truth is
+# now :func:`get_draft_versions`, which queries
+# ``MAAActiveVersionState`` and elides any version that has been
+# counsel-activated. ``is_draft_version`` already delegates to
+# ``get_draft_versions``, so refusing to sign a DB-flipped-active
+# version proceeds correctly even via the static import path.
 MAA_TEXT_DRAFT_VERSIONS: set[str] = {"v2.0"}
+# Distinct set object (not an alias) so a future caller that mutates
+# the public name can't accidentally lock in a stale fallback.
+_FALLBACK_DRAFT_VERSIONS: set[str] = {"v2.0"}
 
 
 # Convenience exports for tests + admin tools.
@@ -347,9 +359,38 @@ MAA_TEXT_V1_0 = _TEMPLATE_V1
 MAA_TEXT_V2_0 = _TEMPLATE_V2
 
 
+def get_draft_versions() -> set[str]:
+    """Return the runtime draft set, honouring DB-persisted activation state.
+
+    Reads ``MAAActiveVersionState.get_active_version()`` and elides any
+    version that is now ACTIVE from the static fallback set. Defensive
+    against the model being unreadable (fresh DB / mid-migration) — in
+    that case the static ``_FALLBACK_DRAFT_VERSIONS`` is returned.
+
+    The set is recomputed on every call so an operator activation takes
+    effect platform-wide without a worker restart.
+    """
+    candidates = set(_FALLBACK_DRAFT_VERSIONS)
+    try:
+        from apps.migration_cloud.models_maa_state import (
+            MAAActiveVersionState,
+        )
+        active = (MAAActiveVersionState.get_active_version() or "").strip()
+        if active:
+            candidates.discard(active)
+    except Exception:  # noqa: BLE001 — fresh DB / import-cycle
+        # Defensive fallback: the static set is the safe default
+        # (treats v2.0 as DRAFT) so we never serve a draft body as if
+        # it were ACTIVE.
+        return set(_FALLBACK_DRAFT_VERSIONS)
+    return candidates
+
+
 def is_draft_version(version: str) -> bool:
     """Return True when the given version is a draft (preview only)."""
-    return version in MAA_TEXT_DRAFT_VERSIONS
+    return version in get_draft_versions()
+
+
 
 
 # ─── v3.34.0 — promotion plumbing ────────────────────────────────────────
@@ -371,8 +412,9 @@ def _highest_non_draft_version_in_registry() -> str:
     ``AGREEMENT_VERSION_CURRENT`` if the registry is somehow draft-only
     (defence-in-depth — never expected in production).
     """
+    drafts = get_draft_versions()
     candidates = sorted(
-        v for v in AGREEMENT_VERSIONS if v not in MAA_TEXT_DRAFT_VERSIONS
+        v for v in AGREEMENT_VERSIONS if v not in drafts
     )
     if candidates:
         return candidates[-1]
@@ -416,7 +458,7 @@ def resolve_active_version_for_tenant(tenant) -> str:
     # version from MAA_TEXT_DRAFT_VERSIONS BEFORE flipping the env;
     # this branch is the belt-and-suspenders for the misordered
     # operator action.
-    if default_version in MAA_TEXT_DRAFT_VERSIONS:
+    if default_version in get_draft_versions():
         default_version = _highest_non_draft_version_in_registry()
 
     if tenant is None:
@@ -454,7 +496,7 @@ def resolve_preview_version_for_tenant(tenant) -> str | None:
         return None
     if int(tenant_id) not in (int(x) for x in optin_ids):
         return None
-    drafts = sorted(MAA_TEXT_DRAFT_VERSIONS)
+    drafts = sorted(get_draft_versions())
     if not drafts:
         return None
     return drafts[-1]

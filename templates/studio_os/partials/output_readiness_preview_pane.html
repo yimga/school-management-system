@@ -1,0 +1,244 @@
+{% load i18n %}
+{% comment %}
+Studio OS · Output — Readiness preview pane (v3.54.0, 2026-05-21)
+
+Surfaces the "output readiness center" cockpit on top of the per-pane content.
+Reads only existing context vars:
+  - output_dependency_graph       (list[dict])  — get_output_dependency_graph()
+  - output_pack_preview_cards     (list[dict])  — get_output_report_pack_preview_cards()
+  - output_doc_library            (dict|None)   — has .stats when present
+  - output_left_rail              (list[dict])
+  - output_readiness_summary      (dict|None)   — proposed future SOT; honest fallback
+
+When output_readiness_summary is missing we derive counts client-side from
+output_dependency_graph so the cockpit never shows fake data. If the dependency
+graph itself is empty AND the summary is absent we honestly state the service
+is offline — no fabricated values.
+
+Owner: Agent 4 (Output). Only consumes existing vars; views.py is a
+coordinator-task to wire output_readiness_summary as a single SOT.
+{% endcomment %}
+
+{# Derive honest counts via filters; no Python required. #}
+{% with graph=output_dependency_graph|default_if_none:'' summary=output_readiness_summary|default_if_none:'' %}
+{% with packs_total=graph|length %}
+<section class="rmc-output-cockpit"
+         aria-labelledby="rmc-output-cockpit-title"
+         data-rmc-output-cockpit="1">
+  <header class="rmc-output-cockpit__header">
+    <div class="min-w-0">
+      <h2 class="rmc-output-cockpit__title" id="rmc-output-cockpit-title">
+        {% trans "Output readiness" %}
+      </h2>
+      <p class="rmc-output-cockpit__subtitle">
+        {% trans "Live snapshot of report packs, documents, report cards, and credentials your tenant is ready to publish." %}
+      </p>
+    </div>
+    {% if summary %}
+      <span class="rmc-output-cockpit__service-state"
+            data-state="online"
+            title="{% trans 'Readiness service is reporting live counts.' %}">
+        <span class="visually-hidden">{% trans "Service status:" %}</span>
+        {% trans "Live" %}
+      </span>
+    {% elif packs_total %}
+      <span class="rmc-output-cockpit__service-state"
+            data-state="online"
+            title="{% trans 'Counts derived from the active report pack graph.' %}">
+        <span class="visually-hidden">{% trans "Service status:" %}</span>
+        {% trans "Derived" %}
+      </span>
+    {% else %}
+      <span class="rmc-output-cockpit__service-state"
+            data-state="offline"
+            title="{% trans 'Readiness service unavailable — no honest counts to show.' %}">
+        <span class="visually-hidden">{% trans "Service status:" %}</span>
+        {% trans "Readiness service offline" %}
+      </span>
+    {% endif %}
+  </header>
+
+  <ul class="rmc-output-tiles" role="list">
+    {# Reports / packs tile — real source: output_dependency_graph (or summary) #}
+    <li class="rmc-output-tile" data-output-tile="reports">
+      <p class="rmc-output-tile__eyebrow">{% trans "Reports & packs" %}</p>
+      <p class="rmc-output-tile__label">{% trans "Active report packs" %}</p>
+      {% if summary and summary.packs_total is not None %}
+        <p class="rmc-output-tile__count">{{ summary.packs_total }}</p>
+        <p class="rmc-output-tile__meta">
+          {% blocktrans count counter=summary.packs_with_deps|default:0 %}{{ counter }} ready{% plural %}{{ counter }} ready{% endblocktrans %}
+          {% if summary.packs_missing_deps %}
+            · {% blocktrans count counter=summary.packs_missing_deps %}{{ counter }} missing data{% plural %}{{ counter }} missing data{% endblocktrans %}
+          {% endif %}
+        </p>
+      {% elif packs_total %}
+        <p class="rmc-output-tile__count">{{ packs_total }}</p>
+        <p class="rmc-output-tile__meta">{% trans "Derived from active report packs" %}</p>
+      {% else %}
+        <p class="rmc-output-tile__count" data-tone="unknown">—</p>
+        <p class="rmc-output-tile__meta">{% trans "No active packs yet" %}</p>
+      {% endif %}
+      <div class="rmc-output-tile__footer">
+        {% if packs_total %}
+          <span class="rmc-output-status" data-state="ready">{% trans "Ready" %}</span>
+        {% elif summary %}
+          <span class="rmc-output-status" data-state="missing">{% trans "Missing data" %}</span>
+        {% else %}
+          <span class="rmc-output-status" data-state="unknown">{% trans "Unknown" %}</span>
+        {% endif %}
+        <a class="rmc-output-tile__link"
+           href="{% url 'studio_os:output' %}?pane=reports"
+           aria-label="{% trans 'Open report library' %}">
+          {% trans "Open" %}
+        </a>
+      </div>
+    </li>
+
+    {# Documents tile — real source: output_doc_library.stats #}
+    {% if output_doc_library and output_doc_library.stats %}
+    <li class="rmc-output-tile" data-output-tile="documents">
+      <p class="rmc-output-tile__eyebrow">{% trans "Documents" %}</p>
+      <p class="rmc-output-tile__label">{% trans "Library entries" %}</p>
+      <p class="rmc-output-tile__count">{{ output_doc_library.stats.total|default:0 }}</p>
+      <p class="rmc-output-tile__meta">
+        {% if output_doc_library.stats.published %}
+          {% blocktrans count counter=output_doc_library.stats.published %}{{ counter }} published{% plural %}{{ counter }} published{% endblocktrans %}
+        {% else %}
+          {% trans "Counts include drafts and published items" %}
+        {% endif %}
+      </p>
+      <div class="rmc-output-tile__footer">
+        {% if output_doc_library.stats.total %}
+          <span class="rmc-output-status" data-state="ready">{% trans "Ready" %}</span>
+        {% else %}
+          <span class="rmc-output-status" data-state="missing">{% trans "Empty" %}</span>
+        {% endif %}
+        <a class="rmc-output-tile__link"
+           href="{% url 'studio_os:output' %}?pane=documents"
+           aria-label="{% trans 'Open document library' %}">
+          {% trans "Open" %}
+        </a>
+      </div>
+    </li>
+    {% else %}
+    <li class="rmc-output-tile" data-output-tile="documents">
+      <p class="rmc-output-tile__eyebrow">{% trans "Documents" %}</p>
+      <p class="rmc-output-tile__label">{% trans "Library entries" %}</p>
+      <p class="rmc-output-tile__count" data-tone="unknown">—</p>
+      <p class="rmc-output-tile__meta">{% trans "Open the documents pane to load counts." %}</p>
+      <div class="rmc-output-tile__footer">
+        <span class="rmc-output-status" data-state="unknown">{% trans "Unknown" %}</span>
+        <a class="rmc-output-tile__link"
+           href="{% url 'studio_os:output' %}?pane=documents"
+           aria-label="{% trans 'Open document library' %}">
+          {% trans "Open" %}
+        </a>
+      </div>
+    </li>
+    {% endif %}
+
+    {# Report cards tile — entry point only #}
+    <li class="rmc-output-tile" data-output-tile="builder">
+      <p class="rmc-output-tile__eyebrow">{% trans "Report cards" %}</p>
+      <p class="rmc-output-tile__label">{% trans "Builder & styles" %}</p>
+      {% if output_reportcard_builder and output_reportcard_builder.assigned_classroom_count is not None %}
+        <p class="rmc-output-tile__count">{{ output_reportcard_builder.assigned_classroom_count|default:0 }}</p>
+        <p class="rmc-output-tile__meta">
+          {% blocktrans count counter=output_reportcard_builder.unassigned_classroom_count|default:0 %}{{ counter }} classroom missing a style{% plural %}{{ counter }} classrooms missing a style{% endblocktrans %}
+        </p>
+      {% else %}
+        <p class="rmc-output-tile__count" data-tone="unknown">—</p>
+        <p class="rmc-output-tile__meta">{% trans "Open the builder pane to load assignment counts." %}</p>
+      {% endif %}
+      <div class="rmc-output-tile__footer">
+        {% if output_reportcard_builder and output_reportcard_builder.unassigned_classroom_count %}
+          <span class="rmc-output-status" data-state="missing">{% trans "Missing data" %}</span>
+        {% elif output_reportcard_builder %}
+          <span class="rmc-output-status" data-state="ready">{% trans "Ready" %}</span>
+        {% else %}
+          <span class="rmc-output-status" data-state="unknown">{% trans "Unknown" %}</span>
+        {% endif %}
+        <a class="rmc-output-tile__link"
+           href="{% url 'studio_os:output' %}?pane=builder"
+           aria-label="{% trans 'Open report card builder' %}">
+          {% trans "Open" %}
+        </a>
+      </div>
+    </li>
+
+    {# Credentials tile — entry point #}
+    <li class="rmc-output-tile" data-output-tile="credentials">
+      <p class="rmc-output-tile__eyebrow">{% trans "Credentials" %}</p>
+      <p class="rmc-output-tile__label">{% trans "IDs & certificates" %}</p>
+      <p class="rmc-output-tile__count" data-tone="unknown">—</p>
+      <p class="rmc-output-tile__meta">{% trans "Per-role digital IDs and printed certificates." %}</p>
+      <div class="rmc-output-tile__footer">
+        <span class="rmc-output-status" data-state="unknown">{% trans "Per-role" %}</span>
+        <a class="rmc-output-tile__link"
+           href="{% url 'studio_os:output' %}?pane=credentials"
+           aria-label="{% trans 'Open credentials hub' %}">
+          {% trans "Open" %}
+        </a>
+      </div>
+    </li>
+
+    {# Branding inheritance tile — entry point #}
+    <li class="rmc-output-tile" data-output-tile="branding">
+      <p class="rmc-output-tile__eyebrow">{% trans "Branding" %}</p>
+      <p class="rmc-output-tile__label">{% trans "Theme → output chain" %}</p>
+      <p class="rmc-output-tile__count" data-tone="unknown">{% trans "Live" %}</p>
+      <p class="rmc-output-tile__meta">{% trans "Reports and documents inherit your active theme tokens." %}</p>
+      <div class="rmc-output-tile__footer">
+        <span class="rmc-output-status" data-state="ready">{% trans "Inherited" %}</span>
+        <a class="rmc-output-tile__link"
+           href="{% url 'studio_os:output' %}?pane=branding"
+           aria-label="{% trans 'Open branding inheritance' %}">
+          {% trans "Open" %}
+        </a>
+      </div>
+    </li>
+  </ul>
+
+  {# Per-output preview list — driven by pack_preview_cards (already tenant-safe). #}
+  {% if output_pack_preview_cards %}
+  <div class="min-w-0" data-rmc-output-previews="1">
+    <h3 class="rmc-output-cockpit__title h6 mb-2">{% trans "Next best action — per output" %}</h3>
+    <ul class="rmc-output-previews" role="list">
+      {% for card in output_pack_preview_cards|slice:":6" %}
+      <li class="rmc-output-preview">
+        <div class="min-w-0">
+          <p class="rmc-output-preview__title">{{ card.preview.title|default:card.pack_name }}</p>
+          <p class="rmc-output-preview__meta">
+            {% if card.pack_code %}
+              <code class="rmc-output-preview__code">{{ card.pack_code }}</code>
+            {% endif %}
+            {% if card.preview.description %}· {{ card.preview.description|truncatewords:18 }}{% endif %}
+          </p>
+        </div>
+        <div class="rmc-output-preview__actions">
+          {% if card.preview.rows %}
+            <span class="rmc-output-status" data-state="ready">{% trans "Ready" %}</span>
+          {% else %}
+            <span class="rmc-output-status" data-state="missing">{% trans "Missing data" %}</span>
+          {% endif %}
+          <a class="rmc-output-tile__link"
+             href="{{ card.graph_url }}"
+             aria-label="{% blocktrans with name=card.pack_name %}Preview {{ name }} on the dependency graph{% endblocktrans %}">
+            {% trans "Preview" %}
+          </a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% elif not packs_total %}
+  <div class="rmc-output-empty" role="note">
+    <p class="rmc-output-empty__title">{% trans "No outputs to preview yet" %}</p>
+    <p class="rmc-output-empty__hint">
+      {% trans "Activate a report pack or upload documents — they'll appear here with a readiness chip and a one-tap preview." %}
+    </p>
+  </div>
+  {% endif %}
+</section>
+{% endwith %}
+{% endwith %}

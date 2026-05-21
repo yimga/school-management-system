@@ -37,7 +37,7 @@
   border-color: color-mix(in srgb, var(--accent-finance-gold, #d97706) 45%, transparent);
 }
 .mkt-lane-academics__cell--absent {
-  border-color: color-mix(in srgb, #dc2626 35%, transparent);
+  border-color: color-mix(in srgb, #dc2626 35%, transparent); /* off-token-allow: decorative-tint-mix */
 }
 .mkt-lane-academics__cell--intervention {
   border-color: color-mix(in srgb, var(--accent-admissions-indigo, #4f46e5) 40%, transparent);
@@ -61,7 +61,7 @@
 }
 .mkt-lane-academics__swatch--present { background: var(--accent-principal-emerald, #0d9488); }
 .mkt-lane-academics__swatch--late { background: var(--accent-finance-gold, #d97706); }
-.mkt-lane-academics__swatch--absent { background: #dc2626; }
+.mkt-lane-academics__swatch--absent { background: #dc2626; /* off-token-allow: brand-color */ }
 .mkt-lane-academics__swatch--intervention { background: var(--accent-admissions-indigo, #4f46e5); }
 
 .mkt-page-platform-sis .mkt-v3-archetype__wins {
@@ -150,5 +150,5 @@
   background: color-mix(in srgb, var(--accent-finance-gold, #d97706) 18%, transparent);
 }
 .mkt-lane-finance__pill--due {
-  background: color-mix(in srgb, #dc2626 12%, transparent);
+  background: color-mix(in srgb, #dc2626 12%, transparent); /* off-token-allow: decorative-tint-mix */
 }

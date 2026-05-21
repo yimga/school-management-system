@@ -28,9 +28,18 @@
   <div class="card border-0 shadow-sm mb-3">
     <div class="card-header bg-light fw-semibold">{% trans "Provider status (safe)" %}</div>
     <div class="card-body small">
-      <p class="mb-1"><strong>{% trans "Preference order" %}</strong>: <code>{{ provider_status.preference|join:", " }}</code></p>
+      <p class="mb-1"><strong>{% trans "Deployment profile" %}</strong>: <code>{{ provider_status.deployment_profile|default:"online" }}</code></p>
+      <p class="mb-1"><strong>{% trans "Posture" %}</strong>: {{ provider_status.posture_label|default:"—" }}</p>
+      <p class="mb-1"><strong>{% trans "Gateway tiers" %}</strong>: <code>{{ provider_status.gateway_tier_chain|join:", " }}</code></p>
       <p class="mb-1"><strong>{% trans "Live provider available" %}</strong>: {% if provider_status.has_live_provider %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>
       <p class="mb-1"><strong>{% trans "Rules fallback" %}</strong>: {% if provider_status.rules_fallback_enabled %}{% trans "Enabled" %}{% else %}{% trans "Disabled" %}{% endif %}</p>
+      {% if provider_status.litellm_configured %}
+      <p class="mb-1"><strong>{% trans "Cloud AI (LiteLLM)" %}</strong>: {% trans "Configured" %}
+        {% with cloud=provider_status.providers.litellm %}
+        {% if cloud.model %}· {% trans "Model" %} <code>{{ cloud.model }}</code>{% endif %}
+        {% endwith %}
+      </p>
+      {% endif %}
       {% with ol=provider_status.providers.ollama %}
       <p class="mb-0"><strong>Ollama</strong>: {% if ol.configured %}{% trans "Configured" %}{% else %}{% trans "Not configured" %}{% endif %}
         {% if ol.model %}· {% trans "Model" %} <code>{{ ol.model }}</code>{% endif %}

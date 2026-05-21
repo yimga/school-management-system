@@ -146,22 +146,20 @@ def governance_console(request):
         )
         .order_by("-kill_switch_active", "status", "app__name")
     )
-    pending_reviews = list(
-        MarketplaceReview.objects.select_related(
-            "listing", "listing__app", "listing__publisher"
-        )
-        .filter(
-            status__in=[
-                MarketplaceReview.Status.PENDING,
-                MarketplaceReview.Status.IN_REVIEW,
-            ]
-        )
-        .order_by("requested_at")[:20]
+    pending_reviews_qs = MarketplaceReview.objects.select_related(
+        "listing", "listing__app", "listing__publisher"
+    ).filter(
+        status__in=[
+            MarketplaceReview.Status.PENDING,
+            MarketplaceReview.Status.IN_REVIEW,
+        ]
     )
-    scheduled_payouts = list(
-        RevenueSharePayout.objects.filter(
-            payout_scope=RevenueSharePayout.Scope.APP_PUBLISHER
-        ).order_by("scheduled_for", "-created_at")[:20]
+    pending_reviews_preview = list(pending_reviews_qs.order_by("requested_at")[:8])
+    scheduled_payouts_qs = RevenueSharePayout.objects.filter(
+        payout_scope=RevenueSharePayout.Scope.APP_PUBLISHER
+    )
+    scheduled_payouts_preview = list(
+        scheduled_payouts_qs.order_by("scheduled_for", "-created_at")[:8]
     )
     metrics = {
         "publishers_total": PublisherOrganization.objects.count(),
@@ -201,11 +199,18 @@ def governance_console(request):
         reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
     )
     catalog_counts = get_platform_catalog_counts()
+    listings_page = Paginator(listings, 15).get_page(request.GET.get("page") or 1)
     context = {
         "metrics": metrics,
-        "listings": list(listings[:60]),
-        "pending_reviews": pending_reviews,
-        "scheduled_payouts": scheduled_payouts,
+        "listings": list(listings_page.object_list),
+        "page_obj": listings_page,
+        "pagination_extra_query": "",
+        "pending_reviews_preview": pending_reviews_preview,
+        "scheduled_payouts_preview": scheduled_payouts_preview,
+        "queue_stats": {
+            "pending_reviews_total": pending_reviews_qs.count(),
+            "scheduled_payouts_total": scheduled_payouts_qs.count(),
+        },
         "dashboard_url": dashboard_url,
         "catalog_counts": catalog_counts,
     }
@@ -314,9 +319,9 @@ def blueprint_marketplace(request):
     from apps.policies.policy_registry import invalidate_policy_cache
     from apps.schools.models import School
 
-    packs = list(
-        BlueprintPack.objects.filter(is_active=True).order_by("category", "name")
-    )
+    packs_qs = BlueprintPack.objects.filter(is_active=True).order_by("category", "name")
+    packs_page = Paginator(packs_qs, 12).get_page(request.GET.get("page") or 1)
+    packs = list(packs_page.object_list)
     schools, school_query, school_limit = _control_plane_school_options(request)
 
     # For rollback: schools with PolicyBundles or TenantBlueprint (so we can revert or clear)
@@ -468,11 +473,18 @@ def blueprint_marketplace(request):
 
     preview = request.session.pop("blueprint_preview", None)
     catalog_counts = get_platform_catalog_counts()
+    blueprint_stats = {
+        "packs_total": packs_qs.count(),
+        "showing": len(packs),
+    }
     return render(
         request,
         "marketplace/blueprint_marketplace.html",
         {
             "packs": packs,
+            "page_obj": packs_page,
+            "pagination_extra_query": "",
+            "blueprint_stats": blueprint_stats,
             "schools": schools,
             "school_query": school_query,
             "school_limit": school_limit,
@@ -648,12 +660,13 @@ def app_catalog(request):
 
     # region agent log
     try:
+        from django.template import TemplateDoesNotExist, TemplateSyntaxError
         from django.template.loader import get_template
 
         get_template("marketplace/app_catalog.html")
         _mkt_tpl_ok = True
         _mkt_tpl_err = ""
-    except Exception as exc:
+    except (TemplateDoesNotExist, TemplateSyntaxError) as exc:
         _mkt_tpl_ok = False
         _mkt_tpl_err = type(exc).__name__
     try:
@@ -728,7 +741,16 @@ def compatibility_matrix(request):
                 "plan_tiers": compat.get("plan_tiers") or [],
             }
         )
-    return render(request, "marketplace/compatibility_matrix.html", {"rows": rows})
+    rows_page = Paginator(rows, 20).get_page(request.GET.get("page") or 1)
+    return render(
+        request,
+        "marketplace/compatibility_matrix.html",
+        {
+            "rows": list(rows_page.object_list),
+            "page_obj": rows_page,
+            "pagination_extra_query": "",
+        },
+    )
 
 
 @login_required
@@ -742,19 +764,20 @@ def sandbox_inspector(request):
         reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
     )
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-    installations = (
-        AppInstallation.objects.filter(
-            status=AppInstallation.Status.ACTIVE,
-            install_phase=AppInstallation.InstallPhase.SANDBOX,
-        )
-        .select_related("app", "school", "installed_by")
-        .order_by("-installed_at")
+    installations_qs = AppInstallation.objects.filter(
+        status=AppInstallation.Status.ACTIVE,
+        install_phase=AppInstallation.InstallPhase.SANDBOX,
+    ).select_related("app", "school", "installed_by").order_by("-installed_at")
+    installations_page = Paginator(installations_qs, 20).get_page(
+        request.GET.get("page") or 1
     )
     return render(
         request,
         "marketplace/sandbox_inspector.html",
         {
-            "installations": installations,
+            "installations": list(installations_page.object_list),
+            "page_obj": installations_page,
+            "pagination_extra_query": "",
             "dashboard_url": dashboard_url,
         },
     )
@@ -771,17 +794,19 @@ def installation_health(request):
         reverse("super:dashboard") if hasattr(request, "resolver_match") else "/super/"
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     )
-    installations = (
-        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-        AppInstallation.objects.filter(status=AppInstallation.Status.ACTIVE)
-        .select_related("app", "school")
-        .order_by("-last_health_at")
+    installations_qs = AppInstallation.objects.filter(
+        status=AppInstallation.Status.ACTIVE
+    ).select_related("app", "school").order_by("-last_health_at")
+    installations_page = Paginator(installations_qs, 20).get_page(
+        request.GET.get("page") or 1
     )
     return render(
         request,
         "marketplace/installation_health.html",
         {
-            "installations": installations,
+            "installations": list(installations_page.object_list),
+            "page_obj": installations_page,
+            "pagination_extra_query": "",
             "dashboard_url": dashboard_url,
         },
     )

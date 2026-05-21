@@ -3,10 +3,11 @@ Tests for tenant isolation, provisioning job, single-tenant fallback, and featur
 """
 
 import json
+import uuid
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import TestCase, Client, override_settings
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -447,32 +448,71 @@ class OfflineSyncPerSchoolTests(TestCase):
         self.assertIn("Offline", str(data.get("error", "")))
 
 
+@override_settings(
+    ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+)
 class SuperProvisioningWizardTests(TestCase):
+    """Control-plane wizard/API tests via RequestFactory (avoids manager session cookie flake on SQLite keepdb)."""
+
     def setUp(self):
-        self.client = Client()
+        import os
+        from unittest.mock import patch
+
+        self._mt_env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self._mt_env.start()
+        self.addCleanup(self._mt_env.stop)
+        self.factory = RequestFactory()
+        suffix = uuid.uuid4().hex[:8]
         self.superuser = User.objects.create_superuser(
-            username="root",
-            email="root@test.com",
+            username=f"wizard_root_{suffix}",
+            email=f"wizard_root_{suffix}@test.com",
             password="testpass123",
         )
 
+    def _manager_get(self, view, path, query=None):
+        request = self.factory.get(path, query or {})
+        request.user = self.superuser
+        return view(request)
+
+    def _manager_post_json(self, view, path, payload):
+        request = self.factory.post(
+            path,
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        request.user = self.superuser
+        return view(request)
+
     def test_wizard_renders_country_and_city_selectors(self):
-        self.client.force_login(self.superuser)
-        response = self.client.get(reverse("super:create_school_wizard"))
+        from apps.schools.super_views_create_school_wizard import create_school_wizard
+
+        response = self._manager_get(create_school_wizard, "/super/create/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'id="country_code"')
-        self.assertContains(response, 'id="city_id"')
-        self.assertContains(response, 'id="city_search"')
-        self.assertContains(response, "Select country first, then city")
+        html = response.content.decode()
+        self.assertIn('id="country_code"', html)
+        self.assertIn('id="city_id"', html)
+        self.assertIn('id="city_search"', html)
+        self.assertIn("Search city", html)
 
     def test_api_geo_cities_returns_country_matches(self):
-        self.client.force_login(self.superuser)
-        response = self.client.get(
-            reverse("super:api_geo_cities"),
+        from apps.schools.super_views_geo_api import api_geo_cities
+
+        response = self._manager_get(
+            api_geo_cities,
+            "/super/api/geo/cities/",
             {"country_code": "UGA", "q": "Kamp", "limit": 30},
         )
         self.assertEqual(response.status_code, 200, response.content)
-        payload = response.json()
+        payload = json.loads(response.content.decode())
         self.assertEqual(payload.get("country_code"), "UGA")
         city_names = [
             str(item.get("city", "")).lower() for item in payload.get("cities", [])
@@ -480,13 +520,15 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertIn("kampala", city_names)
 
     def test_api_education_profiles_returns_country_pack(self):
-        self.client.force_login(self.superuser)
-        response = self.client.get(
-            reverse("super:api_education_profiles"),
+        from apps.schools.super_views_geo_api import api_education_profiles
+
+        response = self._manager_get(
+            api_education_profiles,
+            "/super/api/education-profiles/",
             {"country_code": "JPN", "sub_system": "EN"},
         )
         self.assertEqual(response.status_code, 200, response.content)
-        payload = response.json()
+        payload = json.loads(response.content.decode())
         self.assertEqual(payload.get("country_code"), "JPN")
         self.assertIn("auto_option", payload)
         profile_codes = [
@@ -495,7 +537,6 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertIn("jpn-en-auto", profile_codes)
 
     def test_api_create_school_uses_city_timezone(self):
-        self.client.force_login(self.superuser)
         cities = GlobalGeoCatalog.search_cities(
             country_code="USA", query="New York", limit=10
         )
@@ -514,10 +555,10 @@ class SuperProvisioningWizardTests(TestCase):
             "primary_color": "#2d5a27",
             "accent_color": "#f59e0b",
         }
-        response = self.client.post(
-            reverse("super:api_create_school"),
-            data=json.dumps(payload),
-            content_type="application/json",
+        from apps.schools.super_views_provisioning import api_create_school
+
+        response = self._manager_post_json(
+            api_create_school, "/super/api/create-school/", payload
         )
         self.assertEqual(response.status_code, 202, response.content)
         school = School.objects.get(slug="global-academy")
@@ -528,7 +569,6 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertEqual(location_settings.get("city"), city["city"])
 
     def test_api_create_school_persists_explicit_education_profile(self):
-        self.client.force_login(self.superuser)
         uganda, _ = RegionConfig.objects.get_or_create(
             code="UGA",
             defaults={
@@ -571,10 +611,10 @@ class SuperProvisioningWizardTests(TestCase):
             "primary_color": "#2d5a27",
             "accent_color": "#f59e0b",
         }
-        response = self.client.post(
-            reverse("super:api_create_school"),
-            data=json.dumps(payload),
-            content_type="application/json",
+        from apps.schools.super_views_provisioning import api_create_school
+
+        response = self._manager_post_json(
+            api_create_school, "/super/api/create-school/", payload
         )
         self.assertEqual(response.status_code, 202, response.content)
         school = School.objects.get(slug="explicit-profile-school")
@@ -590,7 +630,6 @@ class SuperProvisioningWizardTests(TestCase):
         )
 
     def test_api_create_school_persists_canonical_registry_identity(self):
-        self.client.force_login(self.superuser)
         country = CountryRegistry.objects.create(
             code="US",
             alpha3_code="USA",
@@ -636,10 +675,10 @@ class SuperProvisioningWizardTests(TestCase):
             "education_level_codes": ["PRIMARY", "SECONDARY"],
             "education_system_type_codes": ["GENERAL", "STEM"],
         }
-        response = self.client.post(
-            reverse("super:api_create_school"),
-            data=json.dumps(payload),
-            content_type="application/json",
+        from apps.schools.super_views_provisioning import api_create_school
+
+        response = self._manager_post_json(
+            api_create_school, "/super/api/create-school/", payload
         )
         self.assertEqual(response.status_code, 202, response.content)
         school = School.objects.get(slug="canonical-registry-school")
@@ -669,7 +708,6 @@ class SuperProvisioningWizardTests(TestCase):
         from apps.registries.services import ensure_registry_baseline
 
         ensure_registry_baseline()
-        self.client.force_login(self.superuser)
         country = CountryRegistry.objects.filter(code="US").first()
         if not country:
             country = CountryRegistry.objects.create(
@@ -712,10 +750,10 @@ class SuperProvisioningWizardTests(TestCase):
             "education_level_codes": ["PRIMARY"],
             "education_system_type_codes": ["PUBLIC", "GENERAL"],
         }
-        response = self.client.post(
-            reverse("super:api_create_school"),
-            data=json.dumps(payload),
-            content_type="application/json",
+        from apps.schools.super_views_provisioning import api_create_school
+
+        response = self._manager_post_json(
+            api_create_school, "/super/api/create-school/", payload
         )
         self.assertEqual(response.status_code, 202, response.content)
         school = School.objects.get(slug="public-sector-school")
@@ -730,7 +768,6 @@ class SuperProvisioningWizardTests(TestCase):
         )
 
     def test_api_create_school_rejects_non_approved_explicit_profile(self):
-        self.client.force_login(self.superuser)
         uganda, _ = RegionConfig.objects.get_or_create(
             code="UGA",
             defaults={
@@ -770,20 +807,19 @@ class SuperProvisioningWizardTests(TestCase):
             "primary_color": "#2d5a27",
             "accent_color": "#f59e0b",
         }
-        response = self.client.post(
-            reverse("super:api_create_school"),
-            data=json.dumps(payload),
-            content_type="application/json",
+        from apps.schools.super_views_provisioning import api_create_school
+
+        response = self._manager_post_json(
+            api_create_school, "/super/api/create-school/", payload
         )
         self.assertEqual(response.status_code, 400, response.content)
-        data = response.json()
+        data = json.loads(response.content.decode())
         self.assertIn("errors", data)
         self.assertTrue(
             any("education_profile_code" in str(err) for err in data.get("errors", []))
         )
 
     def test_api_create_school_rejects_unknown_school_template_key(self):
-        self.client.force_login(self.superuser)
         city = None
         for query in ("Boston", "New York", "Los Angeles", "Chicago"):
             cities = GlobalGeoCatalog.search_cities(
@@ -807,13 +843,13 @@ class SuperProvisioningWizardTests(TestCase):
             "primary_color": "#2d5a27",
             "accent_color": "#f59e0b",
         }
-        response = self.client.post(
-            reverse("super:api_create_school"),
-            data=json.dumps(payload),
-            content_type="application/json",
+        from apps.schools.super_views_provisioning import api_create_school
+
+        response = self._manager_post_json(
+            api_create_school, "/super/api/create-school/", payload
         )
         self.assertEqual(response.status_code, 400, response.content)
-        body = response.json()
+        body = json.loads(response.content.decode())
         self.assertIn("errors", body)
         self.assertTrue(
             any(
@@ -823,7 +859,6 @@ class SuperProvisioningWizardTests(TestCase):
         )
 
     def test_api_create_school_records_provisioning_events_and_timeline_url(self):
-        self.client.force_login(self.superuser)
         city = None
         for query in ("Boston", "New York", "Los Angeles", "Chicago"):
             cities = GlobalGeoCatalog.search_cities(
@@ -848,13 +883,13 @@ class SuperProvisioningWizardTests(TestCase):
             "primary_color": "#2d5a27",
             "accent_color": "#f59e0b",
         }
-        response = self.client.post(
-            reverse("super:api_create_school"),
-            data=json.dumps(payload),
-            content_type="application/json",
+        from apps.schools.super_views_provisioning import api_create_school
+
+        response = self._manager_post_json(
+            api_create_school, "/super/api/create-school/", payload
         )
         self.assertEqual(response.status_code, 202, response.content)
-        body = response.json()
+        body = json.loads(response.content.decode())
         self.assertIn("timeline_url", body)
         school = School.objects.get(slug="timeline-school")
         event_types = set(
@@ -867,7 +902,6 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertTrue({"STARTED", "COMPLETED"} & event_types)
 
     def test_api_school_timeline_returns_ordered_events(self):
-        self.client.force_login(self.superuser)
         school = School.objects.create(
             name="Timeline Endpoint School",
             slug="timeline-endpoint-school",
@@ -886,11 +920,18 @@ class SuperProvisioningWizardTests(TestCase):
             status=SchoolProvisioningEvent.Status.INFO,
             message="Queued",
         )
-        response = self.client.get(
-            reverse("super:api_school_timeline", args=[school.id])
+        from apps.schools.super_views_school_api import api_school_timeline
+
+        school_id = school.id
+
+        def _timeline_view(request):
+            return api_school_timeline(request, school_id)
+
+        response = self._manager_get(
+            _timeline_view, f"/super/api/schools/{school.id}/timeline/"
         )
         self.assertEqual(response.status_code, 200, response.content)
-        payload = response.json()
+        payload = json.loads(response.content.decode())
         self.assertEqual(payload.get("school_id"), str(school.id))
         events = payload.get("events") or []
         self.assertGreaterEqual(len(events), 2)

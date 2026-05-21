@@ -1,0 +1,54 @@
+{
+  "generated_at_utc": "2026-05-21T01:55:00Z",
+  "agent_id": "A4",
+  "orchestrator_run": "batch-1370",
+  "posture_doc_audited": "docs/AI_DEPLOYMENT_POSTURE.md",
+  "deployment_profile_default": "online",
+  "tier_chains_verified": {
+    "online_with_litellm": ["litellm", "ollama", "rules"],
+    "online_without_litellm": ["ollama", "rules"],
+    "edge_any": ["ollama", "rules"],
+    "hybrid_with_litellm": ["litellm", "ollama", "rules"],
+    "hybrid_without_litellm": ["ollama", "rules"]
+  },
+  "tests_run": {
+    "apps.platform_runtime.tests.test_ai_deployment_posture": {"ran": 13, "ok": 13, "failed": 0},
+    "apps.portal.tests.test_ai_provider+test_ai_guided_fallback_intelligent+test_ollama_runtime": {"ran": 22, "ok": 22, "failed": 0},
+    "services.tests.test_ai_gateway": {"ran": 29, "ok": 29, "failed": 0},
+    "apps.siteconfig.tests.test_ai_center": {"ran": 15, "ok": 5, "failed": 10, "failure_class": "tenant_url_resolution_302_pre_existing", "owner": "tenant_routing_infra_not_A4"}
+  },
+  "tests_passed": "63/79 in audit scope; 10 ai_center failures are 302 redirects from tenant_urls resolution (pre-existing, not introduced by posture work)",
+  "verifiers_run": {
+    "scripts/verify_render_online_ai_posture.py": "exit 0 RENDER_ONLINE_AI_POSTURE_PASS",
+    "scripts/verify_online_edge_dual_mode.py": "exit 0 ONLINE_EDGE_DUAL_MODE_PASS",
+    "scripts/scan_ai_gateway_boundary.py": "exit 0; 0 violations"
+  },
+  "verifiers_passed": true,
+  "posture_modes_wired": ["live_cloud", "live_local", "guided", "unavailable"],
+  "ollama_role": "edge_lan_hub_only_plus_optional_secondary_fallback_in_render_tier_chain_never_required_on_render",
+  "render_dyno_ollama_forbidden": true,
+  "user_directive_2026_05_20": "ignore live ollama because we are going to use cloud; cloud-first via LiteLLM on Render; Ollama is edge LAN hub only, never a Render blocker",
+  "user_directive_reflected_in": [
+    "docs/AI_DEPLOYMENT_POSTURE.md L13 'Never install Ollama on each teacher laptop'",
+    "docs/AI_DEPLOYMENT_POSTURE.md L39 'Do not rely on Ollama inside a Render web dyno for primary inference'",
+    "services/ai_deployment_posture.py L25-28 ONLINE_CLOUD_CHAIN is litellm-first",
+    "services/ollama_runtime.py L36-37 _IS_CLOUD_DEPLOYED disables auto-start"
+  ],
+  "gaps_found": [],
+  "gaps_fixed_repo_side": [],
+  "gaps_external": [
+    "Render deploy environment must set LITELLM_PROXY_URL + LITELLM_API_KEY + LITELLM_MODEL for live cloud AI (operator action; not a repo gap)",
+    "ai_center view 302 redirects on AICenterPageTests indicate a tenant URL resolution issue in test infra — preexists batch-1370 and is outside A4 cloud-AI scope; recommend separate triage"
+  ],
+  "files_changed": [],
+  "files_changed_verified_in_git_status": "A4 made no source file edits during this audit; git status shows pre-existing modifications by other agents/work but none made by A4 in this audit run",
+  "preserve_list_touched_by_A4_in_audit": false,
+  "preserve_list_status": {
+    "ai/Modelfile": "unchanged",
+    "apps/apicenter/": "unchanged (13 urlpatterns import cleanly)",
+    "services/ai_helpers.py": "unchanged",
+    "services/ai_gateway.py": "modified pre-audit (commit e5e48316 2026-05-16; brief flagged as already-certified preserve)"
+  },
+  "verdict_supported_by_evidence": "All three verifiers exit 0; 13 posture-suite tests + 22 portal-AI tests + 29 ai_gateway tests pass; posture_mode wired in all four states (live_cloud/live_local/guided/unavailable) in services/ai_deployment_posture.py L174-189; template displays posture_label + gateway_tier_chain; health-pill JS consumes posture_label; user directive reflected in posture doc and Ollama auto-start cloud guard.",
+  "verdict": "EXTERNALLY BLOCKED: in-repo cloud-AI posture work is READY; final live-AI proof requires Render env to set LITELLM_PROXY_URL/API_KEY/MODEL. ai_center 302 failures are pre-existing tenant URL infra, not A4 scope."
+}

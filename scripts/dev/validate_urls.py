@@ -51,7 +51,7 @@ def validate_template_links():
     broken_links = []
     valid_links = set()
     url_patterns = get_all_url_patterns()
-    valid_paths = {p["path"].replace("^", "").replace("$", "") for p in url_patterns}
+    {p["path"].replace("^", "").replace("$", "") for p in url_patterns}
     valid_prefixes = {
         "/admin/",
         "/authentication/",

@@ -19,7 +19,7 @@
 
   {% if trust_external_dependencies %}
   <h3 class="h6 mt-4">{% trans "What still needs an external partner or regulator" %}</h3>
-  <div class="mkt-trust-external-table-wrap">
+  <div class="mkt-trust-external-table-wrap" role="region" aria-label="{% trans 'External dependencies table' %}" tabindex="0">
     <table class="mkt-trust-external-table">
       <thead>
         <tr>

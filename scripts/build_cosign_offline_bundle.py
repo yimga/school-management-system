@@ -67,7 +67,6 @@ import pathlib
 import subprocess
 import sys
 import tarfile
-import tempfile
 import urllib.error
 import urllib.request
 from typing import Any, Iterable
@@ -175,8 +174,8 @@ def extract_log_index_from_signature(signature_bytes: bytes) -> int:
 # Public anchors — operator-side script also checks these match. The
 # embedded values here are deliberately short stubs; CI overrides them
 # at build time by passing ``--rekor-pubkey-file`` / ``--fulcio-root``.
-DEFAULT_REKOR_PUBLIC_KEY = b"# placeholder rekor public key — pass --rekor-pubkey-file in CI\n"
-DEFAULT_FULCIO_ROOT = b"# placeholder fulcio root — pass --fulcio-root in CI\n"
+DEFAULT_REKOR_PUBLIC_KEY = b"# placeholder rekor public key - pass --rekor-pubkey-file in CI\n"
+DEFAULT_FULCIO_ROOT = b"# placeholder fulcio root - pass --fulcio-root in CI\n"
 
 
 def collect_artifacts(refs: Iterable[str]) -> list[ArtifactEntry]:

@@ -18,7 +18,6 @@ def main() -> int:
 
     django.setup()
     from apps.portal.kb_context import published_kb_queryset
-    from apps.portal.models_kb import KBArticle
 
     total = published_kb_queryset().count()
     with_vec = published_kb_queryset().exclude(vector_embedding=[]).count()

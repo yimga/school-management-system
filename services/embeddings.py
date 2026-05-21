@@ -10,7 +10,6 @@ import os
 import urllib.error
 import urllib.request
 from abc import ABC, abstractmethod
-from typing import Any
 
 from django.conf import settings
 
@@ -121,9 +120,14 @@ def get_embedding_provider() -> EmbeddingProvider:
             from services.inference import _get_regional_config
             base_url, _, _ = _get_regional_config()
         except Exception:
-            base_url = os.environ.get("OLLAMA_ENDPOINT", "http://localhost:11434").strip().rstrip("/")
-            if base_url.endswith("/api/generate"):
-                base_url = base_url.rsplit("/", 2)[0]
+            try:
+                from apps.portal.ai_provider import resolve_ollama_connection
+
+                base_url = resolve_ollama_connection().get("base_url") or "http://127.0.0.1:11434"
+            except Exception:
+                base_url = os.environ.get("OLLAMA_ENDPOINT", "http://localhost:11434").strip().rstrip("/")
+                if base_url.endswith("/api/generate"):
+                    base_url = base_url.rsplit("/", 2)[0]
         model = getattr(settings, "AI_EMBEDDING_OLLAMA_MODEL", None) or os.environ.get("AI_EMBEDDING_OLLAMA_MODEL") or "nomic-embed-text"
         return OllamaEmbeddingProvider(base_url, model)
     return OllamaEmbeddingProvider("http://localhost:11434", "nomic-embed-text")

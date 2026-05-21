@@ -121,8 +121,8 @@ DEFECTS = [
         "id": "I4",
         "severity": "medium",
         "category": "media",
-        "finding": "Walkthrough lacked accessible glass video portal with play/pause",
-        "remediation": "_video_portal.html + mkt-video-portal.js on marketing_landing_v2.html",
+        "finding": "Walkthrough needed an accessible preview surface without fake video controls",
+        "remediation": "_video_portal.html poster-mode preview + animated walkthrough when footage is absent",
         "status": "fixed",
     },
     {

@@ -59,6 +59,7 @@
 
   function mountDock(L) {
     var aiWrap = document.querySelector(".ai-copilot-wrapper");
+    var contextToggle = document.querySelector(".cp-context-drawer-toggle");
     var voc = document.querySelector(".voc-widget");
     var helpBtn = document.querySelector("[data-rmc-page-help]");
     var backBtn = document.getElementById("back-to-top-btn");
@@ -137,6 +138,26 @@
         slot(vocToggle, "rmc-assist-dock__slot--feedback");
       }
       voc.remove();
+    }
+
+    if (contextToggle) {
+      contextToggle.classList.add(
+        "rmc-assist-dock__btn",
+        "rmc-assist-dock__btn--context"
+      );
+      contextToggle.classList.remove(
+        "position-fixed",
+        "bottom-0",
+        "end-0",
+        "m-3"
+      );
+      if (!contextToggle.querySelector(".rmc-assist-dock__label")) {
+        var ctxLbl = document.createElement("span");
+        ctxLbl.className = "rmc-assist-dock__label";
+        ctxLbl.textContent = L.context || "Context";
+        contextToggle.appendChild(ctxLbl);
+      }
+      slot(contextToggle, "rmc-assist-dock__slot--context");
     }
 
     if (helpBtn) {

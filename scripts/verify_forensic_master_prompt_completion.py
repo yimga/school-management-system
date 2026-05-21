@@ -31,7 +31,14 @@ class Row:
     proof: str
 
 
-def _run_django_tests(module: str, *, timeout: int = 600) -> tuple[bool, str]:
+def _run_django_tests(module: str, *, timeout: int = 1200) -> tuple[bool, str]:
+    """Run a Django test module via the in-repo sqlite-memory runner.
+
+    Timeout is generous (default 20 min) because a `--fresh` DB build on
+    Windows takes 6–8 min just for migrations before the actual tests
+    execute. The teardown-lock allow-list catches the common Windows
+    `WinError 32` cleanup failure that follows successful test runs.
+    """
     gate_db = ROOT / ".django_test_dbs" / f"forensic_perf_{int(time.time())}.sqlite3"
     env = os.environ.copy()
     env["DJANGO_TEST_DB_FILE"] = str(gate_db)

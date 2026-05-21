@@ -41,7 +41,7 @@
 
   .portal-layout-wrap .portal-sidebar-col:not(.rmc-glass-sidebar-shell),
   .portal-sidebar-col:not(.rmc-glass-sidebar-shell) {
-    background: var(--portal-sidebar-bg, var(--surface-elevated, var(--color-base-50)));
+    background: var(--portal-sidebar-bg, var(--surface-elevated, var(--color-base-50))); /* theme-locked-allow: brand-token */
   }
 
   /* --- Control-plane inner panel: fill column, scroll inside --- */
@@ -59,14 +59,7 @@
     overflow-x: hidden !important;
   }
 
-  /* Document scroll: sticky top but still fill column width/height */
-  body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner,
-  body.control-plane-shell[data-rmc-cp-scroll="document"] #cp-sidebar-col .cp-sidebar-inner,
-  body.manager-portal-bridge[data-rmc-cp-scroll="document"] .cp-sidebar-col .cp-sidebar-inner {
-    position: sticky;
-    top: 0;
-    max-height: 100vh;
-  }
+  /* Document scroll: column + inner rail — rmc-platform-chrome-layout.css */
 
   /* Main-column scroll (manager /admin/): viewport-trapped row */
   body.control-plane-shell[data-rmc-cp-scroll="main"] .cp-layout > .row,

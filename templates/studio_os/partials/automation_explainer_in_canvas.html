@@ -1,9 +1,16 @@
 {% load i18n %}
+{# v3.54 (2026-05-21, Agent 3): explainer pane — preserved. #}
+{# Adds min-width:0 + word-break so long prose never overflows the column. #}
 <div class="studio-os__card py-3 px-3" data-page-archetype="operational-workbench">
-  <h2 class="h5 mb-2">{{ title }}</h2>
-  {% if subtitle %}<p class="text-muted small mb-3">{{ subtitle }}</p>{% endif %}
-  <p class="mb-3">{{ body }}</p>
-  {% if workflow_pane_url %}
-  <p class="mb-0 small"><a href="{{ workflow_pane_url }}">{% trans "Workflow center" %}</a> — {{ workflow_hint }}</p>
-  {% endif %}
+  <div class="min-w-0">
+    <h2 class="h5 mb-2 text-break">{{ title }}</h2>
+    {% if subtitle %}<p class="text-muted small mb-3 text-break">{{ subtitle }}</p>{% endif %}
+    <p class="mb-3 text-break">{{ body }}</p>
+    {% if workflow_pane_url %}
+    <p class="mb-0 small">
+      <a href="{{ workflow_pane_url }}">{% trans "Workflow center" %}</a>
+      <span class="text-muted"> — {{ workflow_hint }}</span>
+    </p>
+    {% endif %}
+  </div>
 </div>

@@ -1,13 +1,22 @@
 {% load i18n %}
-<div class="studio-os__card py-2">
+<div class="studio-os__card py-2 min-w-0">
   <div class="h6 mb-2">{% trans "Outputs" %}</div>
-  <ul class="list-unstyled small mb-0" id="output-rail-list">
+  <ul class="list-unstyled small mb-0 min-w-0" id="output-rail-list" role="list">
     {% for item in output_left_rail %}
-    <li class="mb-1">
+    <li class="mb-1 min-w-0">
       <a href="{{ item.url }}"
-         class="output-rail-link {% if item.pane == output_pane %}active{% endif %}">{{ item.label }}</a>
+         class="output-rail-link {% if item.pane == output_pane %}active{% endif %}"
+         {% if item.pane == output_pane %}aria-current="page"{% endif %}>
+        {{ item.label }}
+        {% if item.pane == 'builder' or item.pane == 'documents' %}
+        <span class="rmc-output-rail__badge" aria-hidden="true">{% trans "Hub" %}</span>
+        <span class="visually-hidden">{% trans "(opens an embedded hub)" %}</span>
+        {% endif %}
+      </a>
     </li>
     {% endfor %}
   </ul>
-  <p class="small text-muted mt-2 mb-0">{% trans "All rail panes render natively: pack graph, report library & letters, documents, report card builder, IDs & certificates, branding, policy. Builder live preview still uses an iframe embed by design." %}</p>
+  <p class="small text-muted mt-2 mb-0">
+    {% trans "All rail panes render natively: pack graph, report library & letters, documents, report card builder, IDs & certificates, branding, policy. Builder live preview still uses an iframe embed by design." %}
+  </p>
 </div>

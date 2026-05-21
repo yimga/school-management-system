@@ -1,0 +1,75 @@
+{% load i18n %}
+{% comment %}
+  Studio OS · Guidance panel
+  --------------------------
+  Renders the collapsible "Questions answered here" surface in
+  the Studio shell. Service contract is preserved — every field
+  is optional. When studio_guidance.primary_action /
+  secondary_action / preview_url / blocker are populated they
+  surface as a clear action row + blocker tag.
+
+  v3.54.0 (2026-05-21): Overview next-realm cockpit — add primary
+  action + secondary action + preview link + blocker row.
+{% endcomment %}
+{% if studio_guidance %}
+<aside class="rmc-studio-guidance mb-3" role="complementary" aria-label="{% trans 'Guidance for this page' %}" data-rmc-studio-guidance="1">
+  <details class="rmc-studio-guidance__panel border rounded" open>
+    <summary class="rmc-studio-guidance__summary px-3 py-2 d-flex align-items-center gap-2">
+      <i class="bi bi-patch-question-fill text-primary" aria-hidden="true"></i>
+      <span class="fw-semibold small mb-0">{% trans "Questions answered here" %}</span>
+    </summary>
+    <div class="rmc-studio-guidance__body px-3 pb-3 pt-1">
+      {% if studio_guidance.pane_hint %}
+      <p class="small mb-2">
+        {% if studio_guidance.pane_label %}<strong>{{ studio_guidance.pane_label }}:</strong>{% endif %}
+        {{ studio_guidance.pane_hint }}
+      </p>
+      {% elif studio_guidance.tip %}
+      <p class="small text-muted mb-2">{{ studio_guidance.tip }}</p>
+      {% endif %}
+      {% if studio_guidance.questions %}
+      <dl class="rmc-studio-guidance__qa mb-0">
+        {% for item in studio_guidance.questions %}
+        <div class="rmc-studio-guidance__item mb-2">
+          <dt class="small fw-semibold mb-1">{{ item.q }}</dt>
+          <dd class="small text-muted mb-0">{{ item.a }}</dd>
+        </div>
+        {% endfor %}
+      </dl>
+      {% endif %}
+
+      {# v3.54.0 (2026-05-21): primary/secondary actions + preview link. #}
+      {% if studio_guidance.primary_action or studio_guidance.secondary_action or studio_guidance.preview_url %}
+      <div class="rmc-studio-guidance__actions" role="group" aria-label="{% trans 'Guidance actions' %}">
+        {% if studio_guidance.primary_action and studio_guidance.primary_action.url %}
+        <a href="{{ studio_guidance.primary_action.url }}" class="btn btn-sm btn-primary" data-rmc-guidance-action="primary">
+          {{ studio_guidance.primary_action.label|default:_("Take action") }}
+        </a>
+        {% endif %}
+        {% if studio_guidance.secondary_action and studio_guidance.secondary_action.url %}
+        <a href="{{ studio_guidance.secondary_action.url }}" class="btn btn-sm btn-outline-secondary" data-rmc-guidance-action="secondary">
+          {{ studio_guidance.secondary_action.label|default:_("Learn more") }}
+        </a>
+        {% endif %}
+        {% if studio_guidance.preview_url %}
+        <a href="{{ studio_guidance.preview_url }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer" data-rmc-guidance-action="preview">
+          <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{{ studio_guidance.preview_label|default:_("Open preview") }}
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {# v3.54.0 (2026-05-21): blocker pill — surfaces what is stopping the operator. #}
+      {% if studio_guidance.blocker %}
+      <div class="rmc-studio-guidance__blocker mt-2" role="status">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <span>
+          <strong>{% trans "Blocker" %}:</strong>
+          {{ studio_guidance.blocker.summary|default:studio_guidance.blocker.label|default:studio_guidance.blocker }}
+        </span>
+      </div>
+      {% endif %}
+    </div>
+  </details>
+</aside>
+{% endif %}

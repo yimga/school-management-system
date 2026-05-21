@@ -33,12 +33,16 @@ UNIFIED_COLUMN = re.compile(
     r"\.admin-cp-unified-page\s*\{[^}]*flex-direction:\s*column",
     re.DOTALL,
 )
-MAIN_SCROLL_CONTRACT = re.compile(
-    r"body\.admin-manager-shell\[data-rmc-cp-scroll=\"main\"\].*#cp-main-content\s*\{[^}]*overflow-y:\s*auto",
+DOCUMENT_SCROLL_CONTRACT = re.compile(
+    r"body\.admin-manager-shell\[data-rmc-cp-scroll=\"document\"\].*\.admin-cp-unified-page\s*\{[^}]*overflow:\s*visible",
     re.DOTALL,
 )
-MAIN_SCROLL_ALIGN = re.compile(
-    r"body\.admin-manager-shell\[data-rmc-cp-scroll=\"main\"\].*#cp-main-content\s*\{[^}]*align-self:\s*stretch",
+DOCUMENT_MAIN_CONTRACT = re.compile(
+    r"body\.admin-manager-shell\[data-rmc-cp-scroll=\"document\"\].*#cp-main-content\s*\{[^}]*overflow-y:\s*visible",
+    re.DOTALL,
+)
+CP_PAGE_BODY_CONTRACT = re.compile(
+    r"cp-admin-page-body",
     re.DOTALL,
 )
 
@@ -64,43 +68,44 @@ def check_css() -> list[str]:
         if rel.endswith("admin-cp-parity.css"):
             if not UNIFIED_COLUMN.search(text):
                 errors.append(f"{rel}: missing column flex contract for .admin-cp-unified-page")
-            if not MAIN_SCROLL_CONTRACT.search(text):
+            if not DOCUMENT_SCROLL_CONTRACT.search(text):
                 errors.append(
-                    f"{rel}: missing data-rmc-cp-scroll=main #cp-main-content overflow-y:auto contract"
+                    f"{rel}: missing document-scroll .admin-cp-unified-page overflow:visible contract"
                 )
-            if not MAIN_SCROLL_ALIGN.search(text):
+            if not DOCUMENT_MAIN_CONTRACT.search(text):
                 errors.append(
-                    f"{rel}: missing data-rmc-cp-scroll=main align-self:stretch on #cp-main-content"
+                    f"{rel}: missing document-scroll #cp-main-content overflow-y:visible contract"
                 )
     admin_base = (REPO_ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
     if "admin-cp-unified-page" not in admin_base:
         errors.append("templates/admin/base.html missing admin-cp-unified-page class")
     if "data-rmc-admin-cp-unified" not in admin_base:
         errors.append("templates/admin/base.html missing data-rmc-admin-cp-unified marker")
-    if 'data-rmc-cp-scroll="main"' not in admin_base:
-        errors.append("templates/admin/base.html missing data-rmc-cp-scroll=main on #page")
+    if "cp-admin-page-body" not in admin_base:
+        errors.append("templates/admin/base.html missing cp-admin-page-body (super parity)")
+    if 'data-rmc-cp-scroll="main"' in admin_base:
+        errors.append("templates/admin/base.html must not set data-rmc-cp-scroll=main on #page")
     base_site = (REPO_ROOT / "templates/admin/base_site.html").read_text(encoding="utf-8")
-    if "data-rmc-cp-scroll', 'main'" not in base_site:
-        errors.append("templates/admin/base_site.html must set data-rmc-cp-scroll=main for manager admin")
-    if "data-rmc-cp-scroll', 'document'" in base_site.split("if (isManager)")[1].split("} else {")[0]:
+    if "data-rmc-cp-scroll', 'document'" not in base_site:
         errors.append(
-            "templates/admin/base_site.html manager branch must not set data-rmc-cp-scroll=document"
+            "templates/admin/base_site.html must set data-rmc-cp-scroll=document for manager admin"
+        )
+    if "control-plane-skeleton-root.css" not in base_site:
+        errors.append("templates/admin/base_site.html must load control-plane-skeleton-root.css")
+    if (
+        "rmc-scroll-container.js" not in base_site
+        and "rmc_platform_chrome_scripts.html" not in base_site
+    ):
+        errors.append(
+            "templates/admin/base_site.html must load rmc_platform_chrome_scripts partial"
         )
     scroll_js = (REPO_ROOT / "static/js/rmc-scroll-container.js").read_text(encoding="utf-8")
-    if 'mode === "main"' not in scroll_js:
-        errors.append("static/js/rmc-scroll-container.js must handle data-rmc-cp-scroll=main")
-    if 'data-rmc-shell-main-scroll' not in admin_base:
-        errors.append("templates/admin/base.html #cp-main-content missing data-rmc-shell-main-scroll")
+    if 'mode === "document"' not in scroll_js and "mode === \"document\"" not in scroll_js:
+        errors.append("static/js/rmc-scroll-container.js must handle data-rmc-cp-scroll=document")
     if "manager_platform_admin_sidebar.html" not in admin_base:
         errors.append("templates/admin/base.html must include manager_platform_admin_sidebar")
-    if 'id="cp-main-content"' in admin_base and "min-h-0" not in admin_base.split('id="cp-main-content"')[1].split(">")[0]:
-        errors.append(
-            "templates/admin/base.html #cp-main-content must include min-h-0 for main-column scroll"
-        )
-    if "cp-admin-main-scroll-pane" not in admin_base:
-        errors.append(
-            "templates/admin/base.html missing cp-admin-main-scroll-pane wrapper for scroll chain"
-        )
+    if "<main id=\"cp-main-content\"" not in admin_base:
+        errors.append("templates/admin/base.html must use <main> for #cp-main-content")
     if "control_plane_sidebar.html" in admin_base:
         errors.append(
             "templates/admin/base.html must not include control_plane_sidebar on manager admin"
@@ -167,7 +172,7 @@ def check_render() -> list[str]:
                     "cp-admin-index",
                     "Platform Backoffice",
                     'id="cp-main-content"',
-                    'data-rmc-cp-scroll="main"',
+                    "cp-admin-page-body",
                     'data-shell-nav-family="platform-admin"',
                     "data-rmc-platform-admin-sidebar",
                     "admin-sidebar-all-apps",
@@ -213,6 +218,11 @@ def main() -> int:
         "--css-only",
         action="store_true",
         help="Skip HTTP render smoke (use in meta-runners; CI runs full check after migrate).",
+    )
+    parser.add_argument(
+        "--base",
+        default=None,
+        help="Repository root override (passed by verify_phases_3_11_gates.py); ignored when unset.",
     )
     args = parser.parse_args()
 

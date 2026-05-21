@@ -1,6 +1,56 @@
 {% load i18n %}
-<div class="studio-os__card py-3 px-3" data-page-archetype="operational-workbench">
-  <h2 class="h5 mb-2">{% trans "Select plan" %}</h2>
-  <p class="mb-3">{% trans "Choose your school's plan and entitlements. Plan selection will be available here when plans are productized." %}</p>
-  <p class="mb-0 text-muted small">{% trans "Until then, use Guided onboarding and Launch checklist to prepare for go-live." %}</p>
-</div>
+{% comment %}
+  v3.54.0 (2026-05-21): Next-realm Launch — Select plan honest placeholder.
+  Plans are not productized yet; this card explicitly documents what each
+  side can do today and what will land here when pricing ships. No float
+  on money values; pricing helpers (apps.finance.json_decimal) will surface
+  Decimal-safe strings when the plan picker goes live.
+{% endcomment %}
+<section class="rmc-launch-canvas rmc-launch-plan-card studio-os__card mb-3" data-page-archetype="operational-workbench" aria-labelledby="rmc-launch-plan-title">
+  <header class="rmc-launch-section">
+    <h2 id="rmc-launch-plan-title" class="rmc-launch-section__title h5 mb-1">
+      <i class="bi bi-tag" aria-hidden="true"></i>
+      <span>{% trans "Select plan" %}</span>
+      <span class="rmc-launch-badge" data-tone="warn">
+        <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+        <span>{% trans "Coming soon" %}</span>
+      </span>
+    </h2>
+    <p class="rmc-launch-plan-card__lede mb-0">
+      {% trans "Choose your school's plan and entitlements. Plan selection will be available here when plans are productized." %}
+    </p>
+  </header>
+
+  <div class="rmc-launch-plan-card__split">
+    <div class="rmc-launch-plan-card__pane">
+      <h3 class="rmc-launch-plan-card__pane-title">{% trans "Today: tenant" %}</h3>
+      <ul class="rmc-launch-plan-card__pane-list">
+        <li>{% trans "Complete guided onboarding (school profile, term, roles)." %}</li>
+        <li>{% trans "Preview every role experience before go-live." %}</li>
+        <li>{% trans "Pick a school infrastructure template to scope your rollout." %}</li>
+      </ul>
+    </div>
+    <div class="rmc-launch-plan-card__pane">
+      <h3 class="rmc-launch-plan-card__pane-title">{% trans "Today: operator" %}</h3>
+      <ul class="rmc-launch-plan-card__pane-list">
+        <li>{% trans "Provision plan + entitlements via platform admin." %}</li>
+        <li>{% trans "Govern rollback and apply infrastructure packs." %}</li>
+        <li>{% trans "Approve go-live once readiness reaches 100%." %}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="rmc-launch-plan-card__actions">
+    {% if legacy_urls.guided_onboarding %}
+    <a href="{{ legacy_urls.guided_onboarding }}" class="btn btn-sm btn-primary">
+      <i class="bi bi-rocket me-1" aria-hidden="true"></i>{% trans "Guided onboarding" %}
+    </a>
+    {% endif %}
+    {% if launch_studio_base_url %}
+    <a href="{{ launch_studio_base_url }}?pane=overview" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-list-check me-1" aria-hidden="true"></i>{% trans "Launch checklist" %}
+    </a>
+    {% endif %}
+  </div>
+  <p class="rmc-launch-section__meta mb-0">{% trans "Until plans ship, use Guided onboarding and the Launch checklist to prepare for go-live." %}</p>
+</section>

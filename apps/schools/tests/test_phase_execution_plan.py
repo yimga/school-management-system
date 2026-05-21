@@ -172,7 +172,7 @@ class SuperCommandCenterTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Tenant Studio")
-        self.assertContains(response, "Create Tenant")
+        self.assertContains(response, "Create school")
 
     def test_super_scroll_sensitive_routes_render(self):
         surfaces = [

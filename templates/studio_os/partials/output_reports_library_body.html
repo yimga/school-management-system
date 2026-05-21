@@ -1,35 +1,83 @@
 {% load i18n %}
-<div class="container-fluid py-2 studio-output-native-pane" data-studio-output-native="reports">
+<div class="container-fluid py-2 studio-output-native-pane min-w-0" data-studio-output-native="reports">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
-  <div class="studio-os__card py-3 px-3 ds-card mb-3">
-    <p class="mb-2">{% trans "Use the pack graph for dependencies and active packs. Bulk letters generate per-classroom ODT/ZIP. Report card styles and live preview (iframe embed in the builder) are under Report card builder." %}</p>
-    <ul class="small mb-0 ps-3">
-      <li class="mb-1"><a href="{{ dependency_pane_url }}">{% trans "Report & pack graph" %}</a> — {% trans "Dependencies per ReportPack." %}</li>
-      {% if bulk_letters_url %}
-      <li class="mb-1"><a href="{{ bulk_letters_url }}">{% trans "Bulk letters" %}</a> — {% trans "Merge letters to classrooms (full window)." %}</li>
+  <div class="studio-os__card py-3 px-3 ds-card mb-3 min-w-0">
+    <p class="mb-3">
+      {% trans "Use the pack graph for dependencies and active packs. Bulk letters generate per-classroom ODT/ZIP. Report card styles and live preview (iframe embed in the builder) are under Report card builder." %}
+    </p>
+    <ul class="rmc-output-policy-list" role="list">
+      {% if dependency_pane_url %}
+      <li class="rmc-output-policy-list__item">
+        <p class="rmc-output-policy-list__label">
+          <a href="{{ dependency_pane_url }}">{% trans "Report & pack graph" %}</a>
+        </p>
+        <p class="rmc-output-policy-list__desc">
+          {% trans "Dependencies per ReportPack." %}
+        </p>
+      </li>
       {% endif %}
-      <li class="mb-1"><a href="{{ builder_pane_url }}">{% trans "Report card builder" %}</a> — {% trans "Term/annual styles, assignments, defaults; preview uses embed/new tab by design." %}</li>
-      <li class="mb-0"><a href="{{ credentials_pane_url }}">{% trans "IDs & certificates" %}</a> — {% trans "Staff badges and student card entry points." %}</li>
+      {% if bulk_letters_url %}
+      <li class="rmc-output-policy-list__item">
+        <p class="rmc-output-policy-list__label">
+          <a href="{{ bulk_letters_url }}">{% trans "Bulk letters" %}</a>
+        </p>
+        <p class="rmc-output-policy-list__desc">
+          {% trans "Merge letters to classrooms (full window)." %}
+        </p>
+      </li>
+      {% endif %}
+      {% if builder_pane_url %}
+      <li class="rmc-output-policy-list__item">
+        <p class="rmc-output-policy-list__label">
+          <a href="{{ builder_pane_url }}">{% trans "Report card builder" %}</a>
+        </p>
+        <p class="rmc-output-policy-list__desc">
+          {% trans "Term/annual styles, assignments, defaults; preview uses embed/new tab by design." %}
+        </p>
+      </li>
+      {% endif %}
+      {% if credentials_pane_url %}
+      <li class="rmc-output-policy-list__item">
+        <p class="rmc-output-policy-list__label">
+          <a href="{{ credentials_pane_url }}">{% trans "IDs & certificates" %}</a>
+        </p>
+        <p class="rmc-output-policy-list__desc">
+          {% trans "Staff badges and student card entry points." %}
+        </p>
+      </li>
+      {% endif %}
     </ul>
   </div>
   {% if pack_preview_cards %}
-  <div class="studio-os__card py-3 px-3 ds-card mb-3" data-studio-output-pack-previews="1">
+  <div class="studio-os__card py-3 px-3 ds-card mb-3 min-w-0" data-studio-output-pack-previews="1">
     <h3 class="h6 mb-2">{% trans "Pack sample previews" %}</h3>
     <p class="small text-muted mb-3">{% trans "Same data as the graph pane; quick access from this hub." %}</p>
     <div class="row g-2">
       {% for card in pack_preview_cards %}
       <div class="col-12 col-md-6">
-        <div class="border rounded p-2 h-100 border-secondary-subtle">
-          <strong class="small d-block">{{ card.preview.title|default:card.pack_name }}</strong>
-          {% if card.pack_code %}<code class="small text-muted">{{ card.pack_code }}</code>{% endif %}
+        <div class="border rounded p-2 h-100 min-w-0 rmc-output-graph-node border-secondary-subtle">
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <strong class="small">{{ card.preview.title|default:card.pack_name }}</strong>
+            {% if card.preview.rows %}
+              <span class="rmc-output-status" data-state="ready">{% trans "Ready" %}</span>
+            {% else %}
+              <span class="rmc-output-status" data-state="missing">{% trans "Missing data" %}</span>
+            {% endif %}
+          </div>
+          {% if card.pack_code %}<code class="small text-muted d-block mb-1">{{ card.pack_code }}</code>{% endif %}
           {% if card.preview.rows %}
-          <ul class="list-unstyled small mt-2 mb-2">
+          <ul class="list-unstyled small mt-1 mb-2">
             {% for row in card.preview.rows|slice:":4" %}
-            <li>{{ row.label }}: {{ row.value }}</li>
+            <li class="d-flex justify-content-between gap-2 min-w-0">
+              <span class="text-truncate" title="{{ row.label }}">{{ row.label }}:</span>
+              <span class="text-muted text-end">{{ row.value }}</span>
+            </li>
             {% endfor %}
           </ul>
           {% endif %}
-          <a class="btn btn-sm btn-outline-secondary" href="{{ card.graph_url }}">{% trans "Graph & dependencies" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ card.graph_url }}">
+            {% trans "Graph & dependencies" %}
+          </a>
         </div>
       </div>
       {% endfor %}

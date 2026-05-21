@@ -8,7 +8,7 @@
 {% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-analytics mkt-platform-theme--platform-analytics{% endblock %}
 {% block marketing_page_inner %}
-<article class="mkt-analytics-page" data-mkt-platform-analytics="1">
+<article class="mkt-analytics-page" data-mkt-platform-analytics="1" data-mkt-archetype="leadership-intelligence-center">
   <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
     <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
     <span aria-hidden="true">·</span>
@@ -47,7 +47,7 @@
   <section class="mkt-analytics-section rmc-reveal" aria-labelledby="mkt-analytics-visual-heading">
     <h2 id="mkt-analytics-visual-heading">{% trans "Leadership dashboards built on live operations" %}</h2>
     <p class="section-lead">{% trans "Enrollment, attendance, collection, and academic signals roll up from the same records your teams capture daily—without rebuilding spreadsheets every week." %}</p>
-    <div class="mkt-analytics-visual-wrap">
+    <div class="mkt-analytics-visual-wrap" role="region" aria-label="{% trans 'Leadership analytics visual' %}" tabindex="0">
       <img src="{% static 'images/marketing/platform-analytics-leadership.svg' %}" alt="{% trans 'Diagram: leadership analytics with trends, campus rollups, early-warning panel, and export summary' %}" width="920" height="340" loading="lazy" decoding="async" data-mkt-analytics-visual="1">
     </div>
   </section>

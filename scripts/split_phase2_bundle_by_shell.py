@@ -20,7 +20,6 @@ Usage (repo root): python scripts/split_phase2_bundle_by_shell.py
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]

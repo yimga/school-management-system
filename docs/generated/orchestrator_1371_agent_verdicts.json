@@ -1,0 +1,106 @@
+{
+  "generated_at_utc": "2026-05-21T05:10:00Z",
+  "orchestrator_run_id": "rmc-orch-1371-2026-05-21",
+  "target_batch_id": "1371",
+  "policy": "Per-pillar verdict register for the batch-1371 cinema-grade elevation wave (Studio OS cockpit + Tenant Studio day-1 magic + intelligent palette). 3 agents, 3 pillars.",
+  "verdicts": [
+    {
+      "agent_id": "E1",
+      "pillar_id": "P1",
+      "domain": "Intelligent Palette System (theme brain)",
+      "verdict": "READY",
+      "evidence": "35/35 tests OK (14 ai_palette + 16 theme_intelligence + 5 palette_generate_view). AI-gateway boundary clean (scan_ai_gateway_boundary 0). Import-scan asserts no httpx/requests/urllib/aiohttp in either service module. WCAG validation: white-on-black=21.0, black-on-white=21.0, AA threshold snap on cloud-source low-contrast payloads. Graceful degradation: invoke_with_request returns None -> source='rules', AI_ALLOW_RULES_FALLBACK=False -> source='fallback', cloud garbage -> source='fallback', cloud exception -> source='rules'. Endpoint: POST /siteconfig/theme/palette/generate/ tenant-or-staff RBAC. Preserve list NOT touched.",
+      "files_shipped": [
+        "services/ai_palette.py (635 lines)",
+        "services/theme_intelligence.py (314 lines)",
+        "services/tests/test_ai_palette.py (233 lines, 14 tests)",
+        "services/tests/test_theme_intelligence.py (229 lines, 16 tests)",
+        "apps/siteconfig/tests/test_palette_generate_view.py (95 lines, 5 tests)",
+        "docs/generated/intelligent_palette_certification.json"
+      ],
+      "honest_residual": "Pillow not declared in requirements.txt; graceful fallback handles absent dependency. A dedicated PALETTE_GENERATE TaskType in services/ai_gateway.py is deferred (preserve list locked)."
+    },
+    {
+      "agent_id": "E2",
+      "pillar_id": "P2",
+      "domain": "Studio OS Mission Cockpit + Universal Command Bar (cmd+k)",
+      "verdict": "READY",
+      "evidence": "26/26 tests OK (11 cockpit_shell_contract + 10 command_bar_registry + 5 command_bar_actions_view). 3 new CSS files use semantic tokens only — 0 new off-token findings (delta 0 over pre-existing 107). All 4 dashboard shells wired (base.html + portal_base.html + control_plane_skeleton.html + admin/base_site.html). Command bar registry: 33 actions, role + tenant scoped, no cross-tenant URL leakage. Armed-attribute invariant: data-rmc-command-bar-armed set synchronously at parse time; loaded without defer/async. CSP nonce: 0 violations. Endpoint: /api/command-bar/actions/ JSON. SW slug bumped to sms-v3.53.0-studio-cockpit-day1-magic-1371-2026-05-21.",
+      "files_shipped": [
+        "static/css/studio-os-cockpit.css (193 lines)",
+        "static/css/rmc-signature-motion.css (51 lines, --ease-signature-* + --motion-stage-* tokens)",
+        "static/css/rmc-command-bar.css (193 lines)",
+        "static/js/rmc-command-bar.js (341 lines)",
+        "apps/siteconfig/command_bar_registry.py (246 lines, 33 actions)",
+        "templates/partials/rmc_command_bar.html (56 lines)",
+        "templates/studio_os/partials/cockpit_signal_strip.html + cockpit_canvas.html + cockpit_copilot_rail.html",
+        "apps/studio_os/tests/test_cockpit_shell_contract.py + test_command_bar_registry.py",
+        "apps/siteconfig/tests/test_command_bar_actions_view.py",
+        "scripts/verify_studio_os_cockpit_contract.py + verify_command_bar_coverage.py",
+        "docs/generated/studio_os_cockpit_certification.json"
+      ],
+      "honest_residual": "Co-pilot rail content is structural-only this wave; persistent AI presence wiring (always-on context awareness) is a follow-up. Command bar action registry can grow beyond 33 actions as new surfaces ship."
+    },
+    {
+      "agent_id": "E3",
+      "pillar_id": "P3",
+      "domain": "Tenant School Studio — Day-1 Magic 3-act opening sequence",
+      "verdict": "READY",
+      "evidence": "36/36 tests OK (29 tenant_studio_day1 + 7 logo_upload_validator). 3 acts implemented: brand extraction (Act 1) -> AI palette variations (Act 2) -> lock-in (Act 3). Tenant isolation: every method takes school: School first arg; variation_id school-pk-bound; cross-tenant POST -> 403 (test_act3_rejects_cross_tenant_variation_id). No PII in logger calls: school slug -> sha256[:8] (verified by scan_pii_logging_smell 0). E1 lazy import with ImportError + generic Exception fallback; rules layer ships 3 variations even if E1 absent. Logo upload: MIME-sniffed (not extension-trusted), SVG forbidden, max 1.5MB. Lock palette write: transaction.atomic. makemigrations --check: No changes detected. verify_tenant_studio_day1_contract: PASS.",
+      "files_shipped": [
+        "apps/siteconfig/tenant_studio_day1.py (458 lines, Day1MagicService)",
+        "apps/siteconfig/tests/test_tenant_studio_day1.py (326 lines, 29 tests)",
+        "apps/schools/tests/test_logo_upload_validator.py (107 lines, 7 tests)",
+        "templates/siteconfig/partials/tenant_studio_day1_act{1,2,3}_*.html + _orchestrator.html",
+        "static/css/tenant-studio-day1.css (423 lines)",
+        "static/js/rmc-tenant-studio-day1.js (200 lines)",
+        "scripts/verify_tenant_studio_day1_contract.py (124 lines)",
+        "docs/generated/tenant_studio_day1_certification.json"
+      ],
+      "honest_residual": "Live operator-uploaded logo widget surface (Act 1 multipart POST) is helper-only this wave; in-Act-1 upload widget is a follow-up. E1's mode signature ('light'|'dark'|'dual') is coerced from Day-1's tone vocabulary ('classic'|'warm'|'vibrant') via a map; a tone-aware E1 overload would let AI drive all three variation hues."
+    }
+  ],
+  "tally": {
+    "READY": 3,
+    "EXTERNALLY_BLOCKED": 0,
+    "PARTIAL": 0,
+    "FAILURE": 0,
+    "total_agents": 3
+  },
+  "ship_floor_satisfied_3_of_3_ready": true,
+  "ship_floor_actual": 3,
+  "elevation_validation_summary": {
+    "tests_run_total": 97,
+    "tests_passed_total": 97,
+    "ai_gateway_boundary_clean": true,
+    "tenant_queryset_safety_clean": true,
+    "pii_logging_smell_clean": true,
+    "csp_nonce_emission_clean": true,
+    "reveal_armed_invariants_clean": true,
+    "sticky_with_overflow_hidden_clean": true,
+    "assert_in_production_clean": true,
+    "print_statements_clean": true,
+    "bare_except_clean": true,
+    "new_verifiers_pass": [
+      "verify_studio_os_cockpit_contract.py",
+      "verify_command_bar_coverage.py",
+      "verify_tenant_studio_day1_contract.py"
+    ],
+    "domain_verifiers_pass": [
+      "verify_render_online_ai_posture",
+      "verify_theme_experience_plane_isolation (slug list extended)",
+      "verify_studio_guidance_contract",
+      "verify_platform_chrome_shell_coverage",
+      "verify_dual_plane_theme_experience"
+    ],
+    "django_check_clean": true,
+    "makemigrations_check_clean": true,
+    "sw_cache_version_bumped": "sms-v3.53.0-studio-cockpit-day1-magic-1371-2026-05-21",
+    "preserve_list_touched_by_any_agent": false,
+    "off_token_colors_delta_from_elevation_files": 0,
+    "theme_locked_token_text_delta_from_elevation_files": 0,
+    "inline_style_off_token_delta_from_elevation_files": 0
+  },
+  "honest_dependency_note": "The pre-existing batch 1370 punch list of 184 marketing CSS marker findings (107 off_token_colors + 68 inline_style + 9 theme_locked) is UNCHANGED by this wave. The elevation wave added 0 new findings to those scanners. Batch 1371 ships at 100% within its scope; batch 1370 marketing-CSS marker burndown remains a separate operator task.",
+  "verdict": "STUDIO ELEVATION READY — REPO SCOPE"
+}

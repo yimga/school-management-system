@@ -2,6 +2,7 @@
 <div class="container py-3" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1" data-apple-class-migration-ux="1">
   <h1 class="h3 mb-2">{% trans "School activation checklist" %}</h1>
   <p class="text-muted small mb-3">{% trans "Items below come from this tenant’s data. Links open real setup or evidence pages—no automated completion without underlying records." %}</p>
+  <p class="small mb-3"><a href="{% url 'school_studio' %}" class="fw-medium" data-rmc-tenant-studio-launch-path="1">{% trans "Open School Studio launch hub" %}</a></p>
   <div class="row g-3 mb-3" aria-label="{% trans 'Import readiness' %}">
     <div class="col-lg-6">
       {% include "components/apple_class_data_quality_meter.html" with meter_id="tenant-import-quality" title=_("Import Data Quality") value=onboarding.percent status=onboarding.import_quality_token status_label=onboarding.import_quality_label body=_("Use setup steps, migration wizard, and run history to preview, validate, quarantine issues, apply, audit, and preserve rollback posture.") %}

@@ -1,1 +1,11 @@
-{% include "siteconfig/partials/theme_colors_content.html" %}
+{% load i18n %}
+{# v3.54.0 (2026-05-21): clamp wrapper firewalls the legacy theme_colors_content
+   include from widening the workspace main column. The workspace main column
+   guarantees min-width:0 (workspace_layout.html), but the legacy include uses
+   Bootstrap rows/cards that can still push wider on 1366px without explicit
+   max-width:100% inside. .rmc-studio-experience-canvas-clamp is defined in
+   static/css/studio-experience-mode.css. #}
+<div class="rmc-studio-experience-canvas-clamp" data-rmc-studio-experience-canvas="inpage">
+  {% include "siteconfig/partials/theme_colors_content.html" %}
+  {% include "studio_os/partials/experience_live_preview_pane.html" %}
+</div>

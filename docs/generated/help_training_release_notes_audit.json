@@ -1,10 +1,27 @@
 {
-  "generated_at": "2026-05-19T09:09:35.205593+00:00",
-  "routes": [
-    "/help/",
-    "/super/help/",
-    "manager_help"
-  ],
-  "schema_version": 1,
-  "status": "present"
+  "generated_at_utc": "2026-05-20T21:40:00Z",
+  "agent_id": "A8",
+  "batch": "1370",
+  "help_center": {
+    "url": "feedback:help_center -> /help/",
+    "view": "apps.feedback.views.help_center",
+    "template": "templates/feedback/help_center.html",
+    "graceful_empty_state": true,
+    "graceful_empty_state_source": "apps/feedback/db_readiness.py feedback_schema_ready() returns False on missing tables; views and querysets route through .none() factories"
+  },
+  "release_notes": {
+    "url": "feedback:release_notes_public -> /release-notes/",
+    "view": "apps.feedback.views.release_notes_public",
+    "template": "templates/feedback/release_notes_public.html",
+    "auth_posture": "public (intentional per rbac-allow comment at apps/feedback/urls.py:32); view filters is_public=True at QS level so unpublished notes are never exposed",
+    "tenant_scope": "manager-global by design (cross-tenant release notes)"
+  },
+  "training_surfaces": {
+    "guided_onboarding": "siteconfig:guided_onboarding -> /siteconfig/guided-onboarding/ (apps.customersuccess.views_tenant.guided_onboarding_view); embeds Setup Studio when ?embed=1 else redirects to studio_os:launch",
+    "ai_setup_coach": "templates/customersuccess/guided_onboarding.html lines 70-83 -- coach panel labels source as 'Powered by AI gateway' (not Ollama-on-Render); JSON i18n bundle handed to customersuccess__guided_onboarding-1.js; cloud AI posture aligned with docs/AI_DEPLOYMENT_POSTURE.md",
+    "tour_steps": "siteconfig:tour_steps_api (login) and siteconfig:tour_steps_public_api (anonymous, rbac-allow marked)"
+  },
+  "no_dummy_links": true,
+  "no_dummy_links_evidence": "0 href='#' or javascript:void(0) hits in templates/customersuccess/*.html and templates/feedback/*.html",
+  "verdict": "READY"
 }

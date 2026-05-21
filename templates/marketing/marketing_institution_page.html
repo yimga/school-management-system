@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-institution-premium.css' %}">
 {% endblock %}
 {% block content %}
-<section class="container py-4 py-lg-5 page-stack mkt-institution-premium mkt-inst-audience--{{ institution_segment_slug|default:'segment' }}">
+<section class="container py-4 py-lg-5 page-stack mkt-institution-premium mkt-inst-audience--{{ institution_segment_slug|default:'segment' }}" data-mkt-buyer-world="{{ institution_segment_slug|default:'segment' }}">
   <header class="mkt-inst-hero mb-4 pb-3 border-bottom border-secondary border-opacity-25">
     <p class="text-uppercase small text-muted mb-2">{% trans "RunMyCampus Solutions" %}</p>
     <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
@@ -82,7 +82,7 @@
   <section class="section-shell text-center rmc-reveal" aria-label="{% trans 'Workflow overview' %}">
     <h2 class="section-heading">{% trans "Workflow overview" %}</h2>
     <p class="section-lead">{% trans "Illustrative flow across operational surfaces—not a substitute for your tenant configuration." %}</p>
-    <img src="{% static page.workflow_diagram_static %}" alt="{% trans 'Workflow illustration for this solution segment' %}" class="img-fluid rounded mkt-inst-diagram" width="720" height="420" loading="lazy" decoding="async">
+    <img src="{% static page.workflow_diagram_static %}" alt="{{ page.workflow_diagram_alt|default:_('Workflow illustration for this solution segment') }}" class="img-fluid rounded mkt-inst-diagram" width="720" height="420" loading="lazy" decoding="async">
   </section>
   {% endif %}
 

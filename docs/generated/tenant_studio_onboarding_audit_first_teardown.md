@@ -1,0 +1,31 @@
+# Tenant Studio Onboarding Audit First Teardown
+
+Generated: 2026-05-21T00:32:59+00:00
+
+
+```json
+{
+  "generated_at": "2026-05-21T00:32:59+00:00",
+  "architecture_condition": "guided_onboarding_cockpit_plus_super_wizard",
+  "workflow": {
+    "super_provision_wizard": true,
+    "tenant_activation_checklist": true,
+    "school_studio_launch_hub": true,
+    "studio_os_bounded_consoles": true,
+    "migration_cloud_connectors": true
+  },
+  "simplicity": {
+    "one_launch_path_marker": true,
+    "school_studio_routes": true,
+    "readiness_score_visible": true,
+    "next_action_marker": true,
+    "fragmentation_risk": "medium_studio_os_vs_siteconfig_onboarding"
+  },
+  "ux": "acceptable_improving",
+  "transcript_d62e45d4": {
+    "tenant_studio_guidance": "DONE",
+    "logo_favicon_at_create": "DONE",
+    "school_studio_route": "DONE_this_pass"
+  }
+}
+```

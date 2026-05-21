@@ -1,0 +1,114 @@
+{% load i18n %}
+{% comment %}
+v3.54 (2026-05-21): Governance preview pane.
+
+Renders a proposed-change preview so an operator can see:
+  - what's being changed,
+  - the impact summary (from studio_control_impact route),
+  - dependency warnings,
+  - which audit-trail entry the change will produce,
+  - rollback plan + confirm CTA.
+
+Data contract (all optional — render honest empty state otherwise):
+  - preview_pane_title:                short label for the proposed change
+  - preview_pane_impact_summary:       short string (already truncated upstream)
+  - preview_pane_dependency_warnings:  list of strings
+  - preview_pane_audit_label:          short text that will land on the audit event
+  - preview_pane_rollback_plan:        short string explaining rollback path
+  - preview_pane_confirm_url:          URL to navigate when operator confirms
+  - preview_pane_confirm_label:        button label (or default)
+  - preview_pane_confirm_required_perm: dotted perm string for the operator-readable hint
+  - preview_pane_confirm_permitted:    bool — caller MUST compute this upstream (Django
+                                       template language cannot dynamically index `perms`
+                                       by a variable string; the canonical Studio pattern
+                                       is to do the permission check in the view)
+  - preview_pane_confirm_destructive:  bool — destructive styling + confirm-prompt attr
+
+Permission gating contract:
+  - When preview_pane_confirm_url is set AND preview_pane_confirm_required_perm is set,
+    the confirm button only renders when preview_pane_confirm_permitted is True;
+    otherwise an honest "Permission required: <perm>" hint is shown.
+  - We never render destructive controls without BOTH the perm gate AND a confirm-prompt
+    + an unmistakable accessible name.
+  - We never render `href="#"` placeholders.
+{% endcomment %}
+
+<section class="rmc-control-preview-pane"
+         data-rmc-control-preview-pane="1"
+         aria-label="{% trans 'Governance preview' %}">
+  <header>
+    <h3 class="rmc-control-preview-pane__title">
+      {% if preview_pane_title %}{{ preview_pane_title }}{% else %}{% trans "Governance preview" %}{% endif %}
+    </h3>
+  </header>
+
+  {% if preview_pane_impact_summary or preview_pane_dependency_warnings or preview_pane_audit_label or preview_pane_rollback_plan or preview_pane_confirm_url %}
+
+    {% if preview_pane_impact_summary %}
+    <div class="rmc-control-preview-pane__section">
+      <p class="rmc-control-preview-pane__section-label">{% trans "Impact" %}</p>
+      <p class="rmc-control-preview-pane__body">{{ preview_pane_impact_summary }}</p>
+    </div>
+    {% endif %}
+
+    {% if preview_pane_dependency_warnings %}
+    <div class="rmc-control-preview-pane__section">
+      <p class="rmc-control-preview-pane__section-label">{% trans "Affected dependencies" %}</p>
+      <ul class="rmc-control-preview-pane__warnings">
+        {% for warning in preview_pane_dependency_warnings %}
+        <li>{{ warning }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if preview_pane_audit_label %}
+    <div class="rmc-control-preview-pane__section">
+      <p class="rmc-control-preview-pane__section-label">{% trans "Audit-trail entry" %}</p>
+      <p class="rmc-control-preview-pane__body">{{ preview_pane_audit_label }}</p>
+    </div>
+    {% endif %}
+
+    {% if preview_pane_rollback_plan %}
+    <div class="rmc-control-preview-pane__section">
+      <p class="rmc-control-preview-pane__section-label">{% trans "Rollback plan" %}</p>
+      <p class="rmc-control-preview-pane__body">{{ preview_pane_rollback_plan }}</p>
+    </div>
+    {% endif %}
+
+    {% if preview_pane_confirm_url %}
+    <div class="rmc-control-preview-pane__actions" role="group" aria-label="{% trans 'Governance preview actions' %}">
+      {% if preview_pane_confirm_required_perm %}
+        {% if preview_pane_confirm_permitted %}
+          <a href="{{ preview_pane_confirm_url }}"
+             class="btn btn-sm {% if preview_pane_confirm_destructive %}btn-danger{% else %}btn-primary{% endif %}"
+             data-rmc-control-confirm-cta="1"
+             {% if preview_pane_confirm_destructive %}data-confirm-prompt="{% trans 'This change is destructive and recorded in the audit log. Continue?' %}"{% endif %}
+             aria-label="{% if preview_pane_confirm_label %}{{ preview_pane_confirm_label }}{% else %}{% trans 'Confirm governance change' %}{% endif %}">
+            {% if preview_pane_confirm_label %}{{ preview_pane_confirm_label }}{% else %}{% trans "Confirm change" %}{% endif %}
+          </a>
+        {% else %}
+          <span class="rmc-control-preview-pane__body text-muted"
+                role="status"
+                data-rmc-control-confirm-blocked="1">
+            {% blocktrans with perm=preview_pane_confirm_required_perm %}Permission required to confirm: {{ perm }}{% endblocktrans %}
+          </span>
+        {% endif %}
+      {% else %}
+        <a href="{{ preview_pane_confirm_url }}"
+           class="btn btn-sm {% if preview_pane_confirm_destructive %}btn-danger{% else %}btn-primary{% endif %}"
+           data-rmc-control-confirm-cta="1"
+           {% if preview_pane_confirm_destructive %}data-confirm-prompt="{% trans 'This change is destructive and recorded in the audit log. Continue?' %}"{% endif %}
+           aria-label="{% if preview_pane_confirm_label %}{{ preview_pane_confirm_label }}{% else %}{% trans 'Confirm governance change' %}{% endif %}">
+          {% if preview_pane_confirm_label %}{{ preview_pane_confirm_label }}{% else %}{% trans "Confirm change" %}{% endif %}
+        </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  {% else %}
+    <p class="rmc-control-preview-pane__empty">
+      {% trans "No governance change staged. Start a change in Feature control or System config to see its impact, audit-trail preview, and rollback plan here." %}
+    </p>
+  {% endif %}
+</section>

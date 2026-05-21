@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T11:30:02.536869+00:00",
+  "generated_at": "2026-05-21T10:50:47.944222+00:00",
   "defects": [
     {
       "id": "P1",
@@ -109,8 +109,8 @@
       "id": "I4",
       "severity": "medium",
       "category": "media",
-      "finding": "Walkthrough lacked accessible glass video portal with play/pause",
-      "remediation": "_video_portal.html + mkt-video-portal.js on marketing_landing_v2.html",
+      "finding": "Walkthrough needed an accessible preview surface without fake video controls",
+      "remediation": "_video_portal.html poster-mode preview + animated walkthrough when footage is absent",
       "status": "fixed"
     },
     {
@@ -195,7 +195,7 @@
     }
   ],
   "bundles": {
-    "critical_bytes": 15929,
-    "enhanced_bytes": 246204
+    "critical_bytes": 21451,
+    "enhanced_bytes": 284220
   }
 }

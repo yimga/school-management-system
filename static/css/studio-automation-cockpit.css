@@ -1,0 +1,364 @@
+/**
+ * Studio OS Automation cockpit (v3.54, 2026-05-21).
+ *
+ * Owns the .rmc-automation-* grammar for Agent 3's section of the Studio OS
+ * next-realm wave. Companion CSS to studio-workspace.css; never duplicates
+ * tokens or layout primitives from studio-workspace.css / studio-os-cockpit.css.
+ *
+ * All colors route through design tokens. Off-token literals carry an
+ * `/* off-token-allow: <3+-part-reason> */` marker.
+ */
+
+/* ---------- Cockpit canvas frame ---------- */
+
+.rmc-automation-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 2vw, 1rem);
+  min-width: 0;
+}
+
+.rmc-automation-cockpit__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.rmc-automation-cockpit__title {
+  font-size: var(--type-size-lg, 1.125rem);
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  margin: 0;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.rmc-automation-cockpit__subtitle {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary, inherit);
+  margin: 0;
+  min-width: 0;
+}
+
+/* ---------- Summary tile grid ---------- */
+
+.rmc-automation-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: clamp(0.5rem, 1.5vw, 0.875rem);
+  min-width: 0;
+}
+
+.rmc-automation-tile {
+  background: var(--surface-elevated, transparent);
+  border: 1px solid var(--hairline, transparent);
+  border-radius: var(--token-radius-md, 0.5rem);
+  padding: 0.75rem 0.875rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rmc-automation-tile__label {
+  font-size: var(--type-size-micro, 0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+}
+
+.rmc-automation-tile__value {
+  font-size: var(--type-size-xl, 1.5rem);
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  word-break: break-word;
+}
+
+.rmc-automation-tile__caption {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+}
+
+.rmc-automation-tile--accent {
+  /* Semantic-first fallback chain: --text-primary is theme-aware, brand
+     accent ladder is the legacy fallback. */
+  border-color: var(--text-primary, var(--color-primary-200, var(--hairline))); /* theme-locked-allow: brand-token */
+}
+
+/* ---------- Risk badges ----------
+ * Status colors route through --bs-success/--bs-warning/--bs-danger which
+ * ARE on the theme-locked-token-text scanner's whitelist. Fallback chain
+ * collapses to the semantic --text-primary / --hairline so dark-mode stays
+ * legible if Bootstrap tokens haven't loaded yet. */
+
+.rmc-automation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--type-size-micro, 0.75rem);
+  font-weight: 500;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--token-radius-pill, 999px);
+  background: var(--surface-elevated, transparent);
+  border: 1px solid var(--hairline, transparent);
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+}
+
+.rmc-automation-badge--ok {
+  color: var(--bs-success, var(--text-primary));
+  border-color: var(--bs-success-border-subtle, var(--hairline));
+}
+
+.rmc-automation-badge--warn {
+  color: var(--bs-warning-text-emphasis, var(--text-primary));
+  border-color: var(--bs-warning-border-subtle, var(--hairline));
+}
+
+.rmc-automation-badge--danger {
+  color: var(--bs-danger, var(--text-primary));
+  border-color: var(--bs-danger-border-subtle, var(--hairline));
+}
+
+.rmc-automation-badge--muted {
+  color: var(--text-secondary, inherit);
+}
+
+/* ---------- Rail ---------- */
+
+.rmc-automation-rail {
+  background: var(--surface-elevated, transparent);
+  border: 1px solid var(--hairline, transparent);
+  border-radius: var(--token-radius-md, 0.5rem);
+  padding: 0.5rem;
+  min-width: 0;
+}
+
+.rmc-automation-rail__title {
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  margin: 0 0 0.5rem 0;
+}
+
+.rmc-automation-rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.rmc-automation-rail__item {
+  min-width: 0;
+}
+
+.rmc-automation-rail__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--token-radius-sm, 0.375rem);
+  color: var(--text-primary, inherit);
+  text-decoration: none;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.rmc-automation-rail__link:hover,
+.rmc-automation-rail__link:focus-visible {
+  background: var(--surface-overlay, var(--surface-elevated));
+  color: var(--text-primary, inherit);
+  outline: none;
+}
+
+.rmc-automation-rail__link:focus-visible {
+  outline: 2px solid var(--text-primary, currentColor);
+  outline-offset: 1px;
+}
+
+.rmc-automation-rail__link.active {
+  background: var(--surface-overlay, var(--surface-elevated));
+  color: var(--text-primary, inherit);
+  font-weight: 600;
+}
+
+.rmc-automation-rail__icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--text-secondary, inherit);
+}
+
+.rmc-automation-rail__label {
+  display: block;
+  font-size: var(--type-size-sm, 0.875rem);
+  line-height: 1.25;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.rmc-automation-rail__hint {
+  display: block;
+  font-size: var(--type-size-micro, 0.75rem);
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+  margin-top: 0.1rem;
+}
+
+/* ---------- Dependency graph scroll wrapper ---------- */
+
+.rmc-automation-graph-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  min-width: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rmc-automation-graph-scroll > ul {
+  min-width: 0;
+}
+
+.rmc-automation-graph-scroll code {
+  word-break: break-all;
+}
+
+/* ---------- Simulation preview pane ---------- */
+
+.rmc-automation-simulation {
+  background: var(--surface-elevated, transparent);
+  border: 1px solid var(--hairline, transparent);
+  border-radius: var(--token-radius-md, 0.5rem);
+  padding: 0.875rem 1rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.rmc-automation-simulation__title {
+  font-size: var(--type-size-md, 1rem);
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  margin: 0;
+  word-break: break-word;
+}
+
+.rmc-automation-simulation__caption {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary, inherit);
+  margin: 0;
+  word-break: break-word;
+}
+
+.rmc-automation-simulation__row {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: 0.5rem 0.75rem;
+  font-size: var(--type-size-sm, 0.875rem);
+  min-width: 0;
+}
+
+.rmc-automation-simulation__row dt {
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+  margin: 0;
+}
+
+.rmc-automation-simulation__row dd {
+  color: var(--text-primary, inherit);
+  word-break: break-word;
+  margin: 0;
+}
+
+.rmc-automation-simulation__empty {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+}
+
+.rmc-automation-simulation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ---------- Environment banner additions ---------- */
+
+.rmc-automation-banner__scope {
+  font-size: var(--type-size-micro, 0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+}
+
+.rmc-automation-banner__scope-value {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-primary, inherit);
+  word-break: break-word;
+}
+
+/* ---------- Workflow health metrics grid ---------- */
+
+.rmc-automation-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.rmc-automation-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--hairline, transparent);
+  border-radius: var(--token-radius-sm, 0.375rem);
+  min-width: 0;
+}
+
+.rmc-automation-metric__label {
+  font-size: var(--type-size-micro, 0.75rem);
+  color: var(--text-secondary, inherit);
+  word-break: break-word;
+}
+
+.rmc-automation-metric__value {
+  font-size: var(--type-size-lg, 1.125rem);
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  word-break: break-word;
+}
+
+/* ---------- Responsive breakpoints ---------- */
+
+@media (max-width: 1365.98px) {
+  .rmc-automation-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .rmc-automation-tiles {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rmc-automation-simulation__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 389.98px) {
+  .rmc-automation-tiles {
+    grid-template-columns: 1fr;
+  }
+  .rmc-automation-cockpit__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

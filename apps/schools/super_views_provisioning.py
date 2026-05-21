@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
@@ -25,6 +26,7 @@ from apps.schools.super_views_helpers import (
     resolve_registry_codes,
     resolve_subdivision,
     safe_school_timeline_url,
+    safe_tenant_360_url,
     slug_from_school_name,
 )
 from .models import School, SchoolProvisioningEvent
@@ -39,8 +41,19 @@ def api_create_school(request):
     """
     import json
 
+    logo_file = None
+    favicon_file = None
+    content_type = (request.content_type or "").lower()
     try:
-        data = json.loads(request.body) if request.body else {}
+        if "multipart/form-data" in content_type:
+            raw_payload = (request.POST.get("payload") or "").strip()
+            if not raw_payload:
+                return JsonResponse({"error": "Missing payload"}, status=400)
+            data = json.loads(raw_payload)
+            logo_file = request.FILES.get("logo")
+            favicon_file = request.FILES.get("favicon")
+        else:
+            data = json.loads(request.body) if request.body else {}
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
@@ -366,6 +379,27 @@ def api_create_school(request):
         addons = [str(x).strip() for x in addons if x]
         create_kw["addons"] = addons
     school = School.objects.create(**create_kw)
+    try:
+        from apps.schools.school_brand_assets import (
+            ensure_brand_profile_colors,
+            persist_school_brand_favicon,
+            persist_school_brand_logo,
+        )
+
+        ensure_brand_profile_colors(
+            school=school,
+            primary_color=primary_color,
+            accent_color=accent_color,
+        )
+        if logo_file:
+            persist_school_brand_logo(school=school, uploaded_file=logo_file)
+            school_settings_overrides["provisioning"]["logo_uploaded"] = True
+        if favicon_file:
+            persist_school_brand_favicon(school=school, uploaded_file=favicon_file)
+            school_settings_overrides["provisioning"]["favicon_uploaded"] = True
+    except ValidationError as exc:
+        school.delete()
+        return JsonResponse({"errors": [str(exc)]}, status=400)
     if selected_levels:
         school.education_levels.set(selected_levels)
     if selected_system_types:
@@ -461,12 +495,28 @@ def api_create_school(request):
         else None,
     )
 
+    from apps.schools.tenant_url import build_manager_absolute_url, tenant_absolute_url
+
+    tenant_360_path = safe_tenant_360_url(school.id)
+    tenant_360_url = (
+        build_manager_absolute_url(request, tenant_360_path) if tenant_360_path else ""
+    )
+    theme_hub_url = tenant_absolute_url(
+        request, "siteconfig:theme_experience_hub", school=school
+    )
+    timeline_path = safe_school_timeline_url(school.id)
+    timeline_url = (
+        build_manager_absolute_url(request, timeline_path) if timeline_path else ""
+    )
+
     return JsonResponse(
         {
             "school_id": str(school.id),
             "job_id": job_id,
             "message": "School created; provisioning started.",
-            "timeline_url": safe_school_timeline_url(school.id),
+            "timeline_url": timeline_url,
+            "tenant_360_url": tenant_360_url,
+            "theme_hub_url": theme_hub_url,
         },
         status=202,
     )

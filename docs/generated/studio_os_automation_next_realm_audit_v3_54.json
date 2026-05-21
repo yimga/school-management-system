@@ -1,0 +1,212 @@
+{
+  "wave": "studio-os-next-realm-v3.54",
+  "agent": "Agent 3 (Automation)",
+  "date": "2026-05-21",
+  "scope": "templates/studio_os/modes/automation.html + automation partials + workspace/automation_{canvas,rail}.html",
+  "surface_inventory": {
+    "mode_shell": "templates/studio_os/modes/automation.html",
+    "mode_canvas": "templates/studio_os/partials/automation_mode_canvas.html",
+    "workspace_canvas": "templates/studio_os/partials/workspace/automation_canvas.html",
+    "workspace_rail": "templates/studio_os/partials/workspace/automation_rail.html",
+    "overview_body": "templates/studio_os/partials/automation_overview_body.html",
+    "workflow_health_body": "templates/studio_os/partials/automation_workflow_health_body.html",
+    "dependency_graph_body": "templates/studio_os/partials/automation_dependency_graph_body.html",
+    "environment_banner": "templates/studio_os/partials/automation_environment_banner.html",
+    "explainer_in_canvas": "templates/studio_os/partials/automation_explainer_in_canvas.html",
+    "automation_views": {
+      "studio_shell_branch (mode=automation)": "apps/studio_os/views.py:1565-1706 — populates 13 context vars",
+      "studio_automation_conflict_detection": "apps/studio_os/views.py:816 — REAL: subpage explainer",
+      "studio_automation_staged_activation": "apps/studio_os/views.py:846 — REAL: subpage explainer",
+      "studio_automation_replay_rollback": "apps/studio_os/views.py:876 — REAL: subpage explainer + rollback link",
+      "studio_automation_visual_builder": "apps/studio_os/views.py:939 — REAL: links to apps.automation:visual_workflow_designer",
+      "studio_automation_natural_language_workflow": "apps/studio_os/views.py:975 — explainer-only (no real NL→workflow engine)",
+      "studio_automation_simulation_engine": "apps/studio_os/views.py:990 — REAL: links to apps.automation:visual_workflow_simulate + dispatch_test + publish + outcomes_console + canonical_triggers + ready_playbooks",
+      "studio_automation_dependency_graph": "apps/studio_os/views.py:1087 — REAL: get_automation_dependency_graph() from services.py:1149",
+      "studio_automation_workflow_health": "apps/studio_os/views.py:1117 — REAL: get_automation_workflow_health_summary() from services.py:1189 (pack_count + template_count only)"
+    },
+    "shell_context_vars": [
+      "automation_pane (allowed: overview/outcomes/workflow/flow_gallery/approval/dependency/health/conflict/staged/replay/visual_builder/nl_workflow/simulation)",
+      "automation_conflict_pane_url",
+      "automation_iframe_src",
+      "automation_dependency_graph (list[dict])",
+      "automation_health_summary {pack_count, template_count}",
+      "automation_workflow_center_pane_url",
+      "automation_simulation_pane_url",
+      "automation_explainer (when in explainer pane)",
+      "automation_left_rail (13 entries)",
+      "automation_simulation_summary (string)",
+      "automation_environment {staging_package_count, production_package_count, staging_vs_production_detail, workflow_simulation_ready, publish_readiness, rollback_readiness}",
+      "workflow_entries (always empty list)",
+      "legacy_urls.workflow_center"
+    ]
+  },
+  "overflow_risks": [
+    {
+      "file": "templates/studio_os/partials/automation_dependency_graph_body.html",
+      "lines": "3-23",
+      "failure_mode": "Long pack/template <code> values + nested <ul> deep indent with no min-width:0 inside a flex/grid parent → horizontal overflow when names are long",
+      "fix": "Wrap whole list in .rmc-automation-graph-scroll{overflow-x:auto; min-width:0; word-break:break-word} and apply break-word to <code> tags"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_workflow_health_body.html",
+      "lines": "4-7",
+      "failure_mode": "Long template names in <li><strong> would not wrap (no word-break); could push narrow column",
+      "fix": "Force word-break and rewrap inside .rmc-automation-metric"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_overview_body.html",
+      "lines": "11-19",
+      "failure_mode": "row.col-lg-6 grid: when dependency graph is wide, no min-width:0 inside col, so flexbox child cannot shrink under content width",
+      "fix": "Add min-width-0 class to col-lg-6 elements (Bootstrap provides .min-w-0)"
+    },
+    {
+      "file": "templates/studio_os/partials/workspace/automation_canvas.html",
+      "lines": "20-22",
+      "failure_mode": "iframe with class studio-os-iframe; if class lacks max-width:100% set, would overflow main column",
+      "fix": "iframe sizing is already covered by studio-os-iframe class in studio-shell-layout.css; main canvas already has min-w-0; no fix needed"
+    },
+    {
+      "file": "templates/studio_os/partials/workspace/automation_rail.html",
+      "lines": "5-11",
+      "failure_mode": "Long pane labels (e.g. 'Natural-language workflow') could overflow narrow rail (12.5rem) without word-break",
+      "fix": "automation-rail-link should set word-break:break-word + padding"
+    }
+  ],
+  "simulation_preview_model": {
+    "is_real_engine": "PARTIAL",
+    "details": "studio_automation_simulation_engine view (views.py:990) resolves urls to apps.automation:visual_workflow_{simulate,dispatch_test,publish} and outcomes_console, AND pulls canonical_triggers via apps.automation.workflow_trigger_catalog.get_operator_trigger_catalog_for_school AND ready_playbooks via enrich_playbooks_for_template. It returns guidance + canonical trigger payloads but the in-shell pane (canvas) currently renders only the explainer body. The real simulate API exists at apps.automation:visual_workflow_simulate.",
+    "gap": "No simulation preview UI is wired in the Automation Studio canvas itself — operator must navigate to the subpage AND then to apps.automation:visual_workflow_designer. The cockpit pane shows no projected actions / no record-count / no risk warnings.",
+    "honest_deferral": "Build a 'simulation preview pane' partial that shows projected actions / risks / would-be-affected-records IF a simulation has been run. When no simulation exists, render honest empty state pointing at apps.automation:visual_workflow_simulate. Do NOT fabricate simulation results."
+  },
+  "approval_rollback_staged_flow": {
+    "approval_hub_route": "studio_os:approval_hub (apps.accounts.views_workflow.approval_workflow_hub)",
+    "rollback_route": "studio_os:rollback (with ?mode=automation)",
+    "staged_activation_route": "studio_os:automation_staged_activation — explainer-only",
+    "replay_rollback_route": "studio_os:automation_replay_rollback — explainer-only",
+    "risk_indicators_present": "environment banner shows publish_readiness + rollback_readiness booleans; no granular risk badges",
+    "gap": "No approval queue summary tile on the Automation cockpit canvas. No rollback availability badge. No recent runs surface."
+  },
+  "tenant_vs_operator_mapping": {
+    "operator_only": [
+      "Studio shell on manager host (request.public_host_kind == 'manager') shows different mode-canvas branch (workspace_layout disabled on manager host per automation_mode_canvas.html:3)",
+      "Cross-school workflow center embed (workflow center iframe loads at apps.studio_os.workflow_center)"
+    ],
+    "tenant_scoped": [
+      "request.school filters apps.runtime_blueprints WorkflowPack queryset implicitly via service",
+      "canonical_triggers from get_operator_trigger_catalog_for_school(school_id)",
+      "automation_environment uses staging_package_count + production_package_count derived per-school"
+    ],
+    "gap": "No visible tenant scope label in environment banner — operator can't tell at a glance if they're viewing platform-level or tenant-level state. Banner only says 'staging vs production'."
+  },
+  "destructive_action_gating": {
+    "current_state": "Automation partials do NOT currently expose Activate / Run now / Delete trigger buttons. The subpage explainers link out to apps.automation routes — destructive gating lives there.",
+    "risk_if_added": "Without a shared data-rmc-confirm JS handler (none found in static/js/_pages/studio_os__shell.js), any new destructive button MUST fall back to onclick='return confirm(...)'. This is acceptable but should be flagged as coordinator task to wire a shared rmc-confirm handler that respects the design system's bottom-sheet pattern.",
+    "coordinator_task": "Add a shared data-rmc-confirm reader in static/js/_pages/studio_os__shell.js that prompts before submitting forms or following links. For now we use inline confirm() with an explicit data-rmc-confirm attribute marker for future swap."
+  },
+  "required_actions": [
+    {
+      "file": "templates/studio_os/partials/workspace/automation_canvas.html",
+      "action": "aggressive_refactor",
+      "reason": "Add cockpit-style 'overview' header with summary tiles (active workflows / approval queue / rollback availability) BEFORE the existing pane dispatch logic — overview pane should embed a true cockpit surface, not just the existing graph+health row"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_overview_body.html",
+      "action": "aggressive_refactor",
+      "reason": "Add overview tiles: active workflow packs / templates / rollback availability / simulation readiness. Embed the simulation_preview_pane partial."
+    },
+    {
+      "file": "templates/studio_os/partials/automation_mode_canvas.html",
+      "action": "minor_repair",
+      "reason": "Keep two-pane dispatch but ensure tenant-vs-operator banner always loads"
+    },
+    {
+      "file": "templates/studio_os/partials/workspace/automation_rail.html",
+      "action": "aggressive_refactor",
+      "reason": "8+ sub-tools with icon + label + secondary text; wraps at narrow viewports"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_environment_banner.html",
+      "action": "minor_repair",
+      "reason": "Add explicit operator vs tenant scope label; surface tenant name without exposing slugs cross-tenant"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_dependency_graph_body.html",
+      "action": "minor_repair",
+      "reason": "Wrap in .rmc-automation-graph-scroll{overflow-x:auto; min-width:0}; word-break for long names"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_workflow_health_body.html",
+      "action": "minor_repair",
+      "reason": "Word-break long names; consider adding more health signals (active/paused/failing counts)"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_explainer_in_canvas.html",
+      "action": "keep",
+      "reason": "Reasonable explainer surface; already responsive"
+    },
+    {
+      "file": "templates/studio_os/modes/automation.html",
+      "action": "minor_repair",
+      "reason": "Wire studio-automation-cockpit.css link"
+    },
+    {
+      "file": "templates/studio_os/partials/automation_simulation_preview_pane.html",
+      "action": "CREATE",
+      "reason": "Honest empty state when no simulation. Shows trigger / projected actions / risks / record-count. Has 'Run simulation' CTA wired to apps.automation:visual_workflow_simulate."
+    },
+    {
+      "file": "static/css/studio-automation-cockpit.css",
+      "action": "CREATE",
+      "reason": "Per-section CSS as required by ownership rules. Define .rmc-automation-* grammar using design tokens only."
+    },
+    {
+      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
+      "action": "CREATE",
+      "reason": "Cockpit-specific tests per ownership"
+    }
+  ],
+  "coordinator_tasks": [
+    {
+      "title": "Shared rmc-confirm JS handler",
+      "file": "static/js/_pages/studio_os__shell.js",
+      "description": "Wire a shared listener that reads data-rmc-confirm on buttons/forms/anchors and shows a confirm dialog before action. Today we fall back to onclick='return confirm(...)' with parallel data-rmc-confirm attribute for forward compat.",
+      "owner": "coordinator / Agent 6 polish"
+    },
+    {
+      "title": "Granular workflow status counts",
+      "file": "apps/studio_os/services.py::get_automation_workflow_health_summary",
+      "description": "Today returns only pack_count + template_count. Cockpit needs active / paused / failing counts. Coordinator should extend the summary dict. We render 'unknown' badges in the meantime.",
+      "owner": "coordinator / Agent 4-5 services work"
+    },
+    {
+      "title": "Approval queue summary endpoint",
+      "file": "apps/accounts/views_workflow.py + apps/studio_os/views.py shell",
+      "description": "Cockpit needs an approval queue count for tile 3 of overview. Today we link out only. Coordinator should expose a count via context.",
+      "owner": "coordinator"
+    },
+    {
+      "title": "Recent runs / last simulation timestamp",
+      "file": "apps/automation/* + apps/studio_os/views.py shell",
+      "description": "Cockpit needs 'last simulation: 12 min ago' badge in environment banner. Currently no plumbing.",
+      "owner": "coordinator"
+    },
+    {
+      "title": "Tenant scope label",
+      "file": "apps/studio_os/views.py shell",
+      "description": "Context should expose request.tenant.display_name (NOT slug) so banner can say 'School automations: Westwood High'. Coordinator should add a context var.",
+      "owner": "coordinator"
+    }
+  ],
+  "scanner_risks": {
+    "scan_undefined_css_classes": "0 risk — every new .rmc-automation-* class lives in static/css/studio-automation-cockpit.css",
+    "scan_inline_style_off_token": "0 risk — no inline style attributes",
+    "scan_off_token_colors": "0 risk — design tokens only, off-token-allow markers where intentional",
+    "scan_theme_locked_token_text": "0 risk — uses --text-*/--surface-*/--hairline semantic tokens",
+    "scan_theme_attribute_contract": "0 risk — no [data-theme] selectors",
+    "scan_pii_logging_smell": "n/a — no Python logging in templates/CSS",
+    "scan_drf_schema_coverage": "n/a — no DRF views",
+    "scan_money_float": "n/a",
+    "scan_print_statements": "0 — no print() in test file",
+    "scan_bare_except": "0 — no try/except in test file"
+  }
+}

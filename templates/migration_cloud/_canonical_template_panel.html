@@ -1,4 +1,5 @@
-{% load i18n %}{# Migration Cloud — canonical-template panel. Surfaces the "Shopify CSV" long-tail intake path from the wizard so operators with Excel / Sheets / Access / in-house exports can self-serve. Renders inside both super and portal shells; namespace selection mirrors the established {% if shell == 'portal' %} pattern used elsewhere in this wizard. #}
+{% load i18n %}
+<!-- Migration Cloud canonical-template panel (super/portal shells; URL namespace chosen from shell variable). -->
 <aside class="rmc-card rmc-card--canonical-template" data-rmc-canonical-template-panel aria-labelledby="rmc-canonical-template-title">
   <header class="rmc-card__header">
     <span class="rmc-card__eyebrow">{% trans "Long-tail intake" %}</span>

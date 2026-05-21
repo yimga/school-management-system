@@ -11,6 +11,7 @@ REPO = Path(__file__).resolve().parents[3]
 ANALYTICS_JS = REPO / "static" / "marketing" / "js" / "marketing-analytics.js"
 HEADER = REPO / "templates" / "marketing" / "marketing_header.html"
 LANDING = REPO / "templates" / "schools" / "marketing_landing_v2.html"
+PRICING = REPO / "templates" / "marketing" / "pages" / "type_pricing.html"
 
 PII_KEYS = ("email", "phone", "password", "school_name", "message", "csrf")
 
@@ -39,3 +40,11 @@ class MarketingAnalyticsTests(SimpleTestCase):
         self.assertIn("marketing-analytics.js", body)
         base = REPO / "templates" / "marketing" / "base_marketing.html"
         self.assertIn("marketing_analytics.html", base.read_text(encoding="utf-8"))
+
+    def test_pricing_ctas_track_plan_interest_without_pii(self) -> None:
+        text = PRICING.read_text(encoding="utf-8")
+        self.assertIn('data-plan-name="{{ plan.plan }}"', text)
+        self.assertIn('data-cta="pricing"', text)
+        analytics = ANALYTICS_JS.read_text(encoding="utf-8")
+        self.assertIn("pricing_plan_interest", analytics)
+        self.assertIn("plan_name", analytics)

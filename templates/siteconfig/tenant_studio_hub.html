@@ -1,0 +1,139 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "School Studio" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+{% if ai_enabled %}<link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">{% endif %}
+{% endblock %}
+{% block content %}
+<div class="container py-3" style="max-width: 56rem;"
+     data-page-archetype="operator-report"
+     data-shell-surface="tenant-school-studio"
+     data-rmc-tenant-studio-launch-path="1"
+     data-rmc-page-fold-nav="required"
+     data-rmc-scroll-policy="paginate">
+  <header class="mb-4">
+    <h1 class="h3 mb-1">{% trans "School Studio" %}</h1>
+    <p class="text-muted small mb-0">{% trans "One launch path: essentials → data → operations → readiness → go-live." %}</p>
+  </header>
+
+  {% if day1_required %}
+    {% include "siteconfig/partials/tenant_studio_day1_orchestrator.html" %}
+  {% elif day1_reset_url %}
+    <div class="mb-3 small text-muted" data-rmc-day1-rerun-affordance="1">
+      <form method="post" action="{{ day1_reset_url }}" style="display:inline-block;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+          {% trans "Re-run brand session" %}
+        </button>
+      </form>
+    </div>
+  {% endif %}
+
+  <div class="row g-3 mb-4" data-rmc-tenant-studio-readiness="1">
+    <div class="col-md-4">
+      <div class="border rounded-3 p-3 h-100 bg-body-secondary">
+        <div class="text-uppercase text-muted small">{% trans "Readiness" %}</div>
+        <div class="fs-3 fw-semibold" data-rmc-readiness-score="{{ readiness_score|default:0 }}">{{ readiness_score|default:"—" }}</div>
+        <div class="small">{{ readiness_status|default:"unknown" }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="border rounded-3 p-3 h-100 bg-body-secondary">
+        <div class="text-uppercase text-muted small">{% trans "Setup progress" %}</div>
+        <div class="fs-3 fw-semibold" data-rmc-onboarding-progress="{{ onboarding.percent|default:0 }}">{{ onboarding.percent|default:0 }}%</div>
+        <div class="small">{% blocktrans with done=onboarding.completed total=onboarding.total %}{{ done }} / {{ total }} steps{% endblocktrans %}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="border rounded-3 p-3 h-100 {% if launch_ready %}border-success{% else %}border-warning{% endif %}">
+        <div class="text-uppercase text-muted small">{% trans "Launch" %}</div>
+        {% if launch_ready %}
+        <span class="badge text-bg-success">{% trans "Ready to review launch" %}</span>
+        {% else %}
+        <span class="badge text-bg-warning">{% trans "Blocked" %}</span>
+        {% endif %}
+        {% if onboarding.next_action and onboarding.next_action.url %}
+        <div class="mt-2">
+          <a class="btn btn-primary btn-sm" href="{{ onboarding.next_action.url }}" data-rmc-tenant-studio-primary-action="1">
+            {{ onboarding.next_action.label }}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if launch_blockers %}
+  <div class="alert alert-warning" role="alert" data-rmc-tenant-studio-blockers="1">
+    <strong>{% trans "Launch blockers" %}</strong>
+    <ul class="mb-0 mt-2">
+      {% for b in launch_blockers %}<li>{{ b }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if ai_enabled %}
+  <section class="card border-0 shadow-sm mb-4" data-rmc-tenant-studio-ai-guidance="1">
+    <div class="card-header py-2 fw-semibold">
+      <i class="bi bi-stars me-1" aria-hidden="true"></i>{% trans "Setup assistant" %}
+    </div>
+    <div class="card-body pt-2">
+      <p class="small mb-2" data-ai-contextual-insight data-rmc-tenant-studio-contextual-tip="1">
+        {{ contextual_tip.tip }}
+      </p>
+      {% if coach_quick_actions %}
+      <ul class="small mb-2">
+        {% for qa in coach_quick_actions %}
+        <li><a href="{{ qa.url }}">{{ qa.label }}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if setup_assistant_api_url %}
+      <form class="mb-0" data-rmc-ai-guided data-ai-url="{{ setup_assistant_api_url }}" data-api-kind="onboarding_assistant" onsubmit="return false">
+        <label class="form-label visually-hidden" for="tenantStudioAiQuery">{% trans "Ask about setup" %}</label>
+        <textarea id="tenantStudioAiQuery" class="form-control form-control-sm mb-2" rows="2" data-rmc-ai-query
+          placeholder="{% trans 'e.g. What should we configure before importing students?' %}"></textarea>
+        <button type="button" class="btn btn-primary btn-sm" data-rmc-ai-run>{% trans "Ask" %}</button>
+        <pre class="small rmc-surface-muted-panel p-2 mt-2 rounded border mb-0 rmc-ai-guided-out" data-rmc-ai-out aria-live="polite" hidden></pre>
+      </form>
+      <script src="{% static 'js/rmc_ai_guided_assistant.js' %}" defer></script>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  <h2 class="h6 text-uppercase text-muted">{% trans "Launch path" %}</h2>
+  <ol class="list-group list-group-numbered mb-4" data-rmc-tenant-studio-launch-lanes="1">
+    {% for lane in launch_lanes %}
+    <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div>
+        <span class="fw-medium">{{ lane.label }}</span>
+        <div class="small text-muted">{{ lane.purpose }}</div>
+        <span class="badge text-bg-secondary">{{ lane.owner }}</span>
+      </div>
+      {% if lane.url %}
+      <a class="btn btn-sm btn-outline-primary" href="{{ lane.url }}">{% trans "Open" %}</a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="btn btn-outline-secondary btn-sm" href="{{ studio_link_urls.onboarding }}">{% trans "Activation checklist" %}</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ studio_link_urls.studio_os }}">{% trans "Studio OS" %}</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ studio_link_urls.school_help_ai }}">{% trans "AI help" %}</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ studio_link_urls.help_center }}">{% trans "Help center" %}</a>
+  </div>
+
+  {% if health_recommendations %}
+  <h2 class="h6">{% trans "Recommended next steps" %}</h2>
+  <ul class="mb-0" data-rmc-tenant-studio-recommendations="1">
+    {% for n in health_recommendations %}
+    <li><a href="{{ n.url }}">{{ n.label }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}

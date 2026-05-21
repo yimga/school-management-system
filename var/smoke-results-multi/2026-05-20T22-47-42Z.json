@@ -1,0 +1,25 @@
+{
+  "apply": false,
+  "concurrency": 4,
+  "duration_s": 0.036,
+  "fail_fast": false,
+  "rows": [
+    {
+      "duration_s": 0.032,
+      "error_type": null,
+      "exit_code": 0,
+      "sections_failed": 0,
+      "sections_passed": 2,
+      "sections_skipped": 0,
+      "status": "PASS",
+      "tenant_hash": "ca978112ca1b",
+      "vendor": "powerschool"
+    }
+  ],
+  "started_at_iso": "2026-05-20T22:47:42.460327+00:00",
+  "tenants_failed": 0,
+  "tenants_passed": 1,
+  "tenants_skipped": 0,
+  "tenants_total": 1,
+  "vendor": "powerschool"
+}

@@ -1,5 +1,9 @@
 {% load i18n static %}
-<section class="card border-0 shadow-sm mb-4 rmc-reveal" data-rmc-theme-hub-hero="1">
+<section
+  class="card border-0 shadow-sm mb-4 rmc-reveal"
+  data-rmc-theme-hub-hero="1"
+  {% if hub_glance.primary_color %}style="--hub-preview-primary: {{ hub_glance.primary_color }};{% if hub_glance.accent_color %} --hub-preview-accent: {{ hub_glance.accent_color }};{% endif %}"{% endif %}
+>
   <div class="card-body">
     <div class="row g-3 align-items-center">
       <div class="col-12 col-lg-7">

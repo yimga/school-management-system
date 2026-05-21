@@ -237,6 +237,49 @@
   background: var(--mkt-tile, #fff);
 }
 
+.mkt-v3-buyer-world-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+}
+
+.mkt-v3-buyer-world-card {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  min-inline-size: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.mkt-v3-buyer-world-card__visual {
+  display: block;
+  max-inline-size: 100%;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 12 / 7;
+  object-fit: cover;
+  border-bottom: 1px solid var(--mkt-rule, rgba(15, 27, 45, 0.1));
+}
+
+.mkt-v3-buyer-world-card__copy {
+  display: grid;
+  gap: 0.65rem;
+  min-inline-size: 0;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.mkt-v3-buyer-world-card__copy :is(h2, p) {
+  margin: 0;
+}
+
+.mkt-v3-buyer-world-card__lead {
+  color: var(--mkt-ink-2, #475569);
+}
+
+.mkt-v3-buyer-world-card__cta {
+  justify-self: start;
+  margin-top: 0.2rem;
+}
+
 .mkt-v3-trust-strip {
   display: flex;
   flex-wrap: wrap;

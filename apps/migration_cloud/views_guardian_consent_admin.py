@@ -175,7 +175,7 @@ def _send_consent_email(
         )
         return True
     except Exception as exc:  # noqa: BLE001 — never break the campaign
-        logger.warning(
+        logger.warning(  # pii-logging-smell-allow: sha256-prefix-not-raw-token
             "migration_cloud.guardian_consent_admin: email_send_failed "
             "template=%s token_sha_prefix=%s err=%s",
             template_base, (token.token_sha256 or "")[:8], type(exc).__name__,

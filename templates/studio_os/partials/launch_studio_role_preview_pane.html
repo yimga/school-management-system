@@ -1,28 +1,20 @@
 {% load i18n %}
-<div class="studio-os__launch-role-preview" data-page-archetype="operational-workbench">
+{% comment %}
+  v3.54.0 (2026-05-21): Next-realm Launch — role preview pane.
+  Renders the unified readiness preview cockpit (.rmc-launch-* grammar)
+  when launch_role_previews is present; honest empty-state fallback
+  preserved verbatim for compatibility with existing tests.
+{% endcomment %}
+{% if launch_role_previews %}
+{% include "studio_os/partials/launch_readiness_preview_pane.html" %}
+{% else %}
+<div class="studio-os__launch-role-preview rmc-launch-canvas" data-page-archetype="operational-workbench">
   <div class="studio-os__card mb-3">
-    <h2 class="h5 mb-2">{% trans "Preview by role" %}</h2>
+    <h2 class="h5 mb-2 text-break">{% trans "Preview by role" %}</h2>
     <p class="small text-muted mb-0">
       {% trans "Open each experience in a new tab to validate tone, layout, and trust before go-live. When a school context is selected, links are tailored to this tenant." %}
     </p>
   </div>
-  {% if launch_role_previews %}
-  <div class="studio-os__card mb-0">
-    <h3 class="h6 mb-2">{% trans "Role experiences" %}</h3>
-    <ul class="list-unstyled small mb-0">
-      {% for r in launch_role_previews %}
-      <li class="mb-2">
-        {% if r.url %}
-        <a href="{{ r.url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">{{ r.label|default:r.role|default:"Preview" }}</a>
-        {% else %}
-        <span class="text-muted">{{ r.label|default:r.role }}</span>
-        {% endif %}
-        {% if r.detail %}<span class="text-muted d-block mt-1">{{ r.detail }}</span>{% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-  {% else %}
   <div class="studio-os__card">
     <p class="small text-muted mb-2">{% trans "No role preview links yet. Select a school context on this host, or open Setup / onboarding to finish baseline configuration." %}</p>
     <div class="d-flex flex-wrap gap-2">
@@ -34,5 +26,5 @@
       {% endif %}
     </div>
   </div>
-  {% endif %}
 </div>
+{% endif %}

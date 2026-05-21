@@ -247,6 +247,14 @@ def main(argv: list[str] | None = None) -> int:
         "Theme: tenant + manager dual-plane experience hub surfaces",
     )
     run(
+        [py, _script_path("verify_theme_experience_plane_isolation.py"), *base_args],
+        "Theme: operator vs tenant plane isolation (builder storage + templates)",
+    )
+    run(
+        [py, _script_path("verify_portal_theme_token_spine.py"), *base_args],
+        "Theme: portal token spine (school-primary mixes, no legacy indigo)",
+    )
+    run(
         [py, _script_path("verify_theme_experience_gear.py"), *base_args],
         "Theme: builder publish/preview APIs, hub hero, append-only bulk guard",
     )
@@ -469,6 +477,10 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [py, _script_path("verify_glocal_closeout_completion.py"), *base_args],
         "Glocal closeout: G-01..G-22 repo proofs + i18n/money-float sub-gates",
+    )
+    run(
+        [py, _script_path("verify_online_edge_dual_mode.py"), *base_args],
+        "Online + edge dual-mode: offline bundle, hub docs, portal config",
     )
     run(
         [py, _script_path("verify_page_fold_standards.py"), "--write", *base_args],

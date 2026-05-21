@@ -122,6 +122,16 @@ def ensure_local_browser_mfa_policy() -> None:
         print("require_mfa_all_staff: already off")
 
 
+def ensure_settings_manage_permission(user) -> None:
+    from apps.accounts.models import Permission
+
+    perm, _ = Permission.objects.get_or_create(
+        code="settings.manage",
+        defaults={"name": "Manage settings"},
+    )
+    user.feature_permissions.add(perm)
+
+
 def ensure_tenant_user(school: School) -> None:
     user, created = User.objects.get_or_create(
         username=TENANT_USERNAME,
@@ -152,6 +162,7 @@ def ensure_tenant_user(school: School) -> None:
         membership.is_primary = True
         membership.save(update_fields=["role", "is_primary"])
     ensure_qa_totp(user)
+    ensure_settings_manage_permission(user)
     print(f"tenant user: {TENANT_USERNAME} ({'created' if created else 'updated'}) -> {school.slug}")
 
 

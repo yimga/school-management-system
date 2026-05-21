@@ -1,14 +1,14 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-05-20T18:17:35Z",
+  "generated_utc": "2026-05-21T11:07:14Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
-    "bytes": 15929,
+    "bytes": 21451,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
-        "sha256": "f55ec9eef9205958625011e009999209f99fe2ac3f9e91c8ec5aa024aaeeb259",
-        "bytes": 6604
+        "sha256": "4ba4f2e2a434680c5a6bf8d41c2971b8ba232ac03f11222d09374dfc9fbdc1c4",
+        "bytes": 7422
       },
       {
         "path": "static/marketing/css/marketing-v3-shell.css",
@@ -22,8 +22,8 @@
       },
       {
         "path": "static/marketing/css/marketing-accessibility-hardening.css",
-        "sha256": "c840a62b9dc1d6a028eb12a8b5c3c4789bd5dd927203e16706b2c830d68bda9e",
-        "bytes": 10949
+        "sha256": "ef50f5355e81a199e793db5058cd34f4faeab875f6f7a4adf05449ce644e03b2",
+        "bytes": 12691
       },
       {
         "path": "static/marketing/css/marketing-fonts.css",
@@ -34,7 +34,7 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 275483,
+    "bytes": 284953,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
@@ -63,18 +63,18 @@
       },
       {
         "path": "static/marketing/css/marketing-impact.css",
-        "sha256": "002496d42f2186da3f8b0a4fc314e82df9800cbcd8adb323e9ac607b441cff16",
-        "bytes": 10457
+        "sha256": "4c6f31d59c5550cbcb7fd9df9294adc0798aa1cec376ccdd9edb9259defa92e9",
+        "bytes": 10820
       },
       {
         "path": "static/marketing/css/marketing-page-personality.css",
-        "sha256": "23d4b4d8985d3ddfef5aab16f1bbf4fd5ea580e68c577faf171db1b5c00ae53a",
-        "bytes": 10486
+        "sha256": "961f5d62b83a19041dd03f733983c5f1547e42484652639440cb75f965587f4b",
+        "bytes": 10564
       },
       {
         "path": "static/marketing/css/marketing-media-viz.css",
-        "sha256": "84a2005f6e3108bb6507fae1639367bab38fd85b1c6fcd17b479f087f53d9d06",
-        "bytes": 5570
+        "sha256": "d61ec57e97e4b334d8d16d472aceaa6ac93c0c00b9724cf1c56971583847ce0a",
+        "bytes": 6542
       },
       {
         "path": "static/marketing/css/marketing-edge-layout.css",
@@ -83,8 +83,8 @@
       },
       {
         "path": "static/marketing/css/marketing-gear2-lanes.css",
-        "sha256": "22003e63b6bf0c19bd9bfcca15a16213441b27b14210af4efe7a408e6dd1d8f4",
-        "bytes": 4732
+        "sha256": "ea2f05e03ed6597d11c215a217d19a02c866a673563b9c14351d35973cc349eb",
+        "bytes": 4853
       },
       {
         "path": "static/marketing/css/marketing-shell.css",
@@ -93,8 +93,8 @@
       },
       {
         "path": "static/marketing/css/tokens-editorial.css",
-        "sha256": "fa2a9748a31cadbf4143ecf0e166d2af530a5a7fa4baaa2af1e352ac2fafef73",
-        "bytes": 50242
+        "sha256": "f5ed0813e104527a1572acf9a4a47b10008e8984572959d209b0220eab789403",
+        "bytes": 50241
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",
@@ -103,8 +103,8 @@
       },
       {
         "path": "static/css/rmc-cool-apple-polish.css",
-        "sha256": "a8a310eed83cd284bfb3a4040acba729af7547b9584c6edbceb3d0452805792f",
-        "bytes": 23326
+        "sha256": "433ca71c7ef7119cfcbee590049fab9c89611aa41ca10246b309fdefcd3c3fda",
+        "bytes": 23009
       },
       {
         "path": "static/css/design-tokens-luxury.css",
@@ -118,8 +118,8 @@
       },
       {
         "path": "static/marketing/css/marketing-v3-pages.css",
-        "sha256": "9bfbdd0bbeaa924c734230f777552e782d396cd146a3f0af3c01c6d517b82565",
-        "bytes": 7866
+        "sha256": "0d8417edb647c8570816653ba866165fbba3a961ec244ef1b570190b05fae0f3",
+        "bytes": 8671
       },
       {
         "path": "static/css/rmc-bell-clock-product.css",
@@ -173,8 +173,8 @@
       },
       {
         "path": "static/css/rmc-world-class-experience.css",
-        "sha256": "f2c2618d6531f622f492e461d942bacb6c07cd207c96fb93eb46ee8e410a7416",
-        "bytes": 24946
+        "sha256": "681d3fcadc837504cd3a98d0eaf5b6459d243c2ba33c726016ffb8e2f22df3ac",
+        "bytes": 26237
       },
       {
         "path": "static/css/rmc-corporate-os.css",
@@ -190,7 +190,7 @@
   },
   "budgets": {
     "critical_max": 45000,
-    "enhanced_max": 280000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (275KB as of 2026-05-20). Deferred load via media=print onload."
+    "enhanced_max": 290000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (284KB as of 2026-05-21 after batch 1372 off-token-allow / theme-locked-allow CI markers preserved through minify). Deferred load via media=print onload."
   }
 }

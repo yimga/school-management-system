@@ -162,7 +162,9 @@
   }
 
   function initAutoSectionNav() {
-    var roots = document.querySelectorAll('[data-rmc-page-fold-nav="required"]');
+    var roots = document.querySelectorAll(
+      '[data-rmc-page-fold-nav="required"], [data-rmc-cp-page-body="1"], #cp-main-content.cp-page-body, .cp-admin-page-body'
+    );
     if (!roots.length) return;
     if (document.querySelector("[data-feature-cat-tabs]")) return;
     if (document.querySelector(".rmc-section-nav[data-rmc-auto-section-nav]")) {

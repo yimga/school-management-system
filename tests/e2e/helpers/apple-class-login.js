@@ -48,16 +48,23 @@ async function appleClassLogin(page, baseUrl, username, password) {
   await page.getByRole('button', { name: /log in/i }).click();
   await page.waitForLoadState('networkidle');
 
-  const url = page.url();
+  let url = page.url();
+  if (/\/authentication\/mfa\/setup/i.test(url)) {
+    throw new Error(
+      `MFA setup required for ${username}; run: python scripts/seed_apple_class_qa.py`,
+    );
+  }
   if (/\/authentication\/mfa\/verify/i.test(url)) {
     const token = qaTotpToken(username);
     await page.locator('input[name="token"]').fill(token);
     await page.getByRole('button', { name: /verify|continue|submit/i }).click();
     await page.waitForLoadState('networkidle');
-  } else if (/\/authentication\/mfa\/setup/i.test(url)) {
-    throw new Error(
-      `MFA setup required for ${username}; run: python scripts/seed_apple_class_qa.py`,
-    );
+    url = page.url();
+    if (/\/authentication\/mfa\/setup/i.test(url)) {
+      throw new Error(
+        `MFA setup still required for ${username} after verify; run: python scripts/seed_apple_class_qa.py`,
+      );
+    }
   }
 
   expect(

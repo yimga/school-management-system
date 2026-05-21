@@ -64,6 +64,19 @@
   color: var(--text-secondary) !important;
 }
 
+#cp-main-content .rmc-wcx-hero,
+#cp-main-content .rmc-wcx-hero__title,
+#cp-main-content .rmc-wcx-hero__eyebrow,
+#cp-main-content .rmc-wcx-visual-panel,
+#cp-main-content .rmc-wcx-visual-panel h2 {
+  color: var(--text-primary, var(--rmc-wcx-ink)) !important;
+}
+
+#cp-main-content .rmc-wcx-hero__copy,
+#cp-main-content .rmc-wcx-visual-panel .text-muted {
+  color: var(--text-secondary, var(--rmc-wcx-muted)) !important;
+}
+
 #cp-main-content .rmc-os-page-header,
 #cp-main-content .rmc-zero-click,
 #cp-main-content .phase8-declaration-strip,
@@ -262,6 +275,24 @@ main li,
 .rmc-wcx-timeline,
 .rmc-wcx-readiness {
   padding: 1rem;
+}
+
+/* Control-plane dark canvas: readable copy + badges (no washed-out text-bg-light). */
+body.control-plane-shell #cp-main-content .rmc-wcx-product-card,
+body.control-plane-shell #cp-main-content .rmc-wcx-risk-card {
+  color: var(--text-primary, var(--rmc-wcx-ink));
+}
+
+body.control-plane-shell #cp-main-content .rmc-wcx-product-card .text-muted,
+body.control-plane-shell #cp-main-content .rmc-wcx-risk-card .text-muted,
+body.control-plane-shell #cp-main-content .rmc-wcx-risk-card__meta {
+  color: var(--text-secondary, var(--rmc-wcx-muted)) !important;
+}
+
+body.control-plane-shell #cp-main-content .rmc-wcx-product-card .badge.text-bg-light {
+  background: var(--surface-elevated, var(--rmc-wcx-surface)) !important;
+  color: var(--text-primary, var(--rmc-wcx-ink)) !important;
+  border: 1px solid var(--hairline, var(--rmc-wcx-border));
 }
 
 .rmc-wcx-icon {

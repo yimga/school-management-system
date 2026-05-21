@@ -155,7 +155,7 @@ test.describe('editorial /v2 preview', () => {
     expect(res.status()).toBe(200);
     const html = await res.text();
     expect(html).toMatch(/data-mkt-edition="editorial"/);
-    expect(html).toMatch(/Run your school the way your school actually runs/i);
+    expect(html).toMatch(/Run every school day from one operating system/i);
     // Production homepage must NOT carry noindex (only /v2/ preview does).
     expect(html).not.toMatch(/<meta\s+name=["']robots["'][^>]*noindex/i);
   });

@@ -4,6 +4,10 @@ from apps.accounts.views_workflow import (
     import_hub,
     workflow_center,
 )
+from .views_copilot_rail import (
+    CopilotRailContextView,
+    CopilotRailInsightsRefreshView,
+)
 from .views import (
     school_infrastructure_apply_api,
     school_infrastructure_preview_api,
@@ -179,5 +183,16 @@ urlpatterns = [
         "api/school-infrastructure/apply/",
         school_infrastructure_apply_api,
         name="school_infrastructure_apply_api",
+    ),
+    # v3.53.1 (2026-05-21): persistent AI presence on the cockpit rail.
+    path(
+        "copilot/rail/context/",
+        CopilotRailContextView.as_view(),
+        name="copilot_rail_context",
+    ),
+    path(
+        "copilot/rail/insights/",
+        CopilotRailInsightsRefreshView.as_view(),
+        name="copilot_rail_insights",
     ),
 ]

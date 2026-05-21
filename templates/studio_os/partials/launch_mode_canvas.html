@@ -10,18 +10,18 @@
 {% elif launch_payload and request.public_host_kind != 'manager' %}
 <div class="rmc-studio-workspace rmc-studio-workspace--launch" data-studio-workspace-mode="launch" data-rmc-studio-workspace="1">
   <nav class="rmc-studio-workspace__rail studio-os__launch-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Launch' %}">
-    <div class="studio-os__card py-2">
-      <div class="h6 mb-2">{% trans "Progress" %}</div>
+    <div class="studio-os__card py-2 rmc-launch-canvas">
+      <div class="h6 mb-2"><i class="bi bi-activity me-1" aria-hidden="true"></i>{% trans "Progress" %}</div>
       <p class="small mb-2"><strong>{% trans "Health:" %} {{ launch_payload.health_score|default:0 }}%</strong></p>
       {% if launch_payload.launch_ready %}
-      <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+      <p class="small text-success mb-1"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "Ready to launch" %}</p>
       {% elif launch_payload.launch_blockers %}
-      <p class="small text-warning mb-1">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
+      <p class="small text-warning mb-1"><i class="bi bi-exclamation-octagon me-1" aria-hidden="true"></i>{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
       {% endif %}
       {% if launch_payload.health_summary %}<p class="small text-muted mb-0">{{ launch_payload.health_summary }}</p>{% endif %}
     </div>
   </nav>
-  <div class="rmc-studio-workspace__main flex-grow-1 min-w-0" data-rmc-studio-workspace-main="1">
+  <div class="rmc-studio-workspace__main flex-grow-1 min-w-0 rmc-launch-canvas" data-rmc-studio-workspace-main="1">
     {% include "studio_os/partials/launch_studio_overview_body.html" %}
   </div>
 </div>

@@ -1,60 +1,62 @@
-# Operator: Live Ollama + Render (v4 recovery)
+# Operator: AI on Render and LAN hubs
 
-## Ollama (permission granted — run on operator PC)
+Canonical architecture: **`docs/AI_DEPLOYMENT_POSTURE.md`**.
 
-1. Install (Windows): run `powershell -ExecutionPolicy Bypass -File scripts/install_ollama_windows.ps1`  
-   Or download from https://ollama.com/download
-2. Start daemon: `ollama serve` (keep terminal open) or use system tray app
-3. Pull base model: `ollama pull llama3.1:8b`
-4. Create governed model: `ollama create ai-center-master -f ai/Modelfile`
-5. Verify:
+## Render SaaS (default — `RMC_DEPLOYMENT_PROFILE=online`)
+
+1. In Render Dashboard → Environment:
+
    ```bash
-   set AI_GATEWAY_ENABLED=1
-   set OLLAMA_ENDPOINT=http://127.0.0.1:11434
-   set OLLAMA_MODEL=ai-center-master
-   python scripts/verify_ollama_live.py --strict --invoke
-   python scripts/generate_ollama_live_proof.py
+   RMC_DEPLOYMENT_PROFILE=online
+   AI_GATEWAY_ENABLED=1
+   AI_ALLOW_RULES_FALLBACK=1
+   LITELLM_PROXY_URL=https://your-openai-compatible-endpoint/v1
+   LITELLM_API_KEY=...
+   LITELLM_MODEL=gpt-3.5-turbo
+   RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION=1
    ```
 
-## Render LIVE (provide when ready)
+2. Redeploy. Open **AI Center** on manager — health pill should show **Live — cloud AI** when the proxy is reachable.
 
-Send moderator (do not commit secrets):
+3. Repo verifier (no secrets): `python scripts/verify_render_online_ai_posture.py`
 
-- `RENDER_API_KEY`
-- Service ID or service name for `manager.runmycampus.com`
-- Latest deploy SHA you expect parity against
+4. **Offline schools:** `python manage.py apply_offline_mode_bundle --all-active` for existing tenants; new schools get the bundle at provision time.
 
-Moderator runs `scripts/verify_render_live_parity.py` (if present) or `render_predeploy.sh` log capture.
+**Do not** expect `ollama serve` on the Render web dyno for production inference.
+
+## Local dev (optional Ollama on your PC)
+
+For developer machines only:
+
+```bash
+ollama serve
+ollama pull llama3
+# .env
+AI_GATEWAY_ENABLED=1
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llama3
+python scripts/verify_ollama_live.py --invoke
+```
+
+With `RMC_DEPLOYMENT_PROFILE=online` and **no** `LITELLM_PROXY_URL`, the gateway still tries Ollama after cloud tier (usually unreachable on Render).
+
+## LAN hub (`edge`)
+
+1. `bash scripts/install_local_hub.sh` or manual install per `docs/LOCAL_HUB_MODE.md`
+2. `RMC_DEPLOYMENT_PROFILE=edge` in hub `.env`
+3. Optional: `ollama serve` + `docs/OLLAMA_OPERATIONS_AND_UPDATES.md`
+
+## Render deploy parity (moderator)
+
+When ready, provide (do not commit): `RENDER_API_KEY`, service ID, expected deploy SHA. Run recovery cert scripts per `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`.
 
 ## Recovery cert on Render shell
 
-`PARTIAL` means at least one **non-Ollama** verifier failed. Ollama-only failure yields
-`READY — REPO SCOPE (OLLAMA LIVE PENDING)` instead.
-
 ```bash
 cd ~/project/src
-# After deploy includes latest main (6c713595+ page-fold Render fix):
 python scripts/generate_v4_recovery_certification.py --runtime
-
-# One-liner: which gates failed (paste as ONE line in bash):
-python -c "import json;d=json.load(open('docs/generated/ten_x_platform_certification.json'));print('verdict:',d['verdict']);print('repo_gaps:',d.get('repo_gaps'));[print(k,v.get('exit'),(v.get('tail') or '')[-300:]) for k,v in d.get('verifiers',{}).items() if not v.get('ok')]"
-
-# Drill into a single gate:
-python scripts/verify_page_fold_standards.py 2>&1 | grep FAIL
-python scripts/verify_five_pillar_platform_completion.py 2>&1 | grep FAIL
-
-# Common fixes on Render:
-git pull   # or redeploy latest main — need v5 scripts + var/* baselines + migration 0007
-python scripts/generate_orchestrator_journey_manifest.py --write
-python scripts/verify_stage_journey_coverage.py
-python manage.py migrate --noinput   # if manage.py check fails on pending migrations
+python scripts/verify_render_online_ai_posture.py
+python scripts/verify_online_edge_dual_mode.py
 ```
 
-Set `RMC_RECOVERY_RUNTIME=1` (or `--runtime`) when `.git` is missing in the container.
-
-## Current repo recovery status
-
-- North Star: **75/75 DOMINANT**
-- `audit_admin_gravity.py --strict`: **PASS**
-- Prompt pack: **v5** — `ORCHESTRATOR_PROMPT_PACK_PASS` (227 checks)
-- Ollama live: **not on Render web dyno** — expect `OLLAMA LIVE PENDING` unless sidecar Ollama is wired
+Ollama-on-Render is **not** the production path; expect cloud AI or guided mode unless you operate an edge hub.

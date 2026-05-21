@@ -1,22 +1,7 @@
 {% extends "control_plane_skeleton.html" %}
 {% load i18n %}
 
-{# v3.40.0 Agent 6 — Migration Cloud Command Center operator dashboard.
-
-   Single staff-only screen aggregating every Migration Cloud pillar's
-   live state. Eight cards in a responsive 3-column grid. Each card
-   carries a status pill (ok/warn/alert/info), 2-4 key metrics, and a
-   "Drill in →" link to the existing sub-dashboard.
-
-   Hard contracts honored:
-
-     * No inline <style> blocks (project zero-tolerance gate
-       `scan_inline_style_off_token` would refuse this template otherwise).
-     * No new JS file dependency — auto-refresh via <meta http-equiv>.
-     * Tenant identifiers shown ONLY as IDs (PK ints) — never slugs.
-     * Per-section errors render as a small muted line rather than
-       breaking the layout.
-#}
+<!-- v3.40.0 Agent 6 — Migration Cloud Command Center operator dashboard. Single staff-only screen aggregating every Migration Cloud pillar's live state. Eight cards in a responsive 3-column grid. Each card carries a status pill (ok/warn/alert/info), 2-4 key metrics, and a "Drill in →" link to the existing sub-dashboard. Hard contracts honored: * No inline <style> blocks (project zero-tolerance gate `scan_inline_style_off_token` would refuse this template otherwise). * No new JS file dependency — auto-refresh via <meta http-equiv>. * Tenant identifiers shown ONLY as IDs (PK ints) — never slugs. * Per-section errors render as a small muted line rather than breaking the layout. -->
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — Command Center" }}{% endblock %}
 
@@ -32,7 +17,7 @@
     <p class="rmc-lede">
       {% trans "Live platform-wide snapshot. Eight pillars on one screen. Drill into each for full detail. Auto-refreshes every 60 seconds." %}
     </p>
-    {# v3.40.0 Agent 14 — "Run Smoke Now" operator trigger. #}
+    <!-- v3.40.0 Agent 14 — "Run Smoke Now" operator trigger. -->
     <p class="rmc-page__header-actions">
       <a class="rmc-btn rmc-btn--primary rmc-btn--sm"
          href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:smoke_run_trigger' %}{% else %}{% url 'migration_cloud_super:smoke_run_trigger' %}{% endif %}">
@@ -43,7 +28,7 @@
 
   <div class="rmc-grid rmc-grid--3col rmc-grid--migration-cloud-command-center">
 
-    {# ── Card 1: Audit chain ──────────────────────────────────────── #}
+    <!-- ── Card 1: Audit chain ──────────────────────────────────────── -->
     {% with sec=sections.audit_chain %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-audit-heading">
       <header class="rmc-card__header">
@@ -90,7 +75,7 @@
     </section>
     {% endwith %}
 
-    {# ── Card 2: Webhook fleet ───────────────────────────────────── #}
+    <!-- ── Card 2: Webhook fleet ───────────────────────────────────── -->
     {% with sec=sections.webhook_fleet %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-webhook-heading">
       <header class="rmc-card__header">
@@ -134,7 +119,7 @@
     </section>
     {% endwith %}
 
-    {# ── Card 3: Token fleet ─────────────────────────────────────── #}
+    <!-- ── Card 3: Token fleet ─────────────────────────────────────── -->
     {% with sec=sections.token_fleet %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-token-heading">
       <header class="rmc-card__header">
@@ -169,7 +154,7 @@
     </section>
     {% endwith %}
 
-    {# ── Card 4: Companion fleet ─────────────────────────────────── #}
+    <!-- ── Card 4: Companion fleet ─────────────────────────────────── -->
     {% with sec=sections.companion_fleet %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-companion-heading">
       <header class="rmc-card__header">
@@ -205,7 +190,7 @@
     </section>
     {% endwith %}
 
-    {# ── Card 5: API + rate limit ────────────────────────────────── #}
+    <!-- ── Card 5: API + rate limit ────────────────────────────────── -->
     {% with sec=sections.api_health %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-api-heading">
       <header class="rmc-card__header">
@@ -241,7 +226,7 @@
     </section>
     {% endwith %}
 
-    {# ── Card 6: Signed release ──────────────────────────────────── #}
+    <!-- ── Card 6: Signed release ──────────────────────────────────── -->
     {% with sec=sections.signed_release %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-release-heading">
       <header class="rmc-card__header">
@@ -270,7 +255,7 @@
     </section>
     {% endwith %}
 
-    {# ── Card 7: Observability ───────────────────────────────────── #}
+    <!-- ── Card 7: Observability ───────────────────────────────────── -->
     {% with sec=sections.observability %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-obs-heading">
       <header class="rmc-card__header">
@@ -298,7 +283,7 @@
     </section>
     {% endwith %}
 
-    {# ── Card 8: Counsel / compliance ────────────────────────────── #}
+    <!-- ── Card 8: Counsel / compliance ────────────────────────────── -->
     {% with sec=sections.counsel %}
     <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-counsel-heading">
       <header class="rmc-card__header">
@@ -329,6 +314,13 @@
              href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:maa_v2_promotion_dashboard' %}{% else %}{% url 'migration_cloud_super:maa_v2_promotion_dashboard' %}{% endif %}">
             {% trans "Drill in →" %}
           </a>
+          {# v3.40.0 Agent 15 — counsel-activate link surfaces only while v2.0 is still DRAFT. #}
+          {% if sec.active_version == "v1.0" and sec.v2_draft %}
+          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
+             href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:maa_counsel_activate' %}{% else %}{% url 'migration_cloud_super:maa_counsel_activate' %}{% endif %}">
+            {% trans "Activate v2.0 →" %}
+          </a>
+          {% endif %}
         </p>
       {% endif %}
     </section>

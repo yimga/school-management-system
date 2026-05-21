@@ -1,0 +1,210 @@
+{
+  "doc_id": "studio_os_experience_next_realm_audit_v3_54",
+  "date": "2026-05-21",
+  "agent": "Agent 2 (Experience)",
+  "scope": "Studio OS — Experience mode templates, rail CSS, workspace canvases, workbench context column, plus horizontal-overflow root-cause sweep.",
+  "surface_inventory": {
+    "shell_entry": {
+      "template": "templates/studio_os/modes/experience.html",
+      "extends": "templates/studio_os/shell.html",
+      "hero_partial": "templates/studio_os/partials/_mode_hero.html",
+      "body_partial": "templates/studio_os/partials/studio_experience_mode_body.html",
+      "guidance_partial": "templates/studio_os/partials/studio_guidance_panel.html",
+      "context_var_router": "use_experience_in_page | experience_left_rail | embed_url"
+    },
+    "workspace_layout": {
+      "wrapper_component": "templates/studio_os/components/workspace_layout.html",
+      "three_col_grid_css": "static/css/studio-workspace.css (rmc-studio-workspace--three-col)",
+      "experience_branch_inpage": [
+        "templates/studio_os/partials/workspace/experience_inpage_rail.html",
+        "templates/studio_os/partials/workspace/experience_inpage_canvas.html",
+        "templates/studio_os/partials/experience_workbench_context.html"
+      ],
+      "experience_branch_iframe": [
+        "templates/studio_os/partials/workspace/experience_iframe_rail.html",
+        "templates/studio_os/partials/workspace/experience_iframe_canvas.html",
+        "templates/studio_os/partials/experience_workbench_context.html"
+      ]
+    },
+    "experience_routes": [
+      {"name": "studio_os:experience", "view": "studio_shell(mode=experience)"},
+      {"name": "studio_os:experience_recommendations", "view": "studio_experience_recommendations"},
+      {"name": "studio_os:experience_compare", "view": "studio_experience_compare"},
+      {"name": "studio_os:experience_theme_tokens", "view": "studio_experience_theme_tokens"},
+      {"name": "studio_os:experience_portal_shell_layouts", "view": "studio_experience_portal_shell_layouts"},
+      {"name": "studio_os:experience_dashboard_visual_packs", "view": "studio_experience_dashboard_visual_packs"},
+      {"name": "studio_os:experience_school_website_blocks", "view": "studio_experience_school_website_blocks"},
+      {"name": "studio_os:experience_communication_style_packs", "view": "studio_experience_communication_style_packs"},
+      {"name": "studio_os:experience_packs", "view": "studio_experience_packs"},
+      {"name": "siteconfig:theme_colors", "view": "(legacy theme & colors)"},
+      {"name": "siteconfig:school_theme_settings", "view": "(legacy school theme)"},
+      {"name": "siteconfig:brand_import_from_url", "view": "(brand import)"}
+    ],
+    "context_vars_from_view": [
+      "use_experience_in_page", "experience_workspace_two_col", "experience_left_rail",
+      "experience_context_tool_links", "form", "site_settings", "preview_mode_active",
+      "admin_theme_packs", "admin_theme_packs_by_group", "admin_change_url",
+      "back_url", "theme_recent_change_meta", "theme_contrast_report",
+      "theme_contrast_targets", "theme_token_values", "theme_publish_guarded_count",
+      "skip_theme_publish_guard", "studio_version_history", "studio_audit",
+      "studio_role_preview_entries", "studio_preview_url", "studio_publish_url",
+      "studio_rollback_url", "legacy_urls"
+    ]
+  },
+  "horizontal_overflow_root_causes": [
+    {
+      "id": "OF-1",
+      "file": "templates/studio_os/partials/workspace/experience_iframe_canvas.html",
+      "line": "2-3",
+      "selector_or_tag": "iframe.studio-os-iframe (no responsive wrapper, no aspect-ratio)",
+      "failure_mode": "fixed min-height 80vh from .studio-os-iframe class with no height clamp; iframe content can force horizontal scroll inside main column on narrow viewports; no wrapper to clamp inner padding",
+      "fix_strategy": "wrap iframe in .rmc-studio-experience-iframe-shell that sets width:100%, max-width:100%, height clamp(420px,60vh,720px), 1px hairline border + radius via tokens",
+      "owner": "agent2 (Experience)"
+    },
+    {
+      "id": "OF-2",
+      "file": "templates/studio_os/partials/workspace/experience_inpage_rail.html",
+      "line": "16-24",
+      "selector_or_tag": ".studio-os__card ul.list-unstyled li a (rail link)",
+      "failure_mode": "long rail labels (e.g. 'Communication style packs', 'Dashboard visual packs', 'Portal shell layouts') have no word-break/overflow-wrap; rail width is constrained to min(12.5rem,100%) by workspace grid; labels can spill outside grid track on languages with longer translations, causing horizontal scroll",
+      "fix_strategy": "add overflow-wrap:anywhere to rail link text, and word-break:break-word fallback. Move to new Experience-scoped CSS file",
+      "owner": "agent2 (Experience)"
+    },
+    {
+      "id": "OF-3",
+      "file": "templates/studio_os/partials/experience_workbench_context.html",
+      "line": "3-11",
+      "selector_or_tag": ".studio-os__experience-context aside (right context column)",
+      "failure_mode": "context tool link labels (long translations) wrap to multiple lines and may overflow horizontally when context column min-width:0 isn't enforced on inner <li><a>; risk of inline-flow widening if a single long word lands",
+      "fix_strategy": "add overflow-wrap:anywhere on context list links; ensure inner cards have min-width:0",
+      "owner": "agent2 (Experience)"
+    },
+    {
+      "id": "OF-4",
+      "file": "templates/studio_os/partials/workspace/experience_iframe_rail.html",
+      "line": "7-9",
+      "selector_or_tag": "<a class=\"experience-rail-link\">",
+      "failure_mode": "rail anchor has no word-break; if `item.label` is a long unsplittable token (e.g. URL or long translated phrase) the rail track widens and forces parent horizontal scroll",
+      "fix_strategy": "extend studio-experience-mode.css to set overflow-wrap:anywhere on a.experience-rail-link",
+      "owner": "agent2 (Experience)"
+    },
+    {
+      "id": "OF-5",
+      "file": "static/css/studio-mode-rail.css",
+      "line": "5-14",
+      "selector_or_tag": "a.experience-rail-link / a.output-rail-link / a.automation-rail-link / a.launch-rail-link (shared)",
+      "failure_mode": "shared rail-link rule does not declare overflow-wrap or word-break, so long unsplittable labels push rail wider than its grid track",
+      "fix_strategy": "Do NOT mutate this shared file (used by 4 modes — would change other agents' output). Layer Experience-only overrides in a NEW file static/css/studio-experience-mode.css. Other agents may apply same fix to their rails.",
+      "owner": "agent2 (Experience-only), with coordinator-task flag for Output/Automation/Launch rails"
+    },
+    {
+      "id": "OF-6",
+      "file": "templates/studio_os/shell.html",
+      "line": "24",
+      "selector_or_tag": ".container-fluid.py-2.px-0.px-md-2",
+      "failure_mode": "container-fluid forces 100% width but px-md-2 (8px each side) plus the children's own padding can sum to overflow on narrow viewports when nested grids inside don't have min-width:0 at every level. Not Experience-specific but inherits down.",
+      "fix_strategy": "Coordinator task — confirm shell .rmc-shell-content-grid has overflow-x:clip (it does in studio-shell-layout.css:58). No further shell change needed; risk lives downstream in mode templates.",
+      "owner": "coordinator (no action needed, documented for confirmation only)"
+    },
+    {
+      "id": "OF-7",
+      "file": "static/css/studio-shell-layout.css",
+      "line": "119-127",
+      "selector_or_tag": ".studio-os__right (Studio OS right column outside the workspace 3-col)",
+      "failure_mode": "overflow:auto + overflow-x:clip — this is the legacy Studio OS right column, not the Experience workspace context. Not a bug per se (the clip is intentional). Documented for completeness.",
+      "fix_strategy": "no-op — outside Experience ownership; not a sticky+overflow:hidden combo",
+      "owner": "coordinator (documented)"
+    },
+    {
+      "id": "OF-8",
+      "file": "templates/studio_os/partials/subpages/experience_compare.html",
+      "line": "13,27",
+      "selector_or_tag": "inline style=\"width:1.25rem;height:1.25rem;background:{{ e.value|... }};\"",
+      "failure_mode": "inline width/height (rem, not px so fluid-safe) plus dynamic background. Inline style here is unavoidable for tenant-data swatches but the values are rem-based, so no horizontal cut.",
+      "fix_strategy": "no-op — width is rem and small; would only register on scan_inline_style_off_token. Not an overflow risk.",
+      "owner": "no action (subpage outside Experience workspace ownership)"
+    },
+    {
+      "id": "OF-9",
+      "file": "templates/studio_os/partials/experience_workbench_context.html",
+      "line": "(planned)",
+      "selector_or_tag": "missing — context column currently shows only tool links",
+      "failure_mode": "context column is under-built; needs token-property summary, contrast badge, version history, audit feed. When populated, must enforce min-width:0 and overflow-wrap to avoid OF-3.",
+      "fix_strategy": "rebuild context column to render theme_token_values / theme_contrast_report / studio_version_history / studio_audit, with overflow-wrap:anywhere on token values and code fragments",
+      "owner": "agent2 (Experience)"
+    },
+    {
+      "id": "OF-10",
+      "file": "templates/studio_os/partials/workspace/experience_inpage_canvas.html",
+      "line": "1",
+      "selector_or_tag": "single include theme_colors_content.html",
+      "failure_mode": "theme_colors_content.html is dense (palette, form, preview cards) and may itself contain rows/cards that don't clamp inside the workspace main column on 1366px",
+      "fix_strategy": "wrap include in <div class=\"rmc-studio-experience-canvas-clamp\"> with max-width:100%, min-width:0 to firewall the include from widening the column",
+      "owner": "agent2 (Experience)"
+    }
+  ],
+  "live_preview_model": {
+    "existing_routes": [
+      "studio_os:preview (POST endpoint; delegates to siteconfig.preview_from_form for experience mode)",
+      "studio_os:experience_compare (server-rendered before/after partial)"
+    ],
+    "gaps": [
+      "No live-preview iframe surface in Experience workspace — user has no in-shell view of theme applied to a tenant page (only the legacy Customizer/Theme & Colors form). studio_preview is POST-only, not a render URL.",
+      "studio_role_preview_entries context is populated but never rendered inside Experience workspace (Launch mode renders it via launch_studio_role_preview_pane.html).",
+      "No dummy/fake preview buttons in current Experience templates — clean baseline. New preview pane MUST hit real role-preview URLs or render honest 'Preview unavailable' state."
+    ],
+    "plan": "Build experience_live_preview_pane.html with: (a) responsive iframe wrapper (aspect-ratio 16/10, width 100%); (b) role/audience <select> driven by studio_role_preview_entries; (c) state badges using theme_contrast_report.status + theme_recent_change_meta; (d) honest 'Preview unavailable' empty state when no entries. Wire iframe src to the selected role URL — these are real tenant-scoped dashboards on the same host."
+  },
+  "operator_vs_tenant_capability": [
+    {"capability": "Theme & colors edit", "tenant": "yes (settings.manage perm)", "operator": "yes"},
+    {"capability": "Customizer (page-level layout)", "tenant": "yes", "operator": "yes"},
+    {"capability": "Experience packs install", "tenant": "no (catalog-read; install via governed flow)", "operator": "yes (in Marketplace/admin)"},
+    {"capability": "Brand import from website", "tenant": "yes", "operator": "yes"},
+    {"capability": "Theme tokens viewer", "tenant": "yes (read)", "operator": "yes"},
+    {"capability": "Compare (before/after)", "tenant": "yes", "operator": "yes"},
+    {"capability": "Live preview pane (new)", "tenant": "yes (own-tenant role URLs)", "operator": "yes (own-tenant under selected school)"},
+    {"capability": "Audit log of theme publishes", "tenant": "yes (own audit)", "operator": "yes (all)"}
+  ],
+  "rail_items_health": [
+    {"label": "Theme & colors", "route": "siteconfig:theme_colors", "real": true},
+    {"label": "Customizer", "route": "studio_os:experience", "real": true, "note": "self-link to mode; serves as in-page customizer entry"},
+    {"label": "School theme", "route": "siteconfig:school_theme_settings", "real": true},
+    {"label": "Experience packs", "route": "studio_os:experience_packs", "real": true},
+    {"label": "Import from website", "route": "siteconfig:brand_import_from_url", "real": true},
+    {"label": "Compare", "route": "studio_os:experience_compare", "real": true},
+    {"label": "AI recommendations", "route": "studio_os:experience_recommendations", "real": true},
+    {"label": "Theme tokens", "route": "studio_os:experience_theme_tokens", "real": true},
+    {"label": "Portal shell layouts", "route": "studio_os:experience_portal_shell_layouts", "real": true},
+    {"label": "Dashboard visual packs", "route": "studio_os:experience_dashboard_visual_packs", "real": true},
+    {"label": "School website blocks", "route": "studio_os:experience_school_website_blocks", "real": true},
+    {"label": "Communication style packs", "route": "studio_os:experience_communication_style_packs", "real": true}
+  ],
+  "required_actions": [
+    {"target": "experience_workbench_context.html", "action": "aggressive_refactor", "reason": "today it's a single 'Related tools' list; rebuild into a real context column with token summary, contrast badge, version history, audit, preview-as-role links"},
+    {"target": "experience_inpage_canvas.html", "action": "minor_repair", "reason": "add a clamp wrapper firewall around the legacy include"},
+    {"target": "experience_iframe_canvas.html", "action": "minor_repair", "reason": "wrap iframe in responsive shell + aspect-ratio + token border"},
+    {"target": "experience_inpage_rail.html", "action": "minor_repair", "reason": "add active-state for the embedded customizer entry; ensure long labels wrap"},
+    {"target": "experience_iframe_rail.html", "action": "keep", "reason": "structure fine; CSS-only overflow-wrap fix"},
+    {"target": "modes/experience.html", "action": "minor_repair", "reason": "link the new studio-experience-mode.css so rail CSS overrides apply"},
+    {"target": "studio_experience_mode_body.html", "action": "keep", "reason": "no overflow risk; pass-through include logic"},
+    {"target": "static/css/studio-mode-rail.css", "action": "do_not_edit", "reason": "shared by 4 modes; layer overrides in new file instead"},
+    {"target": "static/css/studio-experience-mode.css", "action": "create", "reason": "scope new Experience-specific layout-safety rules"},
+    {"target": "experience_live_preview_pane.html", "action": "create", "reason": "fulfills 'next-realm visual experience control room' brief"},
+    {"target": "test_experience_overflow_invariants.py", "action": "create", "reason": "lock invariants per Phase B mandate"},
+    {"target": "test_experience_workbench.py", "action": "extend", "reason": "add asserts for new context column rendering"}
+  ],
+  "scanner_risk_assessment": {
+    "scan_sticky_with_overflow_hidden": "no new sticky+overflow combos introduced",
+    "scan_off_token_colors": "all new color usages are var(--*) tokens; no inline hex",
+    "scan_theme_locked_token_text": "no new theme-locked usage",
+    "scan_inline_style_off_token": "no new inline style attrs",
+    "scan_pii_logging_smell": "no logging touched",
+    "scan_undefined_css_classes": "all new .rmc-* classes are defined in new studio-experience-mode.css",
+    "scan_theme_attribute_contract": "no data-theme writes",
+    "scan_reveal_armed_invariants": "no rmc-reveal logic touched"
+  },
+  "out_of_scope_observed": [
+    "studio-mode-rail.css overflow-wrap missing — applies to other mode rails too; flagged as coordinator follow-up",
+    "templates/studio_os/partials/subpages/experience_compare.html inline style — categorically necessary for swatch rendering; not Experience workspace ownership"
+  ]
+}

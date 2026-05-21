@@ -75,10 +75,10 @@ def main() -> int:
         "control_plane_skeleton.html",
     )
     add(
-        "main_scroll_admin_manager",
-        "Manager Unfold admin shell sets data-rmc-cp-scroll=main (viewport-trapped #cp-main-content)",
-        _contains("templates/admin/base_site.html", "data-rmc-cp-scroll', 'main'")
-        and _contains("templates/admin/base.html", 'data-rmc-cp-scroll="main"'),
+        "document_scroll_admin_manager",
+        "Manager Unfold admin shell sets data-rmc-cp-scroll=document (parity with /super/)",
+        _contains("templates/admin/base_site.html", "data-rmc-cp-scroll', 'document'")
+        and _not_contains("templates/admin/base.html", 'data-rmc-cp-scroll="main"'),
         "admin/base_site.html",
     )
     add(
@@ -86,6 +86,43 @@ def main() -> int:
         "Manager portal bridge body sets data-rmc-cp-scroll=document",
         _contains("templates/portal_base.html", "data-rmc-cp-scroll"),
         "portal_base.html",
+    )
+    add(
+        "portal_document_scroll_all_hosts",
+        "Tenant portal body uses document scroll (not manager-only)",
+        _contains("templates/portal_base.html", 'data-rmc-cp-scroll="document"')
+        and _not_contains("templates/portal_base.html", "{% if request.public_host_kind == 'manager' %} data-rmc-cp-scroll"),
+        "portal_base.html",
+    )
+    add(
+        "marketing_chrome_sweep",
+        "Marketing shell wires sticky chrome layout + fold standards",
+        _contains("templates/marketing/base_marketing.html", "rmc_platform_chrome_styles.html")
+        and _contains("templates/marketing/base_marketing.html", "back_to_top.html"),
+        "marketing/base_marketing.html",
+    )
+    add(
+        "base_shell_chrome_partial",
+        "base.html wires platform chrome styles + document scroll",
+        _contains("templates/base.html", "rmc_platform_chrome_styles.html")
+        and _contains("templates/base.html", 'data-rmc-cp-scroll="document"'),
+        "base.html",
+    )
+    add(
+        "chrome_styles_partial_assets",
+        "Shared chrome styles partial bundles layout + premium + fold",
+        _contains("templates/partials/rmc_platform_chrome_styles.html", "rmc-platform-chrome-premium.css")
+        and _contains("templates/partials/rmc_platform_chrome_styles.html", "rmc-platform-chrome-layout.css"),
+        "rmc_platform_chrome_styles.html",
+    )
+    add(
+        "platform_chrome_layout_contract",
+        "Platform chrome partial wired on control-plane skeleton",
+        _exists("static/css/rmc-platform-chrome-layout.css")
+        and _exists("static/js/rmc-cp-chrome-offset.js")
+        and _contains("templates/partials/rmc_platform_chrome_styles.html", "rmc-platform-chrome-layout.css")
+        and _contains("templates/control_plane_skeleton.html", "rmc_platform_chrome_scripts.html"),
+        "rmc_platform_chrome partials",
     )
     add(
         "no_viewport_height_trap_css",

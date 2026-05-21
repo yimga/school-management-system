@@ -15,6 +15,21 @@ on:
       - "templates/admin/manager_cp_offcanvas.html"
       - "templates/admin/base.html"
       - "templates/admin/base_site.html"
+      - "templates/partials/rmc_platform_chrome_styles.html"
+      - "templates/partials/rmc_platform_chrome_scripts.html"
+      - "templates/control_plane_skeleton.html"
+      - "templates/portal_base.html"
+      - "templates/base.html"
+      - "templates/marketing/base_marketing.html"
+      - "static/css/rmc-platform-chrome-layout.css"
+      - "static/css/rmc-platform-chrome-premium.css"
+      - "static/css/dashboard-topology-shell.css"
+      - "static/js/rmc-cp-chrome-offset.js"
+      - "static/js/rmc-cp-chrome-scroll-polish.js"
+      - "scripts/verify_platform_chrome_shell_coverage.py"
+      - "scripts/verify_platform_chrome_sweep.py"
+      - "scripts/verify_platform_surface_layout_contract.py"
+      - "scripts/verify_page_fold_standards.py"
       - "static/css/admin-cp-parity.css"
       - "static/css/admin-sidebar-scroll.css"
       - "static/css/admin-base-site-shell.css"
@@ -83,6 +98,10 @@ jobs:
           python scripts/verify_theme_visibility_platform.py
           python scripts/verify_backend_base_shell_routing.py
           python scripts/verify_sidebar_rail_contract.py
+          python scripts/verify_platform_chrome_shell_coverage.py
+          python scripts/verify_platform_chrome_sweep.py
+          python scripts/verify_platform_surface_layout_contract.py
+          python scripts/verify_page_fold_standards.py
           python scripts/verify_manager_admin_cp_layout.py
           python scripts/verify_studio_os_ux_waves.py
           python scripts/scan_main_content_text_utilities.py

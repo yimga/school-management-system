@@ -1,15 +1,57 @@
 {% load i18n %}
-<div class="studio-os__card py-2">
-  <div class="h6 mb-2">{% trans "Workflows" %}</div>
-  <ul class="list-unstyled small mb-0" id="automation-rail-list">
+{# v3.54 (2026-05-21, Agent 3): Automation rail with icons + secondary text. #}
+{# Each rail link wraps on narrow viewports. Sub-tools come from automation_left_rail. #}
+<div class="rmc-automation-rail" role="navigation" aria-label="{% trans 'Automation sub-tools' %}">
+  <h2 class="rmc-automation-rail__title">{% trans "Workflows" %}</h2>
+  <ul class="rmc-automation-rail__list" id="automation-rail-list">
     {% for item in automation_left_rail %}
-    <li class="mb-1">
+    <li class="rmc-automation-rail__item">
       <a href="{{ item.url }}"
-         class="automation-rail-link {% if item.pane == automation_pane %}active{% endif %}">{{ item.label }}</a>
+         class="rmc-automation-rail__link automation-rail-link {% if item.pane == automation_pane %}active{% endif %}"
+         {% if item.pane == automation_pane %}aria-current="page"{% endif %}>
+        <span class="rmc-automation-rail__icon" aria-hidden="true">
+          {% if item.pane == 'overview' %}<i class="bi bi-grid"></i>
+          {% elif item.pane == 'outcomes' %}<i class="bi bi-graph-up"></i>
+          {% elif item.pane == 'workflow' %}<i class="bi bi-diagram-3"></i>
+          {% elif item.pane == 'flow_gallery' %}<i class="bi bi-collection"></i>
+          {% elif item.pane == 'approval' %}<i class="bi bi-check2-square"></i>
+          {% elif item.pane == 'dependency' %}<i class="bi bi-share"></i>
+          {% elif item.pane == 'health' %}<i class="bi bi-heart-pulse"></i>
+          {% elif item.pane == 'conflict' %}<i class="bi bi-exclamation-triangle"></i>
+          {% elif item.pane == 'staged' %}<i class="bi bi-layers-half"></i>
+          {% elif item.pane == 'replay' %}<i class="bi bi-arrow-counterclockwise"></i>
+          {% elif item.pane == 'visual_builder' %}<i class="bi bi-pencil-square"></i>
+          {% elif item.pane == 'nl_workflow' %}<i class="bi bi-chat-square-text"></i>
+          {% elif item.pane == 'simulation' %}<i class="bi bi-play-circle"></i>
+          {% else %}<i class="bi bi-dot"></i>{% endif %}
+        </span>
+        <span>
+          <span class="rmc-automation-rail__label">{{ item.label }}</span>
+          {% if item.pane == 'simulation' %}
+          <span class="rmc-automation-rail__hint">{% trans "Dry-run, no writes" %}</span>
+          {% elif item.pane == 'replay' %}
+          <span class="rmc-automation-rail__hint">{% trans "Rerun or rollback" %}</span>
+          {% elif item.pane == 'conflict' %}
+          <span class="rmc-automation-rail__hint">{% trans "Detect before activate" %}</span>
+          {% elif item.pane == 'staged' %}
+          <span class="rmc-automation-rail__hint">{% trans "Roll out in stages" %}</span>
+          {% elif item.pane == 'approval' %}
+          <span class="rmc-automation-rail__hint">{% trans "Review pending" %}</span>
+          {% elif item.pane == 'dependency' %}
+          <span class="rmc-automation-rail__hint">{% trans "Pack → templates" %}</span>
+          {% elif item.pane == 'health' %}
+          <span class="rmc-automation-rail__hint">{% trans "Pack + template metrics" %}</span>
+          {% elif item.pane == 'workflow' %}
+          <span class="rmc-automation-rail__hint">{% trans "Edit + simulate" %}</span>
+          {% endif %}
+        </span>
+      </a>
     </li>
     {% endfor %}
   </ul>
-  <p class="small text-muted mt-2 mb-0">{{ automation_simulation_summary }}</p>
+  {% if automation_simulation_summary %}
+  <p class="rmc-automation-rail__hint mt-2 mb-0">{{ automation_simulation_summary }}</p>
+  {% endif %}
   {% if automation_conflict_pane_url and automation_pane != "conflict" %}
   <p class="small mb-0 mt-2">
     <a href="{{ automation_conflict_pane_url }}">{% trans "Review conflict detection" %}</a>
