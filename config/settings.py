@@ -2871,6 +2871,8 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         # so migrate_schemas --shared loads these migrations; siteconfig.0162+ depend on this app.
         "apps.platform_runtime.apps.PlatformRuntimeConfig",
         "apps.dashboard.apps.DashboardConfig",
+        # Public-schema School lifecycle spine (SchoolLifecycleStage on School FK; operator-surface rapid-create / migration-intent / offboarding).
+        "apps.lifecycle.apps.LifecycleConfig",
     ]
     TENANT_APPS = [
         "apps.portal",
