@@ -17,6 +17,14 @@ PRIVACY CONTRACT (load-bearing — DO NOT relax)
 The first ``{% if %}`` below preserves the original three-way gate
 (enabled AND opt_in AND metrics) — that's the consent-gate the
 v3.58.x Wave 9 operator-copy editor MUST NOT alter.
+
+v3.59.7 Wave D preview-parity note (2026-05-22): The v3 100x tenant
+portal preview deliberately OMITS sibling-compare (privacy gap). This
+production partial closes that gap with a stricter contract than the
+preview implies — sibling data NEVER renders without explicit per-
+parent consent stored outside the cockpit payload. Operators enabling
+the section via SiteSettings expose only the CTA / consent banner;
+actual rows wait for ``opt_in=True`` on a per-parent record.
 {% endcomment %}
 {% if cockpit.sibling_compare.enabled and cockpit.sibling_compare.opt_in and cockpit.sibling_compare.metrics %}
 {% with sc=cockpit.sibling_compare %}

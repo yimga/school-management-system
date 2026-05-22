@@ -30,6 +30,41 @@
      <html data-rmc-shell="off"> disables the lock (already in
      rmc-app-shell.css). Use sparingly — pages that need natural
      document scroll (printable invoices, public auth forms).
+
+   ------------------------------------------------------------
+   v3.59.7 Wave D (2026-05-22) — preview-parity contract note:
+   ------------------------------------------------------------
+   The v3 100x tenant portal preview
+   (rmc-shell-preview-tenant-portal-v3-100x.html) declares the
+   shell as a CSS Grid: `grid-template-rows: auto 1fr auto;
+   grid-template-columns: clamp(280px, 21vw, 340px) 1fr` with
+   `.rmc-app-shell__header/__sidebar/__canvas/__footer` grid
+   cells. Production keeps Bootstrap row/col under the hood
+   (.col-lg-3 sidebar + .col-lg-9 main) and uses THIS bridge
+   layer to apply the `.rmc-app-shell` contract — single scroll
+   surface, static chrome, no horizontal cut-off — without DOM
+   surgery on 30+ stylesheets that depend on the existing class
+   names.
+
+   The contract that matters at the consumer level is:
+     header  → static; row 1; spans both columns
+     sidebar → static; row 2 col 1; owns its own scroll
+     canvas  → scrollable; row 2 col 2; owns the page scrollbar
+     footer  → static; row 3; spans both columns
+
+   Bootstrap classes map as follows (operator-facing names in
+   parens):
+     .topbar (.rmc-app-shell__header) — portal_base.html:227
+     .col-lg-3 (.rmc-app-shell__sidebar) — portal_base.html:376
+     .col-lg-9 .portal-main-col > .page-wrap
+       (.rmc-app-shell__canvas) — portal_base.html:420
+     <footer data-rmc-shell-footer="portal">
+       (.rmc-app-shell__footer) — portal_base.html:673
+
+   Anyone retrofitting the preview's literal class names should
+   prefer adding the bridge mapping HERE rather than renaming
+   the Bootstrap classes — that path keeps the preview parity
+   contract honest without breaking 30+ downstream stylesheets.
    ============================================================ */
 
 /* ---------- Document lock — match the .rmc-app-shell contract ---------- */
