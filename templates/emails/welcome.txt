@@ -1,0 +1,9 @@
+{% load i18n %}{% blocktrans with name=user_name %}Welcome, {{ name }}.{% endblocktrans %}
+
+{% if user_role == "parent" %}{% blocktrans with school=school_name %}Your {{ school }} family account is ready. From your portal you can view your children's grades, attendance, and fees, and message their teachers directly.{% endblocktrans %}{% elif user_role == "teacher" %}{% blocktrans with school=school_name %}Welcome to {{ school }}. Your teaching workspace is ready — enter marks, take attendance, message guardians, and plan lessons from a single screen.{% endblocktrans %}{% elif user_role == "staff" or user_role == "admin" %}{% blocktrans with school=school_name %}Welcome to {{ school }}. Your staff workspace is ready. Sign in to manage students, classes, finance, and reports.{% endblocktrans %}{% else %}{% blocktrans with school=school_name %}Your {{ school }} account is ready. Sign in to get started.{% endblocktrans %}{% endif %}
+
+{% trans "Sign in:" %} {{ login_url }}
+
+{% if school_phone or school_email %}{% trans "Need help?" %} {% if school_phone %}{{ school_phone }}{% endif %}{% if school_phone and school_email %} | {% endif %}{% if school_email %}{{ school_email }}{% endif %}
+
+{% endif %}{% trans "RunMyCampus" %}

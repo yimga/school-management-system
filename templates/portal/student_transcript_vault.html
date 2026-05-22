@@ -4,7 +4,14 @@
 {% block title %}{% trans "Transcript vault" %} · {{ student.first_name }} {{ student.last_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4" data-rmc-transcript-vault="1">
+<div class="container py-4 rmc-print-v2" data-page-archetype="record-detail" data-rmc-transcript-vault="1">
+  {% comment %} v3.57.11+ (2026-05-21): civic brand block per rmc-print-v2 grammar
+     so PDF / print renders of the transcript vault carry the wordmark + motto +
+     crest header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
+  {% trans "Transcript vault" as _report_title %}
+  {% now "Y-m-d" as _generated_at %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=student.get_full_name report_meta_left=_generated_at report_meta_right=school %}
+
   <h1 class="h5 mb-3">{% trans "Transcript vault" %}</h1>
   <p class="small text-muted">{% trans "Artifacts are stored with verification hashes only; no credential is implied without issuer data." %}</p>
 

@@ -1,86 +1,115 @@
-{% extends "emails/base_branded.html" %}
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{ school_name|default:"School" }} {% trans "Welcome" %}</title>
 {% comment %}
-Welcome email — sent to a new user (parent / teacher / staff) after their account is created.
+  rmc-email-civic adoption (v3.57.x). Email clients strip <link rel="stylesheet">
+  and CSS custom properties, so the civic 4-tier layout (brand / body+CTA /
+  trust / contacts / legal) is embedded inline AND mirrored as style="..."
+  attributes for Outlook 2016 parity. See static/css/rmc-email-civic.css.
 
-Required context:
-  - school_name, primary_color, accent_color, branded_domain (from base)
-  - user_name              (recipient's first name or full name)
-  - user_role              ("parent" / "teacher" / "staff" / "admin" — used to tailor the message)
-  - login_url              (sign-in URL for the tenant)
-  - school_phone, school_email (optional contact lines)
-  - cta_text               (override default "Sign in to your account" if needed)
+  Required context: school_name, primary_color, accent_color, branded_domain,
+  user_name, user_role, login_url, school_phone, school_email, cta_text.
 {% endcomment %}
-{% load i18n %}
-
-{% block email_subject_suffix %} · {% trans "Welcome" %}{% endblock %}
-
-{% block email_preheader %}{% blocktrans with school=school_name %}Your {{ school }} account is ready. Sign in to get started.{% endblocktrans %}{% endblock %}
-
-{% block email_header_subtitle %}
-<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};">{% trans "Welcome" %}</div>
-{% endblock %}
-
-{% block email_content %}
-<!-- Hero greeting — slightly larger than body to feel like a "welcome" -->
-<p style="margin:0 0 14px 0;font-size:22px;font-weight:700;letter-spacing:-0.022em;color:{{ brand_email.ink }};line-height:1.25;">
-  {% blocktrans with name=user_name %}Welcome, {{ name }}.{% endblocktrans %}
-</p>
-
-<p style="margin:0 0 22px 0;">
-  {% if user_role == "parent" %}
-    {% blocktrans with school=school_name %}Your <strong>{{ school }}</strong> family account is ready. From your portal you can view your children's grades, attendance, and fees, and message their teachers directly.{% endblocktrans %}
-  {% elif user_role == "teacher" %}
-    {% blocktrans with school=school_name %}Welcome to <strong>{{ school }}</strong>. Your teaching workspace is ready — enter marks, take attendance, message guardians, and plan lessons from a single screen.{% endblocktrans %}
-  {% elif user_role == "staff" or user_role == "admin" %}
-    {% blocktrans with school=school_name %}Welcome to <strong>{{ school }}</strong>. Your staff workspace is ready. Sign in to manage students, classes, finance, and reports.{% endblocktrans %}
-  {% else %}
-    {% blocktrans with school=school_name %}Your <strong>{{ school }}</strong> account is ready. Sign in to get started.{% endblocktrans %}
-  {% endif %}
-</p>
-
-<!-- What's-included data card -->
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 28px 0;">
-  <tr>
-    <td style="background:{{ brand_email.bg_soft }};border-left:3px solid {{ brand_email.accent }};border-radius:6px;padding:18px 20px;">
-      <div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};margin-bottom:10px;">{% trans "What you can do" %}</div>
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:var(--type-size-caption);line-height:1.7;">
-        {% if user_role == "parent" %}
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "View live grades, attendance, and term reports" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Track fee balances and pay online" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Message teachers and the school office" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Get notified instantly when grades are published" %}</td></tr>
-        {% elif user_role == "teacher" %}
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Enter marks for any class with auto-save" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Take attendance in seconds, on phone or laptop" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Message guardians directly from a student's profile" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Plan lessons and track syllabus progress" %}</td></tr>
-        {% else %}
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Manage students, classes, and academics" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Track finance and compliance in one dashboard" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Generate term reports and export to Ministry format" %}</td></tr>
-        <tr><td style="color:{{ brand_email.ink }};padding:3px 0;"><span style="color:{{ brand_email.accent }};font-weight:700;">·</span>&nbsp; {% trans "Communicate with parents and staff at scale" %}</td></tr>
-        {% endif %}
-      </table>
-    </td>
-  </tr>
-</table>
-
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 8px 0;">
-  <tr>
-    <td style="background:{{ brand_email.primary }};border-radius:10px;box-shadow:0 1px 2px rgba(26, 22, 18,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
-      <a href="{{ login_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:{{ brand_email.bg }};text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">{{ cta_text|default:_("Sign in to your account") }} →</a>
-    </td>
-  </tr>
-</table>
-
-<p style="margin:18px 0 0 0;font-size:13px;color:{{ brand_email.ink_subtle }};">
-  {% trans "Or copy this link:" %} <a href="{{ login_url }}" style="color:{{ brand_email.primary }};text-decoration:underline;word-break:break-all;">{{ login_url }}</a>
-</p>
-
-{% if school_phone or school_email %}
-<p style="margin:24px 0 0 0;font-size:13.5px;color:{{ brand_email.ink_muted }};line-height:1.6;border-top:1px solid {{ brand_email.rule }};padding-top:18px;">
-  <strong style="color:{{ brand_email.ink }};">{% trans "Need help?" %}</strong><br>
-  {% if school_phone %}{% trans "Call" %} <a href="tel:{{ school_phone }}" style="color:{{ brand_email.primary }};text-decoration:none;">{{ school_phone }}</a>{% endif %}{% if school_phone and school_email %} &middot; {% endif %}{% if school_email %}{% trans "email" %} <a href="mailto:{{ school_email }}" style="color:{{ brand_email.primary }};text-decoration:none;">{{ school_email }}</a>{% endif %}
-</p>
-{% endif %}
-{% endblock %}
+<style type="text/css">
+  body.rmc-email { margin:0; padding:0; background:#f6f5f1; color:#1c1a17; font-family:Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:15px; line-height:1.5; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  .rmc-email__container { width:100%; max-width:600px; margin:0 auto; background:#ffffff; border:1px solid #e9e6dc; border-radius:8px; overflow:hidden; }
+  .rmc-email__brand { padding:24px 28px 16px 28px; text-align:center; }
+  .rmc-email__wordmark { font-size:22px; font-weight:700; color:#ffffff; line-height:1.1; margin:0 0 4px 0; }
+  .rmc-email__motto { font-family:"Source Serif 4",Georgia,serif; font-style:italic; font-size:13px; color:#ffffff; opacity:0.9; margin:0; }
+  .rmc-email__body { padding:24px 28px; }
+  .rmc-email__h1 { font-size:22px; font-weight:700; color:#1c1a17; margin:0 0 12px 0; line-height:1.25; letter-spacing:-0.015em; }
+  .rmc-email__p { margin:0 0 14px 0; color:#2f2b25; }
+  .rmc-email__meta { color:#6b655d; font-size:13px; }
+  .rmc-email__cta { display:inline-block; padding:12px 22px; margin:8px 0 16px 0; color:#ffffff; border-radius:8px; font-size:15px; font-weight:600; text-decoration:none; line-height:1; }
+  .rmc-email__list { margin:0; padding:0 0 0 18px; color:#2f2b25; font-size:14px; line-height:1.7; }
+  .rmc-email__trust { padding:12px 28px; background:#f9f7f1; border-top:1px solid #e9e6dc; text-align:center; font-size:12px; color:#6b655d; }
+  .rmc-email__trust-item { display:inline-block; padding:0 8px; }
+  .rmc-email__contacts { padding:12px 28px; background:#ffffff; border-top:1px solid #e9e6dc; font-size:13px; text-align:center; }
+  .rmc-email__contacts a { color:#4f46e5; text-decoration:none; }
+  .rmc-email__legal { padding:16px 28px 20px 28px; background:#f3f1ea; border-top:1px solid #e9e6dc; text-align:center; font-size:11px; color:#595550; line-height:1.5; }
+  @media (prefers-color-scheme: dark) {
+    body.rmc-email { background:#0e0d0b !important; color:#efece4 !important; }
+    .rmc-email__container { background:#19171a !important; border-color:#2a262e !important; }
+    .rmc-email__contacts { background:#19171a !important; border-color:#2a262e !important; }
+    .rmc-email__trust { background:#1d1b20 !important; }
+    .rmc-email__legal { background:#0e0d0b !important; color:#8a857c !important; }
+    .rmc-email__h1, .rmc-email__p, .rmc-email__list { color:#efece4 !important; }
+    .rmc-email__motto, .rmc-email__meta { color:#b8b1a4 !important; }
+  }
+</style>
+</head>
+<body class="rmc-email" style="margin:0;padding:0;background:#f6f5f1;font-family:Inter,system-ui,sans-serif;color:#1c1a17;font-size:15px;line-height:1.5;/*inline-style-allow:email-template-inline*/">
+  <table class="rmc-email-civic" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f5f1;/*inline-style-allow:email-template-inline*/">
+    <tr>
+      <td align="center" style="padding:32px 16px;/*inline-style-allow:email-template-inline*/">
+        <table class="rmc-email__container" role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e9e6dc;border-radius:8px;/*inline-style-allow:email-template-inline*/">
+          {% comment %} Tier 1 — Brand band (tenant primary color) {% endcomment %}
+          <tr>
+            <td class="rmc-email__brand" style="padding:24px 28px 16px 28px;background-color:{{ primary_color|default:'#4F46E5' }};text-align:center;/*inline-style-allow:email-template-inline*/">
+              <div class="rmc-email__wordmark" style="font-size:22px;font-weight:700;color:#ffffff;margin:0 0 4px 0;/*inline-style-allow:email-template-inline*/">
+                {{ school_name|default:"RunMyCampus" }}
+              </div>
+              <div class="rmc-email__motto" style="font-family:'Source Serif 4',Georgia,serif;font-style:italic;font-size:13px;color:#ffffff;opacity:0.9;margin:0;/*inline-style-allow:email-template-inline*/">
+                {% trans "Welcome — your account is ready" %}
+              </div>
+            </td>
+          </tr>
+          {% comment %} Body + role-specific intro + CTA {% endcomment %}
+          <tr>
+            <td class="rmc-email__body" style="padding:24px 28px;/*inline-style-allow:email-template-inline*/">
+              <h1 class="rmc-email__h1" style="font-size:22px;font-weight:700;color:#1c1a17;margin:0 0 12px 0;line-height:1.25;letter-spacing:-0.015em;/*inline-style-allow:email-template-inline*/">
+                {% blocktrans with name=user_name %}Welcome, {{ name }}.{% endblocktrans %}
+              </h1>
+              <p class="rmc-email__p" style="margin:0 0 14px 0;color:#2f2b25;/*inline-style-allow:email-template-inline*/">
+                {% if user_role == "parent" %}
+                  {% blocktrans with school=school_name %}Your <strong>{{ school }}</strong> family account is ready. From your portal you can view your children's grades, attendance, and fees, and message their teachers directly.{% endblocktrans %}
+                {% elif user_role == "teacher" %}
+                  {% blocktrans with school=school_name %}Welcome to <strong>{{ school }}</strong>. Your teaching workspace is ready — enter marks, take attendance, message guardians, and plan lessons from a single screen.{% endblocktrans %}
+                {% elif user_role == "staff" or user_role == "admin" %}
+                  {% blocktrans with school=school_name %}Welcome to <strong>{{ school }}</strong>. Your staff workspace is ready. Sign in to manage students, classes, finance, and reports.{% endblocktrans %}
+                {% else %}
+                  {% blocktrans with school=school_name %}Your <strong>{{ school }}</strong> account is ready. Sign in to get started.{% endblocktrans %}
+                {% endif %}
+              </p>
+              <p style="margin:18px 0;/*inline-style-allow:email-template-inline*/">
+                <a class="rmc-email__cta" href="{{ login_url }}"
+                   style="display:inline-block;background-color:{{ primary_color|default:'#4F46E5' }};color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;font-size:15px;line-height:1;/*inline-style-allow:email-template-inline*/">
+                  {{ cta_text|default:_("Sign in to your account") }}
+                </a>
+              </p>
+              <p class="rmc-email__meta" style="margin:0 0 8px 0;color:#6b655d;font-size:13px;/*inline-style-allow:email-template-inline*/">
+                {% trans "Or copy this link:" %} <a href="{{ login_url }}" style="color:#4f46e5;text-decoration:underline;word-break:break-all;/*inline-style-allow:email-template-inline*/">{{ login_url }}</a>
+              </p>
+            </td>
+          </tr>
+          {% comment %} Tier 2 — Trust pillars {% endcomment %}
+          <tr>
+            <td class="rmc-email__trust" style="padding:12px 28px;background:#f9f7f1;border-top:1px solid #e9e6dc;text-align:center;font-size:12px;color:#6b655d;/*inline-style-allow:email-template-inline*/">
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">{% trans "FERPA-aligned" %}</span>
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">{% trans "SOC 2 Type II" %}</span>
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">{% trans "GDPR-ready" %}</span>
+            </td>
+          </tr>
+          {% comment %} Tier 3 — Contacts {% endcomment %}
+          <tr>
+            <td class="rmc-email__contacts" style="padding:12px 28px;background:#ffffff;border-top:1px solid #e9e6dc;font-size:13px;text-align:center;/*inline-style-allow:email-template-inline*/">
+              {% if school_phone %}<a href="tel:{{ school_phone }}" style="color:#4f46e5;text-decoration:none;/*inline-style-allow:email-template-inline*/">{{ school_phone }}</a>{% endif %}{% if school_phone and school_email %} &middot; {% endif %}{% if school_email %}<a href="mailto:{{ school_email }}" style="color:#4f46e5;text-decoration:none;/*inline-style-allow:email-template-inline*/">{{ school_email }}</a>{% endif %}
+            </td>
+          </tr>
+          {% comment %} Tier 4 — Legal {% endcomment %}
+          <tr>
+            <td class="rmc-email__legal" style="padding:16px 28px 20px 28px;background:#f3f1ea;border-top:1px solid #e9e6dc;text-align:center;font-size:11px;color:#595550;line-height:1.5;/*inline-style-allow:email-template-inline*/">
+              &copy; {% now "Y" %} {{ school_name|default:"RunMyCampus" }}. {% trans "Welcome — sent on account creation." %}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

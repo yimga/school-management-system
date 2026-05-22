@@ -5,8 +5,13 @@
   <meta charset="utf-8" />
   {% include "reports/_report_styles.html" %}
 </head>
-<body data-page-archetype="record-detail" data-rmc-zero-click-exempt="print-document">
+<body class="rmc-print-v2" data-page-archetype="record-detail" data-rmc-zero-click-exempt="print-document">
   <h1 class="visually-hidden">{% trans "Annual academic report" %}</h1>
+  {% comment %} v3.57.11+ (2026-05-21): civic brand block per rmc-print-v2 grammar
+     so PDF / print renders of the annual report carry the wordmark + motto + crest
+     header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
+  {% trans "Annual academic report" as _report_title %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=student_name report_meta_left=generated_at|format_date report_meta_right=school %}
   <nav class="ds-action-bar d-print-none mb-2" aria-label="{% trans 'Report actions' %}">
     <button type="button" class="btn btn-sm btn-primary ds-btn" onclick="window.print()">{% trans "Print or save as PDF" %}</button>
   </nav>

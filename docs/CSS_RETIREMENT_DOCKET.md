@@ -1,6 +1,113 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-22 (v3.57.12 — orphan dashboard retirement: removed dead `super_dashboard` v1 view function; all other audited orphan candidates verified load-bearing and kept intact)
+**Last updated:** 2026-05-22 (v3.57.15 — Wave 4: 21 cockpit per-section editors total + 8 final studio_os `{# #}` multi-line comment cleanups + welcome-email scaffolding co-shipped; verify_phase7 OK on 81 templates)
+
+## 2026-05-22 — v3.57.15 Wave 4 — 21 cockpit editors total + studio_os cleanup + welcome email
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.15-wave-4-twentyone-editors-plus-studio-cleanup-welcome-email-2026-05-22` (monotonic vs v3.57.14). Commit `8e0eef6e` (28 files, +1177/-70).
+
+Two-agent parallel wave plus foreground orchestrator cleanup plus co-shipped user/linter welcome-email scaffolding. Brings the cockpit per-section rich-editor surface to 21 sections total and closes out the studio_os multi-line `{# #}` comment gauntlet.
+
+### What landed
+
+| Lane | Detail |
+|---|---|
+| **Agent O — studio_os + phase7 cleanup** | 2 studio_os multi-line `{# #}` template-safety hits resolved (converted to `{% comment %}...{% endcomment %}` per the v3.55.1 / v3.57.9 pattern) + 7 phase7 marker gaps closed across template registry. `verify_phase7.py` now OK on 81 templates (was failing). Agent surfaced 8 remaining studio_os multi-line `{# #}` files for foreground close-out. |
+| **Agent P — 6 MORE cockpit per-section editors** | 6 new editors landed: `opr_*` (operator presence), `opn_*` (operator notebook), `thm_*` (tenant heatmap), `rwf_*` (revenue waterfall), `rtp_*` (response-time / trust panel), `cwt_*` (community-water-trust). Brings the cockpit per-section editor surface to **21 total** (vs 15 after v3.57.13, vs 4 after v3.57.11 Agent D). Round-trip `_<SECTION>_FIELD_TO_KEY` constants reused. |
+| **Foreground orchestrator** | Closed the remaining 8 studio_os multi-line `{# #}` files Agent O surfaced. `audit_template_render_safety.py` studio_os scanner now empty. |
+| **Co-shipped (user/linter)** | Welcome-email scaffolding for the create-school provisioning flow: NEW `apps/schools/provision_email_urls.py`, NEW `apps/schools/tests/test_welcome_email_provision.py`, NEW `docs/RENDER_EMAIL_SETUP.md`, plus modifications to `apps/schools/welcome_email.py` + `apps/schools/tasks.py` + `.env.example` + `render.yaml`. (Originally landed under SW `sms-v3.57.14-provision-welcome-email-smtp-2026-05-22`; SW bumped to v3.57.15 when this wave's work rolled into the same commit — see v3.57.14 entry below for the standalone provenance.) |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `audit_template_render_safety.py` | **0** (studio_os scanner empty after foreground close-out) |
+| `verify_phase7.py` | **OK** on 81 templates (Agent O fix) |
+| `verify_service_worker_version.py` | OK — `sms-v3.57.15-wave-4-twentyone-editors-plus-studio-cleanup-welcome-email-2026-05-22` monotonic vs v3.57.14 |
+| Cockpit per-section editor count | **21** (was 15) |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.15.
+* 28 files touched (incl. co-shipped welcome-email scaffolding).
+* Operator-facing: 6 new cockpit per-section editors (opr_/opn_/thm_/rwf_/rtp_/cwt_);
+  21 sections now have rich editors. Welcome-email scaffolding ready for SMTP wiring
+  per docs/RENDER_EMAIL_SETUP.md.
+```
+
+## 2026-05-22 — v3.57.14 Provision welcome-email scaffolding (user/linter)
+
+**Status:** SHIPPED in-repo as a user/linter co-shipped wave. SW `sms-v3.57.14-provision-welcome-email-smtp-2026-05-22` (replaced by `sms-v3.57.15-...` in the v3.57.15 commit that rolled this work in — see entry above). Recorded here for provenance.
+
+User/linter scaffolding wave: welcome-email plumbing for the create-school provisioning flow. Landed before the v3.57.15 SW bump; the v3.57.15 commit subsumed it. No new wave fan-out — this is single-author/single-linter incremental work.
+
+### What landed
+
+| File | State | Detail |
+|---|---|---|
+| `apps/schools/provision_email_urls.py` | NEW | URL helpers for provisioning welcome-email landing/activation links — composes absolute URLs using the tenant's public host. |
+| `apps/schools/tests/test_welcome_email_provision.py` | NEW | Test coverage for provisioning welcome-email rendering + URL composition + tenant-host correctness. |
+| `docs/RENDER_EMAIL_SETUP.md` | NEW | Operator runbook for wiring SMTP on Render (env vars, provider choice, DNS verification, post-deploy smoke). |
+| `apps/schools/welcome_email.py` | MODIFIED | Wired to the new URL helpers; provisioning welcome path now generates correct absolute landing URLs. |
+| `apps/schools/tasks.py` | MODIFIED | Provisioning welcome-email send task hooked into the create-school flow. |
+| `.env.example` | MODIFIED | Documents the SMTP env vars referenced by `docs/RENDER_EMAIL_SETUP.md`. |
+| `render.yaml` | MODIFIED | Render service config picks up the new SMTP env vars. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `verify_service_worker_version.py` | OK at time of land — `sms-v3.57.14-provision-welcome-email-smtp-2026-05-22` monotonic vs v3.57.13. Subsequently superseded by v3.57.15 SW in the same commit graph. |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW landed as v3.57.14; superseded by v3.57.15 (welcome-email scaffolding rolled
+  into the v3.57.15 commit).
+* Operator action required: wire SMTP env vars per docs/RENDER_EMAIL_SETUP.md
+  before relying on provision-flow welcome emails in production.
+```
+
+## 2026-05-22 — v3.57.13 Wave 3 — 5 more editors + tenant-create atomic + diagnostics
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.13-wave-3-five-more-editors-tenant-create-atomic-2026-05-22` (monotonic vs v3.57.12). Commit `3698c2b2` (5 files, +709/-20).
+
+Four-agent parallel wave: regression probe, tenant-creation failure-mode diagnostic, 5 more cockpit per-section editors, and a no-op pager layering verification (parity surface confirmed CLOSED). Foreground/user follow-up wrapped the tenant-create path in `transaction.atomic()` addressing the diagnostic's top-ranked failure mode.
+
+### What landed
+
+| Lane | Detail |
+|---|---|
+| **Agent K — test regression check** | Ran the existing regression suite against v3.57.12 head — **NO regressions** detected. Reported clean baseline; this lane shipped no file changes (pure verification). |
+| **Agent L — tenant creation diagnostic** | Ranked the top-3 failure modes for the `api_create_school` provisioning flow: (#1) partial-commit risk if a downstream side-effect (e.g. tenant schema creation, default-data seed, welcome-email dispatch) fails after the main `School` row is written → no `transaction.atomic()` wrap; (#2) silent failure of welcome-email send swallowed by broad except; (#3) tenant-domain uniqueness race under concurrent provisioning. Honest report only — no file changes. |
+| **Agent M — 5 MORE cockpit per-section editors** | 5 new editors landed: `fcl_*` (forecast lane), `slo_*` (SLO clocks), `tnt_*` (tenant heatmap pre-cursor), `ptt_*` (parent-teacher thread admin), `ftl_*` (footer-tile-link). Brings cockpit per-section editor surface to **15 total** (was 10 after v3.57.11 Agent D + the 4 from v3.57.11 + v3.57.1 baseline). |
+| **Agent N — pager layering no-op** | Confirmed the v3.57.11 Agent C pager-layering surface is fully CLOSED: the 3 originally-listed forks (`.portal-page-pager`, `.bk-dash-pager`, DRF Redoc) verified absent (mass-purged earlier); Django admin `.paginator` + bespoke Bootstrap pagination already cascade the `rmc-pagination*` grammar additively. No new edits required — closed parity surface. |
+| **Foreground / user follow-up** | Wrapped `apps/schools/super_views_provisioning.py::api_create_school` in `transaction.atomic()` addressing Agent L's failure-mode #1. Side-effects that fail post-row-insert now roll back the tenant row instead of leaving a half-provisioned record. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| Test regression (Agent K) | **NO regressions** vs v3.57.12 head |
+| `verify_service_worker_version.py` | OK — `sms-v3.57.13-wave-3-five-more-editors-tenant-create-atomic-2026-05-22` monotonic vs v3.57.12 |
+| Cockpit per-section editor count | **15** (was 10) |
+| Pager layering parity surface | CLOSED (Agent N) |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.13.
+* 5 files touched.
+* Operator-facing: 5 new cockpit per-section editors (fcl_/slo_/tnt_/ptt_/ftl_);
+  tenant-creation flow now atomic — partial provisioning state no longer possible.
+```
 
 ## 2026-05-22 — v3.57.12 orphan dashboard retirement
 

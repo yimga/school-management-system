@@ -5,7 +5,14 @@
 {% block title %}Bursar Entries Report{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2 rmc-print-v2" data-page-archetype="operational-workbench">
+{% comment %} v3.57.11+ (2026-05-21): civic brand block per rmc-print-v2 grammar
+   so PDF / print renders of the bursar report carry the wordmark + motto + crest
+   header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
+{% trans "Bursar Entries Report" as _report_title %}
+{% now "Y-m-d" as _generated_at %}
+{% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=_("Read-only view of fee and payment transactions") report_meta_left=_generated_at report_meta_right=school %}
+
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
     <h1 class="mb-0">Bursar Entries Report</h1>

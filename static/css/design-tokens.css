@@ -55,6 +55,18 @@
   --text-muted: #6c6c70;
   --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
   --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  /* v3.57.13 preview-parity audit: v8 200x preview ships
+     `--elev-3: 0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)`
+     (primary-shadow opacity 0.12 -> 0.18 = ~50% denser; spread 40px -> 48px).
+     13 consumers across 9 CSS files (incl. .rmc-form-savebar[data-dirty="1"]
+     sticky lift, rmc-assist-dock, rmc-command-bar, voc-widget, rmc-tour,
+     rmc-long-page-grammar, rmc-tenant-dashboard-v2, tenant-studio-day1,
+     portal-ui-components) — all of which explicitly opted into the platform's
+     top elevation tier. A 50% opacity bump is a visible platform-wide weight
+     change. VERDICT: NEEDS-COORDINATED-AUDIT (visual QA across all elev-3
+     surfaces in light + dark + warm-bright-school + cool-apple before flip).
+     warm-bright-school + dark @media + cool-apple already redefine locally
+     so theme variants are insulated. Held at current value pending audit. */
   --elev-3: 0 20px 40px rgba(15, 23, 42, 0.12), 0 6px 12px rgba(15, 23, 42, 0.08);
   --material-blur: saturate(180%) blur(20px);
   --material-blur-strong: saturate(180%) blur(28px);
@@ -62,14 +74,28 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 20px;
+  /* v3.57.13 preview-parity audit: bumped 20px -> 22px to match v8 200x
+     preview. 11 consumer sites; 2 are token-redefinitions
+     (design-system-unified.css sets `var(--lux-radius-xl, 1rem)` and loads
+     AFTER design-tokens.css in all 4 shells, so it masks this value on
+     portal/cp/base/admin; rmc-warm-bright-school.css sets 24px locally).
+     Consumer fallbacks (`20px`, `1rem`, `1.25rem`) don't bet on the exact
+     value — safe nudge. SAFE-TO-FLIP. */
+  --radius-xl: 22px;
   /* Motion vocabulary — three tiers, plus Apple-style entry/exit easings.
      `motion-spring` is for entry (frosted popovers, drawer open, toast in).
      `motion-decel` is for exits and decay. All consumers should use these names
      — never inline `transition: all 0.2s ease`. */
   --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --motion-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
-  --motion-slow: 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* v3.57.13 preview-parity audit: 360ms cubic-bezier(0.22, 1, 0.36, 1)
+     -> 420ms cubic-bezier(0.22, 0.61, 0.36, 1) to match v8 200x preview.
+     Strong evidence preview is intended target: rmc-cp-200x.css:32 already
+     hardcodes the preview value as its fallback (`var(--motion-slow,
+     420ms cubic-bezier(0.22, 0.61, 0.36, 1))`). 4 consumers; the bezier
+     change is from a sharper-ended ease-out to a more conservative
+     emphasized ease-out. SAFE-TO-FLIP. */
+  --motion-slow: 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
   --motion-spring: 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --motion-decel: 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
