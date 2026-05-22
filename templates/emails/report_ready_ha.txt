@@ -1,0 +1,16 @@
+{% load i18n %}Sannu {{ parent_name }},
+
+Sakamako na {{ student_name }} na {{ academic_year }} {{ term_name }} ya shirya yanzu.
+
+Dalibi: {{ student_name }}
+Aji: {{ class_name }}
+Shekarar Ilimi: {{ academic_year }}
+Lokacin Shekara: {{ term_name }}
+Matsakaici: {{ average_score }}
+Matsayi: {{ class_rank }}
+
+Duba Sakamako: {{ report_url }}
+
+Tambayoyi game da wannan sakamako? Tuntuɓi ofishin makaranta.
+
+RunMyCampus

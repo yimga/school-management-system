@@ -1,48 +1,120 @@
-{% extends "emails/base_branded.html" %}
-{% comment %}Yoruba — report card ready notification. Inherits Apple-tier base.{% endcomment %}
-{% load i18n %}
+{% load i18n %}{% load terminology_tags %}<!DOCTYPE html>
+<html lang="yo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{ school_name|default:"School" }} Iwe-Ìsìrò ti ṣetán</title>
+{% comment %}
+  rmc-email-civic adoption (v3.57.x). Report-card-ready notification (Yoruba).
+  Email clients strip <link rel="stylesheet">; civic 4-tier layout is
+  embedded inline AND mirrored as style="..." for Outlook 2016 parity.
+  Score / rank cells use tabular-nums so they align like a report card.
 
-{% block email_subject_suffix %} · Iwe-Ìsìrò ti ṣetán{% endblock %}
-
-{% block email_preheader %}Iwe-ìsìrò {{ student_name }} fún {{ term_name }} ti ṣetán.{% endblock %}
-
-{% block email_header_subtitle %}
-<div style="margin-top:6px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:{{ brand_email.ink_subtle }};">Ìròyìn Nipa Iwe-Ìsìrò</div>
-{% endblock %}
-
-{% block email_content %}
-<p style="margin:0 0 18px 0;">Elurokun {{ parent_name }},</p>
-
-<p style="margin:0 0 24px 0;">Iwe-ìsìrò ti <strong>{{ student_name }}</strong> fun {{ academic_year }} {{ term_name }} ti ṣetán fún wíwò.</p>
-
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;margin:0 0 24px 0;">
-  <tr>
-    <td class="em-data-card" style="background:{{ brand_email.bg_soft }};border-left:3px solid {{ brand_email.primary }};border-radius:6px;padding:18px 20px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-size:var(--type-size-caption);line-height:1.7;">
-        <tr><td class="em-muted" style="color:{{ brand_email.ink_subtle }};width:38%;padding-right:8px;">Akẹ́kọ́</td><td class="em-data" style="color:{{ brand_email.ink }};font-weight:600;">{{ student_name }}</td></tr>
-        <tr><td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">Ikìkì</td><td class="em-data" style="color:{{ brand_email.ink }};font-weight:600;">{{ class_name }}</td></tr>
-        <tr><td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">Ọdun Ẹkọ́</td><td class="em-data" style="color:{{ brand_email.ink }};font-weight:500;">{{ academic_year }}</td></tr>
-        <tr><td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">Àkọ́kọ́</td><td class="em-data" style="color:{{ brand_email.ink }};font-weight:500;">{{ term_name }}</td></tr>
-        <tr><td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;padding-top:6px;border-top:1px solid {{ brand_email.rule }};">Àárín</td><td class="em-data" style="color:{{ brand_email.ink }};font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;padding-top:6px;border-top:1px solid {{ brand_email.rule }};">{{ average_score }}</td></tr>
-        <tr><td class="em-muted" style="color:{{ brand_email.ink_subtle }};padding-right:8px;">Ipò</td><td class="em-data" style="color:{{ brand_email.ink }};font-weight:700;font-size:16px;font-variant-numeric:tabular-nums;">{{ class_rank }}</td></tr>
-      </table>
-    </td>
-  </tr>
-</table>
-
-<p style="margin:0 0 24px 0;">Wo iwe-ìsìrò pípé pẹ̀lú àlàyé olùkọ́:</p>
-
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 8px 0;">
-  <tr>
-    <td style="background:{{ brand_email.primary }};border-radius:10px;box-shadow:0 1px 2px rgba(26, 22, 18,0.08), inset 0 1px 0 rgba(255,255,255,0.14);">
-      <a href="{{ report_url }}" class="em-button" style="display:inline-block;padding:13px 26px;font-size:15px;font-weight:600;letter-spacing:-0.005em;color:{{ brand_email.bg }};text-decoration:none;border-radius:10px;font-family:'Inter','Helvetica Neue',Arial,sans-serif;">Wo Iwe-Ìsìrò →</a>
-    </td>
-  </tr>
-</table>
-
-<p class="em-muted" style="margin:18px 0 0 0;font-size:13px;color:{{ brand_email.ink_subtle }};">Tàbí ṣẹ́ ìjápọ̀ yìí: <a href="{{ report_url }}" style="color:{{ brand_email.primary }};text-decoration:underline;word-break:break-all;">{{ report_url }}</a></p>
-{% endblock %}
-
-{% block email_footer_intro %}Eyi jẹ ifi-ìtàjẹ aládàáṣiṣẹ́. Jọ̀ràn kí o má sì dáhùn ifiranṣẹ yìí.{% endblock %}
-{% block email_footer_contact %}Bá ìṣàkóso ilé-ẹkọ́ sọ̀rọ̀ fún ìbéérè èyíkéyìí.{% endblock %}
-{% block email_footer_rights %}Àwọn ẹ̀tọ́ gbogbo ni a tọjú.{% endblock %}
+  Required context: school_name, primary_color, branded_domain,
+  parent_name, student_name, class_name, academic_year, term_name,
+  average_score, class_rank, report_url.
+{% endcomment %}
+<style type="text/css">
+  body.rmc-email { margin:0; padding:0; background:#f6f5f1; color:#1c1a17; font-family:Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:15px; line-height:1.5; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+  .rmc-email__container { width:100%; max-width:600px; margin:0 auto; background:#ffffff; border:1px solid #e9e6dc; border-radius:8px; overflow:hidden; }
+  .rmc-email__brand { padding:24px 28px 16px 28px; text-align:center; }
+  .rmc-email__wordmark { font-size:22px; font-weight:700; color:#ffffff; line-height:1.1; margin:0 0 4px 0; }
+  .rmc-email__motto { font-family:"Source Serif 4",Georgia,serif; font-style:italic; font-size:13px; color:#ffffff; opacity:0.9; margin:0; }
+  .rmc-email__body { padding:24px 28px; }
+  .rmc-email__h1 { font-size:20px; font-weight:700; color:#1c1a17; margin:0 0 12px 0; line-height:1.3; }
+  .rmc-email__p { margin:0 0 14px 0; color:#2f2b25; }
+  .rmc-email__meta { color:#6b655d; font-size:13px; }
+  .rmc-email__data-table { width:100%; border-collapse:collapse; margin:8px 0 14px 0; font-size:14px; }
+  .rmc-email__data-table td { padding:6px 8px; border-bottom:1px solid #e9e6dc; }
+  .rmc-email__cta { display:inline-block; padding:12px 22px; color:#ffffff; border-radius:8px; font-size:15px; font-weight:600; text-decoration:none; line-height:1; }
+  .rmc-email__score { font-weight:700; font-size:16px; font-variant-numeric:tabular-nums; color:#1c1a17; }
+  .rmc-email__trust { padding:12px 28px; background:#f9f7f1; border-top:1px solid #e9e6dc; text-align:center; font-size:12px; color:#6b655d; }
+  .rmc-email__trust-item { display:inline-block; padding:0 8px; }
+  .rmc-email__contacts { padding:12px 28px; background:#ffffff; border-top:1px solid #e9e6dc; font-size:13px; text-align:center; }
+  .rmc-email__contacts a { color:#4f46e5; text-decoration:none; }
+  .rmc-email__legal { padding:16px 28px 20px 28px; background:#f3f1ea; border-top:1px solid #e9e6dc; text-align:center; font-size:11px; color:#595550; line-height:1.5; }
+  @media (prefers-color-scheme: dark) {
+    body.rmc-email { background:#0e0d0b !important; color:#efece4 !important; }
+    .rmc-email__container { background:#19171a !important; border-color:#2a262e !important; }
+    .rmc-email__contacts { background:#19171a !important; border-color:#2a262e !important; }
+    .rmc-email__trust { background:#1d1b20 !important; }
+    .rmc-email__legal { background:#0e0d0b !important; color:#8a857c !important; }
+    .rmc-email__h1, .rmc-email__p, .rmc-email__score { color:#efece4 !important; }
+    .rmc-email__motto, .rmc-email__meta { color:#b8b1a4 !important; }
+  }
+</style>
+</head>
+<body class="rmc-email" style="margin:0;padding:0;background:#f6f5f1;font-family:Inter,system-ui,sans-serif;color:#1c1a17;font-size:15px;line-height:1.5;/*inline-style-allow:email-template-inline*/">
+  <table class="rmc-email-civic" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f5f1;/*inline-style-allow:email-template-inline*/">
+    <tr>
+      <td align="center" style="padding:32px 16px;/*inline-style-allow:email-template-inline*/">
+        <table class="rmc-email__container" role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e9e6dc;border-radius:8px;/*inline-style-allow:email-template-inline*/">
+          {% comment %} Tier 1 — Brand band (tenant primary color) {% endcomment %}
+          <tr>
+            <td class="rmc-email__brand" style="padding:24px 28px 16px 28px;background-color:{{ primary_color|default:'#4F46E5' }};text-align:center;/*inline-style-allow:email-template-inline*/">
+              <div class="rmc-email__wordmark" style="font-size:22px;font-weight:700;color:#ffffff;margin:0 0 4px 0;/*inline-style-allow:email-template-inline*/">
+                {{ school_name|default:"RunMyCampus" }}
+              </div>
+              <div class="rmc-email__motto" style="font-family:'Source Serif 4',Georgia,serif;font-style:italic;font-size:13px;color:#ffffff;opacity:0.9;margin:0;/*inline-style-allow:email-template-inline*/">
+                Iwe-Ìsìrò ti ṣetán
+              </div>
+            </td>
+          </tr>
+          {% comment %} Body — greeting, results card, CTA {% endcomment %}
+          <tr>
+            <td class="rmc-email__body" style="padding:24px 28px;/*inline-style-allow:email-template-inline*/">
+              <p class="rmc-email__p" style="margin:0 0 14px 0;color:#2f2b25;/*inline-style-allow:email-template-inline*/">
+                Elurokun {{ parent_name }},
+              </p>
+              <p class="rmc-email__p" style="margin:0 0 14px 0;color:#2f2b25;/*inline-style-allow:email-template-inline*/">
+                Iwe-ìsìrò ti <strong>{{ student_name }}</strong> fun {{ academic_year }} {{ term_name }} ti ṣetán fún wíwò.
+              </p>
+              <div style="background:#f9f7f1;border-left:3px solid {{ primary_color|default:'#4F46E5' }};border-radius:6px;padding:18px 20px;margin:8px 0 18px 0;/*inline-style-allow:email-template-inline*/">
+                <table class="rmc-email__data-table" role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;font-size:14px;/*inline-style-allow:email-template-inline*/">
+                  <tr><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#6b655d;width:38%;/*inline-style-allow:email-template-inline*/">Akẹ́kọ́</td><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#1c1a17;font-weight:600;/*inline-style-allow:email-template-inline*/">{{ student_name }}</td></tr>
+                  <tr><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#6b655d;/*inline-style-allow:email-template-inline*/">Ikìkì</td><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#1c1a17;/*inline-style-allow:email-template-inline*/">{{ class_name }}</td></tr>
+                  <tr><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#6b655d;/*inline-style-allow:email-template-inline*/">Ọdun Ẹkọ́</td><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#1c1a17;/*inline-style-allow:email-template-inline*/">{{ academic_year }}</td></tr>
+                  <tr><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#6b655d;/*inline-style-allow:email-template-inline*/">Àkọ́kọ́</td><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#1c1a17;/*inline-style-allow:email-template-inline*/">{{ term_name }}</td></tr>
+                  <tr><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#6b655d;/*inline-style-allow:email-template-inline*/">Àárín</td><td style="padding:6px 8px;border-bottom:1px solid #e9e6dc;color:#1c1a17;font-weight:700;font-variant-numeric:tabular-nums;/*inline-style-allow:email-template-inline*/">{{ average_score }}</td></tr>
+                  <tr><td style="padding:6px 8px;color:#6b655d;/*inline-style-allow:email-template-inline*/">Ipò</td><td style="padding:6px 8px;color:#1c1a17;font-weight:700;font-variant-numeric:tabular-nums;/*inline-style-allow:email-template-inline*/">{{ class_rank }}</td></tr>
+                </table>
+              </div>
+              <p style="margin:14px 0;/*inline-style-allow:email-template-inline*/">
+                <a class="rmc-email__cta" href="{{ report_url }}"
+                   style="display:inline-block;background-color:{{ primary_color|default:'#4F46E5' }};color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600;font-size:15px;line-height:1;/*inline-style-allow:email-template-inline*/">
+                  Wo Iwe-Ìsìrò
+                </a>
+              </p>
+              <p class="rmc-email__meta" style="margin:0 0 8px 0;color:#6b655d;font-size:13px;/*inline-style-allow:email-template-inline*/">
+                Tàbí ṣẹ́ ìjápọ̀ yìí: <a href="{{ report_url }}" style="color:#4f46e5;text-decoration:underline;word-break:break-all;/*inline-style-allow:email-template-inline*/">{{ report_url }}</a>
+              </p>
+            </td>
+          </tr>
+          {% comment %} Tier 2 — Trust pillars {% endcomment %}
+          <tr>
+            <td class="rmc-email__trust" style="padding:12px 28px;background:#f9f7f1;border-top:1px solid #e9e6dc;text-align:center;font-size:12px;color:#6b655d;/*inline-style-allow:email-template-inline*/">
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">Ní ìbámu pẹ̀lú FERPA</span>
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">Òbí nìkan ni ó lè wọlé</span>
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">PDF tí a fọwọ́sí</span>
+            </td>
+          </tr>
+          {% comment %} Tier 3 — Contacts {% endcomment %}
+          <tr>
+            <td class="rmc-email__contacts" style="padding:12px 28px;background:#ffffff;border-top:1px solid #e9e6dc;font-size:13px;text-align:center;/*inline-style-allow:email-template-inline*/">
+              Àwọn ìbéérè nípa ìròyìn yìí? Bá ọ́fíìsì ilé-ẹ̀kọ́ sọ̀rọ̀.
+            </td>
+          </tr>
+          {% comment %} Tier 4 — Legal {% endcomment %}
+          <tr>
+            <td class="rmc-email__legal" style="padding:16px 28px 20px 28px;background:#f3f1ea;border-top:1px solid #e9e6dc;text-align:center;font-size:11px;color:#595550;line-height:1.5;/*inline-style-allow:email-template-inline*/">
+              &copy; {% now "Y" %} {{ school_name|default:"RunMyCampus" }}. Ìròyìn nípa ìṣirò ẹ̀kọ́.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

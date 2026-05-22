@@ -1,0 +1,16 @@
+{% load i18n %}Cher(e) {{ parent_name }},
+
+Le bulletin scolaire de {{ student_name }} pour {{ academic_year }} {{ term_name }} est maintenant disponible.
+
+Élève : {{ student_name }}
+Classe : {{ class_name }}
+Année académique : {{ academic_year }}
+Trimestre : {{ term_name }}
+Moyenne : {{ average_score }}
+Classement : {{ class_rank }}
+
+Voir le bulletin : {{ report_url }}
+
+Des questions sur ce bulletin ? Contactez l'administration de l'école.
+
+RunMyCampus

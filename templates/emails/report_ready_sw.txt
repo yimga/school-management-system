@@ -1,0 +1,16 @@
+{% load i18n %}Ndugu {{ parent_name }},
+
+Ripoti ya matokeo ya {{ student_name }} kwa {{ academic_year }} {{ term_name }} sasa inapatikana.
+
+Mwanafunzi: {{ student_name }}
+Darasa: {{ class_name }}
+Mwaka wa Akademiki: {{ academic_year }}
+Muhula: {{ term_name }}
+Wastani: {{ average_score }}
+Nafasi: {{ class_rank }}
+
+Angalia Ripoti: {{ report_url }}
+
+Maswali kuhusu ripoti hii? Wasiliana na ofisi ya shule.
+
+RunMyCampus

@@ -703,6 +703,136 @@
     </fieldset>
     {% endif %}
 
+    {% comment %}
+      v3.57.16: 5 NEW rich-editor fieldsets (final batch) extending the
+      v3.57.14 pattern to workspace_context_tenant / activity_ticker /
+      gradebook_trend / attendance_heatmap / life_event_timeline. Closes
+      5 of the 7 remaining un-editorialized sections; sibling_compare
+      (privacy gate) and ai_copilot_rail (complexity) remain honest
+      deferrals. Empty fields fall through to section defaults via
+      _deep_merge in cockpit_context.py.
+    {% endcomment %}
+
+    {# ---- v3.57.16 Workspace context (tenant) rich editor ---------------- #}
+    {% if workspace_context_tenant_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="workspace-context-tenant">
+      <legend class="h6 px-2 fw-bold">{% trans "Workspace context — tenant (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Label, child role/school subline, and scope-chip rows for the tenant_dashboard.workspace_context_tenant sidebar card. school_role writes into child.subline (e.g. 'Parent · Acme Academy'). Existing siblings/stats/add_child blocks fall through to section defaults — this editor only adds the new scope_chips list." %}
+      </p>
+      <div class="row g-3">
+        {% for field in workspace_context_tenant_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.16 Activity ticker rich editor --------------------------- #}
+    {% if activity_ticker_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="activity-ticker">
+      <legend class="h6 px-2 fw-bold">{% trans "Activity ticker (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Label, scroll seconds, LIVE badge label, and card rows for the manager_200x.activity_ticker Bloomberg-style scrolling feed. Severity ∈ {ok, info, warn, danger} drives the icon color stripe per card. Renders just above the platform pulse strip on the manager landing." %}
+      </p>
+      <div class="row g-3">
+        {% for field in activity_ticker_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.16 Gradebook trend rich editor --------------------------- #}
+    {% if gradebook_trend_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="gradebook-trend">
+      <legend class="h6 px-2 fw-bold">{% trans "Gradebook trend (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + per-subject rows for the tenant_v3_extended.gradebook_trend rolling-sparkline rail. sparkline_csv is comma-separated numbers (e.g. '78,80,82,85,87,90') — polyline x-coords are 0/1/2/… (index). trend_direction ∈ {up, flat, down} drives the delta tone. Subject 'sub' line + delta_text fall through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in gradebook_trend_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.16 Attendance heatmap rich editor ------------------------ #}
+    {% if attendance_heatmap_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="attendance-heatmap">
+      <legend class="h6 px-2 fw-bold">{% trans "Attendance heatmap (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title, present-percentage badge, and pattern rows for the tenant_v3_extended.attendance_heatmap month-grid card. Status ∈ {present, absent, late, holiday} (holiday maps to the partial's 'weekend' tone). Day input may be YYYY-MM-DD / MM-DD / bare day-of-month. month_label + legend fall through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in attendance_heatmap_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.16 Life event timeline rich editor ----------------------- #}
+    {% if life_event_timeline_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="life-event-timeline">
+      <legend class="h6 px-2 fw-bold">{% trans "Life event timeline (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + event rows for the tenant_v3_extended.life_event_timeline card. Category ∈ {milestone, achievement, transition, certificate} drives the tone stripe. Description column is optional. Date may be YYYY-MM-DD (auto-formats to 'DD Mon' day_label) / MM-DD / bare label. Icon falls through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in life_event_timeline_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"

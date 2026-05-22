@@ -1,0 +1,16 @@
+{% load i18n %}Hello {{ parent_name }},
+
+Report for {{ student_name }} for {{ academic_year }} {{ term_name }} don ready for show.
+
+Pikin: {{ student_name }}
+Class: {{ class_name }}
+School Year: {{ academic_year }}
+Term: {{ term_name }}
+Average: {{ average_score }}
+Ranking: {{ class_rank }}
+
+See Report: {{ report_url }}
+
+Any question for dis report? Call the school office.
+
+RunMyCampus

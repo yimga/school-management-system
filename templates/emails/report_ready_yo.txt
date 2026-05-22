@@ -1,0 +1,16 @@
+{% load i18n %}Elurokun {{ parent_name }},
+
+Iwe-ìsìrò ti {{ student_name }} fun {{ academic_year }} {{ term_name }} ti ṣetán fún wíwò.
+
+Akẹ́kọ́: {{ student_name }}
+Ikìkì: {{ class_name }}
+Ọdun Ẹkọ́: {{ academic_year }}
+Àkọ́kọ́: {{ term_name }}
+Àárín: {{ average_score }}
+Ipò: {{ class_rank }}
+
+Wo Iwe-Ìsìrò: {{ report_url }}
+
+Àwọn ìbéérè nípa ìròyìn yìí? Bá ọ́fíìsì ilé-ẹ̀kọ́ sọ̀rọ̀.
+
+RunMyCampus

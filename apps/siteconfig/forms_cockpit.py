@@ -1158,6 +1158,393 @@ def _serialize_calendar_weather_days(
 
 
 # ---------------------------------------------------------------------------
+# v3.57.16 parsers + serializers — 5 NEW sections (final-batch wave).
+# Closes 5 of the 7 remaining un-editorialized cockpit sections:
+#   tenant_dashboard.workspace_context_tenant   (wct_*)
+#   manager_200x.activity_ticker                (atk_*)
+#   tenant_v3_extended.gradebook_trend          (gbt_*)
+#   tenant_v3_extended.attendance_heatmap       (ahm_*)
+#   tenant_v3_extended.life_event_timeline      (let_*)
+# Sibling_compare (privacy) + ai_copilot_rail (complexity) remain honest
+# deferrals. Same forgiving pipe-separated textarea contract as the
+# v3.57.12 / v3.57.13 / v3.57.14 editors above.
+# ---------------------------------------------------------------------------
+
+
+def _parse_scope_chips(value: str) -> list[dict[str, str]]:
+    """One per line: ``chip_label | chip_url`` (url optional).
+
+    Pairs with ``cockpit.workspace_context_tenant.scope_chips`` — an
+    operator-published list of scope shortcuts displayed alongside the
+    child-context card. The helper module's defaults expose ``stats``
+    and ``siblings`` but neither matches the {label, url} shape cleanly,
+    so the editor writes a separate ``scope_chips`` list that the
+    partial may render alongside the existing chips. ``_deep_merge``
+    preserves the existing keys (stats/siblings/add_child) untouched.
+    Rows without a label are skipped (a chip with no label is unactionable).
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        label = parts[0]
+        if not label:
+            continue
+        url = parts[1] if len(parts) > 1 else ""
+        out.append({"label": label, "url": url})
+    return out
+
+
+def _serialize_scope_chips(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        if not label:
+            continue
+        url = str(item.get("url", "")).strip()
+        rows.append(f"{label} | {url}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_activity_ticker_cards(value: str) -> list[dict[str, str]]:
+    """One per line: ``text | timestamp | icon | severity``.
+
+    Pairs with ``cockpit.activity_ticker.cards`` whose schema is
+    ``list[{text, timestamp, icon, severity}]``. The flat editor exposes
+    all 4 keys. Severity is constrained to ``{ok, info, warn, danger}``;
+    anything else falls back to ``info`` so a typo doesn't crash the
+    CSS-class lookup. Icon is optional (single glyph or empty). Trailing
+    columns are lenient. Rows without ``text`` are skipped (an empty
+    headline is meaningless on a scrolling ticker).
+    """
+    severity_allow = {"ok", "info", "warn", "danger"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        text = parts[0]
+        if not text:
+            continue
+        timestamp = parts[1] if len(parts) > 1 else ""
+        icon = parts[2] if len(parts) > 2 else ""
+        raw_severity = (parts[3] if len(parts) > 3 else "info").lower() or "info"
+        severity = raw_severity if raw_severity in severity_allow else "info"
+        out.append(
+            {
+                "text": text,
+                "timestamp": timestamp,
+                "icon": icon,
+                "severity": severity,
+            }
+        )
+    return out
+
+
+def _serialize_activity_ticker_cards(
+    items: list[dict[str, Any]] | None,
+) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        text = str(item.get("text", "")).strip()
+        if not text:
+            continue
+        timestamp = str(item.get("timestamp", "")).strip()
+        icon = str(item.get("icon", "")).strip()
+        severity = str(item.get("severity", "")).strip() or "info"
+        rows.append(f"{text} | {timestamp} | {icon} | {severity}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_gradebook_subjects(value: str) -> list[dict[str, str]]:
+    """One per line: ``subject_name | current_grade | trend_direction | sparkline_csv``.
+
+    Pairs with ``cockpit.gradebook_trend.subjects`` whose schema is
+    ``list[{subject, current_value, delta_text, delta_tone, spark_points}]``.
+    The flat editor maps:
+        subject_name      -> subject
+        current_grade     -> current_value
+        trend_direction   -> delta_tone (constrained; ∈ {up, flat, down}
+                             — anything else falls back to 'flat'; the
+                             value is also echoed under ``trend_direction``
+                             so partials that read either key are honored)
+        sparkline_csv     -> spark_points (composed as "0,Y0 1,Y1 …" with
+                             integer x indices; the raw CSV is also
+                             persisted under ``sparkline_csv`` for clean
+                             round-trip)
+    Comma-separated CSV is forgiving: non-numeric tokens are skipped. A
+    subject with no name is skipped. ``delta_text`` is left empty so the
+    section defaults flow through cleanly.
+    """
+    trend_allow = {"up", "flat", "down"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        subject_name = parts[0]
+        if not subject_name:
+            continue
+        current_grade = parts[1] if len(parts) > 1 else ""
+        raw_trend = (parts[2] if len(parts) > 2 else "flat").lower() or "flat"
+        trend = raw_trend if raw_trend in trend_allow else "flat"
+        sparkline_csv = parts[3] if len(parts) > 3 else ""
+        # Compose spark_points from comma-separated numbers — non-numeric
+        # tokens are skipped silently rather than crashing the polyline.
+        point_tokens: list[str] = []
+        for idx, raw_token in enumerate(sparkline_csv.split(",")):
+            token = raw_token.strip()
+            if not token:
+                continue
+            try:
+                # Accept ints or floats; preserve operator formatting via str().
+                float(token)
+            except ValueError:
+                continue
+            point_tokens.append(f"{idx},{token}")
+        spark_points = " ".join(point_tokens)
+        out.append(
+            {
+                "subject": subject_name,
+                "current_value": current_grade,
+                "delta_text": "",
+                "delta_tone": trend,
+                "trend_direction": trend,
+                "spark_points": spark_points,
+                "sparkline_csv": sparkline_csv,
+            }
+        )
+    return out
+
+
+def _serialize_gradebook_subjects(
+    items: list[dict[str, Any]] | None,
+) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        subject_name = str(item.get("subject", "")).strip()
+        if not subject_name:
+            continue
+        current_grade = str(item.get("current_value", "")).strip()
+        # Prefer the explicit ``trend_direction`` key (round-trip from
+        # this editor); fall back to ``delta_tone`` for payloads that
+        # pre-date the v3.57.16 wave.
+        trend = (
+            str(item.get("trend_direction", "")).strip().lower()
+            or str(item.get("delta_tone", "")).strip().lower()
+            or "flat"
+        )
+        # Prefer the explicit ``sparkline_csv`` key for round-trip; fall
+        # back to deriving CSV from ``spark_points`` (strip x-coords).
+        sparkline_csv = str(item.get("sparkline_csv", "")).strip()
+        if not sparkline_csv:
+            spark_points = str(item.get("spark_points", "")).strip()
+            if spark_points:
+                csv_tokens: list[str] = []
+                for pair in spark_points.split():
+                    if "," in pair:
+                        _, _, y = pair.partition(",")
+                        if y.strip():
+                            csv_tokens.append(y.strip())
+                sparkline_csv = ",".join(csv_tokens)
+        rows.append(
+            f"{subject_name} | {current_grade} | {trend} | {sparkline_csv}".rstrip(" |")
+        )
+    return "\n".join(rows)
+
+
+def _parse_attendance_pattern(value: str) -> list[dict[str, Any]]:
+    """One per line: ``day_iso | status``.
+
+    Pairs with ``cockpit.attendance_heatmap.cells`` whose schema is
+    ``list[{day, tone, tooltip, is_today: bool}]``. The flat editor maps:
+        day_iso  -> day (zero-stripped day-of-month extracted from input)
+                 -> ``iso`` key persisted verbatim for round-trip
+        status   -> tone (constrained ∈ {present, absent, late, holiday};
+                    holiday maps to the partial's 'weekend' tone since
+                    the rendering enum is {present, absent, late, excused,
+                    weekend, ""}; anything else falls back to "")
+    ``day_iso`` is forgiving: ``YYYY-MM-DD`` / ``MM-DD`` / a bare numeric
+    day all work. Rows without a date are skipped. ``tooltip`` is left
+    empty so the section default flows through cleanly; ``is_today`` is
+    False (runtime layers flip it).
+    """
+    status_allow = {"present", "absent", "late", "holiday"}
+    # Map operator-friendly status -> rendering-partial tone vocabulary.
+    status_to_tone = {
+        "present": "present",
+        "absent": "absent",
+        "late": "late",
+        "holiday": "weekend",
+    }
+    out: list[dict[str, Any]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        raw_date = parts[0]
+        if not raw_date:
+            continue
+        raw_status = (parts[1] if len(parts) > 1 else "").lower()
+        status = raw_status if raw_status in status_allow else ""
+        tone = status_to_tone.get(status, "")
+        # Extract day-of-month from a YYYY-MM-DD / MM-DD / bare-day input.
+        day_str = ""
+        bits = [b.strip() for b in raw_date.replace("/", "-").split("-")]
+        try:
+            if len(bits) == 3:
+                day_str = str(int(bits[2]))
+            elif len(bits) == 2:
+                day_str = str(int(bits[1]))
+            elif len(bits) == 1:
+                day_str = str(int(bits[0]))
+        except (ValueError, TypeError):
+            day_str = ""
+        out.append(
+            {
+                "day": day_str,
+                "iso": raw_date,
+                "tone": tone,
+                "status": status,
+                "tooltip": "",
+                "is_today": False,
+            }
+        )
+    return out
+
+
+def _serialize_attendance_pattern(
+    items: list[dict[str, Any]] | None,
+) -> str:
+    if not items:
+        return ""
+    # Reverse-map partial tone vocabulary back to operator-friendly status
+    # when ``status`` is missing (pre-v3.57.16 payloads).
+    tone_to_status = {
+        "present": "present",
+        "absent": "absent",
+        "late": "late",
+        "weekend": "holiday",
+    }
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        # Prefer explicit ``iso`` from this editor; fall back to ``day``
+        # (bare day-of-month) for payloads that pre-date the v3.57.16 wave.
+        date_label = str(item.get("iso", "")).strip() or str(
+            item.get("day", "")
+        ).strip()
+        if not date_label:
+            continue
+        status = str(item.get("status", "")).strip().lower()
+        if not status:
+            tone = str(item.get("tone", "")).strip().lower()
+            status = tone_to_status.get(tone, "")
+        rows.append(f"{date_label} | {status}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_life_events(value: str) -> list[dict[str, str]]:
+    """One per line: ``date | category | title | description``.
+
+    Pairs with ``cockpit.life_event_timeline.events`` whose schema is
+    ``list[{iso, day_label, icon, title, sub, tone}]``. The flat editor
+    maps:
+        date         -> iso + day_label (derived "DD Mon" abbreviation
+                        when iso parses as YYYY-MM-DD / MM-DD; else
+                        echoed raw input)
+        category     -> tone (constrained ∈ {milestone, achievement,
+                        transition, certificate}; anything else falls
+                        back to "milestone")
+        title        -> title
+        description  -> sub (optional)
+    Description column is optional (lenient). Rows without a title are
+    skipped (an unnamed life event is meaningless). ``icon`` is left
+    empty so the section defaults flow through.
+    """
+    category_allow = {"milestone", "achievement", "transition", "certificate"}
+    month_abbr = (
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    )
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        raw_date = parts[0] if len(parts) > 0 else ""
+        raw_category = (parts[1] if len(parts) > 1 else "milestone").lower() or "milestone"
+        category = raw_category if raw_category in category_allow else "milestone"
+        title = parts[2] if len(parts) > 2 else ""
+        description = parts[3] if len(parts) > 3 else ""
+        if not title:
+            continue
+        # Derive a "DD Mon" day_label when the date parses; otherwise
+        # echo the operator's raw input into day_label so nothing vanishes.
+        day_label = raw_date
+        bits = [b.strip() for b in raw_date.replace("/", "-").split("-")]
+        try:
+            if len(bits) == 3:
+                month_num = int(bits[1])
+                day_num = int(bits[2])
+                if 1 <= month_num <= 12 and 1 <= day_num <= 31:
+                    day_label = f"{day_num} {month_abbr[month_num - 1]}"
+            elif len(bits) == 2:
+                month_num = int(bits[0])
+                day_num = int(bits[1])
+                if 1 <= month_num <= 12 and 1 <= day_num <= 31:
+                    day_label = f"{day_num} {month_abbr[month_num - 1]}"
+        except (ValueError, TypeError):
+            # Non-numeric — keep raw_date as day_label.
+            pass
+        out.append(
+            {
+                "iso": raw_date,
+                "day_label": day_label,
+                "icon": "",
+                "title": title,
+                "sub": description,
+                "tone": category,
+                "category": category,
+            }
+        )
+    return out
+
+
+def _serialize_life_events(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title", "")).strip()
+        if not title:
+            continue
+        # Prefer explicit ``iso``; fall back to ``day_label`` for payloads
+        # that pre-date the v3.57.16 wave.
+        raw_date = str(item.get("iso", "")).strip() or str(
+            item.get("day_label", "")
+        ).strip()
+        # Prefer explicit ``category`` from this editor; fall back to
+        # ``tone`` for pre-existing payloads.
+        category = (
+            str(item.get("category", "")).strip().lower()
+            or str(item.get("tone", "")).strip().lower()
+            or "milestone"
+        )
+        description = str(item.get("sub", "")).strip()
+        rows.append(
+            f"{raw_date} | {category} | {title} | {description}".rstrip(" |")
+        )
+    return "\n".join(rows)
+
+
+# ---------------------------------------------------------------------------
 # Serializers — flatten nested dict back into textarea-friendly strings
 # for ``__init__`` (round-trip).
 # ---------------------------------------------------------------------------
@@ -2405,6 +2792,180 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- v3.57.16 Rich editors (5 NEW sections — final batch) ---------
+    # Closes 5 of the 7 remaining un-editorialized cockpit sections:
+    # workspace_context_tenant / activity_ticker / gradebook_trend /
+    # attendance_heatmap / life_event_timeline. Sibling_compare (privacy)
+    # and ai_copilot_rail (complexity) remain honest deferrals. Same
+    # forgiving parser contract: empty/malformed rows skipped;
+    # operator-supplied empties filtered from the overlay before
+    # `.update()` so `_deep_merge` preserves defaults from the helper
+    # modules.
+
+    # 22) tenant_dashboard.workspace_context_tenant
+    wct_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Workspace context (tenant): label"),
+        help_text=_(
+            "Header label shown above the child-context card "
+            "(e.g. 'Active child'). Maps to "
+            "cockpit.workspace_context_tenant.label."
+        ),
+    )
+    wct_school_role = forms.CharField(
+        required=False,
+        max_length=160,
+        widget=_TEXT,
+        label=_("Workspace context (tenant): school role"),
+        help_text=_(
+            "Role + school subline shown under the active-child name "
+            "(e.g. 'Parent · Acme Academy'). Maps to "
+            "cockpit.workspace_context_tenant.child.subline."
+        ),
+    )
+    wct_scope_chips = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Workspace context (tenant): scope chips"),
+        help_text=_(
+            "One per line: chip_label | chip_url. URL column optional. "
+            "Renders as scope shortcut chips alongside the child-context "
+            "card. Rows without a label are skipped. Existing siblings/"
+            "stats lists fall through to section defaults via _deep_merge."
+        ),
+    )
+
+    # 23) manager_200x.activity_ticker
+    atk_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Activity ticker: label"),
+        help_text=_(
+            "Operator-published header copy for the manager landing "
+            "ticker (free-form; partials that don't read it ignore the "
+            "extra key cleanly). Persisted under cockpit.activity_ticker.label."
+        ),
+    )
+    atk_scroll_seconds = forms.IntegerField(
+        required=False,
+        min_value=1,
+        widget=_NUMBER,
+        label=_("Activity ticker: scroll seconds"),
+        help_text=_(
+            "Animation duration in seconds (default 60). Drives how fast "
+            "the horizontal ticker scrolls a full loop. Maps to "
+            "cockpit.activity_ticker.scroll_seconds."
+        ),
+    )
+    atk_live_badge_label = forms.CharField(
+        required=False,
+        max_length=24,
+        widget=_TEXT,
+        label=_("Activity ticker: LIVE badge label"),
+        help_text=_(
+            "Red pill caption shown at the ticker's left edge "
+            "(e.g. 'LIVE'). Maps to cockpit.activity_ticker.live_badge_label."
+        ),
+    )
+    atk_cards = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Activity ticker: cards"),
+        help_text=_(
+            "One per line: text | timestamp | icon | severity. "
+            "Severity ∈ {ok, info, warn, danger}; anything else falls "
+            "back to 'info'. Icon is optional (single glyph). Rows "
+            "without text are skipped. Renders as a Bloomberg-style "
+            "scrolling event feed above the platform pulse strip."
+        ),
+    )
+
+    # 24) tenant_v3_extended.gradebook_trend
+    gbt_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Gradebook trend: label"),
+        help_text=_(
+            "Title shown above the per-subject sparkline rail "
+            "(e.g. 'Gradebook trend'). Maps to cockpit.gradebook_trend.title."
+        ),
+    )
+    gbt_subjects = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Gradebook trend: subjects"),
+        help_text=_(
+            "One per line: subject_name | current_grade | trend_direction "
+            "| sparkline_csv. trend_direction ∈ {up, flat, down}; anything "
+            "else falls back to 'flat'. sparkline_csv is comma-separated "
+            "numbers (e.g. '78,80,82,85,87,90') — non-numeric tokens are "
+            "skipped; polyline x-coords are 0/1/2/… (index). Rows without "
+            "a subject name are skipped."
+        ),
+    )
+
+    # 25) tenant_v3_extended.attendance_heatmap
+    ahm_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Attendance heatmap: label"),
+        help_text=_(
+            "Title shown above the month-grid heatmap "
+            "(e.g. 'Attendance heatmap'). Maps to "
+            "cockpit.attendance_heatmap.title."
+        ),
+    )
+    ahm_present_pct = forms.CharField(
+        required=False,
+        max_length=16,
+        widget=_TEXT,
+        label=_("Attendance heatmap: present percentage"),
+        help_text=_(
+            "Operator-formatted attendance percentage badge "
+            "(e.g. '93%'). Persisted under "
+            "cockpit.attendance_heatmap.present_pct; the raw percentage "
+            "is never auto-rendered from student data."
+        ),
+    )
+    ahm_pattern = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Attendance heatmap: pattern"),
+        help_text=_(
+            "One per line: day_iso | status. day_iso may be YYYY-MM-DD "
+            "or MM-DD or a bare day-of-month. Status ∈ {present, absent, "
+            "late, holiday}; holiday maps to the partial's 'weekend' tone. "
+            "Rows without a date are skipped. Renders as a tinted "
+            "month-grid (each cell is one day)."
+        ),
+    )
+
+    # 26) tenant_v3_extended.life_event_timeline
+    let_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Life event timeline: label"),
+        help_text=_(
+            "Title shown above the life-event timeline "
+            "(e.g. 'Life events'). Maps to "
+            "cockpit.life_event_timeline.title."
+        ),
+    )
+    let_events = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Life event timeline: events"),
+        help_text=_(
+            "One per line: date | category | title | description. "
+            "Description column optional. Category ∈ {milestone, "
+            "achievement, transition, certificate}; anything else falls "
+            "back to 'milestone'. Date may be YYYY-MM-DD (auto-formats "
+            "to 'DD Mon' day_label) / MM-DD / bare label. Rows without "
+            "a title are skipped."
+        ),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -2592,6 +3153,31 @@ class CockpitPayloadForm(forms.ModelForm):
     CALENDAR_WEATHER_FIELDS: tuple[str, ...] = (
         "cwt_label",
         "cwt_days",
+    )
+    # v3.57.16 rich-editor fieldsets — 5 NEW sections (final batch).
+    WORKSPACE_CONTEXT_TENANT_FIELDS: tuple[str, ...] = (
+        "wct_label",
+        "wct_school_role",
+        "wct_scope_chips",
+    )
+    ACTIVITY_TICKER_FIELDS: tuple[str, ...] = (
+        "atk_label",
+        "atk_scroll_seconds",
+        "atk_live_badge_label",
+        "atk_cards",
+    )
+    GRADEBOOK_TREND_FIELDS: tuple[str, ...] = (
+        "gbt_label",
+        "gbt_subjects",
+    )
+    ATTENDANCE_HEATMAP_FIELDS: tuple[str, ...] = (
+        "ahm_label",
+        "ahm_present_pct",
+        "ahm_pattern",
+    )
+    LIFE_EVENT_TIMELINE_FIELDS: tuple[str, ...] = (
+        "let_label",
+        "let_events",
     )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
@@ -2921,6 +3507,51 @@ class CockpitPayloadForm(forms.ModelForm):
         self.fields["cwt_label"].initial = cwt.get("title", "")
         self.fields["cwt_days"].initial = _serialize_calendar_weather_days(
             cwt.get("days")
+        )
+
+        # ---- v3.57.16 rich-editor seeds (5 NEW sections — final batch) ----
+        # tenant_dashboard.workspace_context_tenant
+        wct = payload.get("workspace_context_tenant") or {}
+        self.fields["wct_label"].initial = wct.get("label", "")
+        wct_child = wct.get("child") or {}
+        self.fields["wct_school_role"].initial = wct_child.get("subline", "")
+        self.fields["wct_scope_chips"].initial = _serialize_scope_chips(
+            wct.get("scope_chips")
+        )
+
+        # manager_200x.activity_ticker
+        atk = payload.get("activity_ticker") or {}
+        # ``label`` is not in the helper defaults but is operator-editable
+        # here; round-trip cleanly via .get() with empty fallback.
+        self.fields["atk_label"].initial = atk.get("label", "")
+        self.fields["atk_scroll_seconds"].initial = atk.get("scroll_seconds")
+        self.fields["atk_live_badge_label"].initial = atk.get(
+            "live_badge_label", ""
+        )
+        self.fields["atk_cards"].initial = _serialize_activity_ticker_cards(
+            atk.get("cards")
+        )
+
+        # tenant_v3_extended.gradebook_trend
+        gbt = payload.get("gradebook_trend") or {}
+        self.fields["gbt_label"].initial = gbt.get("title", "")
+        self.fields["gbt_subjects"].initial = _serialize_gradebook_subjects(
+            gbt.get("subjects")
+        )
+
+        # tenant_v3_extended.attendance_heatmap
+        ahm = payload.get("attendance_heatmap") or {}
+        self.fields["ahm_label"].initial = ahm.get("title", "")
+        self.fields["ahm_present_pct"].initial = ahm.get("present_pct", "")
+        self.fields["ahm_pattern"].initial = _serialize_attendance_pattern(
+            ahm.get("cells")
+        )
+
+        # tenant_v3_extended.life_event_timeline
+        let = payload.get("life_event_timeline") or {}
+        self.fields["let_label"].initial = let.get("title", "")
+        self.fields["let_events"].initial = _serialize_life_events(
+            let.get("events")
         )
 
     # ------------------------------------------------------------------
@@ -3327,6 +3958,83 @@ class CockpitPayloadForm(forms.ModelForm):
             cwt_overlay["days"] = cwt_days
         if cwt_overlay:
             payload.setdefault("calendar_weather", {}).update(cwt_overlay)
+
+        # v3.57.16 rich-editor overlays (5 NEW sections — final batch).
+        # Same pattern as the v3.57.14 overlays above: build dict from
+        # operator inputs, filter empty values so `_deep_merge` preserves
+        # defaults, then `.update()` onto a `setdefault()` dict so any
+        # pre-existing keys survive alongside the new content.
+
+        # 22) tenant_dashboard.workspace_context_tenant — `school_role`
+        # writes into the helper's nested ``child.subline`` so the partial's
+        # active-child-name + subline layout stays intact. ``scope_chips``
+        # is a NEW key the partial may render alongside the existing
+        # siblings/stats lists (which keep their defaults via _deep_merge).
+        wct_overlay: dict[str, Any] = {}
+        wct_label_v = (cleaned.get("wct_label") or "").strip()
+        if wct_label_v:
+            wct_overlay["label"] = wct_label_v
+        wct_school_role = (cleaned.get("wct_school_role") or "").strip()
+        if wct_school_role:
+            wct_overlay["child"] = {"subline": wct_school_role}
+        wct_chips = _parse_scope_chips(cleaned.get("wct_scope_chips") or "")
+        if wct_chips:
+            wct_overlay["scope_chips"] = wct_chips
+        if wct_overlay:
+            payload.setdefault("workspace_context_tenant", {}).update(wct_overlay)
+
+        # 23) manager_200x.activity_ticker
+        atk_overlay: dict[str, Any] = {}
+        atk_label_v = (cleaned.get("atk_label") or "").strip()
+        if atk_label_v:
+            atk_overlay["label"] = atk_label_v
+        atk_scroll = cleaned.get("atk_scroll_seconds")
+        if atk_scroll is not None and atk_scroll != "":
+            atk_overlay["scroll_seconds"] = atk_scroll
+        atk_badge = (cleaned.get("atk_live_badge_label") or "").strip()
+        if atk_badge:
+            atk_overlay["live_badge_label"] = atk_badge
+        atk_cards = _parse_activity_ticker_cards(cleaned.get("atk_cards") or "")
+        if atk_cards:
+            atk_overlay["cards"] = atk_cards
+        if atk_overlay:
+            payload.setdefault("activity_ticker", {}).update(atk_overlay)
+
+        # 24) tenant_v3_extended.gradebook_trend
+        gbt_overlay: dict[str, Any] = {}
+        gbt_label_v = (cleaned.get("gbt_label") or "").strip()
+        if gbt_label_v:
+            gbt_overlay["title"] = gbt_label_v
+        gbt_subjects = _parse_gradebook_subjects(cleaned.get("gbt_subjects") or "")
+        if gbt_subjects:
+            gbt_overlay["subjects"] = gbt_subjects
+        if gbt_overlay:
+            payload.setdefault("gradebook_trend", {}).update(gbt_overlay)
+
+        # 25) tenant_v3_extended.attendance_heatmap
+        ahm_overlay: dict[str, Any] = {}
+        ahm_label_v = (cleaned.get("ahm_label") or "").strip()
+        if ahm_label_v:
+            ahm_overlay["title"] = ahm_label_v
+        ahm_present_pct = (cleaned.get("ahm_present_pct") or "").strip()
+        if ahm_present_pct:
+            ahm_overlay["present_pct"] = ahm_present_pct
+        ahm_cells = _parse_attendance_pattern(cleaned.get("ahm_pattern") or "")
+        if ahm_cells:
+            ahm_overlay["cells"] = ahm_cells
+        if ahm_overlay:
+            payload.setdefault("attendance_heatmap", {}).update(ahm_overlay)
+
+        # 26) tenant_v3_extended.life_event_timeline
+        let_overlay: dict[str, Any] = {}
+        let_label_v = (cleaned.get("let_label") or "").strip()
+        if let_label_v:
+            let_overlay["title"] = let_label_v
+        let_events = _parse_life_events(cleaned.get("let_events") or "")
+        if let_events:
+            let_overlay["events"] = let_events
+        if let_overlay:
+            payload.setdefault("life_event_timeline", {}).update(let_overlay)
 
         return payload
 
