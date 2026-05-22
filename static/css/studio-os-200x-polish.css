@@ -1,0 +1,168 @@
+/* ============================================================
+   studio-os-200x-polish.css — v3.59.2 (2026-05-22)
+   ------------------------------------------------------------
+   Studio OS canvas-body 200x polish.
+
+   Scope:
+     [data-studio-os-surface] inside Studio OS pages. Tenant-side
+     aesthetic (indigo + emerald), NOT the dark-navy manager 200x.
+     Token-only — every literal is a semantic-aware var() so the
+     tenant brand still wins when ThemePack overrides cascade.
+
+   What this layer adds:
+     - Source Serif 4 page headers + an eyebrow row for context.
+     - Glass-surface cards with hairline elevation and a soft
+       gradient backdrop so the canvas reads as a single workspace
+       rather than a wall of bordered tiles.
+     - Indigo gradient CTAs on `.btn-primary` inside Studio.
+     - Tighter density floor (sections breathe; rows don't).
+     - Subtle ambient-light header glow that mirrors the manager
+       glow-header pattern from the v8 200x preview.
+
+   Non-goals:
+     - Override theme tokens (handled by design-tokens.css).
+     - Change layout primitives (handled by .rmc-app-shell).
+     - Touch the copilot rail (lives in rmc-copilot-rail.css).
+   ============================================================ */
+
+/* ---------- Page header: glow + eyebrow ---------- */
+[data-studio-os-surface] .rmc-page-header-glow,
+[data-studio-os-surface] .studio-os-page-header {
+  position: relative;
+  padding: 18px 20px 16px;
+  border-radius: var(--radius-lg, 14px);
+  background:
+    radial-gradient(
+      120% 80% at 0% 0%,
+      color-mix(in oklab, var(--color-primary, #4f46e5) 12%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+[data-studio-os-surface] .rmc-page-header-glow::before,
+[data-studio-os-surface] .studio-os-page-header::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto auto;
+  width: 60%;
+  height: 200%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-accent, #10b981) 20%, transparent),
+    transparent 70%
+  );
+  filter: blur(40px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+[data-studio-os-surface] .rmc-page-eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+[data-studio-os-surface] .rmc-page-header-glow h1,
+[data-studio-os-surface] .studio-os-page-header h1 {
+  font-family: var(--font-serif, "Source Serif 4", "Source Serif Pro", Georgia, serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+/* ---------- Cards: glass + hairline elevation ---------- */
+[data-studio-os-surface] .card,
+[data-studio-os-surface] .studio-os-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  backdrop-filter: var(--material-blur, none);
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+[data-studio-os-surface] .card:hover,
+[data-studio-os-surface] .studio-os-card:hover {
+  border-color: var(--hairline-strong, var(--hairline));
+  box-shadow: var(--elev-2);
+}
+
+/* ---------- Primary CTA: indigo→accent gradient ---------- */
+[data-studio-os-surface] .btn.btn-primary,
+[data-studio-os-surface] .studio-os-btn-primary {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary, #4f46e5),
+    color-mix(in oklab, var(--color-primary, #4f46e5) 70%, var(--color-accent, #10b981))
+  );
+  border: 0;
+  color: var(--color-on-primary, #ffffff);
+  box-shadow:
+    0 8px 20px color-mix(in oklab, var(--color-primary, #4f46e5) 30%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);  /* off-token-allow: inner-highlight-rim */
+  transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+[data-studio-os-surface] .btn.btn-primary:hover,
+[data-studio-os-surface] .studio-os-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 12px 24px color-mix(in oklab, var(--color-primary, #4f46e5) 40%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);  /* off-token-allow: inner-highlight-rim */
+}
+
+/* ---------- Density floor: tighter rows, breathing sections ---------- */
+[data-studio-os-surface] section.mb-4 {
+  margin-bottom: 18px;
+}
+[data-studio-os-surface] section.mb-5 {
+  margin-bottom: 26px;
+}
+[data-studio-os-surface] .card .card-body.py-3 {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+[data-studio-os-surface] .rmc-shell-content-grid {
+  /* Pull the toolbar tight against the workspace edge so the canvas reads
+     "filled" rather than floating in margin. */
+  padding-top: 6px;
+}
+
+/* ---------- Section eyebrow grammar ---------- */
+[data-studio-os-surface] .studio-os-section-eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+[data-studio-os-surface] .studio-os-section-title {
+  font-family: var(--font-serif, "Source Serif 4", Georgia, serif);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+/* ---------- Reduced-motion respect ---------- */
+@media (prefers-reduced-motion: reduce) {
+  [data-studio-os-surface] .btn.btn-primary,
+  [data-studio-os-surface] .studio-os-btn-primary,
+  [data-studio-os-surface] .card,
+  [data-studio-os-surface] .studio-os-card {
+    transition: none;
+  }
+  [data-studio-os-surface] .btn.btn-primary:hover,
+  [data-studio-os-surface] .studio-os-btn-primary:hover {
+    transform: none;
+  }
+}

@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %} v3.59.x Wave 11 Agent V (2026-05-22) — reusable waterfall primitive.
+
+Usage:
+  {% include "partials/dataviz/_waterfall.html" with columns=cols_list %}
+
+Parameters:
+  columns    — list of dicts. Each shape:
+                 {label, value, height_px, tone}
+               tone ∈ {"positive", "negative", "total"}
+               height_px — integer pixel height for the bar (clamped to 200 max)
+  aria_label — accessible label (default "Waterfall chart")
+{% endcomment %}
+{% if columns %}
+<div class="rmc-waterfall" role="group" aria-label="{{ aria_label|default:_('Waterfall chart') }}">
+  {% for col in columns %}
+    <div class="rmc-waterfall__col">
+      <div class="rmc-waterfall__value">{{ col.value|default:"—" }}</div>
+      <div class="rmc-waterfall__bar rmc-waterfall__bar--{{ col.tone|default:'total' }}"
+           style="--waterfall-bar-height: {{ col.height_px|default:80 }}px;"{# inline-style-allow: dataviz-dynamic-height #}>
+      </div>
+      <div class="rmc-waterfall__label">{{ col.label }}</div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}

@@ -46,3 +46,8 @@
 {% endwith %}
 {# Wave A — G1: tenant lexicon overrides (only non-default keys). #}
 {% include "partials/rmc_lexicon_meta.html" %}
+{% comment %} v3.59.x Wave 11 Agent W: operator theme-personality overrides. MUST land
+   AFTER design-tokens-personality.css so the cascade override wins. The
+   block emits ONLY when the operator has published at least one override;
+   see apps/siteconfig/page_personality.personality_overrides_context_processor. {% endcomment %}
+{% include "partials/rmc_theme_personality_overrides.html" %}

@@ -29,15 +29,28 @@
     {{ cockpit.pulse_metrics.label|default:_("Platform pulse · live") }}
   </div>
   <div class="rmc-cockpit-pulse__cards">
+    {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): mono-pill v8 200x preview parity.
+       `.rmc-stat-card--mono` adds the radial gradient + JetBrains Mono count pill
+       without removing the existing `.rmc-cockpit-pulse-card` layout primitive. {% endcomment %}
     {% for card in cockpit.pulse_metrics.cards %}
-    <article class="rmc-cockpit-pulse-card{% if card.severity == 'muted' or card.value == '—' %} rmc-cockpit-pulse-card--muted{% endif %}"{% if card.severity == 'muted' or card.value == '—' %} data-rmc-pulse-empty="1" aria-label="{{ card.head }}: {% trans 'no value yet' %}"{% endif %}>
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono{% if card.severity == 'muted' or card.value == '—' %} rmc-cockpit-pulse-card--muted{% endif %}"{% if card.severity == 'muted' or card.value == '—' %} data-rmc-pulse-empty="1" aria-label="{{ card.head }}: {% trans 'no value yet' %}"{% endif %}>
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot{% if card.severity %} rmc-cockpit-pulse-card__dot--{{ card.severity }}{% endif %}" aria-hidden="true"></span>
         {{ card.head }}
       </div>
-      <div class="rmc-cockpit-pulse-card__value">{{ card.value|default:"—" }}</div>
+      <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">{{ card.value|default:"—" }}</div>
       {% if card.label %}<div class="rmc-cockpit-pulse-card__label">{{ card.label }}</div>{% endif %}
       {% if card.delta %}<div class="rmc-cockpit-pulse-card__delta{% if card.delta_direction %} rmc-cockpit-pulse-card__delta--{{ card.delta_direction }}{% endif %}">{{ card.delta }}</div>{% endif %}
+      {% comment %} v3.59.x Wave 11 Agent V: optional sparkline + status pill enhancement.
+         Backward-compatible — only renders when operator/payload supplies the new keys. {% endcomment %}
+      {% if card.spark_points %}
+        {% include "partials/dataviz/_sparkline.html" with points=card.spark_points direction=card.delta_direction|default:'flat' label=card.head width=160 height=24 %}
+      {% endif %}
+      {% if card.status_pill_label %}
+        <div class="rmc-cockpit-pulse-card__status-row">
+          {% include "partials/dataviz/_status_pill.html" with status=card.status_pill_status|default:'muted' label=card.status_pill_label show_dot=True %}
+        </div>
+      {% endif %}
     </article>
     {% endfor %}
   </div>

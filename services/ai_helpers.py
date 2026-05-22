@@ -301,6 +301,69 @@ def invoke_with_request(
         return None
 
 
+def invoke_with_request_stream(
+    *,
+    task_type: Any,
+    prompt: str,
+    request: Any | None = None,
+    school: Any | None = None,
+    user_query: str = "",
+    metadata: dict[str, Any] | None = None,
+    require_available: bool = True,
+):
+    """Streaming sibling of ``invoke_with_request`` (v3.59.2).
+
+    Yields ``("chunk", text)`` tuples as model tokens arrive, then exactly ONE
+    ``("done", metadata)`` tuple. On any error, yields one ``("error", code)``
+    tuple followed by a final ``("done", metadata)`` so consumers can always
+    close cleanly.
+
+    Same PII / policy / school-resolution rules as the non-streaming sibling.
+    Returns a generator. Returns ``None`` when AI policy disables the call
+    (consumers should fall back to a guided / unavailable UX).
+    """
+    resolved_school = school
+    if resolved_school is None and request is not None:
+        resolved_school = getattr(request, "school", None)
+    if require_available and not is_ai_available(resolved_school):
+        return None
+
+    try:
+        from services.ai_gateway import TaskType
+        from services.ai_gateway_streaming import invoke_stream
+
+        if isinstance(task_type, str):
+            try:
+                resolved_task = TaskType(task_type)
+            except ValueError:
+                resolved_task = getattr(TaskType, task_type, None) or getattr(
+                    TaskType, task_type.upper(), None
+                )
+                if resolved_task is None:
+                    return None
+        else:
+            resolved_task = task_type
+
+        md = normalize_gateway_metadata(metadata, request=request, school=resolved_school)
+        local_prompt = prompt
+        local_user_query = user_query
+        if looks_like_pii(local_prompt, local_user_query) and md.get("content_sensitivity") != "low_pii_ok":
+            local_prompt = redact_pii(local_prompt)
+            if local_user_query:
+                local_user_query = redact_pii(local_user_query)
+            md["pii_redacted"] = True
+
+        return invoke_stream(
+            resolved_task,
+            local_prompt,
+            metadata=md,
+            user_query=local_user_query,
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("ai_helpers: invoke_with_request_stream failed", exc_info=True)
+        return None
+
+
 def record_feedback(
     *,
     school: Any | None,

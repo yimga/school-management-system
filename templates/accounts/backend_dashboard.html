@@ -123,7 +123,8 @@ backend-shell dashboard-page-backend
   {% url 'school_configuration_center_canonical' as backend_school_config_url %}
   {% if not backend_school_config_url %}{% url 'school_configuration_center' as backend_school_config_url %}{% endif %}
   {# data-page-header #}{# ds-action-bar #}
-  {% include "partials/luxury_major_audit_contract.html" with title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
+  {# v3.59.x Wave 11 Agent X (2026-05-22): eyebrow added for v8 200x preview parity. #}
+  {% include "partials/luxury_major_audit_contract.html" with eyebrow=_("School operators") title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
   <!-- rmc-ux-above-fold-end -->
 
   <section id="section-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">

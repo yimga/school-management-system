@@ -1,0 +1,79 @@
+{% load i18n %}
+{% comment %} Phase 3 — workflow_help_panel.html (v3.58.x scaffolding, NOT wired in any shell).
+   Sidebar/drawer panel showing how a workflow works + what blocks it + what happens after.
+   Caller contract: include with help=help where help is a dict carrying title,
+   how_it_works (list), before_you_start (list), common_blockers (list of label+fix_url),
+   what_happens_next (list), need_help (dict with label+url and optional ai_help.label+context_key).
+   Empty/missing fields skip their section. {% endcomment %}
+{% if help %}
+<aside class="rmc-workflow-help"
+       data-rmc-workflow-help="1"
+       aria-labelledby="rmc-workflow-help-title"
+       role="complementary">
+  <header class="rmc-workflow-help__head">
+    <h2 id="rmc-workflow-help-title" class="rmc-workflow-help__title">{{ help.title|default:_("How this works") }}</h2>
+    {% if help.subtitle %}<p class="rmc-workflow-help__subtitle">{{ help.subtitle }}</p>{% endif %}
+  </header>
+
+  {% if help.how_it_works %}
+  <section class="rmc-workflow-help__section" aria-labelledby="rmc-workflow-help-how">
+    <h3 id="rmc-workflow-help-how" class="rmc-workflow-help__section-title">{% trans "How it works" %}</h3>
+    <ol class="rmc-workflow-help__list">
+      {% for step in help.how_it_works %}<li>{{ step }}</li>{% endfor %}
+    </ol>
+  </section>
+  {% endif %}
+
+  {% if help.before_you_start %}
+  <section class="rmc-workflow-help__section" aria-labelledby="rmc-workflow-help-pre">
+    <h3 id="rmc-workflow-help-pre" class="rmc-workflow-help__section-title">{% trans "Before you start" %}</h3>
+    <ul class="rmc-workflow-help__list rmc-workflow-help__list--checks">
+      {% for item in help.before_you_start %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if help.common_blockers %}
+  <section class="rmc-workflow-help__section" aria-labelledby="rmc-workflow-help-blockers">
+    <h3 id="rmc-workflow-help-blockers" class="rmc-workflow-help__section-title">{% trans "Common blockers" %}</h3>
+    <ul class="rmc-workflow-help__list rmc-workflow-help__list--blockers">
+      {% for b in help.common_blockers %}
+      <li>
+        <span class="rmc-workflow-help__blocker-label">{{ b.label }}</span>
+        {% if b.fix_url %}
+        <a class="rmc-workflow-help__blocker-fix" href="{{ b.fix_url }}">{% trans "Fix this" %}</a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if help.what_happens_next %}
+  <section class="rmc-workflow-help__section" aria-labelledby="rmc-workflow-help-next">
+    <h3 id="rmc-workflow-help-next" class="rmc-workflow-help__section-title">{% trans "What happens next" %}</h3>
+    <ul class="rmc-workflow-help__list">
+      {% for item in help.what_happens_next %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if help.need_help %}
+  <footer class="rmc-workflow-help__foot" aria-label="{% trans 'Get help' %}">
+    {% if help.need_help.url %}
+    <a class="rmc-workflow-help__support-link" href="{{ help.need_help.url }}">
+      {{ help.need_help.label|default:_("Need help?") }}
+    </a>
+    {% endif %}
+    {% if help.need_help.ai_help and help.need_help.ai_help.context_key %}
+    <button type="button"
+            class="rmc-workflow-help__ai-link"
+            data-rmc-ai-context-key="{{ help.need_help.ai_help.context_key }}"
+            data-rmc-workflow-help-ai="1">
+      {{ help.need_help.ai_help.label|default:_("Ask the AI assistant") }}
+    </button>
+    {% endif %}
+  </footer>
+  {% endif %}
+</aside>
+{% endif %}

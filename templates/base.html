@@ -64,6 +64,10 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    {% comment %} v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer.
+       Loads AFTER design-tokens.css so personality overrides the defaults, but
+       BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
@@ -101,6 +105,8 @@
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
     {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive for long dashboards. #}
     <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
+    {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives (heatmap/sparkline/waterfall/status-pill/alert-banner/stat-card/trend/chart-palette). #}
+    <link rel="stylesheet" href="{% static 'css/rmc-data-viz.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     {% if not PUBLIC_BRAND_MODE %}
     {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
@@ -192,7 +198,7 @@
      focus rings / hover borders / button polish already shipped in form-system.css
      (lines 55-122) actually render. Previously the CSS was loaded but no element
      opted in, so every form ran on raw Bootstrap defaults. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}" data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
     {% include "partials/rmc_launch_splash.html" %}
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     {# Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. #}
@@ -327,6 +333,8 @@
     {% include 'components/toast_notifications.html' %}
     {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. Module-load gates on .rmc-collapsable presence so it's no-op on pages without any. #}
     <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
+    {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. #}
+    <script src="{% static 'js/_pages/rmc-data-viz.js' %}" defer></script>
     <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>

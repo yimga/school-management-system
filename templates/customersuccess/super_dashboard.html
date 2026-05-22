@@ -46,36 +46,37 @@
   {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with eyebrow="Customer Success · 11.3 + 11.4" title="Benchmark & Customer Success" subtitle="Section 11.3 Benchmark intelligence • 11.4 Customer success (health, risk alerts, interventions, workflow failures)." action_url=dashboard_url action_text="Back to dashboard" %}
 
+  {# v3.59.x Wave 11 Agent X (2026-05-22): KPI strip stat cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. #}
   <div class="row g-3 mb-4 rmc-reveal-stagger">
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body">
           <div class="text-muted small">Risk alerts (unack.)</div>
-          <div class="h4 text-warning mb-0">{{ alerts|length }}</div>
+          <div class="h4 text-warning mb-0 rmc-stat-card__count--mono">{{ alerts|length }}</div>
         </div>
       </div>
     </div>
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body">
           <div class="text-muted small">Intervention suggestions</div>
-          <div class="h4 text-info mb-0">{{ suggestions|length }}</div>
+          <div class="h4 text-info mb-0 rmc-stat-card__count--mono">{{ suggestions|length }}</div>
         </div>
       </div>
     </div>
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body">
           <div class="text-muted small">Workflow failures (recent)</div>
-          <div class="h4 text-danger mb-0">{{ workflow_failures|length }}</div>
+          <div class="h4 text-danger mb-0 rmc-stat-card__count--mono">{{ workflow_failures|length }}</div>
         </div>
       </div>
     </div>
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body">
           <div class="text-muted small">Schools with health score</div>
-          <div class="h4 mb-0">{{ health_scores|length }}</div>
+          <div class="h4 mb-0 rmc-stat-card__count--mono">{{ health_scores|length }}</div>
         </div>
       </div>
     </div>
@@ -84,8 +85,9 @@
   <details class="de-secondary-collapsible mb-2">
   <summary>{% trans "Expand alert, workflow, and health tables" %}</summary>
   <div class="row g-3 rmc-reveal-stagger">
+    {# v3.59.x Wave 11 Agent X (2026-05-22): grouped tables adopt `.rmc-app-section--glass` for v8 200x preview parity. #}
     <div class="col-lg-6 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-app-section--glass">
         <div class="card-header">Risk alerts</div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -110,7 +112,7 @@
       </div>
     </div>
     <div class="col-lg-6 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-app-section--glass">
         <div class="card-header">Intervention suggestions</div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -138,7 +140,7 @@
 
   <div class="row g-3 mt-2">
     <div class="col-12">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-app-section--glass">
         <div class="card-header">Recent workflow failures</div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -166,7 +168,7 @@
 
   <div class="row g-3 mt-2">
     <div class="col-12">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-app-section--glass">
         <div class="card-header">School health scores (latest)</div>
         <div class="card-body p-0">
           <div class="table-responsive">

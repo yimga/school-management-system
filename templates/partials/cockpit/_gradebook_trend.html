@@ -32,8 +32,19 @@ Stroke color defaults to currentColor — brand cascade flows in.
                   stroke="currentColor"
                   stroke-width="2"></polyline>
       </svg>
+      {% comment %} v3.59.x Wave 11 Agent V: canonical sparkline primitive companion.
+         Renders when subject supplies the new comma-separated `spark_values` shape
+         (numbers only). Legacy "x,y x,y" polyline above remains untouched. {% endcomment %}
+      {% if s.spark_values %}
+        {% with spark_dir=s.spark_direction|default:'flat' %}
+          {% include "partials/dataviz/_sparkline.html" with points=s.spark_values direction=spark_dir label=s.subject width=100 height=24 %}
+        {% endwith %}
+      {% endif %}
       {% if s.delta_text %}
       <span class="tp-grade-trend__delta{% if s.delta_tone == 'success' %} tp-grade-trend__delta--success{% elif s.delta_tone == 'warn' %} tp-grade-trend__delta--warn{% endif %}">{{ s.delta_text }}</span>
+      {% if s.status_pill_label %}
+        {% include "partials/dataviz/_status_pill.html" with status=s.status_pill_status|default:'muted' label=s.status_pill_label %}
+      {% endif %}
       {% endif %}
     </li>
     {% endfor %}

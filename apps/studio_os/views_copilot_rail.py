@@ -350,8 +350,15 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
 
         def stream():
             t_start = time.monotonic()
+            # Prefer true token-by-token streaming via the ai_helpers stream
+            # wrapper (v3.59.2). On any import / setup failure fall back to the
+            # single-shot invoke + server-side chunker so the SSE wire shape
+            # stays consistent for the JS consumer.
             try:
-                from services.ai_helpers import invoke_with_request
+                from services.ai_helpers import (
+                    invoke_with_request,
+                    invoke_with_request_stream,
+                )
                 from services.ai_gateway import TaskType
             except ImportError:
                 logger.warning("copilot_rail_send_stream: ai_helpers import failed", exc_info=True)
@@ -366,17 +373,70 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
 
             yield _sse("ready", {"posture_mode": "pending", "request_id": ""})
 
+            stream_md = {
+                "surface": "studio_os_copilot_rail_stream",
+                "mode": mode,
+                "content_sensitivity": "standard",
+            }
+
+            # ---- Attempt true streaming first ----
+            assembled_parts: list[str] = []
+            final_md: dict = {}
+            stream_yielded_any = False
+            stream_had_error = False
+            try:
+                gen = invoke_with_request_stream(
+                    task_type=TaskType.STUDIO_OS_ASSISTANT,
+                    prompt=message,
+                    request=request,
+                    user_query=message,
+                    metadata=stream_md,
+                    require_available=False,
+                )
+            except Exception:  # noqa: BLE001
+                logger.warning("copilot_rail_send_stream: stream setup failed", exc_info=True)
+                gen = None
+
+            if gen is not None:
+                try:
+                    for kind, payload in gen:
+                        if time.monotonic() - t_start > _STREAM_HARD_TIMEOUT_SECS:
+                            break
+                        if kind == "chunk" and isinstance(payload, str) and payload:
+                            stream_yielded_any = True
+                            assembled_parts.append(payload)
+                            yield _sse("delta", {"text": payload})
+                        elif kind == "error":
+                            stream_had_error = True
+                        elif kind == "done":
+                            if isinstance(payload, dict):
+                                final_md = payload
+                except Exception:  # noqa: BLE001
+                    logger.warning("copilot_rail_send_stream: stream iteration failed", exc_info=True)
+                    stream_had_error = True
+
+            # If streaming worked, finalize and exit.
+            if stream_yielded_any and not stream_had_error:
+                reply_text = "".join(assembled_parts) or "I didn't have a useful reply for that."
+                source = _derive_source(final_md)
+                posture_mode = str(final_md.get("posture_mode") or "") or source
+                request_id = str(final_md.get("request_id") or "")
+                yield _sse("done", {
+                    "reply": reply_text,
+                    "source": source,
+                    "posture_mode": posture_mode,
+                    "request_id": request_id,
+                })
+                return
+
+            # ---- Fallback: single-shot invoke + server-side chunker ----
             try:
                 result = invoke_with_request(
                     task_type=TaskType.STUDIO_OS_ASSISTANT,
                     prompt=message,
                     request=request,
                     user_query=message,
-                    metadata={
-                        "surface": "studio_os_copilot_rail_stream",
-                        "mode": mode,
-                        "content_sensitivity": "standard",
-                    },
+                    metadata={**stream_md, "surface": "studio_os_copilot_rail_stream_fallback"},
                     require_available=False,
                 )
             except Exception:  # noqa: BLE001
@@ -423,10 +483,6 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
             else:
                 posture_mode = source
 
-            # Progressive yield. The whole reply already exists server-side, so we
-            # chunk + sleep to give the operator a typewriter feel without
-            # blocking the worker for long. Hard timeout caps the loop in case
-            # an upstream stall makes time.sleep balloon.
             for chunk in _chunk_text(reply_text):
                 if time.monotonic() - t_start > _STREAM_HARD_TIMEOUT_SECS:
                     break

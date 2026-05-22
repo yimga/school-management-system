@@ -2877,3 +2877,35 @@ try:
     register_platform_admin(SyncConflict, SyncConflictAdmin)
 except ImportError:
     pass
+
+
+# v3.59.2 — PlatformPulseSnapshot operator surface.
+# Read-only history view of the daily cockpit-pulse capture rows. Operators
+# use this to spot beat misses (gaps in the daily cadence) and verify the
+# raw values that produce the "+N this week" delta strings on the dashboard.
+try:
+    from .models_pulse_snapshot import PlatformPulseSnapshot
+
+    class PlatformPulseSnapshotAdmin(ModelAdmin):
+        list_display = ("snapshot_date", "metric_key", "raw_value", "display_value", "captured_at")
+        list_filter = ("metric_key", "snapshot_date")
+        search_fields = ("metric_key", "display_value")
+        ordering = ("-snapshot_date", "metric_key")
+        date_hierarchy = "snapshot_date"
+        readonly_fields = ("snapshot_date", "metric_key", "raw_value", "display_value", "captured_at")
+        list_per_page = 50
+
+        def has_add_permission(self, request):
+            # Append-only via mgmt command + daily beat; the admin is read-only.
+            return False
+
+        def has_change_permission(self, request, obj=None):
+            return False
+
+        def has_delete_permission(self, request, obj=None):
+            # Allow staff to prune old rows manually if retention ever matters.
+            return request.user.is_superuser
+
+    register_platform_admin(PlatformPulseSnapshot, PlatformPulseSnapshotAdmin)
+except ImportError:
+    pass

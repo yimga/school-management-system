@@ -34,7 +34,8 @@
               {% endfor %}
             </select>
           </div>
-          <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+          {# v3.59.x Wave 11 Agent X (2026-05-22): primary save CTA upgraded to gradient indigo per v8 200x preview. #}
+          <button type="submit" class="btn btn-primary rmc-cta--gradient-indigo">{% trans "Save" %}</button>
           <a href="{% url 'siteconfig:user_preferences' %}" class="btn btn-outline-secondary">{% trans "Back to preferences" %}</a>
         </form>
       </div>

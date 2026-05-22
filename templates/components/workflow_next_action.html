@@ -1,0 +1,72 @@
+{% load i18n %}
+{% comment %} Phase 3 — workflow_next_action.html (v3.58.x scaffolding, NOT wired).
+   Primary action + next-best action + blocker-state strip for a workflow page.
+   Caller contract: include with next_action=next_action where next_action is a dict
+   carrying primary (label+url+task_code+step), optional secondary (label+url),
+   optional blocker (label+tone+fix_url), optional owner (label+kind), and state
+   (blocked|in-progress|ready|complete). When blocker is present, primary is aria-disabled. {% endcomment %}
+{% if next_action %}
+{% with state=next_action.state|default:"ready" %}
+<section class="rmc-workflow-next-action"
+         data-rmc-workflow-next-action="1"
+         data-rmc-workflow-state="{{ state }}"
+         aria-label="{% trans 'Next step in this workflow' %}">
+  <div class="rmc-workflow-next-action__inner">
+
+    <div class="rmc-workflow-next-action__heading">
+      <span class="rmc-workflow-next-action__kicker">{% trans "Next step" %}</span>
+      {% if next_action.owner %}
+      <span class="rmc-workflow-next-action__owner"
+            data-rmc-workflow-owner-kind="{{ next_action.owner.kind|default:'system' }}">
+        {{ next_action.owner.label }}
+      </span>
+      {% endif %}
+    </div>
+
+    {% if next_action.blocker %}
+    <div class="rmc-workflow-next-action__blocker"
+         data-rmc-workflow-blocker-tone="{{ next_action.blocker.tone|default:'warn' }}"
+         role="status">
+      <span class="rmc-workflow-next-action__blocker-label">{{ next_action.blocker.label }}</span>
+      {% if next_action.blocker.fix_url %}
+      <a class="rmc-workflow-next-action__blocker-fix" href="{{ next_action.blocker.fix_url }}">
+        {% trans "Resolve this" %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="rmc-workflow-next-action__chips" role="list">
+      {% if next_action.primary %}
+      <a class="rmc-workflow-next-action__chip rmc-workflow-next-action__chip--primary"
+         role="listitem"
+         href="{% if next_action.blocker %}#{% else %}{{ next_action.primary.url }}{% endif %}"
+         data-rmc-primary-action="1"
+         data-task="{{ next_action.primary.task_code|default:'workflow' }}"
+         data-task-step="{{ next_action.primary.step|default:'next-action' }}"
+         {% if next_action.blocker %}aria-disabled="true" tabindex="-1"{% endif %}>
+        <span class="rmc-workflow-next-action__chip-title">{{ next_action.primary.label }}</span>
+        {% if next_action.primary.description %}
+        <span class="rmc-workflow-next-action__chip-desc">{{ next_action.primary.description }}</span>
+        {% endif %}
+      </a>
+      {% endif %}
+
+      {% if next_action.secondary and not next_action.blocker %}
+      <a class="rmc-workflow-next-action__chip rmc-workflow-next-action__chip--secondary"
+         role="listitem"
+         href="{{ next_action.secondary.url }}"
+         data-task="{{ next_action.secondary.task_code|default:'workflow' }}"
+         data-task-step="{{ next_action.secondary.step|default:'next-action-alt' }}">
+        <span class="rmc-workflow-next-action__chip-title">{{ next_action.secondary.label }}</span>
+        {% if next_action.secondary.description %}
+        <span class="rmc-workflow-next-action__chip-desc">{{ next_action.secondary.description }}</span>
+        {% endif %}
+      </a>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endwith %}
+{% endif %}

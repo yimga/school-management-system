@@ -65,5 +65,12 @@
       </div>
     {% endfor %}
   </div>
+  {% comment %} v3.59.x Wave 11 Agent V: optional canonical primitive companion.
+     Renders the new .rmc-waterfall side-by-side when cockpit payload
+     supplies a `columns` list (new shape). Legacy SVG bars + legend remain
+     untouched so operator-configured values keep rendering. {% endcomment %}
+  {% if cockpit.revenue_waterfall.columns %}
+    {% include "partials/dataviz/_waterfall.html" with columns=cockpit.revenue_waterfall.columns aria_label=cockpit.revenue_waterfall.eyebrow %}
+  {% endif %}
 </section>
 {% endif %}

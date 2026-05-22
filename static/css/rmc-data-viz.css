@@ -1,0 +1,591 @@
+/* rmc-data-viz.css
+ *
+ * v3.59.x Wave 11 Agent V (2026-05-22) — canonical data-viz primitives library.
+ *
+ * Purpose: reusable, token-driven primitives for heatmap tiles, sparklines,
+ * waterfalls, status pills, alert banners, stat cards, chart-series palette
+ * anchors, trend arrows, and force-contrast utilities. Every primitive
+ * consumes the personality + status + heatmap + chart-series tokens that
+ * `design-tokens-personality.css` (Agent U) supplies, so the same markup
+ * automatically respects per-page personality, theme switching, and
+ * operator-driven overrides.
+ *
+ * Token contract (consumed; Agent U owns the canonical values):
+ *   --heatmap-healthy / --heatmap-okay / --heatmap-watch / --heatmap-critical / --heatmap-idle
+ *   --chart-series-1 .. --chart-series-8
+ *   --status-success / --status-warning / --status-danger / --status-info / --status-muted
+ *   --status-success-bg / --status-warning-bg / --status-danger-bg / --status-info-bg / --status-muted-bg
+ *   --personality-accent
+ *
+ * Token contract (consumed from design-tokens.css):
+ *   --text-primary / --text-secondary / --text-on-brand
+ *   --surface-elevated / --surface-canvas
+ *   --hairline / --hairline-strong
+ *   --radius-sm / --radius-md / --radius-pill
+ *   --space-1 .. --space-6
+ *   --success-fg / --warning-fg
+ *   --ease-apple
+ *
+ * Every color literal in this file sits inside a theme-scope ancestor
+ * (`[data-theme=...]`) OR carries a categorical `off-token-allow` marker
+ * so `scan_off_token_colors.py` stays clean.
+ */
+
+/* ============================================================ */
+/* 0. Shared token fallbacks (declared inside .rmc-* scope only) */
+/* ============================================================ */
+
+/* Heatmap tier fallbacks lazily resolved per primitive. Agent U's
+ * personality file overrides at :root and per [data-rmc-personality=*].
+ */
+
+/* ============================================================ */
+/* 1. Heatmap tile                                                */
+/* ============================================================ */
+.rmc-heatmap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: var(--space-3, 0.75rem) 0;
+  align-items: flex-start;
+}
+
+.rmc-heatmap--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 4px;
+}
+
+.rmc-heatmap__tile {
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 6px;
+  background: var(--heatmap-idle, var(--surface-canvas, rgba(148, 163, 184, 0.25))); /* off-token-allow: heatmap-idle-fallback */
+  transition: transform 160ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
+              box-shadow 160ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+  cursor: pointer;
+  position: relative;
+}
+
+.rmc-heatmap__tile:hover,
+.rmc-heatmap__tile:focus-visible {
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18); /* off-token-allow: lift-shadow-categorical */
+  outline: none;
+  z-index: 1;
+}
+
+.rmc-heatmap__tile:focus-visible {
+  outline: 2px solid var(--personality-accent, var(--school-primary, #4f46e5)); /* off-token-allow: focus-ring-fallback */
+  outline-offset: 2px;
+}
+
+.rmc-heatmap__tile--healthy   { background: var(--heatmap-healthy,  #16a34a); } /* off-token-allow: heatmap-tier-token-fallback */
+.rmc-heatmap__tile--okay      { background: var(--heatmap-okay,     #84cc16); } /* off-token-allow: heatmap-tier-token-fallback */
+.rmc-heatmap__tile--watch     { background: var(--heatmap-watch,    #f59e0b); } /* off-token-allow: heatmap-tier-token-fallback */
+.rmc-heatmap__tile--critical  { background: var(--heatmap-critical, #dc2626); } /* off-token-allow: heatmap-tier-token-fallback */
+.rmc-heatmap__tile--idle      { background: var(--heatmap-idle,     rgba(148, 163, 184, 0.4)); } /* off-token-allow: heatmap-idle-fallback */
+
+/* Dark theme: tiles get a hairline border for definition against dark canvas */
+[data-theme="dark"] .rmc-heatmap__tile,
+[data-bs-theme="dark"] .rmc-heatmap__tile {
+  box-shadow: inset 0 0 0 1px var(--hairline-strong, rgba(255, 255, 255, 0.16));
+}
+
+.rmc-heatmap__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  align-items: center;
+  margin-block-start: var(--space-3, 0.75rem);
+  font-size: 0.75rem;
+  color: var(--text-secondary, #424245);
+}
+
+.rmc-heatmap__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.rmc-heatmap__legend-swatch {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+
+.rmc-heatmap__legend-swatch--healthy  { background: var(--heatmap-healthy,  #16a34a); } /* off-token-allow: legend-swatch-fallback */
+.rmc-heatmap__legend-swatch--okay     { background: var(--heatmap-okay,     #84cc16); } /* off-token-allow: legend-swatch-fallback */
+.rmc-heatmap__legend-swatch--watch    { background: var(--heatmap-watch,    #f59e0b); } /* off-token-allow: legend-swatch-fallback */
+.rmc-heatmap__legend-swatch--critical { background: var(--heatmap-critical, #dc2626); } /* off-token-allow: legend-swatch-fallback */
+.rmc-heatmap__legend-swatch--idle     { background: var(--heatmap-idle,     rgba(148, 163, 184, 0.4)); } /* off-token-allow: legend-swatch-fallback */
+
+/* CSS-driven tooltip (no JS library): tooltip text supplied via
+ * data-rmc-tooltip-text on the tile. JS-mounted equivalent in rmc-data-viz.js
+ * adds keyboard focus support.
+ */
+.rmc-heatmap__tile[data-rmc-tooltip-text]::after {
+  content: attr(data-rmc-tooltip-text);
+  position: absolute;
+  inset-block-end: calc(100% + 6px);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  background: var(--text-primary, #1d1d1f); /* off-token-allow: tooltip-bg-on-text-primary */
+  color: var(--surface-elevated, #ffffff); /* off-token-allow: tooltip-fg-on-surface-elevated */
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm, 8px);
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tooltip-content */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+  z-index: 5;
+}
+.rmc-heatmap__tile[data-rmc-tooltip-text]:hover::after,
+.rmc-heatmap__tile[data-rmc-tooltip-text]:focus-visible::after {
+  opacity: 1;
+}
+
+/* ============================================================ */
+/* 2. Sparkline                                                   */
+/* ============================================================ */
+.rmc-sparkline {
+  display: block;
+  inline-size: 100%;
+  block-size: var(--rmc-sparkline-height, 32px);
+  position: relative;
+  color: var(--text-secondary, #6e6e73);
+}
+
+.rmc-sparkline__svg {
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.rmc-sparkline__path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.rmc-sparkline__fill {
+  fill: currentColor;
+  opacity: 0.18;
+  stroke: none;
+}
+
+.rmc-sparkline__point--last {
+  fill: currentColor;
+  stroke: var(--surface-elevated, #ffffff); /* off-token-allow: sparkline-last-point-ring-fallback */
+  stroke-width: 1.4;
+}
+
+/* Direction modifiers — color the path via parent currentColor. */
+.rmc-sparkline--up    { color: var(--success-fg, #047857); } /* off-token-allow: sparkline-up-success-fallback */
+.rmc-sparkline--down  { color: var(--status-danger, #dc2626); } /* off-token-allow: sparkline-down-danger-fallback */
+.rmc-sparkline--flat  { color: var(--text-secondary, #6e6e73); } /* off-token-allow: sparkline-flat-secondary-fallback */
+.rmc-sparkline--accent { color: var(--personality-accent, var(--school-primary, #4f46e5)); } /* off-token-allow: sparkline-accent-personality-fallback */
+
+[data-theme="dark"] .rmc-sparkline--up,
+[data-bs-theme="dark"] .rmc-sparkline--up { color: var(--success-fg, #6ee7b7); } /* off-token-allow: sparkline-up-dark-fallback */
+[data-theme="dark"] .rmc-sparkline--down,
+[data-bs-theme="dark"] .rmc-sparkline--down { color: var(--status-danger, #fca5a5); } /* off-token-allow: sparkline-down-dark-fallback */
+
+/* ============================================================ */
+/* 3. MRR Waterfall                                               */
+/* ============================================================ */
+.rmc-waterfall {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-4, 1rem) var(--space-3, 0.75rem);
+  min-block-size: 240px;
+  position: relative;
+}
+
+.rmc-waterfall__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+.rmc-waterfall__value {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--text-primary, #1d1d1f);
+  line-height: 1.1;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric */
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-waterfall__bar {
+  inline-size: 100%;
+  max-inline-size: 64px;
+  block-size: var(--waterfall-bar-height, 80px);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--chart-series-1, var(--personality-accent, #4f46e5)); /* off-token-allow: waterfall-bar-accent-fallback */
+  position: relative;
+  transition: transform 160ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+.rmc-waterfall__bar:hover { transform: scaleY(1.02); }
+
+.rmc-waterfall__bar--positive {
+  background: linear-gradient(180deg,
+    var(--status-success, #22c55e) 0%,
+    var(--success-fg, #16a34a) 100%); /* off-token-allow: waterfall-positive-gradient-fallback */
+}
+
+.rmc-waterfall__bar--negative {
+  background: linear-gradient(180deg,
+    var(--status-danger, #f87171) 0%,
+    #dc2626 100%); /* off-token-allow: waterfall-negative-gradient-fallback */
+}
+
+.rmc-waterfall__bar--total {
+  background: linear-gradient(180deg,
+    var(--personality-accent, var(--school-primary, #6366f1)) 0%,
+    var(--chart-series-1, #4338ca) 100%); /* off-token-allow: waterfall-total-gradient-fallback */
+}
+
+.rmc-waterfall__label {
+  font-size: 0.6875rem;
+  color: var(--text-secondary, #6e6e73);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size: 100%;
+}
+
+.rmc-waterfall__connector {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================ */
+/* 4. Status pill                                                 */
+/* ============================================================ */
+.rmc-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.625rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill */
+  border: 1px solid transparent;
+}
+
+.rmc-status-pill__dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: currentColor;
+}
+
+.rmc-status-pill--success {
+  background: var(--status-success-bg, rgba(34, 197, 94, 0.12)); /* off-token-allow: status-success-bg-fallback */
+  color: var(--status-success, var(--success-fg, #047857)); /* off-token-allow: status-success-fg-fallback */
+  border-color: var(--status-success, rgba(34, 197, 94, 0.32)); /* off-token-allow: status-success-border-fallback */
+}
+
+.rmc-status-pill--warning {
+  background: var(--status-warning-bg, rgba(245, 158, 11, 0.14)); /* off-token-allow: status-warning-bg-fallback */
+  color: var(--status-warning, var(--warning-fg, #b45309)); /* off-token-allow: status-warning-fg-fallback */
+  border-color: var(--status-warning, rgba(245, 158, 11, 0.34)); /* off-token-allow: status-warning-border-fallback */
+}
+
+.rmc-status-pill--danger {
+  background: var(--status-danger-bg, rgba(220, 38, 38, 0.12)); /* off-token-allow: status-danger-bg-fallback */
+  color: var(--status-danger, #b91c1c); /* off-token-allow: status-danger-fg-fallback */
+  border-color: var(--status-danger, rgba(220, 38, 38, 0.32)); /* off-token-allow: status-danger-border-fallback */
+}
+
+.rmc-status-pill--info {
+  background: var(--status-info-bg, rgba(59, 130, 246, 0.12)); /* off-token-allow: status-info-bg-fallback */
+  color: var(--status-info, #1d4ed8); /* off-token-allow: status-info-fg-fallback */
+  border-color: var(--status-info, rgba(59, 130, 246, 0.32)); /* off-token-allow: status-info-border-fallback */
+}
+
+.rmc-status-pill--muted {
+  background: var(--status-muted-bg, rgba(148, 163, 184, 0.18)); /* off-token-allow: status-muted-bg-fallback */
+  color: var(--status-muted, var(--text-secondary, #64748b)); /* off-token-allow: status-muted-fg-fallback */
+  border-color: var(--hairline, rgba(0, 0, 0, 0.12));
+}
+
+/* ============================================================ */
+/* 5. Alert banner                                                */
+/* ============================================================ */
+.rmc-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid transparent;
+  background: var(--surface-elevated, #ffffff);
+  color: var(--text-primary, #1d1d1f);
+  position: relative;
+}
+
+.rmc-alert-banner__icon {
+  flex: 0 0 auto;
+  inline-size: 24px;
+  block-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.875rem;
+}
+
+.rmc-alert-banner__body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.rmc-alert-banner__title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text-primary, #1d1d1f);
+}
+
+.rmc-alert-banner__message {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #424245);
+  line-height: 1.45;
+}
+
+.rmc-alert-banner__cta {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--hairline-strong, rgba(0, 0, 0, 0.14));
+  cursor: pointer;
+}
+.rmc-alert-banner__cta:hover {
+  background: var(--surface-canvas, rgba(0, 0, 0, 0.04));
+}
+
+.rmc-alert-banner--success {
+  background: var(--status-success-bg, rgba(34, 197, 94, 0.08)); /* off-token-allow: alert-success-bg-fallback */
+  border-color: var(--status-success, rgba(34, 197, 94, 0.32)); /* off-token-allow: alert-success-border-fallback */
+}
+.rmc-alert-banner--success .rmc-alert-banner__icon {
+  background: var(--status-success, #22c55e); /* off-token-allow: alert-icon-success-bg-fallback */
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: alert-icon-success-fg-fallback */
+}
+
+.rmc-alert-banner--warning {
+  background: var(--status-warning-bg, rgba(245, 158, 11, 0.10)); /* off-token-allow: alert-warning-bg-fallback */
+  border-color: var(--status-warning, rgba(245, 158, 11, 0.34)); /* off-token-allow: alert-warning-border-fallback */
+}
+.rmc-alert-banner--warning .rmc-alert-banner__icon {
+  background: var(--status-warning, #f59e0b); /* off-token-allow: alert-icon-warning-bg-fallback */
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: alert-icon-warning-fg-fallback */
+}
+
+.rmc-alert-banner--danger {
+  background: var(--status-danger-bg, rgba(220, 38, 38, 0.08)); /* off-token-allow: alert-danger-bg-fallback */
+  border-color: var(--status-danger, rgba(220, 38, 38, 0.34)); /* off-token-allow: alert-danger-border-fallback */
+}
+.rmc-alert-banner--danger .rmc-alert-banner__icon {
+  background: var(--status-danger, #dc2626); /* off-token-allow: alert-icon-danger-bg-fallback */
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: alert-icon-danger-fg-fallback */
+}
+
+.rmc-alert-banner--info {
+  background: var(--status-info-bg, rgba(59, 130, 246, 0.08)); /* off-token-allow: alert-info-bg-fallback */
+  border-color: var(--status-info, rgba(59, 130, 246, 0.32)); /* off-token-allow: alert-info-border-fallback */
+}
+.rmc-alert-banner--info .rmc-alert-banner__icon {
+  background: var(--status-info, #3b82f6); /* off-token-allow: alert-icon-info-bg-fallback */
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: alert-icon-info-fg-fallback */
+}
+
+/* ============================================================ */
+/* 6. Stat card                                                   */
+/* ============================================================ */
+.rmc-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-4, 1rem) var(--space-4, 1rem);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-elevated, #ffffff);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  min-inline-size: 0;
+}
+
+.rmc-stat-card__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary, #6e6e73);
+}
+
+.rmc-stat-card__value {
+  font-size: clamp(1.5rem, 1.2rem + 0.9vw, 2rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text-primary, #1d1d1f);
+  font-variant-numeric: tabular-nums;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: -0.01em;
+}
+
+.rmc-stat-card__label {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #424245);
+  line-height: 1.35;
+}
+
+.rmc-stat-card__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-block-start: 0.125rem;
+}
+
+.rmc-stat-card__delta--up    { color: var(--status-success, var(--success-fg, #047857)); } /* off-token-allow: delta-up-fallback */
+.rmc-stat-card__delta--down  { color: var(--status-danger, #b91c1c); } /* off-token-allow: delta-down-fallback */
+.rmc-stat-card__delta--flat  { color: var(--text-secondary, #6e6e73); } /* off-token-allow: delta-flat-fallback */
+
+.rmc-stat-card--with-spark .rmc-sparkline {
+  margin-block-start: var(--space-2, 0.5rem);
+}
+
+.rmc-stat-card--with-delta .rmc-stat-card__delta { display: inline-flex; }
+
+/* Augmentation for cockpit pulse card status pill row */
+.rmc-cockpit-pulse-card__status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-block-start: 0.375rem;
+}
+
+/* ============================================================ */
+/* 7. Chart-series palette anchor                                 */
+/* ============================================================ */
+/* Lets chart.js / d3 read computed CSS custom properties off this
+ * element. Default palette mirrors the design-tokens-personality
+ * --chart-series-N tokens. JS reads via getComputedStyle().
+ */
+[data-rmc-chart-palette="default"] {
+  --rmc-chart-color-1: var(--chart-series-1, #4f46e5); /* off-token-allow: chart-series-fallback */
+  --rmc-chart-color-2: var(--chart-series-2, #10b981); /* off-token-allow: chart-series-fallback */
+  --rmc-chart-color-3: var(--chart-series-3, #f59e0b); /* off-token-allow: chart-series-fallback */
+  --rmc-chart-color-4: var(--chart-series-4, #ef4444); /* off-token-allow: chart-series-fallback */
+  --rmc-chart-color-5: var(--chart-series-5, #8b5cf6); /* off-token-allow: chart-series-fallback */
+  --rmc-chart-color-6: var(--chart-series-6, #06b6d4); /* off-token-allow: chart-series-fallback */
+  --rmc-chart-color-7: var(--chart-series-7, #ec4899); /* off-token-allow: chart-series-fallback */
+  --rmc-chart-color-8: var(--chart-series-8, #84cc16); /* off-token-allow: chart-series-fallback */
+}
+
+/* ============================================================ */
+/* 8. Trend arrow + delta                                         */
+/* ============================================================ */
+.rmc-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary, #6e6e73);
+}
+
+.rmc-trend__arrow {
+  inline-size: 0.875em;
+  block-size: 0.875em;
+  display: inline-block;
+}
+
+.rmc-trend--up   { color: var(--status-success, var(--success-fg, #047857)); } /* off-token-allow: trend-up-fallback */
+.rmc-trend--up::before   { content: "\2191"; font-weight: 700; }   /* ↑ */
+
+.rmc-trend--down { color: var(--status-danger, #b91c1c); } /* off-token-allow: trend-down-fallback */
+.rmc-trend--down::before { content: "\2193"; font-weight: 700; }   /* ↓ */
+
+.rmc-trend--flat { color: var(--text-secondary, #6e6e73); }
+.rmc-trend--flat::before { content: "\2192"; font-weight: 700; opacity: 0.7; }  /* → */
+
+/* ============================================================ */
+/* 9. Force-color contrast utility                                */
+/* ============================================================ */
+/* Always-WCAG-AA on top of any background. Uses light-dark()
+ * where supported (Baseline 2024+); falls back to --text-primary.
+ */
+.rmc-force-contrast {
+  color: var(--text-primary, #1d1d1f);
+}
+@supports (color: light-dark(black, white)) {
+  .rmc-force-contrast {
+    color: light-dark(#0b0b0b, #f5f5f7); /* off-token-allow: force-contrast-binary-by-design */
+  }
+}
+
+/* ============================================================ */
+/* 10. Density variants                                           */
+/* ============================================================ */
+.rmc-heatmap--dense .rmc-heatmap__tile { inline-size: 20px; block-size: 20px; border-radius: 4px; }
+.rmc-heatmap--xl    .rmc-heatmap__tile { inline-size: 36px; block-size: 36px; border-radius: 8px; }
+
+.rmc-sparkline--tall { --rmc-sparkline-height: 56px; }
+.rmc-sparkline--short { --rmc-sparkline-height: 20px; }
+
+/* ============================================================ */
+/* 11. Print fallbacks                                            */
+/* ============================================================ */
+@media print {
+  .rmc-heatmap__tile { box-shadow: none; }
+  .rmc-sparkline__path { stroke-width: 1.2; }
+  .rmc-status-pill { border-color: currentColor; }
+}
+
+/* ============================================================ */
+/* 12. Reduced-motion respect                                     */
+/* ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .rmc-heatmap__tile,
+  .rmc-waterfall__bar { transition: none; }
+  .rmc-heatmap__tile:hover { transform: none; }
+}

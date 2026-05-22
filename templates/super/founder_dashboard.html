@@ -53,6 +53,10 @@
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Audit feed") key="founder__audit_feed" include_partial="partials/cockpit/_audit_feed.html" chrome="section" %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="founder__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("SLO clocks") key="founder__slo_clocks" include_partial="partials/cockpit/_slo_clocks.html" chrome="section" %}
+{% comment %} v3.59.x Wave 11 Agent X (2026-05-22): trust-pillars alerts now lands on the
+   founder landing too — operator-landing parity with super_dashboard.html. Self-gates on
+   cockpit.trust_pillars_alerts.enabled so it renders nothing until opted in. {% endcomment %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="founder__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
 <div class="container-fluid py-4"
      data-rmc-founder-dashboard="1"
      data-rmc-ux-role-dashboard="founder-command-center"
@@ -60,7 +64,9 @@
   <section class="mb-3" data-rmc-ux-section="one-next-action">
   {% include "components/next_action_strip.html" %}
   </section>
-  <header class="mb-4">
+  {# v3.59.x Wave 11 Agent X (2026-05-22): glow page header + eyebrow per v8 200x preview. #}
+  <header class="rmc-page-header-glow mb-4">
+    <span class="rmc-page-eyebrow">{% trans "Platform operators" %}</span>
     <h1 class="h3 mb-1">{% trans "Platform Command Center" %}</h1>
     <p class="text-secondary small mb-0">
       {% trans "Metrics are read from the live database; audit and kill-test results are read from generated JSON under docs/generated/ when those scripts have been run." %}
@@ -81,14 +87,15 @@
   </header>
   <!-- rmc-ux-above-fold-end -->
 
+  {# v3.59.x Wave 11 Agent X (2026-05-22): system-pulse KPI cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. #}
   <section class="mb-4 rmc-reveal" data-rmc-ux-section="system-pulse" aria-label="{% trans 'System pulse' %}">
-  <h2 class="h6 text-uppercase text-muted mb-3">{% trans "System pulse" %}</h2>
+  <h2 class="h6 text-uppercase text-muted mb-3 rmc-page-eyebrow">{% trans "System pulse" %}</h2>
   <div class="row g-3 mb-2 rmc-reveal-stagger">
     <div class="col-md-4 rmc-reveal" data-rmc-northstar-score="1">
-      <div class="card border-0 shadow-sm h-100">
+      <div class="card border-0 shadow-sm h-100 rmc-stat-card--mono">
         <div class="card-body">
           <div class="text-secondary small text-uppercase">{% trans "North Star audit score" %}</div>
-          <div class="display-6">
+          <div class="display-6 rmc-stat-card__count--mono">
             {% if audit_total is not None %}{{ audit_total }}/75{% else %}
             <span class="fs-5 text-secondary">{% trans "not available" %} — {% trans "Run" %} <code>python scripts/run_northstar_audit.py</code></span>
             {% endif %}
@@ -98,56 +105,57 @@
       </div>
     </div>
     <div class="col-md-4 rmc-reveal">
-      <div class="card border-0 shadow-sm h-100">
+      <div class="card border-0 shadow-sm h-100 rmc-stat-card--mono">
         <div class="card-body">
           <div class="text-secondary small text-uppercase">{% trans "Kill test" %}</div>
-          <div class="fs-4">{% if kill_test.result %}{{ kill_test.result }}{% else %}{% trans "not run" %}{% endif %}</div>
+          <div class="fs-4 rmc-stat-card__count--mono">{% if kill_test.result %}{{ kill_test.result }}{% else %}{% trans "not run" %}{% endif %}</div>
         </div>
       </div>
     </div>
     <div class="col-md-4 rmc-reveal">
-      <div class="card border-0 shadow-sm h-100">
+      <div class="card border-0 shadow-sm h-100 rmc-stat-card--mono">
         <div class="card-body" data-rmc-self-heal-status="1">
           <div class="text-secondary small text-uppercase">{% trans "Self-heal" %}</div>
-          <div class="fs-4">{{ self_heal_status }}</div>
+          <div class="fs-4 rmc-stat-card__count--mono">{{ self_heal_status }}</div>
         </div>
       </div>
     </div>
   </div>
   </section>
 
+  {# v3.59.x Wave 11 Agent X (2026-05-22): growth-activation KPI cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. #}
   <section class="mb-4 rmc-reveal" data-rmc-ux-section="growth-activation">
-  <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Growth and activation" %}</h2>
+  <h2 class="h6 text-uppercase text-muted mb-3 rmc-page-eyebrow">{% trans "Growth and activation" %}</h2>
   <div class="row g-3 mb-4 rmc-reveal-stagger" data-rmc-business-value="1">
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Activation rate" %}</div>
-          <div class="h4 mb-0">{{ business_value.activation_rate_pct }}%</div>
+          <div class="h4 mb-0 rmc-stat-card__count--mono">{{ business_value.activation_rate_pct }}%</div>
         </div>
       </div>
     </div>
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Onboarding in progress" %}</div>
-          <div class="h4 mb-0">{{ business_value.onboarding_in_progress }}</div>
+          <div class="h4 mb-0 rmc-stat-card__count--mono">{{ business_value.onboarding_in_progress }}</div>
         </div>
       </div>
     </div>
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Paid penetration" %}</div>
-          <div class="h4 mb-0">{{ business_value.paid_penetration_pct }}%</div>
+          <div class="h4 mb-0 rmc-stat-card__count--mono">{{ business_value.paid_penetration_pct }}%</div>
         </div>
       </div>
     </div>
     <div class="col-md-3 rmc-reveal">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-stat-card--mono">
         <div class="card-body py-3">
           <div class="text-secondary small">{% trans "Revenue share drafts" %}</div>
-          <div class="h4 mb-0">{{ business_value.revenue_share_draft }}</div>
+          <div class="h4 mb-0 rmc-stat-card__count--mono">{{ business_value.revenue_share_draft }}</div>
         </div>
       </div>
     </div>

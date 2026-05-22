@@ -53,7 +53,8 @@
        (line 88) is the single H1 for this page. It also owns the chip rail and
        the "today's classes" decision zone. {% endcomment %}
     {% if teacher_fast_workflows %}
-    <section class="card border-0 shadow-sm mb-3 p-3" data-teacher-fast-workflows="1" data-tour="teacher-fast-workflows" aria-label="{% trans 'Fast workflows' %}">
+    {# v3.59.x Wave 11 Agent X (2026-05-22): fast-workflows grouping adopts `.rmc-app-section--glass` per v8 200x preview. #}
+    <section class="card border-0 shadow-sm rmc-app-section--glass mb-3 p-3" data-teacher-fast-workflows="1" data-tour="teacher-fast-workflows" aria-label="{% trans 'Fast workflows' %}">
       {% if rmc_conversion_single_action_enforced|default:False %}
       <details class="rmc-conversion-more-actions border rounded px-2 py-2">
         <summary class="d-flex flex-wrap align-items-center gap-2 mb-0 text-muted small user-select-none cursor-pointer" >
@@ -122,9 +123,10 @@
         {% endif %}
       </div>
     </section>
-    <section id="teacher-today" data-rmc-section-anchor class="tdm-hero card-glass rmc-reveal" data-decision-zone="headline" data-rmc-ux-section="today-plan" data-tour="teacher-today" aria-label="{% trans 'Teaching plan for today' %}">
+    {# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside tdm-hero — additive, preserves existing wiring. #}
+    <section id="teacher-today" data-rmc-section-anchor class="tdm-hero rmc-page-header-glow card-glass rmc-reveal" data-decision-zone="headline" data-rmc-ux-section="today-plan" data-tour="teacher-today" aria-label="{% trans 'Teaching plan for today' %}">
       <div class="tdm-hero__text">
-        <p class="tdm-eyebrow">{% term "teacher" capitalize=True %} {% trans "workspace" %}</p>
+        <p class="tdm-eyebrow rmc-page-eyebrow">{% term "teacher" capitalize=True %} {% trans "workspace" %}</p>
         {% comment %} Pass 8: previously hardcoded "Good afternoon" regardless of the user's local time.
            Use the same neutral "Welcome back" greeting as parent/admin dashboards until a
            time-of-day greeting helper is wired through the context processor. {% endcomment %}

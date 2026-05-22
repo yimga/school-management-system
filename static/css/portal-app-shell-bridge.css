@@ -1,0 +1,135 @@
+/* ============================================================
+   portal-app-shell-bridge.css — v3.59.2 (2026-05-22)
+   ------------------------------------------------------------
+   Applies the .rmc-app-shell layout *contract* to tenant portal
+   pages WITHOUT rewriting portal_base.html (705 lines, multi-
+   host, deep include tree). The DOM stays identical; this layer
+   re-roles existing Bootstrap classes so the portal inherits:
+
+     * `html, body { overflow: hidden }` — document never scrolls
+     * Single scrollable surface (`.page-wrap`) — owns the bar
+     * Static sidebar with its OWN internal scroll track
+     * Static footer pinned to viewport bottom
+     * No more "horizontal cut-off / footer adrift" classes
+
+   Scope:
+     body.portal-body-with-layout:not(.control-plane-shell)
+     — i.e. tenant portal pages only. Manager-host portal pages
+     (operator viewing tenant portal) keep their own chrome.
+     Marketing / auth pages are exempt via `data-rmc-density="open"`
+     or by lack of `.portal-body-with-layout` class.
+
+   Why this layer over DOM surgery:
+     portal_base.html ships a Bootstrap row/col layout with the
+     sidebar in `.cp-sidebar-col` / `.portal-sidebar-col` and the
+     main content in `.portal-main-col > .page-wrap`. Restructuring
+     those would require updating dozens of selectors in 30+
+     CSS files. This bridge gets the contract for free.
+
+   Operator opt-out (per-page):
+     <html data-rmc-shell="off"> disables the lock (already in
+     rmc-app-shell.css). Use sparingly — pages that need natural
+     document scroll (printable invoices, public auth forms).
+   ============================================================ */
+
+/* ---------- Document lock — match the .rmc-app-shell contract ---------- */
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface):not([data-rmc-density="open"]) {
+  /* The body becomes a flex column so the next-level layout (Bootstrap
+     row/col under shell_portal_layout_wrap_open) can occupy the viewport.
+     Without this, content uses natural document-scroll which conflicts
+     with the static-chrome promise.
+
+     iOS Safari: 100dvh prevents the address-bar collapse from clipping. */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* The portal "main col" carries the page-wrap that hosts the canvas body.
+   Under the bridge, this col becomes the scrollable canvas. */
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The page-wrap is the canvas — the single scrollable surface on the
+   tenant portal. iOS momentum + smooth anchor jumps within the canvas. */
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  /* Keep document-scroll fallback intact when [data-rmc-shell="off"]
+     is set on <html> — that selector wins per rmc-app-shell.css.   */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---------- Static sidebar with own scroll ---------- */
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col {
+  min-height: 0;
+  /* Don't override Bootstrap's column width — only the scroll behavior. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col:hover,
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col:focus-within {
+  scrollbar-color: var(--hairline-strong) transparent;
+}
+
+/* WebKit scrollbar styling — match the .rmc-app-shell canvas/sidebar grammar. */
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap::-webkit-scrollbar,
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap::-webkit-scrollbar-thumb,
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background var(--motion-normal);
+}
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap:hover::-webkit-scrollbar-thumb,
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col:hover::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+}
+
+/* ---------- Footer pinned ---------- */
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) [data-rmc-shell-footer="portal"] {
+  /* Sit at the end of the document flow — the page-wrap's flex:1 above
+     guarantees the footer is pushed to the viewport bottom when content
+     is short, and naturally appears at end-of-canvas-flow when long. */
+  flex: 0 0 auto;
+}
+
+/* ---------- iOS Safari safe-area inset polish ---------- */
+@supports (padding: max(0px)) {
+  body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* ---------- Print escape ----------
+   Printing must use natural document flow — `overflow: hidden` would clip
+   pages 2+. The .rmc-app-shell.css print escape already lifts the lock;
+   make sure portal pages follow suit. */
+@media print {
+  body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface),
+  body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col,
+  body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap,
+  body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0;
+  }
+}

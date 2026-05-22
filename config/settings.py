@@ -414,6 +414,8 @@ TEMPLATES = [
                 "apps.siteconfig.context_processors.language_context",
                 "apps.siteconfig.context_processors.lexicon_context",  # Wave A — G1 tenant terminology overrides
                 "apps.siteconfig.context_processors.analytics_viz_context",
+                "apps.siteconfig.page_personality.personality_context_processor",  # v3.59.x Wave 11 Agent U — per-page-personality accent slug
+                "apps.siteconfig.page_personality.personality_overrides_context_processor",  # v3.59.x Wave 11 Agent W — operator theme-personality CSS overrides
                 "apps.siteconfig.cockpit_context.cockpit_context",  # v3.55.0 cockpit (manager only) — brand tagline + activity ticker + platform pulse + workspace context
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
                 "apps.accounts.context_processors.sidebar_record_context",

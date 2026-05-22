@@ -47,7 +47,8 @@
               <form method="post" class="d-inline">
                 {% csrf_token %}
                 {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-                <button type="submit" name="enable_mfa" class="btn btn-primary btn-lg"><i class="bi bi-lock me-1"></i>{% trans "Enable MFA (authenticator app)" %}</button>
+                {# v3.59.x Wave 11 Agent X (2026-05-22): primary CTA upgraded to gradient indigo per v8 200x preview. #}
+                <button type="submit" name="enable_mfa" class="btn btn-primary btn-lg rmc-cta--gradient-indigo"><i class="bi bi-lock me-1"></i>{% trans "Enable MFA (authenticator app)" %}</button>
               </form>
               {% if use_passkey %}
                 <span class="text-muted align-self-center mx-1" style="font-size:var(--type-size-caption)">{% trans "or" %}</span>

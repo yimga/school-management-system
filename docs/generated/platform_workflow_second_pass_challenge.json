@@ -1,0 +1,408 @@
+{
+  "doc": "platform_workflow_second_pass_challenge",
+  "phase": 14,
+  "generated_at": "2026-05-22",
+  "scope": "Adversarial second-pass challenge of every earlier-phase finding for the platform-wide workflow audit. Read-only code walk; cites file paths + line numbers as evidence; no fixes applied here.",
+  "inputs_read": [
+    "docs/generated/platform_workflow_code_truth_inventory.json (Phase 0, 2026-05-22)",
+    "docs/generated/platform_workflow_code_truth_inventory.md (Phase 0)",
+    "docs/generated/workflow_click_reduction_audit.json (pre-existing, 2026-05-05)",
+    "docs/generated/workflow_click_reduction_audit.md (pre-existing)",
+    "CLAUDE.md (engineering guide + scanner table)"
+  ],
+  "inputs_missing_at_start": [
+    "docs/generated/platform_workflow_classification_matrix.json (Phase 1) - not landed",
+    "docs/architecture/RUNMYCAMPUS_WORKFLOW_HOW_TO_SYSTEM.md (Phase 2) - not landed",
+    "docs/generated/platform_how_to_system_audit.json (Phase 2) - not landed",
+    "docs/generated/platform_workflow_info_tags_audit.json (Phase 3) - not landed",
+    "docs/generated/operator_workflow_gear_up_audit.json (Phase 5) - not landed",
+    "docs/generated/tenant_workflow_gear_up_audit.json (Phase 6) - not landed",
+    "docs/generated/studio_os_workflow_gear_up_audit.json (Phase 7) - not landed",
+    "docs/generated/ai_workflow_assistant_audit.json (Phase 8) - not landed",
+    "docs/generated/workflow_help_kb_faq_audit.json (Phase 9) - not landed",
+    "docs/generated/workflow_productivity_scorecard.json (Phase 10) - not landed"
+  ],
+  "challenge_basis_note": "Because only Phase 0 inventory + the pre-existing workflow_click_reduction_audit (2026-05-05) had landed, the challenge focuses on (a) the 6 workflows listed in workflow_click_reduction_audit, (b) workflows surfaced by Phase 0 inventory's per-app workflow_pages, (c) workflows the prompt's 12-question lens makes salient but earlier-phase artifacts entirely omit.",
+
+  "challenges_raised": [
+    {
+      "workflow_id": "teacher_attendance",
+      "dimension_challenged": "is_next_action_obvious",
+      "prior_finding": "workflow_click_reduction_audit.json: 'Teacher Workspace next-action strip opens attendance for the active class.' Implies low-click path is in place.",
+      "my_finding": "FALSE. templates/teacher/attendance.html lines 1-23 show no next_action_strip include, no primary 'Take attendance' button, and no workflow_next_action component. The ONLY top-of-page action is 'Export CSV' (lines 18, 20). Summary/History cards (lines 25-50) are read-only. The primary action (mark roll) lives below the fold inside a roster form, not at page-top. data-task=\"teacher_attendance\" is present at line 7 but there is no surfaced 'next action' at all.",
+      "evidence_path": "beta/school-management-system/templates/teacher/attendance.html:1-50",
+      "severity": "high"
+    },
+    {
+      "workflow_id": "teacher_attendance",
+      "dimension_challenged": "before_after_estimate_claim",
+      "prior_finding": "workflow_click_reduction_audit.json line 14: 'before_after_estimate: 3 to 1-2', measurement_status: 'hypothesis'",
+      "my_finding": "Hypothesis is not falsifiable in current code because the proposed primary action ('Take attendance') is not surfaced at all. The 1-2 click target cannot be reached from /portal/teacher/ as long as the dashboard does not link directly into the attendance entry form for the active class. Phase 0 inventory shows zero workflow_next_action.html include in any /templates/teacher/* template (verified via grep).",
+      "evidence_path": "beta/school-management-system/templates/teacher/* (grep for workflow_next_action returned 0 hits)",
+      "severity": "high"
+    },
+    {
+      "workflow_id": "marks_entry",
+      "dimension_challenged": "data_hook_match",
+      "prior_finding": "workflow_click_reduction_audit.json line 25: data_hooks include data-task=\"marks_entry\"",
+      "my_finding": "FALSE. The actual template uses data-task=\"teacher_marks_entry\" (templates/teacher/marks_entry.html line 6 + line 50 + line 282). The audit's hook string does not match any template; downstream click-ingest analytics keyed on 'marks_entry' will silently produce zero events. This is a measurable telemetry gap, not just a naming nit.",
+      "evidence_path": "beta/school-management-system/templates/teacher/marks_entry.html:6,50,282",
+      "severity": "medium"
+    },
+    {
+      "workflow_id": "marks_entry",
+      "dimension_challenged": "is_next_action_obvious",
+      "prior_finding": "workflow_click_reduction_audit.json: 'Pending work card links directly to marks grid.'",
+      "my_finding": "PARTIAL. marks_entry.html has clearly labeled primary buttons (line 282 'Save All Marks', line 284 'submit_for_approval', line 50 'Load students'). The page itself is OK. But the claim that a 'Pending work card' (presumably on the teacher dashboard) links to it is unverifiable: no teacher dashboard template wires a 'pending work' card to marks_entry via data-task, and the phase 0 inventory does not list a teacher_dashboard.html under apps/portal workflow pages. The deep-link in is real; the dashboard entry-point is unverified.",
+      "evidence_path": "beta/school-management-system/templates/teacher/marks_entry.html:6-284",
+      "severity": "medium"
+    },
+    {
+      "workflow_id": "report_generation",
+      "dimension_challenged": "data_hook_match_AND_primary_action",
+      "prior_finding": "workflow_click_reduction_audit.json line 37: data_hooks include data-task=\"report_generation\", primary_action 'Generate report'",
+      "my_finding": "PARTIAL. The string data-task=\"report_generation\" exists ONLY in templates/analytics/decision_intelligence_dashboard.html (5 sites: lines 5, 25, 37, 49, 61) and in test files. The advertised 'Governed report builder' template templates/analytics/governed_report_builder.html uses data-task=\"governed_report_export\" instead (lines 7, 54, 58, 65). So the report_generation telemetry name fragments across two surfaces with two different hooks; analytics dashboards run BOTH 'report_generation' and 'insights_center' (templates/analytics/dashboard.html:76-78). The primary action 'Generate report' is NOT the verb in code - the governed builder labels its buttons 'Preview' / 'Export CSV' / 'Export JSON' / 'Save', never 'Generate'.",
+      "evidence_path": "beta/school-management-system/templates/analytics/governed_report_builder.html:54-87 vs templates/analytics/decision_intelligence_dashboard.html:5-61",
+      "severity": "high"
+    },
+    {
+      "workflow_id": "parent_payment_receipt",
+      "dimension_challenged": "data_hook_match_AND_primary_action",
+      "prior_finding": "workflow_click_reduction_audit.json line 49: data_hooks include data-task=\"parent_payment_receipt\", primary_action 'Capture receipt', 'Money Center shows invoice, manual fallback, and receipt capture together.'",
+      "my_finding": "FAKE-DONE. grep for data-task=\"parent_payment_receipt\" across the entire tree returns ONLY the audit JSON itself (no template). The actual parent finance template templates/parent/finance.html line 14 uses data-task=\"parent_payment\". Its single-action mode (line 17, gated by rmc_conversion_single_action_enforced) surfaces 'Jump to invoices' as the primary, NOT 'Capture receipt'. The Money Center dashboard (templates/finance/dashboard.html) uses data-task=\"money_center\" with primaries 'Generate fee invoices' / 'Overdue' / 'Payments' / 'Trial balance' / 'Payment Readiness Center' (lines 66-70) - no 'Capture receipt' action exists anywhere visible. This is the clearest fake-done in the click-reduction audit.",
+      "evidence_path": "grep data-task=\"parent_payment_receipt\" returns 0 hits in templates/; templates/parent/finance.html:14-17; templates/finance/dashboard.html:66-70",
+      "severity": "critical"
+    },
+    {
+      "workflow_id": "offline_conflict_resolution",
+      "dimension_challenged": "measurement_claim",
+      "prior_finding": "workflow_click_reduction_audit.json line 63: measurement_status: 'measured_local_route' (the only non-hypothesis claim)",
+      "my_finding": "DEFENDED. templates/platform_runtime/manager_offline_sync_center.html lines 15-39 actually exist and contain the explanatory empty-state ('This manager route is intentionally explanatory. It prevents a dead 404 while preserving tenant isolation.') and data-action=\"offline-sync-select-tenant\" at line 36. This claim survives the second pass. However: the audit understates the click count - tenant offline sync also requires school selection within the tenant, so net clicks operator->tenant queue is 2-3, not '1 explanatory action'. The framing 'before/after: 404 to 1 explanatory action' is technically correct but the workflow itself is not closed at one click.",
+      "evidence_path": "beta/school-management-system/templates/platform_runtime/manager_offline_sync_center.html:15-39",
+      "severity": "low"
+    },
+    {
+      "workflow_id": "tenant_onboarding",
+      "dimension_challenged": "primary_action_implemented",
+      "prior_finding": "workflow_click_reduction_audit.json line 73: 'Implementation Command Center exposes go-live score and primary next action.'",
+      "my_finding": "DEFENDED. templates/platform_runtime/implementation_command_center.html lines 16-45 actually render: (a) go_live_readiness_score / 100 + band (line 20-22), (b) consolidated_blockers list (line 24-31), (c) Primary next action button (line 43-44). data-rmc-implementation-command-center hook present at line 5. This is the strongest workflow in the audit. Real concern: the page is operator-shell (control_plane_base.html, line 1) so tenant admins cannot reach it - which means the 'tenant_onboarding' label is misleading. It is really operator_onboarding_a_tenant.",
+      "evidence_path": "beta/school-management-system/templates/platform_runtime/implementation_command_center.html:1,5,16-45",
+      "severity": "low"
+    },
+    {
+      "workflow_id": "ALL_workflows",
+      "dimension_challenged": "is_help_available",
+      "prior_finding": "Phase 0 inventory summary lists 'apps_with_help_template: 4' out of 50 apps; workflow_click_reduction_audit does not address help.",
+      "my_finding": "GRAVE GAP. Only 4 of 50 apps ship a help template (apicenter, feedback, portal, schools per Phase 0 lines 1025,1741,2038,621). None of the 6 workflows listed in click-reduction audit ship a contextual help link. templates/teacher/attendance.html, marks_entry.html, parent/finance.html, finance/dashboard.html, analytics/governed_report_builder.html - grepped for 'help_contextual_drawer' - only portal_base.html includes it. There is no per-workflow help. Phase 0's 'workflow_templates_without_help' list (20 apps) confirms this. The prompt's question 5 ('Is help / how-to available?') gets a NO across the platform.",
+      "evidence_path": "docs/generated/platform_workflow_code_truth_inventory.md lines 112-114; templates/partials/help_contextual_drawer.html only referenced by templates/portal_base.html (grep)",
+      "severity": "critical"
+    },
+    {
+      "workflow_id": "ALL_workflows",
+      "dimension_challenged": "ai_guidance_specific_not_generic",
+      "prior_finding": "Phase 0 lists 18 apps with ai_helpers import. No earlier audit measures whether the AI guidance is workflow-specific.",
+      "my_finding": "UNVERIFIED-BUT-LIKELY-GENERIC. ai_helpers imports surface ONLY through apps/portal/views_ai_*.py (views_ai_gateway, views_ai_copilot, views_ai_draft, views_ai_product, views_ai_surfaces). None of templates/teacher/attendance.html, marks_entry.html, parent/finance.html, finance/dashboard.html have any AI-prompt template binding (no data-rmc-ai-*, no ai-helpers include). The AI Copilot rail (per memory v3.56) lives in the operator control-plane shell, not in tenant workflow pages. Prompt's question 6 ('Is AI guidance specific?') is therefore NO for the 6 click-reduction workflows.",
+      "evidence_path": "grep ai-helpers + data-rmc-ai across templates/teacher/ and templates/parent/finance.html returns 0 hits",
+      "severity": "high"
+    },
+    {
+      "workflow_id": "ALL_workflows",
+      "dimension_challenged": "is_mobile_usable",
+      "prior_finding": "No earlier phase measured mobile-usability per workflow.",
+      "my_finding": "PARTIAL. Templates do use table-mobile-cards (templates/teacher/attendance.html:45), col-md-* responsive grid (parent/finance.html:51-60), and Bootstrap-grid responsiveness is in place. But the 6 click-reduction workflows have NO mobile-first 'sheet' / bottom-sheet primary CTA (the .rmc-bottom-sheet grammar exists per CLAUDE.md but is not wired into any of these workflows per Phase 0). On a phone, marks_entry.html's per-student grid would degrade to a wide horizontal scroll; the v3.57.1 horizontal-overflow burndown (memory) explicitly targeted that risk but no marks-entry-specific mobile remediation is in evidence. Prompt's question 9 is therefore PARTIAL across all 6 workflows.",
+      "evidence_path": "templates/teacher/marks_entry.html: no .rmc-bottom-sheet, no mobile-card-first pattern; CLAUDE.md notes .rmc-bottom-sheet as canonical grammar but not adopted here",
+      "severity": "medium"
+    },
+    {
+      "workflow_id": "tenant_studio_creator",
+      "dimension_challenged": "workflow_completely_omitted",
+      "prior_finding": "workflow_click_reduction_audit.json lists 6 workflows; Phase 0 inventory lists 27 apps with routes. Studio OS (48 routes per Phase 0) is the entire creator workflow surface yet appears in zero earlier-phase audit entries.",
+      "my_finding": "OMISSION. apps/studio_os has 48 routes, 15 workflow templates, surfaces operator+tenant+default. The whole 'creator' workflow (mode rails per memory v3.54 - Overview/Experience/Automation/Output/Launch/Control) is missing from click-reduction audit. Prompt's 12-question lens should include at minimum: studio_os_create_blueprint, studio_os_publish_blueprint, studio_os_launch_to_tenant.",
+      "evidence_path": "docs/generated/platform_workflow_code_truth_inventory.md line 41 (studio_os 48 routes, 15 workflow templates); memory project_studio_os_next_realm_v3_54_2026_05_21",
+      "severity": "high"
+    },
+    {
+      "workflow_id": "migration_cloud_workflows",
+      "dimension_challenged": "workflow_completely_omitted",
+      "prior_finding": "Phase 0 inventory lists migration_cloud as 92 routes, 136 tests, the platform's biggest single non-API workflow surface; click-reduction audit does not mention it.",
+      "my_finding": "OMISSION. The entire Migration Cloud chain (companion upload, MAA signing, canonical CSV ingest, webhook verifier setup, audit-chain verification, key rotation, MAA v2.0 promotion) is the most operationally critical multi-step workflow on the platform per memory v3.26->v3.39, but appears in ZERO earlier-phase workflow audit entries. At least migration_cloud_companion_first_pull and migration_cloud_csv_ingest belong on the workflow list.",
+      "evidence_path": "docs/generated/platform_workflow_code_truth_inventory.md line 40 (migration_cloud 92 routes); memory project_migration_cloud_*",
+      "severity": "high"
+    },
+    {
+      "workflow_id": "manager_health_dashboard",
+      "dimension_challenged": "workflow_completely_omitted",
+      "prior_finding": "v3.38 shipped MigrationCloudHealthView 6-panel dashboard; click-reduction audit predates it (2026-05-05) and was not refreshed.",
+      "my_finding": "STALE OMISSION. Click-reduction audit is 17 days older than CLAUDE.md and predates v3.28..v3.57. Newer workflows missing: operator_migration_health_review, operator_webhook_audit_replay, operator_audit_chain_verification, operator_cockpit_configure (v3.56 SiteSettings.cockpit_payload form), tenant_blueprint_install, parent_meal_plan_top_up.",
+      "evidence_path": "workflow_click_reduction_audit.json generated_at 2026-05-05 vs CLAUDE.md memory wave v3.39 dated 2026-05-19 (14 days newer) and v3.57.11 (today)",
+      "severity": "high"
+    },
+    {
+      "workflow_id": "platform_pulse_snapshot",
+      "dimension_challenged": "workflow_completely_omitted",
+      "prior_finding": "Memory references PlatformPulseSnapshot daily delta + 01:15 UTC beat (v3.58.6). Pulse cards are a workflow-trigger surface. Click-reduction audit does not list them.",
+      "my_finding": "OMISSION. operator_pulse_daily_review should be a tracked workflow since it is the FIRST surface an operator sees post-login on the manager shell per memory v3.58.6 honest-deferred closeout.",
+      "evidence_path": "MEMORY auto-context lines on v3.58.6; manager landing page is the pulse",
+      "severity": "medium"
+    }
+  ],
+
+  "workflows_added": [
+    {
+      "workflow_id": "studio_os_publish_blueprint",
+      "audience": "tenant_admin OR operator",
+      "rationale": "Memory v3.54 documents 5 studio-os mode rails (Overview/Experience/Automation/Output/Launch/Control). Publishing a blueprint to a tenant is core to the creator economy and is entirely absent from click-reduction audit.",
+      "evidence_path": "apps/studio_os/* (48 routes, 15 templates)"
+    },
+    {
+      "workflow_id": "migration_cloud_first_pull",
+      "audience": "operator",
+      "rationale": "End-to-end: download companion, install, log into vendor SIS, export canonical CSV, ingest into RMC, see receipts. Most-clicks workflow on the platform. Omitted entirely.",
+      "evidence_path": "apps/migration_cloud/* (92 routes); docs/COMPANION_SIBLINGS_HANDSHAKE_AND_CSV_INGEST.md"
+    },
+    {
+      "workflow_id": "operator_webhook_subscription_create_and_test",
+      "audience": "operator",
+      "rationale": "v3.37 shipped WebhookSubscriptionAuditView + ReplayView. End-to-end subscribe+verify is a discrete workflow yet ignored.",
+      "evidence_path": "apps/migration_cloud/views_webhook_admin.py; apps/apicenter/templates/apicenter/webhook_subscription_form.html"
+    },
+    {
+      "workflow_id": "tenant_meal_plan_low_balance_top_up",
+      "audience": "parent / guardian",
+      "rationale": "v3.33 schoolops shipped 5-locale i18n + SMS_LOW_BALANCE_BY_LOCALE. Parent receives alert -> tops up -> resumes meal plan. Discrete parent workflow.",
+      "evidence_path": "apps/schoolops/* (per memory v3.33)"
+    },
+    {
+      "workflow_id": "operator_cockpit_configure",
+      "audience": "operator",
+      "rationale": "v3.56 CockpitConfigureView + SiteSettings.cockpit_payload JSONField + 20 v3.57.1 admin toggles + v3.57.11 per-section rich editors. End-to-end 'tune the cockpit' workflow.",
+      "evidence_path": "apps/siteconfig/* per memory v3.56-v3.57.11"
+    },
+    {
+      "workflow_id": "operator_audit_chain_verification",
+      "audience": "operator",
+      "rationale": "v3.39 shipped weekly verify_audit_chain beat + manual /super/migration/audit/ + export. Operator workflow for compliance.",
+      "evidence_path": "apps/migration_cloud/management/commands/verify_audit_chain.py; views_health.py"
+    },
+    {
+      "workflow_id": "tenant_blueprint_install_from_marketplace",
+      "audience": "tenant_admin",
+      "rationale": "apps/marketplace lists tenant_installed_apps.html + monetization_dashboard.html. Discrete install workflow.",
+      "evidence_path": "templates/marketplace/tenant_installed_apps.html"
+    },
+    {
+      "workflow_id": "operator_pulse_daily_review",
+      "audience": "operator",
+      "rationale": "v3.58.6 PlatformPulseSnapshot daily delta. First-thing-in-the-morning operator surface.",
+      "evidence_path": "MEMORY auto-context v3.58.6"
+    },
+    {
+      "workflow_id": "student_assessment_take",
+      "audience": "student",
+      "rationale": "apps/evals has 22 routes, 5 workflow templates - student-assessment-taking is the primary student workflow on the platform. Missing entirely from click-reduction audit (only one teacher-side workflow listed).",
+      "evidence_path": "docs/generated/platform_workflow_code_truth_inventory.md line 47 (evals 22 routes)"
+    },
+    {
+      "workflow_id": "teacher_lesson_plan_publish",
+      "audience": "teacher",
+      "rationale": "apps/academics has syllabus_approval_queue + syllabus_preview templates + teacher_syllabus_hub.html. Real workflow.",
+      "evidence_path": "templates/academics/teacher_syllabus_hub.html"
+    }
+  ],
+
+  "workflows_overrated": [
+    {
+      "workflow_id": "teacher_attendance",
+      "prior_score_or_claim": "Listed as low-click target 3-to-1-2 with proposed next-action strip already in place",
+      "actual_state": "Page-top has only Export CSV; no 'Take attendance' primary action; no next-action strip; primary action is below-fold inside a form.",
+      "evidence_path": "templates/teacher/attendance.html:1-50"
+    },
+    {
+      "workflow_id": "parent_payment_receipt",
+      "prior_score_or_claim": "Listed as 4-to-2-3 with 'Money Center shows invoice, manual fallback, and receipt capture together'",
+      "actual_state": "No data-task=\"parent_payment_receipt\" hook anywhere; no 'Capture receipt' action exists; templates use parent_payment / money_center / payment_readiness with different primaries.",
+      "evidence_path": "templates/parent/finance.html:14; templates/finance/dashboard.html:66-70"
+    },
+    {
+      "workflow_id": "report_generation",
+      "prior_score_or_claim": "Listed as 4-to-2 with 'Governed report builder exposes one primary generate/export action'",
+      "actual_state": "Governed builder exposes Preview/Export CSV/Export JSON/Save - 4 actions visible at top, NOT one. Two competing data-task hooks (report_generation + governed_report_export) split telemetry.",
+      "evidence_path": "templates/analytics/governed_report_builder.html:54-87"
+    }
+  ],
+
+  "workflows_underrated": [
+    {
+      "workflow_id": "offline_conflict_resolution",
+      "prior_score_or_claim": "Treated as a dead-route patch (404 -> 1 explanatory action)",
+      "actual_state": "DEFENDED beyond prior framing. The explanatory landing is real, intentional, and the only workflow in the audit that surfaces an explicit 'tenant-scoped because data lives there' empty state. This is one of the few worked-out empty-state grammars on the platform.",
+      "evidence_path": "templates/platform_runtime/manager_offline_sync_center.html:1-40"
+    },
+    {
+      "workflow_id": "tenant_onboarding",
+      "prior_score_or_claim": "Listed as 5-to-2 hypothesis",
+      "actual_state": "The Implementation Command Center actually does ship go-live score + consolidated blockers + primary-next-action button + adoption metrics + blockers-JSON deep link. This is one of the strongest workflow surfaces in the repo; hypothesis label undersells what is real.",
+      "evidence_path": "templates/platform_runtime/implementation_command_center.html:16-72"
+    }
+  ],
+
+  "recommendations_disputed": [
+    {
+      "workflow_id": "teacher_attendance",
+      "earlier_recommendation": "Add next-action strip on Teacher Workspace that opens attendance for active class.",
+      "my_dispute": "This is too shallow. Adding a strip-link does not address the lack of an obvious primary action ON the attendance page itself. The fix needs to be both ends: (a) workspace next-action AND (b) make the in-page primary be 'Save attendance for {class} now' as a sticky bottom-sheet on mobile.",
+      "my_alternative": "Two-part fix: (1) wire components/workflow_next_action.html into teacher_dashboard with task_code='teacher_attendance' bound to the active class; (2) add an .rmc-bottom-sheet primary 'Save attendance' to templates/teacher/attendance.html with sticky mobile placement."
+    },
+    {
+      "workflow_id": "parent_payment_receipt",
+      "earlier_recommendation": "'Money Center shows invoice, manual fallback, and receipt capture together.'",
+      "my_dispute": "Recommendation is out-of-scope for parent surface. Money Center is finance-app dashboard for school finance staff (templates/finance/dashboard.html), NOT a parent surface. Parents see templates/parent/finance.html. Mixing the two is a tenancy / role error.",
+      "my_alternative": "Rename workflow to 'parent_invoice_pay'. Primary action should be 'Pay invoice {id}' on templates/parent/finance.html if PSP is configured, otherwise 'Mark paid (manual)' with receipt upload. Use data-task='parent_invoice_pay' as the canonical hook; retire the inconsistent data-task='parent_payment' / data-task='parent_payment_receipt' fragmentation."
+    },
+    {
+      "workflow_id": "report_generation",
+      "earlier_recommendation": "'Governed report builder exposes one primary generate/export action.'",
+      "my_dispute": "Single-action recommendation conflicts with the v3.57.x conversion_single_action_enforced flag pattern: actual code already supports both modes (single-action vs full toolbar). The earlier audit recommends collapsing to one without naming which mode is active.",
+      "my_alternative": "Choose the verb. Either 'Preview' is primary (governed_report_builder default) OR rename it to 'Generate'. Pick one and align the data-task hook. Retire the duplicate data-task='report_generation' on decision_intelligence_dashboard.html OR use a different task_code there."
+    },
+    {
+      "workflow_id": "offline_conflict_resolution",
+      "earlier_recommendation": "'Manager route explains tenant scope and sends operator to school selector.'",
+      "my_dispute": "Recommendation does not address the parallel TENANT-side conflict resolution workflow at /portal/offline/sync/conflicts/ - which is the actual fix-the-data workflow. Operator-side is just routing.",
+      "my_alternative": "Add a second workflow entry 'tenant_offline_conflict_apply' that audits templates/portal/offline_sync_queue.html lines 75-90 (process-queue, retry-failed, resolve-conflicts). Audit the conflict-resolution rubric (auto-merge vs manual-pick)."
+    }
+  ],
+
+  "category_defining_test_per_workflow": [
+    {
+      "workflow_id": "teacher_attendance",
+      "beats_aws_salesforce_shopify_linux_amazon_bar": "no",
+      "honest_reason": "Apple Classroom / Google Classroom open the class roster with one tap and the primary action is taking attendance for *today*. RMC's teacher attendance template makes Export CSV the most prominent button at the top. Until the primary verb on the page matches the user's goal, this fails the bar."
+    },
+    {
+      "workflow_id": "marks_entry",
+      "beats_aws_salesforce_shopify_linux_amazon_bar": "partial",
+      "honest_reason": "The grid + OCR-paste path is competitive with Powerschool. But the data-task name mismatch breaks any analytics-driven productivity claim. Help-drawer absence is also a gap vs Salesforce in-page help."
+    },
+    {
+      "workflow_id": "report_generation",
+      "beats_aws_salesforce_shopify_linux_amazon_bar": "no",
+      "honest_reason": "Tableau / Looker / Snowflake all open a saved report with one click + 'Refresh' as the primary. RMC fragments into governed_report_export (with Preview as primary) vs decision_intelligence (with insight cards). The user has to pick a surface before they pick an action."
+    },
+    {
+      "workflow_id": "parent_payment_receipt",
+      "beats_aws_salesforce_shopify_linux_amazon_bar": "no",
+      "honest_reason": "Shopify Pay / Stripe Checkout are the bar: one URL, one card form, done. RMC's parent finance page leads with 'Print' + 'Request finance access' + 'Jump to invoices' - none of which is the action the parent came to do (pay)."
+    },
+    {
+      "workflow_id": "offline_conflict_resolution",
+      "beats_aws_salesforce_shopify_linux_amazon_bar": "partial",
+      "honest_reason": "The empty-state on the operator manager route is genuinely best-in-class; AWS would call this a 'console-empty-state' pattern. But the tenant-side actual conflict-resolve UX is unaudited; can't claim 10x without seeing it."
+    },
+    {
+      "workflow_id": "tenant_onboarding",
+      "beats_aws_salesforce_shopify_linux_amazon_bar": "partial",
+      "honest_reason": "go-live score + consolidated blockers + adoption signals + primary-next-action is closer to AWS Account Onboarding than to Salesforce Setup. With adoption telemetry + AI-suggested next step (currently not wired), this could be 10x. As-is, it's strong but not yet category-defining."
+    }
+  ],
+
+  "truth_up_verdict_per_workflow": [
+    {"workflow_id": "teacher_attendance", "verdict": "not_yet"},
+    {"workflow_id": "marks_entry", "verdict": "partial"},
+    {"workflow_id": "report_generation", "verdict": "partial"},
+    {"workflow_id": "parent_payment_receipt", "verdict": "not_yet"},
+    {"workflow_id": "offline_conflict_resolution", "verdict": "partial"},
+    {"workflow_id": "tenant_onboarding", "verdict": "partial"},
+    {"workflow_id": "studio_os_publish_blueprint", "verdict": "external_blocked_or_unaudited"},
+    {"workflow_id": "migration_cloud_first_pull", "verdict": "partial"},
+    {"workflow_id": "operator_webhook_subscription_create_and_test", "verdict": "partial"},
+    {"workflow_id": "tenant_meal_plan_low_balance_top_up", "verdict": "partial"},
+    {"workflow_id": "operator_cockpit_configure", "verdict": "partial"},
+    {"workflow_id": "operator_audit_chain_verification", "verdict": "partial"},
+    {"workflow_id": "tenant_blueprint_install_from_marketplace", "verdict": "not_yet"},
+    {"workflow_id": "operator_pulse_daily_review", "verdict": "partial"},
+    {"workflow_id": "student_assessment_take", "verdict": "not_yet"},
+    {"workflow_id": "teacher_lesson_plan_publish", "verdict": "not_yet"}
+  ],
+
+  "fake_done_or_placeholder_claims": [
+    {
+      "claim": "data-task=\"parent_payment_receipt\" data hook in templates",
+      "source": "docs/generated/workflow_click_reduction_audit.json line 49",
+      "verdict": "FAKE-DONE",
+      "evidence": "grep for the literal string returns ONLY the audit JSON itself; no template references it. The whole 'parent_payment_receipt' identifier is invented in the audit and never landed."
+    },
+    {
+      "claim": "data-task=\"marks_entry\" data hook in templates",
+      "source": "docs/generated/workflow_click_reduction_audit.json line 25",
+      "verdict": "PLACEHOLDER",
+      "evidence": "Real template uses data-task=\"teacher_marks_entry\" (templates/teacher/marks_entry.html:6). Audit's hook name is a placeholder that does not match shipped code."
+    },
+    {
+      "claim": "Teacher Workspace next-action strip opens attendance for the active class.",
+      "source": "docs/generated/workflow_click_reduction_audit.json line 11",
+      "verdict": "FAKE-DONE",
+      "evidence": "templates/components/next_action_strip.html exists as a component (lines 19,29,41,64) but no /templates/teacher/*.html includes it. The 'next-action strip is in place' framing is not supported by code."
+    },
+    {
+      "claim": "'Money Center shows invoice, manual fallback, and receipt capture together.'",
+      "source": "docs/generated/workflow_click_reduction_audit.json line 46",
+      "verdict": "FAKE-DONE",
+      "evidence": "templates/finance/dashboard.html:66-70 shows: Generate fee invoices / Overdue / Payments / Trial balance / Payment Readiness Center. None of these is 'receipt capture'. There is no 'manual fallback' UI grouped with invoice + receipt anywhere."
+    },
+    {
+      "claim": "All earlier-phase audit confidence (Phase 1-10 outputs missing yet referenced by name in the prompt)",
+      "source": "Task prompt's INPUTS list",
+      "verdict": "MISSING-NOT-FAKE-DONE",
+      "evidence": "Phases 1-10 specific artifacts not on disk; cannot challenge specific claims for those phases. Honest noted in inputs_missing_at_start."
+    }
+  ],
+
+  "additional_systemic_findings": [
+    {
+      "finding": "Telemetry hook fragmentation",
+      "description": "Across the 6 click-reduction workflows, data-task hook strings disagree with audit JSON in 3 of 6 cases (marks_entry, parent_payment_receipt, report_generation). Any analytics keyed on the audit's hook names will produce zero-event silent dropouts. Suggest a hook registry SOT (apps/portal/click_ingest_task_codes.py or similar) and a CI scanner asserting the registry matches templates.",
+      "evidence_path": "templates/teacher/marks_entry.html:6 vs audit hook; templates/parent/finance.html:14 vs audit hook"
+    },
+    {
+      "finding": "Help-coverage cliff",
+      "description": "Only 4/50 apps have a help template. The 6 click-reduction workflows have ZERO contextual help. The platform fails prompt question 5 across the board.",
+      "evidence_path": "docs/generated/platform_workflow_code_truth_inventory.md:112-114"
+    },
+    {
+      "finding": "AI-guidance is shell-level not workflow-level",
+      "description": "AI Copilot rail (v3.56) is wired in operator control_plane_skeleton, not in tenant workflow pages. Prompt question 6 ('AI guidance specific') is NO for teacher/parent workflows.",
+      "evidence_path": "templates/teacher/attendance.html and parent/finance.html grep for ai-* returns 0; memory v3.56 documents AI rail at manager shell only"
+    },
+    {
+      "finding": "Click-reduction audit is 17+ days older than the rest of the platform",
+      "description": "Audit dated 2026-05-05; latest wave is v3.57.11 (today, 2026-05-22). Audit predates v3.28..v3.57 entirely, so it lacks coverage of migration_cloud, studio_os, cockpit, audit-chain, observability, and 8 zero-tolerance scanners. The whole document is a stale baseline.",
+      "evidence_path": "workflow_click_reduction_audit.json generated_at + CLAUDE.md sources of truth section"
+    },
+    {
+      "finding": "12-question prompt-lens systematically not addressed by earlier phase",
+      "description": "Earlier audit answers only 'is it low-click' (question 8). Questions 1-7 and 9-12 are not addressed for ANY workflow.",
+      "evidence_path": "docs/generated/workflow_click_reduction_audit.json columns are: routes / pain / proposed / primary_action / measurement - missing tenant-safety, mobile, productivity, engagement, competitive-bar"
+    }
+  ],
+
+  "summary_counts": {
+    "challenges_raised": 15,
+    "workflows_added": 10,
+    "workflows_overrated": 3,
+    "workflows_underrated": 2,
+    "recommendations_disputed": 4,
+    "fake_done_or_placeholder_claims": 5
+  },
+
+  "constraints_honored": {
+    "read_only_walk": true,
+    "stdlib_only_helpers": "n/a (no helpers run)",
+    "no_commits": true,
+    "no_sot_updates": true,
+    "no_emojis": true,
+    "citations_with_file_paths_and_line_numbers": true
+  },
+
+  "verdict": "PHASE_14_SECOND_PASS_CHALLENGE_READY"
+}

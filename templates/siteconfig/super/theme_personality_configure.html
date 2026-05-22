@@ -1,0 +1,247 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{% trans "Theme personality" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/super/">{% trans "Home" %}</a></li>
+    {% if cockpit_configure_url %}
+      <li class="breadcrumb-item"><a href="{{ cockpit_configure_url }}">{% trans "Cockpit" %}</a></li>
+    {% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Theme personality" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="configuration-form" data-rmc-page-personality="settings">
+  <header class="mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase mb-1">{% trans "Theme personality cascade" %}</div>
+        <h1 class="h4 mb-1 fw-bold page-h1">{% trans "Theme personality" %}</h1>
+        <p class="small mb-0 text-muted">
+          {% trans "Per-archetype accent, status palette, heatmap palette, and chart series. Empty fields inherit from the platform default; the cascade is platform CSS -> platform-host -> tenant-host." %}
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        {% if cockpit_configure_url %}
+          <a href="{{ cockpit_configure_url }}" class="btn btn-outline-secondary btn-sm">
+            {% trans "Back to cockpit" %}
+          </a>
+        {% endif %}
+        <form method="post" action="{{ theme_personality_url }}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reset_to_defaults">
+          <button type="submit" class="btn btn-outline-danger btn-sm"
+                  data-rmc-confirm="{% trans 'Reset every override to the platform default?' %}">
+            {% trans "Reset to defaults" %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  {% if saved_flag %}
+    <div class="alert alert-success" role="status">
+      {% trans "Saved. Reload any tenant page to see the new personality." %}
+    </div>
+  {% endif %}
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}" role="status">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <form method="post" action="{{ theme_personality_url }}" novalidate>
+    {% csrf_token %}
+
+    {# ---- Per-archetype accents ------------------------------------------ #}
+    <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="accents">
+      <legend class="h6 px-2 fw-bold">{% trans "Per-archetype accents" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Each page archetype (control plane, parent, student, teacher, etc.) gets its own accent. Set only the values you want to override; blanks inherit." %}
+      </p>
+      <div class="row g-3">
+        {% for field in accent_fields %}
+          <div class="col-md-6 col-lg-4">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="color"
+                     class="form-control form-control-color form-control-sm"
+                     data-rmc-color-pair="{{ field.html_name }}"
+                     aria-label="{{ field.label }} {% trans 'color picker' %}">
+              {{ field }}
+            </div>
+            {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {# ---- Status palette -------------------------------------------------- #}
+    <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="status">
+      <legend class="h6 px-2 fw-bold">{% trans "Status palette" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Success / warning / danger / info hues used by chips, badges, and alerts platform-wide." %}
+      </p>
+      <div class="row g-3">
+        {% for field in status_fields %}
+          <div class="col-md-6 col-lg-3">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="color"
+                     class="form-control form-control-color form-control-sm"
+                     data-rmc-color-pair="{{ field.html_name }}"
+                     aria-label="{{ field.label }} {% trans 'color picker' %}">
+              {{ field }}
+            </div>
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {# ---- Heatmap palette ------------------------------------------------- #}
+    <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="heatmap">
+      <legend class="h6 px-2 fw-bold">{% trans "Heatmap palette" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Five-tier heatmap (healthy -> idle) used by occupancy maps, SLO dashboards, and tenant heatmaps." %}
+      </p>
+      <div class="row g-3">
+        {% for field in heatmap_fields %}
+          <div class="col-md-6 col-lg-3 col-xl-2">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="color"
+                     class="form-control form-control-color form-control-sm"
+                     data-rmc-color-pair="{{ field.html_name }}"
+                     aria-label="{{ field.label }} {% trans 'color picker' %}">
+              {{ field }}
+            </div>
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {# ---- Chart series ---------------------------------------------------- #}
+    <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="chart-series">
+      <legend class="h6 px-2 fw-bold">{% trans "Chart series" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Eight-color series used by line / bar / area / pie / radar charts. Order is series 1 to 8." %}
+      </p>
+      <div class="row g-3">
+        {% for field in chart_series_fields %}
+          <div class="col-md-6 col-lg-3 col-xl-2">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="color"
+                     class="form-control form-control-color form-control-sm"
+                     data-rmc-color-pair="{{ field.html_name }}"
+                     aria-label="{{ field.label }} {% trans 'color picker' %}">
+              {{ field }}
+            </div>
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    {# ---- Preview toggle + submit ---------------------------------------- #}
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div class="form-check">
+        {{ form.enable_live_preview }}
+        <label class="form-check-label small fw-semibold" for="{{ form.enable_live_preview.id_for_label }}">
+          {{ form.enable_live_preview.label }}
+        </label>
+        {% if form.enable_live_preview.help_text %}
+          <div class="form-text small">{{ form.enable_live_preview.help_text }}</div>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary">
+        {% trans "Save theme personality" %}
+      </button>
+    </div>
+  </form>
+
+  {# ---- Live preview panel ---------------------------------------------- #}
+  <section class="border rounded-3 p-3 mb-4" data-personality-block="preview" aria-labelledby="rmc-personality-preview-h">
+    <header class="d-flex justify-content-between align-items-baseline mb-3">
+      <h2 id="rmc-personality-preview-h" class="h6 fw-bold mb-0">{% trans "Live preview" %}</h2>
+      <span class="small text-muted">{% trans "10 archetypes side-by-side" %}</span>
+    </header>
+    <div class="row g-3 rmc-personality-preview-grid">
+      {% for arch in archetype_catalog %}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="card h-100" data-rmc-page-personality="{{ arch.slug }}">
+            <div class="card-body p-3">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="rmc-personality-preview-dot"
+                      data-rmc-personality-preview-dot="accent_{{ arch.slug|cut:'-'|cut:'_' }}"
+                      aria-hidden="true"></span>
+                <strong class="small">{{ arch.label }}</strong>
+              </div>
+              <div class="small text-muted mb-2">{{ arch.slug }}</div>
+              <button type="button" class="btn btn-sm rmc-personality-preview-cta">
+                {% trans "Accent CTA" %}
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="small text-muted mt-3 mb-0">
+      {% trans "Each card scopes to its archetype via data-rmc-page-personality. After save, every page on the platform inherits the cascade." %}
+    </p>
+  </section>
+</div>
+
+{# CSP-safe sync between <input type="color"> picker and the hex CharField. #}
+<script nonce="{{ csp_nonce }}">
+  (function () {
+    // Pair every color picker with its sibling hex input via data-rmc-color-pair.
+    var pickers = document.querySelectorAll('input[type="color"][data-rmc-color-pair]');
+    function syncTextToPicker(hexEl, pickerEl) {
+      var v = (hexEl.value || '').trim();
+      // Native <input type="color"> only accepts #rrggbb (no alpha, no shorthand).
+      if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+        pickerEl.value = v.toLowerCase();
+      }
+    }
+    pickers.forEach(function (picker) {
+      var name = picker.getAttribute('data-rmc-color-pair');
+      var hexInput = document.querySelector('input[name="' + name + '"]');
+      if (!hexInput) { return; }
+      syncTextToPicker(hexInput, picker);
+      picker.addEventListener('input', function () { hexInput.value = picker.value; });
+      hexInput.addEventListener('input', function () { syncTextToPicker(hexInput, picker); });
+    });
+    // data-rmc-confirm capture-phase handler (shared cockpit pattern).
+    document.addEventListener('click', function (ev) {
+      var target = ev.target;
+      while (target && target !== document) {
+        if (target.matches && target.matches('[data-rmc-confirm]')) {
+          var msg = target.getAttribute('data-rmc-confirm');
+          if (msg && !window.confirm(msg)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+          }
+          return;
+        }
+        target = target.parentNode;
+      }
+    }, true);
+  })();
+</script>
+{% endblock %}

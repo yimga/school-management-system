@@ -1,0 +1,2564 @@
+{
+  "doc": "platform_workflow_code_truth_inventory",
+  "phase": 0,
+  "generated_at": "2026-05-22T12:21:14Z",
+  "scope": "Code-truth inventory of every Django URL configuration in this repo (6 root URLconfs + every apps/*/*urls*.py) and the per-app rollup of views, forms, services, models, templates, tests, README/howto, and AI/feedback/help cross-references. Read-only filesystem walk; no Django startup. Phase 1 (classification by audience / primary action / click count) builds on this artifact, not on it.",
+  "source": "scripts/audit_workflow_code_truth_inventory.py",
+  "summary": {
+    "urlconfs_scanned": 49,
+    "root_urlconfs": [
+      "operator",
+      "tenant",
+      "public",
+      "api",
+      "docs",
+      "default"
+    ],
+    "per_app_urlconf_files": 43,
+    "total_routes": 1909,
+    "total_includes": 90,
+    "total_named_routes": 1872,
+    "total_unnamed_routes": 37,
+    "apps_scanned": 50,
+    "apps_with_routes": 27,
+    "apps_with_tests": 43,
+    "apps_with_templates": 31,
+    "apps_with_help_template": 4,
+    "apps_with_ai_helpers_or_apicenter_import": 18,
+    "apps_with_feedback_import": 6,
+    "operator_reachable_apps": 13,
+    "tenant_reachable_apps": 22,
+    "public_reachable_apps": 3,
+    "api_reachable_apps": 1,
+    "docs_reachable_apps": 1
+  },
+  "surface_totals": {
+    "operator": {
+      "root_urlconf": "config/manager_urls.py",
+      "root_routes": 71,
+      "reachable_apps": 13
+    },
+    "tenant": {
+      "root_urlconf": "config/tenant_urls.py",
+      "root_routes": 93,
+      "reachable_apps": 22
+    },
+    "public": {
+      "root_urlconf": "config/public_urls.py",
+      "root_routes": 250,
+      "reachable_apps": 3
+    },
+    "api": {
+      "root_urlconf": "config/api_urls.py",
+      "root_routes": 7,
+      "reachable_apps": 1
+    },
+    "docs": {
+      "root_urlconf": "config/docs_urls.py",
+      "root_routes": 4,
+      "reachable_apps": 1
+    },
+    "default": {
+      "root_urlconf": "config/urls.py",
+      "root_routes": 261,
+      "reachable_apps": 24
+    }
+  },
+  "per_urlconf_counts": {
+    "operator": {
+      "exists": 1,
+      "routes": 71,
+      "includes": 15,
+      "named_routes": 58
+    },
+    "tenant": {
+      "exists": 1,
+      "routes": 93,
+      "includes": 25,
+      "named_routes": 87
+    },
+    "public": {
+      "exists": 1,
+      "routes": 250,
+      "includes": 7,
+      "named_routes": 247
+    },
+    "api": {
+      "exists": 1,
+      "routes": 7,
+      "includes": 2,
+      "named_routes": 7
+    },
+    "docs": {
+      "exists": 1,
+      "routes": 4,
+      "includes": 1,
+      "named_routes": 4
+    },
+    "default": {
+      "exists": 1,
+      "routes": 261,
+      "includes": 34,
+      "named_routes": 254
+    },
+    "apps/academics/urls.py": {
+      "exists": 1,
+      "routes": 10,
+      "includes": 0,
+      "named_routes": 10
+    },
+    "apps/accounts/urls.py": {
+      "exists": 1,
+      "routes": 119,
+      "includes": 0,
+      "named_routes": 119
+    },
+    "apps/accounts/urls_backend.py": {
+      "exists": 1,
+      "routes": 2,
+      "includes": 0,
+      "named_routes": 2
+    },
+    "apps/analytics/urls.py": {
+      "exists": 1,
+      "routes": 29,
+      "includes": 0,
+      "named_routes": 29
+    },
+    "apps/api/urls.py": {
+      "exists": 1,
+      "routes": 152,
+      "includes": 2,
+      "named_routes": 152
+    },
+    "apps/api/urls_v1.py": {
+      "exists": 1,
+      "routes": 68,
+      "includes": 0,
+      "named_routes": 68
+    },
+    "apps/api/urls_v2.py": {
+      "exists": 1,
+      "routes": 2,
+      "includes": 0,
+      "named_routes": 2
+    },
+    "apps/apicenter/ai_center_urls.py": {
+      "exists": 1,
+      "routes": 8,
+      "includes": 0,
+      "named_routes": 8
+    },
+    "apps/apicenter/oauth_urls.py": {
+      "exists": 1,
+      "routes": 2,
+      "includes": 0,
+      "named_routes": 2
+    },
+    "apps/apicenter/urls.py": {
+      "exists": 1,
+      "routes": 13,
+      "includes": 0,
+      "named_routes": 13
+    },
+    "apps/automation/urls.py": {
+      "exists": 1,
+      "routes": 11,
+      "includes": 0,
+      "named_routes": 11
+    },
+    "apps/communication/urls.py": {
+      "exists": 1,
+      "routes": 15,
+      "includes": 0,
+      "named_routes": 15
+    },
+    "apps/compliance/urls.py": {
+      "exists": 1,
+      "routes": 19,
+      "includes": 1,
+      "named_routes": 19
+    },
+    "apps/compliance/urls_reporting.py": {
+      "exists": 1,
+      "routes": 7,
+      "includes": 0,
+      "named_routes": 7
+    },
+    "apps/evals/urls.py": {
+      "exists": 1,
+      "routes": 22,
+      "includes": 0,
+      "named_routes": 22
+    },
+    "apps/events/urls.py": {
+      "exists": 1,
+      "routes": 6,
+      "includes": 0,
+      "named_routes": 6
+    },
+    "apps/feedback/urls.py": {
+      "exists": 1,
+      "routes": 22,
+      "includes": 0,
+      "named_routes": 22
+    },
+    "apps/finance/urls.py": {
+      "exists": 1,
+      "routes": 28,
+      "includes": 0,
+      "named_routes": 28
+    },
+    "apps/integrations_marketplace/urls.py": {
+      "exists": 1,
+      "routes": 15,
+      "includes": 0,
+      "named_routes": 15
+    },
+    "apps/marketplace/tenant_urls.py": {
+      "exists": 1,
+      "routes": 2,
+      "includes": 0,
+      "named_routes": 2
+    },
+    "apps/marketplace/urls.py": {
+      "exists": 1,
+      "routes": 4,
+      "includes": 0,
+      "named_routes": 4
+    },
+    "apps/marketplace/urls_developer_platform.py": {
+      "exists": 1,
+      "routes": 13,
+      "includes": 0,
+      "named_routes": 13
+    },
+    "apps/metadata/urls.py": {
+      "exists": 1,
+      "routes": 4,
+      "includes": 0,
+      "named_routes": 4
+    },
+    "apps/migration_cloud/urls.py": {
+      "exists": 1,
+      "routes": 70,
+      "includes": 2,
+      "named_routes": 70
+    },
+    "apps/migration_cloud/urls_connectors.py": {
+      "exists": 1,
+      "routes": 9,
+      "includes": 0,
+      "named_routes": 9
+    },
+    "apps/migration_cloud/urls_customer.py": {
+      "exists": 1,
+      "routes": 6,
+      "includes": 0,
+      "named_routes": 6
+    },
+    "apps/migration_cloud/urls_guardian_consent.py": {
+      "exists": 1,
+      "routes": 7,
+      "includes": 0,
+      "named_routes": 7
+    },
+    "apps/migration_cloud/urls_guardian_consent_admin.py": {
+      "exists": 1,
+      "routes": 0,
+      "includes": 0,
+      "named_routes": 0
+    },
+    "apps/orchestration/urls.py": {
+      "exists": 1,
+      "routes": 8,
+      "includes": 0,
+      "named_routes": 8
+    },
+    "apps/payroll/urls.py": {
+      "exists": 1,
+      "routes": 6,
+      "includes": 0,
+      "named_routes": 6
+    },
+    "apps/platform_runtime/configuration_urls.py": {
+      "exists": 1,
+      "routes": 39,
+      "includes": 0,
+      "named_routes": 39
+    },
+    "apps/platform_runtime/urls.py": {
+      "exists": 1,
+      "routes": 6,
+      "includes": 0,
+      "named_routes": 6
+    },
+    "apps/portal/role_smoke_urls.py": {
+      "exists": 1,
+      "routes": 0,
+      "includes": 0,
+      "named_routes": 0
+    },
+    "apps/portal/urls.py": {
+      "exists": 1,
+      "routes": 101,
+      "includes": 0,
+      "named_routes": 101
+    },
+    "apps/portal/urls_kb.py": {
+      "exists": 1,
+      "routes": 19,
+      "includes": 0,
+      "named_routes": 19
+    },
+    "apps/reports/urls.py": {
+      "exists": 1,
+      "routes": 11,
+      "includes": 0,
+      "named_routes": 11
+    },
+    "apps/requests/urls.py": {
+      "exists": 1,
+      "routes": 3,
+      "includes": 0,
+      "named_routes": 3
+    },
+    "apps/sales/urls.py": {
+      "exists": 1,
+      "routes": 5,
+      "includes": 0,
+      "named_routes": 5
+    },
+    "apps/school_events/urls.py": {
+      "exists": 1,
+      "routes": 3,
+      "includes": 0,
+      "named_routes": 3
+    },
+    "apps/schools/provision_email_urls.py": {
+      "exists": 1,
+      "routes": 0,
+      "includes": 0,
+      "named_routes": 0
+    },
+    "apps/schools/super_urls.py": {
+      "exists": 1,
+      "routes": 180,
+      "includes": 1,
+      "named_routes": 172
+    },
+    "apps/siteconfig/urls.py": {
+      "exists": 1,
+      "routes": 129,
+      "includes": 0,
+      "named_routes": 129
+    },
+    "apps/studio_os/urls.py": {
+      "exists": 1,
+      "routes": 48,
+      "includes": 0,
+      "named_routes": 48
+    }
+  },
+  "apps": [
+    {
+      "app": "academics",
+      "path": "apps/academics",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 10,
+      "include_count": 0,
+      "named_routes": 10,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_syllabus.py",
+        "views_workflow.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py",
+        "services_certification.py",
+        "services_year_setup.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_lms.py",
+        "models_tenant_runtime.py"
+      ],
+      "template_dirs": [
+        "templates/academics"
+      ],
+      "test_files": 12,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:academics/",
+        "urls.py:academics/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "academics/syllabus_approval_queue.html",
+        "academics/syllabus_preview.html"
+      ]
+    },
+    {
+      "app": "accounts",
+      "path": "apps/accounts",
+      "urls_files": [
+        "urls.py",
+        "urls_backend.py"
+      ],
+      "route_count": 121,
+      "include_count": 0,
+      "named_routes": 121,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_certification.py",
+        "views_dashboard.py",
+        "views_delegation.py",
+        "views_district_interop.py",
+        "views_i18n.py",
+        "views_impersonation.py",
+        "views_legacy_setup.py",
+        "views_mfa.py",
+        "views_migration.py",
+        "views_oidc.py",
+        "views_onboarding.py",
+        "views_passkey.py",
+        "views_rollover.py",
+        "views_saml.py",
+        "views_security.py",
+        "views_tenant_observability.py",
+        "views_theme.py",
+        "views_trust_hub.py",
+        "views_workflow.py"
+      ],
+      "forms_modules": [
+        "forms.py"
+      ],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/accounts"
+      ],
+      "test_files": 101,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "public",
+        "docs",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:authentication/",
+        "tenant_urls.py:authentication/",
+        "public_urls.py:authentication/",
+        "docs_urls.py:authentication/",
+        "urls.py:authentication/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "accounts/approval_workflow_hub.html",
+        "accounts/clone_year_setup.html",
+        "accounts/delegation_form.html",
+        "accounts/email/legacy_setup_link.html",
+        "accounts/entity_import.html",
+        "accounts/import_hub.html",
+        "accounts/institution_profile_wizard.html",
+        "accounts/legacy_setup.html",
+        "accounts/mfa_setup.html",
+        "accounts/migration_wizard.html",
+        "accounts/partials/operator_profile_edit_body.html",
+        "accounts/password_change_form.html",
+        "accounts/request_waiver.html",
+        "accounts/school_onboarding_card.html"
+      ]
+    },
+    {
+      "app": "analytics",
+      "path": "apps/analytics",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 29,
+      "include_count": 0,
+      "named_routes": 29,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_governed.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py",
+        "services/analytics_seeder_py.py",
+        "services/tenant_overview_viz.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_digest.py",
+        "models_extended.py",
+        "models_grade_prediction.py",
+        "models_ml_registry.py"
+      ],
+      "template_dirs": [
+        "templates/analytics"
+      ],
+      "test_files": 63,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:analytics/",
+        "urls.py:analytics/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "api",
+      "path": "apps/api",
+      "urls_files": [
+        "urls.py",
+        "urls_v1.py",
+        "urls_v2.py"
+      ],
+      "route_count": 222,
+      "include_count": 2,
+      "named_routes": 222,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_marketplace_catalog.py",
+        "views_marketplace_submissions.py",
+        "views_migration_jobs.py",
+        "views_v1.py",
+        "views_v1_intervention.py",
+        "views_v1_platform.py",
+        "views_v2.py",
+        "views_webhook_catalog.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [],
+      "template_dirs": [],
+      "test_files": 94,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "public",
+        "api",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:api/v1/",
+        "tenant_urls.py:api/v1/",
+        "public_urls.py:api/v2/",
+        "api_urls.py:api/v1/",
+        "urls.py:api/v2/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "apicenter",
+      "path": "apps/apicenter",
+      "urls_files": [
+        "ai_center_urls.py",
+        "oauth_urls.py",
+        "urls.py"
+      ],
+      "route_count": 23,
+      "include_count": 0,
+      "named_routes": 23,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_ai_center_super.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/apicenter"
+      ],
+      "test_files": 26,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "public",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:api-center/",
+        "tenant_urls.py:api-center/",
+        "public_urls.py:api-center/",
+        "urls.py:super/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": true,
+      "likely_workflow_pages": [
+        "apicenter/webhook_subscription_form.html"
+      ]
+    },
+    {
+      "app": "automation",
+      "path": "apps/automation",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 11,
+      "include_count": 0,
+      "named_routes": 11,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_visual_workflow.py",
+        "views_workflow_gallery.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/automation"
+      ],
+      "test_files": 42,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:automation/",
+        "tenant_urls.py:automation/",
+        "urls.py:automation/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "billing",
+      "path": "apps/billing",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_metering.py"
+      ],
+      "template_dirs": [],
+      "test_files": 20,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "brand_experience",
+      "path": "apps/brand_experience",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 8,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "communication",
+      "path": "apps/communication",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 15,
+      "include_count": 0,
+      "named_routes": 15,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_announcements.py",
+        "views_groups.py",
+        "views_narrative.py"
+      ],
+      "forms_modules": [
+        "forms_announcements.py",
+        "forms_groups.py"
+      ],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/communication"
+      ],
+      "test_files": 29,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:communication/",
+        "urls.py:communication/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "communication/announcement_create.html",
+        "communication/class_announcement_create.html",
+        "communication/department_announcement_create.html",
+        "communication/group_create.html",
+        "communication/narrative_approve.html"
+      ]
+    },
+    {
+      "app": "compliance",
+      "path": "apps/compliance",
+      "urls_files": [
+        "urls.py",
+        "urls_reporting.py"
+      ],
+      "route_count": 26,
+      "include_count": 1,
+      "named_routes": 26,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_api.py",
+        "views_dashboard.py",
+        "views_data_quality.py",
+        "views_ferpa.py",
+        "views_gdpr.py",
+        "views_queue.py",
+        "views_ratelimit.py",
+        "views_reporting.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py",
+        "models_audit.py",
+        "models_digest.py"
+      ],
+      "template_dirs": [
+        "templates/compliance"
+      ],
+      "test_files": 46,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:compliance/",
+        "urls.py:compliance/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "compliance/erasure_request.html"
+      ]
+    },
+    {
+      "app": "customers",
+      "path": "apps/customers",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 2,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "customersuccess",
+      "path": "apps/customersuccess",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_dashboard.py",
+        "views_super.py",
+        "views_tenant.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/customersuccess"
+      ],
+      "test_files": 4,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": true,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "customersuccess/guided_onboarding.html"
+      ]
+    },
+    {
+      "app": "dashboard",
+      "path": "apps/dashboard",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [
+        "services/insight_anomalies.py",
+        "services/role_home_service.py"
+      ],
+      "models_files": [],
+      "template_dirs": [],
+      "test_files": 20,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "evals",
+      "path": "apps/evals",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 22,
+      "include_count": 0,
+      "named_routes": 22,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_drilldown.py",
+        "views_import_enhanced.py"
+      ],
+      "forms_modules": [
+        "forms.py"
+      ],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_enhanced.py"
+      ],
+      "template_dirs": [
+        "templates/evals"
+      ],
+      "test_files": 22,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:evals/",
+        "urls.py:evals/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "evals/grade_approval_detail.html",
+        "evals/grade_approval_list.html",
+        "evals/grade_import_upload.html",
+        "evals/grade_import_upload_v2.html",
+        "evals/import_job_monitor.html"
+      ]
+    },
+    {
+      "app": "events",
+      "path": "apps/events",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 6,
+      "include_count": 0,
+      "named_routes": 6,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_console.py",
+        "views_event_ops.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/events"
+      ],
+      "test_files": 19,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:domain-events/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "events/event_platform_detail.html"
+      ]
+    },
+    {
+      "app": "feedback",
+      "path": "apps/feedback",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 22,
+      "include_count": 0,
+      "named_routes": 22,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_public_status.py"
+      ],
+      "forms_modules": [
+        "form_widgets.py",
+        "forms.py"
+      ],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/feedback"
+      ],
+      "test_files": 31,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:",
+        "tenant_urls.py:",
+        "urls.py:"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": true,
+      "has_help_template": true,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "finance",
+      "path": "apps/finance",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 28,
+      "include_count": 0,
+      "named_routes": 28,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_access.py",
+        "views_accounting.py",
+        "views_common.py",
+        "views_dashboard.py",
+        "views_invoicing.py",
+        "views_payment_readiness_dashboard.py",
+        "views_payment_setup.py",
+        "views_payments.py",
+        "views_reports.py",
+        "views_requests.py"
+      ],
+      "forms_modules": [
+        "forms.py"
+      ],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_dual_auth.py"
+      ],
+      "template_dirs": [
+        "templates/finance"
+      ],
+      "test_files": 105,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:finance/",
+        "urls.py:finance/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "finance/payment_readiness_setup.html",
+        "finance/requests.html"
+      ]
+    },
+    {
+      "app": "global_registries",
+      "path": "apps/global_registries",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 0,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "integrations_marketplace",
+      "path": "apps/integrations_marketplace",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 15,
+      "include_count": 0,
+      "named_routes": 15,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/integrations_marketplace"
+      ],
+      "test_files": 30,
+      "readme_or_docs": [],
+      "surfaces": [
+        "default"
+      ],
+      "reachable_from": [
+        "urls.py:integrations/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "interop",
+      "path": "apps/interop",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [],
+      "template_dirs": [],
+      "test_files": 6,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "locale",
+      "path": "apps/locale",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [],
+      "template_dirs": [],
+      "test_files": 0,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "marketplace",
+      "path": "apps/marketplace",
+      "urls_files": [
+        "tenant_urls.py",
+        "urls.py",
+        "urls_developer_platform.py"
+      ],
+      "route_count": 19,
+      "include_count": 0,
+      "named_routes": 19,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_developer_platform.py",
+        "views_monetization_dashboard.py",
+        "views_publisher.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/marketplace"
+      ],
+      "test_files": 78,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:marketplace/",
+        "urls.py:marketplace/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "marketplace/installation_health.html",
+        "marketplace/partials/install_impact_modal.html",
+        "marketplace/publisher_app_detail.html",
+        "marketplace/publisher_dashboard.html",
+        "marketplace/publisher_signup.html",
+        "marketplace/publisher_signup_submitted.html",
+        "marketplace/publisher_signup_verified.html",
+        "marketplace/publisher_webhook_log.html",
+        "marketplace/signup_review_queue.html",
+        "marketplace/tenant_installed_apps.html"
+      ]
+    },
+    {
+      "app": "metadata",
+      "path": "apps/metadata",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 4,
+      "include_count": 0,
+      "named_routes": 4,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/metadata"
+      ],
+      "test_files": 16,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:api/internal/metadata/",
+        "urls.py:api/internal/metadata/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "migration_cloud",
+      "path": "apps/migration_cloud",
+      "urls_files": [
+        "urls.py",
+        "urls_connectors.py",
+        "urls_customer.py",
+        "urls_guardian_consent.py",
+        "urls_guardian_consent_admin.py"
+      ],
+      "route_count": 92,
+      "include_count": 2,
+      "named_routes": 92,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_audit_admin.py",
+        "views_command_center.py",
+        "views_connectors.py",
+        "views_customer.py",
+        "views_dsar_admin.py",
+        "views_guardian_consent.py",
+        "views_guardian_consent_admin.py",
+        "views_health.py",
+        "views_maa_counsel_activate.py",
+        "views_maa_promotion.py",
+        "views_smoke_history.py",
+        "views_smoke_trigger.py",
+        "views_token_admin.py",
+        "views_webhook_admin.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py",
+        "services/audit_root_signing.py",
+        "services/audit_root_signing_hsm.py",
+        "services/companion_keypair.py",
+        "services/connector_audit.py",
+        "services/connector_bundle_bridge.py",
+        "services/connector_credentials.py",
+        "services/connector_discovery.py",
+        "services/connector_import.py",
+        "services/connector_mapping.py",
+        "services/connector_rollback.py",
+        "services/hsm_vault.py",
+        "services/legacy_hash_intake.py",
+        "services/maa_text.py",
+        "services/vendor_write_gate.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_audit.py",
+        "models_connectors.py",
+        "models_guardian_consent.py",
+        "models_intake.py",
+        "models_maa_state.py"
+      ],
+      "template_dirs": [
+        "templates/migration_cloud"
+      ],
+      "test_files": 136,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:super/migration/",
+        "tenant_urls.py:school/setup/migration-cloud/",
+        "urls.py:migration/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "migration_cloud/connector/_wizard_base.html",
+        "migration_cloud/connector/import.html",
+        "migration_cloud/connector/review.html",
+        "migration_cloud/email/maa_v2_resign_request.html",
+        "migration_cloud/emails/guardian/consent_request.html"
+      ]
+    },
+    {
+      "app": "observability",
+      "path": "apps/observability",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_friction.py",
+        "views_metrics.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py",
+        "models_friction.py"
+      ],
+      "template_dirs": [
+        "templates/observability"
+      ],
+      "test_files": 17,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": true,
+      "has_feedback_import": true,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "observability/platform_incidents.html"
+      ]
+    },
+    {
+      "app": "orchestration",
+      "path": "apps/orchestration",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 8,
+      "include_count": 0,
+      "named_routes": 8,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/orchestration"
+      ],
+      "test_files": 6,
+      "readme_or_docs": [],
+      "surfaces": [
+        "default"
+      ],
+      "reachable_from": [
+        "urls.py:orchestration/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "packages",
+      "path": "apps/packages",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 6,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "payroll",
+      "path": "apps/payroll",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 6,
+      "include_count": 0,
+      "named_routes": 6,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [
+        "forms.py"
+      ],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/payroll"
+      ],
+      "test_files": 6,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:payroll/",
+        "urls.py:payroll/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "payroll/create_run.html"
+      ]
+    },
+    {
+      "app": "people",
+      "path": "apps/people",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_backend.py"
+      ],
+      "forms_modules": [
+        "forms_backend.py"
+      ],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/people"
+      ],
+      "test_files": 19,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "people/backend_applicant_create.html",
+        "people/backend_student_create.html",
+        "people/backend_teacher_create.html"
+      ]
+    },
+    {
+      "app": "plans_entitlements",
+      "path": "apps/plans_entitlements",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 0,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "platform_runtime",
+      "path": "apps/platform_runtime",
+      "urls_files": [
+        "configuration_urls.py",
+        "urls.py"
+      ],
+      "route_count": 45,
+      "include_count": 0,
+      "named_routes": 45,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_administration.py",
+        "views_click_tracking.py",
+        "views_operational_center.py",
+        "views_rum.py",
+        "views_tenant_lifecycle.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_rollout.py"
+      ],
+      "template_dirs": [
+        "templates/platform_runtime"
+      ],
+      "test_files": 403,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:platform-runtime/",
+        "tenant_urls.py:platform-runtime/",
+        "urls.py:platform-runtime/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "platform_runtime/blueprint_apply.html",
+        "platform_runtime/blueprint_detail.html",
+        "platform_runtime/blueprint_impact.html",
+        "platform_runtime/blueprint_installation_detail.html",
+        "platform_runtime/blueprint_installations.html",
+        "platform_runtime/blueprint_marketplace.html",
+        "platform_runtime/blueprint_preview.html",
+        "platform_runtime/blueprint_rollback.html",
+        "platform_runtime/change_request_detail.html",
+        "platform_runtime/change_requests.html",
+        "platform_runtime/click_measurement_dashboard.html",
+        "platform_runtime/configuration_center.html",
+        "platform_runtime/configuration_module_detail.html",
+        "platform_runtime/implementation_command_center.html",
+        "platform_runtime/manager_offline_sync_center.html",
+        "platform_runtime/pack_apply.html",
+        "platform_runtime/pack_detail.html",
+        "platform_runtime/pack_impact.html",
+        "platform_runtime/pack_installation_detail.html",
+        "platform_runtime/pack_installations.html"
+      ]
+    },
+    {
+      "app": "policies",
+      "path": "apps/policies",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [
+        "form_policy.py"
+      ],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 8,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "policies_rules",
+      "path": "apps/policies_rules",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 0,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "portal",
+      "path": "apps/portal",
+      "urls_files": [
+        "role_smoke_urls.py",
+        "urls.py",
+        "urls_kb.py"
+      ],
+      "route_count": 120,
+      "include_count": 0,
+      "named_routes": 120,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_ai_copilot.py",
+        "views_ai_draft.py",
+        "views_ai_gateway.py",
+        "views_ai_product.py",
+        "views_ai_surfaces.py",
+        "views_at_risk_labeling.py",
+        "views_attendance_export.py",
+        "views_bulk_capture.py",
+        "views_command_bar.py",
+        "views_common.py",
+        "views_configure.py",
+        "views_contact_requests.py",
+        "views_documents.py",
+        "views_forums.py",
+        "views_kb.py",
+        "views_kb_typeahead.py",
+        "views_lexicon.py",
+        "views_office.py",
+        "views_offline_sync.py",
+        "views_onboarding.py",
+        "views_parent.py",
+        "views_parent_finance.py",
+        "views_passport.py",
+        "views_photo_upload.py",
+        "views_student.py",
+        "views_support.py",
+        "views_support_deflection.py",
+        "views_teacher.py"
+      ],
+      "forms_modules": [
+        "forms.py",
+        "forms_contact_requests.py",
+        "forms_documents.py",
+        "forms_support.py"
+      ],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py",
+        "models_forums.py",
+        "models_kb.py"
+      ],
+      "template_dirs": [
+        "templates/portal"
+      ],
+      "test_files": 149,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:kb/",
+        "tenant_urls.py:kb/",
+        "urls.py:kb/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": true,
+      "has_help_template": true,
+      "likely_workflow_pages": [
+        "portal/configure/lexicon_forbidden.html",
+        "portal/configure/lexicon_no_tenant.html",
+        "portal/configure/lexicon_settings.html",
+        "portal/configure_hub.html",
+        "portal/faq_submit.html",
+        "portal/forums_new_topic.html",
+        "portal/kb_article_submit.html",
+        "portal/partials/platform_status_strip.html",
+        "portal/preview/student_syllabus_preview.html",
+        "portal/signature_request_create.html",
+        "portal/signature_requests_manage.html",
+        "portal/student_attendance_export.html",
+        "portal/support_request.html"
+      ]
+    },
+    {
+      "app": "registries",
+      "path": "apps/registries",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 2,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "reports",
+      "path": "apps/reports",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 11,
+      "include_count": 0,
+      "named_routes": 11,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/reports"
+      ],
+      "test_files": 19,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:reports/",
+        "urls.py:reports/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "reports/promotion_preview.html",
+        "reports/publish_term.html",
+        "reports/regulatory_export.html"
+      ]
+    },
+    {
+      "app": "requests",
+      "path": "apps/requests",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 3,
+      "include_count": 0,
+      "named_routes": 3,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/requests"
+      ],
+      "test_files": 4,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:requests/",
+        "urls.py:requests/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "requests/access_denied.html",
+        "requests/dashboard.html",
+        "requests/detail.html"
+      ]
+    },
+    {
+      "app": "runtime_blueprints",
+      "path": "apps/runtime_blueprints",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 0,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "sales",
+      "path": "apps/sales",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 5,
+      "include_count": 0,
+      "named_routes": 5,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/sales"
+      ],
+      "test_files": 4,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator"
+      ],
+      "reachable_from": [
+        "manager_urls.py:sales/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "sales/lead_create.html"
+      ]
+    },
+    {
+      "app": "school_events",
+      "path": "apps/school_events",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 3,
+      "include_count": 0,
+      "named_routes": 3,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/school_events"
+      ],
+      "test_files": 0,
+      "readme_or_docs": [],
+      "surfaces": [
+        "tenant"
+      ],
+      "reachable_from": [
+        "tenant_urls.py:events/"
+      ],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "schoolops",
+      "path": "apps/schoolops",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views_analytics.py",
+        "views_email_admin.py",
+        "views_email_health.py",
+        "views_email_webhook.py",
+        "views_tenant_ops.py"
+      ],
+      "forms_modules": [
+        "forms_email_delivery.py"
+      ],
+      "services_modules": [],
+      "models_files": [
+        "models.py",
+        "models_email_delivery.py"
+      ],
+      "template_dirs": [
+        "templates/schoolops"
+      ],
+      "test_files": 18,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "schoolops/super/email_configure.html"
+      ]
+    },
+    {
+      "app": "schools",
+      "path": "apps/schools",
+      "urls_files": [
+        "provision_email_urls.py",
+        "super_urls.py"
+      ],
+      "route_count": 180,
+      "include_count": 1,
+      "named_routes": 172,
+      "unnamed_routes": 8,
+      "views_modules": [
+        "views_advancement.py",
+        "views_domains.py",
+        "views_signup_diagnostics.py",
+        "views_tenant_self_offboarding.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/schools"
+      ],
+      "test_files": 355,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:super/",
+        "urls.py:super/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": true,
+      "has_help_template": true,
+      "likely_workflow_pages": [
+        "schools/advancement_donor_form.html",
+        "schools/custom_domain_wizard.html",
+        "schools/onboard_wizard.html",
+        "schools/partials/manager_ai_review_queue_body.html",
+        "schools/partials/manager_support_request_body.html",
+        "schools/partials/role_onboarding_checklists.html",
+        "schools/partials/tenant_studio_wizard_field_label.html",
+        "schools/super_audit_export.html",
+        "schools/super_create_school_wizard.html",
+        "schools/super_crud_form.html",
+        "schools/super_legacy_sis_csv_preview.html",
+        "schools/super_plan_form.html",
+        "schools/super_platform_events.html",
+        "schools/super_platform_operator_hub.html"
+      ]
+    },
+    {
+      "app": "security",
+      "path": "apps/security",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [],
+      "template_dirs": [],
+      "test_files": 33,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "setup_studio",
+      "path": "apps/setup_studio",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 4,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "siteconfig",
+      "path": "apps/siteconfig",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 129,
+      "include_count": 0,
+      "named_routes": 129,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_academic_years_evidence.py",
+        "views_ai_center.py",
+        "views_ai_governance.py",
+        "views_billing_plan.py",
+        "views_billing_stripe.py",
+        "views_cockpit_admin.py",
+        "views_cockpit_health.py",
+        "views_cockpit_previews.py",
+        "views_compliance_exports.py",
+        "views_config_mutation_evidence.py",
+        "views_console_ai_rag.py",
+        "views_console_domains.py",
+        "views_curriculum_templates.py",
+        "views_custom_requirement.py",
+        "views_dashboard_config.py",
+        "views_departments_setup_evidence.py",
+        "views_entity_catalog.py",
+        "views_feature_control.py",
+        "views_form_draft.py",
+        "views_grading_scale_bands.py",
+        "views_guided_configuration.py",
+        "views_impersonation_consent.py",
+        "views_manifest.py",
+        "views_manifest_icon.py",
+        "views_mascot_storybook.py",
+        "views_metadata_dynamic_fields.py",
+        "views_metadata_operator_hub.py",
+        "views_northstar_ai.py",
+        "views_onboarding_coach.py",
+        "views_package_rollback.py",
+        "views_report_output_history_evidence.py",
+        "views_report_templates_catalog_evidence.py",
+        "views_school_automation.py",
+        "views_school_group_hierarchy.py",
+        "views_school_help_ai.py",
+        "views_school_onboarding.py",
+        "views_school_theme.py",
+        "views_sync_center.py",
+        "views_tag_manager.py",
+        "views_tenant_report_schedules_evidence.py",
+        "views_tenant_runtime_hub.py",
+        "views_tenant_studio_hub.py",
+        "views_term_publish_evidence.py",
+        "views_theme_builder.py",
+        "views_theme_experience_hub.py",
+        "views_tour.py",
+        "views_tour_analytics.py",
+        "views_tour_info.py",
+        "views_verify.py",
+        "views_waiver.py",
+        "views_workflow_api.py",
+        "views_zero_ticket_hub.py"
+      ],
+      "forms_modules": [
+        "forms.py",
+        "forms_cockpit.py"
+      ],
+      "services_modules": [],
+      "models_files": [
+        "models.py",
+        "models_ai.py",
+        "models_constants.py",
+        "models_dashboard.py",
+        "models_feature_controls.py",
+        "models_global_experience.py",
+        "models_marketing.py",
+        "models_platform_catalog.py",
+        "models_pulse_snapshot.py",
+        "models_runtime_ops.py",
+        "models_support.py",
+        "models_tooling.py",
+        "models_workflow.py"
+      ],
+      "template_dirs": [
+        "templates/siteconfig"
+      ],
+      "test_files": 320,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:siteconfig/",
+        "tenant_urls.py:siteconfig/",
+        "urls.py:siteconfig/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": true,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "siteconfig/academic_years_setup_evidence.html",
+        "siteconfig/compliance_exports.html",
+        "siteconfig/departments_setup_evidence.html",
+        "siteconfig/guided_configuration_workflows.html",
+        "siteconfig/installed_packages_rollback.html",
+        "siteconfig/onboarding.html",
+        "siteconfig/onboarding_step.html",
+        "siteconfig/partials/academic_years_setup_evidence_body.html",
+        "siteconfig/partials/ccc_guided_activation_strip.html",
+        "siteconfig/partials/compliance_exports_body.html",
+        "siteconfig/partials/configuration_control_center_staging_publish.html",
+        "siteconfig/partials/departments_setup_evidence_body.html",
+        "siteconfig/partials/guided_configuration_workflows_body.html",
+        "siteconfig/partials/mock_reportcard_preview.html",
+        "siteconfig/partials/onboarding_body.html",
+        "siteconfig/partials/onboarding_step_body.html",
+        "siteconfig/partials/reportcard_style_preview_body.html",
+        "siteconfig/partials/tag_manager_edit_body.html",
+        "siteconfig/partials/term_publish_status_evidence_body.html",
+        "siteconfig/reportcard_style_preview.html"
+      ]
+    },
+    {
+      "app": "social_media",
+      "path": "apps/social_media",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [
+        "services/aggregator.py",
+        "services/analytics.py",
+        "services/asset_processor.py",
+        "services/emergency.py",
+        "services/providers.py",
+        "services/publisher.py",
+        "services/throttle.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 4,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "student360",
+      "path": "apps/student360",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [
+        "templates/student360"
+      ],
+      "test_files": 0,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "studio_os",
+      "path": "apps/studio_os",
+      "urls_files": [
+        "urls.py"
+      ],
+      "route_count": 48,
+      "include_count": 0,
+      "named_routes": 48,
+      "unnamed_routes": 0,
+      "views_modules": [
+        "views.py",
+        "views_copilot_rail.py"
+      ],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [],
+      "template_dirs": [
+        "templates/studio_os"
+      ],
+      "test_files": 74,
+      "readme_or_docs": [],
+      "surfaces": [
+        "operator",
+        "tenant",
+        "default"
+      ],
+      "reachable_from": [
+        "manager_urls.py:studio/",
+        "tenant_urls.py:studio/",
+        "urls.py:studio/"
+      ],
+      "has_apicenter_import": true,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": [
+        "studio_os/modes/launch.html",
+        "studio_os/partials/automation_simulation_preview_pane.html",
+        "studio_os/partials/control_governance_preview_pane.html",
+        "studio_os/partials/experience_live_preview_pane.html",
+        "studio_os/partials/launch_mode_canvas.html",
+        "studio_os/partials/launch_readiness_preview_pane.html",
+        "studio_os/partials/launch_school_infrastructure_body.html",
+        "studio_os/partials/launch_select_plan_body.html",
+        "studio_os/partials/launch_studio_overview_body.html",
+        "studio_os/partials/launch_studio_role_preview_pane.html",
+        "studio_os/partials/output_readiness_preview_pane.html",
+        "studio_os/partials/subpages/automation_replay_rollback.html",
+        "studio_os/partials/subpages/launch_select_plan.html",
+        "studio_os/partials/workspace/launch_canvas.html",
+        "studio_os/partials/workspace/launch_rail.html"
+      ]
+    },
+    {
+      "app": "sync_engine",
+      "path": "apps/sync_engine",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [
+        "services.py"
+      ],
+      "models_files": [
+        "models.py"
+      ],
+      "template_dirs": [],
+      "test_files": 4,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    },
+    {
+      "app": "tenancy",
+      "path": "apps/tenancy",
+      "urls_files": [],
+      "route_count": 0,
+      "include_count": 0,
+      "named_routes": 0,
+      "unnamed_routes": 0,
+      "views_modules": [],
+      "forms_modules": [],
+      "services_modules": [],
+      "models_files": [],
+      "template_dirs": [],
+      "test_files": 18,
+      "readme_or_docs": [],
+      "surfaces": [],
+      "reachable_from": [],
+      "has_apicenter_import": false,
+      "has_feedback_import": false,
+      "has_help_template": false,
+      "likely_workflow_pages": []
+    }
+  ],
+  "gaps": {
+    "routes_without_help_or_ai_signal": [
+      "academics",
+      "compliance",
+      "evals",
+      "events",
+      "integrations_marketplace",
+      "metadata",
+      "orchestration",
+      "payroll",
+      "reports",
+      "requests",
+      "sales",
+      "school_events"
+    ],
+    "workflow_templates_without_help": [
+      "academics",
+      "accounts",
+      "communication",
+      "compliance",
+      "customersuccess",
+      "evals",
+      "events",
+      "finance",
+      "marketplace",
+      "migration_cloud",
+      "observability",
+      "payroll",
+      "people",
+      "platform_runtime",
+      "reports",
+      "requests",
+      "sales",
+      "schoolops",
+      "siteconfig",
+      "studio_os"
+    ],
+    "workflow_templates_without_feedback_hook": [
+      "academics",
+      "accounts",
+      "apicenter",
+      "communication",
+      "compliance",
+      "evals",
+      "events",
+      "finance",
+      "marketplace",
+      "migration_cloud",
+      "payroll",
+      "people",
+      "platform_runtime",
+      "reports",
+      "requests",
+      "sales",
+      "schoolops",
+      "studio_os"
+    ],
+    "views_present_but_no_urls_file_check_inclusion": [
+      "customersuccess",
+      "observability",
+      "people",
+      "schoolops",
+      "student360"
+    ],
+    "routes_without_tests": [
+      "school_events"
+    ],
+    "templates_without_tests": [
+      "school_events",
+      "student360"
+    ]
+  },
+  "service_only_apps": [
+    "billing",
+    "brand_experience",
+    "customers",
+    "customersuccess",
+    "dashboard",
+    "global_registries",
+    "interop",
+    "locale",
+    "observability",
+    "packages",
+    "people",
+    "plans_entitlements",
+    "policies",
+    "policies_rules",
+    "registries",
+    "runtime_blueprints",
+    "schoolops",
+    "security",
+    "setup_studio",
+    "social_media",
+    "student360",
+    "sync_engine",
+    "tenancy"
+  ],
+  "related_inventories": [
+    {
+      "path": "docs/generated/academic_operations_workflow_audit.json",
+      "size_bytes": 3607
+    },
+    {
+      "path": "docs/generated/admin_config_domain_route_matrix.json",
+      "size_bytes": 11555
+    },
+    {
+      "path": "docs/generated/ai_center_platform_inventory.json",
+      "size_bytes": 10851
+    },
+    {
+      "path": "docs/generated/ai_tenant_studio_audit_first_inventory.json",
+      "size_bytes": 4123
+    },
+    {
+      "path": "docs/generated/control_plane_sweep_routes.json",
+      "size_bytes": 95621
+    },
+    {
+      "path": "docs/generated/end_to_end_app_route_inventory.json",
+      "size_bytes": 477
+    },
+    {
+      "path": "docs/generated/orchestrator_code_truth_inventory.json",
+      "size_bytes": 9021
+    },
+    {
+      "path": "docs/generated/platform_inventory.json",
+      "size_bytes": 48225
+    },
+    {
+      "path": "docs/generated/platform_workflow_code_truth_inventory.json",
+      "size_bytes": 67100
+    },
+    {
+      "path": "docs/generated/portal_tenant_sweep_routes.json",
+      "size_bytes": 44473
+    },
+    {
+      "path": "docs/generated/route_click_targets.json",
+      "size_bytes": 13882
+    },
+    {
+      "path": "docs/generated/route_surface_audit.json",
+      "size_bytes": 7155179
+    },
+    {
+      "path": "docs/generated/shell_surface_inventory_ledger.json",
+      "size_bytes": 7232
+    },
+    {
+      "path": "docs/generated/studio_os_code_truth_inventory.json",
+      "size_bytes": 6534
+    },
+    {
+      "path": "docs/generated/workflow_click_reduction_audit.json",
+      "size_bytes": 3776
+    }
+  ],
+  "phase_0_deferred": [
+    "Workflow classification by audience (operator / tenant admin / teacher / parent / student / support / partner) \u2014 Phase 1",
+    "Primary-action / next-best-action / blocker identification per workflow \u2014 Phase 1",
+    "Current vs ideal step count per workflow \u2014 Phase 1",
+    "How-to coverage gap classification (strong / usable / fragmented / broken / missing) \u2014 Phase 1",
+    "Contextual information tag coverage audit \u2014 Phase 3",
+    "AI workflow assistant coverage audit \u2014 Phase 8"
+  ],
+  "verdict": "PHASE_0_INVENTORY_READY"
+}

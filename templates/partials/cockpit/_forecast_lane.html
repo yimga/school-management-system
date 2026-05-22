@@ -39,6 +39,12 @@
         <span>{{ card.caption_left|default:_("past 7d") }}</span>
         <span class="lx-forecast__caption-em">{{ card.caption_right }}</span>
       </div>
+      {% comment %} v3.59.x Wave 11 Agent V: optional canonical sparkline.
+         Renders when card.spark_points (comma-separated list) is supplied;
+         the existing SVG stays in place so operator-configured layout doesn't change. {% endcomment %}
+      {% if card.spark_points %}
+        {% include "partials/dataviz/_sparkline.html" with points=card.spark_points direction=card.spark_direction|default:'accent' label=card.label width=240 height=32 %}
+      {% endif %}
     </div>
     {% endfor %}
   </div>

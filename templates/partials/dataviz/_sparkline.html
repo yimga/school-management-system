@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %} v3.59.x Wave 11 Agent V (2026-05-22) — reusable sparkline primitive.
+
+Usage:
+  {% include "partials/dataviz/_sparkline.html" with points="10,12,15,14,18,22,28" direction="up" label="MRR · 7 days" %}
+
+Parameters:
+  points     — comma-separated list of numeric y-values (required)
+  direction  — "up" | "down" | "flat" | "accent" (default "flat")
+  label      — accessible label for screen readers (default "Trend")
+  width      — viewBox width (default 120)
+  height     — viewBox height (default 32)
+
+JS at static/js/_pages/rmc-data-viz.js renders the path on mount; the SSR
+fallback shows an empty SVG (graceful degradation — no visual break).
+{% endcomment %}
+<div class="rmc-sparkline rmc-sparkline--{{ direction|default:'flat' }}"
+     data-rmc-sparkline-points="{{ points }}"
+     aria-label="{{ label|default:_('Trend') }}"
+     role="img">
+  <svg class="rmc-sparkline__svg"
+       viewBox="0 0 {{ width|default:120 }} {{ height|default:32 }}"
+       preserveAspectRatio="none"
+       aria-hidden="true">
+    {# JS renders the path; this empty SVG is the SSR fallback. #}
+  </svg>
+</div>

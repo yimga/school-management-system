@@ -44,6 +44,10 @@
   <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  {% comment %} v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer.
+     Loads AFTER design-tokens.css so personality overrides the defaults, but
+     BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
   {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
@@ -164,6 +168,8 @@
             document.body.setAttribute('data-rmc-shell-root', 'django-admin');
             document.body.setAttribute('data-rmc-shell-main', 'admin-main');
             document.body.setAttribute('data-rmc-nav-bridge-host', 'manager');
+            /* v3.59.x Wave 11 Agent U: per-page-personality accent slug. */
+            document.body.setAttribute('data-rmc-page-personality', '{{ rmc_page_personality|default:"control-plane"|escapejs }}');
             document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface');
             /* v3.58.5: /admin/ now uses .rmc-app-shell canvas scroll (single scrollable surface). */
             document.body.setAttribute('data-rmc-cp-scroll', 'canvas');
@@ -177,6 +183,8 @@
             document.body.setAttribute('data-rmc-shell-root', 'django-admin');
             document.body.setAttribute('data-rmc-shell-main', 'admin-main');
             document.body.setAttribute('data-rmc-nav-bridge-host', 'tenant');
+            /* v3.59.x Wave 11 Agent U: per-page-personality accent slug. */
+            document.body.setAttribute('data-rmc-page-personality', '{{ rmc_page_personality|default:"tenant-admin"|escapejs }}');
             document.body.classList.add('admin-premium-shell');
           }
         }

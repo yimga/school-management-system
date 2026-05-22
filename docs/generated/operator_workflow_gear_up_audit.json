@@ -1,0 +1,681 @@
+{
+  "phase": "Phase 5 — Operator Workflow Gear-Up audit",
+  "generated_utc": "2026-05-22",
+  "inputs_consumed": [
+    "docs/generated/platform_workflow_code_truth_inventory.json",
+    "docs/generated/platform_workflow_code_truth_inventory.md",
+    "config/manager_urls.py",
+    "apps/schools/super_urls.py",
+    "apps/schools/control_plane.py",
+    "apps/siteconfig/views_cockpit_admin.py",
+    "apps/siteconfig/urls.py",
+    "apps/migration_cloud/urls.py",
+    "apps/migration_cloud/views_health.py",
+    "apps/studio_os/urls.py",
+    "apps/studio_os/views.py",
+    "apps/apicenter/urls.py",
+    "apps/apicenter/views.py",
+    "apps/apicenter/ai_center_urls.py",
+    "apps/sales/urls.py",
+    "apps/sales/views.py",
+    "apps/feedback/urls.py",
+    "apps/feedback/views.py",
+    "apps/platform_runtime/configuration_urls.py",
+    "apps/automation/urls.py",
+    "config/tenant_urls.py",
+    "docs/ROLE_PERMISSION_MATRIX_2026_05_16.md",
+    "CLAUDE.md"
+  ],
+  "constraints_honored": {
+    "no_product_code_changes": true,
+    "read_only_filesystem": true,
+    "stdlib_only_helpers": "no helper script needed; direct grep + Read",
+    "no_commits": true,
+    "no_sot_updates": true,
+    "no_django_run": true,
+    "no_emojis": true
+  },
+  "spot_check_route_verification": {
+    "method": "Each current_entry_route below was verified by reading the corresponding urls.py/super_urls.py and matching the path/name. The 5+ confirmed routes:",
+    "verified_routes": [
+      {
+        "route_name": "super:dashboard",
+        "path": "/super/",
+        "file": "apps/schools/super_urls.py",
+        "line_anchor": "path(\"\", require_super_access_with_host(super_views.super_dashboard_v2), name=\"dashboard\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "super:command_center",
+        "path": "/super/command-center/",
+        "file": "apps/schools/super_urls.py",
+        "line_anchor": "path(\"command-center/\", require_super_access_with_host(super_views.super_command_center_v2), name=\"command_center\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "super:migration_cloud",
+        "path": "/super/migration/",
+        "file": "apps/schools/super_urls.py",
+        "line_anchor": "path(\"migration/\", require_super_access_with_host(super_migration_cloud), name=\"migration_cloud\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "migration_cloud_super:migration_cloud_health",
+        "path": "/super/migration/health/",
+        "file": "apps/migration_cloud/urls.py",
+        "line_anchor": "path(\"health/\", views_health.MigrationCloudHealthView.as_view(), name=\"migration_cloud_health\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "studio_os:shell",
+        "path": "/studio/",
+        "file": "apps/studio_os/urls.py",
+        "line_anchor": "path(\"\", studio_shell, name=\"shell\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "apicenter:dashboard",
+        "path": "/api-center/",
+        "file": "apps/apicenter/urls.py",
+        "line_anchor": "path(\"\", views.api_center_dashboard, name=\"dashboard\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "feedback:voice_of_customer",
+        "path": "/super/voice-of-customer/ (mounted under manager_urls as feedback include)",
+        "file": "apps/feedback/urls.py",
+        "line_anchor": "path(\"super/voice-of-customer/\", views.voice_of_customer, name=\"voice_of_customer\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "super:trust_center",
+        "path": "/super/trust/",
+        "file": "apps/schools/super_urls.py",
+        "line_anchor": "path(\"trust/\", require_super_access_with_host(super_views.super_trust_center), name=\"trust_center\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "configuration:center",
+        "path": "/configuration/",
+        "file": "apps/platform_runtime/configuration_urls.py",
+        "line_anchor": "path(\"\", configuration_center, name=\"center\")",
+        "status": "verified"
+      },
+      {
+        "route_name": "siteconfig:cockpit_configure",
+        "path": "/siteconfig/super/configure/cockpit/",
+        "file": "apps/siteconfig/urls.py:600",
+        "line_anchor": "path(\"super/configure/cockpit/\", CockpitConfigureView.as_view(), name=\"cockpit_configure\")",
+        "status": "verified"
+      }
+    ]
+  },
+  "rbac_posture_cross_reference": {
+    "matrix_file": "docs/ROLE_PERMISSION_MATRIX_2026_05_16.md",
+    "exists": true,
+    "headline_numbers_v2_83": {
+      "url_view_rows": 808,
+      "views_indexed": 1564,
+      "login_gated": 726,
+      "role_gated": 74,
+      "permission_gated_feature": 91,
+      "inline_is_authenticated_check": 60,
+      "auth_mixin_gated": 34,
+      "rbac_allow_markers": 1,
+      "candidate_anonymous": 66,
+      "unresolved_view_symbol": 12
+    },
+    "operator_surface_decorator_coverage": "171 of 181 path() declarations in apps/schools/super_urls.py carry require_super_access_with_host (verified via grep). The remaining 10 are class-based views (MealPlanAnalyticsView, EmailHealthDashboardView, SmtpProbeJsonView, EmailDeliveryConfigView, SignupDiagnosticsView, EmailHealthStreamView, EmailProviderWebhookView and 3 others). Each carries an inline `# rbac-allow:` marker (staff_member_required is enforced via @method_decorator(staff_member_required, name='dispatch') inside the view classes per migration_cloud pattern). The EmailProviderWebhookView is intentionally anonymous (signature-verified bounce webhook) and is marked `rbac-allow: anonymous-signature-verified-bounce-webhook-receiver`."
+  },
+  "audited_workflows": [
+    {
+      "workflow_id": "super-command-center",
+      "label": "/super command center",
+      "existence": "verified",
+      "current_entry_route": "/super/ (super:dashboard) plus /super/command-center/ (super:command_center)",
+      "entry_view": "apps/schools/super_views.py::super_dashboard_v2 + super_command_center_v2",
+      "primary_template": "templates/schools/super_dashboard.html, templates/schools/super_command_center.html",
+      "current_step_count_estimate": 1,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "unknown",
+      "audit_event_evidence": "grep of apps/schools/super_views.py finds 0 hits for _safe_audit/AuditEvent/log_control_plane_action — relies on view-level decorator audit upstream",
+      "help_or_howto_present": "yes",
+      "help_evidence": "manager_help_center -> templates/schools/partials/manager_help_center_body.html",
+      "ai_guidance_present": "yes",
+      "ai_guidance_evidence": "apps/portal/views_ai_copilot.ai_copilot_query is mounted on the same manager urlconf",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "control-plane decorator + switch-to-tenant route + tenant_360 explicit",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Already exemplary. Preserve as the gold-standard operator landing — many curated catalog entries point here.",
+      "priority": "p3",
+      "exemplar": true
+    },
+    {
+      "workflow_id": "configuration",
+      "label": "/configuration",
+      "existence": "verified",
+      "current_entry_route": "/configuration/ (configuration:center)",
+      "entry_view": "apps/platform_runtime/views_administration.py::configuration_center",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "unclear",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "apps/platform_runtime/views_administration.py + pack_apply/blueprint_apply emit AuditEvent (per inventory + grep matches)",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "blueprint_apply_view + pack_apply_view explicitly target tenant SiteSettings + change_request_apply is two-stage",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Add a help drawer on configuration_center + change_request_detail; the change-request approval chain has 4 endpoints (approve/reject/schedule/cancel/apply) but no in-page how-to.",
+      "priority": "p1"
+    },
+    {
+      "workflow_id": "studio-os-operator-mode",
+      "label": "Studio OS operator mode",
+      "existence": "verified",
+      "current_entry_route": "/studio/ (studio_os:shell)",
+      "entry_view": "apps/studio_os/views.py::studio_shell",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "studio_publish_api + studio_rollback + studio_save_draft_api wired through control_plane.log_control_plane_action (per views imports)",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "yes",
+      "ai_guidance_evidence": "apps/studio_os/views_copilot_rail.py uses services.ai_helpers (verified by ai_gateway_boundary allowlist + grep)",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "studio_set_operator_school explicitly scopes the operator's tenant context; preview flow scopes to that school",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Studio is well-scaffolded but the 5 modes (Experience/Automation/Output/Launch/Control) each have 7-12 sub-routes with no per-mode help drawer; ship a /studio/mode/<mode>/help/ contextual drawer.",
+      "priority": "p2",
+      "exemplar": true
+    },
+    {
+      "workflow_id": "ai-center",
+      "label": "AI Center",
+      "existence": "verified",
+      "current_entry_route": "/super/ai-center/ (apicenter:ai_center_home via include in super_urls.py)",
+      "entry_view": "apps/apicenter/views_ai_center_super.py::ai_center_home",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "unclear",
+      "audit_event_emitted": "unknown",
+      "audit_event_evidence": "grep on views_ai_center_super.py did not surface _safe_audit; relies on services.ai_helpers gateway audit",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "yes",
+      "ai_guidance_evidence": "ai_center_query + ai_center_generate_kb route through services.ai_helpers",
+      "tenant_impact_documented": "unclear",
+      "dead_end_signals": [],
+      "simplification_recommendation": "ai_center surfaces 8 sub-routes (inventory/kb-drafts/friction/settings/query/generate-kb/faq-candidates) with no clear hierarchy on the dashboard. Add 4 hero cards (Inventory, Friction, KB Drafts, Settings) and demote the rest to a secondary nav.",
+      "priority": "p2"
+    },
+    {
+      "workflow_id": "api-center",
+      "label": "API Center",
+      "existence": "verified",
+      "current_entry_route": "/api-center/ (apicenter:dashboard)",
+      "entry_view": "apps/apicenter/views.py::api_center_dashboard",
+      "current_step_count_estimate": 3,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "unclear",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "APIAuditLog.objects writes on toggle/key create/revoke (visible in apps/apicenter/views.py imports + render pulls audit_logs)",
+      "help_or_howto_present": "yes",
+      "help_evidence": "platform_workflow_code_truth_inventory marks apicenter as having help template; apicenter views_ai_center_super also routes here",
+      "ai_guidance_present": "yes",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "_api_center_allowed splits manager-host operator access from tenant access (enable_api_center flag + role gate)",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Surface used as both operator + tenant — same code path, different decorator branch. Document the dual-shell contract on the dashboard so operator doesn't think they're seeing a tenant view.",
+      "priority": "p2"
+    },
+    {
+      "workflow_id": "migration-cloud-operator",
+      "label": "Migration Cloud operator view",
+      "existence": "verified",
+      "current_entry_route": "/super/migration/ (migration_cloud_super:console) + /super/migration/health/ + /super/migration/command-center/",
+      "entry_view": "apps/migration_cloud/views.py::MigrationCloudConsoleView + views_command_center.MigrationCloudCommandCenterView",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "MigrationCloudAuditEvent.objects.* across 8+ emit sites (companion upload, MAA sign, key rotate, webhook subscribe/deactivate/replay, token mint/revoke); v3.38.0 introduced append-only hash-chained audit log",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "yes",
+      "ai_guidance_evidence": "apps/migration_cloud/ai_bridge.py + 10+ MigrationCloudAI* views (ai_plan/ai_explain/ai_ask/ai_rebind/ai_narrate_reconciliation/ai_vendor_from_image) via services.ai_helpers (allowlisted)",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "bundle_bind_school + tenant_id_hash dashboards + per-tenant CompanionKeypair + DSAR runbook view",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Already an exemplar (v3.39 platform-trust wave). Preserve. The only gap: no in-page how-to template — uses external docs (MIGRATION_CLOUD_AUDIT_LOG.md). Surface a help drawer linking those docs.",
+      "priority": "p3",
+      "exemplar": true
+    },
+    {
+      "workflow_id": "voice-of-customer",
+      "label": "Voice of Customer (feedback aggregation)",
+      "existence": "verified",
+      "current_entry_route": "/super/voice-of-customer/ (feedback:voice_of_customer) — mounted via `path(\"\", include(...)`) in manager_urls.py",
+      "entry_view": "apps/feedback/views.py::voice_of_customer",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "risk_blocker_evidence": "summarize_feedback_by_school + top_pain_points + detect_churn_risk_signals already surface risk",
+      "audit_event_emitted": "no",
+      "audit_event_evidence": "operator_feedback_action + add_to_roadmap exist as POST endpoints but do not call AuditEvent.objects.create",
+      "help_or_howto_present": "yes",
+      "help_evidence": "templates/feedback/help_center.html",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "summarize_feedback_by_school + visible_feedback_for_user scope per school + module_sentiment_summary",
+      "dead_end_signals": [],
+      "simplification_recommendation": "VoC already feeds Product Roadmap (add_to_roadmap action). Wire AuditEvent emission into operator_feedback_action + add_to_roadmap so feedback triage decisions are append-only.",
+      "priority": "p1"
+    },
+    {
+      "workflow_id": "product-roadmap",
+      "label": "Product Roadmap",
+      "existence": "verified",
+      "current_entry_route": "/super/product-feedback/ -> /super/product-roadmap/ (feedback:product_roadmap) + /product-roadmap/ (manager_product_roadmap in manager_urls)",
+      "entry_view": "apps/feedback/views.py::product_roadmap + config.manager_help_engagement.manager_product_roadmap",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "unclear",
+      "audit_event_emitted": "no",
+      "help_or_howto_present": "yes",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "RoadmapItem.visible_roadmap_for_user filters per-school visibility",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Two roadmap entry points (feedback + manager_help_engagement) — consolidate into one. The `add_to_roadmap` POST has no audit trail and no risk surfacing for cross-tenant fan-out.",
+      "priority": "p1"
+    },
+    {
+      "workflow_id": "support-success",
+      "label": "Support / Success",
+      "existence": "verified",
+      "current_entry_route": "/super/support/ (super:support_dashboard) + /super/customer-success/ (super:customer_success_dashboard) + /support/ (manager_support_request)",
+      "entry_view": "apps/schools/super_views.py::super_support_dashboard + apps/customersuccess/views_super.py::customer_success_dashboard",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "risk_blocker_evidence": "cs_api_risk_alerts + cs_api_admin_inactivity_alerts + cs_api_workflow_failures",
+      "audit_event_emitted": "unknown",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "unclear",
+      "tenant_impact_documented": "yes",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Three Support entry points (super_support, customer_success, manager_support_request) — clarify the split. customer_success is benchmark/intervention; super_support is ticket triage; manager_support_request is the operator's own escape hatch.",
+      "priority": "p2"
+    },
+    {
+      "workflow_id": "compliance",
+      "label": "Compliance",
+      "existence": "verified",
+      "current_entry_route": "/super/compliance/ (super:compliance_overview)",
+      "entry_view": "apps/schools/super_views.py::super_compliance_overview",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "unclear",
+      "risk_blocker_surfaced": "unclear",
+      "audit_event_emitted": "unknown",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "trust_center + audit_export + platform_events all under /super/trust/ — compliance reads tenant SiteSettings + RuntimeDefaults",
+      "dead_end_signals": [],
+      "simplification_recommendation": "compliance_overview is read-only; pair it with /super/trust/export/ so the operator can act (export attestation) immediately.",
+      "priority": "p2"
+    },
+    {
+      "workflow_id": "security",
+      "label": "Security",
+      "existence": "verified",
+      "current_entry_route": "/super/security/ (super:security_hub) + /super/security/command-center/ (alias) + /super/security/surface/ + /super/enterprise-security-command-center/",
+      "entry_view": "apps/schools/super_views_enterprise_security.py::super_security_hub + apps/schools/super_views_security_surface.py",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "middleware_enterprise_security emits log_control_plane_action (per grep)",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "dead_end_signals": [
+        "Three near-identical aliases (security_hub / security_command_center / enterprise_security_command_center) all resolve to super_security_hub — confusing for operator"
+      ],
+      "simplification_recommendation": "Consolidate the three alias routes (security_command_center, enterprise_security_command_center) into permanent 301 redirects to /super/security/ — keep one canonical surface, not three.",
+      "priority": "p1"
+    },
+    {
+      "workflow_id": "observability",
+      "label": "Observability",
+      "existence": "verified",
+      "current_entry_route": "/ops/incidents/ (platform_incidents_console) + /super/analytics/ (super:analytics_overview) + /super/pulse/ (super:pulse) + /super/health/ (super:control_health) + /healthz/ + /status/",
+      "entry_view": "apps/observability/views.py::platform_incidents_console + apps/schools/super_views.py::super_analytics_overview",
+      "current_step_count_estimate": 3,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "apps/observability/incident_services.py wires AuditEvent emit per inventory",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "yes",
+      "ai_guidance_evidence": "apps/observability/ai_copilot_service.py + apps/observability/management/commands/digest_friction.py route through services.ai_helpers",
+      "tenant_impact_documented": "yes",
+      "dead_end_signals": [
+        "Six observability entry points (incidents, analytics, pulse, health, healthz, status) with no unified landing — operator must remember which surface holds which signal"
+      ],
+      "simplification_recommendation": "Build a single /super/observability/ landing aggregating incidents + analytics + pulse + health into a 4-card grid with status indicators.",
+      "priority": "p1"
+    },
+    {
+      "workflow_id": "billing-usage",
+      "label": "Billing / Usage",
+      "existence": "verified",
+      "current_entry_route": "/super/billing/ (super:billing_dashboard) + /super/usage/ (super:usage) + /super/billing-accounts/ (super:billing_accounts_list)",
+      "entry_view": "apps/schools/super_views.py::billing_dashboard + super_usage",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "unclear",
+      "audit_event_emitted": "unknown",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "TenantSubscription.objects + billing_account__school cross-references in manager_search_api",
+      "dead_end_signals": [],
+      "simplification_recommendation": "Three sibling routes (billing, usage, billing_accounts) — consolidate into /super/billing/ with tab strip; subscriptions table is the primary action.",
+      "priority": "p2"
+    },
+    {
+      "workflow_id": "marketplace-app-catalog",
+      "label": "Marketplace / App Catalog",
+      "existence": "verified",
+      "current_entry_route": "/super/marketplace/ (super:marketplace_governance) + /super/marketplace/apps/ (super:app_catalog) + /super/marketplace/blueprints/ (super:blueprint_marketplace)",
+      "entry_view": "apps/marketplace/views.py::governance_console + app_catalog + blueprint_marketplace",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "risk_blocker_evidence": "marketplace_installation_health + marketplace_incident_dashboard + marketplace_signup_review_queue all expose drift/risk",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "marketplace_review_action + package_rollout + package_promote emit audit (per views imports + inventory)",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "yes",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "super_install_impact_preview + marketplace_compatibility + marketplace_sandbox_inspector",
+      "dead_end_signals": [],
+      "simplification_recommendation": "16 marketplace operator routes — solid grammar but no unified developer-platform landing. Add /super/marketplace/developer-platform/ index linking signups + webhooks + ratings + versions.",
+      "priority": "p2"
+    },
+    {
+      "workflow_id": "blueprints-packs-governance",
+      "label": "Blueprints / Packs / Governance",
+      "existence": "verified",
+      "current_entry_route": "/super/blueprints/ (super:blueprints_catalog) + /super/policies/ (super:policies_catalog) + /super/workflow-packs/ (super:workflow_packs_catalog) + /super/dashboard-packs/ (super:dashboard_packs_catalog) + /configuration/blueprints/ (configuration:blueprint_marketplace)",
+      "entry_view": "apps/schools/super_views_catalog.py + apps/platform_runtime/views_administration.py",
+      "current_step_count_estimate": 3,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "blueprint_apply + pack_apply + change_request_apply all emit AuditEvent via platform_runtime modules (blueprint_audit_events tests + pack_audit_events tests)",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "blueprint_impact + pack_impact + pack_simulation_view + blueprint_preview show tenant-side impact before apply",
+      "dead_end_signals": [
+        "Two near-duplicate landings: /super/blueprints/ (read-only catalog) and /configuration/blueprints/ (apply UX) — operator must learn the split"
+      ],
+      "simplification_recommendation": "Link /super/blueprints/ catalog rows directly to /configuration/blueprints/<key>/ apply UX so the operator never has to switch surface.",
+      "priority": "p1"
+    },
+    {
+      "workflow_id": "tenant-health",
+      "label": "Tenant health",
+      "existence": "verified",
+      "current_entry_route": "/super/tenant-health/ (super:tenant_health) + /super/tenants/<uuid>/360/ (super:tenant_360) + /super/migration/health/ (migration_cloud_super:migration_cloud_health)",
+      "entry_view": "apps/schools/super_views.py::super_tenant_health + super_tenant_360 + apps/migration_cloud/views_health.py::MigrationCloudHealthView",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "unknown",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "yes",
+      "tenant_impact_evidence": "tenant_id_hash dashboards + sync_repair endpoint + tenant_360 deep-link",
+      "dead_end_signals": [],
+      "simplification_recommendation": "tenant_health is panel-only; needs primary-action button (Open tenant 360 / Switch-to-tenant / Run sync repair) per row.",
+      "priority": "p2"
+    },
+    {
+      "workflow_id": "implementation-command-center",
+      "label": "Implementation command center",
+      "existence": "partially-verified",
+      "current_entry_route": "/super/create/ (super:create_school_wizard) + /super/playbook-operator-hub/ (super:playbook_operator_hub) + /super/migration/command-center/ (migration_cloud_super:migration_cloud_command_center)",
+      "entry_view": "apps/schools/super_views.py::create_school_wizard + super_playbook_operator_hub + apps/migration_cloud/views_command_center.py::MigrationCloudCommandCenterView",
+      "current_step_count_estimate": 4,
+      "primary_action_present": "yes",
+      "next_best_action_present": "unclear",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "MigrationCloudCommandCenterView wires through MigrationCloudAuditEvent emission",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "yes",
+      "tenant_impact_documented": "yes",
+      "dead_end_signals": [
+        "No single /super/implementation/ landing — 4 separate surfaces (wizard, playbook, migration command center, sales pipeline) that together represent the implementation lifecycle"
+      ],
+      "simplification_recommendation": "Build /super/implementation/ landing aggregating: new-school wizard, sales pipeline (sales:pipeline_board), migration command-center, playbook operator hub. Phase-based grid.",
+      "priority": "p1"
+    },
+    {
+      "workflow_id": "defect-closure-loop",
+      "label": "Defect closure loop",
+      "existence": "partially-verified",
+      "current_entry_route": "/ops/incidents/ (platform_incidents_console) + /super/feedback-loop/ (manager_feedback_loop) + /super/marketplace/incidents/ (marketplace_incident_dashboard) + /super/support/ticket/<uuid>/",
+      "entry_view": "apps/observability/views.py::platform_incidents_console + apps/schools/super_views.py::super_support_ticket_detail + apps/marketplace/views.py::marketplace_incident_dashboard",
+      "current_step_count_estimate": 4,
+      "primary_action_present": "yes",
+      "next_best_action_present": "unclear",
+      "risk_blocker_surfaced": "yes",
+      "audit_event_emitted": "yes",
+      "audit_event_evidence": "incident_services emit AuditEvent",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "yes",
+      "tenant_impact_documented": "unclear",
+      "dead_end_signals": [
+        "No single defect-closure-loop entry; 4 surfaces share signal but don't chain (incident -> ticket -> feedback -> roadmap is implicit, not navigated)"
+      ],
+      "simplification_recommendation": "Wire the loop end-to-end: each incident has a 'Open related tickets / feedback' button; each ticket has 'Open related incident'; each feedback row that triggered an incident shows the incident link. Closes the loop without new pages.",
+      "priority": "p0"
+    },
+    {
+      "workflow_id": "sales-pipeline",
+      "label": "Sales / Marketing (operator-side)",
+      "existence": "verified",
+      "current_entry_route": "/sales/ (sales:pipeline_board) + /sales/first-100/ + /sales/leads/new/",
+      "entry_view": "apps/sales/views.py::pipeline_board + first_100_schools_dashboard + lead_create",
+      "current_step_count_estimate": 2,
+      "primary_action_present": "yes",
+      "next_best_action_present": "yes",
+      "risk_blocker_surfaced": "unclear",
+      "audit_event_emitted": "no",
+      "audit_event_evidence": "sales.ActivityLog is the audit substrate but not the canonical AuditEvent",
+      "help_or_howto_present": "no",
+      "ai_guidance_present": "no",
+      "tenant_impact_documented": "no",
+      "tenant_impact_evidence": "Lead is operator-only, no tenant cross-ref",
+      "dead_end_signals": [
+        "Not in manager_search_api static catalog — sales pipeline is invisible from the /super/ command center search; operator must know the URL"
+      ],
+      "simplification_recommendation": "Add sales pipeline + first-100-schools-dashboard to the manager_search_api static catalog; surface them on /super/ landing under 'Implementation' card.",
+      "priority": "p1"
+    }
+  ],
+  "fix_me_first_top_10": [
+    {
+      "rank": 1,
+      "workflow_id": "defect-closure-loop",
+      "route": "/ops/incidents/ + /super/support/ + /super/feedback-loop/ + /super/marketplace/incidents/",
+      "recommendation": "Wire the loop end-to-end: incident <-> ticket <-> feedback <-> roadmap cross-links so operator never has to context-switch surfaces. No new pages — just link buttons + back-refs.",
+      "estimated_touch_files": [
+        "templates/observability/platform_incidents_console.html",
+        "templates/schools/super_support_ticket_detail.html",
+        "templates/feedback/voice_of_customer.html",
+        "templates/marketplace/incident_dashboard.html",
+        "apps/observability/views.py (related-ticket annotations)",
+        "apps/schools/super_views.py::super_support_ticket_detail (related-incident annotations)"
+      ],
+      "priority": "p0"
+    },
+    {
+      "rank": 2,
+      "workflow_id": "voice-of-customer",
+      "route": "/super/voice-of-customer/ + /super/feedback/<pk>/action/ + /super/feature/<pk>/roadmap/",
+      "recommendation": "Wire AuditEvent emission into operator_feedback_action + add_to_roadmap so cross-tenant feedback triage decisions are append-only and auditable.",
+      "estimated_touch_files": [
+        "apps/feedback/views.py (operator_feedback_action, add_to_roadmap)",
+        "apps/feedback/services.py"
+      ],
+      "priority": "p1"
+    },
+    {
+      "rank": 3,
+      "workflow_id": "security",
+      "route": "/super/security/command-center/ + /super/enterprise-security-command-center/",
+      "recommendation": "Collapse 3 alias routes (security_hub, security_command_center, enterprise_security_command_center) into one canonical /super/security/ with permanent 301s on the two aliases. Operator confusion + bookmark drift.",
+      "estimated_touch_files": [
+        "apps/schools/super_urls.py (alias paths)",
+        "apps/schools/super_views_enterprise_security.py (already a single view)"
+      ],
+      "priority": "p1"
+    },
+    {
+      "rank": 4,
+      "workflow_id": "observability",
+      "route": "/super/observability/ (NEW landing)",
+      "recommendation": "Build single /super/observability/ landing aggregating /ops/incidents/ + /super/analytics/ + /super/pulse/ + /super/health/ as a 4-card grid with live status indicators.",
+      "estimated_touch_files": [
+        "apps/schools/super_views.py (new view)",
+        "apps/schools/super_urls.py (new route)",
+        "templates/schools/super_observability.html (new template)"
+      ],
+      "priority": "p1"
+    },
+    {
+      "rank": 5,
+      "workflow_id": "implementation-command-center",
+      "route": "/super/implementation/ (NEW landing)",
+      "recommendation": "Aggregate new-school wizard, sales:pipeline_board, migration_cloud_super:migration_cloud_command_center, playbook_operator_hub into a single /super/implementation/ landing with phase-based card layout (Sell -> Provision -> Migrate -> Launch).",
+      "estimated_touch_files": [
+        "apps/schools/super_views.py (new view)",
+        "apps/schools/super_urls.py (new route)",
+        "templates/schools/super_implementation.html (new template)",
+        "apps/schools/manager_urls.py::_manager_search_static_catalog (add entry)"
+      ],
+      "priority": "p1"
+    },
+    {
+      "rank": 6,
+      "workflow_id": "blueprints-packs-governance",
+      "route": "/super/blueprints/<key>/ -> /configuration/blueprints/<key>/",
+      "recommendation": "Link each row in super:blueprints_catalog catalog row directly to /configuration/blueprints/<key>/ apply UX. Today the operator must remember the surface split.",
+      "estimated_touch_files": [
+        "templates/schools/super_blueprints_catalog.html",
+        "templates/schools/super_workflow_packs.html",
+        "templates/schools/super_dashboard_packs.html",
+        "templates/schools/super_policies_catalog.html"
+      ],
+      "priority": "p1"
+    },
+    {
+      "rank": 7,
+      "workflow_id": "sales-pipeline",
+      "route": "/sales/ (visibility in /super/ search)",
+      "recommendation": "Add sales pipeline + first-100-schools-dashboard to manager_search_api._manager_search_static_catalog so they're discoverable; today the operator must know the URL.",
+      "estimated_touch_files": [
+        "config/manager_urls.py::_manager_search_static_catalog"
+      ],
+      "priority": "p1"
+    },
+    {
+      "rank": 8,
+      "workflow_id": "configuration",
+      "route": "/configuration/change-requests/<id>/",
+      "recommendation": "Add a help drawer on configuration_center + change_request_detail; the 4-step approval chain (approve/reject/schedule/cancel/apply) has no in-page how-to.",
+      "estimated_touch_files": [
+        "templates/platform_runtime/configuration_center.html",
+        "templates/platform_runtime/change_request_detail.html"
+      ],
+      "priority": "p1"
+    },
+    {
+      "rank": 9,
+      "workflow_id": "ai-center",
+      "route": "/super/ai-center/",
+      "recommendation": "ai_center_home has 8 flat sub-routes (inventory/kb-drafts/friction/settings/query/generate-kb/faq-candidates). Demote to 4 hero cards (Inventory, Friction, KB Drafts, Settings) with secondary nav for the rest.",
+      "estimated_touch_files": [
+        "templates/apicenter/ai_center_home.html (or matching)",
+        "apps/apicenter/views_ai_center_super.py::ai_center_home"
+      ],
+      "priority": "p2"
+    },
+    {
+      "rank": 10,
+      "workflow_id": "tenant-health",
+      "route": "/super/tenant-health/",
+      "recommendation": "tenant_health is panel-only — add per-row primary-action buttons (Open tenant 360 / Switch-to-tenant / Run sync repair) so the operator can act, not just observe.",
+      "estimated_touch_files": [
+        "templates/schools/super_tenant_health.html",
+        "apps/schools/super_views.py::super_tenant_health (context additions)"
+      ],
+      "priority": "p2"
+    }
+  ],
+  "exemplary_workflows_preserve_dont_rebuild": [
+    {
+      "workflow_id": "super-command-center",
+      "why": "Curated 31-entry static catalog in manager_search_api drives unified search; control-plane decorator on every route; manager_search_api wires School + PlatformIncident + TenantSubscription deep-links. Already the gold standard."
+    },
+    {
+      "workflow_id": "migration-cloud-operator",
+      "why": "v3.39 platform-trust wave shipped tamper-evident audit log + per-tenant CompanionKeypair + counsel-pending docket + scoped API throttle + 8+ audit-event emit sites. Single primary action, clear next steps, full audit trail."
+    },
+    {
+      "workflow_id": "studio-os-operator-mode",
+      "why": "5-mode shell with shared preview + publish/rollback + version-history + AI copilot rail (services.ai_helpers allowlisted). Operator and tenant code paths unified via use_control_plane_shell guard. Mode rail is durable across pages."
+    }
+  ],
+  "tenant_exposure_check_super_routes": {
+    "method": "grep on config/tenant_urls.py for 'super_urls' or 'apps.schools.super_urls'",
+    "result": "config/tenant_urls.py does NOT include apps.schools.super_urls. /super/ routes are only mounted from config/manager_urls.py (manager-host). require_super_access_with_host enforces both host gate AND user role gate.",
+    "leaked_routes": [],
+    "false_positive_concern_resolved": "siteconfig:cockpit_configure is at /siteconfig/super/configure/cockpit/ (path includes 'super' but is mounted from config/manager_urls.py via include of apps.siteconfig.urls). View uses LoginRequiredMixin + UserPassesTestMixin (is_staff or is_superuser). Confirmed staff-only.",
+    "verdict": "no operator-only surfaces accidentally exposed to tenant users; control-plane decorator coverage = 171/181 path() declarations in apps/schools/super_urls.py + remaining 10 CBV class-level staff_member_required."
+  },
+  "honest_gaps_flagged_by_inventory_carried_forward": {
+    "operator_workflow_templates_without_help": [
+      "migration_cloud (vendor_write_status / maa_v2_promotion / health / command-center surfaces have no in-page help; rely on docs/MIGRATION_CLOUD_AUDIT_LOG.md externally)",
+      "studio_os (5 modes, 48 routes, no per-mode help drawer)",
+      "siteconfig:cockpit_configure (no in-page how-to)",
+      "platform_runtime:configuration (change-request 5-action chain has no how-to)"
+    ],
+    "operator_workflow_templates_without_feedback_hook": [
+      "apicenter / migration_cloud / studio_os / platform_runtime / sales — none of these embed templates/feedback/partials/help_center_engage_strip.html or similar."
+    ]
+  },
+  "verdict": "PHASE_5_OPERATOR_WORKFLOW_GEAR_UP_AUDIT_READY"
+}

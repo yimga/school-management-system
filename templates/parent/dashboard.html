@@ -143,9 +143,10 @@
         <p class="text-muted mb-4">
           {% trans "Link your child's account to view their progress, attendance, and school updates." %}
         </p>
+        {# v3.59.x Wave 11 Agent X (2026-05-22): primary parent-onboarding CTA upgraded to gradient indigo per v8 200x preview. #}
         {% if rmc_conversion_single_action_enforced|default:False %}
         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center">
-          <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg" data-rmc-parent-onboarding-primary="1">
+          <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg rmc-cta--gradient-indigo" data-rmc-parent-onboarding-primary="1">
             <i class="bi bi-envelope-check me-2"></i>{% trans "I have an invite code" %}
           </a>
           <details class="rmc-conversion-more-actions text-start">
@@ -159,7 +160,7 @@
         </div>
         {% else %}
         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
-          <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg">
+          <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg rmc-cta--gradient-indigo">
             <i class="bi bi-envelope-check me-2"></i>{% trans "I have an invite code" %}
           </a>
           <a href="{% url 'portal:link_child' %}" class="btn btn-outline-primary btn-lg">
@@ -183,10 +184,11 @@
     {% endif %}
 
     <!-- Header -->
-    <header class="parent-dashboard-header" aria-labelledby="parent-dashboard-title" data-decision-zone="headline" data-tour="parent-header">
+    {# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside existing parent-dashboard-header classes — additive, preserves all existing wiring. #}
+    <header class="parent-dashboard-header rmc-page-header-glow" aria-labelledby="parent-dashboard-title" data-decision-zone="headline" data-tour="parent-header">
       <div class="dashboard-header">
         <div class="dashboard-title">
-          <span class="dashboard-eyebrow">{% trans "Family Home" %}</span>
+          <span class="dashboard-eyebrow rmc-page-eyebrow">{% trans "Family Home" %}</span>
           <h1 id="parent-dashboard-title">{% trans "Welcome back" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
           <p>{% trans "Your children, school status, and the next step to take — in one calm view." %}</p>
         </div>
@@ -359,8 +361,9 @@
     </section>
 
     {% if parent_upcoming_events %}
+    {# v3.59.x Wave 11 Agent X (2026-05-22): upcoming-school grouping adopts `.rmc-app-section--glass` per v8 200x preview. #}
     <section class="mb-3 rmc-reveal" aria-labelledby="parent-upcoming-school-heading">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm rmc-app-section--glass">
         <div class="card-body py-3">
           <h2 id="parent-upcoming-school-heading" class="h6 mb-2"><i class="bi bi-calendar-event" aria-hidden="true"></i> {% trans "Upcoming at school" %}</h2>
           <ul class="list-unstyled mb-2 small">

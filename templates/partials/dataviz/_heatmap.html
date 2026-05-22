@@ -1,0 +1,36 @@
+{% load i18n %}
+{% comment %} v3.59.x Wave 11 Agent V (2026-05-22) — reusable heatmap primitive.
+
+Usage:
+  {% include "partials/dataviz/_heatmap.html" with tiles=tile_list legend=True %}
+
+Parameters:
+  tiles      — list of dicts. Each dict shape:
+                 {slug, status, label}
+               status ∈ {"healthy", "okay", "watch", "critical", "idle"}
+               label is the tooltip text (shown on hover/focus).
+  legend     — bool, render the legend row (default True)
+  density    — "" | "dense" | "xl" (default "" = standard 28x28)
+  aria_label — accessible label for the whole heatmap (default "Status heatmap")
+{% endcomment %}
+{% if tiles %}
+<div class="rmc-heatmap{% if density %} rmc-heatmap--{{ density }}{% endif %}"
+     role="list"
+     aria-label="{{ aria_label|default:_('Status heatmap') }}">
+  {% for tile in tiles %}
+    <div class="rmc-heatmap__tile rmc-heatmap__tile--{{ tile.status|default:'idle' }}"
+         role="listitem"
+         data-rmc-tooltip-text="{{ tile.label }}"
+         data-rmc-heatmap-tooltip="{{ tile.label }}"></div>
+  {% endfor %}
+</div>
+{% if legend|default_if_none:True %}
+<div class="rmc-heatmap__legend" aria-label="{% trans 'Heatmap legend' %}">
+  <span class="rmc-heatmap__legend-item"><span class="rmc-heatmap__legend-swatch rmc-heatmap__legend-swatch--healthy" aria-hidden="true"></span>{% trans "Healthy" %}</span>
+  <span class="rmc-heatmap__legend-item"><span class="rmc-heatmap__legend-swatch rmc-heatmap__legend-swatch--okay" aria-hidden="true"></span>{% trans "Okay" %}</span>
+  <span class="rmc-heatmap__legend-item"><span class="rmc-heatmap__legend-swatch rmc-heatmap__legend-swatch--watch" aria-hidden="true"></span>{% trans "Watch" %}</span>
+  <span class="rmc-heatmap__legend-item"><span class="rmc-heatmap__legend-swatch rmc-heatmap__legend-swatch--critical" aria-hidden="true"></span>{% trans "Critical" %}</span>
+  <span class="rmc-heatmap__legend-item"><span class="rmc-heatmap__legend-swatch rmc-heatmap__legend-swatch--idle" aria-hidden="true"></span>{% trans "Idle / pilot" %}</span>
+</div>
+{% endif %}
+{% endif %}

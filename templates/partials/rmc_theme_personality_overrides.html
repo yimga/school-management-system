@@ -1,0 +1,17 @@
+{% comment %}
+v3.59.x Wave 11 Agent W — operator-overridable theme personality.
+
+Emits a `<style data-rmc-personality-override>` block in the page <head>
+AFTER static/css/design-tokens-personality.css so operator-published
+hex values override the platform defaults via the CSS cascade.
+
+`rmc_theme_personality_overrides` is computed server-side by
+apps.siteconfig.page_personality.personality_overrides_context_processor
+from validated hex codes only. The `|safe` filter is acceptable here
+because the resolver constructs the string from hex codes that passed
+the RegexValidator in ThemePersonalityForm — no operator input is
+interpolated into CSS syntax directly.
+{% endcomment %}
+{% if rmc_theme_personality_overrides %}
+<style data-rmc-personality-override nonce="{{ request.csp_nonce|default:'' }}">{{ rmc_theme_personality_overrides|safe }}</style>
+{% endif %}

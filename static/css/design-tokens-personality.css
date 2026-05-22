@@ -1,0 +1,581 @@
+/* =========================================================
+   design-tokens-personality.css   (v3.59.x Wave 11 Agent U)
+   ---------------------------------------------------------
+   Per-page-personality accent layer that sits on top of the
+   canonical semantic tokens in `design-tokens.css`. Each
+   page archetype activates a distinct accent personality via
+   `data-rmc-page-personality="<slug>"` on the <body> element
+   (set by `apps/siteconfig/personality_context.py` →
+   shell template). All personalities share the same status
+   palette, heatmap palette, chart palette, and sparkline
+   recipe so data viz reads consistently across the platform.
+
+   COLOR SOURCES (verbatim, extracted from preview HTMLs):
+     - docs/generated/preview_app_shell_admin_v1_200x.html
+       (operator /admin/ 200x target — indigo + violet on
+       dark navy chrome, amber accent pill, semantic
+       status #22c55e / #f59e0b / #ef4444 / #60a5fa)
+     - Desktop/rmc-shell-preview-v8-200x.html
+       (manager control plane — same indigo+violet on dark
+       navy, heatmap 5-tier rgba(34,197,94,0.70) →
+       rgba(148,163,184,0.35), chart sparklines #22c55e
+       #f59e0b #60a5fa #6366f1)
+     - Desktop/rmc-shell-preview-tenant-portal-v3-100x.html
+       (tenant portal — Gilead Tech High green+gold:
+       #1e6f3a / #2c8a4d / #c19a26, status #16a34a / #d97706
+       / #dc2626 / #2563eb on light slate text #0f172a)
+
+   THEME RESPONSIVENESS:
+     - Personality accent values are theme-aware: light theme
+       uses saturated, deep brand hex; dark theme rebalances
+       to slightly desaturated, lighter values so contrast on
+       navy (#07091a) stays above WCAG AA 4.5:1.
+     - Warm-bright + cool-apple aesthetic profiles inherit
+       from light + dark respectively and refine via
+       `[data-rmc-aesthetic="warm-bright"]` /
+       `[data-rmc-aesthetic="cool-apple"]`.
+
+   OPERATOR OVERRIDE CONTRACT:
+     `SiteSettings.theme_personality` is a JSONField with shape:
+       {
+         "personality_overrides": {
+           "control-plane": {"accent": "#hex", "accent-soft": "#hex",
+                             "accent-strong": "#hex"},
+           "tenant-admin":  { ... }, "parent": { ... },
+           "student": { ... },        "teacher": { ... },
+           "marketing": { ... },      "finance": { ... },
+           "reports": { ... },        "settings": { ... },
+           "auth": { ... },           "default": { ... }
+         },
+         "status_palette":   {"success": "#hex", "warning": "#hex",
+                              "danger":  "#hex", "info":    "#hex"},
+         "heatmap_palette":  {"healthy": "#hex", "okay":    "#hex",
+                              "watch":   "#hex", "critical":"#hex",
+                              "idle":    "#hex"},
+         "chart_series":     ["#hex","#hex","#hex","#hex",
+                              "#hex","#hex","#hex","#hex"]
+       }
+     CASCADE (platform default first → most-specific last):
+       this file (platform default)
+         → SiteSettings.theme_personality on the platform host (manager)
+         → SiteSettings.theme_personality on the tenant
+         → per-user `UserPreference.personality_overrides`
+     Empty / missing values fall through to defaults at every step.
+     Agent W wires the cockpit form that authors the JSON; this
+     file owns the SCHEMA + the default values.
+   ========================================================= */
+
+/* =========================================================
+   1. ROOT DEFAULT — "default" personality (control-plane indigo).
+      Lives on :root so any page that hasn't set
+      data-rmc-page-personality still gets a coherent accent.
+   ========================================================= */
+:root {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #6366f1;
+  --personality-accent-soft: rgba(99, 102, 241, 0.12);
+  --personality-accent-tint: rgba(99, 102, 241, 0.06);
+  --personality-accent-strong: #4338ca;
+  --personality-accent-deep: #312e81;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(124, 58, 237, 0.12));
+  --personality-glow-rgb: 99, 102, 241;
+  --personality-eyebrow: #4338ca;
+}
+
+/* =========================================================
+   2. STATUS PALETTE — semantic, ALWAYS available regardless
+      of personality. The four status families (success /
+      warning / danger / info) carry a triplet:
+        --status-X         saturated stroke / dot / icon hue
+        --status-X-bg      tinted fill for chip / badge bg
+        --status-X-fg      readable label color on light bg
+      Theme variants below refine -fg for dark backgrounds.
+   ========================================================= */
+:root {
+  /* off-token-allow: personality-palette-canonical */
+  --status-success: #22c55e;
+  --status-success-bg: rgba(34, 197, 94, 0.12);
+  --status-success-fg: #15803d;
+  --status-success-strong: #16a34a;
+  --status-warning: #f59e0b;
+  --status-warning-bg: rgba(245, 158, 11, 0.14);
+  --status-warning-fg: #b45309;
+  --status-warning-strong: #d97706;
+  --status-danger: #ef4444;
+  --status-danger-bg: rgba(239, 68, 68, 0.12);
+  --status-danger-fg: #b91c1c;
+  --status-danger-strong: #dc2626;
+  --status-info: #3b82f6;
+  --status-info-bg: rgba(96, 165, 250, 0.14);
+  --status-info-fg: #1d4ed8;
+  --status-info-strong: #2563eb;
+  /* Neutral / muted status (flat trend, no signal) */
+  --status-neutral: #94a3b8;
+  --status-neutral-bg: rgba(100, 116, 139, 0.10);
+  --status-neutral-fg: #475569;
+}
+
+/* =========================================================
+   3. HEATMAP PALETTE — 5 tiers, used by tenant-health grid
+      in the v8 200x preview (`.lx-heatmap__tile--*`).
+      Tiles render as alpha-tinted blocks; the legend dots
+      use the same alpha so they read as the same swatch.
+   ========================================================= */
+:root {
+  /* off-token-allow: personality-palette-canonical */
+  --heatmap-healthy: rgba(34, 197, 94, 0.70);
+  --heatmap-okay: rgba(34, 197, 94, 0.40);
+  --heatmap-watch: rgba(245, 158, 11, 0.70);
+  --heatmap-critical: rgba(239, 68, 68, 0.75);
+  --heatmap-idle: rgba(148, 163, 184, 0.35);
+  /* Solid hex variants for legend ::before pseudos that
+     can't render alpha on a transparent grid background. */
+  --heatmap-healthy-hex: #22c55e;
+  --heatmap-okay-hex: #84cc16;
+  --heatmap-watch-hex: #eab308;
+  --heatmap-critical-hex: #ef4444;
+  --heatmap-idle-hex: #94a3b8;
+}
+
+/* =========================================================
+   4. CHART SERIES PALETTE — 8 colors that visually
+      distinguish on BOTH light + dark backgrounds. Pulled
+      from the v8 200x preview's sparkline strokes plus
+      complementary hues for multi-series readability.
+      Order chosen so the first 4 cover the most common
+      "compare to previous period" patterns.
+   ========================================================= */
+:root {
+  /* off-token-allow: personality-palette-canonical */
+  --chart-series-1: #6366f1;  /* indigo  — primary trend     */
+  --chart-series-2: #10b981;  /* emerald — positive delta    */
+  --chart-series-3: #f59e0b;  /* amber   — caution / watch   */
+  --chart-series-4: #ef4444;  /* red     — negative delta    */
+  --chart-series-5: #8b5cf6;  /* violet  — secondary trend   */
+  --chart-series-6: #14b8a6;  /* teal    — tertiary positive */
+  --chart-series-7: #f97316;  /* orange  — alt warning       */
+  --chart-series-8: #ec4899;  /* pink    — categorical accent*/
+  /* Sparkline-specific stroke (single-series KPI cards). */
+  --sparkline-up: #22c55e;
+  --sparkline-down: #ef4444;
+  --sparkline-flat: #94a3b8;
+  --sparkline-neutral: #60a5fa;
+  /* Chart grid + axis colors (light theme defaults). */
+  --chart-axis: rgba(15, 23, 42, 0.20);
+  --chart-grid: rgba(15, 23, 42, 0.06);
+  --chart-grid-strong: rgba(15, 23, 42, 0.12);
+}
+
+/* =========================================================
+   5. STATUS PILL CHIP — convenience composite tokens that
+      a `.rmc-status-pill[data-tone="..."]` rule can consume
+      without authoring 4 separate selector branches.
+   ========================================================= */
+:root {
+  /* off-token-allow: personality-palette-canonical */
+  --pill-success-border: rgba(34, 197, 94, 0.30);
+  --pill-warning-border: rgba(245, 158, 11, 0.30);
+  --pill-danger-border: rgba(239, 68, 68, 0.30);
+  --pill-info-border: rgba(96, 165, 250, 0.30);
+  --pill-neutral-border: rgba(148, 163, 184, 0.30);
+}
+
+/* =========================================================
+   6. PER-PERSONALITY OVERRIDES — each archetype redefines
+      --personality-accent + variants. Status / heatmap /
+      chart palettes are NEVER overridden per personality —
+      they stay platform-consistent so a "warning" on the
+      parent portal looks identical to a "warning" on the
+      control plane.
+
+      Slugs MUST match the resolver in
+      `apps/siteconfig/page_personality.py::PERSONALITY_SLUGS`.
+   ========================================================= */
+
+/* 6.1 — control-plane (operator /super/ + /admin/) */
+[data-rmc-page-personality="control-plane"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #6366f1;
+  --personality-accent-soft: rgba(99, 102, 241, 0.12);
+  --personality-accent-tint: rgba(99, 102, 241, 0.06);
+  --personality-accent-strong: #4338ca;
+  --personality-accent-deep: #312e81;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(124, 58, 237, 0.12));
+  --personality-glow-rgb: 99, 102, 241;
+  --personality-eyebrow: #c4b5fd;
+}
+
+/* 6.2 — tenant-admin (portal/backend, accounts/backend, studio_os) */
+[data-rmc-page-personality="tenant-admin"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #4f46e5;
+  --personality-accent-soft: rgba(79, 70, 229, 0.10);
+  --personality-accent-tint: rgba(79, 70, 229, 0.05);
+  --personality-accent-strong: #4338ca;
+  --personality-accent-deep: #312e81;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #4f46e5, #10b981);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(79, 70, 229, 0.10), rgba(16, 185, 129, 0.10));
+  --personality-glow-rgb: 79, 70, 229;
+  --personality-eyebrow: #4338ca;
+}
+
+/* 6.3 — parent (family warmth: warm amber / coral) */
+[data-rmc-page-personality="parent"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #f59e0b;
+  --personality-accent-soft: rgba(245, 158, 11, 0.12);
+  --personality-accent-tint: rgba(245, 158, 11, 0.06);
+  --personality-accent-strong: #d97706;
+  --personality-accent-deep: #92400e;
+  --personality-accent-on: #422006;
+  --personality-gradient: linear-gradient(135deg, #fbbf24, #f59e0b 55%, #f97316);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(251, 191, 36, 0.16), rgba(249, 115, 22, 0.10));
+  --personality-glow-rgb: 245, 158, 11;
+  --personality-eyebrow: #b45309;
+}
+
+/* 6.4 — student (growth: emerald) */
+[data-rmc-page-personality="student"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #10b981;
+  --personality-accent-soft: rgba(16, 185, 129, 0.12);
+  --personality-accent-tint: rgba(16, 185, 129, 0.06);
+  --personality-accent-strong: #059669;
+  --personality-accent-deep: #047857;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #10b981, #34d399 55%, #6ee7b7);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(110, 231, 183, 0.10));
+  --personality-glow-rgb: 16, 185, 129;
+  --personality-eyebrow: #047857;
+}
+
+/* 6.5 — teacher (focus / profession: cobalt blue) */
+[data-rmc-page-personality="teacher"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #2563eb;
+  --personality-accent-soft: rgba(37, 99, 235, 0.10);
+  --personality-accent-tint: rgba(37, 99, 235, 0.05);
+  --personality-accent-strong: #1d4ed8;
+  --personality-accent-deep: #1e3a8a;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #2563eb, #3b82f6 55%, #60a5fa);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(96, 165, 250, 0.08));
+  --personality-glow-rgb: 37, 99, 235;
+  --personality-eyebrow: #1d4ed8;
+}
+
+/* 6.6 — marketing (editorial cream + gold) */
+[data-rmc-page-personality="marketing"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #c19a26;
+  --personality-accent-soft: rgba(193, 154, 38, 0.14);
+  --personality-accent-tint: rgba(193, 154, 38, 0.06);
+  --personality-accent-strong: #a17820;
+  --personality-accent-deep: #6b4f12;
+  --personality-accent-on: #1d1d1f;
+  --personality-gradient: linear-gradient(135deg, #c19a26, #fbbf24 55%, #f59e0b);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(193, 154, 38, 0.14), rgba(251, 191, 36, 0.10));
+  --personality-glow-rgb: 193, 154, 38;
+  --personality-eyebrow: #6b4f12;
+}
+
+/* 6.7 — finance (money green + civic gold) */
+[data-rmc-page-personality="finance"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #16a34a;
+  --personality-accent-soft: rgba(22, 163, 74, 0.10);
+  --personality-accent-tint: rgba(22, 163, 74, 0.05);
+  --personality-accent-strong: #15803d;
+  --personality-accent-deep: #14532d;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #16a34a, #22c55e 55%, #c19a26);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(22, 163, 74, 0.10), rgba(193, 154, 38, 0.08));
+  --personality-glow-rgb: 22, 163, 74;
+  --personality-eyebrow: #15803d;
+}
+
+/* 6.8 — reports (analytical blue-gray) */
+[data-rmc-page-personality="reports"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #475569;
+  --personality-accent-soft: rgba(71, 85, 105, 0.10);
+  --personality-accent-tint: rgba(71, 85, 105, 0.05);
+  --personality-accent-strong: #334155;
+  --personality-accent-deep: #1e293b;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #334155, #475569 55%, #64748b);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(71, 85, 105, 0.10), rgba(100, 116, 139, 0.08));
+  --personality-glow-rgb: 71, 85, 105;
+  --personality-eyebrow: #334155;
+}
+
+/* 6.9 — settings (neutral slate, recessive) */
+[data-rmc-page-personality="settings"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #64748b;
+  --personality-accent-soft: rgba(100, 116, 139, 0.10);
+  --personality-accent-tint: rgba(100, 116, 139, 0.05);
+  --personality-accent-strong: #475569;
+  --personality-accent-deep: #334155;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #64748b, #94a3b8);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(100, 116, 139, 0.10), rgba(148, 163, 184, 0.08));
+  --personality-glow-rgb: 100, 116, 139;
+  --personality-eyebrow: #475569;
+}
+
+/* 6.10 — auth (indigo-violet on dark — sign in / sign up) */
+[data-rmc-page-personality="auth"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #8b5cf6;
+  --personality-accent-soft: rgba(139, 92, 246, 0.16);
+  --personality-accent-tint: rgba(139, 92, 246, 0.08);
+  --personality-accent-strong: #7c3aed;
+  --personality-accent-deep: #5b21b6;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #6366f1, #8b5cf6 55%, #a855f7);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(168, 85, 247, 0.12));
+  --personality-glow-rgb: 139, 92, 246;
+  --personality-eyebrow: #a5b4fc;
+}
+
+/* 6.11 — default fallback (same as :root, explicit so the
+   selector specificity matches the others above and the
+   cockpit JSON contract can address "default" as a key). */
+[data-rmc-page-personality="default"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #6366f1;
+  --personality-accent-soft: rgba(99, 102, 241, 0.12);
+  --personality-accent-tint: rgba(99, 102, 241, 0.06);
+  --personality-accent-strong: #4338ca;
+  --personality-accent-deep: #312e81;
+  --personality-accent-on: #ffffff;
+  --personality-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --personality-gradient-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(124, 58, 237, 0.12));
+  --personality-glow-rgb: 99, 102, 241;
+  --personality-eyebrow: #4338ca;
+}
+
+/* =========================================================
+   7. DARK THEME VARIANTS — most status + heatmap + chart
+      colors work cross-theme as-is. The -fg label colors
+      need lightening so they pass WCAG AA on dark navy
+      (#07091a … #0f1530 surface range).
+   ========================================================= */
+[data-theme="dark"] {
+  /* off-token-allow: personality-palette-canonical */
+  --status-success-fg: #6ee7b7;
+  --status-success-bg: rgba(34, 197, 94, 0.18);
+  --status-warning-fg: #fcd34d;
+  --status-warning-bg: rgba(245, 158, 11, 0.20);
+  --status-danger-fg: #fca5a5;
+  --status-danger-bg: rgba(239, 68, 68, 0.18);
+  --status-info-fg: #93c5fd;
+  --status-info-bg: rgba(96, 165, 250, 0.18);
+  --status-neutral-fg: #cbd5e1;
+  --status-neutral-bg: rgba(148, 163, 184, 0.18);
+  --chart-axis: rgba(241, 245, 249, 0.20);
+  --chart-grid: rgba(241, 245, 249, 0.08);
+  --chart-grid-strong: rgba(241, 245, 249, 0.14);
+  --sparkline-up: #4ade80;
+  --sparkline-down: #fca5a5;
+  --sparkline-flat: #cbd5e1;
+  --sparkline-neutral: #93c5fd;
+}
+
+/* Dark-theme per-personality refinements: bump the accent
+   eyebrow + soft alpha so the brand reads on navy. */
+[data-theme="dark"][data-rmc-page-personality="control-plane"],
+[data-theme="dark"] [data-rmc-page-personality="control-plane"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #818cf8;
+  --personality-accent-soft: rgba(129, 140, 248, 0.20);
+  --personality-accent-tint: rgba(129, 140, 248, 0.10);
+  --personality-eyebrow: #c4b5fd;
+}
+
+[data-theme="dark"][data-rmc-page-personality="tenant-admin"],
+[data-theme="dark"] [data-rmc-page-personality="tenant-admin"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #818cf8;
+  --personality-accent-soft: rgba(129, 140, 248, 0.18);
+  --personality-eyebrow: #a5b4fc;
+}
+
+[data-theme="dark"][data-rmc-page-personality="parent"],
+[data-theme="dark"] [data-rmc-page-personality="parent"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #fbbf24;
+  --personality-accent-soft: rgba(251, 191, 36, 0.18);
+  --personality-eyebrow: #fcd34d;
+}
+
+[data-theme="dark"][data-rmc-page-personality="student"],
+[data-theme="dark"] [data-rmc-page-personality="student"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #34d399;
+  --personality-accent-soft: rgba(52, 211, 153, 0.18);
+  --personality-eyebrow: #6ee7b7;
+}
+
+[data-theme="dark"][data-rmc-page-personality="teacher"],
+[data-theme="dark"] [data-rmc-page-personality="teacher"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #60a5fa;
+  --personality-accent-soft: rgba(96, 165, 250, 0.18);
+  --personality-eyebrow: #93c5fd;
+}
+
+[data-theme="dark"][data-rmc-page-personality="marketing"],
+[data-theme="dark"] [data-rmc-page-personality="marketing"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #fbbf24;
+  --personality-accent-soft: rgba(251, 191, 36, 0.18);
+  --personality-eyebrow: #fcd34d;
+}
+
+[data-theme="dark"][data-rmc-page-personality="finance"],
+[data-theme="dark"] [data-rmc-page-personality="finance"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #4ade80;
+  --personality-accent-soft: rgba(74, 222, 128, 0.18);
+  --personality-eyebrow: #6ee7b7;
+}
+
+[data-theme="dark"][data-rmc-page-personality="reports"],
+[data-theme="dark"] [data-rmc-page-personality="reports"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #94a3b8;
+  --personality-accent-soft: rgba(148, 163, 184, 0.18);
+  --personality-eyebrow: #cbd5e1;
+}
+
+[data-theme="dark"][data-rmc-page-personality="settings"],
+[data-theme="dark"] [data-rmc-page-personality="settings"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #94a3b8;
+  --personality-accent-soft: rgba(148, 163, 184, 0.16);
+  --personality-eyebrow: #cbd5e1;
+}
+
+[data-theme="dark"][data-rmc-page-personality="auth"],
+[data-theme="dark"] [data-rmc-page-personality="auth"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent: #a855f7;
+  --personality-accent-soft: rgba(168, 85, 247, 0.20);
+  --personality-eyebrow: #c4b5fd;
+}
+
+/* =========================================================
+   8. AESTHETIC-PROFILE VARIANTS — warm-bright + cool-apple
+      are platform aesthetic profiles that sit alongside
+      light/dark. They refine personality eyebrows + soft
+      alpha so the brand reads correctly on the per-profile
+      surface palette without redefining the accent hue.
+   ========================================================= */
+[data-rmc-aesthetic="warm-bright"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent-soft: rgba(var(--personality-glow-rgb), 0.14);
+  --personality-accent-tint: rgba(var(--personality-glow-rgb), 0.08);
+  --status-success-bg: rgba(34, 197, 94, 0.14);
+  --status-warning-bg: rgba(245, 158, 11, 0.16);
+  --status-danger-bg: rgba(239, 68, 68, 0.14);
+  --status-info-bg: rgba(96, 165, 250, 0.16);
+}
+
+[data-rmc-aesthetic="cool-apple"] {
+  /* off-token-allow: personality-palette-canonical */
+  --personality-accent-soft: rgba(var(--personality-glow-rgb), 0.10);
+  --personality-accent-tint: rgba(var(--personality-glow-rgb), 0.05);
+  --status-success-bg: rgba(34, 197, 94, 0.10);
+  --status-warning-bg: rgba(245, 158, 11, 0.12);
+  --status-danger-bg: rgba(239, 68, 68, 0.10);
+  --status-info-bg: rgba(96, 165, 250, 0.12);
+  --chart-grid: rgba(15, 23, 42, 0.04);
+  --chart-grid-strong: rgba(15, 23, 42, 0.08);
+}
+
+/* =========================================================
+   9. PRINT VARIANT — heatmap + chart colors flatten so they
+      render predictably on B/W laser printers; status FG
+      stays saturated so colored tags still read in color
+      prints. (Consumers under `@media print` consume the
+      same token names; only the values flip.)
+   ========================================================= */
+@media print {
+  :root {
+    /* off-token-allow: personality-palette-canonical */
+    --chart-grid: rgba(15, 23, 42, 0.20);
+    --chart-grid-strong: rgba(15, 23, 42, 0.40);
+    --heatmap-healthy: rgba(0, 0, 0, 0.55);
+    --heatmap-okay: rgba(0, 0, 0, 0.35);
+    --heatmap-watch: rgba(0, 0, 0, 0.65);
+    --heatmap-critical: rgba(0, 0, 0, 0.85);
+    --heatmap-idle: rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* =========================================================
+   10. UTILITY CLASSES — minimal opt-in surface so app code
+       can adopt personality tokens without touching CSS.
+       Consumers should prefer authoring component-level
+       rules that read --personality-* directly. These are
+       provided for one-off badges + ad-hoc accents.
+   ========================================================= */
+.rmc-personality-accent { color: var(--personality-accent); }
+.rmc-personality-bg { background: var(--personality-accent-soft); color: var(--personality-accent-strong); }
+.rmc-personality-gradient { background: var(--personality-gradient); color: var(--personality-accent-on); }
+.rmc-personality-border { border-color: var(--personality-accent); }
+.rmc-personality-eyebrow {
+  color: var(--personality-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+/* Status pill — `<span class="rmc-status-pill" data-tone="success">OK</span>`. */
+.rmc-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+.rmc-status-pill[data-tone="success"] {
+  color: var(--status-success-fg);
+  background: var(--status-success-bg);
+  border-color: var(--pill-success-border);
+}
+.rmc-status-pill[data-tone="warning"] {
+  color: var(--status-warning-fg);
+  background: var(--status-warning-bg);
+  border-color: var(--pill-warning-border);
+}
+.rmc-status-pill[data-tone="danger"] {
+  color: var(--status-danger-fg);
+  background: var(--status-danger-bg);
+  border-color: var(--pill-danger-border);
+}
+.rmc-status-pill[data-tone="info"] {
+  color: var(--status-info-fg);
+  background: var(--status-info-bg);
+  border-color: var(--pill-info-border);
+}
+.rmc-status-pill[data-tone="neutral"],
+.rmc-status-pill[data-tone="flat"] {
+  color: var(--status-neutral-fg);
+  background: var(--status-neutral-bg);
+  border-color: var(--pill-neutral-border);
+}
+
+/* END design-tokens-personality.css */

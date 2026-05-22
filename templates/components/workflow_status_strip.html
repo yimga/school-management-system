@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %} Phase 3 — workflow_status_strip.html (v3.58.x scaffolding, NOT wired).
+   Compact horizontal strip showing current step, completion state, owner badge, optional tags.
+   Caller contract: include with status=status where status is a dict carrying workflow_title,
+   current_step, step_index (1-based), step_total, completion
+   (not-started|in-progress|complete|blocked), owner (label+kind), optional tags (taxonomy chips).
+   PII safety: owner.label is a role/team label, never an email or username. {% endcomment %}
+{% if status %}
+{% with completion=status.completion|default:"in-progress" %}
+<div class="rmc-workflow-status-strip"
+     data-rmc-workflow-status-strip="1"
+     data-rmc-workflow-completion="{{ completion }}"
+     role="group"
+     aria-label="{% blocktrans with title=status.workflow_title %}{{ title }} status{% endblocktrans %}">
+
+  <div class="rmc-workflow-status-strip__title-block">
+    {% if status.workflow_title %}
+    <span class="rmc-workflow-status-strip__title">{{ status.workflow_title }}</span>
+    {% endif %}
+    {% if status.current_step %}
+    <span class="rmc-workflow-status-strip__step">
+      {% if status.step_index and status.step_total %}
+        {% blocktrans with idx=status.step_index total=status.step_total label=status.current_step %}Step {{ idx }} of {{ total }} — {{ label }}{% endblocktrans %}
+      {% else %}
+        {{ status.current_step }}
+      {% endif %}
+    </span>
+    {% endif %}
+  </div>
+
+  <div class="rmc-workflow-status-strip__meta">
+    <span class="rmc-workflow-status-strip__completion"
+          data-rmc-workflow-completion-pill="{{ completion }}"
+          aria-label="{% blocktrans with state=completion %}State: {{ state }}{% endblocktrans %}">
+      {% if completion == "complete" %}{% trans "Complete" %}
+      {% elif completion == "blocked" %}{% trans "Blocked" %}
+      {% elif completion == "not-started" %}{% trans "Not started" %}
+      {% else %}{% trans "In progress" %}{% endif %}
+    </span>
+
+    {% if status.owner %}
+    <span class="rmc-workflow-status-strip__owner"
+          data-rmc-workflow-owner-kind="{{ status.owner.kind|default:'system' }}">
+      {{ status.owner.label }}
+    </span>
+    {% endif %}
+  </div>
+
+  {% if status.tags %}
+  <div class="rmc-workflow-status-strip__tags" role="list" aria-label="{% trans 'Workflow tags' %}">
+    {% for tag in status.tags %}
+      <span role="listitem">
+        {% include "components/workflow_info_tag.html" with tag=tag %}
+      </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endwith %}
+{% endif %}

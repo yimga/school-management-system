@@ -38,8 +38,9 @@
 <div class="container-lg py-3" data-page-archetype="role-home" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-task="student_home" data-task-step="student:dashboard">
   {% phase8_dashboard_declaration "student/learning_home.html" %}
   {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}
-  <header class="rmc-page-header mb-3" data-rmc-aesthetic-page-header="student" data-tour="student-header">
-    <div class="eyebrow">{% trans "My learning" %}</div>
+  {# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` for v8 200x preview parity. #}
+  <header class="rmc-page-header rmc-page-header-glow mb-3" data-rmc-aesthetic-page-header="student" data-tour="student-header">
+    <div class="eyebrow rmc-page-eyebrow">{% trans "My learning" %}</div>
     <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=request.user.first_name|default:_("Student") %}Hi {{ name }}.{% endblocktrans %}</h1>
     <p class="page-sub">{% trans "Your priorities for today." %}</p>
   </header>

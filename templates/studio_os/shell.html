@@ -15,6 +15,9 @@
 <link rel="stylesheet" href="{% static 'css/rmc-copilot-rail.css' %}">
 {# v3.54.0 (2026-05-21): Overview command cockpit (rendered when current_mode is None) #}
 <link rel="stylesheet" href="{% static 'css/studio-overview-cockpit.css' %}">
+{% comment %} v3.59.2 (2026-05-22): Studio OS canvas-body 200x polish — Source Serif 4 headers,
+   glass cards, indigo gradient CTAs, density floor. Scoped via [data-studio-os-surface]. {% endcomment %}
+<link rel="stylesheet" href="{% static 'css/studio-os-200x-polish.css' %}">
 {% comment %} Synchronous load (no defer/async) so data-rmc-copilot-rail-armed lands
    before first paint; CSS skeleton hide-rule keys off the armed attribute,
    so a JS-load failure leaves the server-rendered skeleton visible instead

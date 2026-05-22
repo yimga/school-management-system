@@ -27,9 +27,18 @@
     </div>
     {% if cockpit.tenant_heatmap.meta_text %}<div class="lx-card__meta">{{ cockpit.tenant_heatmap.meta_text }}</div>{% endif %}
   </div>
-  <div class="lx-heatmap__grid" role="list">
+  {% comment %} v3.59.x Wave 11 Agent V: dual-class so both legacy .lx-heatmap__tile and
+     new .rmc-heatmap__tile rules apply. Status slug 'warn' from legacy schema
+     mapped to 'watch' for the rmc-* tier; legacy 'danger' mapped to 'critical'. {% endcomment %}
+  <div class="lx-heatmap__grid rmc-heatmap" role="list">
     {% for tile in cockpit.tenant_heatmap.tiles %}
-      <div class="lx-heatmap__tile lx-heatmap__tile--{{ tile.status|default:'okay' }}" role="listitem" data-label="{{ tile.label }}"></div>
+      {% with raw_status=tile.status|default:'okay' %}
+      <div class="lx-heatmap__tile lx-heatmap__tile--{{ raw_status }} rmc-heatmap__tile rmc-heatmap__tile--{% if raw_status == 'warn' %}watch{% elif raw_status == 'danger' %}critical{% else %}{{ raw_status }}{% endif %}"
+           role="listitem"
+           data-label="{{ tile.label }}"
+           data-rmc-tooltip-text="{{ tile.label }}"
+           data-rmc-heatmap-tooltip="{{ tile.label }}"></div>
+      {% endwith %}
     {% endfor %}
   </div>
   <div class="lx-heatmap__legend" aria-label="{% trans 'Heatmap legend' %}">

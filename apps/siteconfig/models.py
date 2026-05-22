@@ -212,6 +212,51 @@ class SiteSettings(models.Model):
         ),
     )
 
+    # v3.59.x Wave 11 Agent W — operator-overridable theme personality.
+    # Read by ``apps.siteconfig.page_personality.resolve_personality_overrides``;
+    # the resolver emits a `<style data-rmc-personality-override>` block in
+    # the page <head> AFTER ``static/css/design-tokens-personality.css`` so
+    # operator-published hex values cascade-override the platform defaults
+    # without a CSS redeploy. Shape (every key optional — empty = inherit):
+    #
+    #     theme_personality = {
+    #       "personality_overrides": {
+    #         "control-plane": {"accent": "#hex"},
+    #         "tenant-admin":  {"accent": "#hex"},
+    #         "parent":        {"accent": "#hex"},
+    #         "student":       {"accent": "#hex"},
+    #         "teacher":       {"accent": "#hex"},
+    #         "marketing":     {"accent": "#hex"},
+    #         "finance":       {"accent": "#hex"},
+    #         "reports":       {"accent": "#hex"},
+    #         "settings":      {"accent": "#hex"},
+    #         "auth":          {"accent": "#hex"},
+    #       },
+    #       "status_palette":  {"success": "#hex", "warning": "#hex",
+    #                            "danger":  "#hex", "info":    "#hex"},
+    #       "heatmap_palette": {"healthy": "#hex", "okay":    "#hex",
+    #                            "watch":   "#hex", "critical":"#hex",
+    #                            "idle":    "#hex"},
+    #       "chart_series":    ["#hex","#hex","#hex","#hex",
+    #                            "#hex","#hex","#hex","#hex"],
+    #     }
+    #
+    # Cascade (platform default → most-specific last):
+    #   design-tokens-personality.css (platform default)
+    #     → platform-host SiteSettings.theme_personality (manager host)
+    #     → tenant-host  SiteSettings.theme_personality (current tenant)
+    # Schema documented in static/css/design-tokens-personality.css and
+    # apps/siteconfig/page_personality.py.
+    theme_personality = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Operator-overridable theme personality. Cascade: platform default -> "
+            "platform-host SiteSettings -> tenant-host SiteSettings. Schema documented "
+            "in static/css/design-tokens-personality.css and apps/siteconfig/page_personality.py."
+        ),
+    )
+
     class Meta:
         verbose_name = "Site Settings"
         verbose_name_plural = "Site Settings"

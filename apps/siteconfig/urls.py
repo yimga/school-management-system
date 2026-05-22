@@ -151,6 +151,7 @@ from .views_tenant_studio_hub import (
 from .views_cockpit_admin import CockpitConfigureView
 from .views_cockpit_previews import CockpitPreviewIndexView, CockpitPreviewServeView
 from .views_cockpit_health import CockpitHealthView
+from .views_theme_personality import ThemePersonalityConfigView
 
 app_name = "siteconfig"
 
@@ -599,6 +600,17 @@ urlpatterns = [
         "super/configure/cockpit/",
         CockpitConfigureView.as_view(),
         name="cockpit_configure",
+    ),
+    # v3.59.x Wave 11 Agent W (2026-05-22): operator-overridable theme
+    # personality cockpit section. Reachable from both platform-operator
+    # and tenant-operator consoles; the view's tenant-aware resolver writes
+    # to the right SiteSettings row based on request.public_host_kind.
+    # Realized URL on the control plane: /siteconfig/super/configure/theme-personality/
+    # # rbac-allow: super-staff-theme-personality-config
+    path(
+        "super/configure/theme-personality/",
+        ThemePersonalityConfigView.as_view(),
+        name="theme_personality_configure",
     ),
     # v3.57.2 (2026-05-21): operator design-preview index + raw HTML serve
     # routes. Surfaces docs/generated/preview_app_shell_*.html behind staff

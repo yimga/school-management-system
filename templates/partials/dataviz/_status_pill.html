@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %} v3.59.x Wave 11 Agent V (2026-05-22) — reusable status pill primitive.
+
+Usage:
+  {% include "partials/dataviz/_status_pill.html" with status="success" label="Active" %}
+  {% include "partials/dataviz/_status_pill.html" with status="warning" label="Watch" show_dot=True %}
+
+Parameters:
+  status     — "success" | "warning" | "danger" | "info" | "muted" (default "muted")
+  label      — pill text (required)
+  show_dot   — bool, prefixes a circular indicator dot (default False)
+{% endcomment %}
+<span class="rmc-status-pill rmc-status-pill--{{ status|default:'muted' }}">
+  {% if show_dot %}<span class="rmc-status-pill__dot" aria-hidden="true"></span>{% endif %}
+  {{ label }}
+</span>

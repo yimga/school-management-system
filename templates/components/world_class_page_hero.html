@@ -1,8 +1,9 @@
 {% load i18n %}
-<section class="rmc-wcx-hero rmc-wcx-surface" data-world-class-page-hero="1" data-page-purpose="{{ purpose|default:title }}" aria-labelledby="{{ hero_id|default:'world-class-page-title' }}">
+{# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside existing rmc-wcx-hero classes — additive, preserves every caller's hero layout. #}
+<section class="rmc-wcx-hero rmc-wcx-surface rmc-page-header-glow" data-world-class-page-hero="1" data-page-purpose="{{ purpose|default:title }}" aria-labelledby="{{ hero_id|default:'world-class-page-title' }}">
   <div>
     {% if breadcrumb_label %}<nav aria-label="{% trans 'Breadcrumb' %}" class="small mb-2"><a href="{{ breadcrumb_url }}">{{ breadcrumb_label }}</a></nav>{% endif %}
-    <div class="rmc-wcx-hero__eyebrow">{{ role|default:_("RunMyCampus workspace") }}</div>
+    <div class="rmc-wcx-hero__eyebrow rmc-page-eyebrow">{{ role|default:_("RunMyCampus workspace") }}</div>
     <h1 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">{{ title }}</h1>
     {% if status %}<span class="badge rounded-pill text-bg-secondary" data-world-class-status-pill="1">{{ status }}</span>{% endif %}
     <p class="rmc-wcx-hero__copy">{{ subtitle }}</p>
