@@ -1,5 +1,26 @@
 # Render Shell — Commands to Run After Deployment
 
+## Permanent tenant delete (irreversible)
+
+To **completely remove** one or more schools (public `School` row, tenant-scoped data, PostgreSQL tenant schema, domains):
+
+```bash
+# 1) Dry-run inventory + archive manifest (no deletes)
+python manage.py tenant_purge \
+  --school gilead-future,gilead-tech \
+  --confirm-delete-string gilead-future,gilead-tech
+
+# 2) Execute delete (only after reviewing dry-run output)
+python manage.py tenant_purge \
+  --school gilead-future,gilead-tech \
+  --confirm-delete-string gilead-future,gilead-tech \
+  --apply
+```
+
+`--confirm-delete-string` must match `--school` exactly (comma-separated for multiple slugs). Archives land under `media/tenant_archives/<slug>/`. Uploaded logos in object storage are **not** auto-purged — delete those keys separately if required.
+
+---
+
 After a deploy completes, you can run these in the **Render Dashboard → your web service → Shell** for optional verification. Pre-deploy already runs migrations, health check, collectstatic, and seed steps; these are **post-deploy checks only**.
 
 ---

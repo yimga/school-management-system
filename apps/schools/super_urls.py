@@ -55,6 +55,11 @@ from .super_views_migration import (
 )
 from .super_views_provisioning import api_create_school
 from apps.schoolops.views_analytics import MealPlanAnalyticsView
+from apps.schoolops.views_email_admin import EmailDeliveryConfigView
+from apps.schoolops.views_email_health import (
+    EmailHealthDashboardView,
+    SmtpProbeJsonView,
+)
 
 app_name = "super"
 
@@ -949,4 +954,20 @@ urlpatterns = [
         MealPlanAnalyticsView.as_view(),
         name="schoolops_meal_plan_analytics",
     ),  # rbac-allow: staff-only-meal-plan-analytics-dashboard
+    # v3.57.x Wave 8 Agent C — email delivery health + config endpoints.
+    path(
+        "email/health/",
+        EmailHealthDashboardView.as_view(),
+        name="email_health",
+    ),  # rbac-allow: super-staff-email-health-dashboard
+    path(
+        "email/health/probe/",
+        SmtpProbeJsonView.as_view(),
+        name="email_health_probe",
+    ),  # rbac-allow: super-staff-email-health-dashboard
+    path(
+        "email/configure/",
+        EmailDeliveryConfigView.as_view(),
+        name="email_configure",
+    ),  # rbac-allow: super-staff-email-configure
 ]

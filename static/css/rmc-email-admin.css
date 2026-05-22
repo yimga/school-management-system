@@ -1,0 +1,208 @@
+/* ============================================================
+   rmc-email-admin.css — operator email-config + email-health
+   chrome. Defines the class names referenced in:
+   - templates/schoolops/super/email_configure.html
+   - templates/schoolops/super/email_health.html
+   Uses semantic design tokens; no hardcoded colors.
+   ============================================================ */
+
+.rmc-page--operator-email-health {
+  display: block;
+  padding: 0;
+}
+
+.rmc-email-health__probe-output {
+  margin-top: 10px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: var(--type-size-caption);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 0;
+}
+
+.rmc-data-table--email-failures {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--type-size-caption);
+}
+.rmc-data-table--email-failures th,
+.rmc-data-table--email-failures td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+.rmc-data-table--email-failures th {
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+.rmc-email-config__field {
+  margin-bottom: 14px;
+}
+.rmc-email-config__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.rmc-email-config__test-result {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  font-size: var(--type-size-body);
+}
+.rmc-email-config__test-result--ok {
+  background: color-mix(in oklab, var(--text-success) 8%, var(--surface-2));
+  border-color: color-mix(in oklab, var(--text-success) 40%, var(--hairline));
+  color: var(--text-success);
+}
+.rmc-email-config__test-result--fail {
+  background: color-mix(in oklab, var(--text-danger) 8%, var(--surface-2));
+  border-color: color-mix(in oklab, var(--text-danger) 40%, var(--hairline));
+  color: var(--text-danger);
+}
+
+.rmc-form-errors {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in oklab, var(--text-danger) 8%, var(--surface-2));
+  border: 1px solid color-mix(in oklab, var(--text-danger) 40%, var(--hairline));
+  color: var(--text-danger);
+  font-size: var(--type-size-caption);
+}
+.rmc-field-errors {
+  margin-top: 4px;
+  font-size: var(--type-size-caption);
+  color: var(--text-danger);
+}
+.rmc-field-errors ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.rmc-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: var(--type-size-body);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--motion-fast, 120ms) var(--ease-out);
+}
+.rmc-button--primary {
+  background: var(--brand-primary, var(--school-primary));
+  border-color: transparent;
+  color: var(--text-on-brand, #fff); /* off-token-allow: brand-on-primary-text-fallback */
+}
+.rmc-button--primary:hover {
+  filter: brightness(1.05);
+}
+.rmc-button--secondary {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+.rmc-button--secondary:hover {
+  background: var(--surface-elevated);
+}
+
+.rmc-page--operator-email-configure {
+  display: block;
+  padding: 0;
+}
+
+.rmc-email-config__saved-banner {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in oklab, var(--text-success) 8%, var(--surface-2));
+  border: 1px solid color-mix(in oklab, var(--text-success) 40%, var(--hairline));
+  color: var(--text-success);
+  font-size: var(--type-size-body);
+}
+
+.rmc-email-health__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.rmc-email-health__metric {
+  padding: 14px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Civic-email primitives used by transactional templates */
+.rmc-email__data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: var(--type-size-body);
+}
+.rmc-email__data-table th,
+.rmc-email__data-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+}
+.rmc-email__balance {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-weight: 600;
+  font-size: var(--type-size-h3);
+  color: var(--text-primary);
+}
+.rmc-email__balance--overdue {
+  color: var(--text-danger);
+}
+.rmc-email__cta--secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.rmc-email__notice {
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in oklab, var(--warning, var(--text-warning)) 10%, var(--surface-2));
+  border: 1px solid color-mix(in oklab, var(--warning, var(--text-warning)) 40%, var(--hairline));
+  color: var(--text-secondary);
+  font-size: var(--type-size-caption);
+  margin: 10px 0;
+}
+.rmc-email__quote {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--hairline-strong, var(--hairline));
+  color: var(--text-secondary);
+  font-style: italic;
+  background: var(--surface-2);
+}

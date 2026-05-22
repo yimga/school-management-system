@@ -2,11 +2,18 @@
 {% load static i18n %}
 {% load region_format phase8_tags %}
 {% block cp_title %}Customer Success{% endblock %}
+{% comment %} v3.58.0 (2026-05-22): live activity ticker lives INSIDE the dark header chrome
+   on landing pages (matches v8 200x preview). Self-gates on cockpit.activity_ticker.cards. {% endcomment %}
+{% block cp_shell_header_ticker %}
+  {% include "partials/cockpit/_activity_ticker.html" %}
+{% endblock %}
+
 {% block cp_content %}
 {% comment %} v3.57.18 (2026-05-22): CS team's operator landing earns landing-peer parity
    with super_dashboard.html — gets platform_pulse + activity_ticker. Each partial
-   self-gates on cockpit.<section>.enabled. {% endcomment %}
-{% include "partials/cockpit/_activity_ticker.html" %}
+   self-gates on cockpit.<section>.enabled.
+
+   v3.58.0 (2026-05-22): activity_ticker moved to header (cp_shell_header_ticker block). {% endcomment %}
 {% include "partials/cockpit/_platform_pulse.html" %}
 <div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}

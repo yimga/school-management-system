@@ -72,6 +72,7 @@ from apps.schools.marketing_views import (
 )
 from apps.schools.signup_views import (
     signup_school,
+    signup_slug_check,
     verify_signup,
     api_trial_school,
     onboarding_wizard,
@@ -1556,6 +1557,7 @@ urlpatterns = [
     path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
+    path("signup/slug-check/", signup_slug_check, name="signup_slug_check"),
     path("verify-signup/", verify_signup, name="verify_signup"),
     path("api/trial/", api_trial_school, name="api_trial_school"),
     path("lti/launch/<str:tool_id>/", lti_launch, name="lti_launch"),

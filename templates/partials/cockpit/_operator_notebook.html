@@ -1,30 +1,65 @@
 {% load static i18n %}
-{% comment %} v3.55.0+ (2026-05-21): 200x Element 4 — Operator notebook quick-capture.
+{% comment %} v3.58 (2026-05-22): 200x Element 4 — Operator notebook quick-capture.
 
    Bottom-right floating frosted-dark widget. Renders outside the canvas
    (it's a position: fixed widget). Manager-host only.
 
+   v3.58 additions on top of v3.55.0+ baseline:
+     - Default state is "open" (was hidden-until-clicked); minimize/restore
+       still works via the ─ button or the ✎ icon on the copilot rail.
+     - Draggable from the head: persists last position per-operator in
+       localStorage. Snap-to-corner on release within 80px of an edge.
+     - Recent-notes panel: last N entries (default 10) shown compact inside
+       the widget. Each save lands in localStorage AND POSTs to save_url if
+       configured. Clicking a recent entry copies it back into the field.
+
    CONFIGURABLE via cockpit.operator_notebook (SiteSettings → context processor):
-     .enabled       bool
-     .title         str   — uppercase tiny title
-     .placeholder   str   — serif-italic textarea placeholder
-     .mic_enabled   bool  — show dictation mic button
-     .save_url      str   — POST endpoint for saving entries
+     .enabled       bool   — default True in v3.58+
+     .title         str
+     .placeholder   str
+     .mic_enabled   bool
+     .save_url      str
      .save_label    str
      .hint_text     str
-     .hint_em       str   — italic fragment of the hint
+     .hint_em       str
+     .recent_limit  int    — max recent entries displayed (default 10)
+     .recent_label  str
+     .draggable     bool   — show drag handle on head (default True)
 {% endcomment %}
 
 {% if cockpit.operator_notebook.enabled %}
-<aside class="lx-notebook" aria-label="{% trans 'Operator notebook quick-capture' %}" data-rmc-operator-notebook>
-  <div class="lx-notebook__head">
+<aside class="lx-notebook"
+       aria-label="{% trans 'Operator notebook quick-capture' %}"
+       data-rmc-operator-notebook
+       data-rmc-notebook-state="open"
+       {% if cockpit.operator_notebook.draggable %}data-rmc-notebook-draggable="1"{% endif %}
+       data-rmc-notebook-recent-limit="{{ cockpit.operator_notebook.recent_limit|default:10 }}">
+
+  <header class="lx-notebook__head" data-rmc-notebook-drag-handle>
+    {% if cockpit.operator_notebook.draggable %}
+    <span class="lx-notebook__grip" aria-hidden="true" title="{% trans 'Drag to reposition' %}">⋮⋮</span>
+    {% endif %}
     <div class="lx-notebook__title">{{ cockpit.operator_notebook.title|default:_("Add to notebook") }}</div>
-    <button type="button" class="lx-notebook__min" aria-label="{% trans 'Minimize notebook' %}">—</button>
-  </div>
-  <form method="post" action="{{ cockpit.operator_notebook.save_url|default:'' }}" class="lx-notebook__form">
+    <div class="lx-notebook__head-actions">
+      <button type="button" class="lx-notebook__action lx-notebook__history-toggle"
+              aria-label="{% trans 'Toggle recent notes' %}"
+              title="{% trans 'Recent notes' %}"
+              data-rmc-notebook-history-toggle>⋯</button>
+      <button type="button" class="lx-notebook__min" aria-label="{% trans 'Minimize notebook' %}">—</button>
+    </div>
+  </header>
+
+  <form method="post"
+        action="{{ cockpit.operator_notebook.save_url|default:'' }}"
+        class="lx-notebook__form"
+        data-rmc-notebook-form>
     {% csrf_token %}
     <label class="visually-hidden" for="rmc-notebook-field">{% trans 'Notebook entry' %}</label>
-    <textarea id="rmc-notebook-field" name="entry" class="lx-notebook__field" placeholder="{{ cockpit.operator_notebook.placeholder|default:_('Capture a thought, decision, or question…') }}"></textarea>
+    <textarea id="rmc-notebook-field"
+              name="entry"
+              class="lx-notebook__field"
+              placeholder="{{ cockpit.operator_notebook.placeholder|default:_('Capture a thought, decision, or question…') }}"
+              data-rmc-notebook-field></textarea>
     <div class="lx-notebook__row">
       {% if cockpit.operator_notebook.mic_enabled %}
         <button type="button" class="lx-notebook__mic" aria-label="{% trans 'Dictate note' %}">🎙</button>
@@ -32,6 +67,26 @@
       <button type="submit" class="lx-notebook__save">{{ cockpit.operator_notebook.save_label|default:_("Save →") }}</button>
     </div>
   </form>
+
+  {# Recent notes — collapsed by default. Renders client-side from localStorage. #}
+  <section class="lx-notebook__history"
+           data-rmc-notebook-history
+           data-rmc-notebook-history-state="collapsed"
+           aria-label="{% trans 'Recent notes' %}">
+    <div class="lx-notebook__history-head">
+      <span class="lx-notebook__history-label">
+        {{ cockpit.operator_notebook.recent_label|default:_("Recent notes") }}
+      </span>
+      <span class="lx-notebook__history-count" data-rmc-notebook-history-count>0</span>
+    </div>
+    <ol class="lx-notebook__history-list" data-rmc-notebook-history-list>
+      {# Populated client-side. Each <li> has an inline-block timestamp + clipped body. #}
+    </ol>
+    <p class="lx-notebook__history-empty" data-rmc-notebook-history-empty>
+      {% trans "Your saved notes will appear here. They stay on this device unless a save endpoint is configured." %}
+    </p>
+  </section>
+
   {% if cockpit.operator_notebook.hint_text %}
   <div class="lx-notebook__hint">
     {{ cockpit.operator_notebook.hint_text }}

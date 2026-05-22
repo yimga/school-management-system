@@ -1289,6 +1289,22 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@runmycampus.com")
 # Optional regional SMTP (Phase Welcome): map region_id to from_email; override in local_settings, e.g. REGIONAL_FROM_EMAIL = {"DEU": "noreply@eu.example.com"}
 REGIONAL_FROM_EMAIL = {}
 
+# v3.57.x Wave 8 Agent C — additive SMTP reliability + observability knobs.
+# EMAIL_TIMEOUT: per-attempt socket timeout (seconds) for Django's SMTP
+# backend. Lower = fail-fast on a dead server; higher = tolerate slow
+# networks. apps.schoolops.email_delivery.get_resolved_smtp_config reads
+# this as the fallback connection_timeout_seconds when no operator
+# override is configured.
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
+# EMAIL_USE_LOCALTIME: emit the Date: header in local time (with offset)
+# rather than UTC. Operator-friendly for log correlation; MTAs accept either.
+EMAIL_USE_LOCALTIME = True
+# SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF: per-attempt sleep (seconds)
+# between SMTP send retries. Length of the list = total attempt count;
+# the last entry is unused (no sleep after the final attempt). Tunable
+# via a local_settings override; e.g. set [] to disable retries entirely.
+SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF = [1, 5, 30]
+
 # --- Caching Configuration ---
 CACHES = {
     "default": {

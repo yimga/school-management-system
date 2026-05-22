@@ -1158,6 +1158,199 @@
 .lx-notebook__hint-em { font-family: var(--mono); }
 
 /* ============================================================
+   v3.58 (2026-05-22) — Notebook drag handle + recent-notes
+   ------------------------------------------------------------
+   The drag handle is the entire head element so the operator can grab
+   anywhere on the title row. The grip glyph just signals it's draggable.
+   When [data-rmc-notebook-dragging="1"] is set, we soften shadow and
+   suppress the text cursor so the move-cursor wins.
+   ============================================================ */
+.lx-notebook[data-rmc-notebook-draggable="1"] .lx-notebook__head {
+  cursor: grab;
+  user-select: none;
+}
+.lx-notebook[data-rmc-notebook-dragging="1"] {
+  box-shadow: 0 30px 80px rgba(8, 11, 28, 0.65), 0 2px 4px rgba(255,255,255,0.06) inset; /* off-token-allow: dark-chrome-notebook-glass */
+  cursor: grabbing;
+  transition: none;
+}
+.lx-notebook[data-rmc-notebook-dragging="1"] .lx-notebook__head { cursor: grabbing; }
+.lx-notebook__grip {
+  color: var(--cp-chrome-text-faint);
+  font-size: 12px;
+  letter-spacing: -1px;
+  margin-right: 4px;
+  cursor: grab;
+}
+.lx-notebook__head-actions {
+  display: flex; gap: 4px; align-items: center; margin-left: auto;
+}
+.lx-notebook__action {
+  background: transparent;
+  border: 1px solid var(--cp-chrome-hairline);
+  color: var(--cp-chrome-text-muted);
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  display: grid; place-items: center;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.lx-notebook__action:hover {
+  background: rgba(255,255,255,0.06); /* off-token-allow: dark-chrome-notebook-glass */
+  color: var(--cp-chrome-text);
+}
+
+/* Recent-notes section — collapsed by default; expands when
+   [data-rmc-notebook-history-state="open"]. Compact list, scroll-locked
+   to ~140px so the widget stays small. */
+.lx-notebook__history {
+  margin-top: 10px;
+  border-top: 1px dashed var(--cp-chrome-hairline);
+  padding-top: 8px;
+}
+.lx-notebook__history-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.10em;
+  color: var(--cp-chrome-text-faint); font-weight: 700;
+  margin-bottom: 6px;
+}
+.lx-notebook__history-count {
+  font-family: var(--mono);
+  background: rgba(255,255,255,0.05); /* off-token-allow: dark-chrome-notebook-glass */
+  border-radius: 999px; padding: 1px 6px;
+  font-size: 9.5px; color: var(--cp-chrome-text-muted);
+}
+.lx-notebook__history-list {
+  list-style: none; padding: 0; margin: 0;
+  display: none;
+  max-height: 144px; overflow-y: auto;
+}
+.lx-notebook[data-rmc-notebook-state="minimized"] .lx-notebook__history { display: none; }
+.lx-notebook__history-empty {
+  font-size: 10.5px; color: var(--cp-chrome-text-faint);
+  font-style: italic; margin: 0; padding: 4px 0 2px;
+  font-family: var(--serif);
+}
+.lx-notebook__history[data-rmc-notebook-history-state="open"] .lx-notebook__history-list { display: block; }
+.lx-notebook__history[data-rmc-notebook-history-state="open"] .lx-notebook__history-empty { display: block; }
+.lx-notebook__history[data-rmc-notebook-history-state="collapsed"] .lx-notebook__history-list { display: none; }
+.lx-notebook__history[data-rmc-notebook-history-state="collapsed"] .lx-notebook__history-empty { display: none; }
+.lx-notebook__history-item {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11.5px;
+  color: var(--cp-chrome-text-muted);
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.lx-notebook__history-item:hover {
+  background: rgba(255,255,255,0.05); /* off-token-allow: dark-chrome-notebook-glass */
+  color: var(--cp-chrome-text);
+}
+.lx-notebook__history-preview {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--serif); font-style: italic;
+}
+.lx-notebook__history-age {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--cp-chrome-text-faint);
+  flex-shrink: 0;
+}
+
+/* Auto-resized title row when there are head actions on the right. */
+.lx-notebook__head { gap: 6px; }
+
+/* ============================================================
+   v3.58 (2026-05-22) — Copilot rail: tabs + posture pill + panes
+   ============================================================ */
+.lx-copilot__header-actions {
+  display: flex; gap: 8px; align-items: center;
+}
+.lx-copilot__posture {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04); /* off-token-allow: dark-chrome-copilot-glass */
+  border: 1px solid var(--cp-chrome-hairline);
+  font-size: 10px; font-weight: 600;
+  color: var(--cp-chrome-text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.lx-copilot__posture-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cp-chrome-text-faint);
+}
+.lx-copilot__posture[data-state="live_cloud"] {
+  color: #c7d2fe; /* off-token-allow: dark-chrome-copilot-mark */
+  border-color: rgba(99,102,241,0.40); /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__posture[data-state="live_cloud"] .lx-copilot__posture-dot {
+  background: #6366f1; /* off-token-allow: dark-chrome-copilot-mark */
+  box-shadow: 0 0 8px rgba(99,102,241,0.6); /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__posture[data-state="live_local"] {
+  color: #a7f3d0; /* off-token-allow: dark-chrome-copilot-mark */
+  border-color: rgba(16,185,129,0.40); /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__posture[data-state="live_local"] .lx-copilot__posture-dot {
+  background: #10b981; /* off-token-allow: dark-chrome-copilot-mark */
+  box-shadow: 0 0 8px rgba(16,185,129,0.6); /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__posture[data-state="guided"] {
+  color: #fde68a; /* off-token-allow: dark-chrome-copilot-mark */
+  border-color: rgba(245,158,11,0.40); /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__posture[data-state="guided"] .lx-copilot__posture-dot {
+  background: #f59e0b; /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__posture[data-state="unavailable"] {
+  color: #fecaca; /* off-token-allow: dark-chrome-copilot-mark */
+  border-color: rgba(239,68,68,0.40); /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__posture[data-state="unavailable"] .lx-copilot__posture-dot { background: var(--danger); }
+
+.lx-copilot__tabs {
+  display: flex; gap: 4px;
+  padding: 0 14px 8px;
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+.lx-copilot__tab {
+  background: transparent; border: 0; padding: 6px 10px;
+  font-family: inherit; font-size: 11px; font-weight: 600;
+  color: var(--cp-chrome-text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  transition: color var(--motion-fast), border-color var(--motion-fast);
+}
+.lx-copilot__tab:hover { color: var(--cp-chrome-text); }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="chat"]    .lx-copilot__tab[data-rmc-copilot-tab="chat"],
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"] .lx-copilot__tab[data-rmc-copilot-tab="actions"],
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"] .lx-copilot__tab[data-rmc-copilot-tab="threads"] {
+  color: var(--cp-chrome-text);
+  border-bottom-color: #6366f1; /* off-token-allow: dark-chrome-copilot-mark */
+}
+
+.lx-copilot__pane { display: none; flex: 1; padding: 12px 14px; min-height: 0; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="chat"]    .lx-copilot__thread { display: flex; flex-direction: column; gap: 8px; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"] .lx-copilot__thread { display: none; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"] .lx-copilot__thread { display: none; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"] .lx-copilot__pane[data-rmc-copilot-pane="actions"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"] .lx-copilot__pane[data-rmc-copilot-pane="threads"] { display: block; }
+
+.lx-copilot__actions-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.lx-copilot__threads-empty {
+  font-family: var(--serif); font-style: italic;
+  color: var(--cp-chrome-text-faint); font-size: 12px; margin: 0;
+}
+
+/* ============================================================
    v3.57.8 (2026-05-22) — Sidebar 200x-preview parity retrofit
    Targets the legacy `.cp-sidebar-nav .cp-sidebar-ultra` markup in
    templates/partials/control_plane_sidebar.html so it inherits the
@@ -1243,4 +1436,55 @@
 [data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-sidebar-compact-toggle:hover {
   background: rgba(255, 255, 255, 0.06); /* off-token-allow: dark-chrome-sidebar-compact-toggle-hover */
   color: var(--cp-chrome-text, #f1f5f9);
+}
+
+/* ============================================================
+   v3.58.0 (2026-05-22) — Vertical density tightening on /super/
+   ------------------------------------------------------------
+   Per operator feedback: pages look "short" — too much air between
+   the dark header and the first dashboard section. Trim ~14-18px
+   of breathing room from the canvas, the breadcrumb row, and the
+   first dashboard section. Keeps content density close to the v8
+   preview, which shows the platform-pulse strip pressed up tight
+   against the header.
+   ============================================================ */
+[data-rmc-shell-main="control-plane"] .rmc-app-shell__canvas-body {
+  /* Pull the first child upward toward the header. */
+  padding-top: 0;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout {
+  /* Container-fluid .py-2 is 8px+8px — drop to 4px+8px so the first
+     row hugs the header. The .py-2 utility class wins specificity if
+     templates use it explicitly; this override targets the .cp-layout
+     class which co-occurs and gives us a class to specialize. */
+  padding-top: 4px !important;
+}
+/* Breadcrumb / status strips above the page hero — tighten margins. */
+[data-rmc-shell-main="control-plane"] .rmc-cockpit-ticker {
+  /* Ticker is now in the header chrome; if it ever escapes back to
+     the canvas (legacy path), shrink its top margin so it doesn't
+     create a second band of whitespace. */
+  margin-top: 0;
+}
+[data-rmc-shell-main="control-plane"] .cp-platform-pulse,
+[data-rmc-shell-main="control-plane"] [data-rmc-cockpit-section="platform_pulse"] {
+  /* First landing section after the header — pin it tight. */
+  margin-top: 6px;
+}
+[data-rmc-shell-main="control-plane"] .breadcrumb {
+  margin-bottom: 4px;
+}
+/* Page-h1 spacing: control-plane pages use either .page-h1 (custom)
+   or Bootstrap h1. The visual gap between header chrome and "Control
+   Plane" title can be ~36px on tall viewports; this brings it to ~20. */
+[data-rmc-shell-main="control-plane"] .page-h1,
+[data-rmc-shell-main="control-plane"] .cp-page-header h1,
+[data-rmc-shell-main="control-plane"] .cp-page-header .page-h1 {
+  margin-top: 8px;
+}
+/* The breadcrumb-row container — landing pages use this wrapper. */
+[data-rmc-shell-main="control-plane"] .rmc-os-page-header,
+[data-rmc-shell-main="control-plane"] .rmc-os-page-header__head {
+  padding-top: 6px;
+  padding-bottom: 6px;
 }

@@ -402,3 +402,56 @@ def sweep_low_meal_plan_balances() -> dict[str, Any]:
             type(exc).__name__,
         )
         return summary
+
+
+# ──────────────────────────────────────────────────────────────────────
+# v3.57.x Wave 8 Agent C — bulk email dispatch via Celery.
+#
+# Called by ``apps.schoolops.email_delivery.send_bulk`` when the caller
+# wants the message off the request path. The task itself just calls
+# ``send_transactional`` with priority="bulk" so the retry + audit
+# semantics are identical on both paths.
+# ──────────────────────────────────────────────────────────────────────
+
+
+@shared_task(name="schoolops.dispatch_bulk_email")
+def dispatch_bulk_email(
+    *,
+    subject: str,
+    body: str,
+    to: list,
+    html_body: Any = None,
+    reply_to: Any = None,
+    from_email: Any = None,
+    headers: Any = None,
+) -> dict[str, Any]:
+    """Worker entry-point for ``send_bulk`` — runs ``send_transactional``.
+
+    Returns the underlying send_transactional dict so the Celery result
+    backend records the outcome. The send itself is best-effort —
+    failures persist EmailDeliveryEvent rows for the operator dashboard.
+    """
+    try:
+        from apps.schoolops.email_delivery import send_transactional
+
+        return send_transactional(
+            subject=subject,
+            body=body,
+            to=to,
+            html_body=html_body,
+            reply_to=reply_to,
+            from_email=from_email,
+            headers=headers,
+            priority="bulk",
+        )
+    except Exception as exc:  # noqa: BLE001  — worker boundary
+        logger.exception(
+            "schoolops.dispatch_bulk_email crashed exc_type=%s",
+            type(exc).__name__,
+        )
+        return {
+            "ok": False,
+            "attempts": 0,
+            "delivery_event_id": None,
+            "error_kind": "task_crashed",
+        }

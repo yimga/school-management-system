@@ -3918,3 +3918,287 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: var(--space-3, 0.75rem);
 }
+
+/* ============================================================
+ * v3.57.18 Wave 8 — public school-signup form (Apple-tier UX)
+ * ============================================================
+ * Tokens only — no literal hex colors. Visibility is gated by
+ * cockpit.signup_form.enabled (template). Mobile-responsive via
+ * the existing .auth-card breakpoints + the rules below.
+ */
+
+.auth-card--signup {
+  max-inline-size: min(520px, 100%);
+}
+
+.auth-card__brand-glyph {
+  inline-size: 48px;
+  block-size: 48px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    var(--school-primary),
+    color-mix(in oklab, var(--school-primary) 70%, var(--school-accent))
+  );
+  color: var(--text-on-brand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-block-end: 18px;
+}
+
+.auth-card__brand-glyph > i {
+  font-size: var(--type-size-body-l, 1.125rem);
+}
+
+.auth-card__title {
+  margin-block-end: 6px;
+}
+
+.auth-card__subtitle {
+  margin-block-end: 18px;
+}
+
+/* ---- Trust pill row -------------------------------------- */
+.rmc-trust-pill-row {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rmc-trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--school-primary) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--school-primary) 18%, transparent);
+  font-size: var(--type-size-caption, 0.75rem);
+  color: var(--admin-content-text-muted);
+  white-space: nowrap;
+}
+
+.rmc-trust-pill__icon {
+  font-size: var(--type-size-caption, 0.75rem);
+  line-height: 1;
+}
+
+.rmc-trust-pill__label {
+  font-weight: 500;
+}
+
+/* ---- Field block + inline validity badges --------------- */
+.rmc-signup-field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.rmc-signup-field__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.rmc-signup-field__label-text {
+  font-size: var(--type-size-body-s, 0.875rem);
+}
+
+.rmc-signup-field__optional {
+  font-weight: 400;
+  color: var(--admin-content-text-muted);
+  font-size: var(--type-size-caption, 0.75rem);
+}
+
+.rmc-signup-field__validity {
+  font-size: var(--type-size-caption, 0.75rem);
+  min-block-size: 1em;
+}
+
+.rmc-signup-field__validity[data-rmc-validity-state="ok"] {
+  color: var(--status-success-text, var(--school-primary));
+}
+
+.rmc-signup-field__validity[data-rmc-validity-state="error"] {
+  color: var(--status-danger-text, var(--school-primary));
+}
+
+.rmc-signup-field__hint {
+  font-size: var(--type-size-caption, 0.75rem);
+  color: var(--admin-content-text-muted);
+  margin-block-start: 6px;
+}
+
+/* ---- Inputs --------------------------------------------- */
+.rmc-signup-input {
+  font-size: var(--type-size-body-m, 1rem);
+  padding-block: 10px;
+}
+
+.rmc-signup-input--uppercase {
+  text-transform: uppercase;
+}
+
+.rmc-signup-input-group {
+  align-items: stretch;
+}
+
+.rmc-signup-domain-suffix {
+  font-size: var(--type-size-body-s, 0.875rem);
+  color: var(--admin-content-text-muted);
+}
+
+/* ---- Live URL slug pill --------------------------------- */
+.rmc-signup-slug-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--type-size-caption, 0.75rem);
+  font-weight: 500;
+  min-block-size: 1.2em;
+}
+
+.rmc-signup-slug-pill--empty {
+  background: transparent;
+  color: transparent;
+}
+
+.rmc-signup-slug-pill--checking {
+  background: color-mix(in oklab, var(--admin-content-text-muted) 10%, transparent);
+  color: var(--admin-content-text-muted);
+}
+
+.rmc-signup-slug-pill--available {
+  background: color-mix(in oklab, var(--school-primary) 12%, transparent);
+  color: var(--school-primary);
+}
+
+.rmc-signup-slug-pill--taken,
+.rmc-signup-slug-pill--invalid {
+  background: color-mix(in oklab, var(--status-danger-text, var(--school-primary)) 12%, transparent);
+  color: var(--status-danger-text, var(--school-primary));
+}
+
+/* ---- Calendar picker cards ------------------------------ */
+.rmc-calendar-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.rmc-calendar-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--admin-content-border);
+  background: var(--surface-canvas, transparent);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rmc-calendar-card:hover {
+  border-color: color-mix(in oklab, var(--school-primary) 40%, var(--admin-content-border));
+}
+
+.rmc-calendar-card--selected {
+  border-color: var(--school-primary);
+  background: color-mix(in oklab, var(--school-primary) 6%, var(--surface-canvas, transparent));
+  box-shadow: 0 0 0 1px var(--school-primary) inset;
+}
+
+.rmc-calendar-card__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rmc-calendar-card__title {
+  font-size: var(--type-size-body-s, 0.875rem);
+  font-weight: 600;
+}
+
+.rmc-calendar-card__sub {
+  font-size: var(--type-size-caption, 0.75rem);
+  color: var(--admin-content-text-muted);
+}
+
+/* ---- Submit button -------------------------------------- */
+.rmc-signup-submit {
+  inline-size: 100%;
+  padding: 12px 14px;
+  font-weight: 600;
+}
+
+/* ---- Footer login row + deeplink hint ------------------- */
+.rmc-signup-footer-login {
+  font-size: var(--type-size-caption, 0.75rem);
+  color: var(--admin-content-text-muted);
+  text-align: center;
+  margin: 18px 0 0;
+  border-block-start: 1px solid var(--admin-content-border);
+  padding-block-start: 14px;
+}
+
+.rmc-signup-footer-login__link {
+  color: var(--school-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.rmc-signup-footer-login__link:hover,
+.rmc-signup-footer-login__link:focus-visible {
+  text-decoration: underline;
+}
+
+.rmc-signup-deeplink-hint {
+  font-size: var(--type-size-eyebrow, 0.6875rem);
+  margin-block-start: 4px;
+  color: var(--admin-content-text-muted);
+}
+
+/* ---- Demo-return bottom bar ----------------------------- */
+.rmc-signup-demo-return-bar {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  padding: 12px 16px;
+  background: var(--color-base-900);
+  color: var(--color-base-0);
+  text-align: center;
+  font-size: var(--type-size-caption, 0.75rem);
+  box-shadow: var(--apple-elev-3);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  z-index: 1030;
+}
+
+/* ---- Mobile responsive ---------------------------------- */
+@media (max-width: 520px) {
+  .auth-card--signup {
+    max-inline-size: 100%;
+  }
+  .rmc-calendar-cards {
+    grid-template-columns: 1fr;
+  }
+  .rmc-trust-pill-row {
+    gap: 6px;
+  }
+  .rmc-trust-pill {
+    font-size: var(--type-size-eyebrow, 0.6875rem);
+    padding: 4px 8px;
+  }
+}

@@ -1,0 +1,187 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Email delivery health" }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+{# Page-level CSS — values are control-plane-tokenized; literals below are #}
+{# intentionally controlled, off-token-allow: operator-dashboard-card-spacing. #}
+<style nonce="{{ request.csp_nonce|default:'' }}">
+/* off-token-allow: operator-email-health-card-grid-utility */
+.rmc-email-health__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1rem;margin-top:1rem;}
+/* off-token-allow: operator-email-health-metric-row-spacing */
+.rmc-email-health__metric{padding:.5rem 0;}
+/* off-token-allow: operator-email-health-probe-output-pre */
+.rmc-email-health__probe-output{font-family:ui-monospace,Menlo,monospace;font-size:.85rem;white-space:pre-wrap;}
+</style>
+{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--operator-email-health" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Email delivery health" %}</h1>
+    <p class="rmc-lede">
+      {% blocktrans with hours=stats.window_hours %}Last {{ hours }} hours of platform email sends, current SMTP configuration, and a synchronous probe. Auto-refreshes every {{ refresh_seconds }} seconds.{% endblocktrans %}
+    </p>
+    <meta http-equiv="refresh" content="{{ refresh_seconds|default:60 }}">
+  </header>
+
+  <section class="rmc-card" aria-labelledby="cfg-source-heading">
+    <h2 id="cfg-source-heading" class="rmc-h2">{% trans "Configuration source" %}</h2>
+    <p class="rmc-metric__value">
+      {% if config_source == "site_settings_override" %}
+        {% trans "Operator override active (SiteSettings.email_delivery)" %}
+      {% else %}
+        {% trans "Environment variables (EMAIL_HOST / EMAIL_PORT / ...)" %}
+      {% endif %}
+    </p>
+    <p class="rmc-muted">
+      {% blocktrans with src=config_source_label %}Resolved source: {{ src }}.{% endblocktrans %}
+      <a href="{% url 'super:email_configure' %}">{% trans "Open email configuration" %}</a>
+    </p>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="cfg-resolved-heading">
+    <h2 id="cfg-resolved-heading" class="rmc-h2">{% trans "Resolved SMTP configuration" %}</h2>
+    <dl class="rmc-email-health__grid">
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Host" %}</dt>
+        <dd>{{ resolved_config.host|default:"—" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Port" %}</dt>
+        <dd>{{ resolved_config.port|default:"—" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "STARTTLS" %}</dt>
+        <dd>{% if resolved_config.use_tls %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "From: address" %}</dt>
+        <dd>{{ resolved_config.default_from_email|default:"—" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "From: name" %}</dt>
+        <dd>{{ resolved_config.default_from_name|default:"—" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Reply-To" %}</dt>
+        <dd>{{ resolved_config.default_reply_to|default:"—" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Connection timeout (s)" %}</dt>
+        <dd>{{ resolved_config.connection_timeout_seconds|default:"10" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Password configured?" %}</dt>
+        <dd>
+          {% if resolved_config.host_password_configured %}
+            {% trans "Yes (value hidden)" %}
+          {% else %}
+            {% trans "No password set" %}
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="probe-heading">
+    <h2 id="probe-heading" class="rmc-h2">{% trans "Live SMTP probe" %}</h2>
+    <p>{% trans "Open an SMTP connection to the resolved host:port. 5-second timeout. Does NOT send mail." %}</p>
+    <form method="post" action="{% url 'super:email_health_probe' %}" id="rmc-email-health-probe-form">
+      {% csrf_token %}
+      <button type="submit" class="rmc-button rmc-button--primary">{% trans "Run probe" %}</button>
+    </form>
+    <pre class="rmc-email-health__probe-output" id="rmc-email-health-probe-output" aria-live="polite"></pre>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="stats-heading">
+    <h2 id="stats-heading" class="rmc-h2">{% trans "Last 24h delivery stats" %}</h2>
+    <dl class="rmc-email-health__grid">
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Sent" %}</dt>
+        <dd class="rmc-metric__value">{{ stats.sent_count|default:"0" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Failed" %}</dt>
+        <dd class="rmc-metric__value">{{ stats.failed_count|default:"0" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Last failure" %}</dt>
+        <dd>{{ stats.last_failure_iso|default:"—" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Last failure reason" %}</dt>
+        <dd>{{ stats.last_failure_reason_kind|default:"—" }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="failures-heading">
+    <h2 id="failures-heading" class="rmc-h2">{% trans "Recent failures (top 5)" %}</h2>
+    {% if failures %}
+    <table class="rmc-data-table rmc-data-table--email-failures">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Time" %}</th>
+          <th scope="col">{% trans "Recipient (hashed)" %}</th>
+          <th scope="col">{% trans "Subject prefix" %}</th>
+          <th scope="col">{% trans "Attempts" %}</th>
+          <th scope="col">{% trans "Reason" %}</th>
+          <th scope="col">{% trans "Priority" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for f in failures %}
+        <tr>
+          <td>{{ f.created_at_iso }}</td>
+          <td><code>{{ f.to_hash }}</code></td>
+          <td>{{ f.subject_prefix|default:"—" }}</td>
+          <td>{{ f.attempts }}</td>
+          <td>{{ f.error_kind }}</td>
+          <td>{{ f.priority }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="rmc-muted">
+      {% trans "Recipient addresses are stored as sha256(addr)[:12] for forensic correlation without persisting PII." %}
+    </p>
+    {% else %}
+    <p class="rmc-muted">{% trans "No failures recorded yet." %}</p>
+    {% endif %}
+  </section>
+</main>
+
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script nonce="{{ request.csp_nonce|default:'' }}">
+(function(){
+  var form = document.getElementById('rmc-email-health-probe-form');
+  var output = document.getElementById('rmc-email-health-probe-output');
+  if (!form || !output) { return; }
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    output.textContent = '...';
+    var fd = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin',
+      headers: {'Accept': 'application/json'}
+    }).then(function(r){ return r.json(); })
+      .then(function(data){
+        try {
+          output.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+          output.textContent = String(data);
+        }
+      })
+      .catch(function(err){
+        output.textContent = 'probe failed: ' + (err && err.message || err);
+      });
+  });
+})();
+</script>
+{% endblock %}

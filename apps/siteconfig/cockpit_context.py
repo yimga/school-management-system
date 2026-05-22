@@ -214,6 +214,27 @@ _DEFAULT_ACTIVITY_EVENTS: list[dict[str, Any]] = [
 # (the orchestrator below replaces these cards with all-"—" placeholders in
 # that branch). Live aggregates from apps/observability/metrics.py will land
 # in a follow-up wave per the cockpit configurability contract.
+# v3.58.0 (2026-05-22): real-data resolver bridge. The service module ships
+# 6 query-based resolvers + a deterministic empty-state contract. We wrap the
+# import + call in a top-level try/except so even a module-load failure cannot
+# break the context processor (which runs on every request).
+def _resolve_pulse_cards_safely() -> list[dict[str, Any]]:
+    try:
+        from .cockpit_platform_pulse_service import resolve_pulse_cards
+        return resolve_pulse_cards()
+    except Exception:
+        # Module unavailable or all resolvers crashed — fall back to a static
+        # 6-card empty-state shell so the strip still renders 6 cards.
+        return [
+            {"head": _("Schools"),   "severity": "muted", "value": "—", "label": _("Healthy"),       "delta": "", "delta_direction": None},
+            {"head": _("Incidents"), "severity": "muted", "value": "—", "label": _("Open"),          "delta": "", "delta_direction": None},
+            {"head": _("Countries"), "severity": "muted", "value": "—", "label": _("Live coverage"), "delta": "", "delta_direction": None},
+            {"head": _("MRR"),       "severity": "muted", "value": "—", "label": _("Recurring"),     "delta": "", "delta_direction": None},
+            {"head": _("Webhooks"),  "severity": "muted", "value": "—", "label": _("Drift"),         "delta": "", "delta_direction": None},
+            {"head": _("Pipeline"),  "severity": "muted", "value": "—", "label": _("Onboarding"),    "delta": "", "delta_direction": None},
+        ]
+
+
 _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
     {
         "head": _("Schools"),
@@ -361,6 +382,52 @@ def _tenant_newsletter_band_defaults() -> dict[str, Any]:
     }
 
 
+# ============================================================
+# v3.57.18 Wave 8 — public school-signup form defaults
+# ============================================================
+
+def _signup_form_defaults() -> dict[str, Any]:
+    """Public self-service ``/signup/`` form — operator-configurable copy.
+
+    Unlike most cockpit sections (which default to ``enabled=False`` and
+    require operators to opt in), the signup form is the marketing-host
+    front door — defaults to ``enabled=True`` so the page renders the
+    moment the cascade lands.
+
+    Schema (mirrors operator admin UI fields):
+        signup_form:
+          enabled           bool  (default True — front door)
+          heading           str
+          subheading        str
+          button_label      str
+          trust_pill_lines  list[{icon, label}]
+          show_trust_pills  bool
+          show_calendar_cards bool
+          footer_login_label str
+          footer_login_url  str   (empty → template falls back to
+                                   {% url 'global_login_discovery' %})
+    """
+    return {
+        "enabled": True,
+        "heading": _("Start your school workspace"),
+        "subheading": _(
+            "Create your school on RunMyCampus. We'll send a verification "
+            "link to your email — usually within a minute."
+        ),
+        "button_label": _("Create my school workspace"),
+        "trust_pill_lines": [
+            {"icon": "🔒", "label": _("256-bit SSL encryption")},
+            {"icon": "🛡", "label": _("FERPA-aligned data handling")},
+            {"icon": "☁", "label": _("Daily encrypted backups")},
+            {"icon": "💳", "label": _("Stripe-secure billing")},
+        ],
+        "show_trust_pills": True,
+        "show_calendar_cards": True,
+        "footer_login_label": _("Find your school"),
+        "footer_login_url": "",
+    }
+
+
 def _tenant_footer_defaults(site: Any | None) -> dict[str, Any]:
     """Tenant civic footer — pulled from SITE model when available.
 
@@ -461,7 +528,16 @@ def cockpit_context(request) -> dict[str, Any]:
             "pulse_metrics": {
                 "label": _("Platform pulse · live"),
                 "show_live_dot": True,
-                "cards": _DEFAULT_PULSE_CARDS,
+                # v3.58.0 (2026-05-22): real-data resolver. The
+                # cockpit_platform_pulse_service queries actual models for the
+                # 6 KPI cards (Schools / Incidents / Countries / MRR / Webhooks
+                # / Pipeline). Each resolver is wrapped in try/except and
+                # returns an honest empty-state card (value="—") on failure,
+                # so the layout always renders 6 cards even when DB queries
+                # fail or models aren't migrated on this environment.
+                # The demo payload below still wins when
+                # COCKPIT_200X_RENDER_PREVIEW_DEMO is True.
+                "cards": _resolve_pulse_cards_safely(),
             },
             "workspace_context": {
                 "enabled": True,
@@ -475,6 +551,12 @@ def cockpit_context(request) -> dict[str, Any]:
                 "separator": "›",
             },
             "footer": _DEFAULT_MANAGER_FOOTER,
+            # v3.57.18 Wave 8 — emit signup_form on the manager branch too
+            # so a manager-host request to ``/signup/`` (e.g. via the public
+            # marketing surface mounted on the same wsgi) still receives the
+            # operator-configurable copy. The template's `cockpit.signup_form.
+            # enabled` gate is the visibility control.
+            "signup_form": _signup_form_defaults(),
         }
         # 200x manager element defaults (all enabled=False).
         manager_cockpit.update(manager_200x_defaults())
@@ -509,6 +591,12 @@ def cockpit_context(request) -> dict[str, Any]:
         "footer": _tenant_footer_defaults(site),
         "community_band": _tenant_community_band_defaults(),
         "newsletter_band": _tenant_newsletter_band_defaults(),
+        # v3.57.18 Wave 8 — emit signup_form on the tenant/public branch so
+        # the marketing-host `/signup/` template receives operator-configurable
+        # copy. Defaults to enabled=True (front-door section); operators can
+        # override individual fields (or disable wholesale) via
+        # SiteSettings.cockpit_payload.signup_form.*.
+        "signup_form": _signup_form_defaults(),
     }
     # v2 dashboard section defaults from cockpit_tenant_dashboard helper.
     tenant_cockpit.update(build_tenant_dashboard_cockpit())

@@ -182,6 +182,35 @@ class SiteSettings(models.Model):
     # values. Nullable-with-default ({}) so legacy rows render the defaults.
     cockpit_payload = models.JSONField(default=dict, blank=True)
 
+    # v3.57.x Wave 8 Agent C — operator-overridable SMTP delivery config.
+    # Read by ``apps.schoolops.email_delivery.get_resolved_smtp_config``;
+    # when ``enabled`` is False or absent the resolver falls back to env
+    # settings. Shape:
+    #
+    #     email_delivery = {
+    #       "enabled": bool,            # gate; False = use env settings
+    #       "host": str,
+    #       "port": int,
+    #       "use_tls": bool,
+    #       "host_user": str,
+    #       "host_password_encrypted_b64": str,  # Fernet ciphertext, base64
+    #       "default_from_email": str,
+    #       "default_from_name": str,
+    #       "default_reply_to": str,
+    #       "connection_timeout_seconds": int,
+    #     }
+    #
+    # NEVER write the plaintext password. The form layer wraps it via
+    # apps.accounts.legacy_hashes.encryption._get_fernet() before storing.
+    email_delivery = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Operator-overridable SMTP delivery config. Falls back to env "
+            "settings when 'enabled' is False or absent."
+        ),
+    )
+
     class Meta:
         verbose_name = "Site Settings"
         verbose_name_plural = "Site Settings"

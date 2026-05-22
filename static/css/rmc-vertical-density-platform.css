@@ -1,0 +1,163 @@
+/* ============================================================
+   rmc-vertical-density-platform.css — v3.58.2 (2026-05-22)
+   ------------------------------------------------------------
+   Platform-wide vertical-density spec.
+
+   Goal: pages feel as "vertically long and full" as the admin
+   preview at docs/generated/preview_app_shell_admin_v1_200x.html.
+   The preview achieves this by (a) reserving more room for canvas
+   content, (b) keeping the footer slim, and (c) avoiding extra air
+   between section blocks.
+
+   This stylesheet applies a unified vertical-density floor across
+   ALL FIVE shells:
+     - portal_base.html        (tenant portal)
+     - control_plane_skeleton  (manager /super/)
+     - base.html               (legacy / authenticated)
+     - admin/base_site.html    (Django Unfold backoffice)
+     - marketing/base_marketing (public marketing)
+
+   Personality preserved — only spacing/padding/min-height
+   adjustments. Colors / typography / brand chrome untouched.
+
+   Loaded LAST so utility overrides win specificity.
+   ============================================================ */
+
+/* ============================================================
+   A) Footer reduction — civic + manager corporate.
+   The admin preview's footer is ~52px tall (single row with
+   pills). The current rmc-civic-footer is ~60-72px (multi-tier
+   centered layout). Trim the tier gaps further so it reads as
+   one slim band, not a 4-tier stack.
+   ============================================================ */
+.rmc-civic-footer {
+  /* v3.58.2: further ~12% reduction (16/13 → 10/8) since pages can absorb the freed space. */
+  padding: 10px clamp(16px, 3vw, 32px) 8px;
+  line-height: 1.25;
+}
+.rmc-civic-footer__inner {
+  /* v3.58.2: inter-tier gap 7→5 — keeps four tiers but reads as one band. */
+  gap: 5px;
+}
+.rmc-civic-footer__strip { gap: 4px; }
+.rmc-civic-footer__pill { padding: 2px 8px; }
+.rmc-civic-footer__brand { gap: 6px; font-size: 12px; }
+.rmc-civic-footer__motto { font-size: 11.5px; }
+.rmc-civic-footer__est   { font-size: 11px; }
+
+/* Manager corporate footer — when used alongside civic, keep the
+   chrome compact. */
+.cp-corporate-footer .rmc-civic-footer {
+  padding-top: 8px;
+  padding-bottom: 6px;
+}
+
+/* ============================================================
+   B) Shell skeleton — sidebar fills full vertical, canvas absorbs
+   the freed footer height so pages render longer.
+   ============================================================ */
+.rmc-app-shell__sidebar {
+  /* min-height: 0 from rmc-app-shell.css is correct for grid layout;
+     but in the legacy non-grid surfaces the sidebar should still
+     extend through the whole canvas, not stop at content end. */
+  min-height: 100%;
+}
+
+.rmc-app-shell__canvas {
+  /* Scroll-padding-top already set to ~104px by the shell stylesheet;
+     here we shave the bottom buffer so the last section is visually
+     closer to the slimmed footer. */
+  padding-bottom: 0;
+}
+
+/* ============================================================
+   C) Dashboard container padding — across all 5 shells.
+   Bootstrap container-fluid + .py-4 ships ~24px top + 24px bottom
+   on auth surfaces. Reduce to 14/14 so the hero meets the header
+   faster and the page fills further down before footer.
+   ============================================================ */
+[data-rmc-authenticated-shell] .container-fluid.py-4,
+body[data-rmc-shell-root="django-admin"] .container-fluid.py-4,
+body[data-rmc-admin-shell="1"] .dashboard-container {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+/* Tenant portal pages — pull the first portal_content section up. */
+body[data-rmc-host-kind="tenant"] .container-fluid.py-4,
+body[data-rmc-host-kind="tenant"] .container.py-4 {
+  padding-top: 12px !important;
+  padding-bottom: 18px !important;
+}
+
+/* Manager /super/ — already tightened in rmc-cp-200x.css; here we
+   reinforce for any /super/ page that does NOT extend control_plane_base. */
+[data-rmc-shell-main="control-plane"] .cp-layout {
+  padding-bottom: 14px !important;
+}
+
+/* Admin /admin/ — pages inside the dashboard-container layout. */
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .dashboard-header {
+  margin-top: 0;
+}
+
+/* ============================================================
+   D) Section spacing — the .mb-4 / .mb-5 Bootstrap utilities create
+   24px / 32px gaps between sections, which feels airy on dashboards.
+   Compress to 16px so 5-section pages render in one viewport-fold
+   without scrolling-to-find-the-next.
+   ============================================================ */
+[data-rmc-authenticated-shell] section.mb-4,
+[data-rmc-authenticated-shell] .row.mb-4,
+[data-rmc-authenticated-shell] .row.g-3.mb-4 {
+  margin-bottom: 16px !important;
+}
+[data-rmc-authenticated-shell] section.mb-5,
+[data-rmc-authenticated-shell] .row.mb-5 {
+  margin-bottom: 22px !important;
+}
+
+/* Headlines: drop the heading-to-content gap so .h6 eyebrow + cards
+   feel like one block, not two. */
+[data-rmc-authenticated-shell] section > h2.h5,
+[data-rmc-authenticated-shell] section > h2.h6 {
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   E) Card body density — Bootstrap .card .card-body .py-3 ships
+   ~16px top + 16px bottom; reduce to 12px so card-grid rows fit
+   more cards in the same vertical span without losing legibility.
+   ============================================================ */
+[data-rmc-authenticated-shell] .card .card-body.py-3 {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+/* ============================================================
+   F) Marketing surface — public landing pages use container.py-5
+   for hero air. Keep that hero generous (brand requirement) but
+   shave intermediate sections.
+   ============================================================ */
+body[data-rmc-host-kind="public"] section.mkt-section,
+body[data-rmc-host-kind="public"] section.marketing-section {
+  /* Honor section-level padding contracts; only shave outer gaps. */
+  margin-top: 0;
+}
+
+/* ============================================================
+   G) Personality preservation rules — these surfaces opt OUT of
+   density compression because their design relies on the air:
+     - Marketing hero blocks
+     - Auth login / signup landing pages
+     - Onboarding wizard step pages
+   Add [data-rmc-density="open"] on any container to opt out.
+   ============================================================ */
+[data-rmc-density="open"],
+[data-rmc-density="open"] section.mb-4,
+[data-rmc-density="open"] .container-fluid.py-4,
+[data-rmc-density="open"] .row.g-3.mb-4 {
+  padding-top: revert !important;
+  padding-bottom: revert !important;
+  margin-bottom: revert !important;
+}

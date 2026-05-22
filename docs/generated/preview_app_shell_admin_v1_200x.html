@@ -1,0 +1,1135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMC v3.58 — /admin/ Backoffice · 200x preview (target)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   /admin/ (Django Unfold backoffice) — 200x parity target
+
+   Inherits the SAME .rmc-app-shell skeleton + dark chrome tokens
+   from rmc-shell-preview-v8-200x.html. Replaces the Unfold default
+   layout with our luxury cockpit pattern. Adds three /admin/-specific
+   surfaces: (1) Backoffice home (model catalog by section + steering
+   strip), (2) Changelist (filters rail + dense table + bulk actions),
+   (3) Change form (header strip + tabs + fieldsets + audit sidecar).
+   ============================================================ */
+
+:root {
+  --surface-bg: #f5f5f7;
+  --surface-canvas: #fbfbfd;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #ebebef;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.14);
+  --text-primary: #1d1d1f;
+  --text-secondary: #424245;
+  --text-tertiary: #6e6e73;
+  --text-muted: #6c6c70;
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --elev-3: 0 18px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08);
+  --elev-luxury: 0 24px 68px rgba(8, 11, 28, 0.55), 0 2px 4px rgba(255,255,255,0.04) inset;
+  --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-normal: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-slow: 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --school-primary: #4f46e5;
+  --school-accent: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --info: #60a5fa;
+  --cp-chrome-bg: #07091a;
+  --cp-chrome-bg-deep: #04060f;
+  --cp-chrome-surface: #0f1530;
+  --cp-chrome-surface-2: #131a35;
+  --cp-chrome-hairline: rgba(255, 255, 255, 0.08);
+  --cp-chrome-hairline-strong: rgba(255, 255, 255, 0.14);
+  --cp-chrome-text: #f1f5f9;
+  --cp-chrome-text-muted: #94a3b8;
+  --cp-chrome-text-faint: #64748b;
+  --cp-glow-indigo: 99, 102, 241;
+  --cp-glow-emerald: 16, 185, 129;
+  --cp-glow-amber: 245, 158, 11;
+  --cp-glow-rose: 239, 68, 68;
+  --cp-glow-sky: 96, 165, 250;
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* , *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; color: var(--text-primary); }
+html, body { height: 100%; overflow: hidden; }
+a { color: inherit; text-decoration: none; }
+
+/* === Shell skeleton ======================================== */
+.rmc-app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: clamp(248px, 18vw, 308px) 1fr;
+  height: 100dvh;
+  background: var(--surface-bg);
+  isolation: isolate;
+}
+.rmc-app-shell__header {
+  grid-row: 1; grid-column: 1 / -1;
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo), 0.20), transparent 60%),
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald), 0.16), transparent 60%),
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg) 100%);
+  color: var(--cp-chrome-text);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  z-index: 40;
+  backdrop-filter: blur(18px) saturate(140%);
+}
+.rmc-app-shell__sidebar {
+  grid-row: 2; grid-column: 1;
+  background: linear-gradient(180deg, var(--cp-chrome-bg) 0%, var(--cp-chrome-bg-deep) 100%);
+  color: var(--cp-chrome-text);
+  border-right: 1px solid var(--cp-chrome-hairline);
+  overflow-y: auto; overflow-x: hidden;
+  min-height: 0; min-width: 0;
+}
+.rmc-app-shell__canvas {
+  grid-row: 2; grid-column: 2;
+  min-width: 0; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  background:
+    radial-gradient(1200px 500px at 18% -5%, rgba(var(--cp-glow-indigo), 0.05), transparent 60%),
+    radial-gradient(1100px 500px at 82% -10%, rgba(var(--cp-glow-emerald), 0.04), transparent 60%),
+    var(--surface-bg);
+  scroll-padding-top: 96px;
+}
+.rmc-app-shell__footer {
+  grid-row: 3; grid-column: 1 / -1;
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  z-index: 35;
+}
+
+/* === Header chrome (same as v8 200x) ====================== */
+.cp-header { display: flex; flex-direction: column; }
+.cp-header__row {
+  display: grid;
+  grid-template-columns: minmax(220px, auto) 1fr minmax(220px, auto);
+  align-items: center; gap: 16px;
+  padding: 10px 20px;
+  min-height: 52px;
+}
+.cp-header__row--utility { border-bottom: 1px solid var(--cp-chrome-hairline); }
+.cp-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--cp-chrome-text); }
+.cp-brand__mark {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--school-primary), #7c3aed 60%, #a855f7);
+  display: grid; place-items: center; color: white; font-weight: 800; font-size: 14px;
+  box-shadow: 0 6px 18px rgba(99,102,241,0.45), 0 0 0 1px rgba(255,255,255,0.08) inset;
+}
+.cp-brand__pill {
+  font-size: 10px; padding: 3px 8px; border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #422006;
+  font-weight: 700; letter-spacing: 0.06em; margin-left: 4px;
+  box-shadow: 0 4px 12px rgba(245,158,11,0.35);
+}
+.cp-brand__crumb { color: var(--cp-chrome-text-muted); font-weight: 500; font-size: 13px; margin-left: 10px; }
+.cp-search {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--cp-chrome-hairline);
+  border-radius: var(--radius-pill); padding: 7px 14px;
+  color: var(--cp-chrome-text-muted); font-size: 13px;
+  width: 100%; max-width: 560px; justify-self: center;
+}
+.cp-search__kbd {
+  margin-left: auto;
+  border: 1px solid var(--cp-chrome-hairline); border-radius: 6px;
+  padding: 2px 6px; font-size: 11px; font-family: var(--mono);
+}
+.cp-util-actions { display: flex; gap: 8px; align-items: center; justify-self: end; }
+.cp-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-pill);
+  border: 1px solid var(--cp-chrome-hairline);
+  background: rgba(255,255,255,0.04); color: var(--cp-chrome-text);
+  font-size: 13px; cursor: pointer;
+}
+.cp-pill:hover { background: rgba(255,255,255,0.1); }
+.cp-bell {
+  position: relative; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(239,68,68,0.18); border: 1px solid rgba(239,68,68,0.3); color: #fecaca;
+}
+.cp-bell__dot {
+  position: absolute; top: -2px; right: -2px;
+  background: var(--danger); color: white; border-radius: 999px;
+  font-size: 10px; font-weight: 700; padding: 1px 5px; border: 2px solid var(--cp-chrome-bg);
+}
+.cp-user { display: flex; align-items: center; gap: 8px; }
+.cp-user__avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white;
+  display: grid; place-items: center; font-weight: 700; font-size: 13px;
+  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+}
+.cp-user__meta { display: flex; flex-direction: column; line-height: 1.1; font-size: 12px; }
+.cp-user__meta strong { color: var(--cp-chrome-text); }
+.cp-user__meta span { color: var(--cp-chrome-text-muted); font-size: 11px; }
+
+/* Primary nav row */
+.cp-nav-row {
+  display: flex; justify-content: center; align-items: center;
+  padding: 8px 20px; gap: 6px;
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+.cp-nav-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.03); border: 1px solid transparent;
+  color: var(--cp-chrome-text-muted); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background var(--motion-fast), color var(--motion-fast);
+}
+.cp-nav-pill:hover { background: rgba(255,255,255,0.06); color: var(--cp-chrome-text); }
+.cp-nav-pill[data-active] {
+  background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.18));
+  border-color: rgba(99,102,241,0.40); color: white;
+}
+
+/* Live strip (matches /super/ banner the user flagged) */
+.cp-live-strip {
+  display: flex; align-items: center; gap: 16px;
+  padding: 8px 20px; font-size: 12px;
+  color: var(--cp-chrome-text-muted);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  overflow-x: auto; white-space: nowrap;
+}
+.cp-live-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  background: rgba(239,68,68,0.22); border: 1px solid rgba(239,68,68,0.5);
+  color: #fecaca; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+}
+.cp-live-pill::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: #fca5a5; box-shadow: 0 0 8px rgba(248,113,113,0.8);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.45 } }
+.cp-live-item { display: inline-flex; align-items: center; gap: 6px; }
+.cp-live-item__age { color: var(--cp-chrome-text-faint); font-family: var(--mono); font-size: 10.5px; }
+
+/* === Sidebar (admin model catalog rail) =================== */
+.cp-sidebar { padding: 16px 14px 24px; }
+.cp-sidebar__user {
+  display: flex; gap: 10px; align-items: center;
+  padding: 10px 12px; border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.03); border: 1px solid var(--cp-chrome-hairline);
+  margin-bottom: 14px;
+}
+.cp-sidebar__avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  display: grid; place-items: center; color: white; font-weight: 700; font-size: 12px;
+}
+.cp-sidebar__user-meta { display: flex; flex-direction: column; min-width: 0; font-size: 12px; }
+.cp-sidebar__user-meta strong { color: var(--cp-chrome-text); }
+.cp-sidebar__user-meta span { color: var(--cp-chrome-text-muted); font-size: 11px; }
+.cp-sidebar__user-meta a { color: var(--cp-chrome-text-faint); font-size: 11px; margin-top: 2px; }
+
+.cp-sidebar__scope {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.03); border: 1px solid var(--cp-chrome-hairline);
+  color: var(--cp-chrome-text-muted); font-size: 12px; margin-bottom: 18px;
+}
+.cp-sidebar__group-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--cp-chrome-text-faint); padding: 14px 8px 6px; font-weight: 700;
+}
+.cp-sidebar__link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 9px;
+  color: var(--cp-chrome-text-muted); font-size: 13px;
+  border: 1px solid transparent; cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.cp-sidebar__link:hover { background: rgba(255,255,255,0.04); color: var(--cp-chrome-text); }
+.cp-sidebar__link[data-active] {
+  background: linear-gradient(135deg, rgba(99,102,241,0.20), rgba(139,92,246,0.15));
+  border-color: rgba(99,102,241,0.30);
+  color: white;
+}
+.cp-sidebar__link-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  display: grid; place-items: center; font-size: 12px;
+  background: rgba(255,255,255,0.04);
+}
+.cp-sidebar__link-count {
+  margin-left: auto; font-family: var(--mono); font-size: 10.5px;
+  color: var(--cp-chrome-text-faint);
+}
+
+/* === Page hero ============================================ */
+.cp-hero {
+  padding: 20px 28px 8px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cp-hero__eyebrow {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--text-tertiary); font-weight: 700;
+}
+.cp-hero__title {
+  font-family: var(--serif);
+  font-size: 32px; font-weight: 500; letter-spacing: -0.01em;
+  margin: 2px 0 4px;
+}
+.cp-hero__lede {
+  font-size: 14.5px; color: var(--text-secondary); max-width: 720px;
+  font-family: var(--serif); font-style: italic;
+}
+.cp-hero__actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.cp-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline-strong); background: var(--surface-elevated);
+  color: var(--text-primary); font-size: 13px; font-weight: 600;
+  box-shadow: var(--elev-1); cursor: pointer;
+}
+.cp-btn:hover { box-shadow: var(--elev-2); }
+.cp-btn--primary {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white; border-color: transparent;
+  box-shadow: 0 8px 20px rgba(79,70,229,0.35);
+}
+.cp-btn--ghost { background: transparent; }
+
+/* === Steering strip ======================================= */
+.cp-steering {
+  margin: 14px 28px 0;
+  padding: 14px 18px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-1);
+  display: flex; gap: 18px; align-items: center;
+}
+.cp-steering__icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(16,185,129,0.20), rgba(34,197,94,0.10));
+  border: 1px solid rgba(16,185,129,0.30);
+  display: grid; place-items: center; color: #047857; font-weight: 700;
+}
+.cp-steering__body { flex: 1; }
+.cp-steering__label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.10em;
+  font-weight: 700; color: var(--text-tertiary);
+}
+.cp-steering__copy { font-size: 13px; color: var(--text-secondary); }
+.cp-steering__paths { display: flex; gap: 8px; }
+.cp-steering__path {
+  padding: 6px 12px; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600;
+  border: 1px solid var(--hairline-strong); background: var(--surface-canvas);
+  cursor: pointer;
+}
+.cp-steering__path[data-active] {
+  background: linear-gradient(135deg, #10b981, #34d399); color: white;
+  border-color: transparent; box-shadow: 0 4px 12px rgba(16,185,129,0.30);
+}
+
+/* === KPI strip + cards ==================================== */
+.cp-kpi-strip {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  padding: 18px 28px;
+}
+.cp-kpi {
+  background: var(--surface-elevated); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg); padding: 16px 18px;
+  box-shadow: var(--elev-1);
+  display: flex; flex-direction: column; gap: 4px;
+  position: relative; overflow: hidden;
+}
+.cp-kpi::after {
+  content: ""; position: absolute; right: -20px; top: -20px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(99,102,241,0.12), transparent 70%);
+}
+.cp-kpi__label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-tertiary); font-weight: 700;
+  display: flex; align-items: center; gap: 6px;
+}
+.cp-kpi__label::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--success);
+}
+.cp-kpi__value {
+  font-family: var(--serif); font-size: 34px; font-weight: 500;
+  letter-spacing: -0.02em; line-height: 1.05;
+}
+.cp-kpi__caption { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.cp-kpi__delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: var(--radius-pill);
+  font-size: 11.5px; font-weight: 600;
+  background: rgba(34,197,94,0.10); color: #15803d;
+  margin-top: 8px; align-self: flex-start;
+}
+.cp-kpi__delta[data-trend="down"] { background: rgba(239,68,68,0.10); color: #b91c1c; }
+.cp-kpi__delta[data-trend="flat"] { background: rgba(100,116,139,0.10); color: #475569; }
+
+/* === Model catalog grid =================================== */
+.cp-section {
+  padding: 22px 28px;
+}
+.cp-section__title {
+  font-family: var(--serif);
+  font-size: 20px; font-weight: 500; letter-spacing: -0.005em;
+  margin: 0 0 4px;
+}
+.cp-section__lede {
+  font-size: 13px; color: var(--text-tertiary);
+  margin: 0 0 16px;
+}
+.cp-section__row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.cp-tab {
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline-strong); background: var(--surface-elevated);
+  font-size: 12.5px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+}
+.cp-tab[data-active] {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;
+  border-color: transparent; box-shadow: 0 4px 12px rgba(79,70,229,0.25);
+}
+
+.cp-catalog {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.cp-catalog-card {
+  background: var(--surface-elevated); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: var(--elev-1);
+  transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+}
+.cp-catalog-card:hover { transform: translateY(-1px); box-shadow: var(--elev-2); }
+.cp-catalog-card__head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.cp-catalog-card__title { font-weight: 600; font-size: 14.5px; color: var(--text-primary); margin: 0; }
+.cp-catalog-card__count {
+  font-family: var(--mono); font-size: 11px; color: var(--text-tertiary);
+  padding: 3px 9px; border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+}
+.cp-catalog-card__items {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;
+  font-size: 12.5px; color: var(--text-secondary); padding: 0; margin: 0; list-style: none;
+}
+.cp-catalog-card__items li { display: flex; justify-content: space-between; gap: 8px; }
+.cp-catalog-card__items li span:last-child { color: var(--text-tertiary); font-family: var(--mono); font-size: 11px; }
+.cp-catalog-card__foot {
+  display: flex; gap: 8px; margin-top: auto; padding-top: 8px;
+  border-top: 1px dashed var(--hairline);
+}
+.cp-catalog-card__foot a {
+  font-size: 11.5px; color: var(--school-primary); font-weight: 600;
+}
+
+/* === Changelist preview =================================== */
+.cp-changelist {
+  display: grid; gap: 18px;
+  grid-template-columns: 248px 1fr;
+  margin: 22px 28px;
+}
+@media (max-width: 1080px) { .cp-changelist { grid-template-columns: 1fr; } }
+
+.cp-filters {
+  background: var(--surface-elevated); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg); padding: 16px;
+  box-shadow: var(--elev-1);
+  align-self: flex-start;
+}
+.cp-filters__title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-tertiary); margin: 0 0 10px; font-weight: 700;
+}
+.cp-filter-group { margin-bottom: 14px; }
+.cp-filter-group__name {
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.cp-filter-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: var(--radius-pill);
+  font-size: 11.5px; font-weight: 500;
+  background: var(--surface-canvas); border: 1px solid var(--hairline);
+  margin: 0 4px 4px 0; cursor: pointer;
+}
+.cp-filter-pill[data-active] {
+  background: rgba(79,70,229,0.10); color: var(--school-primary);
+  border-color: rgba(79,70,229,0.30); font-weight: 600;
+}
+
+.cp-table-wrap {
+  background: var(--surface-elevated); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg); box-shadow: var(--elev-1);
+  overflow: hidden;
+}
+.cp-table-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+}
+.cp-table-head__crumb {
+  font-size: 12px; color: var(--text-tertiary);
+}
+.cp-table-head__actions { display: flex; gap: 8px; }
+.cp-bulk {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 16px; background: rgba(79,70,229,0.05);
+  border-bottom: 1px solid var(--hairline); font-size: 12.5px;
+  color: var(--school-primary); font-weight: 600;
+}
+.cp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cp-table th {
+  text-align: left; padding: 9px 14px;
+  background: var(--surface-canvas);
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-tertiary); border-bottom: 1px solid var(--hairline);
+  font-weight: 700;
+}
+.cp-table td {
+  padding: 12px 14px; border-bottom: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+.cp-table tr:last-child td { border-bottom: 0; }
+.cp-table tr:hover td { background: rgba(99,102,241,0.04); }
+.cp-table td a { color: var(--school-primary); font-weight: 600; }
+.cp-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 9px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 600;
+}
+.cp-status[data-tone="success"] { background: rgba(34,197,94,0.12); color: #15803d; }
+.cp-status[data-tone="warn"] { background: rgba(245,158,11,0.14); color: #b45309; }
+.cp-status[data-tone="danger"] { background: rgba(239,68,68,0.10); color: #b91c1c; }
+.cp-status[data-tone="muted"] { background: var(--surface-sunken); color: var(--text-tertiary); }
+.cp-pager {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; border-top: 1px solid var(--hairline);
+  font-size: 12px; color: var(--text-tertiary);
+}
+.cp-pager__pages { display: flex; gap: 6px; }
+.cp-pager__pill {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid var(--hairline-strong); background: var(--surface-elevated);
+  font-size: 11.5px; cursor: pointer;
+}
+.cp-pager__pill[data-active] {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;
+  border-color: transparent;
+}
+
+/* === Change form preview ================================== */
+.cp-form-frame {
+  display: grid; gap: 18px;
+  grid-template-columns: 1fr 320px;
+  margin: 22px 28px;
+}
+@media (max-width: 1080px) { .cp-form-frame { grid-template-columns: 1fr; } }
+.cp-form {
+  background: var(--surface-elevated); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg); box-shadow: var(--elev-1); overflow: hidden;
+}
+.cp-form__header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px; border-bottom: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+}
+.cp-form__tabs {
+  display: flex; gap: 4px; padding: 8px 12px 0;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+}
+.cp-form__tab {
+  padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: var(--text-tertiary);
+  border-bottom: 2px solid transparent; cursor: pointer;
+}
+.cp-form__tab[data-active] {
+  color: var(--text-primary); border-bottom-color: var(--school-primary);
+}
+.cp-fieldset { padding: 18px 22px; border-bottom: 1px solid var(--hairline); }
+.cp-fieldset:last-child { border-bottom: 0; }
+.cp-fieldset__title {
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.10em;
+  color: var(--text-tertiary); font-weight: 700; margin: 0 0 12px;
+}
+.cp-field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 18px; }
+.cp-field { display: flex; flex-direction: column; gap: 5px; }
+.cp-field--wide { grid-column: 1 / -1; }
+.cp-field__label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.cp-field__input {
+  padding: 9px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline-strong); background: var(--surface-elevated);
+  font-size: 13px; color: var(--text-primary);
+  font-family: inherit;
+}
+.cp-field__input:focus {
+  outline: 0; border-color: var(--school-primary);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+}
+.cp-field__hint { font-size: 11px; color: var(--text-tertiary); }
+
+.cp-sidecar {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.cp-sidecar__card {
+  background: var(--surface-elevated); border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--elev-1);
+}
+.cp-sidecar__title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.10em;
+  color: var(--text-tertiary); font-weight: 700; margin: 0 0 10px;
+}
+.cp-audit { display: flex; flex-direction: column; gap: 10px; font-size: 12px; }
+.cp-audit__row { display: flex; gap: 8px; align-items: flex-start; }
+.cp-audit__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--info); margin-top: 6px; flex-shrink: 0;
+}
+.cp-audit__body { display: flex; flex-direction: column; }
+.cp-audit__body strong { font-size: 12px; color: var(--text-primary); }
+.cp-audit__body span { color: var(--text-tertiary); font-family: var(--mono); font-size: 10.5px; }
+
+/* === Footer (matches /super/) ============================ */
+.cp-footer {
+  padding: 14px 28px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px;
+  font-size: 12px; color: var(--text-tertiary);
+}
+.cp-footer-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.cp-footer-pill {
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  background: var(--surface-canvas); border: 1px solid var(--hairline);
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+}
+.cp-footer-pill[data-tone="success"] { background: rgba(34,197,94,0.10); color: #15803d; border-color: rgba(34,197,94,0.25); }
+.cp-footer-pill[data-tone="trust"] { background: rgba(79,70,229,0.08); color: var(--school-primary); border-color: rgba(79,70,229,0.20); }
+
+/* === Empty-state pattern (the user requested for missing data) === */
+.cp-empty {
+  border: 1px dashed var(--hairline-strong); border-radius: var(--radius-lg);
+  padding: 24px; text-align: center; color: var(--text-tertiary);
+  background: repeating-linear-gradient(135deg, var(--surface-canvas) 0 12px, var(--surface-elevated) 12px 24px);
+}
+.cp-empty__icon { font-size: 22px; margin-bottom: 6px; }
+.cp-empty__title { font-weight: 600; color: var(--text-secondary); font-size: 13px; }
+.cp-empty__hint { font-size: 11.5px; margin-top: 4px; max-width: 360px; margin-left: auto; margin-right: auto; }
+</style>
+</head>
+<body>
+<div class="rmc-app-shell">
+
+  <!-- ============================================================
+       HEADER (same chrome as /super/ v8 200x)
+       ============================================================ -->
+  <header class="rmc-app-shell__header">
+    <div class="cp-header">
+
+      <div class="cp-header__row cp-header__row--utility">
+        <div class="cp-brand">
+          <span class="cp-brand__mark">R</span>
+          <span>RUN<strong>MYCAMPUS</strong></span>
+          <span class="cp-brand__pill">BACKOFFICE</span>
+          <span class="cp-brand__crumb">/admin/ · Operator command surface</span>
+        </div>
+        <div class="cp-search">
+          <span aria-hidden="true">🔍</span>
+          <span>Search models, fields, records, audit events…</span>
+          <span class="cp-search__kbd">⌘K</span>
+        </div>
+        <div class="cp-util-actions">
+          <span class="cp-pill" aria-label="MFA enrolled">🛡 MFA</span>
+          <span class="cp-pill" aria-label="Open Studio">⌘ Studio</span>
+          <span class="cp-pill" aria-label="Open Config">⚙ Config</span>
+          <span class="cp-bell">🔔<span class="cp-bell__dot">3</span></span>
+          <div class="cp-user">
+            <div class="cp-user__avatar">AD</div>
+            <div class="cp-user__meta"><strong>admin</strong><span>Super administrator</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-nav-row">
+        <span class="cp-nav-pill" data-active>🏛 Backoffice</span>
+        <span class="cp-nav-pill">⚙ Config center</span>
+        <span class="cp-nav-pill">⌘ Studio</span>
+        <span class="cp-nav-pill">↗ Control plane</span>
+        <span class="cp-nav-pill">📚 Catalog</span>
+        <span class="cp-nav-pill">🔐 Access</span>
+        <span class="cp-nav-pill">🩺 Health</span>
+      </div>
+
+      <div class="cp-live-strip" aria-label="Live operator activity">
+        <span class="cp-live-pill">LIVE</span>
+        <span class="cp-live-item">📑 Migration ingest queued — Saint Sebastien Academy <span class="cp-live-item__age">12s ago</span></span>
+        <span class="cp-live-item">🆕 New school approved — Northshore Prep <span class="cp-live-item__age">2m ago</span></span>
+        <span class="cp-live-item">📝 167 records edited <span class="cp-live-item__age">8m ago</span></span>
+        <span class="cp-live-item">🛡 Audit chain verified <span class="cp-live-item__age">14m ago</span></span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============================================================
+       SIDEBAR (model catalog + favorites)
+       ============================================================ -->
+  <aside class="rmc-app-shell__sidebar">
+    <div class="cp-sidebar">
+
+      <div class="cp-sidebar__user">
+        <div class="cp-sidebar__avatar">AD</div>
+        <div class="cp-sidebar__user-meta">
+          <strong>admin</strong>
+          <span>Super administrator</span>
+          <a href="#">Change password ↗</a>
+        </div>
+      </div>
+
+      <div class="cp-sidebar__scope">
+        <span>🌐 All tenants · Global</span>
+        <span style="font-family:var(--mono); font-size:10.5px;">▾</span>
+      </div>
+
+      <div class="cp-sidebar__group-label">Start</div>
+      <a class="cp-sidebar__link" data-active><span class="cp-sidebar__link-icon">🏠</span> Backoffice home <span class="cp-sidebar__link-count">v3.58</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">📋</span> Control plane <span class="cp-sidebar__link-count">↗</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">🧭</span> Platform operator hub</a>
+
+      <div class="cp-sidebar__group-label">Guided setup</div>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">⚙</span> Config center</a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">🎛</span> Configuration engine</a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">🪄</span> Studio</a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">🚦</span> Feature control</a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">🎨</span> Theme &amp; experience</a>
+
+      <div class="cp-sidebar__group-label">Pinned models</div>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">🏫</span> Schools <span class="cp-sidebar__link-count">168</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">👤</span> Users <span class="cp-sidebar__link-count">12.4k</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">📜</span> Audit log <span class="cp-sidebar__link-count">∞</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">📦</span> Plans &amp; entitlements <span class="cp-sidebar__link-count">14</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">🧾</span> Subscriptions <span class="cp-sidebar__link-count">142</span></a>
+
+      <div class="cp-sidebar__group-label">Catalog by section</div>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">▸</span> Platform configuration <span class="cp-sidebar__link-count">68</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">▸</span> Integrations &amp; providers <span class="cp-sidebar__link-count">10</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">▸</span> Marketplace records <span class="cp-sidebar__link-count">17</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">▸</span> Migration records <span class="cp-sidebar__link-count">6</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">▸</span> Access &amp; permissions <span class="cp-sidebar__link-count">1</span></a>
+      <a class="cp-sidebar__link"><span class="cp-sidebar__link-icon">▸</span> Advanced system objects <span class="cp-sidebar__link-count">67</span></a>
+
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       CANVAS
+       ============================================================ -->
+  <main class="rmc-app-shell__canvas">
+
+    <section class="cp-hero">
+      <div class="cp-hero__eyebrow">PLATFORM BACKOFFICE</div>
+      <h1 class="cp-hero__title">Operator catalog &amp; raw records</h1>
+      <p class="cp-hero__lede">Every registered model, jump-to-changelist, audit log, and raw CRUD surface. Guided work stays in <em>/super/, Config center, and Studio</em> — raw records live here for the moments those don't fit.</p>
+      <div class="cp-hero__actions">
+        <button class="cp-btn cp-btn--primary">+ New school</button>
+        <button class="cp-btn">⚙ Open Config center</button>
+        <button class="cp-btn">🧭 Open Studio</button>
+        <button class="cp-btn cp-btn--ghost">⌘K · command palette</button>
+      </div>
+    </section>
+
+    <!-- Steering strip -->
+    <div class="cp-steering">
+      <div class="cp-steering__icon">✓</div>
+      <div class="cp-steering__body">
+        <div class="cp-steering__label">OPERATOR STEERING</div>
+        <div class="cp-steering__copy">Prefer Configuration Control Center and Studio for guided changes. Use model pages below for raw record access when required.</div>
+      </div>
+      <div class="cp-steering__paths">
+        <span class="cp-steering__path" data-active>Config center</span>
+        <span class="cp-steering__path">Studio</span>
+        <span class="cp-steering__path">Control plane</span>
+      </div>
+    </div>
+
+    <!-- KPI strip — backed by real backoffice telemetry; empty-state when no data -->
+    <div class="cp-kpi-strip">
+      <div class="cp-kpi">
+        <div class="cp-kpi__label">Models registered</div>
+        <div class="cp-kpi__value">172</div>
+        <div class="cp-kpi__caption">across 20 apps</div>
+        <div class="cp-kpi__delta">+2 this week</div>
+      </div>
+      <div class="cp-kpi">
+        <div class="cp-kpi__label">Pending approvals</div>
+        <div class="cp-kpi__value">6</div>
+        <div class="cp-kpi__caption">school provisioning queue</div>
+        <div class="cp-kpi__delta" data-trend="down">−3 vs 7d avg</div>
+      </div>
+      <div class="cp-kpi">
+        <div class="cp-kpi__label">New logins · 24h</div>
+        <div class="cp-kpi__value">10</div>
+        <div class="cp-kpi__caption">staff &amp; operators</div>
+        <div class="cp-kpi__delta" data-trend="flat">— stable</div>
+      </div>
+      <div class="cp-kpi">
+        <div class="cp-kpi__label">Failed logins · 24h</div>
+        <div class="cp-kpi__value">2</div>
+        <div class="cp-kpi__caption">both same operator, MFA challenge</div>
+        <div class="cp-kpi__delta" data-trend="flat">— stable</div>
+      </div>
+      <div class="cp-kpi">
+        <div class="cp-kpi__label">System</div>
+        <div class="cp-kpi__value" style="font-size:22px; color:#15803d;">Operational</div>
+        <div class="cp-kpi__caption">all 9 zero-tolerance gates green</div>
+      </div>
+    </div>
+
+    <!-- Model catalog -->
+    <section class="cp-section">
+      <h2 class="cp-section__title">Model catalog by section</h2>
+      <p class="cp-section__lede">Direct access to each Django admin changelist. Counts are live from the registry.</p>
+
+      <div class="cp-section__row" role="tablist">
+        <span class="cp-tab" data-active>Overview</span>
+        <span class="cp-tab">Platform configuration</span>
+        <span class="cp-tab">Catalog records</span>
+        <span class="cp-tab">Integrations &amp; providers</span>
+        <span class="cp-tab">Marketplace records</span>
+        <span class="cp-tab">Migration records</span>
+        <span class="cp-tab">Maintenance &amp; repair</span>
+        <span class="cp-tab">Access &amp; permissions</span>
+        <span class="cp-tab">Advanced system objects</span>
+      </div>
+
+      <div class="cp-catalog">
+
+        <article class="cp-catalog-card">
+          <div class="cp-catalog-card__head">
+            <h3 class="cp-catalog-card__title">Platform configuration</h3>
+            <span class="cp-catalog-card__count">68 / 68</span>
+          </div>
+          <ul class="cp-catalog-card__items">
+            <li><a href="#">Schools</a><span>168</span></li>
+            <li><a href="#">Site settings</a><span>168</span></li>
+            <li><a href="#">Brand profiles</a><span>168</span></li>
+            <li><a href="#">Feature toggles</a><span>54</span></li>
+            <li><a href="#">Runtime defaults</a><span>1</span></li>
+            <li><a href="#">Plans</a><span>14</span></li>
+          </ul>
+          <div class="cp-catalog-card__foot"><a href="#">View all 68 →</a></div>
+        </article>
+
+        <article class="cp-catalog-card">
+          <div class="cp-catalog-card__head">
+            <h3 class="cp-catalog-card__title">Integrations &amp; providers</h3>
+            <span class="cp-catalog-card__count">10 / 10</span>
+          </div>
+          <ul class="cp-catalog-card__items">
+            <li><a href="#">Marketplace apps</a><span>17</span></li>
+            <li><a href="#">App installations</a><span>83</span></li>
+            <li><a href="#">Service integrations</a><span>22</span></li>
+            <li><a href="#">Scope grants</a><span>148</span></li>
+            <li><a href="#">Webhook subscriptions</a><span>34</span></li>
+            <li><a href="#">Webhook deliveries</a><span>14.2k</span></li>
+          </ul>
+          <div class="cp-catalog-card__foot"><a href="#">View all 10 →</a></div>
+        </article>
+
+        <article class="cp-catalog-card">
+          <div class="cp-catalog-card__head">
+            <h3 class="cp-catalog-card__title">Migration records</h3>
+            <span class="cp-catalog-card__count">6 / 6</span>
+          </div>
+          <ul class="cp-catalog-card__items">
+            <li><a href="#">Migration runs</a><span>1.2k</span></li>
+            <li><a href="#">Companion keypairs</a><span>168</span></li>
+            <li><a href="#">MAA signatures</a><span>178</span></li>
+            <li><a href="#">Upload receipts</a><span>3.4k</span></li>
+            <li><a href="#">Audit events</a><span>91k</span></li>
+            <li><a href="#">API tokens</a><span>312</span></li>
+          </ul>
+          <div class="cp-catalog-card__foot"><a href="#">View all 6 →</a></div>
+        </article>
+
+        <article class="cp-catalog-card">
+          <div class="cp-catalog-card__head">
+            <h3 class="cp-catalog-card__title">Marketplace records</h3>
+            <span class="cp-catalog-card__count">17 / 17</span>
+          </div>
+          <ul class="cp-catalog-card__items">
+            <li><a href="#">Publishers</a><span>9</span></li>
+            <li><a href="#">App versions</a><span>74</span></li>
+            <li><a href="#">Listings</a><span>52</span></li>
+            <li><a href="#">Reviews</a><span>208</span></li>
+            <li><a href="#">Service integrations</a><span>22</span></li>
+            <li><a href="#">Webhook delivery log</a><span>14.2k</span></li>
+          </ul>
+          <div class="cp-catalog-card__foot"><a href="#">View all 17 →</a></div>
+        </article>
+
+        <article class="cp-catalog-card">
+          <div class="cp-catalog-card__head">
+            <h3 class="cp-catalog-card__title">Access &amp; permissions</h3>
+            <span class="cp-catalog-card__count">1 / 1</span>
+          </div>
+          <ul class="cp-catalog-card__items">
+            <li><a href="#">Users</a><span>12.4k</span></li>
+            <li><a href="#">Groups</a><span>34</span></li>
+            <li><a href="#">Permissions</a><span>1.2k</span></li>
+            <li><a href="#">Policy rules</a><span>148</span></li>
+            <li><a href="#">Decision log</a><span>91k</span></li>
+            <li><a href="#">Field catalog</a><span>2.4k</span></li>
+          </ul>
+          <div class="cp-catalog-card__foot"><a href="#">View all →</a></div>
+        </article>
+
+        <article class="cp-catalog-card">
+          <div class="cp-catalog-card__head">
+            <h3 class="cp-catalog-card__title">Advanced system objects</h3>
+            <span class="cp-catalog-card__count">67 / 67</span>
+          </div>
+          <ul class="cp-catalog-card__items">
+            <li><a href="#">Sessions</a><span>—</span></li>
+            <li><a href="#">Content types</a><span>342</span></li>
+            <li><a href="#">Log entries</a><span>91k</span></li>
+            <li><a href="#">Periodic tasks</a><span>22</span></li>
+            <li><a href="#">Crontab schedules</a><span>14</span></li>
+            <li><a href="#">Task results</a><span>—</span></li>
+          </ul>
+          <div class="cp-catalog-card__foot"><a href="#">View all 67 →</a></div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Changelist preview -->
+    <section class="cp-section" style="padding-top:0;">
+      <h2 class="cp-section__title">Changelist · Schools <span style="font-family:var(--mono); font-size:13px; color:var(--text-tertiary); font-weight:400;">/admin/schools/school/</span></h2>
+      <p class="cp-section__lede">Sortable + filterable + bulk actions. Filters live on the rail. Pagination 25/page (page-fold standards).</p>
+
+      <div class="cp-changelist">
+
+        <aside class="cp-filters">
+          <p class="cp-filters__title">Filters</p>
+
+          <div class="cp-filter-group">
+            <div class="cp-filter-group__name">Status</div>
+            <span class="cp-filter-pill" data-active>● All</span>
+            <span class="cp-filter-pill">● Active</span>
+            <span class="cp-filter-pill">● Pending</span>
+            <span class="cp-filter-pill">● Suspended</span>
+          </div>
+
+          <div class="cp-filter-group">
+            <div class="cp-filter-group__name">Sector</div>
+            <span class="cp-filter-pill" data-active>All</span>
+            <span class="cp-filter-pill">K-12</span>
+            <span class="cp-filter-pill">Higher ed</span>
+            <span class="cp-filter-pill">Daycare</span>
+            <span class="cp-filter-pill">Tutoring</span>
+          </div>
+
+          <div class="cp-filter-group">
+            <div class="cp-filter-group__name">Region</div>
+            <span class="cp-filter-pill">N. America</span>
+            <span class="cp-filter-pill">West Africa</span>
+            <span class="cp-filter-pill">Europe</span>
+            <span class="cp-filter-pill">Asia</span>
+            <span class="cp-filter-pill">Oceania</span>
+          </div>
+
+          <div class="cp-filter-group">
+            <div class="cp-filter-group__name">Plan</div>
+            <span class="cp-filter-pill">Free trial</span>
+            <span class="cp-filter-pill">Standard</span>
+            <span class="cp-filter-pill">Pro</span>
+            <span class="cp-filter-pill">Enterprise</span>
+          </div>
+        </aside>
+
+        <div class="cp-table-wrap">
+          <div class="cp-table-head">
+            <span class="cp-table-head__crumb">Showing 1–25 of 168 schools</span>
+            <div class="cp-table-head__actions">
+              <button class="cp-btn cp-btn--ghost">📤 Export CSV</button>
+              <button class="cp-btn cp-btn--primary">+ Add school</button>
+            </div>
+          </div>
+          <div class="cp-bulk">☐ Select all on page · or apply bulk action: <select style="margin-left:8px; padding:4px 8px; border-radius:6px; border:1px solid var(--hairline-strong); font-size:12px;"><option>— Choose —</option><option>Approve</option><option>Suspend</option><option>Export selected</option></select> <button class="cp-btn" style="margin-left:auto;">Apply →</button></div>
+
+          <table class="cp-table">
+            <thead>
+              <tr>
+                <th style="width:32px;"><input type="checkbox"></th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Region</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><input type="checkbox"></td><td><a href="#">Saint Sebastien Academy</a></td><td><code style="font-family:var(--mono); font-size:11px;">saint-sebastien</code></td><td>West Africa</td><td>Pro</td><td><span class="cp-status" data-tone="success">Active</span></td><td>12s ago</td></tr>
+              <tr><td><input type="checkbox"></td><td><a href="#">Gilead Tech High</a></td><td><code style="font-family:var(--mono); font-size:11px;">gilead-tech</code></td><td>West Africa</td><td>Pro</td><td><span class="cp-status" data-tone="success">Active</span></td><td>2m ago</td></tr>
+              <tr><td><input type="checkbox"></td><td><a href="#">Northshore Prep</a></td><td><code style="font-family:var(--mono); font-size:11px;">northshore-prep</code></td><td>N. America</td><td>Standard</td><td><span class="cp-status" data-tone="warn">Pending approval</span></td><td>14m ago</td></tr>
+              <tr><td><input type="checkbox"></td><td><a href="#">Académie Saint-Marc</a></td><td><code style="font-family:var(--mono); font-size:11px;">saint-marc</code></td><td>Europe</td><td>Enterprise</td><td><span class="cp-status" data-tone="success">Active</span></td><td>2h ago</td></tr>
+              <tr><td><input type="checkbox"></td><td><a href="#">Daystar Christian Academy</a></td><td><code style="font-family:var(--mono); font-size:11px;">daystar</code></td><td>West Africa</td><td>Standard</td><td><span class="cp-status" data-tone="success">Active</span></td><td>1d ago</td></tr>
+              <tr><td><input type="checkbox"></td><td><a href="#">Bay Area Charter Network</a></td><td><code style="font-family:var(--mono); font-size:11px;">bay-area-charter</code></td><td>N. America</td><td>Enterprise</td><td><span class="cp-status" data-tone="success">Active</span></td><td>2d ago</td></tr>
+              <tr><td><input type="checkbox"></td><td><a href="#">Oceania Day School</a></td><td><code style="font-family:var(--mono); font-size:11px;">oceania-day</code></td><td>Oceania</td><td>Free trial</td><td><span class="cp-status" data-tone="muted">Trial · 12 days left</span></td><td>5d ago</td></tr>
+              <tr><td><input type="checkbox"></td><td><a href="#">East London Sixth Form</a></td><td><code style="font-family:var(--mono); font-size:11px;">east-london-6</code></td><td>Europe</td><td>Standard</td><td><span class="cp-status" data-tone="danger">Suspended</span></td><td>2w ago</td></tr>
+            </tbody>
+          </table>
+          <div class="cp-pager">
+            <span>1–25 of 168</span>
+            <div class="cp-pager__pages">
+              <span class="cp-pager__pill" data-active>1</span>
+              <span class="cp-pager__pill">2</span>
+              <span class="cp-pager__pill">3</span>
+              <span class="cp-pager__pill">…</span>
+              <span class="cp-pager__pill">7</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Change form preview -->
+    <section class="cp-section" style="padding-top:0;">
+      <h2 class="cp-section__title">Change form · Edit School <span style="font-family:var(--mono); font-size:13px; color:var(--text-tertiary); font-weight:400;">/admin/schools/school/saint-sebastien/change/</span></h2>
+      <p class="cp-section__lede">Tabbed fieldsets, dense field grid, inline help, audit sidecar.</p>
+
+      <div class="cp-form-frame">
+
+        <div class="cp-form">
+          <div class="cp-form__header">
+            <div>
+              <strong style="font-size:14.5px;">Saint Sebastien Academy</strong>
+              <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;"><code style="font-family:var(--mono);">id: 123 · slug: saint-sebastien · created 2024-08-14</code></div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="cp-btn">↩ Revert</button>
+              <button class="cp-btn cp-btn--primary">Save changes</button>
+            </div>
+          </div>
+
+          <nav class="cp-form__tabs">
+            <span class="cp-form__tab" data-active>Identity</span>
+            <span class="cp-form__tab">Brand &amp; theme</span>
+            <span class="cp-form__tab">Plan &amp; addons</span>
+            <span class="cp-form__tab">Provisioning</span>
+            <span class="cp-form__tab">Education profile</span>
+            <span class="cp-form__tab">Custom domain</span>
+            <span class="cp-form__tab">Compliance</span>
+          </nav>
+
+          <div class="cp-fieldset">
+            <p class="cp-fieldset__title">Identity</p>
+            <div class="cp-field-grid">
+              <div class="cp-field"><label class="cp-field__label">Name</label><input class="cp-field__input" value="Saint Sebastien Academy"></div>
+              <div class="cp-field"><label class="cp-field__label">Slug</label><input class="cp-field__input" value="saint-sebastien"><span class="cp-field__hint">Cannot be changed after first migration.</span></div>
+              <div class="cp-field"><label class="cp-field__label">Subdomain</label><input class="cp-field__input" value="saint-sebastien"></div>
+              <div class="cp-field"><label class="cp-field__label">Default region</label><input class="cp-field__input" value="West Africa · CI"></div>
+              <div class="cp-field cp-field--wide"><label class="cp-field__label">Public motto</label><input class="cp-field__input" value="Veritas et caritas — Truth and charity."></div>
+            </div>
+          </div>
+
+          <div class="cp-fieldset">
+            <p class="cp-fieldset__title">Brand &amp; theme</p>
+            <div class="cp-field-grid">
+              <div class="cp-field"><label class="cp-field__label">Primary color</label><input class="cp-field__input" value="#1e6f3a"></div>
+              <div class="cp-field"><label class="cp-field__label">Accent color</label><input class="cp-field__input" value="#c19a26"></div>
+              <div class="cp-field"><label class="cp-field__label">Logo</label><input class="cp-field__input" value="tenants/123/brand/logo.png" type="text"><span class="cp-field__hint">PNG, JPEG, WebP, or SVG up to 2 MB.</span></div>
+              <div class="cp-field"><label class="cp-field__label">Favicon</label><input class="cp-field__input" value="tenants/123/brand/favicon.ico"><span class="cp-field__hint">Up to 512 KB.</span></div>
+            </div>
+          </div>
+
+          <div class="cp-fieldset">
+            <p class="cp-fieldset__title">Plan &amp; entitlements</p>
+            <div class="cp-field-grid">
+              <div class="cp-field"><label class="cp-field__label">Plan</label><input class="cp-field__input" value="Pro · annual"></div>
+              <div class="cp-field"><label class="cp-field__label">Status</label><input class="cp-field__input" value="Active"></div>
+              <div class="cp-field cp-field--wide"><label class="cp-field__label">Addons</label><input class="cp-field__input" value="meal-plan, transport, hostel, marketplace-extended"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="cp-sidecar">
+          <div class="cp-sidecar__card">
+            <p class="cp-sidecar__title">Audit trail · last 24h</p>
+            <div class="cp-audit">
+              <div class="cp-audit__row"><span class="cp-audit__dot"></span><div class="cp-audit__body"><strong>plan_id 14 → 17</strong><span>by admin · 2h ago</span></div></div>
+              <div class="cp-audit__row"><span class="cp-audit__dot" style="background:var(--warning);"></span><div class="cp-audit__body"><strong>brand.primary_color #1f7a40 → #1e6f3a</strong><span>by admin · 6h ago</span></div></div>
+              <div class="cp-audit__row"><span class="cp-audit__dot" style="background:var(--success);"></span><div class="cp-audit__body"><strong>School created</strong><span>by admin · 2024-08-14</span></div></div>
+            </div>
+          </div>
+
+          <div class="cp-sidecar__card">
+            <p class="cp-sidecar__title">Related</p>
+            <div class="cp-audit" style="gap:8px;">
+              <a href="#" style="color:var(--school-primary); font-weight:600; font-size:12.5px;">↗ Site settings</a>
+              <a href="#" style="color:var(--school-primary); font-weight:600; font-size:12.5px;">↗ Brand profile</a>
+              <a href="#" style="color:var(--school-primary); font-weight:600; font-size:12.5px;">↗ Subscription</a>
+              <a href="#" style="color:var(--school-primary); font-weight:600; font-size:12.5px;">↗ Migration runs (3)</a>
+              <a href="#" style="color:var(--school-primary); font-weight:600; font-size:12.5px;">↗ Webhook deliveries (148)</a>
+            </div>
+          </div>
+
+          <div class="cp-sidecar__card">
+            <p class="cp-sidecar__title">Empty-state example · for missing data</p>
+            <div class="cp-empty">
+              <div class="cp-empty__icon" aria-hidden="true">∅</div>
+              <div class="cp-empty__title">No NPS responses yet</div>
+              <div class="cp-empty__hint">Once parents submit their first survey via the portal, sparklines and trend deltas land here automatically — no mock data shown.</div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       FOOTER (matches civic footer + manager corporate footer)
+       ============================================================ -->
+  <footer class="rmc-app-shell__footer">
+    <div class="cp-footer">
+      <div>RunMyCampus Backoffice · <em style="font-family:var(--serif);">Operator command surface.</em> · Corporate gateway</div>
+      <div class="cp-footer-pills">
+        <span class="cp-footer-pill" data-tone="success">● Platform status</span>
+        <span class="cp-footer-pill">⚙ Control plane</span>
+        <span class="cp-footer-pill">📍 Find campus</span>
+        <span class="cp-footer-pill">↗ Public site</span>
+        <span class="cp-footer-pill" data-tone="trust">SOC 2 · ISO 27001 · FERPA · GDPR</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</body>
+</html>

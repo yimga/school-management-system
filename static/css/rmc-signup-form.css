@@ -1,0 +1,92 @@
+/* rmc-signup-form.css — v3.57.x Wave 8 (2026-05-22)
+ *
+ * Styles for the inline slug-availability pill on the public signup form
+ * (templates/schools/signup_school.html). All literal hex values carry
+ * categorical off-token-allow markers since they are status-semantic
+ * defaults used only when the design-token fallback fails.
+ *
+ * States:
+ *   .rmc-slug-pill                — base
+ *   .rmc-slug-pill--checking      — fetch in flight
+ *   .rmc-slug-pill--available     — slug is free
+ *   .rmc-slug-pill--taken         — already taken; shows suggestion buttons
+ *   .rmc-slug-pill--invalid       — empty or reserved
+ */
+
+.rmc-slug-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 0.2rem 0.55rem;
+  margin-inline-start: 0.5rem;
+  min-height: 1.6rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  font-weight: 500;
+  border-radius: 999px;
+  background: var(--surface-2, transparent);
+  color: var(--text-muted, #6c6c70); /* off-token-allow: status-default-text-muted-fallback-WCAG-AA */
+  border: 1px solid transparent;
+  transition: color 120ms linear, background-color 120ms linear, border-color 120ms linear;
+}
+
+.rmc-slug-pill:empty {
+  display: none;
+}
+
+.rmc-slug-pill--checking {
+  color: var(--text-muted, #6c6c70); /* off-token-allow: status-checking-text-muted-fallback */
+  background: var(--surface-2, rgba(0, 0, 0, 0.04)); /* off-token-allow: status-checking-surface-fallback */
+}
+
+.rmc-slug-pill--available {
+  color: var(--text-success, #166534); /* off-token-allow: status-available-success-fallback-WCAG-AA */
+  background: var(--surface-success-soft, rgba(22, 101, 52, 0.08)); /* off-token-allow: status-available-surface-soft-fallback */
+  border-color: var(--border-success-soft, rgba(22, 101, 52, 0.25)); /* off-token-allow: status-available-border-soft-fallback */
+}
+
+.rmc-slug-pill--taken {
+  color: var(--text-warning, #92400e); /* off-token-allow: status-taken-warning-fallback-WCAG-AA */
+  background: var(--surface-warning-soft, rgba(146, 64, 14, 0.08)); /* off-token-allow: status-taken-surface-soft-fallback */
+  border-color: var(--border-warning-soft, rgba(146, 64, 14, 0.25)); /* off-token-allow: status-taken-border-soft-fallback */
+}
+
+.rmc-slug-pill--invalid {
+  color: var(--text-danger, #991b1b); /* off-token-allow: status-invalid-danger-fallback-WCAG-AA */
+  background: var(--surface-danger-soft, rgba(153, 27, 27, 0.08)); /* off-token-allow: status-invalid-surface-soft-fallback */
+  border-color: var(--border-danger-soft, rgba(153, 27, 27, 0.25)); /* off-token-allow: status-invalid-border-soft-fallback */
+}
+
+.rmc-slug-pill__suggestion {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--surface-1, transparent);
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  margin: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.rmc-slug-pill__suggestion:hover,
+.rmc-slug-pill__suggestion:focus-visible {
+  background: var(--surface-2, rgba(0, 0, 0, 0.05)); /* off-token-allow: suggestion-hover-surface-fallback */
+  outline: none;
+}
+
+.rmc-slug-pill__suggestion:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring, rgba(59, 130, 246, 0.45)); /* off-token-allow: focus-ring-a11y-fallback */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-slug-pill,
+  .rmc-slug-pill__suggestion {
+    transition: none;
+  }
+}

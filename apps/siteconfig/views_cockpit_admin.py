@@ -213,6 +213,13 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["ai_copilot_rail_fields"] = [
             form[name] for name in getattr(form, "AI_COPILOT_RAIL_FIELDS", ())
         ]
+        # v3.57.18 Wave 8: public school-signup form rich-editor fieldset.
+        # Defaults to enabled=True (front-door section) so the page renders
+        # the moment the cascade lands. Same getattr() guard so older form
+        # revisions still render — template short-circuits when empty.
+        ctx["signup_form_fields"] = [
+            form[name] for name in getattr(form, "SIGNUP_FORM_FIELDS", ())
+        ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
         return ctx

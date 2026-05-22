@@ -1,0 +1,87 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Email delivery configuration" }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<style nonce="{{ request.csp_nonce|default:'' }}">
+/* off-token-allow: operator-email-configure-form-spacing */
+.rmc-email-config__field{display:block;margin-bottom:1rem;}
+/* off-token-allow: operator-email-configure-field-label */
+.rmc-email-config__field label{font-weight:600;display:block;margin-bottom:.25rem;}
+/* off-token-allow: operator-email-configure-help-text */
+.rmc-email-config__field .helptext{font-size:.85rem;color:#666;display:block;margin-top:.25rem;}
+/* off-token-allow: operator-email-configure-action-row */
+.rmc-email-config__actions{display:flex;gap:.75rem;margin-top:1.5rem;flex-wrap:wrap;}
+/* off-token-allow: operator-email-configure-result-banner */
+.rmc-email-config__test-result{padding:.75rem 1rem;margin-top:1rem;border-radius:.25rem;}
+/* off-token-allow: operator-email-configure-banner-ok-tone */
+.rmc-email-config__test-result--ok{background:#e6f7ec;border:1px solid #2ea36a;}
+/* off-token-allow: operator-email-configure-banner-fail-tone */
+.rmc-email-config__test-result--fail{background:#fbe9e9;border:1px solid #d33;}
+/* off-token-allow: operator-email-configure-banner-saved-tone */
+.rmc-email-config__saved-banner{background:#e6f0fb;border:1px solid #2b6cb0;padding:.5rem 1rem;border-radius:.25rem;margin-bottom:1rem;}
+</style>
+{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--operator-email-configure" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Email delivery configuration" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Set the SMTP server RunMyCampus uses to send verification emails, password resets, and operator notifications. When 'Enable operator override' is unchecked, the platform falls back to the environment-configured SMTP server." %}
+    </p>
+    <p class="rmc-muted">
+      <a href="{{ health_url|default:'#' }}">{% trans "Back to email health dashboard" %}</a>
+    </p>
+  </header>
+
+  {% if saved %}
+  <div class="rmc-email-config__saved-banner" role="status">
+    {% trans "Configuration saved. Use 'Send test email to me' on this page to confirm the new settings work." %}
+  </div>
+  {% endif %}
+
+  {% if test_result %}
+  <div class="rmc-email-config__test-result {% if test_result.ok %}rmc-email-config__test-result--ok{% else %}rmc-email-config__test-result--fail{% endif %}" role="status">
+    {% if test_result.ok %}
+      {% blocktrans with attempts=test_result.attempts %}Test email queued / sent after {{ attempts }} attempt(s). Check your inbox — delivery may take a few seconds.{% endblocktrans %}
+    {% else %}
+      {% blocktrans with attempts=test_result.attempts reason=test_result.error_kind %}Test send FAILED after {{ attempts }} attempt(s). Reason: {{ reason }}. Check the SMTP host/port/credentials.{% endblocktrans %}
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div role="alert" class="rmc-form-errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    {% for field in form %}
+    <div class="rmc-email-config__field">
+      {{ field.label_tag }}
+      {{ field }}
+      {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+      {% if field.errors %}<div class="rmc-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="rmc-email-config__actions">
+      <button type="submit" name="action" value="save" class="rmc-button rmc-button--primary">
+        {% trans "Save configuration" %}
+      </button>
+      {% if operator_email %}
+      <button type="submit" name="action" value="send_test" class="rmc-button rmc-button--secondary">
+        {% blocktrans with addr=operator_email %}Send test email to {{ addr }}{% endblocktrans %}
+      </button>
+      {% endif %}
+    </div>
+
+    <p class="rmc-muted">
+      {% trans "Password is encrypted at rest with the platform Fernet key. Leave the password field blank on resave to keep the existing stored value." %}
+    </p>
+  </form>
+</main>
+{% endblock %}

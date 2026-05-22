@@ -13,7 +13,12 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login as auth_login
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
+from django.core.mail import send_mail  # noqa: F401 — retained for legacy callsites
+# v3.57.x Wave 8 Agent C — route signup verification email through the
+# canonical reliability-hardened sender (retries + EmailDeliveryEvent
+# audit row). ``send_transactional`` mirrors fail_silently semantics:
+# it never raises, returns a status dict instead.
+from apps.schoolops.email_delivery import send_transactional
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -23,6 +28,26 @@ from django.views.decorators.cache import never_cache
 
 from apps.platform_runtime.helpers import get_platform_defaults
 from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
+
+
+def _signup_countries() -> list[dict[str, str]]:
+    """
+    Country choices for the public signup dropdown.
+
+    Returns ISO alpha-2 code + display name. Falls back to an empty list on
+    any failure (registry not seeded yet, DB unreachable, etc.) — the
+    signup template already has a free-text fallback for that case.
+    """
+    try:
+        from apps.registries.services import list_country_choices
+        rows = list_country_choices() or []
+        return [
+            {"code": (row.get("code_alpha2") or row.get("code") or "").upper(), "name": row.get("name", "")}
+            for row in rows
+            if row.get("code") or row.get("code_alpha2")
+        ]
+    except Exception:
+        return []
 from apps.schools.models import School, SignupVerification
 from apps.schools.onboarding_vendors import (
     DOMAINS_BY_SLUG,
@@ -122,6 +147,9 @@ def signup_school(request: HttpRequest):
                 "slug": slug,
                 "signup_ref": ref,
                 "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
+                # v3.58.x: ISO alpha-2 country dropdown choices. Template
+                # falls back to a free-text input when this list is empty.
+                "signup_countries": _signup_countries(),
             },
         )
 
@@ -163,6 +191,7 @@ def signup_school(request: HttpRequest):
                 "term_preset": term_preset,
                 "signup_ref": signup_ref,
                 "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
+                "signup_countries": _signup_countries(),
             },
         )
 
@@ -294,12 +323,16 @@ def signup_school(request: HttpRequest):
         f"If you did not request this, you can ignore this email.\n"
     )
     try:
-        send_mail(
+        # v3.57.x Wave 8 Agent C — canonical sender retries on transient
+        # SMTP errors and writes an EmailDeliveryEvent audit row for the
+        # operator dashboard. Returns a status dict instead of raising;
+        # we keep the broad ``try/except`` as a defense-in-depth belt.
+        send_transactional(
             subject=subject,
-            message=body,
+            body=body,
+            to=email,
             from_email=settings.DEFAULT_FROM_EMAIL or "noreply@runmycampus.com",
-            recipient_list=[email],
-            fail_silently=True,
+            priority="transactional",
         )
     except (OSError, ConnectionError, ValueError, TypeError):
         pass
@@ -1136,3 +1169,119 @@ def onboard_migration_start(request: HttpRequest):
         qs["domains"] = ",".join(domain_slugs)
 
     return redirect(f"{intake_url}?{urlencode(qs)}")
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# v3.57.x Wave 8 (2026-05-22) — Live slug-availability check for signup form.
+#
+# Powers the inline pill next to the slug input on the public signup form.
+# Public, GET-only, rate-limited at 60/min/IP. Returns normalized slug +
+# availability + suggestions when taken. Reserved slugs (admin, api, www, …)
+# never read as available so the operator never accidentally collides with
+# platform-reserved routes.
+# ───────────────────────────────────────────────────────────────────────────
+
+_RESERVED_SLUGS = (
+    "admin",
+    "api",
+    "www",
+    "manager",
+    "super",
+    "auth",
+    "login",
+    "signup",
+    "marketing",
+    "static",
+    "media",
+    "metrics",
+    "health",
+)
+
+
+@never_cache
+@require_GET
+@ratelimit(key="ip", rate="60/m", method="GET", block=True)
+def signup_slug_check(request: HttpRequest) -> JsonResponse:
+    """Live slug-availability JSON endpoint for the signup form.
+
+    Query params:
+        slug         – the candidate slug (required for a meaningful answer)
+        country_code – optional 2-letter ISO code; when present, an extra
+                       country-suffixed suggestion is offered if the slug is
+                       taken.
+
+    Response shape:
+        {
+          "slug": <normalized>,
+          "available": <bool>,
+          "reason": "taken" | "invalid" | null,
+          "suggestions": [<str>, ...]    # up to 3, all currently free
+        }
+    """
+    from django.utils.text import slugify as _dj_slugify
+
+    raw = (request.GET.get("slug") or "").strip()
+    normalized = _dj_slugify(raw)[:120]
+
+    if not normalized or normalized in _RESERVED_SLUGS:
+        return JsonResponse(
+            {
+                "slug": normalized,
+                "available": False,
+                "reason": "invalid",
+                "suggestions": [],
+            }
+        )
+
+    # tenant-isolation-allow: public-slug-availability-lookup-no-tenant-scope
+    taken = (
+        School.objects.filter(slug=normalized).exists()
+        # tenant-isolation-allow: public-slug-availability-lookup-no-tenant-scope
+        or School.objects.filter(subdomain=normalized).exists()
+    )
+
+    if not taken:
+        return JsonResponse(
+            {
+                "slug": normalized,
+                "available": True,
+                "reason": None,
+                "suggestions": [],
+            }
+        )
+
+    country_code = (request.GET.get("country_code") or "").strip()[:2].lower()
+    candidates = [
+        f"{normalized}-school",
+        f"{normalized}2",
+        f"{normalized}-academy",
+    ]
+    if country_code and country_code.isalpha() and len(country_code) == 2:
+        candidates.append(f"{normalized}-{country_code}")
+
+    suggestions = []
+    for cand in candidates:
+        cand_norm = _dj_slugify(cand)[:120]
+        if not cand_norm or cand_norm in _RESERVED_SLUGS:
+            continue
+        if cand_norm in suggestions:
+            continue
+        # tenant-isolation-allow: public-slug-availability-lookup-no-tenant-scope
+        cand_taken = (
+            School.objects.filter(slug=cand_norm).exists()
+            # tenant-isolation-allow: public-slug-availability-lookup-no-tenant-scope
+            or School.objects.filter(subdomain=cand_norm).exists()
+        )
+        if not cand_taken:
+            suggestions.append(cand_norm)
+        if len(suggestions) >= 3:
+            break
+
+    return JsonResponse(
+        {
+            "slug": normalized,
+            "available": False,
+            "reason": "taken",
+            "suggestions": suggestions,
+        }
+    )

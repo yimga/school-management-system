@@ -147,7 +147,11 @@ def _manager_notebook_defaults() -> dict[str, Any]:
         hint_em       str   — italicized fragment of the hint (e.g. "operator/em · private")
     """
     return {
-        "enabled": False,
+        # v3.58 (2026-05-22): default ON. Per operator feedback the notebook
+        # is more useful displayed-by-default-minimizable than hidden-by-default.
+        # Operators can still flip it off via the admin form if they want a
+        # clean canvas.
+        "enabled": True,
         "title": _("Add to notebook"),
         "placeholder": _("Capture a thought, decision, or question…"),
         "mic_enabled": True,
@@ -155,6 +159,16 @@ def _manager_notebook_defaults() -> dict[str, Any]:
         "save_label": _("Save →"),
         "hint_text": "",
         "hint_em": "",
+        # v3.58 (2026-05-22): recent-notes panel — last N entries shown
+        # compact inside the notebook, persisted client-side via localStorage
+        # (operator's own browser, never leaves device unless save_url is set).
+        "recent_limit": 10,
+        "recent_label": _("Recent notes"),
+        # v3.58 (2026-05-22): drag handle. The frosted widget is positioned
+        # fixed and the operator can drag it to any corner; position persists
+        # per-operator via localStorage. Snap-to-corner on release within
+        # 80px of any edge.
+        "draggable": True,
     }
 
 

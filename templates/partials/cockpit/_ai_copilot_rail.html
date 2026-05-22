@@ -1,36 +1,63 @@
 {% load static i18n %}
-{% comment %} v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot persistent rail.
+{% comment %} v3.58 (2026-05-22): 200x Element 1 — AI Copilot persistent rail.
 
    Right-column persistent rail (44px collapsed / 360px expanded). Lives
    inside the .rmc-app-shell grid as a sibling of canvas. Manager-host
    only — gated by request.public_host_kind == "manager" via the cockpit
    context processor.
 
+   v3.58 additions on top of v3.55.0+ baseline:
+     - Collapsed icons each route to a distinct tab (chat / actions /
+       threads / notebook). Setting [data-rmc-copilot-tab=…] on a button
+       flips [data-rmc-copilot-active-tab] on the rail AND expands.
+     - AI-source pill visible in the expanded header showing which
+       backend served the active insight (cloud / local / rules / fallback).
+       Lives on the same DOM that rmc-copilot-rail.js (services bridge)
+       updates via [data-rmc-copilot-rail-posture] — they cooperate.
+     - Suggestion chips carry [data-rmc-copilot-suggestion] so clicking
+       autofills the rail input.
+
    CONFIGURABLE via cockpit.ai_copilot_rail (SiteSettings → context processor):
      .enabled            bool        — master switch (default: False)
      .default_state      str         — "collapsed" | "expanded"
-     .title              str         — header title
-     .title_em           str         — italic serif tail
-     .insight_text       str         — top insight pill text
-     .insight_em         str         — italic serif fragment inside insight
+     .title              str
+     .title_em           str
+     .insight_text       str
+     .insight_em         str
      .messages           list        — thread messages [{role, text, em_text}]
-     .suggested_actions  list[str]   — suggestion pill labels
-     .input_placeholder  str         — textarea placeholder
-     .cmdk_hint          str         — bottom-left ⌘K label
-     .send_label         str         — send button label
+     .suggested_actions  list[str]
+     .input_placeholder  str
+     .cmdk_hint          str
+     .send_label         str
 
    The toggle/keyboard wiring lives in static/js/_pages/rmc-copilot-rail.js
-   which flips data-copilot on the .rmc-app-shell ancestor. {% endcomment %}
+   which flips [data-copilot] on the .rmc-app-shell ancestor and routes
+   the per-tab attribute on the rail itself. {% endcomment %}
 
 {% if cockpit.ai_copilot_rail.enabled %}
-<aside class="rmc-app-shell__copilot" aria-label="{% trans 'AI copilot' %}" data-rmc-copilot-rail>
+<aside class="rmc-app-shell__copilot"
+       aria-label="{% trans 'AI copilot' %}"
+       data-rmc-copilot-rail
+       data-rmc-copilot-active-tab="chat">
   <div class="lx-copilot">
-    {# Collapsed state — 44px vertical icon rail. #}
+    {# Collapsed state — 44px vertical icon rail. Each icon routes to a tab. #}
     <div class="lx-copilot__collapsed">
-      <button class="lx-copilot__toggle" type="button" data-rmc-copilot-toggle title="{% trans 'Open AI copilot' %}" aria-label="{% trans 'Open AI copilot' %}">✦</button>
-      <button class="lx-copilot__rail-icon" type="button" data-rmc-copilot-toggle title="{% trans 'Suggested actions' %}" aria-label="{% trans 'Suggested actions' %}">⚡</button>
-      <button class="lx-copilot__rail-icon" type="button" data-rmc-copilot-toggle title="{% trans 'Recent threads' %}" aria-label="{% trans 'Recent threads' %}">⌘</button>
-      <button class="lx-copilot__rail-icon" type="button" data-rmc-operator-notebook-toggle title="{% trans 'Notebook' %}" aria-label="{% trans 'Toggle operator notebook' %}">✎</button>
+      <button class="lx-copilot__toggle" type="button"
+              data-rmc-copilot-toggle data-rmc-copilot-tab="chat"
+              title="{% trans 'Open AI copilot' %}"
+              aria-label="{% trans 'Open AI copilot' %}">✦</button>
+      <button class="lx-copilot__rail-icon" type="button"
+              data-rmc-copilot-tab="actions"
+              title="{% trans 'Suggested actions' %}"
+              aria-label="{% trans 'Suggested actions' %}">⚡</button>
+      <button class="lx-copilot__rail-icon" type="button"
+              data-rmc-copilot-tab="threads"
+              title="{% trans 'Recent threads' %}"
+              aria-label="{% trans 'Recent threads' %}">⌘</button>
+      <button class="lx-copilot__rail-icon" type="button"
+              data-rmc-operator-notebook-toggle
+              title="{% trans 'Toggle operator notebook' %}"
+              aria-label="{% trans 'Toggle operator notebook' %}">✎</button>
       <div class="lx-copilot__kbd" aria-hidden="true">⌘ K</div>
     </div>
 
@@ -46,8 +73,28 @@
             {% endif %}
           </span>
         </div>
-        <button class="lx-copilot__close" type="button" data-rmc-copilot-toggle aria-label="{% trans 'Collapse copilot rail' %}">→</button>
+        <div class="lx-copilot__header-actions">
+          {# AI-source pill — updated client-side by rmc-copilot-rail.js (services bridge)
+             to reflect whether insights came from cloud / local Ollama / rules engine. #}
+          <span class="lx-copilot__posture"
+                data-rmc-copilot-rail-posture
+                data-state="unknown"
+                aria-label="{% trans 'AI source' %}">
+            <span class="lx-copilot__posture-dot" aria-hidden="true"></span>
+            <span data-rmc-copilot-rail-posture-label>{% trans 'Checking…' %}</span>
+          </span>
+          <button class="lx-copilot__close" type="button"
+                  data-rmc-copilot-toggle
+                  aria-label="{% trans 'Collapse copilot rail' %}">→</button>
+        </div>
       </div>
+
+      {# Tab strip — flips with [data-rmc-copilot-active-tab] on the rail. #}
+      <nav class="lx-copilot__tabs" role="tablist" aria-label="{% trans 'Copilot sections' %}">
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="chat"  role="tab">{% trans 'Chat' %}</button>
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="actions" role="tab">{% trans 'Actions' %}</button>
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="threads" role="tab">{% trans 'Threads' %}</button>
+      </nav>
 
       {% if cockpit.ai_copilot_rail.insight_text %}
       <div class="lx-copilot__insight">
@@ -56,7 +103,7 @@
       </div>
       {% endif %}
 
-      <div class="lx-copilot__thread">
+      <div class="lx-copilot__thread" data-rmc-copilot-pane="chat">
         {% for msg in cockpit.ai_copilot_rail.messages %}
           <div class="lx-copilot__msg lx-copilot__msg--{{ msg.role|default:'ai' }}">
             {{ msg.text }}{% if msg.em_text %} <em>{{ msg.em_text }}</em>{% endif %}
@@ -66,15 +113,32 @@
         {% if cockpit.ai_copilot_rail.suggested_actions %}
         <div class="lx-copilot__suggestions" role="group" aria-label="{% trans 'Suggested actions' %}">
           {% for action in cockpit.ai_copilot_rail.suggested_actions %}
-            <button type="button" class="lx-copilot__suggestion">{{ action }}</button>
+            <button type="button" class="lx-copilot__suggestion"
+                    data-rmc-copilot-suggestion>{{ action }}</button>
           {% endfor %}
         </div>
         {% endif %}
       </div>
 
+      {# Actions pane — surfaces the quick-actions list that rmc-copilot-rail.js
+         (services bridge) hydrates from /studio/copilot/rail/context/. #}
+      <div class="lx-copilot__pane" data-rmc-copilot-pane="actions">
+        <ul class="lx-copilot__actions-list" data-rmc-copilot-rail-actions-list>
+          {# Populated server-side via the services bridge; falls back to suggestions above. #}
+        </ul>
+      </div>
+
+      {# Threads pane — recent threads (server-rendered or "no threads yet" empty state). #}
+      <div class="lx-copilot__pane" data-rmc-copilot-pane="threads">
+        <p class="lx-copilot__threads-empty">{% trans 'Recent threads will appear here once you have chatted with the copilot.' %}</p>
+      </div>
+
       <div class="lx-copilot__input-wrap">
         <label class="visually-hidden" for="rmc-copilot-input">{% trans 'Message the copilot' %}</label>
-        <textarea id="rmc-copilot-input" class="lx-copilot__input" data-rmc-copilot-input placeholder="{{ cockpit.ai_copilot_rail.input_placeholder|default:_('Ask anything about your platform…') }}"></textarea>
+        <textarea id="rmc-copilot-input"
+                  class="lx-copilot__input"
+                  data-rmc-copilot-input
+                  placeholder="{{ cockpit.ai_copilot_rail.input_placeholder|default:_('Ask anything about your platform…') }}"></textarea>
         <div class="lx-copilot__row">
           <span class="lx-copilot__cmdk" aria-hidden="true">{{ cockpit.ai_copilot_rail.cmdk_hint|default:_("⌘ K · command palette") }}</span>
           <button class="lx-copilot__send" type="button">{{ cockpit.ai_copilot_rail.send_label|default:_("Send →") }}</button>

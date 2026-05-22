@@ -1751,6 +1751,49 @@ def _serialize_legal_links(items: list[dict[str, Any]] | None) -> str:
     return "\n".join(rows)
 
 
+# ---------------------------------------------------------------------------
+# v3.57.18 Wave 8 — public school-signup form trust-pill parser/serializer.
+# ---------------------------------------------------------------------------
+
+
+def _parse_trust_pill_lines(value: str) -> list[dict[str, str]]:
+    """One per line: ``icon | label`` — icon defaults to ✓ when omitted.
+
+    Pairs with ``cockpit.signup_form.trust_pill_lines`` whose schema is
+    ``list[{icon, label}]``. Lenient: lines missing the pipe are treated
+    as label-only (icon defaults to "✓"). Rows whose label resolves to
+    empty after stripping are skipped.
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        if len(parts) == 1:
+            icon = "✓"
+            label = parts[0]
+        else:
+            icon = parts[0] or "✓"
+            label = parts[1]
+        if not label:
+            continue
+        out.append({"icon": icon, "label": label})
+    return out
+
+
+def _serialize_trust_pill_lines(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        if not label:
+            continue
+        icon = str(item.get("icon", "")).strip() or "✓"
+        rows.append(f"{icon} | {label}")
+    return "\n".join(rows)
+
+
 def _serialize_quotes(items: list[Any] | None) -> str:
     if not items:
         return ""
@@ -3170,6 +3213,104 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- v3.57.18 Wave 8 — Public school-signup form ------------------
+    # Mirrors ``cockpit.signup_form.*`` emitted by ``_signup_form_defaults()``
+    # in cockpit_context.py. Unlike most cockpit sections (default off),
+    # the signup form defaults to ``enabled=True`` — it's the public
+    # front door — so operators flip individual copy/chrome fields
+    # without losing the section.
+    signup_form_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Enable public signup form"),
+        help_text=_(
+            "When unchecked, the /signup/ page hides the form chrome "
+            "(operators can pause acquisition during incidents)."
+        ),
+    )
+    signup_form_heading = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("Signup form: heading"),
+        help_text=_(
+            "Top-of-card title (e.g. 'Start your school workspace'). "
+            "Maps to cockpit.signup_form.heading."
+        ),
+    )
+    signup_form_subheading = forms.CharField(
+        required=False,
+        max_length=320,
+        widget=_TEXTAREA_SMALL,
+        label=_("Signup form: subheading"),
+        help_text=_(
+            "Lead paragraph under the heading (max 320 chars). "
+            "Maps to cockpit.signup_form.subheading."
+        ),
+    )
+    signup_form_button_label = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Signup form: button label"),
+        help_text=_(
+            "Submit button text (e.g. 'Create my school workspace'). "
+            "Maps to cockpit.signup_form.button_label."
+        ),
+    )
+    signup_form_show_trust_pills = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Signup form: show trust pills row"),
+        help_text=_(
+            "Toggle the row of trust signals (SSL · FERPA · backups · "
+            "billing) above the form. Maps to "
+            "cockpit.signup_form.show_trust_pills."
+        ),
+    )
+    signup_form_trust_pill_lines = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Signup form: trust pill lines"),
+        help_text=_(
+            "One per line: icon | label. Icon defaults to ✓ when omitted. "
+            "Rows without a label are skipped. Renders as a horizontal "
+            "row of mini-pills above the form."
+        ),
+    )
+    signup_form_show_calendar_cards = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Signup form: show calendar picker cards"),
+        help_text=_(
+            "When checked, the calendar picker renders as 2 selectable "
+            "cards (Default · UK) instead of a plain select. "
+            "Maps to cockpit.signup_form.show_calendar_cards."
+        ),
+    )
+    signup_form_footer_login_label = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Signup form: footer login label"),
+        help_text=_(
+            "Link text shown in the 'Already have an account?' footer "
+            "(e.g. 'Find your school'). Maps to "
+            "cockpit.signup_form.footer_login_label."
+        ),
+    )
+    signup_form_footer_login_url = forms.CharField(
+        required=False,
+        max_length=240,
+        widget=_TEXT,
+        label=_("Signup form: footer login URL"),
+        help_text=_(
+            "Optional override URL. Empty falls back to the platform's "
+            "global_login_discovery view. Maps to "
+            "cockpit.signup_form.footer_login_url."
+        ),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -3394,6 +3535,20 @@ class CockpitPayloadForm(forms.ModelForm):
         "acr_suggestions",
         "acr_insight_icon",
         "acr_insight_body",
+    )
+    # v3.57.18 Wave 8 rich-editor fieldset — public school-signup form.
+    # Operator-configurable copy + chrome for the marketing-host
+    # /signup/ page. Defaults to enabled=True (front-door section).
+    SIGNUP_FORM_FIELDS: tuple[str, ...] = (
+        "signup_form_enabled",
+        "signup_form_heading",
+        "signup_form_subheading",
+        "signup_form_button_label",
+        "signup_form_show_trust_pills",
+        "signup_form_trust_pill_lines",
+        "signup_form_show_calendar_cards",
+        "signup_form_footer_login_label",
+        "signup_form_footer_login_url",
     )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
@@ -3789,6 +3944,52 @@ class CockpitPayloadForm(forms.ModelForm):
         # ``insight_body`` ↔ helper's ``insight_text`` — the partial reads
         # ``insight_text`` directly so persisted payloads use that key.
         self.fields["acr_insight_body"].initial = acr.get("insight_text", "")
+
+        # ---- v3.57.18 Wave 8 signup form seeds ----------------------------
+        # Public school-signup form — copy + chrome operator-configurable
+        # via cockpit.signup_form.*. Defaults to enabled=True so the
+        # checkbox should reflect any explicit operator override; when the
+        # payload omits ``enabled`` entirely, we honor the default (True)
+        # via a present-key check rather than blind .get() fallback to False.
+        signup_form = payload.get("signup_form") or {}
+        if "enabled" in signup_form:
+            self.fields["signup_form_enabled"].initial = bool(
+                signup_form.get("enabled")
+            )
+        else:
+            self.fields["signup_form_enabled"].initial = True
+        self.fields["signup_form_heading"].initial = signup_form.get("heading", "")
+        self.fields["signup_form_subheading"].initial = signup_form.get(
+            "subheading", ""
+        )
+        self.fields["signup_form_button_label"].initial = signup_form.get(
+            "button_label", ""
+        )
+        # ``show_trust_pills`` / ``show_calendar_cards`` default to True;
+        # mirror the present-key honest-rebind pattern used by
+        # ``signup_form_enabled`` above so an explicit operator unchecking
+        # round-trips faithfully.
+        if "show_trust_pills" in signup_form:
+            self.fields["signup_form_show_trust_pills"].initial = bool(
+                signup_form.get("show_trust_pills")
+            )
+        else:
+            self.fields["signup_form_show_trust_pills"].initial = True
+        self.fields["signup_form_trust_pill_lines"].initial = (
+            _serialize_trust_pill_lines(signup_form.get("trust_pill_lines"))
+        )
+        if "show_calendar_cards" in signup_form:
+            self.fields["signup_form_show_calendar_cards"].initial = bool(
+                signup_form.get("show_calendar_cards")
+            )
+        else:
+            self.fields["signup_form_show_calendar_cards"].initial = True
+        self.fields["signup_form_footer_login_label"].initial = signup_form.get(
+            "footer_login_label", ""
+        )
+        self.fields["signup_form_footer_login_url"].initial = signup_form.get(
+            "footer_login_url", ""
+        )
 
     # ------------------------------------------------------------------
     # Flat-form -> nested-payload assembly.
@@ -4313,6 +4514,47 @@ class CockpitPayloadForm(forms.ModelForm):
             acr_overlay["insight_text"] = acr_insight_body
         if acr_overlay:
             payload.setdefault("ai_copilot_rail", {}).update(acr_overlay)
+
+        # v3.57.18 Wave 8 — public school-signup form overlay. Mirrors
+        # cockpit.signup_form.* emitted by ``_signup_form_defaults()`` in
+        # cockpit_context.py. Unlike the other v3.57.x rich-editor overlays
+        # this section's ``enabled`` flag is ALWAYS written (operator-explicit
+        # round-trip), and the two ``show_*`` booleans are ALSO always
+        # written so an unchecked operator state survives the round-trip
+        # (otherwise _deep_merge would re-apply the True default). Empty
+        # string fields are omitted so _deep_merge preserves defaults.
+        signup_overlay: dict[str, Any] = {
+            "enabled": bool(cleaned.get("signup_form_enabled")),
+            "show_trust_pills": bool(cleaned.get("signup_form_show_trust_pills")),
+            "show_calendar_cards": bool(
+                cleaned.get("signup_form_show_calendar_cards")
+            ),
+        }
+        signup_heading = (cleaned.get("signup_form_heading") or "").strip()
+        if signup_heading:
+            signup_overlay["heading"] = signup_heading
+        signup_subheading = (cleaned.get("signup_form_subheading") or "").strip()
+        if signup_subheading:
+            signup_overlay["subheading"] = signup_subheading
+        signup_button = (cleaned.get("signup_form_button_label") or "").strip()
+        if signup_button:
+            signup_overlay["button_label"] = signup_button
+        signup_pills = _parse_trust_pill_lines(
+            cleaned.get("signup_form_trust_pill_lines") or ""
+        )
+        if signup_pills:
+            signup_overlay["trust_pill_lines"] = signup_pills
+        signup_login_label = (
+            cleaned.get("signup_form_footer_login_label") or ""
+        ).strip()
+        if signup_login_label:
+            signup_overlay["footer_login_label"] = signup_login_label
+        signup_login_url = (
+            cleaned.get("signup_form_footer_login_url") or ""
+        ).strip()
+        if signup_login_url:
+            signup_overlay["footer_login_url"] = signup_login_url
+        payload["signup_form"] = signup_overlay
 
         return payload
 

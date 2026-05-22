@@ -773,3 +773,18 @@ class MealPlanBalance(models.Model):
             else Decimal("0")
         )
         return bal <= thr
+
+
+# v3.57.x Wave 8 Agent C — re-export append-only email delivery event log
+# so external callers can write ``from apps.schoolops.models import
+# EmailDeliveryEvent`` without knowing the sub-module layout. The model
+# itself lives in :mod:`apps.schoolops.models_email_delivery`.
+from apps.schoolops.models_email_delivery import (  # noqa: E402  re-export at module tail
+    EmailDeliveryEvent,
+    EmailDeliveryEventReadOnlyError,
+)
+
+__all__ = [
+    "EmailDeliveryEvent",
+    "EmailDeliveryEventReadOnlyError",
+]

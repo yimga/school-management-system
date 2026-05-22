@@ -86,6 +86,13 @@
   <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
+  {# v3.58.0 (2026-05-22): /admin/ 200x re-skin overlay — re-styles the existing
+     Unfold DOM (dashboard-header, stat-card, app-section, buttons) toward the
+     v8 200x preview chrome (dark navy gradient, glass surfaces, Source Serif 4
+     headlines, indigo CTAs). Targets `body[data-rmc-admin-shell][data-rmc-nav-bridge-host="manager"]`
+     so tenant admin and other surfaces are untouched. See
+     docs/generated/preview_app_shell_admin_v1_200x.html for the design target. #}
+  <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}

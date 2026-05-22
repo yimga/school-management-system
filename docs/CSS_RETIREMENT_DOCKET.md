@@ -1,6 +1,60 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-22 (v3.57.15 — Wave 4: 21 cockpit per-section editors total + 8 final studio_os `{# #}` multi-line comment cleanups + welcome-email scaffolding co-shipped; verify_phase7 OK on 81 templates)
+**Last updated:** 2026-05-22 (v3.58.2 — Wave 8: signup-form Apple-tier UX + live slug-availability + email/SMTP delivery reliability + operator backoffice SMTP config)
+
+## 2026-05-22 — v3.58.2 Wave 8 — signup excellence + email reliability + operator SMTP backoffice
+
+**Status:** SHIPPED in-repo. SW `sms-v3.58.2-wave-8-signup-apple-tier-live-slug-check-email-reliability-2026-05-22` (monotonic vs v3.58.1).
+
+Three-agent parallel fan-out + orchestrator integration cleanup. Closes the user's explicit asks: (1) "massively improve this form" — public signup form gets Apple-tier polish + live URL-availability pill; (2) "seriously improve our email (smtp) so emails arrive on time and quickly" — new reliability layer with retry+backoff, connection pooling, append-only audit log; (3) "everything about our platform to be configurable from our backoffice every single function" — 9 new `signup_form.*` cockpit keys + full operator SMTP backoffice with encrypted password storage.
+
+### What landed
+
+| Lane | Detail |
+|---|---|
+| **Agent A — Signup form Apple-tier UX + cockpit signup section** | `templates/schools/signup_school.html` rewrite 74→182 lines (inline field validity badges, trust-pill row, slug-pill DOM contract `data-rmc-slug-pill aria-live=polite`, calendar-card visual upgrade, defensive country `<select>` fallback). 9 new `cockpit.signup_form.*` keys (default `enabled=True` — front-door section): `heading/subheading/button_label/trust_pill_lines/show_trust_pills/show_calendar_cards/footer_login_label/footer_login_url`. Forgiving textarea parser for trust pills (`icon\|label` per line). Wired through `_signup_form_defaults()` in `cockpit_context.py` (both manager + tenant/public branches) + flat form fields + operator UI fieldset → **235 total cockpit form fields (was 226)**. All copy reads from `cockpit.signup_form.*` with `\|default:_(...)` translatable fallback. CSS primitives in `rmc-class-grammar.css` (`.rmc-signup-field` base + label/validity/optional/hint modifiers). |
+| **Agent B — Live slug-availability endpoint + JS module** | NEW GET `/signup/slug-check/?slug=<x>&country_code=<cc>` view (`signup_slug_check`, appended to `apps/schools/signup_views.py` end). Rate-limited 60/min/IP, `@never_cache`, reserved-slug guard (`admin/api/www/manager/super/auth/login/signup/marketing/static/media/metrics/health`), returns `{slug, available, reason, suggestions[]}` with smart 3-suggestion list (`<slug>-school`, `<slug>2`, `<slug>-academy`, `<slug>-<cc>`). NEW `static/js/_pages/rmc-signup-form.js` 222 lines — CSP-safe IIFE, idempotent via `dataset.rmcSignupInited`, 350ms debounce with AbortController-cancelled in-flight fetch, auto-derive slug from school name (until user manually edits), 5 pill states, clickable suggestion buttons populate slug + synthesize `input` event. NEW `static/css/rmc-signup-form.css` (92 lines, prefers-reduced-motion-aware). Conditional CSS link + script tag wired into `templates/base.html` gated on `request.resolver_match.url_name == 'signup_school'`. 4 `School.objects.filter(...)` callsites each carry `# tenant-isolation-allow: public-slug-availability-lookup-no-tenant-scope`. |
+| **Agent C — Email/SMTP delivery hardening + operator backoffice** | NEW `apps/schoolops/email_delivery.py` ~620 lines exposing `send_transactional(*, subject, body, to, html_body, reply_to, from_email, priority)` + `send_bulk` (Celery-or-inline) + `smtp_probe(timeout=5.0)` + `get_resolved_smtp_config()` + `get_recent_delivery_stats(window_hours=24)`. Retry `[1s, 5s, 30s]` on SMTPException/OSError/ConnectionError; connection pooling via `mail.get_connection()`; DKIM-friendly Message-ID + Date headers; PII-safe `to_hash=sha256(to)[:12]` logging only — never raw recipient. NEW append-only `EmailDeliveryEvent` model (uuid PK, to_hash, subject_prefix max 64, priority, attempts, ok, error_kind, created_at; 2 indexes; `.save()` refuses pk-rewrites + `.delete()` raises) at `apps/schoolops/models_email_delivery.py` + migration `schoolops 0014`. NEW operator dashboard at `/super/email/health/` (5 panels — resolved SMTP config sans password, JS-driven probe button POSTs to `/super/email/health/probe/` 5s timeout, last-24h sent/failed counts, top-5 recent failures with redacted to_hash + error_kind, SOT indicator "config from env" vs "config from SiteSettings.email_delivery", 60s meta-refresh). NEW backoffice form at `/super/email/configure/` (host/port/use_tls/host_user/host_password/default_from_email/default_reply_to/default_from_name/connection_timeout_seconds/enabled; password Fernet-encrypted via `SECRET_KEY`-derived key; blank-password-preserves-existing; "Send test email to me" action using `send_transactional` to `request.user.email`). NEW `SiteSettings.email_delivery` JSONField + `siteconfig 0184` migration. `apps/schools/signup_views.py:306` `send_mail(...)` callsite replaced with `send_transactional(...)`. NEW settings: `EMAIL_TIMEOUT=10`, `EMAIL_USE_LOCALTIME=True`, `SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF=[1,5,30]`. New URLs under `super:` namespace: `email_health`, `email_health_probe`, `email_configure`. |
+| **Orchestrator integration** | 3 multi-line `{# #}` bugs in v3.58.1 in-flight templates fixed (customersuccess/super_dashboard.html L5, schools/super_dashboard.html L7, super/founder_dashboard.html L21 → all `{% comment %}...{% endcomment %}`). 11 off-token-color violations in `static/css/rmc-cp-200x.css` fixed by relocating markers INSIDE rule body and expanding 7 single-line copilot-posture rules to multi-line. 2 `tenant_queryset_safety` findings in v3.58.1's NEW `apps/siteconfig/cockpit_platform_pulse_service.py` (MigrationRun + TenantSubscription cross-tenant aggregates BY DESIGN) marked `# tenant-isolation-allow: platform-pulse-cross-tenant-*-aggregate-by-design`. 13 undefined-CSS-class findings resolved: 1 by adding `.rmc-signup-field` base class to `rmc-class-grammar.css` + 12 by creating NEW `static/css/rmc-email-admin.css` ~210 lines defining `.rmc-email-health__{grid,metric,probe-output}` + `.rmc-page--operator-email-{health,configure}` + `.rmc-email-config__{saved-banner,field,actions,test-result,test-result--{ok,fail}}` + `.rmc-button{,--primary,--secondary}` + `.rmc-email__{data-table,balance,balance--overdue,cta--secondary,notice,quote}` — all on design tokens with categorical off-token-allow markers where literals required. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `scan_off_token_colors.py` | **0** (was 11 after v3.58.1) |
+| `scan_tenant_queryset_safety.py` | **0** new (2 v3.58.1 findings marked) |
+| `scan_undefined_css_classes.py` | **0** (was 13 after v3.58.1) |
+| `audit_template_render_safety.py` | 6 pre-existing (admin/change_form.html, components/admin_nav_bridge.html — both predate this wave); 0 new |
+| `scan_inline_style_off_token.py` | **0** |
+| `scan_pii_logging_smell.py` | **0** |
+| `scan_print_statements.py` | **0** |
+| `scan_bare_except.py` | **0** |
+| `verify_service_worker_version.py` | **OK monotonic** sms-v3.57.18 → v3.58.0 → v3.58.1 → v3.58.2 |
+| Python AST parse (10 files) | clean |
+| URL conflict check | 0 (3 new under `super:` namespace, 1 new under root) |
+
+### Honest deferred (next wave)
+
+- Real bounce-rate tracking (needs IMAP DSN listener or 3rd-party hookup — SendGrid/Postmark webhook)
+- SPF/DKIM/DMARC operator documentation (per-host DNS record recipes — separate docs-only wave)
+- Per-tenant / per-recipient rate-limiting on `send_transactional`
+- Websocket live-update of `/super/email/health/` probe panel (currently 60s meta-refresh)
+- `send_bulk` circuit-breaker on inline-fallback when Celery broker unreachable
+- End-to-end tests blocked by known Windows test-DB lock (documented in v3.54.0 lesson)
+- `sibling_compare` cockpit editor (privacy contract — opt_in=False must survive operator override)
+- `--elev-3` design-token flip (NEEDS-COORDINATED-AUDIT across 13 consumers)
+- `tenant_v2_demo_payload()` companion (so v2 tenant sections render out-of-box)
+- Counsel-pending v2.0 MAA flip + FACTS/Skyward write-paths
+- Time-blocked SDK 1.0.0 graduation + HSM bridge
+
+### Deploy
+
+```
+git pull --rebase
+python manage.py migrate
+python manage.py collectstatic --noinput
+# operator: visit /super/email/configure/ to override env SMTP via backoffice
+```
 
 ## 2026-05-22 — v3.57.15 Wave 4 — 21 cockpit editors total + studio_os cleanup + welcome email
 

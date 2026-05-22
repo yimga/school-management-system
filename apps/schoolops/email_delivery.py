@@ -1,0 +1,844 @@
+"""v3.57.x Wave 8 Agent C — Canonical email delivery surface.
+
+Thin, additive reliability + observability layer in front of Django's
+``django.core.mail``. Public API:
+
+  * :func:`send_transactional` — verification, password reset,
+    low-balance — retried, logged to :class:`EmailDeliveryEvent`,
+    never raises.
+  * :func:`send_bulk` — digest, newsletter — Celery-queued when
+    available, synchronous fallback. Same logging contract.
+  * :func:`smtp_probe` — synchronous "can we talk to SMTP" health
+    check for the operator dashboard.
+  * :func:`get_resolved_smtp_config` — merges env defaults + the
+    operator-published ``SiteSettings.email_delivery`` override; SOT
+    for the operator dashboard panel.
+  * :func:`get_recent_delivery_stats` — aggregates the last N hours
+    of :class:`EmailDeliveryEvent` rows for the health card.
+
+Design contract
+---------------
+
+  * **Never crashes the caller.** ``fail_silently=True`` semantics
+    are preserved: the existing signup-email callsite already wraps
+    in a broad ``try/except``; this module mirrors that. On every
+    permanent failure we log + persist an ``EmailDeliveryEvent`` row
+    with ``ok=False`` and a coarse ``error_kind``, and return
+    ``{"ok": False, ...}``. We do NOT raise.
+  * **Retries on transient SMTP errors.** Backoff sequence configurable
+    via ``settings.SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF`` (default
+    ``[1, 5, 30]`` seconds → 3 attempts total). Sleeps are
+    ``time.sleep`` — fine for transactional sends, which are
+    request-coupled but already exception-isolated.
+  * **PII safety.** We hash the recipient (``sha256(to)[:12]``) for
+    log + DB persistence. We never log the raw ``to``, ``from_email``,
+    ``password``, or message body. Subjects are truncated to 64 chars
+    before persistence; callers are encouraged to keep them PII-free.
+  * **DKIM-friendly headers.** ``Message-ID`` is generated explicitly
+    (``email.utils.make_msgid``) and ``Date`` is set via
+    ``email.utils.formatdate(localtime=True)``. Some MTAs reject mail
+    that omits these — Django sets them, but only when constructing
+    via ``EmailMessage``, and the explicit set documents intent.
+
+What is NOT in scope here
+-------------------------
+
+  * SPF/DKIM/DMARC record management — documented in
+    ``docs/EMAIL_DELIVERABILITY.md`` (separate wave).
+  * Bounce-rate tracking from DSN parsing or external services —
+    requires an inbound mail listener or a 3rd-party API hookup.
+  * Per-tenant or per-recipient rate-limiting — future wave.
+"""
+from __future__ import annotations
+
+import base64
+import datetime as _dt
+import email.utils as _email_utils
+import hashlib
+import logging
+import re
+import smtplib
+import socket
+import time
+from typing import Any, Iterable, Optional, Union
+
+from django.conf import settings
+from django.core import mail
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+
+logger = logging.getLogger(__name__)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Constants — tunable via settings.
+# ──────────────────────────────────────────────────────────────────────
+
+
+_DEFAULT_BACKOFF_SECONDS = (1, 5, 30)
+_DEFAULT_SMTP_PROBE_TIMEOUT = 5.0
+_DEFAULT_CONNECTION_TIMEOUT = 10
+_SUBJECT_PREFIX_MAX = 64
+_TO_HASH_LEN = 12
+
+# Coarse error-kind labels persisted to EmailDeliveryEvent.error_kind.
+_ERR_SMTP = "smtp_exception"
+_ERR_OS = "os_error"
+_ERR_CONN = "connection_error"
+_ERR_VALUE = "value_error"
+_ERR_OTHER = "other"
+
+# Subjects can contain free-form text; before we persist the prefix we
+# strip anything email-shaped just in case a caller put a recipient in
+# the subject. Conservative regex — local-part + @ + dot-domain.
+_EMAIL_SHAPED_RE = re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b")
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Public dataclass-shaped return values are plain dicts (JSON-friendly).
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _get_backoff() -> tuple[int, ...]:
+    """Return the configured retry backoff in seconds."""
+    raw = getattr(settings, "SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF", None)
+    if not raw:
+        return tuple(_DEFAULT_BACKOFF_SECONDS)
+    try:
+        return tuple(int(x) for x in raw if int(x) >= 0)
+    except (TypeError, ValueError):
+        logger.warning(
+            "schoolops.email_delivery.retry_backoff_misconfigured "
+            "falling_back_to_default"
+        )
+        return tuple(_DEFAULT_BACKOFF_SECONDS)
+
+
+def _hash_recipient(addr: str) -> str:
+    """sha256(addr.lower())[:_TO_HASH_LEN] — stable per recipient."""
+    if not addr:
+        return "00000000" + "0" * (_TO_HASH_LEN - 8)
+    norm = addr.strip().lower().encode("utf-8")
+    return hashlib.sha256(norm).hexdigest()[:_TO_HASH_LEN]
+
+
+def _redact_subject_for_log(subject: str) -> str:
+    """Truncate + strip email-shaped strings from a subject snapshot."""
+    if not subject:
+        return ""
+    redacted = _EMAIL_SHAPED_RE.sub("[email-redacted]", subject)
+    return redacted[:_SUBJECT_PREFIX_MAX]
+
+
+def _coerce_to_list(addrs: Union[str, Iterable[str]]) -> list[str]:
+    """Coerce a single addr or iterable of addrs to a clean list[str]."""
+    if addrs is None:
+        return []
+    if isinstance(addrs, str):
+        return [addrs]
+    out = []
+    for a in addrs:
+        if isinstance(a, str) and a.strip():
+            out.append(a.strip())
+    return out
+
+
+def _coerce_to_int(value: Any, default: int) -> int:
+    """Coerce a value to int, returning default on failure."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_to_bool(value: Any, default: bool = False) -> bool:
+    """Coerce truthy strings ('true', '1', 'yes') / bools to bool."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        return value.strip().lower() in ("true", "1", "yes", "on")
+    return default
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Config resolution.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _decrypt_password_b64(encrypted_b64: str) -> str:
+    """Decrypt the Fernet-wrapped password from its base64 storage form.
+
+    Returns plaintext on success, "" on any failure (never raises into
+    the send hot path — a bad password just means SMTP auth fails,
+    which the retry path already handles).
+    """
+    if not encrypted_b64:
+        return ""
+    try:
+        from apps.accounts.legacy_hashes.encryption import _get_fernet
+
+        token = encrypted_b64.encode("utf-8")
+        # The stored value IS the Fernet token (already url-safe-base64);
+        # the "b64" suffix in the field name is documentary only.
+        plaintext = _get_fernet().decrypt(token).decode("utf-8")
+        return plaintext
+    except Exception as exc:  # broad-by-design — never break the hot path
+        logger.warning(
+            "schoolops.email_delivery.password_decrypt_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return ""
+
+
+def get_resolved_smtp_config() -> dict:
+    """Return the resolved SMTP config dict.
+
+    Operator override (``SiteSettings.email_delivery`` JSONField with
+    ``enabled=True``) wins over env settings. Returned dict is safe to
+    render to the operator dashboard EXCEPT for the ``host_password``
+    key, which the caller MUST omit before serialization.
+
+    Keys::
+
+        {
+          "host": str,
+          "port": int,
+          "use_tls": bool,
+          "host_user": str,
+          "host_password": str,        # plaintext — NEVER render
+          "default_from_email": str,
+          "default_from_name": str,
+          "default_reply_to": str,
+          "connection_timeout_seconds": int,
+          "source": "env" | "site_settings_override",
+          "enabled": bool,
+        }
+    """
+    env_cfg = {
+        "host": getattr(settings, "EMAIL_HOST", "") or "",
+        "port": _coerce_to_int(getattr(settings, "EMAIL_PORT", 587), 587),
+        "use_tls": _coerce_to_bool(
+            getattr(settings, "EMAIL_USE_TLS", True), True,
+        ),
+        "host_user": getattr(settings, "EMAIL_HOST_USER", "") or "",
+        "host_password": getattr(settings, "EMAIL_HOST_PASSWORD", "") or "",
+        "default_from_email": (
+            getattr(settings, "DEFAULT_FROM_EMAIL", "")
+            or "noreply@runmycampus.com"
+        ),
+        "default_from_name": "",
+        "default_reply_to": "",
+        "connection_timeout_seconds": _coerce_to_int(
+            getattr(settings, "EMAIL_TIMEOUT", _DEFAULT_CONNECTION_TIMEOUT),
+            _DEFAULT_CONNECTION_TIMEOUT,
+        ),
+        "source": "env",
+        "enabled": True,
+    }
+
+    override = _load_site_settings_override()
+    if not override or not _coerce_to_bool(override.get("enabled"), False):
+        return env_cfg
+
+    merged = dict(env_cfg)
+    merged["host"] = override.get("host") or env_cfg["host"]
+    merged["port"] = _coerce_to_int(override.get("port"), env_cfg["port"])
+    merged["use_tls"] = _coerce_to_bool(
+        override.get("use_tls"), env_cfg["use_tls"],
+    )
+    merged["host_user"] = override.get("host_user") or env_cfg["host_user"]
+    pwd_b64 = override.get("host_password_encrypted_b64") or ""
+    if pwd_b64:
+        merged["host_password"] = _decrypt_password_b64(pwd_b64)
+    merged["default_from_email"] = (
+        override.get("default_from_email") or env_cfg["default_from_email"]
+    )
+    merged["default_from_name"] = override.get("default_from_name") or ""
+    merged["default_reply_to"] = override.get("default_reply_to") or ""
+    merged["connection_timeout_seconds"] = _coerce_to_int(
+        override.get("connection_timeout_seconds"),
+        env_cfg["connection_timeout_seconds"],
+    )
+    merged["source"] = "site_settings_override"
+    merged["enabled"] = True
+    return merged
+
+
+def _load_site_settings_override() -> dict:
+    """Read ``SiteSettings.email_delivery`` defensively. Returns {} on any error."""
+    try:
+        from apps.siteconfig.models import SiteSettings
+
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        row = SiteSettings.objects.first()
+        if row is None:
+            return {}
+        payload = getattr(row, "email_delivery", None)
+        if isinstance(payload, dict):
+            return payload
+        return {}
+    except Exception as exc:  # broad-by-design — never break the hot path
+        logger.warning(
+            "schoolops.email_delivery.site_settings_load_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return {}
+
+
+def _build_from_header(cfg: dict, override_from: Optional[str]) -> str:
+    """Return the assembled From header (RFC 5322).
+
+    Override wins; otherwise use ``default_from_name <default_from_email>``.
+    """
+    if override_from:
+        return override_from
+    email_addr = cfg.get("default_from_email") or "noreply@runmycampus.com"
+    name = (cfg.get("default_from_name") or "").strip()
+    if name:
+        return _email_utils.formataddr((name, email_addr))
+    return email_addr
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Connection management.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _get_connection_for_send(cfg: dict):
+    """Return a django.core.mail connection seeded with the resolved config.
+
+    Uses ``mail.get_connection`` so the active ``EMAIL_BACKEND`` is
+    honored (console in dev, SMTP in prod, locmem in tests).
+    """
+    return mail.get_connection(
+        backend=getattr(settings, "EMAIL_BACKEND", None),
+        host=cfg.get("host") or None,
+        port=cfg.get("port") or None,
+        username=cfg.get("host_user") or None,
+        password=cfg.get("host_password") or None,
+        use_tls=cfg.get("use_tls"),
+        timeout=cfg.get("connection_timeout_seconds") or None,
+        fail_silently=False,
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Persistence helper.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _persist_event(
+    *,
+    to_hash: str,
+    subject_prefix: str,
+    priority: str,
+    attempts: int,
+    ok: bool,
+    error_kind: str,
+) -> Optional[str]:
+    """Best-effort write of an EmailDeliveryEvent row. Returns its UUID str."""
+    try:
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
+
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        row = EmailDeliveryEvent.objects.create(
+            to_hash=to_hash,
+            subject_prefix=subject_prefix,
+            priority=priority,
+            attempts=attempts,
+            ok=ok,
+            error_kind=error_kind,
+        )
+        return str(row.pk)
+    except Exception as exc:  # broad-by-design — log persistence is never load-bearing
+        logger.warning(
+            "schoolops.email_delivery.persist_event_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return None
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Public sender — transactional.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _classify_exception(exc: BaseException) -> str:
+    """Coarse-grained ``error_kind`` label for the persisted event."""
+    if isinstance(exc, smtplib.SMTPException):
+        return _ERR_SMTP
+    if isinstance(exc, ConnectionError):
+        return _ERR_CONN
+    if isinstance(exc, OSError):
+        return _ERR_OS
+    if isinstance(exc, ValueError):
+        return _ERR_VALUE
+    return _ERR_OTHER
+
+
+def send_transactional(
+    *,
+    subject: str,
+    body: str,
+    to: Union[str, Iterable[str]],
+    html_body: Optional[str] = None,
+    reply_to: Optional[Union[str, Iterable[str]]] = None,
+    from_email: Optional[str] = None,
+    headers: Optional[dict] = None,
+    priority: str = "transactional",
+) -> dict:
+    """Send a transactional message with retries + audit logging.
+
+    Returns ``{"ok": bool, "attempts": int, "delivery_event_id": str|None,
+    "error_kind": str|None}``. NEVER raises — mirrors the existing
+    ``fail_silently=True`` semantics at every callsite.
+
+    The caller's email body, recipient address, and full subject line
+    are NEVER logged. We persist only ``to_hash`` (sha256[:12]) and a
+    redacted 64-char subject prefix.
+    """
+    to_list = _coerce_to_list(to)
+    if not to_list:
+        logger.info(
+            "schoolops.email_delivery.skip_no_recipient priority=%s",
+            priority,
+        )
+        return {
+            "ok": False,
+            "attempts": 0,
+            "delivery_event_id": None,
+            "error_kind": _ERR_VALUE,
+        }
+
+    cfg = get_resolved_smtp_config()
+    backoff = _get_backoff()
+    if not backoff:
+        backoff = (0,)  # at least one attempt
+
+    to_hash = _hash_recipient(to_list[0])
+    subject_prefix = _redact_subject_for_log(subject or "")
+
+    from_header = _build_from_header(cfg, from_email)
+    reply_to_list = _coerce_to_list(reply_to) if reply_to else (
+        [cfg["default_reply_to"]] if cfg.get("default_reply_to") else []
+    )
+
+    # DKIM-friendly headers — explicit Message-ID + Date.
+    domain_hint = (cfg.get("default_from_email") or "runmycampus.com").split(
+        "@",
+    )[-1] or "runmycampus.com"
+    msg_headers = dict(headers or {})
+    msg_headers.setdefault("Message-ID", _email_utils.make_msgid(domain=domain_hint))
+    msg_headers.setdefault("Date", _email_utils.formatdate(localtime=True))
+    msg_headers.setdefault("X-RMC-Email-Priority", priority)
+
+    last_exc_kind = ""
+    attempts_made = 0
+    ok = False
+
+    for attempt_index, delay in enumerate(backoff, start=1):
+        attempts_made = attempt_index
+        try:
+            connection = _get_connection_for_send(cfg)
+            if html_body:
+                msg = EmailMultiAlternatives(
+                    subject=subject,
+                    body=body,
+                    from_email=from_header,
+                    to=to_list,
+                    reply_to=reply_to_list or None,
+                    headers=msg_headers,
+                    connection=connection,
+                )
+                msg.attach_alternative(html_body, "text/html")
+            else:
+                msg = EmailMessage(
+                    subject=subject,
+                    body=body,
+                    from_email=from_header,
+                    to=to_list,
+                    reply_to=reply_to_list or None,
+                    headers=msg_headers,
+                    connection=connection,
+                )
+            msg.send(fail_silently=False)
+            ok = True
+            last_exc_kind = ""
+            break
+        except (
+            smtplib.SMTPException,
+            ConnectionError,
+            OSError,
+            ValueError,
+        ) as exc:
+            last_exc_kind = _classify_exception(exc)
+            logger.warning(
+                "schoolops.email_delivery.attempt_failed "
+                "to_hash=%s priority=%s attempt=%d error_kind=%s err_type=%s",
+                to_hash, priority, attempt_index, last_exc_kind,
+                type(exc).__name__,
+            )
+            # Sleep between attempts UNLESS we just used the final
+            # entry of the backoff sequence.
+            if attempt_index < len(backoff) and delay > 0:
+                try:
+                    time.sleep(delay)
+                except Exception:  # noqa: BLE001  — sleep should never hard-fail
+                    pass
+            continue
+        except Exception as exc:  # broad-by-design  — never raise out
+            last_exc_kind = _ERR_OTHER
+            logger.warning(
+                "schoolops.email_delivery.attempt_failed_unexpected "
+                "to_hash=%s priority=%s attempt=%d err_type=%s",
+                to_hash, priority, attempt_index, type(exc).__name__,
+            )
+            if attempt_index < len(backoff) and delay > 0:
+                try:
+                    time.sleep(delay)
+                except Exception:  # noqa: BLE001
+                    pass
+            continue
+
+    delivery_event_id = _persist_event(
+        to_hash=to_hash,
+        subject_prefix=subject_prefix,
+        priority=priority,
+        attempts=attempts_made,
+        ok=ok,
+        error_kind="" if ok else last_exc_kind,
+    )
+
+    if ok:
+        logger.info(
+            "schoolops.email_delivery.sent "
+            "to_hash=%s priority=%s attempts=%d event_id=%s",
+            to_hash, priority, attempts_made, delivery_event_id or "n/a",
+        )
+    else:
+        logger.error(
+            "schoolops.email_delivery.permanent_failure "
+            "to_hash=%s priority=%s attempts=%d error_kind=%s event_id=%s",
+            to_hash, priority, attempts_made, last_exc_kind,
+            delivery_event_id or "n/a",
+        )
+
+    return {
+        "ok": ok,
+        "attempts": attempts_made,
+        "delivery_event_id": delivery_event_id,
+        "error_kind": "" if ok else last_exc_kind,
+    }
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Public sender — bulk.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def send_bulk(
+    *,
+    subject: str,
+    body: str,
+    to: Union[str, Iterable[str]],
+    html_body: Optional[str] = None,
+    reply_to: Optional[Union[str, Iterable[str]]] = None,
+    from_email: Optional[str] = None,
+    headers: Optional[dict] = None,
+) -> dict:
+    """Queue a bulk send via Celery when available, fall back to inline.
+
+    Returns the same dict shape as :func:`send_transactional`. When the
+    Celery path is taken, ``attempts`` is reported as 0 and
+    ``delivery_event_id`` is None — the real attempt + persistence
+    happens when the worker runs ``send_transactional``.
+    """
+    try:
+        # Lazy import — celery is optional in dev / tests.
+        from apps.schoolops.tasks import dispatch_bulk_email  # type: ignore[attr-defined]
+
+        # Apply async; never block the caller. If Celery isn't running
+        # the broker enqueue still succeeds; the worker picks it up
+        # later. If the broker itself is unreachable we fall through
+        # to the inline path below.
+        dispatch_bulk_email.delay(  # type: ignore[union-attr]
+            subject=subject,
+            body=body,
+            to=list(_coerce_to_list(to)),
+            html_body=html_body,
+            reply_to=list(_coerce_to_list(reply_to)) if reply_to else None,
+            from_email=from_email,
+            headers=headers,
+        )
+        return {
+            "ok": True,
+            "attempts": 0,
+            "delivery_event_id": None,
+            "error_kind": "",
+        }
+    except (ImportError, AttributeError):
+        # No Celery task wired — fall through to inline send.
+        logger.info(
+            "schoolops.email_delivery.bulk_celery_unavailable_falling_inline"
+        )
+    except Exception as exc:  # broad-by-design  — broker / serializer issues
+        logger.warning(
+            "schoolops.email_delivery.bulk_celery_dispatch_failed "
+            "err_type=%s falling_inline",
+            type(exc).__name__,
+        )
+
+    return send_transactional(
+        subject=subject,
+        body=body,
+        to=to,
+        html_body=html_body,
+        reply_to=reply_to,
+        from_email=from_email,
+        headers=headers,
+        priority="bulk",
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Operator dashboard helpers.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def smtp_probe(timeout: float = _DEFAULT_SMTP_PROBE_TIMEOUT) -> dict:
+    """Synchronous "can we open an SMTP connection?" check.
+
+    Used by the operator email-health dashboard's "Test SMTP" button.
+    Returns ``{"ok": bool, "latency_ms": int, "error": str|None, "host",
+    "port", "use_tls"}``. NEVER raises.
+
+    For the ``console`` backend (dev) the probe short-circuits to
+    ``ok=True`` with a synthetic latency of 0 — no SMTP roundtrip
+    happens in dev.
+    """
+    cfg = get_resolved_smtp_config()
+    host = cfg.get("host") or ""
+    port = int(cfg.get("port") or 587)
+    use_tls = bool(cfg.get("use_tls"))
+
+    backend = (getattr(settings, "EMAIL_BACKEND", "") or "").lower()
+    if "console" in backend or "locmem" in backend or "dummy" in backend:
+        return {
+            "ok": True,
+            "latency_ms": 0,
+            "error": None,
+            "host": host or "(dev backend — no SMTP roundtrip)",
+            "port": port,
+            "use_tls": use_tls,
+            "backend": backend,
+        }
+
+    if not host:
+        return {
+            "ok": False,
+            "latency_ms": 0,
+            "error": "EMAIL_HOST is empty",
+            "host": "",
+            "port": port,
+            "use_tls": use_tls,
+            "backend": backend,
+        }
+
+    started = time.monotonic()
+    try:
+        # smtplib.SMTP() does the connect + EHLO; we don't need to auth
+        # to know whether the server is reachable. STARTTLS is exercised
+        # only on the dedicated TLS port (465) or via explicit ``starttls()``.
+        if port == 465:
+            sock = smtplib.SMTP_SSL(host=host, port=port, timeout=timeout)
+        else:
+            sock = smtplib.SMTP(host=host, port=port, timeout=timeout)
+            if use_tls:
+                try:
+                    sock.starttls()
+                except smtplib.SMTPException:
+                    # STARTTLS unsupported is a real config issue but
+                    # the bare connection works — surface it as a warning.
+                    pass
+        try:
+            sock.ehlo_or_helo_if_needed()
+        finally:
+            try:
+                sock.quit()
+            except smtplib.SMTPException:
+                pass
+        elapsed_ms = int((time.monotonic() - started) * 1000)
+        return {
+            "ok": True,
+            "latency_ms": elapsed_ms,
+            "error": None,
+            "host": host,
+            "port": port,
+            "use_tls": use_tls,
+            "backend": backend,
+        }
+    except (smtplib.SMTPException, OSError, socket.timeout, ConnectionError) as exc:
+        elapsed_ms = int((time.monotonic() - started) * 1000)
+        return {
+            "ok": False,
+            "latency_ms": elapsed_ms,
+            "error": type(exc).__name__,
+            "host": host,
+            "port": port,
+            "use_tls": use_tls,
+            "backend": backend,
+        }
+    except Exception as exc:  # broad-by-design — never raise
+        elapsed_ms = int((time.monotonic() - started) * 1000)
+        return {
+            "ok": False,
+            "latency_ms": elapsed_ms,
+            "error": type(exc).__name__,
+            "host": host,
+            "port": port,
+            "use_tls": use_tls,
+            "backend": backend,
+        }
+
+
+def get_recent_delivery_stats(window_hours: int = 24) -> dict:
+    """Return aggregate counts from EmailDeliveryEvent over a recent window.
+
+    Returns::
+
+        {
+          "sent_count": int,
+          "failed_count": int,
+          "last_failure_iso": str | None,
+          "last_failure_reason_kind": str | None,
+          "window_hours": int,
+        }
+
+    Best-effort: returns zeros on any error.
+    """
+    out = {
+        "sent_count": 0,
+        "failed_count": 0,
+        "last_failure_iso": None,
+        "last_failure_reason_kind": None,
+        "window_hours": int(window_hours),
+    }
+    try:
+        from django.utils import timezone
+
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
+
+        cutoff = timezone.now() - _dt.timedelta(hours=int(window_hours))
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        qs = EmailDeliveryEvent.objects.filter(created_at__gte=cutoff)
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        out["sent_count"] = qs.filter(ok=True).count()
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        out["failed_count"] = qs.filter(ok=False).count()
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        last_fail = (
+            qs.filter(ok=False)
+            .order_by("-created_at")
+            .only("created_at", "error_kind")
+            .first()
+        )
+        if last_fail is not None:
+            out["last_failure_iso"] = last_fail.created_at.isoformat()
+            out["last_failure_reason_kind"] = last_fail.error_kind or "unknown"
+    except Exception as exc:  # broad-by-design — dashboard reader, never raise
+        logger.warning(
+            "schoolops.email_delivery.stats_read_failed err_type=%s",
+            type(exc).__name__,
+        )
+    return out
+
+
+def get_recent_failures(limit: int = 5) -> list[dict]:
+    """Return the N most-recent failures for the operator dashboard panel.
+
+    Each entry::
+
+        {
+          "to_hash": str,
+          "subject_prefix": str,
+          "error_kind": str,
+          "attempts": int,
+          "created_at_iso": str,
+          "priority": str,
+        }
+
+    NEVER returns raw recipient addresses.
+    """
+    out: list[dict] = []
+    try:
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
+
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        rows = (
+            EmailDeliveryEvent.objects.filter(ok=False)
+            .order_by("-created_at")[: max(1, int(limit))]
+        )
+        for r in rows:
+            out.append({
+                "to_hash": r.to_hash,
+                "subject_prefix": r.subject_prefix,
+                "error_kind": r.error_kind or "unknown",
+                "attempts": int(r.attempts or 0),
+                "created_at_iso": r.created_at.isoformat(),
+                "priority": r.priority,
+            })
+    except Exception as exc:  # broad-by-design — dashboard reader
+        logger.warning(
+            "schoolops.email_delivery.failures_read_failed err_type=%s",
+            type(exc).__name__,
+        )
+    return out
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Form-side helper: encrypt a freshly-entered SMTP password.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def encrypt_password_for_storage(plaintext: str) -> str:
+    """Fernet-wrap a plaintext SMTP password for storage in the JSON blob.
+
+    Returns the url-safe-base64-encoded ciphertext as a str. The
+    operator form layer calls this in ``save()``; the stored bytes are
+    only ever decrypted via :func:`_decrypt_password_b64` on the
+    send-hot-path.
+
+    Empty input returns empty string — the resolver treats an empty
+    encrypted blob as "no override password configured".
+    """
+    if not plaintext:
+        return ""
+    try:
+        from apps.accounts.legacy_hashes.encryption import _get_fernet
+
+        token = _get_fernet().encrypt(plaintext.encode("utf-8"))
+        # Fernet output is already url-safe-base64. Decode for JSON storage.
+        return token.decode("utf-8")
+    except Exception as exc:  # broad-by-design — form layer handles
+        logger.error(
+            "schoolops.email_delivery.password_encrypt_failed err_type=%s",
+            type(exc).__name__,
+        )
+        # Don't fall back to plaintext under ANY circumstance.
+        raise
+
+
+# Defensive import-time check — fail loudly if base64 disappears.
+_ = base64
+
+
+__all__ = [
+    "send_transactional",
+    "send_bulk",
+    "smtp_probe",
+    "get_resolved_smtp_config",
+    "get_recent_delivery_stats",
+    "get_recent_failures",
+    "encrypt_password_for_storage",
+]

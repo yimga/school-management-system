@@ -866,6 +866,50 @@
     </fieldset>
     {% endif %}
 
+    {% comment %}
+      v3.57.18 Wave 8: Public school-signup form (final marketing-host
+      editor). Operator-configurable copy + chrome for the /signup/ page.
+      Mixed-widget fieldset (BooleanField + CharField) so we switch
+      between the form-check row and the label-stacked row per cell, the
+      same pattern operator_notebook uses above. Defaults to enabled=True
+      (front-door section); empty fields fall through to section defaults
+      via _deep_merge in cockpit_context.py.
+    {% endcomment %}
+
+    {# ---- v3.57.18 Public school-signup form rich editor ---------------- #}
+    {% if signup_form_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="signup-form">
+      <legend class="h6 px-2 fw-bold">{% trans "Public school-signup form (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Operator-configurable copy + chrome for the marketing-host /signup/ page. Defaults to enabled (front-door section); flip the enable toggle to pause acquisition during incidents. Empty fields fall through to platform defaults; trust-pill lines accept one per line as 'icon | label' (icon defaults to ✓)." %}
+      </p>
+      <div class="row g-3">
+        {% for field in signup_form_fields %}
+          <div class="col-md-6">
+            {% if field.field.widget.input_type == "checkbox" %}
+              <div class="form-check">
+                {{ field }}
+                <label for="{{ field.id_for_label }}" class="form-check-label small fw-semibold">{{ field.label }}</label>
+              </div>
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% else %}
+              <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"
