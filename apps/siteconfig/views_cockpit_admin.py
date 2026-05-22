@@ -205,6 +205,14 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["life_event_timeline_fields"] = [
             form[name] for name in getattr(form, "LIFE_EVENT_TIMELINE_FIELDS", ())
         ]
+        # v3.57.17: final cockpit editor — AI Copilot rail. Closes the
+        # ai_copilot_rail complexity deferral; sibling_compare stays
+        # code-only by design (privacy gate). Same getattr() guard so
+        # older form revisions still render — the template short-circuits
+        # when the list is empty.
+        ctx["ai_copilot_rail_fields"] = [
+            form[name] for name in getattr(form, "AI_COPILOT_RAIL_FIELDS", ())
+        ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
         return ctx

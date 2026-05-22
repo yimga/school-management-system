@@ -1545,6 +1545,127 @@ def _serialize_life_events(items: list[dict[str, Any]] | None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# v3.57.17 parsers + serializers — final cockpit editor: AI Copilot rail
+# (manager_200x.ai_copilot_rail). Multi-block textarea pattern: messages +
+# suggestion pills. Closes the last complex-schema deferral; only
+# sibling_compare (privacy-gated; deliberately code-only) remains
+# un-editorialised by design.
+#
+# Operator-facing vocab uses ``assistant`` / ``user`` for messages; we
+# translate ``assistant → ai`` on write because the rendering partial
+# (templates/partials/cockpit/_ai_copilot_rail.html) reads ``msg.role``
+# as a CSS modifier and the helper defaults + partial defaults treat
+# the AI-side role as ``ai``. Keeping the operator vocab familiar while
+# emitting the partial's expected token is the most charitable round-trip.
+# ---------------------------------------------------------------------------
+
+
+# Operator-facing role vocab -> persisted role token (partial CSS modifier).
+# Anything outside {assistant, user} falls back to ``assistant`` per spec.
+_COPILOT_ROLE_TO_PARTIAL: dict[str, str] = {
+    "assistant": "ai",
+    "user": "user",
+}
+
+
+def _parse_copilot_messages(value: str) -> list[dict[str, str]]:
+    """One per line: ``role | body`` — role ∈ {assistant, user}.
+
+    Pairs with ``cockpit.ai_copilot_rail.messages`` whose schema is
+    ``list[{role, text, em_text}]``. The flat editor maps:
+        role  -> role (enum-whitelisted to {assistant, user}; anything
+                 else falls back to 'assistant'. Persisted token is
+                 translated 'assistant' -> 'ai' so the rendering
+                 partial's CSS modifier (lx-copilot__msg--ai) lights up.)
+        body  -> text
+    Rows without a body are skipped (an empty bubble helps nobody).
+    ``em_text`` is left blank — the section default flows through cleanly
+    via ``_deep_merge`` in cockpit_context.py; operators who need italic
+    serif tails on individual messages can edit JSON directly.
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        raw_role = (parts[0] if len(parts) > 0 else "assistant").lower() or "assistant"
+        # Enum whitelist — anything outside {assistant, user} falls back
+        # to 'assistant' per spec.
+        operator_role = raw_role if raw_role in _COPILOT_ROLE_TO_PARTIAL else "assistant"
+        body = parts[1] if len(parts) > 1 else ""
+        if not body:
+            continue
+        out.append(
+            {
+                "role": _COPILOT_ROLE_TO_PARTIAL[operator_role],
+                "text": body,
+                "em_text": "",
+            }
+        )
+    return out
+
+
+def _serialize_copilot_messages(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    # Reverse-map persisted role token back to operator-facing vocab so the
+    # textarea round-trips cleanly. Pre-v3.57.17 payloads that already use
+    # 'ai' or 'user' map straight back to 'assistant'/'user'.
+    partial_to_operator = {v: k for k, v in _COPILOT_ROLE_TO_PARTIAL.items()}
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        body = str(item.get("text", "")).strip()
+        if not body:
+            continue
+        partial_role = str(item.get("role", "")).strip().lower() or "ai"
+        operator_role = partial_to_operator.get(partial_role, "assistant")
+        rows.append(f"{operator_role} | {body}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_copilot_suggestions(value: str) -> list[str]:
+    """One per line: ``label | command`` — command optional and discarded.
+
+    Pairs with ``cockpit.ai_copilot_rail.suggested_actions`` whose schema
+    is ``list[str]`` — the rendering partial iterates and emits the bare
+    string. The flat editor accepts an optional ``command`` column for
+    operator forward-compat (e.g. a future ``data-rmc-copilot-cmd`` hook)
+    but discards it on write because storing dicts would break the
+    partial. Rows without a label are skipped (a chip with no label is
+    unactionable).
+    """
+    out: list[str] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        label = parts[0]
+        if not label:
+            continue
+        # parts[1] (command) is intentionally discarded — partial reads
+        # bare strings; persisting a dict here would crash the {{ action }}
+        # render.
+        out.append(label)
+    return out
+
+
+def _serialize_copilot_suggestions(items: list[Any] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        # Support both bare-string (post-v3.57.17 writes) and dict (forward-
+        # compat / hand-edited JSON) shapes so the textarea round-trips
+        # cleanly either way.
+        if isinstance(item, dict):
+            label = str(item.get("label", "")).strip()
+        else:
+            label = str(item).strip()
+        if not label:
+            continue
+        rows.append(label)
+    return "\n".join(rows)
+
+
+# ---------------------------------------------------------------------------
 # Serializers — flatten nested dict back into textarea-friendly strings
 # for ``__init__`` (round-trip).
 # ---------------------------------------------------------------------------
@@ -2966,6 +3087,89 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- v3.57.17 Rich editor (final cockpit editor — AI Copilot rail) ----
+    # Closes the last complex-schema deferral. Multi-block textarea pattern:
+    # one Textarea per nested list (messages + suggestion pills). Empty
+    # fields fall through to section defaults via ``_deep_merge`` in
+    # cockpit_context.py. Sibling_compare remains a privacy-gated
+    # code-only section (NOT editorialised here by design).
+    #
+    # 27) manager_200x.ai_copilot_rail
+    acr_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("AI Copilot rail: label"),
+        help_text=_(
+            "Operator-published display label for the copilot rail "
+            "(free-form; partials that don't read it ignore the extra key "
+            "cleanly). Persisted under cockpit.ai_copilot_rail.label."
+        ),
+    )
+    acr_title = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("AI Copilot rail: title"),
+        help_text=_(
+            "Header title shown at the top of the expanded copilot panel "
+            "(e.g. 'Copilot'). Maps to cockpit.ai_copilot_rail.title."
+        ),
+    )
+    acr_subtitle = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("AI Copilot rail: subtitle (optional)"),
+        help_text=_(
+            "Optional subtitle/eyebrow line under the title "
+            "(free-form; partials that don't read it ignore the extra key "
+            "cleanly). Persisted under cockpit.ai_copilot_rail.subtitle."
+        ),
+    )
+    acr_messages = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("AI Copilot rail: messages"),
+        help_text=_(
+            "One per line: role | body. role ∈ {assistant, user}; anything "
+            "else falls back to 'assistant'. Renders as the persistent "
+            "chat thread inside the expanded copilot panel. Rows without "
+            "a body are skipped. em_text (italic serif tail per message) "
+            "falls through to section defaults."
+        ),
+    )
+    acr_suggestions = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("AI Copilot rail: suggestion pills"),
+        help_text=_(
+            "One per line: label | command. Command column is optional "
+            "(reserved for a future ``data-rmc-copilot-cmd`` hook — "
+            "currently discarded on write; the rendering partial reads "
+            "bare label strings). Rows without a label are skipped. "
+            "Renders as starter-prompt chips below the message thread."
+        ),
+    )
+    acr_insight_icon = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("AI Copilot rail: insight icon (optional)"),
+        help_text=_(
+            "Optional single glyph for the top insight pill (default '💡'). "
+            "Persisted under cockpit.ai_copilot_rail.insight_icon; the "
+            "partial may render it inline with the insight body."
+        ),
+    )
+    acr_insight_body = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_SMALL,
+        label=_("AI Copilot rail: insight body (optional)"),
+        help_text=_(
+            "Top insight pill body — lead sentence shown above the chat "
+            "thread (e.g. 'Two tenants need attention this week.'). "
+            "Maps to cockpit.ai_copilot_rail.insight_text. insight_em "
+            "(italic serif fragment) falls through to section defaults."
+        ),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -3178,6 +3382,18 @@ class CockpitPayloadForm(forms.ModelForm):
     LIFE_EVENT_TIMELINE_FIELDS: tuple[str, ...] = (
         "let_label",
         "let_events",
+    )
+    # v3.57.17 rich-editor fieldset — final cockpit editor (closes the
+    # ai_copilot_rail complexity deferral). Sibling_compare stays
+    # code-only by design (privacy gate).
+    AI_COPILOT_RAIL_FIELDS: tuple[str, ...] = (
+        "acr_label",
+        "acr_title",
+        "acr_subtitle",
+        "acr_messages",
+        "acr_suggestions",
+        "acr_insight_icon",
+        "acr_insight_body",
     )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
@@ -3553,6 +3769,26 @@ class CockpitPayloadForm(forms.ModelForm):
         self.fields["let_events"].initial = _serialize_life_events(
             let.get("events")
         )
+
+        # ---- v3.57.17 rich-editor seeds (final cockpit editor) ------------
+        # manager_200x.ai_copilot_rail — multi-block editor (messages +
+        # suggestion pills + insight pill). ``label`` and ``subtitle`` are
+        # NOT in the helper defaults but are operator-editable here;
+        # round-trip cleanly via .get() with empty fallback.
+        acr = payload.get("ai_copilot_rail") or {}
+        self.fields["acr_label"].initial = acr.get("label", "")
+        self.fields["acr_title"].initial = acr.get("title", "")
+        self.fields["acr_subtitle"].initial = acr.get("subtitle", "")
+        self.fields["acr_messages"].initial = _serialize_copilot_messages(
+            acr.get("messages")
+        )
+        self.fields["acr_suggestions"].initial = _serialize_copilot_suggestions(
+            acr.get("suggested_actions")
+        )
+        self.fields["acr_insight_icon"].initial = acr.get("insight_icon", "")
+        # ``insight_body`` ↔ helper's ``insight_text`` — the partial reads
+        # ``insight_text`` directly so persisted payloads use that key.
+        self.fields["acr_insight_body"].initial = acr.get("insight_text", "")
 
     # ------------------------------------------------------------------
     # Flat-form -> nested-payload assembly.
@@ -4035,6 +4271,48 @@ class CockpitPayloadForm(forms.ModelForm):
             let_overlay["events"] = let_events
         if let_overlay:
             payload.setdefault("life_event_timeline", {}).update(let_overlay)
+
+        # v3.57.17 rich-editor overlay — final cockpit editor (closes the
+        # ai_copilot_rail complexity deferral). Same forgiving overlay
+        # pattern: build dict from operator inputs, filter empty values
+        # so `_deep_merge` preserves defaults from the helper module, then
+        # `.update()` onto a `setdefault()` dict so any pre-existing keys
+        # (e.g. the `enabled` flag from the v3.57 cockpit fieldset's
+        # `mgr_aic_enabled` toggle) survive alongside the new content.
+        #
+        # 27) manager_200x.ai_copilot_rail — multi-block: messages list +
+        # suggestion-pill list + insight-pill fields. ``label`` and
+        # ``subtitle`` are NOT in the helper defaults but are persisted
+        # here for operator-editable forward-compat (partial ignores
+        # unknown keys cleanly). ``insight_body`` writes into the helper's
+        # ``insight_text`` key — the partial reads ``insight_text``
+        # directly so the lead-sentence pill lights up.
+        acr_overlay: dict[str, Any] = {}
+        acr_label_v = (cleaned.get("acr_label") or "").strip()
+        if acr_label_v:
+            acr_overlay["label"] = acr_label_v
+        acr_title_v = (cleaned.get("acr_title") or "").strip()
+        if acr_title_v:
+            acr_overlay["title"] = acr_title_v
+        acr_subtitle_v = (cleaned.get("acr_subtitle") or "").strip()
+        if acr_subtitle_v:
+            acr_overlay["subtitle"] = acr_subtitle_v
+        acr_messages = _parse_copilot_messages(cleaned.get("acr_messages") or "")
+        if acr_messages:
+            acr_overlay["messages"] = acr_messages
+        acr_suggestions = _parse_copilot_suggestions(
+            cleaned.get("acr_suggestions") or ""
+        )
+        if acr_suggestions:
+            acr_overlay["suggested_actions"] = acr_suggestions
+        acr_insight_icon = (cleaned.get("acr_insight_icon") or "").strip()
+        if acr_insight_icon:
+            acr_overlay["insight_icon"] = acr_insight_icon
+        acr_insight_body = (cleaned.get("acr_insight_body") or "").strip()
+        if acr_insight_body:
+            acr_overlay["insight_text"] = acr_insight_body
+        if acr_overlay:
+            payload.setdefault("ai_copilot_rail", {}).update(acr_overlay)
 
         return payload
 

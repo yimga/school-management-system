@@ -833,6 +833,39 @@
     </fieldset>
     {% endif %}
 
+    {% comment %}
+      v3.57.17: Final cockpit editor — AI Copilot rail (manager_200x).
+      Closes the last complex-schema deferral. Multi-block textarea
+      pattern: one Textarea per nested list (messages + suggestion pills).
+      sibling_compare stays code-only by design (privacy gate). Empty
+      fields fall through to section defaults via _deep_merge in
+      cockpit_context.py.
+    {% endcomment %}
+
+    {# ---- v3.57.17 AI Copilot rail rich editor (final) ------------------- #}
+    {% if ai_copilot_rail_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="ai-copilot-rail">
+      <legend class="h6 px-2 fw-bold">{% trans "AI Copilot rail (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Label, title, subtitle, messages, suggestion pills, and insight pill for the manager_200x.ai_copilot_rail persistent right-column rail. Message role ∈ {assistant, user} (assistant is translated to the partial's 'ai' CSS token on write). Suggestion pills accept an optional command column (reserved for a future data-rmc-copilot-cmd hook; currently discarded). em_text per message, insight_em, and the AI service wiring itself stay code-owned and fall through from section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in ai_copilot_rail_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"

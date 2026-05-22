@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manager landing render verify · v3.57.17 (2026-05-22)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="render_verify_v3_57_17">
+  <link rel="stylesheet" href="/static/css/manager-cockpit-v7.css">
+  <link rel="stylesheet" href="/static/css/manager-control-plane.css">
+  <link rel="stylesheet" href="/static/css/rmc-cp-200x.css">
+  <link rel="stylesheet" href="/static/css/rmc-copilot-rail.css">
+  <link rel="stylesheet" href="/static/css/rmc-civic-footer.css">
+  <link rel="stylesheet" href="/static/css/rmc-pagination-grammar.css">
+  <style>
+    /* Minimal scaffolding to host the partial cascade. Mirrors enough of
+       the production shell so the partials look approximately right when
+       viewed against the dev static server. */
+    body.render-verify-body {
+      margin: 0;
+      font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #f4f5f7;
+      color: #172b4d;
+    }
+    body.render-verify-body.manager { background: #0b1220; color: #e6edf3; }
+    .render-verify-canvas { max-width: 1280px; margin: 0 auto; padding: 1rem 1.25rem 4rem; }
+    .render-verify-header {
+      padding: .75rem 1rem; border-bottom: 1px solid rgba(148,163,184,0.25);
+      background: rgba(15,23,42,0.04); font-weight: 600; font-size: 13px;
+      display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    }
+    .render-verify-header__tag {
+      display: inline-block; padding: .15rem .55rem; border-radius: 9999px;
+      background: #6366f1; color: #fff; font-size: 11px; letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .render-verify-header__note { color: #64748b; font-weight: 400; }
+  </style>
+</head>
+<body class="render-verify-body manager">
+  <header class="render-verify-header">
+    <span class="render-verify-header__tag">render-verify v3.57.17</span>
+    <span>Manager landing render verify · v3.57.17 (2026-05-22)</span>
+    <span class="render-verify-header__note">
+      Open against `python manage.py runserver` so the /static/css/* links resolve.
+      Partial-only render — context-heavy chrome (sidebar, breadcrumb, view-supplied lists) intentionally omitted.
+    </span>
+  </header>
+  <main class="render-verify-canvas">
+    <section class="render-verify-intro" style="padding:1rem 0 .25rem;border-bottom:1px solid rgba(99,102,241,0.18);margin-bottom:1rem"><h1 style="margin:0 0 .25rem;font-size:1.4rem;letter-spacing:.01em">Platform Command Center — cockpit cascade preview</h1><p style="margin:0;color:#94a3b8;font-size:.875rem">Synthesized canvas-body of <code>templates/schools/super_dashboard.html</code> — 10 v8 200x cockpit partials in the same include order. Hero / chip row / queues / school registry are view-supplied and intentionally omitted.</p></section>
+    
+  <!-- ===== cockpit partial: _activity_ticker.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+
+
+<div class="rmc-cockpit-ticker" role="region" aria-label="Live platform activity"
+     style="--rmc-cockpit-ticker-seconds: 60s;">
+  <span class="rmc-cockpit-ticker__badge">LIVE</span>
+  <div class="rmc-cockpit-ticker__viewport">
+    <div class="rmc-cockpit-ticker__track">
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--success">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">🆕</span>
+        <span class="rmc-cockpit-ticker__event-text">New school provisioned — Saint Sebastien Academy</span>
+        <span class="rmc-cockpit-ticker__event-time">· 12s ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--success">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">↗</span>
+        <span class="rmc-cockpit-ticker__event-text">MRR up $420 this week</span>
+        <span class="rmc-cockpit-ticker__event-time">· 1m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--danger">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">🚨</span>
+        <span class="rmc-cockpit-ticker__event-text">Tenant #567 webhook drift detected</span>
+        <span class="rmc-cockpit-ticker__event-time">· 2m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--info">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">🎫</span>
+        <span class="rmc-cockpit-ticker__event-text">5 new support tickets</span>
+        <span class="rmc-cockpit-ticker__event-time">· 4m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--success">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">✓</span>
+        <span class="rmc-cockpit-ticker__event-text">Migration sync complete for 12 schools</span>
+        <span class="rmc-cockpit-ticker__event-time">· 6m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--warn">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">⚠</span>
+        <span class="rmc-cockpit-ticker__event-text">2 schools approaching invoice due date</span>
+        <span class="rmc-cockpit-ticker__event-time">· 8m ago</span>
+      </span>
+      
+      
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--success" aria-hidden="true">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">🆕</span>
+        <span class="rmc-cockpit-ticker__event-text">New school provisioned — Saint Sebastien Academy</span>
+        <span class="rmc-cockpit-ticker__event-time">· 12s ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--success" aria-hidden="true">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">↗</span>
+        <span class="rmc-cockpit-ticker__event-text">MRR up $420 this week</span>
+        <span class="rmc-cockpit-ticker__event-time">· 1m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--danger" aria-hidden="true">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">🚨</span>
+        <span class="rmc-cockpit-ticker__event-text">Tenant #567 webhook drift detected</span>
+        <span class="rmc-cockpit-ticker__event-time">· 2m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--info" aria-hidden="true">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">🎫</span>
+        <span class="rmc-cockpit-ticker__event-text">5 new support tickets</span>
+        <span class="rmc-cockpit-ticker__event-time">· 4m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--success" aria-hidden="true">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">✓</span>
+        <span class="rmc-cockpit-ticker__event-text">Migration sync complete for 12 schools</span>
+        <span class="rmc-cockpit-ticker__event-time">· 6m ago</span>
+      </span>
+      
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--warn" aria-hidden="true">
+        <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">⚠</span>
+        <span class="rmc-cockpit-ticker__event-text">2 schools approaching invoice due date</span>
+        <span class="rmc-cockpit-ticker__event-time">· 8m ago</span>
+      </span>
+      
+    </div>
+  </div>
+</div>
+
+
+
+
+  <!-- ===== cockpit partial: _platform_pulse.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="rmc-cockpit-pulse" aria-labelledby="rmc-cockpit-pulse-label">
+  <div class="rmc-cockpit-pulse__label" id="rmc-cockpit-pulse-label">
+    <span class="rmc-cockpit-pulse__live-dot" aria-hidden="true"></span>
+    Platform pulse · live
+  </div>
+  <div class="rmc-cockpit-pulse__cards">
+    
+    <article class="rmc-cockpit-pulse-card">
+      <div class="rmc-cockpit-pulse-card__head">
+        <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--ok" aria-hidden="true"></span>
+        Schools
+      </div>
+      <div class="rmc-cockpit-pulse-card__value">168</div>
+      <div class="rmc-cockpit-pulse-card__label">Healthy</div>
+      <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ +3 this week</div>
+    </article>
+    
+    <article class="rmc-cockpit-pulse-card">
+      <div class="rmc-cockpit-pulse-card__head">
+        <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--warn" aria-hidden="true"></span>
+        Incidents
+      </div>
+      <div class="rmc-cockpit-pulse-card__value">12</div>
+      <div class="rmc-cockpit-pulse-card__label">Open</div>
+      <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ 4 vs 7d avg</div>
+    </article>
+    
+    <article class="rmc-cockpit-pulse-card">
+      <div class="rmc-cockpit-pulse-card__head">
+        <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--info" aria-hidden="true"></span>
+        Countries
+      </div>
+      <div class="rmc-cockpit-pulse-card__value">2 / 249</div>
+      <div class="rmc-cockpit-pulse-card__label">Live coverage</div>
+      <div class="rmc-cockpit-pulse-card__delta">→ no change</div>
+    </article>
+    
+    <article class="rmc-cockpit-pulse-card">
+      <div class="rmc-cockpit-pulse-card__head">
+        <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--ok" aria-hidden="true"></span>
+        MRR
+      </div>
+      <div class="rmc-cockpit-pulse-card__value">$42k</div>
+      <div class="rmc-cockpit-pulse-card__label">Recurring</div>
+      <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ +$420 wk</div>
+    </article>
+    
+    <article class="rmc-cockpit-pulse-card">
+      <div class="rmc-cockpit-pulse-card__head">
+        <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--ok" aria-hidden="true"></span>
+        Webhooks
+      </div>
+      <div class="rmc-cockpit-pulse-card__value">0</div>
+      <div class="rmc-cockpit-pulse-card__label">Drift</div>
+      <div class="rmc-cockpit-pulse-card__delta">— stable</div>
+    </article>
+    
+    <article class="rmc-cockpit-pulse-card">
+      <div class="rmc-cockpit-pulse-card__head">
+        <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--info" aria-hidden="true"></span>
+        Pipeline
+      </div>
+      <div class="rmc-cockpit-pulse-card__value">3</div>
+      <div class="rmc-cockpit-pulse-card__label">Onboarding</div>
+      <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ 1 new today</div>
+    </article>
+    
+  </div>
+</section>
+
+
+  <!-- ===== cockpit partial: _live_world_map.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="lx-card lx-world" aria-label="Live world map of tenant locations">
+  <div class="lx-world__map">
+    <svg class="lx-world__svg" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="lx-globe-bg" cx="50%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="rgba(99,102,241,0.18)"/>
+          <stop offset="100%" stop-color="rgba(99,102,241,0.02)"/>
+        </radialGradient>
+        <radialGradient id="lx-heat-1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(99,102,241,0.45)"/>
+          <stop offset="100%" stop-color="rgba(99,102,241,0)"/>
+        </radialGradient>
+        <radialGradient id="lx-heat-2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(16,185,129,0.40)"/>
+          <stop offset="100%" stop-color="rgba(16,185,129,0)"/>
+        </radialGradient>
+      </defs>
+      <rect x="0" y="0" width="600" height="280" fill="url(#lx-globe-bg)" rx="14"/>
+      <g fill="rgba(148,163,184,0.15)" stroke="rgba(148,163,184,0.30)" stroke-width="0.6">
+        <path d="M48,90 Q70,72 100,80 Q124,86 140,108 Q156,128 142,148 Q130,162 100,160 Q72,158 60,142 Q42,120 48,90 Z"/>
+        <path d="M170,72 Q210,64 246,80 Q282,98 290,128 Q294,158 268,176 Q236,192 200,178 Q166,168 158,140 Q152,108 170,72 Z"/>
+        <path d="M310,86 Q350,72 396,82 Q436,92 458,120 Q470,140 460,164 Q448,184 410,188 Q368,192 336,172 Q304,148 302,118 Q302,98 310,86 Z"/>
+        <path d="M480,108 Q510,104 538,118 Q558,128 564,148 Q568,170 552,184 Q524,200 502,188 Q478,176 474,152 Q472,124 480,108 Z"/>
+        <path d="M140,196 Q172,188 198,200 Q220,210 222,224 Q220,238 196,242 Q168,246 148,234 Q132,222 140,196 Z"/>
+        <path d="M376,206 Q408,200 432,212 Q452,222 450,238 Q446,254 420,256 Q394,258 378,246 Q362,232 376,206 Z"/>
+      </g>
+      <circle cx="120" cy="120" r="60" fill="url(#lx-heat-1)"/>
+      <circle cx="240" cy="130" r="70" fill="url(#lx-heat-2)"/>
+      <circle cx="400" cy="140" r="80" fill="url(#lx-heat-1)"/>
+      
+      <g>
+        <circle class="lx-world__ring" cx="180" cy="110" r="4" fill="none" stroke="rgba(34,197,94,0.32)" stroke-width="1.5"/>
+        <circle class="lx-world__dot" cx="180" cy="110" r="4" fill="var(--success, #22c55e)" stroke="#fff" stroke-width="0.6"/>
+      </g>
+      
+      <g>
+        <circle class="lx-world__ring" cx="280" cy="180" r="4" fill="none" stroke="rgba(34,197,94,0.32)" stroke-width="1.5"/>
+        <circle class="lx-world__dot" cx="280" cy="180" r="4" fill="var(--success, #22c55e)" stroke="#fff" stroke-width="0.6"/>
+      </g>
+      
+      <g>
+        <circle class="lx-world__ring" cx="350" cy="220" r="4" fill="none" stroke="rgba(96,165,250,0.32)" stroke-width="1.5"/>
+        <circle class="lx-world__dot" cx="350" cy="220" r="4" fill="var(--info, #60a5fa)" stroke="#fff" stroke-width="0.6"/>
+      </g>
+      
+      <g>
+        <circle class="lx-world__ring" cx="470" cy="160" r="4" fill="none" stroke="rgba(245,158,11,0.32)" stroke-width="1.5"/>
+        <circle class="lx-world__dot" cx="470" cy="160" r="4" fill="var(--warning, #f59e0b)" stroke="#fff" stroke-width="0.6"/>
+      </g>
+      
+      <g>
+        <circle class="lx-world__ring" cx="560" cy="240" r="4" fill="none" stroke="rgba(96,165,250,0.32)" stroke-width="1.5"/>
+        <circle class="lx-world__dot" cx="560" cy="240" r="4" fill="var(--info, #60a5fa)" stroke="#fff" stroke-width="0.6"/>
+      </g>
+      
+      <g stroke="rgba(99,102,241,0.10)" stroke-width="0.5" fill="none">
+        <ellipse cx="300" cy="140" rx="280" ry="120"/>
+        <ellipse cx="300" cy="140" rx="220" ry="90"/>
+        <ellipse cx="300" cy="140" rx="160" ry="60"/>
+      </g>
+    </svg>
+  </div>
+  <div class="lx-world__legend">
+    <div class="lx-card__eyebrow">Global footprint</div>
+    <div class="lx-world__count">
+      127
+      <small class="lx-world__count-suffix">schools live</small>
+    </div>
+    <div class="lx-world__count-sub">Across 14 districts · 9 countries · 3 time zones live</div>
+    
+    <div class="lx-world__legend-row">
+      <span><span class="lx-world__legend-row__dot" data-rmc-dot-color="var(--success, #22c55e)"></span>North America</span>
+      <strong>62</strong>
+    </div>
+    
+    <div class="lx-world__legend-row">
+      <span><span class="lx-world__legend-row__dot" data-rmc-dot-color="var(--info, #60a5fa)"></span>West Africa</span>
+      <strong>31</strong>
+    </div>
+    
+    <div class="lx-world__legend-row">
+      <span><span class="lx-world__legend-row__dot" data-rmc-dot-color="var(--warning, #f59e0b)"></span>Europe</span>
+      <strong>22</strong>
+    </div>
+    
+    <div class="lx-world__legend-row">
+      <span><span class="lx-world__legend-row__dot" data-rmc-dot-color="var(--text-secondary, #64748b)"></span>Asia · Oceania</span>
+      <strong>12</strong>
+    </div>
+    
+  </div>
+</section>
+
+
+  <!-- ===== cockpit partial: _forecast_lane.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="lx-forecast-section" aria-label="Seven-day forecast">
+  <div class="lx-forecast__heading">
+    <span class="lx-forecast__live-dot" aria-hidden="true"></span>
+    Forecast · next 7 days
+  </div>
+  <div class="lx-forecast">
+    
+    <div class="lx-forecast__card lx-forecast__card--mrr">
+      <div class="lx-forecast__label">MRR · 7-day forecast</div>
+      <div class="lx-forecast__value">$45.8k</div>
+      <div class="lx-forecast__pred">steady · 92% confidence</div>
+      <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M130,70 C160,55 190,50 220,48 L250,46 L250,68 L220,68 C190,68 160,68 130,68 Z" fill="rgba(34,197,94,0.10)"/>
+        
+        <polyline points="10,90 40,82 70,88 100,76 130,70 " fill="none" stroke="#22c55e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        
+        
+        <polyline points="130,70 160,65 190,60 220,58 250,56 " fill="none" stroke="#22c55e" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+        
+        <line x1="130" y1="6" x2="130" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+      </svg>
+      <div class="lx-forecast__caption">
+        <span>today</span>
+        <span class="lx-forecast__caption-em">+7 days</span>
+      </div>
+    </div>
+    
+    <div class="lx-forecast__card lx-forecast__card--new_schools">
+      <div class="lx-forecast__label">New schools · 7-day forecast</div>
+      <div class="lx-forecast__value">4–6</div>
+      <div class="lx-forecast__pred">expected · 88% confidence</div>
+      <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M130,68 C160,52 190,46 220,44 L250,40 L250,64 L220,64 C190,64 160,64 130,64 Z" fill="rgba(96,165,250,0.10)"/>
+        
+        <polyline points="10,88 40,80 70,84 100,72 130,68 " fill="none" stroke="#60a5fa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        
+        
+        <polyline points="130,68 160,62 190,58 220,54 250,50 " fill="none" stroke="#60a5fa" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+        
+        <line x1="130" y1="6" x2="130" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+      </svg>
+      <div class="lx-forecast__caption">
+        <span>today</span>
+        <span class="lx-forecast__caption-em">+7 days</span>
+      </div>
+    </div>
+    
+    <div class="lx-forecast__card lx-forecast__card--incidents">
+      <div class="lx-forecast__label">Incidents · 7-day forecast</div>
+      <div class="lx-forecast__value">3</div>
+      <div class="lx-forecast__pred">low · 95% confidence</div>
+      <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M130,84 C160,76 190,72 220,70 L250,68 L250,90 L220,90 C190,90 160,90 130,90 Z" fill="rgba(245,158,11,0.10)"/>
+        
+        <polyline points="10,84 40,90 70,86 100,88 130,84 " fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        
+        
+        <polyline points="130,84 160,86 190,82 220,80 250,78 " fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+        
+        <line x1="130" y1="6" x2="130" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+      </svg>
+      <div class="lx-forecast__caption">
+        <span>today</span>
+        <span class="lx-forecast__caption-em">+7 days</span>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+
+  <!-- ===== cockpit partial: _slo_clocks.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="lx-slo" aria-label="Live SLO clocks">
+  
+  <div class="lx-slo__card">
+    <span class="lx-slo__dot lx-slo__dot--ok" aria-hidden="true"></span>
+    <div class="lx-slo__label">P99 latency budget</div>
+    <div class="lx-slo__value">
+      32<small>m left</small>
+    </div>
+    <div class="lx-slo__name">api · 28d window</div>
+  </div>
+  
+  <div class="lx-slo__card">
+    <span class="lx-slo__dot lx-slo__dot--info" aria-hidden="true"></span>
+    <div class="lx-slo__label">Audit chain verify</div>
+    <div class="lx-slo__value">
+      4d<small>6h</small>
+    </div>
+    <div class="lx-slo__name">scheduled Mon · 02:00 UTC</div>
+  </div>
+  
+  <div class="lx-slo__card">
+    <span class="lx-slo__dot lx-slo__dot--warn" aria-hidden="true"></span>
+    <div class="lx-slo__label">Next key rotation</div>
+    <div class="lx-slo__value">
+      14d<small>02h</small>
+    </div>
+    <div class="lx-slo__name">MultiFernet · monthly</div>
+  </div>
+  
+  <div class="lx-slo__card">
+    <span class="lx-slo__dot lx-slo__dot--ok" aria-hidden="true"></span>
+    <div class="lx-slo__label">Backup drill</div>
+    <div class="lx-slo__value">
+      21d<small>11h</small>
+    </div>
+    <div class="lx-slo__name">DR cadence · quarterly</div>
+  </div>
+  
+</section>
+
+
+  <!-- ===== cockpit partial: _tenant_heatmap.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="lx-card lx-heatmap" aria-label="Tenant heatmap by health">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">Tenants · health grid</div>
+      <h3 class="lx-card__title">
+        Every school,
+         <em>one tile each</em>
+      </h3>
+    </div>
+    <div class="lx-card__meta">60 of 127 · refreshed 12s ago</div>
+  </div>
+  <div class="lx-heatmap__grid" role="list">
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 01"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 02"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 03"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 04"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 05"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 06"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 07"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 08"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 09"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 10"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 11"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 12"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 13"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 14"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 15"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 16"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 17"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 18"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 19"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 20"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 21"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 22"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 23"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 24"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 25"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 26"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 27"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 28"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 29"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 30"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 31"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 32"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 33"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 34"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 35"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 36"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 37"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 38"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 39"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 40"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 41"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 42"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 43"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 44"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 45"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 46"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 47"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 48"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 49"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 50"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 51"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 52"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 53"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 54"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 55"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--danger" role="listitem" data-label="Tenant 56"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--danger" role="listitem" data-label="Tenant 57"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--idle" role="listitem" data-label="Tenant 58"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--idle" role="listitem" data-label="Tenant 59"></div>
+    
+      <div class="lx-heatmap__tile lx-heatmap__tile--idle" role="listitem" data-label="Tenant 60"></div>
+    
+  </div>
+  <div class="lx-heatmap__legend" aria-label="Heatmap legend">
+    <span class="lx-l-healthy">Healthy</span>
+    <span class="lx-l-okay">Okay</span>
+    <span class="lx-l-warn">Watch</span>
+    <span class="lx-l-danger">Critical</span>
+    <span class="lx-l-idle">Idle / pilot</span>
+    <span class="lx-heatmap__legend-hint">hover any tile for tenant name</span>
+  </div>
+</section>
+
+
+  <!-- ===== cockpit partial: _revenue_waterfall.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="lx-card lx-waterfall" aria-label="Monthly recurring revenue waterfall">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">MRR waterfall · this month</div>
+      <h3 class="lx-card__title">
+        $39.2k
+         <em>to a closing</em>
+        $42.1k
+      </h3>
+    </div>
+    <div class="lx-card__meta">closing day 18 of 31 · pacing +7.4%</div>
+  </div>
+  <svg class="lx-waterfall__svg" viewBox="0 0 760 220" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="lx-wf-up" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22c55e"/>
+        <stop offset="100%" stop-color="#16a34a"/>
+      </linearGradient>
+      <linearGradient id="lx-wf-down" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f87171"/>
+        <stop offset="100%" stop-color="#dc2626"/>
+      </linearGradient>
+      <linearGradient id="lx-wf-anchor" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#6366f1"/>
+        <stop offset="100%" stop-color="#4338ca"/>
+      </linearGradient>
+    </defs>
+    <line x1="20" y1="180" x2="740" y2="180" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+    
+      <line x1="140" y1="80" x2="200" y2="60" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+    
+      <line x1="300" y1="60" x2="360" y2="48" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+    
+      <line x1="460" y1="48" x2="520" y2="66" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+    
+      <line x1="620" y1="66" x2="680" y2="70" stroke="rgba(0,0,0,0.30)" stroke-width="1" stroke-dasharray="2 2"/>
+    
+    
+      <rect x="40" y="80" width="100" height="140" rx="6" fill="url(#lx-wf-anchor)"/>
+      
+      <text x="90" y="70" text-anchor="middle" font-size="11" fill="var(--text-primary)" font-weight="700">$39.2k</text>
+      <text x="90" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Starting MRR</text>
+      
+    
+      <rect x="200" y="60" width="100" height="30" rx="6" fill="url(#lx-wf-up)"/>
+      
+      <text x="250" y="50" text-anchor="middle" font-size="11" fill="var(--success, #22c55e)" font-weight="700">+$3.8k</text>
+      <text x="250" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">New business</text>
+      
+    
+      <rect x="360" y="48" width="100" height="18" rx="6" fill="url(#lx-wf-up)"/>
+      
+      <text x="410" y="38" text-anchor="middle" font-size="11" fill="var(--success, #22c55e)" font-weight="700">+$1.6k</text>
+      <text x="410" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Expansion</text>
+      
+    
+      <rect x="520" y="66" width="100" height="32" rx="6" fill="url(#lx-wf-down)"/>
+      
+      <text x="570" y="56" text-anchor="middle" font-size="11" fill="var(--danger, #ef4444)" font-weight="700">-$2.5k</text>
+      <text x="570" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Churn</text>
+      
+    
+      <rect x="680" y="70" width="100" height="150" rx="6" fill="url(#lx-wf-anchor)"/>
+      
+      <text x="730" y="60" text-anchor="middle" font-size="11" fill="var(--text-primary)" font-weight="700">$42.1k</text>
+      <text x="730" y="200" text-anchor="middle" font-size="10" fill="#6e6e73" font-weight="600">Ending MRR</text>
+      
+    
+  </svg>
+  <div class="lx-waterfall__legend">
+    
+      <div>
+        <small>Starting</small>
+        <strong class="lx-waterfall__legend-value lx-waterfall__legend-value--neutral">$39.2k</strong>
+      </div>
+    
+      <div>
+        <small>Net new</small>
+        <strong class="lx-waterfall__legend-value lx-waterfall__legend-value--neutral">+$5.4k</strong>
+      </div>
+    
+      <div>
+        <small>Churn</small>
+        <strong class="lx-waterfall__legend-value lx-waterfall__legend-value--neutral">-$2.5k</strong>
+      </div>
+    
+      <div>
+        <small>Closing</small>
+        <strong class="lx-waterfall__legend-value lx-waterfall__legend-value--neutral">$42.1k</strong>
+      </div>
+    
+  </div>
+</section>
+
+
+  <!-- ===== cockpit partial: _audit_feed.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="lx-card lx-audit" aria-label="Audit feed">
+  <div class="lx-audit__head">
+    <div class="lx-audit__title">
+      Audit feed
+       <em>— every consequential write</em>
+    </div>
+    <div class="lx-audit__filter">scope: super-admin · last 24h</div>
+  </div>
+  <table class="lx-audit__table">
+    <thead>
+      <tr>
+        <th class="lx-audit__col-time">Time</th>
+        <th class="lx-audit__col-actor">Actor</th>
+        <th>Event</th>
+        <th class="lx-audit__col-scope">Scope</th>
+        <th class="lx-audit__col-sev">Severity</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td class="lx-audit__time">14:38:02</td>
+        <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok" aria-hidden="true"></span>ops-admin-7a</td>
+        <td class="lx-audit__event">key.rotate</td>
+        <td class="lx-audit__scope">ten-9f2a · v3</td>
+        <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
+      </tr>
+      
+      <tr>
+        <td class="lx-audit__time">14:21:55</td>
+        <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--info" aria-hidden="true"></span>ops-admin-2c</td>
+        <td class="lx-audit__event">maa.sign</td>
+        <td class="lx-audit__scope">ten-b41e · v1.0</td>
+        <td><span class="lx-audit__sev-label lx-audit__sev-label--info">INFO</span></td>
+      </tr>
+      
+      <tr>
+        <td class="lx-audit__time">13:52:11</td>
+        <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--warn" aria-hidden="true"></span>auto-task</td>
+        <td class="lx-audit__event">webhook.delivery.replay</td>
+        <td class="lx-audit__scope">ten-3c11 · attempt 2</td>
+        <td><span class="lx-audit__sev-label lx-audit__sev-label--warn">WATCH</span></td>
+      </tr>
+      
+      <tr>
+        <td class="lx-audit__time">13:38:44</td>
+        <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok" aria-hidden="true"></span>ops-admin-1d</td>
+        <td class="lx-audit__event">token.mint</td>
+        <td class="lx-audit__scope">ten-7e08 · scope:bundles</td>
+        <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
+      </tr>
+      
+      <tr>
+        <td class="lx-audit__time">12:14:09</td>
+        <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok" aria-hidden="true"></span>auto-task</td>
+        <td class="lx-audit__event">audit.chain.verify</td>
+        <td class="lx-audit__scope">all tenants</td>
+        <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
+      </tr>
+      
+      <tr>
+        <td class="lx-audit__time">10:02:18</td>
+        <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--danger" aria-hidden="true"></span>ops-admin-5b</td>
+        <td class="lx-audit__event">webhook.subscription.deleted</td>
+        <td class="lx-audit__scope">ten-a229 · sub-44</td>
+        <td><span class="lx-audit__sev-label lx-audit__sev-label--danger">RISK</span></td>
+      </tr>
+      
+    </tbody>
+  </table>
+</section>
+
+
+  <!-- ===== cockpit partial: _trust_nutrition.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<section class="lx-card lx-trust" aria-label="Trust nutrition label">
+  <div class="lx-trust__head">
+    <h3>Trust nutrition</h3>
+    <small>per Apple Watch complications</small>
+  </div>
+  <div class="lx-trust__rule" aria-hidden="true"></div>
+  <div class="lx-trust__rows">
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">Uptime · 30d</span>
+      <span class="lx-trust__value lx-trust__value--ok">99.987%</span>
+    </div>
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">Active incidents</span>
+      <span class="lx-trust__value lx-trust__value--ok">0</span>
+    </div>
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">Avg p95 latency · api</span>
+      <span class="lx-trust__value lx-trust__value--ok">184ms</span>
+    </div>
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">Webhook delivery success</span>
+      <span class="lx-trust__value lx-trust__value--ok">99.4%</span>
+    </div>
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">Audit chain integrity</span>
+      <span class="lx-trust__value lx-trust__value--ok">verified</span>
+    </div>
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">Key rotation due</span>
+      <span class="lx-trust__value lx-trust__value--warn">14d</span>
+    </div>
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">DR drill</span>
+      <span class="lx-trust__value lx-trust__value--warn">21d</span>
+    </div>
+    
+    <div class="lx-trust__row">
+      <span class="lx-trust__label">Pending compliance reviews</span>
+      <span class="lx-trust__value lx-trust__value--neutral">2</span>
+    </div>
+    
+  </div>
+  <div class="lx-trust__caption">audit-grade · refreshed every 60s</div>
+</section>
+
+
+  <!-- ===== cockpit partial: _operator_presence.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+<div class="cp-presence" role="status" aria-label="Operators online and platform status">
+  
+  <span class="cp-presence__avatars" aria-hidden="true">
+    
+      <span class="cp-presence__avatar cp-presence__avatar--indigo">AB</span>
+    
+      <span class="cp-presence__avatar cp-presence__avatar--emerald">CD</span>
+    
+      <span class="cp-presence__avatar cp-presence__avatar--amber">EF</span>
+    
+  </span>
+  
+  <span class="cp-presence__count">
+    7 operators online
+  </span>
+  
+  <span class="cp-presence__status">All systems handling well</span>
+  
+</div>
+
+
+  </main>
+</body>
+</html>

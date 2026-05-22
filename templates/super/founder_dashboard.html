@@ -20,6 +20,12 @@
 
 {% block cp_content %}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
+{% comment %} v3.57.18 (2026-05-22): founder landing receives the same cockpit chrome as
+   the manager landing (platform_pulse + activity_ticker). Per Agent Y audit, this is
+   the top-of-the-org operator landing — earns landing-peer parity with super_dashboard.
+   Each partial self-gates on cockpit.<section>.enabled. {% endcomment %}
+{% include "partials/cockpit/_activity_ticker.html" %}
+{% include "partials/cockpit/_platform_pulse.html" %}
 <div class="container-fluid py-4"
      data-rmc-founder-dashboard="1"
      data-rmc-ux-role-dashboard="founder-command-center"

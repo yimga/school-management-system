@@ -3,6 +3,11 @@
 {% load region_format phase8_tags %}
 {% block cp_title %}Customer Success{% endblock %}
 {% block cp_content %}
+{% comment %} v3.57.18 (2026-05-22): CS team's operator landing earns landing-peer parity
+   with super_dashboard.html — gets platform_pulse + activity_ticker. Each partial
+   self-gates on cockpit.<section>.enabled. {% endcomment %}
+{% include "partials/cockpit/_activity_ticker.html" %}
+{% include "partials/cockpit/_platform_pulse.html" %}
 <div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with eyebrow="Customer Success · 11.3 + 11.4" title="Benchmark & Customer Success" subtitle="Section 11.3 Benchmark intelligence • 11.4 Customer success (health, risk alerts, interventions, workflow failures)." action_url=dashboard_url action_text="Back to dashboard" %}

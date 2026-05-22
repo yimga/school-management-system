@@ -30,6 +30,14 @@
       {% include "partials/cockpit/_teacher_spotlight_card.html" %}
     </div>
   </div>
+  {% comment %} v3.57.18 (2026-05-22): teacher-appropriate v3 100x extended sections rendered
+     ONLY on the teacher landing dashboard. Each partial self-gates on
+     cockpit.<section>.enabled. {% endcomment %}
+  {% include "partials/cockpit/_realtime_presence.html" %}
+  {% include "partials/cockpit/_attendance_heatmap.html" %}
+  {% include "partials/cockpit/_calendar_weather.html" %}
+  {% include "partials/cockpit/_lesson_of_day.html" %}
+  {% include "partials/cockpit/_gradebook_trend.html" %}
 </div>
 <div class="tdm-bg" data-decision-engine="surface" data-rmc-page="teacher-portal">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}

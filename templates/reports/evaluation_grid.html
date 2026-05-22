@@ -1,11 +1,19 @@
-{% load region_format %}
+{% load region_format i18n %}
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
   {% include "reports/_report_styles.html" %}
 </head>
-<body data-page-archetype="record-detail">
+<body class="rmc-print-v2" data-page-archetype="record-detail">
+  {% comment %} v3.57.12+ (2026-05-22): civic brand block per rmc-print-v2 grammar
+     so PDF renders of the teacher-marks / grading-sheet evaluation grid carry
+     the wordmark + motto + crest header. Translated title pre-resolved to
+     avoid lazy-callable leak. The existing legacy .letterhead block below is
+     preserved for backwards-compat of period / total pill chrome. {% endcomment %}
+  {% trans "Evaluation grid" as _report_title %}
+  {% now "Y-m-d" as _generated_at %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title|default:_report_title report_subtitle=report_period report_meta_left=_generated_at report_meta_right=SITE.site_name %}
   <div class="letterhead">
     {% if SITE_LOGO_URL %}
       <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />
