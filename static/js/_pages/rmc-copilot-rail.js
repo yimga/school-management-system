@@ -49,9 +49,31 @@
     }
   }
 
+  function findNotebook() {
+    return document.querySelector("[data-rmc-operator-notebook]");
+  }
+
+  function toggleNotebookMinimized() {
+    var nb = findNotebook();
+    if (!nb) { return; }
+    var current = nb.getAttribute("data-rmc-notebook-state") || "open";
+    nb.setAttribute("data-rmc-notebook-state", current === "minimized" ? "open" : "minimized");
+  }
+
   function onClick(ev) {
     var target = ev.target;
     if (!target || typeof target.closest !== "function") { return; }
+
+    /* Notebook minimize (the ─ button inside the notebook head) and the
+       pencil-icon on the collapsed copilot rail both toggle the notebook. */
+    var nbMinBtn = target.closest(".lx-notebook__min");
+    var nbToggleBtn = target.closest("[data-rmc-operator-notebook-toggle]");
+    if (nbMinBtn || nbToggleBtn) {
+      ev.preventDefault();
+      toggleNotebookMinimized();
+      return;
+    }
+
     var toggle = target.closest("[data-rmc-copilot-toggle]");
     if (!toggle) { return; }
     ev.preventDefault();
