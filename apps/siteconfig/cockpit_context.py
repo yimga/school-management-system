@@ -207,57 +207,61 @@ _DEFAULT_ACTIVITY_EVENTS: list[dict[str, Any]] = [
 ]
 
 
-# Default platform pulse cards. Values are placeholders until the admin
-# wave wires them to live aggregates (apps/observability/metrics.py
-# already exposes the underlying counts).
+# Default platform pulse cards — v3.57.4 demo values byte-mirrored from the
+# v8 200x preview at docs/generated/preview_app_shell_manager_v8_200x.html.
+# To restore honest "—" placeholders (e.g. for a production deploy before
+# real metrics are wired), set settings.COCKPIT_200X_RENDER_PREVIEW_DEMO=False
+# (the orchestrator below replaces these cards with all-"—" placeholders in
+# that branch). Live aggregates from apps/observability/metrics.py will land
+# in a follow-up wave per the cockpit configurability contract.
 _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
     {
         "head": _("Schools"),
         "severity": "ok",
-        "value": "—",
+        "value": "168",
         "label": _("Healthy"),
-        "delta": None,
-        "delta_direction": None,
+        "delta": "▲ +3 this week",
+        "delta_direction": "up",
     },
     {
         "head": _("Incidents"),
         "severity": "warn",
-        "value": "—",
+        "value": "12",
         "label": _("Open"),
-        "delta": None,
-        "delta_direction": None,
+        "delta": "▲ 4 vs 7d avg",
+        "delta_direction": "up",
     },
     {
         "head": _("Countries"),
         "severity": "info",
-        "value": "—",
+        "value": "2 / 249",
         "label": _("Live coverage"),
-        "delta": None,
+        "delta": "→ no change",
         "delta_direction": None,
     },
     {
         "head": _("MRR"),
         "severity": "ok",
-        "value": "—",
+        "value": "$42k",
         "label": _("Recurring"),
-        "delta": None,
-        "delta_direction": None,
+        "delta": "▲ +$420 wk",
+        "delta_direction": "up",
     },
     {
         "head": _("Webhooks"),
         "severity": "ok",
-        "value": "—",
+        "value": "0",
         "label": _("Drift"),
-        "delta": None,
+        "delta": "— stable",
         "delta_direction": None,
     },
     {
         "head": _("Pipeline"),
         "severity": "info",
-        "value": "—",
+        "value": "3",
         "label": _("Onboarding"),
-        "delta": None,
-        "delta_direction": None,
+        "delta": "▲ 1 new today",
+        "delta_direction": "up",
     },
 ]
 
