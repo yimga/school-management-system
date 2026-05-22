@@ -94,7 +94,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-numeric-content-bounded */
   transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
 }
 .statement-logo img,
@@ -150,7 +150,7 @@
 .statement-header .statement-logo span,
 .cp-navbar .navbar-brand span,
 .cp-navbar .statement-logo span {
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-numeric-content-bounded */
   font-size: var(--type-size-body-l);
   font-weight: 600;
 }

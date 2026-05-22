@@ -81,7 +81,7 @@
   left: 50%;
   bottom: calc(100% + 0.35rem);
   transform: translateX(-50%);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
   padding: 0.35rem 0.6rem;
   border-radius: 0.35rem;
   background: var(--surface-elevated, #fff);

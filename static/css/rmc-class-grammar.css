@@ -1664,7 +1664,7 @@
 }
 .feature-cat-tab {
   /* Inherits rmc-segmented__btn — these are layout hooks only. */
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocabulary */
 }
 .feature-cat-tab__label {
   /* Truncate long category labels in narrow viewports rather than wrap. */

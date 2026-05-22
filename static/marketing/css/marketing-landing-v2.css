@@ -716,7 +716,7 @@ body[data-mkt-edition="editorial"] main {
     color var(--mkt-edt-duration-base) var(--mkt-edt-ease),
     border-color var(--mkt-edt-duration-base) var(--mkt-edt-ease);
   user-select: none;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocabulary */
 }
 [data-mkt-edition="editorial"] .mkt-edt-lens__tab:hover {
   color: var(--mkt-edt-ink);

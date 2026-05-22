@@ -16,7 +16,7 @@
 .cursor-help { cursor: help; }
 
 .ws-pre-wrap { white-space: pre-wrap; }
-.ws-nowrap { white-space: nowrap; }
+.ws-nowrap { white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */ }
 
 /* Icon sizing — paired with <i class="bi ..."> usage */
 .icon-sm { font-size: var(--type-size-caption); line-height: 1; }

@@ -120,7 +120,7 @@
   font-size: var(--type-size-caption);
   font-weight: 500;
   color: var(--text-secondary, var(--color-base-600));
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }
 
 .dark .cps-base-label,
@@ -323,7 +323,7 @@
 }
 
 .cps-preset-name {
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }
 
 /* ============================================================

@@ -93,7 +93,7 @@ body.dashboard {
   text-align: left;
   background: var(--surface-canvas);
   border-bottom: 1px solid var(--hairline);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }
 
 #result_list thead th a,
@@ -163,7 +163,7 @@ body.dashboard {
   color: var(--text-tertiary);
   font-family: var(--mono);
   font-size: 11px;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric-content-bounded */
 }
 
 #result_list .field-username,

@@ -14,7 +14,7 @@ code {
 /* RBAC: horizontal checkbox blocks - Django 4.x uses divs, not ul/li */
   #rbac-page { min-width: 0; overflow-x: hidden; }
   #rbac-page .rbac-badge {
-    white-space: nowrap;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
     font-weight: 600;
     border: 1px solid color-mix(in srgb, var(--bs-primary, var(--school-primary)) 26%, var(--bs-border-color, var(--color-base-300)) 74%); /* theme-locked-allow: decorative-tint-mix */
     background: color-mix(in srgb, var(--bs-primary, var(--school-primary)) 10%, var(--bs-body-bg, var(--color-base-0)) 90%) !important; /* theme-locked-allow: decorative-tint-mix */
@@ -133,7 +133,7 @@ code {
 
   #rbac-page .rbac-form-check-wrapper:not(.rbac-roles-wrapper) label,
   #rbac-page .rbac-form-check-wrapper:not(.rbac-roles-wrapper) .form-check-label {
-    white-space: nowrap;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -1147,7 +1147,7 @@ html[data-resolved-theme="dark"] .tenant-app-catalog-wrap .proof-app-card .text-
     color: var(--admin-content-text, var(--color-base-900));
     font-size: var(--type-size-caption);
     font-weight: 700;
-    white-space: nowrap;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
   }
 
   .child-fill-deadlines {

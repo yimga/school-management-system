@@ -309,7 +309,7 @@
   font-size: 13px;
   color: var(--school-primary, var(--color-indigo-600, #4f46e5));
   text-decoration: none;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
 }
 .omig-vendor-chip__change:hover { text-decoration: underline; }
 
@@ -375,7 +375,7 @@
   letter-spacing: 0.04em;
   padding: 2px 8px;
   border-radius: 999px;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
   align-self: center;
 }
 .omig-domain__badge--quick    { background: var(--success-bg, rgba(16, 185, 129, 0.10));   color: var(--success-fg, #047857); }

@@ -4,6 +4,10 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
+  {# v3.57.1 (2026-05-21): PWA install-prompt chrome (admin backoffice). #}
+  <meta name="theme-color" content="#0b0b0b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
@@ -97,6 +101,10 @@
   <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
   {# v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). #}
   <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
+  {# v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic + admin mirror cockpit (adoption wave). #}
+  <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-mirror.css' %}">
   <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
   {% endif %}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->

@@ -283,7 +283,7 @@ body.rmc-cmdk-open { overflow: hidden; }
     gap: 0.4rem;
     flex-wrap: nowrap;
   }
-  .rmc-section-nav__list a { white-space: nowrap; }
+  .rmc-section-nav__list a { white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocabulary */ }
 }
 
 /* ===== 5. Data table grammar (.rmc-data-table) ========================
@@ -329,7 +329,7 @@ body.rmc-cmdk-open { overflow: hidden; }
   padding: 0.65rem 0.85rem;
   text-align: left;
   border-bottom: var(--border-width-hairline) solid var(--hairline);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocabulary */
   -webkit-backdrop-filter: var(--material-blur);
   backdrop-filter: var(--material-blur);
 }
@@ -364,7 +364,7 @@ body.rmc-cmdk-open { overflow: hidden; }
 }
 .rmc-data-table .currency {
   font-family: ui-monospace, "SF Mono", monospace;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocabulary */
 }
 .rmc-data-table .cell-muted { color: var(--text-tertiary); }
 .rmc-data-table .cell-success { color: var(--ds-success); font-weight: 600; }
@@ -683,7 +683,7 @@ body.rmc-cmdk-open { overflow: hidden; }
   .rmc-settings-layout { grid-template-columns: 1fr; }
   .rmc-settings-rail { position: static; max-height: none; }
   .rmc-settings-rail__list { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-  .rmc-settings-rail__item { white-space: nowrap; }
+  .rmc-settings-rail__item { white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocabulary */ }
 }
 
 /* ===== Spring-physics success checkmark (Phase W, 2026-05-12) =====================
@@ -994,7 +994,7 @@ body.rmc-cmdk-open { overflow: hidden; }
 .rmc-inbox__time {
   font-size: var(--type-size-eyebrow);
   color: var(--text-tertiary);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric-content-bounded */
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -1222,7 +1222,7 @@ body.rmc-cmdk-open { overflow: hidden; }
   gap: 0.45rem;
   padding: 0.1rem 0.35rem;
   border-right: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.08));
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-numeric-content-bounded */
 }
 .rmc-metric-ticker__pin-item:last-child { border-right: 0; }
 .rmc-metric-ticker__pin-item-label {

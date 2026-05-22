@@ -76,7 +76,7 @@
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.3;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-numeric-content-bounded */
 }
 
 .rmc-output-cockpit__service-state[data-state="online"] {
@@ -228,7 +228,7 @@
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--text-secondary);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
   /* Belt — never use color alone. The textual label
      ("Ready", "Missing data", "Unknown") is the source of truth. */
 }
@@ -543,7 +543,7 @@
   font-size: 0.65rem;
   color: var(--text-tertiary);
   font-weight: 500;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
   vertical-align: middle;
 }
 

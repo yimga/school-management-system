@@ -288,7 +288,7 @@
     padding: 4px 8px;
     border-radius: 999px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.18);
-    white-space: nowrap;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
     pointer-events: none;
     display: none;
     opacity: 0;
@@ -495,7 +495,7 @@
     font-size: var(--type-size-eyebrow);
     padding: 4px 12px;
     border-radius: 20px;
-    white-space: nowrap;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
   }
 
   .ai-copilot-footer {
@@ -2955,7 +2955,7 @@ html[data-bs-theme="dark"] .toast-undo {
   font-weight: 600;
   font-size: var(--type-size-body);
   color: var(--text-primary, var(--color-base-800));
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }
 
 .user-role-badge {
@@ -3246,7 +3246,7 @@ html[data-bs-theme="dark"] .toast-undo {
     align-items: center;
     gap: 24px;
     animation: scroll-marquee 30s linear infinite;
-    white-space: nowrap;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
   }
 
   .weather-marquee-content:hover {

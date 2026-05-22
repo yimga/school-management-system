@@ -97,6 +97,16 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["footer_fields"] = [form[name] for name in form.FOOTER_FIELDS]
         ctx["community_fields"] = [form[name] for name in form.COMMUNITY_FIELDS]
         ctx["newsletter_fields"] = [form[name] for name in form.NEWSLETTER_FIELDS]
+        # v3.57.1: enable toggles for the 20 NEW v3.57 cockpit sections.
+        # Guarded with getattr so older form revisions that don't carry the
+        # tuples still render — the template short-circuits when the list
+        # is missing/empty.
+        ctx["front_office_fields"] = [
+            form[name] for name in getattr(form, "FRONT_OFFICE_FIELDS", ())
+        ]
+        ctx["tenant_v3_extended_fields"] = [
+            form[name] for name in getattr(form, "TENANT_V3_EXTENDED_FIELDS", ())
+        ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
         return ctx

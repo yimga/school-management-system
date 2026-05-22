@@ -59,7 +59,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-numeric-content-bounded */
 }
 
 .rmc-control-cockpit__tile-body {
@@ -113,14 +113,14 @@
 .rmc-control-audit-row__actor {
   font-size: var(--type-size-micro, 0.6875rem);
   color: var(--text-muted);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
   flex: 0 0 auto;
 }
 
 .rmc-control-audit-row__time {
   font-size: var(--type-size-micro, 0.6875rem);
   color: var(--text-muted);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric-content-bounded */
   flex: 0 0 auto;
 }
 

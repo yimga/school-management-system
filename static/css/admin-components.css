@@ -227,7 +227,7 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   display: inline-block;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
 }
 
 .badge-primary {

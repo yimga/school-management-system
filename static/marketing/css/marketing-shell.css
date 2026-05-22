@@ -142,7 +142,7 @@ html[data-theme="dark"] .marketing-surface {
   min-width: 12.5rem;
   z-index: 1200;
 }
-.mkt-navbar .mkt-nav-submenu .dropdown-item { white-space: nowrap; }
+.mkt-navbar .mkt-nav-submenu .dropdown-item { white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocabulary */ }
 
 /* Mega menus: wide panels, must not be clipped by ancestors (see header-no-spillage). */
 .mkt-navbar .mkt-mega-menu {

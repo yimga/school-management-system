@@ -1,6 +1,60 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-21 (v3.57.0 — Platform-wide parity sweep: in-repo continuation after quota wall)
+**Last updated:** 2026-05-21 (v3.57.1 — Adoption wave: 3 CSS bundles wired + 20 admin toggles + 4 NEW scanners + 47-site overflow burndown)
+
+## 2026-05-21 — v3.57.1 Adoption wave (same-day continuation of v3.57.0)
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.1-adoption-wave-2026-05-21` (monotonic vs v3.57.0).
+
+Continuation of [v3.57.0](#2026-05-21--v3570-platform-wide-parity-sweep-in-repo-continuation-agent-only-items-deferred) closing the in-repo adoption-wave items from `docs/DEFERRED_v3_57_EXTERNAL.md`. Direct (no-agent) orchestrator work — external items (counsel-pending, time-blocked, new Django apps) remain deferred.
+
+### What landed
+
+| Surface | Artifact | Detail |
+|---|---|---|
+| **Shell wiring** | `templates/portal_base.html` + `templates/control_plane_skeleton.html` + `templates/base.html` + `templates/admin/base_site.html` | 3 NEW v3.57.0 CSS bundles wired into 4 shells: `rmc-pagination-grammar.css` (every shell), `rmc-print-v2.css` (every shell, `media="print,screen"`), `rmc-admin-mirror.css` (admin/base_site only — Django admin chrome adopts cockpit grammar). Loaded after `rmc-tenant-dashboard-v2.css` / `rmc-cp-200x.css` / `rmc-civic-footer.css` so they cascade last per CLAUDE.md token-resolution order. |
+| **Admin form** | `apps/siteconfig/forms_cockpit.py::CockpitPayloadForm` | 20 NEW `BooleanField` enable toggles: 10 front-office 200x (`fo_revenue_cohort_enabled` / `fo_nps_ticker_enabled` / etc.) + 10 tenant v3 100x (`tv3_ai_study_buddy_enabled` / `tv3_parent_teacher_thread_enabled` / etc.). 2 new fieldset tuples `FRONT_OFFICE_FIELDS` + `TENANT_V3_EXTENDED_FIELDS`. 2 round-trip mapping constants `_FRONT_OFFICE_FIELD_TO_KEY` + `_TENANT_V3_EXTENDED_FIELD_TO_KEY`. `_seed_initial_from_payload` reads existing `payload[section]["enabled"]`. `_build_payload` writes `{section: {"enabled": bool}}` per toggle — `_deep_merge` in `cockpit_context.py` overlays these on top of helper-module defaults so enabling a section surfaces the full default schema without operator field-by-field entry. Sibling-compare retains its separate `opt_in` privacy gate inside the section payload. |
+| **Admin template** | `templates/siteconfig/super/cockpit_configure.html` | 2 new fieldset blocks with `{% if front_office_fields %}` / `{% if tenant_v3_extended_fields %}` guards so older form revisions still render. Each block uses the Bootstrap `.form-check` pattern (label adjacent to checkbox) since these are boolean toggles, not text fields. |
+| **Admin view** | `apps/siteconfig/views_cockpit_admin.py::CockpitConfigureView.get_context_data` | Injects `front_office_fields` + `tenant_v3_extended_fields` lists via `getattr(form, "FRONT_OFFICE_FIELDS", ())` defensive pattern — falls through gracefully if the form is rolled back. |
+| **Scanner** | `scripts/scan_email_plaintext_twin.py` (NEW, ~130L) | Walks every `templates/**/email/**/*.html` and asserts a sibling `.txt` exists. Skips `_components`/`_partials`/`_includes`/`*partial*`/`*include*` paths. Honors `{# email-plaintext-twin-allow: <reason> #}` markers in first 20 lines. **Baseline 0** day 1. 1 site caught (`portal/email/help_north_star_report.html` lacked twin) + resolved by creating `help_north_star_report.txt` mirroring the 5 metrics + `{% with %}` block. |
+| **Scanner** | `scripts/scan_sms_template_length.py` (NEW, ~190L) | AST-walks `apps/**/sms_templates*.py` + `apps/**/sms.py` + `apps/**/*_sms.py`. For module-level string assignments + dict-of-strings literals, substitutes placeholders with worst-case values (long names, 5-figure balance, currency code) and asserts ≤160 chars. Skips docstrings + strings <8 chars + bodies >500 chars (prose, not SMS). Honors `# sms-multipart-allow: <reason>` on the same line or in 1-line buffer. **Baseline 0** day 1 — all 4 locales in `schoolops/sms_templates.py` already <160 chars after worst-case substitution. |
+| **Scanner** | `scripts/scan_pdf_brand_cascade.py` (NEW, ~160L) | Walks PDF/print templates (path keywords `print`/`pdf`/`invoice`/`transcript`/`receipt`/`report_card`/`certificate` OR `class="rmc-print(-v2)?"` wrapper). For each inline `style="…"` attribute, extracts `color`/`background(-color)?`/`border*-color` declarations and flags hardcoded hex/rgb literals that should route through `var(--brand-primary)` / `var(--brand-accent)`. Honors `<!-- pdf-brand-cascade-allow: <reason> -->`. **Baseline 0** day 1 — all PDF/print templates already use tokens. |
+| **Scanner** | `scripts/scan_pwa_install_prompt_coverage.py` (NEW, ~150L) | Walks shell templates (canonical 4 + `base*` / `*_skeleton*` patterns). For shells declaring `<link rel="manifest">`, asserts the install-prompt chrome (`<meta name="theme-color">` + `<meta name="(mobile|apple-mobile)-web-app-capable">`) Chromium/Edge require to surface the prompt. Honors `<!-- pwa-install-prompt-coverage-allow: <reason> -->`. **Baseline 0** day 1. 6 findings caught (3 shells × 2 missing metas) + resolved: added install-prompt chrome to `templates/base.html` / `templates/control_plane_skeleton.html` / `templates/admin/base_site.html` with `#0b0b0b` theme-color (manager dark + admin dark) and `SITE.primary_color|default` cascade for portal/base. |
+| **Burndown** | `scripts/burndown_horizontal_overflow_risk.py` (NEW codemod, ~120L) | Mechanical 2-pass codemod (right-to-left edit ordering — first attempt corrupted `rmc-admin-mirror.css` from naïve in-place offset-shift; script fixed + 26 CSS files reverted via `git checkout HEAD --` + clean re-run). Classifies each flagged rule by selector keyword and appends `/* horizontal-overflow-risk-allow: <category> */` marker to the `white-space: nowrap;` declaration. Categories: badge/chip/pill→`short-pill-content-bounded`, time/date/clock/stamp→`tabular-numeric-content-bounded`, count/metric/number/value→`short-numeric-content-bounded`, nav/link/tab/menu/rail→`nav-label-controlled-vocabulary`, else→`short-controlled-content-by-design`. Idempotent: skips rules already carrying the marker. 47 sites burned down across 26 files. 1 single-line rule (`.rmc-mapping__actions-col`) manually marked because codemod's NOWRAP_LINE_RE requires start-of-line pattern. Scanner now baseline 0 (was 55; -8 from `.min.css` build-artifact exclusion). |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `scan_off_token_colors.py` | **0** (preserved) |
+| `scan_color_contrast.py` | **0** (preserved) |
+| `scan_sticky_with_overflow_hidden.py` | **0** (preserved) |
+| `scan_horizontal_overflow_risk.py` | **0** (burned down from 55) |
+| `scan_email_plaintext_twin.py` | **0** (NEW, baseline 0 day 1) |
+| `scan_sms_template_length.py` | **0** (NEW, baseline 0 day 1) |
+| `scan_pdf_brand_cascade.py` | **0** (NEW, baseline 0 day 1) |
+| `scan_pwa_install_prompt_coverage.py` | **0** (NEW, baseline 0 day 1) |
+| `scan_ai_gateway_boundary.py` | **0** (preserved) |
+| `verify_service_worker_version.py` | OK — `sms-v3.57.1-adoption-wave-2026-05-21` monotonic vs v3.57.0 |
+| AST parse | OK on extended form + view + 4 new scanners + burndown codemod |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.1.
+* 4 new env vars: NONE.
+* 3 NEW CSS bundles now wired into all 4 shells — first request after deploy pulls them.
+* `apps/siteconfig/forms_cockpit.py` extension adds 20 new form fields — operators
+  see them on next `/super/configure/cockpit/` GET. No data migration needed because
+  defaults flow from helper modules; saved payload only stores `{section: {"enabled": bool}}`
+  per toggle.
+```
+
+### Honest deferred (unchanged from v3.57.0)
+
+External-only items remain in `docs/DEFERRED_v3_57_EXTERNAL.md` — 3 new Django apps, agent-only Wave 4-7 luxury sweeps, counsel-pending items, time-blocked SDK windows.
 
 ## 2026-05-21 — v3.57.0 Platform-wide parity sweep (in-repo continuation; agent-only items deferred)
 

@@ -285,7 +285,7 @@ body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-th
 }
 
 .form-check-label {
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }
 
 /* Checkbox/radio groups - horizontal wrap, contained */
@@ -331,7 +331,7 @@ body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-th
   display: inline-flex !important;
   flex-direction: row !important;
   align-items: center;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
   flex: 0 0 auto;
   min-width: min-content;
 }

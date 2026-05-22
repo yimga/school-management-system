@@ -1,0 +1,12 @@
+Help North Star ({{ bundle.days }} days)
+Generated {{ generated_at }}
+
+{% with d=bundle.deflection %}
+Deflection rate:        {{ d.deflection_rate_pct|default:"—" }}%
+Deflection events:      {{ bundle.deflection_events|default:0 }}
+Help searches:          {{ bundle.searches|default:0 }}
+AI CSAT positive:       {{ bundle.ai_csat_positive_pct|default:"—" }}%
+AI reviews pending:     {{ bundle.ai_reviews_pending|default:0 }}
+{% endwith %}
+
+— RunMyCampus Operations

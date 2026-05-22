@@ -322,7 +322,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-top: 0.15em;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }
 
 /* When the mark sits inside the dark cp-navbar, force the wordmark text

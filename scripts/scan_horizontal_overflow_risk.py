@@ -104,6 +104,10 @@ def scan_all() -> list[str]:
         if not css_dir.exists():
             continue
         for css in css_dir.rglob("*.css"):
+            # Skip generated/minified bundles — they're build artifacts whose
+            # source is in their non-minified twin (already scanned above).
+            if css.name.endswith(".min.css"):
+                continue
             try:
                 text = css.read_text(encoding="utf-8", errors="replace")
             except Exception:

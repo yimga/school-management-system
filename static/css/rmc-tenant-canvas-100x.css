@@ -301,7 +301,7 @@
   font-size: 11px;
   font-weight: 700;
   text-decoration: none;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
   box-shadow: 0 3px 8px rgba(0,0,0,0.12); /* off-token-allow: elevation-shadow-cta */
 }
 

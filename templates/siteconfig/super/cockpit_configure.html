@@ -113,6 +113,52 @@
       </div>
     </fieldset>
 
+    {# ---- v3.57.1 Front-office 200x enable toggles ----------------------- #}
+    {% if front_office_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="front-office-200x">
+      <legend class="h6 px-2 fw-bold">{% trans "Front-office 200x sections" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Enable/disable the 10 NEW /super/** 200x cockpit sections. Section content uses defaults from cockpit_front_office_200x.py until rich editors land in a follow-up wave." %}
+      </p>
+      <div class="row g-3">
+        {% for field in front_office_fields %}
+          <div class="col-md-6">
+            <div class="form-check">
+              {{ field }}
+              <label for="{{ field.id_for_label }}" class="form-check-label small fw-semibold">{{ field.label }}</label>
+            </div>
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.1 Tenant v3 100x enable toggles -------------------------- #}
+    {% if tenant_v3_extended_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="tenant-v3-extended">
+      <legend class="h6 px-2 fw-bold">{% trans "Tenant v3 100x sections" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Enable/disable the 10 NEW v3 tenant cockpit sections. Sibling-compare also requires the per-section opt_in flag (privacy gate) before any data renders." %}
+      </p>
+      <div class="row g-3">
+        {% for field in tenant_v3_extended_fields %}
+          <div class="col-md-6">
+            <div class="form-check">
+              {{ field }}
+              <label for="{{ field.id_for_label }}" class="form-check-label small fw-semibold">{{ field.label }}</label>
+            </div>
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"

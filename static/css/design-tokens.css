@@ -4161,7 +4161,7 @@ main#main-content {
   align-items: center;
   flex-wrap: wrap;
 }
-.rmc-mapping__actions-col { width: 1%; white-space: nowrap; }
+.rmc-mapping__actions-col { width: 1%; white-space: nowrap; /* horizontal-overflow-risk-allow: actions-column-fixed-width-icon-buttons */ }
 
 .rmc-mapping__explain {
   display: inline-block;

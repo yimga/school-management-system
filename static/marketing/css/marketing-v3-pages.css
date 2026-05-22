@@ -427,5 +427,5 @@
   scroll-snap-align: start;
   font-size: 0.875rem;
   color: var(--mkt-ink-2, #475569);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }

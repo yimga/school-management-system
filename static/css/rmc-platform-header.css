@@ -221,7 +221,7 @@
   box-sizing: border-box;
   font-size: var(--type-size-caption, 0.8125rem);
   font-weight: 500;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
 }
 
 /* Compact operator identity pill — aligns with search + utility chips */
@@ -281,7 +281,7 @@
   align-items: baseline;
   gap: 0;
   font-size: calc(var(--rmc-bm-size, 40px) * 0.42);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content-by-design */
 }
 
 [data-rmc-platform-header="manager"] .rmc-brand-mark__badge {

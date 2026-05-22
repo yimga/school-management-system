@@ -661,6 +661,81 @@ class CockpitPayloadForm(forms.ModelForm):
         required=False, widget=_TEXT, label=_("Presence aria label")
     )
 
+    # ---- v3.57.1 Front-office 200x enable toggles (10 sections) -------
+    # Mirrors front_office_200x_defaults() in cockpit_front_office_200x.py.
+    # Minimal-viable surface for the v3.57 adoption wave: master `enabled`
+    # flag per section so operators can flip them on/off without editing
+    # the deeper schemas (cohort matrices, deploy pipelines, etc.) until a
+    # follow-up wave adds rich editors per section.
+    fo_revenue_cohort_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Revenue cohort retention chart")
+    )
+    fo_nps_ticker_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("NPS sentiment ticker")
+    )
+    fo_support_burndown_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Support queue burndown")
+    )
+    fo_deploy_pipeline_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Deploy pipeline status")
+    )
+    fo_churn_scorecard_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Tenant churn-risk scorecard")
+    )
+    fo_ai_fixes_feed_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("AI-suggested fixes feed")
+    )
+    fo_capacity_planning_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Automated capacity planning")
+    )
+    fo_regional_clocks_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Regional time-zone clocks")
+    )
+    fo_onboarding_pipeline_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Tenant onboarding pipeline")
+    )
+    fo_audit_wordcloud_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Audit-event word cloud")
+    )
+
+    # ---- v3.57.1 Tenant v3 100x enable toggles (10 sections) ----------
+    # Mirrors TENANT_V3_EXTENDED_DEFAULTS in cockpit_tenant_v3_extended.py.
+    # Sibling-compare retains its own privacy-gate `opt_in` flag inside
+    # the section payload — this top-level `enabled` toggles the section
+    # entirely; opt-in remains opt-in even after enable.
+    tv3_ai_study_buddy_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("AI study buddy chip")
+    )
+    tv3_parent_teacher_thread_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Parent-teacher inline thread")
+    )
+    tv3_realtime_presence_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Realtime presence (classmates online)")
+    )
+    tv3_gradebook_trend_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Gradebook trend sparkline")
+    )
+    tv3_attendance_heatmap_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Attendance heatmap")
+    )
+    tv3_financial_timeline_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Financial timeline")
+    )
+    tv3_sibling_compare_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Sibling compare (opt-in gated separately)"),
+    )
+    tv3_life_event_timeline_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Life event timeline")
+    )
+    tv3_calendar_weather_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Calendar + weather overlay")
+    )
+    tv3_lesson_of_day_enabled = forms.BooleanField(
+        required=False, widget=_CHECK, label=_("Lesson of the day")
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -719,6 +794,60 @@ class CockpitPayloadForm(forms.ModelForm):
         "newsletter_submit_url",
         "newsletter_privacy_url",
         "newsletter_privacy_label",
+    )
+    # v3.57.1 adoption-wave fieldsets — enable toggles only (rich editors land
+    # in a follow-up wave; the JSON column carries the deeper schema).
+    FRONT_OFFICE_FIELDS: tuple[str, ...] = (
+        "fo_revenue_cohort_enabled",
+        "fo_nps_ticker_enabled",
+        "fo_support_burndown_enabled",
+        "fo_deploy_pipeline_enabled",
+        "fo_churn_scorecard_enabled",
+        "fo_ai_fixes_feed_enabled",
+        "fo_capacity_planning_enabled",
+        "fo_regional_clocks_enabled",
+        "fo_onboarding_pipeline_enabled",
+        "fo_audit_wordcloud_enabled",
+    )
+    TENANT_V3_EXTENDED_FIELDS: tuple[str, ...] = (
+        "tv3_ai_study_buddy_enabled",
+        "tv3_parent_teacher_thread_enabled",
+        "tv3_realtime_presence_enabled",
+        "tv3_gradebook_trend_enabled",
+        "tv3_attendance_heatmap_enabled",
+        "tv3_financial_timeline_enabled",
+        "tv3_sibling_compare_enabled",
+        "tv3_life_event_timeline_enabled",
+        "tv3_calendar_weather_enabled",
+        "tv3_lesson_of_day_enabled",
+    )
+
+    # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
+    # Used by both _seed_initial_from_payload and _build_payload so the round
+    # trip stays in lockstep when sections are added/removed.
+    _FRONT_OFFICE_FIELD_TO_KEY: tuple[tuple[str, str], ...] = (
+        ("fo_revenue_cohort_enabled", "revenue_cohort"),
+        ("fo_nps_ticker_enabled", "nps_ticker"),
+        ("fo_support_burndown_enabled", "support_burndown"),
+        ("fo_deploy_pipeline_enabled", "deploy_pipeline"),
+        ("fo_churn_scorecard_enabled", "churn_scorecard"),
+        ("fo_ai_fixes_feed_enabled", "ai_fixes_feed"),
+        ("fo_capacity_planning_enabled", "capacity_planning"),
+        ("fo_regional_clocks_enabled", "regional_clocks"),
+        ("fo_onboarding_pipeline_enabled", "onboarding_pipeline"),
+        ("fo_audit_wordcloud_enabled", "audit_wordcloud"),
+    )
+    _TENANT_V3_EXTENDED_FIELD_TO_KEY: tuple[tuple[str, str], ...] = (
+        ("tv3_ai_study_buddy_enabled", "ai_study_buddy"),
+        ("tv3_parent_teacher_thread_enabled", "parent_teacher_thread"),
+        ("tv3_realtime_presence_enabled", "realtime_presence"),
+        ("tv3_gradebook_trend_enabled", "gradebook_trend"),
+        ("tv3_attendance_heatmap_enabled", "attendance_heatmap"),
+        ("tv3_financial_timeline_enabled", "financial_timeline"),
+        ("tv3_sibling_compare_enabled", "sibling_compare"),
+        ("tv3_life_event_timeline_enabled", "life_event_timeline"),
+        ("tv3_calendar_weather_enabled", "calendar_weather"),
+        ("tv3_lesson_of_day_enabled", "lesson_of_day"),
     )
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -833,6 +962,16 @@ class CockpitPayloadForm(forms.ModelForm):
             "privacy_label", ""
         )
 
+        # ---- v3.57.1 front-office 200x enable toggles --------------------
+        for field_name, payload_key in self._FRONT_OFFICE_FIELD_TO_KEY:
+            section = payload.get(payload_key) or {}
+            self.fields[field_name].initial = bool(section.get("enabled"))
+
+        # ---- v3.57.1 tenant v3 100x enable toggles ------------------------
+        for field_name, payload_key in self._TENANT_V3_EXTENDED_FIELD_TO_KEY:
+            section = payload.get(payload_key) or {}
+            self.fields[field_name].initial = bool(section.get("enabled"))
+
     # ------------------------------------------------------------------
     # Flat-form -> nested-payload assembly.
     # ------------------------------------------------------------------
@@ -926,11 +1065,22 @@ class CockpitPayloadForm(forms.ModelForm):
             "privacy_label": (cleaned.get("newsletter_privacy_label") or "").strip(),
         }
 
-        return {
+        # v3.57.1 adoption-wave: 20 enable toggles round-tripped as nested
+        # {section: {"enabled": bool}} dicts. _deep_merge in
+        # apps.siteconfig.cockpit_context overlays these on top of the
+        # defaults from the helper modules, so an `enabled=True` toggle
+        # surfaces the full default schema for that section without the
+        # operator having to fill in every field.
+        payload: dict[str, Any] = {
             "footer": footer,
             "community_band": community,
             "newsletter_band": newsletter,
         }
+        for field_name, payload_key in self._FRONT_OFFICE_FIELD_TO_KEY:
+            payload[payload_key] = {"enabled": bool(cleaned.get(field_name))}
+        for field_name, payload_key in self._TENANT_V3_EXTENDED_FIELD_TO_KEY:
+            payload[payload_key] = {"enabled": bool(cleaned.get(field_name))}
+        return payload
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}

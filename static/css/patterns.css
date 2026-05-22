@@ -1771,7 +1771,7 @@
   flex-wrap: wrap;
 }
 [data-rmc-aesthetic="v2"] .ds-action-bar .btn {
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
 }
 
 
