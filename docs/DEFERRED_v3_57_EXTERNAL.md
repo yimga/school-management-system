@@ -67,7 +67,11 @@ and what wave should pick it up.
 
 | Primitive | Adoption work |
 |---|---|
-| `rmc-pagination-grammar.css` | Wire into 5 forks: admin Django changelist override / DRF Redoc page template / `portal-ui-components.css` `.portal-page-pager` retirement / `backend-dashboard-v2.css` `.bk-dash-pager` retirement / `phase2-portal-bundle.css` `.rbac-page-pager` retirement. Delete forks AFTER one full adoption wave. |
+| `rmc-pagination-grammar.css` | Wire into 5 forks: admin Django changelist override / ~~DRF Redoc page template~~ / ~~`portal-ui-components.css` `.portal-page-pager` retirement~~ / ~~`backend-dashboard-v2.css` `.bk-dash-pager` retirement~~ / `phase2-portal-bundle.css` `.rbac-page-pager` retirement. Delete forks AFTER one full adoption wave.
+
+#### Status (2026-05-22, v3.57.11)
+
+Django admin `.paginator` + ~8 bespoke Bootstrap pagination markup sites layered with `rmc-pagination*` classes via additive CSS in `rmc-pagination-grammar.css`. 3 originally-listed forks (`.portal-page-pager`, `.bk-dash-pager`, DRF Redoc) confirmed absent from tree — likely mass-purged in an earlier wave. Closed item. |
 | `rmc-print-v2.css` | Adoption into transcript / report-card / invoice templates. Each template needs `.rmc-print-v2` wrapper + brand-block + watermark prop wiring. |
 | `rmc-email-civic.css` | Adoption into 5+ transactional email templates: welcome / activation / low-balance / migration receipt / webhook confirmation. Each needs civic 4-tier markup restructure. |
 | `cockpit_front_office_200x` (10 sections) | Need 10 partial templates under `templates/partials/cockpit/_front_office_*.html` + sparkline service wiring per panel. |

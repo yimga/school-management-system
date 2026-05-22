@@ -71,7 +71,6 @@ from .super_views_overview_surfaces import (
 
 from .super_views_dashboard_surfaces import (
     api_super_dashboard_layout,
-    super_dashboard,
     super_dashboard_v2,
 )
 from .super_views_exports import (
@@ -108,7 +107,6 @@ __all__ = (
     "global_ai_version",
     "global_ai_version_progress",
     "school_lifecycle_action",
-    "super_dashboard",
     "super_dashboard_v2",
     "super_analytics_overview",
     "super_schools_list",

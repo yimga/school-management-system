@@ -238,6 +238,183 @@ def _serialize_suggestion_lines(items: list[dict[str, Any]] | None) -> str:
     return "\n".join(rows)
 
 
+def _parse_metric_rows(value: str) -> list[dict[str, str]]:
+    """One per line: ``label | value | hint`` (hint optional).
+
+    Pairs with ``cockpit.today_snapshot.cards`` whose richer schema
+    includes ``icon``/``head``/``value``/``label``/``spark_*``/``delta_*``.
+    The flat editor only exposes the 3 most-common operator-edited keys
+    (label as ``head``, value as ``value``, hint as ``label``); deeper
+    keys (sparkline points, deltas) round-trip untouched via
+    ``_deep_merge`` so operators don't lose previously-configured chrome
+    by editing the textarea.
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 2)]
+        head = parts[0]
+        if not head:
+            continue
+        card_value = parts[1] if len(parts) > 1 else ""
+        hint = parts[2] if len(parts) > 2 else ""
+        out.append({"head": head, "value": card_value, "label": hint})
+    return out
+
+
+def _parse_quick_actions(value: str) -> list[dict[str, str]]:
+    """One per line: ``icon | label | url | description`` (description optional).
+
+    Pairs with ``cockpit.quick_actions.tiles`` whose schema is
+    ``list[{url, icon, title, sub, badge}]``. The flat editor populates
+    icon/title (=label)/url/sub (=description); ``badge`` is left empty
+    so the rendering side falls through to defaults. Rows missing the
+    label are skipped (a tile without a label is unactionable).
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        if len(parts) < 2:
+            continue
+        icon = parts[0]
+        title = parts[1]
+        if not title:
+            continue
+        url = parts[2] if len(parts) > 2 else ""
+        sub = parts[3] if len(parts) > 3 else ""
+        out.append({"url": url, "icon": icon, "title": title, "sub": sub, "badge": ""})
+    return out
+
+
+def _parse_activity_events(value: str) -> list[dict[str, str]]:
+    """One per line: ``YYYY-MM-DD HH:MM | actor | action | target``.
+
+    Lenient: a missing trailing column is filled with empty string. The
+    timestamp itself is opaque to the parser — operators may publish
+    ``"now"`` / ``"2m ago"`` / ``"2026-05-21 14:38"`` etc. Pairs with
+    ``cockpit.activity_timeline.items`` whose schema is
+    ``list[{icon, tone, text, text_html, meta_left, meta_right}]``.
+
+    Flat editor maps:
+        timestamp -> meta_left
+        action    -> text
+        actor + target are folded into ``meta_right`` so the orchestrator
+        partials' single-row layout still renders meaningfully.
+
+    Rows whose ``action`` column is missing/empty are skipped — a row
+    with no action is just noise on the timeline.
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        timestamp = parts[0] if len(parts) > 0 else ""
+        actor = parts[1] if len(parts) > 1 else ""
+        action = parts[2] if len(parts) > 2 else ""
+        target = parts[3] if len(parts) > 3 else ""
+        if not action:
+            continue
+        # Compose meta_right honestly — only join non-empty halves.
+        actor_target_bits = [b for b in (actor, target) if b]
+        meta_right = " · ".join(actor_target_bits)
+        out.append(
+            {
+                "icon": "",
+                "tone": "",
+                "text": action,
+                "text_html": "",
+                "meta_left": timestamp,
+                "meta_right": meta_right,
+            }
+        )
+    return out
+
+
+def _parse_achievement_badges(value: str) -> list[dict[str, str]]:
+    """One per line: ``icon | label | earned_on`` (earned_on optional).
+
+    Pairs with ``cockpit.achievements.list`` whose minimum schema is
+    ``list[{icon, label}]``. The flat editor adds an ``earned_on`` key
+    for operator clarity; rendering partials that don't read it ignore
+    the extra key. Rows without a label are skipped.
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 2)]
+        icon = parts[0]
+        label = parts[1] if len(parts) > 1 else ""
+        earned_on = parts[2] if len(parts) > 2 else ""
+        if not label:
+            continue
+        out.append({"icon": icon, "label": label, "earned_on": earned_on})
+    return out
+
+
+def _parse_regional_rows(value: str) -> list[dict[str, str]]:
+    """One per line: ``region | count | trend`` (trend optional).
+
+    Pairs with ``cockpit.live_world_map.regional_breakdown`` whose
+    schema is ``list[{label, count, dot_color_token}]``. The flat editor
+    maps ``region``→``label``, ``count``→``count``, ``trend``→a free
+    ``trend`` key (rendering partials may ignore it; persisting it is
+    cheap and keeps operator intent visible). ``dot_color_token`` is
+    NOT exposed here — design tokens stay code-owned; default falls
+    through. Rows without a region label are skipped.
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 2)]
+        label = parts[0]
+        if not label:
+            continue
+        count = parts[1] if len(parts) > 1 else ""
+        trend = parts[2] if len(parts) > 2 else ""
+        out.append({"label": label, "count": count, "trend": trend})
+    return out
+
+
+def _parse_audit_events(value: str) -> list[dict[str, str]]:
+    """One per line: ``severity | actor | action | timestamp``.
+
+    Pairs with ``cockpit.audit_feed.events`` whose schema is
+    ``list[{time, actor, event, scope, severity, severity_label}]``.
+    Flat-editor severity is constrained to ``{ok, info, warn, danger}``;
+    anything else falls back to ``info`` so a typo doesn't crash the
+    rendering CSS-class lookup. ``severity_label`` is derived from
+    severity (uppercase humanised). ``scope`` is left blank — operators
+    who need it must edit JSON directly. Rows without ``action`` are
+    skipped.
+    """
+    severity_allow = {"ok", "info", "warn", "danger"}
+    severity_label_map = {
+        "ok": "OK",
+        "info": "INFO",
+        "warn": "WATCH",
+        "danger": "RISK",
+    }
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        if len(parts) < 1:
+            continue
+        raw_severity = (parts[0] or "info").lower()
+        severity = raw_severity if raw_severity in severity_allow else "info"
+        actor = parts[1] if len(parts) > 1 else ""
+        action = parts[2] if len(parts) > 2 else ""
+        timestamp = parts[3] if len(parts) > 3 else ""
+        if not action:
+            continue
+        out.append(
+            {
+                "time": timestamp,
+                "actor": actor,
+                "event": action,
+                "scope": "",
+                "severity": severity,
+                "severity_label": severity_label_map[severity],
+            }
+        )
+    return out
+
+
 def _serialize_upcoming_events(items: list[dict[str, Any]] | None) -> str:
     if not items:
         return ""
@@ -266,6 +443,112 @@ def _serialize_upcoming_events(items: list[dict[str, Any]] | None) -> str:
             # Fall back to title-only line so operator sees their event
             # rather than silently dropping it on round-trip.
             rows.append(f"  | {title}")
+    return "\n".join(rows)
+
+
+def _serialize_metric_rows(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        head = str(item.get("head", "")).strip()
+        if not head:
+            continue
+        value = str(item.get("value", "")).strip()
+        hint = str(item.get("label", "")).strip()
+        rows.append(f"{head} | {value} | {hint}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _serialize_quick_actions(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title", "")).strip()
+        if not title:
+            continue
+        icon = str(item.get("icon", "")).strip()
+        url = str(item.get("url", "")).strip()
+        sub = str(item.get("sub", "")).strip()
+        rows.append(f"{icon} | {title} | {url} | {sub}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _serialize_activity_events(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        action = str(item.get("text", "")).strip()
+        if not action:
+            continue
+        timestamp = str(item.get("meta_left", "")).strip()
+        meta_right = str(item.get("meta_right", "")).strip()
+        # ``meta_right`` is "actor · target" on write; split on the first
+        # " · " separator so the textarea round-trips cleanly. If the
+        # operator-edited payload uses a different separator, the whole
+        # blob lands in the actor column — that's still legible.
+        if " · " in meta_right:
+            actor, _, target = meta_right.partition(" · ")
+        else:
+            actor, target = meta_right, ""
+        rows.append(f"{timestamp} | {actor} | {action} | {target}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _serialize_achievement_badges(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        if not label:
+            continue
+        icon = str(item.get("icon", "")).strip()
+        earned_on = str(item.get("earned_on", "")).strip()
+        rows.append(f"{icon} | {label} | {earned_on}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _serialize_regional_rows(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        if not label:
+            continue
+        count = str(item.get("count", "")).strip()
+        trend = str(item.get("trend", "")).strip()
+        rows.append(f"{label} | {count} | {trend}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _serialize_audit_events(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        action = str(item.get("event", "")).strip()
+        if not action:
+            continue
+        severity = str(item.get("severity", "")).strip() or "info"
+        actor = str(item.get("actor", "")).strip()
+        timestamp = str(item.get("time", "")).strip()
+        rows.append(f"{severity} | {actor} | {action} | {timestamp}".rstrip(" |"))
     return "\n".join(rows)
 
 
@@ -1019,6 +1302,173 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- v3.57.12 Rich editors (6 NEW high-value sections) ------------
+    # Extends the v3.57.2 rich-editor pattern (lod_/asb_/tsc_/ues_) with
+    # 6 more sections. Each section's flat fields write into the SAME
+    # nested key the enable toggle targets — operator-supplied empties
+    # are filtered out of the overlay so `_deep_merge` in cockpit_context
+    # preserves the defaults from the helper modules.
+
+    # 5) tenant_dashboard.today_snapshot
+    tsn_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Today snapshot: label"),
+        help_text=_(
+            "Section header above the snapshot row "
+            "(e.g. 'Today · live'). Maps to cockpit.today_snapshot.section_label."
+        ),
+    )
+    tsn_greeting = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("Today snapshot: greeting"),
+        help_text=_(
+            "Short personalised greeting line (max 120 chars). "
+            "Operator-published — never auto-rendered from user data."
+        ),
+    )
+    tsn_metric_rows = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Today snapshot: metric rows"),
+        help_text=_(
+            "One per line: label | value | hint. Renders as KPI cards "
+            "(label = header, value = big number, hint = sublabel). "
+            "Empty lines and label-only rows skipped."
+        ),
+    )
+
+    # 6) tenant_dashboard.quick_actions_grid
+    qag_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Quick actions: label"),
+        help_text=_(
+            "Section header above the action grid "
+            "(e.g. 'Quick actions'). Maps to cockpit.quick_actions.section_label."
+        ),
+    )
+    qag_actions = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Quick actions: actions"),
+        help_text=_(
+            "One per line: icon | label | url | description. "
+            "Renders as a 6-tile grid; rows without a label are skipped. "
+            "Icon may be a single glyph or empty."
+        ),
+    )
+
+    # 7) tenant_dashboard.activity_timeline
+    atl_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Activity timeline: label"),
+        help_text=_(
+            "Title shown above the recent activity rail "
+            "(e.g. 'Recent activity'). Maps to cockpit.activity_timeline.title."
+        ),
+    )
+    atl_events = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Activity timeline: events"),
+        help_text=_(
+            "One per line: YYYY-MM-DD HH:MM | actor | action | target. "
+            "Lenient — trailing columns may be omitted. Rows without an "
+            "action are skipped. Timestamp string is opaque (operators may "
+            "use '2m ago' / 'now' / ISO)."
+        ),
+    )
+
+    # 8) tenant_dashboard.achievements_card
+    ach_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Achievements: label"),
+        help_text=_(
+            "Title shown on the achievements card "
+            "(e.g. 'Achievements'). Maps to cockpit.achievements.title."
+        ),
+    )
+    ach_current_streak = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=_NUMBER,
+        label=_("Achievements: current streak"),
+        help_text=_(
+            "Optional integer streak count (days). Persisted under "
+            "cockpit.achievements.current_streak; rendering partials that "
+            "ignore the key are unaffected."
+        ),
+    )
+    ach_badges = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Achievements: badges"),
+        help_text=_(
+            "One per line: icon | label | earned_on. Renders as a chip list; "
+            "rows without a label are skipped. ``earned_on`` is free-form "
+            "(e.g. '2026-05-21' or 'last week')."
+        ),
+    )
+
+    # 9) manager_200x.live_world_map
+    lwm_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Live world map: label"),
+        help_text=_(
+            "Eyebrow caption above the hero count "
+            "(e.g. 'GLOBAL FOOTPRINT'). Maps to cockpit.live_world_map.eyebrow."
+        ),
+    )
+    lwm_hero_value = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Live world map: hero value"),
+        help_text=_(
+            "Mega-number + suffix as a single string "
+            "(e.g. '127 schools live'). Stored as schools_live + "
+            "schools_live_label split on the first space, or as a single "
+            "value if no space."
+        ),
+    )
+    lwm_regional_rows = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Live world map: regional rows"),
+        help_text=_(
+            "One per line: region | count | trend. Renders as the legend "
+            "table beneath the map. Trend column is optional (free-form, "
+            "e.g. '+3 wk-on-wk'). Rows without a region label are skipped."
+        ),
+    )
+
+    # 10) manager_200x.audit_feed
+    auf_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Audit feed: label"),
+        help_text=_(
+            "Title shown above the audit table "
+            "(e.g. 'AUDIT FEED · LIVE'). Maps to cockpit.audit_feed.title."
+        ),
+    )
+    auf_events = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Audit feed: events"),
+        help_text=_(
+            "One per line: severity | actor | action | timestamp. "
+            "Severity ∈ {ok, info, warn, danger}; anything else falls back "
+            "to 'info'. Rows without an action are skipped. "
+            "severity_label is derived automatically."
+        ),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -1126,6 +1576,34 @@ class CockpitPayloadForm(forms.ModelForm):
     UPCOMING_EVENTS_FIELDS: tuple[str, ...] = (
         "ues_label",
         "ues_events",
+    )
+    # v3.57.12 rich-editor fieldsets — 6 NEW sections.
+    TODAY_SNAPSHOT_FIELDS: tuple[str, ...] = (
+        "tsn_label",
+        "tsn_greeting",
+        "tsn_metric_rows",
+    )
+    QUICK_ACTIONS_GRID_FIELDS: tuple[str, ...] = (
+        "qag_label",
+        "qag_actions",
+    )
+    ACTIVITY_TIMELINE_FIELDS: tuple[str, ...] = (
+        "atl_label",
+        "atl_events",
+    )
+    ACHIEVEMENTS_CARD_FIELDS: tuple[str, ...] = (
+        "ach_label",
+        "ach_current_streak",
+        "ach_badges",
+    )
+    LIVE_WORLD_MAP_FIELDS: tuple[str, ...] = (
+        "lwm_label",
+        "lwm_hero_value",
+        "lwm_regional_rows",
+    )
+    AUDIT_FEED_FIELDS: tuple[str, ...] = (
+        "auf_label",
+        "auf_events",
     )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
@@ -1310,6 +1788,61 @@ class CockpitPayloadForm(forms.ModelForm):
             events_section.get("events")
         )
 
+        # ---- v3.57.12 rich-editor seeds (6 NEW sections) ------------------
+        # tenant_dashboard.today_snapshot
+        today = payload.get("today_snapshot") or {}
+        self.fields["tsn_label"].initial = today.get("section_label", "")
+        self.fields["tsn_greeting"].initial = today.get("greeting", "")
+        self.fields["tsn_metric_rows"].initial = _serialize_metric_rows(
+            today.get("cards")
+        )
+
+        # tenant_dashboard.quick_actions
+        quick = payload.get("quick_actions") or {}
+        self.fields["qag_label"].initial = quick.get("section_label", "")
+        self.fields["qag_actions"].initial = _serialize_quick_actions(
+            quick.get("tiles")
+        )
+
+        # tenant_dashboard.activity_timeline
+        activity = payload.get("activity_timeline") or {}
+        self.fields["atl_label"].initial = activity.get("title", "")
+        self.fields["atl_events"].initial = _serialize_activity_events(
+            activity.get("items")
+        )
+
+        # tenant_dashboard.achievements
+        achievements = payload.get("achievements") or {}
+        self.fields["ach_label"].initial = achievements.get("title", "")
+        self.fields["ach_current_streak"].initial = achievements.get(
+            "current_streak"
+        )
+        self.fields["ach_badges"].initial = _serialize_achievement_badges(
+            achievements.get("list")
+        )
+
+        # manager_200x.live_world_map
+        world_map = payload.get("live_world_map") or {}
+        self.fields["lwm_label"].initial = world_map.get("eyebrow", "")
+        # Round-trip the hero value by joining schools_live + label on space.
+        schools_live = str(world_map.get("schools_live", "")).strip()
+        schools_label = str(world_map.get("schools_live_label", "")).strip()
+        if schools_live and schools_label:
+            hero_value_initial = f"{schools_live} {schools_label}"
+        else:
+            hero_value_initial = schools_live or schools_label
+        self.fields["lwm_hero_value"].initial = hero_value_initial
+        self.fields["lwm_regional_rows"].initial = _serialize_regional_rows(
+            world_map.get("regional_breakdown")
+        )
+
+        # manager_200x.audit_feed
+        audit = payload.get("audit_feed") or {}
+        self.fields["auf_label"].initial = audit.get("title", "")
+        self.fields["auf_events"].initial = _serialize_audit_events(
+            audit.get("events")
+        )
+
     # ------------------------------------------------------------------
     # Flat-form -> nested-payload assembly.
     # ------------------------------------------------------------------
@@ -1469,6 +2002,95 @@ class CockpitPayloadForm(forms.ModelForm):
             events_overlay["events"] = parsed_events
         if events_overlay:
             payload.setdefault("upcoming_events", {}).update(events_overlay)
+
+        # v3.57.12 rich-editor overlays (6 NEW sections). Same pattern as
+        # the v3.57.2 overlays above: build a dict from the operator
+        # inputs, filter empty values so `_deep_merge` preserves the
+        # defaults, then `.update()` onto a `setdefault()` dict so any
+        # existing keys (enable toggles, headline leaf attributes from
+        # the v3.57 cockpit fieldset) survive alongside the new content.
+
+        # 5) tenant_dashboard.today_snapshot
+        today_overlay: dict[str, Any] = {}
+        tsn_label = (cleaned.get("tsn_label") or "").strip()
+        if tsn_label:
+            today_overlay["section_label"] = tsn_label
+        tsn_greeting = (cleaned.get("tsn_greeting") or "").strip()
+        if tsn_greeting:
+            today_overlay["greeting"] = tsn_greeting
+        tsn_cards = _parse_metric_rows(cleaned.get("tsn_metric_rows") or "")
+        if tsn_cards:
+            today_overlay["cards"] = tsn_cards
+        if today_overlay:
+            payload.setdefault("today_snapshot", {}).update(today_overlay)
+
+        # 6) tenant_dashboard.quick_actions
+        quick_overlay: dict[str, Any] = {}
+        qag_label = (cleaned.get("qag_label") or "").strip()
+        if qag_label:
+            quick_overlay["section_label"] = qag_label
+        qag_tiles = _parse_quick_actions(cleaned.get("qag_actions") or "")
+        if qag_tiles:
+            quick_overlay["tiles"] = qag_tiles
+        if quick_overlay:
+            payload.setdefault("quick_actions", {}).update(quick_overlay)
+
+        # 7) tenant_dashboard.activity_timeline
+        activity_overlay: dict[str, Any] = {}
+        atl_label = (cleaned.get("atl_label") or "").strip()
+        if atl_label:
+            activity_overlay["title"] = atl_label
+        atl_items = _parse_activity_events(cleaned.get("atl_events") or "")
+        if atl_items:
+            activity_overlay["items"] = atl_items
+        if activity_overlay:
+            payload.setdefault("activity_timeline", {}).update(activity_overlay)
+
+        # 8) tenant_dashboard.achievements
+        ach_overlay: dict[str, Any] = {}
+        ach_label = (cleaned.get("ach_label") or "").strip()
+        if ach_label:
+            ach_overlay["title"] = ach_label
+        ach_streak = cleaned.get("ach_current_streak")
+        if ach_streak is not None and ach_streak != "":
+            ach_overlay["current_streak"] = ach_streak
+        ach_list = _parse_achievement_badges(cleaned.get("ach_badges") or "")
+        if ach_list:
+            ach_overlay["list"] = ach_list
+        if ach_overlay:
+            payload.setdefault("achievements", {}).update(ach_overlay)
+
+        # 9) manager_200x.live_world_map — hero_value splits on first
+        # space into (schools_live, schools_live_label) so the partial's
+        # mega-number + suffix layout still works. Single-token input
+        # is treated as the mega-number alone (label falls through to
+        # the default from cockpit_manager_200x.py).
+        world_overlay: dict[str, Any] = {}
+        lwm_label = (cleaned.get("lwm_label") or "").strip()
+        if lwm_label:
+            world_overlay["eyebrow"] = lwm_label
+        lwm_hero_raw = (cleaned.get("lwm_hero_value") or "").strip()
+        if lwm_hero_raw:
+            head, sep, tail = lwm_hero_raw.partition(" ")
+            world_overlay["schools_live"] = head
+            if sep and tail.strip():
+                world_overlay["schools_live_label"] = tail.strip()
+        lwm_regional = _parse_regional_rows(cleaned.get("lwm_regional_rows") or "")
+        if lwm_regional:
+            world_overlay["regional_breakdown"] = lwm_regional
+        if world_overlay:
+            payload.setdefault("live_world_map", {}).update(world_overlay)
+
+        # 10) manager_200x.audit_feed
+        audit_overlay: dict[str, Any] = {}
+        auf_label = (cleaned.get("auf_label") or "").strip()
+        if auf_label:
+            audit_overlay["title"] = auf_label
+        auf_events = _parse_audit_events(cleaned.get("auf_events") or "")
+        if auf_events:
+            audit_overlay["events"] = auf_events
+        if audit_overlay:
+            payload.setdefault("audit_feed", {}).update(audit_overlay)
 
         return payload
 

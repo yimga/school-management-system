@@ -122,6 +122,26 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["upcoming_events_fields"] = [
             form[name] for name in getattr(form, "UPCOMING_EVENTS_FIELDS", ())
         ]
+        # v3.57.12: 6 NEW rich-editor fieldsets extending the Agent D pattern.
+        # Same getattr() guard so older form revisions still render.
+        ctx["today_snapshot_fields"] = [
+            form[name] for name in getattr(form, "TODAY_SNAPSHOT_FIELDS", ())
+        ]
+        ctx["quick_actions_grid_fields"] = [
+            form[name] for name in getattr(form, "QUICK_ACTIONS_GRID_FIELDS", ())
+        ]
+        ctx["activity_timeline_fields"] = [
+            form[name] for name in getattr(form, "ACTIVITY_TIMELINE_FIELDS", ())
+        ]
+        ctx["achievements_card_fields"] = [
+            form[name] for name in getattr(form, "ACHIEVEMENTS_CARD_FIELDS", ())
+        ]
+        ctx["live_world_map_fields"] = [
+            form[name] for name in getattr(form, "LIVE_WORLD_MAP_FIELDS", ())
+        ]
+        ctx["audit_feed_fields"] = [
+            form[name] for name in getattr(form, "AUDIT_FEED_FIELDS", ())
+        ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
         return ctx

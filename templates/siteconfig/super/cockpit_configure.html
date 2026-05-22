@@ -261,6 +261,157 @@
     </fieldset>
     {% endif %}
 
+    {% comment %}
+      v3.57.12: 6 NEW rich-editor fieldsets that extend the v3.57.2 pattern
+      to today_snapshot / quick_actions_grid / activity_timeline /
+      achievements_card / live_world_map / audit_feed. Empty fields fall
+      through to section defaults via _deep_merge in cockpit_context.py.
+    {% endcomment %}
+
+    {# ---- v3.57.12 Today snapshot rich editor ---------------------------- #}
+    {% if today_snapshot_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="today-snapshot">
+      <legend class="h6 px-2 fw-bold">{% trans "Today snapshot (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Section label, greeting, and KPI rows for the tenant_dashboard.today_snapshot card row. Sparklines + deltas are operator-edited via JSON; this editor covers the headline copy + metric labels/values." %}
+      </p>
+      <div class="row g-3">
+        {% for field in today_snapshot_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.12 Quick actions grid rich editor ------------------------ #}
+    {% if quick_actions_grid_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="quick-actions-grid">
+      <legend class="h6 px-2 fw-bold">{% trans "Quick actions grid (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Section label + tile rows for the tenant_dashboard.quick_actions grid. Badges and per-tile metadata fall through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in quick_actions_grid_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.12 Activity timeline rich editor ------------------------- #}
+    {% if activity_timeline_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="activity-timeline">
+      <legend class="h6 px-2 fw-bold">{% trans "Activity timeline (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + event rows for the tenant_dashboard.activity_timeline rail. Tone/icon and view-all link fall through to section defaults. Event rows are forgiving — trailing columns may be omitted." %}
+      </p>
+      <div class="row g-3">
+        {% for field in activity_timeline_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.12 Achievements card rich editor ------------------------- #}
+    {% if achievements_card_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="achievements-card">
+      <legend class="h6 px-2 fw-bold">{% trans "Achievements card (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title, current streak, and badge rows for the tenant_dashboard.achievements card. Streak is optional; rendering partials that don't read it ignore the extra key cleanly." %}
+      </p>
+      <div class="row g-3">
+        {% for field in achievements_card_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.12 Live world map rich editor ---------------------------- #}
+    {% if live_world_map_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="live-world-map">
+      <legend class="h6 px-2 fw-bold">{% trans "Live world map (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Operator-published copy for the manager_200x.live_world_map card. The hero value splits on the first space into mega-number + label (e.g. '127 schools live'); tenant-dot positions and color tokens stay code-owned." %}
+      </p>
+      <div class="row g-3">
+        {% for field in live_world_map_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.12 Audit feed rich editor -------------------------------- #}
+    {% if audit_feed_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="audit-feed">
+      <legend class="h6 px-2 fw-bold">{% trans "Audit feed (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + event rows for the manager_200x.audit_feed card. Severity is constrained to ok/info/warn/danger; severity_label is derived automatically. Scope and other metadata fall through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in audit_feed_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"

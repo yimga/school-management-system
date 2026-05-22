@@ -1,6 +1,145 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-21 (v3.57.2 — Cockpit design previews shipped to operators via staff-gated index)
+**Last updated:** 2026-05-22 (v3.57.12 — orphan dashboard retirement: removed dead `super_dashboard` v1 view function; all other audited orphan candidates verified load-bearing and kept intact)
+
+## 2026-05-22 — v3.57.12 orphan dashboard retirement
+
+- `apps/schools/super_views_dashboard_surfaces.py` — retired `super_dashboard(request)` v1 (lines 52-222, ~170 lines / ~6.8KB) — no URL binding; `super:dashboard` route uses `super_dashboard_v2` only. Re-export + `__all__` entry in `apps/schools/super_views.py` removed; alias-assertion in `apps/schools/tests/test_super_views_dashboard_surfaces.py` updated to drop the v1 reference. Template `schools/super_dashboard.html` KEPT (rendered by v2); registry entries in `phase7_dashboard_templates.py` + `phase8_declarations.py` KEPT. Phase 7 marker gate unchanged by this retirement (pre-existing unrelated failures on `admin/admin_dashboard.html`, `apicenter/dashboard.html`, 5 `siteconfig/*` templates remain — not introduced here).
+- `apps/schools/parent_tenant_views.py` + `templates/schools/parent_tenant_dashboard.html` — KEPT (verdict: NOT-DEAD). Wired live at `config/urls.py:593` AND `config/tenant_urls.py:479` as URL `organization_network_dashboard` (`organization/network/` path). Earlier audit was wrong.
+- 12 dashboard CSS files audited (`dashboard-auto-grid`, `dashboard-responsive`, `dashboard-charts`, `dashboard-layout-unified`, `dashboard-clear`, `dashboard-text-visibility`, `dashboard-theme-sync`, `dashboard-topology-shell`, `dashboard-layout-controls`, `backend-dashboard-v2-contract`, `backend-dashboard-v2`, `backend-dashboard-tokens`) — ALL KEPT. Every file has at least one live `<link>` reference in `templates/` (`base.html`, `portal_base.html`, `control_plane_skeleton.html`, `backend_base_*`, role dashboards) and several are pinned by CI workflows / `verify_*` scripts / `test_marketing_shell.py` / `test_theme_visibility_matrix.py` / `test_backend_dashboard_shell_render.py` / `service-worker.js` cache list. None safe to delete.
+
+## 2026-05-22 — v3.57.11 Six-agent parallel completion push
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.11-six-agent-completion-push-2026-05-22` (monotonic vs v3.57.10).
+
+Six-agent parallel fan-out closing out the v3.57.x adoption surface area with one agent per deliverable: PDF print-v2 adoption, email civic adoption, pager retirement layering, cockpit per-section rich editor, header/ticker chrome parity, and token cascade v8 preview parity. 28 files touched total; all 8 zero-tolerance scanners green.
+
+### What landed
+
+| Wave deliverable | Detail |
+|---|---|
+| **PDF print-v2 adoption** (Agent A) | 3 print templates (transcript / invoice / report-card) wrapped with `.rmc-print-v2` + brand-block + watermark prop wiring per the v3.57.0 grammar. All literal hex purged in favor of `--rmc-print-brand-*` cascade tokens. |
+| **Email-civic adoption** (Agent B) | 6 transactional email templates (welcome / activation / low-balance / migration-receipt / webhook-confirmation / counsel-pending) restructured to civic 4-tier markup per `rmc-email-civic.css`. Plaintext twins regenerated; `scan_email_plaintext_twin.py` re-baseline 0. |
+| **Pager retirement layering** (Agent C) | Django admin `.paginator` + ~8 bespoke Bootstrap pagination markup sites layered with `rmc-pagination*` classes via additive CSS in `rmc-pagination-grammar.css`. 3 originally-listed forks (`.portal-page-pager`, `.bk-dash-pager`, DRF Redoc) confirmed absent from tree — likely mass-purged in an earlier wave. Closed item. (See `docs/DEFERRED_v3_57_EXTERNAL.md` correction note.) |
+| **Cockpit per-section rich editor** (Agent D) | Per-section rich editors for 4 cockpit sections: `lod_*` (lesson-of-day), `asb_*` (ai-study-buddy), `tsc_*` (tenant-sibling-compare opt-in), `ues_*` (universal-enable shadows). Round-trip mapping pattern from v3.57.1 reused (`_<SECTION>_FIELD_TO_KEY` constants). |
+| **Header/ticker chrome parity** (Agent E) | NPS / revenue metric ticker moved from the universal header (was leaking into tenant + portal surfaces) to the manager landing only. Header chrome simplified across all 4 shells; ticker mount restricted to `dashboard_super.html`. |
+| **Token cascade v8 preview parity** (Agent F) | 12 `cp-chrome-*` tokens promoted to design-tokens.css + `warning` / `danger` / `success` semantic surfaces extended to match the v8 manager preview. Eliminates the last preview-vs-live token drift. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `scan_off_token_colors.py` | **0** (preserved) |
+| `scan_color_contrast.py` | **0** (preserved) |
+| `scan_horizontal_overflow_risk.py` | **0** (preserved) |
+| `scan_email_plaintext_twin.py` | **0** (re-baselined after Agent B regen) |
+| `scan_sms_template_length.py` | **0** (preserved) |
+| `scan_pdf_brand_cascade.py` | **0** (Agent A burndown — was 0 already after v3.57.1) |
+| `scan_pwa_install_prompt_coverage.py` | **0** (preserved) |
+| `scan_sticky_with_overflow_hidden.py` | **0** (preserved) |
+| `verify_service_worker_version.py` | OK — `sms-v3.57.11-six-agent-completion-push-2026-05-22` monotonic vs v3.57.10 |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.11.
+* 28 files touched across 6 wave deliverables.
+* Operator-facing changes: NPS/revenue ticker now manager-landing-only;
+  Django admin pagers automatically adopt rmc-pagination grammar.
+```
+
+## 2026-05-22 — v3.57.10 Landing-only cockpit + strip floating chrome
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.10-landing-only-cockpit-strip-floating-chrome-2026-05-22` (monotonic vs v3.57.9).
+
+Tightens shell scope by moving cockpit sections out of skeleton + base templates into landing templates only, and stripping floating chrome that was leaking across every page.
+
+### What landed
+
+| Category | Detail |
+|---|---|
+| **Cockpit sections moved to landings only** | Cockpit section blocks removed from `control_plane_skeleton.html` + `base.html` shell-level inclusion; now mounted in landing templates only (`dashboard_super.html`, role-specific landings). Prevents the cockpit chrome from rendering on every interior page. |
+| **10 tenant v3 extended sections moved into role-specific landings** | The 10 v3.57.0 tenant-v3-extended sections (AI study buddy / parent-teacher thread / realtime presence / gradebook trend / attendance heatmap / financial timeline / sibling compare / life-event timeline / calendar weather / lesson of day) wired into the 4 per-role tenant landings (parent / teacher / student / backend) instead of `portal_base.html`. |
+| **Floating chrome stripped from all 4 shells** | 4 floating UI elements removed from `portal_base.html` + `control_plane_skeleton.html` + `base.html` + `admin/base_site.html`: `ai_copilot` FAB, `rmc-page-help-fab`, `help_contextual_drawer`, `help_proactive_nudge`. These were rendering on every page including login / error / print surfaces. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `verify_service_worker_version.py` | OK — `sms-v3.57.10-landing-only-cockpit-strip-floating-chrome-2026-05-22` monotonic vs v3.57.9 |
+| Template safety | clean on 10 touched templates |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.10.
+* 10 files touched.
+* Operator-facing: cockpit + tenant-v3-extended sections now only on landings;
+  floating help/copilot chrome removed from non-landing surfaces.
+```
+
+## 2026-05-22 — v3.57.9 Preview parity wave — wire missing shell includes
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.9-preview-parity-pulse-strip-tenant-v3-extended-wiring-2026-05-22` (monotonic vs v3.57.8).
+
+Closes preview-vs-live drift by wiring 2 includes that were present in v8 preview but missing in production shells, and re-applying the multi-line `{# #}` bug fix that regressed during a merge.
+
+### What landed
+
+| File | Detail |
+|---|---|
+| `templates/control_plane_skeleton.html` | `platform_pulse` partial wired into the manager skeleton (was preview-only). |
+| `templates/portal_base.html` | New `{% block portal_v3_extended %}` containing all 10 v3.57.0 tenant-v3-extended sections, gated by per-section `enabled` flags. |
+| `templates/portal/email/help_north_star_report.html` | Multi-line `{# … #}` comment bug re-applied (Django supports single-line only) — converted to `{% comment %}…{% endcomment %}`. Originally caught + fixed in v3.55.1; regressed in a merge. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `audit_template_render_safety.py` | **0** (clean after re-fix) |
+| `verify_service_worker_version.py` | OK — `sms-v3.57.9-preview-parity-pulse-strip-tenant-v3-extended-wiring-2026-05-22` monotonic vs v3.57.8 |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.9.
+* 3 files touched.
+```
+
+## 2026-05-22 — v3.57.8 Shell parity — footer -10% / help drawer fix / sidebar 200x retrofit
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.8-shell-parity-footer-help-sidebar-2026-05-22` (monotonic vs v3.57.7).
+
+Shell-level parity fixes covering civic footer vertical density, help drawer cross-shell behavior, and sidebar 200x token retrofit.
+
+### What landed
+
+| Surface | Detail |
+|---|---|
+| **Civic footer -10% vertical density** | Footer markup + CSS adjusted for a ~10% vertical reduction across tenant + manager shells. Civic 4-tier layout preserved. |
+| **Help drawer fix** | Cross-shell help drawer behavior fix — was failing to close on outside-click on `portal_base.html`. |
+| **Sidebar 200x retrofit** | Sidebar tokens promoted to the 200x cascade for parity with the v8 manager preview. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `verify_service_worker_version.py` | OK — `sms-v3.57.8-shell-parity-footer-help-sidebar-2026-05-22` monotonic vs v3.57.7 |
+| Migrations required | **0** |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.8.
+* 4 files touched.
+```
 
 ## 2026-05-21 — v3.57.2 Cockpit design previews shipped to operators
 

@@ -410,3 +410,251 @@
   .rmc-newsletter-band__btn { transition: none; }
   .rmc-newsletter-band__btn:hover { transform: none; }
 }
+
+/* ============================================================
+   v3.57.x tenant-portal (tp-*) premium grammar
+   ------------------------------------------------------------
+   Forward-looking class grammar adopted from
+   `docs/generated/preview_app_shell_tenant_portal_v3.html` and
+   `rmc-shell-preview-tenant-portal-v3-100x.html`. These classes
+   layer on top of the live tenant landing dashboards (parent /
+   student / teacher / backend) that already wrap their cockpit
+   sections in `.tp-dashboard-cockpit` (per v3.56.0 cascade).
+
+   Companion file `rmc-tenant-dashboard-v2.css` already defines
+   `.tp-section-label*`, `.tp-snapshot*`, `.tp-quick-*`,
+   `.tp-event*`, `.tp-grid-2`, `.tp-grid-stack`, `.tp-activity*`,
+   `.tp-achievements*`, `.tp-spotlight*`, `.tp-child-context*`.
+   This block adds the missing root-level + general-purpose
+   primitives that the live dashboards reference (notably
+   `.tp-dashboard-cockpit`) plus a reusable card / section /
+   eyebrow / pill / hairline grammar for future tp-* partials.
+
+   All literal colors are either consumed via semantic tokens or
+   wrapped with `/* off-token-allow: <reason> */` markers per the
+   v3.7.2 zero-tolerance scanner.
+   ============================================================ */
+
+/* ----------------------------- Root wrapper
+   Wraps the entire per-role cockpit cascade. Sits inside the
+   existing `.parent-dashboard` / `.student-dashboard` shells so
+   it inherits their max-width container — its own job is to
+   provide vertical rhythm + a tiny breathing inset that pulls
+   premium cockpit sections away from legacy chrome.
+
+   `min-width: 0` is critical — without it, descendant grid
+   children inheriting from `grid-template-columns: 1.4fr 1fr`
+   refuse to shrink below their intrinsic content width, which
+   the v3.57.1 horizontal-overflow burndown lesson surfaced
+   across 47 surfaces. */
+.tp-dashboard-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+  margin: 0 0 var(--space-5, 20px);
+  min-width: 0;
+}
+.tp-dashboard-cockpit > * { min-width: 0; }
+
+/* ----------------------------- Page heading
+   Mirrors `.tp-page-h1` from the v3 100x preview (line 567):
+   large display-weight headline + optional brand-gradient
+   strong-text and a muted subhead lede. */
+.tp-page-h1 {
+  margin: var(--space-2, 6px) 0 var(--space-1, 4px);
+  font-size: clamp(24px, 2.4vw, 32px);
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.tp-page-h1 strong {
+  background: var(--school-gradient,
+    linear-gradient(135deg, var(--school-primary), var(--school-primary-soft, var(--school-primary))));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+.tp-page-h1-sub,
+.tp-page-sub {
+  margin: 0 0 var(--space-3, 10px);
+  font-size: var(--type-size-small, 14px);
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.tp-page-h1-sub strong,
+.tp-page-sub strong { color: var(--text-primary); font-weight: 600; }
+
+/* ----------------------------- Eyebrow
+   Uppercase micro-label used above a section or card title.
+   Same micro-typography as `.tp-section-label__title` but
+   meant to be used standalone (without the section-label flex
+   row scaffolding). */
+.tp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 6px);
+  font-size: var(--type-size-micro, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  margin: 0;
+}
+.tp-eyebrow--brand { color: var(--school-primary); }
+
+/* ----------------------------- Section
+   Generic vertical section primitive. Sits between
+   `.tp-dashboard-cockpit` and an arbitrary inner block (card,
+   grid, list). Provides a title + optional lede + content
+   stack. Mirrors the implicit pattern in the preview where
+   each section is `eyebrow + h2 + content`. */
+.tp-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  min-width: 0;
+}
+.tp-section__title {
+  margin: 0;
+  font-size: var(--type-size-medium, 16px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}
+.tp-section__lede {
+  margin: 0;
+  font-size: var(--type-size-small, 13px);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 64ch;
+}
+
+/* ----------------------------- Card
+   Generic premium card primitive consistent with the existing
+   `.tp-snap-card` / `.tp-activity` / `.tp-spotlight` shells in
+   rmc-tenant-dashboard-v2.css. Use `.tp-card__head` /
+   `.tp-card__body` / `.tp-card__foot` for vertical structure. */
+.tp-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  padding: var(--space-4, 18px) var(--space-5, 20px);
+  box-shadow: var(--elev-1, 0 1px 2px rgba(15, 23, 42, 0.04)); /* off-token-allow: elevation-shadow-default */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  min-width: 0;
+  transition: border-color var(--motion-fast, 150ms cubic-bezier(0.4, 0, 0.2, 1)),
+              box-shadow var(--motion-fast, 150ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+.tp-card:hover {
+  border-color: var(--school-primary-light, var(--hairline-strong, var(--hairline)));
+  box-shadow: var(--elev-2, 0 4px 14px rgba(15, 23, 42, 0.06)); /* off-token-allow: elevation-shadow-hover */
+}
+.tp-card--flat {
+  box-shadow: none;
+}
+.tp-card--flat:hover {
+  box-shadow: none;
+}
+.tp-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.tp-card__title {
+  margin: 0;
+  font-size: var(--type-size-medium, 15px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.tp-card__body {
+  font-size: var(--type-size-small, 13.5px);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  min-width: 0;
+}
+.tp-card__body > p { margin: 0 0 var(--space-2, 8px); }
+.tp-card__body > p:last-child { margin-bottom: 0; }
+.tp-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 10px);
+  padding-top: var(--space-3, 10px);
+  border-top: 1px solid var(--hairline);
+  font-size: var(--type-size-micro, 11.5px);
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* ----------------------------- Pill
+   Small status / metadata chip. Variants follow the same
+   semantic-color contract as `.tp-event__pill--*` so they can
+   sit side by side in mixed surfaces. */
+.tp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 4px);
+  padding: 2px var(--space-2, 8px);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-overlay, var(--surface-canvas, var(--surface-elevated)));
+  color: var(--text-secondary);
+  font-size: var(--type-size-micro, 11px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-controlled-vocab */
+  border: 1px solid var(--hairline);
+  line-height: 1.4;
+}
+.tp-pill--info {
+  background: var(--info-soft, rgba(37, 99, 235, 0.10)); /* off-token-allow: status-info-tint-fallback */
+  color: var(--info, #2563eb); /* off-token-allow: status-info-fallback */
+  border-color: transparent;
+}
+.tp-pill--success {
+  background: var(--success-soft, rgba(22, 163, 74, 0.12)); /* off-token-allow: status-success-tint-fallback */
+  color: var(--success, #16a34a); /* off-token-allow: status-success-fallback */
+  border-color: transparent;
+}
+.tp-pill--warn {
+  background: var(--warning-soft, rgba(217, 119, 6, 0.12)); /* off-token-allow: status-warn-tint-fallback */
+  color: var(--warning, #d97706); /* off-token-allow: status-warn-fallback */
+  border-color: transparent;
+}
+.tp-pill--brand {
+  background: var(--school-primary-light, var(--school-primary-tint, var(--surface-overlay)));
+  color: var(--school-primary);
+  border-color: transparent;
+}
+
+/* ----------------------------- Hairline
+   Token-driven 1px divider. Use as `<hr class="tp-hairline">`
+   or as a flex/grid spacer between two stacked sections. */
+.tp-hairline {
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin: var(--space-4, 14px) 0;
+  border: 0;
+  background: var(--hairline);
+}
+.tp-hairline--strong { background: var(--hairline-strong, var(--hairline)); }
+.tp-hairline--flush { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-card,
+  .tp-card:hover { transition: none; }
+}
