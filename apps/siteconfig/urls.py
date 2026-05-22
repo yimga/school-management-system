@@ -149,6 +149,7 @@ from .views_tenant_studio_hub import (
     TenantStudioDay1ResetView,
 )
 from .views_cockpit_admin import CockpitConfigureView
+from .views_cockpit_previews import CockpitPreviewIndexView, CockpitPreviewServeView
 
 app_name = "siteconfig"
 
@@ -597,5 +598,19 @@ urlpatterns = [
         "super/configure/cockpit/",
         CockpitConfigureView.as_view(),
         name="cockpit_configure",
+    ),
+    # v3.57.2 (2026-05-21): operator design-preview index + raw HTML serve
+    # routes. Surfaces docs/generated/preview_app_shell_*.html behind staff
+    # auth so operators can compare current shell behavior against published
+    # design intent without filesystem access.
+    path(
+        "super/configure/cockpit/previews/",
+        CockpitPreviewIndexView.as_view(),
+        name="cockpit_previews",
+    ),
+    path(
+        "super/configure/cockpit/previews/<slug:slug>/",
+        CockpitPreviewServeView.as_view(),
+        name="cockpit_preview_serve",
     ),
 ]

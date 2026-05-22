@@ -1,6 +1,48 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-21 (v3.57.1 — Adoption wave: 3 CSS bundles wired + 20 admin toggles + 4 NEW scanners + 47-site overflow burndown)
+**Last updated:** 2026-05-21 (v3.57.2 — Cockpit design previews shipped to operators via staff-gated index)
+
+## 2026-05-21 — v3.57.2 Cockpit design previews shipped to operators
+
+**Status:** SHIPPED in-repo. SW `sms-v3.57.2-cockpit-design-previews-2026-05-21` (monotonic vs v3.57.1).
+
+User flagged that the 2 preview HTML artifacts on their desktop (`~/OneDrive/Desktop/rmc-shell-preview-v8-200x.html` 118KB + `rmc-shell-preview-tenant-portal-v3-100x.html` 78KB) needed to ship. MD5-verified byte-identical to repo files at `docs/generated/preview_app_shell_manager_v8_200x.html` + `docs/generated/preview_app_shell_tenant_portal_v3.html` (already committed in `b133cde1`) — but those files were not reachable via any URL. This wave wires the operator-facing serving path.
+
+### What landed
+
+| Artifact | Detail |
+|---|---|
+| `apps/siteconfig/views_cockpit_previews.py` (NEW, ~135L) | 2 staff-gated CBVs: `CockpitPreviewIndexView` (TemplateView listing registered previews w/ embedded iframes + file sizes + missing-file detection) + `CockpitPreviewServeView` (View serving raw HTML by slug via hardcoded `PREVIEWS` slug→path map — path-traversal-safe by construction). Response carries `X-Frame-Options: SAMEORIGIN` + `X-Content-Type-Options: nosniff` + `Cache-Control: private, no-store`. |
+| `templates/siteconfig/super/cockpit_previews.html` (NEW) | Extends `control_plane_base.html`. Breadcrumb (Home → Cockpit configuration → Design previews). 2 panel cards w/ `loading="lazy"` 80vh iframes. Iframe `sandbox="allow-same-origin allow-scripts"` lets preview's CSS+JS render but blocks form submission + popups. "Open in new tab ↗" button per preview. Honest "Missing — re-build via docs/generated/" badge when file absent. |
+| `apps/siteconfig/urls.py` | 2 new routes under existing `super/configure/cockpit/` prefix: `cockpit_previews` (index) + `cockpit_preview_serve` (slug-based raw HTML). |
+| `templates/siteconfig/super/cockpit_configure.html` | "Design previews →" outline-primary button added to the header CTA strip linking to the new index. |
+
+### Registered previews (slug → file)
+
+| Slug | File | Size | Description |
+|---|---|---|---|
+| `manager-v8-200x` | `docs/generated/preview_app_shell_manager_v8_200x.html` | 118 KB | Control plane shell with 10 luxury elements (AI Copilot rail · world map · forecast lane · tenant heatmap · revenue waterfall · audit feed · trust nutrition · SLO clocks · operator presence · operator notebook). |
+| `tenant-portal-v3-100x` | `docs/generated/preview_app_shell_tenant_portal_v3.html` | 78 KB | Tenant shell with civic 4-tier footer + community band (student-of-the-month · parent testimonial rotator · district map) + newsletter signup band + 100x luxury elements. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `verify_service_worker_version.py` | OK — `sms-v3.57.2-cockpit-design-previews-2026-05-21` monotonic vs v3.57.1 |
+| AST parse | OK on `views_cockpit_previews.py` + extended `urls.py` |
+| Template safety | clean on `cockpit_previews.html` |
+| MD5 byte-identical | confirmed for both desktop ↔ repo file pairs |
+| Migrations | **0** |
+| Path-traversal safety | Slug map is hardcoded; unknown slug → 404. No filesystem walks. |
+
+### Deploy
+
+```
+* No migration needed.
+* SW already bumped to v3.57.2.
+* Previews accessible at /siteconfig/super/configure/cockpit/previews/ (staff-only).
+* Iframe src resolves at /siteconfig/super/configure/cockpit/previews/<slug>/.
+```
 
 ## 2026-05-21 — v3.57.1 Adoption wave (same-day continuation of v3.57.0)
 

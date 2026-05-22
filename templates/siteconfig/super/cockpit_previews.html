@@ -1,0 +1,81 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Cockpit design previews" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/super/">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'siteconfig:cockpit_configure' %}">{% trans "Cockpit configuration" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Design previews" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="preview-gallery">
+  <header class="mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase mb-1">{% trans "Design previews" %}</div>
+        <h1 class="h4 mb-1 fw-bold page-h1">{% trans "Cockpit design previews" %}</h1>
+        <p class="small mb-0 text-muted">
+          {% trans "Reference HTML previews of the v3.55+ luxury shells. Use these to compare current live behavior against the published design intent before flipping section enable toggles in the cockpit configuration." %}
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'siteconfig:cockpit_configure' %}" class="btn btn-outline-secondary btn-sm">
+          {% trans "← Back to cockpit configuration" %}
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="row g-4">
+    {% for preview in previews %}
+    <div class="col-12">
+      <section class="card" data-preview-slug="{{ preview.slug }}">
+        <header class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <h2 class="h6 mb-1 fw-bold">{{ preview.label }}</h2>
+            <p class="small text-muted mb-0">{{ preview.description }}</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            {% if preview.exists %}
+              <span class="badge bg-success-subtle text-success-emphasis">
+                {{ preview.size_kb }} KB
+              </span>
+              <a href="{% url 'siteconfig:cockpit_preview_serve' slug=preview.slug %}"
+                 class="btn btn-outline-primary btn-sm"
+                 target="_blank" rel="noopener">
+                {% trans "Open in new tab ↗" %}
+              </a>
+            {% else %}
+              <span class="badge bg-warning-subtle text-warning-emphasis">
+                {% trans "Missing — re-build via docs/generated/" %}
+              </span>
+            {% endif %}
+          </div>
+        </header>
+        {% if preview.exists %}
+        <div class="card-body p-0">
+          <iframe
+            src="{% url 'siteconfig:cockpit_preview_serve' slug=preview.slug %}"
+            title="{{ preview.label }}"
+            loading="lazy"
+            sandbox="allow-same-origin allow-scripts"
+            style="width:100%; height:80vh; min-height:600px; border:0; display:block;"
+            referrerpolicy="no-referrer">
+          </iframe>
+        </div>
+        {% endif %}
+        <footer class="card-footer small text-muted">
+          {% trans "File:" %} <code>docs/generated/{{ preview.filename }}</code>
+        </footer>
+      </section>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
