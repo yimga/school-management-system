@@ -134,14 +134,67 @@ _OFFBOARDING_AUDIT_EVENT_TYPES = frozenset(
 )
 
 
-# Audit-chain mirror to MigrationCloudAuditEvent is currently a
-# structured-log mirror (audit_event_log_mirror below). The Migration
-# Cloud audit-event type vocabulary is a closed TextChoices owned by
-# apps.migration_cloud.models_audit — extending it from outside that
-# app requires a migration + counsel sign-off (v3.62+ scope).
-# Until then, the log mirror gives downstream observability a parallel
-# tamper-evident trail without the integrity_hash chain. The original
-# SchoolProvisioningEvent rows remain the canonical record.
+# Audit-chain mirror to MigrationCloudAuditEvent. v3.61.6 Wave L6:
+# the enum was extended with 4 lifecycle.offboarding.* values via
+# migration migration_cloud.0029, so we can now do a first-class
+# tamper-evident mirror with hash-chain integrity.
+#
+# The original SchoolProvisioningEvent rows remain the canonical
+# record; the mirror is forensic parity with Migration Cloud's
+# audit log. audit_event_log_mirror below stays as a structured-log
+# backstop for environments where Migration Cloud isn't loaded.
+
+
+_SCHOOL_EVENT_TO_AUDIT_TYPE = {
+    "OFFBOARDING_EXPORT": "lifecycle.offboarding.export",
+    "OFFBOARDING_DEACTIVATED": "lifecycle.offboarding.deactivated",
+    "OFFBOARDING_PURGE_REQUESTED": "lifecycle.offboarding.purge_requested",
+    "OFFBOARDING_PURGE_COMPLETED": "lifecycle.offboarding.purge_completed",
+}
+
+
+def audit_event_mirror(event) -> bool:
+    """First-class mirror into MigrationCloudAuditEvent with hash chain.
+
+    Returns True on successful write, False otherwise (event type not
+    mirrored, Migration Cloud unavailable, or write failure).
+
+    PII-safe: actor is hashed inside the manager.record() call; payload
+    sanitizer drops 14 sensitive keys; tenant slug never persisted raw
+    (only the SHA-256 prefix).
+    """
+    if event is None:
+        return False
+    event_type = getattr(event, "event_type", None)
+    audit_type = _SCHOOL_EVENT_TO_AUDIT_TYPE.get(event_type)
+    if not audit_type:
+        return False
+    school = getattr(event, "school", None)
+    if school is None or not getattr(school, "slug", None):
+        return False
+    try:
+        from apps.migration_cloud.models_audit import MigrationCloudAuditEvent
+
+        MigrationCloudAuditEvent.objects.record(
+            tenant_slug=school.slug,
+            event_type=audit_type,
+            actor=getattr(event, "actor", None),
+            subject=str(school.id),
+            payload_summary={
+                "lifecycle_event_id": str(getattr(event, "id", "")),
+                "school_provisioning_event_type": event_type,
+            },
+        )
+        return True
+    except ImportError:
+        return False
+    except Exception as exc:  # noqa: BLE001 — never break the request path
+        logger.warning(
+            "lifecycle.audit_event_mirror.failed event_id=%s err=%s",
+            getattr(event, "id", "?"),
+            type(exc).__name__,
+        )
+        return False
 
 
 def audit_event_log_mirror(event) -> bool:

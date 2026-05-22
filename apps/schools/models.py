@@ -221,6 +221,19 @@ def _get_role_choices():
     return User.Role.choices
 
 
+class LiveSchoolManager(models.Manager):
+    """Opt-in manager that hides soft-deleted schools (deleted_at IS NOT NULL).
+
+    Wave L6 (v3.61.6 — 2026-05-22). The default ``School.objects`` is
+    intentionally LEFT ALONE so that ~50 existing callers don't
+    silently change behavior. New code (and code that explicitly wants
+    only live schools) should use ``School.live_objects``.
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
 class School(models.Model):
     """
     Tenant: one row per school. Subdomain/slug identifies the school in the URL.
@@ -327,9 +340,10 @@ class School(models.Model):
     # Wave L4 (v3.61.3 — 2026-05-22): reversible offboarding. Soft-delete
     # marker — when set, the school is in the grace period before purge.
     # Queries that should hide soft-deleted schools must filter
-    # explicitly on `deleted_at__isnull=True`. NEVER touched by the
-    # hard purge path (drop_tenant_schema_for_school); only by
-    # apps.lifecycle.services_offboarding.mark_deleted/restore.
+    # explicitly on `deleted_at__isnull=True` OR use the opt-in
+    # ``School.live_objects`` manager added in v3.61.6 Wave L6. NEVER
+    # touched by the hard purge path (drop_tenant_schema_for_school);
+    # only by apps.lifecycle.services_offboarding.mark_deleted/restore.
     deleted_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -547,6 +561,15 @@ class School(models.Model):
         ordering = ["name"]
         verbose_name = "School"
         verbose_name_plural = "Schools"
+
+    # Wave L6 (v3.61.6 — 2026-05-22): opt-in soft-delete-aware manager.
+    # Default ``School.objects`` is UNCHANGED to avoid the ~50-caller
+    # ripple. New code should prefer ``School.live_objects`` when it
+    # wants to exclude soft-deleted schools (queryset filters on
+    # deleted_at__isnull=True). The hard-purge path still uses
+    # ``objects`` because it operates on the full set including
+    # already-soft-deleted rows.
+    live_objects = LiveSchoolManager()
 
     def __str__(self):
         return self.name

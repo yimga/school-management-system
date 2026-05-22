@@ -22,8 +22,16 @@ from apps.schools.tenant_offboarding_policy import auto_purge_enabled, auto_purg
 
 @require_GET
 def super_offboarding_queue(request):
+    # Wave L6 (v3.61.6 — 2026-05-22): billing-clearance enrichment per row
+    # so operators see outstanding-balance blockers before initiating purge.
+    try:
+        from apps.lifecycle.billing_gate import check_billing_clearance  # tenant-isolation-allow: operator-super-offboarding-billing-gate-import
+    except Exception:  # noqa: BLE001
+        check_billing_clearance = None  # type: ignore[assignment]
+
     rows: list[dict] = []
-    for school in School.objects.all().order_by("name")[:500]:
+    not_cleared_count = 0
+    for school in School.objects.all().order_by("name")[:500]:  # tenant-isolation-allow: operator-super-offboarding-queue-cross-tenant
         off = (getattr(school, "settings", None) or {}).get("offboarding") or {}
         if not isinstance(off, dict):
             continue
@@ -31,6 +39,17 @@ def super_offboarding_queue(request):
         if not status and not off.get("scheduled_purge_at"):
             continue
         snap = get_offboarding_snapshot(school)
+        clearance_state = "unknown"
+        clearance_reason = ""
+        if check_billing_clearance is not None:
+            try:
+                clearance = check_billing_clearance(school)
+                clearance_state = clearance.state
+                clearance_reason = clearance.reason
+                if clearance.state == "outstanding":
+                    not_cleared_count += 1
+            except Exception:  # noqa: BLE001
+                pass
         rows.append(
             {
                 "school": school,
@@ -38,6 +57,8 @@ def super_offboarding_queue(request):
                 "scheduled_purge_at": off.get("scheduled_purge_at"),
                 "row_total": snap.get("row_total", 0),
                 "legal_hold": snap.get("legal_hold_active"),
+                "billing_state": clearance_state,
+                "billing_reason": clearance_reason,
                 "tenant_360_url": reverse("super:tenant_360", args=[school.id])
                 + "#offboarding",
             }
@@ -52,6 +73,7 @@ def super_offboarding_queue(request):
             "auto_purge_enabled": auto_purge_enabled(),
             "grace_days": auto_purge_grace_days(),
             "dashboard_url": reverse("super:dashboard"),
+            "billing_outstanding_count": not_cleared_count,
         },
     )
 

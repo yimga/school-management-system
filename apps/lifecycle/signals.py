@@ -86,17 +86,28 @@ def provisioning_event_post_save_mirror(sender, instance, created, **kwargs):
 
         event_type = getattr(instance, "event_type", None)
         stage = _PROVISIONING_EVENT_STAGE_MAP.get(event_type)
-        if not stage:
-            return
-        school = getattr(instance, "school", None)
-        if not school:
-            return
-        record_stage(
-            school,
-            stage,
-            note=f"Mirrored from {event_type}",
-            payload={"source": "schools.SchoolProvisioningEvent", "event_type": event_type},
-        )
+        if stage:
+            school = getattr(instance, "school", None)
+            if school:
+                record_stage(
+                    school,
+                    stage,
+                    note=f"Mirrored from {event_type}",
+                    payload={"source": "schools.SchoolProvisioningEvent", "event_type": event_type},
+                )
+        # Wave L6: also mirror offboarding events into the
+        # MigrationCloudAuditEvent hash-chained audit log. Idempotent
+        # short-circuit when event_type isn't an offboarding type.
+        try:
+            from .services_offboarding import audit_event_log_mirror, audit_event_mirror
+
+            audit_event_log_mirror(instance)
+            audit_event_mirror(instance)
+        except Exception as exc:  # noqa: BLE001 — never break request path
+            logger.warning(
+                "lifecycle.audit_mirror_dispatch_failed err=%s",
+                type(exc).__name__,
+            )
     except Exception as exc:  # noqa: BLE001
         logger.warning(
             "lifecycle.provisioning_event_mirror_failed err=%s",

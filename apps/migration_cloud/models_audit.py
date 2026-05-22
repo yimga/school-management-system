@@ -315,6 +315,29 @@ class MigrationCloudAuditEventType(models.TextChoices):
         "migration.data_retention.purge_applied",
         "Migration data retention purge applied (counsel-approved)",
     )
+    # v3.61.6 Wave L6 — lifecycle.* mirror types written by
+    # apps.lifecycle.services_offboarding.audit_event_mirror. Closes the
+    # L4 honest deferral that left offboarding-event mirroring as
+    # structured-log-only because the audit enum was closed. Each value
+    # corresponds 1:1 to a SchoolProvisioningEvent offboarding type,
+    # giving offboarding event the same hash-chain integrity guarantees
+    # as Migration Cloud's intake events.
+    LIFECYCLE_OFFBOARDING_EXPORT = (
+        "lifecycle.offboarding.export",
+        "School offboarding data export generated",
+    )
+    LIFECYCLE_OFFBOARDING_DEACTIVATED = (
+        "lifecycle.offboarding.deactivated",
+        "School deactivated (offboarding)",
+    )
+    LIFECYCLE_OFFBOARDING_PURGE_REQUESTED = (
+        "lifecycle.offboarding.purge_requested",
+        "School offboarding purge requested",
+    )
+    LIFECYCLE_OFFBOARDING_PURGE_COMPLETED = (
+        "lifecycle.offboarding.purge_completed",
+        "School offboarding purge completed",
+    )
 
 
 GENESIS_SENTINEL = "genesis"

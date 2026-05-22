@@ -58,6 +58,7 @@ from apps.lifecycle.views import LifecycleTimelineView
 from apps.lifecycle.views_bulk import BulkSchoolCreateView
 from apps.lifecycle.views_clone import CloneSchoolView
 from apps.lifecycle.views_jobs import ProvisioningJobsDashboardView
+from apps.lifecycle.views_migration_intent import SchoolMigrationIntentView
 from apps.schoolops.views_analytics import MealPlanAnalyticsView
 from apps.schoolops.views_email_admin import EmailDeliveryConfigView
 from apps.schoolops.views_email_health import (
@@ -359,6 +360,11 @@ urlpatterns = [
         "schools/<uuid:source_id>/clone/",
         require_super_access_with_host(CloneSchoolView.as_view()),
         name="schools_clone",
+    ),
+    path(
+        "schools/<uuid:school_id>/migration-intent/",
+        require_super_access_with_host(SchoolMigrationIntentView.as_view()),
+        name="schools_migration_intent",
     ),
     path(
         "provisioning/jobs/",

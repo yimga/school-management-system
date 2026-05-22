@@ -7,6 +7,12 @@
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console">
   <h1 class="h5">{% trans "Offboarding queue" %}</h1>
   <p class="small text-secondary">{% trans "Schools with self-service or operator-scheduled purge. Auto-purge" %}: {% if auto_purge_enabled %}{% trans "enabled" %} ({{ grace_days }} {% trans "day grace" %}){% else %}{% trans "disabled" %}{% endif %}. {% trans "Due today" %}: <strong>{{ due_count }}</strong>.</p>
+  {% if billing_outstanding_count %}
+  <div class="alert alert-warning py-2 small mb-3" role="status">
+    <strong>{% trans "Billing alert:" %}</strong>
+    {% blocktrans count counter=billing_outstanding_count %}{{ counter }} school has an outstanding billing balance — purge requires dual-approval.{% plural %}{{ counter }} schools have outstanding billing balances — purge requires dual-approval.{% endblocktrans %}
+  </div>
+  {% endif %}
   <div class="mb-3 d-flex gap-2">
     <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-run-scheduled-dry-run>{% trans "Dry-run scheduled purges" %}</button>
     <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Dashboard" %}</a>
@@ -20,6 +26,7 @@
           <th>{% trans "Scheduled purge" %}</th>
           <th>{% trans "Rows" %}</th>
           <th>{% trans "Hold" %}</th>
+          <th>{% trans "Billing" %}</th>
           <th></th>
         </tr>
       </thead>
@@ -31,10 +38,15 @@
           <td>{{ row.scheduled_purge_at|default:"—" }}</td>
           <td>{{ row.row_total }}</td>
           <td>{% if row.legal_hold %}{% trans "Yes" %}{% else %}—{% endif %}</td>
+          <td>
+            {% if row.billing_state == "cleared" %}<span class="badge text-bg-success">{% trans "Cleared" %}</span>
+            {% elif row.billing_state == "outstanding" %}<span class="badge text-bg-warning" title="{{ row.billing_reason }}">{% trans "Outstanding" %}</span>
+            {% else %}<span class="badge text-bg-light" title="{{ row.billing_reason }}">{% trans "Unknown" %}</span>{% endif %}
+          </td>
           <td><a href="{{ row.tenant_360_url }}" class="btn btn-sm btn-outline-danger">{% trans "Offboarding" %}</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="text-secondary">{% trans "No schools in offboarding queue." %}</td></tr>
+        <tr><td colspan="7" class="text-secondary">{% trans "No schools in offboarding queue." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
