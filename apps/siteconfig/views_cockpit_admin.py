@@ -107,6 +107,21 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["tenant_v3_extended_fields"] = [
             form[name] for name in getattr(form, "TENANT_V3_EXTENDED_FIELDS", ())
         ]
+        # v3.57.2: 4 rich-editor fieldsets that promote selected sections
+        # from enable-toggle-only to full content editor. Guarded with
+        # getattr so older form revisions still render.
+        ctx["lesson_of_day_fields"] = [
+            form[name] for name in getattr(form, "LESSON_OF_DAY_FIELDS", ())
+        ]
+        ctx["ai_study_buddy_fields"] = [
+            form[name] for name in getattr(form, "AI_STUDY_BUDDY_FIELDS", ())
+        ]
+        ctx["teacher_spotlight_fields"] = [
+            form[name] for name in getattr(form, "TEACHER_SPOTLIGHT_FIELDS", ())
+        ]
+        ctx["upcoming_events_fields"] = [
+            form[name] for name in getattr(form, "UPCOMING_EVENTS_FIELDS", ())
+        ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
         return ctx

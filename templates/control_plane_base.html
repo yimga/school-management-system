@@ -29,16 +29,18 @@
   hidden product-title h1 here would create duplicate top-level headings on every
   control-plane page.
 
-  v3.55.0: topbar + (NEW) live activity ticker + primary nav consolidated inside the
-  single .rmc-app-shell__header element so the header row's height locks
+  v3.55.0: topbar + primary nav consolidated inside the single
+  .rmc-app-shell__header element so the header row's height locks
   deterministically. The legacy .rmc-control-plane-chrome wrapper is preserved so
   rmc-cp-chrome-offset.js still measures the right element.
 
-  Activity ticker is configurable + opt-out via cockpit.activity_feed.enabled.
+  v3.57.11 (2026-05-22): live activity ticker removed from the universal header
+  — it now renders on the manager landing page only (schools/super_dashboard.html)
+  alongside the platform pulse strip, so /super/* config pages keep their own
+  personality. See cockpit.activity_ticker.cards.
 {% endcomment %}
 <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
 {% include "partials/manager_operator_topbar.html" %}
-{% include "partials/cockpit/_activity_ticker.html" %}
 {% include "partials/control_plane_primary_nav.html" %}
 </div>
 {% endblock %}

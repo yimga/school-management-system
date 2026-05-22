@@ -1,19 +1,65 @@
 {% load i18n %}
-{% comment %} v3.55.0 (2026-05-21): live platform activity feed.
+{% comment %} v3.57.11 (2026-05-22): live platform activity ticker.
 
-   Rendered inside the manager header (.rmc-app-shell__header) below the
-   topbar row. Bloomberg-style auto-scrolling ticker. Pauses on hover.
+   Rendered on the manager landing page (schools/super_dashboard.html) just
+   above the platform pulse strip. Per user direction the dashboard chrome
+   strips render on the landing page ONLY — they are NOT in control_plane_base
+   so /super/* configuration pages keep their own personality.
 
-   CONFIGURABLE via cockpit.activity_feed (SiteSettings → context processor):
-     .enabled          bool  — gate the whole row (default: True)
-     .scroll_seconds   int   — animation duration; lower = faster (default: 60)
-     .events           list  — ordered list of {icon, severity, text, time_label}
-                               severity ∈ {success, warn, danger, info}
-   Each event renders as one inline span. The track is duplicated below so the
-   CSS keyframe (`translateX(-50%)`) produces a seamless infinite loop. If the
-   list is empty the ticker doesn't render. {% endcomment %}
+   Bloomberg-style auto-scrolling horizontal feed. Track is duplicated below
+   so the keyframe (`transform: translateX(-50%)`) produces a seamless loop.
+   Pauses on hover / focus-within. Honors prefers-reduced-motion.
 
-{% if cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
+   CONFIGURABLE via cockpit.activity_ticker (SiteSettings → context processor):
+     .enabled           bool  — gate the whole row (default: True in demo)
+     .scroll_seconds    int   — animation duration; lower = faster (default: 60)
+     .live_badge_label  str   — pill label (default: "LIVE")
+     .cards             list  — ordered list of cards. Each card shape:
+        {
+          text:      str   — main headline ("MRR up $420 this week")
+          timestamp: str   — relative time ("12s ago", "1m ago")
+          icon:      str   — single glyph displayed left of text (optional)
+          severity:  str   — success | warn | danger | info (drives icon color)
+        }
+
+   v3.57.11 backwards-compat: when `cockpit.activity_ticker` is missing
+   (older configs), falls back to the legacy `cockpit.activity_feed.events`
+   shape that used {icon, severity, text, time_label}. New code paths should
+   set `cockpit.activity_ticker.cards`.
+
+   If both keys are empty/missing, the section doesn't render — safe to
+   include unconditionally. {% endcomment %}
+
+{% if cockpit.activity_ticker.cards %}
+{% with seconds=cockpit.activity_ticker.scroll_seconds|default:60 badge_label=cockpit.activity_ticker.live_badge_label|default:_("LIVE") %}
+{% if cockpit.activity_ticker.enabled|default_if_none:True %}
+<div class="rmc-cockpit-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
+     style="--rmc-cockpit-ticker-seconds: {{ seconds }}s;">
+  <span class="rmc-cockpit-ticker__badge">{{ badge_label }}</span>
+  <div class="rmc-cockpit-ticker__viewport">
+    <div class="rmc-cockpit-ticker__track">
+      {% for card in cockpit.activity_ticker.cards %}
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}">
+        {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+        <span class="rmc-cockpit-ticker__event-text">{{ card.text }}</span>
+        {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}
+      </span>
+      {% endfor %}
+      {# Duplicate track for seamless infinite scroll — keyframe slides -50% #}
+      {% for card in cockpit.activity_ticker.cards %}
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}" aria-hidden="true">
+        {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+        <span class="rmc-cockpit-ticker__event-text">{{ card.text }}</span>
+        {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endwith %}
+{% elif cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
+{# v3.55.0 legacy compat: render the older activity_feed shape when activity_ticker is absent. #}
 <div class="rmc-cockpit-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
      {% if cockpit.activity_feed.scroll_seconds %}style="--rmc-cockpit-ticker-seconds: {{ cockpit.activity_feed.scroll_seconds }}s;"{% endif %}>
   <span class="rmc-cockpit-ticker__badge">{% trans "LIVE" %}</span>
@@ -26,7 +72,6 @@
         {% if event.time_label %}<span class="rmc-cockpit-ticker__event-time">· {{ event.time_label }}</span>{% endif %}
       </span>
       {% endfor %}
-      {# Duplicate track for seamless infinite scroll — keyframe slides -50% #}
       {% for event in cockpit.activity_feed.events %}
       <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ event.severity|default:'info' }}" aria-hidden="true">
         <span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ event.icon }}</span>

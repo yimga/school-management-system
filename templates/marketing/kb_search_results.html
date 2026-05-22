@@ -29,14 +29,16 @@
     {% endfor %}
   </div>
   {% if page_obj.has_other_pages %}
-  <nav class="mt-3" aria-label="{% trans 'Search results pages' %}">
-    <ul class="pagination">
+  {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
+     alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
+  <nav class="mt-3 rmc-pagination" aria-label="{% trans 'Search results pages' %}" data-rmc-component="pagination">
+    <ul class="pagination rmc-pagination__list">
       {% if page_obj.has_previous %}
-      <li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+      <li class="page-item"><a class="page-link rmc-pagination__link" href="?q={{ query|urlencode }}&page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
       {% endif %}
-      <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+      <li class="page-item disabled"><span class="page-link rmc-pagination__link is-active" aria-current="page">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
       {% if page_obj.has_next %}
-      <li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+      <li class="page-item"><a class="page-link rmc-pagination__link" href="?q={{ query|urlencode }}&page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
       {% endif %}
     </ul>
   </nav>

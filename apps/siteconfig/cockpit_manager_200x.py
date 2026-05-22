@@ -342,16 +342,53 @@ def _manager_operator_presence_defaults() -> dict[str, Any]:
 
 
 # ============================================================
+# Element 11 — Live activity ticker (landing-page chrome)
+# ============================================================
+
+def _activity_ticker_defaults() -> dict[str, Any]:
+    """Bloomberg-style horizontal scrolling LIVE platform activity feed.
+
+    Rendered on the manager landing (schools/super_dashboard.html) just above
+    the platform pulse strip — NOT in the universal header (that would push the
+    ticker onto every /super/* config page, blurring landing vs configuration
+    surfaces). The partial `templates/partials/cockpit/_activity_ticker.html`
+    gates on `cockpit.activity_ticker.cards` and short-circuits when empty.
+
+    Shape:
+        enabled            bool       — master switch (default: False)
+        scroll_seconds     int        — animation duration (default: 60)
+        live_badge_label   str        — red pill caption (default: "LIVE")
+        cards              list[dict] — ordered events
+            [{
+                text:      str   — main headline ("MRR up $420 this week")
+                timestamp: str   — relative time ("12s ago")
+                icon:      str   — single glyph (optional)
+                severity:  str   — success | warn | danger | info (drives icon color)
+            }]
+    """
+    return {
+        "enabled": False,
+        "scroll_seconds": 60,
+        "live_badge_label": _("LIVE"),
+        "cards": [],
+    }
+
+
+# ============================================================
 # Aggregator
 # ============================================================
 
 def manager_200x_defaults() -> dict[str, Any]:
-    """Aggregate all 10 sections into a single nested dict.
+    """Aggregate all sections into a single nested dict.
 
     The orchestrator in `cockpit_context.py` merges these into the
     `cockpit` mapping it returns for manager hosts. Each top-level key
     is named to match the partial filename (drop the leading underscore
     and `.html`). E.g. `ai_copilot_rail` ↔ `_ai_copilot_rail.html`.
+
+    v3.57.11 (2026-05-22): added `activity_ticker` (Element 11) so the
+    landing page can populate the live event feed via the same
+    cockpit_payload override pattern as the other 200x sections.
     """
     return {
         "ai_copilot_rail": _manager_ai_copilot_defaults(),
@@ -364,4 +401,5 @@ def manager_200x_defaults() -> dict[str, Any]:
         "trust_nutrition": _manager_trust_nutrition_defaults(),
         "slo_clocks": _manager_slo_clocks_defaults(),
         "operator_presence": _manager_operator_presence_defaults(),
+        "activity_ticker": _activity_ticker_defaults(),
     }

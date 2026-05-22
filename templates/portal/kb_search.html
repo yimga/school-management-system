@@ -235,33 +235,35 @@
 
                     <!-- Pagination -->
                     {% if is_paginated %}
-                    <nav aria-label="Search results pagination">
-                        <ul class="pagination justify-content-center mt-4">
+                    {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
+                       alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
+                    <nav aria-label="Search results pagination" class="rmc-pagination" data-rmc-component="pagination">
+                        <ul class="pagination rmc-pagination__list justify-content-center mt-4">
                             {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link" href="?page=1">First</a>
+                                <a class="page-link rmc-pagination__link" href="?page=1">First</a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <a class="page-link rmc-pagination__link" href="?page={{ page_obj.previous_page_number }}">
                                     Previous
                                 </a>
                             </li>
                             {% endif %}
 
                             <li class="page-item disabled">
-                                <span class="page-link">
+                                <span class="page-link rmc-pagination__link is-active" aria-current="page">
                                     Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
                                 </span>
                             </li>
 
                             {% if page_obj.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                <a class="page-link rmc-pagination__link" href="?page={{ page_obj.next_page_number }}">
                                     Next
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                                <a class="page-link rmc-pagination__link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
                             </li>
                             {% endif %}
                         </ul>

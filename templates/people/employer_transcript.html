@@ -5,7 +5,14 @@
 {% block title %}{% trans_term "Transcript" key="transcript" %} — {{ student.get_full_name }}{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans_term "Transcript" key="transcript" %} — {{ student.get_full_name }}</h1>
-<div class="container-fluid py-4" data-page-archetype="record-detail">
+<div class="container-fluid py-4 rmc-print-v2" data-page-archetype="record-detail">
+  {% comment %} v3.57.7+ (2026-05-21): civic brand block per rmc-print-v2 grammar
+     so PDF / print renders of this employer transcript carry the wordmark + motto +
+     crest header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
+  {% trans "Employer transcript" as _report_title %}
+  {% now "Y-m-d" as _generated_at %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=student.get_full_name report_meta_left=_generated_at report_meta_right=employer|default:school %}
+
   {% url 'portal:employer_dashboard' as dashboard_url %}
   {% include "studio_os/components/page_header.html" with title=_("Transcript") subtitle=student.get_full_name action_url=dashboard_url action_text=_("Back to dashboard") %}
   {% if context.dual_transcript %}

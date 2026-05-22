@@ -34,11 +34,13 @@
     </table>
   </div>
   {% if donors.has_other_pages %}
-  <nav aria-label="Donor pages">
-    <ul class="pagination">
-      {% if donors.has_previous %}<li class="page-item"><a class="page-link min-touch-target" href="?page={{ donors.previous_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Previous</a></li>{% endif %}
-      <li class="page-item disabled"><span class="page-link">Page {{ donors.number }} of {{ donors.paginator.num_pages }}</span></li>
-      {% if donors.has_next %}<li class="page-item"><a class="page-link min-touch-target" href="?page={{ donors.next_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Next</a></li>{% endif %}
+  {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
+     alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
+  <nav aria-label="Donor pages" class="rmc-pagination" data-rmc-component="pagination">
+    <ul class="pagination rmc-pagination__list">
+      {% if donors.has_previous %}<li class="page-item"><a class="page-link rmc-pagination__link min-touch-target" href="?page={{ donors.previous_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Previous</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link rmc-pagination__link is-active" aria-current="page">Page {{ donors.number }} of {{ donors.paginator.num_pages }}</span></li>
+      {% if donors.has_next %}<li class="page-item"><a class="page-link rmc-pagination__link min-touch-target" href="?page={{ donors.next_page_number }}{% if search %}&q={{ search|urlencode }}{% endif %}">Next</a></li>{% endif %}
     </ul>
   </nav>
   {% endif %}

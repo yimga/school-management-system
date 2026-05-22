@@ -317,16 +317,81 @@ def _operator_presence_demo() -> dict[str, Any]:
 
 
 # ============================================================
+# Element 11 — Live activity ticker (landing-page chrome)
+# ============================================================
+
+def _activity_ticker_demo() -> dict[str, Any]:
+    """6 cards mirroring the LIVE ticker headlines in the v8 200x preview.
+
+    Card text + severity + icon + timestamp byte-mirror the
+    ``.cp-activity-event`` spans in the v8 preview's
+    ``.cp-activity-ticker__track`` block (Saint Sebastien Academy /
+    MRR / webhook drift / support tickets / migration sync / invoice
+    due). Operators override individual events via SiteSettings —
+    production wave will source from the platform event stream
+    (audit log + provisioning + billing).
+    """
+    return {
+        "enabled": True,
+        "scroll_seconds": 60,
+        "live_badge_label": _("LIVE"),
+        "cards": [
+            {
+                "icon": "🆕",
+                "severity": "success",
+                "text": _("New school provisioned — Saint Sebastien Academy"),
+                "timestamp": _("12s ago"),
+            },
+            {
+                "icon": "↗",
+                "severity": "success",
+                "text": _("MRR up $420 this week"),
+                "timestamp": _("1m ago"),
+            },
+            {
+                "icon": "🚨",
+                "severity": "danger",
+                "text": _("Tenant #567 webhook drift detected"),
+                "timestamp": _("2m ago"),
+            },
+            {
+                "icon": "🎫",
+                "severity": "info",
+                "text": _("5 new support tickets"),
+                "timestamp": _("4m ago"),
+            },
+            {
+                "icon": "✓",
+                "severity": "success",
+                "text": _("Migration sync complete for 12 schools"),
+                "timestamp": _("6m ago"),
+            },
+            {
+                "icon": "⚠",
+                "severity": "warn",
+                "text": _("2 schools approaching invoice due date"),
+                "timestamp": _("8m ago"),
+            },
+        ],
+    }
+
+
+# ============================================================
 # Aggregator
 # ============================================================
 
 def manager_200x_demo_payload() -> dict[str, Any]:
-    """Return the full demo payload — all 10 sections enabled + populated.
+    """Return the full demo payload — all sections enabled + populated.
 
     Consumed by ``cockpit_context.py`` when ``settings.COCKPIT_200X_RENDER_PREVIEW_DEMO``
     is True (default in dev / preview environments). Operators flip individual
     sections off via the v3.57.1 admin toggles; ``_deep_merge`` overlays their
     cockpit_payload values on top of this payload.
+
+    v3.57.11 (2026-05-22): added ``activity_ticker`` (Element 11) so the
+    landing page ticker renders out of the box matching the v8 200x preview
+    HTML (6 cards: Saint Sebastien Academy / MRR / webhook drift / support
+    tickets / migration sync / invoice due).
     """
     return {
         "ai_copilot_rail": _ai_copilot_demo(),
@@ -339,6 +404,7 @@ def manager_200x_demo_payload() -> dict[str, Any]:
         "trust_nutrition": _trust_nutrition_demo(),
         "slo_clocks": _slo_clocks_demo(),
         "operator_presence": _operator_presence_demo(),
+        "activity_ticker": _activity_ticker_demo(),
     }
 
 

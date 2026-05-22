@@ -26,7 +26,12 @@
    landing page (Schools/Incidents/Countries/MRR/Webhooks/Pipeline pulse strip + world map +
    forecast lane + SLO clocks + tenant heatmap + revenue waterfall + audit feed + trust
    nutrition). Each partial self-gates on cockpit.<section>.enabled. Other /super/* pages
-   keep their own personality and do not inherit these sections. {% endcomment %}
+   keep their own personality and do not inherit these sections.
+
+   v3.57.11 (2026-05-22): live activity ticker also moved here (was in
+   control_plane_base header). Renders just above the platform pulse strip so the
+   landing page has the full v8 200x experience while config pages stay clean. {% endcomment %}
+{% include "partials/cockpit/_activity_ticker.html" %}
 {% include "partials/cockpit/_platform_pulse.html" %}
 {% include "partials/cockpit/_live_world_map.html" %}
 {% include "partials/cockpit/_forecast_lane.html" %}

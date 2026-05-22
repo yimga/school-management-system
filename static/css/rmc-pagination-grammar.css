@@ -240,3 +240,126 @@
     transition: none;
   }
 }
+
+/* ============================================================
+ * v3.57.x adoption-wave additive aliasing — retire 4 forked pagers
+ *
+ * Rather than rewriting markup at every call-site OR deleting the
+ * legacy fork stylesheets (both risky), we layer rmc-pagination
+ * grammar onto the two markup families that exist in the wild:
+ *
+ *   (1) Bootstrap `<ul class="pagination">` / `.page-item` / `.page-link`
+ *       — used by ~8 hand-rolled pager nodes across portal/marketing
+ *         /compliance/people/schools list templates.
+ *   (2) Django admin `.paginator` / `.paginator a` / `.this-page`
+ *       — emitted by the django-unfold PyPI package's pagination
+ *         partial (referenced from `templates/admin/change_list.html`
+ *         via `{% include "unfold/helpers/pagination.html" %}`).
+ *
+ * The aliasing is purely additive — original Bootstrap + admin shell
+ * rules continue to apply; rmc-pagination grammar wins on conflicting
+ * properties because this stylesheet is loaded AFTER bootstrap and
+ * admin-manager-shell per the v3.57.1 shell wiring. No markup edits
+ * required for the visual layer to flip.
+ *
+ * Forks named in `docs/DEFERRED_v3_57_EXTERNAL.md` that were searched
+ * for and NOT found in any real CSS rule or template markup (likely
+ * already mass-purged before this wave): `.portal-page-pager`,
+ * `.bk-dash-pager`, `.rbac-page-pager`. Catalog entry now stale; the
+ * grammar header comment lists them historically only.
+ *
+ * DRF Redoc pagination chrome lives inside the bundled Redoc JS asset
+ * served at `/api/v1/docs/`; it does NOT render through a Django
+ * template, so there is no fork to retire — the OpenAPI schema view's
+ * paging UI is intentionally vendored as-is.
+ * ============================================================ */
+
+/* (1) Bootstrap pagination markup → rmc-pagination grammar */
+ul.pagination {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.pagination > .page-item {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+ul.pagination > .page-item > .page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--hairline);
+  border-radius: 0.5rem;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background var(--motion-duration-fast, 140ms) var(--ease-out, ease),
+    border-color var(--motion-duration-fast, 140ms) var(--ease-out, ease),
+    color var(--motion-duration-fast, 140ms) var(--ease-out, ease);
+}
+
+ul.pagination > .page-item > .page-link:hover,
+ul.pagination > .page-item > .page-link:focus-visible {
+  background: var(--surface-elevated);
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+  outline: none;
+}
+
+ul.pagination > .page-item > .page-link:focus-visible {
+  box-shadow: var(--focus-ring, 0 0 0 2px var(--text-secondary));
+}
+
+ul.pagination > .page-item.active > .page-link,
+ul.pagination > .page-item > .page-link[aria-current="page"] {
+  background: var(--surface-elevated);
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  font-weight: 700;
+  cursor: default;
+}
+
+ul.pagination > .page-item.disabled > .page-link,
+ul.pagination > .page-item > .page-link[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+/* (2) Django admin `.paginator` markup → rmc-pagination grammar.
+ *
+ * NOTE: `rmc-admin-mirror.css` already styles `.paginator` with the
+ * cockpit chip variant (pill links). The rules below are deliberately
+ * NOT property-conflicting with that mirror — they only add the
+ * shared focus-ring + active-page emphasis + reduced-motion contract
+ * so admin pagination behaves identically to portal pagination on
+ * keyboard nav and disabled state, which the mirror does not cover. */
+#changelist .paginator a:focus-visible,
+.paginator a:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring, 0 0 0 2px var(--text-secondary));
+}
+
+#changelist .paginator a[aria-disabled="true"],
+.paginator a[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ul.pagination > .page-item > .page-link {
+    transition: none;
+  }
+}

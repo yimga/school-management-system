@@ -2,27 +2,87 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Help North Star</title>
-  <style>
-    body { font-family: system-ui, sans-serif; font-size: 12px; color: #111; }
-    h1 { font-size: 18px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 12px; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
-    th { background: #f4f4f5; }
+  {% comment %}
+    rmc-email-civic adoption (v3.57.0). Operator-facing weekly report — mail
+    clients strip <link rel="stylesheet">, so the civic 4-tier styles inline
+    in <style> + on each cell for Outlook 2016 parity.
+  {% endcomment %}
+  <style type="text/css">
+    body.rmc-email { margin:0; padding:0; background:#f6f5f1; color:#1c1a17; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:13px; line-height:1.5; -webkit-text-size-adjust:100%; }
+    .rmc-email__container { width:100%; max-width:680px; margin:0 auto; background:#ffffff; border:1px solid #e9e6dc; border-radius:8px; overflow:hidden; }
+    .rmc-email__brand { padding:24px 28px 16px 28px; text-align:center; }
+    .rmc-email__wordmark { font-size:22px; font-weight:700; color:#ffffff; margin:0 0 4px 0; }
+    .rmc-email__motto { font-family:"Source Serif 4",Georgia,serif; font-style:italic; font-size:13px; color:#ffffff; opacity:0.9; margin:0; }
+    .rmc-email__body { padding:24px 28px; }
+    .rmc-email__h1 { font-size:20px; font-weight:700; color:#1c1a17; margin:0 0 8px 0; line-height:1.3; }
+    .rmc-email__meta { color:#6b655d; font-size:13px; margin:0 0 16px 0; }
+    .rmc-email__data-table { border-collapse:collapse; width:100%; margin-top:12px; font-size:13px; }
+    .rmc-email__data-table th, .rmc-email__data-table td { border:1px solid #e9e6dc; padding:8px 10px; text-align:left; }
+    .rmc-email__data-table th { background:#f9f7f1; color:#1c1a17; font-weight:600; }
+    .rmc-email__trust { padding:12px 28px; background:#f9f7f1; border-top:1px solid #e9e6dc; text-align:center; font-size:12px; color:#6b655d; }
+    .rmc-email__trust-item { display:inline-block; padding:0 8px; }
+    .rmc-email__contacts { padding:12px 28px; background:#ffffff; border-top:1px solid #e9e6dc; font-size:13px; text-align:center; }
+    .rmc-email__contacts a { color:#4f46e5; text-decoration:none; }
+    .rmc-email__legal { padding:16px 28px 20px 28px; background:#f3f1ea; border-top:1px solid #e9e6dc; text-align:center; font-size:11px; color:#595550; line-height:1.5; }
   </style>
 </head>
-<body>
-  <h1>Help North Star ({{ bundle.days }} days)</h1>
-  <p>Generated {{ generated_at }}</p>
-  <table>
-    <tr><th>Metric</th><th>Value</th></tr>
-    {% with d=bundle.deflection %}
-    <tr><td>Deflection rate</td><td>{{ d.deflection_rate_pct|default:"—" }}%</td></tr>
-    <tr><td>Deflection events</td><td>{{ bundle.deflection_events|default:0 }}</td></tr>
-    <tr><td>Help searches</td><td>{{ bundle.searches|default:0 }}</td></tr>
-    <tr><td>AI CSAT positive</td><td>{{ bundle.ai_csat_positive_pct|default:"—" }}%</td></tr>
-    <tr><td>AI reviews pending</td><td>{{ bundle.ai_reviews_pending|default:0 }}</td></tr>
-    {% endwith %}
+<body class="rmc-email" style="margin:0;padding:0;background:#f6f5f1;font-family:system-ui,sans-serif;color:#1c1a17;font-size:13px;/*inline-style-allow:email-template-inline*/">
+  <table class="rmc-email-civic" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f5f1;/*inline-style-allow:email-template-inline*/">
+    <tr>
+      <td align="center" style="padding:24px 12px;/*inline-style-allow:email-template-inline*/">
+        <table class="rmc-email__container" role="presentation" cellpadding="0" cellspacing="0" border="0" width="680" style="width:100%;max-width:680px;background:#ffffff;border:1px solid #e9e6dc;border-radius:8px;/*inline-style-allow:email-template-inline*/">
+          {% comment %} Tier 1 — Brand band {% endcomment %}
+          <tr>
+            <td class="rmc-email__brand" style="padding:24px 28px 16px 28px;background-color:{{ primary_color|default:'#4F46E5' }};text-align:center;/*inline-style-allow:email-template-inline*/">
+              <div class="rmc-email__wordmark" style="font-size:22px;font-weight:700;color:#ffffff;margin:0 0 4px 0;/*inline-style-allow:email-template-inline*/">RunMyCampus Operations</div>
+              <div class="rmc-email__motto" style="font-style:italic;font-size:13px;color:#ffffff;opacity:0.9;margin:0;/*inline-style-allow:email-template-inline*/">Help North Star &middot; weekly digest</div>
+            </td>
+          </tr>
+          {% comment %} Body — KPI table {% endcomment %}
+          <tr>
+            <td class="rmc-email__body" style="padding:24px 28px;/*inline-style-allow:email-template-inline*/">
+              <h1 class="rmc-email__h1" style="font-size:20px;font-weight:700;color:#1c1a17;margin:0 0 8px 0;/*inline-style-allow:email-template-inline*/">Help North Star ({{ bundle.days }} days)</h1>
+              <p class="rmc-email__meta" style="color:#6b655d;font-size:13px;margin:0 0 16px 0;/*inline-style-allow:email-template-inline*/">Generated {{ generated_at }}</p>
+              <table class="rmc-email__data-table" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;margin-top:12px;font-size:13px;/*inline-style-allow:email-template-inline*/">
+                <tr>
+                  <th style="border:1px solid #e9e6dc;padding:8px 10px;text-align:left;background:#f9f7f1;color:#1c1a17;font-weight:600;/*inline-style-allow:email-template-inline*/">Metric</th>
+                  <th style="border:1px solid #e9e6dc;padding:8px 10px;text-align:left;background:#f9f7f1;color:#1c1a17;font-weight:600;/*inline-style-allow:email-template-inline*/">Value</th>
+                </tr>
+                {% with d=bundle.deflection %}
+                <tr><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">Deflection rate</td><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">{{ d.deflection_rate_pct|default:"&mdash;" }}%</td></tr>
+                <tr><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">Deflection events</td><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">{{ bundle.deflection_events|default:0 }}</td></tr>
+                <tr><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">Help searches</td><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">{{ bundle.searches|default:0 }}</td></tr>
+                <tr><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">AI CSAT positive</td><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">{{ bundle.ai_csat_positive_pct|default:"&mdash;" }}%</td></tr>
+                <tr><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">AI reviews pending</td><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">{{ bundle.ai_reviews_pending|default:0 }}</td></tr>
+                {% endwith %}
+              </table>
+            </td>
+          </tr>
+          {% comment %} Tier 2 — Trust pillars {% endcomment %}
+          <tr>
+            <td class="rmc-email__trust" style="padding:12px 28px;background:#f9f7f1;border-top:1px solid #e9e6dc;text-align:center;font-size:12px;color:#6b655d;/*inline-style-allow:email-template-inline*/">
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">Internal operator digest</span>
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">No PII</span>
+              <span class="rmc-email__trust-item" style="display:inline-block;padding:0 8px;/*inline-style-allow:email-template-inline*/">SOC 2 Type II</span>
+            </td>
+          </tr>
+          {% comment %} Tier 3 — Contacts {% endcomment %}
+          <tr>
+            <td class="rmc-email__contacts" style="padding:12px 28px;background:#ffffff;border-top:1px solid #e9e6dc;font-size:13px;text-align:center;/*inline-style-allow:email-template-inline*/">
+              <a href="mailto:ops@runmycampus.com" style="color:#4f46e5;text-decoration:none;/*inline-style-allow:email-template-inline*/">ops@runmycampus.com</a>
+            </td>
+          </tr>
+          {% comment %} Tier 4 — Legal {% endcomment %}
+          <tr>
+            <td class="rmc-email__legal" style="padding:16px 28px 20px 28px;background:#f3f1ea;border-top:1px solid #e9e6dc;text-align:center;font-size:11px;color:#595550;line-height:1.5;/*inline-style-allow:email-template-inline*/">
+              &copy; {% now "Y" %} RunMyCampus. Operator weekly digest &middot; sent on request to subscribed operators.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>

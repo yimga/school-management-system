@@ -106,14 +106,16 @@
     </table>
   </div>
   {% if page.has_other_pages %}
-  <nav aria-label="{% trans 'Schools pagination' %}" class="mt-2">
-    <ul class="pagination pagination-sm mb-0">
+  {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
+     alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
+  <nav aria-label="{% trans 'Schools pagination' %}" class="mt-2 rmc-pagination" data-rmc-component="pagination">
+    <ul class="pagination rmc-pagination__list pagination-sm mb-0">
       {% if page.has_previous %}
-      <li class="page-item"><a class="page-link" href="?page={{ page.previous_page_number }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if primary_sector_filter %}&amp;primary_sector={{ primary_sector_filter|urlencode }}{% endif %}{% if is_active_filter %}&amp;is_active={{ is_active_filter|urlencode }}{% endif %}{% if country_code_filter %}&amp;country_code={{ country_code_filter|urlencode }}{% endif %}{% if frozen_filter %}&amp;frozen=1{% endif %}">{% trans "Previous" %}</a></li>
+      <li class="page-item"><a class="page-link rmc-pagination__link" href="?page={{ page.previous_page_number }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if primary_sector_filter %}&amp;primary_sector={{ primary_sector_filter|urlencode }}{% endif %}{% if is_active_filter %}&amp;is_active={{ is_active_filter|urlencode }}{% endif %}{% if country_code_filter %}&amp;country_code={{ country_code_filter|urlencode }}{% endif %}{% if frozen_filter %}&amp;frozen=1{% endif %}">{% trans "Previous" %}</a></li>
       {% endif %}
-      <li class="page-item disabled"><span class="page-link">{% blocktrans with num=page.number total=page.paginator.num_pages %}Page {{ num }} of {{ total }}{% endblocktrans %}</span></li>
+      <li class="page-item disabled"><span class="page-link rmc-pagination__link is-active" aria-current="page">{% blocktrans with num=page.number total=page.paginator.num_pages %}Page {{ num }} of {{ total }}{% endblocktrans %}</span></li>
       {% if page.has_next %}
-      <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if primary_sector_filter %}&amp;primary_sector={{ primary_sector_filter|urlencode }}{% endif %}{% if is_active_filter %}&amp;is_active={{ is_active_filter|urlencode }}{% endif %}{% if country_code_filter %}&amp;country_code={{ country_code_filter|urlencode }}{% endif %}{% if frozen_filter %}&amp;frozen=1{% endif %}">{% trans "Next" %}</a></li>
+      <li class="page-item"><a class="page-link rmc-pagination__link" href="?page={{ page.next_page_number }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if primary_sector_filter %}&amp;primary_sector={{ primary_sector_filter|urlencode }}{% endif %}{% if is_active_filter %}&amp;is_active={{ is_active_filter|urlencode }}{% endif %}{% if country_code_filter %}&amp;country_code={{ country_code_filter|urlencode }}{% endif %}{% if frozen_filter %}&amp;frozen=1{% endif %}">{% trans "Next" %}</a></li>
       {% endif %}
     </ul>
   </nav>

@@ -647,6 +647,29 @@
   /* Meta theme-color (mobile browser chrome) — no raw hex in JS */
   --meta-theme-color-light: var(--color-base-0);
   --meta-theme-color-dark: var(--color-base-900);
+
+  /* === v8 200x preview parity (v3.57.11) =======================
+     Tokens added to align the live shell with the canonical v8
+     200x preview's :root {} block (see rmc-shell-preview-v8-200x.html
+     lines 14-59). Source-of-truth declarations live here in :root,
+     which scan_off_token_colors honors as a theme-scope exemption.
+     ============================================================ */
+  /* Status / semantic colors (no equivalents previously declared in :root). */
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --success: #22c55e;
+  /* Manager control-plane dark chrome (header/sidebar are dark on manager).
+     Required by control_plane_skeleton.html consumers; the v8 200x preview
+     depends on the full namespace for the dark header + sidebar. */
+  --cp-chrome-bg: #07091a;
+  --cp-chrome-bg-deep: #04060f;
+  --cp-chrome-surface: #0f1530;
+  --cp-chrome-surface-2: #131a35;
+  --cp-chrome-hairline: rgba(255, 255, 255, 0.08);
+  --cp-chrome-hairline-strong: rgba(255, 255, 255, 0.14);
+  --cp-chrome-text: #f1f5f9;
+  --cp-chrome-text-muted: #94a3b8;
+  --cp-chrome-text-faint: #64748b;
 }
 
 /* Phase 9: Visible keyboard focus – use tokens so theme can override */

@@ -110,6 +110,165 @@ def _parse_quotes(value: str) -> list[str]:
     return _split_lines(value)
 
 
+def _parse_lesson_resources(value: str) -> list[dict[str, str]]:
+    """One per line: ``label | url`` — malformed (label-only) rows skipped.
+
+    Pairs with ``cockpit.lesson_of_day.resources`` whose schema is
+    ``list[{label, url, icon}]``. Icon is left blank here (icon picking
+    is out of scope for this wave; operators can add icons via a deeper
+    editor later — `_deep_merge` preserves missing-key defaults).
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        if len(parts) < 2 or not parts[0] or not parts[1]:
+            # Label-only or URL-only rows are skipped — both halves are
+            # load-bearing for a resource link; a dead chip helps nobody.
+            continue
+        out.append({"label": parts[0], "url": parts[1], "icon": ""})
+    return out
+
+
+def _parse_suggestion_lines(value: str) -> list[dict[str, str]]:
+    """One suggestion per line — bare label or ``label | url``.
+
+    Pairs with ``cockpit.ai_study_buddy.suggestions`` whose schema is
+    ``list[{icon, label, url}]``. URL defaults to empty when the line
+    has no pipe — the rendering side treats empty-URL chips as text-only
+    hints (rather than tappable links).
+    """
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        label = parts[0]
+        url = parts[1] if len(parts) > 1 else ""
+        if not label:
+            continue
+        out.append({"icon": "", "label": label, "url": url})
+    return out
+
+
+def _parse_upcoming_events(value: str) -> list[dict[str, Any]]:
+    """One event per line: ``YYYY-MM-DD | title`` or ``MM-DD | title``.
+
+    Pairs with ``cockpit.upcoming_events.events`` whose schema is
+    ``list[{url, day, month, pill_label, pill_tone, title, meta, is_today}]``.
+    Date is split into the ``day`` (zero-stripped) and ``month``
+    (3-letter abbreviation) keys the rendering side expects; year is
+    discarded for display but accepted in input for clarity. Malformed
+    date rows are skipped (not crash). ``url``/``meta``/``pill_*``/
+    ``is_today`` are left blank — `_deep_merge` preserves the section
+    defaults for those keys.
+    """
+    month_abbr = (
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    )
+    out: list[dict[str, Any]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        if len(parts) < 2 or not parts[1]:
+            # Date-only rows are skipped — title is the only load-bearing
+            # field for a calendar row.
+            continue
+        raw_date, title = parts[0], parts[1]
+        # Accept YYYY-MM-DD, MM-DD, or YYYY/MM/DD — split on - or /
+        bits = [b.strip() for b in raw_date.replace("/", "-").split("-")]
+        try:
+            if len(bits) == 3:
+                month_num = int(bits[1])
+                day_num = int(bits[2])
+            elif len(bits) == 2:
+                month_num = int(bits[0])
+                day_num = int(bits[1])
+            else:
+                continue
+        except (ValueError, TypeError):
+            # Non-numeric month/day — skip silently rather than crash.
+            continue
+        if not (1 <= month_num <= 12) or not (1 <= day_num <= 31):
+            continue
+        out.append(
+            {
+                "url": "",
+                "day": str(day_num),
+                "month": month_abbr[month_num - 1],
+                "pill_label": "",
+                "pill_tone": "",
+                "title": title,
+                "meta": "",
+                "is_today": False,
+            }
+        )
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Serializers for the v3.57.2 rich-editor sections.
+# ---------------------------------------------------------------------------
+
+
+def _serialize_lesson_resources(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        url = str(item.get("url", "")).strip()
+        if not label or not url:
+            continue
+        rows.append(f"{label} | {url}")
+    return "\n".join(rows)
+
+
+def _serialize_suggestion_lines(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        url = str(item.get("url", "")).strip()
+        if not label:
+            continue
+        rows.append(f"{label} | {url}".rstrip(" |") if url else label)
+    return "\n".join(rows)
+
+
+def _serialize_upcoming_events(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    # Map 3-letter abbreviation back to month number for round-trip.
+    month_to_num: dict[str, int] = {
+        "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+        "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+    }
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title", "")).strip()
+        if not title:
+            continue
+        day_raw = str(item.get("day", "")).strip()
+        month_raw = str(item.get("month", "")).strip()
+        month_num = month_to_num.get(month_raw[:3].lower(), 0)
+        try:
+            day_num = int(day_raw)
+        except (ValueError, TypeError):
+            day_num = 0
+        if month_num and day_num:
+            rows.append(f"{month_num:02d}-{day_num:02d} | {title}")
+        else:
+            # Fall back to title-only line so operator sees their event
+            # rather than silently dropping it on round-trip.
+            rows.append(f"  | {title}")
+    return "\n".join(rows)
+
+
 # ---------------------------------------------------------------------------
 # Serializers — flatten nested dict back into textarea-friendly strings
 # for ``__init__`` (round-trip).
@@ -736,6 +895,130 @@ class CockpitPayloadForm(forms.ModelForm):
         required=False, widget=_CHECK, label=_("Lesson of the day")
     )
 
+    # ---- v3.57.2 Rich editors (4 high-value sections) -----------------
+    # Promotes 4 sections from "enable toggle only" to full content editor.
+    # Each section's flat fields write into the SAME nested key the
+    # enable toggle targets (e.g. ``cockpit.lesson_of_day.*``), so the
+    # enable + content fields stack cleanly via ``_deep_merge`` in
+    # cockpit_context.py — operators can enable + populate in one save.
+    #
+    # 1) tenant_v3_extended.lesson_of_day
+    lod_title = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Lesson card title"),
+        help_text=_("Heading shown above the lesson body (e.g. 'Today's lesson')."),
+    )
+    lod_subject = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Lesson subject"),
+        help_text=_("Subject label shown on the chip (e.g. 'Mathematics', 'Biology')."),
+    )
+    lod_summary = forms.CharField(
+        required=False,
+        max_length=240,
+        widget=_TEXTAREA_SMALL,
+        label=_("Lesson summary"),
+        help_text=_(
+            "Plain-text 1-2 sentence summary of today's lesson (max 240 chars). "
+            "Operator-published; never auto-rendered from student data."
+        ),
+    )
+    lod_resources = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Lesson resources"),
+        help_text=_(
+            "One per line: label | url. Rows missing a URL are skipped. "
+            "Renders as a list of resource chips beneath the lesson card."
+        ),
+    )
+
+    # 2) tenant_v3_extended.ai_study_buddy
+    asb_title = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("AI study buddy label"),
+        help_text=_(
+            "Short chip label (e.g. 'Study buddy'). Maps to "
+            "cockpit.ai_study_buddy.label."
+        ),
+    )
+    asb_intro = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("AI study buddy intro"),
+        help_text=_(
+            "Greeting line shown when the chip opens (max 120 chars). "
+            "Maps to cockpit.ai_study_buddy.greeting."
+        ),
+    )
+    asb_suggestions = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("AI study buddy suggestions"),
+        help_text=_(
+            "One per line — bare label, or label | url for tappable. "
+            "Empty lines skipped. Renders as starter-prompt chips."
+        ),
+    )
+
+    # 3) tenant_dashboard.teacher_spotlight_card
+    tsc_name = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Teacher spotlight: name"),
+        help_text=_("Full teacher name displayed in the spotlight card."),
+    )
+    tsc_subject = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Teacher spotlight: subject / role"),
+        help_text=_(
+            "Role or subject line under the teacher's name "
+            "(e.g. 'Grade 5 mathematics')."
+        ),
+    )
+    tsc_quote = forms.CharField(
+        required=False,
+        max_length=200,
+        widget=_TEXTAREA_SMALL,
+        label=_("Teacher spotlight: quote"),
+        help_text=_(
+            "Pull-quote shown in italic serif (max 200 chars). "
+            "Operator-published copy only — never auto-rendered."
+        ),
+    )
+    tsc_photo_url = forms.URLField(
+        required=False,
+        widget=_URL,
+        label=_("Teacher spotlight: photo URL (optional)"),
+        help_text=_(
+            "Optional full URL to a teacher photo. Empty = fall back to "
+            "the avatar-initials block. Must be HTTPS."
+        ),
+    )
+
+    # 4) tenant_dashboard.upcoming_events_strip
+    ues_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Upcoming events: section label"),
+        help_text=_("Header shown above the strip (e.g. 'Upcoming · next 14 days')."),
+    )
+    ues_events = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Upcoming events: events"),
+        help_text=_(
+            "One per line: YYYY-MM-DD | title  (or MM-DD | title). "
+            "Year discarded for display; malformed dates skipped. "
+            "Renders as horizontal-scrolling event cards."
+        ),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -820,6 +1103,29 @@ class CockpitPayloadForm(forms.ModelForm):
         "tv3_life_event_timeline_enabled",
         "tv3_calendar_weather_enabled",
         "tv3_lesson_of_day_enabled",
+    )
+    # v3.57.2 rich-editor fieldsets — promote 4 sections from
+    # enable-toggle-only to full content editor.
+    LESSON_OF_DAY_FIELDS: tuple[str, ...] = (
+        "lod_title",
+        "lod_subject",
+        "lod_summary",
+        "lod_resources",
+    )
+    AI_STUDY_BUDDY_FIELDS: tuple[str, ...] = (
+        "asb_title",
+        "asb_intro",
+        "asb_suggestions",
+    )
+    TEACHER_SPOTLIGHT_FIELDS: tuple[str, ...] = (
+        "tsc_name",
+        "tsc_subject",
+        "tsc_quote",
+        "tsc_photo_url",
+    )
+    UPCOMING_EVENTS_FIELDS: tuple[str, ...] = (
+        "ues_label",
+        "ues_events",
     )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
@@ -972,6 +1278,38 @@ class CockpitPayloadForm(forms.ModelForm):
             section = payload.get(payload_key) or {}
             self.fields[field_name].initial = bool(section.get("enabled"))
 
+        # ---- v3.57.2 rich-editor seeds ------------------------------------
+        # tenant_v3_extended.lesson_of_day
+        lesson = payload.get("lesson_of_day") or {}
+        self.fields["lod_title"].initial = lesson.get("title", "")
+        self.fields["lod_subject"].initial = lesson.get("subject", "")
+        self.fields["lod_summary"].initial = lesson.get("summary", "")
+        self.fields["lod_resources"].initial = _serialize_lesson_resources(
+            lesson.get("resources")
+        )
+
+        # tenant_v3_extended.ai_study_buddy
+        buddy = payload.get("ai_study_buddy") or {}
+        self.fields["asb_title"].initial = buddy.get("label", "")
+        self.fields["asb_intro"].initial = buddy.get("greeting", "")
+        self.fields["asb_suggestions"].initial = _serialize_suggestion_lines(
+            buddy.get("suggestions")
+        )
+
+        # tenant_dashboard.teacher_spotlight
+        spotlight = payload.get("teacher_spotlight") or {}
+        self.fields["tsc_name"].initial = spotlight.get("teacher_name", "")
+        self.fields["tsc_subject"].initial = spotlight.get("teacher_role", "")
+        self.fields["tsc_quote"].initial = spotlight.get("quote", "")
+        self.fields["tsc_photo_url"].initial = spotlight.get("photo_url", "")
+
+        # tenant_dashboard.upcoming_events
+        events_section = payload.get("upcoming_events") or {}
+        self.fields["ues_label"].initial = events_section.get("section_label", "")
+        self.fields["ues_events"].initial = _serialize_upcoming_events(
+            events_section.get("events")
+        )
+
     # ------------------------------------------------------------------
     # Flat-form -> nested-payload assembly.
     # ------------------------------------------------------------------
@@ -1080,6 +1418,58 @@ class CockpitPayloadForm(forms.ModelForm):
             payload[payload_key] = {"enabled": bool(cleaned.get(field_name))}
         for field_name, payload_key in self._TENANT_V3_EXTENDED_FIELD_TO_KEY:
             payload[payload_key] = {"enabled": bool(cleaned.get(field_name))}
+
+        # v3.57.2 rich-editor merges. _deep_merge in cockpit_context.py
+        # already overlays operator values on top of section defaults;
+        # here we only need to assemble the operator-supplied subset.
+        # We .update() the dicts the enable-toggle loops just wrote so
+        # the `enabled` flag survives alongside the new content keys.
+        lesson_resources = _parse_lesson_resources(
+            cleaned.get("lod_resources") or ""
+        )
+        lesson_overlay = {
+            "title": (cleaned.get("lod_title") or "").strip(),
+            "subject": (cleaned.get("lod_subject") or "").strip(),
+            "summary": (cleaned.get("lod_summary") or "").strip(),
+            "resources": lesson_resources,
+        }
+        payload.setdefault("lesson_of_day", {}).update(
+            {k: v for k, v in lesson_overlay.items() if v not in ("", [], None)}
+        )
+
+        buddy_overlay = {
+            "label": (cleaned.get("asb_title") or "").strip(),
+            "greeting": (cleaned.get("asb_intro") or "").strip(),
+            "suggestions": _parse_suggestion_lines(
+                cleaned.get("asb_suggestions") or ""
+            ),
+        }
+        payload.setdefault("ai_study_buddy", {}).update(
+            {k: v for k, v in buddy_overlay.items() if v not in ("", [], None)}
+        )
+
+        spotlight_overlay = {
+            "teacher_name": (cleaned.get("tsc_name") or "").strip(),
+            "teacher_role": (cleaned.get("tsc_subject") or "").strip(),
+            "quote": (cleaned.get("tsc_quote") or "").strip(),
+            "photo_url": (cleaned.get("tsc_photo_url") or "").strip(),
+        }
+        # ``teacher_spotlight`` is a tenant_dashboard section — not driven by
+        # a v3.57.1 enable toggle here, so seed an empty dict first.
+        payload.setdefault("teacher_spotlight", {}).update(
+            {k: v for k, v in spotlight_overlay.items() if v}
+        )
+
+        events_overlay: dict[str, Any] = {}
+        section_label = (cleaned.get("ues_label") or "").strip()
+        if section_label:
+            events_overlay["section_label"] = section_label
+        parsed_events = _parse_upcoming_events(cleaned.get("ues_events") or "")
+        if parsed_events:
+            events_overlay["events"] = parsed_events
+        if events_overlay:
+            payload.setdefault("upcoming_events", {}).update(events_overlay)
+
         return payload
 
     def clean(self) -> dict[str, Any]:
