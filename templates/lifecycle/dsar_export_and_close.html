@@ -1,0 +1,58 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Export and close — DSAR" %}{% endblock %}
+
+{% block content %}
+<section class="container py-3" data-rmc-page-archetype="dsar">
+  <header class="mb-3">
+    <h1 class="h4">{% trans "Export your data and close this school" %}</h1>
+    <p class="text-secondary">{% trans "Per GDPR / FERPA, you can request a full export of your school's data and initiate closure of this tenant. The closure is reversible during the grace period." %}</p>
+  </header>
+
+  {% if error %}<div class="alert alert-danger small">{{ error }}</div>{% endif %}
+
+  {% if phase == "submitted" %}
+  <div class="alert alert-success">
+    <strong>{% trans "Request received." %}</strong>
+    <p class="mb-1">{% trans "Your school is now in the grace period." %}</p>
+    {% if grace_expires_at %}<p class="mb-1">{% trans "Closure scheduled for:" %} <strong>{{ grace_expires_at|date:"Y-m-d H:i" }} UTC</strong>.</p>{% endif %}
+    {% if export_path_present %}
+      <p class="mb-0">{% trans "An export archive has been generated. You'll receive an email with the secure download link." %}</p>
+    {% else %}
+      <p class="mb-0">{% trans "Export generation is queued. You'll receive an email when it's ready." %}</p>
+    {% endif %}
+    <p class="small text-secondary mt-2">{% trans "To reverse the closure, ask a platform operator to call lifecycle.restore on your school within the grace period." %}</p>
+  </div>
+  {% else %}
+
+  <div class="card border-warning mb-3">
+    <div class="card-body">
+      <h2 class="h6">{% trans "What will happen" %}</h2>
+      <ol class="small mb-0">
+        <li>{% trans "Your school is marked as soft-deleted (deleted_at = now)." %}</li>
+        <li>{% trans "A full data export ZIP is generated server-side." %}</li>
+        <li>{% trans "Your school enters a 30-day grace period during which closure can be reversed." %}</li>
+        <li>{% trans "After grace expires, the tenant schema is permanently purged." %}</li>
+      </ol>
+    </div>
+  </div>
+
+  <form method="post" class="card border-0 shadow-sm p-3">
+    {% csrf_token %}
+    <div class="mb-2">
+      <label class="form-label small">{% trans "Reason (optional, 200 chars)" %}</label>
+      <input type="text" name="reason" maxlength="200" class="form-control form-control-sm" placeholder="{% trans 'Migrating to a different platform' %}">
+    </div>
+    <div class="mb-2">
+      <label class="form-label small">{% trans "To confirm, type your school slug:" %} <code>{{ school.slug }}</code></label>
+      <input type="text" name="confirm" required class="form-control form-control-sm" autocomplete="off" autocapitalize="off">
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-danger">{% trans "Export and close" %}</button>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Cancel" %}</a>
+    </div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

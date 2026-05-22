@@ -324,6 +324,18 @@ class School(models.Model):
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
     is_active = models.BooleanField(default=True)
+    # Wave L4 (v3.61.3 — 2026-05-22): reversible offboarding. Soft-delete
+    # marker — when set, the school is in the grace period before purge.
+    # Queries that should hide soft-deleted schools must filter
+    # explicitly on `deleted_at__isnull=True`. NEVER touched by the
+    # hard purge path (drop_tenant_schema_for_school); only by
+    # apps.lifecycle.services_offboarding.mark_deleted/restore.
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Soft-delete timestamp. NULL when school is live; set when offboarding requested.",
+    )
     # Phase 4: super-tenant (parent school for consolidated dashboard)
     parent_school = models.ForeignKey(
         "self",

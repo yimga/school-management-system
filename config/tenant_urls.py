@@ -290,6 +290,12 @@ urlpatterns = [
     path("school/studio/help/", school_studio_redirect_help, name="school_studio_help"),
     path("school/studio/launch/", school_studio_redirect_launch, name="school_studio_launch"),
     path("school/studio/offboarding/", tenant_offboarding_page, name="tenant_offboarding"),
+    # Wave L4 (v3.61.3 — 2026-05-22): one-click DSAR export + close (lifecycle app).
+    path(
+        "portal/configure/offboarding/export-and-close/",
+        __import__("apps.lifecycle.views_dsar", fromlist=["dsar_export_and_close"]).dsar_export_and_close,
+        name="lifecycle_dsar_export_and_close",
+    ),
     path(
         "api/school/offboarding/",
         api_tenant_offboarding_snapshot,

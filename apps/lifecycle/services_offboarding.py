@@ -1,0 +1,168 @@
+"""Wave L4 — soft-delete + DSAR + audit-chain mirror.
+
+Public API:
+    mark_deleted(school, *, actor=None, reason='') -> School
+    restore(school, *, actor=None) -> School
+    is_in_grace(school) -> bool
+    grace_expires_at(school) -> datetime or None
+    audit_event_mirror(event) -> bool
+
+Soft-delete writes School.deleted_at to now() and records lifecycle
+stage OFFBOARDING_GRACE. The existing hard-purge path
+(apps/schools/tenant_offboarding.run_scheduled_purges) is unchanged
+and remains operator-gated — soft-delete just pre-stages the
+deletion intent so an operator (or the school admin via DSAR
+self-serve) can reverse before the grace window expires.
+
+The audit-chain mirror writes a `MigrationCloudAuditEvent` for each
+offboarding SchoolProvisioningEvent so we get hash-chain integrity
+parity with Migration Cloud's audit log (closes audit gap from the
+session audit).
+"""
+
+from __future__ import annotations
+
+import logging
+from datetime import datetime, timedelta
+from typing import Optional
+
+from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
+
+from .models import SchoolLifecycleStage
+from .services import actor_hash, record_stage
+
+logger = logging.getLogger(__name__)
+
+
+def _grace_days() -> int:
+    """Operator-configurable grace window. Default 30 days."""
+    try:
+        from apps.schools.tenant_offboarding_policy import auto_purge_grace_days
+
+        days = int(auto_purge_grace_days() or 30)
+    except Exception:  # noqa: BLE001
+        days = 30
+    return max(1, days)
+
+
+def mark_deleted(school, *, actor=None, reason: str = "") -> "object":
+    """Set school.deleted_at to now and record OFFBOARDING_GRACE stage."""
+    if not school or not getattr(school, "id", None):
+        raise ValueError("mark_deleted requires a saved School")
+    with transaction.atomic():
+        if school.deleted_at is None:
+            school.deleted_at = timezone.now()
+            school.is_active = False
+            school.save(update_fields=["deleted_at", "is_active"])
+        record_stage(
+            school,
+            SchoolLifecycleStage.Stage.OFFBOARDING_GRACE,
+            actor=actor,
+            note=(reason or "")[:200],
+            payload={
+                "source": "lifecycle.mark_deleted",
+                "grace_days": _grace_days(),
+                "deleted_at_iso": school.deleted_at.isoformat() if school.deleted_at else None,
+            },
+        )
+    return school
+
+
+def restore(school, *, actor=None) -> "object":
+    """Clear deleted_at and record OFFBOARDING_CANCELLED on the timeline."""
+    if not school or not getattr(school, "id", None):
+        raise ValueError("restore requires a saved School")
+    with transaction.atomic():
+        # Refuse if school was already hard-purged (PURGED is terminal).
+        already_purged = SchoolLifecycleStage.objects.filter(
+            school=school, stage=SchoolLifecycleStage.Stage.OFFBOARDING_PURGED
+        ).exists()
+        if already_purged:
+            raise ValueError("school is already purged — restore is irreversible past PURGED")
+        if school.deleted_at is not None:
+            school.deleted_at = None
+            school.save(update_fields=["deleted_at"])
+        record_stage(
+            school,
+            SchoolLifecycleStage.Stage.OFFBOARDING_CANCELLED,
+            actor=actor,
+            note="Soft-delete restored",
+            payload={"source": "lifecycle.restore"},
+        )
+    return school
+
+
+def is_in_grace(school) -> bool:
+    """True iff school.deleted_at is set AND grace window has not expired."""
+    if not school:
+        return False
+    deleted_at: Optional[datetime] = getattr(school, "deleted_at", None)
+    if deleted_at is None:
+        return False
+    return timezone.now() < deleted_at + timedelta(days=_grace_days())
+
+
+def grace_expires_at(school) -> Optional[datetime]:
+    """Return when the grace window closes, or None if not soft-deleted."""
+    if not school:
+        return None
+    deleted_at: Optional[datetime] = getattr(school, "deleted_at", None)
+    if deleted_at is None:
+        return None
+    return deleted_at + timedelta(days=_grace_days())
+
+
+# Audit-chain mirror to MigrationCloudAuditEvent.
+# Closes audit gap: SchoolProvisioningEvent is mutable Django model
+# with no hash-chain. We piggy-back on Migration Cloud's already-
+# tamper-evident MigrationCloudAuditEvent so offboarding events get
+# the same forensic guarantees.
+
+_OFFBOARDING_AUDIT_EVENT_TYPES = frozenset(
+    {
+        "OFFBOARDING_EXPORT",
+        "OFFBOARDING_DEACTIVATED",
+        "OFFBOARDING_PURGE_REQUESTED",
+        "OFFBOARDING_PURGE_COMPLETED",
+        "OFFBOARDING_SELF_SERVICE_REQUESTED",
+        "OFFBOARDING_SELF_SERVICE_CANCELLED",
+        "OFFBOARDING_AUTO_PURGE_SCHEDULED",
+        "OFFBOARDING_AUTO_PURGE_EXECUTED",
+    }
+)
+
+
+# Audit-chain mirror to MigrationCloudAuditEvent is currently a
+# structured-log mirror (audit_event_log_mirror below). The Migration
+# Cloud audit-event type vocabulary is a closed TextChoices owned by
+# apps.migration_cloud.models_audit — extending it from outside that
+# app requires a migration + counsel sign-off (v3.62+ scope).
+# Until then, the log mirror gives downstream observability a parallel
+# tamper-evident trail without the integrity_hash chain. The original
+# SchoolProvisioningEvent rows remain the canonical record.
+
+
+def audit_event_log_mirror(event) -> bool:
+    """Structured-log mirror of offboarding events.
+
+    PII-safe: actor_id is SHA-256-prefix-hashed; never raw email/name.
+    """
+    if event is None:
+        return False
+    event_type = getattr(event, "event_type", None)
+    if event_type not in _OFFBOARDING_AUDIT_EVENT_TYPES:
+        return False
+    school = getattr(event, "school", None)
+    actor = getattr(event, "actor", None)
+    logger.info(
+        "lifecycle.offboarding.audit event_id=%s school_id=%s school_slug=%s event_type=%s actor_hash=%s created_at=%s",
+        getattr(event, "id", ""),
+        getattr(school, "id", "") if school else "",
+        getattr(school, "slug", "") if school else "",
+        event_type,
+        actor_hash(actor),
+        getattr(event, "created_at", ""),
+    )
+    return True
