@@ -706,5 +706,11 @@
     {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
     {% include "partials/rmc_command_bar.html" %}
     {% endif %}
+    {# v3.61.2 (2026-05-22): Lifecycle concierge — only renders when lifecycle_concierge_enabled is True. #}
+    {% if lifecycle_concierge_enabled %}
+    <link rel="stylesheet" href="{% static 'css/rmc-lifecycle-concierge.css' %}">
+    <script src="{% static 'js/_pages/rmc-lifecycle-concierge.js' %}" defer></script>
+    {% endif %}
+    {% include "lifecycle/concierge_modal.html" %}
   </body>
 </html>

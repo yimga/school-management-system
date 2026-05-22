@@ -1,0 +1,118 @@
+/*
+ * rmc-lifecycle-concierge.css
+ *
+ * Bottom-pinned compact band (NOT a modal dialog) that surfaces the
+ * 4-step onboarding concierge for tenants whose unified readiness is
+ * below 50%. Defensive isolation so it never breaks underlying layout.
+ *
+ * Loaded only on tenant subdomains (NOT manager / operator) because
+ * the partial is included from portal_base.html and gated on
+ * lifecycle_concierge_enabled (false on manager hosts).
+ *
+ * v3.61.2 (2026-05-22): Wave L3 — Onboarding Concierge.
+ */
+
+.rmc-lifecycle-concierge {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 1040; /* below bootstrap modal (1055), above sticky nav */
+  width: min(640px, calc(100vw - 24px));
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px 12px 16px;
+  background: var(--surface-elevated, #ffffff);
+  color: var(--text-primary, #111111);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+  box-shadow: var(--elev-2, 0 8px 24px rgba(0, 0, 0, 0.12));
+  font-size: 0.875rem;
+  isolation: isolate;
+  contain: layout style;
+}
+
+.rmc-lifecycle-concierge__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #555);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.rmc-lifecycle-concierge__close:hover,
+.rmc-lifecycle-concierge__close:focus-visible {
+  background: var(--surface-overlay, rgba(0, 0, 0, 0.04));
+  outline: none;
+}
+
+.rmc-lifecycle-concierge__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.rmc-lifecycle-concierge__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.rmc-lifecycle-concierge__score {
+  color: var(--text-secondary, #555);
+  font-size: 0.825rem;
+}
+
+.rmc-lifecycle-concierge__steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 6px 16px;
+}
+
+.rmc-lifecycle-concierge__steps li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.rmc-lifecycle-concierge__steps a {
+  color: var(--color-primary-700, #4338CA); /* off-token-allow: tenant-cta-action-link */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rmc-lifecycle-concierge__migration {
+  border-top: 1px dashed var(--hairline, rgba(0, 0, 0, 0.08));
+  padding-top: 6px;
+  margin-top: 2px;
+  color: var(--text-secondary, #555);
+}
+
+.rmc-lifecycle-concierge__migration a {
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rmc-lifecycle-concierge {
+    transition: opacity 240ms ease-out, transform 240ms ease-out;
+  }
+}
+
+/* Dismissed state — JS adds [hidden] which suffices, but also support
+ * a data-attr form for non-JS environments. */
+.rmc-lifecycle-concierge[data-dismissed="1"] {
+  display: none;
+}

@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}
+  Lifecycle Concierge — first-login modal-card for new tenants.
+
+  Renders only when `lifecycle_concierge_enabled` is truthy AND user is
+  staff/admin on the tenant. The 4-step compact card surfaces the most
+  load-bearing onboarding actions so a new school can get from 0 → 50%
+  without hunting through Setup Studio.
+
+  Includes a "Importing from another SIS?" CTA that deep-links to the
+  Migration Cloud customer wizard — closes the v3.39 audit gap where
+  fresh tenants had no obvious migration entry point.
+
+  Defensive: bottom-pinned compact band (NOT a modal dialog) so it
+  never traps focus or blocks the page. Operator can dismiss via the
+  ✕ in the corner; dismissal is per-session (sessionStorage flag).
+{% endcomment %}
+
+{% if lifecycle_concierge_enabled and lifecycle_readiness %}
+{% if user.is_authenticated and user.is_staff %}
+<aside class="rmc-lifecycle-concierge" role="region" aria-labelledby="lifecycle-concierge-h" data-lifecycle-concierge data-rmc-tenant-only>
+  <button type="button" class="rmc-lifecycle-concierge__close" aria-label="{% trans 'Dismiss concierge' %}" data-lifecycle-concierge-dismiss>&times;</button>
+  <div class="rmc-lifecycle-concierge__head">
+    <strong id="lifecycle-concierge-h" class="rmc-lifecycle-concierge__title">{% trans "Welcome — let's get you live" %}</strong>
+    <span class="rmc-lifecycle-concierge__score"><strong>{{ lifecycle_readiness.unified_score }}%</strong> {% trans "to launch-ready" %}</span>
+  </div>
+  <ol class="rmc-lifecycle-concierge__steps">
+    <li><a href="/portal/configure/brand/">{% trans "1. Set your brand" %}</a> <span class="small text-secondary">{% trans "logo, colors, motto" %}</span></li>
+    <li><a href="/portal/configure/academic-year/">{% trans "2. Academic year & terms" %}</a></li>
+    <li><a href="/portal/configure/people/">{% trans "3. Invite staff, import students" %}</a></li>
+    <li><a href="/portal/configure/publish/">{% trans "4. Publish to your team" %}</a></li>
+  </ol>
+  <p class="rmc-lifecycle-concierge__migration small mb-0">
+    {% trans "Importing from another SIS?" %}
+    <a href="/portal/configure/migration/">{% trans "Open Migration Cloud" %}</a>
+  </p>
+</aside>
+{% endif %}
+{% endif %}

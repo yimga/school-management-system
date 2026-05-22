@@ -428,6 +428,7 @@ TEMPLATES = [
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
                 "apps.portal.context_processors.support_deflection_urls",  # KB deflection on all ticket forms
                 "apps.portal.context_processors.help_contextual",  # Proactive help nudges + contextual drawer
+                "apps.lifecycle.context_processors.lifecycle_readiness",  # 360 unified score + concierge gate (Wave L3)
                 "apps.feedback.context_processors.support_links",  # Host-aware help / feature / contact URLs
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
