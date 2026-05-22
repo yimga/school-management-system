@@ -1,0 +1,42 @@
+{% load i18n %}
+{% comment %}
+  _collapsable_section.html — v3.58.x (2026-05-22) Wave 10 Agent T
+
+  Reusable collapsable wrapper around any cockpit partial. Operators can
+  collapse / expand each section to control vertical density on long
+  dashboards. State persists per-section via localStorage (see
+  static/js/_pages/rmc-collapsable.js).
+
+  Args:
+    title           (str, required)  - section heading
+    key             (str, required)  - localStorage key suffix
+                                        (final key is "rmc-collapsable-<key>")
+    include_partial (str, required)  - path of the partial to render inside
+    default_state   (str, optional)  - "open" (default) or "collapsed"
+    persist         (bool, optional) - when False, do NOT remember across visits
+    chrome          (str, optional)  - "card" (default), "bare", or "section"
+    meta            (str, optional)  - small right-aligned eyebrow / count badge
+
+  Usage:
+    {% include "partials/cockpit/_collapsable_section.html" with title="Tenant Health Grid" key="tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" %}
+
+  Inner partials retain their own cockpit.<section>.enabled self-gate, so when
+  the section is disabled the partial renders nothing and the user still sees
+  an empty expandable. Callers who want to avoid that should gate the include
+  itself: {% if cockpit.tenant_heatmap.enabled %}{% include ... %}{% endif %}.
+{% endcomment %}
+<details class="rmc-collapsable"
+         data-rmc-collapsable-key="{{ key }}"
+         data-rmc-collapsable-default="{{ default_state|default:'open' }}"
+         data-rmc-collapsable-persist="{% if persist == False %}false{% else %}true{% endif %}"
+         {% if chrome %}data-rmc-collapsable-chrome="{{ chrome }}"{% endif %}
+         {% if default_state != 'collapsed' %}open{% endif %}>
+  <summary class="rmc-collapsable__head">
+    <span class="rmc-collapsable__title">{{ title }}</span>
+    {% if meta %}<span class="rmc-collapsable__meta">{{ meta }}</span>{% endif %}
+    <span class="rmc-collapsable__chevron" aria-hidden="true">&#9662;</span>
+  </summary>
+  <div class="rmc-collapsable__body">
+    {% if include_partial %}{% include include_partial %}{% endif %}
+  </div>
+</details>

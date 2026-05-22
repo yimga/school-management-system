@@ -190,6 +190,8 @@ body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .theme-toggle
 /* === Container vertical density tightening === */
 body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .dashboard-container {
   padding: 14px 22px 22px;
+  background: transparent; /* off-token-allow: dark-chrome-admin-bg — body owns the gradient now */
+  min-height: 0;
 }
 body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .dashboard-header {
   margin-bottom: 14px;
@@ -200,4 +202,218 @@ body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .stats-grid {
 }
 body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .app-section {
   margin-bottom: 14px;
+}
+
+/* ============================================================
+   v3.58.6 (2026-05-22) Wave 10 Agent R — Unfold DOM parity pass
+   ------------------------------------------------------------
+   admin/index.html now calls {{ block.super }} so this overlay
+   actually loads on the /admin/ landing. But admin/index.html
+   also defines a large inline <style> block AFTER us, so we
+   bump specificity by stacking `body[data-rmc-admin-shell][data-rmc-nav-bridge-host="manager"]`
+   on every selector and adding the `html[data-rmc-admin-html="unfold"]`
+   ancestor where needed to win specificity ties cleanly without
+   resorting to !important.
+   ============================================================ */
+
+/* Hard re-skin the body element — the inline-style block in admin/index.html
+   sets `body { background: var(--surface-deep); ... }` which would override
+   our gradient. Use the data-attribute compound + a higher-specificity
+   `html[data-rmc-admin-html="unfold"]` ancestor (the JS in base_site.html
+   sets both) to win cleanly. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] {
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(99,102,241,0.12), transparent 60%), /* off-token-allow: dark-chrome-admin-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(16,185,129,0.08), transparent 60%), /* off-token-allow: dark-chrome-admin-radial */
+    linear-gradient(180deg, #0a0d22 0%, #07091a 100%); /* off-token-allow: dark-chrome-admin-bg */
+  background-image:
+    radial-gradient(900px 220px at 8% -10%, rgba(99,102,241,0.12), transparent 60%), /* off-token-allow: dark-chrome-admin-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(16,185,129,0.08), transparent 60%), /* off-token-allow: dark-chrome-admin-radial */
+    linear-gradient(180deg, #0a0d22 0%, #07091a 100%); /* off-token-allow: dark-chrome-admin-bg */
+  background-blend-mode: normal;
+}
+
+/* Bento grid (Unfold's app section grid container) — v8 preview shows
+   cp-catalog grid pattern: glass cards with mono count chips. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .bento-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Bento panels (per-app cards in the catalog). Match the cp-catalog-card
+   pattern from the v8 preview: glass background, hairline border, subtle
+   lift on hover, indigo accent. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .bento-panel {
+  background: linear-gradient(180deg, rgba(15,21,48,0.85) 0%, rgba(7,9,26,0.80) 100%); /* off-token-allow: dark-chrome-admin-card */
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 14px;
+  padding: 16px 18px;
+  transition: transform 220ms cubic-bezier(0.4,0,0.2,1), border-color 220ms cubic-bezier(0.4,0,0.2,1), box-shadow 220ms cubic-bezier(0.4,0,0.2,1);
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .bento-panel:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99,102,241,0.40); /* off-token-allow: dark-chrome-admin-card */
+  box-shadow: 0 18px 48px rgba(8,11,28,0.45); /* off-token-allow: dark-chrome-admin-elev */
+  background: linear-gradient(180deg, rgba(17,24,55,0.92) 0%, rgba(9,12,30,0.88) 100%); /* off-token-allow: dark-chrome-admin-card */
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .bento-panel .app-icon {
+  font-size: 26px;
+  margin-bottom: 8px;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(99,102,241,0.35)); /* off-token-allow: dark-chrome-admin-card */
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .bento-panel .app-title {
+  font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: #f1f5f9; /* off-token-allow: dark-chrome-admin-text */
+  margin: 0 0 6px;
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .bento-panel .app-meta {
+  font-size: 12px;
+  color: var(--cp-chrome-text-muted);
+  margin: 0 0 12px;
+}
+
+/* App buttons (action pills inside bento panels). Indigo-on-hover pattern
+   matching the v8 preview's cp-tab + cta hover. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .app-btn {
+  background: rgba(255,255,255,0.04); /* off-token-allow: dark-chrome-admin-card */
+  color: var(--cp-chrome-text-muted);
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  transition: background 150ms cubic-bezier(0.4,0,0.2,1), color 150ms cubic-bezier(0.4,0,0.2,1), border-color 150ms cubic-bezier(0.4,0,0.2,1);
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .app-btn:hover {
+  background: rgba(99,102,241,0.18); /* off-token-allow: dark-chrome-admin-card */
+  border-color: rgba(99,102,241,0.50); /* off-token-allow: dark-chrome-admin-card */
+  color: #ffffff; /* off-token-allow: dark-chrome-admin-text */
+}
+
+/* Module / module-list (the model-catalog-by-section rows Unfold renders
+   on /admin/ when the user lands on the model index page rather than the
+   custom dashboard). Glass-card the section wrappers identically. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .module {
+  background: linear-gradient(180deg, rgba(15,21,48,0.86) 0%, rgba(7,9,26,0.82) 100%); /* off-token-allow: dark-chrome-admin-card */
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 14px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .module h2,
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .module caption {
+  background: linear-gradient(180deg, rgba(99,102,241,0.10) 0%, transparent 100%); /* off-token-allow: dark-chrome-admin-card */
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  font-weight: 500;
+  font-size: 17px;
+  color: #f8fafc; /* off-token-allow: dark-chrome-admin-text */
+  padding: 12px 18px;
+}
+
+/* Theme toggle button — match the v8 preview floating pill style. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .theme-toggle {
+  position: fixed;
+  top: 92px;
+  right: 24px;
+  z-index: 30;
+  background: rgba(15,21,48,0.86); /* off-token-allow: dark-chrome-admin-card */
+  border: 1px solid var(--cp-chrome-hairline);
+  border-radius: 999px;
+  padding: 7px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cp-chrome-text-muted);
+  font-size: 11.5px;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .theme-toggle:hover {
+  background: rgba(15,21,48,0.94); /* off-token-allow: dark-chrome-admin-card */
+  border-color: rgba(99,102,241,0.40); /* off-token-allow: dark-chrome-admin-card */
+  color: #ffffff; /* off-token-allow: dark-chrome-admin-text */
+}
+
+/* App section header — count pill in JetBrains Mono per v8 preview spec.
+   Already styled above; this re-asserts under the higher-specificity
+   compound selector to win over admin/index.html's inline override. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .app-section .app-count {
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  background: rgba(255,255,255,0.05); /* off-token-allow: dark-chrome-admin-card */
+  border: 1px solid var(--cp-chrome-hairline);
+  color: var(--cp-chrome-text-muted);
+  font-size: 11.5px;
+  font-weight: 500;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* Outline button (revert / cancel) — readable on the dark gradient. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .btn-outline {
+  background: rgba(255,255,255,0.04); /* off-token-allow: dark-chrome-admin-card */
+  border: 1px solid var(--cp-chrome-hairline-strong);
+  color: var(--cp-chrome-text);
+  border-radius: 999px;
+  padding: 9px 16px;
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .btn-outline:hover {
+  background: rgba(255,255,255,0.08); /* off-token-allow: dark-chrome-admin-card */
+  border-color: rgba(99,102,241,0.50); /* off-token-allow: dark-chrome-admin-card */
+  color: #ffffff; /* off-token-allow: dark-chrome-admin-text */
+}
+
+/* Dashboard subtitle — italic Source Serif 4 per v8 preview lede. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .dashboard-header .dashboard-subtitle {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  color: var(--cp-chrome-text-muted);
+  font-size: 14.5px;
+  line-height: 1.55;
+  max-width: 720px;
+  margin-bottom: 14px;
+}
+
+/* Stat-item polish — match v8 preview's cp-kpi card pattern. */
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .stat-card .stat-item {
+  background: rgba(255,255,255,0.03); /* off-token-allow: dark-chrome-admin-card */
+  border: 1px solid var(--cp-chrome-hairline);
+  border-style: solid;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .stat-card .stat-item:hover {
+  background: rgba(255,255,255,0.05); /* off-token-allow: dark-chrome-admin-card */
+  border-color: rgba(99,102,241,0.40); /* off-token-allow: dark-chrome-admin-card */
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .stat-card .stat-item.active {
+  background: linear-gradient(135deg, rgba(99,102,241,0.20), rgba(139,92,246,0.14)); /* off-token-allow: dark-chrome-admin-card */
+  border-color: rgba(99,102,241,0.50); /* off-token-allow: dark-chrome-admin-card */
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.10); /* off-token-allow: dark-chrome-admin-elev */
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .stat-card .stat-time {
+  color: #c7d2fe; /* off-token-allow: dark-chrome-admin-eyebrow */
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .stat-card .stat-title {
+  color: var(--cp-chrome-text);
+  font-size: 14.5px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .stat-card .stat-meta {
+  color: var(--cp-chrome-text-faint);
+  font-size: 11.5px;
 }

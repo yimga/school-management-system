@@ -1,0 +1,188 @@
+/* rmc-collapsable.css — v3.58.x (2026-05-22) Wave 10 Agent T
+ *
+ * Reusable collapsable-section primitive for long dashboard pages.
+ *
+ * Operators can collapse / expand individual cockpit sections to control visual
+ * density. State persists per-section via localStorage (see rmc-collapsable.js).
+ *
+ * Semantic root is <details>/<summary> — keyboard + AT support comes for free.
+ * The native marker is hidden so we can render a token-aware chevron glyph.
+ *
+ * Design tokens only. No hardcoded literals (see CLAUDE.md no-hardcoding rule).
+ */
+
+/* ------------------------------------------------------------------------- */
+/* Wrapper                                                                   */
+/* ------------------------------------------------------------------------- */
+
+.rmc-collapsable {
+  display: block;
+  margin: 0 0 var(--token-space-md);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1);
+  overflow: hidden;
+}
+
+/* When a section is wired bare (no card chrome) the operator can opt out of
+   the wrapper visuals by adding data-rmc-collapsable-chrome="bare". */
+.rmc-collapsable[data-rmc-collapsable-chrome="bare"] {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Header (summary)                                                          */
+/* ------------------------------------------------------------------------- */
+
+.rmc-collapsable__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-md);
+  padding: var(--token-space-md) var(--token-space-lg);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: var(--type-size-body);
+  line-height: 1.3;
+  background: var(--surface-elevated);
+  transition: background-color var(--motion-fast);
+}
+
+/* Suppress the native disclosure triangle in every browser. */
+.rmc-collapsable__head::-webkit-details-marker {
+  display: none;
+}
+.rmc-collapsable__head::marker {
+  content: "";
+}
+
+.rmc-collapsable__head:hover {
+  background: var(--surface-overlay);
+}
+
+.rmc-collapsable__head:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.rmc-collapsable[data-rmc-collapsable-chrome="bare"] .rmc-collapsable__head {
+  padding: var(--token-space-sm) 0;
+  background: transparent;
+}
+
+.rmc-collapsable[data-rmc-collapsable-chrome="bare"] .rmc-collapsable__head:hover {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Title                                                                     */
+/* ------------------------------------------------------------------------- */
+
+.rmc-collapsable__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Optional eyebrow / count badge sits between title and chevron. */
+.rmc-collapsable__meta {
+  flex: 0 0 auto;
+  font-size: var(--type-size-caption);
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Chevron (rotates 90° when collapsed)                                      */
+/* ------------------------------------------------------------------------- */
+
+.rmc-collapsable__chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--token-space-lg);
+  height: var(--token-space-lg);
+  color: var(--text-tertiary);
+  font-size: var(--type-size-body);
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform var(--motion-fast);
+  pointer-events: none;
+}
+
+/* Open state — chevron points down (default glyph ▾). */
+.rmc-collapsable[open] > .rmc-collapsable__head .rmc-collapsable__chevron {
+  transform: rotate(0deg);
+}
+
+/* Closed state — rotate the same down-chevron 90° anti-clockwise so the
+   point faces right ("collapsed, click to expand"). Using a single glyph
+   means we don't have to swap text content from JS. */
+.rmc-collapsable:not([open]) > .rmc-collapsable__head .rmc-collapsable__chevron {
+  transform: rotate(-90deg);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Body                                                                      */
+/* ------------------------------------------------------------------------- */
+
+.rmc-collapsable__body {
+  padding: var(--token-space-md) var(--token-space-lg) var(--token-space-lg);
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  border-top: 1px solid var(--hairline);
+}
+
+.rmc-collapsable[data-rmc-collapsable-chrome="bare"] .rmc-collapsable__body {
+  padding: var(--token-space-md) 0 0;
+  background: transparent;
+  border-top: 0;
+}
+
+/* When the wrapper is in "section-style" mode (`data-rmc-collapsable-chrome="section"`)
+   the body has no inner padding so child sections (.cp-panel, cockpit partials)
+   keep their own gutter. */
+.rmc-collapsable[data-rmc-collapsable-chrome="section"] .rmc-collapsable__body {
+  padding: 0;
+  background: transparent;
+  border-top: 0;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion                                                            */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-collapsable__head,
+  .rmc-collapsable__chevron {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Dark theme parity (effective-theme attribute contract v3)                 */
+/* ------------------------------------------------------------------------- */
+
+[data-theme="dark"] .rmc-collapsable {
+  border-color: var(--hairline);
+  background: var(--surface-elevated);
+}
+
+[data-theme="dark"] .rmc-collapsable__head {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .rmc-collapsable__body {
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+}

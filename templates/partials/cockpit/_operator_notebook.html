@@ -28,9 +28,17 @@
 {% endcomment %}
 
 {% if cockpit.operator_notebook.enabled %}
+{% comment %} v3.58.6 (2026-05-22) Wave 10 Agent R — DOM-level idempotency anchor.
+   The container carries `data-rmc-notebook-instance` so the JS init in
+   `static/js/_pages/rmc-copilot-rail.js` can detect multiple instances
+   in one DOM (caused by an accidental double-include) and keep only the
+   first — preventing the "dozens of ADD TO NOTEBOOK cards" regression
+   observed when this partial was included on /admin/ without the
+   `.lx-notebook { position: fixed }` rule from rmc-cp-200x.css. {% endcomment %}
 <aside class="lx-notebook"
        aria-label="{% trans 'Operator notebook quick-capture' %}"
        data-rmc-operator-notebook
+       data-rmc-notebook-instance="primary"
        data-rmc-notebook-state="open"
        {% if cockpit.operator_notebook.draggable %}data-rmc-notebook-draggable="1"{% endif %}
        data-rmc-notebook-recent-limit="{{ cockpit.operator_notebook.recent_limit|default:10 }}">

@@ -4207,3 +4207,283 @@
     padding: 4px 8px;
   }
 }
+
+/* ============================================================ */
+/* v3.58.6 — Shared 200x pattern classes (Wave 10 Agent R)        */
+/* ------------------------------------------------------------ */
+/* Extracted from the v8 /admin/ 200x preview                     */
+/* (docs/generated/preview_app_shell_admin_v1_200x.html) so the   */
+/* same patterns can land on tenant dashboard, super dashboard,   */
+/* marketing surfaces by class application instead of bespoke CSS.*/
+/* Every literal carries an off-token-allow marker; tenant brand  */
+/* override is via `--brand-primary` so per-school cascades win.  */
+/* ============================================================ */
+
+/* --- .rmc-page-header-glow ------------------------------------ */
+/* Radial-glow page-header — apply to any page-archetype="dashboard"
+   <header> element for the v8 200x hero feel. The glow follows the
+   tenant brand via `--brand-primary` if set (falls back to indigo).
+   Compose with .rmc-page-header-glow--dark for the manager dark
+   chrome variant (default is tenant-light). */
+.rmc-page-header-glow {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg, 16px);
+  padding: 22px 26px;
+  background: var(--surface-elevated, #ffffff); /* off-token-allow: rmc-page-header-glow-fallback */
+  border: 1px solid var(--hairline, rgba(15,23,42,0.08)); /* off-token-allow: rmc-page-header-glow-fallback */
+  box-shadow: var(--elev-1, 0 1px 2px rgba(15,23,42,0.06));
+  isolation: isolate;
+}
+.rmc-page-header-glow::after {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-primary, #4f46e5) 22%, transparent), transparent 70%); /* off-token-allow: rmc-page-header-glow-radial */
+  pointer-events: none;
+  z-index: -1;
+}
+.rmc-page-header-glow--dark {
+  background: linear-gradient(180deg, rgba(15,21,48,0.92) 0%, rgba(7,9,26,0.88) 100%); /* off-token-allow: rmc-page-header-glow-dark */
+  border-color: rgba(255,255,255,0.08); /* off-token-allow: rmc-page-header-glow-dark */
+  color: #f8fafc; /* off-token-allow: rmc-page-header-glow-dark */
+  box-shadow: 0 24px 68px rgba(8,11,28,0.40), 0 1px 0 rgba(255,255,255,0.05) inset; /* off-token-allow: rmc-page-header-glow-dark */
+}
+.rmc-page-header-glow--dark::after {
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-primary, #6366f1) 28%, transparent), transparent 70%); /* off-token-allow: rmc-page-header-glow-dark */
+}
+
+/* --- .rmc-stat-card--mono ------------------------------------- */
+/* KPI / stat card with a JetBrains-Mono count pill in the corner.
+   Use as `<div class="rmc-stat-card rmc-stat-card--mono">…<span class="rmc-stat-card__count">14</span>…</div>`.
+   Plays with the v3.55+ rmc-stat-card primitive in this same file. */
+.rmc-stat-card--mono {
+  position: relative;
+  background: var(--surface-elevated, #ffffff); /* off-token-allow: rmc-stat-card-mono-fallback */
+  border: 1px solid var(--hairline, rgba(15,23,42,0.08)); /* off-token-allow: rmc-stat-card-mono-fallback */
+  border-radius: var(--radius-lg, 16px);
+  padding: 16px 18px;
+  box-shadow: var(--elev-1, 0 1px 2px rgba(15,23,42,0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+.rmc-stat-card--mono::after {
+  content: "";
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand-primary, #4f46e5) 14%, transparent), transparent 70%); /* off-token-allow: rmc-stat-card-mono-radial */
+  z-index: 0;
+}
+.rmc-stat-card--mono > * { position: relative; z-index: 1; }
+.rmc-stat-card--mono .rmc-stat-card__count,
+.rmc-stat-card__count--mono {
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: var(--surface-sunken, #ebebef); /* off-token-allow: rmc-stat-card-mono-pill */
+  color: var(--text-tertiary, #6e6e73); /* off-token-allow: rmc-stat-card-mono-pill */
+  border: 1px solid var(--hairline, rgba(15,23,42,0.08)); /* off-token-allow: rmc-stat-card-mono-pill */
+  border-radius: 999px;
+  padding: 3px 10px;
+  align-self: flex-start;
+}
+
+/* --- .rmc-app-section--glass --------------------------------- */
+/* Glass-surface section grouping wrapper for app-catalog-style
+   regions. On light surfaces it presents as a subtle frosted card;
+   under `[data-theme="dark"]` (or a parent with `--rmc-glass-tone="dark"`)
+   it flips to the dark navy luxury chrome. */
+.rmc-app-section--glass {
+  background: var(--surface-elevated, #ffffff); /* off-token-allow: rmc-app-section-glass-fallback */
+  border: 1px solid var(--hairline, rgba(15,23,42,0.08)); /* off-token-allow: rmc-app-section-glass-fallback */
+  border-radius: var(--radius-lg, 16px);
+  padding: 22px 24px;
+  box-shadow: var(--elev-1, 0 1px 2px rgba(15,23,42,0.06));
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+[data-theme="dark"] .rmc-app-section--glass {
+  background: linear-gradient(180deg, rgba(15,21,48,0.86) 0%, rgba(7,9,26,0.82) 100%); /* off-token-allow: rmc-app-section-glass-dark */
+  border-color: rgba(255,255,255,0.08); /* off-token-allow: rmc-app-section-glass-dark */
+  color: #f1f5f9; /* off-token-allow: rmc-app-section-glass-dark */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.30); /* off-token-allow: rmc-app-section-glass-dark */
+}
+.rmc-app-section--glass .rmc-app-section__title,
+.rmc-app-section--glass > h2 {
+  font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.008em;
+  margin: 0 0 4px;
+}
+.rmc-app-section--glass .rmc-app-section__lede {
+  font-size: 13px;
+  color: var(--text-tertiary, #6e6e73); /* off-token-allow: rmc-app-section-glass-fallback */
+  margin: 0 0 16px;
+}
+
+/* --- .rmc-cta--gradient-indigo ------------------------------- */
+/* Primary CTA with an indigo-violet gradient + lift on hover.
+   The gradient stops use `--brand-primary` so per-tenant brand
+   override re-tints the whole CTA cleanly. Falls back to the
+   platform indigo (#4f46e5 → #7c3aed) when the var is absent. */
+.rmc-cta--gradient-indigo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill, 999px);
+  border: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--brand-primary, #4f46e5), color-mix(in srgb, var(--brand-primary, #4f46e5) 50%, #7c3aed)); /* off-token-allow: rmc-cta-gradient-indigo-fallback */
+  color: #ffffff; /* off-token-allow: rmc-cta-gradient-indigo-fallback */
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-primary, #4f46e5) 32%, transparent); /* off-token-allow: rmc-cta-gradient-indigo-fallback */
+  transition: transform 150ms cubic-bezier(0.4,0,0.2,1), box-shadow 150ms cubic-bezier(0.4,0,0.2,1);
+  text-decoration: none;
+}
+.rmc-cta--gradient-indigo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--brand-primary, #4f46e5) 40%, transparent); /* off-token-allow: rmc-cta-gradient-indigo-fallback */
+  color: #ffffff; /* off-token-allow: rmc-cta-gradient-indigo-fallback */
+}
+.rmc-cta--gradient-indigo:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary, #4f46e5) 30%, transparent), 0 8px 20px color-mix(in srgb, var(--brand-primary, #4f46e5) 32%, transparent); /* off-token-allow: rmc-cta-gradient-indigo-fallback */
+}
+.rmc-cta--gradient-indigo:disabled,
+.rmc-cta--gradient-indigo[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- .rmc-page-eyebrow ---------------------------------------- */
+/* Uppercase tracked eyebrow label used above .rmc-page-header-glow
+   titles in the v8 200x preview. Tiny but everywhere — extract once. */
+.rmc-page-eyebrow {
+  display: inline-block;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-tertiary, #6e6e73); /* off-token-allow: rmc-page-eyebrow-fallback */
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.rmc-page-header-glow--dark .rmc-page-eyebrow {
+  color: #c7d2fe; /* off-token-allow: rmc-page-eyebrow-dark */
+}
+
+/* ============================================================
+   v3.58.x Wave 10 Agent Q (2026-05-22) — global activity ticker
+   ------------------------------------------------------------
+   Universal base + tenant-host variant for the live activity
+   ticker promoted from landing-page chrome to GLOBAL chrome.
+   Manager-cockpit-v7.css ships the dark-chrome rules for the
+   operator shell; this file carries the cross-shell base + the
+   tenant-host softer variant for the indigo+cream tenant chrome.
+   Class-grammar.css is loaded on all 5 shells so this is the
+   right home for the universal pieces.
+   ============================================================ */
+.rmc-cockpit-ticker--tenant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 4px 20px;
+  background: linear-gradient(90deg, var(--surface-elevated, rgba(79, 70, 229, 0.04)) 0%, transparent 30%, transparent 100%); /* off-token-allow: tenant-ticker-bg-soft-tint */
+  border-bottom: 1px solid var(--hairline);
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(79, 70, 229, 0.12); /* off-token-allow: tenant-live-badge-bg-indigo-tint */
+  border: 1px solid rgba(79, 70, 229, 0.32); /* off-token-allow: tenant-live-badge-border-indigo-tint */
+  color: var(--text-primary);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--school-primary, var(--brand-primary, #4f46e5)); /* off-token-allow: tenant-live-badge-dot-school-brand */
+  animation: rmc-cockpit-ticker-pulse 1.6s ease-in-out infinite;
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 60px), transparent 100%); /* off-token-allow: tenant-ticker-mask-edge */
+          mask-image: linear-gradient(to right, transparent 0, black 24px, black calc(100% - 60px), transparent 100%); /* off-token-allow: tenant-ticker-mask-edge */
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__track {
+  display: inline-flex;
+  gap: 36px;
+  animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 60s) linear infinite;
+  will-change: transform;
+}
+.rmc-cockpit-ticker--tenant:hover .rmc-cockpit-ticker__track,
+.rmc-cockpit-ticker--tenant:focus-within .rmc-cockpit-ticker__track {
+  animation-play-state: paused;
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__event {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__event-text {
+  color: var(--text-primary);
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__event-time {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__event--success .rmc-cockpit-ticker__event-icon { color: var(--success, #22c55e); /* off-token-allow: tenant-ticker-icon-success */ }
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__event--warn    .rmc-cockpit-ticker__event-icon { color: var(--warning, #f59e0b); /* off-token-allow: tenant-ticker-icon-warn */ }
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__event--danger  .rmc-cockpit-ticker__event-icon { color: var(--danger,  #ef4444); /* off-token-allow: tenant-ticker-icon-danger */ }
+.rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__event--info    .rmc-cockpit-ticker__event-icon { color: var(--info, #3b82f6); /* off-token-allow: tenant-ticker-icon-info */ }
+
+/* Shared keyframes — also declared in manager-cockpit-v7.css for the
+   dark-chrome variant; redeclaring here is safe (same identity) and lets
+   the tenant variant work on shells that DON'T load manager-cockpit-v7. */
+@keyframes rmc-cockpit-ticker-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.75); }
+}
+@keyframes rmc-cockpit-ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__track { animation: none; }
+}
+
+/* Explicit `--paused` modifier — JS can add this to suspend the marquee
+   independently of the existing :hover / :focus-within selectors. */
+.rmc-cockpit-ticker--paused .rmc-cockpit-ticker__track {
+  animation-play-state: paused;
+}

@@ -212,6 +212,75 @@ def _tenant_teacher_spotlight_defaults() -> dict[str, Any]:
 
 
 # ============================================================
+# v3.58.x Wave 10 Agent Q — tenant activity ticker (global chrome)
+# ============================================================
+
+
+def _tenant_activity_ticker_defaults() -> dict[str, Any]:
+    """Tenant-scoped activity ticker — global chrome variant.
+
+    Distinct namespace from the operator/manager ``cockpit.activity_ticker``
+    (which carries platform-wide events). This factory ships the per-tenant
+    seed for events that are safe to surface on a school subdomain:
+
+      * new student enrollment
+      * fee payment received
+      * attendance milestones (e.g. "30-day perfect attendance streak")
+      * parent messages / announcements
+      * scheduled system maintenance windows
+
+    Default ``enabled=False`` so tenant operators must opt in via
+    ``SiteSettings.cockpit_payload.tenant_activity_ticker.*`` (or via the
+    ``atk_enabled_on_tenant`` toggle in the cockpit admin form). Sensible
+    seed cards ship so the ticker renders the moment an operator flips
+    enabled=True without requiring them to publish 6 individual cards first.
+    """
+    return {
+        "enabled": False,
+        "scroll_seconds": 60,
+        "live_badge_label": _("LIVE"),
+        "cards": [
+            {
+                "icon": "🎓",
+                "severity": "success",
+                "text": _("New student enrolled in Year 4"),
+                "timestamp": _("just now"),
+            },
+            {
+                "icon": "💳",
+                "severity": "success",
+                "text": _("Fee payment received · term 2"),
+                "timestamp": _("2m ago"),
+            },
+            {
+                "icon": "⭐",
+                "severity": "success",
+                "text": _("Class 5B reached 30-day perfect attendance"),
+                "timestamp": _("18m ago"),
+            },
+            {
+                "icon": "💬",
+                "severity": "info",
+                "text": _("Parent message thread updated"),
+                "timestamp": _("32m ago"),
+            },
+            {
+                "icon": "📅",
+                "severity": "info",
+                "text": _("Sports day reminders sent to families"),
+                "timestamp": _("1h ago"),
+            },
+            {
+                "icon": "🛠",
+                "severity": "warn",
+                "text": _("Scheduled maintenance · Sunday 02:00–03:00"),
+                "timestamp": _("3h ago"),
+            },
+        ],
+    }
+
+
+# ============================================================
 # Public API — flat key→factory mapping for the orchestrator
 # ============================================================
 
@@ -227,6 +296,7 @@ TENANT_DASHBOARD_DEFAULTS: dict[str, Any] = {
     "activity_timeline": _tenant_activity_timeline_defaults,
     "achievements": _tenant_achievements_defaults,
     "teacher_spotlight": _tenant_teacher_spotlight_defaults,
+    "tenant_activity_ticker": _tenant_activity_ticker_defaults,
 }
 
 
@@ -250,4 +320,5 @@ __all__ = [
     "_tenant_activity_timeline_defaults",
     "_tenant_achievements_defaults",
     "_tenant_teacher_spotlight_defaults",
+    "_tenant_activity_ticker_defaults",
 ]

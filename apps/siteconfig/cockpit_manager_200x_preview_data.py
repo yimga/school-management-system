@@ -380,6 +380,77 @@ def _activity_ticker_demo() -> dict[str, Any]:
 # Aggregator
 # ============================================================
 
+def _trust_pillars_alerts_demo() -> dict[str, Any]:
+    """v3.58.x Wave 10 Agent S — alerts-feed-style 7-pillar demo payload.
+
+    Closes the v8 200x preview's alerts-feed gap. Renders out of the box so
+    operators see the section the moment they land; the real-data resolver's
+    `_resolve_trust_pillars_alerts()` overlays live posture on top of this
+    via `_deep_merge`.
+    """
+    return {
+        "enabled": True,
+        "eyebrow": _("Trust pillars · alerts"),
+        "title": _("Platform posture"),
+        "title_em": _("seven pillars at a glance"),
+        "meta_text": _("audit-grade · refreshed every 60s"),
+        "footer_text": _(
+            "A buyer can read this card and know within seconds whether to keep talking."
+        ),
+        "pillars": [
+            {
+                "slug": "audit_chain",
+                "label": _("Audit chain integrity"),
+                "value": _("verified"),
+                "status": "ok",
+                "last_checked": _("Mon · 02:00 UTC"),
+            },
+            {
+                "slug": "maa_signatures",
+                "label": _("MAA signatures"),
+                "value": _("counsel-blessed v1.0"),
+                "status": "ok",
+                "last_checked": _("on each sign"),
+            },
+            {
+                "slug": "encryption_at_rest",
+                "label": _("Encryption at rest"),
+                "value": _("AES-256 · MultiFernet"),
+                "status": "ok",
+                "last_checked": _("monthly rotation"),
+            },
+            {
+                "slug": "ferpa_retention",
+                "label": _("FERPA retention"),
+                "value": _("90d floor"),
+                "status": "ok",
+                "last_checked": _("docs/SECURITY_KEYS.md"),
+            },
+            {
+                "slug": "webhook_signing",
+                "label": _("Webhook signing"),
+                "value": _("HMAC-SHA256 + canonical JSON"),
+                "status": "ok",
+                "last_checked": _("per delivery"),
+            },
+            {
+                "slug": "mfa_enforcement",
+                "label": _("MFA enforcement"),
+                "value": _("operator-required"),
+                "status": "ok",
+                "last_checked": _("on each sign-in"),
+            },
+            {
+                "slug": "companion_handshake",
+                "label": _("Companion handshake"),
+                "value": _("X25519 sealed box"),
+                "status": "ok",
+                "last_checked": _("per upload"),
+            },
+        ],
+    }
+
+
 def manager_200x_demo_payload() -> dict[str, Any]:
     """Return the full demo payload — all sections enabled + populated.
 
@@ -392,6 +463,9 @@ def manager_200x_demo_payload() -> dict[str, Any]:
     landing page ticker renders out of the box matching the v8 200x preview
     HTML (6 cards: Saint Sebastien Academy / MRR / webhook drift / support
     tickets / migration sync / invoice due).
+
+    v3.58.x Wave 10 (2026-05-22): added ``trust_pillars_alerts`` (Element 12)
+    so the v8 200x preview's alerts-feed gap closes out of the box.
     """
     return {
         "ai_copilot_rail": _ai_copilot_demo(),
@@ -405,6 +479,7 @@ def manager_200x_demo_payload() -> dict[str, Any]:
         "slo_clocks": _slo_clocks_demo(),
         "operator_presence": _operator_presence_demo(),
         "activity_ticker": _activity_ticker_demo(),
+        "trust_pillars_alerts": _trust_pillars_alerts_demo(),
     }
 
 

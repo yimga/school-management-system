@@ -86,7 +86,7 @@ def _manager_world_map_defaults() -> dict[str, Any]:
             [{cx: int, cy: int, color_token: str, ring_color: str, delay_s: float}]
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: surface live world map on landing by default
         "eyebrow": _("Global footprint"),
         "schools_live": "—",
         "schools_live_label": _("schools live"),
@@ -123,7 +123,7 @@ def _manager_forecast_defaults() -> dict[str, Any]:
             }]
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: forecast lane live on landing by default
         "label": _("Forecast · next 7 days"),
         "cards": [],
     }
@@ -191,7 +191,7 @@ def _manager_heatmap_defaults() -> dict[str, Any]:
         legend_hint   str    — italic right-floating hint
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: tenant heatmap live on landing by default
         "eyebrow": _("Tenants · health grid"),
         "title": _("Every school,"),
         "title_em": _("one tile each"),
@@ -233,7 +233,7 @@ def _manager_waterfall_defaults() -> dict[str, Any]:
             [{label: str, value: str, value_color: str}]
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: revenue waterfall live on landing by default
         "eyebrow": _("MRR waterfall · this month"),
         "title": "",
         "title_em": _("to a closing"),
@@ -268,7 +268,7 @@ def _manager_audit_feed_defaults() -> dict[str, Any]:
             }]
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: audit feed live on landing by default
         "title": _("Audit feed"),
         "title_em": _("every consequential write"),
         "filter_text": "",
@@ -296,7 +296,7 @@ def _manager_trust_nutrition_defaults() -> dict[str, Any]:
             }]
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: trust nutrition live on landing by default
         "title": _("Trust nutrition"),
         "caption": _("per Apple Watch complications"),
         "footer": "",
@@ -323,7 +323,7 @@ def _manager_slo_clocks_defaults() -> dict[str, Any]:
             }]
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: SLO clocks live on landing by default
         "clocks": [],
     }
 
@@ -346,12 +346,68 @@ def _manager_operator_presence_defaults() -> dict[str, Any]:
         aria_label             str        — overall aria-label for the capsule
     """
     return {
-        "enabled": False,
+        "enabled": True,  # v3.58.10: operator presence live on landing by default
         "avatars": [],
         "operators_online_count": 0,
         "operators_online_label": _("operators online"),
         "status_pill_text": "",
         "aria_label": _("Operators online and platform status"),
+    }
+
+
+# ============================================================
+# Element 12 — Trust pillars alerts (v3.58.x Wave 10 Agent S — v8 200x gap)
+# ============================================================
+
+def _trust_pillars_alerts_defaults() -> dict[str, Any]:
+    """Alerts-feed-style display of the 7 platform trust pillars.
+
+    Distinct from `trust_nutrition` (nutrition-label card paired with the
+    heatmap). This section is the alerts feed visible at the bottom of the
+    v8 200x operator landing — one row per pillar with status dot + label +
+    value + last-checked timestamp + optional drill-in link.
+
+    PII contract: only the 7 named platform pillars are pre-wired; operator
+    overrides via SiteSettings.cockpit_payload can add/rename rows without
+    introducing PII (label/value strings are operator-authored copy).
+
+    Shape:
+        enabled      bool
+        eyebrow      str   — uppercase eyebrow
+        title        str   — h3 title
+        title_em     str   — italic tail
+        meta_text    str   — top-right meta (last-refreshed)
+        footer_text  str   — italic serif caption beneath the rows
+        pillars      list[dict] — typically 7 rows
+            [{
+                slug:         str  — stable identifier
+                label:        str  — left primary line
+                value:        str  — middle status value
+                status:       str  — "ok" | "warn" | "danger" | "info" | "neutral"
+                last_checked: str  — small right-side timestamp
+                detail_url:   str  — optional drill-in link
+                detail_label: str  — sr-only label
+            }]
+
+    The 7 platform pillars are:
+        audit_chain          — Audit chain integrity (verifier beat result)
+        maa_signatures       — MAA signatures (campaign progress)
+        encryption_at_rest   — Encryption at rest (DJANGO_CRYPTOGRAPHY_KEYS check)
+        ferpa_retention      — FERPA retention (90d floor)
+        webhook_signing      — Webhook signing (HMAC-SHA256 + canonical JSON)
+        mfa_enforcement      — MFA enforcement (operator-required)
+        companion_handshake  — Companion handshake (X25519 sealed box)
+    """
+    return {
+        # Default OFF — operator opts in via the admin form. Demo overlay +
+        # real-data resolver will populate the pillars list when active.
+        "enabled": False,
+        "eyebrow": _("Trust pillars · alerts"),
+        "title": _("Platform posture"),
+        "title_em": _("seven pillars at a glance"),
+        "meta_text": "",
+        "footer_text": "",
+        "pillars": [],
     }
 
 
@@ -403,6 +459,10 @@ def manager_200x_defaults() -> dict[str, Any]:
     v3.57.11 (2026-05-22): added `activity_ticker` (Element 11) so the
     landing page can populate the live event feed via the same
     cockpit_payload override pattern as the other 200x sections.
+
+    v3.58.x Wave 10 (2026-05-22): added `trust_pillars_alerts` (Element 12)
+    to close the v8 200x preview's alerts-feed gap. Renders the 7 platform
+    trust pillars in an alert-list style distinct from `trust_nutrition`.
     """
     return {
         "ai_copilot_rail": _manager_ai_copilot_defaults(),
@@ -416,4 +476,5 @@ def manager_200x_defaults() -> dict[str, Any]:
         "slo_clocks": _manager_slo_clocks_defaults(),
         "operator_presence": _manager_operator_presence_defaults(),
         "activity_ticker": _activity_ticker_defaults(),
+        "trust_pillars_alerts": _trust_pillars_alerts_defaults(),
     }

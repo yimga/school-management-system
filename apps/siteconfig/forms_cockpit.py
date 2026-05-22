@@ -3045,6 +3045,48 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # v3.58.x Wave 10 Agent Q — global ticker host-routing toggles.
+    # Promotes the ticker from landing-page-only chrome to GLOBAL chrome
+    # across the operator and tenant shells, with per-host enable + a
+    # real-data resolver kill-switch for operators that want to ship
+    # only their own published cards.
+    atk_enabled_on_manager = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        initial=True,
+        label=_("Show activity ticker on manager / operator shell"),
+        help_text=_(
+            "When on (default), the live activity ticker renders at the "
+            "top of every /super/* page across the operator shell. Turn "
+            "off to suppress the ticker globally on the manager surface "
+            "(landing pages may still override via their own block)."
+        ),
+    )
+    atk_enabled_on_tenant = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        initial=False,
+        label=_("Show activity ticker on tenant shell"),
+        help_text=_(
+            "Off by default — tenant operators must opt in. When on, "
+            "the tenant ticker renders at the top of every authenticated "
+            "tenant-shell page using tenant-scoped events (NEVER "
+            "operator-platform data). Anonymous pages stay silent."
+        ),
+    )
+    atk_realdata_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        initial=True,
+        label=_("Populate ticker from real platform state"),
+        help_text=_(
+            "When on (default), the ticker auto-fills with live events "
+            "from the platform audit log + provisioning + delivery "
+            "streams. Operator-published cards always win. Turn off "
+            "to render ONLY operator-published cards (no auto-fill)."
+        ),
+    )
+
     # 24) tenant_v3_extended.gradebook_trend
     gbt_label = forms.CharField(
         required=False,
@@ -3321,6 +3363,130 @@ class CockpitPayloadForm(forms.ModelForm):
             "Should remind them they can opt in at any time from Family "
             "settings. Maps to "
             "cockpit.sibling_compare.denied_state_message."
+        ),
+    )
+
+    # ---- v3.58.x Wave 10 Agent S — Trust Pillars Alerts (v8 200x gap) ----
+    # Mirrors ``cockpit.trust_pillars_alerts.*`` emitted by
+    # ``_trust_pillars_alerts_defaults()`` in cockpit_manager_200x.py.
+    # Operator surfaces only — minimal enable toggle + chrome copy + the
+    # 7 pillar label overrides. Per-pillar status/value come from the
+    # real-data resolver; operator-authored labels survive the round-trip.
+    tpa_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Enable trust pillars alerts feed"),
+        help_text=_(
+            "Renders the 7 platform trust pillars as an alert-feed below "
+            "the trust-nutrition card on the manager landing. Maps to "
+            "cockpit.trust_pillars_alerts.enabled."
+        ),
+    )
+    tpa_title = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("Trust pillars: title"),
+        help_text=_(
+            "Card title (h3). Default: 'Platform posture'. Maps to "
+            "cockpit.trust_pillars_alerts.title."
+        ),
+    )
+    tpa_title_em = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("Trust pillars: title italic tail"),
+        help_text=_(
+            "Italic serif tail rendered after the title (e.g. 'seven "
+            "pillars at a glance'). Maps to "
+            "cockpit.trust_pillars_alerts.title_em."
+        ),
+    )
+    tpa_footer_text = forms.CharField(
+        required=False,
+        max_length=240,
+        widget=_TEXT,
+        label=_("Trust pillars: footer caption"),
+        help_text=_(
+            "Optional italic serif caption rendered below the rows. Maps "
+            "to cockpit.trust_pillars_alerts.footer_text."
+        ),
+    )
+    tpa_label_audit_chain = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Pillar label: audit_chain"),
+        help_text=_(
+            "Override the displayed label for the audit-chain integrity "
+            "pillar. Empty falls through to the platform default "
+            "('Audit chain integrity')."
+        ),
+    )
+    tpa_label_maa_signatures = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Pillar label: maa_signatures"),
+        help_text=_(
+            "Override the displayed label for the MAA signatures pillar. "
+            "Empty falls through to the platform default ('MAA signatures')."
+        ),
+    )
+    tpa_label_encryption_at_rest = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Pillar label: encryption_at_rest"),
+        help_text=_(
+            "Override the displayed label for the encryption-at-rest "
+            "pillar. Empty falls through to the platform default "
+            "('Encryption at rest')."
+        ),
+    )
+    tpa_label_ferpa_retention = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Pillar label: ferpa_retention"),
+        help_text=_(
+            "Override the displayed label for the FERPA retention "
+            "pillar. Empty falls through to the platform default "
+            "('FERPA retention')."
+        ),
+    )
+    tpa_label_webhook_signing = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Pillar label: webhook_signing"),
+        help_text=_(
+            "Override the displayed label for the webhook signing "
+            "pillar. Empty falls through to the platform default "
+            "('Webhook signing')."
+        ),
+    )
+    tpa_label_mfa_enforcement = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Pillar label: mfa_enforcement"),
+        help_text=_(
+            "Override the displayed label for the MFA enforcement "
+            "pillar. Empty falls through to the platform default "
+            "('MFA enforcement')."
+        ),
+    )
+    tpa_label_companion_handshake = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Pillar label: companion_handshake"),
+        help_text=_(
+            "Override the displayed label for the companion handshake "
+            "pillar. Empty falls through to the platform default "
+            "('Companion handshake')."
         ),
     )
 
@@ -3664,6 +3830,27 @@ class CockpitPayloadForm(forms.ModelForm):
         "sct_consent_grant_button_label",
         "sct_consent_decline_button_label",
         "sct_denied_state_message",
+    )
+    # v3.58.x Wave 10 Agent S rich-editor fieldset — Trust pillars alerts.
+    # Closes the v8 200x preview's alerts-feed gap. Renders the 7 platform
+    # trust pillars in an alert-feed list distinct from the nutrition-label
+    # `trust_nutrition` card. Defaults to enabled=False — operator opts in;
+    # the real-data resolver populates per-pillar value+status so per-pillar
+    # data isn't a configurable surface (avoids stale operator-pasted posture
+    # masking the live verifier signal). Operator-authored pillar labels DO
+    # survive the round-trip via _build_payload's overlay loop.
+    TRUST_PILLARS_ALERTS_FIELDS: tuple[str, ...] = (
+        "tpa_enabled",
+        "tpa_title",
+        "tpa_title_em",
+        "tpa_footer_text",
+        "tpa_label_audit_chain",
+        "tpa_label_maa_signatures",
+        "tpa_label_encryption_at_rest",
+        "tpa_label_ferpa_retention",
+        "tpa_label_webhook_signing",
+        "tpa_label_mfa_enforcement",
+        "tpa_label_companion_handshake",
     )
     # v3.57.18 Wave 8 rich-editor fieldset — public school-signup form.
     # Operator-configurable copy + chrome for the marketing-host
@@ -4031,6 +4218,25 @@ class CockpitPayloadForm(forms.ModelForm):
         self.fields["atk_cards"].initial = _serialize_activity_ticker_cards(
             atk.get("cards")
         )
+        # v3.58.x Wave 10 Agent Q — global ticker host-routing toggles.
+        # These persist directly under the activity_ticker section so the
+        # cockpit_context orchestrator + the partial can read them via the
+        # already-resolved `cockpit.activity_ticker` namespace.
+        # Defaults mirror the field declarations (manager=True / tenant=False
+        # / realdata=True) — first-render with no existing payload uses the
+        # widget `initial=` value.
+        if "enabled_on_manager" in atk:
+            self.fields["atk_enabled_on_manager"].initial = bool(
+                atk.get("enabled_on_manager")
+            )
+        if "enabled_on_tenant" in atk:
+            self.fields["atk_enabled_on_tenant"].initial = bool(
+                atk.get("enabled_on_tenant")
+            )
+        if "realdata_enabled" in atk:
+            self.fields["atk_realdata_enabled"].initial = bool(
+                atk.get("realdata_enabled")
+            )
 
         # tenant_v3_extended.gradebook_trend
         gbt = payload.get("gradebook_trend") or {}
@@ -4105,6 +4311,43 @@ class CockpitPayloadForm(forms.ModelForm):
         self.fields["sct_denied_state_message"].initial = sibling_compare.get(
             "denied_state_message", ""
         )
+
+        # ---- v3.58.x Wave 10 Agent S trust pillars alerts seeds -----------
+        # Trust-pillars-alerts editor: enable toggle + chrome copy + 7 pillar
+        # label overrides. Per-pillar value/status come from the real-data
+        # resolver (or operator JSON overlay) — NOT from this form, to avoid
+        # stale operator-typed posture masking the live verifier signal.
+        tpa = payload.get("trust_pillars_alerts") or {}
+        if "enabled" in tpa:
+            self.fields["tpa_enabled"].initial = bool(tpa.get("enabled"))
+        else:
+            self.fields["tpa_enabled"].initial = False
+        self.fields["tpa_title"].initial = tpa.get("title", "")
+        self.fields["tpa_title_em"].initial = tpa.get("title_em", "")
+        self.fields["tpa_footer_text"].initial = tpa.get("footer_text", "")
+        # Per-pillar label seeds: walk the existing pillars list (if any) and
+        # rebuild a slug->label map for the 7 known pillar slugs.
+        existing_pillars = tpa.get("pillars") or []
+        if isinstance(existing_pillars, list):
+            label_by_slug: dict[str, str] = {}
+            for entry in existing_pillars:
+                if isinstance(entry, dict):
+                    slug = entry.get("slug")
+                    label = entry.get("label")
+                    if isinstance(slug, str) and isinstance(label, str):
+                        label_by_slug[slug] = label
+            for slug in (
+                "audit_chain",
+                "maa_signatures",
+                "encryption_at_rest",
+                "ferpa_retention",
+                "webhook_signing",
+                "mfa_enforcement",
+                "companion_handshake",
+            ):
+                field_name = f"tpa_label_{slug}"
+                if field_name in self.fields:
+                    self.fields[field_name].initial = label_by_slug.get(slug, "")
 
         # ---- v3.57.18 Wave 8 signup form seeds ----------------------------
         # Public school-signup form — copy + chrome operator-configurable
@@ -4595,6 +4838,20 @@ class CockpitPayloadForm(forms.ModelForm):
         atk_cards = _parse_activity_ticker_cards(cleaned.get("atk_cards") or "")
         if atk_cards:
             atk_overlay["cards"] = atk_cards
+        # v3.58.x Wave 10 Agent Q — host-routing toggles persist under the
+        # same activity_ticker section so a single cockpit_payload key holds
+        # all ticker configuration. BooleanField is always cleaned to a real
+        # bool; persist unconditionally so toggling OFF is durable (not just
+        # the absence of the key falling back to the default).
+        atk_overlay["enabled_on_manager"] = bool(
+            cleaned.get("atk_enabled_on_manager")
+        )
+        atk_overlay["enabled_on_tenant"] = bool(
+            cleaned.get("atk_enabled_on_tenant")
+        )
+        atk_overlay["realdata_enabled"] = bool(
+            cleaned.get("atk_realdata_enabled")
+        )
         if atk_overlay:
             payload.setdefault("activity_ticker", {}).update(atk_overlay)
 
@@ -4730,6 +4987,46 @@ class CockpitPayloadForm(forms.ModelForm):
         # this richer overlay's keys land on top while preserving any
         # forward-compatible keys that future operators add via JSON.
         payload.setdefault("sibling_compare", {}).update(sibling_overlay)
+
+        # v3.58.x Wave 10 Agent S — trust pillars alerts overlay. Mirrors
+        # cockpit.trust_pillars_alerts.* emitted by
+        # ``_trust_pillars_alerts_defaults()`` in cockpit_manager_200x.py.
+        # ``enabled`` is ALWAYS written so an explicit operator un-check
+        # round-trips faithfully. Per-pillar label overrides land as a
+        # pillars[] list of {slug,label} dicts; the orchestrator's
+        # _deep_merge contract is "lists override wholesale", so we ONLY
+        # publish pillars[] when at least one operator-typed label is
+        # non-empty — otherwise the resolver's full 7-row defaults flow
+        # through unmodified. Status/value are NEVER operator-typed (only
+        # label) — those continue to come from the real-data resolver.
+        tpa_overlay: dict[str, Any] = {
+            "enabled": bool(cleaned.get("tpa_enabled")),
+        }
+        tpa_title = (cleaned.get("tpa_title") or "").strip()
+        if tpa_title:
+            tpa_overlay["title"] = tpa_title
+        tpa_title_em = (cleaned.get("tpa_title_em") or "").strip()
+        if tpa_title_em:
+            tpa_overlay["title_em"] = tpa_title_em
+        tpa_footer = (cleaned.get("tpa_footer_text") or "").strip()
+        if tpa_footer:
+            tpa_overlay["footer_text"] = tpa_footer
+        pillar_label_overrides: list[dict[str, str]] = []
+        for slug in (
+            "audit_chain",
+            "maa_signatures",
+            "encryption_at_rest",
+            "ferpa_retention",
+            "webhook_signing",
+            "mfa_enforcement",
+            "companion_handshake",
+        ):
+            label_val = (cleaned.get(f"tpa_label_{slug}") or "").strip()
+            if label_val:
+                pillar_label_overrides.append({"slug": slug, "label": label_val})
+        if pillar_label_overrides:
+            tpa_overlay["pillars"] = pillar_label_overrides
+        payload["trust_pillars_alerts"] = tpa_overlay
 
         # v3.57.18 Wave 8 — public school-signup form overlay. Mirrors
         # cockpit.signup_form.* emitted by ``_signup_form_defaults()`` in

@@ -14,30 +14,37 @@
 <link rel="stylesheet" href="{% static 'css/teacher-dashboard-modern.css' %}">
 {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. #}
 <script src="{% static 'js/_pages/teacher__dashboard.js' %}"></script>
+{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+<link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
+<script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}
 {% with widgets=display_widgets %}
-{% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings. {% endcomment %}
+{% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
+
+   v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in the collapsable
+   primitive so teachers can fold sections they don't need. State persists per-section
+   via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
 <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="teacher">
-  {% include "partials/cockpit/_today_snapshot.html" %}
-  {% include "partials/cockpit/_quick_actions_grid.html" %}
-  {% include "partials/cockpit/_upcoming_events_strip.html" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="teacher__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="teacher__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="teacher__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}
   <div class="tp-grid-2">
-    {% include "partials/cockpit/_activity_timeline.html" %}
+    {% include "partials/cockpit/_collapsable_section.html" with title=_("Activity timeline") key="teacher__activity_timeline" include_partial="partials/cockpit/_activity_timeline.html" chrome="section" %}
     <div class="tp-grid-stack">
-      {% include "partials/cockpit/_achievements_card.html" %}
-      {% include "partials/cockpit/_teacher_spotlight_card.html" %}
+      {% include "partials/cockpit/_collapsable_section.html" with title=_("Achievements") key="teacher__achievements_card" include_partial="partials/cockpit/_achievements_card.html" chrome="section" %}
+      {% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="teacher__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}
     </div>
   </div>
   {% comment %} v3.57.18 (2026-05-22): teacher-appropriate v3 100x extended sections rendered
      ONLY on the teacher landing dashboard. Each partial self-gates on
      cockpit.<section>.enabled. {% endcomment %}
-  {% include "partials/cockpit/_realtime_presence.html" %}
-  {% include "partials/cockpit/_attendance_heatmap.html" %}
-  {% include "partials/cockpit/_calendar_weather.html" %}
-  {% include "partials/cockpit/_lesson_of_day.html" %}
-  {% include "partials/cockpit/_gradebook_trend.html" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="teacher__realtime_presence" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="teacher__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Calendar & weather") key="teacher__calendar_weather" include_partial="partials/cockpit/_calendar_weather.html" chrome="section" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="teacher__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="teacher__gradebook_trend" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}
 </div>
 <div class="tdm-bg" data-decision-engine="surface" data-rmc-page="teacher-portal">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}

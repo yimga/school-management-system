@@ -2,6 +2,15 @@
 {% load static i18n %}
 {% load region_format phase8_tags %}
 {% block cp_title %}Customer Success{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+<link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
+{% endblock %}
+{% block extrajs %}
+{{ block.super }}
+<script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
+{% endblock %}
 {% comment %} v3.58.0 (2026-05-22): live activity ticker lives INSIDE the dark header chrome
    on landing pages (matches v8 200x preview). Self-gates on cockpit.activity_ticker.cards. {% endcomment %}
 {% block cp_shell_header_ticker %}
@@ -13,8 +22,26 @@
    with super_dashboard.html — gets platform_pulse + activity_ticker. Each partial
    self-gates on cockpit.<section>.enabled.
 
-   v3.58.0 (2026-05-22): activity_ticker moved to header (cp_shell_header_ticker block). {% endcomment %}
-{% include "partials/cockpit/_platform_pulse.html" %}
+   v3.58.0 (2026-05-22): activity_ticker moved to header (cp_shell_header_ticker block).
+
+   v3.58.x Wave 10 Agent T (2026-05-22): platform_pulse wrapped in the collapsable primitive
+   so operators can fold the section. State persists per-section via localStorage. {% endcomment %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="cs_super__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
+
+{# v3.58.10: 8 remaining manager 200x panels — landing-peer parity with super_dashboard.html. #}
+{% include "partials/cockpit/_operator_presence.html" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Live world map") key="cs_super__live_world_map" include_partial="partials/cockpit/_live_world_map.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Forecast lane") key="cs_super__forecast_lane" include_partial="partials/cockpit/_forecast_lane.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Tenant heatmap") key="cs_super__tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Revenue waterfall") key="cs_super__revenue_waterfall" include_partial="partials/cockpit/_revenue_waterfall.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Audit feed") key="cs_super__audit_feed" include_partial="partials/cockpit/_audit_feed.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="cs_super__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("SLO clocks") key="cs_super__slo_clocks" include_partial="partials/cockpit/_slo_clocks.html" chrome="section" %}
+
+{% comment %} v3.58.x Wave 10 Agent S (2026-05-22): Customer Success landing earns the
+   trust-pillars alerts feed too — it's an operator landing surface like
+   super_dashboard.html. Self-gates on cockpit.trust_pillars_alerts.enabled. {% endcomment %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="cs_super__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
 <div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with eyebrow="Customer Success · 11.3 + 11.4" title="Benchmark & Customer Success" subtitle="Section 11.3 Benchmark intelligence • 11.4 Customer success (health, risk alerts, interventions, workflow failures)." action_url=dashboard_url action_text="Back to dashboard" %}

@@ -116,6 +116,27 @@ Closes the 4 items left honest-deferred at the end of the v3.58.4 cockpit-UX cas
 - Backfill mgmt command for missing snapshot days (today is treated as day 0; if the daily beat ever misses a window, the gap shows as no delta — ops can manually `python manage.py snapshot_platform_pulse --date <YYYY-MM-DD>` per missing day).
 - `data-rmc-pulse-empty="1"` analytics hook on the muted cards (telemetry can count empty cards per render and route operators to fix-up flows).
 
+### Post-deploy validation findings (same-turn fixes folded into v3.58.6)
+
+User asked for "all gaps closed, all patched and bugs addressed" — live run of the snapshot command + Django test suite surfaced three pre-existing bugs in the v3.58.4 pulse service. All three fixed in the same wave:
+
+1. **`_resolve_incidents_card` queried wrong date field.** `MigrationRun` uses `started_at` (auto_now_add), not `created_at`. Resolver was silently returning None and the orchestrator was substituting an empty-state card. Fixed by swapping `created_at__gte` → `started_at__gte`.
+2. **`_resolve_webhooks_card` queried wrong flag field.** `MigrationCloudWebhookSubscription.active` (not `is_active`). FieldError was caught by the wrapping try/except → silent empty card. Fixed by swapping `is_active=False` → `active=False`.
+3. **`_PULSE_RESOLVERS` bound at import time → test mocks didn't intercept.** The tuple held direct function references, so `mock.patch.object(svc, "_resolve_schools_card", ...)` in the existing tests was a no-op (the orchestrator kept calling the original). Refactored to `_PULSE_SLOTS` (tuple of names) + `_iter_pulse_resolvers()` (generator does call-time lookup via `globals()`) + module-level `__getattr__` for `_PULSE_RESOLVERS` so external `from … import _PULSE_RESOLVERS` callers get a live view. Orchestrator + snapshot command both iterate `_iter_pulse_resolvers()`.
+
+Validation gates after the fixes:
+
+- Migration 0185 applied to local DB: `Applying siteconfig.0185_platformpulsesnapshot... OK`
+- `manage.py makemigrations siteconfig --dry-run --check`: `No changes detected in app 'siteconfig'`
+- `manage.py snapshot_platform_pulse`: **wrote 6, skipped 0** (was 4/2 before fixes)
+- All 3 pulse-service contract tests: **3/3 OK** (was 1 failing before the test-pattern fix)
+- SSE endpoint via Django test client: 200 + `text/event-stream`, `event: ready` → `event: delta` × N → `event: done` framing exactly per spec; 400 on empty/oversize prompts as designed
+- Legacy JSON endpoint regression: 200 + same provider, no behavior change
+- Both touched templates (`admin/base.html`, `_platform_pulse.html`) load cleanly via `get_template`
+- All 4 copilot rail URLs resolve including new `studio_os:copilot_rail_send_stream`
+- All 7 zero-tolerance scanners hold at 0 (off-token, pii-logging, marker-quality, migration-model-imports, print, bare-except, sw-monotonic)
+- Synthetic 7-day-ago snapshot row proves delta path: `(today=13, week_ago=10)` → `"+3 this week"` direction `up`; MRR `(today=0, week_ago=40000)` → `"-$40000 / mo this week"` direction `down`
+
 ---
 
 ## 2026-05-22 — v3.58.4 Cockpit UX cascade (waves 1–10)

@@ -1,0 +1,69 @@
+{% load static i18n %}
+{% comment %} v3.58.x Wave 10 Agent S (2026-05-22): 200x v8 preview gap closure —
+   Trust Pillars Alerts feed.
+
+   Distinct from `_trust_nutrition.html` (nutrition-label-style 8-row card paired
+   with the heatmap). This partial renders the SAME seven trust pillars in an
+   alert-feed style: status dot + label + value + last-checked timestamp + a
+   detail link per row. It's the "Alerts feed" the v8 200x preview screenshots
+   show along the bottom of the operator landing surface, immediately surfacing
+   pillar-level posture so operators can drill in.
+
+   CONFIGURABLE via cockpit.trust_pillars_alerts (SiteSettings → context processor):
+     .enabled        bool         — master gate
+     .eyebrow        str          — uppercase eyebrow (default: "Trust pillars · alerts")
+     .title          str          — h3 title
+     .title_em       str          — italic tail
+     .meta_text      str          — top-right meta (last-refreshed, count)
+     .footer_text    str          — italic serif caption below the rows
+     .pillars        list[dict]   — 7-ish rows
+        [{
+           slug:           str   — "audit_chain" | "maa_signatures" | "encryption_at_rest"
+                                 | "ferpa_retention" | "webhook_signing" | "mfa_enforcement"
+                                 | "companion_handshake" | <custom>
+           label:          str   — left primary line ("Audit chain integrity")
+           value:          str   — middle status value ("verified" / "operator-required" / "—")
+           status:         str   — "ok" | "warn" | "danger" | "info" | "neutral"
+           last_checked:   str   — small right-side timestamp ("Mon 02:00 UTC", "2m ago")
+           detail_url:     str   — optional drill-in link (omitted -> no chevron)
+           detail_label:   str   — sr-only label for the drill-in link
+        }]
+
+   PII contract: every value comes from the operator-saved cockpit_payload OR
+   from `cockpit_panels_realdata_service._resolve_trust_pillars_alerts()` (which
+   pulls counts and posture verbatim — never raw operator emails/usernames/slugs).
+   Section short-circuits when `enabled=False` or `pillars` is empty so an
+   unconfigured tenant renders nothing — operator surfaces never bleed empty
+   chrome onto portal hosts.
+{% endcomment %}
+
+{% if cockpit.trust_pillars_alerts.enabled and cockpit.trust_pillars_alerts.pillars %}
+<section class="lx-card lx-trust-pillars" aria-label="{% trans 'Trust pillars alerts feed' %}">
+  <div class="lx-card__head lx-trust-pillars__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.trust_pillars_alerts.eyebrow|default:_("Trust pillars · alerts") }}</div>
+      <h3 class="lx-card__title">
+        {{ cockpit.trust_pillars_alerts.title|default:_("Platform posture") }}
+        {% if cockpit.trust_pillars_alerts.title_em %} <em>— {{ cockpit.trust_pillars_alerts.title_em }}</em>{% endif %}
+      </h3>
+    </div>
+    {% if cockpit.trust_pillars_alerts.meta_text %}<div class="lx-card__meta">{{ cockpit.trust_pillars_alerts.meta_text }}</div>{% endif %}
+  </div>
+  <ul class="lx-trust-pillars__rows" role="list">
+    {% for pillar in cockpit.trust_pillars_alerts.pillars %}
+    <li class="lx-trust-pillars__row lx-trust-pillars__row--{{ pillar.status|default:'neutral' }}" role="listitem"{% if pillar.slug %} data-pillar="{{ pillar.slug }}"{% endif %}>
+      <span class="lx-trust-pillars__dot lx-trust-pillars__dot--{{ pillar.status|default:'neutral' }}" aria-hidden="true"></span>
+      <div class="lx-trust-pillars__label-block">
+        <div class="lx-trust-pillars__label">{{ pillar.label|default:"—" }}</div>
+        {% if pillar.value %}<div class="lx-trust-pillars__value lx-trust-pillars__value--{{ pillar.status|default:'neutral' }}">{{ pillar.value }}</div>{% endif %}
+      </div>
+      {% if pillar.last_checked %}<div class="lx-trust-pillars__time">{{ pillar.last_checked }}</div>{% endif %}
+      {% if pillar.detail_url %}
+        <a href="{{ pillar.detail_url }}" class="lx-trust-pillars__chevron" aria-label="{{ pillar.detail_label|default:pillar.label }}">›</a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% if cockpit.trust_pillars_alerts.footer_text %}<div class="lx-trust-pillars__footer">{{ cockpit.trust_pillars_alerts.footer_text }}</div>{% endif %}
+</section>
+{% endif %}

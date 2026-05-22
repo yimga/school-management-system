@@ -232,6 +232,14 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["signup_form_fields"] = [
             form[name] for name in getattr(form, "SIGNUP_FORM_FIELDS", ())
         ]
+        # v3.58.x Wave 10 Agent S: trust pillars alerts editor — closes
+        # the v8 200x preview's alerts-feed gap. Enable toggle + chrome
+        # copy + 7 pillar label overrides. Same getattr() guard so older
+        # form revisions still render — template short-circuits empty.
+        ctx["trust_pillars_alerts_fields"] = [
+            form[name]
+            for name in getattr(form, "TRUST_PILLARS_ALERTS_FIELDS", ())
+        ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
         return ctx

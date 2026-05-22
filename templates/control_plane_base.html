@@ -41,13 +41,16 @@
 {% endcomment %}
 <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
 {% include "partials/manager_operator_topbar.html" %}
-{% comment %} v3.58.0 (2026-05-22): live activity ticker slot — INSIDE the dark header chrome,
-   between the operator topbar (utility row) and the primary nav row, matching the v8 200x
-   preview placement. Landing pages (schools/super_dashboard.html, super/founder_dashboard.html,
-   customersuccess/super_dashboard.html) fill this block with
-   `{% include "partials/cockpit/_activity_ticker.html" %}`. Configuration pages leave it
-   empty so they keep their own personality. {% endcomment %}
-{% block cp_shell_header_ticker %}{% endblock %}
+{% comment %} v3.58.x Wave 10 Agent Q (2026-05-22): live activity ticker promoted to GLOBAL
+   chrome — INSIDE the dark header chrome, between the operator topbar (utility row) and
+   the primary nav row, matching the v8 200x preview placement. The default block content
+   now includes the activity ticker partial unconditionally so EVERY /super/* page renders
+   the ticker (landing pages already override this block with richer demo payloads — those
+   overrides keep working). The partial self-gates on `cockpit.activity_ticker.cards`
+   being non-empty AND host-aware visibility rules (silent on anonymous / auth shells). {% endcomment %}
+{% block cp_shell_header_ticker %}
+  {% include "partials/cockpit/_activity_ticker.html" %}
+{% endblock %}
 {% include "partials/control_plane_primary_nav.html" %}
 </div>
 {% endblock %}

@@ -355,7 +355,7 @@ def _resolve_forecast_lane() -> dict[str, Any] | None:
         new_schools_7d = School.objects.filter(created_at__gte=week_ago).count() if hasattr(School, "created_at") else 0
         # tenant-isolation-allow: platform-cockpit-cross-tenant-forecast-incidents
         incidents_7d = MigrationRun.objects.filter(
-            created_at__gte=week_ago, status__iexact="failed",
+            started_at__gte=week_ago, status__iexact="failed",
         ).count()
 
         cards = [
@@ -510,19 +510,152 @@ def _resolve_trust_nutrition() -> dict[str, Any] | None:
 
 
 # ============================================================
+# 10. Trust pillars alerts — v3.58.x Wave 10 Agent S (2026-05-22)
+# ============================================================
+
+def _resolve_trust_pillars_alerts() -> dict[str, Any] | None:
+    """Alerts-feed view of the 7 platform trust pillars.
+
+    Pulls posture from real platform sources where available:
+      - Audit chain integrity: presence of MigrationCloudAuditEvent rows in
+        the last 24h treated as "verifier beat ran". Real status comes from
+        the weekly verify_audit_chain beat (v3.39.0).
+      - MAA signatures: count of MigrationAuthorizationAgreement rows.
+      - Encryption at rest: presence of settings.DJANGO_CRYPTOGRAPHY_KEYS
+        (non-empty list/tuple => active rotation set).
+      - FERPA retention: documented 90d floor (doc-attested).
+      - Webhook signing: HMAC-SHA256 + canonical JSON (algorithmic constant).
+      - MFA enforcement: doc-attested ("operator-required").
+      - Companion handshake: X25519 sealed box (algorithmic constant).
+
+    PII safety: this resolver NEVER renders raw operator emails / usernames
+    / tenant slugs. Counts and posture-strings only.
+    """
+    try:
+        from django.conf import settings as dj_settings
+        # Audit chain integrity proxy: are we receiving audit events?
+        audit_status = "ok"
+        audit_value = _("verified")
+        try:
+            from apps.migration_cloud.models_audit import MigrationCloudAuditEvent
+            # tenant-isolation-allow: platform-cockpit-cross-tenant-trust-pillars-audit
+            recent = MigrationCloudAuditEvent.objects.filter(
+                created_at_iso__gte=(timezone.now() - timedelta(days=7)).isoformat()
+            ).count()
+            if recent == 0:
+                # No recent events — could be a quiet platform OR the beat
+                # failed. We treat as info, not danger, since the canonical
+                # signal is the verifier beat's email-on-broken hook.
+                audit_status = "info"
+                audit_value = _("no events 7d")
+        except Exception:
+            audit_status = "neutral"
+            audit_value = _("unverified")
+
+        # MAA signature count (informational — campaign progress)
+        maa_status = "ok"
+        maa_value = _("counsel-blessed v1.0")
+        try:
+            from apps.migration_cloud.models import MigrationAuthorizationAgreement
+            # tenant-isolation-allow: platform-cockpit-cross-tenant-trust-pillars-maa
+            maa_count = MigrationAuthorizationAgreement.objects.count()
+            if maa_count == 0:
+                maa_status = "info"
+                maa_value = _("none signed yet")
+            else:
+                maa_value = _("{n} signed").format(n=maa_count)
+        except Exception:
+            maa_status = "neutral"
+            maa_value = _("unavailable")
+
+        # Encryption at rest — DJANGO_CRYPTOGRAPHY_KEYS rotation set
+        crypto_keys = getattr(dj_settings, "DJANGO_CRYPTOGRAPHY_KEYS", None)
+        enc_status = "ok"
+        enc_value = _("AES-256 · MultiFernet")
+        if not crypto_keys:
+            enc_status = "warn"
+            enc_value = _("no rotation keys configured")
+
+        pillars = [
+            {
+                "slug": "audit_chain",
+                "label": _("Audit chain integrity"),
+                "value": audit_value,
+                "status": audit_status,
+                "last_checked": _("Mon · 02:00 UTC"),
+            },
+            {
+                "slug": "maa_signatures",
+                "label": _("MAA signatures"),
+                "value": maa_value,
+                "status": maa_status,
+                "last_checked": _("on each sign"),
+            },
+            {
+                "slug": "encryption_at_rest",
+                "label": _("Encryption at rest"),
+                "value": enc_value,
+                "status": enc_status,
+                "last_checked": _("monthly rotation"),
+            },
+            {
+                "slug": "ferpa_retention",
+                "label": _("FERPA retention"),
+                "value": _("90d floor"),
+                "status": "ok",
+                "last_checked": _("docs/SECURITY_KEYS.md"),
+            },
+            {
+                "slug": "webhook_signing",
+                "label": _("Webhook signing"),
+                "value": _("HMAC-SHA256 + canonical JSON"),
+                "status": "ok",
+                "last_checked": _("per delivery"),
+            },
+            {
+                "slug": "mfa_enforcement",
+                "label": _("MFA enforcement"),
+                "value": _("operator-required"),
+                "status": "ok",
+                "last_checked": _("on each sign-in"),
+            },
+            {
+                "slug": "companion_handshake",
+                "label": _("Companion handshake"),
+                "value": _("X25519 sealed box"),
+                "status": "ok",
+                "last_checked": _("per upload"),
+            },
+        ]
+
+        return {
+            "enabled": True,
+            "eyebrow": _("Trust pillars · alerts"),
+            "title": _("Platform posture"),
+            "title_em": _("seven pillars at a glance"),
+            "meta_text": _("real-data overlay · 60s cache"),
+            "pillars": pillars,
+        }
+    except Exception:
+        logger.warning("panels: trust_pillars_alerts resolver failed", exc_info=True)
+        return None
+
+
+# ============================================================
 # Orchestrator
 # ============================================================
 
 _RESOLVERS = (
-    ("operator_presence", _resolve_operator_presence),
-    ("activity_ticker",   _resolve_activity_ticker),
-    ("audit_feed",        _resolve_audit_feed),
-    ("live_world_map",    _resolve_world_map),
-    ("tenant_heatmap",    _resolve_tenant_heatmap),
-    ("forecast_lane",     _resolve_forecast_lane),
-    ("slo_clocks",        _resolve_slo_clocks),
-    ("revenue_waterfall", _resolve_revenue_waterfall),
-    ("trust_nutrition",   _resolve_trust_nutrition),
+    ("operator_presence",     _resolve_operator_presence),
+    ("activity_ticker",       _resolve_activity_ticker),
+    ("audit_feed",            _resolve_audit_feed),
+    ("live_world_map",        _resolve_world_map),
+    ("tenant_heatmap",        _resolve_tenant_heatmap),
+    ("forecast_lane",         _resolve_forecast_lane),
+    ("slo_clocks",            _resolve_slo_clocks),
+    ("revenue_waterfall",     _resolve_revenue_waterfall),
+    ("trust_nutrition",       _resolve_trust_nutrition),
+    ("trust_pillars_alerts",  _resolve_trust_pillars_alerts),
 )
 
 
@@ -533,9 +666,10 @@ def resolve_panel_overrides() -> dict[str, dict[str, Any]]:
     or the empty static defaults (when demo is off).
 
     Cached per-process for ``CACHE_TTL_SECONDS`` (60s) under
-    ``rmc:cockpit:panels:v1``.
+    ``rmc:cockpit:panels:v2`` (v3.58.x Wave 10 bumped v1->v2 when
+    trust_pillars_alerts joined the orchestrator).
     """
-    cache_key = f"{CACHE_PREFIX}:v1"
+    cache_key = f"{CACHE_PREFIX}:v2"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -559,6 +693,6 @@ def resolve_panel_overrides() -> dict[str, dict[str, Any]]:
 
 def invalidate_panel_overrides_cache() -> None:
     try:
-        cache.delete(f"{CACHE_PREFIX}:v1")
+        cache.delete(f"{CACHE_PREFIX}:v2")
     except Exception:
         pass

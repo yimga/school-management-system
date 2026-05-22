@@ -4,6 +4,9 @@
 {% block extrahead %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
+{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+<link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
+<script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
 
 {% block cp_title %}{% trans "Platform Command Center" %}{% endblock %}
@@ -31,8 +34,25 @@
    the top-of-the-org operator landing — earns landing-peer parity with super_dashboard.
    Each partial self-gates on cockpit.<section>.enabled.
 
-   v3.58.0 (2026-05-22): activity_ticker moved to header (cp_shell_header_ticker block). {% endcomment %}
-{% include "partials/cockpit/_platform_pulse.html" %}
+   v3.58.0 (2026-05-22): activity_ticker moved to header (cp_shell_header_ticker block).
+
+   v3.58.x Wave 10 Agent T (2026-05-22): platform_pulse wrapped in the collapsable primitive
+   so operators can fold the section. State persists per-section via localStorage. {% endcomment %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="founder__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
+
+{% comment %} v3.58.10 (2026-05-22): 200x cockpit panel wave — wires the 8 remaining manager 200x
+   panels into the founder landing. Each partial self-gates on `cockpit.<key>.enabled` AND on the
+   presence of its data list, so an unpopulated panel renders nothing (no broken empty cards).
+   Realdata service `cockpit_panels_realdata_service.resolve_panel_overrides()` supplies the data
+   payload; defaults from `cockpit_manager_200x.py` provide title/caption shells. {% endcomment %}
+{% include "partials/cockpit/_operator_presence.html" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Live world map") key="founder__live_world_map" include_partial="partials/cockpit/_live_world_map.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Forecast lane") key="founder__forecast_lane" include_partial="partials/cockpit/_forecast_lane.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Tenant heatmap") key="founder__tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Revenue waterfall") key="founder__revenue_waterfall" include_partial="partials/cockpit/_revenue_waterfall.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Audit feed") key="founder__audit_feed" include_partial="partials/cockpit/_audit_feed.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="founder__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("SLO clocks") key="founder__slo_clocks" include_partial="partials/cockpit/_slo_clocks.html" chrome="section" %}
 <div class="container-fluid py-4"
      data-rmc-founder-dashboard="1"
      data-rmc-ux-role-dashboard="founder-command-center"

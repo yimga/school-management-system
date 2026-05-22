@@ -17,11 +17,22 @@
   }
   if (!cfg.api_run_scheduled) return;
 
+  function readCookie(name) {
+    var match = document.cookie.match(
+      new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)')
+    );
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
   function csrfToken() {
     var input = document.querySelector('[name=csrfmiddlewaretoken]');
     if (input && input.value) return input.value;
-    var match = document.cookie.match(/csrftoken=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : '';
+    return readCookie('csrftoken') || readCookie('rmc_manager_csrftoken') || '';
+  }
+
+  function htmlLoginHint(text) {
+    if (!text || text.indexOf('<!doctype') === -1) return '';
+    return ' Session may have expired — sign in again on manager.runmycampus.com.';
   }
 
   btn.addEventListener('click', function () {
@@ -45,13 +56,16 @@
             try {
               payload = JSON.parse(text);
             } catch (_e) {
-              payload = { raw: text.slice(0, 2000) };
+              throw new Error(
+                'Unexpected response (not JSON).' + htmlLoginHint(text)
+              );
             }
           }
           if (!res.ok) {
-            throw new Error(
-              (payload && (payload.error || payload.detail)) || res.statusText
-            );
+            var err =
+              (payload && (payload.error || payload.detail)) || res.statusText;
+            if (htmlLoginHint(text)) err += htmlLoginHint(text);
+            throw new Error(err);
           }
           return payload;
         });

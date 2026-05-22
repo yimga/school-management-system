@@ -721,7 +721,33 @@
   }
 
   /* === Boot ==================================================== */
+  /* v3.58.6 (2026-05-22) Wave 10 Agent R — DOM-level dedupe.
+     If the [_operator_notebook.html] partial got included on multiple
+     shells (or via cockpit_context double-fan-out) the same page can
+     end up with N <aside data-rmc-operator-notebook> elements stacked
+     inline (causing the "dozens of ADD TO NOTEBOOK cards" regression).
+     Keep only the first; remove the rest BEFORE wiring listeners so we
+     don't bind drag/submit handlers to ghost nodes. Also dedupe the
+     copilot rail with the same pattern. */
+  function dedupeFloatingChrome() {
+    var notebooks = document.querySelectorAll("[data-rmc-operator-notebook]");
+    if (notebooks.length > 1) {
+      for (var i = 1; i < notebooks.length; i++) {
+        var n = notebooks[i];
+        if (n && n.parentNode) { n.parentNode.removeChild(n); }
+      }
+    }
+    var rails = document.querySelectorAll("[data-rmc-copilot-rail]");
+    if (rails.length > 1) {
+      for (var j = 1; j < rails.length; j++) {
+        var r = rails[j];
+        if (r && r.parentNode) { r.parentNode.removeChild(r); }
+      }
+    }
+  }
+
   function boot() {
+    dedupeFloatingChrome();
     restoreNotebookPosition();
     applyHistoryStateFromStorage();
     renderRecentNotes();

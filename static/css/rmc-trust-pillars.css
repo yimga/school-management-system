@@ -1,0 +1,194 @@
+/* ============================================================
+   rmc-trust-pillars.css — v3.58.x Wave 10 Agent S (2026-05-22).
+
+   Styles the new alerts-feed-style trust pillars partial
+   (`templates/partials/cockpit/_trust_pillars_alerts.html`). Distinct
+   from the nutrition-label `.lx-trust` styles defined in
+   `rmc-cp-200x.css`. This file is loaded after `rmc-cp-200x.css` in
+   `control_plane_skeleton.html` so it can compose with the shared
+   `.lx-card` chrome without restating it.
+
+   Every literal color/gradient that is intentionally NOT a theme-aware
+   token carries an `off-token-allow` marker categorically — these are
+   semantic status hues (ok/warn/danger/info) that must read identically
+   in light + dark mode for operator scanability. Categorical reason:
+   "operator-status-semantic-locked".
+   ============================================================ */
+
+.lx-trust-pillars {
+  padding: 0;
+}
+
+.lx-trust-pillars__head {
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.lx-trust-pillars__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lx-trust-pillars__row {
+  display: grid;
+  grid-template-columns: 18px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--hairline);
+  transition: background var(--motion-fast, 150ms ease);
+  min-width: 0;
+}
+
+.lx-trust-pillars__row:last-child {
+  border-bottom: 0;
+}
+
+.lx-trust-pillars__row:hover {
+  background: var(--surface-canvas, #fbfbfd); /* off-token-allow: theme-aware-fallback-only */
+}
+
+/* Row-level status modifiers — defined for class-grammar compliance even
+   when the base row chrome carries the visible styling (dots/values do
+   the semantic-color work). Keeps `scan_undefined_css_classes.py` clean. */
+.lx-trust-pillars__row--ok,
+.lx-trust-pillars__row--warn,
+.lx-trust-pillars__row--danger,
+.lx-trust-pillars__row--info,
+.lx-trust-pillars__row--neutral {
+  /* base row chrome is unchanged; modifiers are status hooks */
+}
+
+/* Neutral value tone — base color (text-tertiary) is the neutral default,
+   so this rule documents the modifier exists without overriding. */
+.lx-trust-pillars__value--neutral {
+  color: var(--text-tertiary);
+}
+
+/* Status dot — semantic-locked hues. The dot is the only piece of pure
+   status color; the row label/value tones get the matching --value-*
+   classes below. */
+.lx-trust-pillars__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.lx-trust-pillars__dot--ok {
+  background: #22c55e; /* off-token-allow: operator-status-semantic-locked */
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16); /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__dot--warn {
+  background: #f59e0b; /* off-token-allow: operator-status-semantic-locked */
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18); /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__dot--danger {
+  background: #ef4444; /* off-token-allow: operator-status-semantic-locked */
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.20); /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__dot--info {
+  background: #60a5fa; /* off-token-allow: operator-status-semantic-locked */
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16); /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__dot--neutral {
+  background: rgba(148, 163, 184, 0.60); /* off-token-allow: operator-status-semantic-locked */
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.14); /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__label-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lx-trust-pillars__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lx-trust-pillars__value {
+  font-size: 11px;
+  font-family: var(--mono, ui-monospace, "SF Mono", Menlo, monospace);
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lx-trust-pillars__value--ok {
+  color: #166534; /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__value--warn {
+  color: #92400e; /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__value--danger {
+  color: #991b1b; /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__value--info {
+  color: #1d4ed8; /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__time {
+  font-size: 11px;
+  font-family: var(--mono, ui-monospace, "SF Mono", Menlo, monospace);
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric */
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.lx-trust-pillars__chevron {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 8px);
+  line-height: 1;
+  transition: background var(--motion-fast, 150ms ease), color var(--motion-fast, 150ms ease);
+}
+
+.lx-trust-pillars__chevron:hover {
+  background: var(--surface-sunken, #ebebef); /* off-token-allow: theme-aware-fallback-only */
+  color: var(--text-primary);
+}
+
+.lx-trust-pillars__footer {
+  padding: 12px 20px;
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: var(--surface-canvas, #fbfbfd); /* off-token-allow: theme-aware-fallback-only */
+  border-top: 1px solid var(--hairline);
+}
+
+/* Narrow screens — collapse the time column under the label */
+@media (max-width: 720px) {
+  .lx-trust-pillars__row {
+    grid-template-columns: 18px 1fr auto;
+  }
+  .lx-trust-pillars__time {
+    grid-column: 2;
+    font-size: 10px;
+  }
+}

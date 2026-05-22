@@ -669,11 +669,47 @@ def cockpit_context(request) -> dict[str, Any]:
         if real_panels:
             manager_cockpit = _deep_merge(manager_cockpit, real_panels)
 
+        # v3.58.x Wave 10 Agent Q (2026-05-22): GLOBAL activity ticker
+        # real-data overlay. Runs only when (a) the Django settings flag
+        # `ATK_REALDATA_ENABLED` is True (default), AND (b) the operator
+        # hasn't disabled realdata via cockpit_payload.activity_ticker.
+        # realdata_enabled=False. Best-effort — any failure returns {} so
+        # we cleanly fall back to the demo/seed cards.
+        from django.conf import settings as _atk_settings
+        _atk_pre_payload = _resolve_cockpit_payload(request).get(
+            "activity_ticker"
+        ) or {}
+        _atk_realdata_ok = (
+            getattr(_atk_settings, "ATK_REALDATA_ENABLED", True)
+            and _atk_pre_payload.get("realdata_enabled", True)
+        )
+        if _atk_realdata_ok:
+            try:
+                from .cockpit_activity_ticker_realdata import resolve_activity_ticker_cards
+                ticker_real = resolve_activity_ticker_cards(request)
+            except Exception:
+                ticker_real = {}
+            if ticker_real:
+                manager_cockpit = _deep_merge(manager_cockpit, ticker_real)
+
         # Overlay operator-saved cockpit_payload LAST so per-site overrides
         # (including section.enabled = False) win over both defaults and demo.
         payload = _resolve_cockpit_payload(request)
         if payload:
             manager_cockpit = _deep_merge(manager_cockpit, payload)
+
+        # v3.58.x Wave 10 Agent Q (2026-05-22): host-routing post-gate.
+        # When `atk_enabled_on_manager=False` was persisted by the operator
+        # in cockpit_payload.activity_ticker, force `enabled=False` so the
+        # partial early-exits on `cockpit.activity_ticker.enabled` even
+        # though `cards` are still populated by the demo/resolver. Default
+        # (key absent) is True per the form field declaration.
+        atk_section = manager_cockpit.get("activity_ticker") or {}
+        if "enabled_on_manager" in atk_section and not atk_section.get(
+            "enabled_on_manager"
+        ):
+            atk_section["enabled"] = False
+            manager_cockpit["activity_ticker"] = atk_section
 
         return {"cockpit": manager_cockpit}
 
@@ -720,9 +756,47 @@ def cockpit_context(request) -> dict[str, Any]:
             tenant_cockpit, tenant_v3_extended_demo_payload()
         )
 
+    # v3.58.x Wave 10 Agent Q (2026-05-22): tenant-scoped activity ticker
+    # real-data overlay. Runs only when (a) the Django settings flag
+    # `ATK_REALDATA_ENABLED` is True (default), AND (b) the operator
+    # hasn't disabled realdata via cockpit_payload.activity_ticker.
+    # realdata_enabled=False. Best-effort — any failure returns {} so
+    # we cleanly fall back to operator-published seed cards.
+    _atk_pre_payload = _resolve_cockpit_payload(request).get(
+        "activity_ticker"
+    ) or {}
+    _atk_realdata_ok = (
+        getattr(_dj_settings, "ATK_REALDATA_ENABLED", True)
+        and _atk_pre_payload.get("realdata_enabled", True)
+    )
+    if _atk_realdata_ok:
+        try:
+            from .cockpit_activity_ticker_realdata import resolve_activity_ticker_cards
+            ticker_real = resolve_activity_ticker_cards(request)
+        except Exception:
+            ticker_real = {}
+        if ticker_real:
+            tenant_cockpit = _deep_merge(tenant_cockpit, ticker_real)
+
     # Overlay operator-saved cockpit_payload LAST so per-site overrides win.
     payload = _resolve_cockpit_payload(request)
     if payload:
         tenant_cockpit = _deep_merge(tenant_cockpit, payload)
+
+    # v3.58.x Wave 10 Agent Q (2026-05-22): tenant-host host-routing post-gate.
+    # The tenant ticker defaults `enabled=False` — operators must opt in via
+    # `atk_enabled_on_tenant=True`. Mirror that flag from the activity_ticker
+    # section (where the form persists it) onto the tenant_activity_ticker
+    # section's `enabled` flag, so a single admin-UI toggle controls
+    # rendering on both shells.
+    atk_section = tenant_cockpit.get("activity_ticker") or {}
+    tat_section = tenant_cockpit.get("tenant_activity_ticker") or {}
+    if atk_section.get("enabled_on_tenant"):
+        tat_section["enabled"] = True
+    elif "enabled_on_tenant" in atk_section:
+        # Explicit False persisted — honor it (defeats the helper default).
+        tat_section["enabled"] = False
+    if tat_section:
+        tenant_cockpit["tenant_activity_ticker"] = tat_section
 
     return {"cockpit": tenant_cockpit}

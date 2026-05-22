@@ -22,6 +22,8 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+<link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 {% endblock %}
 
 {% block cp_workspace_header %}{% endblock %}
@@ -41,14 +43,27 @@
    v3.58.0 (2026-05-22): activity ticker moved back INTO the dark header chrome
    (cp_shell_header_ticker block) to match v8 preview placement between utility
    row and primary nav. {% endcomment %}
-{% include "partials/cockpit/_platform_pulse.html" %}
-{% include "partials/cockpit/_live_world_map.html" %}
-{% include "partials/cockpit/_forecast_lane.html" %}
-{% include "partials/cockpit/_slo_clocks.html" %}
-{% include "partials/cockpit/_tenant_heatmap.html" %}
-{% include "partials/cockpit/_revenue_waterfall.html" %}
-{% include "partials/cockpit/_audit_feed.html" %}
-{% include "partials/cockpit/_trust_nutrition.html" %}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in
+   the collapsable primitive so operators can fold sections they don't need.
+   State persists per-section via localStorage. Inner partials keep their
+   own cockpit.<section>.enabled self-gate. {% endcomment %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="super__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
+{# v3.58.10: operator presence capsule (200x Element 10) — header-style strip, self-gated. #}
+{% include "partials/cockpit/_operator_presence.html" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Live world map") key="super__live_world_map" include_partial="partials/cockpit/_live_world_map.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Forecast lane") key="super__forecast_lane" include_partial="partials/cockpit/_forecast_lane.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("SLO clocks") key="super__slo_clocks" include_partial="partials/cockpit/_slo_clocks.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Tenant health heatmap") key="super__tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Revenue waterfall") key="super__revenue_waterfall" include_partial="partials/cockpit/_revenue_waterfall.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Audit feed") key="super__audit_feed" include_partial="partials/cockpit/_audit_feed.html" chrome="section" %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="super__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
+{% comment %} v3.58.x Wave 10 Agent S (2026-05-22): Trust pillars alerts feed — closes
+   the v8 200x preview's alerts-feed gap (Audit chain integrity / MAA signatures
+   / Encryption at rest / FERPA retention / Webhook signing / MFA enforcement /
+   Companion handshake). Distinct from `_trust_nutrition.html`. Self-gates on
+   `cockpit.trust_pillars_alerts.enabled` so it renders nothing until opted in
+   via /super/configure/cockpit/. {% endcomment %}
+{% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="super__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
 <div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   {% url 'super:create_school_wizard' as wcx_create_school_url %}
@@ -742,6 +757,8 @@
 {% block extrajs %}
 {{ block.super }}
 <script src="{% static 'js/manager-control-plane.js' %}"></script>
+{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. #}
+<script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <script type="application/json" id="page-data-schools__super_dashboard-1">{
   "var_super_dashboard_layout_url_escapejs": "{{ super_dashboard_layout_url|escapejs|escapejs }}"
 }</script><script src="{% static 'js/_pages/schools__super_dashboard-1.js' %}"></script>

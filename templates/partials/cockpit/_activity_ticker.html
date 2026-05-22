@@ -1,35 +1,59 @@
 {% load i18n %}
-{% comment %} v3.57.11 (2026-05-22): live platform activity ticker.
+{% comment %} v3.58.x Wave 10 Agent Q (2026-05-22): GLOBAL live platform activity ticker.
 
-   Rendered on the manager landing page (schools/super_dashboard.html) just
-   above the platform pulse strip. Per user direction the dashboard chrome
-   strips render on the landing page ONLY — they are NOT in control_plane_base
-   so /super/* configuration pages keep their own personality.
+   Rendered as global chrome at the top of every authenticated page across BOTH
+   the operator shell (control_plane_base.html via cp_shell_header_ticker block)
+   AND the tenant shell (portal_base.html via portal_shell_header_ticker block).
+   Self-gates so it stays silent on anonymous / auth shells and on hosts where
+   no ticker content is published.
+
+   HOST ROUTING
+   ------------
+   * Manager / operator host (`request.public_host_kind == "manager"`):
+     reads `cockpit.activity_ticker.cards` (platform-wide events — schools
+     provisioned, MRR delta, webhook drift, support tickets, migration sync).
+   * Tenant host (anything else with an authenticated user on the portal):
+     reads `cockpit.tenant_activity_ticker.cards` (tenant-scoped events —
+     enrollments, fee payments, attendance milestones, parent messages,
+     maintenance windows). NEVER pulls from `cockpit.activity_ticker.*` so
+     operator-platform data can never leak onto a tenant subdomain.
+   * Anonymous / auth shells (login, signup, anything without a user): silent.
+     `request.user.is_authenticated` is required for ANY ticker to render.
 
    Bloomberg-style auto-scrolling horizontal feed. Track is duplicated below
    so the keyframe (`transform: translateX(-50%)`) produces a seamless loop.
    Pauses on hover / focus-within. Honors prefers-reduced-motion.
 
-   CONFIGURABLE via cockpit.activity_ticker (SiteSettings → context processor):
-     .enabled           bool  — gate the whole row (default: True in demo)
-     .scroll_seconds    int   — animation duration; lower = faster (default: 60)
+   CONFIGURABLE
+   ------------
+   `cockpit.activity_ticker.*` (manager-host operator-published payload) and
+   `cockpit.tenant_activity_ticker.*` (tenant-host operator-published payload)
+   share the same schema:
+     .enabled           bool  — gate the section (default: True for manager
+                                when cards present; False for tenant — operator
+                                must opt in via SiteSettings)
+     .scroll_seconds    int   — animation duration; lower = faster (default 60)
      .live_badge_label  str   — pill label (default: "LIVE")
      .cards             list  — ordered list of cards. Each card shape:
         {
-          text:      str   — main headline ("MRR up $420 this week")
+          text:      str   — main headline
           timestamp: str   — relative time ("12s ago", "1m ago")
           icon:      str   — single glyph displayed left of text (optional)
           severity:  str   — success | warn | danger | info (drives icon color)
         }
 
-   v3.57.11 backwards-compat: when `cockpit.activity_ticker` is missing
-   (older configs), falls back to the legacy `cockpit.activity_feed.events`
-   shape that used {icon, severity, text, time_label}. New code paths should
-   set `cockpit.activity_ticker.cards`.
+   v3.57.11 backwards-compat: when neither key is populated but the legacy
+   `cockpit.activity_feed.events` shape is present (older configs), we render
+   that instead — but ONLY on manager host so tenant pages don't accidentally
+   surface operator data.
 
-   If both keys are empty/missing, the section doesn't render — safe to
-   include unconditionally. {% endcomment %}
+   Safe to include unconditionally — every render path falls through to no
+   output when its data isn't present. {% endcomment %}
 
+{# Auth shells / anonymous: render nothing. Login/signup never get a ticker. #}
+{% if request.user.is_authenticated %}
+{% if request.public_host_kind == 'manager' %}
+{% comment %} ----- Manager / operator host branch ----- {% endcomment %}
 {% if cockpit.activity_ticker.cards %}
 {% with seconds=cockpit.activity_ticker.scroll_seconds|default:60 badge_label=cockpit.activity_ticker.live_badge_label|default:_("LIVE") %}
 {% if cockpit.activity_ticker.enabled|default_if_none:True %}
@@ -59,7 +83,7 @@
 {% endif %}
 {% endwith %}
 {% elif cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
-{# v3.55.0 legacy compat: render the older activity_feed shape when activity_ticker is absent. #}
+{# v3.55.0 legacy compat (manager only). #}
 <div class="rmc-cockpit-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
      {% if cockpit.activity_feed.scroll_seconds %}style="--rmc-cockpit-ticker-seconds: {{ cockpit.activity_feed.scroll_seconds }}s;"{% endif %}>
   <span class="rmc-cockpit-ticker__badge">{% trans "LIVE" %}</span>
@@ -82,4 +106,37 @@
     </div>
   </div>
 </div>
+{% endif %}
+{% else %}
+{% comment %} ----- Tenant host branch (any non-manager authenticated host) -----
+   Uses the dedicated `tenant_activity_ticker` namespace so operator-platform
+   data CANNOT leak. Adds the `--tenant` modifier class for softer styling
+   against the indigo+cream tenant chrome. {% endcomment %}
+{% if cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled %}
+{% with seconds=cockpit.tenant_activity_ticker.scroll_seconds|default:60 badge_label=cockpit.tenant_activity_ticker.live_badge_label|default:_("LIVE") %}
+<div class="rmc-cockpit-ticker rmc-cockpit-ticker--tenant" role="region" aria-label="{% trans 'Live school activity' %}"
+     style="--rmc-cockpit-ticker-seconds: {{ seconds }}s;">
+  <span class="rmc-cockpit-ticker__badge">{{ badge_label }}</span>
+  <div class="rmc-cockpit-ticker__viewport">
+    <div class="rmc-cockpit-ticker__track">
+      {% for card in cockpit.tenant_activity_ticker.cards %}
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}">
+        {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+        <span class="rmc-cockpit-ticker__event-text">{{ card.text }}</span>
+        {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}
+      </span>
+      {% endfor %}
+      {% for card in cockpit.tenant_activity_ticker.cards %}
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}" aria-hidden="true">
+        {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+        <span class="rmc-cockpit-ticker__event-text">{{ card.text }}</span>
+        {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endif %}
+{% endif %}
 {% endif %}

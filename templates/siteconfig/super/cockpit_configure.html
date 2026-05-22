@@ -916,6 +916,48 @@
     {% endif %}
 
     {% comment %}
+      v3.58.x Wave 10 Agent S: Trust pillars alerts feed editor. Closes
+      the v8 200x preview's alerts-feed gap. Defaults to enabled=False;
+      operator opts in. Per-pillar status/value come from the real-data
+      resolver — operators only override copy (title / footer / per-pillar
+      label) here. Mixed-widget fieldset (BooleanField + CharField).
+    {% endcomment %}
+
+    {# ---- v3.58.x Wave 10 Agent S trust pillars alerts editor ----------- #}
+    {% if trust_pillars_alerts_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="trust-pillars-alerts">
+      <legend class="h6 px-2 fw-bold">{% trans "Trust pillars alerts feed" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Renders the 7 platform trust pillars (audit chain integrity, MAA signatures, encryption at rest, FERPA retention, webhook signing, MFA enforcement, companion handshake) as an alert-feed list distinct from the trust nutrition card. Per-pillar status + value come from the real-data resolver; operators here override only the displayed label per pillar plus card chrome (title, italic tail, footer). Leave any pillar label blank to fall through to the platform default." %}
+      </p>
+      <div class="row g-3">
+        {% for field in trust_pillars_alerts_fields %}
+          <div class="col-md-6">
+            {% if field.field.widget.input_type == "checkbox" %}
+              <div class="form-check">
+                {{ field }}
+                <label for="{{ field.id_for_label }}" class="form-check-label small fw-semibold">{{ field.label }}</label>
+              </div>
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% else %}
+              <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% comment %}
       v3.57.18 Wave 8: Public school-signup form (final marketing-host
       editor). Operator-configurable copy + chrome for the /signup/ page.
       Mixed-widget fieldset (BooleanField + CharField) so we switch

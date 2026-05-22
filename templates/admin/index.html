@@ -3,6 +3,13 @@
 {% load terminology_tags %}
 
 {% block extrastyle %}
+{% comment %} v3.58.6 (2026-05-22) Wave 10 Agent R — pull in admin/base_site.html's
+   stylesheet stack (admin-200x-shell-overlay.css + design-tokens +
+   civic-footer + admin-base-site-shell). Without this {{ block.super }}
+   call this template's `block extrastyle` was REPLACING the base stack
+   instead of extending it — which is why the v8 200x overlay never
+   landed visually on /admin/ even though it was wired in base_site.html. {% endcomment %}
+{{ block.super }}
 {% with ADMIN_THEME=SITE_ADMIN_THEME|default:SITE %}
 <style>
     :root {

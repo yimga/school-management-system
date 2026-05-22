@@ -202,6 +202,15 @@
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
+    {% comment %} v3.58.x Wave 10 Agent Q (2026-05-22): GLOBAL live activity ticker slot at
+       the very top of the portal body — above all chrome. The partial is host-aware:
+       on manager host it renders the operator-platform ticker; on tenant host it renders
+       the tenant-scoped ticker (different content, never operator data); on
+       anonymous / auth shells the partial early-exits to render nothing. Each tenant
+       landing page may override this block to swap in a custom partial. {% endcomment %}
+    {% block portal_shell_header_ticker %}
+      {% include "partials/cockpit/_activity_ticker.html" %}
+    {% endblock %}
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
     <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
       <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">

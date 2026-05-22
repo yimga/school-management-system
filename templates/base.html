@@ -99,6 +99,8 @@
     {# v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). #}
     <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
+    {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive for long dashboards. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     {% if not PUBLIC_BRAND_MODE %}
     {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
@@ -323,6 +325,8 @@
        {% endcomment %}
 
     {% include 'components/toast_notifications.html' %}
+    {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. Module-load gates on .rmc-collapsable presence so it's no-op on pages without any. #}
+    <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
     <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
