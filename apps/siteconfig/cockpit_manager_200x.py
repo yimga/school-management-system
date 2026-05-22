@@ -399,9 +399,12 @@ def _trust_pillars_alerts_defaults() -> dict[str, Any]:
         companion_handshake  — Companion handshake (X25519 sealed box)
     """
     return {
-        # Default OFF — operator opts in via the admin form. Demo overlay +
-        # real-data resolver will populate the pillars list when active.
-        "enabled": False,
+        # v3.59.6 Wave C (2026-05-22): flipped to True per v8 200x preview
+        # parity — operators expect the 7-pillar trust posture visible by
+        # default on landing. Demo overlay + real-data resolver populate the
+        # pillars list. Operators can still disable per-tenant via
+        # SiteSettings.cockpit_payload.trust_pillars_alerts.enabled=False.
+        "enabled": True,
         "eyebrow": _("Trust pillars · alerts"),
         "title": _("Platform posture"),
         "title_em": _("seven pillars at a glance"),
@@ -425,7 +428,7 @@ def _activity_ticker_defaults() -> dict[str, Any]:
     gates on `cockpit.activity_ticker.cards` and short-circuits when empty.
 
     Shape:
-        enabled            bool       — master switch (default: False)
+        enabled            bool       — master switch (default: True since v3.59.6)
         scroll_seconds     int        — animation duration (default: 60)
         live_badge_label   str        — red pill caption (default: "LIVE")
         cards              list[dict] — ordered events
@@ -437,7 +440,11 @@ def _activity_ticker_defaults() -> dict[str, Any]:
             }]
     """
     return {
-        "enabled": False,
+        # v3.59.6 Wave C (2026-05-22): flipped to True per v8 200x preview
+        # parity — preview shows the LIVE ticker on landing chrome. Partial
+        # short-circuits on empty `cards` list so default-on with no data is
+        # a no-op. Operators can disable per-tenant via SiteSettings.
+        "enabled": True,
         "scroll_seconds": 60,
         "live_badge_label": _("LIVE"),
         "cards": [],
