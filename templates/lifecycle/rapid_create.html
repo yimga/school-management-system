@@ -1,0 +1,109 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{% trans "Rapid create" %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-lifecycle-rapid-create.css' %}">
+{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-2 rmc-rapid-create" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-decision-console="lifecycle-rapid-create">
+  <header class="rmc-rapid-create__header mb-3">
+    <h1 class="h5 mb-1">{% trans "Rapid create" %}</h1>
+    <p class="small text-secondary mb-0">{% trans "One-form school creation with smart defaults. Picks the right blueprint, drafts a migration bundle, lands you on the lifecycle timeline." %}</p>
+  </header>
+
+  {% if errors %}
+  <div class="alert alert-danger py-2 small mb-3">
+    {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3">
+    {# ---- Left column: template-driven create form ---- #}
+    <div class="col-lg-8">
+      <form method="post" class="card border-0 shadow-sm rmc-rapid-create__form">
+        {% csrf_token %}
+        <div class="card-body">
+          <h2 class="h6">{% trans "Step 1 — Pick a template" %}</h2>
+          <div class="rmc-rapid-create__templates" role="radiogroup" aria-label="{% trans 'Template' %}">
+            {% for t in templates %}
+            <label class="rmc-rapid-create__template-card {% if form.template == t.slug %}rmc-rapid-create__template-card--selected{% endif %}">
+              <input type="radio" name="template" value="{{ t.slug }}" class="rmc-rapid-create__template-input" {% if form.template == t.slug %}checked{% endif %}>
+              <span class="rmc-rapid-create__template-glyph" aria-hidden="true">{{ t.glyph }}</span>
+              <strong class="rmc-rapid-create__template-label">{{ t.label }}</strong>
+              <span class="rmc-rapid-create__template-desc">{{ t.description }}</span>
+            </label>
+            {% endfor %}
+          </div>
+
+          <h2 class="h6 mt-3">{% trans "Step 2 — School identity" %}</h2>
+          <div class="row g-2">
+            <div class="col-md-7">
+              <label class="form-label small">{% trans "School name" %}</label>
+              <input type="text" name="name" required maxlength="255" class="form-control form-control-sm" value="{{ form.name|default:'' }}" placeholder="{% trans 'Acme Academy' %}">
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small">{% trans "Slug (auto from name if blank)" %}</label>
+              <input type="text" name="slug" pattern="[a-z0-9][a-z0-9\-]{1,118}[a-z0-9]" class="form-control form-control-sm" value="{{ form.slug|default:'' }}" placeholder="acme-academy">
+            </div>
+          </div>
+
+          <h2 class="h6 mt-3">{% trans "Step 3 — Optional smart defaults" %}</h2>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label small">{% trans "Country (sets timezone)" %}</label>
+              {% if country_choices %}
+              <select name="country_code" class="form-select form-select-sm">
+                <option value="">{% trans "-- pick later --" %}</option>
+                {% for code, name in country_choices %}<option value="{{ code }}" {% if form.country_code == code %}selected{% endif %}>{{ name }} ({{ code }})</option>{% endfor %}
+              </select>
+              {% else %}
+              <input type="text" name="country_code" maxlength="2" class="form-control form-control-sm" value="{{ form.country_code|default:'' }}" placeholder="US">
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">{% trans "Migrating from another SIS?" %}</label>
+              <select name="vendor" class="form-select form-select-sm">
+                {% for value, label in vendor_choices %}<option value="{{ value }}" {% if form.vendor == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer d-flex flex-wrap gap-2">
+          <button type="submit" name="action" value="create" class="btn btn-sm btn-primary">{% trans "Create school" %}</button>
+          <a href="{% url 'super:schools_list' %}" class="btn btn-sm btn-outline-secondary">{% trans "Cancel" %}</a>
+        </div>
+      </form>
+    </div>
+
+    {# ---- Right column: 1-click demo + speed cues ---- #}
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rmc-rapid-create__sidebar mb-3">
+        <div class="card-body">
+          <h2 class="h6">{% trans "1-click demo" %}</h2>
+          <p class="small text-secondary">{% trans "Spin up a demo-N school with the K-12 template — no name or slug needed." %}</p>
+          <form method="post" class="d-grid">
+            {% csrf_token %}
+            <button type="submit" name="action" value="demo" class="btn btn-sm btn-outline-primary">{% trans "Spin up demo" %}</button>
+          </form>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h2 class="h6">{% trans "What rapid create does" %}</h2>
+          <ul class="small text-secondary mb-0 ps-3">
+            <li>{% trans "Creates School row (is_active=False, operator-gated)" %}</li>
+            <li>{% trans "Sets primary_sector from template" %}</li>
+            <li>{% trans "Writes migration_intent if vendor is picked" %}</li>
+            <li>{% trans "Auto-drafts MigrationBundle via lifecycle signals" %}</li>
+            <li>{% trans "Records REQUESTED + PROVISIONED on the lifecycle timeline" %}</li>
+            <li>{% trans "Redirects you to /super/lifecycle/<id>/" %}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,77 @@
+/*
+ * rmc-lifecycle-rapid-create.css
+ *
+ * Wave L8 (v3.61.9 — 2026-05-22): operator rapid-create panel.
+ * Scoped to .rmc-rapid-create root so it cannot leak.
+ */
+
+.rmc-rapid-create {
+  isolation: isolate;
+  contain: layout style;
+}
+
+.rmc-rapid-create__header {
+  border-bottom: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  padding-bottom: 8px;
+}
+
+.rmc-rapid-create__templates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.rmc-rapid-create__template-card {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.1));
+  border-radius: 10px;
+  background: var(--surface-elevated, #ffffff);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 160ms ease-out, transform 160ms ease-out;
+}
+
+.rmc-rapid-create__template-card:hover,
+.rmc-rapid-create__template-card:focus-within {
+  border-color: var(--color-primary-400, #818CF8); /* off-token-allow: rapid-create-hover-accent */ /* theme-locked-allow: brand-token */
+  transform: translateY(-1px);
+}
+
+.rmc-rapid-create__template-card--selected {
+  border-color: var(--color-primary-500, #6366F1); /* off-token-allow: rapid-create-selected-accent */ /* theme-locked-allow: brand-token */
+  background: color-mix(in oklab, var(--color-primary-500, #6366F1) 6%, transparent); /* theme-locked-allow: brand-token-mix */
+}
+
+.rmc-rapid-create__template-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rmc-rapid-create__template-glyph {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.rmc-rapid-create__template-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.rmc-rapid-create__template-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #555);
+  line-height: 1.35;
+}
+
+.rmc-rapid-create__form .card-body h2 {
+  margin-top: 0.5rem;
+}
+
+.rmc-rapid-create__sidebar {
+  background: color-mix(in oklab, var(--color-primary-500, #6366F1) 4%, var(--surface-elevated, #fff)); /* theme-locked-allow: rapid-create-sidebar-tint */
+}
