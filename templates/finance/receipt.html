@@ -18,14 +18,10 @@
       .total { font-size: 18px; font-weight: 600; }
     </style>
   </head>
-  <body data-page-archetype="record-detail">
-    <div class="header">
-      {% if logo_url %}<img src="{{ logo_url }}" alt="{% trans 'School logo' %}" style="max-height: 48px; margin-bottom: 8px;" />{% endif %}
-      <h1>{{ school }} Receipt</h1>
-      <div class="meta">
-        Payment #: {{ payment.reference|default:payment.id }} · {{ payment.paid_at|format_date }}
-      </div>
-    </div>
+  <body class="rmc-print-v2" data-page-archetype="record-detail">
+    {# v3.57.7 (2026-05-22): civic brand block per rmc-print-v2 grammar. #}
+    {% trans "Receipt" as _report_title %}
+    {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=payment.reference|default:payment.id report_meta_left=payment.paid_at|format_date report_meta_right=school %}
 
     <div class="section">
       <strong>Billed to</strong>

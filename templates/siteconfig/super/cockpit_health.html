@@ -1,0 +1,150 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Cockpit health" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/super/">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'siteconfig:cockpit_configure' %}">{% trans "Cockpit configuration" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Health" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="diagnostic">
+  <header class="mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase mb-1">{% trans "Diagnostic" %}</div>
+        <h1 class="h4 mb-1 fw-bold page-h1">{% trans "Cockpit health" %}</h1>
+        <p class="small mb-0 text-muted">
+          {% trans "Live state of every cockpit section. Use this to debug why a section isn't rendering on production." %}
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'siteconfig:cockpit_configure' %}" class="btn btn-outline-secondary btn-sm">
+          {% trans "← Configuration" %}
+        </a>
+        <a href="{% url 'siteconfig:cockpit_previews' %}" class="btn btn-outline-secondary btn-sm">
+          {% trans "Design previews →" %}
+        </a>
+      </div>
+    </div>
+  </header>
+
+  {# Summary row #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="small text-muted text-uppercase fw-semibold">{% trans "Total sections" %}</div>
+        <div class="h3 mb-0 fw-bold">{{ summary.total_sections }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="small text-muted text-uppercase fw-semibold">{% trans "Would render" %}</div>
+        <div class="h3 mb-0 fw-bold text-success">{{ summary.would_render_count }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="small text-muted text-uppercase fw-semibold">{% trans "Enabled but empty" %}</div>
+        <div class="h3 mb-0 fw-bold text-warning">{{ summary.enabled_but_empty_count }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body p-3">
+        <div class="small text-muted text-uppercase fw-semibold">{% trans "Disabled" %}</div>
+        <div class="h3 mb-0 fw-bold text-muted">{{ summary.disabled_count }}</div>
+      </div></div>
+    </div>
+  </div>
+
+  {# Global state row #}
+  <section class="card mb-4">
+    <header class="card-header"><h2 class="h6 mb-0 fw-bold">{% trans "Global state" %}</h2></header>
+    <div class="card-body">
+      <dl class="row mb-0 small">
+        <dt class="col-md-4">{% trans "Host kind" %}</dt>
+        <dd class="col-md-8"><code>{{ host_kind }}</code></dd>
+        <dt class="col-md-4">{% trans "COCKPIT_200X_RENDER_PREVIEW_DEMO" %}</dt>
+        <dd class="col-md-8">
+          {% if cockpit_200x_demo_flag %}<span class="badge bg-success-subtle text-success-emphasis">True</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">False</span>{% endif %}
+        </dd>
+        <dt class="col-md-4">{% trans "COCKPIT_100X_RENDER_PREVIEW_DEMO" %}</dt>
+        <dd class="col-md-8">
+          {% if cockpit_100x_demo_flag %}<span class="badge bg-success-subtle text-success-emphasis">True</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">False</span>{% endif %}
+        </dd>
+        <dt class="col-md-4">{% trans "Operator overlay keys" %}</dt>
+        <dd class="col-md-8">
+          {% if operator_payload_keys %}
+            {% for key in operator_payload_keys %}<code>{{ key }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}
+          {% else %}<span class="text-muted">{% trans "(none — defaults + demo payload only)" %}</span>{% endif %}
+        </dd>
+      </dl>
+      {% if cockpit_resolution_error %}
+        <div class="alert alert-danger mt-3 mb-0">
+          <strong>{% trans "Cockpit resolution error:" %}</strong> <code>{{ cockpit_resolution_error }}</code>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {# Helper module health row #}
+  <section class="card mb-4">
+    <header class="card-header"><h2 class="h6 mb-0 fw-bold">{% trans "Helper modules" %}</h2></header>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 small">
+        <thead><tr>
+          <th>{% trans "Module" %}</th>
+          <th>{% trans "Import" %}</th>
+          <th class="text-end">{% trans "Sections" %}</th>
+          <th>{% trans "Error" %}</th>
+        </tr></thead>
+        <tbody>
+          {% for mod in helper_modules %}
+          <tr>
+            <td><code>{{ mod.module }}</code></td>
+            <td>{% if mod.ok %}<span class="badge bg-success-subtle text-success-emphasis">OK</span>{% else %}<span class="badge bg-danger-subtle text-danger-emphasis">FAIL</span>{% endif %}</td>
+            <td class="text-end">{{ mod.section_count }}</td>
+            <td><code class="text-danger">{{ mod.error|default:"" }}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {# Per-group section tables #}
+  {% for group_label, group_sections in section_groups %}
+  <section class="card mb-4">
+    <header class="card-header"><h2 class="h6 mb-0 fw-bold">{{ group_label }}</h2></header>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 small">
+        <thead><tr>
+          <th>{% trans "Section key" %}</th>
+          <th>{% trans "Enabled" %}</th>
+          <th>{% trans "Content" %}</th>
+          <th>{% trans "Would render" %}</th>
+          <th>{% trans "Missing keys" %}</th>
+        </tr></thead>
+        <tbody>
+          {% for section in group_sections %}
+          <tr>
+            <td><code>{{ section.key }}</code></td>
+            <td>{% if section.enabled %}<span class="badge bg-success-subtle text-success-emphasis">Y</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">N</span>{% endif %}</td>
+            <td>{% if section.content_present %}<span class="badge bg-success-subtle text-success-emphasis">Y</span>{% else %}<span class="badge bg-warning-subtle text-warning-emphasis">N</span>{% endif %}</td>
+            <td>{% if section.would_render %}<span class="badge bg-success-subtle text-success-emphasis">✓</span>{% else %}<span class="badge bg-danger-subtle text-danger-emphasis">✗</span>{% endif %}</td>
+            <td><code>{% if section.missing_keys %}{% for k in section.missing_keys %}{{ k }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

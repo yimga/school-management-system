@@ -150,6 +150,7 @@ from .views_tenant_studio_hub import (
 )
 from .views_cockpit_admin import CockpitConfigureView
 from .views_cockpit_previews import CockpitPreviewIndexView, CockpitPreviewServeView
+from .views_cockpit_health import CockpitHealthView
 
 app_name = "siteconfig"
 
@@ -612,5 +613,14 @@ urlpatterns = [
         "super/configure/cockpit/previews/<slug:slug>/",
         CockpitPreviewServeView.as_view(),
         name="cockpit_preview_serve",
+    ),
+    # v3.57.7 (2026-05-22): cockpit health diagnostic — staff-only page
+    # reporting live state of every cockpit section + demo-flag values + helper
+    # module import status. Use this to debug why a section isn't rendering on
+    # production without needing Render shell access.
+    path(
+        "super/configure/cockpit/health/",
+        CockpitHealthView.as_view(),
+        name="cockpit_health",
     ),
 ]

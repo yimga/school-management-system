@@ -1,0 +1,41 @@
+{% load static i18n %}
+{% comment %} v3.57.7 (2026-05-22): rmc-print-v2 brand block — civic header
+   that PDF templates can include at the top of their body to gain the
+   wordmark + motto + crest chrome from rmc-print-v2.css.
+
+   Required context:
+     SITE                 — SiteSettings instance (for wordmark/motto)
+     school               — tenant display name
+     logo_url             — optional absolute URL to school crest
+     report_title         — h1 title of the document (e.g. "Receipt")
+     report_subtitle      — optional subline (e.g. "Payment confirmation")
+     report_meta_left     — optional left meta text (e.g. printed date)
+     report_meta_right    — optional right meta text (e.g. doc id)
+
+   PDF-renderer-safe inline-style fallbacks are baked in so PDF engines
+   that don't load the rmc-print-v2.css stylesheet still get a reasonable
+   civic header. {% endcomment %}
+<div class="rmc-print-v2__brand-block" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-bottom:8pt; margin-bottom:12pt; border-bottom:1pt solid var(--hairline,#e9e6dc);">
+  <div>
+    <div class="rmc-print-v2__wordmark" style="font-size:16pt; font-weight:700; line-height:1.1; color:var(--brand-primary,var(--text-primary,#1c1a17));">
+      {{ school|default:SITE.company_name|default:SITE.site_name|default:"RunMyCampus" }}
+    </div>
+    {% with motto=SITE.footer_motto|default:"" %}
+      {% if motto %}
+        <div class="rmc-print-v2__motto" style="font-family:'Source Serif 4',Georgia,serif; font-style:italic; font-size:9pt; line-height:1.2; color:var(--brand-accent,var(--text-secondary,#6b655d));">{{ motto }}</div>
+      {% endif %}
+    {% endwith %}
+  </div>
+  {% if logo_url %}
+    <img class="rmc-print-v2__crest" src="{{ logo_url }}" alt="{% trans 'School crest' %}" style="flex:0 0 auto; max-block-size:14mm; max-inline-size:14mm; object-fit:contain;" />
+  {% endif %}
+</div>
+
+{% if report_title %}
+<div class="rmc-print-v2__meta-row" style="display:flex; justify-content:space-between; gap:1rem; margin-bottom:8pt; font-size:8pt; color:var(--text-secondary,#6b655d); font-variant-numeric:tabular-nums;">
+  <div>{{ report_meta_left|default:"" }}</div>
+  <div>{{ report_meta_right|default:"" }}</div>
+</div>
+<h1 class="rmc-print-v2__doc-title" style="font-size:14pt; font-weight:700; color:var(--text-primary,#1c1a17); margin:0 0 4pt 0;">{{ report_title }}</h1>
+{% if report_subtitle %}<p class="rmc-print-v2__doc-subtitle" style="font-size:10pt; font-weight:400; color:var(--text-secondary,#6b655d); margin:0 0 12pt 0;">{{ report_subtitle }}</p>{% endif %}
+{% endif %}
