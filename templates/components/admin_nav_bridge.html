@@ -2,9 +2,14 @@
 <!-- Admin Navigation Bridge: on manager host use same navbar as /super/ for unified high-end UX -->
 
 {% if is_manager_host %}
-<div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1">
-{% include "partials/manager_operator_topbar.html" %}
-</div>
+{% comment %}v3.59.9 (2026-05-22): manager_operator_topbar was rendered here as a
+   duplicate of admin/base.html:10. The /admin/ rendered chrome stacked TWO
+   identical topbars — one in the viewport-pinned <header>, one inside the
+   canvas body via this bridge. Removed to fix the double-topbar bug.
+   admin/base.html now carries data-rmc-control-plane-chrome="1" on the
+   canonical <header> so rmc-cp-chrome-offset.js still measures correctly.
+   The primary nav row still renders below (line ~83 outside this if/else)
+   when PRIMARY_CONTROL_PLANE_NAV is populated.{% endcomment %}
 {% else %}
 <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}">
 

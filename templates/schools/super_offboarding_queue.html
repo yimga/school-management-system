@@ -4,7 +4,7 @@
 {% block cp_title %}{% trans "Offboarding queue" %}{% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console">
   <h1 class="h5">{% trans "Offboarding queue" %}</h1>
   <p class="small text-secondary">{% trans "Schools with self-service or operator-scheduled purge. Auto-purge" %}: {% if auto_purge_enabled %}{% trans "enabled" %} ({{ grace_days }} {% trans "day grace" %}){% else %}{% trans "disabled" %}{% endif %}. {% trans "Due today" %}: <strong>{{ due_count }}</strong>.</p>
   <div class="mb-3 d-flex gap-2">

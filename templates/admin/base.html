@@ -5,7 +5,12 @@
     <div class="rmc-app-shell {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}">
 
         {# ---------- Grid row 1 — static header (viewport-pinned) ---------- #}
-        <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1">
+        {% comment %}v3.59.9 (2026-05-22): added data-rmc-control-plane-chrome="1" so
+           rmc-cp-chrome-offset.js measures the canonical viewport-pinned header on
+           /admin/. The duplicate include of manager_operator_topbar inside
+           admin_nav_bridge.html (canvas body) is now removed; this is the single
+           source of the manager topbar on the /admin/ shell.{% endcomment %}
+        <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1" data-rmc-control-plane-chrome="1">
             {% if is_manager_host %}
                 {% include "partials/manager_operator_topbar.html" %}
             {% else %}
