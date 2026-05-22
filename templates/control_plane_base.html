@@ -57,12 +57,12 @@
 {% endblock %}
 
 {% block cp_shell_canvas_body %}
-{% comment %} v3.55.0: cockpit breadcrumb + platform pulse render at the top of the
-   canvas body, before the operator surface strip. Both partials are no-ops if their
-   data isn't in context, so existing pages without breadcrumb_trail or
-   cockpit.pulse_metrics.cards are unaffected. {% endcomment %}
+{% comment %} v3.57.10 (2026-05-22): platform_pulse removed from base — was rendering on
+   every /super/* page (config, schools, billing, etc.) because the cockpit context ships
+   demo cards by default. Now only the manager landing template (schools/super_dashboard.html)
+   includes it. Other /super/ pages keep their own personality. Breadcrumb stays
+   (universally useful, no-op when breadcrumb_trail absent). {% endcomment %}
 {% include "partials/cockpit/_breadcrumb.html" %}
-{% include "partials/cockpit/_platform_pulse.html" %}
 {% block rmc_operator_surface_strip %}
 {% include "components/rmc_operator_surface_strip.html" %}
 {% endblock %}

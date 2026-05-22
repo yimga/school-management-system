@@ -29,6 +29,15 @@
       {% include "partials/cockpit/_teacher_spotlight_card.html" %}
     </div>
   </div>
+  {% comment %} v3.57.10 (2026-05-22): v3 100x extended sections rendered ONLY on the parent
+     landing dashboard. Each partial self-gates on cockpit.<section>.enabled.
+     sibling_compare keeps opt_in=False privacy gate — no sibling data without parent
+     consent. Other parent-portal pages keep their own personality. {% endcomment %}
+  {% include "partials/cockpit/_parent_teacher_thread.html" %}
+  {% include "partials/cockpit/_calendar_weather.html" %}
+  {% include "partials/cockpit/_financial_timeline.html" %}
+  {% include "partials/cockpit/_life_event_timeline.html" %}
+  {% include "partials/cockpit/_sibling_compare.html" %}
 </div>
 <div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home" data-rmc-page="parent-portal">
   <div class="container-lg py-4">

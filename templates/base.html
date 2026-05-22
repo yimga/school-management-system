@@ -310,8 +310,9 @@
     {% endif %}
     {% endblock %}
 
-    {# AI Copilot - Available on all pages #}
-    {% include 'components/ai_copilot.html' %}
+    {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB per
+       v3 100x preview parity — neither preview carries a bottom-right AI button.
+       {% endcomment %}
 
     {% include 'components/toast_notifications.html' %}
     <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>

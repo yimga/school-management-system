@@ -243,7 +243,10 @@
     {% include "partials/cockpit/_ai_copilot_rail.html" %}
     {% include "partials/cockpit/_operator_notebook.html" %}
   {% endif %}
-  {% include 'components/ai_copilot.html' %}
+  {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB +
+     rmc-page-help-fab per v8 200x preview parity — admin mirrors operator chrome, AI
+     copilot lives in the right grid rail (_ai_copilot_rail.html above), not a
+     bottom-right floating button. {% endcomment %}
   {% include 'components/toast_notifications.html' %}
   {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
   {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}
@@ -252,10 +255,6 @@
   {% if request.user.is_authenticated %}
     {% include 'components/rmc_command_palette.html' %}
     {% include "partials/rmc_assist_dock_labels.html" %}
-    <button type="button" class="btn btn-outline-primary btn-sm rmc-page-help-fab" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
-      <i class="bi bi-question-circle" aria-hidden="true"></i>
-      <span class="rmc-assist-dock__label">{% trans "Help" %}</span>
-    </button>
     <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
     <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>

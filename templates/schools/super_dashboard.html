@@ -22,6 +22,19 @@
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
+{% comment %} v3.57.10 (2026-05-22): the 8 v8 200x dashboard sections render ONLY on this
+   landing page (Schools/Incidents/Countries/MRR/Webhooks/Pipeline pulse strip + world map +
+   forecast lane + SLO clocks + tenant heatmap + revenue waterfall + audit feed + trust
+   nutrition). Each partial self-gates on cockpit.<section>.enabled. Other /super/* pages
+   keep their own personality and do not inherit these sections. {% endcomment %}
+{% include "partials/cockpit/_platform_pulse.html" %}
+{% include "partials/cockpit/_live_world_map.html" %}
+{% include "partials/cockpit/_forecast_lane.html" %}
+{% include "partials/cockpit/_slo_clocks.html" %}
+{% include "partials/cockpit/_tenant_heatmap.html" %}
+{% include "partials/cockpit/_revenue_waterfall.html" %}
+{% include "partials/cockpit/_audit_feed.html" %}
+{% include "partials/cockpit/_trust_nutrition.html" %}
 <div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   {% url 'super:create_school_wizard' as wcx_create_school_url %}

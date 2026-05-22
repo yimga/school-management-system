@@ -19,6 +19,14 @@
       {% include "partials/cockpit/_teacher_spotlight_card.html" %}
     </div>
   </div>
+  {% comment %} v3.57.10 (2026-05-22): student-appropriate v3 100x extended sections rendered
+     ONLY on the student learning-home landing. Each partial self-gates on
+     cockpit.<section>.enabled. {% endcomment %}
+  {% include "partials/cockpit/_ai_study_buddy.html" %}
+  {% include "partials/cockpit/_lesson_of_day.html" %}
+  {% include "partials/cockpit/_gradebook_trend.html" %}
+  {% include "partials/cockpit/_attendance_heatmap.html" %}
+  {% include "partials/cockpit/_realtime_presence.html" %}
 </div>
 <div class="container-lg py-3" data-page-archetype="role-home" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-task="student_home" data-task-step="student:dashboard">
   {% phase8_dashboard_declaration "student/learning_home.html" %}

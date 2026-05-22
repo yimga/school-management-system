@@ -66,6 +66,13 @@ backend-shell dashboard-page-backend
         {% include "partials/cockpit/_teacher_spotlight_card.html" %}
       </div>
     </div>
+    {% comment %} v3.57.10 (2026-05-22): admin-appropriate v3 100x extended sections rendered
+       ONLY on the backend (school-admin) landing dashboard. Each partial self-gates on
+       cockpit.<section>.enabled. {% endcomment %}
+    {% include "partials/cockpit/_attendance_heatmap.html" %}
+    {% include "partials/cockpit/_calendar_weather.html" %}
+    {% include "partials/cockpit/_lesson_of_day.html" %}
+    {% include "partials/cockpit/_realtime_presence.html" %}
   </div>
 
 

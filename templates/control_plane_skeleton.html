@@ -145,26 +145,20 @@
       </aside>
       <div class="rmc-app-shell__canvas">
         <div class="rmc-app-shell__canvas-body cp-shell-content{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}">
-          {% comment %} v3.55.0+ (2026-05-21): 200x cockpit elements 2,3,5,6,7,8,9 — each
-             self-gates on its own `cockpit.<section>.enabled` flag and renders nothing
-             until operator opts in via SiteSettings. Order: world map → forecast lane →
-             SLO clocks → tenant heatmap → revenue waterfall → audit feed → trust nutrition. {% endcomment %}
-          {% include "partials/cockpit/_live_world_map.html" %}
-          {% include "partials/cockpit/_forecast_lane.html" %}
-          {% include "partials/cockpit/_slo_clocks.html" %}
-          {% include "partials/cockpit/_tenant_heatmap.html" %}
-          {% include "partials/cockpit/_revenue_waterfall.html" %}
-          {% include "partials/cockpit/_audit_feed.html" %}
-          {% include "partials/cockpit/_trust_nutrition.html" %}
+          {% comment %} v3.57.10 (2026-05-22): the 7 cockpit 200x dashboard sections
+             (live_world_map / forecast_lane / slo_clocks / tenant_heatmap / revenue_waterfall /
+             audit_feed / trust_nutrition) + platform_pulse strip were lifted OUT of the shell
+             and into the manager LANDING page only (templates/schools/super_dashboard.html).
+             Other /super/* pages (config, schools list, billing, etc.) keep their own
+             personality — the shell only carries universal chrome (header / sidebar / copilot
+             rail / operator notebook / footer). Each section's `enabled` flag is preserved
+             at the landing template include site. {% endcomment %}
           {# Legacy block: pages extending skeleton directly render here. #}
           {% block cp_shell_page %}{% endblock %}
           {# New shell-aware block: cleaner adoption for shell-native pages. #}
           {% block cp_shell_canvas_body %}{% endblock %}
-          {% comment %} v3.57.9 (2026-05-22): 6-card "platform pulse" strip — Schools /
-             Incidents / Countries / MRR / Webhooks / Pipeline. Mirrors the bottom-of-canvas
-             section in rmc-shell-preview-v8-200x.html. Self-gates on
-             cockpit.pulse_metrics.cards. {% endcomment %}
-          {% include "partials/cockpit/_platform_pulse.html" %}
+          {# v3.57.10 (2026-05-22): landing template fills this block with its dashboard sections. #}
+          {% block cp_shell_landing_sections %}{% endblock %}
         </div>
       </div>
       {# v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot rail (grid col 3). Self-gates on cockpit.ai_copilot_rail.enabled. #}
@@ -180,24 +174,19 @@
       {% endblock %}
       {% endblock %}
     </div>
-    {% if request.user.is_authenticated %}
-      {% include "partials/help_proactive_nudge.html" %}
-      {% include "partials/help_contextual_drawer.html" %}
-    {% endif %}
+    {% comment %} v3.57.10 (2026-05-22): removed help_proactive_nudge + help_contextual_drawer per
+       v8 200x preview parity — the preview has no contextual help drawer; help lives in the
+       Knowledge Base / Help Center linked from the footer. {% endcomment %}
     {# v3.55.0+ (2026-05-21): 200x Element 4 — Operator notebook floating widget. Self-gates on cockpit.operator_notebook.enabled. #}
     {% include "partials/cockpit/_operator_notebook.html" %}
     {% block cp_shell_after %}{% endblock %}
     {% endblock %}
-    {% comment %} Phase E (2026-05-12): AI copilot is mounted on every authenticated shell so
-       the ⌘/Ctrl+Shift+? assistant is reachable from /super, /portal, /admin alike. {% endcomment %}
+    {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB +
+       rmc-page-help-fab per v8 200x preview parity — the AI copilot is the rmc-app-shell__copilot
+       RAIL in grid col 3 (already mounted above), not a floating bottom-right button. Pages
+       wanting the ⌘K palette get it via components/rmc_command_palette.html which stays. {% endcomment %}
     {% if request.user.is_authenticated %}
-      {% include 'components/ai_copilot.html' %}
-      {# Phase G: ⌘K command palette + section-nav helper for long control-plane pages. #}
       {% include 'components/rmc_command_palette.html' %}
-      <button type="button" class="btn btn-outline-primary btn-sm position-fixed rmc-page-help-fab" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
-        <i class="bi bi-question-circle" aria-hidden="true"></i> {% trans "Help" %}
-      </button>
-      <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
       {% include 'components/back_to_top.html' %}
       {% include "partials/rmc_platform_chrome_scripts.html" %}
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
