@@ -4521,3 +4521,82 @@
 .rmc-personality-preview-cta:focus-visible {
   filter: brightness(1.08);
 }
+
+/* ============================================================
+   Operator console strip — v3.60.1 (2026-05-22)
+   ------------------------------------------------------------
+   Subtle section-nav-style chrome replacing the previous heavy
+   `card border-secondary bg-body-secondary` dark pill bar that
+   visually obstructed surrounding content. Now reads as a quiet
+   inline strip: hairline border-bottom only, single-row layout
+   with the title + ghost links inline, optional "why" caption
+   below.
+   ============================================================ */
+.rmc-operator-console-strip {
+  padding: 8px 0 10px;
+  border-block-end: 1px solid var(--hairline, rgba(15, 23, 42, 0.08)); /* off-token-allow: subtle-section-divider-fallback */
+}
+
+.rmc-operator-console-strip__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+.rmc-operator-console-strip__title {
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary, var(--text-muted));
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.rmc-operator-console-strip__title-em {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  font-style: italic;
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+  color: var(--text-tertiary, var(--text-muted));
+}
+
+.rmc-operator-console-strip__links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rmc-operator-console-strip__link {
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--brand-primary, var(--color-primary-500, #4f46e5)); /* off-token-allow: brand-primary-fallback */
+  text-decoration: none;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 6px);
+  line-height: 1.45;
+  transition: background var(--motion-fast, 150ms) ease, color var(--motion-fast, 150ms) ease;
+}
+
+.rmc-operator-console-strip__link:hover,
+.rmc-operator-console-strip__link:focus-visible {
+  background: var(--surface-hover, var(--surface-overlay));
+  color: var(--text-primary);
+}
+
+.rmc-operator-console-strip__why {
+  margin: 6px 0 0;
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--text-tertiary, var(--text-muted));
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-operator-console-strip__link {
+    transition: none;
+  }
+}

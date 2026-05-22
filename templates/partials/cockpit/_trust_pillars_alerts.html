@@ -1,33 +1,43 @@
 {% load static i18n %}
-{% comment %} v3.58.x Wave 10 Agent S (2026-05-22): 200x v8 preview gap closure —
-   Trust Pillars Alerts feed.
+{% comment %} v3.58.x Wave 10 Agent S (2026-05-22) → v3.59.x redesign (2026-05-22):
+   Trust Pillars Alerts feed — nutrition-label aesthetic redesign.
 
-   Distinct from `_trust_nutrition.html` (nutrition-label-style 8-row card paired
-   with the heatmap). This partial renders the SAME seven trust pillars in an
-   alert-feed style: status dot + label + value + last-checked timestamp + a
-   detail link per row. It's the "Alerts feed" the v8 200x preview screenshots
-   show along the bottom of the operator landing surface, immediately surfacing
-   pillar-level posture so operators can drill in.
+   Distinct from `_trust_nutrition.html` (the sister nutrition-label card paired
+   with the heatmap). This partial renders the SAME seven trust pillars but
+   adopts the v8 200x preview's nutrition-label visual grammar (serif italic
+   header + 6px solid rule + mono-value rows) plus three extras the alerts feed
+   should carry that the sister card does not:
+     1. A posture-summary KPI band at top showing status-count breakdown +
+        a 7-segment health meter, derived in-template from the existing
+        `pillars` list via {% with %} aggregation. No backend changes.
+     2. A compact 2-column pillar grid (collapses to 1-column under 720px)
+        instead of 7 single-column tall rows that wasted horizontal space.
+     3. A quick-action footer row (audit log / key rotation / runbook) gated
+        on three new OPTIONAL cockpit keys — hides cleanly when absent.
 
    CONFIGURABLE via cockpit.trust_pillars_alerts (SiteSettings → context processor):
-     .enabled        bool         — master gate
-     .eyebrow        str          — uppercase eyebrow (default: "Trust pillars · alerts")
-     .title          str          — h3 title
-     .title_em       str          — italic tail
-     .meta_text      str          — top-right meta (last-refreshed, count)
-     .footer_text    str          — italic serif caption below the rows
-     .pillars        list[dict]   — 7-ish rows
-        [{
-           slug:           str   — "audit_chain" | "maa_signatures" | "encryption_at_rest"
-                                 | "ferpa_retention" | "webhook_signing" | "mfa_enforcement"
-                                 | "companion_handshake" | <custom>
-           label:          str   — left primary line ("Audit chain integrity")
-           value:          str   — middle status value ("verified" / "operator-required" / "—")
-           status:         str   — "ok" | "warn" | "danger" | "info" | "neutral"
-           last_checked:   str   — small right-side timestamp ("Mon 02:00 UTC", "2m ago")
-           detail_url:     str   — optional drill-in link (omitted -> no chevron)
-           detail_label:   str   — sr-only label for the drill-in link
-        }]
+     EXISTING KEYS (unchanged contract):
+       .enabled        bool         — master gate
+       .eyebrow        str          — uppercase eyebrow
+       .title          str          — h3 title (rendered serif italic now)
+       .title_em       str          — italic tail
+       .meta_text      str          — top-right meta (last-refreshed, count)
+       .footer_text    str          — italic serif caption below the rows
+       .pillars        list[dict]   — 7-ish rows
+          [{
+             slug:           str   — "audit_chain" | "maa_signatures" | …
+             label:          str   — left primary line
+             value:          str   — mono status value
+             status:         str   — "ok" | "warn" | "danger" | "info" | "neutral"
+             last_checked:   str   — small right-side timestamp
+             detail_url:     str   — optional drill-in link
+             detail_label:   str   — sr-only label for the drill-in link
+          }]
+     NEW OPTIONAL KEYS (backward compatible — all default to safe empty):
+       .summary_label         str — left caption on the KPI band (default "Posture")
+       .action_audit_log_url  str — ghost-button: Open audit log
+       .action_rotation_url   str — ghost-button: Schedule key rotation
+       .action_runbook_url    str — ghost-button: View runbook
 
    PII contract: every value comes from the operator-saved cockpit_payload OR
    from `cockpit_panels_realdata_service._resolve_trust_pillars_alerts()` (which
@@ -38,20 +48,47 @@
 {% endcomment %}
 
 {% if cockpit.trust_pillars_alerts.enabled and cockpit.trust_pillars_alerts.pillars %}
-<section class="lx-card lx-trust-pillars" aria-label="{% trans 'Trust pillars alerts feed' %}">
+<section class="lx-card lx-trust-pillars" aria-label="{% trans 'Trust pillars alerts feed' %}" tabindex="-1">
   <div class="lx-card__head lx-trust-pillars__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.trust_pillars_alerts.eyebrow|default:_("Trust pillars · alerts") }}</div>
-      <h3 class="lx-card__title">
+      <h3 class="lx-card__title lx-trust-pillars__title">
         {{ cockpit.trust_pillars_alerts.title|default:_("Platform posture") }}
         {% if cockpit.trust_pillars_alerts.title_em %} <em>— {{ cockpit.trust_pillars_alerts.title_em }}</em>{% endif %}
       </h3>
     </div>
-    {% if cockpit.trust_pillars_alerts.meta_text %}<div class="lx-card__meta">{{ cockpit.trust_pillars_alerts.meta_text }}</div>{% endif %}
+    {% if cockpit.trust_pillars_alerts.meta_text %}<small class="lx-trust-pillars__caption-meta">{{ cockpit.trust_pillars_alerts.meta_text }}</small>{% endif %}
   </div>
-  <ul class="lx-trust-pillars__rows" role="list">
+  <div class="lx-trust-pillars__rule" aria-hidden="true"></div>
+
+  {% comment %} Posture summary KPI band — counts derived in-template from pillars list. {% endcomment %}
+  {% with pillars=cockpit.trust_pillars_alerts.pillars %}
+  {% with ok_count=0 warn_count=0 danger_count=0 info_count=0 neutral_count=0 %}
+    {% comment %} Walk once and tally — Django template can't increment, so we use a regroup-style approach via filters. {% endcomment %}
+    {% regroup pillars by status|default:"neutral" as _status_groups %}
+    <div class="lx-trust-pillars__summary" role="group" aria-label="{% trans 'Posture summary' %}">
+      <div class="lx-trust-pillars__summary-label">{{ cockpit.trust_pillars_alerts.summary_label|default:_("Posture") }}</div>
+      <ul class="lx-trust-pillars__summary-counts" role="list">
+        {% for group in _status_groups %}
+        <li class="lx-trust-pillars__summary-chip lx-trust-pillars__summary-chip--{{ group.grouper }}" role="listitem">
+          <span class="lx-trust-pillars__summary-dot lx-trust-pillars__summary-dot--{{ group.grouper }}" aria-hidden="true"></span>
+          <span class="lx-trust-pillars__summary-count">{{ group.list|length }}</span>
+          <span class="lx-trust-pillars__summary-name">{{ group.grouper }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <ol class="lx-trust-pillars__meter" role="list" aria-label="{% trans 'Per-pillar health meter' %}">
+        {% for pillar in pillars %}
+        <li class="lx-trust-pillars__meter-cell lx-trust-pillars__meter-cell--{{ pillar.status|default:'neutral' }}" role="listitem" title="{{ pillar.label|default:'' }}"></li>
+        {% endfor %}
+      </ol>
+    </div>
+  {% endwith %}
+  {% endwith %}
+
+  <ul class="lx-trust-pillars__grid" role="list">
     {% for pillar in cockpit.trust_pillars_alerts.pillars %}
-    <li class="lx-trust-pillars__row lx-trust-pillars__row--{{ pillar.status|default:'neutral' }}" role="listitem"{% if pillar.slug %} data-pillar="{{ pillar.slug }}"{% endif %}>
+    <li class="lx-trust-pillars__cell lx-trust-pillars__cell--{{ pillar.status|default:'neutral' }}" role="listitem"{% if pillar.slug %} data-pillar="{{ pillar.slug }}"{% endif %}>
       <span class="lx-trust-pillars__dot lx-trust-pillars__dot--{{ pillar.status|default:'neutral' }}" aria-hidden="true"></span>
       <div class="lx-trust-pillars__label-block">
         <div class="lx-trust-pillars__label">{{ pillar.label|default:"—" }}</div>
@@ -64,6 +101,22 @@
     </li>
     {% endfor %}
   </ul>
+
+  {% comment %} Quick-action footer — only render when at least one URL is provided. {% endcomment %}
+  {% if cockpit.trust_pillars_alerts.action_audit_log_url or cockpit.trust_pillars_alerts.action_rotation_url or cockpit.trust_pillars_alerts.action_runbook_url %}
+  <div class="lx-trust-pillars__actions" role="group" aria-label="{% trans 'Trust pillar quick actions' %}">
+    {% if cockpit.trust_pillars_alerts.action_audit_log_url %}
+      <a class="lx-trust-pillars__action" href="{{ cockpit.trust_pillars_alerts.action_audit_log_url }}">{% trans "Open audit log" %}</a>
+    {% endif %}
+    {% if cockpit.trust_pillars_alerts.action_rotation_url %}
+      <a class="lx-trust-pillars__action" href="{{ cockpit.trust_pillars_alerts.action_rotation_url }}">{% trans "Schedule key rotation" %}</a>
+    {% endif %}
+    {% if cockpit.trust_pillars_alerts.action_runbook_url %}
+      <a class="lx-trust-pillars__action" href="{{ cockpit.trust_pillars_alerts.action_runbook_url }}">{% trans "View runbook" %}</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% if cockpit.trust_pillars_alerts.footer_text %}<div class="lx-trust-pillars__footer">{{ cockpit.trust_pillars_alerts.footer_text }}</div>{% endif %}
 </section>
 {% endif %}

@@ -1,16 +1,20 @@
 {% load i18n %}
 {% if operator_quick_links %}
-<section class="card border-secondary bg-body-secondary mb-3" role="region" aria-labelledby="op-console-strip-h" data-decision-console="operator-strip">
-  <div class="card-body py-3 px-3">
-    <h2 id="op-console-strip-h" class="h6 mb-2">{% trans "Operator tools — trace, impact, ship" %}</h2>
-    <p class="small text-muted mb-3">{{ why_enabled_summary }}</p>
-    <div class="d-flex flex-wrap gap-2 align-items-center">
+{% comment %}v3.60.1 (2026-05-22): visual-weight reduction. Was rendered as a heavy
+   Bootstrap `card border-secondary bg-body-secondary` dark pill bar; users reported
+   it visually obstructed surrounding content while scrolling. Now renders as a
+   subtle section with a hairline border-bottom, no card chrome, smaller padding,
+   and links inline with the heading so it reads as section navigation rather than
+   a separate decorative box.{% endcomment %}
+<section class="rmc-operator-console-strip mb-3" role="region" aria-labelledby="op-console-strip-h" data-decision-console="operator-strip">
+  <div class="rmc-operator-console-strip__row">
+    <h2 id="op-console-strip-h" class="rmc-operator-console-strip__title">{% trans "Operator tools" %}<span class="rmc-operator-console-strip__title-em"> — {% trans "trace, impact, ship" %}</span></h2>
+    <div class="rmc-operator-console-strip__links">
       {% for link in operator_quick_links %}
-      <span class="d-inline-flex align-items-center gap-1 flex-wrap">
-        <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}" data-operator-stability="{{ link.stability }}">{{ link.label }}</a>
-      </span>
+      <a class="rmc-operator-console-strip__link" href="{{ link.url }}" data-operator-stability="{{ link.stability }}">{{ link.label }}</a>
       {% endfor %}
     </div>
   </div>
+  {% if why_enabled_summary %}<p class="rmc-operator-console-strip__why">{{ why_enabled_summary }}</p>{% endif %}
 </section>
 {% endif %}

@@ -1,7 +1,11 @@
 /* ============================================================
    rmc-trust-pillars.css — v3.58.x Wave 10 Agent S (2026-05-22).
+   v3.59.x redesign (2026-05-22): nutrition-label aesthetic + 2-column
+   compact grid + posture-summary KPI band + 7-segment health meter +
+   quick-action footer. Defensive isolation against parent focus-ring
+   bleed-through that was painting a phantom oval behind the card.
 
-   Styles the new alerts-feed-style trust pillars partial
+   Styles the alerts-feed-style trust pillars partial
    (`templates/partials/cockpit/_trust_pillars_alerts.html`). Distinct
    from the nutrition-label `.lx-trust` styles defined in
    `rmc-cp-200x.css`. This file is loaded after `rmc-cp-200x.css` in
@@ -10,67 +14,252 @@
 
    Every literal color/gradient that is intentionally NOT a theme-aware
    token carries an `off-token-allow` marker categorically — these are
-   semantic status hues (ok/warn/danger/info) that must read identically
-   in light + dark mode for operator scanability. Categorical reason:
-   "operator-status-semantic-locked".
+   semantic status hues (ok/warn/danger/info/neutral) that must read
+   identically in light + dark mode for operator scanability.
+   Categorical reason: "operator-status-semantic-locked".
    ============================================================ */
 
+/* -----------------------------------------------------------
+   ROOT — defensive isolation. Prevents the mystery phantom-oval
+   bleed-through where a parent's :focus-visible outline or
+   filter:drop-shadow leaks under the card body. `isolation`
+   spawns a new stacking context, `contain` clamps layout +
+   paint, `outline:none` on the section itself (NOT children)
+   kills the unwanted oval while children keep proper focus.
+   ----------------------------------------------------------- */
 .lx-trust-pillars {
   padding: 0;
+  isolation: isolate;
+  contain: layout style;
+  position: relative;
+  outline: none;
+}
+.lx-trust-pillars:focus,
+.lx-trust-pillars:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
+/* -----------------------------------------------------------
+   HEAD — serif italic title in the v8 nutrition-label voice,
+   6px solid rule below as a visual seal.
+   ----------------------------------------------------------- */
 .lx-trust-pillars__head {
-  padding: 18px 20px 12px;
-  border-bottom: 1px solid var(--hairline);
+  padding: 18px 20px 8px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 0;
 }
 
-.lx-trust-pillars__rows {
+body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__title,
+[data-rmc-page-personality="control-plane"] .lx-trust-pillars__title {
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--text-primary, #0f172a); /* off-token-allow: theme-aware-fallback-only */
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+
+.lx-trust-pillars__caption-meta {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
+  font-weight: 700;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content */
+}
+
+body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__rule,
+[data-rmc-page-personality="control-plane"] .lx-trust-pillars__rule {
+  height: 6px;
+  background: var(--text-primary, #0f172a); /* off-token-allow: theme-aware-fallback-only */
+  margin: 0 20px 4px;
+}
+
+/* -----------------------------------------------------------
+   SUMMARY KPI BAND — left caption + status-count chips + 7-cell
+   health meter. Lives between rule and grid; the meter is a flat
+   row of small cells, one per pillar, giving an at-a-glance read.
+   ----------------------------------------------------------- */
+body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__summary,
+[data-rmc-page-personality="control-plane"] .lx-trust-pillars__summary {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 20px 12px;
+  border-bottom: 1px solid var(--hairline, #e5e7eb); /* off-token-allow: theme-aware-fallback-only */
+}
+
+.lx-trust-pillars__summary-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  font-weight: 700;
+  color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content */
+}
+
+.lx-trust-pillars__summary-counts {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
-}
-
-.lx-trust-pillars__row {
-  display: grid;
-  grid-template-columns: 18px 1fr auto auto;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--hairline);
-  transition: background var(--motion-fast, 150ms ease);
   min-width: 0;
 }
 
-.lx-trust-pillars__row:last-child {
-  border-bottom: 0;
+.lx-trust-pillars__summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: var(--mono, ui-monospace, "SF Mono", Menlo, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary, #334155); /* off-token-allow: theme-aware-fallback-only */
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-controlled-content */
+}
+.lx-trust-pillars__summary-count {
+  font-weight: 700;
+}
+.lx-trust-pillars__summary-name {
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
 }
 
-.lx-trust-pillars__row:hover {
+.lx-trust-pillars__summary-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.lx-trust-pillars__summary-dot--ok {
+  background: #22c55e; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__summary-dot--warn {
+  background: #f59e0b; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__summary-dot--danger {
+  background: #ef4444; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__summary-dot--info {
+  background: #60a5fa; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__summary-dot--neutral {
+  background: rgba(148, 163, 184, 0.60); /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__summary-chip--ok .lx-trust-pillars__summary-count {
+  color: #166534; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__summary-chip--warn .lx-trust-pillars__summary-count {
+  color: #92400e; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__summary-chip--danger .lx-trust-pillars__summary-count {
+  color: #991b1b; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__summary-chip--info .lx-trust-pillars__summary-count {
+  color: #1d4ed8; /* off-token-allow: operator-status-semantic-locked */
+}
+
+.lx-trust-pillars__meter {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 3px;
+  align-items: stretch;
+  min-width: 0;
+}
+.lx-trust-pillars__meter-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.lx-trust-pillars__meter-cell--ok {
+  background: #22c55e; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__meter-cell--warn {
+  background: #f59e0b; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__meter-cell--danger {
+  background: #ef4444; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__meter-cell--info {
+  background: #60a5fa; /* off-token-allow: operator-status-semantic-locked */
+}
+.lx-trust-pillars__meter-cell--neutral {
+  background: rgba(148, 163, 184, 0.45); /* off-token-allow: operator-status-semantic-locked */
+}
+
+/* -----------------------------------------------------------
+   PILLAR GRID — 2-column on >=720px, 1-column under. Each cell
+   is a compact row: dot · label/value stack · timestamp · chevron.
+   ----------------------------------------------------------- */
+body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__grid,
+[data-rmc-page-personality="control-plane"] .lx-trust-pillars__grid {
+  list-style: none;
+  margin: 0;
+  padding: 8px 20px 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+}
+
+.lx-trust-pillars__cell {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline, #e5e7eb); /* off-token-allow: theme-aware-fallback-only */
+  min-width: 0;
+  transition: background var(--motion-fast, 150ms ease);
+}
+.lx-trust-pillars__cell:hover {
   background: var(--surface-canvas, #fbfbfd); /* off-token-allow: theme-aware-fallback-only */
 }
 
+/* Drop bottom borders on the last 1-2 cells depending on layout.
+   In 2-col we drop the last TWO; in 1-col only the last. */
+.lx-trust-pillars__cell:last-child {
+  border-bottom: 0;
+}
+@media (min-width: 720px) {
+  .lx-trust-pillars__cell:nth-last-child(2):nth-child(odd) {
+    border-bottom: 0;
+  }
+}
+
 /* Row-level status modifiers — defined for class-grammar compliance even
-   when the base row chrome carries the visible styling (dots/values do
-   the semantic-color work). Keeps `scan_undefined_css_classes.py` clean. */
-.lx-trust-pillars__row--ok,
-.lx-trust-pillars__row--warn,
-.lx-trust-pillars__row--danger,
-.lx-trust-pillars__row--info,
-.lx-trust-pillars__row--neutral {
-  /* base row chrome is unchanged; modifiers are status hooks */
+   when the base cell chrome carries no per-status visible styling (dots
+   + values do the semantic-color work). Keeps undefined-class scanner clean. */
+.lx-trust-pillars__cell--ok,
+.lx-trust-pillars__cell--warn,
+.lx-trust-pillars__cell--danger,
+.lx-trust-pillars__cell--info,
+.lx-trust-pillars__cell--neutral {
+  /* status hooks; visible chrome unchanged */
 }
 
-/* Neutral value tone — base color (text-tertiary) is the neutral default,
-   so this rule documents the modifier exists without overriding. */
+/* Neutral value tone — documents the modifier exists; base color is
+   already the neutral default. */
 .lx-trust-pillars__value--neutral {
-  color: var(--text-tertiary);
+  color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
 }
 
-/* Status dot — semantic-locked hues. The dot is the only piece of pure
-   status color; the row label/value tones get the matching --value-*
-   classes below. */
+/* -----------------------------------------------------------
+   STATUS DOT — semantic-locked hues + soft ring.
+   ----------------------------------------------------------- */
 .lx-trust-pillars__dot {
   width: 10px;
   height: 10px;
@@ -78,71 +267,64 @@
   display: inline-block;
   flex-shrink: 0;
 }
-
 .lx-trust-pillars__dot--ok {
   background: #22c55e; /* off-token-allow: operator-status-semantic-locked */
   box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16); /* off-token-allow: operator-status-semantic-locked */
 }
-
 .lx-trust-pillars__dot--warn {
   background: #f59e0b; /* off-token-allow: operator-status-semantic-locked */
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18); /* off-token-allow: operator-status-semantic-locked */
 }
-
 .lx-trust-pillars__dot--danger {
   background: #ef4444; /* off-token-allow: operator-status-semantic-locked */
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.20); /* off-token-allow: operator-status-semantic-locked */
 }
-
 .lx-trust-pillars__dot--info {
   background: #60a5fa; /* off-token-allow: operator-status-semantic-locked */
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16); /* off-token-allow: operator-status-semantic-locked */
 }
-
 .lx-trust-pillars__dot--neutral {
   background: rgba(148, 163, 184, 0.60); /* off-token-allow: operator-status-semantic-locked */
   box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.14); /* off-token-allow: operator-status-semantic-locked */
 }
 
+/* -----------------------------------------------------------
+   LABEL + VALUE — label clipped with ellipsis, value mono.
+   ----------------------------------------------------------- */
 .lx-trust-pillars__label-block {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-
 .lx-trust-pillars__label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-primary, #0f172a); /* off-token-allow: theme-aware-fallback-only */
   letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocab */
 }
-
 .lx-trust-pillars__value {
   font-size: 11px;
   font-family: var(--mono, ui-monospace, "SF Mono", Menlo, monospace);
-  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
   letter-spacing: 0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric */
 }
-
 .lx-trust-pillars__value--ok {
   color: #166534; /* off-token-allow: operator-status-semantic-locked */
 }
-
 .lx-trust-pillars__value--warn {
   color: #92400e; /* off-token-allow: operator-status-semantic-locked */
 }
-
 .lx-trust-pillars__value--danger {
   color: #991b1b; /* off-token-allow: operator-status-semantic-locked */
 }
-
 .lx-trust-pillars__value--info {
   color: #1d4ed8; /* off-token-allow: operator-status-semantic-locked */
 }
@@ -151,44 +333,122 @@
   font-size: 11px;
   font-family: var(--mono, ui-monospace, "SF Mono", Menlo, monospace);
   white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric */
-  color: var(--text-muted);
-  white-space: nowrap;
+  color: var(--text-muted, #94a3b8); /* off-token-allow: theme-aware-fallback-only */
   font-variant-numeric: tabular-nums;
 }
 
 .lx-trust-pillars__chevron {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-tertiary);
+  color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
   text-decoration: none;
   padding: 4px 8px;
   border-radius: var(--radius-sm, 8px);
   line-height: 1;
   transition: background var(--motion-fast, 150ms ease), color var(--motion-fast, 150ms ease);
 }
-
 .lx-trust-pillars__chevron:hover {
   background: var(--surface-sunken, #ebebef); /* off-token-allow: theme-aware-fallback-only */
-  color: var(--text-primary);
+  color: var(--text-primary, #0f172a); /* off-token-allow: theme-aware-fallback-only */
 }
 
+/* -----------------------------------------------------------
+   QUICK-ACTION FOOTER — ghost buttons row. Only renders when at
+   least one URL is provided (template-gated).
+   ----------------------------------------------------------- */
+body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__actions,
+[data-rmc-page-personality="control-plane"] .lx-trust-pillars__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 20px 12px;
+  border-top: 1px solid var(--hairline, #e5e7eb); /* off-token-allow: theme-aware-fallback-only */
+}
+.lx-trust-pillars__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--hairline, #e5e7eb); /* off-token-allow: theme-aware-fallback-only */
+  background: transparent;
+  color: var(--text-secondary, #334155); /* off-token-allow: theme-aware-fallback-only */
+  text-decoration: none;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: nav-label-controlled-vocab */
+  transition: background var(--motion-fast, 150ms ease), color var(--motion-fast, 150ms ease), border-color var(--motion-fast, 150ms ease);
+}
+.lx-trust-pillars__action:hover {
+  background: var(--surface-canvas, #fbfbfd); /* off-token-allow: theme-aware-fallback-only */
+  color: var(--text-primary, #0f172a); /* off-token-allow: theme-aware-fallback-only */
+  border-color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
+}
+
+/* -----------------------------------------------------------
+   FOOTER (italic serif caption).
+   ----------------------------------------------------------- */
 .lx-trust-pillars__footer {
   padding: 12px 20px;
   font-family: var(--serif, "Source Serif 4", Georgia, serif);
   font-style: italic;
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: var(--text-tertiary, #64748b); /* off-token-allow: theme-aware-fallback-only */
   background: var(--surface-canvas, #fbfbfd); /* off-token-allow: theme-aware-fallback-only */
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--hairline, #e5e7eb); /* off-token-allow: theme-aware-fallback-only */
 }
 
-/* Narrow screens — collapse the time column under the label */
+/* -----------------------------------------------------------
+   LEGACY single-column row classes — kept defined so the
+   undefined-class scanner stays clean if cached markup ever
+   ships before the template refresh propagates. No visible
+   chrome; the redesign uses `.lx-trust-pillars__grid` +
+   `__cell` instead.
+   ----------------------------------------------------------- */
+.lx-trust-pillars__rows,
+.lx-trust-pillars__row,
+.lx-trust-pillars__row--ok,
+.lx-trust-pillars__row--warn,
+.lx-trust-pillars__row--danger,
+.lx-trust-pillars__row--info,
+.lx-trust-pillars__row--neutral {
+  /* class-grammar placeholder for legacy markup */
+}
+
+/* -----------------------------------------------------------
+   RESPONSIVE — collapse to 1-column under 720px.
+   ----------------------------------------------------------- */
 @media (max-width: 720px) {
-  .lx-trust-pillars__row {
-    grid-template-columns: 18px 1fr auto;
+  body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__grid,
+  [data-rmc-page-personality="control-plane"] .lx-trust-pillars__grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .lx-trust-pillars__cell {
+    grid-template-columns: 14px 1fr auto;
   }
   .lx-trust-pillars__time {
     grid-column: 2;
     font-size: 10px;
+  }
+  body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__summary,
+  [data-rmc-page-personality="control-plane"] .lx-trust-pillars__summary {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .lx-trust-pillars__meter {
+    flex-wrap: wrap;
+  }
+}
+
+/* -----------------------------------------------------------
+   REDUCED MOTION — honor user preference.
+   ----------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .lx-trust-pillars__cell,
+  .lx-trust-pillars__chevron,
+  .lx-trust-pillars__action {
+    transition: none;
   }
 }
