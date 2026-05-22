@@ -54,6 +54,7 @@ from .super_views_migration import (
     super_migration_rollback,
 )
 from .super_views_provisioning import api_create_school
+from apps.lifecycle.views import LifecycleTimelineView
 from apps.schoolops.views_analytics import MealPlanAnalyticsView
 from apps.schoolops.views_email_admin import EmailDeliveryConfigView
 from apps.schoolops.views_email_health import (
@@ -340,6 +341,11 @@ urlpatterns = [
         "tenants/<uuid:school_id>/360/",
         require_super_access_with_host(super_views.super_tenant_360),
         name="tenant_360",
+    ),
+    path(
+        "lifecycle/<uuid:school_id>/",
+        require_super_access_with_host(LifecycleTimelineView.as_view()),
+        name="lifecycle_timeline",
     ),
     path(
         "health/",

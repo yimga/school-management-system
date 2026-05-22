@@ -241,6 +241,7 @@ INSTALLED_APPS = [
     "apps.studio_os.apps.StudioOsConfig",
     "apps.orchestration.apps.OrchestrationConfig",  # Phase 10 — 4.1 long-running process support
     "apps.platform_runtime.apps.PlatformRuntimeConfig",  # Phase 10 — 1.2 runtime defaults (state-safe migration)
+    "apps.lifecycle.apps.LifecycleConfig",  # 360 school lifecycle spine (Wave L1+)
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",

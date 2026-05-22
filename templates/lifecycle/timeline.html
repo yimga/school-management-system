@@ -1,0 +1,54 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Lifecycle 360" %} — {{ school.name }}{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-2 rmc-lifecycle-360" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-decision-console="lifecycle-360">
+  <header class="rmc-lifecycle-360__header mb-3">
+    <h1 class="h5 mb-1">{% trans "Lifecycle 360" %} — {{ school.name }} <code class="small text-secondary">{{ school.slug }}</code></h1>
+    <p class="small text-secondary mb-2">
+      {% trans "Single timeline across creation, onboarding, operation, migration, and offboarding." %}
+    </p>
+    <div class="rmc-lifecycle-360__chips d-flex flex-wrap gap-2 align-items-center">
+      {% if latest_stage %}
+        <span class="badge text-bg-secondary">{% trans "Latest" %}: {{ stage_labels|default:latest_stage }}</span>
+      {% else %}
+        <span class="badge text-bg-light">{% trans "No lifecycle events yet" %}</span>
+      {% endif %}
+      {% if is_live %}<span class="badge text-bg-success">{% trans "Live" %}</span>{% endif %}
+      {% if is_terminal %}<span class="badge text-bg-dark">{% trans "Terminal" %}</span>{% endif %}
+      <a href="{% url 'super:tenant_360' school.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Tenant 360" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Dashboard" %}</a>
+    </div>
+  </header>
+
+  {% if counts %}
+  <div class="rmc-lifecycle-360__counts mb-3 d-flex flex-wrap gap-2">
+    {% for stage_value, count in counts.items %}
+      <span class="badge text-bg-light border">
+        {{ stage_labels|default:stage_value }} · <strong>{{ count }}</strong>
+      </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <ol class="rmc-lifecycle-360__timeline list-unstyled mb-0">
+    {% for row in timeline %}
+    <li class="rmc-lifecycle-360__row d-flex gap-3 py-2 border-bottom">
+      <div class="rmc-lifecycle-360__dot" aria-hidden="true">●</div>
+      <div class="flex-grow-1">
+        <div class="d-flex flex-wrap justify-content-between gap-2">
+          <strong class="rmc-lifecycle-360__stage">{{ row.get_stage_display }}</strong>
+          <span class="small text-secondary"><time datetime="{{ row.created_at|date:'c' }}">{{ row.created_at|date:"Y-m-d H:i" }} UTC</time></span>
+        </div>
+        {% if row.note %}<p class="small mb-1">{{ row.note }}</p>{% endif %}
+        {% if row.actor_hash %}<code class="small text-secondary">{% trans "actor" %} <span aria-label="{% trans 'SHA-256 prefix of actor id' %}">{{ row.actor_hash }}</span></code>{% endif %}
+      </div>
+    </li>
+    {% empty %}
+    <li class="rmc-lifecycle-360__row text-secondary py-3">{% trans "No lifecycle stages recorded for this school yet." %}</li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}
