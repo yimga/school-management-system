@@ -1,20 +1,81 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
-{% block title %}{% trans "Check your email" %}{% endblock %}
+{% block title %}{% trans "Check your email" %} — {{ school_name }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-signup-v2.css' %}">
+{% endblock %}
 
 {% block content %}
-<section class="auth-shell" aria-labelledby="signup-done-title">
-  <div class="auth-card" style="text-align:center">
-    <div style="width:56px;height:56px;border-radius:16px;background:color-mix(in oklab, var(--ds-success) 14%, transparent);color:var(--ds-success);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;" aria-hidden="true">
-      <i class="bi bi-envelope-check" style="font-size:var(--type-size-headline-m)"></i>
+{% comment %}Wave L7 (v3.61.8 — 2026-05-22): post-signup success state upgraded to a
+   confidence-building "what happens next" view. Shows the workspace URL
+   the new admin will land on, a 3-step activation timeline, and (when
+   migration intent was captured at signup) a migration-aware CTA so
+   they know their MigrationBundle is already drafted.{% endcomment %}
+<section class="auth-shell rmc-signup-done" aria-labelledby="signup-done-title">
+  <div class="auth-card rmc-signup-done__card">
+    <div class="rmc-signup-done__icon" aria-hidden="true">
+      <i class="bi bi-envelope-check"></i>
     </div>
-    <h1 id="signup-done-title">{% trans "Check your email." %}</h1>
-    <p class="auth-sub">{% blocktrans %}We sent a verification link to <strong>{{ email }}</strong>. Click the link to activate your school workspace.{% endblocktrans %}</p>
-    <div style="background:var(--surface-bg-subtle);border-radius:8px;padding:12px 16px;margin:18px 0;text-align:left;font-size:var(--type-size-caption);color:var(--admin-content-text-muted);line-height:1.55">
-      <i class="bi bi-info-circle me-1" style="color:var(--school-primary)"></i> {% trans "The link is valid for 2 days. If you don't see the email within a couple of minutes, check your spam folder." %}
+    <h1 id="signup-done-title" class="rmc-signup-done__title">{% trans "You're almost in." %}</h1>
+    <p class="rmc-signup-done__sub">
+      {% blocktrans %}We sent a verification link to <strong>{{ email }}</strong>. Click it to activate your school workspace.{% endblocktrans %}
+    </p>
+
+    {% if workspace_url %}
+    <div class="rmc-signup-done__workspace" role="region" aria-label="{% trans 'Your future workspace URL' %}">
+      <span class="rmc-signup-done__workspace-label">{% trans "Your workspace will live at" %}</span>
+      <code class="rmc-signup-done__workspace-url">{{ workspace_url }}</code>
     </div>
-    <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-secondary" style="width:100%"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to sign in" %}</a>
+    {% endif %}
+
+    <ol class="rmc-signup-done__timeline" role="list" aria-label="{% trans 'Activation timeline' %}">
+      <li class="rmc-signup-done__step rmc-signup-done__step--done">
+        <span class="rmc-signup-done__step-dot" aria-hidden="true">✓</span>
+        <div>
+          <strong>{% trans "Workspace created" %}</strong>
+          <p>{% trans "Your school row is in our database — gated until you verify." %}</p>
+        </div>
+      </li>
+      <li class="rmc-signup-done__step rmc-signup-done__step--current">
+        <span class="rmc-signup-done__step-dot" aria-hidden="true">2</span>
+        <div>
+          <strong>{% trans "Verify your email" %}</strong>
+          <p>{% trans "Open the email we sent — the link is valid for 2 days." %}</p>
+        </div>
+      </li>
+      <li class="rmc-signup-done__step">
+        <span class="rmc-signup-done__step-dot" aria-hidden="true">3</span>
+        <div>
+          <strong>{% trans "Onboarding concierge" %}</strong>
+          <p>{% trans "We'll walk you through brand, academic year, people, and publish — usually 5 minutes." %}</p>
+        </div>
+      </li>
+      {% if migration_vendor %}
+      <li class="rmc-signup-done__step rmc-signup-done__step--migration">
+        <span class="rmc-signup-done__step-dot" aria-hidden="true"><i class="bi bi-cloud-arrow-up"></i></span>
+        <div>
+          <strong>{% trans "Migration ready on day one" %}</strong>
+          <p>{% blocktrans with vendor=migration_vendor|capfirst %}A draft Migration Cloud bundle for <strong>{{ vendor }}</strong> is queued — you'll find it in <code>/portal/migration/status/</code>.{% endblocktrans %}</p>
+        </div>
+      </li>
+      {% endif %}
+    </ol>
+
+    <div class="rmc-signup-done__hint">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      {% trans "Didn't receive the email within a couple of minutes? Check your spam folder, or reach out and we'll re-send." %}
+    </div>
+
+    <div class="rmc-signup-done__actions">
+      <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-secondary rmc-signup-done__action">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> {% trans "Back to sign in" %}
+      </a>
+      <a href="mailto:{{ email }}" class="btn btn-primary rmc-signup-done__action rmc-cta--gradient-indigo">
+        <i class="bi bi-envelope-open" aria-hidden="true"></i> {% trans "Open my email" %}
+      </a>
+    </div>
   </div>
 </section>
 {% endblock %}

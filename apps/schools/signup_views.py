@@ -147,6 +147,50 @@ def _resolved_marketing_demo_tenant_url() -> str:
     return derive_marketing_demo_tenant_url("", "demo-school", base)
 
 
+# Wave L7 (v3.61.8 — 2026-05-22): public signup 2.0.
+# - inline migration vendor picker (drives lifecycle.services_migration
+#   auto-launch hook by writing settings['migration_intent'] at create time)
+# - school-type cards (drives School.primary_sector at create time)
+# - Accept-Language → country-code auto-detect when not explicitly passed
+# - polished success page wired through with the same intent context
+
+_SCHOOL_TYPE_TO_PRIMARY_SECTOR = {
+    "preschool":  "early_childhood",
+    "primary":    "primary",
+    "k12":        "k12",
+    "secondary":  "secondary",
+    "college":    "higher_ed",
+    "university": "higher_ed",
+    "mixed":      "k12",
+}
+
+_SIGNUP_VENDOR_SLUGS = {
+    "powerschool", "blackbaud", "veracross", "infinite_campus",
+    "alma", "facts", "skyward", "managebac", "toddle",
+    "oneroster", "csv", "spreadsheet", "other",
+}
+
+
+def _country_from_accept_language(request) -> str:
+    """Best-effort country code from Accept-Language header.
+
+    Returns "" when we can't extract a confident 2-letter ISO. Never
+    raises — falls through to the existing manual picker.
+    """
+    try:
+        header = (request.META.get("HTTP_ACCEPT_LANGUAGE") or "").strip()
+        if not header:
+            return ""
+        primary = header.split(",")[0].strip()
+        if "-" in primary:
+            tail = primary.split("-")[-1].strip().upper()[:2]
+            if len(tail) == 2 and tail.isalpha():
+                return tail
+    except Exception:  # noqa: BLE001
+        pass
+    return ""
+
+
 @require_http_methods(["GET", "POST"])
 def signup_school(request: HttpRequest):
     """
@@ -157,12 +201,16 @@ def signup_school(request: HttpRequest):
     v3.58.x Wave 9 Agent K — request-lifetime timing instrumentation +
     async verification email send (so a slow / unreachable SMTP can
     never time out the signup HTTP request lifecycle).
+    v3.61.8 Wave L7 — vendor + school-type intent capture, Accept-Language
+    country fallback, lifecycle.services_migration auto-launch hook.
     """
     t0 = time.monotonic()
     if request.method == "GET":
         cc = (request.GET.get("country_code") or "").strip()[:2].upper()
         if not cc:
             cc = (request.session.get("onboarding_country_code") or "").strip()[:2].upper()
+        if not cc:
+            cc = _country_from_accept_language(request)
         tp = (request.GET.get("term_preset") or "").strip()[:8].upper()
         if tp not in ("", "UK"):
             tp = ""
@@ -211,6 +259,13 @@ def signup_school(request: HttpRequest):
         request.POST.get("term_preset") or ""
     ).strip()  # e.g. "UK" for British terms at signup
     signup_ref = (request.POST.get("signup_ref") or "").strip()[:32]
+    # Wave L7 — intent capture for downstream auto-launch hooks.
+    migration_vendor = (request.POST.get("migration_vendor") or "").strip().lower()
+    if migration_vendor and migration_vendor not in _SIGNUP_VENDOR_SLUGS:
+        migration_vendor = ""
+    school_type = (request.POST.get("school_type") or "").strip().lower()
+    if school_type and school_type not in _SCHOOL_TYPE_TO_PRIMARY_SECTOR:
+        school_type = ""
 
     errors = []
     if not name:
@@ -320,8 +375,18 @@ def signup_school(request: HttpRequest):
                 "started_from": "public_onboarding",
             }
         school_settings["rmc_public_onboarding"] = rmc_ob
+    # Wave L7: persist migration intent in the lifecycle-spine-readable
+    # shape so apps.lifecycle.signals.school_post_save_record_lifecycle
+    # auto-launches a draft MigrationBundle on creation.
+    if migration_vendor:
+        school_settings["migration_intent"] = {
+            "vendor": migration_vendor,
+            "intake_method": "file_upload",
+            "expected_students": 0,
+            "label": f"{name} initial migration from {migration_vendor}"[:200],
+        }
     country_defaults = GlobalGeoCatalog.country_defaults(country_code)
-    school = School.objects.create(
+    create_kwargs = dict(
         name=name,
         slug=slug,
         subdomain=subdomain,
@@ -334,6 +399,13 @@ def signup_school(request: HttpRequest):
         ),
         settings=school_settings,
     )
+    # Wave L7: school-type maps to first-class primary_sector so the
+    # blueprint selector picks the right starter pack on first login.
+    if school_type:
+        create_kwargs["primary_sector"] = _SCHOOL_TYPE_TO_PRIMARY_SECTOR.get(
+            school_type, ""
+        )[:64]
+    school = School.objects.create(**create_kwargs)
     from datetime import timedelta
 
     expires_at = timezone.now() + timedelta(days=2)
@@ -416,7 +488,26 @@ def signup_school(request: HttpRequest):
             status=201,
         )
     messages.success(request, "Check your email to verify and activate your school.")
-    return render(request, "schools/signup_school_done.html", {"email": email})
+    # Wave L7 — build a richer success context so the done page can
+    # render a "what happens next" timeline + workspace URL preview +
+    # migration-aware CTA.
+    workspace_url = ""
+    base_domain = (getattr(settings, "MULTI_TENANT_BASE_DOMAIN", "") or "").strip().lower()
+    if base_domain:
+        workspace_url = f"https://{subdomain}.{base_domain}"
+    return render(
+        request,
+        "schools/signup_school_done.html",
+        {
+            "email": email,
+            "school_name": name,
+            "workspace_url": workspace_url,
+            "school_slug": slug,
+            "migration_vendor": migration_vendor,
+            "school_type": school_type,
+            "country_code": country_code,
+        },
+    )
 
 
 def _get_plans_for_onboarding():

@@ -1,6 +1,11 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{{ cockpit.signup_form.heading|default:_("Start your school workspace") }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+{# Wave L7 (v3.61.8 — 2026-05-22): signup 2.0 — school-type cards + done-page polish. #}
+<link rel="stylesheet" href="{% static 'css/rmc-signup-v2.css' %}">
+{% endblock %}
 
 {% block content %}
 {% if cockpit.signup_form.enabled %}
@@ -161,6 +166,76 @@
             </select>
           {% endif %}
         </div>
+      </div>
+
+      {% comment %}Wave L7 (v3.61.8 — 2026-05-22): school-type cards.
+         Drives School.primary_sector at create time so the blueprint
+         selector picks the right starter pack on first login. Five
+         compact cards in a wrapping flex row — Apple HIG, no scroll.{% endcomment %}
+      <div class="mb-3 rmc-signup-field" data-rmc-signup-field="school_type">
+        <div class="rmc-signup-field__label-row">
+          <span class="rmc-signup-field__label-text">{% trans "School type" %}</span>
+          <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
+        </div>
+        <div class="rmc-signup-type-cards" role="radiogroup" aria-label="{% trans 'School type' %}">
+          {% with chosen=school_type|default:'' %}
+          <label class="rmc-signup-type-card {% if chosen == 'k12' %}rmc-signup-type-card--selected{% endif %}">
+            <input type="radio" name="school_type" value="k12" class="rmc-signup-type-card__input" {% if chosen == 'k12' %}checked{% endif %}>
+            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🎒</span>
+            <span class="rmc-signup-type-card__title">{% trans "K-12" %}</span>
+          </label>
+          <label class="rmc-signup-type-card {% if chosen == 'preschool' %}rmc-signup-type-card--selected{% endif %}">
+            <input type="radio" name="school_type" value="preschool" class="rmc-signup-type-card__input" {% if chosen == 'preschool' %}checked{% endif %}>
+            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🧸</span>
+            <span class="rmc-signup-type-card__title">{% trans "Preschool" %}</span>
+          </label>
+          <label class="rmc-signup-type-card {% if chosen == 'college' %}rmc-signup-type-card--selected{% endif %}">
+            <input type="radio" name="school_type" value="college" class="rmc-signup-type-card__input" {% if chosen == 'college' %}checked{% endif %}>
+            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🎓</span>
+            <span class="rmc-signup-type-card__title">{% trans "College" %}</span>
+          </label>
+          <label class="rmc-signup-type-card {% if chosen == 'university' %}rmc-signup-type-card--selected{% endif %}">
+            <input type="radio" name="school_type" value="university" class="rmc-signup-type-card__input" {% if chosen == 'university' %}checked{% endif %}>
+            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🏛️</span>
+            <span class="rmc-signup-type-card__title">{% trans "University" %}</span>
+          </label>
+          <label class="rmc-signup-type-card {% if chosen == 'mixed' %}rmc-signup-type-card--selected{% endif %}">
+            <input type="radio" name="school_type" value="mixed" class="rmc-signup-type-card__input" {% if chosen == 'mixed' %}checked{% endif %}>
+            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🌐</span>
+            <span class="rmc-signup-type-card__title">{% trans "Mixed" %}</span>
+          </label>
+          {% endwith %}
+        </div>
+      </div>
+
+      {% comment %}Wave L7 (v3.61.8 — 2026-05-22): migration vendor picker.
+         Captures intent at signup so apps.lifecycle.signals auto-drafts
+         a MigrationBundle the moment the school row lands. Powers the
+         "import from another SIS" path WITHOUT requiring the user to
+         navigate to the Migration Cloud wizard separately.{% endcomment %}
+      <div class="mb-3 rmc-signup-field" data-rmc-signup-field="migration_vendor">
+        <div class="rmc-signup-field__label-row">
+          <span class="rmc-signup-field__label-text">{% trans "Coming from another platform?" %}</span>
+          <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
+        </div>
+        <select name="migration_vendor" id="migration_vendor"
+                class="form-select rmc-signup-input rmc-signup-vendor-select"
+                aria-label="{% trans 'Migrating from another SIS' %}">
+          <option value="">{% trans "No — starting fresh" %}</option>
+          <option value="powerschool" {% if migration_vendor == 'powerschool' %}selected{% endif %}>PowerSchool</option>
+          <option value="blackbaud" {% if migration_vendor == 'blackbaud' %}selected{% endif %}>Blackbaud</option>
+          <option value="veracross" {% if migration_vendor == 'veracross' %}selected{% endif %}>Veracross</option>
+          <option value="infinite_campus" {% if migration_vendor == 'infinite_campus' %}selected{% endif %}>Infinite Campus</option>
+          <option value="alma" {% if migration_vendor == 'alma' %}selected{% endif %}>Alma SIS</option>
+          <option value="facts" {% if migration_vendor == 'facts' %}selected{% endif %}>FACTS / RenWeb</option>
+          <option value="skyward" {% if migration_vendor == 'skyward' %}selected{% endif %}>Skyward</option>
+          <option value="managebac" {% if migration_vendor == 'managebac' %}selected{% endif %}>ManageBac</option>
+          <option value="toddle" {% if migration_vendor == 'toddle' %}selected{% endif %}>Toddle</option>
+          <option value="oneroster" {% if migration_vendor == 'oneroster' %}selected{% endif %}>OneRoster (CSV)</option>
+          <option value="csv" {% if migration_vendor == 'csv' %}selected{% endif %}>{% trans "Generic spreadsheets" %}</option>
+          <option value="other" {% if migration_vendor == 'other' %}selected{% endif %}>{% trans "Other (we'll match it)" %}</option>
+        </select>
+        <div class="form-text rmc-signup-field__hint">{% trans "We'll draft a Migration Cloud bundle so it's ready on day one. You can change this later." %}</div>
       </div>
 
       {# v3.59.x Wave 11 Agent X (2026-05-22): primary signup CTA upgraded to `.rmc-cta--gradient-indigo` per v8 200x preview. #}
