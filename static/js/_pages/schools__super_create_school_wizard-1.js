@@ -6,14 +6,42 @@
       window.__RMC_PAGE_DATA__["schools__super_create_school_wizard-1"] = JSON.parse(
         pageDataEl.textContent || "{}"
       );
-    } catch (_e) {}
+    } catch (parseErr) {
+      if (typeof console !== "undefined" && console.error) {
+        console.error("[create-school] page-data JSON parse failed", parseErr);
+      }
+    }
   }
 
   (function () {
     var pageData = window.__RMC_PAGE_DATA__["schools__super_create_school_wizard-1"] || {};
     var wizardSteps = pageData.wizard_steps || [];
+    var wizardStepsEl = document.getElementById("rmc-wizard-steps-json");
+    if (wizardStepsEl) {
+      try {
+        wizardSteps = JSON.parse(wizardStepsEl.textContent || "[]");
+      } catch (stepsErr) {
+        if (typeof console !== "undefined" && console.error) {
+          console.error("[create-school] wizard-steps JSON parse failed", stepsErr);
+        }
+      }
+    }
     var form = document.getElementById("wizard-form");
     if (!form) return;
+
+    function resolveCreateSchoolApiUrl() {
+      var fromPage = pageData.url_super_api_create_school;
+      if (typeof fromPage === "string") {
+        fromPage = fromPage.trim();
+        if (fromPage && fromPage.indexOf("undefined") === -1) return fromPage;
+      }
+      var fromForm = form.getAttribute("data-create-school-api-url");
+      if (typeof fromForm === "string") {
+        fromForm = fromForm.trim();
+        if (fromForm && fromForm.indexOf("undefined") === -1) return fromForm;
+      }
+      return "";
+    }
 
     var tabs = [
       document.getElementById("step1"),
@@ -433,7 +461,21 @@
         fetchOpts.body = JSON.stringify(payload);
       }
 
-      fetch(pageData.url_super_api_create_school, fetchOpts)
+      var createSchoolUrl = resolveCreateSchoolApiUrl();
+      if (!createSchoolUrl) {
+        errorEl.textContent =
+          "Create-school API URL is missing on this page. Hard-refresh (Ctrl+Shift+R) and try again. If it persists, contact support.";
+        errorEl.classList.remove("d-none");
+        if (typeof console !== "undefined" && console.error) {
+          console.error("[create-school] missing API URL", {
+            pageDataUrl: pageData.url_super_api_create_school,
+            formUrl: form.getAttribute("data-create-school-api-url"),
+          });
+        }
+        return;
+      }
+
+      fetch(createSchoolUrl, fetchOpts)
         .then(function (r) {
           // v3.54.0 (2026-05-21): diagnostic improvement. Previously this chain
           // unconditionally called r.json(); when the server returned HTML

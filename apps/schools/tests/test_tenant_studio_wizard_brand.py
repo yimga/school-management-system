@@ -128,3 +128,6 @@ class TenantStudioWizardBrandTests(TestCase):
         self.assertIn("tenant-studio-wizard", html)
         self.assertIn("rmc-info-tag", html)
         self.assertNotIn("Logo upload can be done after creation", html)
+        self.assertIn('data-create-school-api-url="/super/api/create-school/"', html)
+        self.assertIn('"url_super_api_create_school": "/super/api/create-school/"', html)
+        self.assertIn('id="rmc-wizard-steps-json"', html)

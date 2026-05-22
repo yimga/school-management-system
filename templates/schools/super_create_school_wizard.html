@@ -85,6 +85,7 @@
                 <form
                   id="wizard-form"
                   enctype="multipart/form-data"
+                  data-create-school-api-url="{% url 'super:api_create_school' %}"
                   data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}"
                   data-timeline-url-template="{% url 'super:api_school_timeline' '00000000-0000-0000-0000-000000000000' %}"
                   data-city-search-url="{% url 'super:api_geo_cities' %}"
@@ -321,10 +322,10 @@
     </div>
   </div>
 
+  {{ wizard_steps_meta|json_script:"rmc-wizard-steps-json" }}
   <script type="application/json" id="page-data-schools__super_create_school_wizard-1">{
   "url_super_api_create_school": "{% url "super:api_create_school" %}",
-  "trans_at_least_one_sector_primary_sector_or_education_system_types_is_required": "{% trans "At least one sector (Primary sector or Education system types) is required." %}",
-  "wizard_steps": {{ wizard_steps_json }}
+  "trans_at_least_one_sector_primary_sector_or_education_system_types_is_required": "{% trans "At least one sector (Primary sector or Education system types) is required." %}"
 }</script>
   <script src="{% static 'js/_pages/schools__super_create_school_wizard-1.js' %}"></script>
 {% endblock %}
