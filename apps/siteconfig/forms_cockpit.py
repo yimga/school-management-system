@@ -553,6 +553,277 @@ def _serialize_audit_events(items: list[dict[str, Any]] | None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# v3.57.13 parsers + serializers — 5 NEW sections (forecast_lane / slo_clocks /
+# trust_nutrition / parent_teacher_thread / financial_timeline). Same forgiving
+# pipe-separated textarea contract as the v3.57.12 editors above.
+# ---------------------------------------------------------------------------
+
+
+def _parse_forecast_cards(value: str) -> list[dict[str, str]]:
+    """One per line: ``head | value | label | severity``.
+
+    Pairs with ``cockpit.forecast_lane.cards`` whose richer schema
+    includes ``slug``/``prediction``/SVG polyline coords. The flat editor
+    only exposes the 4 most operator-edited keys (head/value/label/
+    severity). Severity is constrained to ``{ok, info, warn, danger}``;
+    anything else falls back to ``info`` so a typo doesn't crash the
+    CSS-class lookup. Rows without a ``head`` are skipped (a card without
+    a heading is unactionable).
+    """
+    severity_allow = {"ok", "info", "warn", "danger"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        head = parts[0]
+        if not head:
+            continue
+        card_value = parts[1] if len(parts) > 1 else ""
+        label = parts[2] if len(parts) > 2 else ""
+        raw_severity = (parts[3] if len(parts) > 3 else "info").lower() or "info"
+        severity = raw_severity if raw_severity in severity_allow else "info"
+        out.append(
+            {
+                "head": head,
+                "value": card_value,
+                "label": label,
+                "severity": severity,
+            }
+        )
+    return out
+
+
+def _serialize_forecast_cards(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        head = str(item.get("head", "")).strip()
+        if not head:
+            continue
+        card_value = str(item.get("value", "")).strip()
+        label = str(item.get("label", "")).strip()
+        severity = str(item.get("severity", "")).strip() or "info"
+        rows.append(f"{head} | {card_value} | {label} | {severity}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_slo_clocks(value: str) -> list[dict[str, str]]:
+    """One per line: ``name | value | unit | severity``.
+
+    Pairs with ``cockpit.slo_clocks.clocks`` whose richer schema includes
+    ``sublabel`` and ``dot_status``. The flat editor maps:
+        name      -> label
+        value     -> value
+        unit      -> value_suffix
+        severity  -> dot_status (constrained to {ok, info, warn, danger})
+    Rows without a name are skipped (an unnamed clock is meaningless).
+    """
+    severity_allow = {"ok", "info", "warn", "danger"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        name = parts[0]
+        if not name:
+            continue
+        clock_value = parts[1] if len(parts) > 1 else ""
+        unit = parts[2] if len(parts) > 2 else ""
+        raw_severity = (parts[3] if len(parts) > 3 else "info").lower() or "info"
+        severity = raw_severity if raw_severity in severity_allow else "info"
+        out.append(
+            {
+                "label": name,
+                "value": clock_value,
+                "value_suffix": unit,
+                "sublabel": "",
+                "dot_status": severity,
+            }
+        )
+    return out
+
+
+def _serialize_slo_clocks(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("label", "")).strip()
+        if not name:
+            continue
+        clock_value = str(item.get("value", "")).strip()
+        unit = str(item.get("value_suffix", "")).strip()
+        severity = str(item.get("dot_status", "")).strip() or "info"
+        rows.append(f"{name} | {clock_value} | {unit} | {severity}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_trust_rows(value: str) -> list[dict[str, str]]:
+    """One per line: ``metric | value | severity | note`` (note optional).
+
+    Pairs with ``cockpit.trust_nutrition.rows`` whose schema is
+    ``list[{label, value, status}]``. The flat editor adds a free
+    ``note`` key (rendering partials that don't read it ignore the
+    extra key cleanly). Severity is constrained to ``{ok, warn,
+    danger, neutral}``; anything else falls back to ``neutral`` so a
+    typo doesn't crash the CSS-class lookup. Rows without a metric
+    label are skipped.
+    """
+    severity_allow = {"ok", "warn", "danger", "neutral"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        metric = parts[0]
+        if not metric:
+            continue
+        row_value = parts[1] if len(parts) > 1 else ""
+        raw_severity = (parts[2] if len(parts) > 2 else "neutral").lower() or "neutral"
+        status = raw_severity if raw_severity in severity_allow else "neutral"
+        note = parts[3] if len(parts) > 3 else ""
+        out.append(
+            {
+                "label": metric,
+                "value": row_value,
+                "status": status,
+                "note": note,
+            }
+        )
+    return out
+
+
+def _serialize_trust_rows(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        metric = str(item.get("label", "")).strip()
+        if not metric:
+            continue
+        row_value = str(item.get("value", "")).strip()
+        status = str(item.get("status", "")).strip() or "neutral"
+        note = str(item.get("note", "")).strip()
+        rows.append(f"{metric} | {row_value} | {status} | {note}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_thread_messages(value: str) -> list[dict[str, Any]]:
+    """One per line: ``mine_or_theirs | author | timestamp | body``.
+
+    Pairs with ``cockpit.parent_teacher_thread.messages`` whose schema
+    is ``list[{author_initials, author_label, body, sent_iso, mine: bool}]``.
+    The flat editor maps:
+        mine_or_theirs   -> mine (bool: "mine" => True; else => False)
+        author           -> author_label (initials derived from first 2 caps)
+        timestamp        -> sent_iso
+        body             -> body
+    Rows without a body are skipped (an empty message helps nobody).
+    """
+    out: list[dict[str, Any]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        raw_mine = (parts[0] if len(parts) > 0 else "theirs").lower()
+        mine = raw_mine == "mine"
+        author = parts[1] if len(parts) > 1 else ""
+        sent_iso = parts[2] if len(parts) > 2 else ""
+        body = parts[3] if len(parts) > 3 else ""
+        if not body:
+            continue
+        # Derive initials defensively from first-cap of each whitespace
+        # token (max 2 chars). Partials may override or ignore.
+        initials = "".join(
+            token[0].upper() for token in author.split() if token
+        )[:2]
+        out.append(
+            {
+                "author_initials": initials,
+                "author_label": author,
+                "body": body,
+                "sent_iso": sent_iso,
+                "mine": mine,
+            }
+        )
+    return out
+
+
+def _serialize_thread_messages(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        body = str(item.get("body", "")).strip()
+        if not body:
+            continue
+        mine = bool(item.get("mine"))
+        author = str(item.get("author_label", "")).strip()
+        sent_iso = str(item.get("sent_iso", "")).strip()
+        mine_or_theirs = "mine" if mine else "theirs"
+        rows.append(
+            f"{mine_or_theirs} | {author} | {sent_iso} | {body}".rstrip(" |")
+        )
+    return "\n".join(rows)
+
+
+def _parse_financial_events(value: str) -> list[dict[str, str]]:
+    """One per line: ``date | type | description | amount``.
+
+    Pairs with ``cockpit.financial_timeline.events`` whose schema is
+    ``list[{iso, label, amount_display, tone, icon}]``. The flat editor
+    maps:
+        date         -> iso
+        type         -> tone (constrained; falls back to "fee")
+        description  -> label
+        amount       -> amount_display (operator-formatted; never raw Decimal)
+    Type is constrained to ``{fee, payment, discount, balance}``;
+    anything else falls back to ``fee``. Rows without a description are
+    skipped.
+    """
+    tone_allow = {"fee", "payment", "discount", "balance"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        iso = parts[0] if len(parts) > 0 else ""
+        raw_tone = (parts[1] if len(parts) > 1 else "fee").lower() or "fee"
+        tone = raw_tone if raw_tone in tone_allow else "fee"
+        description = parts[2] if len(parts) > 2 else ""
+        amount = parts[3] if len(parts) > 3 else ""
+        if not description:
+            continue
+        out.append(
+            {
+                "iso": iso,
+                "label": description,
+                "amount_display": amount,
+                "tone": tone,
+                "icon": "",
+            }
+        )
+    return out
+
+
+def _serialize_financial_events(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        description = str(item.get("label", "")).strip()
+        if not description:
+            continue
+        iso = str(item.get("iso", "")).strip()
+        tone = str(item.get("tone", "")).strip() or "fee"
+        amount = str(item.get("amount_display", "")).strip()
+        rows.append(f"{iso} | {tone} | {description} | {amount}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+# ---------------------------------------------------------------------------
 # Serializers — flatten nested dict back into textarea-friendly strings
 # for ``__init__`` (round-trip).
 # ---------------------------------------------------------------------------
@@ -1469,6 +1740,139 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- v3.57.13 Rich editors (5 NEW sections) -----------------------
+    # Extends the v3.57.12 pattern to 5 more high-value sections drawn
+    # from manager_200x (forecast_lane / slo_clocks / trust_nutrition)
+    # and tenant_v3_extended (parent_teacher_thread / financial_timeline).
+    # Same forgiving parser contract: empty/malformed rows skipped;
+    # operator-supplied empties filtered from the overlay before
+    # `.update()` so `_deep_merge` preserves defaults from the helper
+    # modules.
+
+    # 11) manager_200x.forecast_lane
+    fcl_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Forecast lane: label"),
+        help_text=_(
+            "Section header above the forecast cards "
+            "(e.g. 'Forecast · next 7 days'). Maps to cockpit.forecast_lane.label."
+        ),
+    )
+    fcl_cards = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Forecast lane: cards"),
+        help_text=_(
+            "One per line: head | value | label | severity. "
+            "Severity ∈ {ok, info, warn, danger}; anything else falls "
+            "back to 'info'. Rows without a head are skipped. "
+            "Polyline coords + confidence bands stay code-owned and "
+            "fall through from section defaults."
+        ),
+    )
+
+    # 12) manager_200x.slo_clocks
+    slo_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("SLO clocks: label"),
+        help_text=_(
+            "Header copy for the SLO clocks card (free-form). "
+            "Persisted under cockpit.slo_clocks.label; rendering partials "
+            "that don't read it ignore the extra key cleanly."
+        ),
+    )
+    slo_clocks_rows = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("SLO clocks: clocks"),
+        help_text=_(
+            "One per line: name | value | unit | severity. "
+            "Severity ∈ {ok, info, warn, danger}; anything else falls "
+            "back to 'info'. Rows without a name are skipped. "
+            "Renders as monospace-digit dark cards with pulse dots."
+        ),
+    )
+
+    # 13) manager_200x.trust_nutrition
+    tnt_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Trust nutrition: label"),
+        help_text=_(
+            "Italic-serif title for the nutrition-label trust card "
+            "(e.g. 'Trust nutrition'). Maps to cockpit.trust_nutrition.title."
+        ),
+    )
+    tnt_rows = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Trust nutrition: rows"),
+        help_text=_(
+            "One per line: metric | value | severity | note. "
+            "Note column optional. Severity ∈ {ok, warn, danger, neutral}; "
+            "anything else falls back to 'neutral'. Rows without a metric "
+            "label are skipped."
+        ),
+    )
+
+    # 14) tenant_v3_extended.parent_teacher_thread
+    ptt_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Parent-teacher thread: label"),
+        help_text=_(
+            "Title shown above the inline message thread "
+            "(e.g. 'Teacher thread'). Maps to cockpit.parent_teacher_thread.title."
+        ),
+    )
+    ptt_messages = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Parent-teacher thread: messages"),
+        help_text=_(
+            "One per line: mine_or_theirs | author | timestamp | body. "
+            "mine_or_theirs ∈ {mine, theirs} (controls bubble alignment). "
+            "Author initials are derived from the first capital of each "
+            "name token. Rows without a body are skipped. Reply-box URL "
+            "+ placeholder fall through to section defaults."
+        ),
+    )
+
+    # 15) tenant_v3_extended.financial_timeline
+    ftl_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Financial timeline: label"),
+        help_text=_(
+            "Title shown above the fees/payments timeline "
+            "(e.g. 'Financial timeline'). Maps to cockpit.financial_timeline.title."
+        ),
+    )
+    ftl_current_balance = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Financial timeline: current balance"),
+        help_text=_(
+            "Operator-formatted balance string (e.g. '$2,450.00'). "
+            "Stored under cockpit.financial_timeline.balance_display; "
+            "raw Decimals are never rendered — the operator owns the "
+            "currency symbol + locale formatting."
+        ),
+    )
+    ftl_events = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Financial timeline: events"),
+        help_text=_(
+            "One per line: date | type | description | amount. "
+            "Type ∈ {fee, payment, discount, balance}; anything else "
+            "falls back to 'fee'. Rows without a description are skipped. "
+            "Amount is operator-formatted (e.g. '+$120.00', '-$50.00')."
+        ),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -1604,6 +2008,28 @@ class CockpitPayloadForm(forms.ModelForm):
     AUDIT_FEED_FIELDS: tuple[str, ...] = (
         "auf_label",
         "auf_events",
+    )
+    # v3.57.13 rich-editor fieldsets — 5 NEW sections.
+    FORECAST_LANE_FIELDS: tuple[str, ...] = (
+        "fcl_label",
+        "fcl_cards",
+    )
+    SLO_CLOCKS_FIELDS: tuple[str, ...] = (
+        "slo_label",
+        "slo_clocks_rows",
+    )
+    TRUST_NUTRITION_FIELDS: tuple[str, ...] = (
+        "tnt_label",
+        "tnt_rows",
+    )
+    PARENT_TEACHER_THREAD_FIELDS: tuple[str, ...] = (
+        "ptt_label",
+        "ptt_messages",
+    )
+    FINANCIAL_TIMELINE_FIELDS: tuple[str, ...] = (
+        "ftl_label",
+        "ftl_current_balance",
+        "ftl_events",
     )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
@@ -1841,6 +2267,47 @@ class CockpitPayloadForm(forms.ModelForm):
         self.fields["auf_label"].initial = audit.get("title", "")
         self.fields["auf_events"].initial = _serialize_audit_events(
             audit.get("events")
+        )
+
+        # ---- v3.57.13 rich-editor seeds (5 NEW sections) ------------------
+        # manager_200x.forecast_lane
+        forecast = payload.get("forecast_lane") or {}
+        self.fields["fcl_label"].initial = forecast.get("label", "")
+        self.fields["fcl_cards"].initial = _serialize_forecast_cards(
+            forecast.get("cards")
+        )
+
+        # manager_200x.slo_clocks
+        slo = payload.get("slo_clocks") or {}
+        # ``label`` is not in the helper defaults but is operator-editable
+        # here; round-trip cleanly via .get() with empty fallback.
+        self.fields["slo_label"].initial = slo.get("label", "")
+        self.fields["slo_clocks_rows"].initial = _serialize_slo_clocks(
+            slo.get("clocks")
+        )
+
+        # manager_200x.trust_nutrition
+        trust = payload.get("trust_nutrition") or {}
+        self.fields["tnt_label"].initial = trust.get("title", "")
+        self.fields["tnt_rows"].initial = _serialize_trust_rows(
+            trust.get("rows")
+        )
+
+        # tenant_v3_extended.parent_teacher_thread
+        thread = payload.get("parent_teacher_thread") or {}
+        self.fields["ptt_label"].initial = thread.get("title", "")
+        self.fields["ptt_messages"].initial = _serialize_thread_messages(
+            thread.get("messages")
+        )
+
+        # tenant_v3_extended.financial_timeline
+        financial = payload.get("financial_timeline") or {}
+        self.fields["ftl_label"].initial = financial.get("title", "")
+        self.fields["ftl_current_balance"].initial = financial.get(
+            "balance_display", ""
+        )
+        self.fields["ftl_events"].initial = _serialize_financial_events(
+            financial.get("events")
         )
 
     # ------------------------------------------------------------------
@@ -2091,6 +2558,70 @@ class CockpitPayloadForm(forms.ModelForm):
             audit_overlay["events"] = auf_events
         if audit_overlay:
             payload.setdefault("audit_feed", {}).update(audit_overlay)
+
+        # v3.57.13 rich-editor overlays (5 NEW sections). Same pattern as
+        # the v3.57.12 overlays above: build dict from operator inputs,
+        # filter empty values so `_deep_merge` preserves defaults, then
+        # `.update()` onto a `setdefault()` dict so any pre-existing keys
+        # survive alongside the new content.
+
+        # 11) manager_200x.forecast_lane
+        forecast_overlay: dict[str, Any] = {}
+        fcl_label = (cleaned.get("fcl_label") or "").strip()
+        if fcl_label:
+            forecast_overlay["label"] = fcl_label
+        fcl_cards = _parse_forecast_cards(cleaned.get("fcl_cards") or "")
+        if fcl_cards:
+            forecast_overlay["cards"] = fcl_cards
+        if forecast_overlay:
+            payload.setdefault("forecast_lane", {}).update(forecast_overlay)
+
+        # 12) manager_200x.slo_clocks
+        slo_overlay: dict[str, Any] = {}
+        slo_label = (cleaned.get("slo_label") or "").strip()
+        if slo_label:
+            slo_overlay["label"] = slo_label
+        slo_clocks = _parse_slo_clocks(cleaned.get("slo_clocks_rows") or "")
+        if slo_clocks:
+            slo_overlay["clocks"] = slo_clocks
+        if slo_overlay:
+            payload.setdefault("slo_clocks", {}).update(slo_overlay)
+
+        # 13) manager_200x.trust_nutrition
+        trust_overlay: dict[str, Any] = {}
+        tnt_label = (cleaned.get("tnt_label") or "").strip()
+        if tnt_label:
+            trust_overlay["title"] = tnt_label
+        tnt_rows = _parse_trust_rows(cleaned.get("tnt_rows") or "")
+        if tnt_rows:
+            trust_overlay["rows"] = tnt_rows
+        if trust_overlay:
+            payload.setdefault("trust_nutrition", {}).update(trust_overlay)
+
+        # 14) tenant_v3_extended.parent_teacher_thread
+        thread_overlay: dict[str, Any] = {}
+        ptt_label = (cleaned.get("ptt_label") or "").strip()
+        if ptt_label:
+            thread_overlay["title"] = ptt_label
+        ptt_messages = _parse_thread_messages(cleaned.get("ptt_messages") or "")
+        if ptt_messages:
+            thread_overlay["messages"] = ptt_messages
+        if thread_overlay:
+            payload.setdefault("parent_teacher_thread", {}).update(thread_overlay)
+
+        # 15) tenant_v3_extended.financial_timeline
+        financial_overlay: dict[str, Any] = {}
+        ftl_label = (cleaned.get("ftl_label") or "").strip()
+        if ftl_label:
+            financial_overlay["title"] = ftl_label
+        ftl_balance = (cleaned.get("ftl_current_balance") or "").strip()
+        if ftl_balance:
+            financial_overlay["balance_display"] = ftl_balance
+        ftl_events = _parse_financial_events(cleaned.get("ftl_events") or "")
+        if ftl_events:
+            financial_overlay["events"] = ftl_events
+        if financial_overlay:
+            payload.setdefault("financial_timeline", {}).update(financial_overlay)
 
         return payload
 

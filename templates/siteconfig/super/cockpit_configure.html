@@ -412,6 +412,133 @@
     </fieldset>
     {% endif %}
 
+    {% comment %}
+      v3.57.13: 5 NEW rich-editor fieldsets that extend the v3.57.12 pattern
+      to forecast_lane / slo_clocks / trust_nutrition / parent_teacher_thread
+      / financial_timeline. Empty fields fall through to section defaults via
+      _deep_merge in cockpit_context.py.
+    {% endcomment %}
+
+    {# ---- v3.57.13 Forecast lane rich editor ----------------------------- #}
+    {% if forecast_lane_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="forecast-lane">
+      <legend class="h6 px-2 fw-bold">{% trans "Forecast lane (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Section label + card rows for the manager_200x.forecast_lane card lane. Polyline coords + confidence-band SVG paths fall through to section defaults — this editor covers the headline copy + severity tone per card." %}
+      </p>
+      <div class="row g-3">
+        {% for field in forecast_lane_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.13 SLO clocks rich editor -------------------------------- #}
+    {% if slo_clocks_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="slo-clocks">
+      <legend class="h6 px-2 fw-bold">{% trans "SLO clocks (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Section label + clock rows for the manager_200x.slo_clocks card. Renders as 4 dark inset cards with monospace digits + pulse dot per clock. Severity drives the dot status; sublabel falls through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in slo_clocks_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.13 Trust nutrition rich editor --------------------------- #}
+    {% if trust_nutrition_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="trust-nutrition">
+      <legend class="h6 px-2 fw-bold">{% trans "Trust nutrition (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + row content for the manager_200x.trust_nutrition card (nutrition-label trust grid). Severity ∈ {ok, warn, danger, neutral} drives the row color stripe. Caption + footer copy fall through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in trust_nutrition_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.13 Parent-teacher thread rich editor --------------------- #}
+    {% if parent_teacher_thread_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="parent-teacher-thread">
+      <legend class="h6 px-2 fw-bold">{% trans "Parent-teacher thread (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + inline message rows for the tenant_v3_extended.parent_teacher_thread card. mine_or_theirs ∈ {mine, theirs} controls bubble alignment. Reply-box URL/placeholder + teacher_name fall through to section defaults — POST endpoint stays code-owned." %}
+      </p>
+      <div class="row g-3">
+        {% for field in parent_teacher_thread_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.13 Financial timeline rich editor ------------------------ #}
+    {% if financial_timeline_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="financial-timeline">
+      <legend class="h6 px-2 fw-bold">{% trans "Financial timeline (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title, current balance, and event rows for the tenant_v3_extended.financial_timeline card. Balance is operator-formatted (raw Decimals are never rendered). Event type ∈ {fee, payment, discount, balance} drives the tone stripe. Balance tone falls through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in financial_timeline_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"

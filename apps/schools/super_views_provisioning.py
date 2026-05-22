@@ -6,9 +6,14 @@ from __future__ import annotations
 
 import os
 
+import logging
+
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+
+logger = logging.getLogger(__name__)
 
 from apps.registries.models import EducationLevelRegistry, EducationSystemTypeRegistry
 from apps.registries.services import (
@@ -378,27 +383,33 @@ def api_create_school(request):
     if addons and hasattr(School, "addons"):
         addons = [str(x).strip() for x in addons if x]
         create_kw["addons"] = addons
-    school = School.objects.create(**create_kw)
-    try:
-        from apps.schools.school_brand_assets import (
-            ensure_brand_profile_colors,
-            persist_school_brand_favicon,
-            persist_school_brand_logo,
-        )
+    from apps.schools.school_brand_assets import (
+        ensure_brand_profile_colors,
+        persist_school_brand_favicon,
+        persist_school_brand_logo,
+    )
 
-        ensure_brand_profile_colors(
-            school=school,
-            primary_color=primary_color,
-            accent_color=accent_color,
-        )
-        if logo_file:
-            persist_school_brand_logo(school=school, uploaded_file=logo_file)
-            school_settings_overrides["provisioning"]["logo_uploaded"] = True
-        if favicon_file:
-            persist_school_brand_favicon(school=school, uploaded_file=favicon_file)
-            school_settings_overrides["provisioning"]["favicon_uploaded"] = True
+    try:
+        with transaction.atomic():
+            school = School.objects.create(**create_kw)
+            ensure_brand_profile_colors(
+                school=school,
+                primary_color=primary_color,
+                accent_color=accent_color,
+            )
+            if logo_file:
+                persist_school_brand_logo(school=school, uploaded_file=logo_file)
+                school_settings_overrides["provisioning"]["logo_uploaded"] = True
+            if favicon_file:
+                persist_school_brand_favicon(school=school, uploaded_file=favicon_file)
+                school_settings_overrides["provisioning"]["favicon_uploaded"] = True
     except ValidationError as exc:
-        school.delete()
+        logger.warning(
+            "School provisioning rejected: brand asset validation failed (logo=%s, favicon=%s): %s",
+            bool(logo_file),
+            bool(favicon_file),
+            exc,
+        )
         return JsonResponse({"errors": [str(exc)]}, status=400)
     if selected_levels:
         school.education_levels.set(selected_levels)
