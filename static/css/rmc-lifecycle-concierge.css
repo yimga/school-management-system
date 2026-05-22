@@ -89,7 +89,7 @@
 }
 
 .rmc-lifecycle-concierge__steps a {
-  color: var(--color-primary-700, #4338CA); /* off-token-allow: tenant-cta-action-link */
+  color: var(--color-primary-700, #4338CA); /* off-token-allow: tenant-cta-action-link */ /* theme-locked-allow: brand-token */
   text-decoration: underline;
   text-underline-offset: 2px;
 }

@@ -1,0 +1,53 @@
+/*
+ * rmc-lifecycle-360.css
+ *
+ * Styles for /super/lifecycle/<uuid:school_id>/ timeline view.
+ * Scoped to the .rmc-lifecycle-360 root so nothing leaks to other
+ * control-plane pages.
+ *
+ * v3.61.0 (2026-05-22): Wave L1 — Lifecycle Launchpad.
+ */
+
+.rmc-lifecycle-360 {
+  isolation: isolate;
+  contain: layout style;
+}
+
+.rmc-lifecycle-360__header {
+  border-bottom: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  padding-bottom: 8px;
+}
+
+.rmc-lifecycle-360__chips {
+  margin-top: 4px;
+}
+
+.rmc-lifecycle-360__counts {
+  margin-bottom: 12px;
+}
+
+.rmc-lifecycle-360__timeline {
+  margin: 0;
+  padding: 0;
+}
+
+.rmc-lifecycle-360__row {
+  align-items: flex-start;
+}
+
+.rmc-lifecycle-360__dot {
+  flex: 0 0 auto;
+  width: 16px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-primary-500, #6366F1); /* off-token-allow: timeline-marker-dot */ /* theme-locked-allow: brand-token */
+  font-size: 1rem;
+  line-height: 1.2;
+  user-select: none;
+}
+
+.rmc-lifecycle-360__stage {
+  color: var(--text-primary, #111);
+  font-weight: 600;
+}

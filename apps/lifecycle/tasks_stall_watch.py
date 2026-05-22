@@ -60,7 +60,7 @@ def detect_stalled_onboarding(*, dry_run: bool = False) -> dict:
         from apps.platform_runtime.models import SchoolOnboardingProgress
 
         candidates = (
-            SchoolOnboardingProgress.objects.filter(
+            SchoolOnboardingProgress.objects.filter(  # tenant-isolation-allow: stall-watch-operator-cross-tenant-ops-task
                 progress_percent__lt=STALL_PERCENT_FLOOR,
                 school__created_at__lt=floor_cutoff,
                 school__is_active=False,
@@ -88,7 +88,7 @@ def detect_stalled_onboarding(*, dry_run: bool = False) -> dict:
         from apps.setup_studio.models import SetupProgress
 
         no_updates = (
-            SetupProgress.objects.filter(
+            SetupProgress.objects.filter(  # tenant-isolation-allow: stall-watch-operator-cross-tenant-ops-task
                 updated_at__lt=update_cutoff,
                 launch_ready=False,
                 school__is_active=False,

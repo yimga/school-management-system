@@ -54,10 +54,10 @@ class ProvisioningJobsDashboardView(View):
             SchoolProvisioningEvent.objects.select_related("school")
             .order_by("-created_at")[:50]
         )
-        completed_24h = SchoolProvisioningEvent.objects.filter(
+        completed_24h = SchoolProvisioningEvent.objects.filter(  # tenant-isolation-allow: operator-super-provisioning-jobs-dashboard-aggregate
             event_type="COMPLETED", created_at__gte=last_24h
         ).count()
-        failed_24h = SchoolProvisioningEvent.objects.filter(
+        failed_24h = SchoolProvisioningEvent.objects.filter(  # tenant-isolation-allow: operator-super-provisioning-jobs-dashboard-aggregate
             event_type="FAILED", created_at__gte=last_24h
         ).count()
         # "In flight" = schools whose latest provisioning event is in a

@@ -1,7 +1,11 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block cp_title %}{% trans "Lifecycle 360" %} — {{ school.name }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-lifecycle-360.css' %}">
+{% endblock %}
 
 {% block cp_content %}
 <section class="container-fluid py-2 rmc-lifecycle-360" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-decision-console="lifecycle-360">
