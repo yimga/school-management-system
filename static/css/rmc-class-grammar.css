@@ -4443,7 +4443,7 @@
 .rmc-cockpit-ticker--tenant .rmc-cockpit-ticker__track {
   display: inline-flex;
   gap: 36px;
-  animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 60s) linear infinite;
+  animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 40s) linear infinite;
   will-change: transform;
 }
 .rmc-cockpit-ticker--tenant:hover .rmc-cockpit-ticker__track,

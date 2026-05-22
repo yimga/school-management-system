@@ -3017,9 +3017,9 @@ class CockpitPayloadForm(forms.ModelForm):
         widget=_NUMBER,
         label=_("Activity ticker: scroll seconds"),
         help_text=_(
-            "Animation duration in seconds (default 60). Drives how fast "
-            "the horizontal ticker scrolls a full loop. Maps to "
-            "cockpit.activity_ticker.scroll_seconds."
+            "Animation duration in seconds (default 40). Lower = faster. "
+            "30-40 reads as Bloomberg-snappy; 60+ reads as nearly static. "
+            "Maps to cockpit.activity_ticker.scroll_seconds."
         ),
     )
     atk_live_badge_label = forms.CharField(

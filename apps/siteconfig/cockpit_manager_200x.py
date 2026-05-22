@@ -429,7 +429,7 @@ def _activity_ticker_defaults() -> dict[str, Any]:
 
     Shape:
         enabled            bool       — master switch (default: True since v3.59.6)
-        scroll_seconds     int        — animation duration (default: 60)
+        scroll_seconds     int        — animation duration (default: 40 since v3.60.0)
         live_badge_label   str        — red pill caption (default: "LIVE")
         cards              list[dict] — ordered events
             [{
@@ -445,7 +445,11 @@ def _activity_ticker_defaults() -> dict[str, Any]:
         # short-circuits on empty `cards` list so default-on with no data is
         # a no-op. Operators can disable per-tenant via SiteSettings.
         "enabled": True,
-        "scroll_seconds": 60,
+        # v3.60.0 (2026-05-22): tuned from 60s → 40s for a snappier feel
+        # that still keeps each card legible. 60s read as nearly static; 40s
+        # matches the cadence of Bloomberg / financial-terminal tickers.
+        # Operators can override per-tenant via SiteSettings.
+        "scroll_seconds": 40,
         "live_badge_label": _("LIVE"),
         "cards": [],
     }

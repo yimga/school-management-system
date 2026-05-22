@@ -592,7 +592,8 @@ def cockpit_context(request) -> dict[str, Any]:
             },
             "activity_feed": {
                 "enabled": True,
-                "scroll_seconds": 60,
+                # v3.60.0 (2026-05-22): tuned from 60s → 40s.
+                "scroll_seconds": 40,
                 "events": _DEFAULT_ACTIVITY_EVENTS,
             },
             "pulse_metrics": {

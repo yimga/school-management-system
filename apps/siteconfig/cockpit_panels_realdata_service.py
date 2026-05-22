@@ -122,7 +122,8 @@ def _resolve_activity_ticker() -> dict[str, Any] | None:
             return None
         return {
             "enabled": True,
-            "scroll_seconds": 60,
+            # v3.60.0 (2026-05-22): tuned from 60s → 40s for a snappier feel.
+            "scroll_seconds": 40,
             "live_badge_label": _("LIVE"),
             "cards": cards,
         }

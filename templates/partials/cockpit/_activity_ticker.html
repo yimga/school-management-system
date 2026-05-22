@@ -32,7 +32,7 @@
      .enabled           bool  — gate the section (default: True for manager
                                 when cards present; False for tenant — operator
                                 must opt in via SiteSettings)
-     .scroll_seconds    int   — animation duration; lower = faster (default 60)
+     .scroll_seconds    int   — animation duration; lower = faster (default 40 since v3.60.0)
      .live_badge_label  str   — pill label (default: "LIVE")
      .cards             list  — ordered list of cards. Each card shape:
         {
@@ -55,7 +55,7 @@
 {% if request.public_host_kind == 'manager' %}
 {% comment %} ----- Manager / operator host branch ----- {% endcomment %}
 {% if cockpit.activity_ticker.cards %}
-{% with seconds=cockpit.activity_ticker.scroll_seconds|default:60 badge_label=cockpit.activity_ticker.live_badge_label|default:_("LIVE") %}
+{% with seconds=cockpit.activity_ticker.scroll_seconds|default:40 badge_label=cockpit.activity_ticker.live_badge_label|default:_("LIVE") %}
 {% if cockpit.activity_ticker.enabled|default_if_none:True %}
 <div class="rmc-cockpit-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
      style="--rmc-cockpit-ticker-seconds: {{ seconds }}s;">
@@ -113,7 +113,7 @@
    data CANNOT leak. Adds the `--tenant` modifier class for softer styling
    against the indigo+cream tenant chrome. {% endcomment %}
 {% if cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled %}
-{% with seconds=cockpit.tenant_activity_ticker.scroll_seconds|default:60 badge_label=cockpit.tenant_activity_ticker.live_badge_label|default:_("LIVE") %}
+{% with seconds=cockpit.tenant_activity_ticker.scroll_seconds|default:40 badge_label=cockpit.tenant_activity_ticker.live_badge_label|default:_("LIVE") %}
 <div class="rmc-cockpit-ticker rmc-cockpit-ticker--tenant" role="region" aria-label="{% trans 'Live school activity' %}"
      style="--rmc-cockpit-ticker-seconds: {{ seconds }}s;">
   <span class="rmc-cockpit-ticker__badge">{{ badge_label }}</span>
