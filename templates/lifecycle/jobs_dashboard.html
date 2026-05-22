@@ -1,0 +1,100 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Provisioning jobs" %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<meta http-equiv="refresh" content="60">
+{% endblock %}
+
+{% block cp_content %}
+<section class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-decision-console="lifecycle-jobs">
+  <header class="mb-3 d-flex flex-wrap gap-2 justify-content-between align-items-end">
+    <div>
+      <h1 class="h5 mb-1">{% trans "Provisioning jobs" %}</h1>
+      <p class="small text-secondary mb-0">{% trans "Auto-refreshes every 60s. Reads from the canonical SchoolProvisioningEvent log + lifecycle spine." %}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'super:schools_bulk_create' %}" class="btn btn-sm btn-outline-primary">{% trans "Bulk CSV create" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Dashboard" %}</a>
+    </div>
+  </header>
+
+  <div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm p-3 h-100">
+        <div class="small text-secondary">{% trans "In flight" %}</div>
+        <div class="h4 mb-0">{{ in_flight }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm p-3 h-100">
+        <div class="small text-secondary">{% trans "Completed (24h)" %}</div>
+        <div class="h4 mb-0 text-success">{{ completed_24h }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm p-3 h-100">
+        <div class="small text-secondary">{% trans "Failed (24h)" %}</div>
+        <div class="h4 mb-0 text-danger">{{ failed_24h }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card border-0 shadow-sm p-3 h-100">
+        <div class="small text-secondary">{% trans "New schools (7d)" %}</div>
+        <div class="h4 mb-0">{{ new_schools_7d }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <h2 class="h6">{% trans "Recent provisioning events" %}</h2>
+      <div class="table-responsive">
+        <table class="table table-sm rmc-data-table">
+          <thead><tr>
+            <th>{% trans "When" %}</th>
+            <th>{% trans "School" %}</th>
+            <th>{% trans "Event" %}</th>
+          </tr></thead>
+          <tbody>
+            {% for event in recent_events %}
+            <tr>
+              <td class="small text-secondary"><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"H:i" }}</time></td>
+              <td>{% if event.school %}<a href="{% url 'super:lifecycle_timeline' event.school.id %}">{{ event.school.slug }}</a>{% else %}—{% endif %}</td>
+              <td><code class="small">{{ event.event_type }}</code></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-secondary small">{% trans "No recent provisioning events." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <h2 class="h6">{% trans "Recent lifecycle transitions" %}</h2>
+      <div class="table-responsive">
+        <table class="table table-sm rmc-data-table">
+          <thead><tr>
+            <th>{% trans "When" %}</th>
+            <th>{% trans "School" %}</th>
+            <th>{% trans "Stage" %}</th>
+          </tr></thead>
+          <tbody>
+            {% for row in recent_lifecycle %}
+            <tr>
+              <td class="small text-secondary"><time datetime="{{ row.created_at|date:'c' }}">{{ row.created_at|date:"H:i" }}</time></td>
+              <td>{% if row.school %}<a href="{% url 'super:lifecycle_timeline' row.school.id %}">{{ row.school.slug }}</a>{% else %}—{% endif %}</td>
+              <td><code class="small">{{ row.stage }}</code></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-secondary small">{% trans "No recent lifecycle transitions." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
