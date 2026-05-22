@@ -7,7 +7,7 @@ from raw student PII (teacher name is fine; child name omitted).
 {% endcomment %}
 {% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}
 {% with lo=cockpit.lesson_of_day %}
-<section class="tp-lesson" aria-label="{{ lo.title }}" data-rmc-tp-lesson>
+<section class="tp-lesson" aria-label="{{ lo.title }}" data-rmc-tp-lesson data-rmc-cockpit-section="lesson_of_day">
   <header class="tp-lesson__head">
     <span class="tp-lesson__label">{{ lo.title|default:_("Lesson of the day") }}</span>
     {% if lo.time_window %}<span class="tp-lesson__time">{{ lo.time_window }}</span>{% endif %}

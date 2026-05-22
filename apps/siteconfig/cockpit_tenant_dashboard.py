@@ -314,6 +314,40 @@ def _tenant_activity_ticker_defaults() -> dict[str, Any]:
 
 
 # ============================================================
+# v3.59.x Wave B (2026-05-22) — sidebar `.ics` calendar subscribe link
+# ============================================================
+
+
+def _calendar_subscribe_defaults() -> dict[str, Any]:
+    """Sidebar `.ics` calendar subscribe link — v3 100x preview parity.
+
+    Renders an optional sidebar utility link allowing parents / teachers /
+    students to subscribe the school calendar to their phone, Outlook, or
+    Google Calendar via a standard `.ics` URL.
+
+    Schema:
+        enabled    bool   # default False; operator opt-in
+        label      str    # e.g. "Subscribe calendar (.ics)"
+        ics_url    str    # operator-published full URL or relative path
+        help_text  str    # tooltip explaining the link
+
+    PII safety:
+        ``ics_url`` is operator-published via SiteSettings.cockpit_payload
+        and serves a school-wide calendar feed — never per-student or
+        per-family. The link target should be unauthenticated only if the
+        operator has explicitly published a public feed.
+    """
+    return {
+        "enabled": False,
+        "label": _("Subscribe calendar (.ics)"),
+        "ics_url": "",
+        "help_text": _(
+            "Add the school calendar to your phone, Outlook, or Google Calendar."
+        ),
+    }
+
+
+# ============================================================
 # Public API — flat key→factory mapping for the orchestrator
 # ============================================================
 
@@ -331,6 +365,7 @@ TENANT_DASHBOARD_DEFAULTS: dict[str, Any] = {
     "teacher_spotlight": _tenant_teacher_spotlight_defaults,
     "tenant_activity_ticker": _tenant_activity_ticker_defaults,
     "year_progress": _year_progress_defaults,
+    "calendar_subscribe": _calendar_subscribe_defaults,
 }
 
 
@@ -356,4 +391,5 @@ __all__ = [
     "_tenant_teacher_spotlight_defaults",
     "_tenant_activity_ticker_defaults",
     "_year_progress_defaults",
+    "_calendar_subscribe_defaults",
 ]

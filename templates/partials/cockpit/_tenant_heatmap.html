@@ -2,7 +2,7 @@
 {% comment %} v3.55.0+ (2026-05-21): 200x Element 5 — Tenant heatmap.
 
    20-col dense grid (≤60 visible tiles) colored by tenant health.
-   CSS-only hover labels (no JS).
+   CSS-only hover labels with JS-enhanced positioned tooltip (Wave B 2026-05-22).
 
    CONFIGURABLE via cockpit.tenant_heatmap (SiteSettings → context processor):
      .enabled       bool
@@ -10,8 +10,11 @@
      .title         str
      .title_em      str   — italic tail
      .meta_text     str
-     .tiles         list  — [{label, status}]
+     .tiles         list  — [{label, status, cell_value, cell_secondary, tenant_slug}]
         status ∈ {"healthy", "okay", "warn", "danger", "idle"}
+        cell_value     str — primary stat shown in tooltip (e.g. "1,242 active")
+        cell_secondary str — secondary stat (e.g. "+3.1% WoW")
+        tenant_slug    str — opaque identifier (operator-side only; no PII)
      .legend_hint   str
 {% endcomment %}
 
@@ -29,15 +32,22 @@
   </div>
   {% comment %} v3.59.x Wave 11 Agent V: dual-class so both legacy .lx-heatmap__tile and
      new .rmc-heatmap__tile rules apply. Status slug 'warn' from legacy schema
-     mapped to 'watch' for the rmc-* tier; legacy 'danger' mapped to 'critical'. {% endcomment %}
-  <div class="lx-heatmap__grid rmc-heatmap" role="list">
+     mapped to 'watch' for the rmc-* tier; legacy 'danger' mapped to 'critical'.
+     Wave B (2026-05-22): tabindex=0 + cell_value/cell_secondary data attributes
+     so rmc-data-viz.js mountHeatmapTooltips() can render a positioned tooltip
+     with secondary stats on hover AND keyboard focus. {% endcomment %}
+  <div class="lx-heatmap__grid rmc-heatmap" role="list" data-rmc-heatmap-grid>
     {% for tile in cockpit.tenant_heatmap.tiles %}
       {% with raw_status=tile.status|default:'okay' %}
       <div class="lx-heatmap__tile lx-heatmap__tile--{{ raw_status }} rmc-heatmap__tile rmc-heatmap__tile--{% if raw_status == 'warn' %}watch{% elif raw_status == 'danger' %}critical{% else %}{{ raw_status }}{% endif %}"
            role="listitem"
+           tabindex="0"
            data-label="{{ tile.label }}"
            data-rmc-tooltip-text="{{ tile.label }}"
-           data-rmc-heatmap-tooltip="{{ tile.label }}"></div>
+           data-rmc-heatmap-tooltip="{{ tile.label }}"{% if tile.cell_value %}
+           data-cell-value="{{ tile.cell_value }}"{% endif %}{% if tile.cell_secondary %}
+           data-cell-secondary="{{ tile.cell_secondary }}"{% endif %}{% if tile.tenant_slug %}
+           data-tenant-slug="{{ tile.tenant_slug }}"{% endif %}></div>
       {% endwith %}
     {% endfor %}
   </div>

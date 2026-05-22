@@ -332,5 +332,12 @@ SiteSettings.cockpit_payload.
   <a class="nav-link nav-pill" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' %}{% endif %}" title="{% trans 'Help center' %}">
     <i class="bi bi-question-circle me-2"></i>{% trans "Help" %}
   </a>
+  {% comment %}v3.59.x Wave B (2026-05-22): tenant-only `.ics` calendar subscribe link.{% endcomment %}
+  {% if request.public_host_kind != 'manager' and cockpit.calendar_subscribe.enabled and cockpit.calendar_subscribe.ics_url %}
+  <a href="{{ cockpit.calendar_subscribe.ics_url }}" class="portal-sidebar__ics-link" data-rmc-cockpit-section="calendar_subscribe" title="{{ cockpit.calendar_subscribe.help_text }}">
+    <span aria-hidden="true">📅</span>
+    <span>{{ cockpit.calendar_subscribe.label }}</span>
+  </a>
+  {% endif %}
 </div>
 {% endif %}

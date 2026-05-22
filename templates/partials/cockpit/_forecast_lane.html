@@ -25,6 +25,14 @@
       <div class="lx-forecast__label">{{ card.label }}</div>
       <div class="lx-forecast__value">{{ card.value|default:"—" }}</div>
       {% if card.prediction %}<div class="lx-forecast__pred">{{ card.prediction }}</div>{% endif %}
+      {% comment %} Wave B (2026-05-22): `card.band_path` is a server-emitted
+         Quadratic-Bezier path string ("M..Q..Q..Q.. L..Q..Q..Q.. Z") built
+         by apps/siteconfig/cockpit_manager_200x_preview_data.py or (when
+         wired) a real forecast resolver under apps/observability/. The
+         partial renders it verbatim as the SVG `d` attribute — Django
+         auto-escapes the attribute value, but the path grammar only uses
+         digits, commas, spaces, and SVG command letters, so it round-trips
+         cleanly. NEVER pipe untrusted input into this attribute. {% endcomment %}
       <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
         {% if card.band_path %}<path d="{{ card.band_path }}" fill="{{ card.fill_color|default:'rgba(99,102,241,0.12)' }}"/>{% endif %}
         {% if card.past_points %}

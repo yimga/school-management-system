@@ -13,7 +13,7 @@ Configurability:
 {% if cockpit.realtime_presence.enabled %}
 {% with rp=cockpit.realtime_presence %}
 {# a8-wire-pending: websocket presence channel #}
-<section class="tp-presence" aria-label="{{ rp.title }}" data-rmc-tp-presence>
+<section class="tp-presence" aria-label="{{ rp.title }}" data-rmc-tp-presence data-rmc-cockpit-section="realtime_presence">
   <header class="tp-presence__head">
     <h3 class="tp-presence__title">{{ rp.title|default:_("Classmates online") }}</h3>
     <span class="tp-presence__count">{{ rp.online_count|default:0 }} / {{ rp.total_count|default:0 }}</span>

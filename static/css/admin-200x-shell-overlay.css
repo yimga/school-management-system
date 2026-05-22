@@ -627,3 +627,122 @@ html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-b
     transform: none;
   }
 }
+
+/* ============================================================
+   v3.59.x Wave B (2026-05-22): live activity ticker on /admin/
+   ------------------------------------------------------------
+   The ticker partial is included from base_site.html `{% block branding %}`
+   (manager-host only). Its base structural rules live in
+   manager-cockpit-v7.css which is NOT linked from base_site.html, so we
+   re-declare a SELF-CONTAINED set here scoped to the admin manager shell
+   only. Tenant admin never receives the partial (template `is_manager_host`
+   gate) so no tenant-side bleed is possible.
+
+   Layout: full-width band that sits at the top of the canvas, between the
+   Unfold canvas-body start and the messages/breadcrumb rows. Sticky so it
+   stays visible during long-form scrolling — mirrors the v8 200x preview's
+   .cp-live-strip behavior. Reduced-motion kills the marquee scroll.
+   ============================================================ */
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  margin: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.05) 0%,
+    rgba(15, 21, 48, 0.55) 30%,
+    rgba(15, 21, 48, 0.55) 100%
+  ); /* off-token-allow: admin-ticker-bg-fade */
+  border-bottom: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+  font-size: 11px;
+  color: var(--cp-chrome-text, #f1f5f9);
+  overflow: hidden; /* sticky-overflow-allow: marquee-band-clips-scrolling-text-not-vertical-column */
+  white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.15); /* off-token-allow: admin-ticker-badge-bg */
+  border: 1px solid rgba(239, 68, 68, 0.35); /* off-token-allow: admin-ticker-badge-border */
+  color: #fecaca; /* off-token-allow: admin-ticker-badge-text */
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444; /* off-token-allow: admin-ticker-pulse-dot */
+  animation: rmc-cockpit-ticker-pulse 1.6s ease-in-out infinite;
+}
+
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
+}
+
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__track {
+  display: inline-flex;
+  gap: 36px;
+  animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 60s) linear infinite;
+  will-change: transform;
+}
+
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker:hover .rmc-cockpit-ticker__track,
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker:focus-within .rmc-cockpit-ticker__track {
+  animation-play-state: paused;
+}
+
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__event {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__event-text {
+  color: var(--cp-chrome-text, #f1f5f9);
+}
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__event-time {
+  color: var(--cp-chrome-text-faint, #64748b);
+  font-size: 10px;
+}
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__event--success .rmc-cockpit-ticker__event-icon { color: var(--success, #22c55e); /* off-token-allow: admin-ticker-icon-success */ }
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__event--warn    .rmc-cockpit-ticker__event-icon { color: var(--warning, #f59e0b); /* off-token-allow: admin-ticker-icon-warn */ }
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__event--danger  .rmc-cockpit-ticker__event-icon { color: var(--danger,  #ef4444); /* off-token-allow: admin-ticker-icon-danger */ }
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__event--info    .rmc-cockpit-ticker__event-icon { color: #60a5fa; /* off-token-allow: admin-ticker-icon-info */ }
+
+/* Keyframes — declared globally so they're available even if
+   manager-cockpit-v7.css isn't loaded on this shell. Idempotent if both
+   files happen to load (browsers de-dupe identical @keyframes by name). */
+@keyframes rmc-cockpit-ticker-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.75); }
+}
+@keyframes rmc-cockpit-ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__track {
+    animation: none;
+  }
+  body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__badge::before {
+    animation: none;
+  }
+}

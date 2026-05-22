@@ -10,7 +10,7 @@ Tones: "" | "present" | "absent" | "late" | "excused" | "weekend"
 {% endcomment %}
 {% if cockpit.attendance_heatmap.enabled and cockpit.attendance_heatmap.cells %}
 {% with ah=cockpit.attendance_heatmap %}
-<section class="tp-heatmap" aria-label="{{ ah.title }}" data-rmc-tp-heatmap>
+<section class="tp-heatmap" aria-label="{{ ah.title }}" data-rmc-tp-heatmap data-rmc-cockpit-section="attendance_heatmap">
   <header class="tp-heatmap__head">
     <h3 class="tp-heatmap__title">{{ ah.title|default:_("Attendance heatmap") }}</h3>
     {% if ah.month_label %}<span class="tp-heatmap__month">{{ ah.month_label }}</span>{% endif %}

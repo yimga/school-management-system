@@ -7,7 +7,7 @@ Graduations, birthdays, milestones. Event tones:
 {% endcomment %}
 {% if cockpit.life_event_timeline.enabled and cockpit.life_event_timeline.events %}
 {% with le=cockpit.life_event_timeline %}
-<section class="tp-life-events" aria-label="{{ le.title }}" data-rmc-tp-life-events>
+<section class="tp-life-events" aria-label="{{ le.title }}" data-rmc-tp-life-events data-rmc-cockpit-section="life_event_timeline">
   <header class="tp-life-events__head">
     <h3 class="tp-life-events__title">{{ le.title|default:_("Life events") }}</h3>
   </header>

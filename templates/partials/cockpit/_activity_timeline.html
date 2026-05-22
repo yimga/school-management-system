@@ -31,7 +31,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.activity_timeline.enabled and cockpit.activity_timeline.items %}
 {% with at=cockpit.activity_timeline %}
-<section class="tp-activity" aria-label="{% trans 'Recent activity' %}">
+<section class="tp-activity" aria-label="{% trans 'Recent activity' %}" data-rmc-cockpit-section="activity_timeline">
   <div class="tp-activity__head">
     <h3>{{ at.title|default:_("Recent activity") }}{% if at.title_suffix %} <span>{{ at.title_suffix }}</span>{% endif %}</h3>
     {% if at.view_all_link.url %}

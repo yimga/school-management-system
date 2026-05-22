@@ -26,7 +26,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.upcoming_events.enabled and cockpit.upcoming_events.events %}
 {% with ue=cockpit.upcoming_events %}
-<section aria-label="{% trans 'Upcoming events' %}">
+<section aria-label="{% trans 'Upcoming events' %}" data-rmc-cockpit-section="upcoming_events_strip">
   <div class="tp-section-label tp-section-label--tight">
     <div class="tp-section-label__title">{{ ue.section_label|default:_("Upcoming · next 14 days") }}</div>
     {% if ue.view_all_link.url %}

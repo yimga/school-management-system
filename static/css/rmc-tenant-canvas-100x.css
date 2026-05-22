@@ -658,3 +658,28 @@
   .tp-card,
   .tp-card:hover { transition: none; }
 }
+
+/* ============================================================
+   v3.59.x Wave B (2026-05-22) — sidebar `.ics` calendar subscribe link
+   ============================================================ */
+.portal-sidebar__ics-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-secondary);
+  font-size: var(--type-size-caption, 13px);
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.portal-sidebar__ics-link:hover,
+.portal-sidebar__ics-link:focus-visible {
+  background: var(--surface-hover, var(--surface-muted));
+  color: var(--text-primary);
+  text-decoration: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-sidebar__ics-link { transition: none; }
+}

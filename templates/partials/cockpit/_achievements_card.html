@@ -22,7 +22,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.achievements.enabled and cockpit.achievements.list %}
 {% with ach=cockpit.achievements %}
-<section class="tp-achievements" aria-label="{% trans 'Achievements' %}">
+<section class="tp-achievements" aria-label="{% trans 'Achievements' %}" data-rmc-cockpit-section="achievements_card">
   <div class="tp-achievements__head">
     <h3 class="tp-achievements__title">{{ ach.title|default:_("Achievements") }}</h3>
     {% if ach.count_label %}<span class="tp-achievements__count">{{ ach.count_label }}</span>{% endif %}

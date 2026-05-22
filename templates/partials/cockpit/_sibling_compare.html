@@ -20,7 +20,7 @@ v3.58.x Wave 9 operator-copy editor MUST NOT alter.
 {% endcomment %}
 {% if cockpit.sibling_compare.enabled and cockpit.sibling_compare.opt_in and cockpit.sibling_compare.metrics %}
 {% with sc=cockpit.sibling_compare %}
-<section class="tp-sibling-compare" aria-label="{{ sc.title|default:_('Compare with siblings') }}" data-rmc-tp-sibling-compare>
+<section class="tp-sibling-compare" aria-label="{{ sc.title|default:_('Compare with siblings') }}" data-rmc-tp-sibling-compare data-rmc-cockpit-section="sibling_compare">
   <header class="tp-sibling-compare__head">
     <h3 class="tp-sibling-compare__title">{{ sc.title|default:_("Compare with siblings") }}</h3>
     {% if sc.subtitle %}<p class="tp-sibling-compare__subtitle">{{ sc.subtitle|default:_("Side-by-side trend across your family") }}</p>{% endif %}
@@ -66,7 +66,8 @@ v3.58.x Wave 9 operator-copy editor MUST NOT alter.
 <section class="tp-sibling-compare tp-sibling-compare--consent-pending"
          aria-label="{{ sc.title|default:_('Compare with siblings') }}"
          data-rmc-tp-sibling-compare
-         data-rmc-tp-sibling-compare-state="consent-pending">
+         data-rmc-tp-sibling-compare-state="consent-pending"
+         data-rmc-cockpit-section="sibling_compare">
   <header class="tp-sibling-compare__head">
     <h3 class="tp-sibling-compare__title">{{ sc.title|default:_("Compare with siblings") }}</h3>
     {% if sc.subtitle %}<p class="tp-sibling-compare__subtitle">{{ sc.subtitle|default:_("Side-by-side trend across your family") }}</p>{% endif %}

@@ -13,7 +13,7 @@ Configurability:
 {% endcomment %}
 {% if cockpit.parent_teacher_thread.enabled %}
 {% with th=cockpit.parent_teacher_thread %}
-<section class="tp-pt-thread" aria-label="{{ th.title }}" data-rmc-tp-pt-thread>
+<section class="tp-pt-thread" aria-label="{{ th.title }}" data-rmc-tp-pt-thread data-rmc-cockpit-section="parent_teacher_thread">
   <header class="tp-pt-thread__head">
     <h3 class="tp-pt-thread__title">{{ th.title|default:_("Teacher thread") }}</h3>
     {% if th.teacher_name %}<span class="tp-pt-thread__teacher">{{ th.teacher_name }}</span>{% endif %}

@@ -147,6 +147,93 @@
   opacity: 1;
 }
 
+/* Suppress the CSS-only ::after tooltip when the JS-driven tooltip has
+ * data to render (cell_value / cell_secondary). Avoids double-tooltip
+ * stacking. The JS tooltip is positioned absolutely against <body> so it
+ * isn't bound to the tile's coordinate space. */
+.rmc-heatmap__tile[data-cell-value]::after,
+.rmc-heatmap__tile[data-cell-secondary]::after {
+  content: none;
+}
+
+/* ----------------------------------------------------------------
+ * JS-rendered heatmap tooltip (Wave B 2026-05-22).
+ *
+ * Single shared element appended to <body> by rmc-data-viz.js, positioned
+ * absolutely via inline left/top. The `--below` modifier flips the arrow
+ * when the tooltip flips below the tile (top-of-viewport clipping).
+ * ---------------------------------------------------------------- */
+.rmc-heatmap__tooltip {
+  position: fixed;
+  display: none;
+  z-index: 60; /* above lift-shadow stack on hovered tiles */
+  background: var(--text-primary, #0b1020); /* off-token-allow: tooltip-bg-on-text-primary */
+  color: var(--surface-elevated, #ffffff); /* off-token-allow: tooltip-fg-on-surface-elevated */
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.4375rem 0.625rem;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  min-inline-size: 0;
+  max-inline-size: 240px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28); /* off-token-allow: tooltip-elevation-shadow */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.rmc-heatmap__tooltip[data-rmc-heatmap-tooltip-state="visible"] {
+  opacity: 1;
+}
+
+.rmc-heatmap__tooltip-label {
+  display: block;
+  font-weight: 600;
+}
+
+.rmc-heatmap__tooltip-value {
+  display: block;
+  margin-block-start: 0.125rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.92;
+}
+
+.rmc-heatmap__tooltip-secondary {
+  display: block;
+  margin-block-start: 0.0625rem;
+  font-size: 0.6125rem;
+  opacity: 0.78;
+  font-style: italic;
+}
+
+/* Arrow pointing down at tile (default — tooltip above tile) */
+.rmc-heatmap__tooltip::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-block-start-color: var(--text-primary, #0b1020); /* off-token-allow: tooltip-arrow-on-text-primary */
+  border-block-end-width: 0;
+}
+
+/* Flipped: tooltip is below the tile — arrow points up */
+.rmc-heatmap__tooltip--below::after {
+  inset-block-start: auto;
+  inset-block-end: 100%;
+  border-block-start-color: transparent;
+  border-block-end-color: var(--text-primary, #0b1020); /* off-token-allow: tooltip-arrow-flipped-on-text-primary */
+  border-block-start-width: 0;
+  border-block-end-width: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-heatmap__tooltip { transition: none; }
+}
+
 /* ============================================================ */
 /* 2. Sparkline                                                   */
 /* ============================================================ */

@@ -27,7 +27,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}
 {% with ts=cockpit.teacher_spotlight %}
-<section class="tp-spotlight" aria-label="{% trans 'Teacher spotlight' %}">
+<section class="tp-spotlight" aria-label="{% trans 'Teacher spotlight' %}" data-rmc-cockpit-section="teacher_spotlight_card">
   <div class="tp-spotlight__head">
     <h3 class="tp-spotlight__title">{{ ts.title|default:_("Teacher spotlight") }}</h3>
     {% if ts.sub %}<div class="tp-spotlight__sub">{{ ts.sub }}</div>{% endif %}

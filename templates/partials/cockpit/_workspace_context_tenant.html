@@ -36,7 +36,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.workspace_context_tenant.enabled %}
 {% with wc=cockpit.workspace_context_tenant %}
-<div class="tp-child-context" data-rmc-tp-child-context>
+<div class="tp-child-context" data-rmc-tp-child-context data-rmc-cockpit-section="workspace_context_tenant">
   <div class="tp-child-context__label">
     <span>{{ wc.label|default:_("Active child") }}</span>
     {% if wc.live_chip %}<span class="tp-child-context__label-chip">{{ wc.live_chip }}</span>{% endif %}

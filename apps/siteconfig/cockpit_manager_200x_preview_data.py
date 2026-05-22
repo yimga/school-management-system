@@ -108,6 +108,25 @@ def _world_map_demo() -> dict[str, Any]:
 # ============================================================
 
 def _forecast_demo() -> dict[str, Any]:
+    # Wave B (2026-05-22): band_path values upgraded to Quadratic Bezier
+    # ("M..Q..Q..Q.. L..Q..Q..Q.. Z") matching the v8 200x preview HTML's
+    # confidence-band curvature. Quadratic Bezier (one control point per
+    # segment) gives a tighter, more honest-looking confidence envelope
+    # than the previous Cubic Bezier paths. All numeric values fit the
+    # production partial's viewBox="0 0 240 56" with today_x=120.
+    #
+    # Path-builder pattern (server-emitted, trusted — no user input):
+    #   M  <fx>,<top>            move to start of upper-band edge (today)
+    #   Q  <cx>,<cy> <x>,<y>     quad-bezier segment (one control point)
+    #   …  repeat 3x to +7d horizon
+    #   L  <240>,<bottom>        line down to bottom-right corner
+    #   Q  <cx>,<cy> <x>,<y>     quad-bezier back along lower-band edge
+    #   …  repeat 3x back to today
+    #   Z                        close polygon
+    #
+    # When a real forecast resolver lands (see apps/observability/), it
+    # SHOULD emit paths in this same shape; the partial passes the string
+    # through |default and renders it verbatim as the SVG `d` attribute.
     return {
         "enabled": True,
         "label": _("Forecast · next 7 days"),
@@ -119,10 +138,10 @@ def _forecast_demo() -> dict[str, Any]:
                 "prediction": _("steady · 92% confidence"),
                 "stroke_color": "#22c55e",
                 "fill_color": "rgba(34,197,94,0.10)",
-                "past_points": [[10, 90], [40, 82], [70, 88], [100, 76], [130, 70]],
-                "future_points": [[130, 70], [160, 65], [190, 60], [220, 58], [250, 56]],
-                "band_path": "M130,70 C160,55 190,50 220,48 L250,46 L250,68 L220,68 C190,68 160,68 130,68 Z",
-                "today_x": 130,
+                "past_points": [[0, 42], [20, 40], [40, 38], [60, 34], [80, 32], [100, 28], [120, 26]],
+                "future_points": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],
+                "band_path": "M120,28 Q150,18 180,16 Q210,14 240,12 L240,32 Q210,30 180,28 Q150,26 120,28 Z",
+                "today_x": 120,
                 "caption_left": _("today"),
                 "caption_right": _("+7 days"),
             },
@@ -131,12 +150,12 @@ def _forecast_demo() -> dict[str, Any]:
                 "label": _("New schools · 7-day forecast"),
                 "value": "4–6",
                 "prediction": _("expected · 88% confidence"),
-                "stroke_color": "#60a5fa",
-                "fill_color": "rgba(96,165,250,0.10)",
-                "past_points": [[10, 88], [40, 80], [70, 84], [100, 72], [130, 68]],
-                "future_points": [[130, 68], [160, 62], [190, 58], [220, 54], [250, 50]],
-                "band_path": "M130,68 C160,52 190,46 220,44 L250,40 L250,64 L220,64 C190,64 160,64 130,64 Z",
-                "today_x": 130,
+                "stroke_color": "#6366f1",
+                "fill_color": "rgba(99,102,241,0.12)",
+                "past_points": [[0, 44], [20, 42], [40, 40], [60, 38], [80, 36], [100, 34], [120, 32]],
+                "future_points": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],
+                "band_path": "M120,32 Q150,26 180,22 Q210,18 240,16 L240,38 Q210,38 180,36 Q150,34 120,32 Z",
+                "today_x": 120,
                 "caption_left": _("today"),
                 "caption_right": _("+7 days"),
             },
@@ -146,11 +165,11 @@ def _forecast_demo() -> dict[str, Any]:
                 "value": "3",
                 "prediction": _("low · 95% confidence"),
                 "stroke_color": "#f59e0b",
-                "fill_color": "rgba(245,158,11,0.10)",
-                "past_points": [[10, 84], [40, 90], [70, 86], [100, 88], [130, 84]],
-                "future_points": [[130, 84], [160, 86], [190, 82], [220, 80], [250, 78]],
-                "band_path": "M130,84 C160,76 190,72 220,70 L250,68 L250,90 L220,90 C190,90 160,90 130,90 Z",
-                "today_x": 130,
+                "fill_color": "rgba(245,158,11,0.12)",
+                "past_points": [[0, 30], [20, 32], [40, 26], [60, 28], [80, 24], [100, 30], [120, 28]],
+                "future_points": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],
+                "band_path": "M120,28 Q150,24 180,28 Q210,30 240,26 L240,46 Q210,44 180,46 Q150,46 120,42 Z",
+                "today_x": 120,
                 "caption_left": _("today"),
                 "caption_right": _("+7 days"),
             },
@@ -181,6 +200,10 @@ def _notebook_demo() -> dict[str, Any]:
 
 def _heatmap_demo() -> dict[str, Any]:
     # 60 tiles in deterministic status pattern (mostly healthy, sprinkled).
+    # Wave B (2026-05-22): tiles now emit `cell_value` (primary stat) and
+    # `cell_secondary` (delta) so the JS-driven tooltip in rmc-data-viz.js
+    # renders the rich preview shape ("Saint Sebastien · 1,242 active ·
+    # +3.1% WoW"). Values are illustrative and byte-stable.
     status_pattern = (
         ["healthy"] * 38
         + ["okay"] * 12
@@ -188,10 +211,31 @@ def _heatmap_demo() -> dict[str, Any]:
         + ["danger"] * 2
         + ["idle"] * 3
     )
-    tiles = [
-        {"label": f"Tenant {i + 1:02d}", "status": status_pattern[i]}
-        for i in range(60)
-    ]
+    # Deterministic synthetic active-user count per status tier, used only
+    # for demo overlay (operator-real-data wiring deferred to forecast_service
+    # / heatmap_service helpers in a future wave). No real tenant slugs.
+    base_actives = {"healthy": 1180, "okay": 540, "warn": 240, "danger": 90, "idle": 0}
+    delta_by_status = {
+        "healthy": "+3.1% WoW",
+        "okay": "+0.4% WoW",
+        "warn": "-1.8% WoW",
+        "danger": "-6.2% WoW",
+        "idle": "no traffic",
+    }
+    tiles = []
+    for i in range(60):
+        status = status_pattern[i]
+        # Deterministic per-tile offset so tiles aren't identical.
+        offset = (i * 37) % 211
+        active = base_actives[status] + offset if status != "idle" else 0
+        active_label = f"{active:,} active" if active else "pilot · 0 active"
+        tiles.append({
+            "label": f"Tenant {i + 1:02d}",
+            "status": status,
+            "cell_value": active_label,
+            "cell_secondary": delta_by_status[status],
+            "tenant_slug": f"tenant-{i + 1:02d}",
+        })
     return {
         "enabled": True,
         "eyebrow": _("Tenants · health grid"),

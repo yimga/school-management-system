@@ -7,7 +7,7 @@ in a tight pair. Weather data is operator-published / future cron-fed.
 {% endcomment %}
 {% if cockpit.calendar_weather.enabled and cockpit.calendar_weather.days %}
 {% with cw=cockpit.calendar_weather %}
-<section class="tp-cal-weather" aria-label="{{ cw.title }}" data-rmc-tp-cal-weather>
+<section class="tp-cal-weather" aria-label="{{ cw.title }}" data-rmc-tp-cal-weather data-rmc-cockpit-section="calendar_weather">
   <header class="tp-cal-weather__head">
     <h3 class="tp-cal-weather__title">{{ cw.title|default:_("Week ahead") }}</h3>
   </header>

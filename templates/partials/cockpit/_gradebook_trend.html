@@ -10,7 +10,7 @@ Stroke color defaults to currentColor — brand cascade flows in.
 {% endcomment %}
 {% if cockpit.gradebook_trend.enabled and cockpit.gradebook_trend.subjects %}
 {% with gt=cockpit.gradebook_trend %}
-<section class="tp-grade-trend" aria-label="{{ gt.title }}" data-rmc-tp-grade-trend>
+<section class="tp-grade-trend" aria-label="{{ gt.title }}" data-rmc-tp-grade-trend data-rmc-cockpit-section="gradebook_trend">
   <header class="tp-grade-trend__head">
     <h3 class="tp-grade-trend__title">{{ gt.title|default:_("Gradebook trend") }}</h3>
     {% if gt.sub %}<span class="tp-grade-trend__sub">{{ gt.sub }}</span>{% endif %}

@@ -236,6 +236,18 @@
     </div>
   {% endif %}
     {# The logo background is handled by CSS above. #}
+  {% comment %} v3.59.x Wave B (2026-05-22): live activity ticker on the /admin/ shell —
+     manager-host ONLY. Reuses the GLOBAL partial wired on control_plane_base.html
+     (cp_shell_header_ticker block) and portal_base.html (portal_shell_header_ticker
+     block). Double-gated: outer `is_manager_host` template gate + inner
+     `cockpit.activity_ticker.enabled` self-gate inside the partial. Tenant admin
+     (is_manager_host=False) keeps the default Unfold chrome untouched. CSS rules
+     live in static/css/rmc-class-grammar.css (already linked); admin-shell
+     positioning + sticky behavior + reduced-motion handled in
+     static/css/admin-200x-shell-overlay.css under the manager-host body selector. {% endcomment %}
+  {% if is_manager_host %}
+    {% include "partials/cockpit/_activity_ticker.html" %}
+  {% endif %}
 {% endblock %}
 
 {% block nav-global %}

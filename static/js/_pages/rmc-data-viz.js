@@ -163,7 +163,165 @@
 
   // ------------------------------------------------------------
   // Public: mountHeatmapTooltips
+  //
+  // Wave B (2026-05-22): JS-driven positioned tooltip with secondary stat
+  // support. Reads data-label / data-cell-value / data-cell-secondary off
+  // the tile and renders into a single shared tooltip element appended to
+  // <body>. Behavior:
+  //   - Shown on mouseenter AND focus-visible
+  //   - Positions above the tile by default; flips below if it would clip
+  //     at the top of the viewport
+  //   - Horizontally clamped within the viewport (8px gutter)
+  //   - role="tooltip" + tile gets aria-describedby pointing at it
+  //   - Escape key dismisses while a tile is focused
+  //   - Honors prefers-reduced-motion (no opacity fade)
+  //   - Idempotent — single document-scoped tooltip element + handler
+  //     registry guarded via documentElement.dataset.rmcHeatmapTooltipBound
   // ------------------------------------------------------------
+  var _heatmapTooltipEl = null;
+  var _heatmapTooltipActiveTile = null;
+
+  function _ensureHeatmapTooltipEl() {
+    if (_heatmapTooltipEl && _heatmapTooltipEl.isConnected) { return _heatmapTooltipEl; }
+    var t = doc.createElement("div");
+    t.className = "rmc-heatmap__tooltip";
+    t.id = "rmc-heatmap-tooltip-" + Math.floor(Date.now() % 1000000);
+    t.setAttribute("role", "tooltip");
+    t.setAttribute("aria-hidden", "true");
+    t.dataset.rmcHeatmapTooltipState = "hidden";
+    // Three child spans — label / primary value / secondary stat.
+    var labelEl = doc.createElement("span");
+    labelEl.className = "rmc-heatmap__tooltip-label";
+    var valueEl = doc.createElement("span");
+    valueEl.className = "rmc-heatmap__tooltip-value";
+    var secEl = doc.createElement("span");
+    secEl.className = "rmc-heatmap__tooltip-secondary";
+    t.appendChild(labelEl);
+    t.appendChild(valueEl);
+    t.appendChild(secEl);
+    if (doc.body) { doc.body.appendChild(t); }
+    _heatmapTooltipEl = t;
+    return t;
+  }
+
+  function _showHeatmapTooltip(tile) {
+    if (!tile || !tile.getAttribute) { return; }
+    var t = _ensureHeatmapTooltipEl();
+    if (!t) { return; }
+    var label = tile.getAttribute("data-label") || tile.getAttribute("data-rmc-tooltip-text") || "";
+    var value = tile.getAttribute("data-cell-value") || "";
+    var secondary = tile.getAttribute("data-cell-secondary") || "";
+    // Reset content (textContent — no HTML injection).
+    var children = t.children;
+    if (children.length >= 3) {
+      children[0].textContent = label;
+      children[1].textContent = value;
+      children[1].style.display = value ? "" : "none";
+      children[2].textContent = secondary;
+      children[2].style.display = secondary ? "" : "none";
+    }
+    // Anchor relationship for screen readers.
+    tile.setAttribute("aria-describedby", t.id);
+    _heatmapTooltipActiveTile = tile;
+    // Position. Measure tile + tooltip; flip + clamp.
+    t.dataset.rmcHeatmapTooltipState = "measuring";
+    t.style.visibility = "hidden";
+    t.style.display = "block";
+    t.classList.remove("rmc-heatmap__tooltip--below");
+    var rect = tile.getBoundingClientRect();
+    var tipRect = t.getBoundingClientRect();
+    var gutter = 8;
+    var tipW = tipRect.width;
+    var tipH = tipRect.height;
+    // Default: above tile, horizontally centered.
+    var topY = rect.top - tipH - gutter;
+    var flipped = false;
+    if (topY < gutter) {
+      // Flip below if would clip at top of viewport.
+      topY = rect.bottom + gutter;
+      flipped = true;
+    }
+    var centerX = rect.left + (rect.width / 2) - (tipW / 2);
+    // Clamp horizontally within viewport.
+    var maxX = (W.innerWidth || doc.documentElement.clientWidth) - tipW - gutter;
+    if (centerX < gutter) { centerX = gutter; }
+    if (centerX > maxX) { centerX = maxX; }
+    t.style.left = centerX + "px";
+    t.style.top = topY + "px";
+    if (flipped) { t.classList.add("rmc-heatmap__tooltip--below"); }
+    t.setAttribute("aria-hidden", "false");
+    t.dataset.rmcHeatmapTooltipState = "visible";
+    t.style.visibility = "";
+  }
+
+  function _hideHeatmapTooltip() {
+    var t = _heatmapTooltipEl;
+    if (_heatmapTooltipActiveTile) {
+      try { _heatmapTooltipActiveTile.removeAttribute("aria-describedby"); } catch (_e) { /* noop */ }
+    }
+    _heatmapTooltipActiveTile = null;
+    if (!t) { return; }
+    t.setAttribute("aria-hidden", "true");
+    t.dataset.rmcHeatmapTooltipState = "hidden";
+    t.style.display = "none";
+  }
+
+  function _bindHeatmapTooltipGlobalHandlers() {
+    if (doc.documentElement.dataset.rmcHeatmapTooltipBound === "1") { return; }
+    doc.documentElement.dataset.rmcHeatmapTooltipBound = "1";
+    // Delegated mouseenter / focus via mouseover + focusin (capture-phase
+    // for focus so we catch focus-visible from keyboard nav).
+    doc.addEventListener("mouseover", function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) { return; }
+      var tile = t.closest("[data-rmc-heatmap-tooltip], [data-rmc-tooltip-text].rmc-heatmap__tile");
+      if (!tile) { return; }
+      // Only show if tile has data-cell-value or data-cell-secondary OR
+      // there's no CSS ::after fallback configured. Always show for
+      // keyboard parity below.
+      var hasExtras = tile.hasAttribute("data-cell-value") || tile.hasAttribute("data-cell-secondary");
+      if (!hasExtras) { return; }
+      _showHeatmapTooltip(tile);
+    });
+    doc.addEventListener("mouseout", function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) { return; }
+      var tile = t.closest("[data-rmc-heatmap-tooltip], [data-rmc-tooltip-text].rmc-heatmap__tile");
+      if (!tile) { return; }
+      // Hide unless related target is still inside the same tile.
+      var rel = ev.relatedTarget;
+      if (rel && tile.contains(rel)) { return; }
+      _hideHeatmapTooltip();
+    });
+    doc.addEventListener("focusin", function (ev) {
+      var t = ev.target;
+      if (!t || !t.matches) { return; }
+      if (t.matches(".rmc-heatmap__tile, [data-rmc-heatmap-tooltip], [data-rmc-tooltip-text]")) {
+        _showHeatmapTooltip(t);
+      }
+    });
+    doc.addEventListener("focusout", function (ev) {
+      var t = ev.target;
+      if (!t || !t.matches) { return; }
+      if (t.matches(".rmc-heatmap__tile, [data-rmc-heatmap-tooltip], [data-rmc-tooltip-text]")) {
+        _hideHeatmapTooltip();
+      }
+    });
+    // Escape key dismiss while a tile is keyboard-focused.
+    doc.addEventListener("keydown", function (ev) {
+      if (ev.key !== "Escape" && ev.keyCode !== 27) { return; }
+      if (!_heatmapTooltipActiveTile) { return; }
+      var blurTarget = _heatmapTooltipActiveTile;
+      _hideHeatmapTooltip();
+      // Move focus off the tile so the tooltip stays dismissed.
+      try { blurTarget.blur(); } catch (_e) { /* noop */ }
+    });
+    // Hide on scroll / resize so the tooltip doesn't drift away from its
+    // anchor tile.
+    W.addEventListener("scroll", _hideHeatmapTooltip, true);
+    W.addEventListener("resize", _hideHeatmapTooltip);
+  }
+
   function mountHeatmapTooltips(root) {
     var scope = root || doc;
     var nodes;
@@ -192,6 +350,8 @@
       if (el.dataset) { el.dataset.rmcHeatmapTooltipInited = "1"; }
       count++;
     }
+    // Bind global handlers once per document (idempotent).
+    _bindHeatmapTooltipGlobalHandlers();
     return count;
   }
 

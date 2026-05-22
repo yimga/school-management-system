@@ -31,7 +31,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.today_snapshot.enabled and cockpit.today_snapshot.cards %}
 {% with ts=cockpit.today_snapshot %}
-<section class="tp-snapshot" aria-label="{% trans 'Today snapshot' %}">
+<section class="tp-snapshot" aria-label="{% trans 'Today snapshot' %}" data-rmc-cockpit-section="today_snapshot">
   <div class="tp-section-label">
     <div class="tp-section-label__title">
       {% if ts.live_dot|default:True %}<span class="tp-section-label__live-dot" aria-hidden="true"></span>{% endif %}

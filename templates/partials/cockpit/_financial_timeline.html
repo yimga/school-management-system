@@ -10,7 +10,7 @@ Event tones: "fee" | "payment" | "discount" | "balance"
 {% endcomment %}
 {% if cockpit.financial_timeline.enabled and cockpit.financial_timeline.events %}
 {% with ft=cockpit.financial_timeline %}
-<section class="tp-fin-timeline" aria-label="{{ ft.title }}" data-rmc-tp-fin-timeline>
+<section class="tp-fin-timeline" aria-label="{{ ft.title }}" data-rmc-tp-fin-timeline data-rmc-cockpit-section="financial_timeline">
   <header class="tp-fin-timeline__head">
     <h3 class="tp-fin-timeline__title">{{ ft.title|default:_("Financial timeline") }}</h3>
     {% if ft.balance_display %}

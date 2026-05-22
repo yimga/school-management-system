@@ -25,7 +25,7 @@ Security:
 {% endcomment %}
 {% if cockpit.newsletter_band.enabled %}
   {% with n=cockpit.newsletter_band %}
-  <section class="rmc-newsletter-band" aria-label="{% trans 'Subscribe to family digest' %}">
+  <section class="rmc-newsletter-band" aria-label="{% trans 'Subscribe to family digest' %}" data-rmc-cockpit-section="newsletter_band">
     <div class="rmc-newsletter-band__copy">
       <strong>{{ n.title|default:_("Stay in the loop · weekly family digest") }}</strong>
       <span>{{ n.subtitle|default:_("Term highlights · upcoming events · 1 email every Sunday") }}</span>
