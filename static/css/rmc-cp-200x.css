@@ -1132,3 +1132,91 @@
   margin-top: 8px;
 }
 .lx-notebook__hint-em { font-family: var(--mono); }
+
+/* ============================================================
+   v3.57.8 (2026-05-22) — Sidebar 200x-preview parity retrofit
+   Targets the legacy `.cp-sidebar-nav .cp-sidebar-ultra` markup in
+   templates/partials/control_plane_sidebar.html so it inherits the
+   typography, spacing, active-state gradient, and group affordances
+   from the v8 200x preview without requiring a template rewrite.
+   ============================================================ */
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav {
+  padding: 8px 10px 12px;
+  font-size: 13px;
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .rmc-type-eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-chrome-text-muted, #94a3b8);
+  padding: 12px 10px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--cp-chrome-text, #f1f5f9);
+  font-size: 13px;
+  text-decoration: none;
+  transition: background var(--motion-fast, 150ms ease), color var(--motion-fast, 150ms ease);
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .nav-link:hover {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: dark-chrome-sidebar-hover */
+  color: var(--cp-chrome-text, #f1f5f9);
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .nav-link.active {
+  background: linear-gradient(135deg, rgba(79,70,229,0.40), rgba(16,185,129,0.30)); /* off-token-allow: dark-chrome-sidebar-active-gradient */
+  color: #ffffff; /* off-token-allow: dark-chrome-sidebar-active-fg */
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(79,70,229,0.30); /* off-token-allow: dark-chrome-sidebar-active-glow */
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-nav-icon {
+  font-size: 14px;
+  width: 18px;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-pin-btn {
+  opacity: 0;
+  transition: opacity var(--motion-fast, 150ms ease);
+  color: var(--cp-chrome-text-muted, #94a3b8);
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .nav-item:hover .cp-pin-btn,
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-pin-btn:focus-visible {
+  opacity: 0.7;
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-pin-pinned {
+  opacity: 0.85;
+  color: var(--school-primary, #4f46e5);
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-nav-group-toggle {
+  padding: 12px 10px 4px;
+  margin-top: 4px;
+  color: var(--cp-chrome-text-muted, #94a3b8);
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-nav-group-toggle:hover {
+  color: var(--cp-chrome-text, #f1f5f9);
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-nav-group-toggle .cp-nav-group-chevron {
+  transition: transform var(--motion-fast, 150ms ease);
+  font-size: 10px;
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-nav-group-toggle[aria-expanded="false"] .cp-nav-group-chevron {
+  transform: rotate(-90deg);
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-sidebar-compact-toggle {
+  border-color: var(--cp-chrome-hairline, rgba(255,255,255,0.08));
+  color: var(--cp-chrome-text-muted, #94a3b8);
+  background: transparent;
+}
+[data-rmc-shell-main="control-plane"] .cp-sidebar-nav .cp-sidebar-compact-toggle:hover {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: dark-chrome-sidebar-compact-toggle-hover */
+  color: var(--cp-chrome-text, #f1f5f9);
+}

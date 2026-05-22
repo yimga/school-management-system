@@ -3135,17 +3135,53 @@
 }
 
 .rmc-help-contextual-drawer {
+  /* v3.57.8 (2026-05-22): fix overlap + scroll bug.
+     Was: position:fixed; top:0; height:100vh overlapped the dark header chrome
+     AND clipped its own scrollable content to the viewport without honoring the
+     app-shell header offset, so even when expanded the help body had nowhere to go.
+     Now: pinned below the header; max-height constrained to remaining viewport so
+     overflow-y:auto scrolls; sizes to its <details> content when collapsed (just
+     the "Need help…" chip), expands to scrollable panel when opened. */
   position: fixed;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  width: min(90vw, 24rem);
-  height: 100vh;
+  inset-block-start: calc(var(--rmc-app-shell-header-h, 104px) + 12px);
+  inset-inline-end: 16px;
+  width: min(92vw, 22rem);
+  max-height: calc(100vh - var(--rmc-app-shell-header-h, 104px) - 80px);
   background: var(--surface-elevated);
-  border-left: 1px solid var(--hairline);
-  box-shadow: var(--elev-3, -8px 0 24px rgba(0, 0, 0, 0.08));
-  padding: var(--space-5, 1.25rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-2, 0 4px 12px rgba(15, 23, 42, 0.08));
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
   overflow-y: auto;
-  z-index: 100;
+  overscroll-behavior: contain;
+  z-index: 60;
+  margin-block-start: 0;
+  padding-block-start: var(--space-3, 0.75rem);
+  border-block-start: 1px solid var(--hairline);
+}
+
+.rmc-help-contextual-drawer > details:not([open]) {
+  /* collapsed: keep it a slim chip */
+  margin: 0;
+}
+.rmc-help-contextual-drawer > details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.rmc-help-contextual-drawer > details > summary::-webkit-details-marker { display: none; }
+.rmc-help-contextual-drawer > details > summary::before {
+  content: "?";
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: var(--school-primary, var(--brand-primary, currentColor));
+  color: #fff; /* off-token-allow: chip-foreground-on-brand-fill */
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: -3px;
 }
 
 .rmc-help-public-kb-lane {
