@@ -94,6 +94,18 @@ from .cockpit_manager_200x import manager_200x_defaults
 from .cockpit_front_office_200x import front_office_200x_defaults
 from .cockpit_tenant_v3_extended import build_tenant_v3_extended_cockpit
 
+# v3.57.3 (2026-05-21): preview demo payloads — pre-populated sample content
+# that mirrors the v8 200x manager preview + v3 100x tenant preview HTML
+# artifacts in `docs/generated/`. When the corresponding settings flags are
+# True (defaults: True so the shell renders the preview UI out of the box),
+# the orchestrator overlays these payloads onto the helper defaults so each
+# 200x / 100x section becomes `enabled=True` + populated with sample data.
+# Operators override individual sections via SiteSettings.cockpit_payload
+# (the v3.57.1 admin toggle UI). To disable the whole demo, set
+# COCKPIT_200X_RENDER_PREVIEW_DEMO=False / COCKPIT_100X_RENDER_PREVIEW_DEMO=False.
+from .cockpit_manager_200x_preview_data import manager_200x_demo_payload
+from .cockpit_tenant_v3_preview_data import tenant_v3_extended_demo_payload
+
 
 # ============================================================
 # v3.56.0 — operator override overlay
@@ -465,9 +477,18 @@ def cockpit_context(request) -> dict[str, Any]:
         # v3.57.0: 10 NEW /super/** front-office 200x elements (all enabled=False).
         manager_cockpit.update(front_office_200x_defaults())
 
-        # Overlay operator-saved cockpit_payload (footer / community_band /
-        # newsletter_band per Agent A's admin form; future waves extend to
-        # cover dashboard + 200x sections).
+        # v3.57.3: overlay the preview demo payload so the 10 manager 200x
+        # sections render out of the box matching the v8 200x preview HTML.
+        # Operators disable individual sections via the v3.57.1 admin toggles;
+        # to disable the whole demo set COCKPIT_200X_RENDER_PREVIEW_DEMO=False.
+        from django.conf import settings as _dj_settings
+        if getattr(_dj_settings, "COCKPIT_200X_RENDER_PREVIEW_DEMO", True):
+            manager_cockpit = _deep_merge(
+                manager_cockpit, manager_200x_demo_payload()
+            )
+
+        # Overlay operator-saved cockpit_payload LAST so per-site overrides
+        # (including section.enabled = False) win over both defaults and demo.
         payload = _resolve_cockpit_payload(request)
         if payload:
             manager_cockpit = _deep_merge(manager_cockpit, payload)
@@ -490,7 +511,17 @@ def cockpit_context(request) -> dict[str, Any]:
     # v3.57.0: 10 NEW v3 100x tenant cockpit sections (all enabled=False).
     tenant_cockpit.update(build_tenant_v3_extended_cockpit())
 
-    # Overlay operator-saved cockpit_payload.
+    # v3.57.3: overlay the v3 100x tenant preview demo payload so the 10 new
+    # tenant sections render out of the box matching the v3 100x preview HTML.
+    # Sibling-compare honors its separate opt_in privacy gate inside the
+    # section payload (no sibling data renders without parent consent).
+    from django.conf import settings as _dj_settings
+    if getattr(_dj_settings, "COCKPIT_100X_RENDER_PREVIEW_DEMO", True):
+        tenant_cockpit = _deep_merge(
+            tenant_cockpit, tenant_v3_extended_demo_payload()
+        )
+
+    # Overlay operator-saved cockpit_payload LAST so per-site overrides win.
     payload = _resolve_cockpit_payload(request)
     if payload:
         tenant_cockpit = _deep_merge(tenant_cockpit, payload)

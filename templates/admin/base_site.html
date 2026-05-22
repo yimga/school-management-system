@@ -228,6 +228,21 @@
 {% block footer %}
   {{ block.super }}
   <div id="admin-sidebar-live" aria-live="polite" aria-atomic="true" class="visually-hidden" role="status"></div>
+  {% comment %} v3.57.3 (2026-05-21): Django admin mirror of v8 200x cockpit elements.
+     cockpit_context.py is registered as a context processor so the same
+     cockpit.* keys are available here. Each partial self-gates on its
+     enabled flag; on manager hosts the v3.57.3 demo payload defaults them
+     to True so /admin operators see the same chrome as /super.
+     Only the decorative + non-canvas-grid elements load here (the floating
+     ones — operator presence, operator notebook, AI copilot rail) — the
+     grid-positioned ones (world map, forecast lane, etc.) stay in
+     control_plane_skeleton.html because Django admin's #content layout
+     doesn't have the rmc-app-shell grid slots. {% endcomment %}
+  {% if request.user.is_authenticated %}
+    {% include "partials/cockpit/_operator_presence.html" %}
+    {% include "partials/cockpit/_ai_copilot_rail.html" %}
+    {% include "partials/cockpit/_operator_notebook.html" %}
+  {% endif %}
   {% include 'components/ai_copilot.html' %}
   {% include 'components/toast_notifications.html' %}
   {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
