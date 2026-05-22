@@ -9,5 +9,7 @@
 {% endblock %}
 
 {% block content %}
+{% phase8_dashboard_declaration "siteconfig/feature_control_panel.html" %}
+<span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% include "siteconfig/partials/feature_control_panel_body.html" %}
 {% endblock %}

@@ -8,6 +8,8 @@
 {% endblock %}
 
 {% block content %}
+{% phase8_dashboard_declaration "siteconfig/tenant_runtime_configuration_hub.html" %}
+<span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 <div data-siteconfig-surface="tenant-runtime-hub" data-page-header="tenant-runtime-configuration">
   <nav class="ds-action-bar d-flex flex-wrap gap-2 mb-2" role="toolbar" aria-label="{% trans 'Page actions' %}">
     {% if guided_configuration_url %}

@@ -1,10 +1,10 @@
 {% load i18n static %}
-{# v3.54.0 (2026-05-21): responsive iframe shell — fluid width, height
+{% comment %} v3.54.0 (2026-05-21): responsive iframe shell — fluid width, height
    clamp(420px,60vh,720px), token-driven hairline border. Replaces the legacy
    class-only `.studio-os-iframe` (which had a fixed 80vh min-height and no
    container clamp) so the experience iframe never forces horizontal scroll
    inside the workspace main column. .rmc-studio-experience-iframe-shell is
-   defined in static/css/studio-experience-mode.css. #}
+   defined in static/css/studio-experience-mode.css. {% endcomment %}
 {% if experience_left_rail %}
 <div class="rmc-studio-experience-iframe-shell" data-rmc-studio-experience-iframe="1">
   <iframe id="studio-experience-iframe"

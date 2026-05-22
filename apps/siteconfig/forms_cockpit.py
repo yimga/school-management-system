@@ -824,6 +824,340 @@ def _serialize_financial_events(items: list[dict[str, Any]] | None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# v3.57.14 parsers + serializers — 6 NEW sections (operator_presence /
+# operator_notebook / tenant_heatmap / revenue_waterfall / realtime_presence /
+# calendar_weather). Same forgiving pipe-separated textarea contract.
+# ---------------------------------------------------------------------------
+
+
+# Avatar gradient map: derive a default chip color from operator status so
+# the rendering partial (which keys off ``gradient_slug``) still receives a
+# valid token even though the operator only types a status word.
+_OPR_STATUS_TO_GRADIENT: dict[str, str] = {
+    "online": "emerald",
+    "idle": "amber",
+    "away": "indigo",
+}
+
+
+def _parse_operator_presence_avatars(value: str) -> list[dict[str, str]]:
+    """One per line: ``initials | name | role | status``.
+
+    Pairs with ``cockpit.operator_presence.avatars`` whose minimum schema
+    is ``list[{initials, gradient_slug}]``. The flat editor persists the
+    operator-supplied ``name``/``role`` keys verbatim (rendering partials
+    that don't read them ignore the extra keys cleanly) and derives
+    ``gradient_slug`` from ``status`` via ``_OPR_STATUS_TO_GRADIENT``.
+    Status is constrained to ``{online, idle, away}``; anything else
+    falls back to ``online`` so a typo doesn't break the chip color.
+    Trailing columns are optional (lenient). Rows without ``initials``
+    are skipped — a chip with no initials is meaningless.
+    """
+    status_allow = {"online", "idle", "away"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 3)]
+        initials = parts[0]
+        if not initials:
+            continue
+        name = parts[1] if len(parts) > 1 else ""
+        role = parts[2] if len(parts) > 2 else ""
+        raw_status = (parts[3] if len(parts) > 3 else "online").lower() or "online"
+        status = raw_status if raw_status in status_allow else "online"
+        out.append(
+            {
+                "initials": initials,
+                "name": name,
+                "role": role,
+                "status": status,
+                "gradient_slug": _OPR_STATUS_TO_GRADIENT[status],
+            }
+        )
+    return out
+
+
+def _serialize_operator_presence_avatars(
+    items: list[dict[str, Any]] | None,
+) -> str:
+    if not items:
+        return ""
+    # Reverse-map gradient_slug back to status when status is missing,
+    # so payloads that pre-date the v3.57.14 editor round-trip cleanly.
+    gradient_to_status = {v: k for k, v in _OPR_STATUS_TO_GRADIENT.items()}
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        initials = str(item.get("initials", "")).strip()
+        if not initials:
+            continue
+        name = str(item.get("name", "")).strip()
+        role = str(item.get("role", "")).strip()
+        status = str(item.get("status", "")).strip().lower()
+        if not status:
+            gradient = str(item.get("gradient_slug", "")).strip().lower()
+            status = gradient_to_status.get(gradient, "online")
+        rows.append(f"{initials} | {name} | {role} | {status}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_heatmap_tiles(value: str) -> list[dict[str, str]]:
+    """One per line: ``region | health_status | label`` (label optional).
+
+    Pairs with ``cockpit.tenant_heatmap.tiles`` whose schema is
+    ``list[{label, status}]``. The flat editor adds a free ``region``
+    key (rendering partials that don't read it ignore it cleanly) and
+    maps the optional 3rd column to ``label`` (data-label hover text).
+    When the 3rd column is omitted, the region itself doubles as the
+    hover label. health_status is constrained to
+    ``{healthy, ok, warn, danger, idle}``; anything else falls back to
+    ``healthy`` so the CSS-class lookup never crashes. Rows without a
+    region are skipped.
+    """
+    status_allow = {"healthy", "ok", "warn", "danger", "idle"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 2)]
+        region = parts[0]
+        if not region:
+            continue
+        raw_status = (parts[1] if len(parts) > 1 else "healthy").lower() or "healthy"
+        status = raw_status if raw_status in status_allow else "healthy"
+        label = parts[2] if len(parts) > 2 else region
+        out.append({"region": region, "status": status, "label": label})
+    return out
+
+
+def _serialize_heatmap_tiles(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        # Prefer the explicit ``region`` key (round-trip from this editor);
+        # fall back to ``label`` for payloads that pre-date the editor.
+        region = str(item.get("region", "")).strip() or str(
+            item.get("label", "")
+        ).strip()
+        if not region:
+            continue
+        status = str(item.get("status", "")).strip() or "healthy"
+        label = str(item.get("label", "")).strip()
+        # Suppress redundant 3rd column when it duplicates the region.
+        if label and label != region:
+            rows.append(f"{region} | {status} | {label}".rstrip(" |"))
+        else:
+            rows.append(f"{region} | {status}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_waterfall_bars(value: str) -> list[dict[str, str]]:
+    """One per line: ``category | delta | severity``.
+
+    Pairs with ``cockpit.revenue_waterfall.bars`` whose richer schema
+    includes ``slug``/``x``/``y``/``width``/``height``/``gradient_id``
+    (SVG geometry). The flat editor only exposes the 3 operator-edited
+    keys: category (mapped to ``label``), delta (mapped to ``value`` —
+    operator-formatted so the sign stays explicit, e.g. ``+$3.8k``),
+    and severity. Severity is constrained to
+    ``{start, gain, loss, end}``; anything else falls back to ``gain``
+    so a typo doesn't crash the CSS-class lookup. SVG geometry stays
+    code-owned and falls through from section defaults via
+    ``_deep_merge``. Rows without a category are skipped.
+    """
+    severity_allow = {"start", "gain", "loss", "end"}
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 2)]
+        category = parts[0]
+        if not category:
+            continue
+        delta = parts[1] if len(parts) > 1 else ""
+        raw_severity = (parts[2] if len(parts) > 2 else "gain").lower() or "gain"
+        severity = raw_severity if raw_severity in severity_allow else "gain"
+        out.append(
+            {
+                "label": category,
+                "value": delta,
+                "severity": severity,
+                "slug": severity,
+            }
+        )
+    return out
+
+
+def _serialize_waterfall_bars(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        category = str(item.get("label", "")).strip()
+        if not category:
+            continue
+        delta = str(item.get("value", "")).strip()
+        # Prefer the explicit ``severity`` key from this editor; fall back
+        # to ``slug`` for payloads that pre-date the v3.57.14 wave.
+        severity = (
+            str(item.get("severity", "")).strip()
+            or str(item.get("slug", "")).strip()
+            or "gain"
+        )
+        rows.append(f"{category} | {delta} | {severity}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_realtime_presence_dots(value: str) -> list[dict[str, Any]]:
+    """One per line: ``initials | status`` (status optional; lenient).
+
+    Pairs with ``cockpit.realtime_presence.presence`` whose schema is
+    ``list[{initials, online: bool, tone}]``. The flat editor maps:
+        initials  -> initials
+        status    -> online (bool: "online" => True; else => False)
+                  -> tone   ("focus" when status=="online" so the
+                             rendering partial highlights focused
+                             classmates; empty otherwise — keeps the
+                             schema's intent intact without forcing
+                             operators to learn the ``tone`` vocab)
+    Status is constrained to ``{online, idle, away}``; anything else
+    falls back to ``away`` (safest — neither online nor highlighted).
+    Rows without initials are skipped.
+    """
+    status_allow = {"online", "idle", "away"}
+    out: list[dict[str, Any]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 1)]
+        initials = parts[0]
+        if not initials:
+            continue
+        raw_status = (parts[1] if len(parts) > 1 else "online").lower() or "online"
+        status = raw_status if raw_status in status_allow else "away"
+        out.append(
+            {
+                "initials": initials,
+                "online": status == "online",
+                "tone": "focus" if status == "online" else "",
+                "status": status,
+            }
+        )
+    return out
+
+
+def _serialize_realtime_presence_dots(
+    items: list[dict[str, Any]] | None,
+) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        initials = str(item.get("initials", "")).strip()
+        if not initials:
+            continue
+        # Prefer explicit ``status`` from this editor; fall back to the
+        # ``online`` bool from pre-v3.57.14 payloads (online=>"online",
+        # else=>"idle" as the most-charitable default).
+        status = str(item.get("status", "")).strip().lower()
+        if not status:
+            status = "online" if item.get("online") else "idle"
+        rows.append(f"{initials} | {status}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_calendar_weather_days(value: str) -> list[dict[str, str]]:
+    """One per line: ``date | weather_emoji | events``.
+
+    Pairs with ``cockpit.calendar_weather.days`` whose schema is
+    ``list[{day_short, day_num, is_today: bool, weather_icon,
+    temp_display, event_label}]``. The flat editor maps:
+        date           -> day_num (numeric day extracted from input)
+                       -> day_short (3-letter weekday derived if input
+                          parses as YYYY-MM-DD; else echoed raw input)
+        weather_emoji  -> weather_icon
+        events         -> event_label (free-form; one entry per line)
+    Date input is forgiving: ``YYYY-MM-DD`` / ``MM-DD`` / a bare label
+    (e.g. ``Mon 21``) all work. ``temp_display`` is not exposed here
+    (operators who need it edit JSON directly); ``is_today`` is left
+    False (the runtime context processor flips it). Rows without a date
+    are skipped.
+    """
+    weekday_abbr = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 2)]
+        raw_date = parts[0]
+        if not raw_date:
+            continue
+        weather_emoji = parts[1] if len(parts) > 1 else ""
+        event_label = parts[2] if len(parts) > 2 else ""
+        # Try to extract day_num + day_short from ISO-ish input;
+        # otherwise echo the raw string into day_short and leave
+        # day_num empty (the partial defaults visibly).
+        day_short = raw_date
+        day_num = ""
+        bits = [b.strip() for b in raw_date.replace("/", "-").split("-")]
+        try:
+            if len(bits) == 3:
+                year_num = int(bits[0])
+                month_num = int(bits[1])
+                day_int = int(bits[2])
+                import datetime as _dt
+
+                weekday = _dt.date(year_num, month_num, day_int).weekday()
+                day_short = weekday_abbr[weekday]
+                day_num = str(day_int)
+            elif len(bits) == 2:
+                day_int = int(bits[1])
+                day_num = str(day_int)
+                # Leave day_short as raw_date — caller-provided abbrev.
+        except (ValueError, TypeError):
+            # Non-numeric — echo raw input as the visible day label.
+            pass
+        out.append(
+            {
+                "day_short": day_short,
+                "day_num": day_num,
+                "weather_icon": weather_emoji,
+                "temp_display": "",
+                "event_label": event_label,
+                "is_today": False,
+            }
+        )
+    return out
+
+
+def _serialize_calendar_weather_days(
+    items: list[dict[str, Any]] | None,
+) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        day_short = str(item.get("day_short", "")).strip()
+        day_num = str(item.get("day_num", "")).strip()
+        # Compose the date column from the parts the parser writes —
+        # fall back to whichever half is present so operator input never
+        # vanishes on round-trip.
+        if day_short and day_num:
+            date_label = f"{day_short} {day_num}"
+        else:
+            date_label = day_short or day_num
+        if not date_label:
+            continue
+        weather_emoji = str(item.get("weather_icon", "")).strip()
+        event_label = str(item.get("event_label", "")).strip()
+        rows.append(
+            f"{date_label} | {weather_emoji} | {event_label}".rstrip(" |")
+        )
+    return "\n".join(rows)
+
+
+# ---------------------------------------------------------------------------
 # Serializers — flatten nested dict back into textarea-friendly strings
 # for ``__init__`` (round-trip).
 # ---------------------------------------------------------------------------
@@ -1873,6 +2207,204 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- v3.57.14 Rich editors (6 NEW sections) -----------------------
+    # Extends the v3.57.13 pattern to 6 more sections drawn from
+    # manager_200x (operator_presence / operator_notebook /
+    # tenant_heatmap / revenue_waterfall) and tenant_v3_extended
+    # (realtime_presence / calendar_weather). Same forgiving parser
+    # contract: empty/malformed rows skipped; operator-supplied empties
+    # filtered from the overlay before `.update()` so `_deep_merge`
+    # preserves defaults from the helper modules.
+
+    # 16) manager_200x.operator_presence
+    opr_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Operator presence: label"),
+        help_text=_(
+            "Aria-label string for the operator-presence capsule "
+            "(e.g. 'Operators online and platform status'). Maps to "
+            "cockpit.operator_presence.aria_label."
+        ),
+    )
+    opr_online_count = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=_NUMBER,
+        label=_("Operator presence: online count"),
+        help_text=_(
+            "Number of operators currently online. Rendered via blocktrans "
+            "(singular/plural). Maps to "
+            "cockpit.operator_presence.operators_online_count."
+        ),
+    )
+    opr_avatars = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Operator presence: avatars"),
+        help_text=_(
+            "One per line: initials | name | role | status. "
+            "Status ∈ {online, idle, away}; anything else falls back to "
+            "'online'. Trailing columns are optional. Rows without "
+            "initials are skipped. Gradient chip color is derived from "
+            "status (online=emerald, idle=amber, away=indigo)."
+        ),
+    )
+
+    # 17) manager_200x.operator_notebook
+    opn_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Operator notebook: label"),
+        help_text=_(
+            "Uppercase tiny title shown on the floating notebook "
+            "(e.g. 'Add to notebook'). Maps to "
+            "cockpit.operator_notebook.title."
+        ),
+    )
+    opn_mic_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Operator notebook: dictation mic enabled"),
+        help_text=_(
+            "When checked, the notebook shows a dictation mic button. "
+            "Maps to cockpit.operator_notebook.mic_enabled."
+        ),
+    )
+    opn_placeholder = forms.CharField(
+        required=False,
+        max_length=240,
+        widget=_TEXT,
+        label=_("Operator notebook: placeholder"),
+        help_text=_(
+            "Serif-italic textarea placeholder (max 240 chars). "
+            "Maps to cockpit.operator_notebook.placeholder."
+        ),
+    )
+
+    # 18) manager_200x.tenant_heatmap
+    thm_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Tenant heatmap: label"),
+        help_text=_(
+            "Title shown on the heatmap card "
+            "(e.g. 'Every school'). Maps to cockpit.tenant_heatmap.title."
+        ),
+    )
+    thm_tile_rows = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Tenant heatmap: tile rows"),
+        help_text=_(
+            "One per line: region | health_status | label. "
+            "Label column optional (region doubles as hover label). "
+            "health_status ∈ {healthy, ok, warn, danger, idle}; anything "
+            "else falls back to 'healthy'. Rows without a region are "
+            "skipped. Renders as a 20-col dense grid of tinted tiles."
+        ),
+    )
+
+    # 19) manager_200x.revenue_waterfall
+    rwf_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Revenue waterfall: label"),
+        help_text=_(
+            "Eyebrow caption above the waterfall chart "
+            "(e.g. 'MRR waterfall · this month'). Maps to "
+            "cockpit.revenue_waterfall.eyebrow."
+        ),
+    )
+    rwf_start_value = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Revenue waterfall: start value"),
+        help_text=_(
+            "Opening value shown in the title prefix "
+            "(e.g. 'From $39.2k'). Maps to cockpit.revenue_waterfall.title."
+        ),
+    )
+    rwf_end_value = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Revenue waterfall: end value"),
+        help_text=_(
+            "Closing value shown in the title suffix "
+            "(e.g. '$42.1k'). Maps to cockpit.revenue_waterfall.title_end."
+        ),
+    )
+    rwf_bars = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Revenue waterfall: bars"),
+        help_text=_(
+            "One per line: category | delta | severity. "
+            "Severity ∈ {start, gain, loss, end}; anything else falls "
+            "back to 'gain'. Delta is operator-formatted (e.g. "
+            "'+$3.8k', '-$2.1k'). Rows without a category are skipped. "
+            "SVG geometry (x/y/width/height) stays code-owned and falls "
+            "through from section defaults."
+        ),
+    )
+
+    # 20) tenant_v3_extended.realtime_presence
+    rtp_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Realtime presence: label"),
+        help_text=_(
+            "Title shown above the presence dots "
+            "(e.g. 'Classmates online'). Maps to "
+            "cockpit.realtime_presence.title."
+        ),
+    )
+    rtp_classmates_online = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=_NUMBER,
+        label=_("Realtime presence: classmates online"),
+        help_text=_(
+            "Number of classmates currently online (display only — "
+            "websocket presence channel is a8-wire-pending). Maps to "
+            "cockpit.realtime_presence.online_count."
+        ),
+    )
+    rtp_dots = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Realtime presence: dots"),
+        help_text=_(
+            "One per line: initials | status. "
+            "Status ∈ {online, idle, away}; anything else falls back to "
+            "'away'. Status column optional. Rows without initials are "
+            "skipped. Initials only — full names never appear here."
+        ),
+    )
+
+    # 21) tenant_v3_extended.calendar_weather
+    cwt_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Calendar weather: label"),
+        help_text=_(
+            "Title shown above the 7-day strip "
+            "(e.g. 'Week ahead'). Maps to cockpit.calendar_weather.title."
+        ),
+    )
+    cwt_days = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Calendar weather: days"),
+        help_text=_(
+            "One per line: date | weather_emoji | events. "
+            "Date may be YYYY-MM-DD (weekday auto-derived), MM-DD, "
+            "or a bare label (e.g. 'Mon 21'). Weather emoji is a "
+            "single glyph. Events is a free-form short label. Rows "
+            "without a date are skipped."
+        ),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -2030,6 +2562,36 @@ class CockpitPayloadForm(forms.ModelForm):
         "ftl_label",
         "ftl_current_balance",
         "ftl_events",
+    )
+    # v3.57.14 rich-editor fieldsets — 6 NEW sections.
+    OPERATOR_PRESENCE_FIELDS: tuple[str, ...] = (
+        "opr_label",
+        "opr_online_count",
+        "opr_avatars",
+    )
+    OPERATOR_NOTEBOOK_FIELDS: tuple[str, ...] = (
+        "opn_label",
+        "opn_mic_enabled",
+        "opn_placeholder",
+    )
+    TENANT_HEATMAP_FIELDS: tuple[str, ...] = (
+        "thm_label",
+        "thm_tile_rows",
+    )
+    REVENUE_WATERFALL_FIELDS: tuple[str, ...] = (
+        "rwf_label",
+        "rwf_start_value",
+        "rwf_end_value",
+        "rwf_bars",
+    )
+    REALTIME_PRESENCE_FIELDS: tuple[str, ...] = (
+        "rtp_label",
+        "rtp_classmates_online",
+        "rtp_dots",
+    )
+    CALENDAR_WEATHER_FIELDS: tuple[str, ...] = (
+        "cwt_label",
+        "cwt_days",
     )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
@@ -2308,6 +2870,57 @@ class CockpitPayloadForm(forms.ModelForm):
         )
         self.fields["ftl_events"].initial = _serialize_financial_events(
             financial.get("events")
+        )
+
+        # ---- v3.57.14 rich-editor seeds (6 NEW sections) ------------------
+        # manager_200x.operator_presence
+        opr = payload.get("operator_presence") or {}
+        self.fields["opr_label"].initial = opr.get("aria_label", "")
+        self.fields["opr_online_count"].initial = opr.get("operators_online_count")
+        self.fields["opr_avatars"].initial = _serialize_operator_presence_avatars(
+            opr.get("avatars")
+        )
+
+        # manager_200x.operator_notebook
+        opn = payload.get("operator_notebook") or {}
+        self.fields["opn_label"].initial = opn.get("title", "")
+        # ``mic_enabled`` defaults to True in the helper; round-trip the
+        # explicit-False operator save honestly via .get() with None
+        # fallback so the checkbox renders unchecked iff the operator
+        # cleared it.
+        if "mic_enabled" in opn:
+            self.fields["opn_mic_enabled"].initial = bool(opn.get("mic_enabled"))
+        self.fields["opn_placeholder"].initial = opn.get("placeholder", "")
+
+        # manager_200x.tenant_heatmap
+        heatmap = payload.get("tenant_heatmap") or {}
+        self.fields["thm_label"].initial = heatmap.get("title", "")
+        self.fields["thm_tile_rows"].initial = _serialize_heatmap_tiles(
+            heatmap.get("tiles")
+        )
+
+        # manager_200x.revenue_waterfall
+        waterfall = payload.get("revenue_waterfall") or {}
+        self.fields["rwf_label"].initial = waterfall.get("eyebrow", "")
+        self.fields["rwf_start_value"].initial = waterfall.get("title", "")
+        self.fields["rwf_end_value"].initial = waterfall.get("title_end", "")
+        self.fields["rwf_bars"].initial = _serialize_waterfall_bars(
+            waterfall.get("bars")
+        )
+
+        # tenant_v3_extended.realtime_presence
+        rtp = payload.get("realtime_presence") or {}
+        self.fields["rtp_label"].initial = rtp.get("title", "")
+        self.fields["rtp_classmates_online"].initial = rtp.get("online_count")
+        self.fields["rtp_dots"].initial = _serialize_realtime_presence_dots(
+            rtp.get("presence")
+        )
+
+        # tenant_v3_extended.calendar_weather
+        cwt = payload.get("calendar_weather") or {}
+        self.fields["cwt_label"].initial = cwt.get("title", "")
+        self.fields["cwt_days"].initial = _serialize_calendar_weather_days(
+            cwt.get("days")
         )
 
     # ------------------------------------------------------------------
@@ -2622,6 +3235,98 @@ class CockpitPayloadForm(forms.ModelForm):
             financial_overlay["events"] = ftl_events
         if financial_overlay:
             payload.setdefault("financial_timeline", {}).update(financial_overlay)
+
+        # v3.57.14 rich-editor overlays (6 NEW sections). Same pattern as
+        # the v3.57.13 overlays above: build dict from operator inputs,
+        # filter empty values so `_deep_merge` preserves defaults, then
+        # `.update()` onto a `setdefault()` dict so any pre-existing keys
+        # survive alongside the new content.
+
+        # 16) manager_200x.operator_presence
+        opr_overlay: dict[str, Any] = {}
+        opr_label = (cleaned.get("opr_label") or "").strip()
+        if opr_label:
+            opr_overlay["aria_label"] = opr_label
+        opr_count = cleaned.get("opr_online_count")
+        if opr_count is not None and opr_count != "":
+            opr_overlay["operators_online_count"] = opr_count
+        opr_avatars = _parse_operator_presence_avatars(
+            cleaned.get("opr_avatars") or ""
+        )
+        if opr_avatars:
+            opr_overlay["avatars"] = opr_avatars
+        if opr_overlay:
+            payload.setdefault("operator_presence", {}).update(opr_overlay)
+
+        # 17) manager_200x.operator_notebook
+        opn_overlay: dict[str, Any] = {}
+        opn_label = (cleaned.get("opn_label") or "").strip()
+        if opn_label:
+            opn_overlay["title"] = opn_label
+        # ``mic_enabled`` is a BooleanField — always send the bool so the
+        # operator's explicit choice (incl. unchecked=False) round-trips,
+        # otherwise the helper default (True) would always win.
+        opn_overlay["mic_enabled"] = bool(cleaned.get("opn_mic_enabled"))
+        opn_placeholder = (cleaned.get("opn_placeholder") or "").strip()
+        if opn_placeholder:
+            opn_overlay["placeholder"] = opn_placeholder
+        if opn_overlay:
+            payload.setdefault("operator_notebook", {}).update(opn_overlay)
+
+        # 18) manager_200x.tenant_heatmap
+        heatmap_overlay: dict[str, Any] = {}
+        thm_label = (cleaned.get("thm_label") or "").strip()
+        if thm_label:
+            heatmap_overlay["title"] = thm_label
+        thm_tiles = _parse_heatmap_tiles(cleaned.get("thm_tile_rows") or "")
+        if thm_tiles:
+            heatmap_overlay["tiles"] = thm_tiles
+        if heatmap_overlay:
+            payload.setdefault("tenant_heatmap", {}).update(heatmap_overlay)
+
+        # 19) manager_200x.revenue_waterfall — start_value/end_value map to
+        # the helper's split title/title_end fields so the partial's
+        # "From $X to a closing $Y" layout stays intact.
+        waterfall_overlay: dict[str, Any] = {}
+        rwf_label = (cleaned.get("rwf_label") or "").strip()
+        if rwf_label:
+            waterfall_overlay["eyebrow"] = rwf_label
+        rwf_start = (cleaned.get("rwf_start_value") or "").strip()
+        if rwf_start:
+            waterfall_overlay["title"] = rwf_start
+        rwf_end = (cleaned.get("rwf_end_value") or "").strip()
+        if rwf_end:
+            waterfall_overlay["title_end"] = rwf_end
+        rwf_bars = _parse_waterfall_bars(cleaned.get("rwf_bars") or "")
+        if rwf_bars:
+            waterfall_overlay["bars"] = rwf_bars
+        if waterfall_overlay:
+            payload.setdefault("revenue_waterfall", {}).update(waterfall_overlay)
+
+        # 20) tenant_v3_extended.realtime_presence
+        rtp_overlay: dict[str, Any] = {}
+        rtp_label = (cleaned.get("rtp_label") or "").strip()
+        if rtp_label:
+            rtp_overlay["title"] = rtp_label
+        rtp_count = cleaned.get("rtp_classmates_online")
+        if rtp_count is not None and rtp_count != "":
+            rtp_overlay["online_count"] = rtp_count
+        rtp_dots = _parse_realtime_presence_dots(cleaned.get("rtp_dots") or "")
+        if rtp_dots:
+            rtp_overlay["presence"] = rtp_dots
+        if rtp_overlay:
+            payload.setdefault("realtime_presence", {}).update(rtp_overlay)
+
+        # 21) tenant_v3_extended.calendar_weather
+        cwt_overlay: dict[str, Any] = {}
+        cwt_label = (cleaned.get("cwt_label") or "").strip()
+        if cwt_label:
+            cwt_overlay["title"] = cwt_label
+        cwt_days = _parse_calendar_weather_days(cleaned.get("cwt_days") or "")
+        if cwt_days:
+            cwt_overlay["days"] = cwt_days
+        if cwt_overlay:
+            payload.setdefault("calendar_weather", {}).update(cwt_overlay)
 
         return payload
 

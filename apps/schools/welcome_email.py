@@ -27,13 +27,16 @@ def _regional_from_email(school) -> str:
 
 
 def _login_url(school) -> str:
-    """Login URL for the school (subdomain or main)."""
+    """Login URL for the school tenant host."""
     from django.urls import reverse
 
-    base = getattr(settings, "BASE_URL", "") or ""
-    if base:
-        return f"{base.rstrip('/')}/accounts/login/"
-    return reverse("accounts:login")
+    from apps.schools.provision_email_urls import build_tenant_authentication_url
+
+    try:
+        path = reverse("accounts:login")
+    except Exception:
+        path = "/authentication/login/"
+    return build_tenant_authentication_url(school, path)
 
 
 def render_welcome_email_html(
@@ -41,6 +44,7 @@ def render_welcome_email_html(
     contact_email: str,
     *,
     login_url: str | None = None,
+    setup_password_url: str | None = None,
     dynamic_block: str = "",
 ) -> str:
     """
@@ -69,7 +73,19 @@ def render_welcome_email_html(
     _logo_url = brand.get("logo_url") or getattr(school, "logo_url", None) or ""
     name = getattr(school, "name", None) or "Your School"
     login = login_url or _login_url(school)
+    setup = (setup_password_url or "").strip()
     block = (dynamic_block or "").strip()
+    setup_cta = ""
+    if setup:
+        setup_cta = (
+            f'<p style="margin: 1rem 0;">'
+            f'<a href="{setup}" style="background: {primary}; color: #fff; padding: 0.5rem 1rem; '
+            f'text-decoration: none; border-radius: 4px;">Set your password</a>'
+            f"</p>"
+            f'<p style="color: #666; font-size: 0.9rem;">This link expires in a few days. '
+            f"After you set a password, sign in at "
+            f'<a href="{login}">{login}</a>.</p>'
+        )
     return f"""
 <!DOCTYPE html>
 <html>
@@ -77,8 +93,8 @@ def render_welcome_email_html(
 <body style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 1rem;">
   <div style="border-left: 4px solid {primary}; padding-left: 1rem;">
     <h1 style="color: {primary};">Your school is ready!</h1>
-    <p>Welcome to {name}. Your school has been set up. You can log in with this email address.</p>
-    <p><a href="{login}" style="background: {primary}; color: #fff; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px;">Open dashboard</a></p>
+    <p>Welcome to {name}. Your school has been set up for <strong>{contact_email}</strong>.</p>
+    {setup_cta if setup_cta else f'<p><a href="{login}" style="background: {primary}; color: #fff; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px;">Open sign-in</a></p>'}
     {f'<div style="margin-top: 1rem;">{block}</div>' if block else ""}
     <p style="color: #666; font-size: 0.9rem;">If you did not request this, please ignore this email.</p>
   </div>
@@ -109,7 +125,25 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
         cfg = profile.config
         if isinstance(cfg, dict) and cfg.get("welcome_block"):
             dynamic_block = str(cfg["welcome_block"])
-    html = render_welcome_email_html(school, contact_email, dynamic_block=dynamic_block)
+    setup_password_url = ""
+    from django.contrib.auth import get_user_model
+
+    admin_user = (
+        get_user_model()
+        .objects.filter(email__iexact=contact_email.strip())
+        .order_by("pk")
+        .first()
+    )
+    if admin_user:
+        from apps.schools.provision_email_urls import build_provision_setup_password_url
+
+        setup_password_url = build_provision_setup_password_url(school, admin_user)
+    html = render_welcome_email_html(
+        school,
+        contact_email,
+        dynamic_block=dynamic_block,
+        setup_password_url=setup_password_url or None,
+    )
     subject = f"Your school is ready — {getattr(school, 'name', 'Your School')}"
     from_email = _regional_from_email(school)
     try:

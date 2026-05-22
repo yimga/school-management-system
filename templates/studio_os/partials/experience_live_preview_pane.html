@@ -1,5 +1,5 @@
 {% load i18n %}
-{# v3.54.0 (2026-05-21): Experience live preview pane — visual experience
+{% comment %} v3.54.0 (2026-05-21): Experience live preview pane — visual experience
    control room. Responsive iframe (aspect-ratio 16/10), role/audience
    selector when studio_role_preview_entries is populated, applied/draft
    badges from theme_contrast_report + theme_recent_change_meta. All routes
@@ -7,7 +7,7 @@
    or fallback to accounts:backend_dashboard / portal:parent_dashboard).
    When empty, shows an honest "Preview unavailable" state — never fakes.
 
-   Classes are defined in static/css/studio-experience-mode.css. #}
+   Classes are defined in static/css/studio-experience-mode.css. {% endcomment %}
 <section class="rmc-studio-experience-preview studio-os__card mt-3"
          aria-labelledby="rmc-studio-experience-preview-heading"
          data-rmc-studio-experience-preview="1">

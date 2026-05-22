@@ -1,8 +1,10 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load static i18n phase8_tags %}
 
 {% block title %}{% trans "Configuration Center" %}{% endblock %}
 
 {% block content %}
+{% phase8_dashboard_declaration "siteconfig/dashboard_hub.html" %}
+<span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% include "siteconfig/partials/dashboard_hub_body.html" %}
 {% endblock %}

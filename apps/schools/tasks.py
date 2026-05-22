@@ -975,24 +975,17 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             pass
     logger.info("School %s provisioning complete", school_id)
 
-    # Phase Welcome: send welcome email (async if Celery available)
+    # Phase Welcome: send in-process so the same worker/env that finished
+    # provisioning holds SMTP credentials (avoids a second queued task with no EMAIL_*).
     if (contact_email or "").strip():
-        try:
-            from apps.schools.welcome_email import send_welcome_email_task
+        from apps.schools.welcome_email import send_welcome_email
 
-            send_welcome_email_task.delay(str(school.id), contact_email=contact_email)
-        except (
-            ImportError,
-            AttributeError,
-            ConnectionError,
-            OSError,
-            RuntimeError,
-            TypeError,
-            ValueError,
-        ):
-            from apps.schools.welcome_email import send_welcome_email
-
-            send_welcome_email(str(school.id), contact_email)
+        sent = send_welcome_email(str(school.id), contact_email)
+        if not sent:
+            logger.warning(
+                "Welcome email not sent for school %s (check EMAIL_* on Celery worker)",
+                school_id,
+            )
 
 
 # Celery task (optional)

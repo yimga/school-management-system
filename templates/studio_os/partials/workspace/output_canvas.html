@@ -1,7 +1,9 @@
 {% load i18n %}
-{# v3.54.0 (2026-05-21): Readiness preview pane lives on the default
-   `dependency` view (the landing pane). Other panes show their own
-   focused workspace. The pane is honest about service state. #}
+{% comment %}
+v3.54.0 (2026-05-21): Readiness preview pane lives on the default
+`dependency` view (the landing pane). Other panes show their own
+focused workspace. The pane is honest about service state.
+{% endcomment %}
 {% if output_pane == 'dependency' %}
   {% include "studio_os/partials/output_readiness_preview_pane.html" %}
   <div class="min-w-0" data-rmc-output-pane="dependency">

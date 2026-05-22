@@ -1,5 +1,6 @@
 # Render Blueprint: Web Service + PostgreSQL + Redis + Celery Worker + Beat
-# Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard for real SMTP (delegate/summary emails).
+# Outbound mail: set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD on WEB *and* WORKER (see docs/RENDER_EMAIL_SETUP.md).
+# Recommended free SMTP: Brevo — smtp-relay.brevo.com:587 (≈300 emails/day).
 #
 # Pre-Deploy: With USE_DJANGO_TENANTS=1 the service MUST use preDeployCommand below
 # (migrate_schemas --shared then --tenant). Do not override with "migrate" or deploy will fail.
@@ -69,18 +70,18 @@ services:
           type: redis
           name: school-management-redis
           property: connectionString
-      # Email (delegate notifications, delegation summary on return). Set in Dashboard if sending real email.
+      # Email — Brevo SMTP defaults; set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD in Dashboard (secrets).
       - key: EMAIL_BACKEND
         value: "django.core.mail.backends.smtp.EmailBackend"
       - key: EMAIL_HOST
-        value: "smtp.gmail.com"
+        value: "smtp-relay.brevo.com"
       - key: EMAIL_PORT
         value: "587"
       - key: EMAIL_USE_TLS
         value: "True"
       - key: DEFAULT_FROM_EMAIL
         value: "noreply@runmycampus.com"
-      # Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard (secrets) for real SMTP.
+      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: Brevo SMTP key (see docs/RENDER_EMAIL_SETUP.md).
 
   - type: worker
     name: school-management-system-worker
@@ -115,6 +116,17 @@ services:
           type: redis
           name: school-management-redis
           property: connectionString
+      # Same SMTP as web — welcome email sends from this worker after provisioning.
+      - key: EMAIL_BACKEND
+        value: "django.core.mail.backends.smtp.EmailBackend"
+      - key: EMAIL_HOST
+        value: "smtp-relay.brevo.com"
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: DEFAULT_FROM_EMAIL
+        value: "noreply@runmycampus.com"
   - type: worker
     name: school-management-system-beat
     env: python

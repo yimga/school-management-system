@@ -161,6 +161,29 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["financial_timeline_fields"] = [
             form[name] for name in getattr(form, "FINANCIAL_TIMELINE_FIELDS", ())
         ]
+        # v3.57.14: 6 NEW rich-editor fieldsets extending the Agent D+H+M
+        # pattern to operator_presence / operator_notebook / tenant_heatmap
+        # / revenue_waterfall / realtime_presence / calendar_weather. Same
+        # getattr() guard so older form revisions still render — the
+        # template short-circuits when the list is empty.
+        ctx["operator_presence_fields"] = [
+            form[name] for name in getattr(form, "OPERATOR_PRESENCE_FIELDS", ())
+        ]
+        ctx["operator_notebook_fields"] = [
+            form[name] for name in getattr(form, "OPERATOR_NOTEBOOK_FIELDS", ())
+        ]
+        ctx["tenant_heatmap_fields"] = [
+            form[name] for name in getattr(form, "TENANT_HEATMAP_FIELDS", ())
+        ]
+        ctx["revenue_waterfall_fields"] = [
+            form[name] for name in getattr(form, "REVENUE_WATERFALL_FIELDS", ())
+        ]
+        ctx["realtime_presence_fields"] = [
+            form[name] for name in getattr(form, "REALTIME_PRESENCE_FIELDS", ())
+        ]
+        ctx["calendar_weather_fields"] = [
+            form[name] for name in getattr(form, "CALENDAR_WEATHER_FIELDS", ())
+        ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
         return ctx

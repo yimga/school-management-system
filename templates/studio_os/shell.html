@@ -13,12 +13,12 @@
 <link rel="stylesheet" href="{% static 'css/studio-os-cockpit.css' %}">
 {# v3.53.1 (2026-05-21): Persistent AI presence on the cockpit rail. #}
 <link rel="stylesheet" href="{% static 'css/rmc-copilot-rail.css' %}">
-{# v3.54.0 (2026-05-21): Overview command cockpit (rendered when current_mode is None). #}
+{# v3.54.0 (2026-05-21): Overview command cockpit (rendered when current_mode is None) #}
 <link rel="stylesheet" href="{% static 'css/studio-overview-cockpit.css' %}">
-{# Synchronous load (no defer/async) so data-rmc-copilot-rail-armed lands
+{% comment %} Synchronous load (no defer/async) so data-rmc-copilot-rail-armed lands
    before first paint; CSS skeleton hide-rule keys off the armed attribute,
    so a JS-load failure leaves the server-rendered skeleton visible instead
-   of stranding a blank rail. #}
+   of stranding a blank rail. {% endcomment %}
 <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
 {% endblock %}
 
@@ -60,9 +60,9 @@
   {% include "studio_os/partials/studio_guidance_panel.html" %}
   {% endif %}
 
-  {# v3.53.0 (2026-05-21): Mission Cockpit chrome wraps the studio-os grid.
+  {% comment %} v3.53.0 (2026-05-21): Mission Cockpit chrome wraps the studio-os grid.
      The 3 cockpit partials (signal / canvas / co-pilot rail) are additive —
-     legacy .studio-os layout continues to render inside the canvas region. #}
+     legacy .studio-os layout continues to render inside the canvas region. {% endcomment %}
   <div class="rmc-cockpit" data-rmc-cockpit="studio-os">
     {% include "studio_os/partials/cockpit_signal_strip.html" %}
     {% include "studio_os/partials/cockpit_canvas.html" with cockpit_inline=True %}
@@ -83,11 +83,11 @@
     <main class="studio-os__canvas rmc-shell-main" id="studio-canvas" role="main" tabindex="-1" data-rmc-shell-main="studio-os" data-tour="studio-canvas">
       {% block studio_canvas %}
         {% if not current_mode %}
-          {# v3.54.0 (2026-05-21): Overview command cockpit replaces the inline mode-cards +
+          {% comment %} v3.54.0 (2026-05-21): Overview command cockpit replaces the inline mode-cards +
              operational-hubs row. The new partial composes: mission hero (next best action),
              5-card mode grid (with guidance_question/_tip preserved), readiness | recently
              edited | live previews triptych, and the operational-hubs action rail. Renders
-             honest empty states for every panel when its context list is unpopulated. #}
+             honest empty states for every panel when its context list is unpopulated. {% endcomment %}
           {% include "studio_os/partials/overview_command_cockpit.html" %}
         {% elif embed_url %}
           <div class="small text-muted mb-2">{% trans "Loading mode canvas..." %}</div>
@@ -214,8 +214,8 @@
           <p class="small text-muted mb-2">{% trans "Reports, documents, and report cards. Download or design from the canvas." %}</p>
           {% if legacy_urls.document_library %}<a href="{{ legacy_urls.document_library }}" class="btn btn-outline-secondary btn-sm w-100 mb-1">{% trans "Document library" %}</a>{% endif %}
           {% if legacy_urls.reportcard_builder %}<a href="{{ legacy_urls.reportcard_builder }}" class="btn btn-outline-secondary btn-sm w-100">{% trans "Report card builder" %}</a>{% endif %}
-        {# v3.54.0 (2026-05-21): removed dead-code duplicate {% elif current_mode == 'launch' %}
-           branch (the upper launch branch above always wins; the duplicate was unreachable). #}
+        {% comment %} v3.54.0 (2026-05-21): removed dead-code duplicate elif current_mode launch branch
+           (the upper launch branch above always wins; the duplicate was unreachable). {% endcomment %}
         {% elif current_mode == 'control' %}
           <p class="small fw-semibold mb-1">{% trans "Impact" %}</p>
           {% if why_enabled_summary %}<p class="small text-muted mb-2">{{ why_enabled_summary }}</p>{% endif %}
@@ -223,8 +223,8 @@
           {% if control_audit_entries %}
           <ul class="studio-os-activity-list mb-2">
             {% for e in control_audit_entries|slice:":5" %}
-            {# v3.54.0 (2026-05-21): PII-safe actor rendering. Prefer e.actor_display
-               (hashed prefix or displayed_name); never e.actor_email/_username/_slug. #}
+            {% comment %} v3.54.0 (2026-05-21): PII-safe actor rendering. Prefer e.actor_display
+               (hashed prefix or displayed_name); never e.actor_email/_username/_slug. {% endcomment %}
             <li>
               <span class="small">{{ e.action|default:"save" }}</span>
               {% if e.actor_display %}<span class="text-muted small">— {{ e.actor_display }}</span>{% endif %}
@@ -237,9 +237,9 @@
           <p class="small text-muted mb-2">{% trans "Capabilities and feature flags. Check audit trail before rolling back." %}</p>
           {% endif %}
         {% elif not current_mode %}
-          {# v3.54.0 (2026-05-21): Overview-mode right-rail summary. Without this branch,
-             Overview fell through to the generic {% else %} message and lost any signal
-             value. Renders honest empty states when context vars absent. #}
+          {% comment %} v3.54.0 (2026-05-21): Overview-mode right-rail summary. Without this branch,
+             Overview fell through to the generic else message and lost any signal
+             value. Renders honest empty states when context vars absent. {% endcomment %}
           <p class="small fw-semibold mb-1">{% trans "Studio readiness" %}</p>
           {% if launch_health_summary %}
           <p class="small text-muted mb-2">{{ launch_health_summary }}</p>

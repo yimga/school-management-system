@@ -1,8 +1,10 @@
 {% load i18n %}
-{# v3.54.0 (2026-05-21): Experience in-page rail. Long labels wrap via
-   .studio-os__experience-rail rules in static/css/studio-experience-mode.css.
-   Every <a> here resolves to a real route (theme_colors_form anchor or
-   experience_left_rail item) — no `#` dummies. #}
+{% comment %}
+v3.54.0 (2026-05-21): Experience in-page rail. Long labels wrap via
+.studio-os__experience-rail rules in static/css/studio-experience-mode.css.
+Every <a> here resolves to a real route (theme_colors_form anchor or
+experience_left_rail item) — no `#` dummies.
+{% endcomment %}
 <div class="studio-os__card py-2 mb-2">
   <div class="h6 mb-1">{% trans "Brand identity" %}</div>
   <ul class="list-unstyled small mb-0">

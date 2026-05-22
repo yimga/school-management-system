@@ -4,9 +4,9 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
-{# v3.54.0 (2026-05-21): Experience-scoped layout-safety + workbench polish.
+{% comment %} v3.54.0 (2026-05-21): Experience-scoped layout-safety + workbench polish.
    Scope: ONLY Experience workspace. Layered above shared studio-mode-rail.css
-   so Output/Automation/Launch are not perturbed. #}
+   so Output/Automation/Launch are not perturbed. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/studio-experience-mode.css' %}">
 {% endblock %}
 

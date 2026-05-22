@@ -539,6 +539,170 @@
     </fieldset>
     {% endif %}
 
+    {% comment %}
+      v3.57.14: 6 NEW rich-editor fieldsets extending the v3.57.13 pattern
+      to operator_presence / operator_notebook / tenant_heatmap /
+      revenue_waterfall / realtime_presence / calendar_weather. Empty fields
+      fall through to section defaults via _deep_merge in cockpit_context.py.
+      Mixed-widget fieldsets (e.g. operator_notebook with a BooleanField)
+      use the field.field.widget.input_type check to switch between the
+      checkbox-row layout and the label-stacked text-row layout per cell.
+    {% endcomment %}
+
+    {# ---- v3.57.14 Operator presence rich editor ------------------------- #}
+    {% if operator_presence_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="operator-presence">
+      <legend class="h6 px-2 fw-bold">{% trans "Operator presence (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Aria-label, online count, and avatar chip rows for the manager_200x.operator_presence header capsule. Gradient chip color is derived from avatar status (online=emerald, idle=amber, away=indigo). Status-pill text falls through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in operator_presence_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.14 Operator notebook rich editor ------------------------- #}
+    {% if operator_notebook_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="operator-notebook">
+      <legend class="h6 px-2 fw-bold">{% trans "Operator notebook (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title, mic toggle, and placeholder for the manager_200x.operator_notebook floating quick-capture widget. Save URL + hint copy fall through to section defaults — the dictation backend itself stays code-owned." %}
+      </p>
+      <div class="row g-3">
+        {% for field in operator_notebook_fields %}
+          <div class="col-md-6">
+            {% if field.field.widget.input_type == "checkbox" %}
+              <div class="form-check">
+                {{ field }}
+                <label for="{{ field.id_for_label }}" class="form-check-label small fw-semibold">{{ field.label }}</label>
+              </div>
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% else %}
+              <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.14 Tenant heatmap rich editor ---------------------------- #}
+    {% if tenant_heatmap_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="tenant-heatmap">
+      <legend class="h6 px-2 fw-bold">{% trans "Tenant heatmap (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + tile rows for the manager_200x.tenant_heatmap 20-col dense health grid. health_status ∈ {healthy, ok, warn, danger, idle} drives the tile color. Eyebrow + legend-hint copy fall through to section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in tenant_heatmap_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.14 Revenue waterfall rich editor ------------------------- #}
+    {% if revenue_waterfall_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="revenue-waterfall">
+      <legend class="h6 px-2 fw-bold">{% trans "Revenue waterfall (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Eyebrow, start/end values, and bar rows for the manager_200x.revenue_waterfall card. start_value + end_value compose the 'From $X to a closing $Y' title; severity ∈ {start, gain, loss, end} drives bar color. SVG geometry (x/y/width/height/gradients) stays code-owned and falls through from section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in revenue_waterfall_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.14 Realtime presence rich editor ------------------------- #}
+    {% if realtime_presence_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="realtime-presence">
+      <legend class="h6 px-2 fw-bold">{% trans "Realtime presence (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title, classmates-online count, and presence-dot rows for the tenant_v3_extended.realtime_presence card. Status ∈ {online, idle, away} drives the dot tone; initials only — full names never appear. Websocket presence channel is a8-wire-pending; this editor controls the static display." %}
+      </p>
+      <div class="row g-3">
+        {% for field in realtime_presence_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {# ---- v3.57.14 Calendar weather rich editor -------------------------- #}
+    {% if calendar_weather_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="calendar-weather">
+      <legend class="h6 px-2 fw-bold">{% trans "Calendar weather (content)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Title + day rows for the tenant_v3_extended.calendar_weather 7-day strip. Date may be YYYY-MM-DD (weekday auto-derived), MM-DD, or a bare label. Weather emoji is a single glyph; events column is a free-form short label. Temp display + is_today flag stay code-owned and fall through from section defaults." %}
+      </p>
+      <div class="row g-3">
+        {% for field in calendar_weather_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"
