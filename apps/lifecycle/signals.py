@@ -44,6 +44,19 @@ def school_post_save_record_lifecycle(sender, instance, created, **kwargs):
             note="Schema landed",
             payload={"source": "schools.post_save"},
         )
+        # Wave L5: auto-launch migration if intent was set at create time.
+        # ensure_draft_migration_bundle is internally idempotent and
+        # silent when no intent is set.
+        try:
+            from .services_migration import ensure_draft_migration_bundle
+
+            ensure_draft_migration_bundle(instance)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "lifecycle.migration_autolaunch_failed school_id=%s err=%s",
+                getattr(instance, "id", "?"),
+                type(exc).__name__,
+            )
     except Exception as exc:  # noqa: BLE001 — best-effort sidecar logging
         logger.warning(
             "lifecycle.school_post_save_failed school_id=%s err=%s",

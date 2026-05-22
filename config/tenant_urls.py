@@ -296,6 +296,12 @@ urlpatterns = [
         __import__("apps.lifecycle.views_dsar", fromlist=["dsar_export_and_close"]).dsar_export_and_close,
         name="lifecycle_dsar_export_and_close",
     ),
+    # Wave L5 (v3.61.4 — 2026-05-22): public per-tenant migration status (lifecycle app).
+    path(
+        "portal/migration/status/",
+        __import__("apps.lifecycle.views_migration_status", fromlist=["tenant_migration_status"]).tenant_migration_status,
+        name="lifecycle_migration_status",
+    ),
     path(
         "api/school/offboarding/",
         api_tenant_offboarding_snapshot,

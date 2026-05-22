@@ -1,0 +1,56 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Migration status" %}{% endblock %}
+
+{% block content %}
+<section class="container py-3" data-rmc-page-archetype="migration-status">
+  <header class="mb-3">
+    <h1 class="h4">{% trans "Migration status" %} — {{ school.name }}</h1>
+    <p class="text-secondary small">{% trans "Live view of your data migration bundles. Newest first." %}</p>
+  </header>
+
+  {% if snapshot.active_bundle %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h6 mb-2">{% trans "Active bundle" %}</h2>
+      <dl class="row mb-0 small">
+        <dt class="col-sm-4">{% trans "Label" %}</dt><dd class="col-sm-8">{{ snapshot.active_bundle.label }}</dd>
+        <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8"><span class="badge text-bg-secondary">{{ snapshot.active_bundle.status }}</span></dd>
+        <dt class="col-sm-4">{% trans "Intake" %}</dt><dd class="col-sm-8"><code>{{ snapshot.active_bundle.intake_method }}</code></dd>
+        {% if snapshot.active_bundle.vendor_hint %}<dt class="col-sm-4">{% trans "Vendor hint" %}</dt><dd class="col-sm-8">{{ snapshot.active_bundle.vendor_hint }}</dd>{% endif %}
+        <dt class="col-sm-4">{% trans "SLA tier" %}</dt><dd class="col-sm-8">{{ snapshot.active_bundle.sla_tier }}</dd>
+      </dl>
+    </div>
+  </div>
+  {% endif %}
+
+  <h2 class="h6 mb-2">{% trans "Recent bundles" %}</h2>
+  {% if snapshot.bundles %}
+  <div class="table-responsive">
+    <table class="table table-sm rmc-data-table">
+      <thead><tr>
+        <th>{% trans "Label" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Intake" %}</th>
+        <th>{% trans "Tier" %}</th>
+      </tr></thead>
+      <tbody>
+        {% for b in snapshot.bundles %}
+        <tr>
+          <td>{{ b.label }}</td>
+          <td><span class="badge text-bg-light">{{ b.status }}</span></td>
+          <td><code class="small">{{ b.intake_method }}</code></td>
+          <td>{{ b.sla_tier }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-secondary small">{% trans "No migration bundles for this school." %}</p>
+  {% endif %}
+
+  <p class="small text-secondary mt-3">{% trans "Need to start a new import?" %} <a href="/portal/configure/migration/">{% trans "Open the migration wizard" %}</a></p>
+</section>
+{% endblock %}
