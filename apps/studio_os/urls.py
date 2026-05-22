@@ -7,6 +7,8 @@ from apps.accounts.views_workflow import (
 from .views_copilot_rail import (
     CopilotRailContextView,
     CopilotRailInsightsRefreshView,
+    CopilotRailSendStreamView,
+    CopilotRailSendView,
 )
 from .views import (
     school_infrastructure_apply_api,
@@ -194,5 +196,19 @@ urlpatterns = [
         "copilot/rail/insights/",
         CopilotRailInsightsRefreshView.as_view(),
         name="copilot_rail_insights",
+    ),
+    # v3.58.2 (2026-05-22): operator chat send — POSTs through ai_helpers gateway.
+    path(
+        "copilot/rail/send/",
+        CopilotRailSendView.as_view(),
+        name="copilot_rail_send",
+    ),
+    # v3.58.5 (2026-05-22): SSE-framed progressive reply for the same prompt.
+    # Client switches to this endpoint when the browser supports fetch streams;
+    # the JSON endpoint above stays as the legacy fallback.
+    path(
+        "copilot/rail/send-stream/",
+        CopilotRailSendStreamView.as_view(),
+        name="copilot_rail_send_stream",
     ),
 ]

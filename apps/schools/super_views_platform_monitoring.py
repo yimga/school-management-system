@@ -174,6 +174,9 @@ def super_tenant_360(request, school_id):
             trace = getattr(debug, "compilation_trace", []) or []
             warnings = getattr(debug, "warnings", []) or []
 
+    from apps.schools.tenant_offboarding import get_offboarding_snapshot
+
+    offboarding = get_offboarding_snapshot(school)
     return render(
         request,
         "schools/super_tenant_360.html",
@@ -186,6 +189,35 @@ def super_tenant_360(request, school_id):
             "runtime_trace": trace,
             "runtime_warnings": warnings,
             "dashboard_url": reverse("super:dashboard"),
+            "offboarding": offboarding,
+            "api_offboarding_url": reverse(
+                "super:api_school_offboarding", args=[school.id]
+            ),
+            "api_offboarding_export_url": reverse(
+                "super:api_school_offboarding_export", args=[school.id]
+            ),
+            "api_offboarding_deactivate_url": reverse(
+                "super:api_school_offboarding_deactivate", args=[school.id]
+            ),
+            "api_offboarding_hold_url": reverse(
+                "super:api_school_offboarding_hold", args=[school.id]
+            ),
+            "api_offboarding_purge_url": reverse(
+                "super:api_school_offboarding_purge", args=[school.id]
+            ),
+            "api_offboarding_schedule_url": reverse(
+                "super:api_school_offboarding_schedule", args=[school.id]
+            ),
+            "api_offboarding_dual_approve_url": reverse(
+                "super:api_school_offboarding_dual_approve", args=[school.id]
+            ),
+            "api_offboarding_export_download_url": reverse(
+                "super:api_school_offboarding_export_download", args=[school.id]
+            ),
+            "offboarding_queue_url": reverse("super:offboarding_queue"),
+            "api_school_timeline_url": reverse(
+                "super:api_school_timeline", args=[school.id]
+            ),
         },
     )
 

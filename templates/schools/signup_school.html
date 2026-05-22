@@ -111,12 +111,19 @@
             <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
           </label>
           {% if signup_countries %}
+            {# v3.58.x Wave 9: GlobalGeoCatalog-backed dropdown. Each #}
+            {# option carries data-rmc-signup-country-tz / -curriculum #}
+            {# so the rmc-signup-form.js handler can auto-suggest the #}
+            {# timezone and term_preset when the operator picks a country. #}
             <select name="country_code" id="country_code"
                     class="form-select rmc-signup-input"
                     data-rmc-signup-country="1">
-              <option value="">{% trans "Auto-detect" %}</option>
+              <option value="">{% trans "-- Select country --" %}</option>
               {% for c in signup_countries %}
-                <option value="{{ c.code }}" {% if country_code == c.code %}selected{% endif %}>{{ c.name }}</option>
+                <option value="{{ c.iso_alpha2 }}"
+                        data-rmc-signup-country-tz="{{ c.timezone|default:'' }}"
+                        data-rmc-signup-country-curriculum="{{ c.curriculum|default:'' }}"
+                        {% if country_code == c.iso_alpha2 %}selected{% endif %}>{{ c.flag_emoji|default:"" }} {{ c.name }}</option>
               {% endfor %}
             </select>
           {% else %}

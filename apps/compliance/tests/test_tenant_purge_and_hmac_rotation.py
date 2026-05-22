@@ -54,6 +54,30 @@ class TenantPurgeCommandTests(TestCase):
             "dry-run should not delete",
         )
 
+    def test_command_delegates_to_tenant_offboarding_service(self):
+        from apps.compliance.management.commands import tenant_purge as cmd_mod
+
+        self.assertIn("apply_purge", dir(cmd_mod))
+        self.assertIn("dry_run_purge", dir(cmd_mod))
+
+    def test_multi_slug_confirm_string(self):
+        second = School.objects.create(
+            slug="purge-target-test-b",
+            name="Purge Target B",
+            subdomain="purge-target-test-b",
+            country_code="CM",
+            is_active=True,
+        )
+        out = StringIO()
+        call_command(
+            "tenant_purge",
+            f"--school={self.school.slug},{second.slug}",
+            f"--confirm-delete-string={self.school.slug},{second.slug}",
+            stdout=out,
+        )
+        self.assertIn("DRY-RUN", out.getvalue())
+        self.assertTrue(School.objects.filter(slug=second.slug).exists())
+
 
 class RotateAuditHmacKeyTests(TestCase):
     def test_dry_run_prints_key_and_kid(self):

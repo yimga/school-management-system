@@ -2476,6 +2476,11 @@
   color: var(--status-warning-fg, var(--status-warning, #92400e));
 }
 
+.rmc-badge--danger {
+  background: var(--status-danger-bg, color-mix(in srgb, var(--status-danger, var(--text-danger, #ef4444)) 12%, transparent));
+  color: var(--status-danger-fg, var(--text-danger, #b91c1c));
+}
+
 .rmc-list {
   list-style: none;
   margin: 0;
@@ -3979,7 +3984,7 @@
   border: 1px solid color-mix(in oklab, var(--school-primary) 18%, transparent);
   font-size: var(--type-size-caption, 0.75rem);
   color: var(--admin-content-text-muted);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill */
 }
 
 .rmc-trust-pill__icon {

@@ -431,3 +431,18 @@ def ingest_policy_documents_all_tenants() -> dict:
                 extra={"error": str(exc)[:200]},
             )
     return {"processed": processed, "skipped": skipped, "errors": errors}
+
+
+@shared_task(name="siteconfig.snapshot_platform_pulse_daily")
+def snapshot_platform_pulse_daily():
+    """Daily cockpit-pulse snapshot — wraps the management command (01:15 UTC beat)."""
+    from django.core.management import call_command
+    try:
+        call_command("snapshot_platform_pulse")
+    except Exception as exc:  # noqa: BLE001 — beat must never crash
+        log_exception_with_context(
+            "snapshot_platform_pulse_daily: capture failed",
+            extra={"error": str(exc)[:200]},
+        )
+        return {"status": "error"}
+    return {"status": "ok"}

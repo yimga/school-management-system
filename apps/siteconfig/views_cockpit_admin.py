@@ -213,6 +213,18 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["ai_copilot_rail_fields"] = [
             form[name] for name in getattr(form, "AI_COPILOT_RAIL_FIELDS", ())
         ]
+        # v3.58.x Wave 9: sibling-compare operator-editable rich-editor
+        # fieldset — closes the cockpit-section-editor track to 100%
+        # (28/28). PRIVACY CONTRACT: this editor configures ONLY copy +
+        # chrome (title / subtitle / CTA / consent banner / denied
+        # state). It cannot toggle the per-parent ``opt_in`` consent
+        # flag — sibling data still requires per-family consent before
+        # any value renders. See
+        # ``apps/siteconfig/cockpit_context._sibling_compare_defaults()``
+        # docstring for the full contract.
+        ctx["sibling_compare_fields"] = [
+            form[name] for name in getattr(form, "SIBLING_COMPARE_FIELDS", ())
+        ]
         # v3.57.18 Wave 8: public school-signup form rich-editor fieldset.
         # Defaults to enabled=True (front-door section) so the page renders
         # the moment the cascade lands. Same getattr() guard so older form

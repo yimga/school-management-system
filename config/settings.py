@@ -1304,6 +1304,24 @@ EMAIL_USE_LOCALTIME = True
 # the last entry is unused (no sleep after the final attempt). Tunable
 # via a local_settings override; e.g. set [] to disable retries entirely.
 SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF = [1, 5, 30]
+# v3.58.x Wave 9 Agent K — request-lifetime sync send budget.
+# When the verification/transactional email path is invoked from inside an HTTP request,
+# we cap the synchronous wall-clock budget at this many seconds regardless of how many
+# retries the BACKOFF list configures. The signup view uses async_send=True to bypass
+# this entirely.
+SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS = int(os.getenv("SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS", "8"))
+# v3.58.x Wave 9 Agent M — email reliability completion track.
+# SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP: per-tenant sliding-window
+# cap on transactional+bulk sends per hour. Default 200 — guards against
+# runaway loops (signup spam, broken Celery beat, template regression).
+# When send_transactional() is called WITHOUT a tenant_hash kwarg the
+# cap is bypassed (platform-level sends like the operator test email).
+SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP = int(os.getenv("SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP", "200"))
+# SCHOOLOPS_EMAIL_DELIVERY_SSE_HEARTBEAT_SECONDS: cadence for the live
+# email-health SSE stream at /super/email/health/stream/. Clamped to
+# [1, 60] inside the view. 5s gives sub-perceptible live updates with
+# negligible WSGI-worker load.
+SCHOOLOPS_EMAIL_DELIVERY_SSE_HEARTBEAT_SECONDS = int(os.getenv("SCHOOLOPS_EMAIL_DELIVERY_SSE_HEARTBEAT_SECONDS", "5"))
 
 # --- Caching Configuration ---
 CACHES = {
@@ -1523,6 +1541,18 @@ CELERY_BEAT_SCHEDULE = {
         ),
         "options": {"queue": "default", "expires": 3600},
     },
+    # v3.58.5 — daily capture of the 6 cockpit-pulse KPI cards so the dashboard
+    # can render "+3 this week" deltas. Lightweight aggregate counts only —
+    # no tenant slugs, no PII. Free 01:15 UTC slot per beat-schedule audit.
+    "cockpit-platform-pulse-snapshot-daily": {
+        "task": "siteconfig.snapshot_platform_pulse_daily",
+        "schedule": (
+            _celery_crontab(hour=1, minute=15)
+            if _celery_crontab is not None
+            else 86400.0
+        ),
+        "options": {"queue": "default", "expires": 3600},
+    },
     # v3.34.0 Agent 5 — weekly upstream watch for django-cryptography
     # Django-5 compatibility. Mondays 05:00 UTC. The script ALWAYS exits
     # 0 (it's a watch, not a gate); the task layer parses the audit JSON
@@ -1735,6 +1765,18 @@ if _ensure_demo_cron_slug:
         "task": "schools.ensure_demo_environment_scheduled",
         "schedule": 86400.0,
         "options": {"expires": 7200},
+    }
+
+if os.getenv("TENANT_AUTO_PURGE_ENABLED", "").strip().lower() in ("1", "true", "yes"):
+    CELERY_BEAT_SCHEDULE["schools-run-scheduled-tenant-purges"] = {
+        "task": "schools.run_scheduled_tenant_purges",
+        "schedule": (
+            _celery_crontab(hour=4, minute=15)
+            if _celery_crontab is not None
+            else 86400.0
+        ),
+        "kwargs": {"dry_run": False, "limit": 20},
+        "options": {"queue": "low_priority", "expires": 3600},
     }
 
 # Backlog unlock matrix: refresh Django cache + emit PlatformEventLog on dependency transitions.

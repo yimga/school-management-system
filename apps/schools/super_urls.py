@@ -58,8 +58,11 @@ from apps.schoolops.views_analytics import MealPlanAnalyticsView
 from apps.schoolops.views_email_admin import EmailDeliveryConfigView
 from apps.schoolops.views_email_health import (
     EmailHealthDashboardView,
+    EmailHealthStreamView,
     SmtpProbeJsonView,
 )
+from apps.schoolops.views_email_webhook import EmailProviderWebhookView
+from .views_signup_diagnostics import SignupDiagnosticsView
 
 app_name = "super"
 
@@ -212,6 +215,56 @@ urlpatterns = [
         "api/schools/<uuid:school_id>/policy-bundles/<int:bundle_id>/activate/",
         require_super_access_with_host(super_views.api_school_policy_bundle_activate),
         name="api_school_policy_bundle_activate",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/",
+        require_super_access_with_host(super_views.api_school_offboarding),
+        name="api_school_offboarding",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/export/",
+        require_super_access_with_host(super_views.api_school_offboarding_export),
+        name="api_school_offboarding_export",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/deactivate/",
+        require_super_access_with_host(super_views.api_school_offboarding_deactivate),
+        name="api_school_offboarding_deactivate",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/hold/",
+        require_super_access_with_host(super_views.api_school_offboarding_hold),
+        name="api_school_offboarding_hold",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/purge/",
+        require_super_access_with_host(super_views.api_school_offboarding_purge),
+        name="api_school_offboarding_purge",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/dual-approve/",
+        require_super_access_with_host(super_views.api_school_offboarding_dual_approve),
+        name="api_school_offboarding_dual_approve",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/schedule/",
+        require_super_access_with_host(super_views.api_school_offboarding_schedule),
+        name="api_school_offboarding_schedule",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/export/download/",
+        require_super_access_with_host(super_views.api_school_offboarding_export_download),
+        name="api_school_offboarding_export_download",
+    ),
+    path(
+        "offboarding/",
+        require_super_access_with_host(super_views.super_offboarding_queue),
+        name="offboarding_queue",
+    ),
+    path(
+        "api/offboarding/run-scheduled/",
+        require_super_access_with_host(super_views.api_super_run_scheduled_purges),
+        name="api_run_scheduled_purges",
     ),
     path(
         "api/geo/cities/",
@@ -970,4 +1023,21 @@ urlpatterns = [
         EmailDeliveryConfigView.as_view(),
         name="email_configure",
     ),  # rbac-allow: super-staff-email-configure
+    # v3.58.x Wave 9 Agent K — signup-flow diagnostics dashboard.
+    path(
+        "signup/diagnostics/",
+        SignupDiagnosticsView.as_view(),
+        name="signup_diagnostics",
+    ),  # rbac-allow: super-staff-signup-flow-diagnostics
+    # v3.58.x Wave 9 Agent M — email reliability completion track.
+    path(
+        "email/health/stream/",
+        EmailHealthStreamView.as_view(),
+        name="email_health_stream",
+    ),  # rbac-allow: super-staff-email-health-dashboard
+    path(
+        "email/webhook/<str:provider>/",
+        EmailProviderWebhookView.as_view(),
+        name="email_provider_webhook",
+    ),  # rbac-allow: anonymous-signature-verified-bounce-webhook-receiver
 ]

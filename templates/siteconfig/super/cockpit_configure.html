@@ -867,6 +867,55 @@
     {% endif %}
 
     {% comment %}
+      v3.58.x Wave 9: Sibling-compare operator-editable copy editor.
+      Closes the cockpit-section-editor track to 100% (28/28 sections).
+
+      PRIVACY CONTRACT (load-bearing — DO NOT relax):
+      This editor configures ONLY copy + chrome: section enable flag,
+      titles, CTA labels, consent banner copy, denied-state message.
+      It CANNOT toggle ``opt_in`` to True. The cockpit cascade does NOT
+      carry an ``opt_in`` value into the partial — ``opt_in`` is sourced
+      from a per-parent consent record (outside cockpit_payload).
+      Operator ``enabled=True`` surfaces the section CTA; parent
+      ``opt_in=True`` (per-family consent record) is still required
+      to render actual sibling data.
+    {% endcomment %}
+
+    {# ---- v3.58.x Wave 9 sibling-compare operator copy editor ---------- #}
+    {% if sibling_compare_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="sibling-compare">
+      <legend class="h6 px-2 fw-bold">{% trans "Sibling-compare (operator copy)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Operator-editable copy + chrome for the family sibling-comparison section. PRIVACY: this editor configures titles, CTA labels, consent banner copy, and the denied-state message only. It CANNOT toggle per-parent consent — sibling data still requires explicit per-family opt-in before any value renders. Operator-enable surfaces the section CTA; parent consent is still required for data." %}
+      </p>
+      <div class="row g-3">
+        {% for field in sibling_compare_fields %}
+          <div class="col-md-6">
+            {% if field.field.widget.input_type == "checkbox" %}
+              <div class="form-check">
+                {{ field }}
+                <label for="{{ field.id_for_label }}" class="form-check-label small fw-semibold">{{ field.label }}</label>
+              </div>
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% else %}
+              <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% endif %}
+
+    {% comment %}
       v3.57.18 Wave 8: Public school-signup form (final marketing-host
       editor). Operator-configurable copy + chrome for the /signup/ page.
       Mixed-widget fieldset (BooleanField + CharField) so we switch

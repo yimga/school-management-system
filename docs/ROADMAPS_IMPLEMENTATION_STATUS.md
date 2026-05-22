@@ -42,7 +42,7 @@
 | 16.x Offline / sync | Implemented | enable_offline_mode; offline_replay_views; sync_delta_api; mobile_api sync_batch |
 | 16.x Regional tax, GraphQL, edge, testing matrix | Implemented | roadmap_due_today_views.py; GET /api/roadmap/regional-tax/, graphql/, edge/, testing-matrix/ |
 | 17.1 SoR vs Experience | Implemented | sor_vs_experience_17_1.md |
-| 17.x Wind-Down, RPO/RTO, canaries | Implemented | tenant_wind_down; CanaryStatusAPI, RPO_RTOConfigAPI; GET /api/roadmap/canary/, rpo-rto/ |
+| 17.x Wind-Down, RPO/RTO, canaries | Implemented | tenant_offboarding (Tenant 360 + self-service `/school/studio/offboarding/` + auto-purge scheduler + S3 cleanup); tenant_wind_down; CanaryStatusAPI, RPO_RTOConfigAPI; GET /api/roadmap/canary/, rpo-rto/ |
 | 18.x Ed-Fi, CEDS, zero trust/WCAG | Implemented | apps/interop/edfi, ceds adapters |
 | 26.1–26.6 (360 UI, event backbone, design tokens, UX) | Implemented | Student 360 tabbed UI; DomainEvent, WebhookDelivery; design_tokens.md |
 | 29.1 WebAuthn / Passkeys | Implemented | views_passkey.py, UserPasskey |

@@ -55,19 +55,8 @@
   --text-muted: #6c6c70;
   --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
   --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
-  /* v3.57.13 preview-parity audit: v8 200x preview ships
-     `--elev-3: 0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)`
-     (primary-shadow opacity 0.12 -> 0.18 = ~50% denser; spread 40px -> 48px).
-     13 consumers across 9 CSS files (incl. .rmc-form-savebar[data-dirty="1"]
-     sticky lift, rmc-assist-dock, rmc-command-bar, voc-widget, rmc-tour,
-     rmc-long-page-grammar, rmc-tenant-dashboard-v2, tenant-studio-day1,
-     portal-ui-components) — all of which explicitly opted into the platform's
-     top elevation tier. A 50% opacity bump is a visible platform-wide weight
-     change. VERDICT: NEEDS-COORDINATED-AUDIT (visual QA across all elev-3
-     surfaces in light + dark + warm-bright-school + cool-apple before flip).
-     warm-bright-school + dark @media + cool-apple already redefine locally
-     so theme variants are insulated. Held at current value pending audit. */
-  --elev-3: 0 20px 40px rgba(15, 23, 42, 0.12), 0 6px 12px rgba(15, 23, 42, 0.08);
+  /* v3.58.x (2026-05-22): --elev-3 0.12 -> 0.18 flipped after coordinated audit (docs/generated/elev3_audit/index.html). Visual-weight bump aligned to v8 200x preview. */
+  --elev-3: 0 18px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08);
   --material-blur: saturate(180%) blur(20px);
   --material-blur-strong: saturate(180%) blur(28px);
   --radius-pill: 999px;

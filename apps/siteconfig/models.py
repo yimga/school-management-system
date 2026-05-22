@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # bounded-context services. Migration plan: docs/SITECONFIG_OWNERSHIP_MIGRATION.md
 
 from .models_constants import REPORT_CARD_TYPE_TERM
+from .models_pulse_snapshot import PlatformPulseSnapshot  # noqa: F401 — Django model discovery
 
 PLATFORM_DEFAULT_SITE_NAME = "RunMyCampus"
 PLATFORM_DEFAULT_SCHOOL_CODE = "RMC"

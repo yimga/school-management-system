@@ -18,6 +18,20 @@ from .super_views_school_api import (
     api_school_timeline,
     school_lifecycle_action,
 )
+from .super_views_offboarding_queue import (
+    api_school_offboarding_export_download,
+    api_school_offboarding_schedule,
+    api_super_run_scheduled_purges,
+    super_offboarding_queue,
+)
+from .super_views_tenant_offboarding import (
+    api_school_offboarding,
+    api_school_offboarding_deactivate,
+    api_school_offboarding_dual_approve,
+    api_school_offboarding_export,
+    api_school_offboarding_hold,
+    api_school_offboarding_purge,
+)
 from .super_views_phase_b import super_phase_b_snapshot_diff
 from .super_views_policy import (
     super_apply_policy_bundle_to_sandbox,
@@ -99,7 +113,17 @@ __all__ = (
     "api_school_policy_bundle_activate",
     "api_school_policy_bundles",
     "api_school_timeline",
+    "api_school_offboarding",
+    "api_school_offboarding_deactivate",
+    "api_school_offboarding_export",
+    "api_school_offboarding_hold",
+    "api_school_offboarding_purge",
+    "api_school_offboarding_dual_approve",
+    "api_school_offboarding_schedule",
+    "api_school_offboarding_export_download",
+    "api_super_run_scheduled_purges",
     "api_system_blueprint",
+    "super_offboarding_queue",
     "create_school_wizard",
     "export_revenue_csv",
     "export_schools_csv",

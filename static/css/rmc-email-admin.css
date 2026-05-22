@@ -206,3 +206,106 @@
   font-style: italic;
   background: var(--surface-2);
 }
+
+/* Signup diagnostics dashboard (Agent K, wave 9) */
+.rmc-page--operator-signup-diag { display: block; padding: 0; }
+.rmc-signup-diag__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.rmc-signup-diag__card {
+  padding: 14px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+}
+.rmc-signup-diag__metric {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: var(--type-size-body);
+}
+.rmc-signup-diag__mono {
+  font-family: var(--mono);
+  font-size: var(--type-size-caption);
+  color: var(--text-secondary);
+}
+.rmc-signup-diag__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: var(--type-size-caption);
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+.rmc-signup-diag__badge--ok {
+  background: color-mix(in oklab, var(--text-success) 12%, var(--surface-2));
+  color: var(--text-success);
+}
+.rmc-signup-diag__badge--fail {
+  background: color-mix(in oklab, var(--text-danger) 12%, var(--surface-2));
+  color: var(--text-danger);
+}
+.rmc-signup-diag__table { width: 100%; border-collapse: collapse; font-size: var(--type-size-caption); }
+.rmc-signup-diag__table th, .rmc-signup-diag__table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+
+/* Vendor write-status (Agent N, wave 9) */
+.rmc-page--vendor-write-status { display: block; padding: 0; }
+.rmc-card--vendor-write-summary, .rmc-card--vendor-write-table {
+  padding: 14px 16px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  margin-bottom: 14px;
+}
+.rmc-data-table--vendor-write-status { width: 100%; border-collapse: collapse; font-size: var(--type-size-caption); }
+.rmc-data-table--vendor-write-status th, .rmc-data-table--vendor-write-status td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+
+/* Email config + health additions */
+.rmc-email-config__fieldset {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.rmc-data-table--email-bounce-kinds { width: 100%; border-collapse: collapse; font-size: var(--type-size-caption); }
+.rmc-data-table--email-bounce-kinds th, .rmc-data-table--email-bounce-kinds td {
+  padding: 6px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Tenant offboarding danger zone (user/linter co-shipped) */
+.rmc-danger-zone {
+  padding: 14px 16px;
+  background: color-mix(in oklab, var(--text-danger) 6%, var(--surface-2));
+  border: 1px solid color-mix(in oklab, var(--text-danger) 30%, var(--hairline));
+  border-radius: var(--radius-lg, 12px);
+  margin-top: 18px;
+}
+.rmc-danger-zone__purge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--text-danger);
+  color: var(--text-on-brand, #fff); /* off-token-allow: danger-button-text-fallback */
+  border: 0;
+  font-weight: 600;
+  cursor: pointer;
+}

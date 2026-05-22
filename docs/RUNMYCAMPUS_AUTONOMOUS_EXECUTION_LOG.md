@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - batch 1375 Tenant offboarding 10× deferrals (2026-05-22)
+
+**A. Scope:** Close 1374 deferrals — self-service offboarding, auto-purge scheduler, S3 lifecycle/storage cleanup, Django admin delete replacement.
+
+**B. Shipped:** Tenant `/school/studio/offboarding/`; auto-purge Celery + command; S3 module; admin delete guard; `/super/offboarding/` queue; policy env module; migration `0053`; extended verifier + tests.
+
+**C. Proof:** `verify_tenant_offboarding_surface.py` PASS (extended + nav/studio/migration + dual/email); **30/30** tests (`test_tenant_offboarding_{api,extended,integration,optional}` + `TenantPurgeCommandTests`); migrations `0052`/`0053` applied; SW `sms-v3.58.7-tenant-offboarding-dual-approval-email-notify-2026-05-22`.
+
+**D. Residual:** Apply S3 lifecycle JSON in AWS console; enable `TENANT_AUTO_PURGE_ENABLED=1` in production only after counsel/export review.
+
+## Slice - batch 1374 Tenant offboarding 100× (2026-05-22)
+
+**A. Scope:** Operator-grade tenant removal on Tenant 360 — no CLI-only deletes; audit trail + provisioning events; reuse `tenant_purge` / `tenant_wind_down` / lifecycle primitives.
+
+**B. Shipped:** `tenant_offboarding.py` service (`get_offboarding_snapshot`, `run_wind_down_export` full export zip, `dry_run_purge`, `apply_purge`, `cleanup_tenant_media`); inventory module; 5 JSON APIs; Tenant 360 + schools list UI; migration `0052` offboarding event types; `docs/TENANT_OFFBOARDING.md`; `verify_tenant_offboarding_surface.py`; Celery `purge_tenant_media_task`.
+
+**C. Proof:** `verify_tenant_offboarding_surface.py` PASS; `run_sqlite_memory_tests.py apps.schools.tests.test_tenant_offboarding_api apps.compliance.tests.test_tenant_purge_and_hmac_rotation.TenantPurgeCommandTests` **12/12 OK**.
+
+**D. Residual:** Production purge of `gilead-future` / `gilead-tech` still via Render shell with Postgres (`RENDER_SHELL_AFTER_DEPLOY.md`); customer self-service + auto-purge scheduler out of scope.
+
 ## Slice - batch 1373 Studio OS next-realm command-cockpit (2026-05-21)
 
 **A. Scope:** User-prompt-driven 16-phase rebuild of Studio OS into a next-realm operating environment for both platform operators and tenant school admins. Primary problem: pages cut off horizontally, worst inside Experience. 6-section parallel fan-out (Overview/Experience/Automation/Output/Launch/Control), one agent per section, clean file boundaries, coordinator integrates shell + views + SW + docket + memory + SOT + LOG.

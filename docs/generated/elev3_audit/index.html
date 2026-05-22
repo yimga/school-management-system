@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>elev-3 coordinated audit (v3.58.x Wave 9 Agent O)</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    margin: 0;
+    padding: 40px 24px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 8px; }
+  .lede { color: #424245; margin: 0 0 24px; font-size: 15px; line-height: 1.55; }
+  h2 { font-size: 18px; margin: 32px 0 12px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    font-size: 14px;
+    vertical-align: top;
+  }
+  th { background: #fafafd; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #6e6e73; }
+  tr:last-child td { border-bottom: 0; }
+  code { font-size: 13px; color: #1d1d1f; background: #f0f0f3; padding: 1px 6px; border-radius: 4px; }
+  a { color: #0066cc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .verdict-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .v-safe       { background: #d1f7e0; color: #04663d; }
+  .v-redefined  { background: #e6e8f5; color: #1f2a6e; }
+  .v-review     { background: #fde4d4; color: #7a3504; }
+  .summary {
+    background: #ffffff;
+    padding: 16px 18px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    font-size: 14px;
+  }
+  .summary strong { color: #04663d; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>--elev-3 coordinated audit (Wave 9 / v3.58.x)</h1>
+  <p class="lede">
+    Audit of the deferred <code>--elev-3</code> flip Agent S held in v3.57.16
+    (primary-shadow opacity 0.12 -> 0.18; spread 40px -> 48px; aligns to v8 200x
+    preview). Each consumer surface is rendered side-by-side with current vs.
+    proposed shadow.
+  </p>
+
+  <div class="summary">
+    Verdict tally: <strong>14 safe-to-flip</strong> &middot;
+    0 redefined-locally-no-impact &middot;
+    0 needs-designer-review<br>
+    Theme redefines documented: 5 (all wholesale overrides — insulated from the canonical flip)
+  </div>
+
+  <h2>Direct consumers of var(--elev-3)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Consumer surface</th>
+        <th>Source</th>
+        <th>Verdict</th>
+        <th>Preview</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>--portal-shadow-hover (token alias for portal hover lift)</td><td><code>static/css/design-tokens.css</code>:167</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="design-tokens-portal-shadow-hover.html">side-by-side</a></td></tr>
+      <tr><td>portal-ui-components: elevated card hover (warm-dark fallback)</td><td><code>static/css/portal-ui-components.css</code>:2578</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="portal-ui-components-2578.html">side-by-side</a></td></tr>
+      <tr><td>portal-ui-components: dropdown/popover top tier</td><td><code>static/css/portal-ui-components.css</code>:2996</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="portal-ui-components-2996.html">side-by-side</a></td></tr>
+      <tr><td>rmc-command-bar: floating command bar (cmd+k)</td><td><code>static/css/rmc-command-bar.css</code>:53</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-command-bar.html">side-by-side</a></td></tr>
+      <tr><td>rmc-assist-dock: dock surface (rest state)</td><td><code>static/css/rmc-assist-dock.css</code>:129</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-assist-dock-129.html">side-by-side</a></td></tr>
+      <tr><td>rmc-assist-dock: dock surface (expanded)</td><td><code>static/css/rmc-assist-dock.css</code>:239</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-assist-dock-239.html">side-by-side</a></td></tr>
+      <tr><td>rmc-global-aesthetic: shared luxury elevation</td><td><code>static/css/rmc-global-aesthetic.css</code>:305</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-global-aesthetic.html">side-by-side</a></td></tr>
+      <tr><td>rmc-long-page-grammar: sticky page-body shadow</td><td><code>static/css/rmc-long-page-grammar.css</code>:44</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-long-page-grammar-44.html">side-by-side</a></td></tr>
+      <tr><td>.rmc-form-savebar[data-dirty=1] sticky savebar lift</td><td><code>static/css/rmc-long-page-grammar.css</code>:1166</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-form-savebar-sticky-lift.html">side-by-side</a></td></tr>
+      <tr><td>rmc-tenant-dashboard-v2: dashboard card on gradient</td><td><code>static/css/rmc-tenant-dashboard-v2.css</code>:421</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-tenant-dashboard-v2-card.html">side-by-side</a></td></tr>
+      <tr><td>rmc-tour: tour overlay popover</td><td><code>static/css/rmc-tour.css</code>:41</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="rmc-tour-overlay.html">side-by-side</a></td></tr>
+      <tr><td>tenant-studio-day1: studio surface lift</td><td><code>static/css/tenant-studio-day1.css</code>:303</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="tenant-studio-day1-303.html">side-by-side</a></td></tr>
+      <tr><td>tenant-studio-day1: studio surface variant</td><td><code>static/css/tenant-studio-day1.css</code>:477</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="tenant-studio-day1-477.html">side-by-side</a></td></tr>
+      <tr><td>voc-widget: voice-of-customer feedback widget popover</td><td><code>static/css/voc-widget.css</code>:19</td><td><span class="verdict-pill v-safe">safe-to-flip</span></td><td><a href="voc-widget.html">side-by-side</a></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Theme redefines (insulated by wholesale override)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Theme scope</th>
+        <th>Source</th>
+        <th>Local value</th>
+        <th>Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>html[data-theme=dark] (Apple-style pure-dark)</td><td><code>static/css/design-tokens.css</code>:734</td><td><code>0 20px 40px rgba(0, 0, 0, 0.6), 0 6px 12px rgba(0, 0, 0, 0.4)</code></td><td>Insulated: dark-theme users never see the canonical flip.</td></tr>
+      <tr><td>rmc-warm-bright-school :root (warm light)</td><td><code>static/css/rmc-warm-bright-school.css</code>:67</td><td><code>0 4px 8px rgba(80, 50, 20, 0.08), 0 16px 40px rgba(80, 50, 20, 0.12)</code></td><td>Insulated: warm-bright-school tenants stay on warm-cocoa shadow.</td></tr>
+      <tr><td>warm-bright-school [data-theme=dark] (warm dark)</td><td><code>static/css/rmc-warm-bright-school.css</code>:109</td><td><code>0 12px 32px rgba(0, 0, 0, 0.50), 0 4px 8px rgba(0, 0, 0, 0.30)</code></td><td>Insulated: warm dark tenants unaffected.</td></tr>
+      <tr><td>[data-rmc-aesthetic=cool-apple] (slate light)</td><td><code>static/css/rmc-warm-bright-school.css</code>:143</td><td><code>0 0 0 1px rgba(15, 23, 42, 0.06), 0 12px 32px -4px rgba(15, 23, 42, 0.10), 0 4px 8px -2px rgba(15, 23, 42, 0.05)</code></td><td>Insulated: cool-apple aesthetic stays on hairline-stacked shadow.</td></tr>
+      <tr><td>[data-rmc-aesthetic=cool-apple][data-theme=dark] (deep navy)</td><td><code>static/css/rmc-warm-bright-school.css</code>:180</td><td><code>0 0 0 1px rgba(148, 163, 184, 0.20), 0 12px 32px -4px rgba(0, 0, 0, 0.45)</code></td><td>Insulated: cool-apple dark stays on slate-navy calibration.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Values</h2>
+  <table>
+    <tbody>
+      <tr><th>Current canonical (:root)</th><td><code>0 20px 40px rgba(15, 23, 42, 0.12), 0 6px 12px rgba(15, 23, 42, 0.08)</code></td></tr>
+      <tr><th>Proposed (v8 200x preview)</th><td><code>0 18px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08)</code></td></tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

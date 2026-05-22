@@ -121,6 +121,7 @@ def _studio_hub_link_urls() -> dict[str, str]:
         ("studio_os", "studio_os:shell"),
         ("school_help_ai", "school_help_ai"),
         ("help_center", "feedback:help_center"),
+        ("offboarding", "tenant_offboarding"),
     )
     return {key: _tenant_reverse(name) for key, name in specs}
 

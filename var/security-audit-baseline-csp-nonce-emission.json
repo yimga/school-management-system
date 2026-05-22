@@ -1,7 +1,7 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-21T09:03:37+00:00",
+  "generated_at": "2026-05-22T08:19:33+00:00",
   "rule": "inline <script> elements in the 5 canonical shells must carry nonce=\"{{ csp_nonce }}\" (or a <!-- csp-nonce-allow: --> marker for legitimately-safe JSON data blocks)",
   "shells_missing": []
 }

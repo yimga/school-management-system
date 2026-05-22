@@ -1,0 +1,118 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Migration Cloud — vendor write authorization status" }}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--vendor-write-status" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Vendor write-path authorization status" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Per-vendor authorization status for the platform-side write-path gate. Read-only — the gate is enforced server-side in" %}
+      <code class="rmc-kbd">{{ gate_module_path }}</code>.
+    </p>
+    <p class="rmc-meta">
+      <a class="rmc-link" href="/{{ docket_doc_path }}">{% trans "Counsel review docket" %}</a>
+      ·
+      <a class="rmc-link" href="/{{ runbook_doc_path }}">{% trans "Flip runbook" %}</a>
+    </p>
+  </header>
+
+  <section class="rmc-card rmc-card--vendor-write-summary" aria-labelledby="vendor-write-summary-heading">
+    <h2 id="vendor-write-summary-heading" class="rmc-h2">{% trans "Summary" %}</h2>
+    <dl class="rmc-data-grid">
+      <dt>{% trans "Vendors recognized" %}</dt>
+      <dd>{{ vendor_count }}</dd>
+      <dt>{% trans "Counsel-docketed (write-blocked) vendors" %}</dt>
+      <dd>{{ counsel_docketed_count }}</dd>
+      <dt>{% trans "Any vendor write-path authorized today?" %}</dt>
+      <dd>
+        {% if any_authorized %}
+          <span class="rmc-badge rmc-badge--success">{% trans "yes" %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--info">{% trans "no" %}</span>
+        {% endif %}
+      </dd>
+      <dt>{% trans "Docketed vendor authorized today?" %}</dt>
+      <dd>
+        {% if docketed_authorized %}
+          <span class="rmc-badge rmc-badge--warning">{% trans "yes — verify counsel signoff" %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--success">{% trans "no" %}</span>
+        {% endif %}
+      </dd>
+    </dl>
+  </section>
+
+  <section class="rmc-card rmc-card--vendor-write-table" aria-labelledby="vendor-write-table-heading">
+    <h2 id="vendor-write-table-heading" class="rmc-h2">{% trans "Per-vendor status" %}</h2>
+    <table class="rmc-data-table rmc-data-table--vendor-write-status">
+      <thead>
+        <tr>
+          <th>{% trans "Vendor" %}</th>
+          <th>{% trans "Docketed" %}</th>
+          <th>{% trans "Approval token" %}</th>
+          <th>{% trans "Counsel signoff SHA" %}</th>
+          <th>{% trans "SHA well-formed" %}</th>
+          <th>{% trans "Authorized" %}</th>
+          <th>{% trans "Refusal reason" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in snapshot %}
+        <tr>
+          <td><code class="rmc-kbd">{{ r.vendor_slug }}</code></td>
+          <td>
+            {% if r.counsel_docketed %}
+              <span class="rmc-badge rmc-badge--warning">{% trans "yes" %}</span>
+            {% else %}
+              <span class="rmc-badge rmc-badge--info">{% trans "no" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.approval_token_configured %}
+              <span class="rmc-badge rmc-badge--success">{% trans "set" %}</span>
+            {% else %}
+              <span class="rmc-badge rmc-badge--muted">{% trans "unset" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.counsel_signoff_sha_configured %}
+              <span class="rmc-badge rmc-badge--success">{% trans "set" %}</span>
+            {% else %}
+              <span class="rmc-badge rmc-badge--muted">{% trans "unset" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.counsel_signoff_sha_well_formed %}
+              <span class="rmc-badge rmc-badge--success">{% trans "ok" %}</span>
+            {% elif r.counsel_signoff_sha_configured %}
+              <span class="rmc-badge rmc-badge--danger">{% trans "malformed" %}</span>
+            {% else %}
+              <em>—</em>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.authorized %}
+              <span class="rmc-badge rmc-badge--success">{% trans "yes" %}</span>
+            {% else %}
+              <span class="rmc-badge rmc-badge--muted">{% trans "no" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.refusal_reason %}
+              <code class="rmc-kbd">{{ r.refusal_reason }}</code>
+            {% else %}
+              <em>—</em>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="rmc-hint">
+      {% trans "Each row reflects the live environment as seen by this Django process. Approval-token bytes and counsel-signoff SHA values are NEVER read into the template." %}
+    </p>
+  </section>
+</main>
+{% endblock %}

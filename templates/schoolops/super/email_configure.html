@@ -21,6 +21,10 @@
 .rmc-email-config__test-result--fail{background:#fbe9e9;border:1px solid #d33;}
 /* off-token-allow: operator-email-configure-banner-saved-tone */
 .rmc-email-config__saved-banner{background:#e6f0fb;border:1px solid #2b6cb0;padding:.5rem 1rem;border-radius:.25rem;margin-bottom:1rem;}
+/* off-token-allow: operator-email-configure-fieldset-spacing */
+.rmc-email-config__fieldset{border:1px solid #d0d4dc;border-radius:.375rem;padding:1rem 1.25rem;margin-bottom:1.5rem;}
+/* off-token-allow: operator-email-configure-fieldset-legend */
+.rmc-email-config__fieldset legend{font-weight:700;padding:0 .5rem;}
 </style>
 {% endblock %}
 
@@ -59,14 +63,66 @@
     <div role="alert" class="rmc-form-errors">{{ form.non_field_errors }}</div>
     {% endif %}
 
-    {% for field in form %}
-    <div class="rmc-email-config__field">
-      {{ field.label_tag }}
-      {{ field }}
-      {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
-      {% if field.errors %}<div class="rmc-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
-    </div>
-    {% endfor %}
+    {# v3.58.x Wave 9 Agent M — split the form into two visible fieldsets: #}
+    {# SMTP fields up top, Provider Webhooks below. We iterate the bound  #}
+    {# form by field name lookup so the SMTP block excludes the 4 webhook #}
+    {# secret fields and the Webhook block contains ONLY those four.     #}
+    <fieldset class="rmc-email-config__fieldset">
+      <legend>{% trans "SMTP server" %}</legend>
+      {% for field in form %}
+        {% if field.name == "webhook_secret_postmark" or field.name == "webhook_secret_sendgrid" or field.name == "webhook_secret_ses" or field.name == "webhook_secret_mailgun" %}
+        {% else %}
+        <div class="rmc-email-config__field">
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+          {% if field.errors %}<div class="rmc-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </fieldset>
+
+    <fieldset class="rmc-email-config__fieldset">
+      <legend>{% trans "Provider webhooks (bounce notifications)" %}</legend>
+      <p class="rmc-muted">
+        {% trans "Paste the shared secret for each email provider you use. We verify the inbound webhook signature with hmac.compare_digest before recording the bounce. Leave a field blank on resave to keep the existing stored value." %}
+      </p>
+      <ul class="rmc-muted">
+        <li>
+          {% trans "Postmark — Paste this URL into your Postmark account:" %}
+          <code>{{ request.scheme }}://{{ request.get_host }}/super/email/webhook/postmark/</code>
+          <a href="https://postmarkapp.com/developer/webhooks/bounce-webhook" rel="noopener" target="_blank">{% trans "(docs)" %}</a>
+        </li>
+        <li>
+          {% trans "SendGrid — Paste this URL into Settings → Mail Settings → Event Webhook:" %}
+          <code>{{ request.scheme }}://{{ request.get_host }}/super/email/webhook/sendgrid/</code>
+          <a href="https://docs.sendgrid.com/for-developers/tracking-events/getting-started-event-webhook-security-features" rel="noopener" target="_blank">{% trans "(docs)" %}</a>
+        </li>
+        <li>
+          {% trans "AWS SES (via SNS relay) — Configure SNS to POST to your API Gateway / Lambda forwarder, which signs with the shared secret and forwards to:" %}
+          <code>{{ request.scheme }}://{{ request.get_host }}/super/email/webhook/ses/</code>
+          <a href="https://docs.aws.amazon.com/ses/latest/dg/notifications-via-sns.html" rel="noopener" target="_blank">{% trans "(docs)" %}</a>
+        </li>
+        <li>
+          {% trans "Mailgun — Paste this URL into Sending → Webhooks → Permanent failure:" %}
+          <code>{{ request.scheme }}://{{ request.get_host }}/super/email/webhook/mailgun/</code>
+          <a href="https://documentation.mailgun.com/en/latest/user_manual.html#webhooks" rel="noopener" target="_blank">{% trans "(docs)" %}</a>
+        </li>
+      </ul>
+      {% for field in form %}
+        {% if field.name == "webhook_secret_postmark" or field.name == "webhook_secret_sendgrid" or field.name == "webhook_secret_ses" or field.name == "webhook_secret_mailgun" %}
+        <div class="rmc-email-config__field">
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+          {% if field.errors %}<div class="rmc-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+      <p class="rmc-muted">
+        {% trans "See docs/EMAIL_DELIVERABILITY.md for the full SPF / DKIM / DMARC + per-provider setup guide." %}
+      </p>
+    </fieldset>
 
     <div class="rmc-email-config__actions">
       <button type="submit" name="action" value="save" class="rmc-button rmc-button--primary">

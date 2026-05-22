@@ -220,6 +220,7 @@ OUTCOME_GROUP_SPECS: list[dict[str, Any]] = [
         "subtitle": "Provision, curriculum, geography",
         "links": [
             ("Schools list", "super:schools_list", "stable", ("runtime", "entitlement")),
+            ("Offboarding queue", "super:offboarding_queue", "danger", ("runtime", "tenant override")),
             ("Setup Studio", "super:create_school_wizard", "stable", ("runtime", "blueprint")),
             ("Curriculum packs", "super:curriculum_packs", "stable", ("pack", "policy")),
             ("Geography", "super:geography", "stable", ("registry",)),

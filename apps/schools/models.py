@@ -691,6 +691,35 @@ class SchoolProvisioningEvent(models.Model):
         DOMAIN_UNVERIFIED = "DOMAIN_UNVERIFIED", "Domain Unverified"
         COMPLETED = "COMPLETED", "Completed"
         FAILED = "FAILED", "Failed"
+        OFFBOARDING_EXPORT = "OFFBOARDING_EXPORT", "Offboarding Export"
+        OFFBOARDING_DEACTIVATED = (
+            "OFFBOARDING_DEACTIVATED",
+            "Offboarding Deactivated",
+        )
+        OFFBOARDING_PURGE_REQUESTED = (
+            "OFFBOARDING_PURGE_REQUESTED",
+            "Offboarding Purge Requested",
+        )
+        OFFBOARDING_PURGE_COMPLETED = (
+            "OFFBOARDING_PURGE_COMPLETED",
+            "Offboarding Purge Completed",
+        )
+        OFFBOARDING_SELF_SERVICE_REQUESTED = (
+            "OFFBOARDING_SELF_SERVICE_REQUESTED",
+            "Offboarding Self-Service Requested",
+        )
+        OFFBOARDING_SELF_SERVICE_CANCELLED = (
+            "OFFBOARDING_SELF_SERVICE_CANCELLED",
+            "Offboarding Self-Service Cancelled",
+        )
+        OFFBOARDING_AUTO_PURGE_SCHEDULED = (
+            "OFFBOARDING_AUTO_PURGE_SCHEDULED",
+            "Offboarding Auto Purge Scheduled",
+        )
+        OFFBOARDING_AUTO_PURGE_EXECUTED = (
+            "OFFBOARDING_AUTO_PURGE_EXECUTED",
+            "Offboarding Auto Purge Executed",
+        )
 
     class Status(models.TextChoices):
         INFO = "INFO", "Info"

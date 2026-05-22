@@ -1,0 +1,48 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Close school account" %} — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-rmc-tenant-offboarding data-rmc-scroll-policy="paginate">
+  <h1 class="h4 mb-2">{% trans "Close school account" %}</h1>
+  <p class="text-secondary small mb-4">{% trans "Export your data, schedule account closure, and understand what is deleted after the grace period. Permanent platform deletion is executed automatically after the grace period unless cancelled or blocked by legal hold." %}</p>
+
+  <div class="card border-warning mb-3">
+    <div class="card-body small">
+      <p class="mb-1"><strong>{% trans "Status" %}:</strong> <span data-rmc-ss-status>{{ self_service.status }}</span></p>
+      <p class="mb-1"><strong>{% trans "Scheduled removal" %}:</strong> <span data-rmc-ss-scheduled>{{ self_service.scheduled_purge_at|default:"—" }}</span></p>
+      <p class="mb-0"><strong>{% trans "Grace period" %}:</strong> {{ self_service.grace_days }} {% trans "days" %}</p>
+    </div>
+  </div>
+
+  <section class="mb-4">
+    <h2 class="h6">{% trans "Step 1 — Download portability export" %}</h2>
+    <p class="small text-secondary">{% trans "Full export of student records and canonical CSVs (not limited to 1,000 students)." %}</p>
+    <button type="button" class="btn btn-primary btn-sm" data-rmc-tenant-export>{% trans "Generate export" %}</button>
+    {% if has_export %}
+    <a class="btn btn-outline-primary btn-sm ms-2" href="{% url 'tenant_offboarding_export_download' %}">{% trans "Download latest ZIP" %}</a>
+    {% endif %}
+  </section>
+
+  <section class="rmc-danger-zone border border-danger rounded p-3 mb-3">
+    <h2 class="h6 text-danger">{% trans "Step 2 — Request account closure" %}</h2>
+    <p class="small">{% trans "Deactivates access immediately and schedules permanent deletion after the grace period. Platform audit logs are retained. Shared user accounts without school membership are not deleted." %}</p>
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" id="tenant-offboard-ack" data-rmc-tenant-ack>
+      <label class="form-check-label small" for="tenant-offboard-ack">{% trans "I understand data will be permanently deleted after the grace period" %}</label>
+    </div>
+    <button type="button" class="btn btn-danger btn-sm" data-rmc-tenant-request-closure>{% trans "Request account closure" %}</button>
+    <button type="button" class="btn btn-outline-secondary btn-sm ms-2" data-rmc-tenant-cancel-closure>{% trans "Cancel scheduled closure" %}</button>
+  </section>
+
+  <div class="alert d-none" role="alert" data-rmc-tenant-offboard-status></div>
+</div>
+<script type="application/json" id="page-data-tenant_self_offboarding-1" nonce="{{ csp_nonce }}">{
+  "api_snapshot": "{% url 'tenant_offboarding_snapshot' %}",
+  "api_export": "{% url 'tenant_offboarding_export' %}",
+  "api_request": "{% url 'tenant_offboarding_request' %}",
+  "api_cancel": "{% url 'tenant_offboarding_cancel' %}"
+}</script>
+<script src="{% static 'js/_pages/tenant_self_offboarding-1.js' %}"></script>
+{% endblock %}

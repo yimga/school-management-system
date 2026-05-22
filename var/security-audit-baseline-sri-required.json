@@ -2,7 +2,7 @@
   "allow_marker": "<!-- sri-allow: <reason> -->",
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-21T13:06:58+00:00",
+  "generated_at": "2026-05-22T08:19:33+00:00",
   "rule": "third-party <script src=>/<link rel=stylesheet href=> over HTTPS must carry an integrity= SRI hash",
   "same_origin_hosts": [
     "runmycampus.com",

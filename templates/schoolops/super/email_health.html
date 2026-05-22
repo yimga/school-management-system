@@ -100,11 +100,15 @@
     <dl class="rmc-email-health__grid">
       <div class="rmc-email-health__metric">
         <dt class="rmc-muted">{% trans "Sent" %}</dt>
-        <dd class="rmc-metric__value">{{ stats.sent_count|default:"0" }}</dd>
+        <dd class="rmc-metric__value" id="rmc-email-health-sent-24h" data-rmc-email-health-counter="sent">{{ stats.sent_count|default:"0" }}</dd>
       </div>
       <div class="rmc-email-health__metric">
         <dt class="rmc-muted">{% trans "Failed" %}</dt>
-        <dd class="rmc-metric__value">{{ stats.failed_count|default:"0" }}</dd>
+        <dd class="rmc-metric__value" id="rmc-email-health-failed-24h" data-rmc-email-health-counter="failed">{{ stats.failed_count|default:"0" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Bounced" %}</dt>
+        <dd class="rmc-metric__value" id="rmc-email-health-bounced-24h" data-rmc-email-health-counter="bounced">{{ bounce_panel.window_24h.total|default:"0" }}</dd>
       </div>
       <div class="rmc-email-health__metric">
         <dt class="rmc-muted">{% trans "Last failure" %}</dt>
@@ -114,7 +118,55 @@
         <dt class="rmc-muted">{% trans "Last failure reason" %}</dt>
         <dd>{{ stats.last_failure_reason_kind|default:"—" }}</dd>
       </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Live updates" %}</dt>
+        <dd>
+          <span id="rmc-email-health-live-status" data-rmc-email-health-live-status>{% trans "connecting…" %}</span>
+        </dd>
+      </div>
     </dl>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="bounce-heading">
+    <h2 id="bounce-heading" class="rmc-h2">{% trans "Bounce rate (provider webhooks + SMTP 5xx)" %}</h2>
+    <p class="rmc-muted">
+      {% trans "Counts of EmailDeliveryEvent rows marked bounced — either by send-time SMTP classification (SMTPSenderRefused / SMTPRecipientsRefused / 5xx) or by an inbound provider webhook (Postmark / SendGrid / SES / Mailgun)." %}
+    </p>
+    <dl class="rmc-email-health__grid">
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Last 24h" %}</dt>
+        <dd class="rmc-metric__value">{{ bounce_panel.window_24h.total|default:"0" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Last 7 days" %}</dt>
+        <dd class="rmc-metric__value">{{ bounce_panel.window_7d.total|default:"0" }}</dd>
+      </div>
+      <div class="rmc-email-health__metric">
+        <dt class="rmc-muted">{% trans "Last 30 days" %}</dt>
+        <dd class="rmc-metric__value">{{ bounce_panel.window_30d.total|default:"0" }}</dd>
+      </div>
+    </dl>
+    {% if bounce_panel.window_30d.by_kind %}
+    <table class="rmc-data-table rmc-data-table--email-bounce-kinds">
+      <caption class="rmc-muted">{% trans "Bounce kinds (last 30 days)" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Kind" %}</th>
+          <th scope="col">{% trans "Count" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for kind, count in bounce_panel.window_30d.by_kind.items %}
+        <tr>
+          <td><code>{{ kind|default:"unknown" }}</code></td>
+          <td>{{ count }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="rmc-muted">{% trans "No bounces recorded in the last 30 days." %}</p>
+    {% endif %}
   </section>
 
   <section class="rmc-card" aria-labelledby="failures-heading">
@@ -181,6 +233,46 @@
       .catch(function(err){
         output.textContent = 'probe failed: ' + (err && err.message || err);
       });
+  });
+})();
+</script>
+{# v3.58.x Wave 9 Agent M — SSE live counters. Idempotent via dataset flag #}
+{# so HTMX / Turbo partial swap-ins don't re-arm a second EventSource. #}
+<script nonce="{{ request.csp_nonce|default:'' }}">
+(function(){
+  var root = document.body;
+  if (!root || root.dataset.rmcEmailHealthInited === '1') { return; }
+  root.dataset.rmcEmailHealthInited = '1';
+  if (typeof EventSource === 'undefined') {
+    var statusEl0 = document.querySelector('[data-rmc-email-health-live-status]');
+    if (statusEl0) { statusEl0.textContent = 'EventSource unsupported'; }
+    return;
+  }
+  var streamUrl = "{% url 'super:email_health_stream' %}";
+  var sent = document.querySelector('[data-rmc-email-health-counter="sent"]');
+  var failed = document.querySelector('[data-rmc-email-health-counter="failed"]');
+  var bounced = document.querySelector('[data-rmc-email-health-counter="bounced"]');
+  var statusEl = document.querySelector('[data-rmc-email-health-live-status]');
+  var es;
+  try {
+    es = new EventSource(streamUrl, {withCredentials: true});
+  } catch (e) {
+    if (statusEl) { statusEl.textContent = 'live updates unavailable'; }
+    return;
+  }
+  es.addEventListener('heartbeat', function(ev){
+    try {
+      var data = JSON.parse(ev.data || '{}');
+      if (sent && typeof data.sent_24h !== 'undefined') { sent.textContent = String(data.sent_24h); }
+      if (failed && typeof data.failed_24h !== 'undefined') { failed.textContent = String(data.failed_24h); }
+      if (bounced && typeof data.bounced_24h !== 'undefined') { bounced.textContent = String(data.bounced_24h); }
+      if (statusEl) { statusEl.textContent = 'live (' + (data.ts || '') + ')'; }
+    } catch (e) {
+      if (statusEl) { statusEl.textContent = 'parse error'; }
+    }
+  });
+  es.addEventListener('error', function(){
+    if (statusEl) { statusEl.textContent = 'reconnecting…'; }
   });
 })();
 </script>

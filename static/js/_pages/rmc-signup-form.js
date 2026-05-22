@@ -83,9 +83,103 @@
     }
   }
 
+  // v3.58.x Wave 9: country-picker → timezone / curriculum auto-suggest.
+  // CSP-safe: no inline handlers; reads data-rmc-signup-country-tz and
+  // data-rmc-signup-country-curriculum off the picked <option> and
+  // populates the optional hidden inputs / radio cards. Idempotent —
+  // we mark the select with data-rmc-signup-country-inited='1' so a
+  // re-init (e.g. after HTMX partial swap) is a no-op.
+  function initCountryAutoSuggest(form) {
+    var countrySelect = form.querySelector('[data-rmc-signup-country]');
+    if (!countrySelect) return;
+    if (countrySelect.dataset.rmcSignupCountryInited === '1') return;
+    countrySelect.dataset.rmcSignupCountryInited = '1';
+    // Only run the auto-suggest path when the picker is a <select>; the
+    // free-text fallback input also carries data-rmc-signup-country
+    // but has no <option> children to read data-attrs from.
+    if (countrySelect.tagName !== 'SELECT') return;
+
+    function readPickedOption() {
+      var idx = countrySelect.selectedIndex;
+      if (idx < 0) return null;
+      var opt = countrySelect.options[idx];
+      if (!opt) return null;
+      return {
+        tz: opt.getAttribute('data-rmc-signup-country-tz') || '',
+        curriculum:
+          opt.getAttribute('data-rmc-signup-country-curriculum') || '',
+        code: opt.value || ''
+      };
+    }
+
+    function applyCountryHints() {
+      var pick = readPickedOption();
+      if (!pick) return;
+
+      // Surface the timezone via a hidden input the form already carries
+      // (or create one on first pick so it submits with POST). Operators
+      // who land on the form via a deep link with ?country_code=KE see
+      // this populated on initial render.
+      if (pick.tz) {
+        var tzInput = form.querySelector('input[name="timezone"]');
+        if (!tzInput) {
+          tzInput = document.createElement('input');
+          tzInput.type = 'hidden';
+          tzInput.name = 'timezone';
+          tzInput.setAttribute('data-rmc-signup-country-tz-input', '1');
+          form.appendChild(tzInput);
+        }
+        // Only auto-fill if the user hasn't manually edited timezone.
+        if (tzInput.dataset.rmcUserTouched !== '1') {
+          tzInput.value = pick.tz;
+        }
+      }
+
+      // Curriculum hint maps to the term_preset radios. We only flip
+      // UK ↔ default; anything else leaves the operator's choice alone.
+      // The radios are rendered by Django when
+      // cockpit.signup_form.show_calendar_cards is True.
+      if (pick.curriculum) {
+        var hint = pick.curriculum.toLowerCase();
+        var target = '';
+        if (hint.indexOf('uk') !== -1 || hint.indexOf('british') !== -1) {
+          target = 'UK';
+        }
+        if (target) {
+          var radios = form.querySelectorAll('input[name="term_preset"]');
+          for (var i = 0; i < radios.length; i++) {
+            if (radios[i].dataset.rmcUserTouched === '1') return;
+            if (radios[i].value === target) {
+              radios[i].checked = true;
+            }
+          }
+        }
+      }
+    }
+
+    countrySelect.addEventListener('change', applyCountryHints);
+
+    // Mark radios as user-touched once the operator manually flips one
+    // so a later country change doesn't overwrite their explicit choice.
+    var calendarRadios = form.querySelectorAll('input[name="term_preset"]');
+    for (var j = 0; j < calendarRadios.length; j++) {
+      calendarRadios[j].addEventListener('change', function (ev) {
+        ev.target.dataset.rmcUserTouched = '1';
+      });
+    }
+
+    // Fire once on init in case the page loaded with a country preselected.
+    applyCountryHints();
+  }
+
   function initForm(form) {
     if (form.dataset.rmcSignupInited === '1') return;
     form.dataset.rmcSignupInited = '1';
+
+    // v3.58.x Wave 9: wire the country picker first so any
+    // server-side preselection populates the timezone hidden input
+    // before the user starts editing other fields.
+    initCountryAutoSuggest(form);
 
     var nameInput = form.querySelector('[data-rmc-signup-name]')
       || document.getElementById('name');

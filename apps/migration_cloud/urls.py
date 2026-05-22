@@ -30,6 +30,8 @@ from . import (
     views_token_admin,
     views_webhook_admin,
 )
+# Wave 9 Agent N — vendor write-path authorization status (counsel-pending surface).
+from .api import views_vendor_write_status as _views_vendor_write_status
 
 app_name = "migration_cloud"
 
@@ -118,6 +120,8 @@ urlpatterns = [
     path("health/", views_health.MigrationCloudHealthView.as_view(), name="migration_cloud_health"),  # rbac-allow: super-staff-migration-cloud-health-status
     # v3.40.0 Agent 6 — Migration Cloud Command Center (8-card operator dashboard).
     path("command-center/", views_command_center.MigrationCloudCommandCenterView.as_view(), name="migration_cloud_command_center"),  # rbac-allow: super-staff-migration-cloud-command-center
+    # Wave 9 Agent N — vendor write-path authorization status (counsel-pending shovel-ready surface).
+    path("vendor-write-status/", _views_vendor_write_status.VendorWriteStatusView.as_view(), name="vendor_write_status"),  # rbac-allow: super-staff-vendor-write-authorization-status
     # v3.40.0 Agent 14 — "Run Smoke Now" operator trigger (form + Celery dispatch).
     path("smoke/trigger/", views_smoke_trigger.SmokeRunTriggerView.as_view(), name="smoke_run_trigger"),  # rbac-allow: super-staff-migration-cloud-smoke-on-demand-trigger
     # v3.40.0 Agent 13 — DSAR runbook recorder + smoke run history archive view.

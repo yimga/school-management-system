@@ -19,6 +19,18 @@ python manage.py tenant_purge \
 
 `--confirm-delete-string` must match `--school` exactly (comma-separated for multiple slugs). Archives land under `media/tenant_archives/<slug>/`. Uploaded logos in object storage are **not** auto-purged — delete those keys separately if required.
 
+**Preferred operator path (UI):** manager host → **Offboarding queue** (`/super/offboarding/`) or **Tenant 360** (`/super/tenants/<uuid>/360/#offboarding`) — export, legal hold, schedule, typed-slug purge. See [`TENANT_OFFBOARDING.md`](TENANT_OFFBOARDING.md).
+
+**Scheduled auto-purge (after export + legal review):**
+
+```bash
+export TENANT_AUTO_PURGE_ENABLED=1
+python manage.py tenant_offboarding_run_scheduled_purges --dry-run
+python manage.py tenant_offboarding_run_scheduled_purges --limit=5
+```
+
+**Tenant self-service:** school admins use `/school/studio/offboarding/` (grace period from `TENANT_AUTO_PURGE_GRACE_DAYS`, default 30). S3 lifecycle JSON: `python -c "from apps.compliance.tenant_offboarding_storage import lifecycle_policy_document; import json; print(json.dumps(lifecycle_policy_document(), indent=2))"` — apply in AWS/Terraform separately.
+
 ---
 
 After a deploy completes, you can run these in the **Render Dashboard → your web service → Shell** for optional verification. Pre-deploy already runs migrations, health check, collectstatic, and seed steps; these are **post-deploy checks only**.

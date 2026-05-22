@@ -1,5 +1,8 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import reverse
 
 from config.admin import platform_admin_site
 
@@ -230,7 +233,46 @@ class SchoolAdmin(admin.ModelAdmin):
                 "waive_subscription",
                 "Waive subscription (set COMPLIMENTARY)",
             )
+        if "delete_selected" in actions:
+            del actions["delete_selected"]
         return actions
+
+    def has_delete_permission(self, request, obj=None):
+        """Route permanent delete through Tenant 360 offboarding (inventory + schema drop)."""
+        return False
+
+    def delete_view(self, request, object_id, extra_context=None):
+        school = self.get_object(request, object_id)
+        if school is None:
+            return super().delete_view(request, object_id, extra_context)
+        offboarding_url = reverse("super:tenant_360", args=[school.pk]) + "#offboarding"
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Delete school",
+            "object": school,
+            "offboarding_url": offboarding_url,
+            "opts": self.model._meta,
+        }
+        return TemplateResponse(
+            request,
+            "admin/schools/school/delete_guided.html",
+            context,
+        )
+
+    def delete_model(self, request, obj):
+        messages.error(
+            request,
+            "Use Tenant 360 → Offboarding for permanent delete (typed slug + dry-run inventory).",
+        )
+        return HttpResponseRedirect(
+            reverse("admin:schools_school_change", args=[obj.pk])
+        )
+
+    def delete_queryset(self, request, queryset):
+        messages.error(
+            request,
+            "Bulk delete disabled. Use the offboarding queue and Tenant 360 per school.",
+        )
 
 
 @admin.register(SchoolMembership, site=platform_admin_site)

@@ -2,125 +2,134 @@
 
 {% load admin_list i18n unfold admin_urls %}
 {% block base %}
-    <div id="page" class="{% if is_manager_host %}admin-cp-unified-page d-flex flex-column min-vh-100 w-100 max-w-full{% else %}flex flex-row max-w-full min-h-screen {% element_classes 'page' %}{% endif %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}" {% if is_manager_host %}data-shell-layout="admin-control-plane-unified" data-rmc-admin-cp-unified="1"{% endif %}>
-        {% block branding %}{% endblock %}
+    <div class="rmc-app-shell {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}">
+
+        {# ---------- Grid row 1 — static header (viewport-pinned) ---------- #}
+        <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1">
+            {% if is_manager_host %}
+                {% include "partials/manager_operator_topbar.html" %}
+            {% else %}
+                {% include "unfold/helpers/header.html" %}
+            {% endif %}
+        </header>
+
+        {# ---------- Grid row 2, column 1 — static sidebar (own scroll) ---------- #}
         {% if is_manager_host %}
-        <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded"
-           href="#cp-main-content"
-           aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
-        <div class="container-fluid px-3 py-2 cp-layout flex-grow-1 min-h-0 d-flex flex-column">
-            <div class="row g-2 flex-grow-1 min-h-0">
-                <aside class="cp-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block" id="cp-sidebar-col" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
-                    <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
-                        {% include "partials/manager_platform_admin_sidebar.html" %}
-                    </div>
-                </aside>
-                <main id="cp-main-content" class="cp-main-col col-lg-9 col-xl-10 rmc-shell-main bg-white dark:bg-base-900" role="main" data-shell-main="platform-admin" data-authenticated-surface="manager-control-plane" data-rmc-shell-main="django-admin" data-page-archetype="decision-console">
-        {% else %}
-        {% if not is_popup and not is_manager_host %}
+        <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
+            <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2">
+                {% include "partials/manager_platform_admin_sidebar.html" %}
+            </div>
+        </aside>
+        {% else %}{% if not is_popup %}
+        <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Admin navigation' %}" data-shell-sidebar="django-admin">
             {% block nav-sidebar %}
                 {% include "admin/nav_sidebar.html" %}
             {% endblock %}
-        {% endif %}
-        <div id="main" class="bg-white flex flex-col grow min-w-0 dark:bg-base-900 {% element_classes 'main' %}">
-            {% if not is_manager_host %}{% include "unfold/helpers/header.html" %}{% endif %}
-        {% endif %}
+        </aside>
+        {% endif %}{% endif %}
 
-            {% block messages %}
-                <div class="px-4">
-                    <div class="{% if is_manager_host %}w-100{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto">
-                        {% include "unfold/helpers/messages.html" %}
+        {# ---------- Grid row 2, column 2 — the SINGLE scrollable canvas ---------- #}
+        <div class="rmc-app-shell__canvas" data-rmc-shell-canvas="django-admin">
+            <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
+            <main id="cp-main-content" class="rmc-app-shell__canvas-body bg-white dark:bg-base-900 {% if not is_manager_host %}{% element_classes 'main' %}{% endif %}" role="main" data-shell-main="{% if is_manager_host %}platform-admin{% else %}django-admin{% endif %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}" data-rmc-shell-main="django-admin" data-page-archetype="decision-console" data-shell-layout="admin-rmc-app-shell" data-rmc-admin-cp-unified="1">
+
+                {% block branding %}{% endblock %}
+
+                {% block messages %}
+                    <div class="px-4">
+                        <div class="{% if is_manager_host %}w-100{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto">
+                            {% include "unfold/helpers/messages.html" %}
+                        </div>
                     </div>
-                </div>
-            {% endblock messages %}
+                {% endblock messages %}
 
-            {% block admin_breadcrumbs %}
-            {% if not is_popup %}
-            <nav aria-label="{% trans 'Breadcrumb' %}" class="px-4 pt-1 pb-2 rmc-admin-breadcrumb-nav">
-                <div class="{% if is_manager_host %}w-100{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto">
-                    <ol class="breadcrumb rmc-admin-breadcrumb mb-0 flex flex-wrap items-center gap-1 text-sm text-base-600 dark:text-base-400">
-                        <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% if is_manager_host %}{% trans 'Platform Backoffice' %}{% else %}{% trans 'Admin' %}{% endif %}</a></li>
-                        {% if opts %}
-                            <li class="breadcrumb-item"><a href="{% url 'admin:app_list' opts.app_label %}" class="hover:text-primary dark:hover:text-primary">{{ opts.app_config.verbose_name|default:opts.app_label|title }}</a></li>
-                            <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ opts.verbose_name_plural|capfirst|default:title }}</li>
-                        {% elif app_list and title %}
-                            <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ title }}</li>
-                        {% endif %}
-                    </ol>
-                </div>
-            </nav>
-            {% endif %}
-            {% endblock admin_breadcrumbs %}
-
-            {% if is_manager_host %}
-            {% block admin_operator_steering %}
+                {% block admin_breadcrumbs %}
                 {% if not is_popup %}
-                    {% include "components/rmc_operator_surface_strip.html" %}
-                    {% include "admin/includes/admin_operator_steering_strip.html" %}
-                {% endif %}
-            {% endblock admin_operator_steering %}
-            <div class="cp-page-body cp-admin-page-body @container px-4 pb-4" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
-            {% endif %}
-
-                <div id="content" class="{% if is_manager_host %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto {% block coltype %}colM{% endblock %}"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
-                    {% block content_tabs %}
-                        {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
-                            <div class="site-settings-layout flex flex-col lg:flex-row gap-4 lg:gap-6">
-                                {% include "admin/siteconfig/sitesettings/settings_sidebar.html" %}
-                                <div class="site-settings-main flex-1 min-w-0">
-                        {% else %}
-                            {% if cl %}
-                                {% tab_list "changelist" cl.opts %}
-                            {% elif opts %}
-                                {% tab_list "changeform" opts %}
+                <nav aria-label="{% trans 'Breadcrumb' %}" class="px-4 pt-1 pb-2 rmc-admin-breadcrumb-nav">
+                    <div class="{% if is_manager_host %}w-100{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto">
+                        <ol class="breadcrumb rmc-admin-breadcrumb mb-0 flex flex-wrap items-center gap-1 text-sm text-base-600 dark:text-base-400">
+                            <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% if is_manager_host %}{% trans 'Platform Backoffice' %}{% else %}{% trans 'Admin' %}{% endif %}</a></li>
+                            {% if opts %}
+                                <li class="breadcrumb-item"><a href="{% url 'admin:app_list' opts.app_label %}" class="hover:text-primary dark:hover:text-primary">{{ opts.app_config.verbose_name|default:opts.app_label|title }}</a></li>
+                                <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ opts.verbose_name_plural|capfirst|default:title }}</li>
+                            {% elif app_list and title %}
+                                <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ title }}</li>
                             {% endif %}
-                        {% endif %}
-                    {% endblock content_tabs %}
+                        </ol>
+                    </div>
+                </nav>
+                {% endif %}
+                {% endblock admin_breadcrumbs %}
 
-                    {% block content %}
-                        {% if not is_popup and request.user.is_authenticated and not is_manager_host %}
-                            {% include "admin/includes/tenant_admin_decision_banner.html" %}
-                            {% include "admin/includes/admin_operator_outcome_deck.html" %}
-                        {% endif %}
-                        {% block object-tools %}{% endblock %}
+                {% if is_manager_host %}
+                {% block admin_operator_steering %}
+                    {% if not is_popup %}
+                        {% include "components/rmc_operator_surface_strip.html" %}
+                        {% include "admin/includes/admin_operator_steering_strip.html" %}
+                    {% endif %}
+                {% endblock admin_operator_steering %}
+                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
+                {% endif %}
 
-                        {{ content }}
-                    {% endblock %}
+                    <div id="content" class="{% if is_manager_host %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto {% block coltype %}colM{% endblock %}"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
+                        {% block content_tabs %}
+                            {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
+                                <div class="site-settings-layout flex flex-col lg:flex-row gap-4 lg:gap-6">
+                                    {% include "admin/siteconfig/sitesettings/settings_sidebar.html" %}
+                                    <div class="site-settings-main flex-1 min-w-0">
+                            {% else %}
+                                {% if cl %}
+                                    {% tab_list "changelist" cl.opts %}
+                                {% elif opts %}
+                                    {% tab_list "changeform" opts %}
+                                {% endif %}
+                            {% endif %}
+                        {% endblock content_tabs %}
 
-                    {% block content_tabs_after %}
-                        {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
+                        {% block content %}
+                            {% if not is_popup and request.user.is_authenticated and not is_manager_host %}
+                                {% include "admin/includes/tenant_admin_decision_banner.html" %}
+                                {% include "admin/includes/admin_operator_outcome_deck.html" %}
+                            {% endif %}
+                            {% block object-tools %}{% endblock %}
+
+                            {{ content }}
+                        {% endblock %}
+
+                        {% block content_tabs_after %}
+                            {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
+                                    </div>
                                 </div>
-                            </div>
-                        {% endif %}
-                    {% endblock content_tabs_after %}
+                            {% endif %}
+                        {% endblock content_tabs_after %}
 
-                    {% block sidebar %}{% endblock %}
+                        {% block sidebar %}{% endblock %}
+                    </div>
+
+                {% if is_manager_host %}
                 </div>
+                <div id="admin-manager-sticky-slot" class="admin-manager-sticky-slot">
+                  {% block admin_manager_sticky_actions %}{% endblock %}
+                </div>
+                {% endif %}
 
-            {% if is_manager_host %}
-            </div>
-            <div id="admin-manager-sticky-slot" class="admin-manager-sticky-slot">
-              {% block admin_manager_sticky_actions %}{% endblock %}
-            </div>
-            {% endif %}
+                {% block footer %}
+                {% if not is_manager_host %}
+                {% include 'components/back_to_top.html' %}
+                {% endif %}
+                {% endblock %}
 
-            {% block footer %}
-            {% if not is_manager_host %}
-            {% include 'components/back_to_top.html' %}
-            {% endif %}
-            {% endblock %}
-
-        {% if is_manager_host %}
-                </main>
-            </div>
+            </main>
         </div>
-        <footer class="cp-corporate-footer w-100" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
+
+        {# ---------- Grid row 3 — static footer (viewport-pinned) ---------- #}
+        {% if is_manager_host %}
+        <footer class="rmc-app-shell__footer cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
           {% include "partials/rmc_operator_footer_compact.html" %}
         </footer>
         {% include "admin/manager_cp_offcanvas.html" %}
         {% include 'components/back_to_top.html' %}
-        {% else %}
-        </div>
         {% endif %}
+
     </div>
 {% endblock %}

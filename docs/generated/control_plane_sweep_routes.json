@@ -1,7 +1,7 @@
 {
   "version": "2026-05-18",
-  "count": 569,
-  "operator_count": 394,
+  "count": 591,
+  "operator_count": 416,
   "admin_changelist_count": 175,
   "routes": [
     {
@@ -1769,6 +1769,54 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/studio/day1/act1/",
+      "name": "tenant_studio_day1_act1",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/studio/day1/act1/logo-upload/",
+      "name": "tenant_studio_day1_act1_logo_upload",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/studio/day1/act2/",
+      "name": "tenant_studio_day1_act2",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/studio/day1/act3/lock/",
+      "name": "tenant_studio_day1_act3_lock",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/studio/day1/reset/",
+      "name": "tenant_studio_day1_reset",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/super/configure/cockpit/",
+      "name": "cockpit_configure",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/super/configure/cockpit/health/",
+      "name": "cockpit_health",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/super/configure/cockpit/previews/",
+      "name": "cockpit_previews",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/support-copilot/",
       "name": "support_copilot",
       "tier": "operator",
@@ -1825,6 +1873,12 @@
     {
       "path": "/siteconfig/theme-experience/hub/",
       "name": "theme_experience_hub",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/theme/palette/generate/",
+      "name": "palette_generate",
       "tier": "operator",
       "sweep": true
     },
@@ -1945,6 +1999,30 @@
     {
       "path": "/studio/control/system-config/",
       "name": "system_config_console",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/copilot/rail/context/",
+      "name": "copilot_rail_context",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/copilot/rail/insights/",
+      "name": "copilot_rail_insights",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/copilot/rail/send-stream/",
+      "name": "copilot_rail_send_stream",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/copilot/rail/send/",
+      "name": "copilot_rail_send",
       "tier": "operator",
       "sweep": true
     },
@@ -2465,6 +2543,36 @@
       "sweep": true
     },
     {
+      "path": "/super/email/configure/",
+      "name": "email_configure",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/email/health/",
+      "name": "email_health",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/email/health/probe/",
+      "name": "email_health_probe",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/email/health/stream/",
+      "name": "email_health_stream",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/email/webhook/",
+      "name": "email_provider_webhook",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/enterprise-security-command-center/",
       "name": "enterprise_security_command_center",
       "tier": "operator",
@@ -2957,6 +3065,12 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/maa/v2-counsel-activate/",
+      "name": "maa_counsel_activate",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/merge/",
       "name": "merge_bundles",
       "tier": "operator",
@@ -3161,6 +3275,12 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/vendor-write-status/",
+      "name": "vendor_write_status",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/ministry-report-stubs/",
       "name": "ministry_report_stubs",
       "tier": "operator",
@@ -3175,6 +3295,12 @@
     {
       "path": "/super/native-roster-connectors/",
       "name": "native_roster_connectors",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/offboarding/",
+      "name": "offboarding_queue",
       "tier": "operator",
       "sweep": true
     },
@@ -3301,6 +3427,12 @@
     {
       "path": "/super/security/surface/",
       "name": "security_surface_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/signup/diagnostics/",
+      "name": "signup_diagnostics",
       "tier": "operator",
       "sweep": true
     },

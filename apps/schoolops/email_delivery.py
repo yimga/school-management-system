@@ -59,6 +59,7 @@ import logging
 import re
 import smtplib
 import socket
+import threading
 import time
 from typing import Any, Iterable, Optional, Union
 
@@ -77,6 +78,12 @@ logger = logging.getLogger(__name__)
 _DEFAULT_BACKOFF_SECONDS = (1, 5, 30)
 _DEFAULT_SMTP_PROBE_TIMEOUT = 5.0
 _DEFAULT_CONNECTION_TIMEOUT = 10
+# v3.58.x Wave 9 Agent K — when send_transactional is called from inside an
+# HTTP request (sync path), we cap any single SMTP attempt's socket timeout
+# at 5s so a hung SMTP server can never block the request lifecycle for the
+# full EMAIL_TIMEOUT value.
+_SYNC_PER_ATTEMPT_TIMEOUT_CEILING = 5
+_DEFAULT_SYNC_BUDGET_SECONDS = 8
 _SUBJECT_PREFIX_MAX = 64
 _TO_HASH_LEN = 12
 
@@ -85,7 +92,29 @@ _ERR_SMTP = "smtp_exception"
 _ERR_OS = "os_error"
 _ERR_CONN = "connection_error"
 _ERR_VALUE = "value_error"
+_ERR_RATE_LIMIT = "rate_limit_exceeded"
 _ERR_OTHER = "other"
+
+# v3.58.x Wave 9 Agent M — bounce taxonomy labels persisted to
+# EmailDeliveryEvent.bounce_kind. Send-time labels prefix-free; webhook-
+# reported bounces use the ``provider_<type>`` namespace (see
+# views_email_webhook.EmailProviderWebhookView).
+_BOUNCE_HARD_5XX = "hard_5xx"
+_BOUNCE_SOFT_4XX = "soft_4xx"
+_BOUNCE_SENDER_REFUSED = "senderrefused"
+_BOUNCE_RECIPIENTS_REFUSED = "recipientsrefused"
+_BOUNCE_UNKNOWN = "unknown"
+
+# Per-tenant sliding-window rate-limit budget. Default cap is overridable
+# via settings.SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP.
+_DEFAULT_TENANT_HOURLY_CAP = 200
+# In-memory bucket — module-global thread-safe sliding window. Keyed by
+# tenant_hash; value is a list[float] of monotonic timestamps within the
+# last 3600s. NEVER persists across process restarts — that's fine, the
+# cap is a soft guard against runaway loops, not a billing-grade meter.
+_RATE_LIMIT_BUCKETS: dict[str, list[float]] = {}
+_RATE_LIMIT_LOCK = threading.Lock()
+_RATE_LIMIT_WINDOW_SECONDS = 3600
 
 # Subjects can contain free-form text; before we persist the prefix we
 # strip anything email-shaped just in case a caller put a recipient in
@@ -336,8 +365,18 @@ def _persist_event(
     attempts: int,
     ok: bool,
     error_kind: str,
+    bounced: bool = False,
+    bounce_kind: str = "",
 ) -> Optional[str]:
-    """Best-effort write of an EmailDeliveryEvent row. Returns its UUID str."""
+    """Best-effort write of an EmailDeliveryEvent row. Returns its UUID str.
+
+    v3.58.x Wave 9 Agent M extends the contract with two optional kwargs:
+    ``bounced`` and ``bounce_kind``. When the SMTP send raised an
+    SMTPSenderRefused / SMTPRecipientsRefused / 5xx, the caller passes
+    ``bounced=True`` so the row is bookmarked as a bounce at send time.
+    Provider-webhook-reported bounces use the dedicated UPDATE path in
+    :mod:`apps.schoolops.views_email_webhook` rather than this writer.
+    """
     try:
         from apps.schoolops.models_email_delivery import EmailDeliveryEvent
 
@@ -349,6 +388,8 @@ def _persist_event(
             attempts=attempts,
             ok=ok,
             error_kind=error_kind,
+            bounced=bool(bounced),
+            bounce_kind=(bounce_kind or "")[:32],
         )
         return str(row.pk)
     except Exception as exc:  # broad-by-design — log persistence is never load-bearing
@@ -357,6 +398,105 @@ def _persist_event(
             type(exc).__name__,
         )
         return None
+
+
+# ──────────────────────────────────────────────────────────────────────
+# v3.58.x Wave 9 Agent M — bounce classification + per-tenant rate limit.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _classify_bounce(exc: BaseException) -> str:
+    """Return a coarse bounce-kind label for an SMTP exception, or ``""``.
+
+    Only SMTPSenderRefused / SMTPRecipientsRefused / 5xx-coded
+    SMTPResponseException are treated as bounces. Generic connection /
+    socket / TLS issues are retry-eligible failures, NOT bounces — they
+    return ``""`` (caller leaves ``bounced=False``).
+    """
+    # Conservative isinstance checks — sklearn-style ordering: most-
+    # specific first.
+    if isinstance(exc, smtplib.SMTPSenderRefused):
+        return _BOUNCE_SENDER_REFUSED
+    if isinstance(exc, smtplib.SMTPRecipientsRefused):
+        return _BOUNCE_RECIPIENTS_REFUSED
+    if isinstance(exc, smtplib.SMTPResponseException):
+        try:
+            code = int(getattr(exc, "smtp_code", 0) or 0)
+        except (TypeError, ValueError):
+            code = 0
+        if 500 <= code <= 599:
+            return _BOUNCE_HARD_5XX
+        if 400 <= code <= 499:
+            return _BOUNCE_SOFT_4XX
+        return _BOUNCE_UNKNOWN
+    return ""
+
+
+def _resolve_tenant_hourly_cap() -> int:
+    """Resolve ``settings.SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP``.
+
+    Returns the default when the setting is missing or non-positive.
+    """
+    raw = getattr(
+        settings, "SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP", None,
+    )
+    try:
+        val = int(raw) if raw is not None else _DEFAULT_TENANT_HOURLY_CAP
+    except (TypeError, ValueError):
+        return _DEFAULT_TENANT_HOURLY_CAP
+    if val <= 0:
+        return _DEFAULT_TENANT_HOURLY_CAP
+    return val
+
+
+def _check_per_tenant_rate_limit(
+    tenant_hash: str,
+    limit_per_hour: int = _DEFAULT_TENANT_HOURLY_CAP,
+) -> bool:
+    """Return True when within budget; False when the tenant exceeded.
+
+    Sliding window: the bucket holds monotonic timestamps from the last
+    3600 seconds. On every call we prune entries older than the window
+    boundary, then compare ``len(bucket)`` to ``limit_per_hour``. When
+    over the budget we DO NOT append (the rejected attempt should not
+    eat budget); when under the budget we append then return True.
+
+    The bucket lives in process memory — gunicorn workers each see their
+    own slice. That is intentional: per-worker visibility keeps the
+    hot-path lock-free except for the bucket itself, and the cap is a
+    safety guard for runaway loops (signup spam, broken Celery task,
+    template regression), not a billing-grade meter.
+    """
+    if not tenant_hash:
+        # Caller didn't (or couldn't) derive a tenant hash — skip the
+        # limit. The caller may still pass ``tenant_hash=None`` from
+        # platform-level sends (operator test email, no SchoolEntity).
+        return True
+    now = time.monotonic()
+    cutoff = now - _RATE_LIMIT_WINDOW_SECONDS
+    cap = max(1, int(limit_per_hour))
+    with _RATE_LIMIT_LOCK:
+        bucket = _RATE_LIMIT_BUCKETS.get(tenant_hash, [])
+        # Prune in place — list is small (≤cap), linear scan is fine.
+        bucket = [t for t in bucket if t > cutoff]
+        if len(bucket) >= cap:
+            _RATE_LIMIT_BUCKETS[tenant_hash] = bucket
+            return False
+        bucket.append(now)
+        _RATE_LIMIT_BUCKETS[tenant_hash] = bucket
+    return True
+
+
+def _hash_tenant(tenant_id: Optional[str]) -> str:
+    """sha256(tenant_id.lower())[:_TO_HASH_LEN] — stable per tenant.
+
+    Mirrors :func:`_hash_recipient` so a bucket key is never the raw
+    ``school.slug`` (logs would expose tenant identity).
+    """
+    if not tenant_id:
+        return ""
+    norm = str(tenant_id).strip().lower().encode("utf-8")
+    return hashlib.sha256(norm).hexdigest()[:_TO_HASH_LEN]
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -377,7 +517,7 @@ def _classify_exception(exc: BaseException) -> str:
     return _ERR_OTHER
 
 
-def send_transactional(
+def _send_transactional_sync_core(
     *,
     subject: str,
     body: str,
@@ -387,16 +527,19 @@ def send_transactional(
     from_email: Optional[str] = None,
     headers: Optional[dict] = None,
     priority: str = "transactional",
+    enforce_sync_budget: bool = True,
 ) -> dict:
-    """Send a transactional message with retries + audit logging.
+    """Internal synchronous send implementation.
 
-    Returns ``{"ok": bool, "attempts": int, "delivery_event_id": str|None,
-    "error_kind": str|None}``. NEVER raises — mirrors the existing
-    ``fail_silently=True`` semantics at every callsite.
+    When ``enforce_sync_budget=True``, the retry loop is bounded by a
+    wall-clock budget (``SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS``,
+    default 8s) AND each attempt's socket timeout is capped at 5s. This
+    is the request-lifetime guard: a non-async caller can never block
+    longer than the budget regardless of how the BACKOFF list is shaped.
 
-    The caller's email body, recipient address, and full subject line
-    are NEVER logged. We persist only ``to_hash`` (sha256[:12]) and a
-    redacted 64-char subject prefix.
+    When ``enforce_sync_budget=False`` (only used by the async-thread
+    path), the unrestricted retry sequence runs and exceptions are
+    swallowed silently.
     """
     to_list = _coerce_to_list(to)
     if not to_list:
@@ -412,9 +555,38 @@ def send_transactional(
         }
 
     cfg = get_resolved_smtp_config()
+    if enforce_sync_budget:
+        # Cap the connection-level socket timeout so a single hung
+        # SMTP attempt cannot block the request for the full
+        # EMAIL_TIMEOUT value (default 10s) — we want fail-fast.
+        try:
+            existing_timeout = int(
+                cfg.get("connection_timeout_seconds")
+                or _DEFAULT_CONNECTION_TIMEOUT
+            )
+        except (TypeError, ValueError):
+            existing_timeout = _DEFAULT_CONNECTION_TIMEOUT
+        cfg = dict(cfg)
+        cfg["connection_timeout_seconds"] = min(
+            existing_timeout, _SYNC_PER_ATTEMPT_TIMEOUT_CEILING,
+        )
+
     backoff = _get_backoff()
     if not backoff:
         backoff = (0,)  # at least one attempt
+
+    sync_budget_seconds = _DEFAULT_SYNC_BUDGET_SECONDS
+    if enforce_sync_budget:
+        try:
+            sync_budget_seconds = int(
+                getattr(
+                    settings,
+                    "SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS",
+                    _DEFAULT_SYNC_BUDGET_SECONDS,
+                )
+            )
+        except (TypeError, ValueError):
+            sync_budget_seconds = _DEFAULT_SYNC_BUDGET_SECONDS
 
     to_hash = _hash_recipient(to_list[0])
     subject_prefix = _redact_subject_for_log(subject or "")
@@ -434,10 +606,18 @@ def send_transactional(
     msg_headers.setdefault("X-RMC-Email-Priority", priority)
 
     last_exc_kind = ""
+    last_bounce_kind = ""  # v3.58.x Wave 9 Agent M — set when the FINAL attempt raises a bounce-class exception
     attempts_made = 0
     ok = False
+    started = time.monotonic()
+    budget_exhausted = False
 
     for attempt_index, delay in enumerate(backoff, start=1):
+        # Wall-clock budget check BEFORE each attempt (other than the first).
+        if enforce_sync_budget and attempt_index > 1:
+            if (time.monotonic() - started) >= sync_budget_seconds:
+                budget_exhausted = True
+                break
         attempts_made = attempt_index
         try:
             connection = _get_connection_for_send(cfg)
@@ -465,6 +645,7 @@ def send_transactional(
             msg.send(fail_silently=False)
             ok = True
             last_exc_kind = ""
+            last_bounce_kind = ""
             break
         except (
             smtplib.SMTPException,
@@ -473,6 +654,12 @@ def send_transactional(
             ValueError,
         ) as exc:
             last_exc_kind = _classify_exception(exc)
+            # v3.58.x Wave 9 Agent M — capture bounce class for the
+            # latest attempt. Only sticks to the persisted row if the
+            # send ultimately fails AND the LAST exception was bounce-
+            # classed (a transient ConnectionError after an earlier
+            # SMTPSenderRefused legitimately resets this).
+            last_bounce_kind = _classify_bounce(exc)
             logger.warning(
                 "schoolops.email_delivery.attempt_failed "
                 "to_hash=%s priority=%s attempt=%d error_kind=%s err_type=%s",
@@ -480,27 +667,69 @@ def send_transactional(
                 type(exc).__name__,
             )
             # Sleep between attempts UNLESS we just used the final
-            # entry of the backoff sequence.
+            # entry of the backoff sequence OR the sync budget would
+            # be exhausted by the sleep itself.
             if attempt_index < len(backoff) and delay > 0:
-                try:
-                    time.sleep(delay)
-                except Exception:  # noqa: BLE001  — sleep should never hard-fail
-                    pass
+                if enforce_sync_budget:
+                    elapsed = time.monotonic() - started
+                    remaining = sync_budget_seconds - elapsed
+                    if remaining <= 0:
+                        budget_exhausted = True
+                        break
+                    # Don't sleep past the budget; trim the delay.
+                    bounded_delay = min(delay, remaining)
+                    try:
+                        time.sleep(bounded_delay)
+                    except Exception:  # noqa: BLE001 — sleep never hard-fails
+                        pass
+                else:
+                    try:
+                        time.sleep(delay)
+                    except Exception:  # noqa: BLE001 — sleep never hard-fails
+                        pass
             continue
         except Exception as exc:  # broad-by-design  — never raise out
             last_exc_kind = _ERR_OTHER
+            last_bounce_kind = ""  # unknown-shape failure — not a classified bounce
             logger.warning(
                 "schoolops.email_delivery.attempt_failed_unexpected "
                 "to_hash=%s priority=%s attempt=%d err_type=%s",
                 to_hash, priority, attempt_index, type(exc).__name__,
             )
             if attempt_index < len(backoff) and delay > 0:
-                try:
-                    time.sleep(delay)
-                except Exception:  # noqa: BLE001
-                    pass
+                if enforce_sync_budget:
+                    elapsed = time.monotonic() - started
+                    remaining = sync_budget_seconds - elapsed
+                    if remaining <= 0:
+                        budget_exhausted = True
+                        break
+                    bounded_delay = min(delay, remaining)
+                    try:
+                        time.sleep(bounded_delay)
+                    except Exception:  # noqa: BLE001
+                        pass
+                else:
+                    try:
+                        time.sleep(delay)
+                    except Exception:  # noqa: BLE001
+                        pass
             continue
 
+    if budget_exhausted and not ok:
+        # We bailed out of the retry loop because the sync budget ran
+        # out. Surface this distinctly so operators reading the
+        # delivery log know WHY we stopped retrying.
+        last_exc_kind = last_exc_kind or "sync_budget_exhausted"
+        logger.warning(
+            "schoolops.email_delivery.sync_budget_exhausted "
+            "to_hash=%s priority=%s attempts=%d budget_seconds=%d",
+            to_hash, priority, attempts_made, sync_budget_seconds,
+        )
+
+    # v3.58.x Wave 9 Agent M — propagate send-time bounce classification.
+    # Only mark as bounced when the send permanently failed AND the last
+    # exception was classified as a bounce.
+    bounced_flag = bool(not ok and last_bounce_kind)
     delivery_event_id = _persist_event(
         to_hash=to_hash,
         subject_prefix=subject_prefix,
@@ -508,6 +737,8 @@ def send_transactional(
         attempts=attempts_made,
         ok=ok,
         error_kind="" if ok else last_exc_kind,
+        bounced=bounced_flag,
+        bounce_kind=last_bounce_kind if bounced_flag else "",
     )
 
     if ok:
@@ -519,8 +750,10 @@ def send_transactional(
     else:
         logger.error(
             "schoolops.email_delivery.permanent_failure "
-            "to_hash=%s priority=%s attempts=%d error_kind=%s event_id=%s",
+            "to_hash=%s priority=%s attempts=%d error_kind=%s "
+            "bounced=%s bounce_kind=%s event_id=%s",
             to_hash, priority, attempts_made, last_exc_kind,
+            bounced_flag, last_bounce_kind or "n/a",
             delivery_event_id or "n/a",
         )
 
@@ -529,7 +762,183 @@ def send_transactional(
         "attempts": attempts_made,
         "delivery_event_id": delivery_event_id,
         "error_kind": "" if ok else last_exc_kind,
+        "bounced": bounced_flag,
+        "bounce_kind": last_bounce_kind if bounced_flag else "",
     }
+
+
+def _async_send_worker(**kwargs: Any) -> None:
+    """Daemon-thread target for ``async_send=True`` callers.
+
+    Runs the full unrestricted retry sequence (no sync budget) and
+    swallows ALL exceptions silently into the EmailDeliveryEvent
+    audit row. NEVER re-raises — a daemon thread exception would
+    only land in the thread's own context anyway.
+    """
+    try:
+        _send_transactional_sync_core(
+            enforce_sync_budget=False,
+            **kwargs,
+        )
+    except Exception as exc:  # broad-by-design — async path never raises
+        try:
+            logger.warning(
+                "schoolops.email_delivery.async_worker_crashed err_type=%s",
+                type(exc).__name__,
+            )
+        except Exception:  # noqa: BLE001 — logging itself must never crash the thread
+            pass
+
+
+def send_transactional(
+    *,
+    subject: str,
+    body: str,
+    to: Union[str, Iterable[str]],
+    html_body: Optional[str] = None,
+    reply_to: Optional[Union[str, Iterable[str]]] = None,
+    from_email: Optional[str] = None,
+    headers: Optional[dict] = None,
+    priority: str = "transactional",
+    async_send: bool = False,
+    tenant_hash: Optional[str] = None,
+) -> dict:
+    """Send a transactional message with retries + audit logging.
+
+    Returns ``{"ok": bool, "attempts": int, "delivery_event_id": str|None,
+    "error_kind": str|None, "queued": bool|None, "bounced": bool,
+    "bounce_kind": str}``. NEVER raises — mirrors the existing
+    ``fail_silently=True`` semantics at every callsite.
+
+    v3.58.x Wave 9 Agent M extends the signature with two opt-in concerns:
+
+    * ``tenant_hash`` — when supplied, the per-tenant sliding-window
+      rate limit (default 200 sends/hr per tenant, override via
+      ``settings.SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP``) is
+      consulted. On exceed: NO send is attempted, an EmailDeliveryEvent
+      row is written with ``error_kind='rate_limit_exceeded'``, and the
+      return dict carries ``ok=False, queued=False,
+      error_kind='rate_limit_exceeded'``. Caller is expected to derive
+      ``tenant_hash`` from ``school.slug`` via :func:`_hash_tenant`
+      before calling. Pass ``None`` (the default) to skip the rate-
+      limit gate — platform-level sends like the operator test email
+      do this.
+    * Hard-bounce classification — when an SMTP send permanently fails
+      because of an ``SMTPSenderRefused`` / ``SMTPRecipientsRefused`` /
+      5xx response exception on the FINAL attempt, the resulting
+      EmailDeliveryEvent row is marked ``bounced=True`` with a coarse
+      ``bounce_kind``. Retry-eligible transient failures (connection
+      errors, socket timeouts, generic SMTPException without a 5xx
+      code) leave ``bounced=False`` — they are not bounces.
+
+    The caller's email body, recipient address, and full subject line
+    are NEVER logged. We persist only ``to_hash`` (sha256[:12]) and a
+    redacted 64-char subject prefix.
+
+    v3.58.x Wave 9 Agent K — ``async_send=True``:
+        Schedule the send in a daemon thread and return IMMEDIATELY
+        with ``{"ok": True, "queued": True, "attempts": 0,
+        "delivery_event_id": None, "error_kind": None}``. The thread
+        runs the full unrestricted retry sequence and logs an
+        EmailDeliveryEvent audit row when it completes. NEVER re-raises
+        out of the async path. This is the path the signup view uses
+        so a dead SMTP host can never time out the HTTP request.
+
+    When ``async_send=False`` (default — preserved for non-request callers),
+    a synchronous wall-clock budget (``SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS``,
+    default 8s) bounds the retry loop AND each attempt's socket timeout
+    is capped at 5s. A single sync caller can never block longer than
+    the budget regardless of how BACKOFF is configured.
+    """
+    # ── v3.58.x Wave 9 Agent M — per-tenant rate-limit gate ──────────
+    # Gate at the outer entry so both sync AND async paths share one
+    # bucket. When tenant_hash is None (platform-level sends) the gate
+    # is bypassed entirely — _check_per_tenant_rate_limit returns True
+    # for empty input.
+    if tenant_hash:
+        cap = _resolve_tenant_hourly_cap()
+        if not _check_per_tenant_rate_limit(tenant_hash, limit_per_hour=cap):
+            to_list_rl = _coerce_to_list(to)
+            to_hash_rl = _hash_recipient(to_list_rl[0]) if to_list_rl else ""
+            subject_prefix_rl = _redact_subject_for_log(subject or "")
+            delivery_event_id_rl = _persist_event(
+                to_hash=to_hash_rl,
+                subject_prefix=subject_prefix_rl,
+                priority=priority,
+                attempts=0,
+                ok=False,
+                error_kind=_ERR_RATE_LIMIT,
+                bounced=False,
+                bounce_kind="",
+            )
+            logger.warning(
+                "schoolops.email_delivery.rate_limit_exceeded "
+                "tenant_hash=%s to_hash=%s priority=%s cap_per_hour=%d "
+                "event_id=%s",
+                tenant_hash, to_hash_rl, priority, cap,
+                delivery_event_id_rl or "n/a",
+            )
+            return {
+                "ok": False,
+                "queued": False,
+                "attempts": 0,
+                "delivery_event_id": delivery_event_id_rl,
+                "error_kind": _ERR_RATE_LIMIT,
+                "bounced": False,
+                "bounce_kind": "",
+            }
+
+    if async_send:
+        thread = threading.Thread(
+            target=_async_send_worker,
+            kwargs={
+                "subject": subject,
+                "body": body,
+                "to": to,
+                "html_body": html_body,
+                "reply_to": reply_to,
+                "from_email": from_email,
+                "headers": headers,
+                "priority": priority,
+            },
+            name="schoolops-email-async-send",
+            daemon=True,
+        )
+        try:
+            thread.start()
+        except RuntimeError as exc:
+            # Worker startup failures (e.g. interpreter shutdown) are
+            # surfaced as a non-fatal queued=False result. NEVER raises.
+            logger.warning(
+                "schoolops.email_delivery.async_thread_start_failed err_type=%s",
+                type(exc).__name__,
+            )
+            return {
+                "ok": False,
+                "attempts": 0,
+                "delivery_event_id": None,
+                "error_kind": "thread_start_failed",
+                "queued": False,
+            }
+        return {
+            "ok": True,
+            "attempts": 0,
+            "delivery_event_id": None,
+            "error_kind": None,
+            "queued": True,
+        }
+
+    return _send_transactional_sync_core(
+        subject=subject,
+        body=body,
+        to=to,
+        html_body=html_body,
+        reply_to=reply_to,
+        from_email=from_email,
+        headers=headers,
+        priority=priority,
+        enforce_sync_budget=True,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -841,4 +1250,7 @@ __all__ = [
     "get_recent_delivery_stats",
     "get_recent_failures",
     "encrypt_password_for_storage",
+    # v3.58.x Wave 9 Agent M — bounce + rate-limit + tenant hashing.
+    "_check_per_tenant_rate_limit",
+    "_hash_tenant",
 ]

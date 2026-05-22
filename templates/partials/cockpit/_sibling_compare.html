@@ -1,15 +1,29 @@
 {% load i18n %}
 {% comment %}
-Sibling comparison — v3.57.0 (2026-05-21)
+Sibling comparison — v3.57.0 (2026-05-21) + v3.58.x Wave 9 (2026-05-22)
 
 Privacy-gated, opt-in ONLY. Names never appear — initials only.
-Requires BOTH .enabled AND .opt_in True to render.
+Requires BOTH .enabled AND .opt_in True to render actual data.
+
+PRIVACY CONTRACT (load-bearing — DO NOT relax)
+  - ``cockpit.sibling_compare.enabled`` is operator-published copy +
+    chrome (titles, CTA, consent banner copy, denied-state message).
+  - ``cockpit.sibling_compare.opt_in`` is sourced from a per-parent
+    consent record OUTSIDE the cockpit payload. Operator admin UI
+    CANNOT toggle it — only a family granting consent flips it True.
+  - Operator enable surfaces the CTA. Parent opt-in is required for
+    any metric row to render.
+
+The first ``{% if %}`` below preserves the original three-way gate
+(enabled AND opt_in AND metrics) — that's the consent-gate the
+v3.58.x Wave 9 operator-copy editor MUST NOT alter.
 {% endcomment %}
 {% if cockpit.sibling_compare.enabled and cockpit.sibling_compare.opt_in and cockpit.sibling_compare.metrics %}
 {% with sc=cockpit.sibling_compare %}
-<section class="tp-sibling-compare" aria-label="{{ sc.title }}" data-rmc-tp-sibling-compare>
+<section class="tp-sibling-compare" aria-label="{{ sc.title|default:_('Compare with siblings') }}" data-rmc-tp-sibling-compare>
   <header class="tp-sibling-compare__head">
-    <h3 class="tp-sibling-compare__title">{{ sc.title|default:_("Sibling comparison") }}</h3>
+    <h3 class="tp-sibling-compare__title">{{ sc.title|default:_("Compare with siblings") }}</h3>
+    {% if sc.subtitle %}<p class="tp-sibling-compare__subtitle">{{ sc.subtitle|default:_("Side-by-side trend across your family") }}</p>{% endif %}
     {% if sc.privacy_notice %}<p class="tp-sibling-compare__privacy">{{ sc.privacy_notice }}</p>{% endif %}
   </header>
   <ul class="tp-sibling-compare__metrics" role="list">
@@ -39,6 +53,31 @@ Requires BOTH .enabled AND .opt_in True to render.
     </li>
     {% endfor %}
   </ul>
+</section>
+{% endwith %}
+{% elif cockpit.sibling_compare.enabled and not cockpit.sibling_compare.opt_in %}
+{% with sc=cockpit.sibling_compare %}
+{% comment %}
+  Operator enabled the section but the per-parent consent record has
+  NOT been flipped to opt_in=True. Render the CTA + denied-state copy
+  ONLY — no sibling data whatsoever. The CTA opens the consent banner
+  client-side (handler wires to family-settings view).
+{% endcomment %}
+<section class="tp-sibling-compare tp-sibling-compare--consent-pending"
+         aria-label="{{ sc.title|default:_('Compare with siblings') }}"
+         data-rmc-tp-sibling-compare
+         data-rmc-tp-sibling-compare-state="consent-pending">
+  <header class="tp-sibling-compare__head">
+    <h3 class="tp-sibling-compare__title">{{ sc.title|default:_("Compare with siblings") }}</h3>
+    {% if sc.subtitle %}<p class="tp-sibling-compare__subtitle">{{ sc.subtitle|default:_("Side-by-side trend across your family") }}</p>{% endif %}
+  </header>
+  <p class="tp-sibling-compare__denied">{{ sc.denied_state_message|default:_("No sibling data visible. You can opt in at any time from Family settings.") }}</p>
+  <button type="button"
+          class="tp-sibling-compare__cta"
+          data-rmc-tp-sibling-compare-cta="1"
+          aria-haspopup="dialog">
+    {{ sc.cta_label|default:_("Compare now") }}
+  </button>
 </section>
 {% endwith %}
 {% endif %}

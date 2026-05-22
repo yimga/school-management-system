@@ -1,0 +1,17 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="colM">
+  <h1>{% trans "Permanent delete requires offboarding workflow" %}</h1>
+  <p>{% blocktrans with name=object.name %}Deleting school <strong>{{ name }}</strong> from Django admin bypasses inventory, schema drop, and audit receipts.{% endblocktrans %}</p>
+  <ul>
+    <li>{% trans "Use Tenant 360 Offboarding for the guided purge (dry-run inventory + typed slug)." %}</li>
+    <li>{% trans "Or schedule auto-purge from the offboarding queue after export and legal review." %}</li>
+  </ul>
+  <p>
+    <a class="button" href="{{ offboarding_url }}">{% trans "Open Tenant 360 offboarding" %}</a>
+    <a class="button" href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to schools" %}</a>
+  </p>
+</div>
+{% endblock %}

@@ -383,6 +383,76 @@ def _tenant_newsletter_band_defaults() -> dict[str, Any]:
 
 
 # ============================================================
+# v3.58.x Wave 9 — sibling_compare operator-editable copy defaults
+# ============================================================
+
+
+def _sibling_compare_defaults() -> dict[str, Any]:
+    """Sibling-compare operator-editable chrome — PRIVACY-CONTRACT BOUNDED.
+
+    PRIVACY CONTRACT (load-bearing — DO NOT relax)
+    ----------------------------------------------
+    Sibling-compare ``opt_in`` MUST remain False by default — NO sibling data
+    renders without parent consent. This default factory deliberately does
+    NOT carry an ``opt_in`` key into the cockpit cascade:
+
+      - The cockpit payload (operator-published) configures ONLY copy +
+        chrome: section ``enabled`` flag, titles, CTA labels, consent
+        banner copy, denied-state message.
+      - The ``opt_in`` boolean lives on a per-parent consent record
+        OUTSIDE the cockpit payload (sourced at render time by the view
+        context, not the operator admin UI).
+      - There is intentionally NO ``opt_in_default`` field in this
+        factory or in ``CockpitPayloadForm``. An operator-toggled
+        opt-in default would defeat parent consent.
+
+    The partial template ``templates/partials/cockpit/_sibling_compare.html``
+    enforces the gate via:
+
+        {% if cockpit.sibling_compare.enabled
+              and cockpit.sibling_compare.opt_in
+              and cockpit.sibling_compare.metrics %}
+
+    Operator ``enabled=True`` surfaces the section CTA. Parent ``opt_in=True``
+    (per-family consent record, NOT in cockpit_payload) is still required
+    to render actual data. Helper module
+    ``cockpit_tenant_v3_extended._tenant_sibling_compare_defaults()`` is the
+    authoritative source for ``opt_in`` + ``metrics`` + ``privacy_notice``
+    defaults; ``_deep_merge`` preserves those keys when this overlay lands.
+
+    Schema (operator-editable subset only):
+        enabled                          bool  (default False — section off)
+        title                            str
+        subtitle                         str
+        cta_label                        str
+        consent_banner_title             str
+        consent_banner_body              str
+        consent_grant_button_label       str
+        consent_decline_button_label     str
+        denied_state_message             str
+    """
+    return {
+        "enabled": False,
+        "title": _("Compare with siblings"),
+        "subtitle": _("Side-by-side trend across your family"),
+        "cta_label": _("Compare now"),
+        "consent_banner_title": _("Family-comparison view"),
+        "consent_banner_body": _(
+            "Comparing siblings shows initials, current trend, and a small "
+            "sparkline per metric — never full names. This view is hidden "
+            "until you give consent and can be turned off at any time from "
+            "Family settings."
+        ),
+        "consent_grant_button_label": _("Show sibling view"),
+        "consent_decline_button_label": _("Keep private"),
+        "denied_state_message": _(
+            "No sibling data visible. You can opt in at any time from "
+            "Family settings."
+        ),
+    }
+
+
+# ============================================================
 # v3.57.18 Wave 8 — public school-signup form defaults
 # ============================================================
 
@@ -562,6 +632,16 @@ def cockpit_context(request) -> dict[str, Any]:
         manager_cockpit.update(manager_200x_defaults())
         # v3.57.0: 10 NEW /super/** front-office 200x elements (all enabled=False).
         manager_cockpit.update(front_office_200x_defaults())
+        # v3.58.x Wave 9: sibling_compare operator-editable copy overlay.
+        # Privacy-contract: this overlay carries copy + chrome only —
+        # `opt_in` / `metrics` / `privacy_notice` flow from the helper
+        # module's tenant defaults via _deep_merge (manager host doesn't
+        # render the section but the key is published for parity with the
+        # admin UI so operators see a unified cockpit_payload schema).
+        manager_cockpit["sibling_compare"] = _deep_merge(
+            manager_cockpit.get("sibling_compare", {}),
+            _sibling_compare_defaults(),
+        )
 
         # v3.57.3: overlay the preview demo payload so the 10 manager 200x
         # sections render out of the box matching the v8 200x preview HTML.
@@ -572,6 +652,22 @@ def cockpit_context(request) -> dict[str, Any]:
             manager_cockpit = _deep_merge(
                 manager_cockpit, manager_200x_demo_payload()
             )
+
+        # v3.58.2 (2026-05-22): real-data resolver overlay. The
+        # cockpit_panels_realdata_service queries the platform models for the
+        # 9 manager cockpit panels (operator_presence, activity_ticker,
+        # audit_feed, live_world_map, tenant_heatmap, forecast_lane, slo_clocks,
+        # revenue_waterfall, trust_nutrition). Each resolver is wrapped in
+        # try/except — a None return leaves the slot pointed at whatever the
+        # demo overlay (or static default) provided. Operator override below
+        # still wins, so a SiteSettings.cockpit_payload value is final.
+        try:
+            from .cockpit_panels_realdata_service import resolve_panel_overrides
+            real_panels = resolve_panel_overrides()
+        except Exception:
+            real_panels = {}
+        if real_panels:
+            manager_cockpit = _deep_merge(manager_cockpit, real_panels)
 
         # Overlay operator-saved cockpit_payload LAST so per-site overrides
         # (including section.enabled = False) win over both defaults and demo.
@@ -602,6 +698,17 @@ def cockpit_context(request) -> dict[str, Any]:
     tenant_cockpit.update(build_tenant_dashboard_cockpit())
     # v3.57.0: 10 NEW v3 100x tenant cockpit sections (all enabled=False).
     tenant_cockpit.update(build_tenant_v3_extended_cockpit())
+    # v3.58.x Wave 9: sibling_compare operator-editable copy overlay.
+    # Privacy-contract: this overlay carries copy + chrome only (title /
+    # subtitle / CTA / consent banner / denied-state). `opt_in` /
+    # `metrics` / `privacy_notice` flow from the helper module's
+    # `_tenant_sibling_compare_defaults()` via _deep_merge — operator
+    # admin UI cannot toggle `opt_in` to True. Parent consent record
+    # (per-family, outside cockpit_payload) is the sole `opt_in` source.
+    tenant_cockpit["sibling_compare"] = _deep_merge(
+        tenant_cockpit.get("sibling_compare", {}),
+        _sibling_compare_defaults(),
+    )
 
     # v3.57.3: overlay the v3 100x tenant preview demo payload so the 10 new
     # tenant sections render out of the box matching the v3 100x preview HTML.

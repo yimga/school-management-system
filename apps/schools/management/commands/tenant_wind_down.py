@@ -1,18 +1,21 @@
 """
-Part F Section 17.2: Tenant Wind-Down flow — export tenant data and deactivate.
+Tenant Wind-Down: export tenant data (portability) and optionally deactivate.
+
 Usage:
     manage.py tenant_wind_down --school-id <id> [--export-only] [--no-deactivate]
+    manage.py tenant_wind_down --slug <slug> [--export-only]
 """
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
-from django.db import DatabaseError, IntegrityError, OperationalError
 
 from apps.schools.models import School
+from apps.schools.tenant_offboarding import run_wind_down_deactivate, run_wind_down_export
 
 
 class Command(BaseCommand):
-    help = "Tenant Wind-Down: export tenant data (portability) and optionally deactivate school (Part F 17.2)."
+    help = (
+        "Tenant Wind-Down: full portability export and optional deactivate (Part F 17.2)."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -44,55 +47,19 @@ class Command(BaseCommand):
         except School.DoesNotExist as e:
             raise CommandError(f"School not found: {e}")
 
-        with transaction.atomic():
-            # Export: trigger data portability (one-click export). Use compliance export per student or bulk.
-            try:
-                from apps.compliance.gdpr_services import (
-                    export_student_data_portability,
-                )
-                from apps.people.models import StudentProfile
-            except ImportError:
-                self.stdout.write(
-                    self.style.WARNING(
-                        "Compliance/people not available; skipping per-student export."
-                    )
-                )
-            else:
-                students = StudentProfile.objects.filter(school=school).values_list(
-                    "id", flat=True
-                )[:1000]
-                count = 0
-                for sid in students:
-                    try:
-                        export_student_data_portability(school.id, sid, format="json")
-                        count += 1
-                    except (
-                        OSError,
-                        ValueError,
-                        TypeError,
-                        KeyError,
-                        AttributeError,
-                        DatabaseError,
-                        IntegrityError,
-                        OperationalError,
-                    ) as e:
-                        self.stdout.write(
-                            self.style.WARNING(f"Export student {sid} failed: {e}")
-                        )
-                self.stdout.write(
-                    self.style.SUCCESS(f"Exported data for {count} students.")
-                )
+        result = run_wind_down_export(school, full=True)
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Exported {result.student_export_count} students to {result.export_zip_path}"
+            )
+        )
 
-            if not export_only:
-                school.is_active = False
-                school.frozen_reason = "Tenant wind-down (Part F 17.2)"
-                school.save(update_fields=["is_active", "frozen_reason", "updated_at"])
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"Tenant {school.slug} deactivated (wind-down complete)."
-                    )
+        if not export_only:
+            outcome = run_wind_down_deactivate(school)
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Tenant {school.slug} deactivated: {outcome.get('message', 'ok')}"
                 )
-            else:
-                self.stdout.write(
-                    self.style.SUCCESS("Export complete (tenant left active).")
-                )
+            )
+        else:
+            self.stdout.write(self.style.SUCCESS("Export complete (tenant left active)."))

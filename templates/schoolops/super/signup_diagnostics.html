@@ -1,0 +1,172 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Signup flow diagnostics" }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+{# Page-level CSS — control-plane-tokenized; literals carry off-token-allow markers. #}
+<style nonce="{{ request.csp_nonce|default:'' }}">
+/* off-token-allow: operator-signup-diagnostics-grid-utility */
+.rmc-signup-diag__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:1rem;margin-top:1rem;}
+/* off-token-allow: operator-signup-diagnostics-probe-card-padding */
+.rmc-signup-diag__card{padding:1rem;}
+/* off-token-allow: operator-signup-diagnostics-status-badge */
+.rmc-signup-diag__badge{display:inline-block;padding:.125rem .5rem;border-radius:.5rem;font-size:.8rem;font-weight:600;}
+/* off-token-allow: operator-signup-diagnostics-badge-ok */
+.rmc-signup-diag__badge--ok{background:rgba(16,185,129,.12);color:#047857;}
+/* off-token-allow: operator-signup-diagnostics-badge-fail */
+.rmc-signup-diag__badge--fail{background:rgba(220,38,38,.12);color:#b91c1c;}
+/* off-token-allow: operator-signup-diagnostics-metric-row */
+.rmc-signup-diag__metric{padding:.25rem 0;font-size:.9rem;}
+/* off-token-allow: operator-signup-diagnostics-table-base */
+.rmc-signup-diag__table{width:100%;border-collapse:collapse;font-size:.85rem;}
+/* off-token-allow: operator-signup-diagnostics-table-cell-padding */
+.rmc-signup-diag__table th,.rmc-signup-diag__table td{padding:.4rem .5rem;text-align:left;border-bottom:1px solid var(--hairline);}
+/* off-token-allow: operator-signup-diagnostics-mono */
+.rmc-signup-diag__mono{font-family:ui-monospace,Menlo,monospace;font-size:.8rem;}
+</style>
+{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--operator-signup-diag" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Signup flow diagnostics" %}</h1>
+    <p class="rmc-lede">
+      {% blocktrans with seconds=refresh_seconds %}Read-only probes of every blocker that can stall the public school-signup flow: DB, broker, outbound SMTP port, SMTP server, and the most-recent verification email attempts. Auto-refreshes every {{ seconds }} seconds.{% endblocktrans %}
+    </p>
+    <meta http-equiv="refresh" content="{{ refresh_seconds|default:60 }}">
+  </header>
+
+  <section aria-labelledby="probes-heading">
+    <h2 id="probes-heading" class="rmc-h2">{% trans "Live probes" %}</h2>
+    <div class="rmc-signup-diag__grid">
+
+      <article class="rmc-card rmc-signup-diag__card" aria-labelledby="probe-db-heading">
+        <h3 id="probe-db-heading" class="rmc-h3">{% trans "Database connection" %}</h3>
+        <p class="rmc-signup-diag__metric">
+          {% if db_status.ok %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--ok">{% trans "OK" %}</span>
+          {% else %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--fail">{% trans "Down" %}</span>
+          {% endif %}
+        </p>
+        <p class="rmc-signup-diag__metric">{% trans "Vendor:" %} <span class="rmc-signup-diag__mono">{{ db_status.vendor|default:"unknown" }}</span></p>
+        <p class="rmc-signup-diag__metric">{% trans "Latency:" %} <span class="rmc-signup-diag__mono">{{ db_status.latency_ms }} ms</span></p>
+        {% if db_status.error %}
+          <p class="rmc-signup-diag__metric">{% trans "Error:" %} <span class="rmc-signup-diag__mono">{{ db_status.error }}</span></p>
+        {% endif %}
+      </article>
+
+      <article class="rmc-card rmc-signup-diag__card" aria-labelledby="probe-broker-heading">
+        <h3 id="probe-broker-heading" class="rmc-h3">{% trans "Celery broker (Redis)" %}</h3>
+        <p class="rmc-signup-diag__metric">
+          {% if broker_status.ok %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--ok">{% trans "Reachable" %}</span>
+          {% else %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--fail">{% trans "Unavailable" %}</span>
+          {% endif %}
+        </p>
+        <p class="rmc-signup-diag__metric">{% trans "Kind:" %} <span class="rmc-signup-diag__mono">{{ broker_status.broker_kind|default:"unknown" }}</span></p>
+        <p class="rmc-signup-diag__metric">{% trans "Latency:" %} <span class="rmc-signup-diag__mono">{{ broker_status.latency_ms }} ms</span></p>
+        {% if broker_status.error %}
+          <p class="rmc-signup-diag__metric">{% trans "Error:" %} <span class="rmc-signup-diag__mono">{{ broker_status.error }}</span></p>
+        {% endif %}
+      </article>
+
+      <article class="rmc-card rmc-signup-diag__card" aria-labelledby="probe-outbound-heading">
+        <h3 id="probe-outbound-heading" class="rmc-h3">{% trans "Outbound SMTP port" %}</h3>
+        <p class="rmc-signup-diag__metric">
+          {% if outbound_status.ok %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--ok">{% trans "Reachable" %}</span>
+          {% else %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--fail">{% trans "Blocked / unreachable" %}</span>
+          {% endif %}
+        </p>
+        <p class="rmc-signup-diag__metric">{% trans "Target:" %} <span class="rmc-signup-diag__mono">{{ outbound_status.host }}:{{ outbound_status.port }}</span></p>
+        <p class="rmc-signup-diag__metric">{% trans "Latency:" %} <span class="rmc-signup-diag__mono">{{ outbound_status.latency_ms }} ms</span></p>
+        <p class="rmc-signup-diag__metric">{% trans "Verdict:" %} <span class="rmc-signup-diag__mono">{{ outbound_status.verdict }}</span></p>
+        {% if outbound_status.error %}
+          <p class="rmc-signup-diag__metric">{% trans "Error:" %} <span class="rmc-signup-diag__mono">{{ outbound_status.error }}</span></p>
+        {% endif %}
+      </article>
+
+      <article class="rmc-card rmc-signup-diag__card" aria-labelledby="probe-smtp-heading">
+        <h3 id="probe-smtp-heading" class="rmc-h3">{% trans "SMTP server probe" %}</h3>
+        <p class="rmc-signup-diag__metric">
+          {% if smtp_status.ok %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--ok">{% trans "OK" %}</span>
+          {% else %}
+            <span class="rmc-signup-diag__badge rmc-signup-diag__badge--fail">{% trans "Fail" %}</span>
+          {% endif %}
+        </p>
+        <p class="rmc-signup-diag__metric">{% trans "Host:" %} <span class="rmc-signup-diag__mono">{{ smtp_status.host|default:"(empty)" }}:{{ smtp_status.port }}</span></p>
+        <p class="rmc-signup-diag__metric">{% trans "TLS:" %} <span class="rmc-signup-diag__mono">{{ smtp_status.use_tls|yesno:"yes,no" }}</span></p>
+        <p class="rmc-signup-diag__metric">{% trans "Backend:" %} <span class="rmc-signup-diag__mono">{{ smtp_status.backend|default:"(unknown)" }}</span></p>
+        <p class="rmc-signup-diag__metric">{% trans "Latency:" %} <span class="rmc-signup-diag__mono">{{ smtp_status.latency_ms }} ms</span></p>
+        {% if smtp_status.error %}
+          <p class="rmc-signup-diag__metric">{% trans "Error:" %} <span class="rmc-signup-diag__mono">{{ smtp_status.error }}</span></p>
+        {% endif %}
+      </article>
+
+    </div>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="cfg-summary-heading" style="margin-top:1rem;">
+    <h2 id="cfg-summary-heading" class="rmc-h2">{% trans "Resolved email configuration" %}</h2>
+    <p class="rmc-signup-diag__metric">{% trans "Source:" %} <span class="rmc-signup-diag__mono">{{ resolved_config.source|default:"unknown" }}</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "From:" %} <span class="rmc-signup-diag__mono">{{ resolved_config.default_from_email|default:"(empty)" }}</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "Host:" %} <span class="rmc-signup-diag__mono">{{ resolved_config.host|default:"(empty)" }}:{{ resolved_config.port }}</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "Use TLS:" %} <span class="rmc-signup-diag__mono">{{ resolved_config.use_tls|yesno:"yes,no" }}</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "Connection timeout:" %} <span class="rmc-signup-diag__mono">{{ resolved_config.connection_timeout_seconds }}s</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "Password configured:" %} <span class="rmc-signup-diag__mono">{{ resolved_config.host_password_configured|yesno:"yes,no" }}</span></p>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="counters-heading" style="margin-top:1rem;">
+    <h2 id="counters-heading" class="rmc-h2">{% trans "Transactional send counters" %}</h2>
+    <p class="rmc-signup-diag__metric">{{ counters.window_label }}</p>
+    <p class="rmc-signup-diag__metric">{% trans "Examined:" %} <span class="rmc-signup-diag__mono">{{ counters.total_examined }}</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "Sent:" %} <span class="rmc-signup-diag__mono">{{ counters.sent_count }}</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "Failed:" %} <span class="rmc-signup-diag__mono">{{ counters.failed_count }}</span></p>
+    <p class="rmc-signup-diag__metric">{% trans "Queued (async path):" %} <span class="rmc-signup-diag__mono">{{ counters.queued_count }}</span></p>
+  </section>
+
+  <section class="rmc-card" aria-labelledby="signup-attempts-heading" style="margin-top:1rem;">
+    <h2 id="signup-attempts-heading" class="rmc-h2">{% trans "Last 10 signup verification emails" %}</h2>
+    {% if signup_attempts %}
+      <table class="rmc-signup-diag__table">
+        <thead>
+          <tr>
+            <th>{% trans "When (UTC)" %}</th>
+            <th>{% trans "Recipient hash" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Attempts" %}</th>
+            <th>{% trans "Error kind" %}</th>
+            <th>{% trans "Subject prefix" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in signup_attempts %}
+          <tr>
+            <td class="rmc-signup-diag__mono">{{ row.created_at_iso }}</td>
+            <td class="rmc-signup-diag__mono">{{ row.to_hash }}</td>
+            <td>
+              {% if row.ok %}
+                <span class="rmc-signup-diag__badge rmc-signup-diag__badge--ok">{% trans "OK" %}</span>
+              {% else %}
+                <span class="rmc-signup-diag__badge rmc-signup-diag__badge--fail">{% trans "Fail" %}</span>
+              {% endif %}
+            </td>
+            <td class="rmc-signup-diag__mono">{{ row.attempts }}</td>
+            <td class="rmc-signup-diag__mono">{{ row.error_kind|default:"-" }}</td>
+            <td>{{ row.subject_prefix }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="rmc-signup-diag__metric">{% trans "No signup verification attempts recorded yet." %}</p>
+    {% endif %}
+  </section>
+
+</main>
+{% endblock %}

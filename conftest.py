@@ -93,6 +93,44 @@ def _sqlite_keepdb_needs_fresh_start() -> bool:
     )
 
 
+def _pytest_django_active() -> bool:
+    """Return True if pytest-django will manage the test DB lifecycle for us.
+
+    When pytest-django is installed AND active, it calls ``setup_databases``
+    inside its own session-scoped fixture and blocks raw DB access via a
+    ``_blocking_wrapper``. If we ALSO call ``setup_databases`` from this
+    conftest we get the "Database access not allowed" RuntimeError on every
+    test even though the DB was created. The Wave 9 Agent P fix is to defer
+    entirely to pytest-django when it is loaded (i.e. when ``pytest-django``
+    is on the path) AND let it run the show via the ``django_db_setup``
+    fixture chain. This conftest's bespoke ``setup_databases`` call is kept
+    as a fallback for environments that intentionally disable pytest-django
+    via ``-p no:django``.
+    """
+    try:
+        import pytest_django  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+def _using_inmemory_test_settings() -> bool:
+    """Return True if DJANGO_SETTINGS_MODULE resolves to in-memory SQLite.
+
+    The in-memory path means there is no file handle for Windows to lock,
+    no journal file to detect as 'stale', and no schema cache to reuse —
+    so we skip the journal-probe + retry dance entirely.
+    """
+    from django.conf import settings as django_settings
+
+    default_db = django_settings.DATABASES.get("default") or {}
+    if default_db.get("ENGINE") != "django.db.backends.sqlite3":
+        return False
+    test_name = ((default_db.get("TEST") or {}).get("NAME") or "").strip()
+    name = (default_db.get("NAME") or "").strip()
+    return test_name == ":memory:" or name == ":memory:"
+
+
 def pytest_configure() -> None:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
@@ -113,11 +151,31 @@ def pytest_configure() -> None:
 
 
 def pytest_sessionstart(session) -> None:
-    """Mirror DiscoverRunner: point default connection at TEST database (file-backed sqlite)."""
+    """Mirror DiscoverRunner: point default connection at TEST database.
+
+    Defers entirely to pytest-django when present (Wave 9 Agent P fix);
+    skips journal-probe retry when in-memory SQLite is configured.
+    """
+    if _pytest_django_active():
+        # pytest-django will call setup_databases() from its own fixture
+        # chain. Recording nothing on the session keeps pytest_sessionfinish
+        # a no-op so we don't double-teardown.
+        return
+
     from django.apps import apps
     from django.test.utils import setup_databases
 
     if not apps.ready:
+        return
+
+    if _using_inmemory_test_settings():
+        # In-memory SQLite: no journal probe, no retry. Just create.
+        session._django_db_keepdb = False
+        session._django_db_old_config = setup_databases(
+            verbosity=1,
+            interactive=False,
+            keepdb=False,
+        )
         return
     keepdb = _pytest_keepdb_enabled()
     if keepdb and _is_default_sqlite_test_db() and _sqlite_keepdb_needs_fresh_start():

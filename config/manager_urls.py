@@ -410,6 +410,13 @@ def _manager_search_static_catalog(urlconf=None):
             "meta": ["Control plane", "Tenants", "Directory"],
         },
         {
+            "title": "Offboarding queue",
+            "description": "Self-service and operator-scheduled tenant removals; dry-run scheduled purges.",
+            "url": url("super:offboarding_queue"),
+            "type": "class",
+            "meta": ["Control plane", "Tenants", "Offboarding"],
+        },
+        {
             "title": "Analytics overview",
             "description": "Fleet analytics, observability entry points, and chart reference patterns.",
             "url": url("super:analytics_overview"),

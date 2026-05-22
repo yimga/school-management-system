@@ -112,6 +112,13 @@ def super_platform_operator_hub(request):
         ),
         ("super:schools_list", _("Schools"), _("Directory, lifecycle, exports"), "bi-building", "super"),
         (
+            "super:offboarding_queue",
+            _("Offboarding queue"),
+            _("Scheduled purges, self-service closures, Tenant 360"),
+            "bi-door-open",
+            "super",
+        ),
+        (
             "super:site_settings_list",
             _("Site settings"),
             _("Platform records — full edit in control plane (not admin)"),

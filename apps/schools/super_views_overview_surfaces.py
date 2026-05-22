@@ -16,6 +16,7 @@ from apps.platform_runtime.models import (
 )
 from apps.registries.services import WEDGE_14_22_SECTOR_CODES
 
+from .control_plane_lifecycle import get_lifecycle_snapshot
 from .models import School
 
 
@@ -48,6 +49,20 @@ def super_schools_list(request):
     if frozen_raw is not None and str(frozen_raw).strip().lower() in ("1", "true", "yes"):
         qs = qs.filter(is_frozen=True)
         frozen_filter = True
+    lifecycle_filter = request.GET.get("lifecycle", "").strip().lower()
+    if lifecycle_filter == "frozen":
+        qs = qs.filter(is_frozen=True)
+    elif lifecycle_filter == "inactive":
+        qs = qs.filter(is_active=False)
+    elif lifecycle_filter == "offboarding":
+        qs = qs.filter(
+            Q(is_active=False)
+            | Q(is_frozen=True)
+            | Q(settings__offboarding__self_service_status__isnull=False)
+            | Q(settings__offboarding__scheduled_purge_at__isnull=False)
+        )
+    elif lifecycle_filter == "active":
+        qs = qs.filter(is_active=True, is_frozen=False)
     # Sector cohort counts (for segment-by-sector links)
     sector_counts = dict(
         School.objects.filter(primary_sector__in=WEDGE_14_22_SECTOR_CODES)
@@ -66,6 +81,14 @@ def super_schools_list(request):
     paginator = Paginator(qs, 25)
     page_number = request.GET.get("page", 1)
     page = paginator.get_page(page_number)
+    for school in page.object_list:
+        off = (getattr(school, "settings", None) or {}).get("offboarding") or {}
+        if isinstance(off, dict) and off.get("self_service_status"):
+            school.offboarding_chip = str(off.get("self_service_status")).replace("_", " ").title()
+        elif isinstance(off, dict) and off.get("scheduled_purge_at"):
+            school.offboarding_chip = "Scheduled"
+        else:
+            school.offboarding_chip = get_lifecycle_snapshot(school).get("state_label", "")
     admin_schools_url = None
     operator_super_schools_list_links = list(
         PlatformOperatorSuperSchoolsListLink.objects.order_by("sort_order", "slug")
@@ -83,6 +106,8 @@ def super_schools_list(request):
             "sector_choices": sector_choices,
             "search_query": search,
             "frozen_filter": frozen_filter,
+            "lifecycle_filter": lifecycle_filter,
+            "offboarding_queue_url": reverse("super:offboarding_queue"),
             "operator_super_schools_list_links": operator_super_schools_list_links,
         },
     )

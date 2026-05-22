@@ -109,8 +109,29 @@ class EmailDeliveryEvent(models.Model):
         default="",
         help_text=(
             "One of 'smtp_exception' | 'os_error' | 'connection_error' | "
-            "'value_error' | '' (success). Coarse-grained on purpose — the "
-            "dashboard shows kinds, not stack traces."
+            "'value_error' | 'rate_limit_exceeded' | '' (success). Coarse-"
+            "grained on purpose — the dashboard shows kinds, not stack traces."
+        ),
+    )
+    # v3.58.x Wave 9 Agent M — provider-side bounce signal.
+    bounced = models.BooleanField(
+        default=False,
+        help_text=(
+            "True when the send-time SMTP layer raised an SMTPSenderRefused / "
+            "SMTPRecipientsRefused / 5xx, OR when a provider webhook (Postmark/"
+            "SendGrid/SES/Mailgun) later told us the message bounced. "
+            "Separate from ``ok=False`` because a transient retry-eligible "
+            "failure is not a bounce."
+        ),
+    )
+    bounce_kind = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text=(
+            "Bounce taxonomy — 'hard_5xx' | 'soft_4xx' | 'senderrefused' | "
+            "'recipientsrefused' | 'unknown' | 'provider_<type>' where "
+            "<type> is the raw vendor-reported bounce label."
         ),
     )
     created_at = models.DateTimeField(

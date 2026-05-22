@@ -34,6 +34,14 @@ from apps.siteconfig.views_tenant_studio_hub import (
     school_studio_redirect_migration,
     school_studio_redirect_setup,
 )
+from apps.schools.views_tenant_self_offboarding import (
+    api_tenant_offboarding_cancel,
+    api_tenant_offboarding_export,
+    api_tenant_offboarding_export_download,
+    api_tenant_offboarding_request_closure,
+    api_tenant_offboarding_snapshot,
+    tenant_offboarding_page,
+)
 from config.admin import tenant_admin_site
 from apps.schools.activation_views import activation_first_action
 from apps.schools.demo_conversion_views import (
@@ -281,6 +289,32 @@ urlpatterns = [
     path("school/studio/migration/", school_studio_redirect_migration, name="school_studio_migration"),
     path("school/studio/help/", school_studio_redirect_help, name="school_studio_help"),
     path("school/studio/launch/", school_studio_redirect_launch, name="school_studio_launch"),
+    path("school/studio/offboarding/", tenant_offboarding_page, name="tenant_offboarding"),
+    path(
+        "api/school/offboarding/",
+        api_tenant_offboarding_snapshot,
+        name="tenant_offboarding_snapshot",
+    ),
+    path(
+        "api/school/offboarding/export/",
+        api_tenant_offboarding_export,
+        name="tenant_offboarding_export",
+    ),
+    path(
+        "api/school/offboarding/export/download/",
+        api_tenant_offboarding_export_download,
+        name="tenant_offboarding_export_download",
+    ),
+    path(
+        "api/school/offboarding/request-closure/",
+        api_tenant_offboarding_request_closure,
+        name="tenant_offboarding_request",
+    ),
+    path(
+        "api/school/offboarding/cancel/",
+        api_tenant_offboarding_cancel,
+        name="tenant_offboarding_cancel",
+    ),
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),
     path(

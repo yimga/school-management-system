@@ -125,6 +125,9 @@
     <a class="btn btn-outline-secondary btn-sm" href="{{ studio_link_urls.studio_os }}">{% trans "Studio OS" %}</a>
     <a class="btn btn-outline-secondary btn-sm" href="{{ studio_link_urls.school_help_ai }}">{% trans "AI help" %}</a>
     <a class="btn btn-outline-secondary btn-sm" href="{{ studio_link_urls.help_center }}">{% trans "Help center" %}</a>
+    {% if studio_link_urls.offboarding %}
+    <a class="btn btn-outline-danger btn-sm" href="{{ studio_link_urls.offboarding }}">{% trans "Close school account" %}</a>
+    {% endif %}
   </div>
 
   {% if health_recommendations %}

@@ -397,6 +397,234 @@
     }, false);
   }
 
+  /* === Send button → POST /studio/copilot/rail/send/ =============== */
+  /* v3.58.5 — Prefer SSE streaming endpoint when fetch+ReadableStream is
+     available so the operator sees progressive ink; legacy JSON endpoint
+     stays as the fallback. */
+  var SEND_ENDPOINT = "/studio/copilot/rail/send/";
+  var SEND_STREAM_ENDPOINT = "/studio/copilot/rail/send-stream/";
+  var SUPPORTS_FETCH_STREAM = (function () {
+    try {
+      return typeof ReadableStream === "function"
+        && typeof TextDecoder === "function"
+        && typeof fetch === "function";
+    } catch (_e) { return false; }
+  })();
+  var sending = false;
+
+  function getCSRFToken() {
+    var name = "csrftoken=";
+    var cookies = (document.cookie || "").split(";");
+    for (var i = 0; i < cookies.length; i++) {
+      var c = cookies[i].trim();
+      if (c.indexOf(name) === 0) {
+        return decodeURIComponent(c.substring(name.length));
+      }
+    }
+    return "";
+  }
+
+  function appendThreadMessage(role, text) {
+    var thread = document.querySelector(".lx-copilot__thread");
+    if (!thread) { return; }
+    var div = document.createElement("div");
+    div.className = "lx-copilot__msg lx-copilot__msg--" + (role === "user" ? "user" : "ai");
+    div.textContent = text || "";
+    /* Insert above the suggestions block so the latest reply is read
+       next to the prompt, not below the historical chips. */
+    var suggestions = thread.querySelector(".lx-copilot__suggestions");
+    if (suggestions) {
+      thread.insertBefore(div, suggestions);
+    } else {
+      thread.appendChild(div);
+    }
+  }
+
+  function updatePostureFromSendReply(source) {
+    var pill = document.querySelector("[data-rmc-copilot-rail-posture]");
+    if (!pill) { return; }
+    if (source === "local") { pill.setAttribute("data-state", "live_local"); }
+    else if (source === "cloud") { pill.setAttribute("data-state", "live_cloud"); }
+    else if (source === "rules") { pill.setAttribute("data-state", "guided"); }
+    else if (source === "unavailable") { pill.setAttribute("data-state", "unavailable"); }
+    var label = pill.querySelector("[data-rmc-copilot-rail-posture-label]");
+    if (label) {
+      if (source === "local") { label.textContent = "Live · local AI"; }
+      else if (source === "cloud") { label.textContent = "Live · cloud AI"; }
+      else if (source === "rules") { label.textContent = "Guided mode"; }
+      else if (source === "unavailable") { label.textContent = "AI unavailable"; }
+    }
+  }
+
+  /* Append a placeholder AI message element and return it so streaming
+     deltas can be concatenated into one bubble instead of one-per-frame. */
+  function appendStreamingAIBubble() {
+    var thread = document.querySelector(".lx-copilot__thread");
+    if (!thread) { return null; }
+    var div = document.createElement("div");
+    div.className = "lx-copilot__msg lx-copilot__msg--ai lx-copilot__msg--streaming";
+    div.setAttribute("aria-live", "polite");
+    div.textContent = "";
+    var suggestions = thread.querySelector(".lx-copilot__suggestions");
+    if (suggestions) { thread.insertBefore(div, suggestions); }
+    else { thread.appendChild(div); }
+    return div;
+  }
+
+  /* Parse an SSE buffer slice and return { events, remainder }.
+     Frames are separated by a blank line per spec. */
+  function parseSSEChunk(remainder, chunk) {
+    var buf = remainder + chunk;
+    var events = [];
+    var idx;
+    while ((idx = buf.indexOf("\n\n")) !== -1) {
+      var raw = buf.slice(0, idx);
+      buf = buf.slice(idx + 2);
+      var lines = raw.split("\n");
+      var name = "message";
+      var data = "";
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.indexOf("event:") === 0) { name = line.slice(6).trim(); }
+        else if (line.indexOf("data:") === 0) {
+          if (data) { data += "\n"; }
+          data += line.slice(5).replace(/^ /, "");
+        }
+      }
+      events.push({ name: name, data: data });
+    }
+    return { events: events, remainder: buf };
+  }
+
+  function sendCopilotMessageStreaming(text, mode, sendBtn) {
+    var bubble = appendStreamingAIBubble();
+    var assembled = "";
+    var remainder = "";
+    var sawDone = false;
+
+    return fetch(SEND_STREAM_ENDPOINT, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Accept": "text/event-stream",
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken(),
+      },
+      body: JSON.stringify({ message: text, mode: mode }),
+    }).then(function (r) {
+      if (!r.body || !r.body.getReader) { throw new Error("stream-unsupported"); }
+      var reader = r.body.getReader();
+      var decoder = new TextDecoder("utf-8");
+
+      function pump() {
+        return reader.read().then(function (step) {
+          if (step.done) {
+            /* Stream ended without a "done" frame — treat as best-effort. */
+            if (!sawDone && bubble && !assembled) {
+              bubble.textContent = "(no reply)";
+            }
+            return;
+          }
+          var parsed = parseSSEChunk(remainder, decoder.decode(step.value, { stream: true }));
+          remainder = parsed.remainder;
+          for (var i = 0; i < parsed.events.length; i++) {
+            var ev = parsed.events[i];
+            var payload = null;
+            try { payload = JSON.parse(ev.data); } catch (_e) { payload = null; }
+            if (!payload) { continue; }
+            if (ev.name === "delta" && typeof payload.text === "string" && bubble) {
+              assembled += payload.text;
+              bubble.textContent = assembled;
+            } else if (ev.name === "ready" && payload.posture_mode) {
+              /* Could flash a "thinking" state here; intentionally quiet. */
+            } else if (ev.name === "done") {
+              sawDone = true;
+              if (bubble) {
+                /* Prefer the server's canonical reply text in case any chunks
+                   were dropped by an intermediary. */
+                if (payload.reply) { bubble.textContent = payload.reply; }
+                bubble.classList.remove("lx-copilot__msg--streaming");
+              }
+              if (payload.source) { updatePostureFromSendReply(payload.source); }
+            } else if (ev.name === "error") {
+              if (bubble) { bubble.textContent = "The assistant returned an error."; }
+              updatePostureFromSendReply("unavailable");
+            }
+          }
+          return pump();
+        });
+      }
+
+      return pump();
+    });
+  }
+
+  function sendCopilotMessageJSON(text, mode) {
+    return fetch(SEND_ENDPOINT, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCSRFToken(),
+      },
+      body: JSON.stringify({ message: text, mode: mode }),
+    }).then(function (r) {
+      return r.json().catch(function () { return null; });
+    }).then(function (data) {
+      if (!data) {
+        appendThreadMessage("ai", "AI is unavailable right now.");
+        updatePostureFromSendReply("unavailable");
+        return;
+      }
+      if (data.reply) { appendThreadMessage("ai", data.reply); }
+      if (data.source) { updatePostureFromSendReply(data.source); }
+    });
+  }
+
+  function sendCopilotMessage() {
+    if (sending) { return; }
+    var input = document.querySelector("[data-rmc-copilot-input]");
+    if (!input) { return; }
+    var text = (input.value || "").trim();
+    if (!text) { return; }
+
+    sending = true;
+    var sendBtn = document.querySelector(".lx-copilot__send");
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.setAttribute("aria-busy", "true"); }
+
+    appendThreadMessage("user", text);
+    input.value = "";
+
+    var mode = "operator";
+    var rail = findRail();
+    if (rail) {
+      var tab = rail.getAttribute("data-rmc-copilot-active-tab");
+      if (tab) { mode = tab; }
+    }
+
+    var pipeline;
+    if (SUPPORTS_FETCH_STREAM) {
+      pipeline = sendCopilotMessageStreaming(text, mode, sendBtn)
+        .catch(function () {
+          /* Streaming fell through (likely unsupported transport on this
+             deployment) — fall back to the legacy JSON endpoint so the
+             operator still gets a reply. */
+          return sendCopilotMessageJSON(text, mode);
+        });
+    } else {
+      pipeline = sendCopilotMessageJSON(text, mode);
+    }
+
+    pipeline.catch(function () {
+      appendThreadMessage("ai", "Couldn't reach the assistant. Check your connection and try again.");
+      updatePostureFromSendReply("unavailable");
+    }).then(function () {
+      sending = false;
+      if (sendBtn) { sendBtn.disabled = false; sendBtn.removeAttribute("aria-busy"); }
+    });
+  }
+
   /* === Click delegation ======================================== */
   function onClick(ev) {
     var target = ev.target;
@@ -455,11 +683,30 @@
       return;
     }
 
+    /* Copilot Send button click → POST through ai_helpers gateway. */
+    var send = target.closest(".lx-copilot__send");
+    if (send) {
+      ev.preventDefault();
+      sendCopilotMessage();
+      return;
+    }
+
     /* Plain expand/collapse toggle. */
     var toggle = target.closest("[data-rmc-copilot-toggle]");
     if (!toggle) { return; }
     ev.preventDefault();
     toggleShell(findShell(toggle));
+  }
+
+  /* Enter (without Shift) in the rail input submits; Shift+Enter inserts newline. */
+  function onRailInputKeydown(ev) {
+    var target = ev.target;
+    if (!target || !target.matches || !target.matches("[data-rmc-copilot-input]")) { return; }
+    var key = ev.key || "";
+    if (key === "Enter" && !ev.shiftKey && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+      ev.preventDefault();
+      sendCopilotMessage();
+    }
   }
 
   function onKeydown(ev) {
@@ -490,4 +737,5 @@
 
   document.addEventListener("click", onClick, false);
   document.addEventListener("keydown", onKeydown, false);
+  document.addEventListener("keydown", onRailInputKeydown, false);
 })();

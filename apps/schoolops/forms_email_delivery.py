@@ -114,13 +114,59 @@ class EmailDeliveryForm(forms.Form):
         ),
     )
 
+    # v3.58.x Wave 9 Agent M — per-provider bounce-webhook shared secrets.
+    # Blank-on-resave preserves the existing value (mirrors host_password).
+    webhook_secret_postmark = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label="Postmark webhook secret",
+        help_text=(
+            "Server-token-style shared secret. Postmark posts an "
+            "HMAC-SHA256 signature in X-Postmark-Signature; we verify "
+            "with hmac.compare_digest. Leave blank to keep existing."
+        ),
+    )
+    webhook_secret_sendgrid = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label="SendGrid webhook Ed25519 public key",
+        help_text=(
+            "Twilio SendGrid uses Ed25519 signing. Until pynacl is "
+            "wired the verifier accepts deliveries but marks them "
+            "signature_unverified=True. Leave blank to keep existing."
+        ),
+    )
+    webhook_secret_ses = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label="SES (via SNS relay) shared secret",
+        help_text=(
+            "Shared secret used to HMAC the body in your API "
+            "Gateway / Lambda SNS-forwarder. Header expected: "
+            "X-RMC-SNS-Signature. Leave blank to keep existing."
+        ),
+    )
+    webhook_secret_mailgun = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=False),
+        label="Mailgun webhook signing key",
+        help_text=(
+            "Mailgun's HMAC-SHA256 protocol over timestamp + token. "
+            "Leave blank to keep existing."
+        ),
+    )
+
     # ------------------------------------------------------------------
     # JSON ↔ form mapping.
     # ------------------------------------------------------------------
 
     @classmethod
     def from_json(cls, payload: dict | None, **kwargs):
-        """Seed a bound form from a ``SiteSettings.email_delivery`` dict."""
+        """Seed a bound form from a ``SiteSettings.email_delivery`` dict.
+
+        Webhook-secret fields are intentionally NOT seeded — same
+        blank-preserves-existing semantics as ``host_password``.
+        """
         payload = payload or {}
         initial = {
             "enabled": bool(payload.get("enabled", False)),
@@ -135,6 +181,7 @@ class EmailDeliveryForm(forms.Form):
             "connection_timeout_seconds": int(
                 payload.get("connection_timeout_seconds", 10) or 10,
             ),
+            # webhook_secret_* intentionally NOT seeded.
         }
         kwargs.setdefault("initial", initial)
         return cls(**kwargs)
@@ -162,6 +209,19 @@ class EmailDeliveryForm(forms.Form):
                 existing.get("host_password_encrypted_b64") or ""
             )
 
+        # v3.58.x Wave 9 Agent M — round-trip webhook secrets.
+        # Blank submission preserves existing value (mirror host_password).
+        existing_secrets = existing.get("webhook_secrets") or {}
+        if not isinstance(existing_secrets, dict):
+            existing_secrets = {}
+        new_secrets = dict(existing_secrets)
+        for provider in ("postmark", "sendgrid", "ses", "mailgun"):
+            field_key = f"webhook_secret_{provider}"
+            submitted = (cleaned.get(field_key) or "").strip()
+            if submitted:
+                new_secrets[provider] = submitted
+            # else: preserve existing (do nothing — already copied above)
+
         return {
             "enabled": bool(cleaned.get("enabled", False)),
             "host": (cleaned.get("host") or "").strip(),
@@ -175,6 +235,7 @@ class EmailDeliveryForm(forms.Form):
             "connection_timeout_seconds": int(
                 cleaned.get("connection_timeout_seconds") or 10,
             ),
+            "webhook_secrets": new_secrets,
         }
 
     def clean(self) -> dict[str, Any]:

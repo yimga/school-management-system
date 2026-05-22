@@ -74,8 +74,8 @@
           </span>
         </div>
         <div class="lx-copilot__header-actions">
-          {# AI-source pill — updated client-side by rmc-copilot-rail.js (services bridge)
-             to reflect whether insights came from cloud / local Ollama / rules engine. #}
+          {% comment %} AI-source pill — updated client-side by rmc-copilot-rail.js (services bridge)
+             to reflect whether insights came from cloud / local Ollama / rules engine. {% endcomment %}
           <span class="lx-copilot__posture"
                 data-rmc-copilot-rail-posture
                 data-state="unknown"
@@ -120,8 +120,8 @@
         {% endif %}
       </div>
 
-      {# Actions pane — surfaces the quick-actions list that rmc-copilot-rail.js
-         (services bridge) hydrates from /studio/copilot/rail/context/. #}
+      {% comment %} Actions pane — surfaces the quick-actions list that rmc-copilot-rail.js
+         (services bridge) hydrates from /studio/copilot/rail/context/. {% endcomment %}
       <div class="lx-copilot__pane" data-rmc-copilot-pane="actions">
         <ul class="lx-copilot__actions-list" data-rmc-copilot-rail-actions-list>
           {# Populated server-side via the services bridge; falls back to suggestions above. #}

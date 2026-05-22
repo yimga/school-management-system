@@ -1,0 +1,111 @@
+{
+  "generated_at": "2026-05-22T08:00:44+00:00",
+  "consumer_count": 14,
+  "redefine_count": 6,
+  "consumers": [
+    {
+      "path": "static/css/design-tokens.css",
+      "line": 167,
+      "text": "--portal-shadow-hover: var(--elev-3, 0 20px 40px rgba(15, 23, 42, 0.2));"
+    },
+    {
+      "path": "static/css/portal-ui-components.css",
+      "line": 2578,
+      "text": "box-shadow: var(--elev-3, 0 12px 32px rgba(26, 22, 18,0.18));"
+    },
+    {
+      "path": "static/css/portal-ui-components.css",
+      "line": 2996,
+      "text": "box-shadow: var(--elev-3, 0 10px 40px rgba(0, 0, 0, 0.15));"
+    },
+    {
+      "path": "static/css/rmc-assist-dock.css",
+      "line": 129,
+      "text": "box-shadow: var(--elev-3, 0 12px 32px rgba(0, 0, 0, 0.35));"
+    },
+    {
+      "path": "static/css/rmc-assist-dock.css",
+      "line": 239,
+      "text": "box-shadow: var(--elev-3, 0 22px 55px rgba(0, 0, 0, 0.38));"
+    },
+    {
+      "path": "static/css/rmc-command-bar.css",
+      "line": 53,
+      "text": "box-shadow: var(--elev-3);"
+    },
+    {
+      "path": "static/css/rmc-global-aesthetic.css",
+      "line": 305,
+      "text": "box-shadow: var(--elev-3, 0 12px 32px -8px rgba(26, 22, 18, 0.18));"
+    },
+    {
+      "path": "static/css/rmc-long-page-grammar.css",
+      "line": 44,
+      "text": "box-shadow: var(--elev-3);"
+    },
+    {
+      "path": "static/css/rmc-long-page-grammar.css",
+      "line": 1166,
+      "text": ".rmc-form-savebar[data-dirty=\"1\"] { box-shadow: var(--elev-3); }"
+    },
+    {
+      "path": "static/css/rmc-tenant-dashboard-v2.css",
+      "line": 421,
+      "text": "box-shadow: var(--elev-3, 0 8px 28px rgba(15, 23, 42, 0.18)); /* off-token-allow: shadow-color-on-gradient-surface */"
+    },
+    {
+      "path": "static/css/rmc-tour.css",
+      "line": 41,
+      "text": "box-shadow: var(--elev-3, 0 12px 40px rgba(0, 0, 0, 0.22));"
+    },
+    {
+      "path": "static/css/tenant-studio-day1.css",
+      "line": 303,
+      "text": "box-shadow: var(--elev-3);"
+    },
+    {
+      "path": "static/css/tenant-studio-day1.css",
+      "line": 477,
+      "text": "box-shadow: var(--elev-3);"
+    },
+    {
+      "path": "static/css/voc-widget.css",
+      "line": 19,
+      "text": "box-shadow: var(--elev-3, 0 18px 45px var(--surface-overlay));"
+    }
+  ],
+  "redefines": [
+    {
+      "path": "static/css/design-tokens.css",
+      "line": 70,
+      "text": "--elev-3: 0 20px 40px rgba(15, 23, 42, 0.12), 0 6px 12px rgba(15, 23, 42, 0.08);"
+    },
+    {
+      "path": "static/css/design-tokens.css",
+      "line": 734,
+      "text": "--elev-3: 0 20px 40px rgba(0, 0, 0, 0.6), 0 6px 12px rgba(0, 0, 0, 0.4);"
+    },
+    {
+      "path": "static/css/rmc-warm-bright-school.css",
+      "line": 67,
+      "text": "--elev-3: 0 4px 8px rgba(80, 50, 20, 0.08),"
+    },
+    {
+      "path": "static/css/rmc-warm-bright-school.css",
+      "line": 109,
+      "text": "--elev-3: 0 12px 32px rgba(0, 0, 0, 0.50),"
+    },
+    {
+      "path": "static/css/rmc-warm-bright-school.css",
+      "line": 143,
+      "text": "--elev-3: 0 0 0 1px rgba(15, 23, 42, 0.06),"
+    },
+    {
+      "path": "static/css/rmc-warm-bright-school.css",
+      "line": 180,
+      "text": "--elev-3: 0 0 0 1px rgba(148, 163, 184, 0.20),"
+    }
+  ],
+  "rule": "Counts consumers of var(--elev-3) across static/css/. When a new consumer surface picks up --elev-3, add it to scripts/render_verify_elev3_flip.py::CONSUMERS and bump this baseline. CI gate prevents silent expansion of the top-tier consumer set.",
+  "ci_wiring": "wire me into .github/workflows/architectural-boundaries.yml when ready"
+}

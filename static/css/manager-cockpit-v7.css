@@ -400,6 +400,7 @@
 .rmc-cockpit-pulse-card__dot--warn   { background: var(--warning, #f59e0b); }
 .rmc-cockpit-pulse-card__dot--danger { background: var(--danger,  #ef4444); }
 .rmc-cockpit-pulse-card__dot--info   { background: #60a5fa; /* off-token-allow: chart-info-blue */ }
+.rmc-cockpit-pulse-card__dot--muted  { background: var(--hairline-strong, var(--hairline)); }
 
 .rmc-cockpit-pulse-card__value {
   font-size: 22px;
@@ -420,6 +421,36 @@
 }
 .rmc-cockpit-pulse-card__delta--up   { color: var(--success, #22c55e); }
 .rmc-cockpit-pulse-card__delta--down { color: var(--danger,  #ef4444); }
+
+/* ---------- v3.58.5 — Empty-state polish for muted-severity cards ----------
+   When a resolver returned None (no data yet) the orchestrator substitutes
+   value="—" and severity="muted". Soften the typography so these cards read
+   as "waiting on data" rather than "broken zero". Spacing + grid position
+   stay identical so the layout doesn't shift when data arrives. */
+.rmc-cockpit-pulse-card--muted {
+  background: var(--surface-bg);
+  border-style: dashed;
+  opacity: 0.78;
+}
+.rmc-cockpit-pulse-card--muted:hover {
+  opacity: 1;
+  transform: none;  /* the lift is noisy on an empty card */
+}
+.rmc-cockpit-pulse-card--muted .rmc-cockpit-pulse-card__head {
+  color: var(--text-tertiary);
+  opacity: 0.85;
+}
+.rmc-cockpit-pulse-card--muted .rmc-cockpit-pulse-card__value {
+  font-weight: 400;          /* heavier weights read as "real number" */
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.rmc-cockpit-pulse-card--muted .rmc-cockpit-pulse-card__label {
+  color: var(--text-tertiary);
+  opacity: 0.78;
+  font-style: italic;
+}
 
 /* ============================================================
    Primary nav centering (override existing .cp-primary-nav)

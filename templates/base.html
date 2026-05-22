@@ -92,9 +92,9 @@
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
     {# v3.55.0 (2026-05-21): civic 4-tier centered footer (tenant + manager dark variant). #}
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
-    {# v3.58.2 (2026-05-22): platform-wide vertical-density spec.
+    {% comment %} v3.58.2 (2026-05-22): platform-wide vertical-density spec.
        Pages render as "vertically long and full" — matches the admin v8 200x preview.
-       Per-surface opt-out via `data-rmc-density="open"` on any container. #}
+       Per-surface opt-out via `data-rmc-density="open"` on any container. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     {# v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). #}
     <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">

@@ -1008,6 +1008,18 @@ try:
             )
             raise self.retry(exc=exc)
 
+    @shared_task(name="schools.purge_tenant_media_task")
+    def purge_tenant_media_task(school_slug: str, manifest: dict | None = None) -> dict:
+        from apps.schools.tenant_offboarding import cleanup_tenant_media
+
+        return cleanup_tenant_media(school_slug, manifest)
+
+    @shared_task(name="schools.run_scheduled_tenant_purges")
+    def run_scheduled_tenant_purges_task(*, dry_run: bool = False, limit: int = 10) -> dict:
+        from apps.schools.tenant_offboarding import run_scheduled_purges
+
+        return run_scheduled_purges(actor=None, dry_run=dry_run, limit=limit)
+
     @shared_task(name="schools.ensure_demo_environment_scheduled")
     def ensure_demo_environment_scheduled() -> dict:
         """

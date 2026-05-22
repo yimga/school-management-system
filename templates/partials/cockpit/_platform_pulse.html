@@ -30,7 +30,7 @@
   </div>
   <div class="rmc-cockpit-pulse__cards">
     {% for card in cockpit.pulse_metrics.cards %}
-    <article class="rmc-cockpit-pulse-card">
+    <article class="rmc-cockpit-pulse-card{% if card.severity == 'muted' or card.value == '—' %} rmc-cockpit-pulse-card--muted{% endif %}"{% if card.severity == 'muted' or card.value == '—' %} data-rmc-pulse-empty="1" aria-label="{{ card.head }}: {% trans 'no value yet' %}"{% endif %}>
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot{% if card.severity %} rmc-cockpit-pulse-card__dot--{{ card.severity }}{% endif %}" aria-hidden="true"></span>
         {{ card.head }}

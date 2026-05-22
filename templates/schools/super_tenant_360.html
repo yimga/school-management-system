@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% load region_format %}
 {% load phase8_tags %}
 
@@ -98,6 +98,132 @@
       </div>
     </div>
   </div>
+  <div id="offboarding" class="card shadow-sm border-danger mb-3 rmc-danger-zone" data-rmc-offboarding-panel data-rmc-scroll-policy="paginate">
+    <div class="card-header bg-danger-subtle text-danger-emphasis">{% trans "Offboarding & data custody" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-3">{% trans "Remove a tenant safely: restrict access, export a portability pack, optional legal hold, then permanent delete with typed confirmation. Platform audit logs are retained; cold backups and orphan user accounts may remain until separate cleanup." %} <a href="{{ offboarding_queue_url }}" class="link-light">{% trans "Offboarding queue" %}</a></p>
+      <dl class="row small mb-3">
+        <dt class="col-sm-3">{% trans "Schema" %}</dt><dd class="col-sm-9"><code>{{ offboarding.schema_name|default:"—" }}</code></dd>
+        <dt class="col-sm-3">{% trans "Row total" %}</dt><dd class="col-sm-9">{{ offboarding.row_total|default:0 }}</dd>
+        <dt class="col-sm-3">{% trans "Memberships" %}</dt><dd class="col-sm-9">{{ offboarding.membership_count|default:0 }}</dd>
+        <dt class="col-sm-3">{% trans "Provisioning" %}</dt>
+        <dd class="col-sm-9">{% if offboarding.provisioning_in_flight %}<span class="badge text-bg-warning">{% trans "In flight" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Idle" %}</span>{% endif %}</dd>
+        <dt class="col-sm-3">{% trans "Legal hold" %}</dt>
+        <dd class="col-sm-9">{% if offboarding.legal_hold_active %}{% trans "Until" %} {{ offboarding.legal_hold_until }}{% else %}{% trans "None" %}{% endif %}</dd>
+      </dl>
+      <div class="mb-3" data-rmc-provisioning-timeline>
+        <h3 class="h6">{% trans "Provisioning timeline" %}</h3>
+        <ul class="list-unstyled small mb-0">
+          {% for ev in offboarding.provisioning_timeline %}
+          <li><span class="text-secondary">{{ ev.created_at }}</span> — <strong>{{ ev.event_type }}</strong> ({{ ev.status }}) {{ ev.message }}</li>
+          {% empty %}
+          <li class="text-secondary">{% trans "No provisioning events." %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <section class="mb-4" aria-labelledby="offboarding-step-restrict">
+        <h3 id="offboarding-step-restrict" class="h6">{% trans "Step 1 — Restrict access" %}</h3>
+        <p class="small text-secondary">{% trans "Freeze blocks logins with a billing/storage message. Deactivate turns off active access for wind-down. Neither deletes data." %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          <form method="post" action="{% url 'super:api_school_lifecycle' school.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="freeze">
+            <input type="hidden" name="reason" value="OFFBOARDING">
+            <input type="hidden" name="next" value="{% url 'super:tenant_360' school.id %}#offboarding">
+            <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Freeze tenant" %}</button>
+          </form>
+          <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-offboarding-deactivate>{% trans "Deactivate (wind-down)" %}</button>
+        </div>
+      </section>
+      <section class="mb-4" aria-labelledby="offboarding-step-export">
+        <h3 id="offboarding-step-export" class="h6">{% trans "Step 2 — Export portability pack" %}</h3>
+        <p class="small text-secondary">{% trans "Full tenant export (JSON zip under media/tenant_archives/). Not capped at 1,000 students." %}</p>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-offboarding-export>{% trans "Run full export" %}</button>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ api_offboarding_export_download_url }}">{% trans "Download latest export" %}</a>
+        <p class="small mt-2 mb-0 d-none" data-rmc-export-result></p>
+      </section>
+      <section class="mb-4" aria-labelledby="offboarding-step-schedule">
+        <h3 id="offboarding-step-schedule" class="h6">{% trans "Step 3 — Schedule auto-purge (optional)" %}</h3>
+        <p class="small text-secondary">{% trans "Sets scheduled_purge_at for the nightly auto-purge job (requires TENANT_AUTO_PURGE_ENABLED)." %}</p>
+        <div class="row g-2 align-items-end">
+          <div class="col-auto">
+            <label class="form-label small mb-0" for="offboarding-schedule-date">{% trans "Purge on" %}</label>
+            <input type="date" class="form-control form-control-sm" id="offboarding-schedule-date" data-rmc-schedule-date>
+          </div>
+          <div class="col-auto">
+            <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-offboarding-schedule>{% trans "Save schedule" %}</button>
+          </div>
+        </div>
+      </section>
+      <section class="mb-4" aria-labelledby="offboarding-step-hold">
+        <h3 id="offboarding-step-hold" class="h6">{% trans "Step 4 — Legal hold (optional)" %}</h3>
+        <div class="row g-2 align-items-end">
+          <div class="col-auto">
+            <label class="form-label small mb-0" for="offboarding-hold-until">{% trans "Hold until (YYYY-MM-DD)" %}</label>
+            <input type="date" class="form-control form-control-sm" id="offboarding-hold-until" data-rmc-hold-until value="{{ offboarding.legal_hold_until|default:'' }}">
+          </div>
+          <div class="col-auto">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-offboarding-hold-save>{% trans "Save hold" %}</button>
+            <button type="button" class="btn btn-sm btn-link" data-rmc-offboarding-hold-clear>{% trans "Clear hold" %}</button>
+          </div>
+        </div>
+      </section>
+      <section class="rmc-danger-zone__purge border border-danger rounded p-3" aria-labelledby="offboarding-step-purge">
+        <h3 id="offboarding-step-purge" class="h6 text-danger">{% trans "Step 5 — Permanent delete tenant" %}</h3>
+        <p class="small">{% trans "Deletes: tenant schema (when applicable), School row, and tenant-scoped database rows via cascade. Keeps: platform-wide audit logs, archive manifest on disk. Does not delete: shared User rows without membership cleanup, remote object storage without the media cleanup job." %}</p>
+        {% if offboarding.purge_blockers %}
+        <div class="alert alert-warning small py-2" role="alert">{% trans "Blocked:" %} {{ offboarding.purge_blockers|join:", " }}</div>
+        {% endif %}
+        {% if offboarding.dual_approval_required %}
+        <div class="border border-warning rounded p-2 mb-3 small" data-rmc-dual-approval-panel>
+          <p class="mb-1 fw-semibold">{% trans "Dual approval required" %}</p>
+          {% if offboarding.dual_approved %}
+          <p class="mb-0 text-success">{% trans "Second approval recorded" %}{% if offboarding.dual_approval_username %} — {{ offboarding.dual_approval_username }}{% endif %}</p>
+          {% else %}
+          <p class="mb-2 text-secondary">{% trans "Two operators must approve before permanent delete." %}</p>
+          {% if offboarding.dual_approval_primary_username %}
+          <p class="mb-2">{% trans "First approval:" %} <strong>{{ offboarding.dual_approval_primary_username }}</strong></p>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="offboarding-dual-second" data-rmc-dual-second>
+            <label class="form-check-label" for="offboarding-dual-second">{% trans "I am the second approver (different operator)" %}</label>
+          </div>
+          {% else %}
+          <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-dual-primary>{% trans "Record first approval" %}</button>
+          {% endif %}
+          {% endif %}
+        </div>
+        {% endif %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="offboarding-irreversible" data-rmc-purge-ack>
+          <label class="form-check-label small" for="offboarding-irreversible">{% trans "I understand this is irreversible" %}</label>
+        </div>
+        {% if offboarding.provisioning_in_flight %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="offboarding-force-provisioning" data-rmc-force-provisioning>
+          <label class="form-check-label small" for="offboarding-force-provisioning">{% trans "Purge despite in-flight provisioning" %}</label>
+        </div>
+        {% endif %}
+        <div class="mb-2">
+          <label class="form-label small mb-0" for="offboarding-confirm-slug">{% trans "Type slug to confirm" %}</label>
+          <input type="text" class="form-control form-control-sm font-monospace" id="offboarding-confirm-slug" data-rmc-confirm-slug autocomplete="off" placeholder="{{ school.slug }}">
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <button type="button" class="btn btn-sm btn-outline-danger" data-rmc-purge-dry-run>{% trans "Dry-run inventory" %}</button>
+          <button type="button" class="btn btn-sm btn-danger" data-rmc-purge-apply disabled>{% trans "Permanent delete tenant" %}</button>
+        </div>
+        <div data-rmc-inventory-table data-rmc-scroll-policy="paginate" class="d-none">
+          <table class="table table-sm rmc-data-table mb-0">
+            <caption class="visually-hidden">{% trans "Purge inventory" %}</caption>
+            <thead><tr><th>{% trans "Model" %}</th><th>{% trans "Rows" %}</th></tr></thead>
+            <tbody data-rmc-inventory-body></tbody>
+          </table>
+          <nav class="mt-2 d-none" data-rmc-inventory-pager aria-label="{% trans 'Inventory pagination' %}"></nav>
+        </div>
+        <div class="alert alert-success d-none mt-2" role="status" data-rmc-purge-receipt></div>
+      </section>
+      <div class="alert d-none" role="alert" data-rmc-offboarding-status></div>
+    </div>
+  </div>
   <div class="card shadow-sm border-secondary mb-3">
     <div class="card-header">{% trans "Runtime inspector" %}</div>
     <div class="card-body">
@@ -115,4 +241,17 @@
     </div>
   </div>
 </div>
+<script type="application/json" id="page-data-schools__tenant_offboarding-1" nonce="{{ csp_nonce }}">{
+  "school_slug": "{{ school.slug|escapejs }}",
+  "api_offboarding": "{{ api_offboarding_url|escapejs }}",
+  "api_export": "{{ api_offboarding_export_url|escapejs }}",
+  "api_deactivate": "{{ api_offboarding_deactivate_url|escapejs }}",
+  "api_hold": "{{ api_offboarding_hold_url|escapejs }}",
+  "api_purge": "{{ api_offboarding_purge_url|escapejs }}",
+  "api_schedule": "{{ api_offboarding_schedule_url|escapejs }}",
+  "api_dual_approve": "{{ api_offboarding_dual_approve_url|escapejs }}",
+  "dual_approval_required": {% if offboarding.dual_approval_required %}true{% else %}false{% endif %},
+  "dual_approved": {% if offboarding.dual_approved %}true{% else %}false{% endif %}
+}</script>
+<script src="{% static 'js/_pages/schools__tenant_offboarding-1.js' %}"></script>
 {% endblock %}

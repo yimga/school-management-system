@@ -46,6 +46,13 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/school/studio/offboarding/",
+      "inner": "/school/studio/offboarding/",
+      "name": "tenant_offboarding",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/authentication/",
       "inner": "/authentication/",
       "name": "root",
@@ -1393,13 +1400,6 @@
       "path": "/t/demo-school/portal/teacher/feed/",
       "inner": "/portal/teacher/feed/",
       "name": "teacher_feed",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/teacher/hr-status/",
-      "inner": "/portal/teacher/hr-status/",
-      "name": "teacher_hr_status",
       "slug": "demo-school",
       "sweep": true
     }

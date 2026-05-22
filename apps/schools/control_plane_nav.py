@@ -611,6 +611,12 @@ def build_control_plane_nav(request):
                 "icon": "bi-building",
             },
             {
+                "id": "super_offboarding_queue",
+                "label": "Offboarding queue",
+                "url_name": "super:offboarding_queue",
+                "icon": "bi-door-open",
+            },
+            {
                 "id": "super_provision",
                 "label": "Setup Studio",
                 "url_name": "super:create_school_wizard",

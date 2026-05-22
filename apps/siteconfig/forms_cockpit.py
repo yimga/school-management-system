@@ -3213,6 +3213,117 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- v3.58.x Wave 9 — Sibling-compare operator-editable copy ------
+    # PRIVACY CONTRACT (load-bearing — DO NOT relax):
+    # This editor configures ONLY copy + chrome: section enable flag,
+    # titles, CTA labels, consent banner copy, denied-state message.
+    # It CANNOT toggle ``opt_in`` to True. There is intentionally NO
+    # ``opt_in_default`` field. ``opt_in`` is sourced from a per-parent
+    # consent record (outside cockpit_payload). See
+    # ``cockpit_context._sibling_compare_defaults()`` docstring for the
+    # full contract.
+    sct_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Sibling-compare: section enabled"),
+        help_text=_(
+            "When checked, the section CTA surfaces in family portals. "
+            "Sibling data still requires per-parent consent (opt_in) "
+            "before any value renders — operator enable does NOT bypass "
+            "the privacy gate."
+        ),
+    )
+    sct_title = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("Sibling-compare: title"),
+        help_text=_(
+            "Section title shown above the CTA "
+            "(e.g. 'Compare with siblings'). Maps to "
+            "cockpit.sibling_compare.title."
+        ),
+    )
+    sct_subtitle = forms.CharField(
+        required=False,
+        max_length=200,
+        widget=_TEXT,
+        label=_("Sibling-compare: subtitle"),
+        help_text=_(
+            "Subline under the title "
+            "(e.g. 'Side-by-side trend across your family'). Maps to "
+            "cockpit.sibling_compare.subtitle."
+        ),
+    )
+    sct_cta_label = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Sibling-compare: CTA label"),
+        help_text=_(
+            "Button label that opens the consent banner "
+            "(e.g. 'Compare now'). Maps to "
+            "cockpit.sibling_compare.cta_label."
+        ),
+    )
+    sct_consent_banner_title = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("Sibling-compare: consent banner title"),
+        help_text=_(
+            "Header shown inside the consent modal "
+            "(e.g. 'Family-comparison view'). Maps to "
+            "cockpit.sibling_compare.consent_banner_title."
+        ),
+    )
+    sct_consent_banner_body = forms.CharField(
+        required=False,
+        max_length=600,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Sibling-compare: consent banner body"),
+        help_text=_(
+            "Plain-text consent explainer (max 600 chars). Should state "
+            "what data the view shows (initials, trend, sparkline — "
+            "never full names) and that consent is required. Maps to "
+            "cockpit.sibling_compare.consent_banner_body."
+        ),
+    )
+    sct_consent_grant_button_label = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Sibling-compare: grant-consent button label"),
+        help_text=_(
+            "Button label that records opt-in consent "
+            "(e.g. 'Show sibling view'). Maps to "
+            "cockpit.sibling_compare.consent_grant_button_label."
+        ),
+    )
+    sct_consent_decline_button_label = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Sibling-compare: decline-consent button label"),
+        help_text=_(
+            "Button label that keeps the section private "
+            "(e.g. 'Keep private'). Maps to "
+            "cockpit.sibling_compare.consent_decline_button_label."
+        ),
+    )
+    sct_denied_state_message = forms.CharField(
+        required=False,
+        max_length=400,
+        widget=_TEXTAREA_SMALL,
+        label=_("Sibling-compare: denied-state message"),
+        help_text=_(
+            "Copy shown after a parent declines or has not yet opted in. "
+            "Should remind them they can opt in at any time from Family "
+            "settings. Maps to "
+            "cockpit.sibling_compare.denied_state_message."
+        ),
+    )
+
     # ---- v3.57.18 Wave 8 — Public school-signup form ------------------
     # Mirrors ``cockpit.signup_form.*`` emitted by ``_signup_form_defaults()``
     # in cockpit_context.py. Unlike most cockpit sections (default off),
@@ -3535,6 +3646,24 @@ class CockpitPayloadForm(forms.ModelForm):
         "acr_suggestions",
         "acr_insight_icon",
         "acr_insight_body",
+    )
+    # v3.58.x Wave 9 rich-editor fieldset — sibling-compare operator-
+    # editable copy. PRIVACY CONTRACT: this editor CANNOT toggle the
+    # per-parent ``opt_in`` consent flag — there is intentionally no
+    # ``opt_in_default`` field. ``opt_in`` is sourced from a per-parent
+    # consent record (outside cockpit_payload). See
+    # ``apps/siteconfig/cockpit_context._sibling_compare_defaults()``
+    # docstring for the full contract.
+    SIBLING_COMPARE_FIELDS: tuple[str, ...] = (
+        "sct_enabled",
+        "sct_title",
+        "sct_subtitle",
+        "sct_cta_label",
+        "sct_consent_banner_title",
+        "sct_consent_banner_body",
+        "sct_consent_grant_button_label",
+        "sct_consent_decline_button_label",
+        "sct_denied_state_message",
     )
     # v3.57.18 Wave 8 rich-editor fieldset — public school-signup form.
     # Operator-configurable copy + chrome for the marketing-host
@@ -3944,6 +4073,38 @@ class CockpitPayloadForm(forms.ModelForm):
         # ``insight_body`` ↔ helper's ``insight_text`` — the partial reads
         # ``insight_text`` directly so persisted payloads use that key.
         self.fields["acr_insight_body"].initial = acr.get("insight_text", "")
+
+        # ---- v3.58.x Wave 9 sibling-compare seeds -------------------------
+        # PRIVACY CONTRACT: deliberately reads ONLY the copy + chrome keys.
+        # ``opt_in`` is NEVER seeded into the form — it lives on a per-parent
+        # consent record outside cockpit_payload and operators cannot edit it.
+        sibling_compare = payload.get("sibling_compare") or {}
+        if "enabled" in sibling_compare:
+            self.fields["sct_enabled"].initial = bool(
+                sibling_compare.get("enabled")
+            )
+        else:
+            self.fields["sct_enabled"].initial = False
+        self.fields["sct_title"].initial = sibling_compare.get("title", "")
+        self.fields["sct_subtitle"].initial = sibling_compare.get("subtitle", "")
+        self.fields["sct_cta_label"].initial = sibling_compare.get(
+            "cta_label", ""
+        )
+        self.fields["sct_consent_banner_title"].initial = sibling_compare.get(
+            "consent_banner_title", ""
+        )
+        self.fields["sct_consent_banner_body"].initial = sibling_compare.get(
+            "consent_banner_body", ""
+        )
+        self.fields["sct_consent_grant_button_label"].initial = (
+            sibling_compare.get("consent_grant_button_label", "")
+        )
+        self.fields["sct_consent_decline_button_label"].initial = (
+            sibling_compare.get("consent_decline_button_label", "")
+        )
+        self.fields["sct_denied_state_message"].initial = sibling_compare.get(
+            "denied_state_message", ""
+        )
 
         # ---- v3.57.18 Wave 8 signup form seeds ----------------------------
         # Public school-signup form — copy + chrome operator-configurable
@@ -4514,6 +4675,61 @@ class CockpitPayloadForm(forms.ModelForm):
             acr_overlay["insight_text"] = acr_insight_body
         if acr_overlay:
             payload.setdefault("ai_copilot_rail", {}).update(acr_overlay)
+
+        # v3.58.x Wave 9 — sibling-compare operator-editable copy overlay.
+        # PRIVACY CONTRACT (load-bearing — DO NOT relax):
+        #   - ``enabled`` flag IS written (operator-explicit round-trip).
+        #   - Empty string fields are omitted so _deep_merge in
+        #     cockpit_context.py preserves the defaults.
+        #   - ``opt_in`` is NEVER written here. There is intentionally no
+        #     ``opt_in_default`` field in this form. The cockpit cascade
+        #     does not carry an ``opt_in`` value into the partial —
+        #     ``opt_in`` is sourced from a per-parent consent record
+        #     (per-family, outside cockpit_payload). Toggling ``enabled``
+        #     surfaces the section CTA; parent consent is still required
+        #     for any sibling data to render.
+        sibling_overlay: dict[str, Any] = {
+            "enabled": bool(cleaned.get("sct_enabled")),
+        }
+        sct_title = (cleaned.get("sct_title") or "").strip()
+        if sct_title:
+            sibling_overlay["title"] = sct_title
+        sct_subtitle = (cleaned.get("sct_subtitle") or "").strip()
+        if sct_subtitle:
+            sibling_overlay["subtitle"] = sct_subtitle
+        sct_cta_label = (cleaned.get("sct_cta_label") or "").strip()
+        if sct_cta_label:
+            sibling_overlay["cta_label"] = sct_cta_label
+        sct_consent_banner_title = (
+            cleaned.get("sct_consent_banner_title") or ""
+        ).strip()
+        if sct_consent_banner_title:
+            sibling_overlay["consent_banner_title"] = sct_consent_banner_title
+        sct_consent_banner_body = (
+            cleaned.get("sct_consent_banner_body") or ""
+        ).strip()
+        if sct_consent_banner_body:
+            sibling_overlay["consent_banner_body"] = sct_consent_banner_body
+        sct_consent_grant = (
+            cleaned.get("sct_consent_grant_button_label") or ""
+        ).strip()
+        if sct_consent_grant:
+            sibling_overlay["consent_grant_button_label"] = sct_consent_grant
+        sct_consent_decline = (
+            cleaned.get("sct_consent_decline_button_label") or ""
+        ).strip()
+        if sct_consent_decline:
+            sibling_overlay["consent_decline_button_label"] = sct_consent_decline
+        sct_denied_state = (
+            cleaned.get("sct_denied_state_message") or ""
+        ).strip()
+        if sct_denied_state:
+            sibling_overlay["denied_state_message"] = sct_denied_state
+        # ``sibling_compare`` may already exist from the v3.57.1 tenant_v3
+        # enable-toggle loop (sets just {"enabled": ...}); .update() lets
+        # this richer overlay's keys land on top while preserving any
+        # forward-compatible keys that future operators add via JSON.
+        payload.setdefault("sibling_compare", {}).update(sibling_overlay)
 
         # v3.57.18 Wave 8 — public school-signup form overlay. Mirrors
         # cockpit.signup_form.* emitted by ``_signup_form_defaults()`` in

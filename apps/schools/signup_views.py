@@ -7,6 +7,8 @@ W1-2: POST /api/trial/ or /start-trial — self-service trial (minimal name, ema
 
 from datetime import timedelta
 import json
+import logging
+import time
 import uuid
 
 from django.conf import settings
@@ -19,6 +21,8 @@ from django.core.mail import send_mail  # noqa: F401 — retained for legacy cal
 # audit row). ``send_transactional`` mirrors fail_silently semantics:
 # it never raises, returns a status dict instead.
 from apps.schoolops.email_delivery import send_transactional
+
+logger = logging.getLogger(__name__)
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -30,22 +34,63 @@ from apps.platform_runtime.helpers import get_platform_defaults
 from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
 
 
+def _alpha2_to_flag_emoji(alpha2: str) -> str:
+    """Convert ISO alpha-2 country code (e.g. ``KE``) to its flag emoji.
+
+    Uses Unicode regional indicator symbols (U+1F1E6 onwards). Returns
+    an empty string for inputs that aren't exactly 2 ASCII letters so
+    the template silently renders no glyph on bad data rather than
+    showing a mojibake fragment.
+    """
+    value = (alpha2 or "").strip().upper()
+    if len(value) != 2 or not value.isascii() or not value.isalpha():
+        return ""
+    try:
+        return "".join(chr(0x1F1E6 + (ord(ch) - ord("A"))) for ch in value)
+    except (TypeError, ValueError):
+        return ""
+
+
 def _signup_countries() -> list[dict[str, str]]:
     """
     Country choices for the public signup dropdown.
 
-    Returns ISO alpha-2 code + display name. Falls back to an empty list on
-    any failure (registry not seeded yet, DB unreachable, etc.) — the
-    signup template already has a free-text fallback for that case.
+    v3.58.x Wave 9: routes through ``GlobalGeoCatalog.list_countries()``
+    so the dropdown picks up the full pycountry-backed catalog (falling
+    back to the ``RegionConfig`` model when optional deps are missing).
+    Each row carries:
+
+        iso_alpha2   ISO 3166-1 alpha-2 code (e.g. "KE")
+        code         ISO 3166-1 alpha-3 code (e.g. "KEN")
+        name         display name
+        flag_emoji   derived from alpha-2 (Unicode regional indicators)
+        timezone     dominant IANA timezone for the country
+        curriculum   curriculum hint (empty by default)
+
+    Capped at 120 rows per spec. Returns an empty list on ANY failure
+    (catalog deps unavailable, DB unreachable, etc.) — the signup
+    template's free-text input fallback activates in that case.
     """
     try:
-        from apps.registries.services import list_country_choices
-        rows = list_country_choices() or []
-        return [
-            {"code": (row.get("code_alpha2") or row.get("code") or "").upper(), "name": row.get("name", "")}
-            for row in rows
-            if row.get("code") or row.get("code_alpha2")
-        ]
+        from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+        rows = GlobalGeoCatalog.list_countries() or []
+        out: list[dict[str, str]] = []
+        for row in rows[:120]:
+            alpha2 = str(row.get("code_alpha2") or "").upper().strip()
+            if not alpha2:
+                continue
+            out.append(
+                {
+                    "iso_alpha2": alpha2,
+                    "code": str(row.get("code") or alpha2),
+                    "name": str(row.get("name") or alpha2),
+                    "flag_emoji": _alpha2_to_flag_emoji(alpha2),
+                    "timezone": str(row.get("timezone") or "UTC"),
+                    "curriculum": "",
+                }
+            )
+        return out
     except Exception:
         return []
 from apps.schools.models import School, SignupVerification
@@ -108,7 +153,12 @@ def signup_school(request: HttpRequest):
     Public form: school name, subdomain/slug, admin email, country (optional).
     POST: validate, create School (is_active=False), create SignupVerification,
     send email with verification link, return success or errors.
+
+    v3.58.x Wave 9 Agent K — request-lifetime timing instrumentation +
+    async verification email send (so a slow / unreachable SMTP can
+    never time out the signup HTTP request lifecycle).
     """
+    t0 = time.monotonic()
     if request.method == "GET":
         cc = (request.GET.get("country_code") or "").strip()[:2].upper()
         if not cc:
@@ -215,6 +265,11 @@ def signup_school(request: HttpRequest):
                 "term_preset": term_preset,
                 "signup_ref": signup_ref,
                 "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
+                # v3.58.x Wave 9: also pass signup_countries on this
+                # POST-error path so the country <select> survives the
+                # slug-taken re-render with the operator's selection
+                # still highlighted.
+                "signup_countries": _signup_countries(),
             },
         )
 
@@ -323,19 +378,33 @@ def signup_school(request: HttpRequest):
         f"If you did not request this, you can ignore this email.\n"
     )
     try:
-        # v3.57.x Wave 8 Agent C — canonical sender retries on transient
-        # SMTP errors and writes an EmailDeliveryEvent audit row for the
-        # operator dashboard. Returns a status dict instead of raising;
-        # we keep the broad ``try/except`` as a defense-in-depth belt.
+        # v3.58.x Wave 9 Agent K — async_send=True moves the SMTP attempt
+        # off the request lifecycle so a hung / blocked / misconfigured
+        # SMTP host can NEVER stall the signup POST past the gateway
+        # timeout (the "network unreachable" symptom the user reported
+        # was caused by the BACKOFF list [1, 5, 30] running synchronously
+        # on top of a 10s socket timeout — ≈46s worst case, well past
+        # Render's 30s HTTP gateway cutoff). The async daemon thread
+        # runs the canonical retry sequence and writes an
+        # EmailDeliveryEvent audit row on completion; operators monitor
+        # delivery via the email-health + signup-diagnostics dashboards.
         send_transactional(
             subject=subject,
             body=body,
             to=email,
             from_email=settings.DEFAULT_FROM_EMAIL or "noreply@runmycampus.com",
             priority="transactional",
+            async_send=True,
         )
     except (OSError, ConnectionError, ValueError, TypeError):
         pass
+
+    t1 = time.monotonic()
+    request_latency_ms = int((t1 - t0) * 1000)
+    logger.info(
+        "signup_school request_latency_ms=%d outcome=success",
+        request_latency_ms,
+    )
 
     if request.headers.get("Accept", "").find("application/json") >= 0:
         return JsonResponse(
@@ -765,10 +834,20 @@ def verify_signup(request: HttpRequest):
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
+    # v3.58.x Wave 9 Agent K — route provisioning through the canonical
+    # ``dispatch_provision_school`` so it queues via Celery when the
+    # broker is reachable (returning immediately to the operator) and
+    # falls back to synchronous-in-request only when Celery is fully
+    # unavailable. The sync fallback was the v3.57 status quo from
+    # this view and is preserved as a last resort — but on Render +
+    # other PaaS deployments where Celery + Redis broker are wired up,
+    # the verify-link click will now return in well under a second.
     try:
-        from apps.schools.tasks import provision_school_sync
+        from apps.schools.tasks import dispatch_provision_school
 
-        provision_school_sync(str(school.id), contact_email=verification.email)
+        dispatch_provision_school(
+            str(school.id), contact_email=verification.email,
+        )
     except (ImportError, AttributeError, TypeError, ValueError, OSError):
         pass
 

@@ -1,0 +1,172 @@
+# Wave 9 Agent N (v3.58.x) — SDK 1.0.0 graduation reminder workflow.
+#
+# The webhook-verifier SDKs shipped as 1.0.0-rc.1 at v3.38.0 (2026-05-19)
+# with a 90-day field-test window. Graduation window opens 2026-08-17.
+#
+# This workflow runs daily at 09:00 UTC and opens (or refreshes) a
+# GitHub issue ONLY when:
+#
+#   1. today's UTC date >= 2026-08-17, AND
+#   2. the Python package's pyproject.toml still carries
+#      `version = "1.0.0-rc.1"`.
+#
+# The check is idempotent — it queries the existing open issues and
+# skips creation when an issue with the same title already exists.
+
+name: sdk-1-0-0-graduation-reminder
+
+on:
+  schedule:
+    # Daily at 09:00 UTC.
+    - cron: "0 9 * * *"
+  # Allow manual invocation for ad-hoc verification. The workflow body
+  # is idempotent so manual runs cannot create duplicates.
+  workflow_dispatch: {}
+
+permissions:
+  # The workflow needs to read repo contents AND write issues (to open
+  # the graduation reminder issue). It does NOT need any other scope.
+  contents: read
+  issues: write
+
+defaults:
+  run:
+    working-directory: beta/school-management-system
+
+jobs:
+  check-graduation-window:
+    name: Open graduation issue if window has opened and package not yet graduated
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Decide whether to open / skip the reminder issue
+        id: decide
+        shell: bash
+        run: |
+          set -euo pipefail
+          TODAY="$(date -u +%Y-%m-%d)"
+          WINDOW_OPENS="2026-08-17"
+          PYPROJECT="beta/school-management-system/packages/runmycampus-webhook-verifier-py/pyproject.toml"
+
+          echo "today_utc=$TODAY" >> "$GITHUB_OUTPUT"
+          echo "window_opens=$WINDOW_OPENS" >> "$GITHUB_OUTPUT"
+
+          # Date comparison via lexicographic ordering (ISO YYYY-MM-DD
+          # is monotonic). Skip when today is before the window opens.
+          if [[ "$TODAY" < "$WINDOW_OPENS" ]]; then
+            echo "Today ($TODAY) is before graduation window ($WINDOW_OPENS); skipping."
+            echo "should_open=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Read the current version line from pyproject.toml.
+          if [[ ! -f "$GITHUB_WORKSPACE/$PYPROJECT" ]]; then
+            echo "::error::Expected pyproject.toml at $PYPROJECT but it's missing."
+            echo "should_open=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          if grep -qE '^version = "1\.0\.0-rc\.1"$' "$GITHUB_WORKSPACE/$PYPROJECT"; then
+            echo "Package still at 1.0.0-rc.1; reminder issue should be opened (or refreshed)."
+            echo "should_open=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Package has been graduated (version != 1.0.0-rc.1); no reminder needed."
+            echo "should_open=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open (or skip) the graduation reminder issue
+        if: steps.decide.outputs.should_open == 'true'
+        uses: actions/github-script@v7
+        env:
+          TODAY_UTC: ${{ steps.decide.outputs.today_utc }}
+          WINDOW_OPENS: ${{ steps.decide.outputs.window_opens }}
+        with:
+          script: |
+            const title = "SDK 1.0.0 graduation window opened — promote from RC to GA";
+            // Idempotency: only open when no existing OPEN issue with
+            // the same title is present. List up to 100 open issues
+            // (the repo has < 100 open at most times; if not, we still
+            // skip on a match in the page).
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100,
+            });
+            const dupes = existing.filter(i => !i.pull_request && i.title === title);
+            if (dupes.length > 0) {
+              core.info(`Found ${dupes.length} existing open issue(s) with title '${title}'; skipping create.`);
+              core.info(`Existing issue: ${dupes[0].html_url}`);
+              return;
+            }
+            const today = process.env.TODAY_UTC;
+            const opens = process.env.WINDOW_OPENS;
+            const body = [
+              "The 90-day field-test window for the RunMyCampus webhook-verifier",
+              "SDKs (Python + JS) opened **2026-05-19** at v3.38.0 and closes",
+              `**${opens}**. Today (UTC) is **${today}**, which is on or after`,
+              "the graduation date — but the Python package still carries",
+              "`version = \"1.0.0-rc.1\"` in `pyproject.toml`. It is time to graduate.",
+              "",
+              "## Pre-flight checklist",
+              "",
+              "Before running the graduation script, confirm:",
+              "",
+              "- [ ] No critical bugs open against `runmycampus-webhook-verifier` (PyPI) or `@runmycampus/webhook-verifier` (npm).",
+              "- [ ] Field-test feedback reviewed (search closed issues + the #webhooks-feedback channel).",
+              "- [ ] Both packages green in CI on `main`.",
+              "- [ ] Both `STABILITY.md` files reflect the actual exported surface.",
+              "- [ ] `LEGACY_HEADER_DEPRECATION_DATE` constants still aligned to `2026-08-18`.",
+              "",
+              "## Graduation procedure",
+              "",
+              "```",
+              "# 1. Dry-run (prints the planned edits)",
+              "python beta/school-management-system/scripts/graduate_sdk_1_0_0.py",
+              "",
+              "# 2. Apply",
+              "python beta/school-management-system/scripts/graduate_sdk_1_0_0.py --apply",
+              "",
+              "# 3. Commit the version bumps",
+              "git add -A && git commit -m \"Graduate webhook-verifier SDKs to 1.0.0\"",
+              "",
+              "# 4. Tag both packages and push",
+              "git tag webhook-verifier-py-v1.0.0",
+              "git tag webhook-verifier-js-v1.0.0",
+              "git push --tags",
+              "```",
+              "",
+              "The tag pushes trigger `release-webhook-verifier-py.yml` and",
+              "`release-webhook-verifier-js.yml`, which publish to PyPI and npm",
+              "respectively (both gated on `confirm=\"publish\"` for manual dispatch;",
+              "tag-triggered runs are auto-approved).",
+              "",
+              "## Post-graduation tasks",
+              "",
+              "- Announce on the RunMyCampus developer blog + #webhooks-feedback channel.",
+              "- Update `docs/WEBHOOK_VERIFICATION.md` to reference `1.0.0` directly.",
+              "- Deprecate any lingering `0.x` documentation snippets (search the docs/ tree).",
+              "- Re-verify `STABILITY.md` matches the published artifact's public surface.",
+              "",
+              "Runbook: `docs/SDK_1_0_0_GRADUATION_RUNBOOK.md`.",
+              "",
+              "_Opened automatically by `.github/workflows/sdk-1-0-0-graduation-reminder.yml`._",
+            ].join("\n");
+            const created = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["sdk-graduation", "operator-task"],
+            });
+            core.info(`Opened graduation reminder issue: ${created.data.html_url}`);
+
+      - name: Report skip reason
+        if: steps.decide.outputs.should_open != 'true'
+        shell: bash
+        run: |
+          echo "Skipped opening a reminder issue:"
+          echo "  today_utc=${{ steps.decide.outputs.today_utc }}"
+          echo "  window_opens=${{ steps.decide.outputs.window_opens }}"

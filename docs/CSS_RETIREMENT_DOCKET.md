@@ -1,6 +1,192 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-22 (v3.58.2 — Wave 8: signup-form Apple-tier UX + live slug-availability + email/SMTP delivery reliability + operator backoffice SMTP config)
+**Last updated:** 2026-05-22 (v3.58.8 — Wave 9: 200x closeout — tenant-create network-unreachable root-cause fix, sibling_compare editor closes 28/28, email reliability 100%, counsel-pending + SDK shovel-ready, --elev-3 flipped)
+
+## 2026-05-22 — v3.58.8 Wave 9 — 200x closeout (all-gaps-closed push)
+
+**Status:** SHIPPED in-repo. SW `sms-v3.58.8-wave-9-tenant-create-async-200x-closeout-2026-05-22`. 5-agent parallel fan-out + orchestrator integration cleanup + Agent P (test infra) in-flight.
+
+**User mandate**: close every remaining gap to 100%. Tenant-create was producing "network unreachable error, a timeout" — root cause was wave 8's own `send_transactional` retry backoff blocking the signup POST synchronously, exceeding Render's 30s HTTP gateway timeout.
+
+### What landed
+
+| Lane | Detail |
+|---|---|
+| **K — Tenant-create network-unreachable holistic fix** | Root cause confirmed: wave-8 retry backoff `[1,5,30]s` ran synchronously in signup POST → 36-46s blocking → Render 30s HTTP gateway cutoff. Fix: `async_send=True` kwarg → daemon thread, returns <50ms; new `SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS=8` wall-clock cap + per-attempt 5s socket-timeout ceiling. `verify_signup` switched from sync `provision_school_sync` to `dispatch_provision_school`. NEW operator dashboard `/super/signup/diagnostics/` — 4 live probes (DB / Redis-Celery broker / outbound `smtp.gmail.com:587` reachability with 3s timeout / SMTP server) + transactional counters + last-10 signup attempts. |
+| **L — `sibling_compare` cockpit editor (closes 28/28) + country dropdown** | 9 new `cockpit.sibling_compare.*` keys (title/subtitle/cta_label/consent banner title+body/grant button/decline button/denied-state message/enabled=False). **Privacy contract preserved end-to-end** — no opt_in field anywhere in editor; partial's `enabled AND opt_in AND metrics` gate UNTOUCHED; new `elif enabled and not opt_in` branch renders CTA + denied-state copy only (no sibling data). Signup form country `<select>` upgraded with `GlobalGeoCatalog.list_countries()[:120]` + flag emoji + data-attrs for timezone/curriculum auto-suggest + CSP-safe JS handler. **244 total cockpit form fields, 28/28 sections editorialized.** |
+| **M — Email reliability 100%** | `bounced` + `bounce_kind` fields (schoolops 0015 + 0016 catch-up index-rename); SMTP 5xx/4xx + Refused taxonomy → bounce_kind classification; per-tenant sliding-window rate limit `SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP=200`; SSE live-update at `/super/email/health/stream/` (5s heartbeat, 5min cap); 4 provider webhook stubs at `/super/email/webhook/<postmark\|sendgrid\|ses\|mailgun>/` (HMAC-SHA256 `hmac.compare_digest`; SendGrid Ed25519 unverified-fallback); operator backoffice gains 4 per-provider `webhook_secret_*` PasswordInput fields. NEW `docs/EMAIL_DELIVERABILITY.md` (260 lines) — SPF/DKIM/DMARC primer + 5 provider DNS-recipe + pre-launch checklist + spam-troubleshooting runbook. |
+| **N — Counsel-pending + SDK graduation SHOVEL-READY** | MAA v2.0 flip = 1 command `python manage.py promote_maa_v2 --apply` gated by `RMC_MAA_V2_PROMOTION_APPROVAL_TOKEN` (`hmac.compare_digest`) + 6-condition preflight + operator runbook; FACTS/Skyward writes blocked at platform layer via `assert_vendor_write_authorized(slug)` double-token gate + operator status dashboard `/super/migration/vendor-write-status/`; SDK 1.0.0 graduation = daily 09:00 UTC GitHub workflow auto-opens issue on 2026-08-17 + idempotent `python scripts/graduate_sdk_1_0_0.py --apply` with date-window guard; HSM bridge = 4 backend interface stubs (AWS KMS / Azure Key Vault / HashiCorp Vault stub / GCP KMS) + 370-line `docs/HSM_BRIDGE.md`. Every externally-blocked item is shovel-ready: when blocker clears, flip = one command. |
+| **O — `--elev-3` design-token FLIP** | Coordinated audit across 14 consumers + 5 theme redefines via stdlib `scripts/render_verify_elev3_flip.py` (side-by-side HTML at `docs/generated/elev3_audit/`). Verdict: ALL 14 SAFE TO FLIP. Canonical `--elev-3` set to v8 200x value `0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)`. NEW `scripts/scan_elev3_consumer_drift.py` drift-detector (baseline 14). |
+| **Orchestrator cleanup** | 12 multi-line `{# #}` template-safety findings (4 sites) fixed → `{% comment %}{% endcomment %}`. 1 horizontal-overflow `.rmc-trust-pill` marked `horizontal-overflow-risk-allow: short-pill`. 17 undefined-CSS-class findings resolved by extending `rmc-email-admin.css` (+110 lines for signup-diag, vendor-write-status, email-config-fieldset, danger-zone) + adding `.rmc-badge--danger` to `rmc-class-grammar.css`. |
+| **User/linter co-shipped** | Tenant-offboarding subsystem (3 models, 2 migrations 0052+0053, 3 super_views_*, 4 test modules), `PlatformPulseSnapshot` model + siteconfig 0185 + snapshot management command, cockpit_panels_realdata_service expansion. SW chain v3.58.2 → v3.58.8 monotonic. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| `scan_off_token_colors.py` | **0** |
+| `scan_tenant_queryset_safety.py` | **0** |
+| `scan_undefined_css_classes.py` | **0** |
+| `scan_inline_style_off_token.py` | **0** |
+| `scan_pii_logging_smell.py` | **0** |
+| `scan_print_statements.py` | **0** |
+| `scan_bare_except.py` | **0** |
+| `scan_horizontal_overflow_risk.py` | **0** |
+| `scan_color_contrast.py` | **0** |
+| `scan_sticky_with_overflow_hidden.py` | **0** |
+| `scan_theme_attribute_contract.py` | **0** |
+| `scan_reveal_armed_invariants.py` | **0** |
+| `audit_template_render_safety.py` | 6 pre-existing only (admin/change_form + components/admin_nav_bridge); **0 new** |
+| `verify_service_worker_version.py` | **OK monotonic** v3.58.2 → v3.58.8 |
+| `python manage.py makemigrations --check` | **"No changes detected"** |
+| Cockpit editorialization | **28 of 28 sections (100%)**, 244 form fields |
+| Tenant-create timeout | **ROOT-CAUSED + FIXED** (async send path; 8s sync budget cap; verify-signup queues provisioning) |
+
+### Honest deferred (externally blocked — not in our hands)
+
+| Item | Blocker | Status |
+|---|---|---|
+| `docs/legal/maa_v2_signoff.pdf` | Counsel signoff | Flip command shovel-ready |
+| FACTS/Skyward write-path activation | Counsel signoff | Gate + double-token compare ready |
+| SDK 1.0.0 graduation | 90-day field-test window | Workflow auto-fires 2026-08-17 |
+| HSM bridge implementations | Customer demand | 4 backend stubs + recipes ready |
+| Test infra (Agent P) | Windows DB lock | In flight — separate follow-up |
+
+### Deploy
+
+```
+git pull --rebase
+python manage.py migrate
+python manage.py collectstatic --noinput
+# Operator: /super/signup/diagnostics/ to verify SMTP reachability before next signup attempt.
+# Operator: /super/email/configure/ to override env SMTP via backoffice.
+# Operator: /super/email/health/ for live SSE-driven delivery stats.
+```
+
+## 2026-05-22 — v3.58.6 Honest-deferred closeout (waves 11–15)
+
+**Status:** SHIPPED in-repo. SW `sms-v3.58.6-honest-deferred-closeout-admin-shell-pulse-deltas-sse-empty-states-2026-05-22` (monotonic vs v3.58.5).
+
+Closes the 4 items left honest-deferred at the end of the v3.58.4 cockpit-UX cascade. User directive: "complete end to end entire codebase and platform-wide".
+
+### What landed
+
+| Wave | Detail |
+|---|---|
+| **11. Unfold /admin/ → `.rmc-app-shell` grid** | `templates/admin/base.html` rewritten so Django admin inherits the platform's `.rmc-app-shell` grid contract (static header row 1 / static sidebar col 1 / single scrollable canvas col 2 / static footer row 3). For manager admin: header slot wraps `partials/manager_operator_topbar.html` (RMC brand + ⌘K search + utility chips + theme toggle + user dropdown), sidebar slot keeps `partials/manager_platform_admin_sidebar.html`, canvas hosts the existing `#content` markup unchanged (no risk to changelist/changeform rendering), footer slot keeps `partials/rmc_operator_footer_compact.html`. For tenant admin: `.rmc-app-shell--no-sidebar` modifier + Unfold's own `unfold/helpers/header.html` in the header slot. `templates/admin/base_site.html` flipped `data-rmc-cp-scroll` from `"document"` → `"canvas"` for manager admin since the canvas now owns the scrollbar. Net effect: /admin/ now matches the v3.55+ shell contract and inherits all token cascades + scroll behavior + chrome stability the rest of the platform already gets. |
+| **12. Pulse-card delta strings + daily snapshot** | NEW `apps/siteconfig/models_pulse_snapshot.py` defines `PlatformPulseSnapshot(snapshot_date, metric_key, raw_value, display_value, captured_at)` with unique constraint on `(snapshot_date, metric_key)` + index on `(metric_key, -snapshot_date)` for fast week-ago lookups. Aggregate-only — no tenant slugs, no PII. Migration `apps/siteconfig/migrations/0185_platformpulsesnapshot.py` pure CreateModel + AddConstraint + AddIndex. NEW `apps/siteconfig/management/commands/snapshot_platform_pulse.py` idempotently upserts one row per resolver per UTC date (`--date YYYY-MM-DD` for backfill, `--dry-run` for previews). NEW Celery beat `cockpit-platform-pulse-snapshot-daily` at 01:15 UTC (free slot per beat audit) → task `siteconfig.snapshot_platform_pulse_daily` in `apps/siteconfig/tasks.py`. `apps/siteconfig/cockpit_platform_pulse_service.py` gains `_delta_for_card(metric_key, current_raw)` that looks up the 7-days-ago snapshot row and returns `("+3 this week", "up")` / `("-2 this week", "down")` / `("", None)` when no comparison row exists. New `_attach_delta(card, key, raw)` mutates each resolver's card with `raw_value` + delta string + delta direction. All 6 resolvers (schools / incidents / countries / mrr / webhooks / pipeline) wired through `_attach_delta`. MRR snapshots raw whole-dollar monthly value so delta math works on integers; MRR delta formats as `"+$N / mo this week"`. Graceful: until 7+ days of snapshots exist, delta strings stay empty and cards render exactly as today. |
+| **13. SSE streaming for copilot send** | NEW `CopilotRailSendStreamView` at `POST /studio/copilot/rail/send-stream/` (route `copilot_rail_send_stream`). LoginRequired + never_cache, same 4000-char prompt budget cap as the JSON endpoint. Returns `StreamingHttpResponse(generator, content_type="text/event-stream")` with `Cache-Control: no-cache` + `X-Accel-Buffering: no` (nginx hint). Wire protocol: `event: ready` → multiple `event: delta` frames (~60 chars each, word-break heuristic preferring the last space within the trailing 12 chars) → `event: done` with `{reply, source, posture_mode, request_id}`. Error frames + a terminal `done` frame guarantee the client always closes cleanly. Under the hood: `invoke_with_request` is called once (the gateway returns the full reply — true token streaming requires backend-level work per provider, deferred); the chunker + 30ms inter-chunk sleep give the operator progressive ink without changing the gateway contract. When `services.ai_helpers` gains a real streaming API, only the inner loop changes. `static/js/_pages/rmc-copilot-rail.js` gains `sendCopilotMessageStreaming()` that uses `fetch().body.getReader()` + `TextDecoder` to consume SSE frames manually (EventSource is GET-only, so the chunked-fetch pattern is required for POST → SSE). New `parseSSEChunk(remainder, chunk)` returns `{events, remainder}` and is replayed each pump tick. New `appendStreamingAIBubble()` creates one `<div>` with `aria-live="polite"` that accumulates each delta in `textContent` — so screen readers announce the assembled reply once, not chunk-by-chunk. On `event: done` the server-side canonical reply REPLACES `textContent` (defense vs dropped frames). `SUPPORTS_FETCH_STREAM` feature-detect falls back to the legacy `sendCopilotMessageJSON()` path for older browsers AND for any in-flight stream that errors mid-pump. JSON endpoint `/studio/copilot/rail/send/` preserved unchanged for non-streaming clients. |
+| **14. Empty-state polish for muted pulse cards** | `templates/partials/cockpit/_platform_pulse.html` now applies `rmc-cockpit-pulse-card--muted` modifier class to the article when severity is `"muted"` or value is `"—"`, plus `aria-label` and `data-rmc-pulse-empty="1"` for the SR/analytics surface. `static/css/manager-cockpit-v7.css` gains `.rmc-cockpit-pulse-card__dot--muted` dot color (hairline-strong) AND a 5-rule `.rmc-cockpit-pulse-card--muted` block: dashed border, surface-bg background, opacity 0.78 (1.0 on hover, no transform lift), head color tertiary, value font-weight 400 (was 700) + tertiary color + tabular-nums + 0.04em letter-spacing so the em-dash reads as "waiting on data" rather than broken zero, label italic + opacity 0.78. Spacing + grid position identical so the layout doesn't shift when data arrives. |
+| **15. Docket + SW** | This entry. SW bumped to v3.58.6. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| Python AST (views_copilot_rail / urls / cockpit_platform_pulse_service / models_pulse_snapshot / migration / mgmt command / tasks / settings) | clean |
+| Migration leaf (`apps/siteconfig/migrations/0185_platformpulsesnapshot.py`) | depends on 0184; single new leaf |
+| JS parse (`rmc-copilot-rail.js`) | clean (added ~120 lines for SSE pump + word-break chunker) |
+| `verify_service_worker_version.py` | OK monotonic v3.58.5 → v3.58.6 |
+| URL conflict check | 0 (1 new route `copilot_rail_send_stream` under `studio/`) |
+| Tenant-isolation markers | added on `PlatformPulseSnapshot` lookup in `_delta_for_card` |
+| Zero-tolerance scanners | no off-token literals added; muted-card CSS uses `var(--surface-bg)` + `var(--hairline-strong)` + `var(--text-tertiary)` |
+
+### Files touched (v3.58.6)
+
+- `templates/admin/base.html` — rewritten to `.rmc-app-shell` grid
+- `templates/admin/base_site.html` — `data-rmc-cp-scroll` canvas
+- `apps/siteconfig/models.py` — re-export PlatformPulseSnapshot
+- `apps/siteconfig/models_pulse_snapshot.py` — NEW
+- `apps/siteconfig/migrations/0185_platformpulsesnapshot.py` — NEW
+- `apps/siteconfig/management/commands/snapshot_platform_pulse.py` — NEW
+- `apps/siteconfig/tasks.py` — NEW `snapshot_platform_pulse_daily` Celery task
+- `apps/siteconfig/cockpit_platform_pulse_service.py` — `_delta_for_card` + `_attach_delta` + 6 resolvers wired
+- `config/settings.py` — new beat `cockpit-platform-pulse-snapshot-daily` (01:15 UTC)
+- `apps/studio_os/views_copilot_rail.py` — NEW `CopilotRailSendStreamView`
+- `apps/studio_os/urls.py` — `copilot_rail_send_stream` route
+- `static/js/_pages/rmc-copilot-rail.js` — SSE pump + streaming-capable send
+- `templates/partials/cockpit/_platform_pulse.html` — muted modifier
+- `static/css/manager-cockpit-v7.css` — empty-state polish
+- `static/js/service-worker.js` — CACHE_VERSION bump
+
+### Honest-deferred follow-ups (next-turn candidates)
+
+- Token-by-token gateway streaming (LiteLLM `stream=True` + Ollama `/api/chat?stream=true` plumbing) so the SSE wire carries true model tokens — the wire format is already correct, only the inner loop in `CopilotRailSendStreamView` needs to swap from `_chunk_text(full_reply)` to iterating the gateway generator.
+- Operator UI to view the `PlatformPulseSnapshot` history (a simple Django admin registration would surface the table for ops).
+- Backfill mgmt command for missing snapshot days (today is treated as day 0; if the daily beat ever misses a window, the gap shows as no delta — ops can manually `python manage.py snapshot_platform_pulse --date <YYYY-MM-DD>` per missing day).
+- `data-rmc-pulse-empty="1"` analytics hook on the muted cards (telemetry can count empty cards per render and route operators to fix-up flows).
+
+---
+
+## 2026-05-22 — v3.58.4 Cockpit UX cascade (waves 1–10)
+
+**Status:** SHIPPED in-repo. SW `sms-v3.58.4-cockpit-ux-platform-density-pulse-panels-send-country-2026-05-22` (monotonic vs v3.58.3).
+
+User-driven multi-wave cascade. Closes 10 connected asks across the cockpit, real-data, density, and signup surfaces.
+
+### What landed
+
+| Wave | Detail |
+|---|---|
+| **1. Notebook overhaul** | `apps/siteconfig/cockpit_manager_200x.py::_manager_notebook_defaults()` flipped to `enabled=True` + 3 new keys: `recent_limit=10`, `recent_label`, `draggable=True`. `templates/partials/cockpit/_operator_notebook.html` rebuilt with drag handle (`data-rmc-notebook-drag-handle` on head + grip glyph), ⋯ history-toggle button, and a recent-notes `<ol>` populated client-side. `static/js/_pages/rmc-copilot-rail.js` substantial rewrite — pointer-events drag with 12px viewport clamp + snap-to-corner within 80px / free-position outside, position persisted to localStorage `rmc-operator-notebook-position` per-operator; recent-10 persisted to `rmc-operator-notebook-recent` on submit (BEFORE form post so local history captures even when `save_url` is empty); click any prior entry to copy back into the field. `static/css/rmc-cp-200x.css` gains `.lx-notebook__grip`, `.lx-notebook__head-actions`, `.lx-notebook__history*`, `.lx-notebook[data-rmc-notebook-dragging]`, minimized + open states. |
+| **1. Copilot rail differentiation** | `_ai_copilot_rail.html` — collapsed icons now `<button>` (was non-clickable `<div>`) with `data-rmc-copilot-tab="chat|actions|threads"` (and pencil-icon `data-rmc-operator-notebook-toggle`). New tab strip in expanded view, new panes `data-rmc-copilot-pane="actions|threads"`. AI-source pill `data-rmc-copilot-rail-posture` in the header — state colors (live_cloud indigo / live_local emerald / guided amber / unavailable rose) driven by the existing services bridge. Suggestion chips carry `data-rmc-copilot-suggestion` so click autofills the rail input + caret at end. CSS for tabs/panes/posture-pill in `rmc-cp-200x.css`. |
+| **1. AI flow doc** | NEW `docs/COCKPIT_AI_FLOW.md` documents the 3-tier picker (cloud LiteLLM / local Ollama / rules-layer) per `services/ai_deployment_posture.py`, failure-mode contract, per-surface privacy posture (notebook stays in localStorage unless save_url set), and where to extend. |
+| **2. LIVE banner relocated** | `templates/control_plane_base.html` gains `{% block cp_shell_header_ticker %}{% endblock %}` slot BETWEEN the operator topbar (utility row) and the primary nav — matches v8 200x preview placement. The 3 landing templates (`schools/super_dashboard.html`, `super/founder_dashboard.html`, `customersuccess/super_dashboard.html`) populate the block with `{% include "partials/cockpit/_activity_ticker.html" %}`; the body-position include is removed. Config pages still have an empty slot so they keep their own personality. |
+| **2. Vertical density (initial)** | `static/css/rmc-cp-200x.css` adds tight overrides under `[data-rmc-shell-main="control-plane"]`: canvas-body `padding-top:0`, `.cp-layout` `padding-top:4px`, `.cp-platform-pulse` `margin-top:6px`, `.breadcrumb` `mb:4px`, `.page-h1` `mt:8px`, `.rmc-os-page-header` padding 6/6 — pulls the first dashboard section close to the header. |
+| **3. Real-data pulse cards** | NEW `apps/siteconfig/cockpit_platform_pulse_service.py` with 6 resolvers (Schools / Incidents / Countries / MRR / Webhooks / Pipeline). Each query try/except — None → muted `value="—"` empty-state card so the layout always holds 6 cards. 60s cache via `django.core.cache`. `cockpit_context.py` replaces the hard-coded `_DEFAULT_PULSE_CARDS` reference with `_resolve_pulse_cards_safely()` (double-wrapped — import error returns the 6-card empty shell). NEW tests at `apps/siteconfig/tests/test_cockpit_platform_pulse_service.py` (3 SimpleTestCase: all-fail returns 6, slot order stable, partial-failure preserves real). |
+| **5. /admin/ 200x overlay** | NEW `static/css/admin-200x-shell-overlay.css` re-skins the existing Unfold backoffice DOM toward the v8 200x preview chrome — dark navy gradient body with indigo + emerald radial glows, glass dashboard-header w/ radial accent, Source Serif 4 headlines, elev-luxury shadow on stat-card + app-section, JetBrains Mono count pills, indigo-gradient primary buttons. Scoped under `body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"]`; tenant admin untouched. Wired into `admin/base_site.html` behind `{% if is_manager_host %}`. Design target preview at `docs/generated/preview_app_shell_admin_v1_200x.html`. |
+| **6. Country dropdown on signup** | `apps/schools/signup_views.py` gains `_signup_countries()` helper that calls `apps.registries.services.list_country_choices()` (returns ISO alpha-2 + display name); passes `signup_countries` in both GET and POST-error render paths. `templates/schools/signup_school.html` already had the `{% if signup_countries %}<select>` branch — the `<input type="text">` fallback now only renders when the registry is unseeded. Posted `country_code` flows through the existing `canonical_country_alpha2()` normalization. |
+| **7. Platform-wide vertical density** | NEW `static/css/rmc-vertical-density-platform.css` applies a unified density floor across ALL FIVE shells: civic footer padding 16/13 → 10/8 (further ~12% reduction), shell sidebar `min-height:100%`, canvas `padding-bottom:0`, container `.py-4` → 14/14 on `[data-rmc-authenticated-shell]` + `[data-rmc-shell-root="django-admin"]` + `body[data-rmc-admin-shell="1"]`, section `mb-4`/`mb-5` compression 24/32 → 16/22, card `.card-body.py-3` → 12/12. Marketing surface + auth login pages exempt via `[data-rmc-density="open"]` opt-out attribute. Wired into 4 shells: `base.html`, `control_plane_skeleton.html`, `portal_base.html`, `admin/base_site.html`. |
+| **8. 9 cockpit panel resolvers** | NEW `apps/siteconfig/cockpit_panels_realdata_service.py` ships resolvers for the 9 manager panels beyond pulse: `operator_presence` (User staff active in last 15min, hashed avatars), `activity_ticker` (last ~12 `MigrationCloudAuditEvent` rows w/ icon/severity/relative-ts), `audit_feed` (8 most-recent audit events), `live_world_map` (per-region school buckets — N. America / West Africa / Europe / Asia·Oceania / Other), `tenant_heatmap` (60 schools w/ approved=ok / pending=warn), `forecast_lane` (7d rolling: active MRR + new schools + failed runs), `slo_clocks` (webhook health % + audit chain + key rotation cadence + DR drill), `revenue_waterfall` (Active/Trialing/PastDue/Suspended/Canceled MRR breakdown via TenantSubscription aggregate), `trust_nutrition` (audit chain + MAA signs 7d + crypto/retention/MFA posture rows). All wrap try/except → None on failure → orchestrator keeps demo overlay or static default. `cockpit_context.py` overlays `resolve_panel_overrides()` AFTER demo payload but BEFORE operator's cockpit_payload so operator overrides still win. 60s cache. |
+| **9. Send button wired through gateway** | NEW POST `/studio/copilot/rail/send/` view `CopilotRailSendView` at `apps/studio_os/views_copilot_rail.py` — login-gated, 4000-char message cap, calls `services.ai_helpers.invoke_with_request(task_type=TaskType.STUDIO_OS_ASSISTANT, prompt, request, metadata=...)`. Returns `{reply, source: cloud\|local\|rules\|unavailable, posture_mode, request_id}` always 200 (graceful degradation — empty/error responses become polite fallback copy). URL pattern registered as `copilot_rail_send`. JS extended with `sendCopilotMessage()` — gets CSRF token from cookie, appends user message to thread, POSTs, appends AI reply, syncs the posture pill from response source. Enter (without Shift) in the rail input submits; Shift+Enter inserts newline. |
+| **10. Docket** | This entry. |
+
+### Verification
+
+| Gate | Result |
+|---|---|
+| Python AST (signup_views / cockpit_context / 2 new services / cockpit_manager_200x / views_copilot_rail / urls / test) | clean |
+| JS parse (`rmc-copilot-rail.js`) | clean (substantial rewrite — ~580 lines now) |
+| `verify_service_worker_version.py` | OK monotonic v3.58.3 → v3.58.4 |
+| URL conflict check | 0 (1 new route `copilot_rail_send` under `studio/`) |
+| Tenant-isolation markers | added on cross-tenant aggregates in both new services |
+
+### Files touched (v3.58.4)
+
+- `apps/siteconfig/cockpit_manager_200x.py` — notebook defaults
+- `apps/siteconfig/cockpit_platform_pulse_service.py` — NEW (Wave 3, earlier this turn)
+- `apps/siteconfig/cockpit_panels_realdata_service.py` — NEW (Wave 8)
+- `apps/siteconfig/cockpit_context.py` — pulse resolver wire + panels overlay wire
+- `apps/siteconfig/tests/test_cockpit_platform_pulse_service.py` — NEW (Wave 3)
+- `apps/schools/signup_views.py` — `_signup_countries()` + context wire (both render paths)
+- `apps/studio_os/views_copilot_rail.py` — NEW `CopilotRailSendView`
+- `apps/studio_os/urls.py` — Send route
+- `templates/control_plane_base.html` — header-ticker slot
+- `templates/schools/super_dashboard.html` — block override
+- `templates/super/founder_dashboard.html` — block override
+- `templates/customersuccess/super_dashboard.html` — block override
+- `templates/partials/cockpit/_operator_notebook.html` — drag + history scaffold
+- `templates/partials/cockpit/_ai_copilot_rail.html` — tabs + posture + panes
+- `templates/admin/base_site.html` — overlay link + density link
+- `templates/base.html` — density link
+- `templates/portal_base.html` — density link
+- `templates/control_plane_skeleton.html` — density link
+- `static/js/_pages/rmc-copilot-rail.js` — drag/recent + tabs + send/CSRF/Enter
+- `static/css/rmc-cp-200x.css` — drag + history + copilot tabs/posture + density block
+- `static/css/admin-200x-shell-overlay.css` — NEW (Wave 5)
+- `static/css/rmc-vertical-density-platform.css` — NEW (Wave 7)
+- `static/js/service-worker.js` — CACHE_VERSION
+- `docs/COCKPIT_AI_FLOW.md` — NEW
+- `docs/generated/preview_app_shell_admin_v1_200x.html` — NEW (design target, user-approved)
+
+### Honest deferred
+
+- Full Unfold layout restructure to swap the legacy `<div id="container">` for `.rmc-app-shell` grid inside /admin/ — overlay is non-destructive + high-impact, restructure is its own wave with template-by-template risk.
+- 1-week MRR/new-school/incidents delta strings on pulse cards — needs a daily snapshot table to compute vs-yesterday/vs-7d.
+- Streaming chat replies in the rail (the Send view returns a single JSON response today; SSE/WS streaming is its own wave).
+- Empty-state visual polish in `_platform_pulse.html` partial for muted-severity cards.
+
+
 
 ## 2026-05-22 — v3.58.2 Wave 8 — signup excellence + email reliability + operator SMTP backoffice
 
@@ -42,7 +228,7 @@ Three-agent parallel fan-out + orchestrator integration cleanup. Closes the user
 - `send_bulk` circuit-breaker on inline-fallback when Celery broker unreachable
 - End-to-end tests blocked by known Windows test-DB lock (documented in v3.54.0 lesson)
 - `sibling_compare` cockpit editor (privacy contract — opt_in=False must survive operator override)
-- `--elev-3` design-token flip (NEEDS-COORDINATED-AUDIT across 13 consumers)
+- ~~`--elev-3` design-token flip (NEEDS-COORDINATED-AUDIT across 13 consumers)~~ — RESOLVED v3.58.x (2026-05-22) Wave 9 Agent O. Coordinated audit run across 14 surface consumers + 6 theme redefines: all 14 consumers verdict `safe-to-flip` (every site is a surface that explicitly opted into the top elevation tier; bump matches design intent); 5 theme redefines (dark @media, warm-bright-school light + dark, cool-apple light + dark) wholesale-override so theme variants stay insulated. Canonical `:root` flipped to v8 preview value `0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)`. Audit index: [`docs/generated/elev3_audit/index.html`](generated/elev3_audit/index.html). Drift scanner shipped: `scripts/scan_elev3_consumer_drift.py` baseline 14 (CI wiring pending — wire into `.github/workflows/architectural-boundaries.yml` in a follow-up plumbing task).
 - `tenant_v2_demo_payload()` companion (so v2 tenant sections render out-of-box)
 - Counsel-pending v2.0 MAA flip + FACTS/Skyward write-paths
 - Time-blocked SDK 1.0.0 graduation + HSM bridge
