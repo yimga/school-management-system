@@ -721,6 +721,108 @@
 }
 
 /* ============================================================
+   Page-h1 gradient text — v3.59.x Wave A (2026-05-22)
+   ------------------------------------------------------------
+   Gradient-fill the <strong> inside the role-landing hero h1 to
+   match the v3 100x preview (`.tp-page-h1 strong`, preview line 568).
+   Production landings already wrap the dynamic name portion in
+   `<strong>` inside `.rmc-page-header-glow`; this rule paints that
+   `<strong>` with the school gradient. Covers every canonical class
+   used by production headers (page-h1, rmc-page-header,
+   rmc-page-header-glow, tp-page-h1).
+   ============================================================ */
+.page-h1 strong,
+.rmc-page-header strong,
+.rmc-page-header-glow strong,
+.rmc-page-header h1 strong,
+.rmc-page-header-glow h1 strong,
+.tp-page-h1 strong {
+  background: var(--school-gradient,
+    linear-gradient(135deg,
+      var(--school-primary, var(--brand-primary, #4f46e5)) 0%, /* off-token-allow: brand-gradient-fallback-when-tokens-missing */
+      var(--school-accent, var(--brand-accent, #10b981)) 100%)); /* off-token-allow: brand-gradient-fallback-when-tokens-missing */
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+          color: transparent;
+  font-weight: 800;
+}
+
+/* ============================================================
+   Academic-year progress bar — v3.59.x Wave A (2026-05-22)
+   ------------------------------------------------------------
+   Horizontal pill bar shown between the page hero and the cockpit
+   grid. Mirrors v3 100x preview `.tp-year-progress` (line 595).
+   Rendered by `partials/cockpit/_year_progress.html` and gated by
+   `cockpit.year_progress.enabled`.
+   ============================================================ */
+.tp-year-progress {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  padding: 14px 20px;
+  box-shadow: var(--elev-1);
+  min-width: 0;
+}
+.tp-year-progress__body { min-width: 0; }
+.tp-year-progress__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3, 10px);
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.tp-year-progress__title {
+  font-size: var(--type-size-small, 13px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+.tp-year-progress__term {
+  color: var(--text-tertiary);
+  font-weight: 600;
+  margin-left: 4px;
+}
+.tp-year-progress__pct {
+  font-size: var(--type-size-small, 12px);
+  color: var(--school-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tp-year-progress__bar {
+  height: 8px;
+  background: var(--surface-sunken, var(--surface-canvas));
+  border-radius: var(--radius-pill, 999px);
+  overflow: hidden;
+  position: relative;
+}
+.tp-year-progress__fill {
+  display: block;
+  block-size: 100%;
+  background: var(--school-gradient,
+    linear-gradient(135deg,
+      var(--school-primary, var(--brand-primary, #4f46e5)) 0%, /* off-token-allow: brand-gradient-fallback-when-tokens-missing */
+      var(--school-accent, var(--brand-accent, #10b981)) 100%)); /* off-token-allow: brand-gradient-fallback-when-tokens-missing */
+  border-radius: var(--radius-pill, 999px);
+  transition: inline-size var(--motion-normal, 240ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+.tp-year-progress__meta {
+  display: flex;
+  gap: var(--space-4, 16px);
+  margin-top: 8px;
+  font-size: var(--type-size-micro, 11px);
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
+}
+.tp-year-progress__meta strong { color: var(--text-secondary); }
+
+@media (max-width: 700px) {
+  .tp-year-progress { padding: 12px 16px; }
+  .tp-year-progress__head { gap: 6px; }
+}
+
+/* ============================================================
    Reduced motion — disable transforms / animations / transitions
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
@@ -738,4 +840,5 @@
   .tp-child-context__sibling:hover {
     transform: none;
   }
+  .tp-year-progress__fill { transition: none; }
 }

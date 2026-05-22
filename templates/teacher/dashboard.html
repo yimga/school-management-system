@@ -27,6 +27,8 @@
    primitive so teachers can fold sections they don't need. State persists per-section
    via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
 <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="teacher">
+  {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
+  {% include "partials/cockpit/_year_progress.html" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="teacher__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="teacher__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="teacher__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}
@@ -130,7 +132,8 @@
         {% comment %} Pass 8: previously hardcoded "Good afternoon" regardless of the user's local time.
            Use the same neutral "Welcome back" greeting as parent/admin dashboards until a
            time-of-day greeting helper is wired through the context processor. {% endcomment %}
-        <h1>{% blocktrans with name=request.user.get_full_name|default:request.user.username|default:"" %}Welcome back, {{ name }}.{% endblocktrans %}</h1>
+        {# v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.rmc-page-header-glow strong` gradient-text rule. #}
+        <h1>{% blocktrans with name=request.user.get_full_name|default:request.user.username|default:"" %}Welcome back, <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
         <p class="tdm-subtitle">{% trans "Here's an overview of your classes for today." %}</p>
         <div class="tdm-hero__chips">
           {% if acting_role_label %}<span class="chip">{{ acting_role_label }} (proxy)</span>{% endif %}

@@ -1,0 +1,62 @@
+{% load i18n %}
+{% comment %}
+Year progress — v3.59.x Wave A (2026-05-22)
+
+Horizontal academic-year progress bar. Mirrors v3 100x preview's
+`.tp-year-progress` design — sits between the page hero/header and the
+cockpit section grid on every role landing (parent / teacher / student /
+backend admin).
+
+Configurability (cockpit.year_progress.*):
+  enabled      bool          # default False; operator opt-in
+  label        str           # e.g. "Academic year"
+  term_label   str           # e.g. "Term 2"
+  percent      int 0..100    # progress fill width
+  eta_label    str           # e.g. "Ends June 12"
+
+Visibility:
+  - host kind:   never on manager surface (cockpit_context emits this key
+                 only on tenant hosts)
+  - per-tenant:  cockpit.year_progress.enabled must be True
+  - per-page:    pages may simply not `{% include %}` this partial
+
+PII safety:
+  All values are operator-published. No student-specific dates ever appear
+  here — the eta_label is a school-wide academic calendar marker.
+{% endcomment %}
+{% if cockpit.year_progress.enabled %}
+{% with yp=cockpit.year_progress %}
+{% with percent_raw=yp.percent|default:0 %}
+<section class="tp-year-progress"
+         data-rmc-cockpit-section="year_progress"
+         aria-label="{% blocktrans with label=yp.label|default:_('Academic year') %}{{ label }} progress{% endblocktrans %}">
+  <div class="tp-year-progress__body">
+    <div class="tp-year-progress__head">
+      <span class="tp-year-progress__title">
+        {{ yp.label|default:_("Academic year") }}{% if yp.term_label %}
+          <span class="tp-year-progress__term">· {{ yp.term_label }}</span>
+        {% endif %}
+      </span>
+      <span class="tp-year-progress__pct"
+            aria-label="{% blocktrans with pct=percent_raw %}{{ pct }} percent complete{% endblocktrans %}">
+        {{ percent_raw }}%
+      </span>
+    </div>
+    <div class="tp-year-progress__bar"
+         role="progressbar"
+         aria-valuenow="{{ percent_raw }}"
+         aria-valuemin="0"
+         aria-valuemax="100">
+      <!-- inline-style-allow: dynamic-progress-percent -->
+      <div class="tp-year-progress__fill" style="inline-size: {{ percent_raw }}%"></div>
+    </div>
+    {% if yp.eta_label %}
+    <div class="tp-year-progress__meta">
+      <span>{{ yp.eta_label }}</span>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endwith %}
+{% endwith %}
+{% endif %}

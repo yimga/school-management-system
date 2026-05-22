@@ -4178,8 +4178,8 @@
   inset-inline-start: 0;
   inset-inline-end: 0;
   padding: 12px 16px;
-  background: var(--color-base-900);
-  color: var(--color-base-0);
+  background: var(--color-base-900); /* theme-locked-allow: always-dark-demo-return-bar */
+  color: var(--color-base-0); /* theme-locked-allow: always-dark-demo-return-bar */
   text-align: center;
   font-size: var(--type-size-caption, 0.75rem);
   box-shadow: var(--apple-elev-3);
@@ -4486,4 +4486,38 @@
    independently of the existing :hover / :focus-within selectors. */
 .rmc-cockpit-ticker--paused .rmc-cockpit-ticker__track {
   animation-play-state: paused;
+}
+
+/* ============================================================
+   Theme-personality live preview swatches (v3.59.3 wave 11)
+   Scoped under .rmc-personality-preview-grid so personality
+   cards in the configure page demo each archetype side-by-side.
+   ============================================================ */
+.rmc-personality-preview-grid {
+  --rmc-preview-dot-size: 14px;
+}
+
+.rmc-personality-preview-dot {
+  display: inline-block;
+  inline-size: var(--rmc-preview-dot-size);
+  block-size: var(--rmc-preview-dot-size);
+  border-radius: 999px;
+  background: var(--rmc-page-personality-accent, var(--brand-primary, var(--color-primary-500))); /* theme-locked-allow: personality-accent-with-brand-then-primary-fallback */
+  box-shadow: 0 0 0 2px var(--surface-elevated, var(--surface-bg)),
+              0 0 0 3px var(--rmc-page-personality-accent, var(--brand-primary, var(--color-primary-500))); /* theme-locked-allow: personality-accent-with-brand-then-primary-fallback */
+}
+
+.rmc-personality-preview-cta {
+  background: var(--rmc-page-personality-accent, var(--brand-primary, var(--color-primary-500))); /* theme-locked-allow: personality-accent-with-brand-then-primary-fallback */
+  color: var(--rmc-page-personality-on-accent, var(--text-on-primary, #ffffff)); /* off-token-allow: cta-fallback-white-only-when-token-missing */
+  border: 0;
+  padding: 6px 12px;
+  border-radius: var(--radius-2, 8px);
+  font-weight: 600;
+  font-size: var(--type-size-caption, 0.8125rem);
+}
+
+.rmc-personality-preview-cta:hover,
+.rmc-personality-preview-cta:focus-visible {
+  filter: brightness(1.08);
 }

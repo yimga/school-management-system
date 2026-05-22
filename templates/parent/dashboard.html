@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% load admin_health evals_extras static region_format i18n phase8_tags %}
-{% load terminology_tags %}
+{% load terminology_tags workflow_guidance_tags %}
 {% block title %}{% trans "Family Home" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-parent{% if parent_simplified %} parent-dashboard-simplified{% endif %}{% endblock %}
 
@@ -19,6 +19,12 @@
 {% endblock %}
 
 {% block content %}
+{% workflow_resolve "parent-portal-pay-invoice" as wf %}
+{% if wf %}
+  {% with next_action=wf|workflow_next_action_payload:request %}
+    {% if next_action %}{% include "components/workflow_next_action.html" %}{% endif %}
+  {% endwith %}
+{% endif %}
 {% with widgets=display_widgets %}
 {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 
@@ -26,6 +32,8 @@
    primitive so families can fold sections they don't need. State persists per-section
    via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
 <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="parent">
+  {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
+  {% include "partials/cockpit/_year_progress.html" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="parent__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="parent__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="parent__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}
@@ -189,7 +197,8 @@
       <div class="dashboard-header">
         <div class="dashboard-title">
           <span class="dashboard-eyebrow rmc-page-eyebrow">{% trans "Family Home" %}</span>
-          <h1 id="parent-dashboard-title">{% trans "Welcome back" %}{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}</h1>
+          {# v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.rmc-page-header-glow strong` gradient-text rule. #}
+          <h1 id="parent-dashboard-title">{% trans "Welcome back" %}{% if request.user %}, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>{% endif %}</h1>
           <p>{% trans "Your children, school status, and the next step to take — in one calm view." %}</p>
         </div>
         <div class="dashboard-actions ds-action-bar d-flex flex-wrap align-items-center gap-2" data-rmc-parent-header-actions="1" data-tour="parent-quick-actions">

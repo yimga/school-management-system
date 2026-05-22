@@ -21,6 +21,12 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2-contract.css' %}">
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
+{% comment %} v3.59.x Wave A (2026-05-22): tenant-dashboard v2 cascade carries .tp-* primitives
+   (.tp-dashboard-cockpit, .tp-snap-card, .tp-year-progress, etc.) used by the cockpit
+   cascade already wired into this landing. Loaded under portal_base elsewhere; backend
+   landing extends backend_base so we link explicitly. {% endcomment %}
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
 {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
@@ -63,6 +69,8 @@ backend-shell dashboard-page-backend
      primitive so school admins can fold sections they don't need. State persists per-section
      via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
   <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
+    {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
+    {% include "partials/cockpit/_year_progress.html" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="backend__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="backend__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="backend__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}

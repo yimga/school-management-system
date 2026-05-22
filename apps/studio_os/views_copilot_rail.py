@@ -179,8 +179,7 @@ class CopilotRailSendView(LoginRequiredMixin, View):
 
         mode = _resolve_mode(request) or "operator"
         try:
-            from services.ai_helpers import invoke_with_request
-            from services.ai_gateway import TaskType
+            from services.ai_helpers import TaskType, invoke_with_request
         except ImportError:
             logger.warning("copilot_rail_send: ai_helpers import failed", exc_info=True)
             return JsonResponse({
@@ -356,10 +355,10 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
             # stays consistent for the JS consumer.
             try:
                 from services.ai_helpers import (
+                    TaskType,
                     invoke_with_request,
                     invoke_with_request_stream,
                 )
-                from services.ai_gateway import TaskType
             except ImportError:
                 logger.warning("copilot_rail_send_stream: ai_helpers import failed", exc_info=True)
                 yield _sse("error", {"code": "gateway_unavailable"})

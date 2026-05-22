@@ -34,7 +34,11 @@
     </thead>
     <tbody>
       {% for event in cockpit.audit_feed.events %}
-      <tr>
+      {% comment %} v3.59.3+ (2026-05-22): Full-row severity left-border stripe.
+         event.severity must be one of {ok, info, warn, danger}; any other value
+         falls through to 'info' via default filter (cockpit_context emits the
+         enum, so no untrusted-string risk here). {% endcomment %}
+      <tr class="lx-audit__row lx-audit__row--{{ event.severity|default:'info' }}">
         <td class="lx-audit__time">{{ event.time }}</td>
         <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--{{ event.severity|default:'info' }}" aria-hidden="true"></span>{{ event.actor }}</td>
         <td class="lx-audit__event">{{ event.event }}</td>

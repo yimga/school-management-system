@@ -212,6 +212,39 @@ def _tenant_teacher_spotlight_defaults() -> dict[str, Any]:
 
 
 # ============================================================
+# v3.59.x Wave A (2026-05-22) — academic-year progress bar
+# ============================================================
+
+
+def _year_progress_defaults() -> dict[str, Any]:
+    """Academic-year progress bar — rendered above the cockpit grid.
+
+    Mirrors v3 100x preview `.tp-year-progress` (line 595). Sits between
+    the page hero/header and the cockpit section grid on every role
+    landing (parent / teacher / student / backend admin).
+
+    Schema:
+        enabled       bool          # default False; operator opt-in
+        label         str           # e.g. "Academic year"
+        term_label    str           # e.g. "Term 2"
+        percent       int 0..100    # progress fill width
+        eta_label     str           # e.g. "Ends June 12"
+
+    PII safety:
+        Operator-published values only. No student-specific dates ever
+        appear here — the ``eta_label`` is a school-wide academic
+        calendar marker.
+    """
+    return {
+        "enabled": False,
+        "label": _("Academic year"),
+        "term_label": "",
+        "percent": 0,
+        "eta_label": "",
+    }
+
+
+# ============================================================
 # v3.58.x Wave 10 Agent Q — tenant activity ticker (global chrome)
 # ============================================================
 
@@ -297,6 +330,7 @@ TENANT_DASHBOARD_DEFAULTS: dict[str, Any] = {
     "achievements": _tenant_achievements_defaults,
     "teacher_spotlight": _tenant_teacher_spotlight_defaults,
     "tenant_activity_ticker": _tenant_activity_ticker_defaults,
+    "year_progress": _year_progress_defaults,
 }
 
 
@@ -321,4 +355,5 @@ __all__ = [
     "_tenant_achievements_defaults",
     "_tenant_teacher_spotlight_defaults",
     "_tenant_activity_ticker_defaults",
+    "_year_progress_defaults",
 ]

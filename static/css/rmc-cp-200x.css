@@ -611,6 +611,30 @@
   background: #fee2e2; /* off-token-allow: dark-chrome-audit-stripe-risk */
 }
 
+/* Full-row severity left-border stripe (logical property for RTL).
+   Scoped to control-plane personality so the colored stripe never
+   leaks onto an audit feed rendered on a tenant subdomain. */
+body[data-rmc-shell-main="control-plane"] .lx-audit__row,
+[data-rmc-page-personality="control-plane"] .lx-audit__row {
+  border-inline-start: 3px solid transparent;
+}
+body[data-rmc-shell-main="control-plane"] .lx-audit__row--ok,
+[data-rmc-page-personality="control-plane"] .lx-audit__row--ok {
+  border-inline-start-color: var(--cp-glow-emerald, var(--success, #22c55e)); /* off-token-allow: severity-stripe-glow-rgba */
+}
+body[data-rmc-shell-main="control-plane"] .lx-audit__row--info,
+[data-rmc-page-personality="control-plane"] .lx-audit__row--info {
+  border-inline-start-color: var(--cp-glow-sky, #60a5fa); /* off-token-allow: severity-stripe-glow-rgba */
+}
+body[data-rmc-shell-main="control-plane"] .lx-audit__row--warn,
+[data-rmc-page-personality="control-plane"] .lx-audit__row--warn {
+  border-inline-start-color: var(--cp-glow-amber, var(--warning, #f59e0b)); /* off-token-allow: severity-stripe-glow-rgba */
+}
+body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
+[data-rmc-page-personality="control-plane"] .lx-audit__row--danger {
+  border-inline-start-color: var(--cp-glow-rose, var(--danger, #ef4444)); /* off-token-allow: severity-stripe-glow-rgba */
+}
+
 
 /* ============================================================
    Element 8 — Trust nutrition label
@@ -766,9 +790,45 @@
   background: var(--danger, #ef4444);
   box-shadow: 0 0 0 4px rgba(239,68,68,0.18); /* off-token-allow: dark-chrome-slo-pulse */
 }
+/* Percentile sub-label alias (preview uses .lx-slo__subtitle in some contexts;
+   production partials emit .lx-slo__name — keep both rendering identically so
+   future template variants don't need a CSS change). */
+.lx-slo__subtitle {
+  font-size: 12px;
+  color: var(--cp-chrome-text-muted);
+  margin-top: 4px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .lx-slo__dot { animation: none; }
+}
+
+/* ------------------------------------------------------------
+   Tenant-bleed safety: even though the partial renders only when
+   cockpit.slo_clocks.enabled and the control_plane_skeleton gate
+   requires public_host_kind == 'manager', re-scope the entire
+   .lx-slo* surface as defense in depth so a misrouted include
+   on a tenant subdomain cannot paint dark chrome.
+
+   The unscoped block above keeps the dark inset aesthetic only
+   inside the control-plane shell; the scoped block here disables
+   the dark gradient + light-on-dark text outside it.
+   ------------------------------------------------------------ */
+:where(:not(body[data-rmc-shell-main="control-plane"], [data-rmc-page-personality="control-plane"]) *) .lx-slo__card {
+  /* If a tenant ever renders the partial, fall back to neutral
+     surface tokens so the dark gradient doesn't bleed. */
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+:where(:not(body[data-rmc-shell-main="control-plane"], [data-rmc-page-personality="control-plane"]) *) .lx-slo__value {
+  color: var(--text-primary);
+}
+:where(:not(body[data-rmc-shell-main="control-plane"], [data-rmc-page-personality="control-plane"]) *) .lx-slo__label,
+:where(:not(body[data-rmc-shell-main="control-plane"], [data-rmc-page-personality="control-plane"]) *) .lx-slo__name,
+:where(:not(body[data-rmc-shell-main="control-plane"], [data-rmc-page-personality="control-plane"]) *) .lx-slo__subtitle,
+:where(:not(body[data-rmc-shell-main="control-plane"], [data-rmc-page-personality="control-plane"]) *) .lx-slo__value small {
+  color: var(--text-secondary);
 }
 
 
