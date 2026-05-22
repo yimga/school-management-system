@@ -123,7 +123,9 @@ def _try_set_guc() -> tuple[bool | None, str]:
         return None, ""
     try:
         with connection.cursor() as cursor:
+            # rls-bypass-allow: rls-readiness-preflight-sets-then-resets-session-variable
             cursor.execute("SET app.current_school_id = '0'")
+            # rls-bypass-allow: rls-readiness-preflight-resets-session-variable-after-set-test
             cursor.execute("RESET app.current_school_id")
         return True, ""
     except DatabaseError as exc:
@@ -138,6 +140,7 @@ def _count_rls_policies() -> int | None:
         return None
     try:
         with connection.cursor() as cursor:
+            # rls-bypass-allow: rls-readiness-pg-catalog-introspection-cannot-use-orm
             cursor.execute(
                 "SELECT COUNT(*) FROM pg_policies WHERE schemaname = 'public'"
             )

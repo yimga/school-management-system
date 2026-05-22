@@ -1,11 +1,21 @@
 {
-  "generated_at": "2026-05-22T08:00:44+00:00",
-  "consumer_count": 14,
+  "generated_at": "2026-05-22T18:44:16+00:00",
+  "consumer_count": 16,
   "redefine_count": 6,
   "consumers": [
     {
+      "path": "static/css/admin-200x-shell-overlay.css",
+      "line": 441,
+      "text": "box-shadow: var(--elev-3, 0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)); /* off-token-allow: dark-chrome-admin-elev */"
+    },
+    {
+      "path": "static/css/admin-200x-shell-overlay.css",
+      "line": 559,
+      "text": "box-shadow: var(--elev-3, 0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)); /* off-token-allow: dark-chrome-admin-elev */"
+    },
+    {
       "path": "static/css/design-tokens.css",
-      "line": 167,
+      "line": 156,
       "text": "--portal-shadow-hover: var(--elev-3, 0 20px 40px rgba(15, 23, 42, 0.2));"
     },
     {
@@ -77,12 +87,12 @@
   "redefines": [
     {
       "path": "static/css/design-tokens.css",
-      "line": 70,
-      "text": "--elev-3: 0 20px 40px rgba(15, 23, 42, 0.12), 0 6px 12px rgba(15, 23, 42, 0.08);"
+      "line": 59,
+      "text": "--elev-3: 0 18px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08);"
     },
     {
       "path": "static/css/design-tokens.css",
-      "line": 734,
+      "line": 723,
       "text": "--elev-3: 0 20px 40px rgba(0, 0, 0, 0.6), 0 6px 12px rgba(0, 0, 0, 0.4);"
     },
     {

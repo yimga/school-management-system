@@ -213,6 +213,31 @@ CONSUMERS: list[dict[str, str]] = [
             "literal fallback. Bump reinforces the popover-over-page lift."
         ),
     },
+    {
+        "slug": "admin-200x-shell-overlay-stat-card",
+        "label": "admin-200x-shell-overlay: KPI stat-card hover lift",
+        "path": "static/css/admin-200x-shell-overlay.css",
+        "line": "441",
+        "verdict": "safe-to-flip",
+        "rationale": (
+            "v3.59.4 Wave A: KPI stat-card overlay on /admin/ manager host. "
+            "var(--elev-3) with literal fallback; off-token-allow marker "
+            "categorical 'dark-chrome-admin-elev'. Heavier shadow matches "
+            "the v8 200x luxury chrome the overlay implements."
+        ),
+    },
+    {
+        "slug": "admin-200x-shell-overlay-catalog-card",
+        "label": "admin-200x-shell-overlay: catalog card hover lift",
+        "path": "static/css/admin-200x-shell-overlay.css",
+        "line": "559",
+        "verdict": "safe-to-flip",
+        "rationale": (
+            "v3.59.4 Wave A: catalog card hover overlay on /admin/ manager "
+            "host. Same var(--elev-3) + fallback contract as stat-card site. "
+            "Glass card glow + heavier shadow are the v8 preview parity goal."
+        ),
+    },
 ]
 
 # Theme redefines (informational — these BLOCK the canonical flip from reaching

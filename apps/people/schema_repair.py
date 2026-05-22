@@ -29,14 +29,17 @@ def ensure_teacherprofile_updated_at_column() -> bool:
         q_table = connection.ops.quote_name(table_name)
         q_col = connection.ops.quote_name("updated_at")
         with connection.cursor() as cursor:
+            # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-add-column
             cursor.execute(
                 f"ALTER TABLE {q_table} ADD COLUMN IF NOT EXISTS {q_col} "
                 "timestamp with time zone;"
             )
+            # rls-bypass-allow: schema-repair-backfill-of-new-column-runs-once-pre-rls
             cursor.execute(
                 f"UPDATE {q_table} SET {q_col} = %s WHERE {q_col} IS NULL;",
                 [now],
             )
+            # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-enforce-not-null
             cursor.execute(
                 f"ALTER TABLE {q_table} ALTER COLUMN {q_col} SET NOT NULL;"
             )
