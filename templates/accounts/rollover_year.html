@@ -1,8 +1,13 @@
 {% extends "backend_base.html" %}
 {% load static %}
-{% load i18n %}
+{% load i18n workflow_guidance_tags %}
 
 {% block title %}Year-end rollover{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
+{% endblock %}
 
 {% block backend_page %}
 <div class="container-fluid">
@@ -13,6 +18,13 @@
       <li class="breadcrumb-item active" aria-current="page">Year-end rollover</li>
     </ol>
   </nav>
+  {% workflow_resolve "accounts-rollover" as wf %}
+  {% if wf %}
+    {% with status=wf|workflow_status_payload:request panel=wf|workflow_help_panel_payload:request %}
+      {% if status %}{% include "components/workflow_status_strip.html" %}{% endif %}
+      {% if panel %}{% include "components/workflow_help_panel.html" %}{% endif %}
+    {% endwith %}
+  {% endif %}
 
   <div class="card shadow-sm mb-3">
     <div class="card-body">

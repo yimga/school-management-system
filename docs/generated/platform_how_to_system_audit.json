@@ -1,0 +1,232 @@
+{
+  "doc": "platform_how_to_system_audit",
+  "phase": 2,
+  "generated_at": "2026-05-22T17:30:51Z",
+  "scope": "Current-state audit of how-to / help / AI-guidance / feedback coverage across the platform. Pairs with docs/architecture/RUNMYCAMPUS_WORKFLOW_HOW_TO_SYSTEM.md (the spec). Captures what already exists, what Phase 3 landed, and where Phase 4+ still needs to wire.",
+  "summary": {
+    "apps_with_routes": 27,
+    "apps_with_help_template_in_templates_dir": 6,
+    "apps_importing_services_ai_helpers": 13,
+    "apps_importing_feedback": 6,
+    "help_template_files_count": 17,
+    "howto_template_files_count": 0,
+    "faq_template_files_count": 7,
+    "phase3_components_present": true,
+    "phase3_workflow_registry_present": true,
+    "phase3_workflow_guidance_present": true,
+    "phase3_css_bundle_present": true
+  },
+  "phase3_landed_artifacts": {
+    "templates": [
+      "templates/components/workflow_info_tag.html",
+      "templates/components/workflow_help_panel.html",
+      "templates/components/workflow_next_action.html",
+      "templates/components/workflow_status_strip.html"
+    ],
+    "python_modules": [
+      "apps/platform_runtime/workflow_registry.py",
+      "apps/platform_runtime/workflow_guidance.py"
+    ],
+    "css_bundles": [
+      "static/css/rmc-workflow-guidance.css"
+    ]
+  },
+  "existing_help_surfaces": {
+    "help_templates_inventory": [
+      "templates/components/was_this_helpful.html",
+      "templates/components/workflow_help_panel.html",
+      "templates/feedback/help_center.html",
+      "templates/feedback/partials/help_center_engage_strip.html",
+      "templates/feedback/partials/help_center_quick_feature.html",
+      "templates/marketing/partials/mkt_help_engine.html",
+      "templates/marketing/partials/mkt_help_hub.html",
+      "templates/partials/help_community_lane.html",
+      "templates/partials/help_contextual_drawer.html",
+      "templates/partials/help_deflection_strip.html",
+      "templates/partials/help_module_inline_assistant.html",
+      "templates/partials/help_persona_quickstart.html",
+      "templates/partials/help_proactive_nudge.html",
+      "templates/portal/email/help_north_star_report.html",
+      "templates/portal/support_help_hub.html",
+      "templates/schools/partials/manager_help_analytics_body.html",
+      "templates/schools/partials/manager_help_center_body.html"
+    ],
+    "howto_templates_inventory": [],
+    "faq_templates_inventory": [
+      "templates/apicenter/super/ai_center_faq_candidates.html",
+      "templates/marketing/components/_faq_accordion.html",
+      "templates/portal/faq_detail.html",
+      "templates/portal/faq_list.html",
+      "templates/portal/faq_submit.html",
+      "templates/portal/operator/faq_detail_body.html",
+      "templates/portal/operator/faq_list_body.html"
+    ],
+    "apps_with_help_dir": [
+      "components",
+      "feedback",
+      "marketing",
+      "partials",
+      "portal",
+      "schools"
+    ]
+  },
+  "existing_ai_helpers_callers": [
+    "apps/analytics/management/commands/ai_narrate_risk_digest.py",
+    "apps/analytics/tests/test_ai_surfaces.py",
+    "apps/analytics/tests/test_wave9_language_pgvector.py",
+    "apps/api/consumers.py",
+    "apps/api/learning_institution_api.py",
+    "apps/automation/ai_workflow_suggest.py",
+    "apps/communication/narrative_feedback.py",
+    "apps/dashboard/services/insight_anomalies.py",
+    "apps/finance/ai_categorize.py",
+    "apps/migration_cloud/tests/test_ai_helpers.py",
+    "apps/observability/ai_copilot_service.py",
+    "apps/observability/management/commands/digest_friction.py",
+    "apps/people/ai_dedup.py",
+    "apps/platform_runtime/workflow_registry.py",
+    "apps/portal/ai_provider.py",
+    "apps/portal/tasks.py",
+    "apps/portal/views_ai_copilot.py",
+    "apps/portal/views_ai_gateway.py",
+    "apps/siteconfig/tenant_studio_day1.py",
+    "apps/siteconfig/views_onboarding_coach.py",
+    "apps/studio_os/copilot_rail_service.py",
+    "apps/studio_os/views_copilot_rail.py"
+  ],
+  "existing_feedback_importers": [
+    "apps/customersuccess/auto_ticket_runner.py",
+    "apps/feedback/apps.py",
+    "apps/feedback/context_processors.py",
+    "apps/feedback/db_readiness.py",
+    "apps/feedback/management/commands/purge_help_telemetry.py",
+    "apps/feedback/services.py",
+    "apps/feedback/signals.py",
+    "apps/feedback/tests/test_contextual_feedback_widget.py",
+    "apps/feedback/tests/test_db_readiness.py",
+    "apps/feedback/tests/test_feature_request_flow.py",
+    "apps/feedback/tests/test_feedback_contact_us_integration.py",
+    "apps/feedback/tests/test_feedback_help_center_contracts.py",
+    "apps/feedback/tests/test_feedback_priority_scoring.py",
+    "apps/feedback/tests/test_feedback_privacy_and_roadmap_visibility.py",
+    "apps/feedback/tests/test_feedback_submission.py",
+    "apps/feedback/tests/test_feedback_tenant_isolation.py",
+    "apps/feedback/tests/test_help_center_and_release_notes.py",
+    "apps/feedback/tests/test_help_center_v3_gear.py",
+    "apps/feedback/tests/test_helpcenter_loop_v4.py",
+    "apps/feedback/tests/test_parent_student_feedback_privacy.py",
+    "apps/feedback/tests/test_roadmap_release_notes.py",
+    "apps/feedback/tests/test_voice_of_customer_dashboard.py",
+    "apps/feedback/views_public_status.py",
+    "apps/observability/management/commands/summarize_feedback_loop.py",
+    "apps/portal/help_content_gaps.py",
+    "apps/portal/help_north_star.py",
+    "apps/portal/help_search_intelligence.py",
+    "apps/portal/support_deflection.py",
+    "apps/portal/tests/test_help_center_tiers.py",
+    "apps/portal/tests/test_help_center_wave2.py",
+    "apps/portal/tests/test_help_center_wave3.py",
+    "apps/portal/tests/test_support_deflection.py",
+    "apps/portal/views_ai_gateway.py",
+    "apps/portal/views_support.py",
+    "apps/schools/operator_help_signals.py",
+    "apps/schools/tests/test_manager_ai_review_queue.py",
+    "apps/siteconfig/tests/test_interaction_integrity_contract.py"
+  ],
+  "gaps": {
+    "apps_with_routes_no_help_no_ai_no_feedback": [
+      "academics",
+      "compliance",
+      "evals",
+      "events",
+      "integrations_marketplace",
+      "metadata",
+      "orchestration",
+      "payroll",
+      "reports",
+      "requests",
+      "sales",
+      "school_events"
+    ],
+    "apps_with_routes_no_help": [
+      "academics",
+      "accounts",
+      "analytics",
+      "api",
+      "apicenter",
+      "automation",
+      "communication",
+      "compliance",
+      "evals",
+      "events",
+      "finance",
+      "integrations_marketplace",
+      "marketplace",
+      "metadata",
+      "migration_cloud",
+      "orchestration",
+      "payroll",
+      "platform_runtime",
+      "reports",
+      "requests",
+      "sales",
+      "school_events",
+      "siteconfig",
+      "studio_os"
+    ],
+    "apps_with_workflow_templates_no_feedback_hook": [
+      "academics",
+      "accounts",
+      "apicenter",
+      "communication",
+      "compliance",
+      "evals",
+      "events",
+      "finance",
+      "marketplace",
+      "migration_cloud",
+      "payroll",
+      "platform_runtime",
+      "reports",
+      "requests",
+      "sales",
+      "studio_os"
+    ]
+  },
+  "phase4_wiring_plan": [
+    {
+      "target": "templates/studio_os/modes/output.html",
+      "workflow_key": "studio-os-output",
+      "components": [
+        "status_strip",
+        "info_tag",
+        "next_action",
+        "help_panel"
+      ],
+      "closes": "Phase 7 OP-1 (no _mode_hero, no primary CTA)"
+    },
+    {
+      "target": "templates/migration_cloud/connector/_wizard_base.html",
+      "workflow_key": "migration-cloud-connect-sis",
+      "components": [
+        "status_strip",
+        "info_tag",
+        "help_panel"
+      ]
+    },
+    {
+      "target": "templates/parent/dashboard.html",
+      "workflow_key": "parent-portal-pay-invoice",
+      "components": [
+        "next_action",
+        "info_tag"
+      ]
+    }
+  ],
+  "honest_deferrals": [
+    "Operator UI to edit SiteSettings.cockpit_payload.workflow_guidance.<key>.enabled per-tenant \u2014 Phase 5/6 audits recommend; Phase 3 left as scaffolding-only",
+    "Promotion of Phase 1's 112-workflow classification matrix into the 16-row registry \u2014 rebuild_from_classification_matrix() extension point exists; requires operator review per workflow",
+    "Workflow guidance Django template-tag library \u2014 Phase 4 lands the {% load workflow_guidance %} loader"
+  ],
+  "verdict": "PHASE_2_AUDIT_READY"
+}

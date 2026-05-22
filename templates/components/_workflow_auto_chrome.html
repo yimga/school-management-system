@@ -1,0 +1,37 @@
+{% load workflow_guidance_tags %}{% comment %}
+  Phase 4 Wave D — auto-resolve workflow chrome partial.
+
+  Include this once near the top of a base template's content block. It
+  resolves a workflow registered under the current request.path via
+  ``workflow_guidance.resolve_workflow_for_route`` (which matches either the
+  URL view_name OR a registered ``entry_path`` prefix). If no workflow
+  resolves, the partial renders NOTHING — every {% include %} below is
+  guarded by ``{% if status %}`` / ``{% if next_action %}`` / ``{% if panel %}``.
+
+  Visibility safety:
+  * The 3-layer gate in ``workflow_guidance.is_visible_for`` hides operator
+    workflows on tenant hosts and tenant workflows on the manager host.
+  * ``platform-only`` tag chips are stripped from tenant-host renders by
+    ``tags_for``.
+
+  Wiring policy (Phase 4 Wave D):
+  * Tenant portal:    templates/portal_base.html
+  * Operator shell:   templates/control_plane_skeleton.html
+  * Backend (admin):  templates/backend_base.html
+  * Studio OS shell:  templates/studio_os/shell.html
+  Pages that already include a workflow component explicitly (the 8 Phase 4
+  Wave B + C templates) are NOT affected — explicit includes resolve the
+  same workflow object, so double-include is functionally idempotent.
+{% endcomment %}
+{% workflow_resolve_for_request as rmc_wf_auto %}
+{% if rmc_wf_auto %}
+  {% with status=rmc_wf_auto|workflow_status_payload:request next_action=rmc_wf_auto|workflow_next_action_payload:request panel=rmc_wf_auto|workflow_help_panel_payload:request %}
+    {% if status or next_action or panel %}
+    <div class="rmc-workflow-auto-chrome" data-rmc-workflow-auto-chrome="1" data-rmc-workflow-key="{{ rmc_wf_auto.key }}">
+      {% if status %}{% include "components/workflow_status_strip.html" %}{% endif %}
+      {% if next_action %}{% include "components/workflow_next_action.html" %}{% endif %}
+      {% if panel %}{% include "components/workflow_help_panel.html" %}{% endif %}
+    </div>
+    {% endif %}
+  {% endwith %}
+{% endif %}

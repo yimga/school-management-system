@@ -1,0 +1,359 @@
+{
+  "doc": "promoted_workflow_route_verification",
+  "generated_at": "2026-05-22T18:59:30Z",
+  "django_bootable": true,
+  "total_workflows": 54,
+  "hand_seeded": 16,
+  "promoted": 38,
+  "promoted_results": [
+    {
+      "key": "accounts-rollover",
+      "title": "Academic year rollover",
+      "module": "accounts",
+      "audience": "tenant-admin",
+      "entry_path": "/authentication/rollover/",
+      "status": "resolves",
+      "evidence": "first-segment 'authentication/rollover' matched in URL graph"
+    },
+    {
+      "key": "accounts-entity-import",
+      "title": "Bulk import entity CSV",
+      "module": "accounts",
+      "audience": "tenant-admin",
+      "entry_path": "/authentication/entity-import/",
+      "status": "resolves",
+      "evidence": "first-segment 'authentication/entity-import' matched in URL graph"
+    },
+    {
+      "key": "ai-center-modelfile",
+      "title": "Manage AI Center modelfiles",
+      "module": "apicenter",
+      "audience": "operator",
+      "entry_path": "/super/api-center/ai/",
+      "status": "resolves",
+      "evidence": "first-segment 'super/api-center' matched in URL graph"
+    },
+    {
+      "key": "billing-plan-pick",
+      "title": "Pick tenant billing plan",
+      "module": "siteconfig",
+      "audience": "tenant-admin",
+      "entry_path": "/siteconfig/billing-plan/",
+      "status": "resolves",
+      "evidence": "first-segment 'siteconfig/billing-plan' matched in URL graph"
+    },
+    {
+      "key": "blueprint-rollback",
+      "title": "Rollback an installed blueprint",
+      "module": "platform_runtime",
+      "audience": "operator",
+      "entry_path": "/platform-runtime/blueprints/installations/",
+      "status": "resolves",
+      "evidence": "first-segment 'platform-runtime/blueprints' matched in URL graph"
+    },
+    {
+      "key": "compliance-erasure-request",
+      "title": "GDPR / FERPA erasure request",
+      "module": "compliance",
+      "audience": "parent",
+      "entry_path": "/compliance/erasure/",
+      "status": "resolves",
+      "evidence": "first-segment 'compliance/erasure' matched in URL graph"
+    },
+    {
+      "key": "compliance-regulatory-export",
+      "title": "Regulatory export (EMIS / district)",
+      "module": "reports",
+      "audience": "tenant-admin",
+      "entry_path": "/reports/regulatory-export/",
+      "status": "resolves",
+      "evidence": "first-segment 'reports/regulatory-export' matched in URL graph"
+    },
+    {
+      "key": "finance-cash-closure",
+      "title": "Daily cash office closure",
+      "module": "finance",
+      "audience": "tenant-admin",
+      "entry_path": "/finance/payments/cash-closure/",
+      "status": "resolves",
+      "evidence": "first-segment 'finance/payments' matched in URL graph"
+    },
+    {
+      "key": "migration-guardian-consent",
+      "title": "Guardian consent capture (parent confirms migration)",
+      "module": "migration_cloud",
+      "audience": "parent",
+      "entry_path": "/migration/guardian/consent/",
+      "status": "resolves",
+      "evidence": "first-segment 'migration/guardian' matched in URL graph"
+    },
+    {
+      "key": "offline-conflict-resolve",
+      "title": "Resolve offline-sync conflicts",
+      "module": "portal",
+      "audience": "teacher",
+      "entry_path": "/offline/conflicts/",
+      "status": "resolves",
+      "evidence": "first-segment 'offline/conflicts' matched in URL graph"
+    },
+    {
+      "key": "operator-create-school",
+      "title": "Create new tenant school (super-admin)",
+      "module": "schools",
+      "audience": "operator",
+      "entry_path": "/super/schools/create/",
+      "status": "resolves",
+      "evidence": "first-segment 'super/schools' matched in URL graph"
+    },
+    {
+      "key": "operator-impersonation",
+      "title": "Operator impersonate tenant user",
+      "module": "accounts",
+      "audience": "operator",
+      "entry_path": "/authentication/impersonation/",
+      "status": "resolves",
+      "evidence": "first-segment 'authentication/impersonation' matched in URL graph"
+    },
+    {
+      "key": "operator-school-onboard-wizard",
+      "title": "Onboard wizard (operator-driven tenant activation)",
+      "module": "schools",
+      "audience": "operator",
+      "entry_path": "/super/schools/<id>/onboard/",
+      "status": "resolves",
+      "evidence": "first-segment 'super/schools' matched in URL graph"
+    },
+    {
+      "key": "parent-payment-receipt",
+      "title": "Parent captures payment receipt",
+      "module": "finance",
+      "audience": "parent",
+      "entry_path": "/finance/invoices/<id>/receipt/",
+      "status": "resolves",
+      "evidence": "first-segment 'finance/invoices' matched in URL graph"
+    },
+    {
+      "key": "payroll-create-run",
+      "title": "Create payroll run",
+      "module": "payroll",
+      "audience": "tenant-admin",
+      "entry_path": "/payroll/create-run/",
+      "status": "resolves",
+      "evidence": "first-segment 'payroll/create-run' matched in URL graph"
+    },
+    {
+      "key": "public-school-signup",
+      "title": "Public school signup flow",
+      "module": "schools",
+      "audience": "tenant-admin",
+      "entry_path": "/signup/",
+      "status": "resolves",
+      "evidence": "first-segment 'signup' matched in URL graph"
+    },
+    {
+      "key": "report-generation",
+      "title": "Generate ad-hoc report",
+      "module": "analytics",
+      "audience": "tenant-admin",
+      "entry_path": "/analytics/",
+      "status": "resolves",
+      "evidence": "first-segment 'analytics' matched in URL graph"
+    },
+    {
+      "key": "reports-promotion-preview",
+      "title": "Promotion preview (year-end)",
+      "module": "reports",
+      "audience": "tenant-admin",
+      "entry_path": "/reports/promotion-preview/",
+      "status": "resolves",
+      "evidence": "first-segment 'reports/promotion-preview' matched in URL graph"
+    },
+    {
+      "key": "teacher-attendance",
+      "title": "Teacher takes attendance",
+      "module": "portal",
+      "audience": "teacher",
+      "entry_path": "/teacher/attendance/",
+      "status": "resolves",
+      "evidence": "first-segment 'teacher/attendance' matched in URL graph"
+    },
+    {
+      "key": "teacher-marks-entry",
+      "title": "Teacher enters marks",
+      "module": "evals",
+      "audience": "teacher",
+      "entry_path": "/evals/grade-import/upload/",
+      "status": "resolves",
+      "evidence": "first-segment 'evals/grade-import' matched in URL graph"
+    },
+    {
+      "key": "tenant-guided-configuration",
+      "title": "Guided configuration workflows",
+      "module": "siteconfig",
+      "audience": "tenant-admin",
+      "entry_path": "/siteconfig/guided-onboarding/",
+      "status": "resolves",
+      "evidence": "first-segment 'siteconfig/guided-onboarding' matched in URL graph"
+    },
+    {
+      "key": "tenant-onboarding-coach",
+      "title": "Tenant onboarding coach + activation",
+      "module": "platform_runtime",
+      "audience": "tenant-admin",
+      "entry_path": "/platform-runtime/implementation/",
+      "status": "resolves",
+      "evidence": "first-segment 'platform-runtime/implementation' matched in URL graph"
+    },
+    {
+      "key": "tenant-onboarding-step",
+      "title": "Tenant onboarding step-by-step setup",
+      "module": "siteconfig",
+      "audience": "tenant-admin",
+      "entry_path": "/siteconfig/onboarding/",
+      "status": "resolves",
+      "evidence": "first-segment 'siteconfig/onboarding' matched in URL graph"
+    },
+    {
+      "key": "ai-copilot-rail",
+      "title": "AI Copilot rail (Control Plane)",
+      "module": "portal",
+      "audience": "operator",
+      "entry_path": "/studio/copilot/rail/",
+      "status": "resolves",
+      "evidence": "first-segment 'studio/copilot' matched in URL graph"
+    },
+    {
+      "key": "automation-workflow-create",
+      "title": "Create automation workflow",
+      "module": "automation",
+      "audience": "tenant-admin",
+      "entry_path": "/automation/",
+      "status": "resolves",
+      "evidence": "first-segment 'automation' matched in URL graph"
+    },
+    {
+      "key": "communication-narrative-approve",
+      "title": "Approve teacher narrative",
+      "module": "communication",
+      "audience": "tenant-admin",
+      "entry_path": "/communication/narrative/approve/",
+      "status": "resolves",
+      "evidence": "first-segment 'communication/narrative' matched in URL graph"
+    },
+    {
+      "key": "compliance-data-quality",
+      "title": "Data-quality compliance dashboard",
+      "module": "compliance",
+      "audience": "tenant-admin",
+      "entry_path": "/compliance/data-quality/",
+      "status": "resolves",
+      "evidence": "first-segment 'compliance/data-quality' matched in URL graph"
+    },
+    {
+      "key": "customersuccess-guided-onboarding",
+      "title": "Customer-success guided onboarding",
+      "module": "customersuccess",
+      "audience": "operator",
+      "entry_path": "/siteconfig/guided-onboarding/",
+      "status": "resolves",
+      "evidence": "first-segment 'siteconfig/guided-onboarding' matched in URL graph"
+    },
+    {
+      "key": "finance-generate-fees",
+      "title": "Generate term fees",
+      "module": "finance",
+      "audience": "tenant-admin",
+      "entry_path": "/finance/fees/generate/",
+      "status": "resolves",
+      "evidence": "first-segment 'finance/fees' matched in URL graph"
+    },
+    {
+      "key": "migration-connectors",
+      "title": "Migration Cloud connectors wizard",
+      "module": "migration_cloud",
+      "audience": "operator",
+      "entry_path": "/super/migration/connectors/",
+      "status": "resolves",
+      "evidence": "first-segment 'super/migration' matched in URL graph"
+    },
+    {
+      "key": "observability-incidents",
+      "title": "Platform incidents view",
+      "module": "observability",
+      "audience": "operator",
+      "entry_path": "/super/observability/incidents/",
+      "status": "resolves",
+      "evidence": "first-segment 'super/observability' matched in URL graph"
+    },
+    {
+      "key": "operator-platform-events",
+      "title": "Inspect platform events (cross-tenant)",
+      "module": "schools",
+      "audience": "operator",
+      "entry_path": "/super/platform-events/",
+      "status": "resolves",
+      "evidence": "first-segment 'super/platform-events' matched in URL graph"
+    },
+    {
+      "key": "operator-tenant-self-offboard",
+      "title": "Tenant self-service offboarding gate",
+      "module": "schools",
+      "audience": "operator",
+      "entry_path": "/super/schools/<id>/offboarding/",
+      "status": "resolves",
+      "evidence": "first-segment 'super/schools' matched in URL graph"
+    },
+    {
+      "key": "orchestration-define-process",
+      "title": "Define orchestration process",
+      "module": "orchestration",
+      "audience": "operator",
+      "entry_path": "/orchestration/",
+      "status": "resolves",
+      "evidence": "first-segment 'orchestration' matched in URL graph"
+    },
+    {
+      "key": "parent-finance",
+      "title": "Parent reviews finance + due invoices",
+      "module": "portal",
+      "audience": "parent",
+      "entry_path": "/parent/finance/",
+      "status": "resolves",
+      "evidence": "first-segment 'parent/finance' matched in URL graph"
+    },
+    {
+      "key": "people-create-student",
+      "title": "Create student",
+      "module": "people",
+      "audience": "tenant-admin",
+      "entry_path": "/backend/people/students/create/",
+      "status": "resolves",
+      "evidence": "first-segment 'backend/people' matched in URL graph"
+    },
+    {
+      "key": "people-create-teacher",
+      "title": "Create teacher",
+      "module": "people",
+      "audience": "tenant-admin",
+      "entry_path": "/backend/people/teachers/create/",
+      "status": "resolves",
+      "evidence": "first-segment 'backend/people' matched in URL graph"
+    },
+    {
+      "key": "signature-requests",
+      "title": "Manage signature requests",
+      "module": "portal",
+      "audience": "tenant-admin",
+      "entry_path": "/portal/signature-requests/",
+      "status": "resolves",
+      "evidence": "first-segment 'portal/signature-requests' matched in URL graph"
+    }
+  ],
+  "summary": {
+    "resolves": 38,
+    "warn": 0,
+    "skipped": 0,
+    "not_found": 0
+  },
+  "exit_code": 0
+}

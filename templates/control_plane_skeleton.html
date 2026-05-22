@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static workflow_guidance_tags %}
 <!doctype html>
 <html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
@@ -140,6 +140,7 @@
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% block content %}
+    {% include "components/_workflow_auto_chrome.html" %}
     {% comment %} v3.55.0 (2026-05-21): .rmc-app-shell — platform-wide grid contract.
        header (row 1, static) + sidebar (col 1, own scroll) + canvas (col 2, own scroll).
        Legacy `cp-shell-content` class kept on canvas-body for back-compat with existing

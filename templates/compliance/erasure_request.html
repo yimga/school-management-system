@@ -1,11 +1,23 @@
 {% extends "backend_base.html" %}
-{% load i18n static %}
+{% load i18n static workflow_guidance_tags %}
 
 {% block title %}{% trans "Request erasure (GDPR)" %} – {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Request erasure (GDPR Art. 17)" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
+{% endblock %}
+
 {% block backend_page %}
   <div class="container-fluid py-4" data-page-archetype="record-detail">
+    {% workflow_resolve "compliance-erasure-request" as wf %}
+    {% if wf %}
+      {% with status=wf|workflow_status_payload:request panel=wf|workflow_help_panel_payload:request %}
+        {% if status %}{% include "components/workflow_status_strip.html" %}{% endif %}
+        {% if panel %}{% include "components/workflow_help_panel.html" %}{% endif %}
+      {% endwith %}
+    {% endif %}
     <div class="card shadow-sm">
       <div class="card-body">
         <h1 class="h4 mb-3">{% trans "Right to Erasure" %}</h1>

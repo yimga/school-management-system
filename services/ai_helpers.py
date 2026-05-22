@@ -30,7 +30,7 @@ from typing import Any
 
 from services.ai_gateway import TaskType  # public re-export for app-level callers
 
-__all__ = ["TaskType", "invoke_with_request", "normalize_gateway_metadata", "record_feedback", "is_ai_available", "looks_like_pii", "redact_pii"]
+__all__ = ["TaskType", "invoke_with_request", "invoke_with_request_stream", "normalize_gateway_metadata", "record_feedback", "is_ai_available", "looks_like_pii", "redact_pii"]
 
 logger = logging.getLogger(__name__)
 

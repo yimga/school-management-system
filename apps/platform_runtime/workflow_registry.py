@@ -184,6 +184,15 @@ class WorkflowDefinition:
     related_ai_context_key: Optional[str] = None
     external_blockers: tuple[str, ...] = field(default_factory=tuple)
     default_tags: tuple[str, ...] = field(default_factory=tuple)
+    # Optional URL path used when the workflow is promoted from the Phase 1
+    # classification matrix (which stores URL paths, not URL names). When set,
+    # ``workflow_guidance.resolve_workflow_for_route`` also matches on
+    # ``request.path.startswith(entry_path)`` as a fallback after the
+    # ``view_name == route`` exact match.
+    entry_path: Optional[str] = None
+    # Tag attached when the registry entry was promoted from the matrix vs
+    # hand-seeded. Drives the ``needs-review`` chip until an operator confirms.
+    source: str = "hand-seeded"
 
 
 # ============================================================
@@ -475,6 +484,33 @@ WORKFLOWS: dict[str, WorkflowDefinition] = {
         ),
     ),
 }
+
+
+# ============================================================
+# Matrix-promoted workflows.
+#
+# The Phase 1 classification matrix at
+# ``docs/generated/platform_workflow_classification_matrix.json`` contains
+# 112 hand-classified workflows. The top 40 weak workflows are promoted into
+# the registry by ``scripts/promote_matrix_to_registry.py`` into a sibling
+# module that we merge here.
+#
+# Promoted entries carry ``source="matrix-promoted"`` and ``needs-review`` by
+# default; they are honest placeholders until an operator verifies the
+# route, audience, prerequisites, and steps. Hand-seeded entries override
+# any matrix-promoted entry with the same key.
+# ============================================================
+try:
+    from apps.platform_runtime.workflow_registry_promoted import (
+        WORKFLOWS_PROMOTED,
+    )
+except ImportError:  # pragma: no cover - generated file optional
+    WORKFLOWS_PROMOTED: dict[str, WorkflowDefinition] = {}
+
+for _promoted_key, _promoted_def in WORKFLOWS_PROMOTED.items():
+    # Hand-seeded entries win over auto-promoted entries when keys collide.
+    if _promoted_key not in WORKFLOWS:
+        WORKFLOWS[_promoted_key] = _promoted_def
 
 
 # ============================================================

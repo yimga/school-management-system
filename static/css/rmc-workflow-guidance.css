@@ -37,6 +37,26 @@
  */
 
 /* ============================================================ */
+/* 0. .rmc-workflow-auto-chrome                                  */
+/*    Wave D wrapper emitted by templates/components/            */
+/*    _workflow_auto_chrome.html only when the auto-resolve      */
+/*    bridge returns a visible workflow. Acts as a layout fence  */
+/*    so the 3 component partials stack predictably. No visual    */
+/*    chrome of its own — children own the look.                  */
+/* ============================================================ */
+
+.rmc-workflow-auto-chrome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  margin-block: var(--space-3, 0.75rem);
+}
+
+.rmc-workflow-auto-chrome > * + * {
+  margin-top: 0;
+}
+
+/* ============================================================ */
 /* 1. .rmc-workflow-tag                                          */
 /* ============================================================ */
 

@@ -1,0 +1,188 @@
+{
+  "doc": "platform_workflow_info_tags_audit",
+  "phase": 3,
+  "generated_at": "2026-05-22T17:30:51Z",
+  "scope": "Code-truth audit of Phase 3 deliverables: the 4 component partials, workflow_registry.py + workflow_guidance.py modules, and the rmc-workflow-guidance.css bundle. Confirms what landed, taxonomy completeness, and the accessibility/dark-mode contract.",
+  "summary": {
+    "components_landed": 4,
+    "python_modules_landed": 2,
+    "css_bundles_landed": 1,
+    "registry_workflow_count": 16,
+    "tag_taxonomy_count": 20,
+    "audience_constant_count": 7,
+    "css_rules_count": 65,
+    "css_off_token_markers": 4,
+    "css_sticky_overflow_markers": 0,
+    "templates_with_inline_style_attr": 0
+  },
+  "tag_taxonomy_constants": [
+    "TAG_AI_HELP_AVAILABLE",
+    "TAG_APPROVAL_REQUIRED",
+    "TAG_AUDIT_LOGGED",
+    "TAG_BILLING_IMPACT",
+    "TAG_BLOCKS_LAUNCH",
+    "TAG_DATA_QUALITY_ISSUE",
+    "TAG_DRAFT",
+    "TAG_EXTERNAL_REQUIRED",
+    "TAG_MANUAL_FALLBACK",
+    "TAG_MISSING_SETUP",
+    "TAG_NEEDS_REVIEW",
+    "TAG_NOT_REVERSIBLE",
+    "TAG_OPTIONAL",
+    "TAG_PLATFORM_ONLY",
+    "TAG_PREVIEW_AVAILABLE",
+    "TAG_PUBLISHED",
+    "TAG_READY_TO_LAUNCH",
+    "TAG_REQUIRED",
+    "TAG_REVERSIBLE",
+    "TAG_TENANT_SAFE"
+  ],
+  "tag_taxonomy_values": [
+    "ai-help-available",
+    "approval-required",
+    "audit-logged",
+    "billing-impact",
+    "blocks-launch",
+    "data-quality-issue",
+    "draft",
+    "external-required",
+    "manual-fallback",
+    "missing-setup",
+    "needs-review",
+    "not-reversible",
+    "optional",
+    "platform-only",
+    "preview-available",
+    "published",
+    "ready-to-launch",
+    "required",
+    "reversible",
+    "tenant-safe"
+  ],
+  "audience_constants": [
+    "AUDIENCE_FOUNDER",
+    "AUDIENCE_OPERATOR",
+    "AUDIENCE_PARENT",
+    "AUDIENCE_PUBLIC",
+    "AUDIENCE_STUDENT",
+    "AUDIENCE_TEACHER",
+    "AUDIENCE_TENANT_ADMIN"
+  ],
+  "audience_values": [
+    "founder",
+    "operator",
+    "parent",
+    "public",
+    "student",
+    "teacher",
+    "tenant-admin"
+  ],
+  "registry_workflows": [
+    "billing-set-up-tenant",
+    "marketplace-install-app",
+    "migration-cloud-connect-sis",
+    "migration-cloud-operator-health",
+    "migration-cloud-sign-maa",
+    "operator-tenant-lifecycle",
+    "parent-portal-link-child",
+    "parent-portal-pay-invoice",
+    "studio-os-automation",
+    "studio-os-control",
+    "studio-os-experience",
+    "studio-os-launch",
+    "studio-os-output",
+    "support-help-hub",
+    "teacher-enter-marks",
+    "teacher-take-attendance"
+  ],
+  "registry_audience_distribution": {
+    "t": 26,
+    "e": 18,
+    "n": 32,
+    "a": 26,
+    "-": 10,
+    "d": 10,
+    "m": 10,
+    "i": 10,
+    "o": 4,
+    "p": 4,
+    "r": 8,
+    "c": 2,
+    "h": 2
+  },
+  "registry_tag_usage": {
+    "tenant-safe": 13,
+    "preview-available": 2,
+    "reversible": 7,
+    "audit-logged": 12,
+    "blocks-launch": 3,
+    "approval-required": 3,
+    "ai-help-available": 3,
+    "not-reversible": 4,
+    "required": 1,
+    "platform-only": 2,
+    "needs-review": 1,
+    "billing-impact": 2,
+    "manual-fallback": 1,
+    "missing-setup": 1
+  },
+  "components": {
+    "workflow_info_tag.html": {
+      "path": "templates/components/workflow_info_tag.html",
+      "lines": 18
+    },
+    "workflow_help_panel.html": {
+      "path": "templates/components/workflow_help_panel.html",
+      "lines": 80
+    },
+    "workflow_next_action.html": {
+      "path": "templates/components/workflow_next_action.html",
+      "lines": 73
+    },
+    "workflow_status_strip.html": {
+      "path": "templates/components/workflow_status_strip.html",
+      "lines": 61
+    }
+  },
+  "accessibility_contract": [
+    "Tags carry text labels (never icon-only)",
+    "Color via var(--*) tokens only \u2014 no off-token literals",
+    "WCAG AA contrast (>= 4.5:1) \u2014 enforced by scan_color_contrast.py baseline 0",
+    "Dark/light parity via [data-theme=*] selectors",
+    "No position: sticky + overflow: hidden combos (enforced by scan_sticky_with_overflow_hidden.py baseline 0)",
+    "Mobile-safe via existing portal/marketing responsive grammar"
+  ],
+  "ci_gates_relevant_to_phase3": [
+    {
+      "gate": "audit_template_render_safety.py",
+      "baseline": 0,
+      "applicability": "4 new component templates must be clean"
+    },
+    {
+      "gate": "scan_off_token_colors.py",
+      "baseline": 0,
+      "applicability": "rmc-workflow-guidance.css must not introduce off-token literals"
+    },
+    {
+      "gate": "scan_inline_style_off_token.py",
+      "baseline": 0,
+      "applicability": "no inline style= attributes that bypass tokens"
+    },
+    {
+      "gate": "scan_csp_nonce_emission.py",
+      "baseline": 0,
+      "applicability": "any inline script gets nonce"
+    },
+    {
+      "gate": "scan_undefined_css_classes.py",
+      "baseline": 0,
+      "applicability": "all .rmc-workflow-* classes defined in the bundle"
+    }
+  ],
+  "honest_deferrals": [
+    "Component wiring into shells \u2014 Phase 3 ships scaffolding only; Phase 4 wires into representative pages",
+    "Template-tag library (workflow_guidance) \u2014 Phase 4 ships the {% load workflow_guidance %} filters",
+    "Phase 11 tests (apps.platform_runtime.tests.test_workflow_registry / test_workflow_info_tags / test_workflow_guidance_contracts)"
+  ],
+  "verdict": "PHASE_3_INFO_TAGS_READY"
+}

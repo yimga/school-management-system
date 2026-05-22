@@ -169,15 +169,29 @@ def resolve_workflow_for_route(request: Any) -> Optional[WorkflowDefinition]:
     if request is None:
         return None
     match = getattr(request, "resolver_match", None)
-    if match is None:
+    view_name = getattr(match, "view_name", None) if match is not None else None
+    if isinstance(view_name, str) and view_name:
+        for workflow in WORKFLOWS.values():
+            if workflow.route == view_name:
+                return workflow
+    # Fallback for matrix-promoted entries whose ``route`` is a URL path
+    # (e.g. ``/super/schools/create/``) rather than a view name. Match by
+    # ``request.path.startswith(entry_path)`` against any registered
+    # ``entry_path``. Longest prefix wins so nested routes don't trigger
+    # a parent workflow.
+    path = getattr(request, "path", None)
+    if not isinstance(path, str) or not path:
         return None
-    view_name = getattr(match, "view_name", None)
-    if not isinstance(view_name, str) or not view_name:
-        return None
+    best_match: Optional[WorkflowDefinition] = None
+    best_length = -1
     for workflow in WORKFLOWS.values():
-        if workflow.route == view_name:
-            return workflow
-    return None
+        ep = getattr(workflow, "entry_path", None)
+        if not ep or not isinstance(ep, str):
+            continue
+        if path.startswith(ep) and len(ep) > best_length:
+            best_match = workflow
+            best_length = len(ep)
+    return best_match
 
 
 def is_visible_for(request: Any, workflow: WorkflowDefinition) -> bool:
