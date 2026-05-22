@@ -38,6 +38,7 @@ app_name = "migration_cloud"
 urlpatterns = [
     path("", views.MigrationCloudConsoleView.as_view(), name="console"),
     path("new/", views.MigrationCloudIntakeView.as_view(), name="bundle_new"),
+    path("intake-ai-ask/", views.MigrationCloudIntakeAIAskView.as_view(), name="intake_ai_ask"),
     path("<int:bundle_id>/", views.MigrationCloudBundleDetailView.as_view(), name="bundle_detail"),
     path("<int:bundle_id>/attach-source/", views.MigrationCloudAttachSourceView.as_view(), name="bundle_attach_source"),
     path("<int:bundle_id>/bind-school/", views.MigrationCloudBindSchoolView.as_view(), name="bundle_bind_school"),

@@ -1,0 +1,24 @@
+{% load i18n static %}
+<section class="rmc-workflow-playbook card border-0 shadow-sm mb-3"
+         data-rmc-workflow-playbook
+         data-playbook-mode="{{ playbook_mode|default:'onboarding' }}"
+         data-playbook-url="{{ playbook_api_url }}">
+  <div class="card-header py-2 fw-semibold">
+    <i class="bi bi-journal-text me-1" aria-hidden="true"></i>{{ playbook_title|default:_("Playbook assistant") }}
+  </div>
+  <div class="card-body pt-2">
+    <p class="small text-muted mb-2">{{ playbook_hint|default:_("Ask about checklist order, exports, or launch blockers.") }}</p>
+    <form data-rmc-playbook-form onsubmit="return false">
+      {% csrf_token %}
+      <label class="visually-hidden" for="rmc-playbook-q-{{ playbook_mode }}">{% trans "Question" %}</label>
+      <textarea id="rmc-playbook-q-{{ playbook_mode }}" class="form-control form-control-sm mb-2" rows="2" maxlength="500"
+                data-rmc-playbook-query
+                placeholder="{% trans 'e.g. What should we finish before go-live?' %}"></textarea>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-playbook-submit>{% trans "Ask" %}</button>
+      <span class="small text-muted ms-2" data-rmc-playbook-status role="status"></span>
+    </form>
+    <div class="small mt-2 text-secondary" data-rmc-playbook-answer hidden></div>
+    {% include "partials/ai_nutrition_label.html" %}
+  </div>
+</section>
+<script src="{% static 'js/rmc-workflow-playbook.js' %}" defer nonce="{{ csp_nonce }}"></script>

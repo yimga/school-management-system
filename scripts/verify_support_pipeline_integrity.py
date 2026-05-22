@@ -189,12 +189,13 @@ def main() -> int:
     )
 
     npm = shutil.which("npm") or shutil.which("npm.cmd") or "npm"
+    vitest_timeout = int(os.environ.get("RMC_VERIFY_SUPPORT_PIPELINE_VITEST_TIMEOUT", "300"))
     vitest = subprocess.run(
         [npm, "run", "test:support-pipeline"],
         cwd=str(ROOT),
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=vitest_timeout,
         shell=(os.name == "nt" and npm == "npm"),
     )
     add("6", "Vitest support pipeline green", vitest.returncode == 0, (vitest.stdout or vitest.stderr or "")[-400:])

@@ -851,6 +851,8 @@ jobs:
           python scripts/verify_tenant_resolution_cache_keys.py
           python scripts/verify_list_search_adoption.py
           python scripts/verify_five_pillar_platform_completion.py --write
+          python scripts/verify_greatest_education_os_matrix.py --write
+          python scripts/verify_geos_lane2_scaffold.py
           python scripts/verify_tenant_sovereignty_pillar.py --write
           python scripts/verify_six_pillar_global_dominance.py --write
           python scripts/verify_footer_surface_contract.py --write

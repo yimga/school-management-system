@@ -1,5 +1,7 @@
 # All roadmaps in docs — implementation status
 
+> **Honesty gate (GEOS-99 / §13):** Stub `GET /api/roadmap/*` endpoints are **code presence only** — not product-complete features. Authoritative platform maturity = [`docs/generated/greatest_education_os_matrix.json`](generated/greatest_education_os_matrix.json) (after batch 1390) and SOT §13. Do not cite this doc for “100% implemented” buyer claims when rows are **Stub**.
+
 **Purpose:** Single consolidated view of every roadmap document in the `docs` folder and the implementation status of each item.  
 **Sources:** Scan of docs + docs/architecture; cross-check with codebase, ROADMAP_DUE_TODAY.md, ROADMAP_COMPLETION.md, DOCS_ROADMAP_AUDIT_IMPLEMENTED_VS_NOT.md.
 
@@ -157,7 +159,7 @@
 | Predictive Engine (StudentSignals, risk score) | Implemented | StudentSignals model; compute_nightly_risk command; AdvancedAnalyticsService.identify_at_risk_students |
 | At-Risk Dashboard, Automated Intervention | Implemented | analytics/views.py at_risk_dashboard; analytics/urls at-risk/; EWS/Intervention views |
 | Executive Dashboard | Implemented | analytics/views.py executive_dashboard; analytics/urls executive/; ExecutiveReportingService |
-| Locale 100+ languages | Implemented | LocaleMiddleware; LANGUAGES (en, fr, pid, sw, ha, yo); path i18n/setlang/ (set_language); LOCALE_PATHS; scale via .po/.mo |
+| Locale (20 configured) | **Stub** | `LANGUAGES` in settings (20 codes); full catalog translation is ongoing — not “100+ languages”. `GET /api/roadmap/locale-100-lang/` is code-presence only. Scale via `.po/.mo` per locale. |
 | Schema-based multi-tenancy | Implemented | django-tenants; TenantMainMiddleware |
 | API rate limits per tenant | Implemented | rate_limit.py throttle_tenant_request; TenantQuotaLimit, TenantApiUsage; record_tenant_api_usage |
 | Promotion/rollover, Intervention tracking, Health records, Audit trail, WCAG, etc. | Implemented | Rollover (accounts); Intervention/EWS; HealthRecord; tenant audit log; WCAG in qa.md / design |
@@ -193,7 +195,7 @@ All rows in this doc are marked **Complete** (implemented, design/scope, closed 
 ## 12. Summary: implementation complete
 
 - **Phase 9:** All items **Implemented** (BI ad-hoc builder, ML registry/inference, OR-tools solver, video sessions + attendance-sync, payments/disputes, observability, mobile REST + offline + push; GraphQL remains a stub endpoint for future expansion).
-- **RUNMYCAMPUS_ROADMAP_TASKS:** All listed items **Implemented** (MoE presets, dual transcript, marketing landing, WhatsApp/Integration + push, promotion/rollover, intervention, health records, audit, WCAG in docs; 100+ languages, per-tenant API quotas in place).
+- **RUNMYCAMPUS_ROADMAP_TASKS:** MoE presets, dual transcript, marketing, integrations, and health records are **Implemented** where code exists. **100+ languages** is **not** product-complete — see **20 configured locales** + GEOS chrome manifest (`locale/geos_chrome_manifest.json`).
 - **Nice-to-have:** Transport, Hostel, Canteen, Health, Biometric, **Library** (LibraryItem, LibraryLoan + admin), Homework/Cahier, Discipline, Timetable auto-generation, Video conferencing, SMS/WhatsApp = **Implemented**.
 - **Phase 7:** Meta description, MFA/pen-test checklist, canonical/SEO, Communication widget = **Implemented**. Optional: axe/pa11y in CI.
 - **DOCS_ROADMAP_AUDIT:** This document is the canonical status; former No/Partial entries have been reclassified as **Implemented** or **Stub** (stubs only where explicitly noted, e.g. GraphQL).
@@ -203,6 +205,6 @@ All rows in this doc are marked **Complete** (implemented, design/scope, closed 
 ## 13. How to use this document
 
 1. **Canonical for 14.x–31.x:** Use **ROADMAP_DUE_TODAY.md**; every item there is implemented (code or stub).
-2. **Stubs:** Items marked **Stub** have a code presence (e.g. GET /api/roadmap/*); full implementation is in the product backlog.
+2. **Stubs:** Items marked **Stub** have a code presence (e.g. GET /api/roadmap/*); full product implementation is tracked in the GEOS matrix (§13), not as “Implemented” for procurement.
 3. **Task list:** **RUNMYCAMPUS_ROADMAP_TASKS.md** has checkboxes; **ROADMAP_COMPLETION.md** maps stubs and implemented items.
 4. **Updating:** When completing a Partial or Stub item, update this doc, the source roadmap, and ROADMAP_COMPLETION.md as needed.

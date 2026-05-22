@@ -7,7 +7,7 @@
   "excluded_tails": [
     "management/commands"
   ],
-  "finding_count": 285,
+  "finding_count": 292,
   "findings": [
     {
       "line": 44,
@@ -785,12 +785,12 @@
       "role": "PARENT"
     },
     {
-      "line": 222,
+      "line": 230,
       "path": "apps/feedback/views.py",
       "role": "STUDENT"
     },
     {
-      "line": 225,
+      "line": 233,
       "path": "apps/feedback/views.py",
       "role": "PARENT"
     },
@@ -915,6 +915,16 @@
       "role": "STUDENT"
     },
     {
+      "line": 32,
+      "path": "apps/portal/help_governance.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 32,
+      "path": "apps/portal/help_governance.py",
+      "role": "STUDENT"
+    },
+    {
       "line": 492,
       "path": "apps/portal/models.py",
       "role": "PARENT"
@@ -935,14 +945,24 @@
       "role": "ADMIN"
     },
     {
-      "line": 606,
+      "line": 613,
       "path": "apps/portal/views_ai_copilot.py",
       "role": "ADMIN"
     },
     {
-      "line": 643,
+      "line": 655,
       "path": "apps/portal/views_ai_copilot.py",
       "role": "ADMIN"
+    },
+    {
+      "line": 175,
+      "path": "apps/portal/views_ai_surfaces.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 175,
+      "path": "apps/portal/views_ai_surfaces.py",
+      "role": "STUDENT"
     },
     {
       "line": 97,
@@ -1110,6 +1130,11 @@
       "role": "TEACHER"
     },
     {
+      "line": 43,
+      "path": "apps/schools/tenant_offboarding_notifications.py",
+      "role": "ADMIN"
+    },
+    {
       "line": 32,
       "path": "apps/schools/views_domains.py",
       "role": "ADMIN"
@@ -1125,12 +1150,22 @@
       "role": "ADMIN"
     },
     {
-      "line": 172,
+      "line": 128,
+      "path": "apps/siteconfig/command_bar_registry.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 129,
+      "path": "apps/siteconfig/command_bar_registry.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 175,
       "path": "apps/siteconfig/command_bar_registry.py",
       "role": "ADMIN"
     },
     {
-      "line": 172,
+      "line": 175,
       "path": "apps/siteconfig/command_bar_registry.py",
       "role": "PROPRIETOR"
     },
@@ -1435,7 +1470,7 @@
       "role": "TEACHER"
     }
   ],
-  "generated_at": "2026-05-21T11:24:55+00:00",
+  "generated_at": "2026-05-22T22:32:55+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

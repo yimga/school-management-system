@@ -217,6 +217,14 @@ def school_roadmap(request):
 @login_required
 def feature_center(request):
     """Tenant-facing product discovery surface."""
+    from apps.portal.help_governance import should_redirect_feature_center_for_request
+
+    if should_redirect_feature_center_for_request(request):
+        messages.info(
+            request,
+            "Use Help Center for guided support — feature voting is for staff.",
+        )
+        return redirect("feedback:help_center")
     school = get_request_school(request)
     role = get_user_role(request.user)
     if role == "STUDENT":

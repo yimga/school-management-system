@@ -361,7 +361,14 @@ def ai_copilot_query(request):
 
         # Build contextual prompt and call configured provider chain
         permissions = get_ai_permissions(request.user)
-        prompt = build_contextual_prompt(request.user, user_query)
+        from apps.portal.ai_surface_context import build_ai_surface_context
+
+        surface = build_ai_surface_context(request)
+        prompt = build_contextual_prompt(
+            request.user,
+            user_query,
+            current_path=surface.get("current_path") or "",
+        )
         rag_block = ""
         try:
             from services.ai_memory import AIMemoryService, get_embedding_for_text
@@ -633,7 +640,12 @@ def ai_copilot_audit_feed(request):
     return JsonResponse({"success": True, "items": items})
 
 
-def build_contextual_prompt(user, user_message: str) -> str:
+def build_contextual_prompt(
+    user,
+    user_message: str,
+    *,
+    current_path: str = "",
+) -> str:
     """
     Build a role-aware prompt for the AI backend.
     """
@@ -673,6 +685,9 @@ def build_contextual_prompt(user, user_message: str) -> str:
     else:
         context += f"The user is {user_name}. Help with general system navigation and common tasks. "
 
+    path_hint = (current_path or "").strip()
+    if path_hint:
+        context += f"The user is on screen {path_hint}. Prefer guidance relevant to that route. "
     context += (
         "Keep responses concise (2-3 sentences max), helpful, and professional. "
         "IMPORTANT: Only provide information the user has access to. "

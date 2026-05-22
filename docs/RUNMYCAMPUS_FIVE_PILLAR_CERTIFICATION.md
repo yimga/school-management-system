@@ -1,8 +1,10 @@
 # RunMyCampus Five-Pillar Certification
 
-**SOT batch 1214 → updated through batch 1233 (Surfaces 1–10 in-repo closure)** — master honest scoring of the AWS / Shopify / Salesforce / Linux / Amazon-of-education ambition.
+**GEOS-99 (batch 1390, 2026-05-22):** Authoritative repo/live/composite % = [`docs/generated/greatest_education_os_matrix.json`](generated/greatest_education_os_matrix.json). Run `python scripts/verify_greatest_education_os_matrix.py --write`. **Repo axis:** all pillars **100%** mechanical (GEOS_99_MATRIX_PASS). **Live axis:** unchanged until operator completes SOT §13.7 / batch 1391 (`verified_live` evidence). Argon2 + CSP were closed in SOT batches **1234–1235** — not open deferrals.
 
-> **2026-05-08 update:** Surfaces 1–10 of the in-repo closure plan are now complete. Repo-axis composite ≈ 99% (the ~1% deferred is Argon2 hasher + CSP middleware, which need dedicated batches with dependency adds and allow-list work). Live/Ecosystem axis unchanged — still external-blocked on PSP merchant credentials, SOC 2 attestation, Render-side root cause for tenant 500, sponsor bank, and first paying pilot.
+**SOT batch 1214 → updated through batch 1390** — master honest scoring of the AWS / Shopify / Salesforce / Linux / Google / LocalGlobal / Amazon pillars.
+
+> **2026-05-22:** Do not cite static "98% repo" below for procurement; use the matrix JSON headline (`REPO 100% / LIVE xx% / COMPOSITE yy%`).
 
 This document is the **single source of truth** for "where do we stand against the claim?" It is updated only via SOT §11.4 batch entries and is the canonical answer to that question. Every score is paired with proof artifacts in the repo.
 
@@ -33,6 +35,14 @@ Each pillar is scored on two axes: **repo evidence** (what we built) and **live/
 | Shopify of education | **98%** | 8% (PSP external-blocker; non-charge probes ready) | **83%** | CATEGORY DEFINING — REPO COMPLETE |
 | Salesforce of education | **98%** | 30% (pilots in motion) | **86%** | CATEGORY DEFINING — REPO COMPLETE |
 | Amazon of education | **98%** | 18% (live pilots in motion) | **85%** | CATEGORY DEFINING — REPO COMPLETE |
+| Google of education | **see matrix** | **see matrix** | **see matrix** | AI / help / search — matrix `google` pillar |
+| LocalGlobal | **see matrix** | **see matrix** | **see matrix** | i18n / RTL / residency — matrix `localglobal` pillar |
+| DailyOps | **see matrix** | **see matrix** | **see matrix** | provision / email / academic loop — matrix `dailyops` pillar |
+
+## 7. Composite 99% gate (GEOS-99)
+
+- **Repo 99%:** `verify_greatest_education_os_matrix.py --write` → **GEOS_99_MATRIX_PASS** (each pillar repo_pct ≥ 99).
+- **Composite 99%:** requires Lane 2 live_pct ≥ 99 per pillar in the same matrix — operator playbook SOT §13.7 / batch 1391.
 
 **Repo-axis composite: 98%.** That is the part RunMyCampus controls today, and every in-repo gap identified by the audit is now closed. The remaining 2% repo-axis is reserved for things that genuinely cannot be built without external feedback (e.g. tuning hint keys for an aggregator no one has signed with yet).
 

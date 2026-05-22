@@ -52,6 +52,13 @@ def tenant_offboarding_page(request):
     snapshot = get_offboarding_snapshot(school)
     self_svc = get_self_service_snapshot(school)
     export_path = latest_export_zip_path(school)
+    offboarding_playbook_api_url = ""
+    try:
+        from django.urls import reverse
+
+        offboarding_playbook_api_url = reverse("api:ai-offboarding-playbook")
+    except Exception:
+        pass
     return render_siteconfig_stem(
         request,
         "tenant_self_offboarding",
@@ -60,6 +67,7 @@ def tenant_offboarding_page(request):
             "offboarding": snapshot,
             "self_service": self_svc,
             "has_export": bool(export_path),
+            "offboarding_playbook_api_url": offboarding_playbook_api_url,
         },
         page_title="Close school account",
     )

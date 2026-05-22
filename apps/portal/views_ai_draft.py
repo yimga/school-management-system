@@ -3,11 +3,11 @@
 Two surfaces:
 
   - POST /portal/ai/draft/parent-message/
-        body: {intent: "...", existing: "..."}
+        body: {intent: "...", existing: "...", student_id: optional}
         -> {draft: "...", provider: "gateway|ollama|rules"}
 
   - POST /portal/ai/draft/report-card-comment/
-        body: {intent: "...", existing: "..."}
+        body: {intent: "...", existing: "...", student_id: optional}
         -> {draft: "..."}
 
 Both gated by:
@@ -67,6 +67,20 @@ def _can_draft(user) -> bool:
     return bool(user.is_staff or user.is_superuser or role)
 
 
+def _resolve_student(school, payload: dict):
+    raw_student_id = payload.get("student_id")
+    if raw_student_id in (None, ""):
+        return None
+    try:
+        from apps.people.models import StudentProfile
+
+        return StudentProfile.objects.filter(
+            school=school, pk=int(raw_student_id)
+        ).first()
+    except (TypeError, ValueError):
+        return None
+
+
 @login_required
 @require_POST
 def ai_draft_parent_message(request):
@@ -86,6 +100,7 @@ def ai_draft_parent_message(request):
     payload = _decode_json(request)
     intent = (payload.get("intent") or "").strip()[:500]
     existing = (payload.get("existing") or "").strip()[:2000]
+    student = _resolve_student(school, payload)
     if not intent:
         return JsonResponse(
             {"error": "Tell us briefly what the message is about (intent)."},
@@ -96,15 +111,13 @@ def ai_draft_parent_message(request):
     except ImportError:
         return JsonResponse({"error": "Draft service unavailable."}, status=503)
     teacher = getattr(request.user, "teacher_profile", None)
-    # `key_facts` is Iterable[str] in the service contract — pass the
-    # operator's existing-draft text as one fact when present.
     key_facts: list[str] = []
     if existing:
         key_facts.append(f"Existing draft: {existing}")
     text, meta = draft_parent_message(
         school=school,
         teacher=teacher,
-        student=None,
+        student=student,
         intent=intent,
         key_facts=key_facts,
     )
@@ -134,6 +147,7 @@ def ai_draft_report_card_comment(request):
     payload = _decode_json(request)
     intent = (payload.get("intent") or "").strip()[:500]
     existing = (payload.get("existing") or "").strip()[:1500]
+    student = _resolve_student(school, payload)
     if not intent:
         return JsonResponse(
             {"error": "Tell us the comment focus (intent)."}, status=400
@@ -145,13 +159,64 @@ def ai_draft_report_card_comment(request):
     teacher = getattr(request.user, "teacher_profile", None)
     evaluations: list[dict] = []
     if existing:
-        evaluations.append({"subject": "(existing draft)", "score": "", "trend": existing[:80]})
+        evaluations.append(
+            {"subject": "(existing draft)", "score": "", "trend": existing[:80]}
+        )
     text, meta = draft_report_card_comment(
         school=school,
         teacher=teacher,
-        student=None,
+        student=student,
         term_name=intent[:60],
         evaluations=evaluations,
+    )
+    if not text:
+        return JsonResponse(
+            {"error": meta.get("error") or "No draft returned."}, status=503
+        )
+    return JsonResponse({"draft": text, "provider": meta.get("provider", "")})
+
+
+@login_required
+@require_POST
+def ai_draft_lesson_outline(request):
+    """Draft a structured lesson-plan outline for the teacher education pack."""
+    if not _can_draft(request.user):
+        return HttpResponseForbidden(
+            "You don't have permission to use AI draft."
+        )
+    school = _school_from_request(request)
+    if school is None:
+        return JsonResponse({"error": "School context required."}, status=400)
+    if not _entitlement_ok(school, "AI_TEACHER_COMMS"):
+        return JsonResponse(
+            {"error": "AI teacher tools not enabled for this school."},
+            status=402,
+        )
+    payload = _decode_json(request)
+    intent = (payload.get("intent") or "").strip()[:500]
+    subject = (payload.get("subject") or "").strip()[:120]
+    grade_level = (payload.get("grade_level") or "").strip()[:80]
+    raw_objectives = payload.get("objectives")
+    objectives: list[str] = []
+    if isinstance(raw_objectives, list):
+        objectives = [str(o).strip()[:200] for o in raw_objectives if str(o).strip()][:8]
+    if not intent:
+        return JsonResponse(
+            {"error": "Describe the lesson focus (intent)."},
+            status=400,
+        )
+    try:
+        from services.teacher_lesson_plan import draft_lesson_plan_outline
+    except ImportError:
+        return JsonResponse({"error": "Draft service unavailable."}, status=503)
+    teacher = getattr(request.user, "teacher_profile", None)
+    text, meta = draft_lesson_plan_outline(
+        school=school,
+        teacher=teacher,
+        subject=subject,
+        grade_level=grade_level,
+        intent=intent,
+        objectives=objectives,
     )
     if not text:
         return JsonResponse(

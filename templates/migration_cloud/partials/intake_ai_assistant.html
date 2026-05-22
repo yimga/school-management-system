@@ -1,0 +1,15 @@
+{% load i18n static %}
+<section class="rmc-intake-panel rmc-intake-panel--side" data-mc-intake-ai-assistant
+         data-mc-intake-ai-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:intake_ai_ask' %}{% else %}{% url 'migration_cloud_super:intake_ai_ask' %}{% endif %}">
+  <h2 class="rmc-h2"><i class="bi bi-stars me-1"></i>{% trans "Intake assistant" %}</h2>
+  <p class="small text-muted mb-2">{% trans "Ask why a row might quarantine, which intake method to use, or how canonical mapping works." %}</p>
+  <form data-mc-intake-ai-form>
+    {% csrf_token %}
+    <label class="form-label visually-hidden" for="mc-intake-ai-q">{% trans "Question" %}</label>
+    <textarea id="mc-intake-ai-q" class="form-control form-control-sm mb-2" rows="2" maxlength="500"
+              placeholder="{% trans 'e.g. Why was my CSV rejected?' %}"></textarea>
+    <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Ask" %}</button>
+    <span class="small text-muted ms-2" data-mc-intake-ai-status role="status"></span>
+  </form>
+  <div class="small mt-2 text-secondary" data-mc-intake-ai-answer hidden></div>
+</section>

@@ -409,6 +409,7 @@ WORKFLOWS: dict[str, WorkflowDefinition] = {
             WorkflowStep("submit", "Submit for approval"),
         ),
         related_help_article="teacher-marks",
+        related_ai_context_key="academics.marks_entry.assist",
         related_audit_event="academics.marks.submitted",
         default_tags=(
             TAG_TENANT_SAFE,
@@ -463,6 +464,7 @@ WORKFLOWS: dict[str, WorkflowDefinition] = {
         route="portal:support_help_hub",
         purpose="Search the help hub or open a support ticket.",
         related_help_article="support-help-hub",
+        related_ai_context_key="portal.support_help.assist",
         related_feedback_route="feedback:open_ticket",
         default_tags=(TAG_TENANT_SAFE, TAG_AI_HELP_AVAILABLE),
     ),

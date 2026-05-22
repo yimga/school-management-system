@@ -24,7 +24,28 @@ def ensure_content_gap_task(*, fingerprint: str, increment: int = 1) -> Any:
     if not _created and increment:
         row.hit_count = int(row.hit_count or 0) + increment
         row.save(update_fields=["hit_count", "updated_at"])
+    maybe_auto_draft_from_content_gap(row)
     return row
+
+
+def maybe_auto_draft_from_content_gap(task: Any) -> Any | None:
+    """When enabled, auto-create KB draft after repeated zero-result hits."""
+    from django.conf import settings as dj_settings
+
+    threshold = int(getattr(dj_settings, "HELP_ZERO_RESULT_AUTO_DRAFT_HITS", 5) or 5)
+    if not getattr(dj_settings, "HELP_ZERO_RESULT_AUTO_DRAFT_KB", False):
+        return None
+    if int(task.hit_count or 0) < threshold:
+        return None
+    if task.kb_draft_article_id or task.status not in (
+        task.Status.OPEN,
+        task.Status.ASSIGNED,
+    ):
+        return None
+    try:
+        return create_kb_draft_from_content_gap(task, author=None)
+    except Exception:
+        return None
 
 
 def assign_content_gap(

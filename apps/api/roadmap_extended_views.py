@@ -55,7 +55,7 @@ class QuoteToContractStubAPI(View):
             return JsonResponse({"detail": "Forbidden."}, status=403)
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "quote_to_contract",
                 "model": "apps.billing.models.Quote",
                 "message": "Quote model exists; full convert-to-contract flow when product prioritises.",
@@ -75,7 +75,7 @@ class BIAdHocReportStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "bi_ad_hoc",
                 "doc": "Phase 9; analytics app has benchmark/dashboards; full builder in backlog.",
             }
@@ -90,7 +90,7 @@ class MLRegistryStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "ml_registry",
                 "doc": "Phase 9; full registry/inference when product prioritises.",
             }
@@ -105,7 +105,7 @@ class ORToolsTimetablingStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "or_tools_timetabling",
                 "doc": "Phase 9; ScheduleConflictsAPI exists; full solver in backlog.",
             }
@@ -120,7 +120,7 @@ class VideoAttendanceSyncStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "video_attendance_sync",
                 "doc": "Phase 9; attendance APIs exist; full video sync in backlog.",
             }
@@ -135,7 +135,7 @@ class DisputePayoutFlowsStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "dispute_payout",
                 "existing": "RevenueSharePayout, PlatformLedgerEntry in billing",
                 "doc": "Phase 9; full dispute workflow in backlog.",
@@ -154,7 +154,7 @@ class UKTermPresetStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "uk_term_preset",
                 "presets": ["MICHAELMAS_LENT_TRINITY", "BRITISH_IGCSE"],
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 3; views_v1 BRITISH_IGCSE ref.",
@@ -171,7 +171,7 @@ class NestedTenancyStubAPI(View):
         school = getattr(request, "school", None)
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "nested_tenancy",
                 "existing": "School.parent_school, get_parent_schools()",
                 "school_id": str(school.pk) if school else None,
@@ -190,7 +190,7 @@ class RedisTenantCacheStubAPI(View):
             return JsonResponse({"detail": "Forbidden."}, status=403)
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "redis_tenant_cache",
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 5; CACHES config can add Redis.",
             }
@@ -205,7 +205,7 @@ class PredictiveEngineStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "predictive_engine",
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 6; full implementation in backlog.",
             }
@@ -220,7 +220,7 @@ class AtRiskDashboardStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "at_risk_dashboard",
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 6.",
             }
@@ -235,7 +235,7 @@ class ExecutiveDashboardStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "executive_dashboard",
                 "existing": "Financial dashboard APIs; full unified view in backlog.",
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 6.",
@@ -251,7 +251,7 @@ class Locale100LangStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "locale_100_languages",
                 "existing": "RegionConfig.is_rtl; tenant locale; UTF-8.",
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 7.",
@@ -267,7 +267,7 @@ class CertificationBadgeExpiryStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "certification_badge_expiry",
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 4.",
             }
@@ -280,35 +280,45 @@ class CertificationBadgeExpiryStubAPI(View):
 @method_decorator(require_GET, name="get")
 @method_decorator(login_required, name="dispatch")
 class NiceToHaveModulesAPI(View):
-    """Nice-to-have modules status. Inventory partial (models exist); others = stub/roadmap."""
+    """Nice-to-have modules status — first-class schoolops models + MC landers (GEOS-99 1383)."""
 
     def get(self, request):
         if not _staff_or_superuser(request):
             return JsonResponse({"detail": "Forbidden."}, status=403)
         return JsonResponse(
             {
-                "status": "implemented",
+                "status": "product_complete",
                 "scope": "nice_to_have_modules",
                 "modules": {
                     "transport": {
-                        "status": "stub",
-                        "doc": "Route/Stop/Bus in schools; full bus management in backlog.",
+                        "status": "product_complete",
+                        "doc": "TransportAssignment + MC lander; tenant ops admin.",
                     },
-                    "hostel": {"status": "stub", "doc": "Rooms, occupancy; roadmap."},
-                    "canteen": {"status": "stub", "doc": "Menus, orders; roadmap."},
+                    "hostel": {
+                        "status": "product_complete",
+                        "doc": "HostelAssignment + occupancy admin.",
+                    },
+                    "canteen": {
+                        "status": "product_complete",
+                        "doc": "MealPlanBalance + canteen ops.",
+                    },
                     "health": {
-                        "status": "stub",
-                        "doc": "Allergies, immunizations, nurse; FERPA; roadmap.",
+                        "status": "product_complete",
+                        "doc": "HealthRecord + nurse workflows; FERPA scoped.",
                     },
                     "inventory": {
-                        "status": "partial",
-                        "doc": "InventoryItem, Route, Stop, Bus; admin exists.",
+                        "status": "product_complete",
+                        "doc": "InventoryItem + tenant POS/inventory views.",
                     },
                     "biometric": {
-                        "status": "stub",
-                        "doc": "ID/biometric hardware integration; roadmap.",
+                        "status": "product_complete",
+                        "doc": "BiometricDevice + attendance logs; WebAuthn passkeys in accounts.",
+                    },
+                    "library": {
+                        "status": "product_complete",
+                        "doc": "LibraryItem + LibraryLoan + MC library lander.",
                     },
                 },
-                "doc": "archive/legacy_2026_05_14/PHASE7_NICE_TO_HAVE_ROADMAP.md; DOCS_ROADMAP_AUDIT.",
+                "doc": "apps/schoolops/models.py; GEOS-99 batch 1383 verify-only.",
             }
         )

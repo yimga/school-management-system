@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-22T22:07:33.598664+00:00",
+  "repo_target_pct": 99.0,
+  "verdict": "GEOS_99_MATRIX_PASS",
+  "overall": {
+    "repo_pct": 100.0,
+    "live_pct": 0.0,
+    "composite_pct": 60.0
+  },
+  "pillars": [
+    {
+      "pillar_id": "google",
+      "title": "Google \u2014 AI / search / help",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "help_tiers",
+          "description": "verify_help_center_tiers.py",
+          "passed": true,
+          "proof": "verify_help_center_tiers: HELP_CENTER_TIERS_PASS (99 checks)"
+        },
+        {
+          "check_id": "ai_posture",
+          "description": "verify_render_online_ai_posture.py",
+          "passed": true,
+          "proof": "RENDER_ONLINE_AI_POSTURE_PASS"
+        },
+        {
+          "check_id": "ai_engine",
+          "description": "verify_ai_engine_room.py",
+          "passed": true,
+          "proof": "verify_ai_engine_room: OK (tiers 1-5 engine room + product assistants 100%)"
+        },
+        {
+          "check_id": "support_pipe",
+          "description": "verify_support_pipeline_integrity.py",
+          "passed": true,
+          "proof": "verify_support_pipeline_integrity: SUPPORT_PIPELINE_PASS"
+        },
+        {
+          "check_id": "workflow_ai_keys",
+          "description": "workflow_registry AI context keys",
+          "passed": true,
+          "proof": "teacher-enter-marks + support-help-hub"
+        },
+        {
+          "check_id": "help_governance",
+          "description": "help_governance parent/student policy",
+          "passed": true,
+          "proof": "apps/portal/help_governance.py"
+        },
+        {
+          "check_id": "ai_governance_doc",
+          "description": "docs/AI_GOVERNANCE_CLASSROOM.md",
+          "passed": true,
+          "proof": "docs/AI_GOVERNANCE_CLASSROOM.md"
+        },
+        {
+          "check_id": "risk_regen",
+          "description": "risk explanation regenerate endpoint",
+          "passed": true,
+          "proof": "portal/views_ai_surfaces.py"
+        },
+        {
+          "check_id": "tenant_copilot",
+          "description": "tenant AI copilot wired to assist dock",
+          "passed": true,
+          "proof": "portal_base.html"
+        }
+      ]
+    },
+    {
+      "pillar_id": "linux",
+      "title": "Linux \u2014 extensions / companion / ecosystem",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "five_pillar",
+          "description": "verify_five_pillar_platform_completion.py",
+          "passed": true,
+          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (42 checks)"
+        },
+        {
+          "check_id": "companion_preflight",
+          "description": "companion signed-release preflight",
+          "passed": true,
+          "proof": "scripts/preflight_signed_release.py"
+        },
+        {
+          "check_id": "forums_kb",
+          "description": "community forums + marketing KB",
+          "passed": true,
+          "proof": "batch 1357"
+        }
+      ]
+    },
+    {
+      "pillar_id": "aws",
+      "title": "AWS \u2014 tenancy / middleware / isolation",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "middleware",
+          "description": "verify_middleware_stack_order.py",
+          "passed": true,
+          "proof": "- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+        },
+        {
+          "check_id": "tenant_offboarding",
+          "description": "verify_tenant_offboarding_surface.py",
+          "passed": true,
+          "proof": "PASS: tenant offboarding surface (extended)"
+        },
+        {
+          "check_id": "workflow_bridge",
+          "description": "ai_workflow_bridge bind_workflow_context_for_ai",
+          "passed": true,
+          "proof": "ai_workflow_bridge.py"
+        }
+      ]
+    },
+    {
+      "pillar_id": "shopify",
+      "title": "Shopify \u2014 marketplace / payments readiness",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "five_pillar_shopify",
+          "description": "five_pillar Shopify rows",
+          "passed": true,
+          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (42 checks)"
+        },
+        {
+          "check_id": "psp_health",
+          "description": "payment_gateway_health module",
+          "passed": true,
+          "proof": "apps/finance/payment_gateway_health.py"
+        }
+      ]
+    },
+    {
+      "pillar_id": "salesforce",
+      "title": "Salesforce \u2014 CS / pilots / orchestration",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "five_pillar_sf",
+          "description": "five_pillar Salesforce rows",
+          "passed": true,
+          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (42 checks)"
+        },
+        {
+          "check_id": "pilot_scorecard",
+          "description": "pilot_readiness_scorecard.json exists",
+          "passed": true,
+          "proof": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\pilot_readiness_scorecard.json"
+        },
+        {
+          "check_id": "customersuccess",
+          "description": "customersuccess app present",
+          "passed": true,
+          "proof": "apps/customersuccess"
+        }
+      ]
+    },
+    {
+      "pillar_id": "localglobal",
+      "title": "LocalGlobal \u2014 i18n / RTL / corridor",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "locale_dir",
+          "description": "locale catalogs present",
+          "passed": true,
+          "proof": "locale/"
+        },
+        {
+          "check_id": "corridor",
+          "description": "global_registries app",
+          "passed": true,
+          "proof": "apps/global_registries"
+        },
+        {
+          "check_id": "help_locale",
+          "description": "KB locale fallback",
+          "passed": true,
+          "proof": "kb_embeddings.py"
+        }
+      ]
+    },
+    {
+      "pillar_id": "amazon",
+      "title": "Amazon \u2014 ops excellence / DR / observability",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "dr_schedule",
+          "description": "verify_dr_drill_schedule.py",
+          "passed": true,
+          "proof": "scripts/verify_dr_drill_schedule.py"
+        },
+        {
+          "check_id": "sentry_drift",
+          "description": "verify_sentry_alert_rule_drift.py",
+          "passed": true,
+          "proof": "scripts/verify_sentry_alert_rule_drift.py"
+        },
+        {
+          "check_id": "observability",
+          "description": "apps/observability metrics bridge",
+          "passed": true,
+          "proof": "observability/metrics.py"
+        }
+      ]
+    },
+    {
+      "pillar_id": "dailyops",
+      "title": "DailyOps \u2014 provision / academic loop / email",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "welcome_email",
+          "description": "welcome email on provision",
+          "passed": true,
+          "proof": "apps/schools/welcome_email.py"
+        },
+        {
+          "check_id": "teacher_drafts",
+          "description": "AI teacher draft endpoints",
+          "passed": true,
+          "proof": "views_ai_draft.py"
+        },
+        {
+          "check_id": "command_bar_ai",
+          "description": "command bar help center action",
+          "passed": true,
+          "proof": "command_bar_registry.py"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{% load i18n %}
+<p class="rmc-ai-nutrition small text-muted mb-0 mt-2" data-rmc-ai-nutrition-label>
+  <i class="bi bi-shield-check me-1" aria-hidden="true"></i>
+  {% trans "AI transparency" %}:
+  {% trans "Responses may use cloud AI, on-prem Ollama, or rules fallback. Tenant-scoped; human review required before parent messages or KB publish." %}
+  <a href="{% url 'feedback:help_center' %}" class="ms-1">{% trans "Help Center" %}</a>
+  ·
+  <span class="text-secondary">{% trans "Model tier" %}:</span>
+  <span data-rmc-ai-tier-hint>{{ ai_tier_hint|default:"auto" }}</span>
+</p>

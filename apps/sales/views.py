@@ -258,11 +258,20 @@ def update_stage(request: HttpRequest, pk: int) -> HttpResponse:
 
 @require_control_plane_access
 def first_100_schools_dashboard(request: HttpRequest) -> HttpResponse:
+    from apps.platform_runtime.pilot_evidence import build_pilot_dashboard_rows, load_raw_scorecard
+
     stages = list(PipelineStage.objects.all().order_by("sort_order", "pk"))
     leads = list(
         Lead.objects.select_related("stage", "deal_owner")
         .order_by("-updated_at", "-pk")[:100]
     )
+    pilot_rows = []
+    scorecard_ok = True
+    try:
+        scorecard = load_raw_scorecard()
+        pilot_rows = build_pilot_dashboard_rows(scorecard)
+    except (OSError, ValueError, KeyError):
+        scorecard_ok = False
     rows = []
     for lead in leads:
         tags = _parse_lead_tags(lead.notes)
@@ -287,5 +296,10 @@ def first_100_schools_dashboard(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "sales/first_100_dashboard.html",
-        {"stages": stages, "rows": rows},
+        {
+            "stages": stages,
+            "rows": rows,
+            "pilot_rows": pilot_rows,
+            "scorecard_ok": scorecard_ok,
+        },
     )

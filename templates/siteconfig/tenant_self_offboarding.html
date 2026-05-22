@@ -25,6 +25,10 @@
     {% endif %}
   </section>
 
+  {% if offboarding_playbook_api_url %}
+  {% include "partials/workflow_playbook_assistant.html" with playbook_mode="offboarding" playbook_api_url=offboarding_playbook_api_url playbook_title="Offboarding playbook" playbook_hint="Ask about export order, grace period, and cancellation." %}
+  {% endif %}
+
   <section class="rmc-danger-zone border border-danger rounded p-3 mb-3">
     <h2 class="h6 text-danger">{% trans "Step 2 — Request account closure" %}</h2>
     <p class="small">{% trans "Deactivates access immediately and schedules permanent deletion after the grace period. Platform audit logs are retained. Shared user accounts without school membership are not deleted." %}</p>

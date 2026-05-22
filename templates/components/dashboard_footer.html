@@ -53,7 +53,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
         {# Language switcher #}
         {% if cockpit.footer.language.has_switcher or LANGUAGES %}
           <button type="button" class="rmc-civic-footer__lang" aria-haspopup="listbox" aria-label="{% trans 'Change language' %}" data-rmc-lang-switcher>
-            🌐 {{ cockpit.footer.language.label|default:LANGUAGE_NAME_LOCAL|default:"English" }}
+            🌐 {% firstof cockpit.footer.language.label current_language_name "English" %}
             <span class="rmc-civic-footer__lang-caret" aria-hidden="true">▾</span>
           </button>
         {% endif %}

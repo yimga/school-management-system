@@ -18,6 +18,7 @@
      data-textarea-id="{{ textarea_id }}"
      data-draft-endpoint="{{ draft_endpoint }}"
      data-intent="{{ intent_value }}"
+     {% if student_id %}data-student-id="{{ student_id }}"{% endif %}
      data-status-drafting="{% trans 'Drafting...' %}"
      data-status-inserted="{% trans 'Draft inserted - please review.' %}"
      data-status-empty="{% trans 'No draft returned.' %}"

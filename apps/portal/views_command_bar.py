@@ -45,7 +45,13 @@ def api_command_bar_search(request):
         else:
             body = request.GET
         query = (body.get("q") or body.get("query") or "").strip()[:500]
-        active_url = (body.get("active_url") or body.get("path") or "").strip()[:500]
+        from apps.portal.ai_surface_context import build_ai_surface_context
+
+        surface = build_ai_surface_context(request)
+        active_url = (
+            (body.get("active_url") or body.get("path") or surface.get("current_path") or "")
+            .strip()[:500]
+        )
         if not query:
             return JsonResponse({"success": False, "error": "q required"}, status=400)
 

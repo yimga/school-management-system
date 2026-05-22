@@ -30,7 +30,8 @@
       },
       body: JSON.stringify({
         intent: host.dataset.intent,
-        existing: textarea.value
+        existing: textarea.value,
+        student_id: host.dataset.studentId || null
       })
     }).then(function (response) {
       return response.json();

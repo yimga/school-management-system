@@ -15,9 +15,9 @@ import logging
 from typing import Any
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +157,59 @@ def student_risk_drivers(
             "risk_factor": rf,
             "contributions": contributions,
             "has_ml_explanation": bool(contributions),
+            "can_regenerate_explanation": bool(rf),
         },
+    )
+
+
+@login_required
+@require_POST
+def student_risk_explanation_regenerate(
+    request: HttpRequest, student_id: int,
+) -> JsonResponse:
+    """On-demand LLM refresh of RiskFactor.reason_summary (staff/teacher)."""
+    school, student = _resolve_student(request, student_id)
+    if school is None:
+        return JsonResponse({"error": "School context required."}, status=400)
+    role = (getattr(request.user, "role", "") or "").upper()
+    if role in ("PARENT", "STUDENT") and not request.user.is_staff:
+        return JsonResponse({"error": "Not permitted."}, status=403)
+    try:
+        from apps.billing.entitlements import can
+    except ImportError:
+        can = lambda *_a, **_k: False  # noqa: E731
+    if not can(school, "AI_RISK_EXPLAIN") and not request.user.is_staff:
+        return JsonResponse(
+            {"error": "AI risk explain not enabled for this school."},
+            status=402,
+        )
+    from apps.analytics.models import RiskFactor
+    from services.risk_explanation import explain_risk
+
+    rf = (
+        RiskFactor.objects.filter(student=student, school=school)
+        .order_by("-computed_at")
+        .first()
+    )
+    if rf is None:
+        return JsonResponse({"error": "No risk score for this student yet."}, status=404)
+    heuristic = (rf.reason_summary or "").strip() or f"Risk score {rf.score}"
+    text, meta = explain_risk(
+        school=school,
+        student=student,
+        score=float(rf.score or 0),
+        heuristic_reason=heuristic,
+        facts={"band": rf.band or ""},
+    )
+    if text and text != heuristic:
+        rf.reason_summary = text
+        rf.save(update_fields=["reason_summary"])
+    return JsonResponse(
+        {
+            "reason_summary": rf.reason_summary,
+            "provider": meta.get("provider", ""),
+            "regenerated": bool(text and text != heuristic),
+        }
     )
 
 

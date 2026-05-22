@@ -369,5 +369,58 @@
     updateFiles(form);
     refreshMethod(form);
     bindVendorFromImage();
+    bindIntakeAiAssistant(form);
   });
+
+  function bindIntakeAiAssistant(form) {
+    var panel = document.querySelector("[data-mc-intake-ai-assistant]");
+    if (!panel) return;
+    var aiForm = panel.querySelector("[data-mc-intake-ai-form]");
+    var status = panel.querySelector("[data-mc-intake-ai-status]");
+    var answerEl = panel.querySelector("[data-mc-intake-ai-answer]");
+    var url = panel.getAttribute("data-mc-intake-ai-url");
+    if (!aiForm || !url) return;
+    aiForm.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var q = panel.querySelector("#mc-intake-ai-q");
+      var question = q ? String(q.value || "").trim() : "";
+      if (!question) return;
+      if (status) status.textContent = "…";
+      if (answerEl) {
+        answerEl.hidden = true;
+        answerEl.textContent = "";
+      }
+      var csrf = aiForm.querySelector("[name=csrfmiddlewaretoken]");
+      var methodSel = form ? form.querySelector("#mc-intake-method") : null;
+      var vendorSel = form ? form.querySelector("[name=vendor]") : null;
+      fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrf ? csrf.value : "",
+        },
+        body: JSON.stringify({
+          question: question,
+          intake_method: methodSel ? methodSel.value : "",
+          vendor: vendorSel ? vendorSel.value : "",
+        }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (status) {
+            status.textContent = data && data.ai_available ? "" : "Rules fallback.";
+          }
+          if (answerEl && data && data.answer) {
+            answerEl.textContent = data.answer;
+            answerEl.hidden = false;
+          } else if (status) {
+            status.textContent = (data && data.error) || "Unavailable.";
+          }
+        })
+        .catch(function () {
+          if (status) status.textContent = "Unavailable.";
+        });
+    });
+  }
 })();

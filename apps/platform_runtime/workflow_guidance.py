@@ -368,6 +368,15 @@ def next_action_for(request: Any, workflow: WorkflowDefinition) -> Optional[dict
     elif workflow.audience == AUDIENCE_STUDENT:
         payload["owner"] = {"label": _("Student"), "kind": "tenant"}
 
+    if workflow.related_ai_context_key:
+        payload["ai_context_key"] = workflow.related_ai_context_key
+        try:
+            from django.urls import reverse
+
+            payload["ai_help_url"] = reverse("feedback:help_center") + "?focus=ai"
+        except Exception:
+            payload["ai_help_url"] = ""
+
     return payload
 
 

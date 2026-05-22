@@ -231,6 +231,23 @@ def run_support_ticket_created_hooks(
     except _HOOK_ERRORS:
         logger.debug("enqueue_webhook_event for support ticket skipped", exc_info=True)
 
+    _maybe_enqueue_support_ai_triage(ticket_id)
+
+
+def _maybe_enqueue_support_ai_triage(ticket_id: str) -> None:
+    """Optional Celery triage for every GlobalSupportTicket create path."""
+    if not getattr(settings, "SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", False):
+        return
+    try:
+        from apps.portal.tasks import apply_support_ticket_ai_triage
+
+        def _enqueue(pk: str = ticket_id) -> None:
+            apply_support_ticket_ai_triage.delay(pk)
+
+        transaction.on_commit(_enqueue)
+    except _HOOK_ERRORS:
+        logger.debug("support ticket AI triage enqueue skipped", exc_info=True)
+
 
 def run_support_ticket_reply_hooks(
     ticket_id: str,

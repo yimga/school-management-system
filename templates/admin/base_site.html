@@ -173,6 +173,7 @@
             document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface');
             /* v3.58.5: /admin/ now uses .rmc-app-shell canvas scroll (single scrollable surface). */
             document.body.setAttribute('data-rmc-cp-scroll', 'canvas');
+            document.body.setAttribute('data-rmc-page-help', '1');
           }
         } else {
           document.documentElement.setAttribute('data-surface', 'tenant');
@@ -185,6 +186,7 @@
             document.body.setAttribute('data-rmc-nav-bridge-host', 'tenant');
             /* v3.59.x Wave 11 Agent U: per-page-personality accent slug. */
             document.body.setAttribute('data-rmc-page-personality', '{{ rmc_page_personality|default:"tenant-admin"|escapejs }}');
+            document.body.setAttribute('data-rmc-page-help', '1');
             document.body.classList.add('admin-premium-shell');
           }
         }

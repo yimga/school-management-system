@@ -1607,6 +1607,43 @@ class MigrationCloudAIRebindView(LoginRequiredMixin, View):
         })
 
 
+class MigrationCloudIntakeAIAskView(LoginRequiredMixin, View):
+    """POST: conversational help on the intake wizard (pre-bundle)."""
+
+    @safe_500
+    def post(self, request, shell: str = "super"):
+        import json
+
+        from .ai_bridge import answer_intake_question
+
+        try:
+            payload = json.loads(request.body or b"{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "invalid JSON"}, status=400)
+        question = (payload.get("question") or "").strip()
+        if not question:
+            return JsonResponse({"error": "question required"}, status=400)
+        if len(question) > 500:
+            return JsonResponse({"error": "question too long (max 500 chars)"}, status=400)
+        school = getattr(request, "school", None)
+        ctx = {
+            "intake_method": (payload.get("intake_method") or "")[:64],
+            "vendor": (payload.get("vendor") or "")[:64],
+            "screen": "intake_new",
+        }
+        proposal = answer_intake_question(
+            school=school,
+            question=question,
+            intake_context=ctx,
+        )
+        return JsonResponse({
+            "question": question,
+            "answer": proposal.answer if proposal else None,
+            "confidence": proposal.confidence if proposal else 0.0,
+            "ai_available": proposal is not None,
+        })
+
+
 class MigrationCloudAIAskView(LoginRequiredMixin, View):
     """POST endpoint: AI Q&A grounded in the bundle's profile + classification.
 

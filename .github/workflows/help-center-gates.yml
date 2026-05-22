@@ -52,7 +52,8 @@ jobs:
           python scripts/verify_support_deflection.py
           python scripts/verify_help_center_graft_bundles.py
           python scripts/generate_orchestrator_journey_manifest.py
-          python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_help_center_wave3 apps.portal.tests.test_community_forums apps.portal.tests.test_help_elevation_1359 apps.portal.tests.test_help_center_1360 apps.schools.tests.test_marketing_kb_search --verbosity=1
+          python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_help_center_wave3 apps.portal.tests.test_community_forums apps.portal.tests.test_help_elevation_1359 apps.portal.tests.test_help_center_1360 apps.portal.tests.test_help_governance apps.portal.tests.test_ai_surface_context apps.portal.tests.test_unified_ai_phases_bc apps.portal.tests.test_unified_ai_gear2 apps.observability.tests.test_ai_copilot_service apps.schools.tests.test_marketing_kb_search --verbosity=1
+          python scripts/verify_unified_ai_assistant.py
 
   help-center-e2e-lane2:
     runs-on: ubuntu-latest

@@ -56,6 +56,11 @@ def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
             misconfiguration_flags.append("at_risk")
         if int(progress.get("percent") or 0) < 50:
             misconfiguration_flags.append("low_progress")
+    onboarding_playbook_api_url = ""
+    try:
+        onboarding_playbook_api_url = reverse("api:ai-onboarding-playbook")
+    except NoReverseMatch:
+        pass
     return render_siteconfig_stem(
         request,
         "onboarding",
@@ -65,6 +70,7 @@ def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
             "health": health,
             "health_recommendations": recommendations,
             "misconfiguration_flags": misconfiguration_flags,
+            "onboarding_playbook_api_url": onboarding_playbook_api_url,
         },
         cp_title=_("School onboarding"),
         breadcrumbs=default_operator_breadcrumbs(

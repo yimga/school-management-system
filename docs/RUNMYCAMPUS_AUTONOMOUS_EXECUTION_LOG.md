@@ -1,5 +1,43 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — GEOS-99 hygiene pass + batch 1392 closeout (2026-05-22)
+
+**A. Scope:** Close Google-pillar matrix flake (support-pipeline Vitest timeout), civic footer `LANGUAGE_NAME_LOCAL` template bug, portal AI surface test hygiene.
+
+**B. Shipped:** `verify_support_pipeline_integrity.py` Vitest timeout 120→300s (env `RMC_VERIFY_SUPPORT_PIPELINE_VITEST_TIMEOUT`); `dashboard_footer.html` uses `{% firstof … current_language_name %}`; `cockpit_context._resolve_footer_language()`; `test_views_ai_surfaces` JSON parse fix.
+
+**C. Proof:** `npm run verify:geos-99` → **GEOS_99_MATRIX_PASS** (all pillars repo 100%); `npm run verify:geos-ai-lane1` green; portal AI tests **17/17 OK**; offboarding HTTP **4/4 OK**.
+
+**D. Residual (Lane 2 operator):** PSP/SHA/pilot/SOC2 evidence unchanged; optional `GEOS_A11Y_E2E=1` Playwright axe lane.
+
+**E. Plan:** batch **1392** **DONE (Lane 1)**; GEOS-99 plan todos remain **completed**.
+
+**F. Headline:** **REPO 100% / LIVE 0% / COMPOSITE 60%** — matrix stable after timeout + template fixes.
+
+## Slice — GEOS-99 program closeout batches 1377–1391 (2026-05-22)
+
+**A. Scope:** Complete Greatest Education OS plan — Lane 1 repo matrix 100%, SOT §13.0–§13.7, CI wire-up, Lane 2 operator scaffold.
+
+**B. Shipped:** `verify_geos_lane2_scaffold.py`; `docs/generated/geos_lane2_operator_checklist.md`; SOT §13.3–§13.6; batch 1391 DONE (scaffold); `verify_phases_3_11_gates` + `architectural-boundaries.yml` GEOS gates; `npm run verify:geos-99` includes lane2 scaffold; pilot scorecard parsing fix in matrix verifier.
+
+**C. Proof:** `npm run verify:geos-99` → **GEOS_99_MATRIX_PASS** + **EMAIL_DELIVERY_SURFACE_PASS** + **GEOS_CHROME_LOCALE_PASS** + **GEOS_LANE2_SCAFFOLD_PASS**; all pillars repo **100%**; live **0%** honest.
+
+**D. Residual (Lane 2 operator only):** PSP settlement, Render SHA parity, pilot slot 1 core loop, SOC2/residency → `verified_live` in `external_dependencies_register.json` with `var/evidence/geos-99/` paths per §13.7.
+
+**E. Plan:** `99%_greatest_education_os_50240e1d.plan.md` — all todos **completed** (optional ecosystem §13 thresholds **cancelled**; matrix authoritative).
+
+**F. Headline:** **REPO 100% / LIVE 0% / COMPOSITE 60%** — do not claim composite 99% until operator evidence filed.
+
+## Slice — batch 1392 GEOS AI Lane 1 continuation (2026-05-22)
+
+**A. Scope:** Continue GEOS **Google pillar** AI product track (separate from GEOS-99 Lane 2 batch 1391). Plan linked at SOT §13.8.
+
+**B. Shipped:** `help_ai_governance` processor; parent/student AI gating; risk `student_risk_explanation_regenerate`; draft `student_id`; `npm run verify:geos-ai-lane1`; help-center CI + risk-regenerate tests.
+
+**C. Proof:** `npm run verify:geos-ai-lane1` → **GEOS_99_MATRIX_PASS**; `test_help_governance` **4/4**.
+
+**D. Residual:** `GEOS_A11Y_E2E=1` Playwright axe; Render LiteLLM `verified_live` for google live %.
+
 ## Slice - batch 1375 Tenant offboarding 10× deferrals (2026-05-22)
 
 **A. Scope:** Close 1374 deferrals — self-service offboarding, auto-purge scheduler, S3 lifecycle/storage cleanup, Django admin delete replacement.

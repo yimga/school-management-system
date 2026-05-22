@@ -90,6 +90,10 @@
     {% endfor %}
   </ul>
 
+  {% if onboarding_playbook_api_url %}
+  {% include "partials/workflow_playbook_assistant.html" with playbook_mode="onboarding" playbook_api_url=onboarding_playbook_api_url %}
+  {% endif %}
+
   {% if health_recommendations %}
   <h2 class="h6 mt-4">{% trans "Recommended next steps" %}</h2>
   <ul class="mb-0">

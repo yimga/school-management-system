@@ -167,6 +167,14 @@ BUILTIN_PROMPTS: dict[str, str] = {
         '{{"summary":"","actions":[{{"title":"","detail":""}}],"cautions":[],"references":[]}}.\n\n'
         "CONTEXT:\n{context_block}\n\nQUESTION:\n{query}\n"
     ),
+    "workflow_playbook": (
+        _GUIDED_ASSISTANT_RULES
+        + "You guide school operators through onboarding activation or offboarding export/closure playbooks. "
+        "Use CONTEXT step owners and launch lanes; never promise instant purge or legal outcomes.\n\n"
+        "Respond with JSON only: "
+        '{{"summary":"","actions":[{{"title":"","detail":""}}],"cautions":[],"references":[]}}.\n\n'
+        "CONTEXT:\n{context_block}\n\nQUESTION:\n{query}\n"
+    ),
 }
 
 OPTIONAL_PROMPT_ERRORS = (

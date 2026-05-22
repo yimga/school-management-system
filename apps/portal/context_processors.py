@@ -127,11 +127,33 @@ def help_contextual(request):
                 urls["help_center_url"] = reverse("manager_help_center")
         except Exception:
             pass
+    proactive_tenant: list = []
+    try:
+        from apps.portal.tenant_proactive_suggestions import proactive_suggestions_for_request
+
+        proactive_tenant = proactive_suggestions_for_request(request)
+    except Exception:
+        proactive_tenant = []
+
     return {
         "proactive_help_nudge": nudge,
+        "proactive_tenant_suggestions": proactive_tenant,
         "show_contextual_help_drawer": drawer,
         "help_guided_journey": journey,
         "help_guided_journey_articles": journey_articles,
         "help_contextual_urls": urls,
         **inline_assistant,
+    }
+
+
+def help_ai_governance(request):
+    """Parent/student AI policy flags for templates (batch GEOS-AI)."""
+    from apps.portal.help_governance import (
+        ai_assistant_panel_enabled_for_request,
+        parent_student_help_surface_policy,
+    )
+
+    return {
+        "show_kb_ai_assistant_panel": ai_assistant_panel_enabled_for_request(request),
+        "parent_student_help_policy": parent_student_help_surface_policy(),
     }

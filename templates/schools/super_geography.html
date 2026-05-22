@@ -21,6 +21,10 @@
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}
   {% include "schools/partials/beachhead_operator_checklist.html" %}
+  <section class="corridor-registry mb-4" id="corridor-registry" data-corridor-registry aria-label="{% trans 'Payment and data residency corridors' %}">
+    <h2 class="h6 fw-semibold">{% trans "Corridor registry" %}</h2>
+    <p class="small text-muted">{% trans "Regulatory data regions and payment corridors configured for platform packs. Authoritative list: regional_payment_profiles.json + School.data_region." %}</p>
+  </section>
   {% if pack_compare_rows %}
   <details class="mb-4 border border-secondary rounded p-3 bg-dark bg-opacity-25">
     <summary class="fw-semibold">{% trans "Compare key region packs (US · Canada · UK)" %}</summary>

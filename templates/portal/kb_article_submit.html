@@ -26,6 +26,10 @@
                     <p class="text-muted mb-4">
                         Share your knowledge with the community! Create a comprehensive guide, tutorial, or how-to article.
                     </p>
+                    {% if show_kb_ai_assistant_panel %}
+                    <p class="small text-muted">{% trans "Tenant-authored articles enter PENDING review before publish (HITL)." %}</p>
+                    {% include "partials/ai_nutrition_label.html" %}
+                    {% endif %}
 
                     <form method="post" action="{% url 'kb:kb_article_submit' %}" class="article-form" enctype="multipart/form-data">
                         {% csrf_token %}

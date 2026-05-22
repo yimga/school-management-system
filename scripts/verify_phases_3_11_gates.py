@@ -267,6 +267,14 @@ def main(argv: list[str] | None = None) -> int:
         "Platform: AWS/Shopify/Salesforce/Linux/Google five-pillar completion",
     )
     run(
+        [py, _script_path("verify_greatest_education_os_matrix.py"), "--write", *base_args],
+        "GEOS-99: greatest education OS matrix (repo axis ≥99%)",
+    )
+    run(
+        [py, _script_path("verify_geos_lane2_scaffold.py"), *base_args],
+        "GEOS-99: Lane 2 operator evidence scaffold",
+    )
+    run(
         [py, _script_path("verify_six_pillar_global_dominance.py"), "--write", *base_args],
         "Platform: six-pillar global dominance (sovereignty + five-pillar + AI + forensic)",
     )

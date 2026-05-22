@@ -239,20 +239,6 @@ def support_request(request):
                     pass
 
             transaction.on_commit(_created_hooks)
-        if ticket is not None and getattr(
-            settings, "SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", False
-        ):
-            try:
-                from apps.portal.tasks import apply_support_ticket_ai_triage
-
-                tid_ai = str(ticket.pk)
-
-                def _enqueue_triage(pk: str = tid_ai) -> None:
-                    apply_support_ticket_ai_triage.delay(pk)
-
-                transaction.on_commit(_enqueue_triage)
-            except SUPPORT_TICKET_SOFT_FAILURES:
-                pass
         messages.success(
             request, "Thanks! Your message has been sent to the support team."
         )

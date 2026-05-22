@@ -47,7 +47,7 @@ class GraphQLStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "graphql",
                 "message": "GraphQL endpoint not enabled; use REST APIs. See phase14_through_phase20.",
             }
@@ -62,7 +62,7 @@ class EdgeConfigAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "edge",
                 "doc": "REFINEMENT / PLATFORM_ROADMAP_5Y.",
             }
@@ -150,7 +150,7 @@ class CMSStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "cms",
                 "doc": "phase21_through_phase24; REFINEMENT Priority 3–4.",
             }
@@ -203,7 +203,7 @@ class SupportCopilotStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "support_copilot",
                 "doc": "section_11_category_killers.md; product roadmap.",
             }
@@ -221,7 +221,7 @@ class TenantMediaStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "stub",
+                "status": "code_presence_stub",
                 "scope": "tenant_media",
                 "message": "Design studio roadmap when doing design studio. PLACEHOLDER_AND_GAP_CLOSURE.",
             }

@@ -498,6 +498,19 @@ def _signup_form_defaults() -> dict[str, Any]:
     }
 
 
+def _resolve_footer_language() -> tuple[str, str]:
+    """Human-readable language label + BCP-47-ish code for civic footer."""
+    from django.utils import translation
+
+    from apps.siteconfig.translations import SUPPORTED_LANGUAGES
+
+    code = (translation.get_language() or "en").strip() or "en"
+    label = SUPPORTED_LANGUAGES.get(code)
+    if not label and "-" in code:
+        label = SUPPORTED_LANGUAGES.get(code.split("-", 1)[0])
+    return label or "English", code
+
+
 def _tenant_footer_defaults(site: Any | None) -> dict[str, Any]:
     """Tenant civic footer — pulled from SITE model when available.
 
@@ -531,6 +544,8 @@ def _tenant_footer_defaults(site: Any | None) -> dict[str, Any]:
     if address:
         contacts.append({"kind": "address", "value": address, "href": "", "glyph": "📍"})
 
+    lang_label, lang_code = _resolve_footer_language()
+
     return {
         "brand": {
             "wordmark": wordmark,
@@ -543,8 +558,8 @@ def _tenant_footer_defaults(site: Any | None) -> dict[str, Any]:
             {"label": "🔒 FERPA · WCAG 2.1 AA", "tone": "secure"},
         ],
         "language": {
-            "label": "",  # template falls back to LANGUAGE_NAME_LOCAL
-            "current_locale": "",
+            "label": lang_label,
+            "current_locale": lang_code,
             "has_switcher": True,
         },
         # App badges + social default to empty — operators publish via SiteSettings.
@@ -698,6 +713,17 @@ def cockpit_context(request) -> dict[str, Any]:
         payload = _resolve_cockpit_payload(request)
         if payload:
             manager_cockpit = _deep_merge(manager_cockpit, payload)
+
+        acr = manager_cockpit.get("ai_copilot_rail") or {}
+        if acr.get("enabled"):
+            try:
+                from apps.observability.ai_copilot_service import enrich_manager_copilot_rail
+
+                manager_cockpit["ai_copilot_rail"] = _deep_merge(
+                    acr, enrich_manager_copilot_rail(request)
+                )
+            except Exception:
+                pass
 
         # v3.58.x Wave 10 Agent Q (2026-05-22): host-routing post-gate.
         # When `atk_enabled_on_manager=False` was persisted by the operator

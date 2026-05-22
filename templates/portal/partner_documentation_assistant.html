@@ -1,0 +1,39 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Partner documentation assistant" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-rmc-partner-doc-assistant="1" data-rmc-scroll-policy="paginate">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Partner & interop documentation" %}</h1>
+    <p class="small text-muted mb-0">{% trans "Grounded guidance for OneRoster, LTI, and district connectors — never paste API secrets here." %}</p>
+    {% if interop_hub_url %}
+    <a class="btn btn-sm btn-outline-primary mt-2" href="{{ interop_hub_url }}">{% trans "Open interop hub" %}</a>
+    {% endif %}
+  </header>
+
+  <section class="card border-0 shadow-sm">
+    <div class="card-body">
+      <form data-rmc-partner-interop-form onsubmit="return false">
+        {% csrf_token %}
+        <label class="form-label" for="partner-interop-q">{% trans "Question" %}</label>
+        <textarea id="partner-interop-q" class="form-control form-control-sm mb-2" rows="3" maxlength="2000"
+                  data-rmc-partner-query
+                  placeholder="{% trans 'e.g. How do we verify OneRoster readiness?' %}"></textarea>
+        <button type="button" class="btn btn-primary btn-sm" data-rmc-partner-submit>{% trans "Ask" %}</button>
+        <span class="small text-muted ms-2" data-rmc-partner-status role="status"></span>
+      </form>
+      <pre class="small rmc-surface-muted-panel p-2 mt-3 rounded border mb-0" data-rmc-partner-out hidden aria-live="polite"></pre>
+      {% include "partials/ai_nutrition_label.html" %}
+    </div>
+  </section>
+</div>
+<script type="application/json" id="page-data-partner-doc-1" nonce="{{ csp_nonce }}">{"interop_api_url":"{{ interop_api_url|escapejs }}"}</script>
+<script src="{% static 'js/rmc-partner-doc-assistant.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock %}

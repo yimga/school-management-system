@@ -7,6 +7,7 @@ state, grade-outlook view groups predictions by subject.
 
 from __future__ import annotations
 
+import json
 import unittest.mock as mock
 
 from django.test import RequestFactory, TestCase
@@ -53,9 +54,10 @@ class _FixtureBase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-    def _request(self, path):
-        req = self.factory.get(path)
-        req.user = self.user
+    def _request(self, path, *, method="GET", user=None):
+        factory_method = getattr(self.factory, method.lower(), self.factory.get)
+        req = factory_method(path)
+        req.user = user or self.user
         req.school = self.school
         return req
 
@@ -195,6 +197,64 @@ class RiskDriversViewTests(_FixtureBase):
         req = self._request(f"/portal/student/{cross.pk}/risk-drivers/")
         with self.assertRaises(Http404):
             views_ai_surfaces.student_risk_drivers(req, student_id=cross.pk)
+
+    def test_regenerate_explanation_staff_updates_summary(self):
+        RiskFactor.objects.create(
+            school=self.school,
+            student=self.student,
+            score=70.0,
+            reason_summary="heuristic baseline",
+            feature_contributions=[],
+        )
+        staff = User.objects.create_user(
+            username=f"rd_staff_{id(self)}",
+            email="rd_staff@example.com",
+            password="p",
+            role=User.Role.TEACHER,
+            is_staff=True,
+        )
+        req = self._request(
+            f"/portal/student/{self.student.pk}/risk-explanation/regenerate/",
+            method="POST",
+            user=staff,
+        )
+        with mock.patch(
+            "services.risk_explanation.explain_risk",
+            return_value=("LLM summary for parents.", {"provider": "rules"}),
+        ):
+            resp = views_ai_surfaces.student_risk_explanation_regenerate(
+                req, student_id=self.student.pk,
+            )
+        self.assertEqual(resp.status_code, 200)
+        payload = json.loads(resp.content.decode())
+        self.assertTrue(payload.get("regenerated"))
+        self.assertEqual(payload.get("reason_summary"), "LLM summary for parents.")
+        rf = RiskFactor.objects.get(student=self.student, school=self.school)
+        self.assertEqual(rf.reason_summary, "LLM summary for parents.")
+
+    def test_regenerate_explanation_parent_forbidden(self):
+        RiskFactor.objects.create(
+            school=self.school,
+            student=self.student,
+            score=50.0,
+            reason_summary="baseline",
+            feature_contributions=[],
+        )
+        parent = User.objects.create_user(
+            username=f"rd_parent_{id(self)}",
+            email="rd_parent@example.com",
+            password="p",
+            role=User.Role.PARENT,
+        )
+        req = self._request(
+            f"/portal/student/{self.student.pk}/risk-explanation/regenerate/",
+            method="POST",
+            user=parent,
+        )
+        resp = views_ai_surfaces.student_risk_explanation_regenerate(
+            req, student_id=self.student.pk,
+        )
+        self.assertEqual(resp.status_code, 403)
 
 
 class GradeOutlookViewTests(_FixtureBase):

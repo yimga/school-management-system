@@ -1165,9 +1165,15 @@ def api_dashboard_pack_recommend(request):
 def _parse_support_assistant_body(request):
     from services.ai.support_sanitize import sanitize_support_query
 
+    from apps.portal.ai_surface_context import build_ai_surface_context
+
     body = json.loads(request.body) if request.body else {}
     query = sanitize_support_query((body.get("query") or "").strip()[:8000])
-    active_url = (body.get("active_url") or body.get("path") or "").strip()[:500]
+    surface = build_ai_surface_context(request)
+    active_url = (
+        (body.get("active_url") or body.get("path") or surface.get("current_path") or "")
+        .strip()[:500]
+    )
     history = sanitize_support_query(
         (body.get("history") or body.get("interaction_history") or "").strip()[:2000]
     )

@@ -120,9 +120,13 @@ except ImportError:
     ) = None
 
 from .views_ai_draft import (
+    ai_draft_lesson_outline,
     ai_draft_parent_message,
     ai_draft_report_card_comment,
 )
+from .views_education_pack import education_pack_parent, education_pack_teacher
+from .views_partner_docs import partner_documentation_assistant
+from .views_runmycampus_guide import runmycampus_guide
 
 app_name = "portal"
 
@@ -130,6 +134,15 @@ urlpatterns = [
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),
+    path("ai/draft/lesson-outline/", ai_draft_lesson_outline, name="ai_draft_lesson_outline"),
+    path("guide/", runmycampus_guide, name="runmycampus_guide"),
+    path("education/teacher/", education_pack_teacher, name="education_pack_teacher"),
+    path("education/parent/", education_pack_parent, name="education_pack_parent"),
+    path(
+        "partner-docs/assistant/",
+        partner_documentation_assistant,
+        name="partner_documentation_assistant",
+    ),
     # Home and portal entry
     path("", parent_dashboard, name="home"),
     path("home/", parent_dashboard, name="portal_home"),
@@ -395,6 +408,11 @@ urlpatterns = [
         "student/<int:student_id>/risk-drivers/",
         _ai_surfaces.student_risk_drivers,
         name="ai_student_risk_drivers",
+    ),
+    path(
+        "student/<int:student_id>/risk-drivers/regenerate/",
+        _ai_surfaces.student_risk_explanation_regenerate,
+        name="ai_student_risk_explanation_regenerate",
     ),
     path(
         "student/<int:student_id>/grade-outlook/",

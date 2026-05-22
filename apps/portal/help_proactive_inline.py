@@ -35,11 +35,22 @@ _INLINE_ASSISTANT_PREFIXES = (
     "/finance/",
     "/payroll/",
     "/evals/",
+    "/attendance/",
+    "/teacher/attendance",
+    "/studio_os/",
+    "/studio-os/",
+)
+
+
+# Paths that get inline assistant without requiring "dashboard" in URL (batch 1394).
+_INLINE_ASSISTANT_EXACT = (
+    "/teacher/attendance",
+    "/teacher/attendance/",
 )
 
 
 def module_inline_assistant_for_request(request) -> dict[str, Any]:
-    """Full inline KB copilot on finance/payroll/evals dashboards (batch 1356)."""
+    """Full inline KB copilot on finance/payroll/evals/attendance/studio routes (batch 1356 + 1394)."""
     if not getattr(request, "user", None) or not request.user.is_authenticated:
         return {}
     path = (getattr(request, "path", "") or "").lower()
@@ -47,10 +58,19 @@ def module_inline_assistant_for_request(request) -> dict[str, Any]:
     for prefix in _INLINE_ASSISTANT_PREFIXES:
         if path.startswith(prefix):
             slug = prefix.strip("/").split("/")[0]
+            if slug == "studio_os" or slug == "studio-os":
+                slug = "studio"
             break
     if not slug:
         return {}
-    if "dashboard" not in path and "compliance" not in path:
+    path_ok = (
+        "dashboard" in path
+        or "compliance" in path
+        or any(path.startswith(p) or path.startswith(p + "/") for p in _INLINE_ASSISTANT_EXACT)
+        or path.startswith("/studio_os")
+        or path.startswith("/studio-os")
+    )
+    if not path_ok:
         return {}
     return {
         "show_module_inline_help_assistant": True,

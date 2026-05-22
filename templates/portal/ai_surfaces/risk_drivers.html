@@ -70,5 +70,40 @@
   <p class="small text-muted">
     {% trans "Model version" %}: <code>{{ risk_factor.model_version|default:"—" }}</code>
   </p>
+  {% if can_regenerate_explanation %}
+  <form method="post" action="{% url 'portal:ai_student_risk_explanation_regenerate' student.pk %}" class="mt-3" data-rmc-risk-explain-regenerate>
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-stars me-1"></i>{% trans "Regenerate AI explanation" %}
+    </button>
+    <span class="small text-muted ms-2" data-rmc-risk-explain-status role="status"></span>
+  </form>
+  <script nonce="{{ csp_nonce }}">
+  (function () {
+    var form = document.querySelector("[data-rmc-risk-explain-regenerate]");
+    if (!form) return;
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var status = form.querySelector("[data-rmc-risk-explain-status]");
+      if (status) status.textContent = "…";
+      fetch(form.action, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value }
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        if (data && data.reason_summary) {
+          var alert = document.querySelector(".alert-info .small.text-muted");
+          if (alert) alert.textContent = data.reason_summary;
+          if (status) status.textContent = data.regenerated ? "Updated." : "Unchanged.";
+        } else if (status) {
+          status.textContent = (data && data.error) || "Unavailable.";
+        }
+      }).catch(function () {
+        if (status) status.textContent = "Unavailable.";
+      });
+    });
+  })();
+  </script>
+  {% endif %}
 {% endif %}
 {% endblock %}

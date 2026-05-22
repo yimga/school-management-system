@@ -1,5 +1,37 @@
 ﻿# RunMyCampus — single execution source of truth
 
+**§11.4 forward queue - batch 1396 (Unified AI assistant — Gear 2 one-guide + lesson outlines - 2026-05-22):** **DONE (Lane 1)** — Intent router on all surfaces; RunMyCampus Guide hub; lesson-plan outline draft API + education-pack UI; MCP `lesson_plan_outline` + `guide_surfaces`; command-bar entries; proactive Studio nudge; Lane 2 readiness verifier. **Proof:** `npm run verify:geos-ai-unified` → **UNIFIED_AI_ASSISTANT_PASS** + **UNIFIED_AI_LANE2_READINESS_PASS**; `test_unified_ai_gear2`. **SW:** `sms-v3.62.0-unified-ai-assistant-gear2-2026-05-22`.
+
+**§11.4 forward queue - batch 1395 (Unified AI assistant — Phase C School OS intelligence - 2026-05-22):** **DONE (Lane 1, repo-scope)** — Teacher/parent education pack UI; partner doc assistant page; product MCP scaffold; AI nutrition label; tenant KB submit transparency. **Shipped:** `views_education_pack`, `views_partner_docs`, `services/ai/mcp_product_server.py`, `views_mcp_product`, `partials/ai_nutrition_label.html`, `RMC_PRODUCT_MCP_ENABLED`. **Proof:** `verify_unified_ai_assistant.py` Phase C checks; `test_unified_ai_phases_bc`. **Lane 2:** `RMC_PRODUCT_MCP_ENABLED=1` + live gateway.
+
+**§11.4 forward queue - batch 1394 (Unified AI assistant — Phase B workflow copilot - 2026-05-22):** **DONE (Lane 1, repo-scope)** — Onboarding/offboarding playbook conversational UI; proactive tenant suggestions; attendance + studio inline assistants. **Shipped:** `workflow_playbook_ai`, `views_workflow_playbook`, `tenant_proactive_suggestions`, `workflow_playbook_assistant.html`, `rmc-workflow-playbook.js`, API `ai-onboarding-playbook` / `ai-offboarding-playbook`. **Proof:** verifier + tests. **Reuses:** forum↔KB (1359), migration intake AI (1393).
+
+**§11.4 forward queue - batch 1393 (Unified AI assistant — Phase A wiring end-to-end - 2026-05-22):** **DONE (Lane 1, repo-scope)** — One-brain context + operator copilot + KB loop + support triage + shell rewiring without duplicating help-center batches **1331–1360** / **1387** / **1392**. **Shipped:** `apps/portal/ai_surface_context.py` wired to gateway/copilot/command-bar; `apps/observability/ai_copilot_service.py` live rail insights + `cockpit_context` enrich; `support_ticket_hooks._maybe_enqueue_support_ai_triage` (manager + tenant paths); `help_content_gaps.maybe_auto_draft_from_content_gap` (`HELP_ZERO_RESULT_AUTO_DRAFT_*`); portal/control-plane proactive nudge + finance inline assistant; migration `intake_ai_ask` + `answer_intake_question`; `scripts/verify_unified_ai_assistant.py` → **UNIFIED_AI_ASSISTANT_PASS**; `scripts/run_geos_ai_a11y_lane2.sh`; tests `test_ai_surface_context`, `test_ai_copilot_service`. **Proof:** `python scripts/verify_unified_ai_assistant.py`; `npm run verify:geos-ai-phase-a` (extends lane1). **Honest residual (Lane 2):** `SUPPORT_AI_AUTO_TRIAGE_ON_CREATE=1` + `HELP_ZERO_RESULT_AUTO_DRAFT_KB=1` on Render; `GEOS_A11Y_E2E=1` Playwright; live LiteLLM per §13.8.
+
+**§11.4 forward queue - batch 1392 (GEOS AI Lane 1 continuation — Google pillar product wiring - 2026-05-22):** **DONE (Lane 1, repo-scope)** — Continues batch **1387**; parallel to GEOS-99 Lane 2 (**1391**, operator evidence). **Plan:** Cursor `geos_ai_lane1_continuation.plan.md` · SOT **§13.8**. **Shipped:** `help_governance` + `help_ai_governance` context processor; parent/student template gating + feature-center redirect; draft APIs `student_id`; `student_risk_explanation_regenerate` + risk drivers fetch UX; civic footer language label (`dashboard_footer.html` + `cockpit_context._resolve_footer_language`); support-pipeline Vitest timeout 300s default; `npm run verify:geos-ai-lane1`; CI adds `test_help_governance`; `test_views_ai_surfaces` **17/17** (incl. regenerate + JSON parse hygiene). **Proof:** `npm run verify:geos-ai-lane1` → matrix **GEOS_99_MATRIX_PASS**; `verify_help_center_tiers.py` **99 PASS**; `docs/AI_GOVERNANCE_CLASSROOM.md`. **Honest residual (Lane 2):** `GEOS_A11Y_E2E=1 npm run test:e2e:help-ai-center-a11y`; live LiteLLM on Render → register `verified_live` (google live composite stays 0% until then).
+
+**§11.4 forward queue - batch 1391 (GEOS-99 Lane 2 — operator evidence scaffolding - 2026-05-22):** **DONE (Lane 2 scaffold, repo)** — `var/evidence/geos-99/README.md`; `docs/generated/geos_lane2_operator_checklist.md`; `scripts/verify_geos_lane2_scaffold.py` → **GEOS_LANE2_SCAFFOLD_PASS**. **Honest residual:** composite/live 99% requires operator §13.7 steps (PSP settlement, Render SHA, pilot slot 1 core loop, SOC2/residency) → `verified_live` rows only with evidence paths.
+
+**§11.4 forward queue - batch 1390 (GEOS-99 matrix integration + FIVE_PILLAR reconciliation - 2026-05-22):** **DONE (Lane 1)** — `verify_greatest_education_os_matrix.py --write` → **GEOS_99_MATRIX_PASS** (all pillars repo 100%); `verify_email_delivery_surface.py`; `verify_geos_locale_chrome_coverage.py`; `npm run verify:geos-99`.
+
+**§11.4 forward queue - batch 1389 (GEOS-99 cross-cut - 2026-05-22):** **DONE (Lane 1)** — `test_core_operating_loop_e2e.py`; email/signup verifiers; cross-cut matrix checks.
+
+**§11.4 forward queue - batch 1388 (GEOS-99 LocalGlobal - 2026-05-22):** **DONE (Lane 1)** — chrome locale JSON ≥95%; `data_residency_settings.py` + tests; corridor registry UI; ROADMAPS 20-locale honesty.
+
+**§11.4 forward queue - batch 1386 (GEOS-99 Salesforce - 2026-05-22):** **DONE (Lane 1)** — change-request summary + lifecycle stepper; first-100 ↔ pilot scorecard.
+
+**§11.4 forward queue - batch 1385 (GEOS-99 Shopify - 2026-05-22):** **DONE (Lane 1)** — `test_paid_install_ledger_entitlement_webhook_e2e.py`; roadmap `code_presence_stub`; NiceToHave relabel.
+
+**§11.4 forward queue - batch 1384 (GEOS-99 AWS - 2026-05-22):** **DONE (Lane 1)** — RLS verify-only; `MULTI_REGION_TOPOLOGY.md`; `GRAPHQL_INTROSPECTION_ENABLED` default.
+
+**§11.4 forward queue - batch 1383 (GEOS-99 Linux - 2026-05-22):** **DONE (Lane 1)** — NiceToHave `product_complete`; library module; ecosystem/preflight verify.
+
+**§11.4 forward queue - batch 1382 (GEOS-99 ROADMAPS honesty - 2026-05-22):** **DONE (Lane 1)** — honesty banner + 20-locale stub row in `ROADMAPS_IMPLEMENTATION_STATUS.md`.
+
+**§11.4 forward queue - batch 1381–1377 (GEOS-99 Phase 0 verify-only - 2026-05-22):** **DONE (Lane 1, verify-only)** — 1381 offboarding HTTP **28/28**; 1380 page personality; 1379 platform pulse; 1378 signup diagnostics + `async_send=True`; 1377 email delivery + `verify_email_delivery_surface.py` PASS.
+
+**§11.4 forward queue - batch 1387 (GEOS AI integration end-to-end — repo lane - 2026-05-20):** **DONE (Lane 1, repo-scope)** — Closes AI integration gaps from GEOS Google pillar + education lanes without claiming live LiteLLM/PSP. **Shipped:** workflow `related_ai_context_key` for `teacher-enter-marks` + `support-help-hub`; `help_governance` parent/student policy enforced in templates + feature-center redirect; tenant `ai_copilot.html` restored for assist-dock when policy allows; workflow next-action AI chip + `ai_help_url`; teacher draft `student_id`; risk drivers on-demand `explain_risk`; command-bar Help/compose/marks actions; `docs/AI_GOVERNANCE_CLASSROOM.md`; `scripts/verify_greatest_education_os_matrix.py` + `docs/generated/greatest_education_os_matrix.{json,md}` (**repo 100% / live 0% honest**); SW `sms-v3.60.2-geos-ai-integration-complete-2026-05-20`. **Proof:** `verify_help_center_tiers.py` PASS; `verify_greatest_education_os_matrix.py --write` → **GEOS_99_MATRIX_PASS**; `apps.apicenter.tests.test_ai_workflow_assistant` **3/3**; `apps.portal.tests.test_help_governance` **4/4**. **Honest residual:** composite 99% blocked on Lane 2 (`external_dependencies_register` PSP/Render/SOC2); GEOS pillar batches **1383–1391** recorded in this run.
+
 **§11.4 forward queue - batch 1376 (Tenant offboarding optional polish — dual approval UI + email notify - 2026-05-22):** **DONE (Lane 1, repo-scope)** — Dual approval Tenant 360 panel + `api_school_offboarding_dual_approve`; email notifications via `tenant_offboarding_notifications.py` (platform + school admins on self-service closure). Policy reads Django settings for tests. **Proof:** `verify_tenant_offboarding_surface.py` PASS; **30/30** offboarding tests; SW v3.58.7.
 
 **§11.4 forward queue - batch 1375 (Tenant offboarding 10× deferrals closeout — self-service + auto-purge + S3 + admin guard - 2026-05-22):** **DONE (Lane 1, repo-scope)** — Closes batch 1374 deferrals at 10× depth. **Self-service:** tenant `/school/studio/offboarding/` + 5 APIs (`views_tenant_self_offboarding.py`); school-admin RBAC; request/cancel closure w/ grace scheduling. **Auto-purge:** `run_scheduled_purges` + `schools_scheduled_for_purge`; Celery `schools.run_scheduled_tenant_purges` (beat when `TENANT_AUTO_PURGE_ENABLED=1`); mgmt command `tenant_offboarding_run_scheduled_purges`. **S3:** [`apps/compliance/tenant_offboarding_storage.py`](../apps/compliance/tenant_offboarding_storage.py) list/delete + `lifecycle_policy_document()`; wired into `cleanup_tenant_media`. **Admin:** `SchoolAdmin.has_delete_permission` → False; guided `delete_guided.html` → Tenant 360; bulk delete removed. **Operator:** `/super/offboarding/` queue + schedule/export-download APIs + Tenant 360 steps 3–5. **Policy:** [`tenant_offboarding_policy.py`](../apps/schools/tenant_offboarding_policy.py). **Migration:** `0053` extended provisioning events. **Proof:** `verify_tenant_offboarding_surface.py` PASS (extended); `test_tenant_offboarding_api` + `test_tenant_offboarding_extended` + purge tests; SW `sms-v3.58.5-tenant-offboarding-self-service-auto-purge-s3-admin-2026-05-22`.
@@ -542,6 +574,102 @@
 **§11.4 forward queue - batch 1104 (North Star slice 1 — Rosetta view-in-target, 2026-04-27):** **DONE** — **`rosetta_stone`**: **`normalized_to_target_score`**, **`view_grade_in_target_system`**, **`format_rosetta_line`**; **teacher** **`teacher/marks_list.html`**: **compare** query shows target-scale column; **URL** **`evals:rosetta_grade_preview_api`** (`/evals/api/rosetta/preview/`); **template** **`rosetta_view_grade_line`** in **`evals_extras`**. **Tests** **`test_rosetta_slice1`**. **Bar:** **`DJANGO_TEST_DB_FILE=.django_test_dbs/northstar_slice1.sqlite3 python manage.py test apps.evals.tests.test_rosetta_slice1`**, **`test_evaluation_scores`**, **verifiers** (admin gravity, sitesettings, security, shell, phase2, design, doc, SOT) + **`generate_platform_inventory`**.
 
 **§11.4 forward queue - batch 1103 (onboarding engine core — `SchoolOnboardingProgress`, step URLs, mark-done, 2026-04-27):** **DONE** — **Product shipped:** **`SchoolOnboardingProgress`** (OneToOne **`school`**, **`completed_steps`**, **`progress_percent`**, **`last_step`**) + **`0052_schoolonboardingprogress`**; **`get_onboarding_steps`**, data + manual merge, **`mark_school_onboarding_step_complete`**, progress sync; URLs **`onboarding_step`**, **`onboarding_step_complete`**; **`onboarding.html`**, **`onboarding_step.html`**; **tests** in **`test_onboarding`**. **Pytest bar (2026-04-29):** **`DJANGO_TEST_DB_FILE=.django_test_dbs/onboarding_engine_core.sqlite3 python manage.py test apps.platform_runtime.tests.test_onboarding --noinput`** → **9 tests OK** (~**10.6s**, isolated DB, no parallel runner).
+
+## §13 — Greatest Education OS Rubric (99% gates)
+
+### §13.0 Program charter
+
+Eight pillars (Linux, AWS, Shopify, Salesforce, Google, LocalGlobal, Amazon, DailyOps) plus **Overall**. **Dual-axis:** repo (mechanical verifiers) vs live (`verified_live` in **`docs/external_dependencies_register.json`**). **Composite** = `0.6 × repo + 0.4 × live`. Forbidden: buyer-facing “99% greatest” when composite &lt; 99 or live axis unproven. Canonical plan: Cursor `99%_greatest_education_os_50240e1d.plan.md`.
+
+### §13.1 Baseline → targets
+
+| Pillar | Audit baseline | Repo target | Live target | Composite target |
+|--------|----------------|-------------|-------------|------------------|
+| Linux | 70% | 99% | 99% | 99% |
+| AWS | 65% | 99% | 99% | 99% |
+| Shopify | 45% | 99% | 99% | 99% |
+| Salesforce | 55% | 99% | 99% | 99% |
+| Google | 50% | 99% | 99% | 99% |
+| LocalGlobal | 55% | 99% | 99% | 99% |
+| Amazon | 72% repo / 18% live | 99% | 99% | 99% |
+| DailyOps | 60–70% | 99% | 99% | 99% |
+| Overall | 42% market / 72% repo | 99% repo | 99% live | 99% composite |
+
+**Current mechanical headline (2026-05-22):** **REPO 100% / LIVE 0% / COMPOSITE 60%** — honest until §13.7 operator evidence.
+
+### §13.2 Lane 1 batches
+
+**1377–1382** Phase 0 verify-only · **1383–1388** pillars · **1389** cross-cut · **1390** matrix integration · **1391** Lane 2 scaffold · **1387** GEOS AI repo lane.
+
+### §13.3 Proof commands bundle
+
+```bash
+python scripts/verify_greatest_education_os_matrix.py --write
+python scripts/verify_geos_lane2_scaffold.py
+npm run verify:geos-99
+python scripts/verify_five_pillar_platform_completion.py --write --run-tests
+python scripts/verify_ecosystem_sovereignty_matrix.py
+python scripts/verify_tenant_offboarding_surface.py
+python scripts/verify_help_center_tiers.py
+python scripts/verify_interaction_integrity_completion.py
+python scripts/verify_page_fold_standards.py
+python scripts/generate_system_closure_map.py --write
+python scripts/generate_external_dependencies_register.py --write
+python scripts/verify_doc_plan_density_discipline.py
+```
+
+### §13.4 Generated artifacts
+
+- **`docs/generated/greatest_education_os_matrix.{json,md}`** — authoritative % (regenerate on every GEOS closeout).
+- **`docs/generated/geos_lane2_operator_checklist.md`** — Lane 2 steps.
+- Regression: any pillar repo check failure → new §11.4 row; do not lower thresholds without SOT edit.
+
+### §13.5 Audit crosswalk
+
+Audit §1–§16 → batches **1377–1391** (see plan §13.5 table). **Verify-only (do not re-implement):** 1374–1376 offboarding, create-school v3.57.5, help 1339–1360, theme 1364–1368, Studio 1373, Render AI 1370. **GEOS-DEFER:** TenantOwnedModel consolidation, SiteSettings decomposition, 24/7 NOC, formal WCAG auditor (repo axe in 1389).
+
+### §13.6 Architecture scorecard → GEOS batches
+
+`docs/generated/architecture_certification_scorecard.json` gaps map to **1383–1389** or **GEOS-DEFER** (billing_payments → 1385+1391 PSP; deploy_live_readiness → 1391 SHA; compliance_audit → 1391 SOC2).
+
+### §13.7 Lane 2 operator playbook (summary)
+
+Evidence: `var/evidence/geos-99/`. Full checklist: **`docs/generated/geos_lane2_operator_checklist.md`**. Steps: deploy → SHA parity → email health + signup diagnostics → pilot slot 1 → PSP corridor → SOC2/residency → regenerate register + matrix.
+
+### §13.8 GEOS AI Lane 1 continuation (Google pillar — batch 1392)
+
+**Separate from §13.7:** operator evidence for PSP/pilots does not close AI product wiring. **Execution plan:** Cursor `geos_ai_lane1_continuation.plan.md` (phases: governance → education surfaces → verifier bundle → optional axe E2E). **Policy doc:** [`AI_GOVERNANCE_CLASSROOM.md`](AI_GOVERNANCE_CLASSROOM.md). **Repo proof closeout:**
+
+```bash
+npm run verify:geos-ai-lane1
+python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_help_governance apps.portal.tests.test_views_ai_surfaces --verbosity=1
+```
+
+**Lane 2 (live AI):** configure `LITELLM_*` on Render per [`AI_DEPLOYMENT_POSTURE.md`](AI_DEPLOYMENT_POSTURE.md); run `python scripts/verify_render_online_ai_posture.py`; optional `GEOS_A11Y_E2E=1 npm run test:e2e:help-ai-center-a11y`.
+
+### §13.9 Unified AI assistant (Phase A — batch 1393)
+
+**North star:** RunMyCampus Guide — role-aware, tenant-scoped, grounded in KB + topology + ops data (see user strategy §10). **Repo proof:**
+
+```bash
+python scripts/verify_unified_ai_assistant.py
+npm run verify:geos-ai-phase-a
+python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_ai_surface_context apps.observability.tests.test_ai_copilot_service --verbosity=1
+```
+
+**Operator flags (production):** `SUPPORT_AI_AUTO_TRIAGE_ON_CREATE=1`, `HELP_ZERO_RESULT_AUTO_DRAFT_KB=1`, `HELP_ZERO_RESULT_AUTO_DRAFT_HITS=5`, `AI_GATEWAY_ENABLED=1`, `LITELLM_*`, per-tenant `enable_ai_help_assistant`. **Lane 2 axe:** `bash scripts/run_geos_ai_a11y_lane2.sh` (Django on `VISUAL_QA_PORT`).
+
+### §13.10 Unified AI assistant (Phase B — batch 1394)
+
+**Workflow copilot:** onboarding/offboarding playbook ask APIs + shell partials on School Studio, activation checklist, and tenant offboarding. **Proof:** `python scripts/verify_unified_ai_assistant.py` (playbook-* checks).
+
+### §13.11 Unified AI assistant (Phase C — batch 1395)
+
+**School OS intelligence:** `/portal/education/teacher/`, `/portal/education/parent/`, `/portal/partner-docs/assistant/`, MCP scaffold at `/api/ai/mcp/tools/` + `/api/ai/mcp/invoke/` (503 until `RMC_PRODUCT_MCP_ENABLED=1`). Gap ledger: [`docs/generated/unified_ai_gap_analysis.md`](generated/unified_ai_gap_analysis.md). **Proof:** `npm run verify:geos-ai-phase-bc`.
+
+### §13.12 Unified AI assistant (Gear 2 — batch 1396)
+
+**One directory, richer education lane:** `/portal/guide/` (RunMyCampus Guide); `ai_intent_router` + `surface_intent` on `build_ai_surface_context`; `POST /portal/ai/draft/lesson-outline/`; MCP tools `lesson_plan_outline`, `guide_surfaces`; cmd+k palette rows for guide + education packs. **Proof:** `npm run verify:geos-ai-unified`.
 
 ## §12 — External Dependencies / Live-Provider Readiness Register
 

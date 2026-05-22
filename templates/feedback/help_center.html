@@ -215,7 +215,9 @@
     </section>
   </div>
 
+  {% if show_kb_ai_assistant_panel|default:False %}
   {% include "portal/partials/kb_ai_assistant_panel.html" %}
+  {% endif %}
 
   {% if kb_typeahead_url %}<div class="d-none" data-kb-typeahead-url="{{ kb_typeahead_url }}"></div>{% endif %}
   <script src="{% static 'js/rmc-help-search-typeahead.js' %}" defer></script>

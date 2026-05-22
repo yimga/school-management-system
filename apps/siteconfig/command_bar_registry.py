@@ -125,6 +125,13 @@ _PLATFORM_ACTION_DEFS: tuple[tuple[str, str, str, str, Scope, Optional[str]], ..
     ("navigate", "Bulk letters", "✉", "siteconfig:bulk_letters", "tenant_admin", None),
     ("navigate", "Report card builder", "📝", "siteconfig:reportcard_builder", "tenant_admin", None),
     ("navigate", "Scheduled reports", "🕒", "siteconfig:scheduled_reports_delivery_hub", "tenant_admin", None),
+    ("navigate", "Draft parent message", "✉", "accounts:direct_compose", "tenant_user", "TEACHER"),
+    ("navigate", "Enter marks", "📊", "evals:teacher_marks_entry", "tenant_user", "TEACHER"),
+    ("navigate", "Help center (AI)", "✨", "feedback:help_center", "tenant_user", None),
+    ("navigate", "RunMyCampus Guide", "🧭", "portal:runmycampus_guide", "tenant_user", None),
+    ("navigate", "Teacher education pack", "📚", "portal:education_pack_teacher", "tenant_user", "TEACHER"),
+    ("navigate", "Family learning pack", "👪", "portal:education_pack_parent", "tenant_user", "PARENT"),
+    ("navigate", "Partner doc assistant", "🔗", "portal:partner_documentation_assistant", "tenant_admin", None),
     # ---- System / blueprints ----
     ("settings", "Get blueprints", "📐", "siteconfig:get_blueprints", "tenant_admin", None),
     ("settings", "Theme experience hub", "✨", "siteconfig:theme_experience_hub", "tenant_admin", None),

@@ -427,6 +427,33 @@ def parse_mapping_command(
     )
 
 
+def answer_intake_question(
+    *,
+    school: Any | None,
+    question: str,
+    intake_context: dict[str, Any] | None = None,
+) -> AIProposal | None:
+    """Answer operator questions on the intake wizard (no bundle required)."""
+    if not is_ai_available(school):
+        return None
+    ctx = intake_context or {}
+    prompt = (
+        "You are the Migration Cloud intake assistant. Answer using ONLY the "
+        "intake context below. Cover CSV upload, quarantine, canonical mapping, "
+        "and guardrails — never invent bundle-specific counts. Two sentences max.\n\n"
+        f"Question: {question}\n\n"
+        f"Intake context:\n{json.dumps(ctx, default=str)[:4000]}\n\n"
+        'Return strictly JSON: {"answer": "<text>", "confidence": 0.0-1.0}.'
+    )
+    return _invoke(
+        school=school,
+        prompt=prompt,
+        prompt_type="migration_cloud.intake_qa",
+        content_sensitivity="standard",
+        parser=_parse_bundle_qa_response(),
+    )
+
+
 def answer_bundle_question(
     *,
     school: Any | None,

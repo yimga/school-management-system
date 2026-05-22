@@ -121,6 +121,11 @@ from apps.portal.views_ai_gateway import (
     api_trust_compliance_assistant,
     api_studio_os_assistant,
 )
+from apps.portal.views_workflow_playbook import (
+    api_offboarding_playbook_ask,
+    api_onboarding_playbook_ask,
+)
+from apps.portal.views_mcp_product import api_mcp_invoke_tool, api_mcp_list_tools
 from apps.portal.views_support_deflection import (
     api_support_deflection,
     api_support_deflection_ack,
@@ -589,6 +594,18 @@ urlpatterns = [
         api_studio_os_assistant,
         name="ai-studio-os-assistant",
     ),
+    path(
+        "ai/onboarding-playbook/",
+        api_onboarding_playbook_ask,
+        name="ai-onboarding-playbook",
+    ),
+    path(
+        "ai/offboarding-playbook/",
+        api_offboarding_playbook_ask,
+        name="ai-offboarding-playbook",
+    ),
+    path("ai/mcp/tools/", api_mcp_list_tools, name="ai-mcp-list-tools"),
+    path("ai/mcp/invoke/", api_mcp_invoke_tool, name="ai-mcp-invoke"),
     path("ai/feedback/", api_ai_feedback, name="ai-feedback"),
     path(
         "ai/support-session-rating/",

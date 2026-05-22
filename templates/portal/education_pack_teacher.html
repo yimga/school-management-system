@@ -1,0 +1,83 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{# lesson outline draft: rmc-lesson-outline-draft.js #}
+
+{% block title %}{% trans "Teacher education pack" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-rmc-education-pack="teacher" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Teacher education pack" %}</h1>
+    <p class="small text-muted mb-0">{% trans "Lesson support, family communication drafts, and at-risk insights — tenant-scoped, human review required." %}</p>
+  </header>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <section class="card h-100">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Communication drafts" %}</h2>
+          <p class="small text-muted">{% trans "Use AI drafts in direct messages or report-card editors; never send without review." %}</p>
+          <ul class="small mb-0">
+            <li>{% trans "Parent message draft API" %} — <code>ai/draft/parent-message/</code></li>
+            <li>{% trans "Report-card comment draft" %} — <code>ai/draft/report-card-comment/</code></li>
+          </ul>
+          {% if not entitlements.teacher_comms %}
+          <p class="small text-warning mt-2 mb-0">{% trans "AI_TEACHER_COMMS entitlement required for parent drafts." %}</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <section class="card h-100">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Student insights" %}</h2>
+          {% if surface_urls.semantic_search %}
+          <a class="btn btn-sm btn-outline-primary" href="{{ surface_urls.semantic_search }}">{% trans "Semantic student search" %}</a>
+          {% endif %}
+          <p class="small text-muted mt-2 mb-0">{% trans "Risk drivers and grade outlook surfaces use school-scoped analytics only." %}</p>
+        </div>
+      </section>
+    </div>
+    <div class="col-12">
+      <section class="card">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Lesson plan outline" %}</h2>
+          <p class="small text-muted">{% trans "Generate a structured outline, then copy into lesson notes or your SIS export." %}</p>
+          <label class="form-label small" for="lesson-outline-intent">{% trans "Lesson focus" %}</label>
+          <textarea id="lesson-outline-intent" class="form-control form-control-sm mb-2" rows="2" maxlength="500" placeholder="{% trans 'e.g. fractions introduction for Form 2' %}"></textarea>
+          <div class="row g-2 mb-2">
+            <div class="col-sm-6">
+              <input type="text" class="form-control form-control-sm" id="lesson-outline-subject" placeholder="{% trans 'Subject' %}" maxlength="120">
+            </div>
+            <div class="col-sm-6">
+              <input type="text" class="form-control form-control-sm" id="lesson-outline-grade" placeholder="{% trans 'Grade / level' %}" maxlength="80">
+            </div>
+          </div>
+          <textarea id="lesson-outline-result" class="form-control form-control-sm mb-2" rows="6" readonly aria-label="{% trans 'Generated outline' %}"></textarea>
+          {% if entitlements.teacher_comms and draft_urls.lesson_outline %}
+          <button type="button" class="btn btn-sm btn-outline-primary" id="lesson-outline-generate" data-endpoint="{{ draft_urls.lesson_outline }}">{% trans "Generate outline" %}</button>
+          <span class="small text-muted ms-2" id="lesson-outline-status" role="status" aria-live="polite"></span>
+          {% else %}
+          <p class="small text-warning mb-0">{% trans "AI_TEACHER_COMMS entitlement required for lesson outlines." %}</p>
+          {% endif %}
+          <div class="mt-3">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_lesson_notes' %}">{% trans "Open lesson notes" %}</a>
+            {% if surface_urls.runmycampus_guide %}
+            <a class="btn btn-sm btn-link" href="{{ surface_urls.runmycampus_guide }}">{% trans "All AI surfaces" %}</a>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  {% include "partials/ai_nutrition_label.html" %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% if entitlements.teacher_comms and draft_urls.lesson_outline %}
+<script src="{% static 'js/rmc-lesson-outline-draft.js' %}" defer></script>
+{% endif %}
+{% endblock %}

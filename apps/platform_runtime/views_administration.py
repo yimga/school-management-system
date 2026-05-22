@@ -543,8 +543,34 @@ def tenant_pack_setup(request):
 
 @require_control_plane_access
 def change_requests(request):
-    rows = ConfigurationChangeRequest.objects.select_related("school", "requested_by")[:200]
-    return render(request, "platform_runtime/change_requests.html", {"change_requests": rows})
+    rows = list(
+        ConfigurationChangeRequest.objects.select_related("school", "requested_by").order_by(
+            "-updated_at", "-pk"
+        )[:200]
+    )
+    from apps.platform_runtime.models import ConfigurationChangeRequest as CCR
+
+    summary = {
+        "pending": sum(
+            1
+            for r in rows
+            if r.status
+            in (
+                CCR.Status.REQUESTED,
+                CCR.Status.PENDING_APPROVAL,
+                CCR.Status.DRAFT,
+            )
+        ),
+        "scheduled": sum(1 for r in rows if r.status == CCR.Status.SCHEDULED),
+        "applied": sum(1 for r in rows if r.status == CCR.Status.APPLIED),
+        "rejected": sum(1 for r in rows if r.status == CCR.Status.REJECTED),
+        "failed": sum(1 for r in rows if r.status == CCR.Status.FAILED),
+    }
+    return render(
+        request,
+        "platform_runtime/change_requests.html",
+        {"change_requests": rows, "change_request_summary": summary},
+    )
 
 
 @require_control_plane_access

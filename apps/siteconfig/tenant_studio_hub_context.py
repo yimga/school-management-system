@@ -121,12 +121,28 @@ def build_studio_ai_context(
         except Exception:
             pass
 
+    playbook_api_url = ""
+    try:
+        playbook_api_url = reverse("api:ai-onboarding-playbook")
+    except NoReverseMatch:
+        playbook_api_url = ""
+
+    proactive_tenant: list = []
+    try:
+        from apps.portal.tenant_proactive_suggestions import proactive_suggestions_for_request
+
+        proactive_tenant = proactive_suggestions_for_request(request)
+    except Exception:
+        proactive_tenant = []
+
     return {
         "ai_enabled": ai_enabled,
         "onboarding_assistant": assistant,
         "setup_assistant_api_url": api_url,
+        "onboarding_playbook_api_url": playbook_api_url,
         "coach_message": coach_message,
         "coach_quick_actions": quick_actions,
         "contextual_tip": contextual,
+        "proactive_tenant_suggestions": proactive_tenant,
         "onboarding_coach_url": _tenant_reverse("siteconfig:api_onboarding_coach"),
     }

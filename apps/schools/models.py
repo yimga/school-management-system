@@ -563,12 +563,12 @@ class School(models.Model):
         verbose_name_plural = "Schools"
 
     # Wave L6 (v3.61.6 — 2026-05-22): opt-in soft-delete-aware manager.
-    # Default ``School.objects`` is UNCHANGED to avoid the ~50-caller
-    # ripple. New code should prefer ``School.live_objects`` when it
-    # wants to exclude soft-deleted schools (queryset filters on
-    # deleted_at__isnull=True). The hard-purge path still uses
-    # ``objects`` because it operates on the full set including
-    # already-soft-deleted rows.
+    # Django only auto-creates ``objects`` when the model declares NO
+    # custom managers; declaring ``live_objects`` alone made it the sole
+    # default and broke ``School.objects`` site-wide. Keep explicit
+    # ``objects`` first so legacy callers stay unchanged; new code that
+    # should hide soft-deleted rows uses ``School.live_objects``.
+    objects = models.Manager()
     live_objects = LiveSchoolManager()
 
     def __str__(self):

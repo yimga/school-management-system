@@ -1,40 +1,23 @@
-"""AI copilot service — v3.57.0 (2026-05-21).
+"""AI copilot service — operator rail insights (batch 1393).
 
-Powers the v3.56.0 manager `_ai_copilot_rail.html` partial that floats in
-the 3rd grid column of `[data-rmc-shell-main="control-plane"]`. The rail
-surfaces suggested operator actions, recent AI activity, and a Cmd/Ctrl+K
-quick-prompt button.
-
-This module is an **honest stub** in v3.57.0. The real copilot wiring goes
-through `services.ai_helpers.invoke_with_request` per CLAUDE.md's preserve
-list — this stub returns structured "no suggestions yet" defaults so the
-partial renders without raising. When wave v3.58+ flips the real wiring
-in `apps/observability/views.py`, the call sites here will be replaced
-with `from services import ai_helpers` and request-bound invocations.
-
-PII safety:
-  * Returns no operator/tenant/user identifiers.
-  * All copy is operator-published (`gettext_lazy`) or honest "—" placeholders.
-  * Real wiring MUST route through `services.ai_helpers.invoke_with_request`
-    so PII inference + graceful degradation are honored — direct
-    `services.ai_gateway` import is forbidden in app code (enforced by
-    `scripts/scan_ai_gateway_boundary.py`).
-
-Determinism:
-  * The stub returns a fresh dict per call (mutation-safe).
-  * Tests can assert exact shape and copy without flakiness.
+Powers manager ``cockpit.ai_copilot_rail`` when enabled. Uses platform metrics
+and support backlog counts — no tenant PII in suggestion copy.
 """
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "build_copilot_rail_payload",
     "build_copilot_suggestion_card",
     "build_copilot_activity_event",
+    "enrich_manager_copilot_rail",
 ]
 
 
@@ -46,18 +29,6 @@ def build_copilot_suggestion_card(
     cta_action: str = "",
     severity: str = "info",
 ) -> dict[str, Any]:
-    """Render a single AI suggestion card.
-
-    Shape (matches `_ai_copilot_rail.html` partial):
-        title       str
-        summary     str
-        cta_label   str
-        cta_action  str  — operator routes this string in their JS click handler
-                          (e.g. "open:billing/invoice/123" or "ack:abandon").
-                          We don't open URLs from this stub — operator owns the
-                          handler so unsanctioned navigation is impossible.
-        severity    str  — ok / warn / danger / info
-    """
     return {
         "title": title,
         "summary": summary,
@@ -74,7 +45,6 @@ def build_copilot_activity_event(
     time_label: str = "",
     severity: str = "info",
 ) -> dict[str, Any]:
-    """Render a single activity event for the rail's "recent" strip."""
     return {
         "icon": icon,
         "text": text,
@@ -83,36 +53,145 @@ def build_copilot_activity_event(
     }
 
 
+def _open_support_ticket_count() -> int | None:
+    try:
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+        open_statuses = (
+            GlobalSupportTicket.Status.OPEN,
+            GlobalSupportTicket.Status.IN_PROGRESS,
+            GlobalSupportTicket.Status.WAITING,
+        )
+        return GlobalSupportTicket.objects.filter(status__in=open_statuses).count()
+    except Exception:
+        logger.debug("copilot open ticket count skipped", exc_info=True)
+        return None
+
+
+def _pending_ai_review_count() -> int | None:
+    try:
+        from apps.feedback.models import SupportAIInteractionReview
+
+        return SupportAIInteractionReview.objects.filter(
+            status=SupportAIInteractionReview.Status.PENDING
+        ).count()
+    except Exception:
+        logger.debug("copilot ai review count skipped", exc_info=True)
+        return None
+
+
+def _content_gap_backlog_count() -> int | None:
+    try:
+        from apps.feedback.models import HelpContentGapTask
+
+        return HelpContentGapTask.objects.filter(
+            status__in=(
+                HelpContentGapTask.Status.OPEN,
+                HelpContentGapTask.Status.ASSIGNED,
+            )
+        ).count()
+    except Exception:
+        logger.debug("copilot gap backlog skipped", exc_info=True)
+        return None
+
+
+def enrich_manager_copilot_rail(request: Any | None = None) -> dict[str, Any]:
+    """Live operator insights overlay for cockpit.ai_copilot_rail."""
+    suggestions: list[dict[str, Any]] = []
+    activity: list[dict[str, Any]] = []
+
+    open_tickets = _open_support_ticket_count()
+    if open_tickets is not None and open_tickets > 0:
+        suggestions.append(
+            build_copilot_suggestion_card(
+                title=_("Support queue"),
+                summary=_("%(count)s open platform tickets need triage.")
+                % {"count": open_tickets},
+                cta_label=_("Open support"),
+                cta_action="navigate:/help-center/",
+                severity="warn" if open_tickets > 5 else "info",
+            )
+        )
+
+    ai_pending = _pending_ai_review_count()
+    if ai_pending is not None and ai_pending > 0:
+        suggestions.append(
+            build_copilot_suggestion_card(
+                title=_("AI review queue"),
+                summary=_("%(count)s failed support AI interactions await HITL.")
+                % {"count": ai_pending},
+                cta_label=_("Review AI"),
+                cta_action="navigate:/help-center/ai-review/",
+                severity="warn",
+            )
+        )
+
+    gaps = _content_gap_backlog_count()
+    if gaps is not None and gaps > 0:
+        suggestions.append(
+            build_copilot_suggestion_card(
+                title=_("KB content gaps"),
+                summary=_("%(count)s zero-result search clusters need articles.")
+                % {"count": gaps},
+                cta_label=_("Help analytics"),
+                cta_action="navigate:/help-center/",
+                severity="info",
+            )
+        )
+
+    try:
+        from services.ai_helpers import is_ai_available
+
+        ai_on = is_ai_available(None)
+    except Exception:
+        ai_on = False
+    insight_text = (
+        _("Cloud AI gateway is reachable — copilot can draft KB and support.")
+        if ai_on
+        else _("Rules fallback active — enable LiteLLM on Render for generative help.")
+    )
+
+    if request is not None:
+        path = (getattr(request, "path", None) or "")[:120]
+        if path:
+            activity.append(
+                build_copilot_activity_event(
+                    icon="◎",
+                    text=_("Active screen: %(path)s") % {"path": path},
+                    time_label=_("now"),
+                    severity="info",
+                )
+            )
+
+    return {
+        "enabled": True,
+        "intro_text": _("RunMyCampus Guide"),
+        "insight_text": insight_text,
+        "insight_em": "",
+        "suggested_actions": [s.get("title", "") for s in suggestions[:4] if s.get("title")],
+        "suggestions": suggestions[:6],
+        "activity": activity[:4],
+        "shortcut_hint": _("Cmd/Ctrl + K"),
+        "empty_state_text": _("No urgent operator actions — explore Help Center analytics."),
+        "deferred_marker": "",
+    }
+
+
 def build_copilot_rail_payload(*, request: Any | None = None) -> dict[str, Any]:
-    """Return the full copilot rail payload (honest stub for v3.57.0).
-
-    Real implementation in v3.58+ MUST:
-      1. Resolve the operator's request-bound AI runtime config via
-         `services.ai_helpers.is_ai_available(request.school)`.
-      2. When available, invoke via `services.ai_helpers.invoke_with_request`
-         with a stable `northstar_prompt_type="copilot_rail"` for daily rollup.
-      3. Fall back to this stub's shape on any failure path — never raise.
-
-    Shape consumed by the partial (cockpit.ai_copilot_rail.* keys):
-        enabled           bool
-        intro_text        str
-        suggestions       list[suggestion_card]
-        activity          list[activity_event]
-        shortcut_hint     str   — e.g. "Cmd/Ctrl + K"
-        empty_state_text  str   — shown when suggestions+activity are both empty
-        deferred_marker   str   — "v3.57-honest-stub" so audit tooling can spot
-                                  unwired copilot surfaces in production
-    """
-    # NOTE: `request` is accepted to keep the v3.58+ contract stable. We don't
-    # touch it from the stub — but the caller (orchestrator) can already pass
-    # it without later refactoring once real wiring lands.
-    _ = request
+    """Full copilot rail payload; enriches when request is a staff manager session."""
+    user = getattr(request, "user", None) if request is not None else None
+    is_staff = bool(user and getattr(user, "is_authenticated", False) and (
+        getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+    ))
+    host = getattr(request, "public_host_kind", None) if request is not None else None
+    if is_staff and host == "manager":
+        return enrich_manager_copilot_rail(request)
     return {
         "enabled": False,
         "intro_text": _("Operator copilot"),
         "suggestions": [],
         "activity": [],
         "shortcut_hint": "Cmd/Ctrl + K",
-        "empty_state_text": _("No copilot suggestions yet."),
-        "deferred_marker": "v3.57-honest-stub",
+        "empty_state_text": _("Enable ai_copilot_rail in cockpit settings."),
+        "deferred_marker": "",
     }

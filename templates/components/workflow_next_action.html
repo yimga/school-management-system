@@ -1,10 +1,11 @@
 {% load i18n %}
-{% comment %} Phase 3 — workflow_next_action.html (v3.58.x scaffolding, NOT wired).
+{% comment %} Phase 3 — workflow_next_action.html (v3.60 wired).
    Primary action + next-best action + blocker-state strip for a workflow page.
    Caller contract: include with next_action=next_action where next_action is a dict
    carrying primary (label+url+task_code+step), optional secondary (label+url),
-   optional blocker (label+tone+fix_url), optional owner (label+kind), and state
-   (blocked|in-progress|ready|complete). When blocker is present, primary is aria-disabled. {% endcomment %}
+   optional blocker (label+tone+fix_url), optional owner (label+kind), optional
+   ai_context_key + ai_help_url, and state (blocked|in-progress|ready|complete).
+   When blocker is present, primary is aria-disabled. {% endcomment %}
 {% if next_action %}
 {% with state=next_action.state|default:"ready" %}
 <section class="rmc-workflow-next-action"
@@ -62,6 +63,17 @@
         {% if next_action.secondary.description %}
         <span class="rmc-workflow-next-action__chip-desc">{{ next_action.secondary.description }}</span>
         {% endif %}
+      </a>
+      {% endif %}
+
+      {% if next_action.ai_context_key and next_action.ai_help_url %}
+      <a class="rmc-workflow-next-action__chip rmc-workflow-next-action__chip--secondary"
+         role="listitem"
+         href="{{ next_action.ai_help_url }}"
+         data-rmc-ai-context-key="{{ next_action.ai_context_key }}"
+         data-task="ai-help"
+         data-task-step="workflow-assist">
+        <span class="rmc-workflow-next-action__chip-title">{% trans "Ask AI about this workflow" %}</span>
       </a>
       {% endif %}
     </div>

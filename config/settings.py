@@ -29,6 +29,15 @@ _is_render = os.getenv("RENDER", "").lower() == "true"
 _debug_default = "0" if _is_render else "1"
 DEBUG = os.getenv("DEBUG", _debug_default) == "1"
 
+# GraphQL introspection: off in production unless explicitly enabled (GEOS-99 batch 1384).
+_graphql_intro_raw = os.getenv("GRAPHQL_INTROSPECTION_ENABLED", "").strip().lower()
+if _graphql_intro_raw in ("1", "true", "yes"):
+    GRAPHQL_INTROSPECTION_ENABLED = True
+elif _graphql_intro_raw in ("0", "false", "no"):
+    GRAPHQL_INTROSPECTION_ENABLED = False
+else:
+    GRAPHQL_INTROSPECTION_ENABLED = DEBUG
+
 # Incident routing: any 500 in production should email the security/ops team.
 # Comma-separated env var: ADMINS_EMAILS="ops@example.com,security@example.com".
 _admins_raw = (os.getenv("ADMINS_EMAILS") or "").strip()
@@ -428,6 +437,7 @@ TEMPLATES = [
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
                 "apps.portal.context_processors.support_deflection_urls",  # KB deflection on all ticket forms
                 "apps.portal.context_processors.help_contextual",  # Proactive help nudges + contextual drawer
+                "apps.portal.context_processors.help_ai_governance",  # Parent/student AI panel policy
                 "apps.lifecycle.context_processors.lifecycle_readiness",  # 360 unified score + concierge gate (Wave L3)
                 "apps.feedback.context_processors.support_links",  # Host-aware help / feature / contact URLs
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
@@ -2739,6 +2749,17 @@ ENABLE_AI_KNOWLEDGE_INDEX_BEAT = os.getenv(
 # After portal support form creates a GlobalSupportTicket, enqueue async triage (Celery worker required).
 SUPPORT_AI_AUTO_TRIAGE_ON_CREATE = os.getenv(
     "SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", "0"
+).strip().lower() in ("1", "true", "yes")
+# Zero-result help search → auto KB draft when hit_count reaches threshold (HITL publish still required).
+HELP_ZERO_RESULT_AUTO_DRAFT_KB = os.getenv(
+    "HELP_ZERO_RESULT_AUTO_DRAFT_KB", "0"
+).strip().lower() in ("1", "true", "yes")
+HELP_ZERO_RESULT_AUTO_DRAFT_HITS = int(
+    os.getenv("HELP_ZERO_RESULT_AUTO_DRAFT_HITS", "5") or "5"
+)
+# Product MCP HTTP scaffold (batch 1395). Enable when external MCP client credentials are ready.
+RMC_PRODUCT_MCP_ENABLED = os.getenv(
+    "RMC_PRODUCT_MCP_ENABLED", "0"
 ).strip().lower() in ("1", "true", "yes")
 # New GlobalSupportTicket: email all IT_ADMIN / fallback operator pool (1 = on).
 SUPPORT_TICKET_NOTIFY_EMAIL = os.getenv(

@@ -1,0 +1,32 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Family learning pack" %}{% endblock %}
+
+{% block content %}
+<div class="container py-3" data-rmc-education-pack="parent" data-rmc-scroll-policy="paginate">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Family learning pack" %}</h1>
+    <p class="small text-muted mb-0">{% trans "Curated help and portal guidance — no generative copilot on parent lane per school policy." %}</p>
+  </header>
+
+  {% if surface_urls.runmycampus_guide %}
+  <p class="mb-2"><a class="btn btn-sm btn-outline-primary" href="{{ surface_urls.runmycampus_guide }}">{% trans "RunMyCampus Guide" %}</a></p>
+  {% endif %}
+  <ul class="list-group mb-3">
+    {% if surface_urls.help_center %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <span>{% trans "Help Center" %}</span>
+      <a class="btn btn-sm btn-primary" href="{{ surface_urls.help_center }}">{% trans "Browse" %}</a>
+    </li>
+    {% endif %}
+    <li class="list-group-item">
+      <span class="fw-medium">{% trans "Link children & results" %}</span>
+      <p class="small text-muted mb-0 mt-1">{% trans "Use Parent portal workflow to link students and view results." %}</p>
+      <a class="small" href="{% url 'portal:parent_workflow' %}">{% trans "Parent workflow" %}</a>
+    </li>
+  </ul>
+
+  {% include "partials/ai_nutrition_label.html" %}
+</div>
+{% endblock %}

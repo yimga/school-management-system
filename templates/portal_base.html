@@ -634,8 +634,10 @@
     </a>
     {% endif %}
 
-    {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB per
-       v3 100x preview parity — tenant chrome carries no bottom-right AI button. {% endcomment %}
+    {% comment %} v3.60: AI copilot restored for assist-dock when tenant AI policy allows (staff/teacher/admin). {% endcomment %}
+    {% if request.user.is_authenticated and show_kb_ai_assistant_panel|default:False %}
+      {% include "components/ai_copilot.html" %}
+    {% endif %}
 
     {% comment %} Phase G (2026-05-12): platform-wide ⌘K command palette (Apple Spotlight-style).
        Single answer to "long endless nav" — jump to any page or action from any page. {% endcomment %}
@@ -682,10 +684,12 @@
       {% endif %}
     </div>
 
-    {% comment %} v3.57.10 (2026-05-22): removed help_proactive_nudge + help_module_inline_assistant
-       + help_contextual_drawer + contextual_feedback_widget per v3 100x preview parity — the
-       preview has no contextual help drawer or floating feedback widget; help lives in the
-       Help Center linked from the civic footer. {% endcomment %}
+    {% if proactive_help_nudge %}
+    {% include "partials/help_proactive_nudge.html" %}
+    {% endif %}
+    {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
+    {% include "partials/help_module_inline_assistant.html" %}
+    {% endif %}
 
     {% include 'components/rum_beacon.html' %}
 
