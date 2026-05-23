@@ -23,6 +23,8 @@ from apps.social_media.api_views import (
     SocialModerationAPI,
     SocialPublishAPI,
 )
+# v3.62.2 (2026-05-22) — country-adaptive signup form (Wave 1 local-first).
+from apps.siteconfig.views_country_localization import country_localization_pack
 
 app_name = "api_v1"
 
@@ -351,5 +353,11 @@ urlpatterns = [
         "social/attribution/",
         SocialAttributionAPI.as_view(),
         name="social-attribution",
+    ),
+    # v3.62.2 — country-adaptive signup form data (local-first wave 1).
+    path(
+        "localization/<str:country_code>/",
+        country_localization_pack,
+        name="localization-country-pack",
     ),
 ]

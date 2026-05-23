@@ -102,6 +102,14 @@ from apps.schools.onboarding_vendors import (
     resolve_vendor,
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
+# v3.62.2 — country-adaptive calendar + school-type cards on /signup/.
+from apps.siteconfig.country_localization_service import (
+    get_default_calendar_code,
+    resolve_country_pack,
+    resolve_primary_sector_for_school_type,
+    validate_calendar_code,
+    validate_school_type,
+)
 
 # v3.17 (2026-05-17): public onboarding gained a Migration step.
 # Order: 1 Region/type → 2 Plan/look → 3 Migration → 4 Review → signup.
@@ -211,9 +219,11 @@ def signup_school(request: HttpRequest):
             cc = (request.session.get("onboarding_country_code") or "").strip()[:2].upper()
         if not cc:
             cc = _country_from_accept_language(request)
-        tp = (request.GET.get("term_preset") or "").strip()[:8].upper()
-        if tp not in ("", "UK"):
-            tp = ""
+        # v3.62.2: term_preset is now country-pack-driven. We don't enforce a
+        # narrow ("", "UK") allowlist anymore — the country-localization
+        # service decides what calendar codes are valid for the selected
+        # country. Empty string still means "use country default".
+        tp = (request.GET.get("term_preset") or "").strip()[:48]
         name = (request.GET.get("name") or request.GET.get("school_name") or "").strip()[
             :200
         ]
@@ -229,6 +239,14 @@ def signup_school(request: HttpRequest):
                 pass
             request.session["rmc_signup_started_event"] = True
             request.session.modified = True
+        # v3.62.2 — country-adaptive calendar + school-type cards. Resolve
+        # the country pack for the initial country (Accept-Language / session
+        # / explicit query param) so the cards render localized on first paint
+        # without requiring a JS round-trip. The adapter JS re-renders these
+        # in place when the operator picks a different country.
+        country_pack = resolve_country_pack(cc)
+        if not tp:
+            tp = get_default_calendar_code(cc)
         return render(
             request,
             "schools/signup_school.html",
@@ -248,6 +266,8 @@ def signup_school(request: HttpRequest):
                 # v3.58.x: ISO alpha-2 country dropdown choices. Template
                 # falls back to a free-text input when this list is empty.
                 "signup_countries": _signup_countries(),
+                # v3.62.2 local-first: country-adaptive pack drives card grids.
+                "country_pack": country_pack,
             },
         )
 
@@ -255,17 +275,29 @@ def signup_school(request: HttpRequest):
     slug = (request.POST.get("slug") or "").strip() or _slug_from_name(name)
     email = (request.POST.get("email") or "").strip()
     country_code = (request.POST.get("country_code") or "").strip()[:2].upper()
-    term_preset = (
-        request.POST.get("term_preset") or ""
-    ).strip()  # e.g. "UK" for British terms at signup
+    # v3.62.2 — calendar code is now country-pack-driven. The localization
+    # service validates against the country's allowed list and rejects
+    # anything not in that list (silently empties so we fall back to the
+    # country default).
+    term_preset_raw = (request.POST.get("term_preset") or "").strip()[:48]
+    term_preset = validate_calendar_code(country_code, term_preset_raw)
+    if not term_preset:
+        # Preserve the legacy "UK" alias for any old client still posting
+        # the v3.61.x term_preset value.
+        if term_preset_raw.upper() in ("UK", "GB"):
+            term_preset = "uk-3-term"
     signup_ref = (request.POST.get("signup_ref") or "").strip()[:32]
     # Wave L7 — intent capture for downstream auto-launch hooks.
     migration_vendor = (request.POST.get("migration_vendor") or "").strip().lower()
     if migration_vendor and migration_vendor not in _SIGNUP_VENDOR_SLUGS:
         migration_vendor = ""
-    school_type = (request.POST.get("school_type") or "").strip().lower()
-    if school_type and school_type not in _SCHOOL_TYPE_TO_PRIMARY_SECTOR:
-        school_type = ""
+    # v3.62.2 — school_type validated against the COUNTRY's pack first; if
+    # not present there, fall back to the legacy hardcoded map so existing
+    # bookmarked-form clients keep working.
+    school_type_raw = (request.POST.get("school_type") or "").strip().lower()
+    school_type = validate_school_type(country_code, school_type_raw)
+    if not school_type and school_type_raw in _SCHOOL_TYPE_TO_PRIMARY_SECTOR:
+        school_type = school_type_raw
 
     errors = []
     if not name:
@@ -297,6 +329,7 @@ def signup_school(request: HttpRequest):
                 "signup_ref": signup_ref,
                 "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
                 "signup_countries": _signup_countries(),
+                "country_pack": resolve_country_pack(country_code),
             },
         )
 
@@ -325,6 +358,9 @@ def signup_school(request: HttpRequest):
                 # slug-taken re-render with the operator's selection
                 # still highlighted.
                 "signup_countries": _signup_countries(),
+                # v3.62.2: country pack on slug-taken re-render so cards
+                # stay localized in the error state.
+                "country_pack": resolve_country_pack(country_code),
             },
         )
 
@@ -336,7 +372,20 @@ def signup_school(request: HttpRequest):
     subdomain = slug[:120]
 
     school_settings = {}
-    if term_preset and term_preset.upper() in ("UK", "GB"):
+    # v3.62.2 — persist the resolved localization choice so downstream
+    # provisioning + lifecycle signals can populate the school's calendar +
+    # education levels from this country pack. Both raw codes are stored;
+    # services can re-resolve labels via country_localization_service.
+    if country_code or term_preset or school_type:
+        school_settings["localization"] = {
+            "country_code": country_code or "",
+            "calendar_code": term_preset or get_default_calendar_code(country_code),
+            "school_type_code": school_type or "",
+            "_seeded_at_signup": True,
+        }
+    # Backwards compatibility: keep the v3.61 term_preset hint for any code
+    # path still reading school.settings["term_preset"] directly.
+    if term_preset == "uk-3-term" or (term_preset_raw.upper() in ("UK", "GB")):
         school_settings["term_preset"] = "UK"
     ob_cid = (request.session.get("onboarding_correlation_id") or "").strip()
     if ob_cid or request.session.get("onboarding_plan_slug"):
@@ -399,12 +448,16 @@ def signup_school(request: HttpRequest):
         ),
         settings=school_settings,
     )
-    # Wave L7: school-type maps to first-class primary_sector so the
-    # blueprint selector picks the right starter pack on first login.
+    # v3.62.2 — primary_sector now comes from the country's pack first
+    # (country-local mapping), falling back to the legacy global map. This
+    # is how Nigerian "nursery"/"jss"/"sss" cards land on the right sector
+    # while US "elementary"/"middle"/"high" cards land on theirs.
     if school_type:
-        create_kwargs["primary_sector"] = _SCHOOL_TYPE_TO_PRIMARY_SECTOR.get(
-            school_type, ""
-        )[:64]
+        sector = resolve_primary_sector_for_school_type(country_code, school_type)
+        if not sector:
+            sector = _SCHOOL_TYPE_TO_PRIMARY_SECTOR.get(school_type, "")
+        if sector:
+            create_kwargs["primary_sector"] = sector[:64]
     school = School.objects.create(**create_kwargs)
     from datetime import timedelta
 

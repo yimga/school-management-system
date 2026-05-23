@@ -27,6 +27,14 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from apps.schools.models import School
+# v3.62.2 — country-adaptive template cards (Wave 1 local-first).
+from apps.siteconfig.country_localization_service import (
+    get_default_calendar_code,
+    resolve_country_pack,
+    resolve_primary_sector_for_school_type,
+    validate_calendar_code,
+    validate_school_type,
+)
 
 from .services import record_stage
 from .services_migration import ensure_draft_migration_bundle
@@ -123,6 +131,9 @@ class RapidCreateView(View):
     template_name = "lifecycle/rapid_create.html"
 
     def get(self, request):
+        # v3.62.2: operator-side rapid create now also adapts to country.
+        # GET-time country resolves from ?country= or empty (operator picks).
+        initial_country = (request.GET.get("country") or "").strip()[:2].upper()
         return render(
             request,
             self.template_name,
@@ -130,6 +141,8 @@ class RapidCreateView(View):
                 "templates": _TEMPLATES,
                 "vendor_choices": _VENDOR_CHOICES,
                 "country_choices": _country_choices(),
+                "country_code": initial_country,
+                "country_pack": resolve_country_pack(initial_country),
             },
         )
 
@@ -162,9 +175,19 @@ class RapidCreateView(View):
     def _create_from_template(self, request):
         name = (request.POST.get("name") or "").strip()
         slug = (request.POST.get("slug") or "").strip().lower()
+        # v3.62.2 — accept BOTH legacy hardcoded template_slug AND new
+        # country-pack school_type code. school_type wins when both are
+        # supplied since it's country-local.
         template_slug = (request.POST.get("template") or "").strip().lower()
-        vendor = (request.POST.get("vendor") or "").strip().lower()
         country_code = (request.POST.get("country_code") or "").strip()[:2].upper()
+        school_type_raw = (request.POST.get("school_type") or "").strip().lower()
+        school_type = validate_school_type(country_code, school_type_raw)
+        # v3.62.2 — calendar pack
+        calendar_raw = (request.POST.get("calendar_code") or "").strip()[:48]
+        calendar_code = validate_calendar_code(country_code, calendar_raw)
+        if not calendar_code:
+            calendar_code = get_default_calendar_code(country_code)
+        vendor = (request.POST.get("vendor") or "").strip().lower()
         errors: list = []
         if not name:
             errors.append("School name is required.")
@@ -175,8 +198,10 @@ class RapidCreateView(View):
         if slug and School.objects.filter(slug=slug).exists():
             errors.append(f"Slug '{slug}' is already taken.")
         template = next((t for t in _TEMPLATES if t.slug == template_slug), None)
-        if template is None:
-            errors.append("Please pick a template.")
+        # v3.62.2 — operator can land here from country-adaptive cards
+        # without picking a legacy template; school_type carries that intent.
+        if template is None and not school_type:
+            errors.append("Please pick a template or school type.")
         if errors:
             return render(
                 request,
@@ -185,18 +210,33 @@ class RapidCreateView(View):
                     "templates": _TEMPLATES,
                     "vendor_choices": _VENDOR_CHOICES,
                     "country_choices": _country_choices(),
+                    "country_code": country_code,
+                    "country_pack": resolve_country_pack(country_code),
                     "errors": errors,
                     "form": {
                         "name": name,
                         "slug": slug,
                         "template": template_slug,
+                        "school_type": school_type,
+                        "calendar_code": calendar_code,
                         "vendor": vendor,
                         "country_code": country_code,
                     },
                 },
                 status=400,
             )
-        school_settings: dict = {"rmc_rapid_create_template": template.slug}
+        school_settings: dict = {}
+        if template is not None:
+            school_settings["rmc_rapid_create_template"] = template.slug
+        # v3.62.2 — persist resolved localization so downstream services can
+        # populate calendar/levels/terminology from the country pack.
+        if country_code or calendar_code or school_type:
+            school_settings["localization"] = {
+                "country_code": country_code or "",
+                "calendar_code": calendar_code or "",
+                "school_type_code": school_type or "",
+                "_seeded_at_rapid_create": True,
+            }
         if vendor:
             school_settings["migration_intent"] = {
                 "vendor": vendor,
@@ -204,14 +244,24 @@ class RapidCreateView(View):
                 "expected_students": 0,
                 "label": f"{name} — initial migration from {vendor}"[:200],
             }
+        # v3.62.2 — primary_sector: country-pack first, template fallback.
+        primary_sector = ""
+        if school_type:
+            primary_sector = resolve_primary_sector_for_school_type(
+                country_code, school_type
+            )
+        if not primary_sector and template is not None:
+            primary_sector = template.primary_sector
+        primary_sector = (primary_sector or "")[:64]
+        sub_system = template.sub_system if template is not None else "EN"
         school = School.objects.create(
             name=name,
             slug=slug,
             subdomain=slug,
             is_active=False,
             is_approved=True,
-            primary_sector=template.primary_sector,
-            sub_system=template.sub_system,
+            primary_sector=primary_sector,
+            sub_system=sub_system,
             country_code=country_code or "",
             settings=school_settings,
         )
@@ -219,10 +269,13 @@ class RapidCreateView(View):
             school,
             "REQUESTED",
             actor=request.user,
-            note=f"Rapid create — template {template.slug}",
+            note=f"Rapid create — template {template.slug if template else school_type}",
             payload={
                 "source": "rapid_create",
-                "template": template.slug,
+                "template": template.slug if template else "",
+                "school_type": school_type,
+                "calendar_code": calendar_code,
+                "country_code": country_code,
                 "vendor": vendor,
             },
         )

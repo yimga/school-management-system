@@ -7,6 +7,11 @@
 <link rel="stylesheet" href="{% static 'css/rmc-signup-v2.css' %}">
 {% endblock %}
 
+{% block extrahead %}{{ block.super }}
+{# v3.62.2 — Wave 1 local-first: country-adaptive card re-renderer. #}
+<script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 {% if cockpit.signup_form.enabled %}
 <section class="auth-shell" aria-labelledby="signup-title" data-rmc-signup-section="1">
@@ -146,25 +151,27 @@
             <span class="rmc-signup-field__label-text">{% trans "Calendar" %}</span>
             <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
           </label>
-          {% if cockpit.signup_form.show_calendar_cards %}
-            <div class="rmc-calendar-cards" role="radiogroup" aria-label="{% trans 'Calendar preset' %}">
-              <label class="rmc-calendar-card {% if not term_preset %}rmc-calendar-card--selected{% endif %}">
-                <input type="radio" name="term_preset" value="" {% if not term_preset %}checked{% endif %} class="rmc-calendar-card__input">
-                <span class="rmc-calendar-card__title">{% trans "Default" %}</span>
-                <span class="rmc-calendar-card__sub">{% trans "3 terms" %}</span>
+          {% comment %}v3.62.2 (2026-05-22) Wave 1 local-first:
+             Calendar cards now driven by the country pack (country_pack.calendar_systems).
+             The grid carries data-rmc-country-cards="calendar" so rmc-signup-country-adapter.js
+             re-renders it in place when the operator changes the country dropdown.{% endcomment %}
+          <div class="rmc-calendar-cards"
+               role="radiogroup"
+               aria-label="{% trans 'Calendar preset' %}"
+               data-rmc-country-cards="calendar"
+               data-rmc-country-cards-radio="term_preset">
+            {% for cal in country_pack.calendar_systems %}
+              {% with is_chosen=cal.code|stringformat:"s" %}
+              <label class="rmc-calendar-card {% if term_preset == cal.code %}rmc-calendar-card--selected{% elif not term_preset and cal.is_default %}rmc-calendar-card--selected{% endif %}">
+                <input type="radio" name="term_preset" value="{{ cal.code }}"
+                       {% if term_preset == cal.code %}checked{% elif not term_preset and cal.is_default %}checked{% endif %}
+                       class="rmc-calendar-card__input">
+                <span class="rmc-calendar-card__title">{{ cal.label }}</span>
+                <span class="rmc-calendar-card__sub">{{ cal.sub|default:"" }}</span>
               </label>
-              <label class="rmc-calendar-card {% if term_preset == 'UK' %}rmc-calendar-card--selected{% endif %}">
-                <input type="radio" name="term_preset" value="UK" {% if term_preset == 'UK' %}checked{% endif %} class="rmc-calendar-card__input">
-                <span class="rmc-calendar-card__title">{% trans "UK / British" %}</span>
-                <span class="rmc-calendar-card__sub">{% trans "3 terms · half-terms" %}</span>
-              </label>
-            </div>
-          {% else %}
-            <select name="term_preset" id="term_preset" class="form-select rmc-signup-input">
-              <option value="">{% trans "Default (3 terms)" %}</option>
-              <option value="UK" {% if term_preset == 'UK' %}selected{% endif %}>{% trans "UK / British" %}</option>
-            </select>
-          {% endif %}
+              {% endwith %}
+            {% endfor %}
+          </div>
         </div>
       </div>
 
@@ -177,33 +184,31 @@
           <span class="rmc-signup-field__label-text">{% trans "School type" %}</span>
           <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
         </div>
-        <div class="rmc-signup-type-cards" role="radiogroup" aria-label="{% trans 'School type' %}">
+        {% comment %}v3.62.2 (2026-05-22) Wave 1 local-first:
+           School-type cards now driven by country_pack.school_types. Each
+           country's pack defines its own school tiers with locally-recognized
+           labels (e.g. "Junior Secondary" in Nigeria, "Collège" in France,
+           "Higher Secondary" in India) and glyphs. The grid carries
+           data-rmc-country-cards="school-type" so rmc-signup-country-adapter.js
+           re-renders it when the operator changes country.{% endcomment %}
+        <div class="rmc-signup-type-cards"
+             role="radiogroup"
+             aria-label="{% trans 'School type' %}"
+             data-rmc-country-cards="school-type"
+             data-rmc-country-cards-radio="school_type">
           {% with chosen=school_type|default:'' %}
-          <label class="rmc-signup-type-card {% if chosen == 'k12' %}rmc-signup-type-card--selected{% endif %}">
-            <input type="radio" name="school_type" value="k12" class="rmc-signup-type-card__input" {% if chosen == 'k12' %}checked{% endif %}>
-            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🎒</span>
-            <span class="rmc-signup-type-card__title">{% trans "K-12" %}</span>
-          </label>
-          <label class="rmc-signup-type-card {% if chosen == 'preschool' %}rmc-signup-type-card--selected{% endif %}">
-            <input type="radio" name="school_type" value="preschool" class="rmc-signup-type-card__input" {% if chosen == 'preschool' %}checked{% endif %}>
-            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🧸</span>
-            <span class="rmc-signup-type-card__title">{% trans "Preschool" %}</span>
-          </label>
-          <label class="rmc-signup-type-card {% if chosen == 'college' %}rmc-signup-type-card--selected{% endif %}">
-            <input type="radio" name="school_type" value="college" class="rmc-signup-type-card__input" {% if chosen == 'college' %}checked{% endif %}>
-            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🎓</span>
-            <span class="rmc-signup-type-card__title">{% trans "College" %}</span>
-          </label>
-          <label class="rmc-signup-type-card {% if chosen == 'university' %}rmc-signup-type-card--selected{% endif %}">
-            <input type="radio" name="school_type" value="university" class="rmc-signup-type-card__input" {% if chosen == 'university' %}checked{% endif %}>
-            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🏛️</span>
-            <span class="rmc-signup-type-card__title">{% trans "University" %}</span>
-          </label>
-          <label class="rmc-signup-type-card {% if chosen == 'mixed' %}rmc-signup-type-card--selected{% endif %}">
-            <input type="radio" name="school_type" value="mixed" class="rmc-signup-type-card__input" {% if chosen == 'mixed' %}checked{% endif %}>
-            <span class="rmc-signup-type-card__glyph" aria-hidden="true">🌐</span>
-            <span class="rmc-signup-type-card__title">{% trans "Mixed" %}</span>
-          </label>
+            {% for st in country_pack.school_types %}
+              <label class="rmc-signup-type-card {% if chosen == st.code %}rmc-signup-type-card--selected{% endif %}">
+                <input type="radio" name="school_type" value="{{ st.code }}"
+                       class="rmc-signup-type-card__input"
+                       {% if chosen == st.code %}checked{% endif %}>
+                <span class="rmc-signup-type-card__glyph" aria-hidden="true">{{ st.glyph }}</span>
+                <span class="rmc-signup-type-card__title">{{ st.label }}</span>
+                {% if st.typical_ages %}
+                <span class="rmc-signup-type-card__sub">{{ st.typical_ages }}</span>
+                {% endif %}
+              </label>
+            {% endfor %}
           {% endwith %}
         </div>
       </div>

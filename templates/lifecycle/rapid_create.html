@@ -5,6 +5,12 @@
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-lifecycle-rapid-create.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-signup-v2.css' %}">
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+{# v3.62.2 Wave 1 local-first — adapter re-renders country-driven cards. #}
+<script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
 {% endblock %}
 
 {% block cp_content %}
@@ -26,19 +32,66 @@
       <form method="post" class="card border-0 shadow-sm rmc-rapid-create__form">
         {% csrf_token %}
         <div class="card-body">
-          <h2 class="h6">{% trans "Step 1 — Pick a template" %}</h2>
-          <div class="rmc-rapid-create__templates" role="radiogroup" aria-label="{% trans 'Template' %}">
-            {% for t in templates %}
-            <label class="rmc-rapid-create__template-card {% if form.template == t.slug %}rmc-rapid-create__template-card--selected{% endif %}">
-              <input type="radio" name="template" value="{{ t.slug }}" class="rmc-rapid-create__template-input" {% if form.template == t.slug %}checked{% endif %}>
-              <span class="rmc-rapid-create__template-glyph" aria-hidden="true">{{ t.glyph }}</span>
-              <strong class="rmc-rapid-create__template-label">{{ t.label }}</strong>
-              <span class="rmc-rapid-create__template-desc">{{ t.description }}</span>
-            </label>
+          {% comment %}v3.62.2 Wave 1 local-first — country drives everything. Pick country
+             first; school-type + calendar cards re-render to match the local system.{% endcomment %}
+          <h2 class="h6">{% trans "Step 1 — Country (drives local system)" %}</h2>
+          <div class="row g-2 mb-3">
+            <div class="col-md-7">
+              {% if country_choices %}
+              <select name="country_code" id="country_code"
+                      class="form-select form-select-sm"
+                      data-rmc-signup-country="1">
+                <option value="">{% trans "-- pick later --" %}</option>
+                {% for code, name in country_choices %}<option value="{{ code }}" {% if form.country_code == code or country_code == code %}selected{% endif %}>{{ name }} ({{ code }})</option>{% endfor %}
+              </select>
+              {% else %}
+              <input type="text" name="country_code" id="country_code"
+                     maxlength="2" class="form-control form-control-sm"
+                     value="{{ form.country_code|default:country_code|default:'' }}"
+                     placeholder="US"
+                     data-rmc-signup-country="1">
+              {% endif %}
+            </div>
+          </div>
+
+          <h2 class="h6 mt-3">{% trans "Step 2 — School type" %}</h2>
+          <div class="rmc-signup-type-cards"
+               role="radiogroup"
+               aria-label="{% trans 'School type' %}"
+               data-rmc-country-cards="school-type"
+               data-rmc-country-cards-radio="school_type">
+            {% for st in country_pack.school_types %}
+              <label class="rmc-signup-type-card {% if form.school_type == st.code %}rmc-signup-type-card--selected{% endif %}">
+                <input type="radio" name="school_type" value="{{ st.code }}"
+                       class="rmc-signup-type-card__input"
+                       {% if form.school_type == st.code %}checked{% endif %}>
+                <span class="rmc-signup-type-card__glyph" aria-hidden="true">{{ st.glyph }}</span>
+                <span class="rmc-signup-type-card__title">{{ st.label }}</span>
+                {% if st.typical_ages %}
+                <span class="rmc-signup-type-card__sub">{{ st.typical_ages }}</span>
+                {% endif %}
+              </label>
             {% endfor %}
           </div>
 
-          <h2 class="h6 mt-3">{% trans "Step 2 — School identity" %}</h2>
+          <h2 class="h6 mt-3">{% trans "Step 3 — Calendar" %}</h2>
+          <div class="rmc-calendar-cards"
+               role="radiogroup"
+               aria-label="{% trans 'Calendar preset' %}"
+               data-rmc-country-cards="calendar"
+               data-rmc-country-cards-radio="calendar_code">
+            {% for cal in country_pack.calendar_systems %}
+              <label class="rmc-calendar-card {% if form.calendar_code == cal.code %}rmc-calendar-card--selected{% elif not form.calendar_code and cal.is_default %}rmc-calendar-card--selected{% endif %}">
+                <input type="radio" name="calendar_code" value="{{ cal.code }}"
+                       {% if form.calendar_code == cal.code %}checked{% elif not form.calendar_code and cal.is_default %}checked{% endif %}
+                       class="rmc-calendar-card__input">
+                <span class="rmc-calendar-card__title">{{ cal.label }}</span>
+                <span class="rmc-calendar-card__sub">{{ cal.sub|default:"" }}</span>
+              </label>
+            {% endfor %}
+          </div>
+
+          <h2 class="h6 mt-3">{% trans "Step 4 — School identity" %}</h2>
           <div class="row g-2">
             <div class="col-md-7">
               <label class="form-label small">{% trans "School name" %}</label>
@@ -50,26 +103,20 @@
             </div>
           </div>
 
-          <h2 class="h6 mt-3">{% trans "Step 3 — Optional smart defaults" %}</h2>
+          <h2 class="h6 mt-3">{% trans "Step 5 — Migrating from another SIS?" %}</h2>
           <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label small">{% trans "Country (sets timezone)" %}</label>
-              {% if country_choices %}
-              <select name="country_code" class="form-select form-select-sm">
-                <option value="">{% trans "-- pick later --" %}</option>
-                {% for code, name in country_choices %}<option value="{{ code }}" {% if form.country_code == code %}selected{% endif %}>{{ name }} ({{ code }})</option>{% endfor %}
-              </select>
-              {% else %}
-              <input type="text" name="country_code" maxlength="2" class="form-control form-control-sm" value="{{ form.country_code|default:'' }}" placeholder="US">
-              {% endif %}
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small">{% trans "Migrating from another SIS?" %}</label>
+            <div class="col-md-12">
               <select name="vendor" class="form-select form-select-sm">
                 {% for value, label in vendor_choices %}<option value="{{ value }}" {% if form.vendor == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
               </select>
             </div>
           </div>
+
+          {% comment %}Legacy hidden template field — kept for backwards
+             compatibility with operators landing from the v3.61.9 template-card
+             flow. The country-pack-driven school_type wins in
+             _create_from_template when both are set.{% endcomment %}
+          <input type="hidden" name="template" value="{{ form.template|default:'' }}">
         </div>
         <div class="card-footer d-flex flex-wrap gap-2">
           <button type="submit" name="action" value="create" class="btn btn-sm btn-primary">{% trans "Create school" %}</button>
