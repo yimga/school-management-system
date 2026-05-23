@@ -21,7 +21,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError
 
-from services.ai_deployment_posture import DEFAULT_LITELLM_MODEL
+from services.ai_deployment_posture import litellm_api_key, litellm_model, litellm_proxy_url
 
 # Typed handlers for non-fatal side effects (metrics, cache, audit persistence).
 _CACHE_METRIC_ERRORS = (
@@ -387,15 +387,10 @@ def _call_vllm(prompt: str, metadata: dict[str, Any] | None = None, json_mode: b
 
 
 def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key: str | None = None, timeout_sec: int | None = None) -> tuple[str | None, dict[str, Any]]:
-    proxy_url = (getattr(settings, "LITELLM_PROXY_URL", None) or os.environ.get("LITELLM_PROXY_URL") or "").strip().rstrip("/")
+    proxy_url = litellm_proxy_url()
     if not proxy_url:
         return None, {"provider": "litellm", "error": "LITELLM_PROXY_URL not set"}
-    model = (
-        model_key
-        or getattr(settings, "LITELLM_MODEL", None)
-        or os.environ.get("LITELLM_MODEL")
-        or DEFAULT_LITELLM_MODEL
-    ).strip()
+    model = litellm_model(model_key=model_key)
     url = f"{proxy_url}/v1/chat/completions" if "/v1/" not in proxy_url else f"{proxy_url}/chat/completions"
     if not url.startswith("http"):
         url = f"https://{url}"
@@ -407,11 +402,7 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
         "temperature": 0.3,
     }
     headers = {"Content-Type": "application/json"}
-    api_key = (
-        getattr(settings, "LITELLM_API_KEY", None)
-        or os.environ.get("LITELLM_API_KEY")
-        or ""
-    ).strip()
+    api_key = litellm_api_key()
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     req = urllib.request.Request(

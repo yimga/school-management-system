@@ -34,7 +34,7 @@ from typing import Any, Iterator
 
 from django.conf import settings
 
-from services.ai_deployment_posture import DEFAULT_LITELLM_MODEL
+from services.ai_deployment_posture import litellm_api_key, litellm_model, litellm_proxy_url
 
 logger = logging.getLogger(__name__)
 
@@ -152,22 +152,13 @@ def stream_litellm(
     metadata: dict[str, Any] | None = None,
     model_key: str | None = None,
 ) -> Iterator[tuple[str, Any]]:
-    proxy_url = (
-        getattr(settings, "LITELLM_PROXY_URL", None)
-        or os.environ.get("LITELLM_PROXY_URL")
-        or ""
-    ).strip().rstrip("/")
+    proxy_url = litellm_proxy_url()
     if not proxy_url:
         yield ("error", {"code": "not_configured", "provider": "litellm"})
         yield ("done", {"provider": "litellm", "posture_mode": "unavailable", "error": "LITELLM_PROXY_URL not set"})
         return
 
-    model = (
-        model_key
-        or getattr(settings, "LITELLM_MODEL", None)
-        or os.environ.get("LITELLM_MODEL")
-        or DEFAULT_LITELLM_MODEL
-    ).strip()
+    model = litellm_model(model_key=model_key)
     url = f"{proxy_url}/v1/chat/completions" if "/v1/" not in proxy_url else f"{proxy_url}/chat/completions"
     if not url.startswith("http"):
         url = f"https://{url}"
@@ -180,11 +171,7 @@ def stream_litellm(
         "stream": True,
     }
     headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
-    api_key = (
-        getattr(settings, "LITELLM_API_KEY", None)
-        or os.environ.get("LITELLM_API_KEY")
-        or ""
-    ).strip()
+    api_key = litellm_api_key()
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
 

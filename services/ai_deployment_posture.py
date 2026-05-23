@@ -45,12 +45,42 @@ def normalize_deployment_profile(raw: str | None = None) -> str:
     return profile
 
 
+def _setting_str(
+    name: str,
+    *,
+    default: str = "",
+    strip_trailing_slash: bool = False,
+) -> str:
+    """
+    Read a string Django setting.
+
+    When the attribute exists on ``settings`` (including ``@override_settings``),
+    honor it even if empty — do not fall back to ``os.environ`` (tests and runtime
+    overrides must not leak host env into isolated cases).
+    """
+    if hasattr(settings, name):
+        raw = getattr(settings, name, default)
+    else:
+        raw = os.environ.get(name, default)
+    value = str(raw if raw is not None else default).strip()
+    if strip_trailing_slash:
+        value = value.rstrip("/")
+    return value
+
+
 def litellm_proxy_url() -> str:
-    return (
-        getattr(settings, "LITELLM_PROXY_URL", None)
-        or os.environ.get("LITELLM_PROXY_URL")
-        or ""
-    ).strip().rstrip("/")
+    return _setting_str("LITELLM_PROXY_URL", strip_trailing_slash=True)
+
+
+def litellm_model(*, model_key: str | None = None) -> str:
+    if model_key:
+        return str(model_key).strip()
+    configured = _setting_str("LITELLM_MODEL")
+    return configured or DEFAULT_LITELLM_MODEL
+
+
+def litellm_api_key() -> str:
+    return _setting_str("LITELLM_API_KEY")
 
 
 def is_litellm_configured() -> bool:
@@ -127,11 +157,7 @@ def probe_litellm_reachable(timeout_sec: float = 4.0) -> tuple[bool, int | None]
     if not url.startswith("http"):
         url = f"https://{url}"
     headers: dict[str, str] = {"Accept": "application/json"}
-    api_key = (
-        getattr(settings, "LITELLM_API_KEY", None)
-        or os.environ.get("LITELLM_API_KEY")
-        or ""
-    ).strip()
+    api_key = litellm_api_key()
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     req = urllib.request.Request(url, headers=headers, method="GET")
@@ -234,11 +260,7 @@ def enrich_public_provider_status(
     if litellm_configured:
         providers["litellm"] = {
             "configured": True,
-            "model": (
-                getattr(settings, "LITELLM_MODEL", None)
-                or os.environ.get("LITELLM_MODEL")
-                or DEFAULT_LITELLM_MODEL
-            ),
+            "model": litellm_model(),
             "exposure": "cloud",
         }
 
