@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-20T12:48:42.250653+00:00",
+  "generated_at": "2026-05-23T00:42:30.021701+00:00",
   "prompt_pack_version": "2026-05-20-orchestrator-v5",
   "northstar": {
-    "generated_at": "2026-05-20T12:45:43.643171+00:00",
+    "generated_at": "2026-05-23T00:35:39.579235+00:00",
     "max_score": 75,
     "rating": "DOMINANT",
     "sections": {
@@ -146,12 +146,12 @@
     "audit_route_surface": {
       "exit": 0,
       "ok": true,
-      "tail": "Wrote docs\\generated\\route_surface_audit.json\n{\n  \"broken_count\": 0,\n  \"reverse_usages\": 2790,\n  \"risk_count\": 0,\n  \"routes_audited\": 7758,\n  \"status\": \"ROUTE SYSTEM CERTIFIED\",\n  \"template_href_action_usages\": 260,\n  \"template_url_usages\": 2401\n}\n"
+      "tail": "Wrote docs\\generated\\route_surface_audit.json\n{\n  \"broken_count\": 0,\n  \"reverse_usages\": 2910,\n  \"risk_count\": 0,\n  \"routes_audited\": 7936,\n  \"status\": \"ROUTE SYSTEM CERTIFIED\",\n  \"template_href_action_usages\": 308,\n  \"template_url_usages\": 2430\n}\n"
     },
     "audit_luxury_ui": {
       "exit": 0,
       "ok": true,
-      "tail": "audit_luxury_ui_surface: OK -> C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\luxury_ui_audit.json | score=15/15 verdict=ULTRA-LUXURY gate=PASS\n"
+      "tail": "audit_luxury_ui_surface: OK -> C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\luxury_ui_audit.json | score=14/15 verdict=ULTRA-LUXURY gate=PASS\n"
     },
     "audit_security": {
       "exit": 0,
@@ -171,7 +171,7 @@
     "scan_tenant_queryset": {
       "exit": 0,
       "ok": true,
-      "tail": "TenantRiskAlert\",\n    \"TenantSubscription\",\n    \"TenantSystem\",\n    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 236,\n  \"finding_count\": 0,\n  \"findings_per_app\": {}\n}\n"
+      "tail": "TenantRiskAlert\",\n    \"TenantSubscription\",\n    \"TenantSystem\",\n    \"TenantWorkflow\",\n    \"Term\",\n    \"ThreadMessage\",\n    \"ThreadReadState\",\n    \"TourStep\",\n    \"TransferCourseEquivalency\",\n    \"TransportAssignment\",\n    \"UsageMeter\",\n    \"VisitorCheckIn\",\n    \"VocationalCertification\",\n    \"WaiverRequest\",\n    \"WebhookDelivery\",\n    \"WebhookSubscription\",\n    \"WorkflowFailureEvent\",\n    \"WorkflowPackAssignment\"\n  ],\n  \"tenant_model_count\": 237,\n  \"finding_count\": 0,\n  \"findings_per_app\": {}\n}\n"
     },
     "verify_ai_engine_room": {
       "exit": 0,
@@ -181,7 +181,7 @@
     "verify_migration_tracked": {
       "exit": 0,
       "ok": true,
-      "tail": "verify_migration_files_tracked: PASS (836 migration files on disk; git tracking skipped \u2014 runtime/deploy artifact mode)\n"
+      "tail": "verify_migration_files_tracked: PASS (853 migration files tracked)\n"
     },
     "verify_prompt_pack_strict": {
       "exit": 0,
@@ -221,12 +221,12 @@
     "verify_page_fold_standards": {
       "exit": 0,
       "ok": true,
-      "tail": "dards documented (.cursor rule or tracked .cursorrules)\n[PASS] feature_control_fold_nav: Feature control marks data-rmc-page-fold-nav=required\n[PASS] feature_control_paginate_policy: Feature control marks data-rmc-scroll-policy=paginate\n[PASS] feature_control_sticky_tabs: Feature control category tabs are sticky nav\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n\nPAGE_FOLD_STANDARDS: 15/15 PASS\n"
+      "tail": "egory tabs are sticky nav\n[PASS] admin_index_fold_nav: Platform admin index marks data-rmc-page-fold-nav=required\n[PASS] admin_index_section_nav: Platform admin index includes rmc-page-fold-nav section anchors\n[PASS] admin_index_catalog_collapsed: Platform admin catalog sections default collapsed (no open attribute)\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n\nPAGE_FOLD_STANDARDS: 18/18 PASS\n"
     },
     "ollama_live_strict": {
       "exit": 0,
       "ok": true,
-      "tail": "=True\n  AI_ALLOW_RULES_FALLBACK=True\n  OLLAMA configured=True\n  OLLAMA model='ai-center-master'\n  Reachable=True provider='ollama'\n  Latency_ms=2135\n  Degraded=False fallback_active=False\n  Invoke provider='rules' preview='I can help with that request, but live AI providers are currently unavailable. Request received: Reply with exactly: ok'\n\nOK - live Ollama path is ready. Offline-first school operations are unchanged.\nNext: RMC_AI_REQUIRE_LIVE=1 python manage.py test --tag=ai_live_ollama -v 2\n"
+      "tail": "ates (3)=['http://127.0.0.1:11434', 'http://localhost:11434', 'http://host.docker.internal:11434']\n  Reachable=True provider='ollama'\n  Latency_ms=7\n  Degraded=False fallback_active=False\n  Invoke provider='rules' preview='I can help with that request, but live AI providers are currently unavailable. Request received: Reply with exactly: ok'\n\nOK - live Ollama path is ready. Offline-first school operations are unchanged.\nNext: RMC_AI_REQUIRE_LIVE=1 python manage.py test --tag=ai_live_ollama -v 2\n"
     }
   },
   "repo_gaps": [],
