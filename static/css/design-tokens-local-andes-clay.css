@@ -1,0 +1,12 @@
+/* design-tokens-local-andes-clay.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* andes-clay — Latin America heritage */
+:root[data-rmc-local-palette="andes-clay"] {
+  --surface-bg: #faf3ed; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fff8f1; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #ecc8a9; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a230f; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d5a30; /* off-token-allow: local-palette-anchor */
+  --hairline: #d9b58a; /* off-token-allow: local-palette-anchor */
+}

@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
-PACK_TYPES = {"workflow_pack", "dashboard_pack", "policy_bundle"}
+PACK_TYPES = {"workflow_pack", "dashboard_pack", "policy_bundle", "experience_template"}
 PACK_STATUSES = {"draft", "preview_ready", "installable", "deprecated"}
 
 
@@ -103,6 +103,17 @@ class PackContract:
                     "mobile_behavior": self.mobile_behavior,
                 }
             )
+        elif self.pack_type == "experience_template":
+            payload.update(
+                {
+                    "widgets": list(self.widgets),
+                    "layout": self.layout,
+                    "mobile_behavior": self.mobile_behavior,
+                    "density_mode": self.density_mode,
+                    "empty_states": list(self.empty_states),
+                    "dashboard_actions": list(self.dashboard_actions),
+                }
+            )
         else:
             payload.update(
                 {
@@ -112,7 +123,12 @@ class PackContract:
                     "retention_rules": list(self.retention_rules),
                 }
             )
-        return {self.pack_type.replace("_pack", "").replace("_bundle", ""): payload}
+        section_key = (
+            self.pack_type.replace("_pack", "")
+            .replace("_bundle", "")
+            .replace("_template", "_template")
+        )
+        return {section_key: payload}
 
 
 def _wf(
@@ -254,12 +270,156 @@ BASELINE_PACKS: tuple[PackContract, ...] = (
 )
 
 
+def _tpl(
+    key: str,
+    name: str,
+    *,
+    category: str,
+    layout_family: int,
+    roles: tuple[str, ...],
+    widgets: tuple[str, ...] = (),
+    region: str = "global",
+    safety: str = "low",
+    tenant_safe: bool = True,
+    platform_only: bool = False,
+    requires_modules: tuple[str, ...] = (),
+    requires_packs: tuple[str, ...] = (),
+    aliases: tuple[str, ...] = (),
+    target_school_types: tuple[str, ...] = ("primary", "secondary", "network", "international"),
+    mobile_behavior: str = "responsive_role_priority_stack",
+    density_mode: str = "balanced",
+) -> PackContract:
+    """Build an ExperienceTemplate PackContract.
+
+    Templates are layered on top of the pack lifecycle; layout/family/local overlay
+    metadata lives in apps/brand_experience/experience_templates.py.
+    """
+    return PackContract(
+        key=key,
+        name=name,
+        description=f"Premium operating-experience template — {name}.",
+        pack_type="experience_template",
+        target_roles=roles,
+        target_school_types=target_school_types,
+        region=region,
+        status="installable",
+        owner="Experience Marketplace",
+        version="1.0.0",
+        included_items=widgets,
+        requires_modules=requires_modules,
+        requires_packs=requires_packs,
+        safety_level=safety,
+        tenant_safe=tenant_safe,
+        platform_only=platform_only,
+        widgets=widgets,
+        empty_states=("setup_required", "missing_data"),
+        dashboard_actions=("apply_template", "preview_template", "rollback_template", "customize_template"),
+        permissions=tuple(f"experience_template.{category}.view" for _ in (None,)),
+        layout=f"family_{layout_family}",
+        mobile_behavior=mobile_behavior,
+        density_mode=density_mode,
+        simulation_scenarios=(f"{key}-default", f"{key}-low-connectivity"),
+        aliases=aliases,
+    )
+
+
+EXPERIENCE_TEMPLATE_PACKS: tuple[PackContract, ...] = (
+    # A. Operator / Manager Templates (10) — operator_only, tenant_safe=False
+    _tpl("operator-executive-command-center", "Global Executive Command Center", category="operator", layout_family=1, roles=("Operator", "Platform Manager"), widgets=("north_star_signal_strip", "fleet_health_grid", "audit_timeline"), tenant_safe=False, platform_only=True, safety="medium"),
+    _tpl("operator-implementation-war-room", "Implementation War Room", category="operator", layout_family=7, roles=("Implementation Operator",), widgets=("rollout_kanban", "blocker_queue", "tenant_milestones"), tenant_safe=False, platform_only=True, safety="medium"),
+    _tpl("operator-support-cockpit", "Support and Success Cockpit", category="operator", layout_family=1, roles=("Support Operator",), widgets=("ticket_queue", "csat_pulse", "tenant_health"), tenant_safe=False, platform_only=True),
+    _tpl("operator-revenue-billing-ops", "Revenue and Billing Operations", category="operator", layout_family=3, roles=("Finance Operator",), widgets=("revenue_waterfall", "settlement_queue", "ledger_anchor"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-security-compliance-command", "Security and Compliance Command", category="operator", layout_family=8, roles=("Security Operator",), widgets=("slo_clocks", "audit_chain", "access_matrix"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-migration-ops-center", "Migration Operations Center", category="operator", layout_family=7, roles=("Migration Operator",), widgets=("migration_stages", "impact_preview", "rollback_panel"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-marketplace-console", "Marketplace Operator Console", category="operator", layout_family=1, roles=("Marketplace Operator",), widgets=("package_lifecycle", "publisher_queue", "ratings_signal"), tenant_safe=False, platform_only=True),
+    _tpl("operator-observability-health", "Observability and Health Center", category="operator", layout_family=8, roles=("Platform Manager", "SRE"), widgets=("slo_clocks", "error_budget", "incident_lane"), tenant_safe=False, platform_only=True),
+    _tpl("operator-tenant-lifecycle-command", "Tenant Lifecycle Command", category="operator", layout_family=1, roles=("Implementation Operator", "Support Operator"), widgets=("lifecycle_stages", "offboarding_queue", "purge_inventory"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-ai-intelligence-console", "AI Center Intelligence Console", category="operator", layout_family=8, roles=("Operator",), widgets=("ai_provider_health", "task_routing", "model_evals"), tenant_safe=False, platform_only=True),
+    # B. Tenant School Admin Templates (8)
+    _tpl("admin-school-command-center", "School Command Center", category="tenant-admin", layout_family=1, roles=("Admin", "Leadership"), widgets=("today_snapshot", "school_kpis", "audit_feed")),
+    _tpl("admin-launch-readiness-cockpit", "Launch Readiness Cockpit", category="tenant-admin", layout_family=7, roles=("Admin",), widgets=("setup_checklist", "readiness_meter", "launch_timeline")),
+    _tpl("admin-academic-ops-hub", "Academic Operations Hub", category="tenant-admin", layout_family=2, roles=("Academic Lead", "Admin"), widgets=("timetable_strip", "assessment_queue", "term_calendar"), requires_modules=("academics",)),
+    _tpl("admin-finance-fees-hub", "Finance and Fees Hub", category="tenant-admin", layout_family=3, roles=("Bursar", "Admin"), widgets=("collection_waterfall", "outstanding_rail", "reconciliation_queue"), requires_modules=("finance", "billing"), safety="high"),
+    _tpl("admin-staff-ops-hub", "Staff Operations Hub", category="tenant-admin", layout_family=1, roles=("Admin", "HR"), widgets=("staff_directory", "attendance_summary", "task_board")),
+    _tpl("admin-family-engagement-hub", "Family Engagement Hub", category="tenant-admin", layout_family=4, roles=("Admin", "Communications"), widgets=("announcement_river", "engagement_pulse", "comms_queue")),
+    _tpl("admin-data-quality-control-room", "Data Quality Control Room", category="tenant-admin", layout_family=8, roles=("Admin",), widgets=("data_signals", "anomaly_queue", "import_health"), safety="medium"),
+    _tpl("admin-low-connectivity-hub", "Low-Connectivity School Hub", category="tenant-admin", layout_family=9, roles=("Admin",), widgets=("offline_sync_banner", "queue_depth", "compact_kpis"), mobile_behavior="mobile_first_single_column"),
+    # C. Teacher Templates (8)
+    _tpl("teacher-daily-workspace", "Teacher Daily Workspace", category="teacher", layout_family=5, roles=("Teacher",), widgets=("today_classes_strip", "fast_input_desk", "parent_comms_queue", "risk_monitor")),
+    _tpl("teacher-class-performance-studio", "Class Performance Studio", category="teacher", layout_family=2, roles=("Teacher",), widgets=("class_grade_trend", "attendance_heat", "assessment_queue")),
+    _tpl("teacher-attendance-marks-fast-desk", "Attendance and Marks Fast Desk", category="teacher", layout_family=5, roles=("Teacher",), widgets=("attendance_fast_input", "marks_fast_input", "save_indicator")),
+    _tpl("teacher-parent-comms-desk", "Parent Communication Desk", category="teacher", layout_family=5, roles=("Teacher",), widgets=("conversation_threads", "broadcast_composer", "delivery_status")),
+    _tpl("teacher-lesson-syllabus-control", "Lesson and Syllabus Control", category="teacher", layout_family=2, roles=("Teacher",), widgets=("syllabus_tracker", "lesson_kanban", "resource_library")),
+    _tpl("teacher-student-risk-monitor", "Student Risk Monitor", category="teacher", layout_family=5, roles=("Teacher",), widgets=("risk_signals", "intervention_queue", "outcome_tracker")),
+    _tpl("teacher-assessment-publishing", "Assessment Publishing Desk", category="teacher", layout_family=2, roles=("Teacher",), widgets=("assessment_authoring", "publish_pipeline", "grade_moderation_queue")),
+    _tpl("teacher-mobile-compact", "Compact Mobile Teacher Desk", category="teacher", layout_family=9, roles=("Teacher",), widgets=("compact_classes", "fast_attendance", "fast_marks"), mobile_behavior="mobile_first_single_column"),
+    # D. Parent Templates (6)
+    _tpl("parent-family-home", "Family Home Dashboard", category="parent", layout_family=4, roles=("Parent",), widgets=("multi_child_carousel", "announcement_river", "payment_shortcut", "calendar_week")),
+    _tpl("parent-student-progress", "Student Progress View", category="parent", layout_family=6, roles=("Parent",), widgets=("grade_trend", "assignments_status", "attendance_summary")),
+    _tpl("parent-fees-payments-family", "Fees and Payments Family View", category="parent", layout_family=3, roles=("Parent",), widgets=("outstanding_card", "payment_history", "next_due"), requires_modules=("finance",)),
+    _tpl("parent-attendance-behavior", "Attendance and Behavior View", category="parent", layout_family=4, roles=("Parent",), widgets=("attendance_calendar", "behavior_notes", "incident_history")),
+    _tpl("parent-comms-hub", "Parent Communication Hub", category="parent", layout_family=4, roles=("Parent",), widgets=("thread_list", "school_broadcasts", "appointment_request")),
+    _tpl("parent-multi-child", "Multi-Child Family Dashboard", category="parent", layout_family=4, roles=("Parent",), widgets=("child_switcher", "consolidated_kpis", "cross_child_calendar")),
+    # E. Student Templates (6)
+    _tpl("student-home", "Student Home", category="student", layout_family=6, roles=("Student",), widgets=("schedule_strip", "assignment_kanban", "next_class_card")),
+    _tpl("student-assignments-results", "Assignments and Results View", category="student", layout_family=6, roles=("Student",), widgets=("assignment_kanban", "grade_trend", "feedback_panel")),
+    _tpl("student-attendance-schedule", "Attendance and Schedule View", category="student", layout_family=6, roles=("Student",), widgets=("attendance_calendar", "timetable", "schedule_changes")),
+    _tpl("student-learning-progress", "Learning Progress View", category="student", layout_family=6, roles=("Student",), widgets=("learning_path", "skill_map", "next_actions")),
+    _tpl("student-help-support", "Student Help and Support View", category="student", layout_family=6, roles=("Student",), widgets=("help_search", "support_ticket", "kb_articles")),
+    _tpl("student-mobile-minimal", "Minimal Mobile Student View", category="student", layout_family=9, roles=("Student",), widgets=("today_compact", "next_class", "quick_marks"), mobile_behavior="mobile_first_single_column"),
+    # F. Staff / Non-Teaching Templates (4)
+    _tpl("staff-home", "Staff Home", category="staff", layout_family=1, roles=("Staff",), widgets=("task_board", "directory", "announcements")),
+    _tpl("staff-hr-payroll", "HR and Payroll Staff View", category="staff", layout_family=1, roles=("HR",), widgets=("leave_queue", "payroll_status", "employee_directory"), requires_modules=("payroll",), safety="high"),
+    _tpl("staff-operations", "Operations Staff View", category="staff", layout_family=1, roles=("Operations",), widgets=("facility_tasks", "incident_log", "maintenance_queue")),
+    _tpl("staff-transport-canteen-hostel", "Transport / Canteen / Hostel Staff View", category="staff", layout_family=1, roles=("Operations",), widgets=("route_status", "meal_count", "hostel_attendance")),
+    # G. Specialized School Templates (8)
+    _tpl("specialized-boarding-school-ops", "Boarding School Operations", category="specialized", layout_family=10, roles=("Admin",), widgets=("hostel_attendance", "dining_count", "evening_study", "weekend_activity")),
+    _tpl("specialized-bilingual-school", "Bilingual School Dashboard", category="specialized", layout_family=10, roles=("Admin",), widgets=("dual_language_announcements", "translation_queue", "bilingual_comms")),
+    _tpl("specialized-international-school", "International School Dashboard", category="specialized", layout_family=10, roles=("Admin",), widgets=("admissions_pipeline", "multilingual_masthead", "alumni_rail")),
+    _tpl("specialized-low-connectivity-regional", "Low-Connectivity Regional School", category="specialized", layout_family=9, roles=("Admin",), widgets=("offline_banner", "queue_depth", "compact_kpis"), mobile_behavior="mobile_first_single_column"),
+    _tpl("specialized-private-primary", "Private Primary School", category="specialized", layout_family=4, roles=("Admin",), widgets=("warm_announcements", "early_years_calendar", "parent_partnership")),
+    _tpl("specialized-private-secondary", "Private Secondary School", category="specialized", layout_family=2, roles=("Admin",), widgets=("academic_strip", "assessment_calendar", "university_pipeline")),
+    _tpl("specialized-faith-inspired-neutral", "Faith-Inspired Private School (Neutral)", category="specialized", layout_family=4, roles=("Admin",), widgets=("community_announcements", "service_calendar", "character_education")),
+    _tpl("specialized-community-day-school", "Community Day School", category="specialized", layout_family=4, roles=("Admin",), widgets=("community_signals", "local_event_calendar", "attendance_pulse")),
+    # H. Local-First Regional Templates (25)
+    _tpl("local-cm-anglophone-private-secondary", "Cameroon Anglophone Private Secondary", category="local-first", layout_family=2, roles=("Admin",), widgets=("gce_calendar", "ngn_collection", "bilingual_band"), region="cm"),
+    _tpl("local-ng-private-secondary", "Nigeria Private Secondary", category="local-first", layout_family=2, roles=("Admin",), widgets=("waec_calendar", "ngn_collection", "third_term_pulse"), region="ng"),
+    _tpl("local-gh-private-school", "Ghana Private School", category="local-first", layout_family=4, roles=("Admin",), widgets=("ges_calendar", "ghs_collection", "wassce_pipeline"), region="gh"),
+    _tpl("local-ke-primary-secondary", "Kenya Primary and Secondary", category="local-first", layout_family=4, roles=("Admin",), widgets=("cbc_calendar", "kes_collection", "mpesa_band"), region="ke"),
+    _tpl("local-za-provincial", "South Africa Provincial School", category="local-first", layout_family=2, roles=("Admin",), widgets=("dbe_calendar", "zar_collection", "matric_pipeline"), region="za"),
+    _tpl("local-cm-francophone-bac", "Cameroon Francophone Bac D Track", category="local-first", layout_family=2, roles=("Admin",), widgets=("bac_calendar", "xaf_collection", "francophone_band"), region="cm"),
+    _tpl("local-ci-private-college", "Cote d Ivoire Private College", category="local-first", layout_family=2, roles=("Admin",), widgets=("bac_calendar", "xof_collection", "francophone_band"), region="ci"),
+    _tpl("local-sn-private-lycee", "Senegal Private Lycee", category="local-first", layout_family=2, roles=("Admin",), widgets=("bac_calendar", "xof_collection", "francophone_band"), region="sn"),
+    _tpl("local-ma-private-school", "Morocco Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("bac_ma_calendar", "mad_collection", "arabic_french_band"), region="ma"),
+    _tpl("local-in-cbse-private", "India CBSE Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("cbse_calendar", "inr_collection", "hindi_medium_band"), region="in"),
+    _tpl("local-in-ka-state-board", "India Karnataka State Board", category="local-first", layout_family=2, roles=("Admin",), widgets=("ka_calendar", "inr_collection", "kannada_band"), region="in-ka"),
+    _tpl("local-pk-private-school", "Pakistan Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("fbise_calendar", "pkr_collection", "urdu_band"), region="pk"),
+    _tpl("local-bd-private-school", "Bangladesh Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("nse_calendar", "bdt_collection", "bengali_band"), region="bd"),
+    _tpl("local-jp-international-private", "Japan International Private", category="local-first", layout_family=10, roles=("Admin",), widgets=("mext_calendar", "jpy_collection", "bilingual_band"), region="jp"),
+    _tpl("local-kr-international-private", "Korea International Private", category="local-first", layout_family=10, roles=("Admin",), widgets=("kr_calendar", "krw_collection", "bilingual_band"), region="kr"),
+    _tpl("local-cn-bilingual-private", "China Bilingual Private", category="local-first", layout_family=10, roles=("Admin",), widgets=("cn_calendar", "cny_collection", "bilingual_band"), region="cn"),
+    _tpl("local-ph-private-school", "Philippines Private K-12", category="local-first", layout_family=4, roles=("Admin",), widgets=("deped_calendar", "php_collection", "english_filipino_band"), region="ph"),
+    _tpl("local-my-private-school", "Malaysia Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("igcse_my_calendar", "myr_collection", "bilingual_band"), region="my"),
+    _tpl("local-id-private-school", "Indonesia Private School", category="local-first", layout_family=4, roles=("Admin",), widgets=("id_calendar", "idr_collection", "bilingual_band"), region="id"),
+    _tpl("local-us-charter", "US Charter School", category="local-first", layout_family=2, roles=("Admin",), widgets=("us_calendar", "usd_collection", "standards_pipeline"), region="us"),
+    _tpl("local-uk-cambridge-international", "UK / Cambridge International", category="local-first", layout_family=10, roles=("Admin",), widgets=("igcse_calendar", "gbp_collection", "ucas_pipeline"), region="gb"),
+    _tpl("local-au-private-day", "Australia Private Day School", category="local-first", layout_family=2, roles=("Admin",), widgets=("au_calendar", "aud_collection", "atar_pipeline"), region="au"),
+    _tpl("local-ae-gulf-international", "UAE Gulf International", category="local-first", layout_family=10, roles=("Admin",), widgets=("ae_calendar", "aed_collection", "bilingual_band"), region="ae"),
+    _tpl("local-mx-private-bilingual", "Mexico Private Bilingual", category="local-first", layout_family=10, roles=("Admin",), widgets=("sep_calendar", "mxn_collection", "spanish_english_band"), region="mx"),
+    _tpl("local-br-private-bilingual", "Brazil Private Bilingual", category="local-first", layout_family=10, roles=("Admin",), widgets=("mec_calendar", "brl_collection", "portuguese_english_band"), region="br"),
+)
+
+
 def _normalize(value: str) -> str:
     return (value or "").strip().lower().replace("_", "-").replace(" / ", "-").replace(" ", "-")
 
 
+def _all_packs() -> tuple[PackContract, ...]:
+    return BASELINE_PACKS + EXPERIENCE_TEMPLATE_PACKS
+
+
 def list_packs(*, pack_type: str | None = None, tenant_safe_only: bool = False) -> list[dict[str, Any]]:
-    rows = [pack.as_dict() for pack in BASELINE_PACKS]
+    rows = [pack.as_dict() for pack in _all_packs()]
     if pack_type:
         rows = [row for row in rows if row["pack_type"] == pack_type]
     if tenant_safe_only:
@@ -269,7 +429,7 @@ def list_packs(*, pack_type: str | None = None, tenant_safe_only: bool = False) 
 
 def get_pack(key: str, *, pack_type: str | None = None) -> PackContract | None:
     normalized = _normalize(key)
-    for pack in BASELINE_PACKS:
+    for pack in _all_packs():
         candidates = {_normalize(pack.key), _normalize(pack.name), *{_normalize(a) for a in pack.aliases}}
         if normalized in candidates and (pack_type is None or pack.pack_type == pack_type):
             return pack

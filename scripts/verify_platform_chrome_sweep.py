@@ -62,6 +62,11 @@ def main() -> int:
     assist = _read("static/js/rmc-assist-dock.js")
     need("127.0.0.1:7426" not in assist, "rmc-assist-dock.js must not ship debug ingest")
 
+    overlay_guard = _read("static/js/rmc-surface-overlay-guard.js")
+    need("127.0.0.1:7426" not in overlay_guard, "rmc-surface-overlay-guard.js must not ship debug ingest")
+    need("X-Debug-Session-Id" not in overlay_guard, "rmc-surface-overlay-guard.js must not ship debug headers")
+    need("_agentDbg" not in overlay_guard, "rmc-surface-overlay-guard.js must not retain agent debug hooks")
+
     topo = _read("static/css/dashboard-topology-shell.css")
     need("portal-body-with-layout[data-rmc-cp-scroll=\"document\"]" in topo, "topology allows portal document scroll")
 

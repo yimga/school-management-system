@@ -1,0 +1,35 @@
+{% load i18n %}
+{# Studio OS Experience-section Template Marketplace fold (Wave B-3, batch 1401). #}
+{# Renders inline summary of tenant-safe ExperienceTemplate catalog with browse + AI-recommend CTAs. #}
+
+<section class="rmc-studio-experience-templates-fold" data-page-marker="rmc-studio-experience-templates-fold">
+  <header class="rmc-studio-experience-templates-fold__header">
+    <h2>{% trans "Experience templates" %}</h2>
+    <p class="rmc-studio-experience-templates-fold__subtitle">{% trans "Premium operating-experience templates — preview, apply, customize, and roll back. Tenant-safe templates are available immediately; operator-only templates live in the operator catalog." %}</p>
+  </header>
+
+  <div class="rmc-studio-experience-templates-fold__actions">
+    <a class="rmc-studio-experience-templates-fold__action" href="{% url 'template_marketplace:browse' %}">{% trans "Browse all" %}</a>
+    <a class="rmc-studio-experience-templates-fold__action" href="{% url 'template_marketplace:browse' %}?category=tenant-admin">{% trans "School admin" %}</a>
+    <a class="rmc-studio-experience-templates-fold__action" href="{% url 'template_marketplace:browse' %}?category=teacher">{% trans "Teacher" %}</a>
+    <a class="rmc-studio-experience-templates-fold__action" href="{% url 'template_marketplace:browse' %}?category=parent">{% trans "Parent" %}</a>
+    <a class="rmc-studio-experience-templates-fold__action" href="{% url 'template_marketplace:browse' %}?category=student">{% trans "Student" %}</a>
+    <a class="rmc-studio-experience-templates-fold__action" href="{% url 'template_marketplace:browse' %}?category=local-first">{% trans "Local-first" %}</a>
+    <a class="rmc-studio-experience-templates-fold__action rmc-studio-experience-templates-fold__action--primary" href="{% url 'template_marketplace:ai_recommend' %}">{% trans "AI recommend" %}</a>
+  </div>
+
+  {% if experience_template_overlays %}
+    <ul class="rmc-studio-experience-templates-fold__list">
+      {% for overlay in experience_template_overlays %}
+        <li class="rmc-studio-experience-templates-fold__item">
+          <a href="{% url 'template_marketplace:detail' overlay.key %}" class="rmc-studio-experience-templates-fold__item-link">
+            <strong>{{ overlay.key }}</strong>
+            <span class="rmc-studio-experience-templates-fold__item-category">{{ overlay.category }} · {{ overlay.layout_family_name }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="rmc-studio-experience-templates-fold__empty">{% trans "No experience templates surfaced for this view. Open the catalog to browse the full 75-template registry." %}</p>
+  {% endif %}
+</section>

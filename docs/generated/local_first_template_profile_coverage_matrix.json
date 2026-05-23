@@ -1,0 +1,112 @@
+{
+  "by_category": {
+    "local-first": 25,
+    "operator": 10,
+    "parent": 6,
+    "specialized": 8,
+    "staff": 4,
+    "student": 6,
+    "teacher": 8,
+    "tenant-admin": 8
+  },
+  "by_country_local_first": {
+    "AE": [
+      "local-ae-gulf-international"
+    ],
+    "AU": [
+      "local-au-private-day"
+    ],
+    "BD": [
+      "local-bd-private-school"
+    ],
+    "BR": [
+      "local-br-private-bilingual"
+    ],
+    "CI": [
+      "local-ci-private-college"
+    ],
+    "CM": [
+      "local-cm-anglophone-private-secondary",
+      "local-cm-francophone-bac"
+    ],
+    "CN": [
+      "local-cn-bilingual-private"
+    ],
+    "GB": [
+      "local-uk-cambridge-international"
+    ],
+    "GH": [
+      "local-gh-private-school"
+    ],
+    "ID": [
+      "local-id-private-school"
+    ],
+    "IN": [
+      "local-in-cbse-private",
+      "local-in-ka-state-board"
+    ],
+    "JP": [
+      "local-jp-international-private"
+    ],
+    "KE": [
+      "local-ke-primary-secondary"
+    ],
+    "KR": [
+      "local-kr-international-private"
+    ],
+    "MA": [
+      "local-ma-private-school"
+    ],
+    "MX": [
+      "local-mx-private-bilingual"
+    ],
+    "MY": [
+      "local-my-private-school"
+    ],
+    "NG": [
+      "local-ng-private-secondary"
+    ],
+    "PH": [
+      "local-ph-private-school"
+    ],
+    "PK": [
+      "local-pk-private-school"
+    ],
+    "SN": [
+      "local-sn-private-lycee"
+    ],
+    "US": [
+      "local-us-charter"
+    ],
+    "ZA": [
+      "local-za-provincial"
+    ]
+  },
+  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "profile_count": 25,
+  "profiles_by_country": {
+    "AE": "ae-cbse-or-british",
+    "AU": "au-state-curriculum",
+    "BD": "bd-sec-edu-bengali",
+    "BR": "br-mec-bilingual",
+    "CI": "ci-bac-francophone",
+    "CM": "cm-francophone-bac",
+    "CN": "cn-bilingual-private",
+    "GB": "gb-igcse-a-level",
+    "GH": "gh-private-school",
+    "ID": "id-private-bilingual",
+    "IN": "in-ka-state-board",
+    "JP": "jp-mext-bilingual",
+    "KE": "ke-cbc-primary-secondary",
+    "KR": "kr-international-bilingual",
+    "MA": "ma-bac-bilingual",
+    "MX": "mx-sep-bilingual",
+    "MY": "my-igcse-bilingual",
+    "NG": "ng-private-secondary",
+    "PH": "ph-deped-k12",
+    "PK": "pk-fbise-urdu-medium",
+    "SN": "sn-bac-francophone",
+    "US": "us-charter-state",
+    "ZA": "za-provincial-grades"
+  }
+}

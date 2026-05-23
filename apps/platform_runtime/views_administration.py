@@ -271,6 +271,7 @@ PACK_ROUTE_TYPES = {
     "workflow-packs": "workflow_pack",
     "dashboard-packs": "dashboard_pack",
     "policy-bundles": "policy_bundle",
+    "experience-templates": "experience_template",
 }
 
 

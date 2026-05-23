@@ -10,9 +10,9 @@ Canonical architecture: **`docs/AI_DEPLOYMENT_POSTURE.md`**.
    RMC_DEPLOYMENT_PROFILE=online
    AI_GATEWAY_ENABLED=1
    AI_ALLOW_RULES_FALLBACK=1
-   LITELLM_PROXY_URL=https://your-openai-compatible-endpoint/v1
+   LITELLM_PROXY_URL=https://api.openai.com
    LITELLM_API_KEY=...
-   LITELLM_MODEL=gpt-3.5-turbo
+   LITELLM_MODEL=gpt-5.4-mini
    RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION=1
    ```
 

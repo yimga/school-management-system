@@ -1,8 +1,22 @@
 /**
- * v3.62.20 — Prevent Unfold #modal-overlay from blocking shell clicks.
- * Unfold app.js can set inline display:block on #modal-overlay while the
- * Tailwind `hidden` class remains; inline style wins over .hidden { display:none }.
+ * Surface overlay guard (CSS half).
+ *
+ * Originally introduced (v3.62.20) to neutralize Unfold #modal-overlay when its
+ * app.js leaves an inline display:block behind. v3.64.x extends it platform-wide
+ * via :has() so stale Bootstrap .modal-backdrop / .offcanvas-backdrop and the
+ * launch splash can never block clicks regardless of body class.
+ *
+ * Three layers, ordered weakest → strongest:
+ *   1. Unfold #modal-overlay (admin / portal / CP shells) — pin pointer-events
+ *      and force display:none whenever the overlay carries .hidden or lacks .show
+ *   2. Universal stranded-backdrop kill — when no .modal.show / .offcanvas.show
+ *      exists anywhere in the body, every .modal-backdrop / .offcanvas-backdrop
+ *      is dead. Active modals are untouched.
+ *   3. Launch splash hard-hide — [hidden] sites get a high-specificity
+ *      display:none + pointer-events:none so no inline style can revive them.
  */
+
+/* Layer 1: Unfold #modal-overlay --------------------------------------------- */
 body.admin-manager-shell #modal-overlay,
 body.admin-premium-shell #modal-overlay,
 body.control-plane-shell #modal-overlay,
@@ -24,10 +38,32 @@ body.portal-body-with-layout #modal-overlay.hidden {
   opacity: 0 !important;
 }
 
+/* Layer 2: stranded Bootstrap backdrops, platform-wide ----------------------- */
+/* :has() — when no active modal/offcanvas exists, every backdrop is stale. */
+body:not(:has(.modal.show)) .modal-backdrop {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+body:not(:has(.offcanvas.show)) .offcanvas-backdrop {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Body-class fallback for the (rare) browser without :has() support — preserves
+   prior behavior on the 4 known shells so this PR is never a regression there. */
 body.admin-manager-shell .modal-backdrop:not(.show),
 body.admin-premium-shell .modal-backdrop:not(.show),
 body.control-plane-shell .modal-backdrop:not(.show),
 body.portal-body-with-layout .modal-backdrop:not(.show) {
   display: none !important;
   pointer-events: none !important;
+}
+
+/* Layer 3: launch splash — never let it block clicks ------------------------- */
+#rmc-launch-splash[hidden],
+#rmc-launch-splash[aria-hidden="true"]:not(.is-dismissed):not(.is-visible) {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }

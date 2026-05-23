@@ -1,0 +1,12 @@
+/* design-tokens-local-warm-terracotta.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* warm-terracotta — West Africa, Latin America */
+:root[data-rmc-local-palette="warm-terracotta"] {
+  --surface-bg: #fbf5ef; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fff8f1; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f3d8c0; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a1f12; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d4d2f; /* off-token-allow: local-palette-anchor */
+  --hairline: #e7c6a8; /* off-token-allow: local-palette-anchor */
+}

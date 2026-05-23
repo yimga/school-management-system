@@ -1,0 +1,12 @@
+/* design-tokens-local-nordic-slate.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* nordic-slate — Low-connectivity, compact mobile */
+:root[data-rmc-local-palette="nordic-slate"] {
+  --surface-bg: #f4f5f7; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fafbfc; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #d3d8df; /* off-token-allow: local-palette-anchor */
+  --text-primary: #181b22; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #535965; /* off-token-allow: local-palette-anchor */
+  --hairline: #c6ccd5; /* off-token-allow: local-palette-anchor */
+}

@@ -1,0 +1,12 @@
+/* design-tokens-local-monsoon-teal.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* monsoon-teal — India coastal, Sri Lanka, Bangladesh */
+:root[data-rmc-local-palette="monsoon-teal"] {
+  --surface-bg: #f0f9fa; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #f9fdfd; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #c0e3e3; /* off-token-allow: local-palette-anchor */
+  --text-primary: #0a2628; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #2f6e72; /* off-token-allow: local-palette-anchor */
+  --hairline: #b8d8d9; /* off-token-allow: local-palette-anchor */
+}

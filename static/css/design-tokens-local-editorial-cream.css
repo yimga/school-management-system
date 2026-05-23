@@ -1,0 +1,12 @@
+/* design-tokens-local-editorial-cream.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* editorial-cream — International, Bilingual, Faith-neutral, Cambridge */
+:root[data-rmc-local-palette="editorial-cream"] {
+  --surface-bg: #faf7f0; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fdfbf6; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f5eee0; /* off-token-allow: local-palette-anchor */
+  --text-primary: #2b2618; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #6b5f4a; /* off-token-allow: local-palette-anchor */
+  --hairline: #e5dcc4; /* off-token-allow: local-palette-anchor */
+}

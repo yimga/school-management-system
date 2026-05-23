@@ -21,6 +21,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError
 
+from services.ai_deployment_posture import DEFAULT_LITELLM_MODEL
+
 # Typed handlers for non-fatal side effects (metrics, cache, audit persistence).
 _CACHE_METRIC_ERRORS = (
     TypeError,
@@ -388,14 +390,20 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
     proxy_url = (getattr(settings, "LITELLM_PROXY_URL", None) or os.environ.get("LITELLM_PROXY_URL") or "").strip().rstrip("/")
     if not proxy_url:
         return None, {"provider": "litellm", "error": "LITELLM_PROXY_URL not set"}
-    model = (model_key or getattr(settings, "LITELLM_MODEL", None) or os.environ.get("LITELLM_MODEL") or "gpt-3.5-turbo").strip()
+    model = (
+        model_key
+        or getattr(settings, "LITELLM_MODEL", None)
+        or os.environ.get("LITELLM_MODEL")
+        or DEFAULT_LITELLM_MODEL
+    ).strip()
     url = f"{proxy_url}/v1/chat/completions" if "/v1/" not in proxy_url else f"{proxy_url}/chat/completions"
     if not url.startswith("http"):
         url = f"https://{url}"
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 2048,
+        # OpenAI GPT-5.x rejects max_tokens; max_completion_tokens works across current models.
+        "max_completion_tokens": 2048,
         "temperature": 0.3,
     }
     headers = {"Content-Type": "application/json"}

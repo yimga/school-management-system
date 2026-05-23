@@ -1,0 +1,756 @@
+{
+  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "templates": [
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-executive-command-center",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-implementation-war-room",
+      "layout_family": 7,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-support-cockpit",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-revenue-billing-ops",
+      "layout_family": 3,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-security-compliance-command",
+      "layout_family": 8,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-migration-ops-center",
+      "layout_family": 7,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-marketplace-console",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-observability-health",
+      "layout_family": 8,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-tenant-lifecycle-command",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "operator",
+      "key": "operator-ai-intelligence-console",
+      "layout_family": 8,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-school-command-center",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-launch-readiness-cockpit",
+      "layout_family": 7,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-academic-ops-hub",
+      "layout_family": 2,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-finance-fees-hub",
+      "layout_family": 3,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-staff-ops-hub",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-family-engagement-hub",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-data-quality-control-room",
+      "layout_family": 8,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "tenant-admin",
+      "key": "admin-low-connectivity-hub",
+      "layout_family": 9,
+      "local_profile_ref": "",
+      "mobile_level": "mobile-first",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-daily-workspace",
+      "layout_family": 5,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-class-performance-studio",
+      "layout_family": 2,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-attendance-marks-fast-desk",
+      "layout_family": 5,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-parent-comms-desk",
+      "layout_family": 5,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-lesson-syllabus-control",
+      "layout_family": 2,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-student-risk-monitor",
+      "layout_family": 5,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-assessment-publishing",
+      "layout_family": 2,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "teacher",
+      "key": "teacher-mobile-compact",
+      "layout_family": 9,
+      "local_profile_ref": "",
+      "mobile_level": "mobile-first",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "parent",
+      "key": "parent-family-home",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "parent",
+      "key": "parent-student-progress",
+      "layout_family": 6,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "parent",
+      "key": "parent-fees-payments-family",
+      "layout_family": 3,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "parent",
+      "key": "parent-attendance-behavior",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "parent",
+      "key": "parent-comms-hub",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "parent",
+      "key": "parent-multi-child",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "student",
+      "key": "student-home",
+      "layout_family": 6,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "student",
+      "key": "student-assignments-results",
+      "layout_family": 6,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "student",
+      "key": "student-attendance-schedule",
+      "layout_family": 6,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "student",
+      "key": "student-learning-progress",
+      "layout_family": 6,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "student",
+      "key": "student-help-support",
+      "layout_family": 6,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "student",
+      "key": "student-mobile-minimal",
+      "layout_family": 9,
+      "local_profile_ref": "",
+      "mobile_level": "mobile-first",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "staff",
+      "key": "staff-home",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "staff",
+      "key": "staff-hr-payroll",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "staff",
+      "key": "staff-operations",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "staff",
+      "key": "staff-transport-canteen-hostel",
+      "layout_family": 1,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "nordic-slate",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-boarding-school-ops",
+      "layout_family": 10,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "editorial-cream",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-bilingual-school",
+      "layout_family": 10,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "editorial-cream",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-international-school",
+      "layout_family": 10,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "editorial-cream",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-low-connectivity-regional",
+      "layout_family": 9,
+      "local_profile_ref": "",
+      "mobile_level": "mobile-first",
+      "palette_family": "savanna-ochre",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-private-primary",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-private-secondary",
+      "layout_family": 2,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "green-emerald",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-faith-inspired-neutral",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "editorial-cream",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "specialized",
+      "key": "specialized-community-day-school",
+      "layout_family": 4,
+      "local_profile_ref": "",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "*"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-cm-anglophone-private-secondary",
+      "layout_family": 2,
+      "local_profile_ref": "cm-anglophone-gce",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "CM"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-ng-private-secondary",
+      "layout_family": 2,
+      "local_profile_ref": "ng-private-secondary",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "NG"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-gh-private-school",
+      "layout_family": 4,
+      "local_profile_ref": "gh-private-school",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "GH"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-ke-primary-secondary",
+      "layout_family": 4,
+      "local_profile_ref": "ke-cbc-primary-secondary",
+      "mobile_level": "responsive",
+      "palette_family": "savanna-ochre",
+      "supported_countries": "KE"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-za-provincial",
+      "layout_family": 2,
+      "local_profile_ref": "za-provincial-grades",
+      "mobile_level": "responsive",
+      "palette_family": "savanna-ochre",
+      "supported_countries": "ZA"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-cm-francophone-bac",
+      "layout_family": 2,
+      "local_profile_ref": "cm-francophone-bac",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "CM"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-ci-private-college",
+      "layout_family": 2,
+      "local_profile_ref": "ci-bac-francophone",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "CI"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-sn-private-lycee",
+      "layout_family": 2,
+      "local_profile_ref": "sn-bac-francophone",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "SN"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-ma-private-school",
+      "layout_family": 2,
+      "local_profile_ref": "ma-bac-bilingual",
+      "mobile_level": "responsive",
+      "palette_family": "desert-amber",
+      "supported_countries": "MA"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-in-cbse-private",
+      "layout_family": 2,
+      "local_profile_ref": "in-cbse-hindi-medium",
+      "mobile_level": "responsive",
+      "palette_family": "monsoon-teal",
+      "supported_countries": "IN"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-in-ka-state-board",
+      "layout_family": 2,
+      "local_profile_ref": "in-ka-state-board",
+      "mobile_level": "responsive",
+      "palette_family": "monsoon-teal",
+      "supported_countries": "IN"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-pk-private-school",
+      "layout_family": 2,
+      "local_profile_ref": "pk-fbise-urdu-medium",
+      "mobile_level": "responsive",
+      "palette_family": "desert-amber",
+      "supported_countries": "PK"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-bd-private-school",
+      "layout_family": 2,
+      "local_profile_ref": "bd-sec-edu-bengali",
+      "mobile_level": "responsive",
+      "palette_family": "monsoon-teal",
+      "supported_countries": "BD"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-jp-international-private",
+      "layout_family": 10,
+      "local_profile_ref": "jp-mext-bilingual",
+      "mobile_level": "responsive",
+      "palette_family": "sakura-blush",
+      "supported_countries": "JP"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-kr-international-private",
+      "layout_family": 10,
+      "local_profile_ref": "kr-international-bilingual",
+      "mobile_level": "responsive",
+      "palette_family": "sakura-blush",
+      "supported_countries": "KR"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-cn-bilingual-private",
+      "layout_family": 10,
+      "local_profile_ref": "cn-bilingual-private",
+      "mobile_level": "responsive",
+      "palette_family": "sakura-blush",
+      "supported_countries": "CN"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-ph-private-school",
+      "layout_family": 4,
+      "local_profile_ref": "ph-deped-k12",
+      "mobile_level": "responsive",
+      "palette_family": "warm-terracotta",
+      "supported_countries": "PH"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-my-private-school",
+      "layout_family": 2,
+      "local_profile_ref": "my-igcse-bilingual",
+      "mobile_level": "responsive",
+      "palette_family": "monsoon-teal",
+      "supported_countries": "MY"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-id-private-school",
+      "layout_family": 4,
+      "local_profile_ref": "id-private-bilingual",
+      "mobile_level": "responsive",
+      "palette_family": "monsoon-teal",
+      "supported_countries": "ID"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-us-charter",
+      "layout_family": 2,
+      "local_profile_ref": "us-charter-state",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "US"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-uk-cambridge-international",
+      "layout_family": 10,
+      "local_profile_ref": "gb-igcse-a-level",
+      "mobile_level": "responsive",
+      "palette_family": "editorial-cream",
+      "supported_countries": "GB"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-au-private-day",
+      "layout_family": 2,
+      "local_profile_ref": "au-state-curriculum",
+      "mobile_level": "responsive",
+      "palette_family": "cool-indigo",
+      "supported_countries": "AU"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-ae-gulf-international",
+      "layout_family": 10,
+      "local_profile_ref": "ae-cbse-or-british",
+      "mobile_level": "responsive",
+      "palette_family": "desert-amber",
+      "supported_countries": "AE"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-mx-private-bilingual",
+      "layout_family": 10,
+      "local_profile_ref": "mx-sep-bilingual",
+      "mobile_level": "responsive",
+      "palette_family": "andes-clay",
+      "supported_countries": "MX"
+    },
+    {
+      "accessibility_level": "AA",
+      "category": "local-first",
+      "key": "local-br-private-bilingual",
+      "layout_family": 10,
+      "local_profile_ref": "br-mec-bilingual",
+      "mobile_level": "responsive",
+      "palette_family": "andes-clay",
+      "supported_countries": "BR"
+    }
+  ],
+  "total_templates": 75
+}

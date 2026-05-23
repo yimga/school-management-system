@@ -1,0 +1,12 @@
+/* design-tokens-local-desert-amber.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* desert-amber — UAE, Saudi, MENA */
+:root[data-rmc-local-palette="desert-amber"] {
+  --surface-bg: #fbf6ec; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fffaef; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f0dab0; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a2912; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d5f2f; /* off-token-allow: local-palette-anchor */
+  --hairline: #e3ce98; /* off-token-allow: local-palette-anchor */
+}

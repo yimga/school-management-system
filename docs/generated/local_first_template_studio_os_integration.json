@@ -1,0 +1,9 @@
+{
+  "deep_links_added": [
+    "configuration:experience_template_marketplace",
+    "template_marketplace:browse",
+    "template_marketplace:ai_recommend"
+  ],
+  "experience_section_fold": "templates/studio_os/partials/experience_templates_fold.html",
+  "generated_at": "2026-05-23T14:09:48.833174+00:00"
+}

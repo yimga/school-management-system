@@ -1,0 +1,10 @@
+{
+  "a11y": "WCAG AA floor enforced via verify_template_a11y_floor",
+  "cards": "rmc-template-marketplace__card with category chip + tag chips + 3-action row",
+  "compare": "side-by-side 2-column with live iframe per column",
+  "css_bundle": "static/css/rmc-template-marketplace.css (semantic tokens only)",
+  "filters": "category + country + language filter rail",
+  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "mobile_breakpoint": "768px collapses filter rail + compare grid",
+  "palette_overrides_via": "data-rmc-template-palette attribute resolving 10 heritage palette families"
+}

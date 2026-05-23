@@ -24,6 +24,19 @@ Implementation: `services/ai_deployment_posture.py` — merged into `services/ai
 
 Override per task only via Django `settings.AI_GATEWAY_TASK_TIERS` (dict), not env strings.
 
+## Recommended production profile (Option A)
+
+Default for **Render SaaS** until usage or quality data says otherwise:
+
+| Choice | Value | Why |
+| --- | --- | --- |
+| Routing | One cloud model + built-in tier fallback | `litellm` → `ollama` → `rules` — no per-task or proxy router required at launch |
+| Model | `gpt-5.4-mini` | Stable cost/latency for copilot, help, support, and short operator answers |
+| Fallback | `AI_ALLOW_RULES_FALLBACK=1` | Guided help when cloud is down or over budget |
+| OpenAI direct | `LITELLM_PROXY_URL=https://api.openai.com` | API host — not `platform.openai.com` (login UI only) |
+
+Defer **Option B** (per-task tier splits), **Option C** (self-hosted LiteLLM router), and **Option D** (auto model escalation) until cost, privacy, or quality metrics require them. Optional cost guard: `AI_PREMIUM_DAILY_CAP_PER_TENANT`.
+
 ## Render SaaS (production default)
 
 ```bash
@@ -31,13 +44,13 @@ RMC_DEPLOYMENT_PROFILE=online
 RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION=1
 AI_GATEWAY_ENABLED=1
 AI_ALLOW_RULES_FALLBACK=1
-LITELLM_PROXY_URL=https://your-openai-compatible-endpoint/v1
+LITELLM_PROXY_URL=https://api.openai.com
 LITELLM_API_KEY=...
-LITELLM_MODEL=gpt-3.5-turbo
+LITELLM_MODEL=gpt-5.4-mini
 ```
 
 - **Do not** rely on Ollama inside a Render web dyno for primary inference.
-- **Do** set LiteLLM to any OpenAI-compatible proxy (LiteLLM, Azure OpenAI, provider gateway).
+- **Do** set LiteLLM to any OpenAI-compatible proxy (LiteLLM, Azure OpenAI, provider gateway). For OpenAI direct use `https://api.openai.com` — **not** `https://platform.openai.com` (that URL is the human login dashboard only).
 - UI surfaces posture via AI Center, copilot health pill, `/api/ai/health/`.
 
 Verify repo contracts: `python scripts/verify_render_online_ai_posture.py`

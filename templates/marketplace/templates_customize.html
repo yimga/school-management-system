@@ -1,0 +1,31 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block portal_title %}{% blocktrans %}Customize: {{ template_key }}{% endblocktrans %}{% endblock %}
+
+{% block content %}
+<section class="rmc-template-customize" data-page-marker="rmc-template-customize" data-rmc-template-key="{{ template_key }}">
+  <header class="rmc-template-customize__header">
+    <h1>{% blocktrans %}Customize template — {{ template_key }}{% endblocktrans %}</h1>
+    <p class="rmc-template-customize__subtitle">{% trans "Edit the customizations JSON. Allowed keys (within policy): brand colors, logo, typography density, card style, dashboard blocks, role visibility, default landing route, compact vs rich mode." %}</p>
+  </header>
+
+  {% if not assignment %}
+    <p class="rmc-template-customize__empty">{% trans "No active assignment found. Apply the template first." %}</p>
+  {% else %}
+    {% if saved %}
+      <p class="rmc-template-customize__success">{% trans "Customizations saved." %}</p>
+    {% endif %}
+    {% if error %}
+      <p class="rmc-template-customize__error">{% trans "Could not save:" %} {{ error }}</p>
+    {% endif %}
+    <form method="post" class="rmc-template-customize__form">
+      {% csrf_token %}
+      <label for="rmc-tpl-customizations">{% trans "Customizations JSON" %}</label>
+      <textarea id="rmc-tpl-customizations" name="customizations_json" rows="14" class="rmc-template-customize__textarea" spellcheck="false">{{ assignment.customizations|safe }}</textarea>
+      <button type="submit" class="rmc-template-customize__submit">{% trans "Save customizations" %}</button>
+      <a class="rmc-template-customize__cancel" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}</a>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

@@ -87,13 +87,13 @@
       {% trans "Offline-first mode queues attendance and grades on devices; it does not run models on teacher phones. Live answers need the app server online (Render or LAN hub)." %}
     </p>
     {% if provider_status.operator_setup_kind == "render_cloud" or provider_status.operator_setup_kind == "hybrid_cloud" %}
-    <pre class="small mb-2 border rounded p-2 mb-0 rmc-surface-elevated-pre"><code># Render / online SaaS (.env)
+    <pre class="small mb-2 border rounded p-2 mb-0 rmc-surface-elevated-pre"><code># Render / online SaaS — Option A (one model + rules fallback)
 RMC_DEPLOYMENT_PROFILE=online
 AI_GATEWAY_ENABLED=1
 AI_ALLOW_RULES_FALLBACK=1
-LITELLM_PROXY_URL=https://your-openai-compatible-endpoint/v1
+LITELLM_PROXY_URL=https://api.openai.com
 LITELLM_API_KEY=...
-LITELLM_MODEL=gpt-3.5-turbo</code></pre>
+LITELLM_MODEL=gpt-5.4-mini</code></pre>
     <p class="text-muted mb-2">{% trans "Optional on-prem fallback on the same dyno (unusual on Render):" %} <code>OLLAMA_BASE_URL=...</code></p>
     {% else %}
     <pre class="small mb-2 border rounded p-2 mb-0 rmc-surface-elevated-pre"><code>ollama serve

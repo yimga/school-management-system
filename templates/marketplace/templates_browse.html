@@ -1,0 +1,67 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block portal_title %}{% trans "Experience templates" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-template-marketplace" data-page-marker="rmc-template-marketplace-tenant">
+  <header class="rmc-template-marketplace__header">
+    <h1>{% trans "Experience templates" %}</h1>
+    <p class="rmc-template-marketplace__subtitle">{% blocktrans %}Premium operating-experience templates for {{ selected_school }}. Preview, compare, apply, and roll back.{% endblocktrans %}</p>
+  </header>
+
+  <form class="rmc-template-marketplace__filter-rail" method="get" data-rmc-template-filter-form>
+    <div class="rmc-template-marketplace__filter-group">
+      <label for="rmc-tpl-category">{% trans "Category" %}</label>
+      <select id="rmc-tpl-category" name="category">
+        <option value="">{% trans "All categories" %}</option>
+        {% for c in categories %}
+          <option value="{{ c }}"{% if c == active_category %} selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="rmc-template-marketplace__filter-group">
+      <label for="rmc-tpl-country">{% trans "Country (ISO-2)" %}</label>
+      <input id="rmc-tpl-country" name="country" type="text" maxlength="2" value="{{ active_country }}" placeholder="e.g. CM">
+    </div>
+    <div class="rmc-template-marketplace__filter-group">
+      <label for="rmc-tpl-language">{% trans "Language" %}</label>
+      <input id="rmc-tpl-language" name="language" type="text" maxlength="10" value="{{ active_language }}" placeholder="e.g. fr">
+    </div>
+    <button type="submit" class="rmc-template-marketplace__filter-submit">{% trans "Filter" %}</button>
+  </form>
+
+  <div class="rmc-template-marketplace__grid">
+    {% for t in templates %}
+      <article class="rmc-template-marketplace__card rmc-reveal" data-rmc-template-card="{{ t.key }}" data-rmc-template-palette="{{ t.palette_family }}">
+        <header class="rmc-template-marketplace__card-header">
+          <h2>{{ t.name }}</h2>
+          <span class="rmc-template-marketplace__category-chip">{{ t.category }}</span>
+        </header>
+        <p class="rmc-template-marketplace__description">{{ t.description }}</p>
+        <dl class="rmc-template-marketplace__meta">
+          <dt>{% trans "Layout" %}</dt><dd>{{ t.layout_family_name }}</dd>
+          <dt>{% trans "Palette" %}</dt><dd>{{ t.palette_family }}</dd>
+          <dt>{% trans "Mobile" %}</dt><dd>{{ t.mobile_level }}</dd>
+          <dt>{% trans "Accessibility" %}</dt><dd>WCAG {{ t.accessibility_level }}</dd>
+          {% if t.is_local_first %}<dt>{% trans "Local-first" %}</dt><dd>{{ t.supported_countries|join:", " }}</dd>{% endif %}
+        </dl>
+        {% if t.tags %}
+          <ul class="rmc-template-marketplace__tags">
+            {% for tag in t.tags %}<li class="rmc-template-marketplace__tag">{{ tag }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+        <div class="rmc-template-marketplace__actions">
+          <a class="rmc-template-marketplace__action" href="{% url 'template_marketplace:detail' t.key %}">{% trans "Details" %}</a>
+          <a class="rmc-template-marketplace__action" href="{% url 'template_marketplace:preview' t.key %}">{% trans "Preview" %}</a>
+          <a class="rmc-template-marketplace__action rmc-template-marketplace__action--primary" href="{% url 'template_marketplace:apply' t.key %}">{% trans "Apply" %}</a>
+        </div>
+      </article>
+    {% empty %}
+      <div class="rmc-template-marketplace__empty">
+        <p>{% trans "No templates match the active filters." %}</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

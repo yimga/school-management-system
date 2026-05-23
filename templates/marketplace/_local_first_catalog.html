@@ -1,0 +1,29 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block portal_title %}{% blocktrans %}Local-first templates for {{ country }}{% endblocktrans %}{% endblock %}
+
+{% block content %}
+<section class="rmc-template-local" data-page-marker="rmc-template-local-catalog" data-rmc-country="{{ country }}">
+  <header class="rmc-template-local__header">
+    <h1>{% blocktrans %}Local-first templates for {{ country }}{% endblocktrans %}</h1>
+    <p class="rmc-template-local__subtitle">{% trans "Operating experiences tuned to your country's school system, calendar, language mix, and payment rails." %}</p>
+  </header>
+
+  <div class="rmc-template-local__grid">
+    {% for t in templates %}
+      <article class="rmc-template-local__card" data-rmc-template-palette="{{ t.palette_family }}">
+        <h2>{{ t.key }}</h2>
+        <p class="rmc-template-local__category">{{ t.category }} · {{ t.layout_family_name }}</p>
+        <dl class="rmc-template-local__meta">
+          <dt>{% trans "Languages" %}</dt><dd>{{ t.supported_languages|join:", " }}</dd>
+          <dt>{% trans "Profile" %}</dt><dd>{{ t.local_profile_ref }}</dd>
+        </dl>
+        <a class="rmc-template-local__action" href="{% url 'template_marketplace:detail' t.key %}">{% trans "Details" %}</a>
+      </article>
+    {% empty %}
+      <p>{% blocktrans %}No local-first templates registered for {{ country }} yet.{% endblocktrans %}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

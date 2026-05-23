@@ -1,0 +1,31 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block portal_title %}{% blocktrans %}Rollback: {{ template_key }}{% endblocktrans %}{% endblock %}
+
+{% block content %}
+<section class="rmc-template-rollback" data-page-marker="rmc-template-rollback" data-rmc-template-key="{{ template_key }}">
+  <header class="rmc-template-rollback__header">
+    <h1>{% blocktrans %}Rollback template — {{ template_key }}{% endblocktrans %}</h1>
+    <p class="rmc-template-rollback__subtitle">{% trans "Reverts the active template assignment and emits an audit event. Re-apply later if needed." %}</p>
+  </header>
+
+  {% if not assignment %}
+    <p class="rmc-template-rollback__empty">{% trans "No active assignment found for this template." %}</p>
+  {% elif not result %}
+    <form method="post" class="rmc-template-rollback__form">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="yes">
+      <p>{% blocktrans %}Active since {{ assignment.applied_at }}.{% endblocktrans %}</p>
+      <button type="submit" class="rmc-template-rollback__submit" data-rmc-confirm="{% trans 'Rollback this template assignment?' %}">{% trans "Confirm rollback" %}</button>
+      <a class="rmc-template-rollback__cancel" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}</a>
+    </form>
+  {% else %}
+    <section class="rmc-template-rollback__result">
+      <p>{% trans "Status:" %} {{ result.ok|yesno:"ok,error" }}</p>
+      <pre class="rmc-template-rollback__payload">{{ result }}</pre>
+      <a class="rmc-template-rollback__action" href="{% url 'template_marketplace:browse' %}">{% trans "Back to catalog" %}</a>
+    </section>
+  {% endif %}
+</section>
+{% endblock %}

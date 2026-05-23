@@ -1,0 +1,28 @@
+{
+  "category_counts": {
+    "local-first": 25,
+    "operator": 10,
+    "parent": 6,
+    "specialized": 8,
+    "staff": 4,
+    "student": 6,
+    "teacher": 8,
+    "tenant-admin": 8
+  },
+  "pack_contract_count": 75,
+  "palette_families": [
+    "editorial-cream",
+    "warm-terracotta",
+    "cool-indigo",
+    "green-emerald",
+    "desert-amber",
+    "monsoon-teal",
+    "sakura-blush",
+    "andes-clay",
+    "savanna-ochre",
+    "nordic-slate"
+  ],
+  "profile_count": 25,
+  "status": "EXPERIENCE_TEMPLATE_REGISTRY_PASS",
+  "template_count": 75
+}

@@ -1,0 +1,12 @@
+/* design-tokens-local-sakura-blush.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* sakura-blush — Japan, Korea, China international */
+:root[data-rmc-local-palette="sakura-blush"] {
+  --surface-bg: #fbf6f7; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fffafb; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f0d6db; /* off-token-allow: local-palette-anchor */
+  --text-primary: #2c1820; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7a4a55; /* off-token-allow: local-palette-anchor */
+  --hairline: #e6c4cc; /* off-token-allow: local-palette-anchor */
+}

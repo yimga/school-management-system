@@ -49,6 +49,15 @@ STEP_DEFINITIONS = (
         "recommended_choice": "Use one approved logo pack and a single color system before go-live.",
     },
     {
+        "key": "select_experience_template",
+        "label": "Choose experience template",
+        "description": "Pick a premium operating-experience template tuned to your school type, country, and roles. Templates can be previewed, applied, and rolled back safely.",
+        "step_group": "brand",
+        "link_name": "template_marketplace:browse",
+        "weight": 10,
+        "recommended_choice": "Pick a tenant-safe template first; switch later as the school operating model evolves.",
+    },
+    {
         "key": "starter_stack",
         "label": "Choose starter stack",
         "description": "Turn on the starter capabilities your school needs on day one without creating tool sprawl.",
@@ -765,6 +774,16 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
     )
     has_students = StudentProfile.objects.filter(school=school, is_active=True).exists()
     has_addons = bool(getattr(school, "addons", None))
+    has_experience_template = False
+    try:
+        from apps.brand_experience.models_template import TemplateAssignment
+
+        has_experience_template = TemplateAssignment.objects.filter(
+            installed_package__school=school,
+            installed_package__is_active=True,
+        ).exists()
+    except (ImportError, AttributeError):
+        has_experience_template = False
     role_previews = _build_role_previews(
         school,
         has_plan=has_plan,
@@ -787,6 +806,9 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
         "branding": "Brand profile is configured."
         if has_branding
         else "Logo, color system, or theme pack is still missing.",
+        "select_experience_template": "Experience template applied."
+        if has_experience_template
+        else "No premium operating-experience template applied yet — pick one before launch.",
         "starter_stack": "Starter stack has been chosen."
         if has_addons
         else "Starter modules are not selected yet.",
@@ -812,6 +834,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
         "plan_choice": has_plan,
         "blueprint": has_blueprint,
         "branding": has_branding,
+        "select_experience_template": has_experience_template,
         "starter_stack": has_addons,
         "data_path": has_students,
         "role_preview": all(

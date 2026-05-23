@@ -48,6 +48,11 @@
             <a class="cp-button" href="{% url 'configuration:dashboard_pack_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
             <a class="cp-button" href="{% url 'configuration:dashboard_pack_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
             <a class="cp-button cp-button-primary" href="{% url 'configuration:dashboard_pack_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+          {% elif pack_route == "experience-templates" %}
+            <a class="cp-button" href="{% url 'configuration:experience_template_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
+            <a class="cp-button" href="{% url 'configuration:experience_template_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
+            <a class="cp-button" href="{% url 'configuration:experience_template_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:experience_template_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
           {% else %}
             <a class="cp-button" href="{% url 'configuration:policy_bundle_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
             <a class="cp-button" href="{% url 'configuration:policy_bundle_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>

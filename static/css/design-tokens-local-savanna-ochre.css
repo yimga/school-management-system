@@ -1,0 +1,12 @@
+/* design-tokens-local-savanna-ochre.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* savanna-ochre — East Africa community */
+:root[data-rmc-local-palette="savanna-ochre"] {
+  --surface-bg: #fbf6e6; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fff9e7; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #ecd687; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a2f10; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d6628; /* off-token-allow: local-palette-anchor */
+  --hairline: #d8c178; /* off-token-allow: local-palette-anchor */
+}

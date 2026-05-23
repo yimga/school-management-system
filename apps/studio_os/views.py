@@ -1489,6 +1489,21 @@ def studio_shell(request, mode=None):
         context["experience_context_tool_links"] = experience_context_tool_links
         context["experience_workspace_two_col"] = not bool(experience_context_tool_links)
 
+        try:
+            from apps.brand_experience.experience_templates import (
+                LAYOUT_FAMILY_NAMES,
+                list_overlays,
+            )
+
+            _overlay_rows = list_overlays(tenant_safe_only=True)[:8]
+            for _row in _overlay_rows:
+                _row["layout_family_name"] = LAYOUT_FAMILY_NAMES.get(
+                    _row.get("layout_family"), ""
+                )
+            context["experience_template_overlays"] = _overlay_rows
+        except (ImportError, AttributeError, TypeError, ValueError):
+            context["experience_template_overlays"] = []
+
     if mode == "launch" and school:
         try:
             from apps.setup_studio.services import get_setup_studio_payload

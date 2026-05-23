@@ -1,0 +1,41 @@
+{
+  "data_model": {
+    "models_first_class": [
+      "TemplateAssignment",
+      "TemplateAuditEvent"
+    ],
+    "models_reused": [
+      "InstalledPackage",
+      "PackageChangeLog",
+      "ExperiencePack",
+      "ThemePack"
+    ],
+    "registries_python": [
+      "EXPERIENCE_TEMPLATE_PACKS (75)",
+      "OVERLAYS (75)",
+      "PROFILES (25)"
+    ]
+  },
+  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "layering": "ExperienceTemplate registered as 4th pack_type, composed over existing pack lifecycle.",
+  "lifecycle_engine_reused": [
+    "preview_pack",
+    "simulate_pack",
+    "analyze_pack_impact",
+    "apply_pack",
+    "rollback (via packages.engine.rollback)",
+    "audit_pack_event"
+  ],
+  "pack_statuses": [
+    "deprecated",
+    "draft",
+    "installable",
+    "preview_ready"
+  ],
+  "pack_types": [
+    "dashboard_pack",
+    "experience_template",
+    "policy_bundle",
+    "workflow_pack"
+  ]
+}

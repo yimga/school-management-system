@@ -22,6 +22,10 @@ logger = logging.getLogger(__name__)
 
 VALID_PROFILES = frozenset({"online", "edge", "hybrid"})
 
+# Option A (Render SaaS default): one cloud model + rules fallback — see docs/AI_DEPLOYMENT_POSTURE.md
+DEFAULT_LITELLM_MODEL = "gpt-5.4-mini"
+DEFAULT_OPENAI_API_BASE = "https://api.openai.com"
+
 _ONLINE_CLOUD_CHAIN = ["litellm", "ollama", "rules"]
 _ONLINE_LOCAL_CHAIN = ["ollama", "rules"]
 _EDGE_CHAIN = ["ollama", "rules"]
@@ -233,7 +237,7 @@ def enrich_public_provider_status(
             "model": (
                 getattr(settings, "LITELLM_MODEL", None)
                 or os.environ.get("LITELLM_MODEL")
-                or "gpt-3.5-turbo"
+                or DEFAULT_LITELLM_MODEL
             ),
             "exposure": "cloud",
         }

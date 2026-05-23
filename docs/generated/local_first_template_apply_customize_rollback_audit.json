@@ -1,0 +1,16 @@
+{
+  "apply": {
+    "operator": "configuration:experience_template_apply (reuses pack_apply_view)",
+    "tenant": "template_marketplace:apply (delegates to apply_pack)"
+  },
+  "audit_model": "apps.brand_experience.models_template.TemplateAuditEvent (append-only, sanitized payload)",
+  "customize": {
+    "audit_event": "template.customized",
+    "tenant": "template_marketplace:customize (edits TemplateAssignment.customizations JSON)"
+  },
+  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "rollback": {
+    "audit_event": "template.rolled_back",
+    "tenant": "template_marketplace:rollback (delegates to packages.engine.rollback)"
+  }
+}

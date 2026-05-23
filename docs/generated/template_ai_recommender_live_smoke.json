@@ -1,0 +1,16 @@
+{
+  "alternatives": [
+    "admin-school-command-center",
+    "admin-launch-readiness-cockpit"
+  ],
+  "audit_entry_pii_safe": true,
+  "confidence": 0.95,
+  "details": "Gateway absent or returned no usable payload \u2014 rules-path fallback validated. To upgrade to LIVE: configure LITELLM_* env vars on Render + RMC_PRODUCT_MCP_ENABLED=1, then re-run this verifier.",
+  "external_pending": true,
+  "primary": "admin-low-connectivity-hub",
+  "registry_membership_validated": true,
+  "registry_template_count": 75,
+  "risks": [],
+  "source": "rules",
+  "status": "TEMPLATE_AI_RECOMMENDER_FALLBACK_PASS"
+}

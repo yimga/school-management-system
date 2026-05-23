@@ -1,0 +1,17 @@
+{
+  "engine": "apps.platform_runtime.pack_preview.preview_pack",
+  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "no_cross_tenant_data": true,
+  "routes": {
+    "operator": [
+      "configuration:experience_template_preview",
+      "configuration:experience_template_simulation",
+      "configuration:experience_template_impact"
+    ],
+    "tenant": [
+      "template_marketplace:preview",
+      "template_marketplace:compare (live iframe)"
+    ]
+  },
+  "tenant_scope_enforcement": "tenant views call _gate_operator_only() before any pack call"
+}

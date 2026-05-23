@@ -109,52 +109,13 @@
     if (canvas) canvas.style.pointerEvents = "";
   }
 
-  // #region agent log
-  var _dbgRuns = 0;
-  function _agentDbg(hypothesisId, message, data) {
-    _dbgRuns += 1;
-    if (_dbgRuns > 40) return;
-    fetch("http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "0169af",
-      },
-      body: JSON.stringify({
-        sessionId: "0169af",
-        runId: "click-guard",
-        hypothesisId: hypothesisId,
-        location: "rmc-surface-overlay-guard.js:sanitize",
-        message: message,
-        data: data || {},
-        timestamp: Date.now(),
-      }),
-    }).catch(function () {});
-  }
-  // #endregion
-
   function sanitize() {
     if (!isProtectedSurface()) return;
-    var mo = document.getElementById("modal-overlay");
-    var moDisplay = mo ? window.getComputedStyle(mo).display : "missing";
-    var backdropCount = document.querySelectorAll(
-      ".modal-backdrop, .offcanvas-backdrop"
-    ).length;
     hideModalOverlay();
     removeStaleBackdrops();
     unlockAssistBackdrop();
     purgeFullScreenBlockers();
     forceShellInteractive();
-    // #region agent log
-    if (moDisplay !== "none" || backdropCount > 0) {
-      _agentDbg("A", "overlay-sanitize", {
-        modalOverlayDisplay: moDisplay,
-        backdropCount: backdropCount,
-        visibleModal: visibleModalOpen(),
-        bodyPointerEvents: window.getComputedStyle(document.body).pointerEvents,
-      });
-    }
-    // #endregion
   }
 
   function isInteractive(el) {
@@ -169,12 +130,6 @@
 
   function boot() {
     sanitize();
-    // #region agent log
-    _agentDbg("boot", "overlay-guard-boot", {
-      surface: document.body ? document.body.className : "",
-      modalOverlay: !!document.getElementById("modal-overlay"),
-    });
-    // #endregion
     window.setInterval(sanitize, 1500);
     if (typeof MutationObserver === "function") {
       var scheduled = false;
@@ -196,31 +151,20 @@
     document.addEventListener(
       "click",
       function (e) {
+        if (!e.isTrusted) return;
         if (!isProtectedSurface()) return;
         if (e.defaultPrevented) return;
         var el = isInteractive(e.target);
         if (!el) return;
         var top = document.elementFromPoint(e.clientX, e.clientY);
         if (!top || top === el || el.contains(top)) return;
-        // #region agent log
-        _agentDbg("C", "click-blocked-by-overlay", {
-          intendedTag: el.tagName,
-          topTag: top.tagName,
-          topId: top.id || "",
-          topClass: (top.className && String(top.className).slice(0, 80)) || "",
-        });
-        // #endregion
         sanitize();
         var topAfter = document.elementFromPoint(e.clientX, e.clientY);
         if (topAfter && (topAfter === el || el.contains(topAfter))) {
-          return;
-        }
-        if (!e._rmcOverlayRetried) {
-          e._rmcOverlayRetried = true;
           try {
             el.click();
           } catch (_err) {
-            /* swallow */
+            /* swallow — synthetic re-fire is best-effort */
           }
         }
       },

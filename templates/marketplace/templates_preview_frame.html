@@ -1,0 +1,30 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block portal_title %}{% blocktrans %}Preview: {{ template_key }}{% endblocktrans %}{% endblock %}
+
+{% block content %}
+<section class="rmc-template-preview" data-page-marker="rmc-template-preview" data-rmc-template-key="{{ template_key }}">
+  <header class="rmc-template-preview__header">
+    <h1>{% blocktrans %}Live preview — {{ template_key }}{% endblocktrans %}</h1>
+    <p class="rmc-template-preview__subtitle">{% trans "Preview the operating experience this template applies — no changes are written." %}</p>
+  </header>
+
+  <div class="rmc-template-preview__frame-wrap">
+    <iframe class="rmc-template-preview__frame"
+            title="{% blocktrans %}Preview frame for {{ template_key }}{% endblocktrans %}"
+            data-rmc-template-preview-iframe="1"
+            sandbox="allow-same-origin"></iframe>
+  </div>
+
+  <details class="rmc-template-preview__details">
+    <summary>{% trans "Preview payload" %}</summary>
+    <pre class="rmc-template-preview__payload">{{ preview.affected_workflows }}{{ preview.affected_dashboards }}{{ preview.affected_policies }}</pre>
+  </details>
+
+  <div class="rmc-template-preview__actions">
+    <a class="rmc-template-preview__action" href="{% url 'template_marketplace:browse' %}">{% trans "Back to catalog" %}</a>
+    <a class="rmc-template-preview__action rmc-template-preview__action--primary" href="{% url 'template_marketplace:apply' template_key %}">{% trans "Apply template" %}</a>
+  </div>
+</section>
+{% endblock %}

@@ -57,6 +57,8 @@ def main() -> int:
         errors.append(f"missing {posture_doc}")
     elif "LITELLM_PROXY_URL" not in posture_doc.read_text(encoding="utf-8"):
         errors.append("AI_DEPLOYMENT_POSTURE.md missing Render LITELLM section")
+    elif "gpt-5.4-mini" not in posture_doc.read_text(encoding="utf-8"):
+        errors.append("AI_DEPLOYMENT_POSTURE.md missing Option A default model gpt-5.4-mini")
 
     operator_doc = ROOT / "docs/OPERATOR_OLLAMA_AND_RENDER.md"
     if not operator_doc.is_file():

@@ -1,0 +1,12 @@
+/* design-tokens-local-green-emerald.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* green-emerald — Tenant admin, Parent, Student */
+:root[data-rmc-local-palette="green-emerald"] {
+  --surface-bg: #f3faf6; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fbfffd; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #cae8d6; /* off-token-allow: local-palette-anchor */
+  --text-primary: #0e2a1a; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #3f6f53; /* off-token-allow: local-palette-anchor */
+  --hairline: #bbd9c6; /* off-token-allow: local-palette-anchor */
+}

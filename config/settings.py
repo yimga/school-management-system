@@ -2682,9 +2682,10 @@ RMC_HUB_BASE_URL = (os.getenv("RMC_HUB_BASE_URL", "") or "").strip().rstrip("/")
 RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION = os.getenv(
     "RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "1"
 ).strip().lower() in ("1", "true", "yes", "on")
-# Premium cloud tier (OpenAI-compatible). Point at LiteLLM proxy or provider gateway; no extra VM required.
+# Premium cloud tier (OpenAI-compatible). Option A default: one model + rules fallback (docs/AI_DEPLOYMENT_POSTURE.md).
+# OpenAI direct: LITELLM_PROXY_URL=https://api.openai.com (not platform.openai.com).
 LITELLM_PROXY_URL = (os.getenv("LITELLM_PROXY_URL", "") or "").strip().rstrip("/")
-LITELLM_MODEL = (os.getenv("LITELLM_MODEL", "") or "gpt-3.5-turbo").strip()
+LITELLM_MODEL = (os.getenv("LITELLM_MODEL", "") or "gpt-5.4-mini").strip()
 LITELLM_API_KEY = (os.getenv("LITELLM_API_KEY", "") or "").strip()
 
 # Support ticket AI: prepend tenant KB/FAQ excerpts to ``support_suggest`` prompts (1 = on).

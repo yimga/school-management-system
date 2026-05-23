@@ -1,0 +1,306 @@
+/*
+ * rmc-template-marketplace.css
+ *
+ * Local-First Global Template Marketplace + Experience Blueprint Engine — Wave A.
+ * All color/border/background values route through semantic tokens defined in
+ * static/css/design-tokens.css. No raw hex literals outside theme-scope selectors.
+ * Per-template palette overrides arrive via data-rmc-template-palette="<family>"
+ * which resolves through the design-tokens-local-*.css bundles.
+ */
+
+.rmc-template-marketplace,
+.rmc-template-detail,
+.rmc-template-preview,
+.rmc-template-compare,
+.rmc-template-apply,
+.rmc-template-local {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-6, 1.5rem);
+  color: var(--text-primary);
+  background-color: var(--surface-bg);
+}
+
+.rmc-template-marketplace__header,
+.rmc-template-detail__header,
+.rmc-template-preview__header,
+.rmc-template-compare__header,
+.rmc-template-apply__header,
+.rmc-template-local__header {
+  margin-bottom: var(--space-6, 1.5rem);
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: var(--space-4, 1rem);
+}
+
+.rmc-template-marketplace__subtitle,
+.rmc-template-detail__category,
+.rmc-template-preview__subtitle,
+.rmc-template-apply__subtitle,
+.rmc-template-local__subtitle {
+  color: var(--text-secondary);
+  font-size: var(--type-size-sm, 0.875rem);
+}
+
+.rmc-template-marketplace__filter-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  margin-bottom: var(--space-5, 1.25rem);
+  padding: var(--space-4, 1rem);
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+.rmc-template-marketplace__filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+  min-width: 8rem;
+}
+
+.rmc-template-marketplace__filter-group label {
+  font-size: var(--type-size-xs, 0.75rem);
+  color: var(--text-secondary);
+}
+
+.rmc-template-marketplace__filter-submit,
+.rmc-template-marketplace__action,
+.rmc-template-detail__action,
+.rmc-template-preview__action,
+.rmc-template-apply__submit,
+.rmc-template-apply__cancel,
+.rmc-template-apply__action,
+.rmc-template-local__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  background-color: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 0.25rem);
+  font-size: var(--type-size-sm, 0.875rem);
+  text-decoration: none;
+  transition: background-color var(--motion-fast, 0.15s) ease;
+}
+
+.rmc-template-marketplace__filter-submit:hover,
+.rmc-template-marketplace__action:hover,
+.rmc-template-detail__action:hover,
+.rmc-template-preview__action:hover,
+.rmc-template-apply__action:hover,
+.rmc-template-local__action:hover {
+  background-color: var(--surface-popover);
+}
+
+.rmc-template-marketplace__action--primary,
+.rmc-template-detail__action--primary,
+.rmc-template-preview__action--primary,
+.rmc-template-apply__submit {
+  background-color: var(--surface-popover);
+  border-color: var(--text-primary);
+  font-weight: 600;
+}
+
+.rmc-template-marketplace__grid,
+.rmc-template-local__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-4, 1rem);
+}
+
+.rmc-template-marketplace__card,
+.rmc-template-local__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-4, 1rem);
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+  min-width: 0;
+}
+
+.rmc-template-marketplace__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-template-marketplace__category-chip,
+.rmc-template-marketplace__tag {
+  display: inline-block;
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  background-color: var(--surface-popover);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm, 0.25rem);
+  font-size: var(--type-size-xs, 0.75rem);
+}
+
+.rmc-template-marketplace__description,
+.rmc-template-detail__description {
+  color: var(--text-primary);
+  font-size: var(--type-size-md, 1rem);
+  line-height: var(--line-height-relaxed, 1.5);
+}
+
+.rmc-template-marketplace__meta,
+.rmc-template-detail__meta,
+.rmc-template-compare__meta,
+.rmc-template-local__meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1, 0.25rem) var(--space-3, 0.75rem);
+  font-size: var(--type-size-sm, 0.875rem);
+}
+
+.rmc-template-marketplace__meta dt,
+.rmc-template-detail__meta dt,
+.rmc-template-compare__meta dt,
+.rmc-template-local__meta dt {
+  color: var(--text-secondary);
+}
+
+.rmc-template-marketplace__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 0.25rem);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rmc-template-marketplace__actions,
+.rmc-template-detail__actions,
+.rmc-template-preview__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin-top: auto;
+}
+
+.rmc-template-marketplace__empty,
+.rmc-template-compare__column--empty {
+  grid-column: 1 / -1;
+  padding: var(--space-6, 1.5rem);
+  text-align: center;
+  color: var(--text-secondary);
+  background-color: var(--surface-elevated);
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+.rmc-template-preview__frame-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+  overflow: hidden;
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.rmc-template-preview__frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background-color: var(--surface-canvas);
+}
+
+.rmc-template-preview__details {
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.rmc-template-preview__payload,
+.rmc-template-apply__payload {
+  display: block;
+  max-width: 100%;
+  padding: var(--space-3, 0.75rem);
+  background-color: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 0.25rem);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-size-xs, 0.75rem);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.rmc-template-compare__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4, 1rem);
+}
+
+.rmc-template-compare__column {
+  padding: var(--space-4, 1rem);
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+.rmc-template-compare__category,
+.rmc-template-local__category {
+  color: var(--text-secondary);
+  font-size: var(--type-size-sm, 0.875rem);
+}
+
+.rmc-template-compare__live-frame-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  margin-top: var(--space-3, 0.75rem);
+  background-color: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 0.25rem);
+  overflow: hidden;
+}
+
+.rmc-template-compare__live-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background-color: var(--surface-canvas);
+}
+
+.rmc-template-detail__external-blockers {
+  padding: var(--space-3, 0.75rem);
+  background-color: var(--surface-popover);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 0.25rem);
+  color: var(--text-primary);
+  font-size: var(--type-size-sm, 0.875rem);
+}
+
+.rmc-template-apply__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin-top: var(--space-4, 1rem);
+}
+
+.rmc-template-apply__result {
+  margin-top: var(--space-5, 1.25rem);
+  padding: var(--space-4, 1rem);
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+@media (max-width: 768px) {
+  .rmc-template-marketplace,
+  .rmc-template-detail,
+  .rmc-template-preview,
+  .rmc-template-compare,
+  .rmc-template-apply,
+  .rmc-template-local {
+    padding: var(--space-3, 0.75rem);
+  }
+  .rmc-template-compare__grid {
+    grid-template-columns: 1fr;
+  }
+  .rmc-template-marketplace__filter-rail {
+    flex-direction: column;
+  }
+}

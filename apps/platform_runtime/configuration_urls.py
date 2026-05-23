@@ -87,5 +87,11 @@ urlpatterns = [
     path("policy-bundles/<slug:key>/simulate/", pack_simulation_view, {"pack_route": "policy-bundles"}, name="policy_bundle_simulation"),
     path("policy-bundles/<slug:key>/impact/", pack_impact_view, {"pack_route": "policy-bundles"}, name="policy_bundle_impact"),
     path("policy-bundles/<slug:key>/apply/", pack_apply_view, {"pack_route": "policy-bundles"}, name="policy_bundle_apply"),
+    path("experience-templates/", pack_marketplace, {"pack_route": "experience-templates"}, name="experience_template_marketplace"),
+    path("experience-templates/<slug:key>/", pack_detail, {"pack_route": "experience-templates"}, name="experience_template_detail"),
+    path("experience-templates/<slug:key>/preview/", pack_preview_view, {"pack_route": "experience-templates"}, name="experience_template_preview"),
+    path("experience-templates/<slug:key>/simulate/", pack_simulation_view, {"pack_route": "experience-templates"}, name="experience_template_simulation"),
+    path("experience-templates/<slug:key>/impact/", pack_impact_view, {"pack_route": "experience-templates"}, name="experience_template_impact"),
+    path("experience-templates/<slug:key>/apply/", pack_apply_view, {"pack_route": "experience-templates"}, name="experience_template_apply"),
     path("<slug:module_key>/", configuration_module_detail, name="module_detail"),
 ]

@@ -68,6 +68,13 @@ GlobalBrandRegistry = _proxy_model(
 from apps.brand_experience.platform_global_branding import (  # noqa: E402
     PlatformGlobalBranding,
 )
+from apps.brand_experience.models_template import (  # noqa: E402
+    TemplateAssignment,
+    TemplateAuditEvent,
+    TemplateAuditEventReadOnlyError,
+    hash_tenant_slug,
+    record_template_event,
+)
 
 __all__ = [
     "ThemePack",
@@ -76,4 +83,9 @@ __all__ = [
     "BrandSettings",
     "GlobalBrandRegistry",
     "PlatformGlobalBranding",
+    "TemplateAssignment",
+    "TemplateAuditEvent",
+    "TemplateAuditEventReadOnlyError",
+    "hash_tenant_slug",
+    "record_template_event",
 ]

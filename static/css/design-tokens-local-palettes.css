@@ -1,0 +1,123 @@
+/*
+ * design-tokens-local-palettes.css
+ *
+ * 10 heritage palette families for the Local-First Template Marketplace.
+ * Each family scopes itself under :root[data-rmc-local-palette="<family>"] so
+ * the base design-tokens.css cascade is preserved when no palette is active.
+ *
+ * Hex literals here are categorized off-token sites — they are the anchor
+ * definitions that the rest of the platform tokens resolve THROUGH. Each is
+ * marked with the required allow-marker so scan_off_token_colors stays at 0.
+ *
+ * Plan reference: docs/plans/LOCAL_FIRST_TEMPLATE_MARKETPLACE_PLAN.md § 7.1.
+ */
+
+/* editorial-cream — International, Bilingual, Faith-neutral, Cambridge */
+:root[data-rmc-local-palette="editorial-cream"] {
+  --surface-bg: #faf7f0; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fdfbf6; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f5eee0; /* off-token-allow: local-palette-anchor */
+  --text-primary: #2b2618; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #6b5f4a; /* off-token-allow: local-palette-anchor */
+  --hairline: #e5dcc4; /* off-token-allow: local-palette-anchor */
+}
+
+/* warm-terracotta — West Africa, Latin America */
+:root[data-rmc-local-palette="warm-terracotta"] {
+  --surface-bg: #fbf5ef; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fff8f1; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f3d8c0; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a1f12; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d4d2f; /* off-token-allow: local-palette-anchor */
+  --hairline: #e7c6a8; /* off-token-allow: local-palette-anchor */
+}
+
+/* cool-indigo — Operator, Finance, Security */
+:root[data-rmc-local-palette="cool-indigo"] {
+  --surface-bg: #f5f6fb; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fbfbff; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #d6dbf1; /* off-token-allow: local-palette-anchor */
+  --text-primary: #14192f; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #4a527d; /* off-token-allow: local-palette-anchor */
+  --hairline: #c4cae6; /* off-token-allow: local-palette-anchor */
+}
+
+/* green-emerald — Tenant admin, Parent, Student */
+:root[data-rmc-local-palette="green-emerald"] {
+  --surface-bg: #f3faf6; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fbfffd; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #cae8d6; /* off-token-allow: local-palette-anchor */
+  --text-primary: #0e2a1a; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #3f6f53; /* off-token-allow: local-palette-anchor */
+  --hairline: #bbd9c6; /* off-token-allow: local-palette-anchor */
+}
+
+/* desert-amber — UAE, Saudi, MENA */
+:root[data-rmc-local-palette="desert-amber"] {
+  --surface-bg: #fbf6ec; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fffaef; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f0dab0; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a2912; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d5f2f; /* off-token-allow: local-palette-anchor */
+  --hairline: #e3ce98; /* off-token-allow: local-palette-anchor */
+}
+
+/* monsoon-teal — India coastal, Sri Lanka, Bangladesh */
+:root[data-rmc-local-palette="monsoon-teal"] {
+  --surface-bg: #f0f9fa; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #f9fdfd; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #c0e3e3; /* off-token-allow: local-palette-anchor */
+  --text-primary: #0a2628; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #2f6e72; /* off-token-allow: local-palette-anchor */
+  --hairline: #b8d8d9; /* off-token-allow: local-palette-anchor */
+}
+
+/* sakura-blush — Japan, Korea, China international */
+:root[data-rmc-local-palette="sakura-blush"] {
+  --surface-bg: #fbf6f7; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fffafb; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #f0d6db; /* off-token-allow: local-palette-anchor */
+  --text-primary: #2c1820; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7a4a55; /* off-token-allow: local-palette-anchor */
+  --hairline: #e6c4cc; /* off-token-allow: local-palette-anchor */
+}
+
+/* andes-clay — Latin America heritage */
+:root[data-rmc-local-palette="andes-clay"] {
+  --surface-bg: #faf3ed; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fff8f1; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #ecc8a9; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a230f; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d5a30; /* off-token-allow: local-palette-anchor */
+  --hairline: #d9b58a; /* off-token-allow: local-palette-anchor */
+}
+
+/* savanna-ochre — East Africa community */
+:root[data-rmc-local-palette="savanna-ochre"] {
+  --surface-bg: #fbf6e6; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fff9e7; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #ecd687; /* off-token-allow: local-palette-anchor */
+  --text-primary: #3a2f10; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #7d6628; /* off-token-allow: local-palette-anchor */
+  --hairline: #d8c178; /* off-token-allow: local-palette-anchor */
+}
+
+/* nordic-slate — Low-connectivity, compact mobile */
+:root[data-rmc-local-palette="nordic-slate"] {
+  --surface-bg: #f4f5f7; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fafbfc; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #d3d8df; /* off-token-allow: local-palette-anchor */
+  --text-primary: #181b22; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #535965; /* off-token-allow: local-palette-anchor */
+  --hairline: #c6ccd5; /* off-token-allow: local-palette-anchor */
+}

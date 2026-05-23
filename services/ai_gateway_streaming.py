@@ -34,6 +34,8 @@ from typing import Any, Iterator
 
 from django.conf import settings
 
+from services.ai_deployment_posture import DEFAULT_LITELLM_MODEL
+
 logger = logging.getLogger(__name__)
 
 
@@ -164,7 +166,7 @@ def stream_litellm(
         model_key
         or getattr(settings, "LITELLM_MODEL", None)
         or os.environ.get("LITELLM_MODEL")
-        or "gpt-3.5-turbo"
+        or DEFAULT_LITELLM_MODEL
     ).strip()
     url = f"{proxy_url}/v1/chat/completions" if "/v1/" not in proxy_url else f"{proxy_url}/chat/completions"
     if not url.startswith("http"):
@@ -173,7 +175,7 @@ def stream_litellm(
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 2048,
+        "max_completion_tokens": 2048,
         "temperature": 0.3,
         "stream": True,
     }

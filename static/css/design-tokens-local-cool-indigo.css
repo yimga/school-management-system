@@ -1,0 +1,12 @@
+/* design-tokens-local-cool-indigo.css — split from design-tokens-local-palettes.css (Wave C-3 / batch 1402). */
+
+/* cool-indigo — Operator, Finance, Security */
+:root[data-rmc-local-palette="cool-indigo"] {
+  --surface-bg: #f5f6fb; /* off-token-allow: local-palette-anchor */
+  --surface-canvas: #fbfbff; /* off-token-allow: local-palette-anchor */
+  --surface-elevated: #ffffff; /* off-token-allow: local-palette-anchor */
+  --surface-popover: #d6dbf1; /* off-token-allow: local-palette-anchor */
+  --text-primary: #14192f; /* off-token-allow: local-palette-anchor */
+  --text-secondary: #4a527d; /* off-token-allow: local-palette-anchor */
+  --hairline: #c4cae6; /* off-token-allow: local-palette-anchor */
+}

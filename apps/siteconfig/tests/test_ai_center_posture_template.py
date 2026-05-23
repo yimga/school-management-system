@@ -23,7 +23,7 @@ class AiCenterPostureTemplateTests(SimpleTestCase):
             "operator_setup_kind": "render_cloud",
             "providers": {
                 "ollama": {"configured": False, "model": None, "exposure": "local"},
-                "litellm": {"configured": True, "model": "gpt-3.5-turbo", "exposure": "cloud"},
+                "litellm": {"configured": True, "model": "gpt-5.4-mini", "exposure": "cloud"},
             },
         }
         ctx = {

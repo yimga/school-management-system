@@ -1,0 +1,36 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block portal_title %}{{ pack.name }}{% endblock %}
+
+{% block content %}
+<section class="rmc-template-detail" data-page-marker="rmc-template-detail" data-rmc-template-palette="{{ overlay.palette_family }}">
+  <header class="rmc-template-detail__header">
+    <h1>{{ pack.name }}</h1>
+    <p class="rmc-template-detail__category">{{ overlay.category }} · {{ overlay.layout_family_name }}</p>
+  </header>
+  <p class="rmc-template-detail__description">{{ pack.description }}</p>
+
+  <dl class="rmc-template-detail__meta">
+    <dt>{% trans "Roles" %}</dt><dd>{{ pack.target_roles|join:", " }}</dd>
+    <dt>{% trans "Palette" %}</dt><dd>{{ overlay.palette_family }}</dd>
+    <dt>{% trans "Typography" %}</dt><dd>{{ overlay.typography_stack }}</dd>
+    <dt>{% trans "Mobile" %}</dt><dd>{{ overlay.mobile_level }}</dd>
+    <dt>{% trans "Accessibility" %}</dt><dd>WCAG {{ overlay.accessibility_level }}</dd>
+    <dt>{% trans "Supported countries" %}</dt><dd>{{ overlay.supported_countries|join:", " }}</dd>
+    <dt>{% trans "Supported languages" %}</dt><dd>{{ overlay.supported_languages|join:", " }}</dd>
+    {% if overlay.local_profile_ref %}<dt>{% trans "Local profile" %}</dt><dd>{{ overlay.local_profile_ref }}</dd>{% endif %}
+    {% if pack.requires_modules %}<dt>{% trans "Requires modules" %}</dt><dd>{{ pack.requires_modules|join:", " }}</dd>{% endif %}
+  </dl>
+
+  {% if pack.external_dependencies %}
+    <p class="rmc-template-detail__external-blockers">{% trans "External dependencies:" %} {{ pack.external_dependencies|join:", " }}</p>
+  {% endif %}
+
+  <div class="rmc-template-detail__actions">
+    <a class="rmc-template-detail__action" href="{% url 'template_marketplace:preview' pack.key %}">{% trans "Live preview" %}</a>
+    <a class="rmc-template-detail__action" href="{% url 'template_marketplace:compare' pack.key %}">{% trans "Compare" %}</a>
+    <a class="rmc-template-detail__action rmc-template-detail__action--primary" href="{% url 'template_marketplace:apply' pack.key %}">{% trans "Apply" %}</a>
+  </div>
+</section>
+{% endblock %}

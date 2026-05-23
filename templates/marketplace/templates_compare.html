@@ -1,0 +1,56 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block portal_title %}{% trans "Compare templates" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-template-compare" data-page-marker="rmc-template-compare">
+  <header class="rmc-template-compare__header">
+    <h1>{% trans "Compare templates" %}</h1>
+  </header>
+
+  <div class="rmc-template-compare__grid">
+    <article class="rmc-template-compare__column" data-rmc-template-palette="{{ a_overlay.palette_family }}">
+      <h2>{{ a_pack.name }}</h2>
+      <p class="rmc-template-compare__category">{{ a_overlay.category }} · {{ a_overlay.layout_family_name }}</p>
+      <dl class="rmc-template-compare__meta">
+        <dt>{% trans "Palette" %}</dt><dd>{{ a_overlay.palette_family }}</dd>
+        <dt>{% trans "Mobile" %}</dt><dd>{{ a_overlay.mobile_level }}</dd>
+        <dt>{% trans "Accessibility" %}</dt><dd>WCAG {{ a_overlay.accessibility_level }}</dd>
+        <dt>{% trans "Countries" %}</dt><dd>{{ a_overlay.supported_countries|join:", " }}</dd>
+      </dl>
+      <div class="rmc-template-compare__live-frame-wrap">
+        <iframe class="rmc-template-compare__live-frame"
+                src="{% url 'template_marketplace:preview' a_overlay.key %}"
+                title="{% blocktrans %}Live preview — {{ a_overlay.key }}{% endblocktrans %}"
+                sandbox="allow-same-origin"
+                data-rmc-template-compare-live-frame="a"></iframe>
+      </div>
+    </article>
+
+    {% if b_overlay %}
+      <article class="rmc-template-compare__column" data-rmc-template-palette="{{ b_overlay.palette_family }}">
+        <h2>{{ b_pack.name }}</h2>
+        <p class="rmc-template-compare__category">{{ b_overlay.category }} · {{ b_overlay.layout_family_name }}</p>
+        <dl class="rmc-template-compare__meta">
+          <dt>{% trans "Palette" %}</dt><dd>{{ b_overlay.palette_family }}</dd>
+          <dt>{% trans "Mobile" %}</dt><dd>{{ b_overlay.mobile_level }}</dd>
+          <dt>{% trans "Accessibility" %}</dt><dd>WCAG {{ b_overlay.accessibility_level }}</dd>
+          <dt>{% trans "Countries" %}</dt><dd>{{ b_overlay.supported_countries|join:", " }}</dd>
+        </dl>
+        <div class="rmc-template-compare__live-frame-wrap">
+          <iframe class="rmc-template-compare__live-frame"
+                  src="{% url 'template_marketplace:preview' b_overlay.key %}"
+                  title="{% blocktrans %}Live preview — {{ b_overlay.key }}{% endblocktrans %}"
+                  sandbox="allow-same-origin"
+                  data-rmc-template-compare-live-frame="b"></iframe>
+        </div>
+      </article>
+    {% else %}
+      <article class="rmc-template-compare__column rmc-template-compare__column--empty">
+        <p>{% trans "Add ?other=<key> to compare against another template." %}</p>
+      </article>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
