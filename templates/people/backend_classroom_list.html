@@ -1,10 +1,10 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% load terminology_tags %}
-{# Wave 12 (v3.62.16 — 2026-05-23): full lexicon adoption — both title and
+{% comment %}Wave 12 (v3.62.16 — 2026-05-23): full lexicon adoption — both title and
    include + back-link use {% term %} so "Classrooms" / "students" read as
    the tenant's term (e.g. "Salles de classe" / "élèves" in FR;
-   "வகுப்பறைகள்" / "மாணவர்கள்" in TA). #}
+   "வகுப்பறைகள்" / "மாணவர்கள்" in TA).{% endcomment %}
 {% term "classroom" plural=True capitalize=True as _classroom_pl %}
 {% term "classroom" capitalize=False as _classroom_lc %}
 {% term "student" plural=True as _student_pl_lc %}

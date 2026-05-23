@@ -1,13 +1,18 @@
 {% extends "portal_base.html" %}
-{% load i18n static %}
+{% load i18n static terminology_tags %}
 {# lesson outline draft: rmc-lesson-outline-draft.js #}
+{# Wave 13 (v3.62.17): lexicon adoption so "Teacher" / "Student" / "Parent" #}
+{# read as the tenant's term (e.g. "Tuteur" in FR, "Educator" in CBC-KE). #}
+{% term "teacher" capitalize=True as _teacher_sg %}
+{% term "student" plural=True as _student_pl_lc %}
+{% term "parent" plural=True as _parent_pl_lc %}
 
-{% block title %}{% trans "Teacher education pack" %}{% endblock %}
+{% block title %}{% blocktrans with t=_teacher_sg %}{{ t }} education pack{% endblocktrans %}{% endblock %}
 
 {% block content %}
 <div class="container py-3" data-rmc-education-pack="teacher" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
   <header class="mb-3">
-    <h1 class="h4 mb-1">{% trans "Teacher education pack" %}</h1>
+    <h1 class="h4 mb-1">{% blocktrans with t=_teacher_sg %}{{ t }} education pack{% endblocktrans %}</h1>
     <p class="small text-muted mb-0">{% trans "Lesson support, family communication drafts, and at-risk insights — tenant-scoped, human review required." %}</p>
   </header>
 
@@ -30,9 +35,10 @@
     <div class="col-md-6">
       <section class="card h-100">
         <div class="card-body">
-          <h2 class="h6">{% trans "Student insights" %}</h2>
+          {% term "student" capitalize=True as _stu_sg %}
+          <h2 class="h6">{% blocktrans with t=_stu_sg %}{{ t }} insights{% endblocktrans %}</h2>
           {% if surface_urls.semantic_search %}
-          <a class="btn btn-sm btn-outline-primary" href="{{ surface_urls.semantic_search }}">{% trans "Semantic student search" %}</a>
+          <a class="btn btn-sm btn-outline-primary" href="{{ surface_urls.semantic_search }}">{% blocktrans with t=_student_pl_lc %}Semantic {{ t }} search{% endblocktrans %}</a>
           {% endif %}
           <p class="small text-muted mt-2 mb-0">{% trans "Risk drivers and grade outlook surfaces use school-scoped analytics only." %}</p>
         </div>

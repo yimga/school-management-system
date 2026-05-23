@@ -1,8 +1,8 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% load static terminology_tags %}
-{# Wave 12 (v3.62.16): "Guardians" / "Parent" / "students" all read as
-   tenant-localized lexicon terms. #}
+{% comment %}Wave 12 (v3.62.16): "Guardians" / "Parent" / "students" all read as
+   tenant-localized lexicon terms.{% endcomment %}
 {% term "guardian" plural=True capitalize=True as _guardian_pl %}
 {% term "guardian" capitalize=True as _guardian_sg %}
 {% term "parent" capitalize=True as _parent_sg %}

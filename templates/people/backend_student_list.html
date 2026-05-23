@@ -1,9 +1,9 @@
 {% extends "backend_base.html" %}
 {% load i18n static region_format tenant_hook terminology_tags %}
 {# Backend UI: distinct from /admin; uses portal backend light theme. #}
-{# Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption. "Students" reads as
+{% comment %}Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption. "Students" reads as
    the tenant's term for student (e.g. "Élèves" in FR, "Alumnos" in ES,
-   "विद्यार्थी" in HI, "Talaba" in TZ Swahili). #}
+   "विद्यार्थी" in HI, "Talaba" in TZ Swahili).{% endcomment %}
 {% block title %}{% term "student" plural=True capitalize=True %} - {% trans "Backend" %}{% endblock %}
 
 {% block backend_page %}

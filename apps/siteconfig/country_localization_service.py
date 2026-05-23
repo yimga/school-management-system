@@ -241,10 +241,19 @@ def resolve_country_pack(country_code: str | None) -> dict[str, Any]:
 
     override = _load_db_override(cc)
     if not override:
-        return dict(base)
+        out = dict(base)
+        if cc == "IN":
+            _apply_india_calendar_alternatives(out)
+        return out
 
     merged = _shallow_merge_pack(dict(base), override)
     merged["_source"] = str(base.get("_source") or "unknown") + "+db-override"
+    # Wave 13: when IN is the country, surface all 3 state-board calendar
+    # variants on the picker so an operator picking ANY language can override
+    # the default to match their actual state's academic year. Applied here
+    # so /api/v1/localization/IN/ (no lang) also shows them.
+    if cc == "IN":
+        _apply_india_calendar_alternatives(merged)
     return merged
 
 
@@ -519,6 +528,72 @@ def validate_language_code(country_code: str | None, language_code: str | None) 
     return ""
 
 
+# Wave 13 (v3.62.17 — 2026-05-23) — per-state India calendar variance.
+# India's 11 state-board systems cluster into 3 distinct academic-year start
+# months: June (KN/ML/MR/OR), January (BN/AS), April (PA/UR/HI most belt
+# states). When an operator picks a language, the primary calendar is the
+# language's state-aligned one — but the picker shows ALL 3 variants so a
+# Hindi-medium school in Bihar (January calendar) can pick the right one
+# without giving up Hindi medium of instruction.
+_INDIA_STATE_BOARD_CALENDAR_VARIANTS: list[dict[str, Any]] = [
+    {
+        "code": "in-state-jun",
+        "label": "3 Terms (June-April)",
+        "sub": "Karnataka / Kerala / Maharashtra / Odisha / Tamil Nadu / Telangana / Gujarat",
+        "term_count": 3,
+        "academic_year_starts_month": 6,
+        "term_names": ["1st Term", "2nd Term", "3rd Term"],
+    },
+    {
+        "code": "in-state-apr",
+        "label": "3 Terms (April-March)",
+        "sub": "Hindi belt / Punjab / Urdu-medium / CBSE/ICSE national calendar",
+        "term_count": 3,
+        "academic_year_starts_month": 4,
+        "term_names": ["1st Term", "2nd Term", "3rd Term"],
+    },
+    {
+        "code": "in-state-jan",
+        "label": "3 Terms (January-December)",
+        "sub": "Bengal / Assam (SEBA) / Tripura",
+        "term_count": 3,
+        "academic_year_starts_month": 1,
+        "term_names": ["1st Term", "2nd Term", "3rd Term"],
+    },
+]
+
+
+def _apply_india_calendar_alternatives(merged: dict[str, Any]) -> None:
+    """If we're in India, expose ALL 3 state-board calendar variants in the
+    picker — with the language's own variant marked as default — so an
+    operator can keep their language and still pick a non-default
+    state-board calendar (e.g. Hindi medium with Bengal's January start).
+
+    Mutates ``merged`` in place. No-op when the country pack doesn't have
+    `_source` referencing 'IN' or the calendar list is already multi-entry.
+    """
+    cur = merged.get("calendar_systems") or []
+    if not isinstance(cur, list) or len(cur) != 1:
+        return
+    primary = cur[0]
+    if not isinstance(primary, dict):
+        return
+    primary_month = int(primary.get("academic_year_starts_month") or 0)
+    # Re-attach the other 2 variants as non-default options. Keep the
+    # language's own calendar as the default (preserved primary).
+    variants = []
+    for v in _INDIA_STATE_BOARD_CALENDAR_VARIANTS:
+        if int(v.get("academic_year_starts_month") or 0) == primary_month:
+            continue  # already the default
+        v_copy = dict(v)
+        v_copy["is_default"] = False
+        variants.append(v_copy)
+    if variants:
+        primary_copy = dict(primary)
+        primary_copy.setdefault("is_default", True)
+        merged["calendar_systems"] = [primary_copy] + variants
+
+
 def resolve_language_pack(
     country_code: str | None, language_code: str | None
 ) -> dict[str, Any]:
@@ -571,6 +646,9 @@ def resolve_language_pack(
         merged["_source"] = (
             f"{base.get('_source', 'unknown')}+language:{valid}"
         )
+        # Wave 13: India per-state calendar variance picker.
+        if cc == "IN":
+            _apply_india_calendar_alternatives(merged)
         return merged
     return base
 

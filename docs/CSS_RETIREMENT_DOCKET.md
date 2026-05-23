@@ -1,6 +1,132 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-23 (v3.62.16 — local-first Wave 12: 12 of 60 priority markets gain hand-written testimonials + case-study chips ringing out under the marketing band; per-country testimonial CSS; operator marketing-voice override via CountryRegistry.cockpit_override_payload.marketing_voice; 6 more India per-state regional overlays (KN/ML/PA/OR/AS/UR) bringing IN coverage to 11 of 11 medium-of-instruction languages with per-state systems; MaxMind GeoLite2 .mmdb downloader script + ops deploy guide; 5 more dashboard templates fully lexicon-adopted (classroom_list / guardian_list / applicant_list / teacher_dashboard / parent_dashboard).)
+**Last updated:** 2026-05-23 (v3.62.18 — local-first Wave 13: 22 more priority markets gain hand-written testimonials (NG/GH/KE/ZA/CM/IN/BR/FR/GB/US/SG/AE + UG/TZ/EG/MA/CI + PK/BD/JP/KR/PH/MY/ID/TH + DE/ES/IT/IE + MX/AR/CO + AU/NZ = **34 of 60 markets** with testimonials, 60% coverage); per-state India calendar variance picker exposes all 3 state-board calendar starts (June for KN/ML/MR/OR/TA/TE/GU; April for HI-belt/PA/UR/CBSE; January for BN/AS) on every signup pack — operator picks their state's calendar without changing language; operator rich-edit form for marketing_voice JSON (14 discrete form fields + chips textarea) replaces raw JSONField textarea editing; 11 more templates fully lexicon-adopted (teacher_attendance / backend_student_create / student_learning_home / education_pack_teacher / education_pack_parent / workflow_center_main / term_report / compliance_dashboard / risk_drivers / student_transcript_vault / entity_import) — total now **18 templates** on the canonical {% term %} + {% blocktrans asvar %} pattern.)
+
+## 2026-05-23 — v3.62.18: local-first Wave 13 (testimonials 12→34 markets + India per-state calendar picker + marketing_voice rich-edit + lexicon sweep 7→18 templates)
+
+**Status:** SHIPPED in-repo. Continuation of v3.62.16 (Wave 12). User mandate verbatim: closing Wave 13+ deferreds — 48 remaining markets without testimonials, ~190 templates remain for lexicon sweep, per-tenant marketing voice override per page, operator UI rich-edit form for marketing_voice JSON, per-state India calendar variance picker, city-level GeoIP localization.
+
+**SW:** `sms-v3.62.18-local-first-wave-13-testimonials-22-india-state-calendar-mv-rich-edit-lexicon-11-templates-2026-05-23`.
+
+### Wave 13a — 22 more priority markets with hand-written testimonials
+
+`marketing_local_context.py` voice dict gains testimonials + case-study chips for **22 more markets**, bringing total from 12 to **34 of 60 priority markets** (60% coverage):
+
+| Region | Markets added | Sample testimonial |
+|---|---|---|
+| Africa | UG / TZ / EG / MA / CI | TZ (Swahili): *"NECTA matokeo, ada ya muhula kwa shilingi, ripoti za walimu zinazoeleweka. Asante."* |
+| South Asia | PK / BD | PK (Urdu): *"FBISE + Cambridge IGCSE side by side, fees in rupees, Urdu parent SMS. شکریہ."* |
+| East Asia | JP / KR | KR (Korean): *"수능 대비, 학기별 성적표, 학부모 카카오톡 알림 — 한국 학교에 진짜 맞는 시스템입니다."* |
+| Southeast Asia | PH / MY / ID / TH | TH (Thai): *"ผลสอบ O-NET, ใบเกรดภาคเรียน, แจ้งผู้ปกครองทาง LINE — โรงเรียนเป็นดิจิทัลแล้วจริงๆ."* |
+| Europe | DE / ES / IT / IE | DE (German): *"Halbjahreszeugnisse, Abiturvorbereitung, DSGVO-konform, Elternkommunikation auf Deutsch. Endlich."* |
+| LatAm | MX / AR / CO | AR (Spanish): *"Boletines cuatrimestrales, calendario del hemisferio sur, MercadoPago integrado. Andábamos a ciegas antes."* |
+| Oceania | AU / NZ | NZ (te reo Māori): *"NCEA Level 1/2/3 credit tracking, te reo Māori bilingual reports, school-shop integrated. Ka pai."* |
+
+Each testimonial carries native-language vocabulary, payment rails specific to the market (M-Pesa/MoMo/Fawry/InstaPay/Easypaisa/PayPay/카카오페이/GCash/PromptPay/PIX/MercadoPago/PSE/BPAY/POLi), exam-board names (NECTA/Thanaweya Amma/FBISE/JSC/HSC/수능/UTBK/O-NET/LSU/Maturità/COMIPEMS/Saber/NCEA), and 3-chip case-study lists.
+
+### Wave 13b — per-state India calendar variance picker
+
+`country_localization_service.py` gains `_INDIA_STATE_BOARD_CALENDAR_VARIANTS` constant + `_apply_india_calendar_alternatives()` helper that exposes ALL 3 India state-board calendar starts on every IN pack:
+
+- **`in-state-jun` (June-April)**: Karnataka / Kerala / Maharashtra / Odisha / Tamil Nadu / Telangana / Gujarat
+- **`in-state-apr` (April-March)**: Hindi belt / Punjab / Urdu-medium / CBSE/ICSE national
+- **`in-state-jan` (January-December)**: Bengal / Assam (SEBA) / Tripura
+
+The language pack's state-aligned calendar stays as default, but the picker now shows the other 2 variants as non-default options. Use case: Hindi-medium school in Bihar wants Bihar's January calendar without giving up Hindi as medium of instruction.
+
+Smoke-verified on 3 packs:
+```
+IN baseline: 3 calendar variants (default = CBSE umbrella; alts = June + January)
+IN+hi:       3 calendar variants (default = April-March Hindi-belt; alts = June + January)
+IN+kn:       3 calendar variants (default = June-April Karnataka; alts = April + January)
+```
+
+### Wave 13c — operator rich-edit form for marketing_voice JSON
+
+`CountryRegistryAdminForm` (in `apps/registries/admin.py`) extended with **14 discrete scalar form fields** + 1 chips textarea, exposed as a dedicated "Marketing voice override (Wave 13)" fieldset:
+
+- `mv_country_name`, `mv_greeting`, `mv_headline_lead`, `mv_headline_lead_native`, `mv_hero_subline`, `mv_trust_count`, `mv_currency_sample`, `mv_calendar_sample`, `mv_regulatory_line`, `mv_anchor_city`, `mv_regional_phrase` — voice scalars
+- `mv_testimonial_quote`, `mv_testimonial_author`, `mv_testimonial_credential` — testimonial dict
+- `mv_case_study_chips` — chips textarea (one chip per line)
+
+**Round-trip pattern** matches existing `_FIELD_TO_KEY` precedent from v3.57.1:
+- `__init__()` pre-fills the rich fields from existing `cockpit_override_payload["marketing_voice"]`
+- `_build_marketing_voice_from_form()` rebuilds the nested dict shape from the flat fields (empty strings omitted so they don't shadow seed values)
+- `clean()` merges the rich-built `marketing_voice` into the raw `cockpit_override_payload` (rich fields win; other top-level keys like `terminology` preserved untouched)
+
+Raw JSONField textarea preserved in a sibling "raw JSON (Wave 8/10/12)" fieldset for power-operators editing non-voice top-level keys.
+
+Smoke-verified round-trip:
+```
+Form is_valid: True
+Payload keys: ['marketing_voice', 'terminology']
+MV keys: ['case_study_chips', 'country_name', 'greeting', 'headline_lead', 'hero_subline', 'testimonial']
+MV.testimonial: {'quote': 'Custom quote', 'author': 'Custom author'}  # credential omitted (blank)
+MV.case_study_chips: ['Chip A', 'Chip B']
+Terminology preserved: {'teacher': 'Custom T'}  # other top-level key untouched
+```
+
+### Wave 13d — lexicon sweep on 11 more high-traffic templates
+
+11 more templates fully lexicon-adopted, bringing total to **18 templates** on the canonical `{% term %}` + `{% blocktrans asvar %}` pattern:
+
+| Template | Term keys swept |
+|---|---|
+| `templates/teacher/attendance.html` | teacher (title + empty-state) + classroom |
+| `templates/people/backend_student_create.html` | student (title + subtitle + back-link) |
+| `templates/student/learning_home.html` | student (title + greeting default) |
+| `templates/portal/education_pack_teacher.html` | teacher (title) + student (heading + search button) |
+| `templates/portal/education_pack_parent.html` | parent (title + subtitle + workflow link) + student (link label + workflow copy) |
+| `templates/accounts/partials/workflow_center_main.html` | classroom + student + teacher (progress badges) |
+| `templates/reports/term_report.html` | classroom (rank label) + teacher (remark label) |
+| `templates/evals/compliance_dashboard.html` | teacher (caption + modal title) |
+| `templates/portal/ai_surfaces/risk_drivers.html` | student (table header + empty-state message) |
+| `templates/portal/student_transcript_vault.html` | student (heading) |
+| `templates/accounts/entity_import.html` | student + guardian (CSV column docs) |
+
+So an IN-HI tenant sees "विद्यार्थी attendance" / "विद्यार्थी CSV" / "अभिभावक CSV"; a CM-FR tenant sees "Salles de classe / Élèves / Enseignants" badges; a KE-EN CBC tenant sees "Learners" everywhere; a PK-UR tenant sees "Wards" in family copy. The pattern is now stable enough that the remaining ~180 templates can be swept incrementally in future waves without architectural change.
+
+### Wave 13e — template-safety hygiene fix on Wave 11+12 files
+
+Fixed pre-existing multi-line `{# ... #}` comment violations on 5 v3.62.10-v3.62.16-era templates that `audit_template_render_safety.py` flagged (Django supports single-line `{# #}` only; multi-line must use `{% comment %}{% endcomment %}`):
+
+- `templates/people/backend_classroom_list.html` (Wave 12 comment)
+- `templates/people/backend_guardian_list.html` (Wave 12)
+- `templates/people/backend_student_list.html` (Wave 11)
+- `templates/people/backend_teacher_list.html` (Wave 11)
+- `templates/people/backend_applicant_list.html` (Wave 12)
+
+Post-fix `audit_template_render_safety` is 0 across the full 1,328-template tree.
+
+### Smoke test results
+
+```
+Markets with hand-written testimonials: 34 of 60 (was 12 in v3.62.16; +22 new)
+IN per-state calendar picker: 3 variants exposed on every IN pack (baseline + 11 language packs)
+Marketing voice rich-edit form: round-trip verified (NG smoke test)
+Lexicon-adopted templates: 18 of ~200 total (was 7 in v3.62.16; +11 new)
+Template safety: 0 findings across 1,328 templates (post-fix on 5 Wave 11+12 templates)
+SW version: sms-v3.62.18-local-first-wave-13-...-2026-05-23
+```
+
+### Honest deferred (Wave 14+)
+
+- Remaining 26 markets without hand-written testimonials (currently 34 of 60 covered)
+- ~180 templates remain on full lexicon sweep — per-template review continues
+- Per-tenant marketing voice override per page (currently country-scoped via `cockpit_override_payload`)
+- Marketing voice operator UI: side-by-side preview of voice rendered on the marketing band so the operator sees the change before save
+- India per-state calendar variance picker for monolingual signups: surfacing a "Which state?" mini-picker on the signup form so the operator doesn't need to know which calendar code corresponds to their state
+- City-level GeoIP localization (currently anchor_city is country-scoped; future could resolve to metro on GeoIP city tier)
+- Hand-written testimonials in 5 more written-but-not-pictured language scripts (Amharic / Tigrinya / Khmer / Burmese / Lao) for the markets that use them
+
+### Key files (Wave 13)
+
+- `apps/schools/marketing_local_context.py` — 22 new testimonial + chips blocks (UG/TZ/EG/MA/CI/PK/BD/JP/KR/PH/MY/ID/TH/DE/ES/IT/IE/MX/AR/CO/AU/NZ)
+- `apps/registries/admin.py` — `CountryRegistryAdminForm` extended with 14 rich-edit scalar fields + chips textarea + round-trip `clean()` + dedicated fieldset
+- `apps/siteconfig/country_localization_service.py` — `_INDIA_STATE_BOARD_CALENDAR_VARIANTS` constant + `_apply_india_calendar_alternatives()` helper + wired into both `resolve_country_pack(cc='IN')` and `resolve_language_pack(cc='IN', lang)`
+- `templates/teacher/attendance.html` + `templates/people/backend_student_create.html` + `templates/student/learning_home.html` + `templates/portal/education_pack_teacher.html` + `templates/portal/education_pack_parent.html` + `templates/accounts/partials/workflow_center_main.html` + `templates/reports/term_report.html` + `templates/evals/compliance_dashboard.html` + `templates/portal/ai_surfaces/risk_drivers.html` + `templates/portal/student_transcript_vault.html` + `templates/accounts/entity_import.html` — lexicon sweep
+- `templates/people/backend_classroom_list.html` + `templates/people/backend_guardian_list.html` + `templates/people/backend_student_list.html` + `templates/people/backend_teacher_list.html` + `templates/people/backend_applicant_list.html` — multi-line `{# #}` → `{% comment %}{% endcomment %}` fix
+- `static/js/service-worker.js` — SW bump to v3.62.18
 
 ## 2026-05-23 — v3.62.16: local-first Wave 12 (testimonials + India 11-of-11 + MaxMind deploy + lexicon sweep continuation)
 

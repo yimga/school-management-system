@@ -141,6 +141,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the NCDC and UNEB framework.",
         "anchor_city": "Kampala",
         "regional_phrase": "Ugandan schools",
+        "testimonial": {
+            "quote": "UNEB results, term fees in shillings, parent SMS — the platform feels Ugandan, not imported.",
+            "author": "Director of Studies, Kampala boarding school",
+            "credential": "P1–S6 · 1,100 pupils",
+        },
+        "case_study_chips": [
+            "UNEB PLE + UCE + UACE result tracking",
+            "Term + holiday fee schedule (3-term cycle)",
+            "MTN MoMo + Airtel Money fee collection",
+        ],
     },
     "TZ": {
         "country_name": "Tanzania",
@@ -153,6 +163,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with NECTA and TIE syllabi.",
         "anchor_city": "Dar es Salaam",
         "regional_phrase": "Tanzanian shule",
+        "testimonial": {
+            "quote": "NECTA matokeo, ada ya muhula kwa shilingi, ripoti za walimu zinazoeleweka. Asante.",
+            "author": "Mwalimu Mkuu, shule ya sekondari Dar es Salaam",
+            "credential": "Form 1–6 · 900 wanafunzi",
+        },
+        "case_study_chips": [
+            "NECTA PSLE + CSEE + ACSEE result tracking",
+            "Kiswahili + English medium support",
+            "M-Pesa Tanzania + Tigo Pesa + Halopesa fees",
+        ],
     },
     "ZA": {
         "country_name": "South Africa",
@@ -234,6 +254,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligné sur le programme MENA et l'arrêté ministériel.",
         "anchor_city": "Abidjan",
         "regional_phrase": "écoles ivoiriennes",
+        "testimonial": {
+            "quote": "Bulletins MENA, suivi BAC, frais en FCFA — la plateforme parle notre langue, pas une traduction.",
+            "author": "Fondateur, complexe scolaire à Abidjan",
+            "credential": "Maternelle–Terminale · 850 élèves",
+        },
+        "case_study_chips": [
+            "Programme MENA aligné — Maternelle au Bac",
+            "BFEM + BEPC + Bac suivi",
+            "FCFA + Orange Money + MTN MoMo + Wave",
+        ],
     },
     "SN": {
         "country_name": "Sénégal",
@@ -261,6 +291,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Egyptian Ministry of Education and Thanaweya Amma framework.",
         "anchor_city": "Cairo",
         "regional_phrase": "Egyptian schools / المدارس المصرية",
+        "testimonial": {
+            "quote": "Thanaweya Amma prep, term fees in EGP, Arabic-RTL parent SMS — finally a system that speaks our way.",
+            "author": "Headmistress, Cairo international school",
+            "credential": "KG–Grade 12 · 1,700 students",
+        },
+        "case_study_chips": [
+            "Thanaweya Amma + KG-12 result tracking",
+            "Arabic-RTL + English bilingual reports",
+            "Fawry + InstaPay + bank transfer fees",
+        ],
     },
     "MA": {
         "country_name": "Maroc / المغرب",
@@ -274,6 +314,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligné sur la Vision Stratégique 2015-2030 du MEN.",
         "anchor_city": "Casablanca / Rabat",
         "regional_phrase": "écoles marocaines",
+        "testimonial": {
+            "quote": "Bulletins trimestriels, Bac marocain prep, frais en dirhams — adapté au système, pas adapté de force.",
+            "author": "Directeur, école privée à Casablanca",
+            "credential": "Préscolaire–Bac · 1,300 élèves",
+        },
+        "case_study_chips": [
+            "Vision Stratégique 2015-2030 alignée",
+            "Bilingue Arabe + Français native",
+            "MAD + CMI + virement bancaire frais",
+        ],
     },
     "AE": {
         "country_name": "United Arab Emirates / الإمارات",
@@ -373,6 +423,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with FBISE, Cambridge International, and provincial boards.",
         "anchor_city": "Karachi / Lahore",
         "regional_phrase": "Pakistani schools",
+        "testimonial": {
+            "quote": "FBISE + Cambridge IGCSE side by side, fees in rupees, Urdu parent SMS. شکریہ.",
+            "author": "Principal, K-12 school in Lahore",
+            "credential": "Nursery–A Level · 1,500 students",
+        },
+        "case_study_chips": [
+            "FBISE Matric/Inter + Cambridge IGCSE/A Level",
+            "Urdu + English bilingual reports",
+            "Easypaisa + JazzCash + bank transfer fees",
+        ],
     },
     "BD": {
         "country_name": "Bangladesh / বাংলাদেশ",
@@ -385,6 +445,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the NCTB and Education Board Bangladesh.",
         "anchor_city": "Dhaka",
         "regional_phrase": "Bangladeshi schools",
+        "testimonial": {
+            "quote": "JSC, SSC, HSC প্রস্তুতি একসাথে, বাংলায় পিতা-মাতার বার্তা। ধন্যবাদ।",
+            "author": "প্রধান শিক্ষক, ঢাকার স্কুল",
+            "credential": "Class 1–12 · 1,200 শিক্ষার্থী",
+        },
+        "case_study_chips": [
+            "JSC + SSC + HSC result tracking",
+            "Bangla + English bilingual reports",
+            "bKash + Nagad + Rocket fee collection",
+        ],
     },
     "LK": {
         "country_name": "Sri Lanka / ශ්‍රී ලංකා",
@@ -411,6 +481,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "文部科学省の学習指導要領に準拠。",
         "anchor_city": "東京 (Tokyo)",
         "regional_phrase": "日本の学校",
+        "testimonial": {
+            "quote": "通知表、大学受験準備、保護者連絡 — 令和並列で和暦と西暦どちらも自然に表示。",
+            "author": "校長、東京の私立高校",
+            "credential": "中学1年〜高校3年 · 950 名",
+        },
+        "case_study_chips": [
+            "令和年号並列表示 + 西暦",
+            "大学入学共通テスト + 学力試験 トラッキング",
+            "PayPay + 銀行振込 + コンビニ収納",
+        ],
     },
     "KR": {
         "country_name": "대한민국 (Korea)",
@@ -423,6 +503,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "교육부 교육과정과 수능 체계에 부합.",
         "anchor_city": "서울",
         "regional_phrase": "한국 학교",
+        "testimonial": {
+            "quote": "수능 대비, 학기별 성적표, 학부모 카카오톡 알림 — 한국 학교에 진짜 맞는 시스템입니다.",
+            "author": "교장, 서울 사립 고등학교",
+            "credential": "중1–고3 · 1,400명",
+        },
+        "case_study_chips": [
+            "수능 + 모의고사 + 학력평가 트래킹",
+            "한글 + 영문 학적부",
+            "토스 + 카카오페이 + 계좌이체 학비",
+        ],
     },
     "CN": {
         "country_name": "中国 (China)",
@@ -495,6 +585,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the DepEd K-12 curriculum and CHED tertiary framework.",
         "anchor_city": "Manila",
         "regional_phrase": "Philippine schools",
+        "testimonial": {
+            "quote": "DepEd K-12 SHS strand tracking, GMRC report cards, Tagalog parent SMS — sulit talaga.",
+            "author": "Principal, Catholic school in Cebu",
+            "credential": "Kinder–Grade 12 · 1,800 students",
+        },
+        "case_study_chips": [
+            "DepEd K-12 + SHS strand (STEM/HUMSS/ABM/GAS)",
+            "GMRC + values education reports",
+            "GCash + Maya + bank transfer tuition",
+        ],
     },
     "MY": {
         "country_name": "Malaysia",
@@ -507,6 +607,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with KPM and Lembaga Peperiksaan Malaysia.",
         "anchor_city": "Kuala Lumpur",
         "regional_phrase": "Malaysian schools",
+        "testimonial": {
+            "quote": "SPM + STPM + IGCSE dalam satu pentadbiran, Bahasa + English + 中文 reports. Sebagus itu.",
+            "author": "Pengetua, Sekolah Menengah Swasta di KL",
+            "credential": "Tingkatan 1–6 · 1,100 pelajar",
+        },
+        "case_study_chips": [
+            "SPM + STPM + Cambridge IGCSE/A Level parallel",
+            "BM + English + 中文 multilingual reports",
+            "Boost + Touch'n Go + DuitNow yuran",
+        ],
     },
     "ID": {
         "country_name": "Indonesia",
@@ -519,6 +629,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Sesuai dengan Kurikulum Merdeka dan BSNP.",
         "anchor_city": "Jakarta",
         "regional_phrase": "sekolah Indonesia",
+        "testimonial": {
+            "quote": "UTBK preparation, rapor Kurikulum Merdeka, WhatsApp orang tua — sekolah kami akhirnya online.",
+            "author": "Kepala Sekolah, SMA Negeri Jakarta",
+            "credential": "Kelas X–XII · 1,500 siswa",
+        },
+        "case_study_chips": [
+            "Kurikulum Merdeka rapor + asesmen",
+            "UTBK + SNBT + SNBP tracking",
+            "OVO + GoPay + DANA + BCA SPP",
+        ],
     },
     "TH": {
         "country_name": "Thailand / ประเทศไทย",
@@ -531,6 +651,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "สอดคล้องกับหลักสูตรแกนกลาง สพฐ. และ สทศ.",
         "anchor_city": "กรุงเทพมหานคร",
         "regional_phrase": "โรงเรียนไทย",
+        "testimonial": {
+            "quote": "ผลสอบ O-NET, ใบเกรดภาคเรียน, แจ้งผู้ปกครองทาง LINE — โรงเรียนเป็นดิจิทัลแล้วจริงๆ.",
+            "author": "ผู้อำนวยการ, โรงเรียนเอกชนในกรุงเทพ",
+            "credential": "อนุบาล–ม.6 · 1,300 คน",
+        },
+        "case_study_chips": [
+            "O-NET + GAT/PAT + TGAT tracking",
+            "ปี พ.ศ. คู่ขนาน + วันสำคัญทางพุทธศาสนา",
+            "PromptPay + TrueMoney + บัตรเครดิต",
+        ],
     },
     "VN": {
         "country_name": "Việt Nam",
@@ -579,6 +709,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Konform mit den Bildungsplänen der KMK und der Bundesländer.",
         "anchor_city": "Berlin / München",
         "regional_phrase": "deutsche Schulen",
+        "testimonial": {
+            "quote": "Halbjahreszeugnisse, Abiturvorbereitung, DSGVO-konform, Elternkommunikation auf Deutsch. Endlich.",
+            "author": "Schulleiterin, Gymnasium in Bayern",
+            "credential": "Klasse 5–13 · 980 Schüler",
+        },
+        "case_study_chips": [
+            "Halbjahreszeugnisse + Abiturnoten-Roll-up",
+            "16 Bundesländer-spezifische Lehrpläne",
+            "SEPA-Lastschrift + Klassenkasse + DSGVO-konform",
+        ],
     },
     "ES": {
         "country_name": "España",
@@ -591,6 +731,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Alineado con la LOMLOE y los currículos autonómicos.",
         "anchor_city": "Madrid / Barcelona",
         "regional_phrase": "colegios españoles",
+        "testimonial": {
+            "quote": "Boletines trimestrales, EvAU/Selectividad prep, comunicación con padres en español. Por fin.",
+            "author": "Director, colegio concertado en Madrid",
+            "credential": "Infantil–Bachillerato · 1,100 alumnos",
+        },
+        "case_study_chips": [
+            "LOMLOE + currículos autonómicos",
+            "Selectividad / EvAU tracking",
+            "SEPA + Bizum + transferencia bancaria",
+        ],
     },
     "IT": {
         "country_name": "Italia",
@@ -603,6 +753,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Conforme alle Indicazioni Nazionali del MIM/MIUR.",
         "anchor_city": "Roma / Milano",
         "regional_phrase": "scuole italiane",
+        "testimonial": {
+            "quote": "Pagelle quadrimestrali, Maturità prep, comunicazione genitori in italiano, GDPR-pulito.",
+            "author": "Dirigente Scolastico, liceo di Milano",
+            "credential": "Scuola primaria–liceo · 1,250 alunni",
+        },
+        "case_study_chips": [
+            "Indicazioni Nazionali MIM/MIUR",
+            "Esami di Stato + Maturità tracking",
+            "PagoPA + SDD + bonifico bancario",
+        ],
     },
     "GB": {
         "country_name": "United Kingdom",
@@ -637,6 +797,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Department of Education and NCCA curriculum.",
         "anchor_city": "Dublin",
         "regional_phrase": "Irish schools",
+        "testimonial": {
+            "quote": "Junior Cert and Leaving Cert side by side, Aladdin-friendly export, CAO pipeline. Brilliant.",
+            "author": "Principal, voluntary secondary in Dublin",
+            "credential": "1st year–6th year · 700 students",
+        },
+        "case_study_chips": [
+            "Junior Cycle Profile of Achievement (JCPA)",
+            "Leaving Cert + LCA + LCVP unified",
+            "CAO pipeline + SEPA Direct Debit",
+        ],
     },
 
     # ─── Americas ───────────────────────────────────────────────────────────
@@ -686,6 +856,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Alineado con la Nueva Escuela Mexicana y los planes SEP.",
         "anchor_city": "Ciudad de México",
         "regional_phrase": "escuelas mexicanas",
+        "testimonial": {
+            "quote": "Boletas semestrales NEM, preparación COMIPEMS, comunicación con padres en español. Por fin nuestro sistema.",
+            "author": "Director, colegio particular en CDMX",
+            "credential": "Preescolar–Bachillerato · 1,400 alumnos",
+        },
+        "case_study_chips": [
+            "Nueva Escuela Mexicana boletas + PEMC",
+            "COMIPEMS + EXANI II tracking",
+            "SPEI + tarjeta + OXXO Pay colegiaturas",
+        ],
     },
     "BR": {
         "country_name": "Brasil",
@@ -720,6 +900,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Alineado con los Núcleos de Aprendizajes Prioritarios del CFE.",
         "anchor_city": "Buenos Aires",
         "regional_phrase": "escuelas argentinas",
+        "testimonial": {
+            "quote": "Boletines cuatrimestrales, calendario del hemisferio sur, MercadoPago integrado. Andábamos a ciegas antes.",
+            "author": "Rectora, colegio privado en CABA",
+            "credential": "Nivel Inicial–Secundario · 950 alumnos",
+        },
+        "case_study_chips": [
+            "NAP cuatrimestres + Ciclo Básico/Orientado",
+            "Calendario hemisferio sur (marzo–diciembre)",
+            "MercadoPago + Pagofácil + Rapipago",
+        ],
     },
     "CO": {
         "country_name": "Colombia",
@@ -732,6 +922,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Alineado con los Lineamientos del MEN y las Pruebas Saber.",
         "anchor_city": "Bogotá",
         "regional_phrase": "colegios colombianos",
+        "testimonial": {
+            "quote": "Períodos académicos, prep Saber 11, comunicación con acudientes — la plataforma habla nuestro español.",
+            "author": "Rector, colegio bilingüe en Medellín",
+            "credential": "Preescolar–Media · 1,200 estudiantes",
+        },
+        "case_study_chips": [
+            "Lineamientos MEN 4 períodos",
+            "Pruebas Saber 3°/5°/9°/11° tracking",
+            "PSE + Nequi + Daviplata + tarjeta",
+        ],
     },
 
     # ─── Oceania ────────────────────────────────────────────────────────────
@@ -746,6 +946,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Australian Curriculum (ACARA) and state ATAR frameworks.",
         "anchor_city": "Sydney / Melbourne",
         "regional_phrase": "Australian schools",
+        "testimonial": {
+            "quote": "ATAR pipeline, four-term calendar, NAPLAN analytics, Compass-friendly export. Sorted.",
+            "author": "Deputy Principal, independent school in NSW",
+            "credential": "K–Year 12 · 1,300 students",
+        },
+        "case_study_chips": [
+            "ACARA + state ATAR frameworks",
+            "NAPLAN Year 3/5/7/9 analytics",
+            "BPAY + direct debit + parent portal",
+        ],
     },
     "NZ": {
         "country_name": "Aotearoa / New Zealand",
@@ -758,6 +968,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the New Zealand Curriculum + Te Marautanga o Aotearoa + NZQA NCEA.",
         "anchor_city": "Auckland / Wellington",
         "regional_phrase": "Aotearoa / New Zealand schools",
+        "testimonial": {
+            "quote": "NCEA Level 1/2/3 credit tracking, te reo Māori bilingual reports, school-shop integrated. Ka pai.",
+            "author": "Principal, state-integrated school in Wellington",
+            "credential": "Year 1–13 · 900 ākonga",
+        },
+        "case_study_chips": [
+            "NCEA Level 1/2/3 + UE credit tracking",
+            "Te Marautanga o Aotearoa bilingual reports",
+            "POLi + bank deposit + parent portal",
+        ],
     },
 }
 

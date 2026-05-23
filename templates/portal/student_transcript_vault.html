@@ -1,5 +1,8 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n terminology_tags %}
+{# Wave 13 (v3.62.17): "Student" name → tenant lexicon; the rest of the page #}
+{# (transcript / vault terminology) stays generic since it's a credential domain. #}
+{% term "student" capitalize=True as _student_sg %}
 
 {% block title %}{% trans "Transcript vault" %} · {{ student.first_name }} {{ student.last_name }}{% endblock %}
 
@@ -12,7 +15,7 @@
   {% now "Y-m-d" as _generated_at %}
   {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=student.get_full_name report_meta_left=_generated_at report_meta_right=school %}
 
-  <h1 class="h5 mb-3">{% trans "Transcript vault" %}</h1>
+  <h1 class="h5 mb-3">{% blocktrans with t=_student_sg %}{{ t }} transcript vault{% endblocktrans %}</h1>
   <p class="small text-muted">{% trans "Artifacts are stored with verification hashes only; no credential is implied without issuer data." %}</p>
 
   <div class="table-responsive">

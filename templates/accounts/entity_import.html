@@ -1,5 +1,9 @@
 {% extends "backend_base.html" %}
-{% load static i18n workflow_guidance_tags %}
+{% load static i18n workflow_guidance_tags terminology_tags %}
+{# Wave 13 (v3.62.17): CSV column docs use {% term %} so an IN-HI tenant sees #}
+{# "विद्यार्थी CSV" / "अभिभावक CSV" in the help text. #}
+{% term "student" plural=True capitalize=True as _student_pl %}
+{% term "guardian" plural=True capitalize=True as _guardian_pl %}
 
 {% block backend_title %}Entity Import (Beta){% endblock %}
 
@@ -38,8 +42,8 @@
     {% trans "for required columns and format." %}
   </div>
   <div id="column-guide" class="collapse card card-body bg-light mb-3">
-    <strong>{% trans "Students CSV" %}:</strong> first_name, last_name, admission_number, academic_year, classroom, specialty, status.
-    <strong>{% trans "Guardians CSV" %}:</strong> guardian_user, student, relationship, can_view_results, can_view_finance.
+    <strong>{% blocktrans with t=_student_pl %}{{ t }} CSV{% endblocktrans %}:</strong> first_name, last_name, admission_number, academic_year, classroom, specialty, status.
+    <strong>{% blocktrans with t=_guardian_pl %}{{ t }} CSV{% endblocktrans %}:</strong> guardian_user, student, relationship, can_view_results, can_view_finance.
   </div>
 
   <div class="row g-4 rmc-reveal-stagger">

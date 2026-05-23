@@ -1,13 +1,18 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n terminology_tags %}
+{# Wave 13 (v3.62.17): "parent" → "guardian" / "kaakaako" / "وَلِيُّ أَمْر" per #}
+{# tenant lexicon; "student" → "child" / "ward" / "learner" per region. #}
+{% term "parent" capitalize=True as _parent_sg %}
+{% term "parent" plural=True capitalize=True as _parent_pl %}
+{% term "student" plural=True as _student_pl_lc %}
 
-{% block title %}{% trans "Family learning pack" %}{% endblock %}
+{% block title %}{% blocktrans with t=_parent_sg %}{{ t }} learning pack{% endblocktrans %}{% endblock %}
 
 {% block content %}
 <div class="container py-3" data-rmc-education-pack="parent" data-rmc-scroll-policy="paginate">
   <header class="mb-3">
-    <h1 class="h4 mb-1">{% trans "Family learning pack" %}</h1>
-    <p class="small text-muted mb-0">{% trans "Curated help and portal guidance — no generative copilot on parent lane per school policy." %}</p>
+    <h1 class="h4 mb-1">{% blocktrans with t=_parent_sg %}{{ t }} learning pack{% endblocktrans %}</h1>
+    <p class="small text-muted mb-0">{% blocktrans with t=_parent_sg|lower %}Curated help and portal guidance — no generative copilot on {{ t }} lane per school policy.{% endblocktrans %}</p>
   </header>
 
   {% if surface_urls.runmycampus_guide %}
@@ -21,9 +26,9 @@
     </li>
     {% endif %}
     <li class="list-group-item">
-      <span class="fw-medium">{% trans "Link children & results" %}</span>
-      <p class="small text-muted mb-0 mt-1">{% trans "Use Parent portal workflow to link students and view results." %}</p>
-      <a class="small" href="{% url 'portal:parent_workflow' %}">{% trans "Parent workflow" %}</a>
+      <span class="fw-medium">{% blocktrans with t=_student_pl_lc %}Link {{ t }} & results{% endblocktrans %}</span>
+      <p class="small text-muted mb-0 mt-1">{% blocktrans with p=_parent_sg|lower s=_student_pl_lc %}Use {{ p }} portal workflow to link {{ s }} and view results.{% endblocktrans %}</p>
+      <a class="small" href="{% url 'portal:parent_workflow' %}">{% blocktrans with t=_parent_sg %}{{ t }} workflow{% endblocktrans %}</a>
     </li>
   </ul>
 

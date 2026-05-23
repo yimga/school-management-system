@@ -58,7 +58,7 @@
     <div class="box">
       <b>Summary</b><br>
       Average: <b>{{ summary.average|format_number:2|default:"-" }}</b><br>
-      Class Rank: <b>{{ summary.class_rank_display|default:"-" }}</b><br>
+      {% term "classroom" capitalize=True as _cl_sg %}{% trans "Rank in" %} {{ _cl_sg }}: <b>{{ summary.class_rank_display|default:"-" }}</b><br>
       Specialty Rank: <b>{{ summary.specialty_rank_display|default:"-" }}</b><br>
       School Rank: <b>{{ summary.school_rank_display|default:"-" }}</b><br>
       Status: <b>{{ summary.promotion_status|default:"-" }}</b>
@@ -117,7 +117,7 @@
 
   <div class="grid" style="margin-top:10px;">
     <div class="box">
-      <b>Teacher Remark</b><br>
+      {% term "teacher" capitalize=True as _t_sg %}<b>{{ _t_sg }} {% trans "Remark" %}</b><br>
       {{ summary.teacher_remark }}
     </div>
     <div class="box">

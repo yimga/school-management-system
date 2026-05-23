@@ -23,7 +23,8 @@
 
 {% if not risk_factor %}
   <div class="alert alert-info">
-    {% trans "No risk score has been computed for this student yet. The nightly scorer runs once a day." %}
+    {% term "student" as _stu_sg_lc %}
+    {% blocktrans with t=_stu_sg_lc %}No risk score has been computed for this {{ t }} yet. The nightly scorer runs once a day.{% endblocktrans %}
   </div>
 {% elif not has_ml_explanation %}
   <div class="alert alert-info">
@@ -39,7 +40,8 @@
           <thead class="table-light">
             <tr>
               <th scope="col">{% trans "Feature" %}</th>
-              <th scope="col">{% trans "Student's value" %}</th>
+              {% term "student" capitalize=True as _stu_sg_cap %}
+              <th scope="col">{% blocktrans with t=_stu_sg_cap %}{{ t }}'s value{% endblocktrans %}</th>
               <th scope="col">{% trans "Direction" %}</th>
               <th scope="col" class="text-end">{% trans "Importance" %}</th>
             </tr>

@@ -2,8 +2,8 @@
 {% load i18n %}
 {% load region_format %}
 {% load rmc_explain_tags terminology_tags %}
-{# Wave 12 (v3.62.16): "Applicants" stays English (not a tenant-customizable
-   lexicon key) but the back-link uses the localized student term. #}
+{% comment %}Wave 12 (v3.62.16): "Applicants" stays English (not a tenant-customizable
+   lexicon key) but the back-link uses the localized student term.{% endcomment %}
 {% term "student" plural=True as _student_pl_lc %}
 {% block backend_title %}{% trans "Applicants" %} - Backend{% endblock %}
 

@@ -1,9 +1,9 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% load static region_format i18n terminology_tags %}
-{# Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption.
+{% comment %}Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption.
    "Teachers" reads as the tenant's term (e.g. "Enseignants" in FR,
-   "Profesores" in ES, "अध्यापक" in HI, "ఉపాధ్యాయులు" in TE). #}
+   "Profesores" in ES, "अध्यापक" in HI, "ఉపాధ్యాయులు" in TE).{% endcomment %}
 {% term "teacher" plural=True capitalize=True as _teacher_pl %}
 {% term "teacher" capitalize=True as _teacher_sg %}
 {% block backend_title %}{{ _teacher_pl }} - Backend{% endblock %}

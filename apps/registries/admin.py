@@ -21,12 +21,19 @@ from .models import (
 
 
 class CountryRegistryAdminForm(forms.ModelForm):
-    """Wave 8/10 (v3.62.10 — 2026-05-22) — operator-friendly cockpit override.
+    """Wave 8/10/12/13 — operator-friendly cockpit override.
 
     Validates that ``cockpit_override_payload`` is a dict and the top-level
     keys belong to the country-pack contract. Surfaces a JSON-shape error
     INSIDE the form (so operators see "calendar_systems must be a list"
     instead of staring at a HTTP 500). Empty / null / "{}" all accepted.
+
+    Wave 13 (v3.62.17 — 2026-05-23): rich-edit form for ``marketing_voice``.
+    Instead of forcing the operator to hand-edit the raw JSON, the form
+    exposes 14 discrete scalar fields plus a line-separated textarea for
+    ``case_study_chips`` and round-trips them into the nested JSON shape
+    on save. The raw ``cockpit_override_payload`` textarea remains available
+    in the collapsible "Operator overrides" fieldset for power users.
     """
 
     _ALLOWED_KEYS = {
@@ -52,9 +59,126 @@ class CountryRegistryAdminForm(forms.ModelForm):
         "marketing_voice",
     }
 
+    # Wave 13 rich-edit scalar fields. Field name → marketing_voice key.
+    _MV_SCALAR_FIELDS = (
+        ("mv_country_name", "country_name", "Country name (display, e.g. 'Nigeria')"),
+        ("mv_greeting", "greeting", "Native greeting (e.g. 'Karibu')"),
+        ("mv_headline_lead", "headline_lead", "Headline lead-in (e.g. 'Built for Nigerian schools')"),
+        ("mv_headline_lead_native", "headline_lead_native", "Headline lead-in — native language (optional)"),
+        ("mv_hero_subline", "hero_subline", "Hero subline (supporting line)"),
+        ("mv_trust_count", "trust_count", "Trust line (e.g. 'Trusted by schools across all 36 states')"),
+        ("mv_currency_sample", "currency_sample", "Sample fee (e.g. '₦145,000 / term')"),
+        ("mv_calendar_sample", "calendar_sample", "Sample calendar (e.g. '3 terms — September to July')"),
+        ("mv_regulatory_line", "regulatory_line", "Regulatory line (curriculum alignment)"),
+        ("mv_anchor_city", "anchor_city", "Anchor city (e.g. 'Lagos')"),
+        ("mv_regional_phrase", "regional_phrase", "Regional phrase (e.g. 'Nigerian schools')"),
+        ("mv_testimonial_quote", "_t_quote", "Testimonial — quote (under ~140 chars works best)"),
+        ("mv_testimonial_author", "_t_author", "Testimonial — author (e.g. 'Proprietor, K-12 school in Lagos')"),
+        ("mv_testimonial_credential", "_t_credential", "Testimonial — credential (e.g. '1,800 students · 3 campuses')"),
+    )
+
+    mv_country_name = forms.CharField(required=False, max_length=120)
+    mv_greeting = forms.CharField(required=False, max_length=120)
+    mv_headline_lead = forms.CharField(required=False, max_length=240)
+    mv_headline_lead_native = forms.CharField(required=False, max_length=240)
+    mv_hero_subline = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    mv_trust_count = forms.CharField(required=False, max_length=240)
+    mv_currency_sample = forms.CharField(required=False, max_length=80)
+    mv_calendar_sample = forms.CharField(required=False, max_length=160)
+    mv_regulatory_line = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
+    mv_anchor_city = forms.CharField(required=False, max_length=120)
+    mv_regional_phrase = forms.CharField(required=False, max_length=160)
+    mv_testimonial_quote = forms.CharField(
+        required=False, widget=forms.Textarea(attrs={"rows": 2}),
+        help_text="Under 140 characters reads best on the marketing band.",
+    )
+    mv_testimonial_author = forms.CharField(required=False, max_length=160)
+    mv_testimonial_credential = forms.CharField(required=False, max_length=160)
+    mv_case_study_chips = forms.CharField(
+        required=False, widget=forms.Textarea(attrs={"rows": 4}),
+        help_text="One chip per line (3–5 works best). Example:\nWAEC + NECO result import\nJSS / SSS promotion engine",
+    )
+
     class Meta:
         model = CountryRegistry
         fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-fill the rich-edit scalars from existing payload.marketing_voice
+        # so the operator sees the current override and can edit incrementally.
+        instance = kwargs.get("instance") or getattr(self, "instance", None)
+        if instance and getattr(instance, "cockpit_override_payload", None):
+            mv = (instance.cockpit_override_payload or {}).get("marketing_voice") or {}
+            if isinstance(mv, dict):
+                testimonial = mv.get("testimonial") or {}
+                if not isinstance(testimonial, dict):
+                    testimonial = {}
+                self.fields["mv_country_name"].initial = mv.get("country_name", "")
+                self.fields["mv_greeting"].initial = mv.get("greeting", "")
+                self.fields["mv_headline_lead"].initial = mv.get("headline_lead", "")
+                self.fields["mv_headline_lead_native"].initial = mv.get("headline_lead_native", "")
+                self.fields["mv_hero_subline"].initial = mv.get("hero_subline", "")
+                self.fields["mv_trust_count"].initial = mv.get("trust_count", "")
+                self.fields["mv_currency_sample"].initial = mv.get("currency_sample", "")
+                self.fields["mv_calendar_sample"].initial = mv.get("calendar_sample", "")
+                self.fields["mv_regulatory_line"].initial = mv.get("regulatory_line", "")
+                self.fields["mv_anchor_city"].initial = mv.get("anchor_city", "")
+                self.fields["mv_regional_phrase"].initial = mv.get("regional_phrase", "")
+                self.fields["mv_testimonial_quote"].initial = testimonial.get("quote", "")
+                self.fields["mv_testimonial_author"].initial = testimonial.get("author", "")
+                self.fields["mv_testimonial_credential"].initial = testimonial.get("credential", "")
+                chips = mv.get("case_study_chips") or []
+                if isinstance(chips, list):
+                    self.fields["mv_case_study_chips"].initial = "\n".join(
+                        str(c) for c in chips if c
+                    )
+
+    def _build_marketing_voice_from_form(self) -> dict:
+        """Round-trip the 14 scalars + chips textarea into a nested dict.
+
+        Empty-string fields are omitted (so they don't shadow the seed
+        pack with empty strings). Returns ``{}`` if every field is empty.
+        """
+        data = self.cleaned_data
+        mv: dict = {}
+        # Scalars.
+        for fname, key in (
+            ("mv_country_name", "country_name"),
+            ("mv_greeting", "greeting"),
+            ("mv_headline_lead", "headline_lead"),
+            ("mv_headline_lead_native", "headline_lead_native"),
+            ("mv_hero_subline", "hero_subline"),
+            ("mv_trust_count", "trust_count"),
+            ("mv_currency_sample", "currency_sample"),
+            ("mv_calendar_sample", "calendar_sample"),
+            ("mv_regulatory_line", "regulatory_line"),
+            ("mv_anchor_city", "anchor_city"),
+            ("mv_regional_phrase", "regional_phrase"),
+        ):
+            val = (data.get(fname) or "").strip()
+            if val:
+                mv[key] = val
+        # Testimonial nested dict.
+        q = (data.get("mv_testimonial_quote") or "").strip()
+        a = (data.get("mv_testimonial_author") or "").strip()
+        c = (data.get("mv_testimonial_credential") or "").strip()
+        if q or a or c:
+            t: dict = {}
+            if q:
+                t["quote"] = q
+            if a:
+                t["author"] = a
+            if c:
+                t["credential"] = c
+            mv["testimonial"] = t
+        # Case-study chips list.
+        chips_raw = (data.get("mv_case_study_chips") or "").strip()
+        if chips_raw:
+            chips = [line.strip() for line in chips_raw.splitlines() if line.strip()]
+            if chips:
+                mv["case_study_chips"] = chips
+        return mv
 
     def clean_cockpit_override_payload(self):
         value = self.cleaned_data.get("cockpit_override_payload")
@@ -101,6 +225,36 @@ class CountryRegistryAdminForm(forms.ModelForm):
                 )
         return value
 
+    def clean(self):
+        """Wave 13: merge the rich-edit ``mv_*`` fields into
+        ``cockpit_override_payload['marketing_voice']`` so the operator
+        can edit either surface (rich form or raw JSON textarea) and the
+        result is consistent.
+
+        Rich-edit fields win over the raw JSON's marketing_voice subkey
+        (since the operator typically uses the rich form). Other top-level
+        keys in the raw payload (calendar_systems, terminology, etc.) are
+        preserved untouched.
+        """
+        cleaned = super().clean()
+        # Pull the validated payload — guard against missing key when the
+        # raw textarea failed validation independently.
+        payload = cleaned.get("cockpit_override_payload")
+        if payload in (None, ""):
+            payload = {}
+        if not isinstance(payload, dict):
+            return cleaned  # let clean_cockpit_override_payload's error stand
+        rich_mv = self._build_marketing_voice_from_form()
+        if rich_mv:
+            payload = dict(payload)
+            payload["marketing_voice"] = rich_mv
+        elif "marketing_voice" in payload and not payload["marketing_voice"]:
+            # Operator cleared every rich field AND payload's mv is empty —
+            # drop the key so the merge contract stays minimal.
+            payload = {k: v for k, v in payload.items() if k != "marketing_voice"}
+        cleaned["cockpit_override_payload"] = payload
+        return cleaned
+
     def save(self, commit=True):
         """After save, evict the country_localization service cache so the
         edit takes effect immediately without a process restart."""
@@ -140,17 +294,36 @@ class CountryRegistryAdmin(admin.ModelAdmin):
                 "default_terminology_pack",
             ),
         }),
-        ("Operator overrides (Wave 8/10/12)", {
+        ("Marketing voice override (Wave 13)", {
             "description": (
-                "JSON overlay applied on top of the in-memory country seed "
-                "pack at the service hot path. Allowed top-level keys: "
+                "Override the marketing band voice for this country WITHOUT "
+                "editing the JSON payload. Each field below maps directly "
+                "into <code>cockpit_override_payload.marketing_voice.*</code>. "
+                "Leave a field blank to fall back to the seed value (the "
+                "hand-voiced text in <code>marketing_local_context.py</code>). "
+                "Changes take effect immediately — no process restart needed."
+            ),
+            "classes": ("collapse",),
+            "fields": (
+                "mv_country_name", "mv_greeting",
+                "mv_headline_lead", "mv_headline_lead_native",
+                "mv_hero_subline",
+                "mv_trust_count",
+                "mv_currency_sample", "mv_calendar_sample",
+                "mv_regulatory_line",
+                "mv_anchor_city", "mv_regional_phrase",
+                "mv_testimonial_quote", "mv_testimonial_author", "mv_testimonial_credential",
+                "mv_case_study_chips",
+            ),
+        }),
+        ("Operator overrides — raw JSON (Wave 8/10/12)", {
+            "description": (
+                "Raw JSON overlay for advanced operators. Marketing voice "
+                "lives in the dedicated fieldset above and round-trips into "
+                "this payload on save. Other allowed top-level keys: "
                 "calendar_systems (list), school_types (list), education_levels "
                 "(list), languages (list), terminology (dict), writing_direction "
-                "(str), system_name (str), marketing_voice (dict — Wave 12: "
-                "country_name / greeting / headline_lead / hero_subline / "
-                "trust_count / currency_sample / calendar_sample / "
-                "regulatory_line / anchor_city / regional_phrase / "
-                "testimonial.{quote,author,credential} / case_study_chips). "
+                "(str), system_name (str). "
                 "Lists override wholesale; dicts merge one level deep. "
                 "Empty / blank = no override."
             ),

@@ -1,5 +1,10 @@
-{% load i18n %}
+{% load i18n terminology_tags %}
 {# Shared main body: Workflow Center (full backend page + Studio embed). #}
+{# Wave 13 (v3.62.17): badge counters use {% term %} so FR sees "Salles de classe" / #}
+{# "Élèves" / "Enseignants" and IN-HI sees "कक्षाएं" / "विद्यार्थी" / "शिक्षक". #}
+{% term "classroom" plural=True capitalize=True as _classroom_pl %}
+{% term "student" plural=True capitalize=True as _student_pl %}
+{% term "teacher" plural=True capitalize=True as _teacher_pl %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface" id="workflow-main">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
@@ -18,9 +23,9 @@
     </div>
     {% if workflow_progress %}
     <div class="workflow-progress-summary">
-      <span class="badge bg-primary">{% trans "Classrooms:" %} {{ workflow_progress.classrooms|default:0 }}</span>
-      <span class="badge bg-success">{% trans "Students:" %} {{ workflow_progress.students|default:0 }}</span>
-      <span class="badge bg-info">{% trans "Teachers:" %} {{ workflow_progress.teachers|default:0 }}</span>
+      <span class="badge bg-primary">{{ _classroom_pl }}: {{ workflow_progress.classrooms|default:0 }}</span>
+      <span class="badge bg-success">{{ _student_pl }}: {{ workflow_progress.students|default:0 }}</span>
+      <span class="badge bg-info">{{ _teacher_pl }}: {{ workflow_progress.teachers|default:0 }}</span>
     </div>
     {% endif %}
     {% if steps %}
