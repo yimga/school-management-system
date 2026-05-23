@@ -1,7 +1,14 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% load terminology_tags %}
-{% block backend_title %}{% trans_term "Classrooms" key="classroom" plural=True %} - Backend{% endblock %}
+{# Wave 12 (v3.62.16 — 2026-05-23): full lexicon adoption — both title and
+   include + back-link use {% term %} so "Classrooms" / "students" read as
+   the tenant's term (e.g. "Salles de classe" / "élèves" in FR;
+   "வகுப்பறைகள்" / "மாணவர்கள்" in TA). #}
+{% term "classroom" plural=True capitalize=True as _classroom_pl %}
+{% term "classroom" capitalize=False as _classroom_lc %}
+{% term "student" plural=True as _student_pl_lc %}
+{% block backend_title %}{{ _classroom_pl }} - Backend{% endblock %}
 
 {% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
@@ -9,8 +16,10 @@
     <div class="col-12">
       {% url 'accounts:backend_classroom_create' as add_url %}
       {% url 'accounts:backend_student_list' as back_url %}
-      {% include "studio_os/components/page_header.html" with title=_("Classrooms") subtitle=_("Classes and sections by year and department.") action_url=add_url action_text=_("Add classroom") %}
-      <p class="mb-3"><a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to students" %}</a></p>
+      {% blocktrans asvar _classroom_add_text with t=_classroom_lc %}Add {{ t }}{% endblocktrans %}
+      {% blocktrans asvar _classroom_subtitle with t=_classroom_pl %}{{ t }} and sections by year and department.{% endblocktrans %}
+      {% include "studio_os/components/page_header.html" with title=_classroom_pl subtitle=_classroom_subtitle action_url=add_url action_text=_classroom_add_text %}
+      <p class="mb-3"><a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% blocktrans with t=_student_pl_lc %}Back to {{ t }}{% endblocktrans %}</a></p>
 
       <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
         <div class="row g-2 align-items-end">

@@ -37,6 +37,19 @@ class CountryRegistryAdminForm(forms.ModelForm):
         "languages",
         "writing_direction",
         "system_name",
+        # Wave 12 (v3.62.16 — 2026-05-23): operator marketing-voice override.
+        # Shape (any subset of these keys; operator-modifiable scalars + the
+        # nested `testimonial` dict + `case_study_chips` list):
+        #   "marketing_voice": {
+        #       "country_name": "...", "greeting": "...", "headline_lead": "...",
+        #       "headline_lead_native": "...", "hero_subline": "...",
+        #       "trust_count": "...", "currency_sample": "...",
+        #       "calendar_sample": "...", "regulatory_line": "...",
+        #       "anchor_city": "...", "regional_phrase": "...",
+        #       "testimonial": {"quote": "...", "author": "...", "credential": "..."},
+        #       "case_study_chips": ["...", "...", "..."]
+        #   }
+        "marketing_voice",
     }
 
     class Meta:
@@ -70,6 +83,22 @@ class CountryRegistryAdminForm(forms.ModelForm):
                 "`terminology` override must be a dict (e.g. "
                 '{"teacher": "Tuteur"}).'
             )
+        # Wave 12 — validate marketing_voice shape.
+        if "marketing_voice" in value:
+            mv = value["marketing_voice"]
+            if not isinstance(mv, dict):
+                raise forms.ValidationError(
+                    "`marketing_voice` override must be a dict."
+                )
+            if "testimonial" in mv and not isinstance(mv["testimonial"], dict):
+                raise forms.ValidationError(
+                    "`marketing_voice.testimonial` must be a dict with "
+                    "keys: quote, author, credential."
+                )
+            if "case_study_chips" in mv and not isinstance(mv["case_study_chips"], list):
+                raise forms.ValidationError(
+                    "`marketing_voice.case_study_chips` must be a list of strings."
+                )
         return value
 
     def save(self, commit=True):
@@ -111,14 +140,19 @@ class CountryRegistryAdmin(admin.ModelAdmin):
                 "default_terminology_pack",
             ),
         }),
-        ("Operator overrides (Wave 8/10)", {
+        ("Operator overrides (Wave 8/10/12)", {
             "description": (
                 "JSON overlay applied on top of the in-memory country seed "
                 "pack at the service hot path. Allowed top-level keys: "
                 "calendar_systems (list), school_types (list), education_levels "
                 "(list), languages (list), terminology (dict), writing_direction "
-                "(str), system_name (str). Lists override wholesale; dicts merge "
-                "one level deep. Empty / blank = no override."
+                "(str), system_name (str), marketing_voice (dict — Wave 12: "
+                "country_name / greeting / headline_lead / hero_subline / "
+                "trust_count / currency_sample / calendar_sample / "
+                "regulatory_line / anchor_city / regional_phrase / "
+                "testimonial.{quote,author,credential} / case_study_chips). "
+                "Lists override wholesale; dicts merge one level deep. "
+                "Empty / blank = no override."
             ),
             "classes": ("collapse",),
             "fields": ("cockpit_override_payload",),

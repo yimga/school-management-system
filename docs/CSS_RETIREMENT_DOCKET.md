@@ -1,6 +1,126 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-22 (v3.62.15 — local-first Waves 9 + 10 + 11: marketing surface goes country-aware (60+ markets hand-voiced + 14 regional fallbacks), `School.primary_language` first-class field, Chinese myriad (萬/億) grouping, GeoIP service helper, operator admin form for CountryRegistry override, 5 new India per-state regional overlays (TA/TE/BN/MR/GU), representative lexicon-template sweep.)
+**Last updated:** 2026-05-23 (v3.62.16 — local-first Wave 12: 12 of 60 priority markets gain hand-written testimonials + case-study chips ringing out under the marketing band; per-country testimonial CSS; operator marketing-voice override via CountryRegistry.cockpit_override_payload.marketing_voice; 6 more India per-state regional overlays (KN/ML/PA/OR/AS/UR) bringing IN coverage to 11 of 11 medium-of-instruction languages with per-state systems; MaxMind GeoLite2 .mmdb downloader script + ops deploy guide; 5 more dashboard templates fully lexicon-adopted (classroom_list / guardian_list / applicant_list / teacher_dashboard / parent_dashboard).)
+
+## 2026-05-23 — v3.62.16: local-first Wave 12 (testimonials + India 11-of-11 + MaxMind deploy + lexicon sweep continuation)
+
+**Status:** SHIPPED in-repo. Continuation of v3.62.15 (Waves 9-11). User mandate verbatim: closing Wave 12+ deferreds — "mass template lexicon sweep at scale (~200 templates), per-country marketing case studies/testimonials, mounted MaxMind GeoLite2 .mmdb in deploy artifact, operator UI to override marketing voice per country, remaining 12+ India state-board overlays".
+
+**SW:** `sms-v3.62.16-local-first-wave-12-testimonials-india-12langs-maxmind-deploy-lexicon-2026-05-23`.
+
+### Wave 12a — 6 more India per-state regional overlays (IN now 11 of 11)
+
+New `_INDIA_*_MEDIUM` blocks in `_seed_country_languages.py`, each with native-script school types + state-aligned 3-term calendars + localized terminology:
+
+- **KN — Karnataka State Board**: ಪ್ರಾಥಮಿಕ → SSLC → PUC; teacher = ಶಿಕ್ಷಕರು (Shikshakaru)
+- **ML — Kerala State Board**: Lower Primary → Plus Two; teacher = അദ്ധ്യാപകൻ (Adhyāpakan)
+- **PA — Punjab School Education Board**: Primary → Matric → +2; teacher = ਅਧਿਆਪਕ (Adhyāpak)
+- **OR — Board of Secondary Education, Odisha**: Primary → HSC → +2; teacher = ଶିକ୍ଷକ (Shikshyaka)
+- **AS — SEBA Assam Board**: Primary → HSLC → HS; teacher = শিক্ষক (Xikkhok)
+- **UR — Urdu-medium / Madrasa Tradition**: Ibtidāi → Sānawī → Aʿlā Sānawī; teacher = استاذ / مُعَلّم (Ustād / Muʿallim)
+
+Combined with v3.62.15's TA/TE/BN/MR/GU + v3.62.7's HI, India now has **11 of 11** medium-of-instruction languages carrying per-state education systems (only EN baseline stays generic by design — CBSE/ICSE/IB are nation-wide).
+
+### Wave 12b — per-country marketing testimonials + case-study chips
+
+`marketing_local_context.py` voice dict now carries optional `testimonial` (quote/author/credential) + `case_study_chips` (list of locally-proven capabilities). Hand-written for 12 priority markets: NG, GH, KE, ZA, CM, IN, BR, FR, GB, US, SG, AE. Markets without testimonials gracefully omit those sections from the band.
+
+- Voice resolver gains `testimonial` + `case_study_chips` extraction
+- Band template renders `.mkt-local-first-band__case-study` + `.mkt-local-first-band__testimonial` sections when present
+- CSS adds case-study chip styling + serif italic blockquote with brand-token quote mark + byline
+
+**Examples**:
+- NG: *"WAEC results, JSS promotion logic, and termly fees in naira — finally in one place."* — Proprietor, K-12 school in Lagos · 1,800 students · 3 campuses. Chips: WAEC + NECO result import; JSS / SSS promotion engine; Bank transfer fee reconciliation (Paystack + Flutterwave)
+- CM: *"Une seule plateforme pour nos deux sous-systèmes — Bac D et GCE A/L côte à côte. Enfin."* — Directeur, lycée bilingue à Douala · 1,650 élèves · Anglo + Franco subsystems
+- IN: *"CBSE and our state board side by side, fee receipts in lakhs, parent SMS in Hindi. ज़बरदस्त."* — Principal, K-12 school in Pune · 2,400 students · CBSE + SSC streams
+
+### Wave 12c — operator marketing-voice override via cockpit_override_payload
+
+`CountryRegistry.cockpit_override_payload["marketing_voice"]` now flows through `marketing_local_context.py` so operators can override any voice scalar + testimonial + chips per country via Django admin without code changes. Same shape as the in-memory voice dict:
+
+```json
+{
+  "marketing_voice": {
+    "headline_lead": "Built for our specific district",
+    "testimonial": {"quote": "...", "author": "...", "credential": "..."},
+    "case_study_chips": ["...", "...", "..."]
+  }
+}
+```
+
+`CountryRegistryAdminForm` whitelist updated; shape validation enforces dict for `marketing_voice`/`testimonial`, list for `case_study_chips`. Post-save `clear_cache()` evicts both seed AND DB-override caches.
+
+### Wave 12d — MaxMind GeoLite2 .mmdb deploy artifact
+
+- `scripts/download_geoip_mmdb.py` — stdlib-only (`urllib` + `tarfile`) downloader; reads `MAXMIND_LICENSE_KEY` + `GEOIP_COUNTRY_DATABASE_PATH` env vars; atomic write via temp file + rename; `--check-only` mode for CI pre-flight; safe license-key logging (sha256[:12] prefix only); exit-code-friendly for predeploy hooks.
+- `docs/GEOIP_DEPLOYMENT.md` — operator guide covering backend selection (noop/cloudflare/x-country-code/maxmind-lite2), Cloudflare zero-config path (recommended for CF-fronted deploys), MaxMind self-hosted .mmdb path (4-step setup + Render Cron Job snippet for biweekly refresh), resolver chain placement, PII/privacy posture, troubleshooting matrix.
+
+### Wave 12e — Mass template lexicon sweep continuation
+
+5 more dashboard templates fully lexicon-adopted (in addition to Wave 11's `backend_student_list.html` + `backend_teacher_list.html`):
+
+| Template | Lexicon swap |
+|---|---|
+| `templates/people/backend_classroom_list.html` | Title + subtitle + action button + back-link → `{% term "classroom" plural=True %}`, `{% term "student" plural=True %}` |
+| `templates/people/backend_guardian_list.html` | Title + subtitle + back-link → `{% term "guardian" %}`, `{% term "parent" %}`, `{% term "student" %}` |
+| `templates/people/backend_applicant_list.html` | Back-link → `{% term "student" plural=True %}` ("Applicants" stays as generic) |
+| `templates/teacher/dashboard.html` | "Classes today" + "My classes" → `{% term "classroom" plural=True %}` |
+| `templates/parent/dashboard.html` | "Children" nav + "My Children" heading → `{% term "student" plural=True %}` (the parent's term varies by region — Pakistan "Wards" / Anglo "Pupils" / Indian "विद्यार्थी") |
+
+### What landed (Wave 12)
+
+| Layer | File | What's new |
+|---|---|---|
+| **India seed** | `apps/siteconfig/_seed_country_languages.py` | 6 new `_INDIA_*_MEDIUM` blocks (KN/ML/PA/OR/AS/UR) wired into IN languages list with native-script labels + `education_system` field. |
+| **Marketing voice** | `apps/schools/marketing_local_context.py` | 12 markets gain `testimonial` + `case_study_chips`; voice resolver returns both keys; reads `marketing_voice` from `CountryRegistry.cockpit_override_payload` and shallow-merges into voice. |
+| **Marketing band template** | `templates/marketing/_local_first_band.html` | Renders case-study chip strip + testimonial figure when present; both gated `{% if %}` so they gracefully omit. |
+| **Marketing band CSS** | `static/marketing/css/rmc-mkt-local-first-band.css` | `.mkt-local-first-band__case-study` + `.__case-chip` + `.__testimonial` + `.__quote` + `.__quote-mark` + `.__byline` (~60 lines added). |
+| **Admin form** | `apps/registries/admin.py` | `marketing_voice` added to `_ALLOWED_KEYS`; shape validation for `marketing_voice.testimonial` (dict) + `case_study_chips` (list); fieldset description updated to Wave 8/10/12. |
+| **GeoIP deploy** | `scripts/download_geoip_mmdb.py` (NEW ~135 lines) + `docs/GEOIP_DEPLOYMENT.md` (NEW ~145 lines) | Stdlib downloader + ops guide for self-hosted MaxMind path. |
+| **Lexicon sweep** | 5 templates (classroom_list / guardian_list / applicant_list / teacher_dashboard / parent_dashboard) | Title + headings + back-links use `{% term %}` + `{% blocktrans asvar %}` pattern. |
+| **SW** | `static/js/service-worker.js` | `sms-v3.62.16-...`. |
+
+### Verification (smoke-tested locally)
+
+```
+=== India 11-language coverage with per-state overlays ===
+✓ IN-hi  Bhāratīya Śikṣā Pranālī                | Adhyāpak
+✓ IN-ta  தமிழ்நாடு பள்ளிக்கல்வி                | ஆசிரியர் (Aasiriyar)
+✓ IN-te  ఆంధ్రప్రదేశ్ / తెలంగాణ State Board     | ఉపాధ్యాయుడు (Upādhyāyudu)
+✓ IN-mr  महाराष्ट्र राज्य माध्यमिक मंडळ        | शिक्षक (Shikshak)
+✓ IN-bn  পশ্চিমবঙ্গ মধ্যশিক্ষা পর্ষদ            | শিক্ষক (Shikkhok)
+✓ IN-gu  ગુજરાત શિક્ષણ બોર્ડ (GSHSEB)           | શિક્ષક (Shikshak)
+✓ IN-kn  ಕರ್ನಾಟಕ ಪ್ರೌಢಶಿಕ್ಷಣ ಪರೀಕ್ಷಾ ಮಂಡಳಿ        | ಶಿಕ್ಷಕರು (Shikshakaru)
+✓ IN-ml  കേരള പൊതുവിദ്യാഭ്യാസ വകുപ്പ്          | അദ്ധ്യാപകൻ (Adhyāpakan)
+✓ IN-pa  ਪੰਜਾਬ ਸਕੂਲ ਸਿੱਖਿਆ ਬੋਰਡ                | ਅਧਿਆਪਕ (Adhyāpak)
+✓ IN-or  ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ          | ଶିକ୍ଷକ (Shikshyaka)
+✓ IN-as  অসম মাধ্যমিক শিক্ষা পৰিষদ (SEBA)       | শিক্ষক (Xikkhok)
+✓ IN-ur  اردو میڈیم اسکول                       | استاذ / مُعَلّم (Ustād / Muʿallim)
+
+Coverage: 11 of 11 IN medium-of-instruction languages now carry per-state overlays.
+
+=== Marketing testimonials ===
+✓ 12 priority markets carry hand-written testimonials + 3 case-study chips each
+  (NG/GH/KE/ZA/CM/IN/BR/FR/GB/US/SG/AE)
+✓ Markets without testimonials (JP/XX) gracefully omit the band sections
+```
+
+### Honest deferred (Wave 13+)
+
+- Remaining 48 markets to receive hand-written testimonials (currently 12 of 60 covered; rest fall through to generic regional voice without testimonial)
+- Mass template lexicon sweep beyond the 7 templates already swept (~190+ templates remain — per-template review for the remaining sites)
+- Per-tenant marketing voice override per page (currently `CountryRegistry.cockpit_override_payload.marketing_voice` is country-scoped; future wave can scope per-tenant)
+- Operator UI rich-edit form for `marketing_voice` JSON (currently uses Django admin's default JSONField textarea — works but not friendly for non-technical operators)
+- Per-state India calendars for the academic-year-start month variance (KN/ML/MR use June, BN uses January, PA/UR use April, OR uses June — already wired, but operators may want June-March vs April-March picker)
+- City-level localization (currently anchor_city is a single string per country; future wave can resolve to actual metro on visitor's GeoIP city tier)
+
+### Deploy
+
+1. No new migrations in v3.62.16 (the India overlays + marketing testimonials are pure seed/code; the admin form change is form-only).
+2. Optional: enable GeoIP via `export RMC_GEOIP_BACKEND=cloudflare` (zero-config for CF-fronted deploys) OR follow `docs/GEOIP_DEPLOYMENT.md` for the MaxMind self-hosted path with `scripts/download_geoip_mmdb.py`.
+3. SW cache busts on `sms-v3.62.16-...`; marketing visitors in the 12 priority markets see the new testimonial + chips strip on next visit.
+
+---
 
 ## 2026-05-22 — v3.62.15: local-first Waves 9 + 10 + 11 (marketing country-aware + honest deferrals closeout)
 

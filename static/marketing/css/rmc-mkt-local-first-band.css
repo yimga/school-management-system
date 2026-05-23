@@ -125,6 +125,73 @@
   color: var(--text-tertiary, rgba(26, 26, 31, 0.55));
 }
 
+/* Wave 12 (v3.62.16 — 2026-05-23): per-country case-study chips strip
+   shown under the band when the voice carries `case_study_chips`. */
+.mkt-local-first-band__case-study {
+  padding: 6px 20px 8px;
+  border-top: 1px solid color-mix(in oklab, var(--text-primary, #1A1A1F) 6%, transparent); /* theme-locked-allow: chip-divider */
+}
+
+.mkt-local-first-band__case-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mkt-local-first-band__case-chip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--color-primary-500, #6366F1) 8%, transparent); /* theme-locked-allow: brand-token-mix */
+  color: var(--text-primary, #1A1A1F);
+  border: 1px solid color-mix(in oklab, var(--color-primary-500, #6366F1) 18%, transparent); /* theme-locked-allow: brand-token-mix */
+}
+
+/* Wave 12: per-country testimonial pull-quote (when present). */
+.mkt-local-first-band__testimonial {
+  margin: 0;
+  padding: 10px 20px 12px;
+  border-top: 1px solid color-mix(in oklab, var(--text-primary, #1A1A1F) 6%, transparent); /* theme-locked-allow: chip-divider */
+}
+
+.mkt-local-first-band__quote {
+  margin: 0 0 4px 0;
+  font-family: var(--type-family-serif, "Source Serif 4", Georgia, serif);
+  font-size: 0.95rem;
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--text-primary, #1A1A1F);
+  position: relative;
+  padding-left: 0;
+}
+
+.mkt-local-first-band__quote-mark {
+  font-size: 1.5em;
+  line-height: 0;
+  vertical-align: -0.35em;
+  margin-right: 4px;
+  color: var(--color-primary-500, #6366F1); /* off-token-allow: marketing-quote-mark-brand */ /* theme-locked-allow: brand-token */
+}
+
+.mkt-local-first-band__byline {
+  font-size: 0.75rem;
+  color: var(--text-secondary, rgba(26, 26, 31, 0.65));
+}
+
+.mkt-local-first-band__author {
+  font-weight: 600;
+  color: var(--text-secondary, rgba(26, 26, 31, 0.78));
+}
+
+.mkt-local-first-band__credential {
+  margin-left: 4px;
+  color: var(--text-tertiary, rgba(26, 26, 31, 0.55));
+}
+
 /* RTL — Arabic / Hebrew / Persian / Urdu marketing visitors get mirror layout. */
 .bidi-rtl .mkt-local-first-band__close {
   margin-left: 0;

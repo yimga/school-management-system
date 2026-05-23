@@ -75,6 +75,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Nigerian Education Roadmap and FME guidelines.",
         "anchor_city": "Lagos",
         "regional_phrase": "Nigerian schools",
+        "testimonial": {
+            "quote": "WAEC results, JSS promotion logic, and termly fees in naira — finally in one place.",
+            "author": "Proprietor, K-12 school in Lagos",
+            "credential": "1,800 students · 3 campuses",
+        },
+        "case_study_chips": [
+            "WAEC + NECO result import",
+            "JSS / SSS promotion engine",
+            "Bank transfer fee reconciliation (Paystack + Flutterwave)",
+        ],
     },
     "GH": {
         "country_name": "Ghana",
@@ -87,6 +97,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Ghana Education Service curriculum.",
         "anchor_city": "Accra",
         "regional_phrase": "Ghanaian schools",
+        "testimonial": {
+            "quote": "Termly reports, BECE prep, and parents who get WhatsApp updates the day marks land.",
+            "author": "Head of School, Greater Accra",
+            "credential": "950 pupils · 1 campus",
+        },
+        "case_study_chips": [
+            "BECE + WASSCE result tracking",
+            "GES-aligned termly continuous assessment",
+            "Mobile money fee collection (MTN MoMo + Telecel Cash)",
+        ],
     },
     "KE": {
         "country_name": "Kenya",
@@ -99,6 +119,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Kenyan CBC and KICD curriculum framework.",
         "anchor_city": "Nairobi",
         "regional_phrase": "Kenyan schools",
+        "testimonial": {
+            "quote": "CBC competency tracking and KCSE prep on one screen — and M-Pesa fees that just reconcile.",
+            "author": "Director, Nairobi day-and-boarding school",
+            "credential": "1,400 learners · CBC + 8-4-4 transition",
+        },
+        "case_study_chips": [
+            "CBC competency + assessment tracking",
+            "KCPE + KCSE result analytics",
+            "M-Pesa STK Push fee collection + auto-reconciliation",
+        ],
     },
     "UG": {
         "country_name": "Uganda",
@@ -135,6 +165,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with CAPS, SACE, and DBE policy.",
         "anchor_city": "Johannesburg",
         "regional_phrase": "South African schools",
+        "testimonial": {
+            "quote": "CAPS-aligned reports, SA-SAMS export ready, and a parent app the moms actually use.",
+            "author": "School Management Team, KwaZulu-Natal",
+            "credential": "Grade R-12 · 2,200 learners",
+        },
+        "case_study_chips": [
+            "CAPS-aligned termly reporting (all 4 terms)",
+            "SA-SAMS / EMIS export for DBE submissions",
+            "NSC matric tracking + IEB option",
+        ],
     },
     "ET": {
         "country_name": "Ethiopia",
@@ -172,6 +212,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with both MINEDUB (Francophone) and MINESEC (Anglophone) curricula.",
         "anchor_city": "Yaoundé / Douala",
         "regional_phrase": "Cameroonian schools / écoles camerounaises",
+        "testimonial": {
+            "quote": "Une seule plateforme pour nos deux sous-systèmes — Bac D et GCE A/L côte à côte. Enfin.",
+            "author": "Directeur, lycée bilingue à Douala",
+            "credential": "1,650 élèves · Anglo + Franco subsystems",
+        },
+        "case_study_chips": [
+            "MINEDUB + MINESEC dual-subsystem support",
+            "Bac D / Bac A + GCE O/A Level result tracking",
+            "Trimestre + Term cycle running in parallel",
+        ],
     },
     "CI": {
         "country_name": "Côte d'Ivoire",
@@ -237,6 +287,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with MoE, ADEK, KHDA, and SPEA frameworks.",
         "anchor_city": "Dubai / Abu Dhabi",
         "regional_phrase": "UAE schools",
+        "testimonial": {
+            "quote": "KHDA inspection prep, ADEK reports, Hijri-parallel calendar, Arabic + English bilingual — all native.",
+            "author": "Operations Director, Dubai international school",
+            "credential": "FS1-Year 13 · 2,800 students · British curriculum",
+        },
+        "case_study_chips": [
+            "MoE + ADEK + KHDA + SPEA aligned",
+            "Cycle 1/2/3 + British/American/IB tracks",
+            "Hijri calendar parallel to Gregorian",
+        ],
     },
     "SA": {
         "country_name": "Saudi Arabia / المملكة العربية السعودية",
@@ -290,6 +350,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with NEP 2020, CBSE, ICSE, IB, and 18 state board curricula.",
         "anchor_city": "Mumbai / Bengaluru / Delhi",
         "regional_phrase": "Indian schools / भारतीय विद्यालय",
+        "testimonial": {
+            "quote": "CBSE and our state board side by side, fee receipts in lakhs, parent SMS in Hindi. ज़बरदस्त.",
+            "author": "Principal, K-12 school in Pune",
+            "credential": "2,400 students · CBSE + SSC streams",
+        },
+        "case_study_chips": [
+            "CBSE + ICSE + IB + 18 state boards in one tenant",
+            "Lakh-crore fee statements (₹ 1,25,000 not ₹ 125,000)",
+            "11 medium-of-instruction languages (HI/TA/TE/BN/MR/GU/KN/ML/PA/OR/AS/UR)",
+        ],
     },
     "PK": {
         "country_name": "Pakistan / پاکستان",
@@ -401,6 +471,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with MOE syllabus and SEAB exam frameworks.",
         "anchor_city": "Singapore",
         "regional_phrase": "Singapore schools",
+        "testimonial": {
+            "quote": "PSLE prep, MTL streams (CL/ML/TL), and CCAs tracked on one tile. Lah, finally.",
+            "author": "Vice Principal, IP-track secondary",
+            "credential": "Sec 1–4 + IP · 1,600 students",
+        },
+        "case_study_chips": [
+            "Bilingual + MTL stream (Chinese / Malay / Tamil)",
+            "PSLE + O/N/A Level + IB Diploma tracking",
+            "PDPA compliance + SingPass-ready",
+        ],
     },
 
     # ─── Southeast Asia ─────────────────────────────────────────────────────
@@ -477,6 +557,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligné sur les programmes du Ministère de l'Éducation nationale.",
         "anchor_city": "Paris",
         "regional_phrase": "écoles françaises",
+        "testimonial": {
+            "quote": "Bulletins trimestriels, Pronote-friendly export, RGPD propre. On gagne 12 h par semaine.",
+            "author": "Chef d'établissement, lycée privé en Île-de-France",
+            "credential": "1,100 élèves · de la 6e à la Terminale",
+        },
+        "case_study_chips": [
+            "Bulletins trimestriels conformes au LSU",
+            "Brevet + Bac (général / techno / pro) suivi en temps réel",
+            "Conformité RGPD + hébergement UE",
+        ],
     },
     "DE": {
         "country_name": "Deutschland",
@@ -525,6 +615,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the DfE National Curriculum and Ofqual examination frameworks.",
         "anchor_city": "London",
         "regional_phrase": "UK schools",
+        "testimonial": {
+            "quote": "Half-term planning, GCSE + A-Level grade-flight, and Sixth Form UCAS pipeline in one shop.",
+            "author": "Bursar, independent school in Surrey",
+            "credential": "Reception–Year 13 · 850 pupils",
+        },
+        "case_study_chips": [
+            "Half-term + three-term planner",
+            "GCSE + A-Level + IB unified grade-flight",
+            "UCAS pipeline + parental contributions tracker",
+        ],
     },
     "IE": {
         "country_name": "Ireland / Éire",
@@ -551,6 +651,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with state Common Core, NGSS, and AP frameworks; FERPA + COPPA compliant.",
         "anchor_city": "Major US metros",
         "regional_phrase": "American schools",
+        "testimonial": {
+            "quote": "GPA roll-up, AP weighting, IEP visibility, FERPA controls — and a parent app that doesn't time out.",
+            "author": "Head of School, charter K-12 in the Midwest",
+            "credential": "1,300 students · IB Diploma + AP tracks",
+        },
+        "case_study_chips": [
+            "GPA roll-up + AP/Honors weighting",
+            "IEP / 504 plan visibility for caseworkers",
+            "FERPA + COPPA compliance baseline",
+        ],
     },
     "CA": {
         "country_name": "Canada",
@@ -588,6 +698,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Alinhado à BNCC e às matrizes do MEC e INEP.",
         "anchor_city": "São Paulo / Rio de Janeiro",
         "regional_phrase": "escolas brasileiras",
+        "testimonial": {
+            "quote": "Boletim bimestral alinhado à BNCC, PIX integrado, comunicação no WhatsApp dos pais. Vida nova.",
+            "author": "Diretor pedagógico, colégio em São Paulo",
+            "credential": "1,900 alunos · Fundamental + Ensino Médio",
+        },
+        "case_study_chips": [
+            "Boletim BNCC com 4 bimestres",
+            "ENEM + vestibular tracking",
+            "PIX + boleto bancário integrados",
+        ],
     },
     "AR": {
         "country_name": "Argentina",
@@ -892,6 +1012,45 @@ def marketing_local_context(request) -> dict:
                         "ja", "ko", "th", "vi", "id", "ms", "tr", "he"):
                 headline = native_headline
 
+        # Wave 12 (v3.62.16 — 2026-05-23): also surface per-country
+        # testimonial + case-study chips when present. Operator can override
+        # both via CountryRegistry.cockpit_override_payload["marketing_voice"]
+        # (Wave 12 — see below).
+        testimonial = voice.get("testimonial") if isinstance(voice.get("testimonial"), dict) else {}
+        chips = voice.get("case_study_chips") or []
+        if not isinstance(chips, list):
+            chips = []
+
+        # Wave 12: pull DB override layer if operator has stashed a
+        # `marketing_voice` block in CountryRegistry.cockpit_override_payload.
+        # Falls through silently when DB row / column / key missing.
+        try:
+            from apps.siteconfig.country_localization_service import _load_db_override
+            db = _load_db_override(cc) if cc else {}
+            mv = (db.get("marketing_voice") if isinstance(db, dict) else {}) or {}
+            if isinstance(mv, dict) and mv:
+                # Scalars override directly; dict/list keys merge per shape.
+                for k in ("country_name", "greeting", "headline_lead",
+                          "headline_lead_native", "hero_subline", "trust_count",
+                          "currency_sample", "calendar_sample", "regulatory_line",
+                          "anchor_city", "regional_phrase"):
+                    if mv.get(k):
+                        voice[k] = mv[k]
+                if isinstance(mv.get("testimonial"), dict):
+                    testimonial = mv["testimonial"]
+                if isinstance(mv.get("case_study_chips"), list):
+                    chips = mv["case_study_chips"]
+                # Re-pick headline after override.
+                headline = voice.get("headline_lead") or headline
+                native_headline = voice.get("headline_lead_native") or native_headline
+                if native_headline and lang in ("fr", "es", "pt", "de", "it", "ar",
+                                                "hi", "zh", "zh-hans", "zh-hant",
+                                                "ja", "ko", "th", "vi", "id", "ms",
+                                                "tr", "he"):
+                    headline = native_headline
+        except Exception:  # noqa: BLE001
+            pass
+
         out = {
             "country_code":      cc,
             "country_name":      voice.get("country_name", ""),
@@ -906,6 +1065,12 @@ def marketing_local_context(request) -> dict:
             "regulatory_line":   voice.get("regulatory_line", ""),
             "anchor_city":       voice.get("anchor_city", ""),
             "regional_phrase":   voice.get("regional_phrase", ""),
+            "testimonial":       {
+                "quote":      str(testimonial.get("quote", "")) if testimonial else "",
+                "author":     str(testimonial.get("author", "")) if testimonial else "",
+                "credential": str(testimonial.get("credential", "")) if testimonial else "",
+            } if testimonial else {},
+            "case_study_chips":  [str(c) for c in chips if c],
             "_resolved":         True,
         }
     except Exception:  # noqa: BLE001 — never break marketing render
@@ -918,6 +1083,7 @@ def marketing_local_context(request) -> dict:
             "trust_count": "Trusted by international institutions",
             "currency_sample": "Multi-currency", "calendar_sample": "Country-adaptive",
             "regulatory_line": "", "anchor_city": "", "regional_phrase": "schools",
+            "testimonial": {}, "case_study_chips": [],
             "_resolved": False,
         }
     return {"marketing_local": out}

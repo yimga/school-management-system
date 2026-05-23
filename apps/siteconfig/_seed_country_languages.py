@@ -522,6 +522,186 @@ _INDIA_HINDI_MEDIUM = {
     },
 }
 
+# Wave 12 (v3.62.16 — 2026-05-23): 6 more India per-state regional overlays
+# closing the South + East + North coverage. Each carries native-script school
+# types, state-aligned 3-term June-April calendars (or January-December for
+# the few states that follow that convention), and localized
+# teacher/principal/term terminology.
+
+_INDIA_KANNADA_MEDIUM = {
+    "system_name": "ಕರ್ನಾಟಕ ಪ್ರೌಢಶಿಕ್ಷಣ ಪರೀಕ್ಷಾ ಮಂಡಳಿ (Karnataka State Board)",
+    "school_types": [
+        {"code": "shishuvihara",  "label": "ಶಿಶುವಿಹಾರ (Pre-Primary)",     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathamika",    "label": "ಪ್ರಾಥಮಿಕ ಶಾಲೆ (1-5)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "hiriya-prath",  "label": "ಹಿರಿಯ ಪ್ರಾಥಮಿಕ (6-8)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-13"},
+        {"code": "prathomika",    "label": "ಪ್ರೌಢಶಾಲೆ (9-10 SSLC)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "pre-univ",      "label": "ಪದವಿ ಪೂರ್ವ ಕಾಲೇಜು (PUC)",      "glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "vishwavidyalaya","label": "ವಿಶ್ವವಿದ್ಯಾಲಯ (University)",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-kn-cl1",  "label": "Class 1",          "order": 1},
+        {"code": "in-kn-cl10", "label": "Class 10 (SSLC)",  "order": 10},
+        {"code": "in-kn-puc2", "label": "Class 12 (PUC 2)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "ಶಿಕ್ಷಕರು (Shikshakaru)",
+        "principal": "ಮುಖ್ಯೋಪಾಧ್ಯಾಯರು (Mukhyopadhyayaru)",
+        "term": "ಸತ್ರ (Satra)",
+        "report_card": "ಪ್ರಗತಿ ವರದಿ (Pragati Varadi)",
+        "grade_level": "ತರಗತಿ (Taragati)",
+    },
+    "calendar_system": {
+        "code": "in-kn-3-term", "label": "3 Terms (June-April)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+}
+
+_INDIA_MALAYALAM_MEDIUM = {
+    "system_name": "കേരള പൊതുവിദ്യാഭ്യാസ വകുപ്പ് (Kerala State Board)",
+    "school_types": [
+        {"code": "shishu-vidyalayam", "label": "ശിശു വിദ്യാലയം (Pre-Primary)",   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "lower-primary",     "label": "ലോവർ പ്രൈമറി (Std I-IV)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-9"},
+        {"code": "upper-primary",     "label": "അപ്പർ പ്രൈമറി (V-VII)",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-12"},
+        {"code": "high-school",       "label": "ഹൈസ്കൂൾ (VIII-X SSLC)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-15"},
+        {"code": "higher-secondary",  "label": "ഹയർ സെക്കണ്ടറി (XI-XII)",        "glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "vishwavidyalayam",  "label": "സർവ്വകലാശാല (University)",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-ml-std1",  "label": "Std 1",           "order": 1},
+        {"code": "in-ml-std10", "label": "Std 10 (SSLC)",   "order": 10},
+        {"code": "in-ml-plus2", "label": "Plus Two (XII)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "അദ്ധ്യാപകൻ (Adhyāpakan)",
+        "principal": "പ്രധാന അദ്ധ്യാപകൻ (Pradhāna Adhyāpakan)",
+        "term": "ടേം (Term)",
+        "report_card": "പുരോഗതി റിപ്പോർട്ട് (Purōgati Rippōrṭṭ)",
+        "grade_level": "ക്ലാസ് (Class)",
+    },
+    "calendar_system": {
+        "code": "in-ml-3-term", "label": "3 Terms (June-April)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+}
+
+_INDIA_PUNJABI_MEDIUM = {
+    "system_name": "ਪੰਜਾਬ ਸਕੂਲ ਸਿੱਖਿਆ ਬੋਰਡ (Punjab School Education Board)",
+    "school_types": [
+        {"code": "balwadi",       "label": "ਬਾਲਵਾੜੀ (Pre-Primary)",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathamik",     "label": "ਪ੍ਰਾਇਮਰੀ ਸਕੂਲ (1-5)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "uchch-prath",   "label": "ਉੱਚ ਪ੍ਰਾਇਮਰੀ (6-8)",                 "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-13"},
+        {"code": "madhyamik",     "label": "ਮਿਡਲ / ਹਾਈ ਸਕੂਲ (9-10 Matric)",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "senior-secondary","label": "ਸੀਨੀਅਰ ਸੈਕੰਡਰੀ (XI-XII)",         "glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "vishvidyala",   "label": "ਯੂਨੀਵਰਸਿਟੀ (University)",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-pa-cl1",  "label": "Class 1",            "order": 1},
+        {"code": "in-pa-cl10", "label": "Class 10 (Matric)",  "order": 10},
+        {"code": "in-pa-cl12", "label": "Class 12 (+2)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "ਅਧਿਆਪਕ (Adhyāpak)",
+        "principal": "ਪ੍ਰਿੰਸੀਪਲ (Princhipal)",
+        "term": "ਟਰਮ (Term)",
+        "report_card": "ਪ੍ਰਗਤੀ ਰਿਪੋਰਟ (Pragati Riporṭ)",
+        "grade_level": "ਜਮਾਤ (Jamāt)",
+    },
+    "calendar_system": {
+        "code": "in-pa-3-term", "label": "3 Terms (April-March)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+}
+
+_INDIA_ODIA_MEDIUM = {
+    "system_name": "ଓଡ଼ିଶା ମାଧ୍ୟମିକ ଶିକ୍ଷା ପରିଷଦ (Board of Secondary Education, Odisha)",
+    "school_types": [
+        {"code": "shishu-vidyalaya", "label": "ଶିଶୁ ବିଦ୍ୟାଳୟ (Pre-Primary)",   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathamika",       "label": "ପ୍ରାଥମିକ ବିଦ୍ୟାଳୟ (1-5)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "ucch-prathamika",  "label": "ଉଚ୍ଚ ପ୍ରାଥମିକ (6-8)",            "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-13"},
+        {"code": "madhyamika",       "label": "ମାଧ୍ୟମିକ (9-10 HSC)",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "ucch-madhyamika",  "label": "ଉଚ୍ଚ ମାଧ୍ୟମିକ (+2)",              "glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "vishvavidyalaya",  "label": "ବିଶ୍ୱବିଦ୍ୟାଳୟ (University)",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-or-cl1",  "label": "Class 1",          "order": 1},
+        {"code": "in-or-cl10", "label": "Class 10 (HSC)",   "order": 10},
+        {"code": "in-or-plus2","label": "Plus Two (XII)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "ଶିକ୍ଷକ (Shikshyaka)",
+        "principal": "ପ୍ରଧାନ ଶିକ୍ଷକ (Pradhāna Shikshyaka)",
+        "term": "ସତ୍ର (Satra)",
+        "report_card": "ପ୍ରଗତି ପତ୍ର (Pragati Patra)",
+        "grade_level": "ଶ୍ରେଣୀ (Shreni)",
+    },
+    "calendar_system": {
+        "code": "in-or-3-term", "label": "3 Terms (June-April)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+}
+
+_INDIA_ASSAMESE_MEDIUM = {
+    "system_name": "অসম মাধ্যমিক শিক্ষা পৰিষদ (SEBA — Assam Board)",
+    "school_types": [
+        {"code": "shishu-bidyalay", "label": "শিশু বিদ্যালয় (Pre-Primary)",   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathomik",       "label": "প্ৰাথমিক বিদ্যালয় (1-5)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "uchch-prathomik", "label": "উচ্চ প্ৰাথমিক (6-8)",              "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-13"},
+        {"code": "madhyamik",       "label": "মাধ্যমিক বিদ্যালয় (9-10 HSLC)",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "ucch-madhyamik",  "label": "উচ্চ মাধ্যমিক (XI-XII)",           "glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "bishwabidyalay",  "label": "বিশ্ববিদ্যালয় (University)",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-as-cl1",  "label": "Class 1",          "order": 1},
+        {"code": "in-as-cl10", "label": "Class 10 (HSLC)",  "order": 10},
+        {"code": "in-as-cl12", "label": "Class 12 (HS)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "শিক্ষক (Xikkhok)",
+        "principal": "প্ৰধান শিক্ষক (Prodhan Xikkhok)",
+        "term": "সত্ৰ (Sotro)",
+        "report_card": "প্ৰগতি পত্ৰ (Progoti Potro)",
+        "grade_level": "শ্ৰেণী (Xreni)",
+    },
+    "calendar_system": {
+        "code": "in-as-3-term", "label": "3 Terms (January-December)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+}
+
+_INDIA_URDU_MEDIUM = {
+    "system_name": "اردو میڈیم اسکول (Urdu-medium / Madrasa Tradition)",
+    "school_types": [
+        {"code": "pesh-madrasa",  "label": "پیش مدرسہ (Pre-Madrasa)",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "ibtidai",       "label": "ابتدائی (Ibtidāi — Class 1-5)",    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "wasati",        "label": "وسطی (Wasaṭī — Class 6-8)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-13"},
+        {"code": "madhyamik",     "label": "ثانوی (Sānawī — 9-10 Matric)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "aaliya",        "label": "اعلیٰ ثانوی (Aʿlā Sānawī — XI-XII)","glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "jamia",         "label": "جامعہ (Jāmia — University)",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-ur-cl1",  "label": "Class 1 (Ibtidai)",   "order": 1},
+        {"code": "in-ur-cl10", "label": "Class 10 (Matric)",   "order": 10},
+        {"code": "in-ur-cl12", "label": "Class 12 (Inter)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "استاذ / مُعَلّم (Ustād / Muʿallim)",
+        "principal": "مُدیر (Mudīr)",
+        "term": "ماہی (Māhī)",
+        "report_card": "رپورٹ کارڈ (Riporṭ Kārḍ)",
+        "grade_level": "جماعت (Jamāʿat)",
+    },
+    "calendar_system": {
+        "code": "in-ur-3-term", "label": "3 Terms (April-March)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+}
+
 
 # ---------------------------------------------------------------------------
 # COUNTRY_LANGUAGES — alpha-2 -> list of language dicts (per-language
@@ -796,13 +976,23 @@ COUNTRY_LANGUAGES: dict[str, list[dict]] = {
          "is_default": False, "region": "Gujarati-medium (GSHSEB)",
          "education_system": _INDIA_GUJARATI_MEDIUM},
         {"code": "ml", "native_name": "മലയാളം", "is_official": False,
-         "is_default": False, "region": "Malayalam-medium (Kerala)"},
+         "is_default": False, "region": "Malayalam-medium (Kerala State Board)",
+         "education_system": _INDIA_MALAYALAM_MEDIUM},
         {"code": "kn", "native_name": "ಕನ್ನಡ", "is_official": False,
-         "is_default": False, "region": "Kannada-medium (Karnataka)"},
+         "is_default": False, "region": "Kannada-medium (Karnataka State Board)",
+         "education_system": _INDIA_KANNADA_MEDIUM},
         {"code": "pa", "native_name": "ਪੰਜਾਬੀ", "is_official": False,
-         "is_default": False, "region": "Punjabi-medium (Punjab)"},
+         "is_default": False, "region": "Punjabi-medium (Punjab School Education Board)",
+         "education_system": _INDIA_PUNJABI_MEDIUM},
+        {"code": "or", "native_name": "ଓଡ଼ିଆ", "is_official": False,
+         "is_default": False, "region": "Odia-medium (BSE Odisha)",
+         "education_system": _INDIA_ODIA_MEDIUM},
+        {"code": "as", "native_name": "অসমীয়া", "is_official": False,
+         "is_default": False, "region": "Assamese-medium (SEBA Assam)",
+         "education_system": _INDIA_ASSAMESE_MEDIUM},
         {"code": "ur", "native_name": "اردو", "is_official": False,
-         "is_default": False, "region": "Urdu-medium (J&K + Madrasas)"},
+         "is_default": False, "region": "Urdu-medium (J&K + Madrasa tradition)",
+         "education_system": _INDIA_URDU_MEDIUM},
     ],
 
     "PK": [  # Pakistan — Urdu + English + 4 provincial

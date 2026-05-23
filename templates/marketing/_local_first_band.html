@@ -49,4 +49,26 @@
     <small>{{ marketing_local.regulatory_line }}</small>
   </div>
   {% endif %}
+
+  {% if marketing_local.case_study_chips %}
+  <div class="container mkt-local-first-band__case-study">
+    <ul class="mkt-local-first-band__case-chips" aria-label="{% trans 'Locally-proven capabilities' %}">
+      {% for chip in marketing_local.case_study_chips %}
+      <li class="mkt-local-first-band__case-chip">{{ chip }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if marketing_local.testimonial.quote %}
+  <figure class="container mkt-local-first-band__testimonial">
+    <blockquote class="mkt-local-first-band__quote">
+      <span aria-hidden="true" class="mkt-local-first-band__quote-mark">“</span>{{ marketing_local.testimonial.quote }}
+    </blockquote>
+    <figcaption class="mkt-local-first-band__byline">
+      {% if marketing_local.testimonial.author %}<span class="mkt-local-first-band__author">{{ marketing_local.testimonial.author }}</span>{% endif %}
+      {% if marketing_local.testimonial.credential %}<span class="mkt-local-first-band__credential">· {{ marketing_local.testimonial.credential }}</span>{% endif %}
+    </figcaption>
+  </figure>
+  {% endif %}
 </aside>
