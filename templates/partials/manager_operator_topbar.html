@@ -9,7 +9,7 @@
         {% comment %} v3.55.0: brand tagline under the wordmark/pill. CONFIGURABLE: cockpit.brand.tagline (SiteSettings).
            Renders only when configured non-empty so existing surfaces aren't visually changed. {% endcomment %}
         {% if cockpit.brand.tagline %}
-        <span class="rmc-cockpit-tagline">{{ cockpit.brand.tagline }}</span>
+        <span class="rmc-cockpit-tagline cp-brand__tagline">{{ cockpit.brand.tagline }}</span>
         {% endif %}
       </div>
       <button class="navbar-toggler border-light d-lg-none flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-controls="cpSidebarOffcanvas" aria-label="{% trans 'Open menu' %}">
@@ -25,6 +25,7 @@
           </div>
         </div>
         <div class="rmc-platform-header__actions" id="cpNavbarActions">
+          {% include "partials/cockpit/_operator_presence.html" %}
           <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 w-100">
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1">
           </div>

@@ -84,8 +84,8 @@
     {% endif %}
 </div>
 {% endif %}
-{# Same primary pill spine as manager /super/* when PRIMARY_CONTROL_PLANE_NAV is populated (manager or tenant operator). #}
-{% if PRIMARY_CONTROL_PLANE_NAV %}
+{# Primary nav renders in cp-header on manager /admin/* and /super/*; tenant admin keeps pills here. #}
+{% if PRIMARY_CONTROL_PLANE_NAV and not is_manager_host %}
 {% include "partials/control_plane_primary_nav.html" %}
 {% endif %}
 {% if PRIMARY_CONTROL_PLANE_NAV and not is_manager_host %}

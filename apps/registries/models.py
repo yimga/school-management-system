@@ -36,6 +36,17 @@ class CountryRegistry(models.Model):
     writing_direction = models.CharField(
         max_length=8, default="ltr", blank=True, help_text="ltr or rtl."
     )
+    cockpit_override_payload = models.JSONField(
+        blank=True,
+        default=dict,
+        help_text=(
+            "Operator-edited overlay applied on top of the in-memory country "
+            "seed pack at the service hot path (Wave 8 v3.62.8). Shape "
+            "mirrors the country pack: calendar_systems / school_types / "
+            "education_levels / terminology / languages. Lists override "
+            "wholesale; dicts merge one level deep. Empty dict = no override."
+        ),
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

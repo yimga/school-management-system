@@ -10,9 +10,17 @@
            /admin/. The duplicate include of manager_operator_topbar inside
            admin_nav_bridge.html (canvas body) is now removed; this is the single
            source of the manager topbar on the /admin/ shell.{% endcomment %}
-        <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1" data-rmc-control-plane-chrome="1">
+        <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1"{% if is_manager_host %} data-rmc-control-plane-chrome="1"{% endif %}>
             {% if is_manager_host %}
-                {% include "partials/manager_operator_topbar.html" %}
+            <div class="cp-header" data-rmc-cp-header-200x="1">
+              <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
+                <div class="cp-header__row cp-header__row--utility">
+                  {% include "partials/manager_operator_topbar.html" %}
+                </div>
+                {% include "partials/cockpit/_activity_ticker.html" %}
+                {% include "partials/control_plane_primary_nav.html" %}
+              </div>
+            </div>
             {% else %}
                 {% include "unfold/helpers/header.html" %}
             {% endif %}
@@ -22,6 +30,7 @@
         {% if is_manager_host %}
         <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
             <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2">
+                {% include "partials/cockpit/_workspace_context.html" %}
                 {% include "partials/manager_platform_admin_sidebar.html" %}
             </div>
         </aside>

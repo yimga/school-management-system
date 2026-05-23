@@ -57,7 +57,7 @@
 {% if cockpit.activity_ticker.cards %}
 {% with seconds=cockpit.activity_ticker.scroll_seconds|default:40 badge_label=cockpit.activity_ticker.live_badge_label|default:_("LIVE") %}
 {% if cockpit.activity_ticker.enabled|default_if_none:True %}
-<div class="rmc-cockpit-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
+<div class="rmc-cockpit-ticker cp-activity-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
      style="--rmc-cockpit-ticker-seconds: {{ seconds }}s;">
   <span class="rmc-cockpit-ticker__badge">{{ badge_label }}</span>
   <div class="rmc-cockpit-ticker__viewport">
@@ -84,7 +84,7 @@
 {% endwith %}
 {% elif cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
 {# v3.55.0 legacy compat (manager only). #}
-<div class="rmc-cockpit-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
+<div class="rmc-cockpit-ticker cp-activity-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
      {% if cockpit.activity_feed.scroll_seconds %}style="--rmc-cockpit-ticker-seconds: {{ cockpit.activity_feed.scroll_seconds }}s;"{% endif %}>
   <span class="rmc-cockpit-ticker__badge">{% trans "LIVE" %}</span>
   <div class="rmc-cockpit-ticker__viewport">
@@ -114,7 +114,7 @@
    against the indigo+cream tenant chrome. {% endcomment %}
 {% if cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled %}
 {% with seconds=cockpit.tenant_activity_ticker.scroll_seconds|default:40 badge_label=cockpit.tenant_activity_ticker.live_badge_label|default:_("LIVE") %}
-<div class="rmc-cockpit-ticker rmc-cockpit-ticker--tenant" role="region" aria-label="{% trans 'Live school activity' %}"
+<div class="rmc-cockpit-ticker cp-activity-ticker rmc-cockpit-ticker--tenant" role="region" aria-label="{% trans 'Live school activity' %}"
      style="--rmc-cockpit-ticker-seconds: {{ seconds }}s;">
   <span class="rmc-cockpit-ticker__badge">{{ badge_label }}</span>
   <div class="rmc-cockpit-ticker__viewport">

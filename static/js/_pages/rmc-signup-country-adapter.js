@@ -1,19 +1,27 @@
 /**
  * rmc-signup-country-adapter.js
  *
- * v3.62.2 (2026-05-22) — Wave 1 local-first push.
+ * v3.62.8 (2026-05-22) — Wave 6 local-first push: per-language education systems.
  *
  * Listens to the country dropdown on `/signup/` and `/super/schools/rapid/`.
  * When the user changes country, fetches `/api/v1/localization/<cc>/` and
- * re-renders TWO card grids in place:
+ * re-renders THREE pickers in place:
  *
- *   1. `[data-rmc-country-cards="calendar"]` — calendar preset cards
- *   2. `[data-rmc-country-cards="school-type"]` — school-type cards
+ *   1. `[data-rmc-country-cards="language"]`     — official-language cards (NEW Wave 6)
+ *   2. `[data-rmc-country-cards="calendar"]`     — calendar preset cards
+ *   3. `[data-rmc-country-cards="school-type"]`  — school-type cards
  *
- * Both grids carry `data-rmc-country-card-template` markup so the JS can
- * recreate them with country-local labels without coupling to a particular
- * grid library. Cards include the active radio behavior + selection class
- * that matches the server-rendered initial state.
+ * For multilingual countries (CM Anglo/Franco, CA EN/FR, BE NL/FR/DE, CH 4
+ * languages, IN/PK/LK/SG/MY/PH/ZA, etc.) the language picker shows ALL
+ * official languages with a "Recommended" badge on the default. Picking a
+ * non-default language triggers a second fetch with `?lang=<bcp47>` that
+ * returns the per-language education-system overlay — calendar + school
+ * types + terminology + education levels switch to the per-region system
+ * (CM-EN → British GCE O/A Level; CM-FR → French Baccalauréat; CA-FR →
+ * Quebec CÉGEP; CH-DE → Schweizer Gymnasium / Matura; etc.).
+ *
+ * For monolingual countries the language picker shows a single read-only
+ * row ("Language: English") and the calendar + school-type grids stay as-is.
  *
  * Pattern: CSP-safe IIFE, idempotent (`dataset.rmcSignupCountryAdapterInited`),
  * fail-soft (any fetch error leaves the existing cards untouched), HTMX-aware
@@ -25,11 +33,13 @@
   var INIT_FLAG = "rmcSignupCountryAdapterInited";
   var COUNTRY_SELECT_SELECTOR = "[data-rmc-signup-country], #country_code";
   var CARD_GRID_SELECTOR = "[data-rmc-country-cards]";
+  var CARD_KIND_LANGUAGE = "language";
   var CARD_KIND_CALENDAR = "calendar";
   var CARD_KIND_SCHOOL_TYPE = "school-type";
+  var LANGUAGE_RADIO_DEFAULT = "language_code";
 
   // In-flight fetch cache so rapid back-and-forth flips don't fire a
-  // request per keystroke. Keyed by country code, value is a Promise.
+  // request per keystroke. Keyed by `code` or `code|lang`, value is a Promise.
   var inflight = Object.create(null);
   var memo = Object.create(null);
 
@@ -51,20 +61,32 @@
     }
   }
 
+  function currentCountryCode() {
+    var sel = document.querySelector(COUNTRY_SELECT_SELECTOR);
+    if (!sel || !sel.value) return "";
+    return String(sel.value).trim().toUpperCase();
+  }
+
   function onCountryChange(ev) {
     var sel = ev.currentTarget;
     var code = String((sel && sel.value) || "").trim().toUpperCase();
     if (!code || code.length !== 2) return;
-    fetchPack(code).then(function (pack) {
+    fetchPack(code, "").then(function (pack) {
       if (!pack) return;
+      // First emit: render language picker (uses baseline pack `languages`)
+      // and calendar + school-type with baseline data. If a non-default
+      // language is selected later, the language onChange refetches with
+      // `?lang=` and overlays.
       renderGrids(pack);
     });
   }
 
-  function fetchPack(code) {
-    if (memo[code]) return Promise.resolve(memo[code]);
-    if (inflight[code]) return inflight[code];
+  function fetchPack(code, lang) {
+    var key = lang ? (code + "|" + lang) : code;
+    if (memo[key]) return Promise.resolve(memo[key]);
+    if (inflight[key]) return inflight[key];
     var url = "/api/v1/localization/" + encodeURIComponent(code) + "/";
+    if (lang) url += "?lang=" + encodeURIComponent(lang);
     var p = fetch(url, {
       credentials: "same-origin",
       headers: { Accept: "application/json" },
@@ -74,15 +96,15 @@
         return r.json();
       })
       .then(function (data) {
-        memo[code] = data;
-        delete inflight[code];
+        memo[key] = data;
+        delete inflight[key];
         return data;
       })
       .catch(function () {
-        delete inflight[code];
+        delete inflight[key];
         return null;
       });
-    inflight[code] = p;
+    inflight[key] = p;
     return p;
   }
 
@@ -91,12 +113,124 @@
     for (var i = 0; i < grids.length; i++) {
       var g = grids[i];
       var kind = (g.getAttribute("data-rmc-country-cards") || "").trim();
-      if (kind === CARD_KIND_CALENDAR) {
+      if (kind === CARD_KIND_LANGUAGE) {
+        renderLanguageGrid(g, pack.languages || [], pack.language_code || "");
+      } else if (kind === CARD_KIND_CALENDAR) {
         renderCalendarGrid(g, pack.calendar_systems || []);
       } else if (kind === CARD_KIND_SCHOOL_TYPE) {
         renderSchoolTypeGrid(g, pack.school_types || []);
       }
     }
+  }
+
+  function renderLanguageGrid(grid, languages, defaultLangCode) {
+    // No languages -> hide the picker block entirely (monolingual + missing).
+    var hostBlock = grid.closest("[data-rmc-language-block]");
+    if (!languages || !languages.length) {
+      if (hostBlock) hostBlock.hidden = true;
+      grid.innerHTML = "";
+      return;
+    }
+    if (hostBlock) hostBlock.hidden = languages.length < 2;  // monolingual: hide picker; keep value implicit
+    var radioName = grid.getAttribute("data-rmc-country-cards-radio") || LANGUAGE_RADIO_DEFAULT;
+    // Preserve existing user pick when re-rendering for same country.
+    var prev = grid.querySelector("input[name=\"" + radioName + "\"]:checked");
+    var prevValue = prev ? prev.value : "";
+    var selected = "";
+    for (var i = 0; i < languages.length; i++) {
+      var code = String(languages[i].code || "").toLowerCase();
+      if (code === prevValue) { selected = code; break; }
+    }
+    if (!selected) selected = String(defaultLangCode || "").toLowerCase();
+    if (!selected && languages[0]) selected = String(languages[0].code || "").toLowerCase();
+    var frag = document.createDocumentFragment();
+    for (var j = 0; j < languages.length; j++) {
+      frag.appendChild(buildLanguageCard(languages[j], radioName, selected));
+    }
+    grid.innerHTML = "";
+    grid.appendChild(frag);
+    // If we just landed a non-default language as the preserved pick,
+    // re-fetch the per-language overlay so calendar + school-type reflect it.
+    if (selected && selected !== String(defaultLangCode || "").toLowerCase()) {
+      var cc = currentCountryCode();
+      if (cc) {
+        fetchPack(cc, selected).then(function (overlay) {
+          if (!overlay) return;
+          var cgrids = document.querySelectorAll(CARD_GRID_SELECTOR);
+          for (var k = 0; k < cgrids.length; k++) {
+            var kind = (cgrids[k].getAttribute("data-rmc-country-cards") || "").trim();
+            if (kind === CARD_KIND_CALENDAR) {
+              renderCalendarGrid(cgrids[k], overlay.calendar_systems || []);
+            } else if (kind === CARD_KIND_SCHOOL_TYPE) {
+              renderSchoolTypeGrid(cgrids[k], overlay.school_types || []);
+            }
+          }
+        });
+      }
+    }
+  }
+
+  function buildLanguageCard(lang, radioName, selectedCode) {
+    var code = String(lang.code || "").toLowerCase();
+    var native = String(lang.native_name || code);
+    var region = String(lang.region || "");
+    var isDefault = !!lang.is_default;
+    var hasOverlay = !!lang.has_education_system_overlay;
+    var isSelected = code === selectedCode;
+    var lbl = document.createElement("label");
+    lbl.className = "rmc-signup-type-card" + (isSelected ? " rmc-signup-type-card--selected" : "");
+    var input = document.createElement("input");
+    input.type = "radio";
+    input.name = radioName;
+    input.value = code;
+    input.className = "rmc-signup-type-card__input";
+    if (isSelected) input.checked = true;
+    input.addEventListener("change", onLanguageRadioChange);
+    var title = document.createElement("span");
+    title.className = "rmc-signup-type-card__title";
+    title.textContent = native;
+    lbl.appendChild(input);
+    lbl.appendChild(title);
+    if (region) {
+      var sub = document.createElement("span");
+      sub.className = "rmc-signup-type-card__sub";
+      sub.textContent = region;
+      lbl.appendChild(sub);
+    }
+    if (isDefault) {
+      var badge = document.createElement("span");
+      badge.className = "rmc-signup-type-card__badge";
+      badge.textContent = "Recommended";
+      lbl.appendChild(badge);
+    }
+    if (hasOverlay) {
+      var hint = document.createElement("span");
+      hint.className = "rmc-signup-type-card__hint";
+      hint.textContent = "Region-specific education system";
+      lbl.appendChild(hint);
+    }
+    return lbl;
+  }
+
+  function onLanguageRadioChange(ev) {
+    onCardRadioChange(ev);
+    var input = ev.currentTarget;
+    if (!input || !input.value) return;
+    var lang = String(input.value).toLowerCase();
+    var cc = currentCountryCode();
+    if (!cc) return;
+    fetchPack(cc, lang).then(function (overlay) {
+      if (!overlay) return;
+      var grids = document.querySelectorAll(CARD_GRID_SELECTOR);
+      for (var i = 0; i < grids.length; i++) {
+        var kind = (grids[i].getAttribute("data-rmc-country-cards") || "").trim();
+        if (kind === CARD_KIND_CALENDAR) {
+          renderCalendarGrid(grids[i], overlay.calendar_systems || []);
+        } else if (kind === CARD_KIND_SCHOOL_TYPE) {
+          renderSchoolTypeGrid(grids[i], overlay.school_types || []);
+        }
+      }
+    });
   }
 
   function renderCalendarGrid(grid, calendarSystems) {
@@ -220,15 +354,15 @@
     for (var i = 0; i < siblings.length; i++) {
       var lbl = siblings[i].closest(".rmc-calendar-card, .rmc-signup-type-card");
       if (!lbl) continue;
+      var isCalendar = lbl.classList.contains("rmc-calendar-card");
+      var addCls = isCalendar ? "rmc-calendar-card--selected" : "rmc-signup-type-card--selected";
+      var rmCls1 = "rmc-calendar-card--selected";
+      var rmCls2 = "rmc-signup-type-card--selected";
       if (siblings[i] === input) {
-        if (lbl.classList.contains("rmc-calendar-card")) {
-          lbl.classList.add("rmc-calendar-card--selected");
-        } else {
-          lbl.classList.add("rmc-signup-type-card--selected");
-        }
+        lbl.classList.add(addCls);
       } else {
-        lbl.classList.remove("rmc-calendar-card--selected");
-        lbl.classList.remove("rmc-signup-type-card--selected");
+        lbl.classList.remove(rmCls1);
+        lbl.classList.remove(rmCls2);
       }
     }
   }

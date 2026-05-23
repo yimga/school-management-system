@@ -1,0 +1,214 @@
+/* ============================================================
+   rmc-cp-header-200x.css — v3.62.8 / 2026-05-22
+   Pixel contract: preview v8 200x + admin v1 200x header stack.
+   Loaded after manager-cockpit-v7.css + rmc-cp-200x.css.
+   ============================================================ */
+
+[data-surface="control-plane"] .rmc-app-shell__header,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__header {
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo), 0.20), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald), 0.16), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg) 100%); /* off-token-allow: dark-chrome-header-bg */
+  color: var(--cp-chrome-text);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+[data-surface="control-plane"] .rmc-app-shell__sidebar,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sidebar {
+  background: linear-gradient(180deg, var(--cp-chrome-bg) 0%, var(--cp-chrome-bg-deep) 100%);
+  color: var(--cp-chrome-text);
+  border-right: 1px solid var(--cp-chrome-hairline);
+}
+
+.cp-header {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  pointer-events: auto;
+}
+
+.cp-header .rmc-control-plane-chrome {
+  position: relative;
+  top: auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.cp-header__row--utility .rmc-platform-header {
+  width: 100%;
+}
+
+.cp-header__row--utility .rmc-platform-header__inner {
+  display: grid;
+  grid-template-columns: minmax(220px, auto) 1fr minmax(220px, auto);
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  min-height: 52px;
+  width: 100%;
+}
+
+.cp-header__row--utility .rmc-platform-header__brand {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cp-header__row--utility .navbar-toggler {
+  grid-column: 1;
+  justify-self: end;
+}
+
+.cp-header__row--utility .rmc-platform-header__toolbar {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-header__row--utility .rmc-platform-header__command {
+  grid-column: 1;
+  max-width: 560px;
+  width: 100%;
+  justify-self: center;
+}
+
+.cp-header__row--utility .rmc-platform-header__actions {
+  grid-column: 2;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cp-header__row--utility {
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+
+.cp-header .cp-brand__tagline,
+.cp-header .rmc-cockpit-tagline {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--cp-chrome-text-muted);
+  line-height: 1.2;
+}
+
+/* Live banner — preview cp-activity-ticker + live rmc-cockpit-ticker */
+.cp-header .rmc-cockpit-ticker,
+.cp-header .cp-activity-ticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 4px 20px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.04) 0%, transparent 30%, transparent 100%); /* off-token-allow: ticker-bg-danger-fade */
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  font-size: 11px;
+  color: var(--cp-chrome-text);
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.cp-header .rmc-cockpit-ticker__badge,
+.cp-header .cp-activity-ticker__badge {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.cp-header .rmc-cockpit-ticker__viewport,
+.cp-header .cp-activity-ticker__viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cp-header .rmc-cockpit-ticker__track,
+.cp-header .cp-activity-ticker__track {
+  display: inline-flex;
+  gap: 36px;
+  animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 40s) linear infinite;
+  will-change: transform;
+}
+
+.cp-header .rmc-cockpit-ticker:hover .rmc-cockpit-ticker__track,
+.cp-header .rmc-cockpit-ticker:focus-within .rmc-cockpit-ticker__track,
+.cp-header .cp-activity-ticker:hover .cp-activity-ticker__track,
+.cp-header .cp-activity-ticker:focus-within .cp-activity-ticker__track {
+  animation-play-state: paused;
+}
+
+.cp-header .cp-primary-nav {
+  display: flex;
+  gap: 4px;
+  padding: 6px 20px 8px;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  pointer-events: auto;
+}
+
+.cp-header .cp-primary-nav__pill {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+.cp-header .cp-presence {
+  flex-shrink: 0;
+}
+
+.cp-header a,
+.cp-header button,
+.cp-header input,
+.cp-header [role="button"],
+.cp-header .cp-primary-nav__pill {
+  pointer-events: auto;
+}
+
+@media (max-width: 991.98px) {
+  .cp-header__row--utility .rmc-platform-header__inner {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+  }
+
+  .cp-header__row--utility .rmc-platform-header__brand {
+    grid-column: 1;
+  }
+
+  .cp-header__row--utility .navbar-toggler {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .cp-header__row--utility .rmc-platform-header__toolbar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-header .rmc-cockpit-ticker__track,
+  .cp-header .cp-activity-ticker__track {
+    animation: none;
+  }
+}

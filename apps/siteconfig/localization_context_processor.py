@@ -19,8 +19,11 @@ the user on the generic-fallback pack and never raises.
 from __future__ import annotations
 
 from .country_localization_service import (
+    get_languages,
     resolve_country_for_request,
     resolve_country_pack,
+    resolve_for_request,
+    resolve_language_for_request,
 )
 from .country_formats_service import (
     address_order_for,
@@ -111,10 +114,30 @@ def localization_context(request) -> dict:
     """
     try:
         cc = resolve_country_for_request(request)
-        pack = resolve_country_pack(cc)
+        # Wave 6 (v3.62.8): resolve language and use language overlay when
+        # applicable. Monolingual countries get the baseline pack; multilingual
+        # countries get the per-language education-system overlay.
+        pack = resolve_for_request(request)
         cal = _calendar_default(pack)
+        lang_code = (pack.get("language_code") or "").strip().lower()
         loc = {
             "country_code":     cc,
+            "language_code":    lang_code,
+            "language_native":  str(pack.get("language_native_name") or ""),
+            "language_region":  str(pack.get("language_region") or ""),
+            "system_name":      str(pack.get("system_name") or ""),
+            "languages":        [
+                {
+                    "code": str(l.get("code") or "").lower(),
+                    "native_name": str(l.get("native_name") or ""),
+                    "is_official": bool(l.get("is_official")),
+                    "is_default": bool(l.get("is_default")),
+                    "region": str(l.get("region") or ""),
+                    "has_education_system_overlay": bool(l.get("education_system")),
+                }
+                for l in (pack.get("languages") or [])
+                if isinstance(l, dict)
+            ],
             "calendar_systems": list(pack.get("calendar_systems") or []),
             "default_calendar": cal,
             "school_types":     list(pack.get("school_types") or []),
@@ -135,7 +158,10 @@ def localization_context(request) -> dict:
         }
     except Exception:  # noqa: BLE001 — never break template rendering
         loc = {
-            "country_code": "", "calendar_systems": [], "default_calendar": {},
+            "country_code": "", "language_code": "",
+            "language_native": "", "language_region": "", "system_name": "",
+            "languages": [],
+            "calendar_systems": [], "default_calendar": {},
             "school_types": [], "education_levels": [], "terminology": {},
             "week_start": 1, "date_format": "%d/%m/%Y", "currency_code": "USD",
             "is_rtl": False,

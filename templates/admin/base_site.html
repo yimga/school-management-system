@@ -96,6 +96,12 @@
   {% include "partials/rmc_platform_chrome_styles.html" %}
   <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
   {% if is_manager_host %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
   {% comment %} v3.58.0 (2026-05-22): /admin/ 200x re-skin overlay — re-styles the existing
      Unfold DOM (dashboard-header, stat-card, app-section, buttons) toward the
@@ -183,6 +189,7 @@
             document.body.setAttribute('data-rmc-page-help', '1');
             /* v3.62.5 Wave 2 local-first: emit localization attrs for JS calendar widgets. */
             document.body.setAttribute('data-rmc-country', '{{ localization.country_code|default:""|escapejs }}');
+            document.body.setAttribute('data-rmc-language', '{{ localization.language_code|default:""|escapejs }}');
             document.body.setAttribute('data-rmc-week-start', '{{ localization.week_start|default:1 }}');
             document.body.setAttribute('data-rmc-date-format', '{{ localization.date_format|default:"%d/%m/%Y"|escapejs }}');
             document.body.setAttribute('data-rmc-currency', '{{ localization.currency_code|default:"USD"|escapejs }}');
@@ -206,6 +213,7 @@
             document.body.setAttribute('data-rmc-page-help', '1');
             /* v3.62.5 Wave 2 local-first: emit localization attrs for tenant admin too. */
             document.body.setAttribute('data-rmc-country', '{{ localization.country_code|default:""|escapejs }}');
+            document.body.setAttribute('data-rmc-language', '{{ localization.language_code|default:""|escapejs }}');
             document.body.setAttribute('data-rmc-week-start', '{{ localization.week_start|default:1 }}');
             document.body.setAttribute('data-rmc-date-format', '{{ localization.date_format|default:"%d/%m/%Y"|escapejs }}');
             document.body.setAttribute('data-rmc-currency', '{{ localization.currency_code|default:"USD"|escapejs }}');

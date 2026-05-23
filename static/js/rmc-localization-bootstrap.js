@@ -1,19 +1,27 @@
 /**
  * rmc-localization-bootstrap.js
  *
- * v3.62.5 (2026-05-22) — Wave 2 local-first.
+ * v3.62.8 (2026-05-22) — Waves 2 + 6 + 7 local-first.
  *
  * Reads the body data attrs emitted by the localization context processor
  * and exposes a small global so any JS (date pickers, calendar widgets,
  * money formatters, chart axis renderers, etc.) can ask:
  *
- *     RMCLocalization.country        -> "NG"
- *     RMCLocalization.weekStart      -> 1   (0..6, ISO; 0=Sun, 1=Mon, 6=Sat)
- *     RMCLocalization.dateFormat     -> "%d/%m/%Y" (strftime pattern)
- *     RMCLocalization.currency       -> "NGN"
- *     RMCLocalization.isRTL          -> false
- *     RMCLocalization.formatDate(d)  -> "22/05/2026"
- *     RMCLocalization.formatMoney(n) -> "₦1,234.56"
+ *     RMCLocalization.country         -> "NG"
+ *     RMCLocalization.language        -> "fr"  // Wave 6
+ *     RMCLocalization.weekStart       -> 1   (0..6, ISO; 0=Sun, 1=Mon, 6=Sat)
+ *     RMCLocalization.dateFormat      -> "%d/%m/%Y" (strftime pattern)
+ *     RMCLocalization.currency        -> "NGN"
+ *     RMCLocalization.isRTL           -> false
+ *     RMCLocalization.formatDate(d)   -> "22/05/2026"
+ *     RMCLocalization.formatMoney(n)  -> "₦1,234.56"
+ *     RMCLocalization.formatNumber(n) -> "1,23,456"  // Wave 7 (Indian)
+ *
+ * Wave 7 — number grouping: respects the country's locale convention.
+ *   - Indian numbering (IN/PK/BD/NP/LK): 1,23,456 (lakh-crore)
+ *   - Western (US/EU/most): 1,234,567 (every 3 digits)
+ *   - Chinese (CN/JP/KR/TW/HK): 12,3456 (myriad)  -- optional, opt-in via
+ *     data-rmc-number-grouping="myriad" because most CJK schools use Western
  *
  * Defensive: if the body attrs are absent (legacy template render,
  * pre-context-processor pages, etc.), defaults to Monday-week / DD/MM/YYYY /
@@ -35,11 +43,21 @@
   }
 
   var country = attr("data-rmc-country", "");
+  var language = attr("data-rmc-language", "");  // Wave 6
   var weekStart = parseInt(attr("data-rmc-week-start", "1"), 10);
   if (isNaN(weekStart) || weekStart < 0 || weekStart > 6) weekStart = 1;
   var dateFormat = attr("data-rmc-date-format", "%d/%m/%Y");
   var currency = attr("data-rmc-currency", "USD");
   var isRTL = attr("data-rmc-is-rtl", "0") === "1";
+
+  // Wave 7: countries that use Indian (lakh-crore) digit grouping.
+  // Indian numbering writes 1,00,000 (one lakh) not 100,000, then 1,00,00,000
+  // (one crore) not 10,000,000. Used across South Asia school reports +
+  // fee invoices + admin tables. Convention not the only valid one — operators
+  // can override per-tenant later via cockpit_payload.number_grouping.
+  var INDIAN_GROUPING = {
+    IN:1, PK:1, BD:1, NP:1, LK:1, BT:1, MV:1,
+  };
 
   // Currency symbol table — kept in sync with templatetags/localization.py
   // _CURRENCY_SYMBOLS. Anything not listed falls back to the ISO code.
@@ -77,6 +95,39 @@
       .replace(/%d/g, day);
   }
 
+  // Wave 7: Indian (lakh-crore) digit grouping. Input is digits-only;
+  // output writes the LAST 3 digits, then groups of 2 going leftward.
+  // 1234567 -> "12,34,567"  (12 lakh 34 thousand 567)
+  // 12345678 -> "1,23,45,678" (1 crore 23 lakh ...)
+  function groupIndian(digits) {
+    if (digits.length <= 3) return digits;
+    var last3 = digits.slice(-3);
+    var rest = digits.slice(0, -3);
+    rest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+    return rest + "," + last3;
+  }
+
+  function groupWestern(digits) {
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  function pickGrouping(cc) {
+    return INDIAN_GROUPING[(cc || "").toUpperCase()] ? "indian" : "western";
+  }
+
+  function formatNumber(value, opts) {
+    if (value === null || value === undefined || value === "") return "";
+    var num = typeof value === "number" ? value : parseFloat(value);
+    if (isNaN(num)) return "";
+    opts = opts || {};
+    var maxFrac = opts.maximumFractionDigits != null ? opts.maximumFractionDigits : 2;
+    var fixed = num.toFixed(maxFrac);
+    var parts = fixed.split(".");
+    var groupingMode = opts.grouping || pickGrouping(country);
+    parts[0] = (groupingMode === "indian") ? groupIndian(parts[0]) : groupWestern(parts[0]);
+    return parts.join(".");
+  }
+
   function formatMoney(amount, currencyOverride) {
     if (amount === null || amount === undefined || amount === "") return "";
     var num = typeof amount === "number" ? amount : parseFloat(amount);
@@ -84,21 +135,24 @@
     var code = (currencyOverride || currency).toUpperCase();
     var symbol = SYMBOLS[code] || code + " ";
     var fixed = ZERO_DECIMAL[code] ? num.toFixed(0) : num.toFixed(2);
-    // Insert thousand separators (Intl-free for SSR consistency).
     var parts = fixed.split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    var groupingMode = pickGrouping(country);
+    parts[0] = (groupingMode === "indian") ? groupIndian(parts[0]) : groupWestern(parts[0]);
     return symbol + parts.join(".");
   }
 
   window.RMCLocalization = {
     __bootstrapped: true,
     country: country,
+    language: language,        // Wave 6
     weekStart: weekStart,
     dateFormat: dateFormat,
     currency: currency,
     isRTL: isRTL,
     formatDate: formatDate,
     formatMoney: formatMoney,
+    formatNumber: formatNumber,  // Wave 7
+    pickGrouping: pickGrouping,  // Wave 7
     // Returns the localized name of weekday `n` (0=Sunday) using browser locale
     // — fine for visual labels in week pickers.
     weekdayName: function (n, short) {

@@ -72,6 +72,8 @@
     <link rel="stylesheet" href="{% static 'css/portal-app-shell-bridge.css' %}">
     {# v3.55.2 (2026-05-21): tenant canvas community band + newsletter signup band. #}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
+    {# v3.62.8 (2026-05-22): tenant portal v3 100x header (frosted tp-header + ticker row). #}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-header-100x.css' %}">
     {# v3.56.0 (2026-05-21): tenant per-role dashboard v2 (today snapshot + quick actions + events + activity + achievements + spotlight + child context). #}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
     {# v3.57.0 (2026-05-21): canonical pagination + print v2 civic + email civic grammar (adoption wave). #}
@@ -153,6 +155,10 @@
     <link rel="stylesheet" href="{% static 'css/phase2-portal-bundle.css' %}">
     {% if request.public_host_kind == 'manager' %}
     <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+    <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
@@ -212,20 +218,32 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
-    {% comment %} v3.58.x Wave 10 Agent Q (2026-05-22): GLOBAL live activity ticker slot at
-       the very top of the portal body — above all chrome. The partial is host-aware:
-       on manager host it renders the operator-platform ticker; on tenant host it renders
-       the tenant-scoped ticker (different content, never operator data); on
-       anonymous / auth shells the partial early-exits to render nothing. Each tenant
-       landing page may override this block to swap in a custom partial. {% endcomment %}
-    {% block portal_shell_header_ticker %}
-      {% include "partials/cockpit/_activity_ticker.html" %}
-    {% endblock %}
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
+    {% if request.public_host_kind == 'manager' %}
+    <header class="rmc-app-shell__header" role="banner" data-rmc-shell-header="portal-manager">
+      <div class="cp-header" data-rmc-cp-header-200x="1">
+        <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
+          <div class="cp-header__row cp-header__row--utility">
+            {% include "partials/manager_operator_topbar.html" %}
+          </div>
+          {% block portal_shell_header_ticker %}
+            {% include "partials/cockpit/_activity_ticker.html" %}
+          {% endblock %}
+          {% if PRIMARY_CONTROL_PLANE_NAV %}
+          {% include "partials/control_plane_primary_nav.html" %}
+          {% endif %}
+        </div>
+      </div>
+    </header>
+    {% else %}
+    <div class="tp-header" data-rmc-tenant-header-100x="1">
+      {% block portal_shell_header_ticker %}
+        {% include "partials/cockpit/_activity_ticker.html" %}
+      {% endblock %}
     <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
       <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
         <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="{% trans 'Open sidebar menu' %}">
@@ -372,8 +390,10 @@
         </div>
       </div>
     </nav>
+    </div>
+    {% endif %}
 
-{% include "partials/shell_portal_layout_wrap_open.html" %}
+    {% include "partials/shell_portal_layout_wrap_open.html" %}
         <!-- Sidebar (desktop) - Resizable, collapsible to icon strip -->
         <div class="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %} col-lg-3 col-xl-2 d-none d-lg-block {% if request.public_host_kind != 'manager' %}rmc-glass-sidebar-shell{% endif %}" id="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %}" data-collapsible="true" data-shell-sidebar="{% if request.public_host_kind == 'manager' %}control-plane{% else %}portal{% endif %}" data-shell-sidebar-mount="desktop"{% if request.public_host_kind == 'manager' %} aria-label="{% trans 'Control plane navigation' %}"{% endif %}>
           {% if request.public_host_kind == 'manager' %}

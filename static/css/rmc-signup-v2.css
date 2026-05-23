@@ -73,6 +73,58 @@
   text-align: center;
 }
 
+/* Secondary card body — typical-ages on school-type cards, region on language cards. */
+.rmc-signup-type-card__sub {
+  font-size: 0.6875rem;
+  text-align: center;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.65));
+  line-height: 1.2;
+}
+
+/* Wave 6 (v3.62.8 2026-05-22): language-picker variant — wider cards
+   accommodate native-name + region label without truncation. */
+.rmc-signup-type-cards--language {
+  /* Slightly larger gap + min so non-Latin scripts (Arabic / CJK / Devanagari)
+     don't crowd. */
+  gap: 10px;
+}
+
+.rmc-signup-type-cards--language .rmc-signup-type-card {
+  flex: 1 1 160px;
+  min-width: 160px;
+  max-width: 220px;
+  padding: 12px 10px;
+}
+
+/* Wave 6 (v3.62.8) — "Recommended" badge on the country-default language. */
+.rmc-signup-type-card__badge {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-primary-500, #6366F1) 22%, transparent);  /* theme-locked-allow: brand-token-mix */
+  color: var(--color-primary-100, #E0E7FF);  /* off-token-allow: signup-badge-brand-tint */ /* theme-locked-allow: brand-token */
+}
+
+/* Wave 6 (v3.62.8) — small "Region-specific education system" hint
+   shown when a language carries its own education-system overlay (CM-EN/FR,
+   CA-EN/FR, BE NL/FR/DE, CH 4 lang, IN-HI, ZA Afrikaans, etc.). */
+.rmc-signup-type-card__hint {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--text-secondary, rgba(255,255,255,0.45)) 14%, transparent);  /* theme-locked-allow: hint-tint-secondary */
+  color: var(--text-secondary, rgba(255, 255, 255, 0.78));
+  line-height: 1.2;
+}
+
 
 /* ---------- Vendor select polish ---------- */
 

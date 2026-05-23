@@ -114,6 +114,10 @@
        platform pulse, workspace context, breadcrumb). Loaded after shell so cockpit components
        can override shell defaults where needed. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
     {% comment %} v3.55.0+ (2026-05-21): 200x luxury cockpit — 10 elements layered over v7
        (AI Copilot rail, world map, forecast lane, operator notebook, tenant heatmap,
        revenue waterfall, audit feed, trust nutrition, SLO clocks, operator presence).
@@ -137,7 +141,7 @@
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
   </head>
-  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="canvas" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="canvas" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -151,8 +155,6 @@
       {% block rmc_app_shell_inner %}
       <header class="rmc-app-shell__header" role="banner">
         {% block cp_shell_header %}{% endblock %}
-        {# v3.55.0+ (2026-05-21): 200x Element 10 — operator presence indicator. Self-gates on cockpit.operator_presence.enabled. #}
-        {% include "partials/cockpit/_operator_presence.html" %}
       </header>
       <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Control plane navigation' %}">
         {% block cp_shell_sidebar %}{% endblock %}

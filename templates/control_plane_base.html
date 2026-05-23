@@ -25,33 +25,19 @@
 
 {% block cp_shell_header %}
 {% comment %}
-  WCAG 1.3.1 / 2.4.10: child pages own the page h1 (.page-h1 grammar). Injecting a
-  hidden product-title h1 here would create duplicate top-level headings on every
-  control-plane page.
-
-  v3.55.0: topbar + primary nav consolidated inside the single
-  .rmc-app-shell__header element so the header row's height locks
-  deterministically. The legacy .rmc-control-plane-chrome wrapper is preserved so
-  rmc-cp-chrome-offset.js still measures the right element.
-
-  v3.57.11 (2026-05-22): live activity ticker removed from the universal header
-  — it now renders on the manager landing page only (schools/super_dashboard.html)
-  alongside the platform pulse strip, so /super/* config pages keep their own
-  personality. See cockpit.activity_ticker.cards.
+  v3.62.8: v8 200x header stack on every /super/* page (utility + scrolling live ticker + primary nav).
+  Landing pages may override cp_shell_header_ticker for richer demo payloads.
 {% endcomment %}
-<div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
-{% include "partials/manager_operator_topbar.html" %}
-{% comment %} v3.58.x Wave 10 Agent Q (2026-05-22): live activity ticker promoted to GLOBAL
-   chrome — INSIDE the dark header chrome, between the operator topbar (utility row) and
-   the primary nav row, matching the v8 200x preview placement. The default block content
-   now includes the activity ticker partial unconditionally so EVERY /super/* page renders
-   the ticker (landing pages already override this block with richer demo payloads — those
-   overrides keep working). The partial self-gates on `cockpit.activity_ticker.cards`
-   being non-empty AND host-aware visibility rules (silent on anonymous / auth shells). {% endcomment %}
-{% block cp_shell_header_ticker %}
-  {% include "partials/cockpit/_activity_ticker.html" %}
-{% endblock %}
-{% include "partials/control_plane_primary_nav.html" %}
+<div class="cp-header" data-rmc-cp-header-200x="1">
+  <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
+    <div class="cp-header__row cp-header__row--utility">
+      {% include "partials/manager_operator_topbar.html" %}
+    </div>
+    {% block cp_shell_header_ticker %}
+      {% include "partials/cockpit/_activity_ticker.html" %}
+    {% endblock %}
+    {% include "partials/control_plane_primary_nav.html" %}
+  </div>
 </div>
 {% endblock %}
 

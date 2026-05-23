@@ -28,11 +28,15 @@ from django.views import View
 
 from apps.schools.models import School
 # v3.62.2 — country-adaptive template cards (Wave 1 local-first).
+# v3.62.8 (Wave 6) — per-language education-system overlay.
 from apps.siteconfig.country_localization_service import (
     get_default_calendar_code,
+    get_default_language,
     resolve_country_pack,
+    resolve_language_pack,
     resolve_primary_sector_for_school_type,
     validate_calendar_code,
+    validate_language_code,
     validate_school_type,
 )
 
@@ -132,8 +136,18 @@ class RapidCreateView(View):
 
     def get(self, request):
         # v3.62.2: operator-side rapid create now also adapts to country.
-        # GET-time country resolves from ?country= or empty (operator picks).
+        # v3.62.8 (Wave 6): also resolves to per-language education-system
+        # overlay when the country is multilingual + the operator passed
+        # ?lang=<bcp47> (or uses the country default otherwise).
         initial_country = (request.GET.get("country") or "").strip()[:2].upper()
+        initial_lang = (request.GET.get("lang") or "").strip().lower()
+        if not initial_lang:
+            initial_lang = get_default_language(initial_country)
+        if validate_language_code(initial_country, initial_lang):
+            pack = resolve_language_pack(initial_country, initial_lang)
+        else:
+            pack = resolve_country_pack(initial_country)
+            initial_lang = ""
         return render(
             request,
             self.template_name,
@@ -142,7 +156,8 @@ class RapidCreateView(View):
                 "vendor_choices": _VENDOR_CHOICES,
                 "country_choices": _country_choices(),
                 "country_code": initial_country,
-                "country_pack": resolve_country_pack(initial_country),
+                "language_code": initial_lang,
+                "country_pack": pack,
             },
         )
 
@@ -180,6 +195,13 @@ class RapidCreateView(View):
         # supplied since it's country-local.
         template_slug = (request.POST.get("template") or "").strip().lower()
         country_code = (request.POST.get("country_code") or "").strip()[:2].upper()
+        # v3.62.8 (Wave 6) — language picker validates against country's
+        # `languages` overlay; empty when monolingual; falls through to country
+        # default when invalid.
+        language_code_raw = (request.POST.get("language_code") or "").strip().lower()[:8]
+        language_code = validate_language_code(country_code, language_code_raw)
+        if not language_code:
+            language_code = get_default_language(country_code)
         school_type_raw = (request.POST.get("school_type") or "").strip().lower()
         school_type = validate_school_type(country_code, school_type_raw)
         # v3.62.2 — calendar pack
@@ -230,11 +252,14 @@ class RapidCreateView(View):
             school_settings["rmc_rapid_create_template"] = template.slug
         # v3.62.2 — persist resolved localization so downstream services can
         # populate calendar/levels/terminology from the country pack.
-        if country_code or calendar_code or school_type:
+        # v3.62.8 (Wave 6) — also persist language_code for multilingual
+        # countries so per-language education-system overlay survives.
+        if country_code or calendar_code or school_type or language_code:
             school_settings["localization"] = {
                 "country_code": country_code or "",
                 "calendar_code": calendar_code or "",
                 "school_type_code": school_type or "",
+                "language_code": language_code or "",
                 "_seeded_at_rapid_create": True,
             }
         if vendor:

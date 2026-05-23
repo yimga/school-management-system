@@ -1887,3 +1887,34 @@ for _cc in list(COUNTRY_REGIONAL_DEFAULT.keys()):
         COUNTRY_REGIONAL_DEFAULT.pop(_cc, None)
 del _cc
 
+
+# ---------------------------------------------------------------------------
+# Wave 6 (v3.62.8 2026-05-22) — fold per-country `languages` overlay into the
+# Tier 1 entries so multilingual countries (CM/CA/BE/CH/IN/ZA/SG/...) carry
+# per-language education systems. The service-layer overlay
+# (`resolve_language_pack`) reads this key and replaces school_types /
+# education_levels / terminology / calendar_systems for the picked language.
+#
+# Monolingual countries get a single language entry (no education_system
+# overlay) so the signup form can always show "Language: <native>".
+# ---------------------------------------------------------------------------
+
+try:
+    from ._seed_country_languages import COUNTRY_LANGUAGES  # type: ignore
+    for _cc, _langs in COUNTRY_LANGUAGES.items():
+        # Promote countries that only had a regional default to Tier 1 by
+        # cloning the resolved pack and adding the languages overlay.
+        if _cc not in COUNTRY_LOCALIZATION:
+            # Resolve via regional default (best available baseline).
+            _region_key = COUNTRY_REGIONAL_DEFAULT.get(_cc)
+            if _region_key and _region_key in REGIONAL_DEFAULTS:
+                # Shallow-clone the regional default into Tier 1.
+                COUNTRY_LOCALIZATION[_cc] = dict(REGIONAL_DEFAULTS[_region_key])
+                COUNTRY_REGIONAL_DEFAULT.pop(_cc, None)
+            else:
+                continue  # not in seed at all; skip silently
+        COUNTRY_LOCALIZATION[_cc]["languages"] = list(_langs)
+    del _cc, _langs
+except ImportError:
+    COUNTRY_LANGUAGES = {}
+

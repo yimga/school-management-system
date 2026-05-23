@@ -103,11 +103,15 @@ from apps.schools.onboarding_vendors import (
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 # v3.62.2 — country-adaptive calendar + school-type cards on /signup/.
+# v3.62.8 (Wave 6) — language picker + per-language education-system overlay.
 from apps.siteconfig.country_localization_service import (
     get_default_calendar_code,
+    get_default_language,
     resolve_country_pack,
+    resolve_language_pack,
     resolve_primary_sector_for_school_type,
     validate_calendar_code,
+    validate_language_code,
     validate_school_type,
 )
 
@@ -244,7 +248,22 @@ def signup_school(request: HttpRequest):
         # / explicit query param) so the cards render localized on first paint
         # without requiring a JS round-trip. The adapter JS re-renders these
         # in place when the operator picks a different country.
-        country_pack = resolve_country_pack(cc)
+        #
+        # v3.62.8 (Wave 6) — also resolve language picker. For multilingual
+        # countries the language picker shows all official languages and the
+        # per-language education-system overlay (CM Anglo/Franco, CA EN/FR,
+        # BE NL/FR/DE, CH 4 lang, IN 11 lang, etc.). Default-language pre-pick
+        # is the country's `is_default` flag; user-saved preference (session
+        # cookie) wins when present.
+        language_code = (
+            (request.session.get("onboarding_language") or "").strip().lower()
+            or get_default_language(cc)
+        )
+        if validate_language_code(cc, language_code):
+            country_pack = resolve_language_pack(cc, language_code)
+        else:
+            country_pack = resolve_country_pack(cc)
+            language_code = ""
         if not tp:
             tp = get_default_calendar_code(cc)
         return render(
@@ -253,6 +272,7 @@ def signup_school(request: HttpRequest):
             {
                 "country_code": cc,
                 "term_preset": tp,
+                "language_code": language_code,
                 "signup_region_hint": (request.GET.get("region") or "").strip()[:64],
                 "curriculum_hint": (request.GET.get("curriculum") or "").strip()[:128],
                 "onboarding_prefill_hint": bool(
@@ -267,6 +287,9 @@ def signup_school(request: HttpRequest):
                 # falls back to a free-text input when this list is empty.
                 "signup_countries": _signup_countries(),
                 # v3.62.2 local-first: country-adaptive pack drives card grids.
+                # v3.62.8 (Wave 6) — also carries `languages` overlay so the
+                # picker can render per-language cards server-side without
+                # waiting on a JS round-trip.
                 "country_pack": country_pack,
             },
         )
@@ -298,6 +321,15 @@ def signup_school(request: HttpRequest):
     school_type = validate_school_type(country_code, school_type_raw)
     if not school_type and school_type_raw in _SCHOOL_TYPE_TO_PRIMARY_SECTOR:
         school_type = school_type_raw
+
+    # v3.62.8 (Wave 6) — language picker. For multilingual countries this
+    # value drives the per-language education-system overlay (CM Anglo vs
+    # Franco, CA EN vs FR/Quebec, BE NL vs FR vs DE, CH 4 lang, IN 11 lang).
+    # Falls open silently when country is monolingual (validate returns "").
+    language_code_raw = (request.POST.get("language_code") or "").strip().lower()[:8]
+    language_code = validate_language_code(country_code, language_code_raw)
+    if not language_code:
+        language_code = get_default_language(country_code)
 
     errors = []
     if not name:
@@ -376,11 +408,15 @@ def signup_school(request: HttpRequest):
     # provisioning + lifecycle signals can populate the school's calendar +
     # education levels from this country pack. Both raw codes are stored;
     # services can re-resolve labels via country_localization_service.
-    if country_code or term_preset or school_type:
+    # v3.62.8 (Wave 6) — also persist language_code for multilingual countries
+    # so the per-language education-system overlay (CM Anglo/Franco, CA EN/FR,
+    # BE NL/FR/DE, CH 4 lang, IN 11 lang) is preserved across logins.
+    if country_code or term_preset or school_type or language_code:
         school_settings["localization"] = {
             "country_code": country_code or "",
             "calendar_code": term_preset or get_default_calendar_code(country_code),
             "school_type_code": school_type or "",
+            "language_code": language_code or "",
             "_seeded_at_signup": True,
         }
     # Backwards compatibility: keep the v3.61 term_preset hint for any code

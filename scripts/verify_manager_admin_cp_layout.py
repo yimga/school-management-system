@@ -108,6 +108,30 @@ def check_css() -> list[str]:
         )
     if "control-plane-skeleton-root.css" not in base_site:
         errors.append("templates/admin/base_site.html must load control-plane-skeleton-root.css")
+    if "manager-cockpit-v7.css" not in base_site:
+        errors.append("templates/admin/base_site.html must load manager-cockpit-v7.css on manager host")
+    if "rmc-cp-header-200x.css" not in base_site:
+        errors.append("templates/admin/base_site.html must load rmc-cp-header-200x.css on manager host")
+    if 'data-rmc-cp-header-200x="1"' not in admin_base:
+        errors.append("templates/admin/base.html must use cp-header 200x stack on manager host")
+    if "_activity_ticker.html" not in admin_base:
+        errors.append("templates/admin/base.html must include live activity ticker in manager header")
+    if "control_plane_primary_nav.html" not in admin_base:
+        errors.append("templates/admin/base.html must include primary nav in manager header")
+    cp_base = (REPO_ROOT / "templates/control_plane_base.html").read_text(encoding="utf-8")
+    if 'data-rmc-cp-header-200x="1"' not in cp_base:
+        errors.append("templates/control_plane_base.html must use cp-header 200x stack")
+    cp_sk = (REPO_ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
+    if "rmc-cp-header-200x.css" not in cp_sk:
+        errors.append("templates/control_plane_skeleton.html must load rmc-cp-header-200x.css")
+    ticker_partial = (REPO_ROOT / "templates/partials/cockpit/_activity_ticker.html").read_text(
+        encoding="utf-8"
+    )
+    if "cp-activity-ticker" not in ticker_partial:
+        errors.append("_activity_ticker.html must expose cp-activity-ticker class for preview parity")
+    topbar = (REPO_ROOT / "templates/partials/manager_operator_topbar.html").read_text(encoding="utf-8")
+    if "_operator_presence.html" not in topbar:
+        errors.append("manager_operator_topbar must include operator presence in utility row")
     if (
         "rmc-scroll-container.js" not in base_site
         and "rmc_platform_chrome_scripts.html" not in base_site
@@ -194,6 +218,12 @@ def check_render() -> list[str]:
                     "admin-sidebar-all-apps",
                     "rmc-admin-catalog",
                     "Applications",
+                    'data-rmc-cp-header-200x="1"',
+                    "cp-activity-ticker",
+                    "rmc-cockpit-ticker__track",
+                    "cp-primary-nav",
+                    "manager-cockpit-v7.css",
+                    "rmc-cp-header-200x.css",
                 ),
             ),
         (
@@ -210,6 +240,12 @@ def check_render() -> list[str]:
             (
                 'data-shell-nav-family="control-plane"',
                 "Advanced",
+                'data-rmc-cp-header-200x="1"',
+                "cp-activity-ticker",
+                "rmc-cockpit-ticker__track",
+                "cp-primary-nav",
+                "manager-cockpit-v7.css",
+                "rmc-cp-header-200x.css",
             ),
         ),
     )

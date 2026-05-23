@@ -154,7 +154,12 @@
           {% comment %}v3.62.2 (2026-05-22) Wave 1 local-first:
              Calendar cards now driven by the country pack (country_pack.calendar_systems).
              The grid carries data-rmc-country-cards="calendar" so rmc-signup-country-adapter.js
-             re-renders it in place when the operator changes the country dropdown.{% endcomment %}
+             re-renders it in place when the operator changes the country dropdown.
+
+             v3.62.8 (2026-05-22) Wave 6: for multilingual countries (CM/CA/BE/CH/IN/ZA/...)
+             picking a non-default language refetches the per-language education-system
+             overlay and re-renders THIS grid with the per-region calendar (e.g. CM-EN
+             gets 3 Anglophone terms, CM-FR gets 3 Trimestres; CA-FR gets Quebec August-June).{% endcomment %}
           <div class="rmc-calendar-cards"
                role="radiogroup"
                aria-label="{% trans 'Calendar preset' %}"
@@ -174,6 +179,44 @@
           </div>
         </div>
       </div>
+
+      {% comment %}Wave 6 (v3.62.8 — 2026-05-22): per-language education system.
+         For multilingual countries (CM/CA/BE/CH/IN/ZA/SG/MY/LK/PH/PK/...) the
+         picker shows all official languages with a "Recommended" badge on the
+         country's default and a hint when the language has a region-specific
+         education system overlay. Picking a non-default language refetches
+         /api/v1/localization/<cc>/?lang=<lc> and re-renders calendar +
+         school-type cards with the per-region school structure.
+
+         For monolingual countries the block is hidden by JS (single-language
+         pack falls through to country baseline). Server-side fallback: if
+         the country pack has zero languages, the block stays hidden via
+         {% if country_pack.languages|length > 1 %} below.{% endcomment %}
+      {% if country_pack.languages|length > 1 %}
+      <div class="mb-3 rmc-signup-field" data-rmc-signup-field="language" data-rmc-language-block="1">
+        <div class="rmc-signup-field__label-row">
+          <span class="rmc-signup-field__label-text">{% trans "Language of instruction" %}</span>
+          <span class="rmc-signup-field__optional">({% trans "auto-selected" %})</span>
+        </div>
+        <div class="rmc-signup-type-cards rmc-signup-type-cards--language"
+             role="radiogroup"
+             aria-label="{% trans 'Official language' %}"
+             data-rmc-country-cards="language"
+             data-rmc-country-cards-radio="language_code">
+          {% for lang in country_pack.languages %}
+            <label class="rmc-signup-type-card {% if language_code == lang.code or not language_code and lang.is_default %}rmc-signup-type-card--selected{% endif %}">
+              <input type="radio" name="language_code" value="{{ lang.code }}"
+                     class="rmc-signup-type-card__input"
+                     {% if language_code == lang.code or not language_code and lang.is_default %}checked{% endif %}>
+              <span class="rmc-signup-type-card__title">{{ lang.native_name }}</span>
+              {% if lang.region %}<span class="rmc-signup-type-card__sub">{{ lang.region }}</span>{% endif %}
+              {% if lang.is_default %}<span class="rmc-signup-type-card__badge">{% trans "Recommended" %}</span>{% endif %}
+              {% if lang.education_system %}<span class="rmc-signup-type-card__hint">{% trans "Region-specific education system" %}</span>{% endif %}
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
 
       {% comment %}Wave L7 (v3.61.8 — 2026-05-22): school-type cards.
          Drives School.primary_sector at create time so the blueprint

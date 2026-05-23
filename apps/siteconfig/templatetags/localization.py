@@ -104,6 +104,56 @@ _CURRENCY_SYMBOLS: dict[str, str] = {
 }
 
 
+# Wave 7 (v3.62.8 2026-05-22): countries that use Indian (lakh-crore)
+# digit grouping for ALL numbers (currency + counts + invoices). Indian
+# numbering writes 1,00,000 (lakh) not 100,000, then 1,00,00,000 (crore)
+# not 10,000,000.
+_INDIAN_GROUPING_COUNTRIES = frozenset({"IN", "PK", "BD", "NP", "LK", "BT", "MV"})
+
+
+def _group_indian(digits: str) -> str:
+    """Group an integer digit string with Indian lakh-crore convention.
+
+    "1234567"   -> "12,34,567"
+    "12345678"  -> "1,23,45,678"
+    "100"       -> "100"
+    """
+    if len(digits) <= 3:
+        return digits
+    last3 = digits[-3:]
+    rest = digits[:-3]
+    # Walk from the right inserting commas every 2 digits.
+    out_chunks = []
+    i = len(rest)
+    while i > 2:
+        out_chunks.insert(0, rest[i-2:i])
+        i -= 2
+    if i > 0:
+        out_chunks.insert(0, rest[:i])
+    return ",".join(out_chunks) + "," + last3
+
+
+def _group_western(digits: str) -> str:
+    """Standard 1,234,567 grouping (every 3 digits)."""
+    if len(digits) <= 3:
+        return digits
+    out_chunks = []
+    i = len(digits)
+    while i > 3:
+        out_chunks.insert(0, digits[i-3:i])
+        i -= 3
+    if i > 0:
+        out_chunks.insert(0, digits[:i])
+    return ",".join(out_chunks)
+
+
+def _group_for_country(country_code: str | None, digits: str) -> str:
+    cc = (country_code or "").upper()
+    if cc in _INDIAN_GROUPING_COUNTRIES:
+        return _group_indian(digits)
+    return _group_western(digits)
+
+
 @register.filter(name="local_currency")
 def local_currency(amount: Any, currency_code: str | None = None) -> str:
     """Format a Decimal/numeric amount per currency.
@@ -125,11 +175,80 @@ def local_currency(amount: Any, currency_code: str | None = None) -> str:
     # storage still has full precision).
     zero_decimal = code in ("JPY", "KRW", "VND", "IDR", "CLP")
     quantized = dec.quantize(Decimal("1") if zero_decimal else Decimal("0.01"))
-    # Thousands separator — `:,` works for any locale because we don't
-    # localize the digit grouping symbol here (would need full ICU). The
-    # primary value is the symbol + amount, not separator polish.
+    # Default Western grouping; the context-aware sibling can pass Indian.
     grouped = f"{quantized:,}"
     return f"{symbol}{grouped}"
+
+
+@register.filter(name="local_number")
+def local_number(value: Any, country_code: str | None = None) -> str:
+    """Format an integer/decimal with country-aware digit grouping (Wave 7).
+
+    Indian countries get lakh-crore (1,23,456); the rest get Western
+    (1,234,567). Pass ``country_code`` explicitly or use
+    ``{% local_number_for value %}`` (context-aware) to pick up the user's
+    country from the localization context processor.
+    """
+    if value is None or value == "":
+        return ""
+    try:
+        dec = value if isinstance(value, Decimal) else Decimal(str(value))
+    except Exception:  # noqa: BLE001
+        return ""
+    # Preserve fractional component when present.
+    sign = "-" if dec < 0 else ""
+    dec = abs(dec)
+    s = format(dec, "f")
+    if "." in s:
+        int_part, frac_part = s.split(".", 1)
+        frac_part = frac_part.rstrip("0")
+    else:
+        int_part, frac_part = s, ""
+    grouped = _group_for_country(country_code, int_part)
+    return sign + grouped + (("." + frac_part) if frac_part else "")
+
+
+@register.simple_tag(takes_context=True, name="local_number_for")
+def local_number_for(context, value: Any) -> str:
+    """Context-aware Wave 7 number-grouping helper.
+
+    Usage:  {% local_number_for student_count %}
+    """
+    loc = _loc_from_context(context)
+    return local_number(value, loc.get("country_code") or "")
+
+
+@register.simple_tag(takes_context=True, name="local_currency_grouped_for")
+def local_currency_grouped_for(context, amount: Any) -> str:
+    """Currency formatter that ALSO honors Indian digit grouping.
+
+    Sister of ``local_currency_for`` for the rare path where you specifically
+    want lakh-crore grouping (e.g. fee statements in India). Most call
+    sites should keep using ``local_currency_for`` (Western grouping) for
+    operator-readable consistency with prior reports.
+    """
+    if amount is None:
+        return ""
+    loc = _loc_from_context(context)
+    try:
+        dec = amount if isinstance(amount, Decimal) else Decimal(str(amount))
+    except Exception:  # noqa: BLE001
+        return ""
+    code = (loc.get("currency_code") or "USD").upper()
+    symbol = _CURRENCY_SYMBOLS.get(code, code + " ")
+    zero_decimal = code in ("JPY", "KRW", "VND", "IDR", "CLP")
+    quantized = dec.quantize(Decimal("1") if zero_decimal else Decimal("0.01"))
+    sign = "-" if quantized < 0 else ""
+    quantized = abs(quantized)
+    s = format(quantized, "f")
+    if "." in s:
+        int_part, frac_part = s.split(".", 1)
+    else:
+        int_part, frac_part = s, ""
+    grouped = _group_for_country(loc.get("country_code") or "", int_part)
+    if frac_part:
+        return f"{symbol}{sign}{grouped}.{frac_part}"
+    return f"{symbol}{sign}{grouped}"
 
 
 @register.simple_tag(takes_context=True, name="local_currency_for")
@@ -257,6 +376,33 @@ def local_address_order(context) -> list:
     if isinstance(order, list):
         return order
     return ["street", "city", "region", "postal_code", "country"]
+
+
+@register.simple_tag(takes_context=True, name="local_language_code")
+def local_language_code(context) -> str:
+    """Wave 6: return the user's effective language BCP-47 code (or "")."""
+    loc = _loc_from_context(context)
+    return str(loc.get("language_code") or "")
+
+
+@register.simple_tag(takes_context=True, name="local_language_native")
+def local_language_native(context) -> str:
+    """Wave 6: return the user's effective language native name (or "")."""
+    loc = _loc_from_context(context)
+    return str(loc.get("language_native") or "")
+
+
+@register.simple_tag(takes_context=True, name="local_system_name")
+def local_system_name(context) -> str:
+    """Wave 6: return the per-language education-system name when set.
+
+    For multilingual countries this carries the per-language overlay's
+    `system_name` (e.g. "French / Baccalauréat Subsystem" for CM-FR,
+    "British / GCE O & A Level Subsystem" for CM-EN). Empty string when
+    the user is on a monolingual country or the country baseline.
+    """
+    loc = _loc_from_context(context)
+    return str(loc.get("system_name") or "")
 
 
 @register.simple_tag(takes_context=True, name="local_name_order")

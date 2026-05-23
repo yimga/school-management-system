@@ -54,6 +54,28 @@
             </div>
           </div>
 
+          {% if country_pack.languages|length > 1 %}
+          <h2 class="h6 mt-3">{% trans "Step 2a — Language of instruction" %}</h2>
+          <div class="rmc-signup-type-cards rmc-signup-type-cards--language"
+               role="radiogroup"
+               aria-label="{% trans 'Official language' %}"
+               data-rmc-country-cards="language"
+               data-rmc-country-cards-radio="language_code"
+               data-rmc-language-block="1">
+            {% for lang in country_pack.languages %}
+              <label class="rmc-signup-type-card {% if form.language_code == lang.code or not form.language_code and lang.is_default %}rmc-signup-type-card--selected{% endif %}">
+                <input type="radio" name="language_code" value="{{ lang.code }}"
+                       class="rmc-signup-type-card__input"
+                       {% if form.language_code == lang.code or not form.language_code and lang.is_default %}checked{% endif %}>
+                <span class="rmc-signup-type-card__title">{{ lang.native_name }}</span>
+                {% if lang.region %}<span class="rmc-signup-type-card__sub">{{ lang.region }}</span>{% endif %}
+                {% if lang.is_default %}<span class="rmc-signup-type-card__badge">{% trans "Recommended" %}</span>{% endif %}
+                {% if lang.education_system %}<span class="rmc-signup-type-card__hint">{% trans "Region-specific education system" %}</span>{% endif %}
+              </label>
+            {% endfor %}
+          </div>
+          {% endif %}
+
           <h2 class="h6 mt-3">{% trans "Step 2 — School type" %}</h2>
           <div class="rmc-signup-type-cards"
                role="radiogroup"
