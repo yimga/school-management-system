@@ -43,9 +43,9 @@ def main() -> int:
     if not ci.is_file():
         findings.append("missing .github/workflows/sodp-gates.yml")
 
-    test = ROOT / "apps/platform_runtime/tests/test_offline_grading_conflict_policy.py"
+    test = ROOT / "apps/platform_runtime/tests/test_offline_grading_manual_review.py"
     if not test.is_file():
-        findings.append("missing test_offline_grading_conflict_policy.py")
+        findings.append("missing test_offline_grading_manual_review.py")
 
     notify = _text("apps/schoolops/notification_intent.py")
     if "fee_reminder" not in notify or "transport_delay" not in notify:

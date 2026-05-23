@@ -75,7 +75,7 @@ jobs:
       - name: SODP targeted tests
         run: |
           python manage.py test \
-            apps.platform_runtime.tests.test_offline_grading_conflict_policy \
+            apps.platform_runtime.tests.test_offline_grading_manual_review \
             apps.platform_runtime.tests.test_offline_action_types \
             apps.sync_engine.tests.test_sodp_conflict_grade \
             apps.portal.tests.test_offline_enqueue_sodp \
