@@ -1,0 +1,83 @@
+# Sovereign Offline/Online Delivery Platform (SODP) CI gates — batch 1413 depth wave.
+name: SODP gates
+
+on:
+  pull_request:
+    paths:
+      - "apps/platform_runtime/**"
+      - "apps/portal/views_offline_sync.py"
+      - "apps/portal/tests/test_offline*.py"
+      - "apps/schoolops/notification_intent.py"
+      - "apps/schoolops/email_delivery.py"
+      - "apps/schools/offline_delivery_settings.py"
+      - "apps/sync_engine/conflict_resolver.py"
+      - "static/js/offline*.js"
+      - "static/js/rmc-offline*.js"
+      - "static/js/rmc-lan-mule-sync.js"
+      - "static/js/form-draft-save.js"
+      - "static/js/service-worker.js"
+      - "scripts/verify_sovereign*.py"
+      - "scripts/verify_offline*.py"
+      - "scripts/verify_tenant_email*.py"
+      - "scripts/verify_field_client*.py"
+      - "scripts/verify_capacitor*.py"
+      - "scripts/verify_online_edge*.py"
+      - "scripts/verify_email_delivery_surface.py"
+      - "templates/portal_base.html"
+      - "templates/components/offline_status_bar.html"
+      - "companion-tauri/**"
+      - "companion-capacitor/**"
+  push:
+    branches: [main]
+    paths:
+      - "apps/platform_runtime/**"
+      - "apps/portal/views_offline_sync.py"
+      - "static/js/service-worker.js"
+      - "scripts/verify_sovereign*.py"
+
+jobs:
+  sodp-verifiers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install requirements
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+      - name: Django check
+        run: python manage.py check
+      - name: Migration graph clean
+        run: python manage.py makemigrations --check --dry-run
+      - name: SODP foundation
+        run: python scripts/verify_sovereign_offline_foundation.py
+      - name: SODP config cascade
+        run: python scripts/verify_sovereign_offline_config_cascade.py
+      - name: Tenant email cascade
+        run: python scripts/verify_tenant_email_delivery_cascade.py
+      - name: Offline auth contract
+        run: python scripts/verify_offline_auth_contract.py
+      - name: Field client scaffold
+        run: python scripts/verify_field_client_scaffold.py
+      - name: Capacitor scaffold
+        run: python scripts/verify_capacitor_shell_scaffold.py
+      - name: E2E scaffold
+        run: python scripts/verify_sovereign_offline_e2e_scaffold.py
+      - name: SODP depth
+        run: python scripts/verify_sovereign_offline_depth.py
+      - name: Email delivery surface
+        run: python scripts/verify_email_delivery_surface.py
+      - name: Online edge dual mode
+        run: python scripts/verify_online_edge_dual_mode.py
+      - name: SODP targeted tests
+        run: |
+          python manage.py test \
+            apps.platform_runtime.tests.test_offline_grading_conflict_policy \
+            apps.platform_runtime.tests.test_offline_action_types \
+            apps.sync_engine.tests.test_sodp_conflict_grade \
+            apps.portal.tests.test_offline_enqueue_sodp \
+            apps.schoolops.tests.test_email_delivery_idempotency \
+            --verbosity=1 --no-input

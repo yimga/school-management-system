@@ -67,7 +67,28 @@ def render_notification_intent(
         subject = "Exam readiness update"
         body = "Hello — your student's exam readiness information is available in the portal."
         return subject, body, None
-    # Additional templates use honest minimal copy until locale files wire in.
+    if template_key == "fee_reminder":
+        subject = "Fee payment reminder"
+        body = (
+            "Hello — this is a reminder about an outstanding school fee balance. "
+            "Sign in to the parent portal for details and payment options."
+        )
+        return subject, body, None
+    if template_key == "transport_delay":
+        route = ctx.get("route_name") or "your student's route"
+        subject = "Transport update"
+        body = (
+            f"Hello — there is a transport schedule update for {route}. "
+            "Open the portal for the latest arrival or pickup information."
+        )
+        return subject, body, None
+    if template_key == "wellbeing_checkin":
+        subject = "Wellbeing check-in"
+        body = (
+            "Hello — your school has shared a wellbeing check-in update. "
+            "Please review the message in the parent portal when you can."
+        )
+        return subject, body, None
     subject = f"School notification ({template_key})"
     body = f"Hello — you have a new school notification ({template_key})."
     return subject, body, None

@@ -1017,6 +1017,7 @@ def site_settings(request):
     ctx["OFFLINE_CONFLICTS_URL"] = None
     ctx["OFFLINE_API_ENQUEUE_URL"] = None
     ctx["OFFLINE_API_PROCESS_URL"] = None
+    ctx["OFFLINE_TOKEN_MINT_URL"] = None
     if ctx.get("SHOW_OFFLINE_STATUS_BAR") and user and getattr(
         user, "is_authenticated", False
     ):
@@ -1025,6 +1026,7 @@ def site_settings(request):
             ctx["OFFLINE_CONFLICTS_URL"] = reverse("portal:offline_sync_conflicts")
             ctx["OFFLINE_API_ENQUEUE_URL"] = reverse("portal:api_offline_enqueue")
             ctx["OFFLINE_API_PROCESS_URL"] = reverse("portal:api_offline_process")
+            ctx["OFFLINE_TOKEN_MINT_URL"] = reverse("api:devices-offline-token")
         except NoReverseMatch:
             pass
     # Super Admin / Schools: global toggle to show or hide /super/ and Schools link.

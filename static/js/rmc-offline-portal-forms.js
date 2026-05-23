@@ -225,10 +225,38 @@
     });
   }
 
+  function wireSupportTicket(form) {
+    form.addEventListener('submit', function (ev) {
+      if (navigator.onLine || !enabled()) return;
+      ev.preventDefault();
+      var subjectEl = form.querySelector('[name="subject"]');
+      var messageEl = form.querySelector('[name="message"]');
+      var categoryEl = form.querySelector('[name="category"]');
+      var subject = subjectEl ? String(subjectEl.value || '').trim() : '';
+      var message = messageEl ? String(messageEl.value || '').trim() : '';
+      if (!subject || !message) {
+        toast('Enter subject and message before queueing offline.', 'warning');
+        return;
+      }
+      var idem = 'support-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+      window.rmcOfflineEnqueue({
+        action_type: 'support.ticket',
+        payload: {
+          subject: subject,
+          message: message,
+          category: categoryEl ? String(categoryEl.value || 'SUPPORT') : 'SUPPORT',
+        },
+        idempotency_key: idem,
+      });
+      toast('Support message queued. It will send when you reconnect.', 'success');
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('form[data-rmc-offline-form="attendance"]').forEach(wireAttendance);
     document.querySelectorAll('form[data-rmc-offline-form="grading"]').forEach(wireGrading);
     document.querySelectorAll('form[data-rmc-offline-form="payment_receipt"]').forEach(wirePaymentReceipt);
     document.querySelectorAll('form[data-rmc-offline-form="notes_report"]').forEach(wireNotesReport);
+    document.querySelectorAll('form[data-rmc-offline-form="support_ticket"]').forEach(wireSupportTicket);
   });
 })();

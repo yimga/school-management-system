@@ -1,5 +1,19 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — SODP batch 1413 depth platform lift (2026-05-23)
+
+**A. Scope:** Lift SODP from scaffold to runtime depth — conflict policy on grades, support ticket offline path, global portal shell wiring, CI enforcement, notification copy, LAN mule hooks.
+
+**B. Shipped:** `_apply_grading` uses `conflict_resolver` + server `Evaluation` conflict/dedup; `_apply_support_ticket` + `support_ticket` action type; global `form-draft-save.js` / vault / bootstrap / LAN mule in `portal_base.html`; offline support form wiring; `verify_sovereign_offline_depth.py`; `.github/workflows/sodp-gates.yml`; migration `platform_runtime 0072`; SW `sms-v3.71.0-sodp-depth-platform-2026-05-23`.
+
+**C. Proof:** `verify_sovereign_offline_depth.py` → **SOVEREIGN_OFFLINE_DEPTH_PASS**; grading conflict tests 2/2; full SODP verifier bundle green.
+
+**D. Residual:** Lane 2 — live mDNS sidecar, Tauri WebView Field Client, Capacitor `android/` project, credentialed Playwright DB assertions.
+
+**E. Plan:** SOT §11.4 batch **1413** DONE.
+
+**F. Headline:** **SODP DEPTH WAVE — platform gear shift.**
+
 ## Slice — SODP 100% prompt closure follow-up (2026-05-23)
 
 **A. Scope:** Close remaining plan §4–§10 proof gaps after Waves A–G first pass — notification badge, Stronghold stubs, email idempotency, grade manual_review tests, enqueue SODP→legacy mapping, Playwright replay flow, OFFLINE_MODE_GAPS closure table, gate bundle wiring.

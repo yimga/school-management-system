@@ -31,9 +31,12 @@ LEGACY_TO_SODP: dict[str, str] = {
     "grading": OfflineActionType.GRADE_SUBMIT,
     "payment_receipt": OfflineActionType.PAYMENT_PROOF,
     "notes_report": OfflineActionType.STUDENT_NOTE,
+    "support_ticket": OfflineActionType.SUPPORT_TICKET,
 }
 
 SODP_TO_LEGACY: dict[str, str] = {v: k for k, v in LEGACY_TO_SODP.items()}
+SODP_TO_LEGACY[OfflineActionType.NOTIFY_PARENT] = OfflineActionType.NOTIFY_PARENT
+SODP_TO_LEGACY[OfflineActionType.NOTIFY_STAFF] = OfflineActionType.NOTIFY_STAFF
 
 FORBIDDEN_PAYLOAD_KEYS = frozenset(
     {
@@ -99,6 +102,12 @@ def validate_offline_payload(action_type: str, payload: dict[str, Any]) -> list[
         device_id = (payload.get("device_id") or "").strip()
         if not device_id or not re.match(r"^[a-zA-Z0-9._-]{8,128}$", device_id):
             errors.append("provision.signup requires device_id (8-128 alnum)")
+
+    if at == OfflineActionType.SUPPORT_TICKET:
+        if not str(payload.get("subject") or "").strip():
+            errors.append("support.ticket requires subject")
+        if not str(payload.get("message") or payload.get("body") or "").strip():
+            errors.append("support.ticket requires message")
 
     return errors
 

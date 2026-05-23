@@ -519,6 +519,10 @@ def main(argv: list[str] | None = None) -> int:
         "SODP Wave G: E2E + delta bundle scaffold",
     )
     run(
+        [py, _script_path("verify_sovereign_offline_depth.py"), *base_args],
+        "SODP depth: conflict policy + platform shell + CI",
+    )
+    run(
         [py, _script_path("verify_email_delivery_surface.py"), *base_args],
         "Email delivery surface (includes SODP tenant cascade)",
     )

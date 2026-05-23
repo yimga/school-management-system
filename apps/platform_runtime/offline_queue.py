@@ -596,6 +596,34 @@ def _apply_notes_report(school_id, user_id: int, payload: dict[str, Any]) -> dic
     }
 
 
+def _decimal_score_equal(left, right) -> bool:
+    from decimal import Decimal, InvalidOperation
+
+    if left is None and right is None:
+        return True
+    if left is None or right is None:
+        return False
+    try:
+        return Decimal(str(left)) == Decimal(str(right))
+    except (InvalidOperation, TypeError, ValueError):
+        return False
+
+
+def _grading_payload_conflicts_row(row, payload: dict[str, Any]) -> bool:
+    for field in (
+        "seq1_score",
+        "seq2_score",
+        "exam_score",
+        "mock_score",
+        "practical_score",
+    ):
+        if not _decimal_score_equal(getattr(row, field, None), payload.get(field)):
+            return True
+    server_remarks = (getattr(row, "remarks", None) or "").strip()
+    client_remarks = str(payload.get("remarks") or "").strip()
+    return server_remarks != client_remarks
+
+
 def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     from django.utils import timezone
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
@@ -629,6 +657,67 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
         and sa.classroom.school_id != school_id
     ):
         return {"ok": False, "error": "Subject assignment not in this school."}
+
+    from apps.evals.models import Evaluation
+    from apps.sync_engine.conflict_resolver import ResolutionStrategy, resolve_one
+
+    server_eval = Evaluation.objects.filter(
+        student_id=payload["student_id"],
+        subject_assignment_id=payload["subject_assignment_id"],
+        term_id=payload["term_id"],
+        academic_year_id=payload["academic_year_id"],
+    ).first()
+    if server_eval is not None:
+        if _grading_payload_conflicts_row(server_eval, payload):
+            decision = resolve_one(
+                {
+                    "entity": "grade_entry",
+                    "remote": payload,
+                    "server": {
+                        "seq1_score": server_eval.seq1_score,
+                        "seq2_score": server_eval.seq2_score,
+                        "exam_score": server_eval.exam_score,
+                        "mock_score": server_eval.mock_score,
+                        "practical_score": server_eval.practical_score,
+                        "remarks": server_eval.remarks,
+                    },
+                },
+                strategy=ResolutionStrategy.MANUAL_REVIEW,
+            )
+            return {
+                "ok": False,
+                "conflict": True,
+                "reason": decision.get("reason")
+                or "Grade conflict requires operator review (server row exists).",
+                "details": {
+                    "evaluation_id": server_eval.pk,
+                    "policy": decision.get("action"),
+                },
+            }
+        return {
+            "ok": True,
+            "evaluation_id": server_eval.pk,
+            "dedup": True,
+        }
+
+    pending = OfflineMarkEntry.objects.filter(
+        teacher=tp,
+        subject_assignment_id=payload["subject_assignment_id"],
+        student_id=payload["student_id"],
+        academic_year_id=payload["academic_year_id"],
+        term_id=payload["term_id"],
+        status="pending",
+    ).first()
+    if pending is not None:
+        if _grading_payload_conflicts_row(pending, payload):
+            return {
+                "ok": False,
+                "conflict": True,
+                "reason": "Pending offline mark differs from queued server copy.",
+                "details": {"offline_entry_id": pending.id},
+            }
+        return {"ok": True, "offline_entry_id": pending.id, "dedup": True}
+
     entry = OfflineMarkEntry.objects.create(
         teacher=tp,
         subject_assignment_id=payload["subject_assignment_id"],
@@ -645,6 +734,33 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
         created_offline_at=timezone.now(),
     )
     return {"ok": True, "offline_entry_id": entry.id}
+
+
+def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+    from django.contrib.auth import get_user_model
+
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+    subject = str(payload.get("subject") or "").strip()
+    message = str(payload.get("message") or payload.get("body") or "").strip()
+    if not subject or not message:
+        return {"ok": False, "error": "subject and message required."}
+    User = get_user_model()
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        return {"ok": False, "error": "user_not_found"}
+    category = str(payload.get("category") or "SUPPORT").upper()[:32]
+    prefix = "[Support]" if category == "SUPPORT" else "[Feedback]"
+    ticket = GlobalSupportTicket.objects.create(
+        school_id=school_id,
+        user=user,
+        subject=f"{prefix} {subject}"[:500],
+        body=message[:8000],
+        priority=GlobalSupportTicket.Priority.NORMAL,
+        status=GlobalSupportTicket.Status.OPEN,
+        metadata={"source": "offline_enqueue", "category": category},
+    )
+    return {"ok": True, "ticket_id": str(ticket.pk)}
 
 
 def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
@@ -681,6 +797,8 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
         return _apply_payment_receipt(sid, uid, payload)
     if at == OfflineAction.ActionType.NOTES_REPORT:
         return _apply_notes_report(sid, uid, payload)
+    if at == OfflineAction.ActionType.SUPPORT_TICKET:
+        return _apply_support_ticket(sid, uid, payload)
     return {"ok": False, "error": f"Unknown action_type: {at}"}
 
 
