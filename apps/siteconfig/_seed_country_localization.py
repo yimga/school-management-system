@@ -1762,15 +1762,15 @@ COUNTRY_REGIONAL_DEFAULT = {
     "HT": "africa-francophone", "JM": "caribbean", "KN": "caribbean",
     "LC": "caribbean", "VC": "caribbean", "TT": "caribbean",
     "SR": "europe-continental",
-    # Middle East (non-AE/SA already Tier 1)
+    # Middle East (non-AE/SA/IL/TR already Tier 1)
     "BH": "middle-east", "IR": "middle-east", "IQ": "middle-east",
     "JO": "middle-east", "KW": "middle-east",
     "LB": "middle-east", "OM": "middle-east", "PS": "middle-east",
-    "QA": "middle-east", "SY": "middle-east", "TR": "middle-east",
+    "QA": "middle-east", "SY": "middle-east",
     "YE": "middle-east",
-    # South Asia (non-IN already Tier 1)
-    "AF": "south-asia", "BD": "south-asia", "BT": "south-asia",
-    "MV": "south-asia", "NP": "south-asia", "PK": "south-asia",
+    # South Asia (non-IN/PK/BD already Tier 1)
+    "AF": "south-asia", "BT": "south-asia",
+    "MV": "south-asia", "NP": "south-asia",
     "LK": "south-asia",
     # East Asia (non-JP already Tier 1)
     "KP": "east-asia", "MN": "east-asia", "TW": "east-asia",
