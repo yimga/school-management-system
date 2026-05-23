@@ -253,7 +253,7 @@ def check_render() -> list[str]:
     )
     errors: list[str] = []
     for path, needles in probes:
-        response = client.get(path, HTTP_HOST=host)
+        response = client.get(path, HTTP_HOST=host, secure=True)
         if response.status_code != 200:
             errors.append(f"{path}: HTTP {response.status_code}")
             continue
