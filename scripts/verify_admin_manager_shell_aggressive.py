@@ -59,13 +59,13 @@ def main() -> int:
         if needle not in index:
             errors.append(f"index_superadmin.html: missing {needle}")
 
-    nav = (ROOT / "templates/partials/control_plane_primary_nav.html").read_text(encoding="utf-8")
-    if "cp-primary-nav__pill--help" not in nav or "data-rmc-page-help" not in nav:
-        errors.append("control_plane_primary_nav.html: help pill missing")
+    help_sidebar = (ROOT / "templates/partials/rmc_page_help_sidebar.html").read_text(encoding="utf-8")
+    if "data-rmc-page-help" not in help_sidebar or "rmc-sidebar-page-help" not in help_sidebar:
+        errors.append("rmc_page_help_sidebar.html: sidebar help control missing")
 
     skeleton = (ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
-    if "data-rmc-help-in-nav" not in skeleton or "rmc-footer-notebook-anchor" not in skeleton:
-        errors.append("control_plane_skeleton.html: help-in-nav or footer notebook anchor missing")
+    if "data-rmc-help-in-sidebar" not in skeleton or "rmc-footer-notebook-anchor" not in skeleton:
+        errors.append("control_plane_skeleton.html: help-in-sidebar or footer notebook anchor missing")
 
     guard = (ROOT / "static/js/rmc-surface-overlay-guard.js").read_text(encoding="utf-8")
     if "MutationObserver" not in guard or 'getElementById("modal-overlay")' not in guard:

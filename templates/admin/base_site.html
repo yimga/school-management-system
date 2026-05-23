@@ -191,7 +191,8 @@
             /* v3.58.5: /admin/ now uses .rmc-app-shell canvas scroll (single scrollable surface). */
             document.body.setAttribute('data-rmc-cp-scroll', 'canvas');
             document.body.setAttribute('data-rmc-page-help', '1');
-            document.body.setAttribute('data-rmc-help-in-nav', '1');
+            document.body.setAttribute('data-rmc-help-in-sidebar', '1');
+            document.body.setAttribute('data-rmc-admin-cp-unified', '1');
             document.body.setAttribute('data-rmc-notebook-footer-dock', '1');
             /* v3.62.5 Wave 2 local-first: emit localization attrs for JS calendar widgets. */
             document.body.setAttribute('data-rmc-country', '{{ localization.country_code|default:""|escapejs }}');
@@ -309,8 +310,8 @@
   {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
   {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}
   <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
-  {% if is_manager_host %}
   <script src="{% static 'js/rmc-surface-overlay-guard.js' %}"></script>
+  {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
   {% endif %}
   {# Phase G: ⌘K command palette on the admin shell too. #}

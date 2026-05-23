@@ -482,7 +482,7 @@ body.admin-manager-shell .cp-admin-v1-index button {
   cursor: pointer;
 }
 
-/* Primary nav: help pill left-aligned with Home / Studio row */
+/* Primary nav row — Home / Studio / Operations only (help lives in sidebar). */
 body.admin-manager-shell .cp-header .cp-primary-nav,
 body.control-plane-shell .cp-header .cp-primary-nav {
   justify-content: flex-start;
@@ -490,18 +490,44 @@ body.control-plane-shell .cp-header .cp-primary-nav {
   gap: 6px;
 }
 
-.cp-primary-nav__pill--help {
-  border-color: rgba(124, 58, 237, 0.35);
-  color: #c4b5fd;
-  margin-right: 4px;
+/* Sidebar page-help bar — under operator / user profile block */
+.rmc-sidebar-page-help {
+  margin: 10px 0 12px;
+  padding: 0 2px;
 }
 
-.cp-primary-nav__pill--help:hover,
-.cp-primary-nav__pill--help:focus-visible {
-  background: rgba(124, 58, 237, 0.12);
-  color: #e9d5ff;
+.rmc-sidebar-page-help__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.1));
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--cp-chrome-text-muted, #94a3b8);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--motion-fast, 150ms ease), color var(--motion-fast, 150ms ease);
 }
 
+.rmc-sidebar-page-help__btn:hover,
+.rmc-sidebar-page-help__btn:focus-visible {
+  background: rgba(124, 58, 237, 0.16);
+  color: var(--cp-chrome-text, #f1f5f9);
+  outline: 2px solid var(--focus-ring-color, rgba(99, 102, 241, 0.45));
+  outline-offset: 2px;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .rmc-sidebar-page-help__btn {
+  border-color: var(--hairline);
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 6%, var(--surface-elevated));
+  color: var(--text-secondary);
+}
+
+body[data-rmc-help-in-sidebar="1"] .rmc-help-contextual-drawer,
 body[data-rmc-help-in-nav="1"] .rmc-help-contextual-drawer {
   display: none !important;
 }

@@ -1,10 +1,33 @@
 /**
- * v3.62.9 — Prevent Unfold #modal-overlay from blocking manager /admin/ clicks.
+ * v3.62.20 — Prevent Unfold #modal-overlay from blocking shell clicks.
  * Unfold app.js can set inline display:block on #modal-overlay while the
  * Tailwind `hidden` class remains; inline style wins over .hidden { display:none }.
  */
-body.admin-manager-shell #modal-overlay.hidden {
+body.admin-manager-shell #modal-overlay,
+body.admin-premium-shell #modal-overlay,
+body.control-plane-shell #modal-overlay,
+body.portal-body-with-layout #modal-overlay {
+  pointer-events: none !important;
+}
+
+body.admin-manager-shell #modal-overlay:not(.show),
+body.admin-premium-shell #modal-overlay:not(.show),
+body.control-plane-shell #modal-overlay:not(.show),
+body.portal-body-with-layout #modal-overlay:not(.show),
+body.admin-manager-shell #modal-overlay.hidden,
+body.admin-premium-shell #modal-overlay.hidden,
+body.control-plane-shell #modal-overlay.hidden,
+body.portal-body-with-layout #modal-overlay.hidden {
   display: none !important;
   pointer-events: none !important;
   visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+body.admin-manager-shell .modal-backdrop:not(.show),
+body.admin-premium-shell .modal-backdrop:not(.show),
+body.control-plane-shell .modal-backdrop:not(.show),
+body.portal-body-with-layout .modal-backdrop:not(.show) {
+  display: none !important;
+  pointer-events: none !important;
 }

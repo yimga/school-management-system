@@ -30,9 +30,20 @@
 .lx-trust-pillars {
   padding: 0;
   isolation: isolate;
-  contain: layout style;
+  contain: layout;
   position: relative;
   outline: none;
+  overflow: visible;
+}
+
+/* Parent collapsable + lx-card both use overflow:hidden — clips pillar grid/time labels. */
+.rmc-collapsable:has(.lx-trust-pillars),
+.rmc-collapsable:has(.lx-trust-pillars) .rmc-collapsable__body {
+  overflow: visible;
+}
+
+section.lx-card.lx-trust-pillars {
+  overflow: visible;
 }
 .lx-trust-pillars:focus,
 .lx-trust-pillars:focus-visible {
@@ -45,7 +56,7 @@
    6px solid rule below as a visual seal.
    ----------------------------------------------------------- */
 .lx-trust-pillars__head {
-  padding: 18px 20px 8px;
+  padding: 14px 16px 6px;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -209,10 +220,10 @@ body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__grid,
 [data-rmc-page-personality="control-plane"] .lx-trust-pillars__grid {
   list-style: none;
   margin: 0;
-  padding: 8px 20px 12px;
+  padding: 6px 16px 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 24px;
+  gap: 0 16px;
 }
 
 .lx-trust-pillars__cell {
@@ -332,6 +343,9 @@ body[data-rmc-shell-main="control-plane"] .lx-trust-pillars__grid,
 .lx-trust-pillars__time {
   font-size: 11px;
   font-family: var(--mono, ui-monospace, "SF Mono", Menlo, monospace);
+  max-width: 9.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap; /* horizontal-overflow-risk-allow: tabular-numeric */
   color: var(--text-muted, #94a3b8); /* off-token-allow: theme-aware-fallback-only */
   font-variant-numeric: tabular-nums;

@@ -82,7 +82,11 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         tenant_nav = Path("templates/partials/tenant_primary_nav.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("tp-primary-nav__item--help", tenant_nav)
+        self.assertIn(
+            "rmc_page_help_sidebar.html",
+            Path("templates/partials/portal_sidebar.html").read_text(encoding="utf-8"),
+        )
+        self.assertNotIn("tp-primary-nav__item--help", tenant_nav)
 
     def test_control_plane_skeleton_document_scroll_contract(self):
         text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")

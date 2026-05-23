@@ -97,20 +97,11 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav {
   border-bottom: 1px solid var(--hairline);
 }
 
-body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item--help {
-  border: 1px solid rgba(124, 58, 237, 0.28);
-  background: rgba(124, 58, 237, 0.06);
-  color: #6d28d9;
-  cursor: pointer;
-  font-family: inherit;
+body.portal-body-with-layout:not(.control-plane-shell) .rmc-sidebar-page-help {
+  margin: 8px 0 10px;
 }
 
-body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item--help:hover,
-body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item--help:focus-visible {
-  background: rgba(124, 58, 237, 0.12);
-  color: #5b21b6;
-}
-
+body[data-rmc-help-in-sidebar="1"].portal-body-with-layout:not(.control-plane-shell),
 body[data-rmc-help-in-nav="1"].portal-body-with-layout:not(.control-plane-shell)
   #portalHeader
   .topbar-icon-btn[data-rmc-page-help] {

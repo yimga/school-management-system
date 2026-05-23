@@ -54,13 +54,21 @@ def main() -> int:
         encoding="utf-8"
     )
 
+    help_sidebar = (ROOT / "templates/partials/rmc_page_help_sidebar.html").read_text(
+        encoding="utf-8"
+    )
+    workspace = (ROOT / "templates/partials/cockpit/_workspace_context.html").read_text(
+        encoding="utf-8"
+    )
+
     for needle, path, msg in (
-        ("data-rmc-help-in-nav", cp_sk, "control_plane_skeleton"),
+        ("data-rmc-help-in-sidebar", cp_sk, "control_plane_skeleton"),
         ("rmc-footer-notebook-anchor", cp_sk, "control_plane_skeleton footer notebook"),
-        ("cp-primary-nav__pill--help", ROOT / "templates/partials/control_plane_primary_nav.html", "CP help pill"),
+        ("rmc-sidebar-page-help", help_sidebar, "sidebar page help partial"),
+        ("rmc_page_help_sidebar.html", workspace, "workspace_context sidebar help include"),
         ("data-rmc-cp-header-200x", cp_base, "control_plane_base header"),
         ("rmc-surface-overlay-guard.js", portal, "portal_base overlay guard"),
-        ("tp-primary-nav__item--help", tenant_nav, "tenant_primary_nav help"),
+        ("tp-primary-nav", tenant_nav, "tenant_primary_nav row"),
         ("rmc-tenant-header-100x.css", portal, "portal tenant header CSS"),
         ("rmc-tenant-canvas-100x.css", portal, "portal tenant canvas CSS"),
     ):

@@ -1,8 +1,12 @@
 """Tier 2–3 marketing: security annex, honest case studies, enterprise narrative."""
 
+from pathlib import Path
+
+from django.template import Context, Template
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
+from apps.schools.marketing_local_context import marketing_local_context
 from apps.schools.security_packet_country_annex import (
     build_country_annex,
     country_code_for_jurisdiction,
@@ -30,9 +34,49 @@ class SecurityPacketCountryAnnexTests(SimpleTestCase):
     MULTI_TENANT_LEGACY_BASE_DOMAINS="",
     ALLOWED_HOSTS=["runmycampus.com", "testserver"],
 )
+class MarketingLocalContextTemplateTests(SimpleTestCase):
+    """Regression: marketing_local keys must not use leading underscores in templates."""
+
+    def test_context_exposes_is_resolved_not_underscore_key(self):
+        from django.test import RequestFactory
+
+        req = RequestFactory().get("/", HTTP_HOST="runmycampus.com")
+        ctx = marketing_local_context(req)["marketing_local"]
+        self.assertIn("is_resolved", ctx)
+        self.assertNotIn("_resolved", ctx)
+
+    def test_base_marketing_uses_template_safe_is_resolved_key(self):
+        text = Path("templates/marketing/base_marketing.html").read_text(encoding="utf-8")
+        self.assertIn("marketing_local.is_resolved", text)
+        self.assertNotIn("marketing_local._resolved", text)
+        # Compile the production {% if %} — Django rejects underscore-prefixed attrs.
+        rendered = Template(
+            "{% if marketing_local.country_code and marketing_local.is_resolved %}ok{% endif %}"
+        ).render(
+            Context(
+                {
+                    "marketing_local": {
+                        "country_code": "US",
+                        "is_resolved": True,
+                    }
+                }
+            )
+        )
+        self.assertEqual(rendered, "ok")
+
+
+@override_settings(
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    MULTI_TENANT_LEGACY_BASE_DOMAINS="",
+    ALLOWED_HOSTS=["runmycampus.com", "testserver"],
+)
 class MarketingTierSurfaceTests(TestCase):
     def setUp(self):
         self.client = Client()
+
+    def test_marketing_home_returns_200(self):
+        resp = self.client.get("/", HTTP_HOST="runmycampus.com")
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
 
     def test_security_packet_renders_jurisdiction_and_annex(self):
         resp = self.client.get(

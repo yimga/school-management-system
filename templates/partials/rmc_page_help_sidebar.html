@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}
+  Page-context help control — lives in the app shell sidebar directly under the
+  operator/user identity block (not in the Home / Studio primary nav row).
+  Opens AI first-line support via static/js/rmc-page-context-help.js.
+{% endcomment %}
+{% if show_contextual_help_drawer or request.user.is_authenticated %}
+<div class="rmc-sidebar-page-help" data-rmc-sidebar-page-help="1">
+  <button type="button"
+          class="rmc-sidebar-page-help__btn"
+          data-rmc-page-help
+          title="{% trans 'Need help on this page?' %}"
+          aria-label="{% trans 'Need help on this page?' %}">
+    <i class="bi bi-question-circle" aria-hidden="true"></i>
+    <span>{% trans "Need help on this page?" %}</span>
+  </button>
+</div>
+{% endif %}

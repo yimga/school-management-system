@@ -61,7 +61,7 @@
   {# Public marketing: no tenant launch splash (avoids CLS + wasted paint on cold acquisition traffic). #}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {# Wave 9 (v3.62.10) local-first marketing band above header; hidden without country signal. #}
-  {% if marketing_local.country_code and marketing_local._resolved %}
+  {% if marketing_local.country_code and marketing_local.is_resolved %}
   {% include 'marketing/_local_first_band.html' %}
   {% endif %}
   {% include 'marketing/marketing_header.html' %}

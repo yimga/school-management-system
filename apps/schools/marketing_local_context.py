@@ -1646,7 +1646,7 @@ def marketing_local_context(request) -> dict:
                 "credential": str(testimonial.get("credential", "")) if testimonial else "",
             } if testimonial else {},
             "case_study_chips":  [str(c) for c in chips if c],
-            "_resolved":         True,
+            "is_resolved":       True,
         }
     except Exception:  # noqa: BLE001 — never break marketing render
         out = {
@@ -1659,6 +1659,6 @@ def marketing_local_context(request) -> dict:
             "currency_sample": "Multi-currency", "calendar_sample": "Country-adaptive",
             "regulatory_line": "", "anchor_city": "", "regional_phrase": "schools",
             "testimonial": {}, "case_study_chips": [],
-            "_resolved": False,
+            "is_resolved": False,
         }
     return {"marketing_local": out}

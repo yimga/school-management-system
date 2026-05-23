@@ -1,23 +1,26 @@
 /**
  * Unblocks clicks when Unfold/Bootstrap leave invisible overlays (manager + CP + /admin/).
- * v3.62.15 (2026-05-23)
+ * v3.62.20 (2026-05-23)
  */
 (function () {
   "use strict";
 
   function isProtectedSurface() {
     if (!document.body) return false;
+    var b = document.body;
     if (
-      document.body.classList.contains("admin-manager-shell") ||
-      document.body.classList.contains("control-plane-shell") ||
-      document.body.getAttribute("data-rmc-admin-cp-unified") === "1"
+      b.classList.contains("admin-manager-shell") ||
+      b.classList.contains("admin-premium-shell") ||
+      b.classList.contains("control-plane-shell") ||
+      b.getAttribute("data-rmc-admin-cp-unified") === "1" ||
+      b.getAttribute("data-rmc-admin-shell") === "1"
     ) {
       return true;
     }
     return (
-      document.body.classList.contains("portal-body-with-layout") &&
-      document.body.getAttribute("data-rmc-premium-shell") === "portal" &&
-      !document.body.classList.contains("marketing-surface")
+      b.classList.contains("portal-body-with-layout") &&
+      b.getAttribute("data-rmc-premium-shell") === "portal" &&
+      !b.classList.contains("marketing-surface")
     );
   }
 
@@ -49,12 +52,15 @@
   }
 
   function unlockAssistBackdrop() {
-    var bd = document.querySelector(".rmc-assist-dock__backdrop");
-    if (!bd) return;
-    var panel = document.body.getAttribute("data-rmc-assist-panel");
-    if (panel === "ai" || panel === "feedback") return;
-    bd.hidden = true;
-    bd.style.pointerEvents = "none";
+    document.querySelectorAll(".rmc-assist-dock__backdrop").forEach(function (bd) {
+      if (!bd) return;
+      var panel = document.body.getAttribute("data-rmc-assist-panel");
+      if (panel === "ai" || panel === "feedback") return;
+      bd.hidden = true;
+      bd.setAttribute("hidden", "");
+      bd.style.pointerEvents = "none";
+      bd.style.display = "none";
+    });
   }
 
   function purgeFullScreenBlockers() {
@@ -96,6 +102,13 @@
     }
   }
 
+  function forceShellInteractive() {
+    document.documentElement.style.pointerEvents = "";
+    document.body.style.pointerEvents = "";
+    var canvas = document.querySelector(".rmc-app-shell__canvas, #cp-main-content, #main");
+    if (canvas) canvas.style.pointerEvents = "";
+  }
+
   // #region agent log
   var _dbgRuns = 0;
   function _agentDbg(hypothesisId, message, data) {
@@ -131,8 +144,7 @@
     removeStaleBackdrops();
     unlockAssistBackdrop();
     purgeFullScreenBlockers();
-    document.documentElement.style.pointerEvents = "";
-    document.body.style.pointerEvents = "";
+    forceShellInteractive();
     // #region agent log
     if (moDisplay !== "none" || backdropCount > 0) {
       _agentDbg("A", "overlay-sanitize", {
@@ -143,6 +155,16 @@
       });
     }
     // #endregion
+  }
+
+  function isInteractive(el) {
+    return (
+      el &&
+      el.closest &&
+      el.closest(
+        "a[href], button, input, select, textarea, summary, label, [role='button'], [tabindex]:not([tabindex='-1']), [data-rmc-page-help]"
+      )
+    );
   }
 
   function boot() {
@@ -175,29 +197,31 @@
       "click",
       function (e) {
         if (!isProtectedSurface()) return;
-        var t = e.target;
-        var interactive =
-          t &&
-          t.closest &&
-          t.closest(
-            "a, button, input, select, textarea, summary, label, [role='button'], [tabindex]"
-          );
-        if (!interactive) {
-          sanitize();
+        if (e.defaultPrevented) return;
+        var el = isInteractive(e.target);
+        if (!el) return;
+        var top = document.elementFromPoint(e.clientX, e.clientY);
+        if (!top || top === el || el.contains(top)) return;
+        // #region agent log
+        _agentDbg("C", "click-blocked-by-overlay", {
+          intendedTag: el.tagName,
+          topTag: top.tagName,
+          topId: top.id || "",
+          topClass: (top.className && String(top.className).slice(0, 80)) || "",
+        });
+        // #endregion
+        sanitize();
+        var topAfter = document.elementFromPoint(e.clientX, e.clientY);
+        if (topAfter && (topAfter === el || el.contains(topAfter))) {
           return;
         }
-        var el = interactive;
-        var top = document.elementFromPoint(e.clientX, e.clientY);
-        if (top && el && top !== el && !el.contains(top) && top !== el) {
-          // #region agent log
-          _agentDbg("C", "click-blocked-by-overlay", {
-            intendedTag: el.tagName,
-            topTag: top.tagName,
-            topId: top.id || "",
-            topClass: (top.className && String(top.className).slice(0, 80)) || "",
-          });
-          // #endregion
-          sanitize();
+        if (!e._rmcOverlayRetried) {
+          e._rmcOverlayRetried = true;
+          try {
+            el.click();
+          } catch (_err) {
+            /* swallow */
+          }
         }
       },
       true

@@ -163,20 +163,30 @@ class DashboardUserPreference(models.Model):
     }
 
     def get_visual_preset(self, role: str | None = None) -> str:
+        from apps.siteconfig.portal_visual_presets_registry import (
+            default_slug_for_role,
+            preset_slugs,
+        )
+
         role_code = (role or getattr(self.user, "role", "") or "").upper()
         presets = self.role_visual_presets or {}
-        valid_values = {choice[0] for choice in self.VISUAL_PRESET_CHOICES}
+        valid_values = preset_slugs() | {choice[0] for choice in self.VISUAL_PRESET_CHOICES}
         selected = (
             presets.get(role_code)
             or self.VISUAL_PRESET_DEFAULTS.get(role_code)
-            or "soft-glass"
+            or default_slug_for_role(role_code)
         )
-        return selected if selected in valid_values else "soft-glass"
+        return selected if selected in valid_values else default_slug_for_role(role_code)
 
     def set_visual_preset(self, role: str | None, preset: str) -> None:
+        from apps.siteconfig.portal_visual_presets_registry import (
+            default_slug_for_role,
+            preset_slugs,
+        )
+
         role_code = (role or getattr(self.user, "role", "") or "").upper() or "DEFAULT"
-        valid_values = {choice[0] for choice in self.VISUAL_PRESET_CHOICES}
-        selected = preset if preset in valid_values else "soft-glass"
+        valid_values = preset_slugs() | {choice[0] for choice in self.VISUAL_PRESET_CHOICES}
+        selected = preset if preset in valid_values else default_slug_for_role(role_code)
         payload = dict(self.role_visual_presets or {})
         payload[role_code] = selected
         self.role_visual_presets = payload
