@@ -563,6 +563,71 @@ _INDIA_STATE_BOARD_CALENDAR_VARIANTS: list[dict[str, Any]] = [
 ]
 
 
+# Wave 14 (v3.62.19 — 2026-05-23) — India state → state-board calendar map.
+# Maps every Indian state + UT (ISO 3166-2:IN codes) to the calendar variant
+# its state board uses. The signup-form mini-picker uses this to auto-flip
+# the calendar radio when an Indian operator picks their state.
+INDIA_STATE_CALENDAR_MAP: dict[str, dict[str, str]] = {
+    # June-April group (3-term, summer break May-June)
+    "IN-KA": {"name": "Karnataka",          "calendar_code": "in-state-jun"},
+    "IN-KL": {"name": "Kerala",             "calendar_code": "in-state-jun"},
+    "IN-MH": {"name": "Maharashtra",        "calendar_code": "in-state-jun"},
+    "IN-OR": {"name": "Odisha",             "calendar_code": "in-state-jun"},
+    "IN-TN": {"name": "Tamil Nadu",         "calendar_code": "in-state-jun"},
+    "IN-TG": {"name": "Telangana",          "calendar_code": "in-state-jun"},
+    "IN-AP": {"name": "Andhra Pradesh",     "calendar_code": "in-state-jun"},
+    "IN-GJ": {"name": "Gujarat",            "calendar_code": "in-state-jun"},
+    "IN-GA": {"name": "Goa",                "calendar_code": "in-state-jun"},
+    "IN-PY": {"name": "Puducherry",         "calendar_code": "in-state-jun"},
+    "IN-LD": {"name": "Lakshadweep",        "calendar_code": "in-state-jun"},
+    "IN-AN": {"name": "Andaman & Nicobar",  "calendar_code": "in-state-jun"},
+    # April-March group (3-term, summer break before April) — Hindi belt + CBSE national
+    "IN-UP": {"name": "Uttar Pradesh",      "calendar_code": "in-state-apr"},
+    "IN-MP": {"name": "Madhya Pradesh",     "calendar_code": "in-state-apr"},
+    "IN-RJ": {"name": "Rajasthan",          "calendar_code": "in-state-apr"},
+    "IN-BR": {"name": "Bihar",              "calendar_code": "in-state-apr"},
+    "IN-JH": {"name": "Jharkhand",          "calendar_code": "in-state-apr"},
+    "IN-HR": {"name": "Haryana",            "calendar_code": "in-state-apr"},
+    "IN-PB": {"name": "Punjab",             "calendar_code": "in-state-apr"},
+    "IN-HP": {"name": "Himachal Pradesh",   "calendar_code": "in-state-apr"},
+    "IN-UT": {"name": "Uttarakhand",        "calendar_code": "in-state-apr"},
+    "IN-DL": {"name": "Delhi",              "calendar_code": "in-state-apr"},
+    "IN-JK": {"name": "Jammu & Kashmir",    "calendar_code": "in-state-apr"},
+    "IN-LA": {"name": "Ladakh",             "calendar_code": "in-state-apr"},
+    "IN-CH": {"name": "Chandigarh",         "calendar_code": "in-state-apr"},
+    "IN-DN": {"name": "Dadra/Nagar/Daman/Diu", "calendar_code": "in-state-apr"},
+    "IN-CT": {"name": "Chhattisgarh",       "calendar_code": "in-state-apr"},
+    "IN-MN": {"name": "Manipur",            "calendar_code": "in-state-apr"},
+    "IN-NL": {"name": "Nagaland",           "calendar_code": "in-state-apr"},
+    "IN-MZ": {"name": "Mizoram",            "calendar_code": "in-state-apr"},
+    "IN-AR": {"name": "Arunachal Pradesh",  "calendar_code": "in-state-apr"},
+    "IN-ML": {"name": "Meghalaya",          "calendar_code": "in-state-apr"},
+    "IN-SK": {"name": "Sikkim",             "calendar_code": "in-state-apr"},
+    # January-December group (SEBA / Bengal academic year)
+    "IN-WB": {"name": "West Bengal",        "calendar_code": "in-state-jan"},
+    "IN-AS": {"name": "Assam",              "calendar_code": "in-state-jan"},
+    "IN-TR": {"name": "Tripura",            "calendar_code": "in-state-jan"},
+}
+
+
+def get_india_state_options() -> list[dict[str, str]]:
+    """Wave 14 (v3.62.19) — return the sorted list of India state picker options.
+
+    Each entry: ``{"code": "IN-MH", "name": "Maharashtra", "calendar_code": "in-state-jun"}``.
+
+    The signup form renders this as a `<select>` when the operator picks
+    India; the adapter JS auto-flips the calendar radio to the chosen state's
+    calendar variant via the existing `data-rmc-country-cards="calendar"`
+    grid.
+    """
+    out = [
+        {"code": code, "name": v["name"], "calendar_code": v["calendar_code"]}
+        for code, v in INDIA_STATE_CALENDAR_MAP.items()
+    ]
+    out.sort(key=lambda x: x["name"])
+    return out
+
+
 def _apply_india_calendar_alternatives(merged: dict[str, Any]) -> None:
     """If we're in India, expose ALL 3 state-board calendar variants in the
     picker — with the language's own variant marked as default — so an

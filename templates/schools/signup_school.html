@@ -178,6 +178,30 @@
             {% endfor %}
           </div>
         </div>
+
+        {% comment %}Wave 14 (v3.62.19 — 2026-05-23): IN "Which state?" mini-picker.
+           When India is the selected country, surface a state picker that
+           auto-flips the calendar radio above to the right state-board variant
+           (June-April / April-March / January-December). Hidden by default;
+           shown by rmc-signup-country-adapter.js when country_code == 'IN'.
+           No-op for any other country.{% endcomment %}
+        {% if india_state_options %}
+        <div class="mb-3 rmc-signup-field" data-rmc-signup-field="india_state" data-rmc-india-state-block="1" style="display:none">
+          <div class="rmc-signup-field__label-row">
+            <span class="rmc-signup-field__label-text">{% trans "Which state?" %}</span>
+            <span class="rmc-signup-field__optional">({% trans "auto-flips the calendar above" %})</span>
+          </div>
+          <select id="id_india_state" name="india_state"
+                  class="form-select form-select-sm"
+                  data-rmc-india-state-picker="1"
+                  aria-label="{% trans 'India state' %}">
+            <option value="">— {% trans "Select your state" %} —</option>
+            {% for state in india_state_options %}
+              <option value="{{ state.code }}" data-calendar-code="{{ state.calendar_code }}">{{ state.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
       </div>
 
       {% comment %}Wave 6 (v3.62.8 — 2026-05-22): per-language education system.

@@ -10,7 +10,8 @@
     <h1 class="h4 mb-1">{% trans "Attendance & discipline" %}</h1>
     <p class="text-muted small mb-2">{% trans "Review records and submit justifications when needed." %}</p>
     <nav class="ds-action-bar d-flex flex-wrap gap-2" role="toolbar" aria-label="{% trans 'Primary actions' %}">
-      <a class="btn btn-sm btn-outline-primary ds-btn" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent dashboard" %}</a>
+      {% term "parent" capitalize=True as _attend_parent_sg %}
+      <a class="btn btn-sm btn-outline-primary ds-btn" href="{% url 'portal:parent_dashboard' %}">{% blocktrans with t=_attend_parent_sg %}{{ t }} dashboard{% endblocktrans %}</a>
     </nav>
   </header>
   {% include "widgets/dashboard_hero.html" with hero=hero %}

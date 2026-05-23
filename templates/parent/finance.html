@@ -191,7 +191,7 @@
               <tr>
                 <td data-label="{% trans 'Reference' %}">{{ invoice.reference|default:invoice.id }}</td>
                 <td data-label="{% trans 'Payment code' %}"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
-                <td data-label="{% trans 'Student' %}">{{ invoice.student|default:"-" }}</td>
+                <td data-label="{% term 'student' capitalize=True %}">{{ invoice.student|default:"-" }}</td>
                 <td data-label="{% trans 'Due' %}">{{ invoice.due_date|format_date|default:"—" }}</td>
                 <td data-label="{% trans 'Status' %}">
                   <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>

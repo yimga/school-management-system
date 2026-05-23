@@ -107,6 +107,7 @@ from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.country_localization_service import (
     get_default_calendar_code,
     get_default_language,
+    get_india_state_options,
     resolve_country_pack,
     resolve_language_pack,
     resolve_primary_sector_for_school_type,
@@ -291,6 +292,12 @@ def signup_school(request: HttpRequest):
                 # picker can render per-language cards server-side without
                 # waiting on a JS round-trip.
                 "country_pack": country_pack,
+                # Wave 14 (v3.62.19) — India per-state mini-picker. Always
+                # shipped (template gates on country_code == 'IN'); zero cost
+                # to non-IN visitors. List is sorted alphabetically by state
+                # name; each entry carries the calendar_code that auto-fills
+                # the calendar radio when the operator picks their state.
+                "india_state_options": get_india_state_options(),
             },
         )
 

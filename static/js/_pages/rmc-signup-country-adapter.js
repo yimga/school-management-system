@@ -48,6 +48,8 @@
     document.documentElement.dataset[INIT_FLAG] = "1";
 
     bindAllSelects();
+    // Wave 14 — sync IN state picker visibility with pre-selected country.
+    toggleIndiaStatePicker(currentCountryCode() === "IN");
     document.body.addEventListener("htmx:afterSwap", bindAllSelects);
   }
 
@@ -71,6 +73,8 @@
     var sel = ev.currentTarget;
     var code = String((sel && sel.value) || "").trim().toUpperCase();
     if (!code || code.length !== 2) return;
+    // Wave 14 — IN per-state mini-picker visibility tied to country pick.
+    toggleIndiaStatePicker(code === "IN");
     fetchPack(code, "").then(function (pack) {
       if (!pack) return;
       // First emit: render language picker (uses baseline pack `languages`)
@@ -78,6 +82,59 @@
       // language is selected later, the language onChange refetches with
       // `?lang=` and overlays.
       renderGrids(pack);
+    });
+  }
+
+  // Wave 14 (v3.62.19 — 2026-05-23) — IN per-state mini-picker.
+  // Shows the "Which state?" select when India is the selected country,
+  // hides it otherwise. When the operator picks a state, auto-flips the
+  // calendar radio above to the right state-board variant via the existing
+  // data-rmc-country-cards="calendar" grid.
+  function toggleIndiaStatePicker(show) {
+    var block = document.querySelector("[data-rmc-india-state-block]");
+    if (!block) return;
+    block.style.display = show ? "" : "none";
+    var picker = document.querySelector("[data-rmc-india-state-picker]");
+    if (!picker) return;
+    if (!picker.dataset.rmcIndiaStateBound) {
+      picker.dataset.rmcIndiaStateBound = "1";
+      picker.addEventListener("change", onIndiaStateChange);
+    }
+    if (!show) {
+      // Clear the picked state when leaving IN so a re-pick triggers fresh flip.
+      picker.value = "";
+    }
+  }
+
+  function onIndiaStateChange(ev) {
+    var sel = ev.currentTarget;
+    var opt = sel && sel.options[sel.selectedIndex];
+    if (!opt) return;
+    var calCode = opt.getAttribute("data-calendar-code") || "";
+    if (!calCode) return;
+    // Flip the calendar radio. The calendar grid carries
+    // data-rmc-country-cards="calendar" + data-rmc-country-cards-radio="term_preset".
+    var grid = document.querySelector('[data-rmc-country-cards="' + CARD_KIND_CALENDAR + '"]');
+    if (!grid) return;
+    var radio = grid.querySelector('input[type="radio"][value="' + cssEscape(calCode) + '"]');
+    if (!radio) return;
+    // Uncheck siblings + check this one + paint selected class.
+    var siblings = grid.querySelectorAll('input[type="radio"][name="' + radio.name + '"]');
+    for (var i = 0; i < siblings.length; i++) {
+      siblings[i].checked = false;
+      var card = siblings[i].closest(".rmc-calendar-card");
+      if (card) card.classList.remove("rmc-calendar-card--selected");
+    }
+    radio.checked = true;
+    var ownCard = radio.closest(".rmc-calendar-card");
+    if (ownCard) ownCard.classList.add("rmc-calendar-card--selected");
+    radio.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function cssEscape(v) {
+    // Minimal CSS.escape polyfill for the values we ship (alphanumeric + hyphen).
+    return String(v).replace(/[^a-zA-Z0-9_-]/g, function (ch) {
+      return "\\" + ch;
     });
   }
 

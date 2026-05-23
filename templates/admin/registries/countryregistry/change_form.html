@@ -1,0 +1,65 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static %}
+
+{% comment %}
+Wave 14 (v3.62.19 — 2026-05-23): side-by-side live preview for the marketing
+voice rich-edit form. Sits in the right-rail panel; updates as the operator
+types in any of the mv_* form fields. Pure CSS + CSP-safe IIFE JS (no eval,
+no innerHTML on operator input — uses textContent).
+
+Renders a stripped-down version of the marketing band so the operator can
+see exactly how their override will look on the public marketing surface
+before clicking Save.
+{% endcomment %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/rmc-mv-preview.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="rmc-mv-form-with-preview">
+  <div class="rmc-mv-form-with-preview__form">
+    {{ block.super }}
+  </div>
+  <aside class="rmc-mv-form-with-preview__preview" aria-label="{% trans 'Marketing voice preview' %}">
+    <div class="rmc-mv-preview-sticky">
+      <h2 class="rmc-mv-preview__title">{% trans "Live preview" %}</h2>
+      <p class="rmc-mv-preview__hint">{% trans "Updates as you type. This is how the marketing band will render on the public surface for visitors from this country." %}</p>
+
+      <div class="rmc-mv-preview-band" data-rmc-mv-preview-band>
+        <div class="rmc-mv-preview-band__row">
+          <div class="rmc-mv-preview-band__chip" data-rmc-mv-preview-greeting>—</div>
+          <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--ghost" data-rmc-mv-preview-anchor>—</div>
+        </div>
+        <h3 class="rmc-mv-preview-band__headline" data-rmc-mv-preview-headline>—</h3>
+        <p class="rmc-mv-preview-band__subline" data-rmc-mv-preview-subline>—</p>
+        <div class="rmc-mv-preview-band__trust" data-rmc-mv-preview-trust>—</div>
+        <div class="rmc-mv-preview-band__row">
+          <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-currency>—</div>
+          <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-calendar>—</div>
+        </div>
+        <p class="rmc-mv-preview-band__regulatory" data-rmc-mv-preview-regulatory>—</p>
+      </div>
+
+      <div class="rmc-mv-preview-chips" data-rmc-mv-preview-chips-empty>
+        <div class="rmc-mv-preview-chips__heading">{% trans "Case-study chips" %}</div>
+        <div class="rmc-mv-preview-chips__list" data-rmc-mv-preview-chips-list>
+          <em class="rmc-mv-preview-empty">{% trans "(no chips yet — add one per line in the form)" %}</em>
+        </div>
+      </div>
+
+      <figure class="rmc-mv-preview-testimonial" data-rmc-mv-preview-testimonial-empty>
+        <blockquote class="rmc-mv-preview-testimonial__quote" data-rmc-mv-preview-testimonial-quote>
+          <em class="rmc-mv-preview-empty">{% trans "(no testimonial yet)" %}</em>
+        </blockquote>
+        <figcaption class="rmc-mv-preview-testimonial__caption">
+          <span class="rmc-mv-preview-testimonial__author" data-rmc-mv-preview-testimonial-author></span>
+          <span class="rmc-mv-preview-testimonial__credential" data-rmc-mv-preview-testimonial-credential></span>
+        </figcaption>
+      </figure>
+    </div>
+  </aside>
+</div>
+
+<script src="{% static 'admin/js/rmc-mv-preview.js' %}" nonce="{{ csp_nonce }}" defer></script>
+{% endblock %}

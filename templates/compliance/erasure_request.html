@@ -1,5 +1,8 @@
 {% extends "backend_base.html" %}
-{% load i18n static workflow_guidance_tags %}
+{% load i18n static workflow_guidance_tags terminology_tags %}
+{# Wave 14 (v3.62.19): lexicon adoption — "student" → tenant term. #}
+{% term "student" as _student_sg_lc %}
+{% term "student" capitalize=True as _student_sg %}
 
 {% block title %}{% trans "Request erasure (GDPR)" %} – {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Request erasure (GDPR Art. 17)" %}{% endblock %}
@@ -21,11 +24,11 @@
     <div class="card shadow-sm">
       <div class="card-body">
         <h1 class="h4 mb-3">{% trans "Right to Erasure" %}</h1>
-        <p class="text-muted">{% trans "Submit a request to erase a student's personal data (GDPR Art. 17). An administrator will process the request." %}</p>
+        <p class="text-muted">{% blocktrans with t=_student_sg_lc %}Submit a request to erase a {{ t }}'s personal data (GDPR Art. 17). An administrator will process the request.{% endblocktrans %}</p>
         <form method="post" action="" id="compliance-erasure-form" data-draft-key="compliance_erasure_{{ school.id }}" data-draft-max-age-hours="72" data-draft-pending-label="{% trans 'Unsynced erasure request' %}">
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label" for="student_id">{% trans "Student ID" %}</label>
+            <label class="form-label" for="student_id">{% blocktrans with t=_student_sg %}{{ t }} ID{% endblocktrans %}</label>
             <input type="number" class="form-control" id="student_id" name="student_id" required inputmode="numeric" autocomplete="off" aria-required="true" placeholder="{% trans 'e.g. 123' %}">
           </div>
           <button type="submit" class="btn btn-primary">{% trans "Submit request" %}</button>

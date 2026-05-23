@@ -1,4 +1,4 @@
-# GeoIP deployment guide (Wave 10 + 12)
+# GeoIP deployment guide (Wave 10 + 12 + 14)
 
 RunMyCampus uses GeoIP **only** to detect a first-time visitor's country so the
 marketing surface + signup form can render locally-relevant copy without
@@ -155,3 +155,63 @@ print(lookup_country(FakeReq()))   # -> 'NG'
 | Country resolves to `""` on a Cloudflare-fronted deploy | Backend not set to `cloudflare` | `export RMC_GEOIP_BACKEND=cloudflare` |
 | `CF-IPCountry` returns `XX` | Cloudflare couldn't geolocate (proxy/VPN visitor) | Expected — chain falls back to Accept-Language |
 | Wrong country detected | Visitor on VPN / mobile carrier with wrong NAT egress | Expected — `rmc_country` cookie (operator opt-in) wins over GeoIP |
+
+## City tier (Wave 14, v3.62.19 — OPTIONAL)
+
+In addition to the country tier above, an OPTIONAL city-level lookup can be
+configured independently. When the visitor's metro resolves, the marketing
+band's `anchor_city` field reads the actual metro (e.g. "São Paulo") instead
+of the country-level anchor ("São Paulo / Rio de Janeiro").
+
+### Env vars
+
+| Var | Default | Notes |
+|-----|---------|-------|
+| `RMC_GEOIP_CITY_BACKEND` | `noop` | One of: `noop`, `cloudflare`, `x-city`, `maxmind-lite2` |
+| `GEOIP_CITY_DATABASE_PATH` | (unset) | Required when backend = `maxmind-lite2`. Path to GeoLite2-City.mmdb file. |
+
+### Backends
+
+| Backend | Setup cost | Notes |
+|---------|------------|-------|
+| `noop` (default) | Zero | No city resolution; marketing band uses country-level anchor city. |
+| `cloudflare` | CF Enterprise plan only | Reads `CF-IPCity` header. Falls open on non-Enterprise plans (header absent → noop). |
+| `x-city` | Custom WAF / LB injection | Reads `X-City` header. |
+| `maxmind-lite2` | Separate .mmdb (GeoLite2-City, ~70MB; country tier above uses GeoLite2-Country ~5MB) | Same `download_geoip_mmdb.py` flow with `--edition GeoLite2-City`. |
+
+### Operator recipe (MaxMind self-hosted)
+
+```bash
+# 1. Download both country + city .mmdb files
+export MAXMIND_LICENSE_KEY=<your key>
+export GEOIP_COUNTRY_DATABASE_PATH=/var/geoip/GeoLite2-Country.mmdb
+export GEOIP_CITY_DATABASE_PATH=/var/geoip/GeoLite2-City.mmdb
+python scripts/download_geoip_mmdb.py                # country (Wave 12 default)
+python scripts/download_geoip_mmdb.py --edition GeoLite2-City --output "$GEOIP_CITY_DATABASE_PATH"
+
+# 2. Enable both backends
+export RMC_GEOIP_BACKEND=maxmind-lite2
+export RMC_GEOIP_CITY_BACKEND=maxmind-lite2
+
+# 3. Restart the app. Smoke-test from Django shell:
+python manage.py shell -c "
+from apps.siteconfig.geoip_country_lookup import lookup_country, lookup_city
+class R:
+    META = {'REMOTE_ADDR': '8.8.8.8'}
+print('country:', lookup_country(R()))   # -> 'US'
+print('city:',    lookup_city(R()))      # -> 'Mountain View' (or '' on country-only IPs)
+"
+```
+
+### PII posture (city tier)
+
+City resolution stays inside the same boundary as country resolution:
+
+- Raw IP NEVER leaves the request → resolver method boundary
+- City name is broad-stroke (metro-level) — never address, never lat/lon
+- City output is rendered to the public marketing band; not stored in user / school records
+- Visitors who don't want city-level personalization can disable it client-side via the `rmc_country` cookie (operator opt-in → cookie wins over GeoIP)
+
+### Cloudflare CF-IPCity caveat
+
+`CF-IPCity` is **Enterprise plan only**. On Pro / Business plans the header is absent and the city resolver falls open silently (returns "") — the marketing band uses the country-level anchor city. If you're on a non-Enterprise plan and want city tier, use the MaxMind self-hosted path above.

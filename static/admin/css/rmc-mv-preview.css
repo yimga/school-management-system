@@ -1,0 +1,212 @@
+/* Wave 14 (v3.62.19 — 2026-05-23) — marketing voice rich-edit preview pane.
+ *
+ * Two-column layout: form on the left, sticky live preview on the right.
+ * Mirrors the local-first marketing band style (greeting chip + headline +
+ * subline + currency/calendar chips + regulatory line + testimonial figure +
+ * case-study chips list) at ~60% scale so it fits inside Django admin's
+ * change_form layout without horizontal scroll.
+ *
+ * Theme tokens used (already defined in design-tokens.css):
+ *   --surface-elevated, --surface-canvas, --text-primary, --text-secondary,
+ *   --hairline, --color-primary-600, --radius-md, --space-2/3/4.
+ */
+
+.rmc-mv-form-with-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .rmc-mv-form-with-preview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rmc-mv-form-with-preview__form {
+  min-width: 0;
+}
+
+.rmc-mv-form-with-preview__preview {
+  min-width: 0;
+}
+
+.rmc-mv-preview-sticky {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rmc-mv-preview__title {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #6b655d);
+}
+
+.rmc-mv-preview__hint {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary, #6b655d);
+  line-height: 1.4;
+}
+
+/* Marketing band preview — mirrors templates/marketing/_local_first_band.html */
+.rmc-mv-preview-band {
+  background: var(--surface-elevated, #ffffff);
+  border: 1px solid var(--hairline, #e9e6dc);
+  border-left: 3px solid var(--color-primary-600, #4f46e5);
+  border-radius: var(--radius-md, 6px);
+  padding: 1rem 1.1rem;
+  font-size: 0.85rem;
+  color: var(--text-primary, #1c1a17);
+}
+
+.rmc-mv-preview-band__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.rmc-mv-preview-band__chip {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary-600, #4f46e5) 12%, transparent);
+  color: var(--color-primary-600, #4f46e5);
+  font-weight: 500;
+}
+
+.rmc-mv-preview-band__chip--ghost {
+  background: transparent;
+  border: 1px solid var(--hairline, #e9e6dc);
+  color: var(--text-secondary, #6b655d);
+}
+
+.rmc-mv-preview-band__chip--data {
+  background: var(--surface-canvas, #f6f5f1);
+  color: var(--text-primary, #1c1a17);
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-mv-preview-band__headline {
+  margin: 0.4rem 0 0.2rem 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-primary, #1c1a17);
+}
+
+.rmc-mv-preview-band__subline {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #6b655d);
+  line-height: 1.4;
+}
+
+.rmc-mv-preview-band__trust {
+  margin-bottom: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary, #6b655d);
+  font-style: italic;
+}
+
+.rmc-mv-preview-band__regulatory {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.72rem;
+  color: var(--text-secondary, #6b655d);
+  border-top: 1px dashed var(--hairline, #e9e6dc);
+  padding-top: 0.5rem;
+}
+
+/* Case-study chips list (separate from band) */
+.rmc-mv-preview-chips {
+  background: var(--surface-elevated, #ffffff);
+  border: 1px solid var(--hairline, #e9e6dc);
+  border-radius: var(--radius-md, 6px);
+  padding: 0.7rem 0.9rem;
+}
+
+.rmc-mv-preview-chips__heading {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #6b655d);
+  margin-bottom: 0.4rem;
+}
+
+.rmc-mv-preview-chips__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.rmc-mv-preview-chips__list .rmc-mv-preview-chip {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary-600, #4f46e5) 8%, transparent);
+  color: var(--text-primary, #1c1a17);
+  border: 1px solid color-mix(in srgb, var(--color-primary-600, #4f46e5) 18%, transparent);
+}
+
+/* Testimonial figure */
+.rmc-mv-preview-testimonial {
+  margin: 0;
+  background: var(--surface-elevated, #ffffff);
+  border: 1px solid var(--hairline, #e9e6dc);
+  border-radius: var(--radius-md, 6px);
+  padding: 0.9rem 1rem;
+  position: relative;
+}
+
+.rmc-mv-preview-testimonial::before {
+  content: "\201C"; /* Left double quote */
+  position: absolute;
+  top: -0.2rem;
+  left: 0.35rem;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--color-primary-600, #4f46e5);
+  opacity: 0.35;
+}
+
+.rmc-mv-preview-testimonial__quote {
+  margin: 0 0 0.4rem 0;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-primary, #1c1a17);
+  padding-left: 0.7rem;
+}
+
+.rmc-mv-preview-testimonial__caption {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.72rem;
+  color: var(--text-secondary, #6b655d);
+  padding-left: 0.7rem;
+}
+
+.rmc-mv-preview-testimonial__author {
+  font-weight: 600;
+  color: var(--text-primary, #1c1a17);
+}
+
+.rmc-mv-preview-empty {
+  color: var(--text-secondary, #6b655d);
+  font-style: italic;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}

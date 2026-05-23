@@ -44,8 +44,16 @@ import urllib.request
 
 DOWNLOAD_URL = (
     "https://download.maxmind.com/app/geoip_download"
-    "?edition_id=GeoLite2-Country&suffix=tar.gz&license_key={key}"
+    "?edition_id={edition}&suffix=tar.gz&license_key={key}"
 )
+# Wave 14 (v3.62.19): both editions supported. City edition unlocks the
+# anchor-city override in the marketing band (see docs/GEOIP_DEPLOYMENT.md
+# § "City tier").
+VALID_EDITIONS = ("GeoLite2-Country", "GeoLite2-City")
+DEFAULT_DEST_ENV_FOR_EDITION = {
+    "GeoLite2-Country": "GEOIP_COUNTRY_DATABASE_PATH",
+    "GeoLite2-City":    "GEOIP_CITY_DATABASE_PATH",
+}
 
 
 def _safe_key_log(key: str) -> str:
@@ -53,15 +61,16 @@ def _safe_key_log(key: str) -> str:
     return hashlib.sha256(key.encode("utf-8")).hexdigest()[:12]
 
 
-def _resolve_dest(args_out: str | None) -> str:
+def _resolve_dest(args_out: str | None, edition: str) -> str:
     if args_out:
         return os.path.abspath(args_out)
-    env = (os.environ.get("GEOIP_COUNTRY_DATABASE_PATH") or "").strip()
+    env_name = DEFAULT_DEST_ENV_FOR_EDITION.get(edition, "GEOIP_COUNTRY_DATABASE_PATH")
+    env = (os.environ.get(env_name) or "").strip()
     if env:
         return os.path.abspath(env)
     raise SystemExit(
-        "ERROR: pass --out=<path> or set GEOIP_COUNTRY_DATABASE_PATH "
-        "(recommended: /etc/geoip/GeoLite2-Country.mmdb)."
+        f"ERROR: pass --out=<path> or set {env_name} "
+        f"(recommended: /etc/geoip/{edition}.mmdb)."
     )
 
 
@@ -115,17 +124,23 @@ def _atomic_write(dest: str, content: bytes) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Download MaxMind GeoLite2 country DB.")
+    parser = argparse.ArgumentParser(description="Download MaxMind GeoLite2 country/city DB.")
     parser.add_argument("--license-key", dest="license_key", default=None,
                         help="MaxMind license key (or set MAXMIND_LICENSE_KEY env).")
     parser.add_argument("--out", dest="out", default=None,
-                        help="Destination .mmdb path (or set GEOIP_COUNTRY_DATABASE_PATH env).")
+                        help="Destination .mmdb path (or set GEOIP_COUNTRY_DATABASE_PATH / "
+                             "GEOIP_CITY_DATABASE_PATH env depending on --edition).")
+    parser.add_argument("--edition", dest="edition", default="GeoLite2-Country",
+                        choices=VALID_EDITIONS,
+                        help="Which MaxMind edition to download (default: GeoLite2-Country). "
+                             "Wave 14 added GeoLite2-City for the marketing band anchor-city override.")
     parser.add_argument("--check-only", action="store_true",
                         help="Verify config is present + dest is writable; do NOT download.")
     args = parser.parse_args(argv)
 
     key = _resolve_license_key(args.license_key)
-    dest = _resolve_dest(args.out)
+    dest = _resolve_dest(args.out, args.edition)
+    print(f"[geoip] edition: {args.edition}")
     print(f"[geoip] license-key sha256 prefix: {_safe_key_log(key)}")
     print(f"[geoip] destination: {dest}")
 
@@ -141,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
         print("[geoip] check-only: configuration OK; license key + dest valid.")
         return 0
 
-    blob = _download(DOWNLOAD_URL.format(key=key))
+    blob = _download(DOWNLOAD_URL.format(edition=args.edition, key=key))
     mmdb = _extract_mmdb(blob)
     _atomic_write(dest, mmdb)
     print("[geoip] OK")

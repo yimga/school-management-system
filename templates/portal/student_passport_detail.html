@@ -1,12 +1,13 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
 {% load terminology_tags %}
+{% term "student" capitalize=True as _passport_student_sg %}
 
-{% block title %}{% trans "Student passport" %} · {{ student.first_name }} {{ student.last_name }}{% endblock %}
+{% block title %}{% blocktrans with t=_passport_student_sg %}{{ t }} passport{% endblocktrans %} · {{ student.first_name }} {{ student.last_name }}{% endblock %}
 
 {% block content %}
 <div class="container py-4" data-rmc-student-passport="1">
-  <h1 class="h5 mb-3">{% trans "Student passport" %}</h1>
+  <h1 class="h5 mb-3">{% blocktrans with t=_passport_student_sg %}{{ t }} passport{% endblocktrans %}</h1>
   <p class="small text-muted mb-3">{% trans "Portable identity record for verified transcript linkage (tenant-scoped)." %}</p>
   <dl class="row small mb-4">
     <dt class="col-sm-3">{% trans "Passport ID" %}</dt>
@@ -32,7 +33,7 @@
 
   {% if student360_url or transcript_vault_url %}
   <p class="small mb-0">
-    {% if student360_url %}<a href="{{ student360_url }}">{% trans "Student 360" %}</a>{% endif %}
+    {% if student360_url %}<a href="{{ student360_url }}">{% blocktrans with t=_passport_student_sg %}{{ t }} 360{% endblocktrans %}</a>{% endif %}
     {% if student360_url and transcript_vault_url %} · {% endif %}
     {% if transcript_vault_url %}<a href="{{ transcript_vault_url }}">{% trans "Transcript vault" %}</a>{% endif %}
   </p>

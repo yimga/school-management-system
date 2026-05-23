@@ -1,9 +1,13 @@
-{% load i18n %}
+{% load i18n terminology_tags %}
+{# Wave 14 (v3.62.19): lexicon — "classroom" / "student" → tenant terms. #}
+{% term "classroom" as _classroom_sg_lc %}
+{% term "classroom" plural=True as _classroom_pl_lc %}
+{% term "student" as _student_sg_lc %}
 <div class="container-fluid py-2 studio-output-native-pane min-w-0" data-studio-output-native="reports">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3 ds-card mb-3 min-w-0">
     <p class="mb-3">
-      {% trans "Use the pack graph for dependencies and active packs. Bulk letters generate per-classroom ODT/ZIP. Report card styles and live preview (iframe embed in the builder) are under Report card builder." %}
+      {% blocktrans with cl=_classroom_sg_lc %}Use the pack graph for dependencies and active packs. Bulk letters generate per-{{ cl }} ODT/ZIP. Report card styles and live preview (iframe embed in the builder) are under Report card builder.{% endblocktrans %}
     </p>
     <ul class="rmc-output-policy-list" role="list">
       {% if dependency_pane_url %}
@@ -22,7 +26,7 @@
           <a href="{{ bulk_letters_url }}">{% trans "Bulk letters" %}</a>
         </p>
         <p class="rmc-output-policy-list__desc">
-          {% trans "Merge letters to classrooms (full window)." %}
+          {% blocktrans with t=_classroom_pl_lc %}Merge letters to {{ t }} (full window).{% endblocktrans %}
         </p>
       </li>
       {% endif %}
@@ -32,7 +36,7 @@
           <a href="{{ builder_pane_url }}">{% trans "Report card builder" %}</a>
         </p>
         <p class="rmc-output-policy-list__desc">
-          {% trans "Term/annual styles, assignments, defaults; preview uses embed/new tab by design." %}
+          {% blocktrans %}Term/annual styles, assignments, defaults; preview uses embed/new tab by design.{% endblocktrans %}
         </p>
       </li>
       {% endif %}
@@ -42,7 +46,7 @@
           <a href="{{ credentials_pane_url }}">{% trans "IDs & certificates" %}</a>
         </p>
         <p class="rmc-output-policy-list__desc">
-          {% trans "Staff badges and student card entry points." %}
+          {% blocktrans with t=_student_sg_lc %}Staff badges and {{ t }} card entry points.{% endblocktrans %}
         </p>
       </li>
       {% endif %}

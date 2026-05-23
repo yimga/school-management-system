@@ -2,9 +2,11 @@
 {% load static %}
 {% load i18n %}
 {% load terminology_tags %}
-{% block title %}Take student attendance{% endblock %}
+{% term "student" as _rc_student_sg %}
+{% blocktrans asvar _rc_title with t=_rc_student_sg %}Take {{ t }} attendance{% endblocktrans %}
+{% block title %}{{ _rc_title }}{% endblock %}
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Take student attendance</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ _rc_title }}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   <p class="small mb-2 d-flex flex-wrap gap-2">
     <a href="{% url 'portal:teacher_bulk_capture_hub' %}">{% trans "← Bulk capture hub" %}</a>
@@ -42,7 +44,7 @@
               data-draft-key="student_roll_{{ classroom.id }}_{{ date_value }}"
               data-draft-max-age-hours="72"
               data-offline-hint="{% trans 'Offline: attendance is saved locally and queued; syncs when you are back online.' %}"
-              data-draft-pending-label="{% trans 'Student attendance' %}">
+              data-draft-pending-label="{% blocktrans with t=_rc_student_sg|capfirst %}{{ t }} attendance{% endblocktrans %}">
           {% csrf_token %}
           <input type="hidden" name="date" value="{{ date_value }}">
           <input type="hidden" name="classroom" value="{{ classroom.id }}">

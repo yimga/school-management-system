@@ -1,12 +1,13 @@
-{% load i18n %}
+{% load i18n terminology_tags %}
+{# Wave 14 (v3.62.19): persona quickstart labels honor tenant lexicon. #}
 {% if kb_search_url %}
 <section class="mb-4" aria-labelledby="rmc-persona-help-heading">
   <h3 id="rmc-persona-help-heading" class="h6 text-uppercase text-tertiary">{% trans "Quick start by role" %}</h3>
   <div class="d-flex flex-wrap gap-2">
-    <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=TEACHER">{% trans "Teacher" %}</a>
-    <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=PARENT">{% trans "Parent" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=TEACHER">{% term "teacher" capitalize=True %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=PARENT">{% term "parent" capitalize=True %}</a>
     <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=ADMIN">{% trans "Admin" %}</a>
-    <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=STUDENT">{% trans "Student" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=STUDENT">{% term "student" capitalize=True %}</a>
   </div>
 </section>
 {% endif %}

@@ -38,6 +38,12 @@ logger = logging.getLogger(__name__)
 _BACKEND_ENV = "RMC_GEOIP_BACKEND"
 _DB_PATH_ENV = "GEOIP_COUNTRY_DATABASE_PATH"
 
+# Wave 14 (v3.62.19 — 2026-05-23) — city-tier resolver. Separate from country
+# tier so deployments can opt into city WITHOUT switching their country
+# backend (e.g. Cloudflare country header + MaxMind City .mmdb for city).
+_CITY_BACKEND_ENV = "RMC_GEOIP_CITY_BACKEND"
+_CITY_DB_PATH_ENV = "GEOIP_CITY_DATABASE_PATH"
+
 
 def _selected_backend() -> str:
     return (os.environ.get(_BACKEND_ENV) or "noop").strip().lower()
@@ -169,7 +175,7 @@ def lookup_country(request) -> str:
 
 def reset_cache_for_tests() -> None:
     """Test helper — clear cached MaxMind reader."""
-    global _MAXMIND_READER, _MAXMIND_INIT_FAILED
+    global _MAXMIND_READER, _MAXMIND_INIT_FAILED, _MAXMIND_CITY_READER, _MAXMIND_CITY_INIT_FAILED
     if _MAXMIND_READER is not None:
         try:
             _MAXMIND_READER.close()
@@ -177,3 +183,145 @@ def reset_cache_for_tests() -> None:
             pass
     _MAXMIND_READER = None
     _MAXMIND_INIT_FAILED = False
+    if _MAXMIND_CITY_READER is not None:
+        try:
+            _MAXMIND_CITY_READER.close()
+        except Exception:  # noqa: BLE001
+            pass
+    _MAXMIND_CITY_READER = None
+    _MAXMIND_CITY_INIT_FAILED = False
+
+
+# ---------------------------------------------------------------------------
+# Wave 14 (v3.62.19 — 2026-05-23) — City-tier resolver.
+#
+# Adds OPTIONAL city-level localization on top of the country-tier above.
+# Use case: when a visitor's IP resolves to São Paulo BR, the marketing band
+# anchors to "São Paulo" instead of the generic "São Paulo / Rio de Janeiro"
+# country anchor. Falls back to "" silently when city tier is not configured
+# OR resolution fails, so the country anchor still wins.
+#
+# Backends (env var ``RMC_GEOIP_CITY_BACKEND``):
+#   * ``"noop"`` (default)   — always returns ""
+#   * ``"cloudflare"``       — reads ``CF-IPCity`` header (only present on
+#                              CF Enterprise plans — falls open on other plans)
+#   * ``"x-city"``           — reads ``X-City`` custom header from upstream LB
+#   * ``"maxmind-lite2"``    — reads ``GEOIP_CITY_DATABASE_PATH`` env (.mmdb
+#                              file); requires ``geoip2`` PyPI; same fail-open
+#                              semantics as the country tier
+#
+# PII safety: city name is broad-stroke (metro level) and inherent to public
+# GeoIP databases — NOT PII at the platform's data classification level
+# (PII triage doc § 4.2). Still never logged with raw IP.
+# ---------------------------------------------------------------------------
+
+_MAXMIND_CITY_READER = None
+_MAXMIND_CITY_INIT_FAILED = False
+
+
+def _selected_city_backend() -> str:
+    return (os.environ.get(_CITY_BACKEND_ENV) or "noop").strip().lower()
+
+
+def _normalize_city(value: str) -> str:
+    out = (value or "").strip()
+    # Drop control chars + trim absurd lengths.
+    out = "".join(ch for ch in out if ch.isprintable())
+    return out[:80]
+
+
+def _lookup_city_cloudflare(request) -> str:
+    try:
+        return _normalize_city(request.META.get("HTTP_CF_IPCITY", ""))
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _lookup_city_x_header(request) -> str:
+    try:
+        return _normalize_city(request.META.get("HTTP_X_CITY", ""))
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _lookup_city_maxmind_lite2(request) -> str:
+    """MaxMind GeoLite2 City lookup. Lazy + cached + fail-open."""
+    global _MAXMIND_CITY_READER, _MAXMIND_CITY_INIT_FAILED
+    if _MAXMIND_CITY_INIT_FAILED:
+        return ""
+    if _MAXMIND_CITY_READER is None:
+        try:
+            import geoip2.database  # type: ignore
+        except ImportError:
+            logger.warning(
+                "GeoIP city backend 'maxmind-lite2' selected but `geoip2` "
+                "package is not installed. Falling back to noop."
+            )
+            _MAXMIND_CITY_INIT_FAILED = True
+            return ""
+        db_path = (os.environ.get(_CITY_DB_PATH_ENV) or "").strip()
+        if not db_path or not os.path.isfile(db_path):
+            logger.warning(
+                "GeoIP city backend 'maxmind-lite2' selected but %s is empty "
+                "or the file does not exist. Falling back to noop.", _CITY_DB_PATH_ENV,
+            )
+            _MAXMIND_CITY_INIT_FAILED = True
+            return ""
+        try:
+            _MAXMIND_CITY_READER = geoip2.database.Reader(db_path)
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "GeoIP city backend 'maxmind-lite2' failed to open database; "
+                "falling back to noop."
+            )
+            _MAXMIND_CITY_INIT_FAILED = True
+            return ""
+
+    ip = _client_ip(request)
+    if not ip:
+        return ""
+    try:
+        result = _MAXMIND_CITY_READER.city(ip)
+        # Prefer English name; fall back to native script. Returns "" when
+        # the city tier of the .mmdb has no city for this IP (rural / mobile
+        # carrier / VPN exits with country-only records).
+        city_obj = getattr(result, "city", None)
+        if city_obj is None:
+            return ""
+        name = getattr(city_obj, "name", "") or ""
+        if not name:
+            names = getattr(city_obj, "names", None) or {}
+            name = names.get("en") if isinstance(names, dict) else ""
+        return _normalize_city(name or "")
+    except Exception:  # noqa: BLE001 — AddressNotFoundError / etc.
+        return ""
+
+
+_CITY_BACKEND_DISPATCH = {
+    "noop":           lambda _req: "",
+    "cloudflare":     _lookup_city_cloudflare,
+    "x-city":         _lookup_city_x_header,
+    "maxmind-lite2":  _lookup_city_maxmind_lite2,
+}
+
+
+def lookup_city(request) -> str:
+    """Wave 14 (v3.62.19) — return the visitor's metro / city name from GeoIP.
+
+    Returns "" when backend is noop / not configured / cannot resolve OR the
+    .mmdb city tier has no city record for the IP. Never raises.
+    """
+    if request is None:
+        return ""
+    backend = _selected_city_backend()
+    handler = _CITY_BACKEND_DISPATCH.get(backend)
+    if handler is None:
+        logger.warning(
+            "GeoIP city backend '%s' unknown; valid options: %s. Using noop.",
+            backend, ", ".join(sorted(_CITY_BACKEND_DISPATCH.keys())),
+        )
+        return ""
+    try:
+        return handler(request) or ""
+    except Exception:  # noqa: BLE001
+        return ""

@@ -207,6 +207,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Ethiopian MoE roadmap (uses Ethiopian calendar dates parallel-rendered).",
         "anchor_city": "Addis Ababa",
         "regional_phrase": "Ethiopian schools",
+        "testimonial": {
+            "quote": "ሰላም — EHEECE ሥርዓት፣ የብር ክፍያ፣ የኢትዮጵያ የቀን መቁጠሪያ ጎን ለጎን ከጎርጎርዮስ.",
+            "author": "ርዕሰ መምህር, አዲስ አበባ ሁለተኛ ደረጃ ት/ቤት",
+            "credential": "Grade 1-12 · 1,200 ተማሪዎች",
+        },
+        "case_study_chips": [
+            "EHEECE Grade 12 + 10 exam tracking",
+            "Ethiopic calendar parallel to Gregorian",
+            "Birr fees + telebirr + CBE bank transfer",
+        ],
     },
     "RW": {
         "country_name": "Rwanda",
@@ -219,6 +229,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Rwanda Education Board curriculum.",
         "anchor_city": "Kigali",
         "regional_phrase": "Rwandan schools",
+        "testimonial": {
+            "quote": "REB results, term fees in francs, Kinyarwanda parent SMS — built for our system, not bolted on.",
+            "author": "Headteacher, secondary school in Kigali",
+            "credential": "P1–S6 · 1,000 learners · English-medium since 2008",
+        },
+        "case_study_chips": [
+            "REB national exam tracking (P6/S3/S6)",
+            "Kinyarwanda + English bilingual reports",
+            "MTN MoMo + Airtel Money + bank transfer fees",
+        ],
     },
     "CM": {
         "country_name": "Cameroon / Cameroun",
@@ -276,6 +296,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligné sur le PAQUET-EF et le ministère de l'Éducation nationale.",
         "anchor_city": "Dakar",
         "regional_phrase": "écoles sénégalaises",
+        "testimonial": {
+            "quote": "BFEM + Bac, bulletins trimestriels, paiements Wave et Orange Money — enfin une plateforme qui parle français.",
+            "author": "Directeur, lycée privé à Dakar",
+            "credential": "Maternelle–Terminale · 900 élèves",
+        },
+        "case_study_chips": [
+            "PAQUET-EF aligné — Maternelle au Bac",
+            "BFEM + Bac (S/L/G/T) suivi en temps réel",
+            "Wave + Orange Money + Free Money frais",
+        ],
     },
 
     # ─── North Africa + Middle East ─────────────────────────────────────────
@@ -360,6 +390,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Saudi MoE Tatweer initiative and Vision 2030.",
         "anchor_city": "Riyadh",
         "regional_phrase": "Saudi schools",
+        "testimonial": {
+            "quote": "تتبع الثانوي العام، الرسوم بالريال، التقويم الهجري بجانب الميلادي، Tatweer-aligned — جزاكم الله خيراً.",
+            "author": "مدير مدرسة, الرياض",
+            "credential": "تمهيدي–ثانوي · 1,400 طالب",
+        },
+        "case_study_chips": [
+            "Tatweer + Vision 2030 aligned",
+            "Hijri parallel calendar + Arabic-RTL reports",
+            "Mada + Apple Pay + bank transfer fees (SAR)",
+        ],
     },
     "IL": {
         "country_name": "Israel / ישראל",
@@ -373,6 +413,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Israeli Ministry of Education and Bagrut framework.",
         "anchor_city": "Tel Aviv / Jerusalem",
         "regional_phrase": "Israeli schools / בתי ספר בישראל",
+        "testimonial": {
+            "quote": "בגרות, ציונים סמסטריאליים, יומן עברי במקביל לגרגוריאני, הודעות הורים בעברית. אחלה.",
+            "author": "מנהל, בית ספר תיכון בתל אביב",
+            "credential": "כיתות א'–י''ב · 1,100 תלמידים",
+        },
+        "case_study_chips": [
+            "Bagrut + Bechinot trackerים",
+            "Hebrew calendar parallel to Gregorian",
+            "Bit + הוראת קבע + העברה בנקאית",
+        ],
     },
     "TR": {
         "country_name": "Türkiye",
@@ -385,6 +435,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "MEB müfredatı ve LGS/YKS sınavlarıyla uyumludur.",
         "anchor_city": "İstanbul",
         "regional_phrase": "Türk okulları",
+        "testimonial": {
+            "quote": "LGS + YKS hazırlığı, dönem karneleri, veli SMS Türkçe — MEB ile uyumlu, tam aradığımız.",
+            "author": "Müdür, İstanbul özel lisesi",
+            "credential": "Anaokulu–12. sınıf · 1,300 öğrenci",
+        },
+        "case_study_chips": [
+            "MEB müfredatı + LGS + YKS tracking",
+            "Türkçe + İngilizce iki dilli raporlar",
+            "İyzico + Papara + havale ücret tahsilatı",
+        ],
     },
 
     # ─── South Asia ─────────────────────────────────────────────────────────
@@ -467,6 +527,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with the Sri Lankan MoE and Department of Examinations.",
         "anchor_city": "Colombo",
         "regional_phrase": "Sri Lankan schools",
+        "testimonial": {
+            "quote": "O/L + A/L tracking, Sinhala + Tamil + English reports, parents in three languages. ස්තූතියි.",
+            "author": "ප්‍රධාන ගුරුතුමා, Colombo private school",
+            "credential": "Grades 1–13 · 1,500 students",
+        },
+        "case_study_chips": [
+            "G.C.E. O/L + A/L + Grade 5 Scholarship tracking",
+            "Sinhala + Tamil + English trilingual reports",
+            "FriMi + eZ Cash + bank transfer fees",
+        ],
     },
 
     # ─── East Asia ──────────────────────────────────────────────────────────
@@ -525,6 +595,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "符合教育部课程标准和高考体系。",
         "anchor_city": "北京 / 上海",
         "regional_phrase": "中国学校",
+        "testimonial": {
+            "quote": "高考备考、学期成绩单、家长微信通知 — 学杂费按万元显示，终于像中国学校该用的样子。",
+            "author": "校长, 北京民办高中",
+            "credential": "幼儿园–高三 · 1,600 名学生",
+        },
+        "case_study_chips": [
+            "高考 + 中考 + 学业水平测试 跟踪",
+            "万/亿 myriad 学杂费数字格式",
+            "微信支付 + 支付宝 + 银行卡 学杂费",
+        ],
     },
     "TW": {
         "country_name": "臺灣 (Taiwan)",
@@ -537,6 +617,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "符合教育部 108 課綱與大考中心體系。",
         "anchor_city": "臺北",
         "regional_phrase": "臺灣學校",
+        "testimonial": {
+            "quote": "108 課綱、學測指考、家長 LINE 通知、學費按萬元 — 民國紀年並列，這才像臺灣的學校系統。",
+            "author": "校長, 臺北市立高中",
+            "credential": "國中–高中 · 1,200 學生",
+        },
+        "case_study_chips": [
+            "108 課綱 + 學測 + 分科測驗追蹤",
+            "萬/億 myriad 學費數字 + 民國紀年並列",
+            "LINE Pay + 街口 + ATM 學費繳納",
+        ],
     },
     "HK": {
         "country_name": "Hong Kong / 香港",
@@ -549,6 +639,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with EDB and HKEAA HKDSE framework.",
         "anchor_city": "Hong Kong / 香港",
         "regional_phrase": "Hong Kong schools / 香港學校",
+        "testimonial": {
+            "quote": "DSE prep, EMI + CMI streams side by side, parent WhatsApp in 廣東話 + English. 啱晒.",
+            "author": "Principal, EMI secondary in Kowloon",
+            "credential": "S1–S6 · 1,000 students · EMI track",
+        },
+        "case_study_chips": [
+            "HKDSE Core 4 + Elective tracking",
+            "EMI + CMI dual-medium reports",
+            "FPS + PayMe + bank autopay fees",
+        ],
     },
     "SG": {
         "country_name": "Singapore",
@@ -673,6 +773,131 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Phù hợp với chương trình GDPT 2018 của Bộ GD&ĐT.",
         "anchor_city": "Hà Nội / TP. HCM",
         "regional_phrase": "trường học Việt Nam",
+        "testimonial": {
+            "quote": "Thi tốt nghiệp THPT, học bạ học kỳ, Zalo phụ huynh — chương trình GDPT 2018, đúng chuẩn Việt Nam.",
+            "author": "Hiệu trưởng, trường THPT tư thục Hà Nội",
+            "credential": "Lớp 1–12 · 1,200 học sinh",
+        },
+        "case_study_chips": [
+            "Chương trình GDPT 2018 + thi tốt nghiệp THPT",
+            "Học bạ + đánh giá thường xuyên",
+            "MoMo + ZaloPay + VietQR + chuyển khoản",
+        ],
+    },
+    "KH": {
+        "country_name": "Cambodia / កម្ពុជា",
+        "greeting": "សូមស្វាគមន៍ (Sōm svāgam)",
+        "headline_lead": "Built for Cambodian schools",
+        "headline_lead_native": "រចនាសម្រាប់សាលារៀននៅកម្ពុជា",
+        "hero_subline": "From Phnom Penh to Siem Reap — Pre-school, Primary (G1–G6), Lower Secondary (G7–G9), Upper Secondary (G10–G12), Bac II prep.",
+        "trust_count": "Trusted by schools across all 25 provinces",
+        "currency_sample": "៛ 1,200,000 / term (KHR)",
+        "calendar_sample": "2 semesters — November to August",
+        "regulatory_line": "Aligned with the MoEYS curriculum and Bac II exam framework.",
+        "anchor_city": "Phnom Penh",
+        "regional_phrase": "Cambodian schools / សាលារៀននៅកម្ពុជា",
+        "testimonial": {
+            "quote": "Bac II prep, semester reports, Khmer + English bilingual, mobile money fees. អរគុណ.",
+            "author": "នាយក, សាលាបឋមសិក្សា Phnom Penh",
+            "credential": "G1–G12 · 1,000 សិស្ស",
+        },
+        "case_study_chips": [
+            "Bac II + Diploma tracking (MoEYS)",
+            "Khmer + English bilingual reports",
+            "ABA + Wing + Pi Pay + bank transfer fees",
+        ],
+    },
+    "MM": {
+        "country_name": "Myanmar / မြန်မာ",
+        "greeting": "မင်္ဂလာပါ (Mingalaba)",
+        "headline_lead": "Built for Myanmar schools",
+        "headline_lead_native": "မြန်မာကျောင်းများအတွက် ဒီဇိုင်းပြုထားသည်",
+        "hero_subline": "From Yangon to Mandalay — KG, Primary, Middle, High, Matriculation prep.",
+        "trust_count": "Trusted by schools across all 14 states + regions",
+        "currency_sample": "K 850,000 / semester (MMK)",
+        "calendar_sample": "2 semesters — June to March",
+        "regulatory_line": "Aligned with the National Education Strategic Plan and Matriculation framework.",
+        "anchor_city": "Yangon",
+        "regional_phrase": "Myanmar schools / မြန်မာကျောင်းများ",
+        "testimonial": {
+            "quote": "ဆယ်တန်းစာမေးပွဲ၊ စာရင်းချုပ်များ၊ မိဘဆက်သွယ်ရေး မြန်မာဘာသာဖြင့်။ ကျေးဇူးတင်ပါသည်။",
+            "author": "ကျောင်းအုပ်ကြီး, ရန်ကုန် ပုဂ္ဂလိကကျောင်း",
+            "credential": "KG–Grade 10 · 900 ကျောင်းသား",
+        },
+        "case_study_chips": [
+            "Matriculation + Grade 10 exam tracking",
+            "Burmese + English bilingual reports",
+            "Wave Money + KBZPay + bank transfer fees",
+        ],
+    },
+    "LA": {
+        "country_name": "Laos / ລາວ",
+        "greeting": "ສະບາຍດີ (Sabaidi)",
+        "headline_lead": "Built for Lao schools",
+        "headline_lead_native": "ອອກແບບສຳລັບໂຮງຮຽນລາວ",
+        "hero_subline": "From Vientiane to Luang Prabang — pre-school, primary, lower & upper secondary, Bac Lao prep.",
+        "trust_count": "Trusted by schools across all 18 provinces",
+        "currency_sample": "₭ 2,400,000 / term (LAK)",
+        "calendar_sample": "2 semesters — September to June",
+        "regulatory_line": "Aligned with the Lao MoES curriculum and Bac Lao exam framework.",
+        "anchor_city": "Vientiane",
+        "regional_phrase": "Lao schools / ໂຮງຮຽນລາວ",
+        "testimonial": {
+            "quote": "Bac Lao prep, semester reports, Lao + English bilingual — finally a system that respects our way.",
+            "author": "ຜູ້ອຳນວຍການ, Vientiane secondary",
+            "credential": "Grade 1–12 · 800 ນັກຮຽນ",
+        },
+        "case_study_chips": [
+            "Bac Lao + grade-level exam tracking",
+            "Lao + English bilingual reports",
+            "BCEL OnePay + JDB OneM + cash collection",
+        ],
+    },
+    "ER": {
+        "country_name": "Eritrea / ኤርትራ",
+        "greeting": "ሰላም (Selam)",
+        "headline_lead": "Built for Eritrean schools",
+        "headline_lead_native": "ንኤርትራ ዝተዳለወ ስርዓት ትምህርቲ",
+        "hero_subline": "From Asmara to Massawa — pre-primary, elementary, middle, secondary, ESLCE exam tracking.",
+        "trust_count": "Trusted by schools across all 6 regions",
+        "currency_sample": "Nfk 18,000 / semester (ERN)",
+        "calendar_sample": "2 semesters — September to June",
+        "regulatory_line": "Aligned with the Ministry of Education framework and ESLCE exam system.",
+        "anchor_city": "Asmara",
+        "regional_phrase": "Eritrean schools / ኤርትራዊ ኣብያተ-ትምህርቲ",
+        "testimonial": {
+            "quote": "ESLCE preparation, semester reports in ትግርኛ + English, fees in ናቕፋ — ኣምሰግን.",
+            "author": "ርእሰ መምህር, ኣስመራ secondary",
+            "credential": "Elementary–Secondary · 700 ተመሃሮ",
+        },
+        "case_study_chips": [
+            "ESLCE Grade 12 exam tracking",
+            "Tigrinya + Arabic + English trilingual reports",
+            "Cash + bank transfer + Himbol fee collection",
+        ],
+    },
+    "SD": {
+        "country_name": "Sudan / السودان",
+        "greeting": "أهلاً وسهلاً (Ahlan wa-Sahlan)",
+        "headline_lead": "Built for Sudanese schools",
+        "headline_lead_native": "مصمم للمدارس السودانية",
+        "hero_subline": "From Khartoum to Port Sudan — basic 1-8, secondary 1-3, Sudanese certificate prep.",
+        "trust_count": "Trusted by schools across all 18 states",
+        "currency_sample": "SDG 75,000 / term",
+        "calendar_sample": "3 terms — July to April (Sudanese academic calendar)",
+        "regulatory_line": "Aligned with the Sudanese Ministry of Education and Shahāda al-Thanawiyya framework.",
+        "anchor_city": "Khartoum / الخرطوم",
+        "regional_phrase": "Sudanese schools / المدارس السودانية",
+        "testimonial": {
+            "quote": "الشهادة السودانية تحضير، تقارير فصلية، الرسوم بالجنيه السوداني — نظام يحترم تقاليدنا.",
+            "author": "مدير, مدرسة ثانوية بالخرطوم",
+            "credential": "Basic–Secondary · 1,100 طالب",
+        },
+        "case_study_chips": [
+            "Shahāda al-Thanawiyya tracking",
+            "Arabic-RTL + English bilingual reports",
+            "Bankak + mBOK + cash + bank transfer fees",
+        ],
     },
 
     # ─── Europe ─────────────────────────────────────────────────────────────
@@ -844,6 +1069,16 @@ _COUNTRY_MARKETING_VOICE: dict[str, dict[str, Any]] = {
         "regulatory_line": "Aligned with provincial Ministries of Education + Québec MEES.",
         "anchor_city": "Toronto / Montréal / Vancouver",
         "regional_phrase": "Canadian schools / écoles canadiennes",
+        "testimonial": {
+            "quote": "Provincial reports + Quebec CÉGEP roll-up, bilingual parent comms, PIPEDA + Quebec Law 25 clean. Beauty, eh.",
+            "author": "Principal, independent school in Ontario",
+            "credential": "K–Grade 12 + IB · 1,100 students",
+        },
+        "case_study_chips": [
+            "Provincial Ministries + Québec MEES alignment",
+            "EN + FR bilingual reports (Quebec compliant)",
+            "PIPEDA + Quebec Law 25 + FERPA-equivalent",
+        ],
     },
     "MX": {
         "country_name": "México",
@@ -1189,6 +1424,101 @@ def _country_to_regional_key(cc: str) -> str:
         return "generic"
 
 
+def _load_tenant_marketing_voice(request) -> dict[str, Any]:
+    """Wave 14 (v3.62.19) — pull per-tenant marketing voice override from
+    ``SiteSettings.cockpit_payload["marketing_voice"]``.
+
+    Per-tenant override layers ABOVE the country-level
+    ``CountryRegistry.cockpit_override_payload.marketing_voice`` so a single
+    tenant on (say) Lagos can ship a fully-bespoke voice without affecting
+    every other NG tenant. Shape mirrors the country override:
+
+        cockpit_payload["marketing_voice"] = {
+            "country_name": "...", "greeting": "...", "headline_lead": "...",
+            "hero_subline": "...", "trust_count": "...", ...,
+            "testimonial": {"quote": "...", "author": "...", "credential": "..."},
+            "case_study_chips": ["...", "...", "..."],
+            "per_page": {
+                "/about/":   {"headline_lead": "About us — bespoke headline"},
+                "/pricing/": {"hero_subline": "Pricing-page bespoke subline"},
+                ...
+            },
+        }
+
+    Returns ``{}`` when ``request.school`` is missing OR SiteSettings isn't
+    populated OR the JSON shape is wrong. Never raises.
+    """
+    try:
+        school = getattr(request, "school", None)
+        if school is None:
+            return {}
+        from apps.siteconfig.models import SiteSettings
+        # tenant-isolation-allow: site-settings-singleton-per-tenant-schema-isolated-by-host
+        settings_row = SiteSettings.objects.first()
+        if settings_row is None:
+            return {}
+        payload = getattr(settings_row, "cockpit_payload", None) or {}
+        if not isinstance(payload, dict):
+            return {}
+        mv = payload.get("marketing_voice")
+        if not isinstance(mv, dict):
+            return {}
+        # Strip per_page sub-dict before returning — handled separately by
+        # `_load_tenant_page_marketing_voice` so the caller can layer in the
+        # tenant override AND then the page override in order.
+        out = {k: v for k, v in mv.items() if k != "per_page"}
+        return out
+    except Exception:  # noqa: BLE001 — DB / settings reads must never break render
+        return {}
+
+
+def _load_tenant_page_marketing_voice(request, tenant_mv: dict[str, Any]) -> dict[str, Any]:
+    """Wave 14 — pull per-page marketing voice override from
+    ``SiteSettings.cockpit_payload["marketing_voice"]["per_page"][<key>]``.
+
+    Page key resolution (first match wins):
+      1. Exact request path (e.g. "/pricing/")
+      2. URL name from `request.resolver_match.url_name` (e.g. "pricing")
+      3. View name from `request.resolver_match.view_name` (e.g. "marketing:pricing")
+      4. Wildcard "*" key
+    """
+    try:
+        school = getattr(request, "school", None)
+        if school is None:
+            return {}
+        from apps.siteconfig.models import SiteSettings
+        # tenant-isolation-allow: site-settings-singleton-per-tenant-schema-isolated-by-host
+        settings_row = SiteSettings.objects.first()
+        if settings_row is None:
+            return {}
+        payload = getattr(settings_row, "cockpit_payload", None) or {}
+        mv = (payload.get("marketing_voice") if isinstance(payload, dict) else {}) or {}
+        per_page = mv.get("per_page") if isinstance(mv, dict) else None
+        if not isinstance(per_page, dict) or not per_page:
+            return {}
+        candidates: list[str] = []
+        path = getattr(request, "path", "") or ""
+        if path:
+            candidates.append(path.rstrip("/") + "/")
+            candidates.append(path)
+        rm = getattr(request, "resolver_match", None)
+        if rm is not None:
+            url_name = getattr(rm, "url_name", None)
+            if url_name:
+                candidates.append(str(url_name))
+            view_name = getattr(rm, "view_name", None)
+            if view_name:
+                candidates.append(str(view_name))
+        candidates.append("*")
+        for key in candidates:
+            cand = per_page.get(key)
+            if isinstance(cand, dict) and cand:
+                return cand
+        return {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def _resolve_voice(cc: str) -> dict[str, Any]:
     """Return the marketing voice dict for the given country code."""
     if not cc:
@@ -1241,15 +1571,26 @@ def marketing_local_context(request) -> dict:
         if not isinstance(chips, list):
             chips = []
 
-        # Wave 12: pull DB override layer if operator has stashed a
-        # `marketing_voice` block in CountryRegistry.cockpit_override_payload.
-        # Falls through silently when DB row / column / key missing.
+        # Wave 12: pull country-level DB override layer if operator has stashed
+        # a `marketing_voice` block in CountryRegistry.cockpit_override_payload.
+        # Wave 14 (v3.62.19 — 2026-05-23): ALSO pull per-tenant + per-page
+        # overrides from SiteSettings.cockpit_payload["marketing_voice"].
+        # Precedence (lowest → highest):
+        #   1. Seed voice (in-memory _COUNTRY_MARKETING_VOICE / regional)
+        #   2. CountryRegistry.cockpit_override_payload.marketing_voice  (country-wide)
+        #   3. SiteSettings.cockpit_payload.marketing_voice               (this tenant)
+        #   4. SiteSettings.cockpit_payload.marketing_voice.per_page[page_key]
+        # Each step applies the same shallow-merge rules: scalars override,
+        # testimonial dict swaps wholesale, case_study_chips list swaps wholesale.
         try:
             from apps.siteconfig.country_localization_service import _load_db_override
             db = _load_db_override(cc) if cc else {}
-            mv = (db.get("marketing_voice") if isinstance(db, dict) else {}) or {}
-            if isinstance(mv, dict) and mv:
-                # Scalars override directly; dict/list keys merge per shape.
+            country_mv = (db.get("marketing_voice") if isinstance(db, dict) else {}) or {}
+            tenant_mv = _load_tenant_marketing_voice(request) or {}
+            page_mv = _load_tenant_page_marketing_voice(request, tenant_mv) or {}
+            for mv in (country_mv, tenant_mv, page_mv):
+                if not (isinstance(mv, dict) and mv):
+                    continue
                 for k in ("country_name", "greeting", "headline_lead",
                           "headline_lead_native", "hero_subline", "trust_count",
                           "currency_sample", "calendar_sample", "regulatory_line",
@@ -1260,7 +1601,6 @@ def marketing_local_context(request) -> dict:
                     testimonial = mv["testimonial"]
                 if isinstance(mv.get("case_study_chips"), list):
                     chips = mv["case_study_chips"]
-                # Re-pick headline after override.
                 headline = voice.get("headline_lead") or headline
                 native_headline = voice.get("headline_lead_native") or native_headline
                 if native_headline and lang in ("fr", "es", "pt", "de", "it", "ar",
@@ -1268,6 +1608,20 @@ def marketing_local_context(request) -> dict:
                                                 "ja", "ko", "th", "vi", "id", "ms",
                                                 "tr", "he"):
                     headline = native_headline
+        except Exception:  # noqa: BLE001
+            pass
+
+        # Wave 14 (v3.62.19 — 2026-05-23) — city-level GeoIP override.
+        # When city GeoIP backend is configured AND resolves the visitor's
+        # metro, override the country-level `anchor_city` with the city name
+        # so the marketing band reads "Built for São Paulo schools" instead
+        # of the generic country anchor. Falls open silently to country anchor.
+        anchor_city_value = voice.get("anchor_city", "")
+        try:
+            from apps.siteconfig.geoip_country_lookup import lookup_city
+            geo_city = lookup_city(request)
+            if geo_city:
+                anchor_city_value = geo_city
         except Exception:  # noqa: BLE001
             pass
 
@@ -1283,7 +1637,8 @@ def marketing_local_context(request) -> dict:
             "currency_sample":   voice.get("currency_sample", ""),
             "calendar_sample":   voice.get("calendar_sample", ""),
             "regulatory_line":   voice.get("regulatory_line", ""),
-            "anchor_city":       voice.get("anchor_city", ""),
+            "anchor_city":       anchor_city_value,
+            "anchor_city_seed":  voice.get("anchor_city", ""),
             "regional_phrase":   voice.get("regional_phrase", ""),
             "testimonial":       {
                 "quote":      str(testimonial.get("quote", "")) if testimonial else "",

@@ -1,4 +1,6 @@
-{% load i18n %}
+{% load i18n terminology_tags %}
+{% term "teacher" capitalize=True as _teacher_sg %}
+{% blocktrans asvar _pt_thread_default with t=_teacher_sg %}{{ t }} thread{% endblocktrans %}
 {% comment %}
 Parent-teacher inline thread — v3.57.0 (2026-05-21)
 
@@ -15,7 +17,7 @@ Configurability:
 {% with th=cockpit.parent_teacher_thread %}
 <section class="tp-pt-thread" aria-label="{{ th.title }}" data-rmc-tp-pt-thread data-rmc-cockpit-section="parent_teacher_thread">
   <header class="tp-pt-thread__head">
-    <h3 class="tp-pt-thread__title">{{ th.title|default:_("Teacher thread") }}</h3>
+    <h3 class="tp-pt-thread__title">{{ th.title|default:_pt_thread_default }}</h3>
     {% if th.teacher_name %}<span class="tp-pt-thread__teacher">{{ th.teacher_name }}</span>{% endif %}
   </header>
   {% if th.messages %}

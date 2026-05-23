@@ -2,7 +2,8 @@
 {% load i18n %}
 {% load i18n static region_format compliance_tags %}
 {% load terminology_tags %}
-{% block backend_title %}{% trans "Student 360" %} — {{ student.first_name }} {{ student.last_name }}{% endblock %}
+{% term "student" capitalize=True as _student_sg %}
+{% block backend_title %}{% blocktrans with t=_student_sg %}{{ t }} 360{% endblocktrans %} — {{ student.first_name }} {{ student.last_name }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/student-360-bento.css' %}">

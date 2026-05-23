@@ -566,7 +566,8 @@
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% term "student" capitalize=True %} {% trans "improvement list" %}</h5>
-        <div class="text-muted small mb-2">{% trans "Students whose averages improved between terms." %}</div>
+        {% term "student" plural=True capitalize=True as _analytics_stu_pl %}
+        <div class="text-muted small mb-2">{% blocktrans with t=_analytics_stu_pl %}{{ t }} whose averages improved between terms.{% endblocktrans %}</div>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
             <caption class="visually-hidden">{% term "student" capitalize=True %} {% trans "improvement list" %}</caption>
