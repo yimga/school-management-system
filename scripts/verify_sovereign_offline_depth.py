@@ -24,6 +24,18 @@ def main() -> int:
         findings.append("offline_queue missing grading conflict helper")
     if "_apply_support_ticket" not in queue:
         findings.append("offline_queue missing support ticket apply path")
+    if "_apply_provision_signup" not in queue:
+        findings.append("offline_queue missing provision.signup apply path")
+
+    draft = _text("static/js/form-draft-save.js")
+    if "data-rmc-offline-action" not in draft:
+        findings.append("form-draft-save missing data-rmc-offline-action typed enqueue")
+    if "postTypedEnqueue" not in draft:
+        findings.append("form-draft-save missing typed pending flush to enqueue API")
+
+    bootstrap = _text("static/js/rmc-offline-auth-bootstrap.js")
+    if "provision.signup" not in bootstrap:
+        findings.append("rmc-offline-auth-bootstrap missing provision.signup enqueue")
 
     portal = _text("templates/portal_base.html")
     for needle in (

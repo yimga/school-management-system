@@ -44,8 +44,76 @@
     return {
       enabled: cfg.enabled !== false,
       formQueueEnabled: cfg.formQueueEnabled !== false,
-      gradeSyncEnabled: cfg.gradeSyncEnabled !== false
+      gradeSyncEnabled: cfg.gradeSyncEnabled !== false,
+      offlineEnqueueUrl: cfg.offlineEnqueueUrl || cfg.offline_enqueue_url || ''
     };
+  }
+
+  function buildGenericPayload(form) {
+    var payload = {};
+    var inputs = form.querySelectorAll('input, select, textarea');
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i];
+      var name = el.name;
+      if (!name || name === 'csrfmiddlewaretoken') continue;
+      if (el.type === 'checkbox') {
+        if (el.checked) payload[name] = el.value || true;
+      } else if (el.type === 'radio') {
+        if (el.checked) payload[name] = el.value;
+      } else if (el.value !== '') {
+        payload[name] = el.value;
+      }
+    }
+    return payload;
+  }
+
+  function enqueueTypedAction(form, actionType, draftKey) {
+    var payload = buildGenericPayload(form);
+    var idem = (form.getAttribute('data-rmc-offline-idempotency') || '').trim();
+    if (!idem) {
+      idem = actionType.replace(/[^a-zA-Z0-9._-]/g, '-') + '-' + (draftKey || Date.now());
+    }
+    var body = {
+      action_type: actionType,
+      payload: payload,
+      idempotency_key: idem.slice(0, 128)
+    };
+    if (typeof window.rmcOfflineEnqueue === 'function') {
+      window.rmcOfflineEnqueue(body);
+      return true;
+    }
+    var pending = getPendingSubmissions();
+    if (pending.length >= PENDING_MAX_COUNT) return false;
+    pending.push({
+      typed: true,
+      action_type: body.action_type,
+      payload: body.payload,
+      idempotency_key: body.idempotency_key,
+      savedAt: Date.now()
+    });
+    setPendingSubmissions(pending);
+    return true;
+  }
+
+  function postTypedEnqueue(enqueueUrl, csrf, item) {
+    return fetch(enqueueUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        action_type: item.action_type,
+        payload: item.payload || {},
+        idempotency_key: item.idempotency_key || ''
+      })
+    }).then(function (res) {
+      return res.ok;
+    }).catch(function () {
+      return false;
+    });
   }
 
   function storageKey(key) {
@@ -175,6 +243,19 @@
     form.addEventListener('submit', function (e) {
       var offlineCfg = getOfflineConfig();
       if (!navigator.onLine && form.getAttribute('data-draft-key') && offlineCfg.enabled && offlineCfg.formQueueEnabled) {
+        var explicitAction = (form.getAttribute('data-rmc-offline-action') || '').trim();
+        if (explicitAction) {
+          e.preventDefault();
+          var atCap = !enqueueTypedAction(form, explicitAction, key);
+          removeDraft(key);
+          showOfflineSavedForSyncBanner(form, atCap);
+          return;
+        }
+        if (form.getAttribute('data-rmc-offline-form')) {
+          e.preventDefault();
+          removeDraft(key);
+          return;
+        }
         e.preventDefault();
         var pending = getPendingSubmissions();
         if (pending.length >= PENDING_MAX_COUNT) {
@@ -270,6 +351,8 @@
       document.dispatchEvent(new CustomEvent('sms-sync-start', { bubbles: true }));
     } catch (e) {}
     var csrf = getCsrf();
+    var offlineCfg = getOfflineConfig();
+    var enqueueUrl = offlineCfg.offlineEnqueueUrl;
     var i = 0;
     var stillPending = [];
     function next() {
@@ -284,6 +367,14 @@
       }
       var p = pending[i];
       var current = i;
+      if (p.typed && p.action_type && enqueueUrl) {
+        postTypedEnqueue(enqueueUrl, csrf, p).then(function (ok) {
+          if (!ok) stillPending.push(p);
+          i = current + 1;
+          next();
+        });
+        return;
+      }
       fetch(p.url, {
         method: 'POST',
         headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },

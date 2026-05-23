@@ -90,3 +90,15 @@ class OfflineEnqueueSodpTests(TestCase):
         )
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(json.loads(resp.content).get("ok"))
+
+    def test_accepts_provision_signup(self):
+        resp = self._post(
+            {
+                "action_type": OfflineActionType.PROVISIONAL_SIGNUP,
+                "payload": {"device_id": "field-tablet-abc12345"},
+                "idempotency_key": "provision-field-tablet-abc12345",
+            }
+        )
+        self.assertEqual(resp.status_code, 200)
+        body = json.loads(resp.content)
+        self.assertTrue(body.get("ok"))

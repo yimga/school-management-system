@@ -1,5 +1,33 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — SODP batch 1418 typed enqueue + provision.signup (2026-05-23)
+
+**A. Scope:** Close gap between generic form-draft localStorage replay and typed SODP outbox; wire `provision.signup` server apply path.
+
+**B. Shipped:** `form-draft-save.js` typed path for `data-rmc-offline-action` + pending flush via `/portal/api/offline/enqueue/`; portal-specialized forms skip legacy URL queue; `_apply_provision_signup` upserts `DeviceRegistration`; migration `platform_runtime 0073`; bootstrap enqueues `provision.signup` on reconnect; depth verifier extended; SW `sms-v3.72.0-sodp-typed-enqueue-provision-2026-05-23`.
+
+**C. Proof:** `verify_sovereign_offline_depth.py` → **SOVEREIGN_OFFLINE_DEPTH_PASS**; `test_offline_provision_signup_apply` 2/2; `test_offline_enqueue_sodp` provision case (7 tests combined).
+
+**D. Residual:** Form coverage sweep (~170 templates); conflict UI on SW 409; Lane 2 store/mDNS.
+
+**E. Plan:** SOT §11.4 batch **1418** DONE.
+
+**F. Headline:** **Typed offline enqueue live for explicit action forms; device provision reconciles on sync.**
+
+## Slice — Stripe Connect platform settlement batches 1414–1417 (2026-05-23)
+
+**A. Scope:** GEOS step 5 PSP settlement — Stripe Connect long-term model (schools as merchants, platform fee). Phased plan + Lane 1 repo implementation per [`docs/plans/STRIPE_CONNECT_PLATFORM_SETTLEMENT_PLAN.md`](../docs/plans/STRIPE_CONNECT_PLATFORM_SETTLEMENT_PLAN.md).
+
+**B. Shipped:** Plan + handoff prompt §5; evidence scaffold `var/evidence/geos-99/psp/stripe/`; `verify_stripe_platform_settlement_scaffold.py`; tenant `/siteconfig/billing-stripe/` Express onboarding; `stripe_connect_settings` + `stripe_connect_onboarding`; webhook `account.updated` sync; billing plan Connect link; external register `stripe_connect_platform`; PSP guide §1A; SW `sms-v3.71.1-stripe-connect-platform-settlement-2026-05-23`.
+
+**C. Proof:** `verify_stripe_platform_settlement_scaffold.py` → **STRIPE_PLATFORM_SETTLEMENT_SCAFFOLD_PASS**; `manage.py test apps.siteconfig.tests.test_billing_stripe_connect apps.schools.tests.test_stripe_connect_settings`.
+
+**D. Residual (Lane 2 only):** Stripe KYB + all three onboarding products; Render `STRIPE_*` live keys; Phase 1 supervised charge/refund JSON; Phase 2 pilot school Connect KYC + payout evidence; register **verified_live** flips.
+
+**E. Plan:** SOT §11.4 batches **1414–1417** DONE.
+
+**F. Headline:** **STRIPE CONNECT REPO-COMPLETE — operator keys + evidence remain.**
+
 ## Slice — SODP batch 1413 depth platform lift (2026-05-23)
 
 **A. Scope:** Lift SODP from scaffold to runtime depth — conflict policy on grades, support ticket offline path, global portal shell wiring, CI enforcement, notification copy, LAN mule hooks.

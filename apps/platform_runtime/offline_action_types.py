@@ -37,6 +37,7 @@ LEGACY_TO_SODP: dict[str, str] = {
 SODP_TO_LEGACY: dict[str, str] = {v: k for k, v in LEGACY_TO_SODP.items()}
 SODP_TO_LEGACY[OfflineActionType.NOTIFY_PARENT] = OfflineActionType.NOTIFY_PARENT
 SODP_TO_LEGACY[OfflineActionType.NOTIFY_STAFF] = OfflineActionType.NOTIFY_STAFF
+SODP_TO_LEGACY[OfflineActionType.PROVISIONAL_SIGNUP] = OfflineActionType.PROVISIONAL_SIGNUP
 
 FORBIDDEN_PAYLOAD_KEYS = frozenset(
     {

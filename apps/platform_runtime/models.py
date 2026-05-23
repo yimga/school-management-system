@@ -1978,6 +1978,7 @@ class OfflineAction(models.Model):
         NOTIFY_PARENT = "notify.parent", "Notify parent"
         NOTIFY_STAFF = "notify.staff", "Notify staff"
         SUPPORT_TICKET = "support_ticket", "Support ticket"
+        PROVISION_SIGNUP = "provision.signup", "Provisional device signup"
 
     class Resolution(models.TextChoices):
         KEEP_MINE = "keep_mine", "Keep mine"

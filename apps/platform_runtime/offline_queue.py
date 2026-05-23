@@ -736,6 +736,34 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
     return {"ok": True, "offline_entry_id": entry.id}
 
 
+def _apply_provision_signup(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+    from apps.accounts.models_offline_device import DeviceRegistration
+
+    device_id = str(payload.get("device_id") or "").strip()
+    if not device_id:
+        return {"ok": False, "error": "device_id required"}
+    fingerprint = str(payload.get("public_key_fingerprint") or "")[:64]
+    permission_bitmap = payload.get("permission_bitmap")
+    if not isinstance(permission_bitmap, list):
+        permission_bitmap = []
+    reg, created = DeviceRegistration.objects.update_or_create(
+        school_id=school_id,
+        user_id=user_id,
+        device_id=device_id,
+        defaults={
+            "public_key_fingerprint": fingerprint,
+            "permission_bitmap": permission_bitmap,
+            "revoked_at": None,
+        },
+    )
+    reg.touch_seen()
+    return {
+        "ok": True,
+        "device_registration_id": str(reg.pk),
+        "created": created,
+    }
+
+
 def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     from django.contrib.auth import get_user_model
 
@@ -765,7 +793,11 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
 
 def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
     from apps.platform_runtime.models import OfflineAction
-    from apps.platform_runtime.offline_action_types import is_notify_action, normalize_action_type
+    from apps.platform_runtime.offline_action_types import (
+        OfflineActionType,
+        is_notify_action,
+        normalize_action_type,
+    )
 
     at = action.action_type
     at_norm = normalize_action_type(at)
@@ -799,6 +831,10 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
         return _apply_notes_report(sid, uid, payload)
     if at == OfflineAction.ActionType.SUPPORT_TICKET:
         return _apply_support_ticket(sid, uid, payload)
+    if at == OfflineAction.ActionType.PROVISION_SIGNUP:
+        return _apply_provision_signup(sid, uid, payload)
+    if at_norm == OfflineActionType.PROVISIONAL_SIGNUP:
+        return _apply_provision_signup(sid, uid, payload)
     return {"ok": False, "error": f"Unknown action_type: {at}"}
 
 
