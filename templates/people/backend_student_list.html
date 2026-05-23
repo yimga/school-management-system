@@ -1,14 +1,20 @@
 {% extends "backend_base.html" %}
-{% load i18n static region_format tenant_hook %}
+{% load i18n static region_format tenant_hook terminology_tags %}
 {# Backend UI: distinct from /admin; uses portal backend light theme. #}
-{% block title %}{% trans "Students" %} - {% trans "Backend" %}{% endblock %}
+{# Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption. "Students" reads as
+   the tenant's term for student (e.g. "Élèves" in FR, "Alumnos" in ES,
+   "विद्यार्थी" in HI, "Talaba" in TZ Swahili). #}
+{% block title %}{% term "student" plural=True capitalize=True %} - {% trans "Backend" %}{% endblock %}
 
 {% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_create' as create_url %}
-      {% include "studio_os/components/page_header.html" with title=_("Students") subtitle=_("Manage student records") action_url=create_url action_text=_("Add Student") %}
+      {% term "student" plural=True capitalize=True as _student_pl %}
+      {% term "student" capitalize=True as _student_sg %}
+      {% blocktrans asvar _student_add_text with t=_student_sg %}Add {{ t }}{% endblocktrans %}
+      {% include "studio_os/components/page_header.html" with title=_student_pl subtitle=_("Manage student records") action_url=create_url action_text=_student_add_text %}
 
       {% comment %} Pass 8 Wave 2: added list-filter-bar + form-system--dense so canonical filter-bar
          CSS (dense micro-labels, harmonized search affordance) styles this row identically

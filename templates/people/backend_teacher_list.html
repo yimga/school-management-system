@@ -1,14 +1,20 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
-{% load static region_format i18n %}
-{% block backend_title %}Teachers - Backend{% endblock %}
+{% load static region_format i18n terminology_tags %}
+{# Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption.
+   "Teachers" reads as the tenant's term (e.g. "Enseignants" in FR,
+   "Profesores" in ES, "अध्यापक" in HI, "ఉపాధ్యాయులు" in TE). #}
+{% term "teacher" plural=True capitalize=True as _teacher_pl %}
+{% term "teacher" capitalize=True as _teacher_sg %}
+{% block backend_title %}{{ _teacher_pl }} - Backend{% endblock %}
 
 {% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_teacher_create' as create_url %}
-      {% include "studio_os/components/page_header.html" with title=_("Teachers") subtitle=_("Manage teacher records") action_url=create_url action_text=_("Add Teacher") %}
+      {% blocktrans asvar _teacher_add_text with t=_teacher_sg %}Add {{ t }}{% endblocktrans %}
+      {% include "studio_os/components/page_header.html" with title=_teacher_pl subtitle=_("Manage teacher records") action_url=create_url action_text=_teacher_add_text %}
 
       <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search" data-rmc-autosubmit="1">
         <div class="row g-2 align-items-end">
