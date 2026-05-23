@@ -59,6 +59,16 @@
     IN:1, PK:1, BD:1, NP:1, LK:1, BT:1, MV:1,
   };
 
+  // Wave 10 (v3.62.10 — 2026-05-22): countries that use Chinese myriad
+  // (萬 / 万 / 億 / 亿) digit grouping convention. Western 1,234,567 is
+  // read as 1百23萬4千567 in CJK conventions. School fee statements +
+  // tuition reports in CN/JP/KR/TW dashboards opt in via data attribute
+  // (default per-country pick stays Western for cross-school report
+  // consistency unless operator explicitly enables).
+  var MYRIAD_GROUPING = {
+    CN:1, JP:1, KR:1, TW:1, HK:1,
+  };
+
   // Currency symbol table — kept in sync with templatetags/localization.py
   // _CURRENCY_SYMBOLS. Anything not listed falls back to the ISO code.
   var SYMBOLS = {
@@ -111,8 +121,35 @@
     return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
+  // Wave 10: Chinese myriad grouping. Inserts CJK myriad markers every 4
+  // digits going leftward. 100000000 -> "1億0000萬0000". Use sparingly —
+  // most CJK schools still want Western digits in cross-region reports.
+  // Caller passes useNativeMarks=true to use 萬/億 instead of commas.
+  function groupMyriad(digits, useNativeMarks) {
+    if (digits.length <= 4) return digits;
+    var chunks = [];
+    var i = digits.length;
+    while (i > 4) { chunks.unshift(digits.slice(i - 4, i)); i -= 4; }
+    if (i > 0) chunks.unshift(digits.slice(0, i));
+    if (useNativeMarks) {
+      // Place 萬 / 億 markers between chunks. Chunks list goes from
+      // largest to smallest. With 3 chunks: [億, 萬, base]. With 4: [兆, 億, 萬, base].
+      var marks = ["", "萬", "億", "兆"];
+      var out = "";
+      for (var k = 0; k < chunks.length; k++) {
+        var pos = chunks.length - 1 - k;
+        out += chunks[k] + (pos > 0 && pos < marks.length ? marks[pos] : "");
+      }
+      return out;
+    }
+    return chunks.join(",");
+  }
+
   function pickGrouping(cc) {
-    return INDIAN_GROUPING[(cc || "").toUpperCase()] ? "indian" : "western";
+    var u = (cc || "").toUpperCase();
+    if (INDIAN_GROUPING[u]) return "indian";
+    if (MYRIAD_GROUPING[u]) return "myriad";
+    return "western";
   }
 
   function formatNumber(value, opts) {
@@ -124,7 +161,13 @@
     var fixed = num.toFixed(maxFrac);
     var parts = fixed.split(".");
     var groupingMode = opts.grouping || pickGrouping(country);
-    parts[0] = (groupingMode === "indian") ? groupIndian(parts[0]) : groupWestern(parts[0]);
+    if (groupingMode === "indian") {
+      parts[0] = groupIndian(parts[0]);
+    } else if (groupingMode === "myriad") {
+      parts[0] = groupMyriad(parts[0], !!opts.useNativeMarks);
+    } else {
+      parts[0] = groupWestern(parts[0]);
+    }
     return parts.join(".");
   }
 

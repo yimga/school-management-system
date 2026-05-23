@@ -629,12 +629,38 @@ def _country_from_accept_language(request) -> str:
         return ""
 
 
+def _country_from_geoip(request) -> str:
+    """Wave 10 (v3.62.10) — opt-in IP-based country lookup.
+
+    Lazy-imports the GeoIP service so this module boots even when the
+    geoip_country_lookup module is missing or geoip2 isn't installed.
+    Returns "" unless an operator has set RMC_GEOIP_BACKEND to a non-noop
+    value. Never raises.
+    """
+    try:
+        from .geoip_country_lookup import lookup_country
+        return normalize_country_code(lookup_country(request))
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def resolve_country_for_request(request) -> str:
-    """Return the effective ISO 3166-1 alpha-2 country code for this request."""
+    """Return the effective ISO 3166-1 alpha-2 country code for this request.
+
+    Wave 10 (v3.62.10) order:
+      1. request.school.country_code            — multi-tenant context
+      2. request.session["onboarding_country_code"] — public signup flow
+      3. request.COOKIES["rmc_country"]         — long-lived UX preference
+      4. GeoIP backend                          — opt-in (Cloudflare /
+                                                   X-Country-Code / MaxMind)
+      5. Accept-Language header tail            — fallback browser hint
+      6. ""                                     — falls through to generic
+    """
     for resolver in (
         _country_from_school,
         _country_from_session,
         _country_from_cookie,
+        _country_from_geoip,         # Wave 10
         _country_from_accept_language,
     ):
         cc = resolver(request)

@@ -63,6 +63,12 @@ body.control-plane-shell:has(.rmc-kb-operator) .rmc-assist-dock__secondary:not(:
   pointer-events: auto;
 }
 
+.rmc-assist-dock__backdrop[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .rmc-assist-dock__panels {
   display: flex;
   flex-direction: column;

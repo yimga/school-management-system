@@ -61,6 +61,8 @@ _F2_AFFECTED_FIELDS = frozenset({
     "proof_file", "signed_pdf", "subject_seed", "term_labels",
     # Reference-generator fields
     "reference", "expiry_date", "timezone", "role",
+    # JSONField default=dict callable identity (registries v3.62.8)
+    "cockpit_override_payload",
 })
 
 

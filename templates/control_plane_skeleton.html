@@ -131,6 +131,8 @@
     <link rel="stylesheet" href="{% static 'css/rmc-trust-pillars.css' %}">
     {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives library — composes with v7/200x cards. #}
     <link rel="stylesheet" href="{% static 'css/rmc-data-viz.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
     {% block extrastyle %}{% endblock %}
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
@@ -224,6 +226,7 @@
     <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
     {% endif %}
     <script src="{% static 'js/rmc-dashboard-widget-boundary.js' %}" defer></script>
+    <script src="{% static 'js/rmc-surface-overlay-guard.js' %}" defer></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     {% comment %} v3.55.0 (2026-05-21): App-shell runtime — anchor-scroll retarget + modal portal + scroll helper.
        Loaded AFTER Bootstrap so the show.bs.modal / show.bs.offcanvas listeners are bound after BS init. {% endcomment %}

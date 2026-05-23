@@ -524,6 +524,22 @@ class School(models.Model):
         db_index=True,
         help_text="Primary education system sector (wedge 14–22): PUBLIC, PRIVATE, CHARTER, INTERNATIONAL, FAITH_BASED, HOME_SCHOOL, GOVERNMENT_MINISTRY, NGO, MULTI_CAMPUS.",
     )
+    # Wave 6/10 (v3.62.10 — 2026-05-22): per-school primary language of
+    # instruction. Drives the per-language education-system overlay (CM
+    # Anglo/Franco, CA EN/Quebec-FR, BE NL/FR/DE, CH 4 lang, IN 11 lang, ZA
+    # 5 lang) and the lexicon cascade. BCP-47 primary subtag form (en, fr,
+    # zh-hans, etc.). Empty string = use country pack's default language.
+    primary_language = models.CharField(
+        max_length=16,
+        blank=True,
+        db_index=True,
+        help_text=(
+            "Primary language of instruction (BCP-47 primary subtag form: "
+            "en/fr/zh-hans/ar/hi/ur/...). For multilingual countries this "
+            "drives the per-language education-system overlay shown across "
+            "the platform. Empty = use the country's default language."
+        ),
+    )
     # World Engine: data sovereignty / scaling — region cluster and optional dedicated DB.
     regional_cluster = models.CharField(
         max_length=63,

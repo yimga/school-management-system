@@ -1,0 +1,74 @@
+/**
+ * Control plane + manager /admin/ sidebar — v8 200x preview parity.
+ * v3.62.12 (2026-05-22)
+ */
+
+body.control-plane-shell .cp-sidebar .rmc-cockpit-workspace,
+body.admin-manager-shell .cp-sidebar .rmc-cockpit-workspace {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 10px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--cp-chrome-hairline, var(--hairline));
+  margin-bottom: 14px;
+}
+
+body.control-plane-shell .cp-sidebar .cp-nav-section-label,
+body.control-plane-shell .cp-sidebar .rmc-type-eyebrow,
+body.admin-manager-shell .cp-sidebar .cp-nav-section-label,
+body.admin-manager-shell .cp-sidebar .rmc-type-eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--cp-chrome-text-faint, var(--text-tertiary));
+  padding: 14px 8px 6px;
+  font-weight: 700;
+}
+
+body.control-plane-shell .cp-sidebar .nav-link,
+body.admin-manager-shell .cp-sidebar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  color: var(--cp-chrome-text-muted, var(--text-secondary));
+  font-size: 13px;
+  border: 1px solid transparent;
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+}
+
+body.control-plane-shell .cp-sidebar .nav-link:hover,
+body.control-plane-shell .cp-sidebar .nav-link:focus-visible,
+body.admin-manager-shell .cp-sidebar-nav .nav-link:hover,
+body.admin-manager-shell .cp-sidebar-nav .nav-link:focus-visible {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--cp-chrome-text, var(--text-primary));
+}
+
+body.control-plane-shell .cp-sidebar .nav-link.active,
+body.admin-manager-shell .cp-sidebar-nav .nav-link.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #fff;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .list-group-item,
+body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .nav-link {
+  border-radius: 9px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .nav-link.active,
+body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .list-group-item.active {
+  background: var(--school-gradient, linear-gradient(135deg, var(--school-primary), var(--school-accent)));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(30, 111, 58, 0.2);
+}

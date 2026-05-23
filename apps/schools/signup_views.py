@@ -484,6 +484,11 @@ def signup_school(request: HttpRequest):
         ),
         settings=school_settings,
     )
+    # Wave 6/10 (v3.62.10) — first-class primary_language. Still also lives in
+    # settings.localization.language_code for backwards compat with any code
+    # path that reads it from there.
+    if language_code:
+        create_kwargs["primary_language"] = language_code[:16]
     # v3.62.2 — primary_sector now comes from the country's pack first
     # (country-local mapping), falling back to the legacy global map. This
     # is how Nigerian "nursery"/"jss"/"sss" cards land on the right sector

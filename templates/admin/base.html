@@ -17,8 +17,12 @@
                 <div class="cp-header__row cp-header__row--utility">
                   {% include "partials/manager_operator_topbar.html" %}
                 </div>
-                {% include "partials/cockpit/_activity_ticker.html" %}
-                {% include "partials/control_plane_primary_nav.html" %}
+                <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
+                  {% include "partials/control_plane_primary_nav.html" %}
+                </div>
+                <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
+                  {% include "partials/cockpit/_activity_ticker.html" %}
+                </div>
               </div>
             </div>
             {% else %}
@@ -29,7 +33,7 @@
         {# ---------- Grid row 2, column 1 — static sidebar (own scroll) ---------- #}
         {% if is_manager_host %}
         <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
-            <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2">
+            <div class="cp-sidebar">
                 {% include "partials/cockpit/_workspace_context.html" %}
                 {% include "partials/manager_platform_admin_sidebar.html" %}
             </div>
@@ -77,7 +81,7 @@
 
                 {% if is_manager_host %}
                 {% block admin_operator_steering %}
-                    {% if not is_popup %}
+                    {% if not is_popup and request.resolver_match.url_name|default:"" != "index" %}
                         {% include "components/rmc_operator_surface_strip.html" %}
                         {% include "admin/includes/admin_operator_steering_strip.html" %}
                     {% endif %}

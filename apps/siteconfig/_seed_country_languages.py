@@ -351,6 +351,151 @@ _AFRIKAANS_PROVINCIAL = {
     },
 }
 
+_INDIA_TAMIL_MEDIUM = {
+    "system_name": "தமிழ்நாடு பள்ளிக்கல்வி (Tamil Nadu State Board)",
+    "school_types": [
+        {"code": "anaivar-paadhsalai", "label": "முன்னாள் பள்ளி (Pre-Primary)", "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "thodakka-paadhsalai", "label": "தொடக்கப் பள்ளி (Std I-V)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "middle-school",       "label": "நடுநிலைப் பள்ளி (VI-VIII)",  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-13"},
+        {"code": "high-school",         "label": "உயர்நிலைப் பள்ளி (IX-X SSLC)","glyph": "\U0001F393", "primary_sector": "secondary",      "typical_ages": "14-15"},
+        {"code": "higher-secondary",    "label": "மேல்நிலைப் பள்ளி (XI-XII)",   "glyph": "\U0001F393", "primary_sector": "post_secondary", "typical_ages": "16-17"},
+        {"code": "kalvi-paadhsalai",    "label": "பல்கலைக்கழகம் (University)",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",      "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-ta-std1",  "label": "Standard 1",    "order": 1},
+        {"code": "in-ta-std10", "label": "Standard 10 (SSLC)", "order": 10},
+        {"code": "in-ta-std12", "label": "Standard 12 (HSC)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "ஆசிரியர் (Aasiriyar)",
+        "principal": "தலைமை ஆசிரியர் (Thalaimai Aasiriyar)",
+        "term": "காலாண்டு (Kaalaandu)",
+        "report_card": "முன்னேற்ற அறிக்கை (Munnetra Arikai)",
+        "grade_level": "வகுப்பு (Vagupu)",
+    },
+    "calendar_system": {
+        "code": "in-ta-3-term", "label": "3 Terms (June-April)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+}
+
+_INDIA_TELUGU_MEDIUM = {
+    "system_name": "ఆంధ్రప్రదేశ్ / తెలంగాణ పాఠశాల విద్య (State Board)",
+    "school_types": [
+        {"code": "pre-primary",     "label": "ముందస్తు పాఠశాల",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathamika",      "label": "ప్రాథమిక పాఠశాల (1-5)",    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "uchcha-prathamika","label": "ఉన్నత ప్రాథమిక (6-7)",    "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-12"},
+        {"code": "madhyamika",      "label": "మాధ్యమిక / హై స్కూల్ (8-10)","glyph": "\U0001F393", "primary_sector": "secondary",      "typical_ages": "13-15"},
+        {"code": "intermediate",    "label": "ఇంటర్మీడియట్ (XI-XII)",    "glyph": "\U0001F393", "primary_sector": "post_secondary", "typical_ages": "16-17"},
+        {"code": "viswavidyalayam", "label": "విశ్వవిద్యాలయం",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",      "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-te-cl1",  "label": "Class 1",          "order": 1},
+        {"code": "in-te-cl10", "label": "Class 10 (SSC)",   "order": 10},
+        {"code": "in-te-cl12", "label": "Class 12 (Inter)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "ఉపాధ్యాయుడు (Upādhyāyudu)",
+        "principal": "ప్రధానోపాధ్యాయుడు (Pradhānōpādhyāyudu)",
+        "term": "త్రైమాసికము (Traimāsikamu)",
+        "report_card": "నివేదిక (Nivēdika)",
+        "grade_level": "తరగతి (Taragati)",
+    },
+    "calendar_system": {
+        "code": "in-te-3-term", "label": "3 Terms (June-April)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+}
+
+_INDIA_BENGALI_MEDIUM = {
+    "system_name": "পশ্চিমবঙ্গ মধ্যশিক্ষা পর্ষদ (West Bengal Board)",
+    "school_types": [
+        {"code": "shishu-bidyalay", "label": "শিশু বিদ্যালয় (Pre-Primary)", "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathomik",       "label": "প্রাথমিক বিদ্যালয় (I-IV)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-9"},
+        {"code": "upor-prathomik",  "label": "উচ্চ প্রাথমিক (V-VIII)",      "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-13"},
+        {"code": "madhyamik",       "label": "মাধ্যমিক বিদ্যালয় (IX-X)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "ucchamadhyamik",  "label": "উচ্চ মাধ্যমিক (XI-XII)",      "glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "biswabidyalay",   "label": "বিশ্ববিদ্যালয় (University)",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-bn-cl1",  "label": "Class 1",                "order": 1},
+        {"code": "in-bn-cl10", "label": "Class 10 (Madhyamik)",   "order": 10},
+        {"code": "in-bn-cl12", "label": "Class 12 (Uccha Madh.)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "শিক্ষক (Shikkhok)",
+        "principal": "প্রধান শিক্ষক (Prodhan Shikkhok)",
+        "term": "সাময়িকী (Samoyiki)",
+        "report_card": "প্রতিবেদন (Protibedon)",
+        "grade_level": "শ্রেণী (Shreni)",
+    },
+    "calendar_system": {
+        "code": "in-bn-3-term", "label": "3 Terms (January-December)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+}
+
+_INDIA_MARATHI_MEDIUM = {
+    "system_name": "महाराष्ट्र राज्य माध्यमिक मंडळ (Maharashtra State Board)",
+    "school_types": [
+        {"code": "balwadi",         "label": "बालवाडी (Pre-Primary)",        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathamik",       "label": "प्राथमिक शाळा (इयत्ता १-४)",  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-9"},
+        {"code": "upper-primary",   "label": "उच्च प्राथमिक (इयत्ता ५-७)",  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-12"},
+        {"code": "madhyamik",       "label": "माध्यमिक शाळा (इयत्ता ८-१०)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-15"},
+        {"code": "ucch-madhyamik",  "label": "उच्च माध्यमिक (इयत्ता ११-१२)","glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "vidyapith",       "label": "विद्यापीठ (University)",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-mr-iy1",  "label": "इयत्ता १",                "order": 1},
+        {"code": "in-mr-iy10", "label": "इयत्ता १० (SSC)",         "order": 10},
+        {"code": "in-mr-iy12", "label": "इयत्ता १२ (HSC)",         "order": 12},
+    ],
+    "terminology": {
+        "teacher": "शिक्षक (Shikshak)",
+        "principal": "मुख्याध्यापक (Mukhyadhyapak)",
+        "term": "सत्र (Satra)",
+        "report_card": "प्रगती पुस्तक (Pragati Pustak)",
+        "grade_level": "इयत्ता (Iyatta)",
+    },
+    "calendar_system": {
+        "code": "in-mr-3-term", "label": "3 Terms (June-April)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+}
+
+_INDIA_GUJARATI_MEDIUM = {
+    "system_name": "ગુજરાત માધ્યમિક અને ઉચ્ચતર માધ્યમિક શિક્ષણ બોર્ડ (GSHSEB)",
+    "school_types": [
+        {"code": "balmandir",       "label": "બાલમંદિર (Pre-Primary)",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "prathmik",        "label": "પ્રાથમિક શાળા (Std 1-5)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "upri-prathmik",   "label": "ઉપરી પ્રાથમિક (Std 6-8)",        "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-13"},
+        {"code": "madhyamik",       "label": "માધ્યમિક શાળા (Std 9-10)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "ucchatar-madhya", "label": "ઉચ્ચતર માધ્યમિક (Std 11-12)",   "glyph": "\U0001F393", "primary_sector": "post_secondary",  "typical_ages": "16-17"},
+        {"code": "yunivarsiti",     "label": "યુનિવર્સિટી (University)",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-gu-std1",  "label": "Std 1",          "order": 1},
+        {"code": "in-gu-std10", "label": "Std 10 (SSC)",   "order": 10},
+        {"code": "in-gu-std12", "label": "Std 12 (HSC)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "શિક્ષક (Shikshak)",
+        "principal": "આચાર્ય (Acharya)",
+        "term": "સત્ર (Satra)",
+        "report_card": "પ્રગતિ પત્રક (Pragati Patrak)",
+        "grade_level": "ધોરણ (Dhoran)",
+    },
+    "calendar_system": {
+        "code": "in-gu-3-term", "label": "3 Terms (June-April)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+}
+
 _INDIA_HINDI_MEDIUM = {
     "system_name": "Bhāratīya Śikṣā Pranālī (Hindī Mādhyam)",
     "school_types": [

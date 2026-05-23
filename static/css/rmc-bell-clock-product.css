@@ -26,6 +26,12 @@
   background: var(--surface-bg, var(--mkt-surface, #faf7f2));
   color: var(--text-primary, var(--mkt-ink, #0f1b2d));
   transition: opacity 0.35s ease, visibility 0.35s ease;
+  pointer-events: none;
+}
+
+.rmc-launch-splash[hidden] {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 .rmc-launch-splash.is-dismissed {

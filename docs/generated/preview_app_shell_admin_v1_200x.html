@@ -812,20 +812,20 @@ a { color: inherit; text-decoration: none; }
       <p class="cp-section__lede">Direct access to each Django admin changelist. Counts are live from the registry.</p>
 
       <div class="cp-section__row" role="tablist">
-        <span class="cp-tab" data-active>Overview</span>
-        <span class="cp-tab">Platform configuration</span>
-        <span class="cp-tab">Catalog records</span>
-        <span class="cp-tab">Integrations &amp; providers</span>
-        <span class="cp-tab">Marketplace records</span>
-        <span class="cp-tab">Migration records</span>
-        <span class="cp-tab">Maintenance &amp; repair</span>
-        <span class="cp-tab">Access &amp; permissions</span>
-        <span class="cp-tab">Advanced system objects</span>
+        <button type="button" class="cp-tab" data-active data-rmc-catalog-tab="overview">Overview</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-1">Platform configuration</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-2">Catalog records</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-3">Integrations &amp; providers</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-4">Marketplace records</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-5">Migration records</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-6">Maintenance &amp; repair</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-7">Access &amp; permissions</button>
+        <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-8">Advanced system objects</button>
       </div>
 
       <div class="cp-catalog">
 
-        <article class="cp-catalog-card">
+        <article class="cp-catalog-card" data-rmc-catalog-card data-rmc-catalog-section-id="sec-1">
           <div class="cp-catalog-card__head">
             <h3 class="cp-catalog-card__title">Platform configuration</h3>
             <span class="cp-catalog-card__count">68 / 68</span>
@@ -841,7 +841,7 @@ a { color: inherit; text-decoration: none; }
           <div class="cp-catalog-card__foot"><a href="#">View all 68 →</a></div>
         </article>
 
-        <article class="cp-catalog-card">
+        <article class="cp-catalog-card" data-rmc-catalog-card data-rmc-catalog-section-id="sec-3">
           <div class="cp-catalog-card__head">
             <h3 class="cp-catalog-card__title">Integrations &amp; providers</h3>
             <span class="cp-catalog-card__count">10 / 10</span>
@@ -857,7 +857,7 @@ a { color: inherit; text-decoration: none; }
           <div class="cp-catalog-card__foot"><a href="#">View all 10 →</a></div>
         </article>
 
-        <article class="cp-catalog-card">
+        <article class="cp-catalog-card" data-rmc-catalog-card data-rmc-catalog-section-id="sec-5">
           <div class="cp-catalog-card__head">
             <h3 class="cp-catalog-card__title">Migration records</h3>
             <span class="cp-catalog-card__count">6 / 6</span>
@@ -873,7 +873,7 @@ a { color: inherit; text-decoration: none; }
           <div class="cp-catalog-card__foot"><a href="#">View all 6 →</a></div>
         </article>
 
-        <article class="cp-catalog-card">
+        <article class="cp-catalog-card" data-rmc-catalog-card data-rmc-catalog-section-id="sec-4">
           <div class="cp-catalog-card__head">
             <h3 class="cp-catalog-card__title">Marketplace records</h3>
             <span class="cp-catalog-card__count">17 / 17</span>
@@ -905,7 +905,7 @@ a { color: inherit; text-decoration: none; }
           <div class="cp-catalog-card__foot"><a href="#">View all →</a></div>
         </article>
 
-        <article class="cp-catalog-card">
+        <article class="cp-catalog-card" data-rmc-catalog-card data-rmc-catalog-section-id="sec-8">
           <div class="cp-catalog-card__head">
             <h3 class="cp-catalog-card__title">Advanced system objects</h3>
             <span class="cp-catalog-card__count">67 / 67</span>
@@ -1130,6 +1130,59 @@ a { color: inherit; text-decoration: none; }
   </footer>
 
 </div>
+
+<script>
+(function () {
+  "use strict";
+  function activateTab(tab) {
+    document.querySelectorAll(".cp-tab").forEach(function (t) {
+      t.removeAttribute("data-active");
+    });
+    tab.setAttribute("data-active", "");
+    var id = tab.getAttribute("data-rmc-catalog-tab") || "";
+    document.querySelectorAll("[data-rmc-catalog-card]").forEach(function (card) {
+      if (!id || id === "overview") {
+        card.hidden = false;
+        return;
+      }
+      card.hidden = card.getAttribute("data-rmc-catalog-section-id") !== id;
+    });
+  }
+  document.querySelectorAll(".cp-tab[data-rmc-catalog-tab]").forEach(function (tab) {
+    tab.setAttribute("role", "tab");
+    tab.addEventListener("click", function () {
+      activateTab(tab);
+    });
+  });
+  document.querySelectorAll(".cp-nav-pill, .cp-sidebar__link, .cp-steering__path, .cp-btn").forEach(function (el) {
+    el.style.cursor = "pointer";
+    if (el.tagName === "SPAN" || el.tagName === "BUTTON") {
+      el.addEventListener("click", function () {
+        el.setAttribute("data-active", "");
+        el.parentElement && el.parentElement.querySelectorAll("[data-active]").forEach(function (s) {
+          if (s !== el) s.removeAttribute("data-active");
+        });
+      });
+    }
+  });
+  document.querySelectorAll(".cp-catalog-card").forEach(function (card, i) {
+    card.setAttribute("data-rmc-catalog-card", "");
+    card.setAttribute("data-rmc-catalog-section-id", "sec-" + (i + 1));
+  });
+  var overview = document.querySelector('.cp-tab[data-rmc-catalog-tab="overview"]');
+  if (!overview) {
+    var firstTab = document.querySelector(".cp-section__row .cp-tab");
+    if (firstTab) {
+      firstTab.setAttribute("data-rmc-catalog-tab", "overview");
+      firstTab.addEventListener("click", function () {
+        document.querySelectorAll("[data-rmc-catalog-card]").forEach(function (c) {
+          c.hidden = false;
+        });
+      });
+    }
+  }
+})();
+</script>
 
 </body>
 </html>

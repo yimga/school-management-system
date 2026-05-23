@@ -102,6 +102,7 @@
   <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-modal-overlay-guard.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
   {% comment %} v3.58.0 (2026-05-22): /admin/ 200x re-skin overlay — re-styles the existing
      Unfold DOM (dashboard-header, stat-card, app-section, buttons) toward the
@@ -110,6 +111,9 @@
      so tenant admin and other surfaces are untouched. See
      docs/generated/preview_app_shell_admin_v1_200x.html for the design target. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
@@ -269,18 +273,6 @@
     </div>
   {% endif %}
     {# The logo background is handled by CSS above. #}
-  {% comment %} v3.59.x Wave B (2026-05-22): live activity ticker on the /admin/ shell —
-     manager-host ONLY. Reuses the GLOBAL partial wired on control_plane_base.html
-     (cp_shell_header_ticker block) and portal_base.html (portal_shell_header_ticker
-     block). Double-gated: outer `is_manager_host` template gate + inner
-     `cockpit.activity_ticker.enabled` self-gate inside the partial. Tenant admin
-     (is_manager_host=False) keeps the default Unfold chrome untouched. CSS rules
-     live in static/css/rmc-class-grammar.css (already linked); admin-shell
-     positioning + sticky behavior + reduced-motion handled in
-     static/css/admin-200x-shell-overlay.css under the manager-host body selector. {% endcomment %}
-  {% if is_manager_host %}
-    {% include "partials/cockpit/_activity_ticker.html" %}
-  {% endif %}
 {% endblock %}
 
 {% block nav-global %}
@@ -315,6 +307,10 @@
   {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
   {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}
   <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
+  {% if is_manager_host %}
+  <script src="{% static 'js/rmc-surface-overlay-guard.js' %}" defer></script>
+  <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
+  {% endif %}
   {# Phase G: ⌘K command palette on the admin shell too. #}
   {% if request.user.is_authenticated %}
     {% include 'components/rmc_command_palette.html' %}

@@ -134,7 +134,17 @@ class ControlPlaneAdvancedNavHttpTests(SimpleTestCase):
 
     def test_advanced_nav_items_return_ok_on_manager_host(self):
         User = get_user_model()
-        user = User(is_superuser=True, is_staff=True, username="adv_http")
+        user, _ = User.objects.get_or_create(
+            username="adv_http_nav_smoke",
+            defaults={
+                "email": "adv_http_nav_smoke@example.com",
+                "is_staff": True,
+                "is_superuser": True,
+            },
+        )
+        if not user.check_password("Test1234!"):
+            user.set_password("Test1234!")
+            user.save(update_fields=["password"])
         client = Client()
         client.force_login(user)
         request = RequestFactory().get("/super/")

@@ -12,6 +12,8 @@
 {% comment %} Pass A: manager-specific polish (card surfaces, studio toolbar, rail, sidebar).
    Loaded last so it wins specificity ties without needing !important everywhere. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
@@ -33,17 +35,21 @@
     <div class="cp-header__row cp-header__row--utility">
       {% include "partials/manager_operator_topbar.html" %}
     </div>
-    {% block cp_shell_header_ticker %}
-      {% include "partials/cockpit/_activity_ticker.html" %}
-    {% endblock %}
-    {% include "partials/control_plane_primary_nav.html" %}
+    <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
+      {% include "partials/control_plane_primary_nav.html" %}
+    </div>
+    <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
+      {% block cp_shell_header_ticker %}
+        {% include "partials/cockpit/_activity_ticker.html" %}
+      {% endblock %}
+    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block cp_shell_sidebar %}
 <div id="cp-sidebar-col" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
-  <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
+  <div class="cp-sidebar cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
     {% comment %} v3.55.0: workspace context block at top of sidebar — operator
        identity + scope + collapse toggle. Configurable via cockpit.workspace_context. {% endcomment %}
     {% include "partials/cockpit/_workspace_context.html" %}

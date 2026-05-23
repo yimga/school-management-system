@@ -456,6 +456,13 @@ TEMPLATES = [
                 # every template. Used by {% load localization %} tags +
                 # by base shells emitting data-rmc-* body attrs.
                 "apps.siteconfig.localization_context_processor.localization_context",
+                # v3.62.10 Wave 9 local-first: emits `marketing_local` dict
+                # (country_name, greeting, headline_lead, hero_subline,
+                # trust_count, currency_sample, calendar_sample,
+                # regulatory_line, anchor_city, regional_phrase) so the
+                # marketing surface reads as written for the visitor's
+                # country first, with the global frame as secondary context.
+                "apps.schools.marketing_local_context.marketing_local_context",
             ]
         },
     }

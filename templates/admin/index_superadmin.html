@@ -3,151 +3,131 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
 {% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
-<script src="{% static 'js/admin-platform-catalog.js' %}" defer></script>
+<script nonce="{{ csp_nonce }}">
+  (function () {
+    if (document.body) {
+      document.body.setAttribute("data-rmc-admin-index-v200x", "1");
+    } else {
+      document.addEventListener("DOMContentLoaded", function () {
+        document.body.setAttribute("data-rmc-admin-index-v200x", "1");
+      });
+    }
+  })();
+</script>
 {% endblock %}
 
 {% block content %}
-<div class="cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+<div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+
   {% if PREVIEW_MODE_ENABLED %}
-  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mx-4 mt-3 mb-0">
     <span>{% trans "Preview mode" %} — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}</span>
     <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
   </div>
   {% endif %}
 
-  <section class="cp-hero admin-index-hero rmc-card rmc-page-header-glow rmc-page-header-glow--dark mb-3">
-    <div class="cp-eyebrow">{% trans "Platform Backoffice" %}</div>
-    <h1 class="cp-hero-title">{% trans "Platform operator catalog" %}</h1>
-    <p class="cp-hero-copy mb-0">
-      {% trans "Search every registered model, jump to changelists, or open the matching control-plane view. Guided work stays in /super/, Config center, and Studio — raw CRUD lives here when you need it." %}
+  <section class="cp-hero">
+    <div class="cp-hero__eyebrow">{% trans "Platform Backoffice" %}</div>
+    <h1 class="cp-hero__title">{% trans "Operator catalog & raw records" %}</h1>
+    <p class="cp-hero__lede">
+      {% blocktrans trimmed %}
+      Every registered model, jump-to-changelist, audit log, and raw CRUD surface. Guided work stays in
+      <em>/super/, Config center, and Studio</em> — raw records live here for the moments those don't fit.
+      {% endblocktrans %}
     </p>
+    <div class="cp-hero__actions">
+      <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
+      <a class="cp-btn" href="{% url 'siteconfig:console_domains_hub' %}">⚙ {% trans "Open Config center" %}</a>
+      <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
+      <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>
+    </div>
   </section>
 
-  {% if admin_catalog %}
-  <div class="rmc-admin-catalog-metrics" role="group" aria-label="{% trans 'Catalog metrics' %}">
-    <div class="rmc-admin-catalog-metric">
-      <span class="text-muted small">{% trans "Models" %}</span>
-      <strong>{{ admin_catalog.model_count }}</strong>
+  <div class="cp-steering" role="region" aria-label="{% trans 'Operator steering' %}">
+    <div class="cp-steering__icon" aria-hidden="true">✓</div>
+    <div class="cp-steering__body">
+      <div class="cp-steering__label">{% trans "Operator steering" %}</div>
+      <div class="cp-steering__copy">{% trans "Prefer Configuration Control Center and Studio for guided changes. Use model pages below for raw record access when required." %}</div>
     </div>
-    <div class="rmc-admin-catalog-metric">
-      <span class="text-muted small">{% trans "Applications" %}</span>
-      <strong>{{ admin_catalog.app_count }}</strong>
+    <div class="cp-steering__paths">
+      <a class="cp-steering__path" data-active href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
+      <a class="cp-steering__path" href="{% url 'studio_os:shell' %}">{% trans "Studio" %}</a>
+      <a class="cp-steering__path" href="{% url 'super:dashboard' %}">{% trans "Control plane" %}</a>
     </div>
-    <div class="rmc-admin-catalog-metric">
-      <span class="text-muted small">{% trans "IA sections" %}</span>
-      <strong>{{ admin_catalog.section_count }}</strong>
+  </div>
+
+  <div class="cp-kpi-strip" role="group" aria-label="{% trans 'Backoffice metrics' %}">
+    {% if admin_catalog %}
+    <div class="cp-kpi">
+      <div class="cp-kpi__label">{% trans "Models registered" %}</div>
+      <div class="cp-kpi__value">{{ admin_catalog.model_count }}</div>
+      <div class="cp-kpi__caption">{% blocktrans with n=admin_catalog.app_count %}across {{ n }} apps{% endblocktrans %}</div>
     </div>
+    {% endif %}
     {% for kpi in admin_index_kpis %}
-    <div class="rmc-admin-catalog-metric">
-      <span class="text-muted small">{{ kpi.label }}</span>
-      {% if kpi.url %}
-      <a href="{{ kpi.url }}" class="fw-semibold text-decoration-none">{{ kpi.value }}</a>
-      {% else %}
-      <strong>{{ kpi.value }}</strong>
+    <div class="cp-kpi">
+      <div class="cp-kpi__label">{{ kpi.label }}</div>
+      <div class="cp-kpi__value">
+        {% if kpi.url %}<a href="{{ kpi.url }}">{{ kpi.value }}</a>{% else %}{{ kpi.value }}{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <section class="cp-section" aria-labelledby="cp-catalog-heading">
+    <h2 class="cp-section__title" id="cp-catalog-heading">{% trans "Model catalog by section" %}</h2>
+    <p class="cp-section__lede">{% trans "Direct access to each Django admin changelist. Counts are live from the registry." %}</p>
+
+    <div class="cp-section__row" role="tablist" aria-label="{% trans 'Catalog sections' %}">
+      <label class="visually-hidden" for="rmcAdminCatalogSearch">{% trans "Search models" %}</label>
+      <input type="search" id="rmcAdminCatalogSearch" class="form-control form-control-sm cp-section__search" data-rmc-admin-catalog-search placeholder="{% trans 'Search models, apps, sections…' %}" autocomplete="off">
+      <button type="button" class="cp-tab" data-active data-rmc-catalog-tab="overview" role="tab" aria-selected="true">{% trans "Overview" %}</button>
+      {% if admin_catalog and admin_catalog.sections %}
+      {% for section in admin_catalog.sections %}
+      <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-{{ forloop.counter }}" role="tab" aria-selected="false">{{ section.title }}</button>
+      {% endfor %}
       {% endif %}
     </div>
-    {% endfor %}
-    <div class="rmc-admin-catalog-metric d-flex flex-wrap gap-2 align-items-end">
-      <a href="{% url 'super:dashboard' %}" class="btn btn-primary btn-sm">{% trans "Control plane" %}</a>
-      <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-outline-light btn-sm">{% trans "Config center" %}</a>
-      <a href="{% url 'admin:activity_logs' %}" class="btn btn-outline-light btn-sm">{% trans "Activity" %}</a>
-      <a href="{% url 'admin:system_health' %}" class="btn btn-outline-light btn-sm">{% trans "Health" %}</a>
-    </div>
-  </div>
 
-  <div class="rmc-admin-catalog-search-wrap">
-    <label class="visually-hidden" for="rmcAdminCatalogSearch">{% trans "Search models" %}</label>
-    <input type="search" id="rmcAdminCatalogSearch" class="form-control form-control-sm" data-rmc-admin-catalog-search placeholder="{% trans 'Search models, apps, sections…' %}" autocomplete="off">
-    <p class="small text-muted mb-0 mt-1">{% trans "Tip: use the command palette (Ctrl+K) for cross-surface jumps." %}</p>
-  </div>
-  <p class="rmc-admin-catalog-empty small text-muted" data-rmc-admin-catalog-empty hidden>{% trans "No models match your search." %}</p>
-  {% endif %}
+    <p class="cp-catalog-empty small" data-rmc-admin-catalog-empty hidden>{% trans "No models match your search." %}</p>
 
-  <section class="mb-4" aria-labelledby="admin-operator-shortcuts-heading">
-    <h2 id="admin-operator-shortcuts-heading" class="h6 text-uppercase text-muted mb-2">{% trans "Operator shortcuts" %}</h2>
-    <div class="row g-3">
-      <div class="col-md-6 col-xl-4">
-        <a href="{% url 'super:platform_operator_hub' %}" class="card h-100 text-decoration-none border-0 shadow-sm cp-admin-shortcut-card">
-          <div class="card-body">
-            <h3 class="h6 mb-1">{% trans "Platform operator hub" %}</h3>
-            <p class="small text-muted mb-0">{% trans "Bridge tiles to high-traffic admin changelists." %}</p>
-          </div>
-        </a>
-      </div>
-      <div class="col-md-6 col-xl-4">
-        <a href="{% url 'siteconfig:feature_control_panel' %}" class="card h-100 text-decoration-none border-0 shadow-sm cp-admin-shortcut-card">
-          <div class="card-body">
-            <h3 class="h6 mb-1">{% trans "Feature control" %}</h3>
-            <p class="small text-muted mb-0">{% trans "Toggle modules and entitlements per tenant." %}</p>
-          </div>
-        </a>
-      </div>
-      <div class="col-md-6 col-xl-4">
-        <a href="{% url 'siteconfig:guided_configuration_workflows' %}" class="card h-100 text-decoration-none border-0 shadow-sm cp-admin-shortcut-card">
-          <div class="card-body">
-            <h3 class="h6 mb-1">{% trans "Guided configuration" %}</h3>
-            <p class="small text-muted mb-0">{% trans "Staged setup workflows and publish paths." %}</p>
-          </div>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <h2 class="h6 text-uppercase text-muted mb-2" id="rmc-admin-catalog-heading">{% trans "Model catalog by section" %}</h2>
-  {% if admin_catalog and admin_catalog.sections %}
-  <nav class="rmc-page-fold-nav rmc-section-nav mb-3" aria-label="{% trans 'Catalog sections' %}">
-    <a href="#rmc-admin-catalog-heading" class="active" data-rmc-section-anchor>{% trans "Overview" %}</a>
-    {% for section in admin_catalog.sections %}
-    <a href="#rmc-admin-sec-{{ forloop.counter }}" data-rmc-section-anchor>{{ section.title }}</a>
-    {% endfor %}
-  </nav>
-    {% for section in admin_catalog.sections %}
-    <details class="rmc-admin-catalog-section" id="rmc-admin-sec-{{ forloop.counter }}" data-rmc-admin-catalog-section>
-      <summary>
-        <span>{{ section.title }}</span>
-        <span class="text-muted small"><span data-rmc-section-visible-count>{{ section.model_count }}</span> / {{ section.model_count }} {% trans "models" %}</span>
-      </summary>
-      {% for app in section.apps %}
-      <div class="px-3 pt-2 pb-1">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
-          <a href="{% url 'admin:app_list' app.app_label %}" class="fw-semibold text-decoration-none small" data-admin-search="{{ section.title|lower }} {{ app.app_name|lower }} {{ app.app_label|lower }}">{{ app.app_name }}</a>
-          <span class="text-muted small">{{ app.models|length }} {% trans "models" %}</span>
+    {% if admin_catalog and admin_catalog.sections %}
+    <div class="cp-catalog">
+      {% for section in admin_catalog.sections %}
+      <article class="cp-catalog-card" id="rmc-admin-sec-{{ forloop.counter }}" data-rmc-catalog-card data-rmc-catalog-section-id="sec-{{ forloop.counter }}" data-admin-search="{{ section.title|lower }} {% for app in section.apps %}{{ app.app_name|lower }} {{ app.app_label|lower }} {% for model in app.models %}{{ model.search_blob }} {% endfor %}{% endfor %}">
+        <div class="cp-catalog-card__head">
+          <h3 class="cp-catalog-card__title">{{ section.title }}</h3>
+          <span class="cp-catalog-card__count">{{ section.model_count }} / {{ section.model_count }}</span>
         </div>
-        <div class="rmc-admin-catalog-model-grid">
-          {% for model in app.models %}
-          <div class="rmc-admin-catalog-model-card" data-admin-search="{{ model.search_blob }}" data-rmc-admin-catalog-row>
-            <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-name text-decoration-none">{{ model.name }}</a>
-            <span class="rmc-admin-catalog-model-meta">{{ app.app_name }} · {{ model.object_name }}</span>
-            <div class="rmc-admin-catalog-model-actions">
-              <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
-              {% if model.add_url %}<a href="{{ model.add_url }}">{% trans "Add" %}</a>{% endif %}
-              {% if model.super_url %}<a href="{{ model.super_url }}">{% trans "Super view" %}</a>{% endif %}
-            </div>
-          </div>
+        {% if section.preview_models %}
+        <ul class="cp-catalog-card__items">
+          {% for model in section.preview_models %}
+          <li>
+            <a href="{{ model.admin_url }}">{{ model.name }}</a>
+            <span aria-hidden="true">→</span>
+          </li>
           {% endfor %}
+        </ul>
+        {% endif %}
+        <div class="cp-catalog-card__foot">
+          <a href="#rmc-admin-sec-{{ forloop.counter }}">{% blocktrans with n=section.model_count %}View all {{ n }} →{% endblocktrans %}</a>
         </div>
-      </div>
+      </article>
       {% endfor %}
-    </details>
-    {% endfor %}
-  {% else %}
-    <ul class="cp-admin-app-list">
+    </div>
+    {% else %}
+    <ul class="cp-catalog-card__items">
       {% for app in app_list %}
-      <li>
-        <div>
-          <a href="{% url 'admin:app_list' app.app_label %}">{{ app.name }}</a>
-          <div class="app-models">{% for model in app.models %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
-        </div>
-      </li>
+      <li><a href="{% url 'admin:app_list' app.app_label %}">{{ app.name }}</a></li>
       {% empty %}
       <li class="text-muted">{% trans "No applications available." %}</li>
       {% endfor %}
     </ul>
-  {% endif %}
+    {% endif %}
+  </section>
 </div>
 {% endblock %}

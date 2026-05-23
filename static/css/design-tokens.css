@@ -4349,10 +4349,12 @@ html[data-rmc-reveal-armed] .rmc-reveal {
     opacity var(--reveal-duration) var(--reveal-ease),
     transform var(--reveal-duration) var(--reveal-ease);
   will-change: opacity, transform;
+  pointer-events: none;
 }
 html[data-rmc-reveal-armed] .rmc-reveal.is-revealed {
   opacity: 1;
   transform: translate3d(0, 0, 0);
+  pointer-events: auto;
 }
 html[data-rmc-reveal-armed] .rmc-reveal-stagger > .rmc-reveal {
   transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger));
@@ -4367,8 +4369,13 @@ html[data-rmc-reveal-armed] .rmc-reveal--scale {
   transition:
     opacity var(--reveal-duration) var(--reveal-ease),
     transform var(--reveal-duration) var(--ease-emphasis-out);
+  pointer-events: none;
 }
-html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed { opacity: 1; transform: scale(1); }
+html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
 
 /* Accessibility: respect reduced motion. */
 @media (prefers-reduced-motion: reduce) {
@@ -4379,6 +4386,7 @@ html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed { opacity: 1; transfo
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+    pointer-events: auto !important;
   }
   html[data-rmc-reveal-armed] .rmc-reveal-stagger > .rmc-reveal { transition-delay: 0ms !important; }
 }

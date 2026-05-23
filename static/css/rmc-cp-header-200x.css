@@ -206,6 +206,40 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
   }
 }
 
+/* v3.62.12 — header row order: utility → nav → live strip (preview v8 200x) */
+.cp-header .cp-nav-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+
+.cp-header .cp-live-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: var(--cp-chrome-text-muted);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.cp-header .cp-live-strip .rmc-cockpit-ticker,
+.cp-header .cp-live-strip .cp-activity-ticker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cp-header .rmc-cockpit-ticker__track,
   .cp-header .cp-activity-ticker__track {

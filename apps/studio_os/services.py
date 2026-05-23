@@ -1361,9 +1361,15 @@ def get_output_readiness_summary() -> dict[str, Any]:
             model = getattr(mod, model_name)
             summary["documents_total"] = int(model.objects.all().count())
             try:
-                summary["documents_published"] = int(
-                    model.objects.filter(is_published=True).count()
-                )
+                field_names = {f.name for f in model._meta.fields}
+                if "is_published" in field_names:
+                    summary["documents_published"] = int(
+                        model.objects.filter(is_published=True).count()
+                    )
+                elif "is_active" in field_names:
+                    summary["documents_published"] = int(
+                        model.objects.filter(is_active=True).count()
+                    )
             except _STUDIO_SOFT_FAILURES:
                 pass
             summary["service_online"] = True

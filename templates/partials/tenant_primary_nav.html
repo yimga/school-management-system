@@ -1,0 +1,25 @@
+{% load i18n %}
+{% comment %}
+  v3.62.12 — Tenant portal primary nav row (rmc-shell-preview-tenant-portal-v3-100x.html).
+  Role-aware pills; counts optional via context when wired.
+{% endcomment %}
+{% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
+<nav class="tp-primary-nav" aria-label="{% trans 'Primary portal navigation' %}" data-rmc-tenant-primary-nav="1">
+  {% if request.user.role == 'ADMIN' or request.user.is_staff %}
+  <a href="{% url 'accounts:backend_dashboard' %}" class="tp-primary-nav__item"{% if request.path|slice:':18' == '/accounts/backend' or '/portal/backend' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
+  <a href="{% url 'finance:dashboard' %}" class="tp-primary-nav__item">💳 {% trans "Finance" %}</a>
+  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
+  <a href="{% url 'analytics:dashboard' %}" class="tp-primary-nav__item">📊 {% trans "Analytics" %}</a>
+  {% elif request.user.role == 'TEACHER' %}
+  <a href="{% url 'portal:teacher_dashboard_alias' %}" class="tp-primary-nav__item"{% if 'teacher' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
+  <a href="{% url 'evals:teacher_dashboard' %}" class="tp-primary-nav__item">📚 {% trans "Academics" %}</a>
+  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}</a>
+  {% elif request.user.role == 'PARENT' %}
+  <a href="{% url 'portal:parent_dashboard' %}" class="tp-primary-nav__item"{% if 'parent' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
+  <a href="{% url 'finance:dashboard' %}" class="tp-primary-nav__item">💳 {% trans "Finance" %}</a>
+  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
+  {% else %}
+  <a href="{% url 'accounts:redirect' %}" class="tp-primary-nav__item">🏠 {% trans "Home" %}</a>
+  {% endif %}
+</nav>
+{% endif %}

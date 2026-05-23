@@ -1,0 +1,139 @@
+/*
+ * rmc-mkt-local-first-band.css
+ *
+ * Wave 9 (v3.62.10 — 2026-05-22) local-first marketing band.
+ *
+ * Top-of-page strip that greets visitors in their country's voice BEFORE
+ * the global header lands. Editorial cream + warm-Apple polish to match the
+ * marketing surface; dismissible (JS persists dismissal in localStorage).
+ */
+
+.mkt-local-first-band {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-primary-500, #6366F1) 6%, var(--surface-bg, #FBF9F3)) 0%, /* theme-locked-allow: brand-token-tint */
+    var(--surface-bg, #FBF9F3) 100% /* off-token-allow: marketing-cream-locked-surface */
+  );
+  border-bottom: 1px solid color-mix(in oklab, var(--color-primary-500, #6366F1) 14%, transparent); /* theme-locked-allow: brand-token-mix */
+  color: var(--text-primary, #1A1A1F);
+  font-family: var(--type-family-sans, "Inter", system-ui, sans-serif);
+  isolation: isolate;
+  contain: layout style;
+}
+
+.mkt-local-first-band[hidden] {
+  display: none;
+}
+
+.mkt-local-first-band__inner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 20px;
+  flex-wrap: wrap;
+}
+
+.mkt-local-first-band__lead {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mkt-local-first-band__greeting {
+  font-family: var(--type-family-serif, "Source Serif 4", Georgia, serif);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--color-primary-700, #4338CA); /* off-token-allow: marketing-band-greeting-brand */ /* theme-locked-allow: brand-token */
+  white-space: nowrap;
+}
+
+.mkt-local-first-band__divider {
+  color: var(--text-tertiary, rgba(26, 26, 31, 0.4));
+  font-weight: 300;
+}
+
+.mkt-local-first-band__headline {
+  font-family: var(--type-family-serif, "Source Serif 4", Georgia, serif);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--text-primary, #1A1A1F);
+  letter-spacing: -0.01em;
+}
+
+.mkt-local-first-band__signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mkt-local-first-band__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--text-primary, #1A1A1F) 5%, transparent); /* theme-locked-allow: chip-tint-text */
+  color: var(--text-secondary, rgba(26, 26, 31, 0.7));
+  white-space: nowrap;
+}
+
+.mkt-local-first-band__chip--trust {
+  background: color-mix(in oklab, var(--color-primary-500, #6366F1) 12%, transparent); /* theme-locked-allow: brand-token-mix */
+  color: var(--color-primary-700, #4338CA); /* off-token-allow: marketing-band-trust-brand */ /* theme-locked-allow: brand-token */
+  font-weight: 600;
+}
+
+.mkt-local-first-band__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary, rgba(26, 26, 31, 0.55));
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  margin-left: auto;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.mkt-local-first-band__close:hover,
+.mkt-local-first-band__close:focus-visible {
+  background: color-mix(in oklab, var(--text-primary, #1A1A1F) 8%, transparent); /* theme-locked-allow: chip-hover-tint */
+  color: var(--text-primary, #1A1A1F);
+  border-color: var(--hairline, rgba(26, 26, 31, 0.12));
+  outline: none;
+}
+
+.mkt-local-first-band__regulatory {
+  border-top: 1px solid color-mix(in oklab, var(--text-primary, #1A1A1F) 6%, transparent); /* theme-locked-allow: chip-divider */
+  padding: 6px 20px;
+}
+
+.mkt-local-first-band__regulatory small {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text-tertiary, rgba(26, 26, 31, 0.55));
+}
+
+/* RTL — Arabic / Hebrew / Persian / Urdu marketing visitors get mirror layout. */
+.bidi-rtl .mkt-local-first-band__close {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* Reduced-motion: respect, no animations on this band — keep it static. */
+
+/* Print: hide the band on printed marketing pages (saves ink, no value). */
+@media print {
+  .mkt-local-first-band { display: none !important; }
+}

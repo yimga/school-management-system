@@ -1,0 +1,126 @@
+/**
+ * Inner-page beauty layer — all authenticated surfaces inherit landing polish.
+ * v3.62.12 (2026-05-22). Composes with design-tokens-personality.css per slug.
+ */
+
+/* === Control plane /super/ inner canvas ================================= */
+body.control-plane-shell .cp-page-body,
+body.control-plane-shell [data-rmc-cp-page-body="1"] {
+  padding-top: 0.25rem;
+}
+
+body.control-plane-shell .cp-page-body .card,
+body.control-plane-shell .cp-page-body .page-family-content-card,
+body.control-plane-shell .rmc-os-page-header,
+body.control-plane-shell .rmc-data-table-wrap {
+  border-radius: var(--radius-lg, 16px);
+}
+
+body.control-plane-shell .rmc-os-page-header__title,
+body.control-plane-shell .cp-page-body > .container-fluid > h1,
+body.control-plane-shell .cp-page-body h1.h5 {
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+body.control-plane-shell .breadcrumb {
+  font-size: 12px;
+}
+
+body.control-plane-shell .table {
+  font-size: 13px;
+}
+
+body.control-plane-shell .table thead th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+/* === Manager /admin/ inner (non-index) ================================ */
+body.admin-manager-shell:not([data-rmc-admin-index-v200x="1"]) .cp-admin-page-body .card,
+body.admin-manager-shell:not([data-rmc-admin-index-v200x="1"]) .rmc-admin-catalog-section {
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-1);
+}
+
+body.admin-manager-shell .rmc-os-page-header__title {
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+}
+
+/* === Tenant portal inner (backoffice / parent / teacher / student) === */
+body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body,
+body.portal-body-with-layout:not(.control-plane-shell) [data-rmc-portal-page-body="1"] {
+  padding-top: 0.5rem;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body .card,
+body.portal-body-with-layout:not(.control-plane-shell) .portal-stat-card,
+body.portal-body-with-layout:not(.control-plane-shell) .page-family-content-card {
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title,
+body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1,
+body.portal-body-with-layout:not(.control-plane-shell) .section-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  gap: 8px;
+}
+
+/* Personality accent bridges (tabs, primary buttons) */
+body[data-rmc-page-personality] .btn-primary,
+body[data-rmc-page-personality] .cp-btn--primary {
+  background: var(--personality-gradient, linear-gradient(135deg, #4f46e5, #7c3aed));
+  border-color: transparent;
+}
+
+body[data-rmc-page-personality="parent"] .btn-primary,
+body[data-rmc-page-personality="teacher"] .btn-primary,
+body[data-rmc-page-personality="student"] .btn-primary,
+body[data-rmc-page-personality="tenant-admin"] .btn-primary {
+  background: var(--school-gradient, var(--personality-gradient));
+}
+
+/* Submenu / section nav */
+.rmc-section-nav a,
+.rmc-page-fold-nav a {
+  border-radius: var(--radius-pill, 999px);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--hairline-strong, var(--hairline));
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.rmc-section-nav a.active,
+.rmc-section-nav a[data-active],
+.rmc-page-fold-nav a.active {
+  background: var(--personality-gradient, linear-gradient(135deg, #4f46e5, #7c3aed));
+  color: #fff;
+  border-color: transparent;
+}
+
+/* Click safety on all shells */
+body.control-plane-shell a,
+body.control-plane-shell button,
+body.admin-manager-shell a,
+body.admin-manager-shell button,
+body.portal-body-with-layout a,
+body.portal-body-with-layout button {
+  pointer-events: auto;
+}

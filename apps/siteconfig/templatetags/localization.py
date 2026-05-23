@@ -110,6 +110,10 @@ _CURRENCY_SYMBOLS: dict[str, str] = {
 # not 10,000,000.
 _INDIAN_GROUPING_COUNTRIES = frozenset({"IN", "PK", "BD", "NP", "LK", "BT", "MV"})
 
+# Wave 10 (v3.62.10 — 2026-05-22): countries that opt into CJK myriad
+# (萬 / 億) grouping for fee statements and academic reports.
+_MYRIAD_GROUPING_COUNTRIES = frozenset({"CN", "JP", "KR", "TW", "HK"})
+
 
 def _group_indian(digits: str) -> str:
     """Group an integer digit string with Indian lakh-crore convention.
@@ -147,10 +151,36 @@ def _group_western(digits: str) -> str:
     return ",".join(out_chunks)
 
 
-def _group_for_country(country_code: str | None, digits: str) -> str:
+def _group_myriad(digits: str, use_native_marks: bool = False) -> str:
+    """CJK myriad (萬/億) grouping: every 4 digits.
+
+    "100000000" -> "1,0000,0000" or "1億0000萬0000" with native marks.
+    """
+    if len(digits) <= 4:
+        return digits
+    chunks = []
+    i = len(digits)
+    while i > 4:
+        chunks.insert(0, digits[i-4:i])
+        i -= 4
+    if i > 0:
+        chunks.insert(0, digits[:i])
+    if use_native_marks:
+        marks = ["", "萬", "億", "兆"]
+        out = ""
+        for k, chunk in enumerate(chunks):
+            pos = len(chunks) - 1 - k
+            out += chunk + (marks[pos] if 0 < pos < len(marks) else "")
+        return out
+    return ",".join(chunks)
+
+
+def _group_for_country(country_code: str | None, digits: str, *, native_marks: bool = False) -> str:
     cc = (country_code or "").upper()
     if cc in _INDIAN_GROUPING_COUNTRIES:
         return _group_indian(digits)
+    if cc in _MYRIAD_GROUPING_COUNTRIES:
+        return _group_myriad(digits, use_native_marks=native_marks)
     return _group_western(digits)
 
 

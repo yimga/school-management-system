@@ -288,6 +288,7 @@ class RapidCreateView(View):
             primary_sector=primary_sector,
             sub_system=sub_system,
             country_code=country_code or "",
+            primary_language=language_code[:16] if language_code else "",
             settings=school_settings,
         )
         record_stage(

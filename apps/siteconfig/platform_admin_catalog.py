@@ -108,13 +108,24 @@ def build_platform_admin_catalog(
     ]
     ordered_sections: list[dict[str, Any]] = []
     seen = set()
+    def _preview_models_for_apps(apps: list[dict[str, Any]], limit: int = 6) -> list[dict[str, Any]]:
+        preview: list[dict[str, Any]] = []
+        for app in apps:
+            for model in app.get("models") or []:
+                preview.append(model)
+                if len(preview) >= limit:
+                    return preview
+        return preview
+
     for title in section_order:
         if title in sections:
+            apps = sections[title]
             ordered_sections.append(
                 {
                     "title": title,
-                    "apps": sections[title],
-                    "model_count": sum(len(a["models"]) for a in sections[title]),
+                    "apps": apps,
+                    "model_count": sum(len(a["models"]) for a in apps),
+                    "preview_models": _preview_models_for_apps(apps),
                 }
             )
             seen.add(title)
@@ -125,6 +136,7 @@ def build_platform_admin_catalog(
                     "title": title,
                     "apps": apps,
                     "model_count": sum(len(a["models"]) for a in apps),
+                    "preview_models": _preview_models_for_apps(apps),
                 }
             )
 

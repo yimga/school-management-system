@@ -54,6 +54,29 @@ class PlatformAdminCatalogTests(SimpleTestCase):
         site_row = catalog["sections"][0]["apps"][0]["models"][0]
         self.assertIn("site settings", site_row["search_blob"])
         self.assertEqual(site_row["admin_url"], "/admin/siteconfig/sitesettings/")
+        preview = catalog["sections"][0]["preview_models"]
+        self.assertEqual(len(preview), 1)
+        self.assertEqual(preview[0]["object_name"], "SiteSettings")
+
+    def test_preview_models_capped_at_six_per_section(self):
+        models = [
+            {
+                "name": f"Model {i}",
+                "object_name": f"M{i}",
+                "admin_url": f"/admin/app/m{i}/",
+            }
+            for i in range(8)
+        ]
+        app_list = [
+            {
+                "app_label": "app",
+                "name": "App",
+                "section": "Platform Configuration",
+                "models": models,
+            },
+        ]
+        catalog = build_platform_admin_catalog(app_list)
+        self.assertEqual(len(catalog["sections"][0]["preview_models"]), 6)
 
     def test_bridge_admin_url_gets_super_url_when_registered(self):
         try:

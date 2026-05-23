@@ -9,7 +9,7 @@ files from the filesystem:
     200x luxury preview (10 elements: AI Copilot rail, world map, forecast
     lane, tenant heatmap, revenue waterfall, audit feed, trust nutrition,
     SLO clocks, operator presence, operator notebook).
-  * ``preview_app_shell_tenant_portal_v3.html`` — tenant portal v3 100x
+  * ``preview_app_shell_tenant_portal_v3_100x.html`` — tenant portal v3 100x
     preview (community band, newsletter band, achievement card, parent
     testimonial rotator, district map, etc.).
 
@@ -62,8 +62,16 @@ PREVIEWS: dict[str, dict[str, str]] = {
             "operator notebook."
         ),
     },
+    "admin-v1-200x": {
+        "filename": "preview_app_shell_admin_v1_200x.html",
+        "label": "Platform backoffice /admin/ v1 · 200x preview",
+        "description": (
+            "Manager Django admin shell: operator catalog hero, steering strip, "
+            "KPI strip, model catalog cards, cp-sidebar grammar."
+        ),
+    },
     "tenant-portal-v3-100x": {
-        "filename": "preview_app_shell_tenant_portal_v3.html",
+        "filename": "preview_app_shell_tenant_portal_v3_100x.html",
         "label": "Tenant portal v3 · 100x preview",
         "description": (
             "Tenant shell with civic 4-tier footer + community band "

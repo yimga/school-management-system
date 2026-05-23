@@ -1,0 +1,1976 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMC v3.55.1 — Tenant Portal · 100x preview (Gilead Tech High)</title>
+<style>
+/* ============================================================
+   Tenant Portal · 10x preview
+   ------------------------------------------------------------
+   Same .rmc-app-shell skeleton as manager. Premium-OS polish:
+   frosted glass header, time-aware greeting, sparkline KPIs,
+   quick-action grid, upcoming events strip, achievement badges,
+   teacher spotlight, multi-layer shadows, confident type rhythm.
+
+   PRINCIPLES
+     - Apple-tier polish, never overstyled
+     - Tenant brand cascades through CSS vars
+     - Bleed-prevention: zero operator data
+     - Every block is configurable from SiteSettings
+   ============================================================ */
+
+:root {
+  --surface-bg: #f7f8fa;
+  --surface-canvas: #fbfbfd;
+  --surface-elevated: #ffffff;
+  --surface-popover: rgba(255, 255, 255, 0.86);
+  --surface-overlay: rgba(30, 111, 58, 0.05);
+  --hairline: rgba(15, 23, 42, 0.06);
+  --hairline-strong: rgba(15, 23, 42, 0.12);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --elev-2: 0 4px 14px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --elev-3: 0 12px 32px rgba(15, 23, 42, 0.1), 0 4px 8px rgba(15, 23, 42, 0.05);
+  --elev-glass: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 12px rgba(15, 23, 42, 0.04);
+  --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-normal: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-spring: 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --material-blur: saturate(180%) blur(20px);
+
+  /* Gilead Tech High brand — green + gold. Tenant SiteSettings overrides. */
+  --school-primary: #1e6f3a;
+  --school-primary-soft: #2c8a4d;
+  --school-accent: #c19a26;
+  --school-primary-light: rgba(30, 111, 58, 0.10);
+  --school-primary-tint: rgba(30, 111, 58, 0.06);
+  --school-accent-light: rgba(193, 154, 38, 0.14);
+  --school-gradient: linear-gradient(135deg, #1e6f3a 0%, #2c8a4d 50%, #c19a26 100%);
+  --school-gradient-soft: linear-gradient(135deg, rgba(30, 111, 58, 0.08), rgba(193, 154, 38, 0.10));
+
+  --success: #16a34a;
+  --success-soft: rgba(22, 163, 74, 0.12);
+  --warning: #d97706;
+  --warning-soft: rgba(217, 119, 6, 0.12);
+  --danger: #dc2626;
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.10);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; overflow: hidden; }
+
+/* ============================================================
+   SAME shell pattern — proves layout primitive is portable
+   ============================================================ */
+.rmc-app-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: clamp(280px, 21vw, 340px) 1fr;
+  height: 100dvh;
+  width: 100%;
+  background: var(--surface-bg);
+}
+
+.rmc-app-shell__header {
+  grid-row: 1; grid-column: 1 / -1;
+  background: var(--surface-popover);
+  -webkit-backdrop-filter: var(--material-blur);
+          backdrop-filter: var(--material-blur);
+  border-bottom: 1px solid var(--hairline);
+  z-index: 40; min-width: 0;
+}
+
+.rmc-app-shell__sidebar {
+  grid-row: 2; grid-column: 1;
+  background: var(--surface-canvas);
+  border-right: 1px solid var(--hairline);
+  overflow-y: auto; overflow-x: hidden;
+  min-height: 0; min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+.rmc-app-shell__sidebar:hover { scrollbar-color: var(--hairline-strong) transparent; }
+.rmc-app-shell__sidebar::-webkit-scrollbar { width: 8px; }
+.rmc-app-shell__sidebar::-webkit-scrollbar-track { background: transparent; }
+.rmc-app-shell__sidebar::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-pill); transition: background var(--motion-normal); }
+.rmc-app-shell__sidebar:hover::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
+
+.rmc-app-shell__canvas {
+  grid-row: 2; grid-column: 2;
+  min-width: 0; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column;
+  background: var(--surface-bg);
+  scrollbar-width: thin; scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--motion-normal);
+}
+.rmc-app-shell__canvas:hover { scrollbar-color: var(--hairline-strong) transparent; }
+.rmc-app-shell__canvas::-webkit-scrollbar { width: 8px; }
+.rmc-app-shell__canvas::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--radius-pill); transition: background var(--motion-normal); }
+.rmc-app-shell__canvas:hover::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
+
+.rmc-app-shell__canvas-body { flex: 1 0 auto; min-width: 0; display: flex; flex-direction: column; }
+
+.rmc-app-shell__footer {
+  grid-row: 3; grid-column: 1 / -1;
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  z-index: 35;
+}
+
+/* ============================================================
+   HEADER — frosted, two-row, premium
+   ============================================================ */
+.tp-header { display: flex; flex-direction: column; }
+.tp-header__row {
+  display: grid;
+  grid-template-columns: minmax(260px, auto) 1fr minmax(280px, auto);
+  align-items: center;
+  gap: 20px;
+  padding: 14px 28px;
+  min-height: 64px;
+}
+
+.tp-brand {
+  display: flex; align-items: center; gap: 12px;
+  text-decoration: none;
+  justify-self: start;
+}
+.tp-brand__mark {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--school-gradient);
+  color: white;
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 18px;
+  box-shadow: 0 4px 12px rgba(30, 111, 58, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+.tp-brand__mark::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent 50%);
+}
+.tp-brand__text { line-height: 1.2; min-width: 0; }
+.tp-brand__name { color: var(--text-primary); font-weight: 700; font-size: 16px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.tp-brand__pill {
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tp-brand__tagline {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.tp-brand__year-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--school-accent-light);
+  color: var(--school-accent);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.tp-search {
+  justify-self: center;
+  width: 100%; max-width: 520px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  padding: 9px 18px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  transition: all var(--motion-normal);
+}
+.tp-search:hover, .tp-search:focus-within {
+  background: var(--surface-elevated);
+  border-color: var(--school-primary-light);
+  box-shadow: 0 0 0 4px var(--school-primary-tint);
+}
+.tp-search__icon { color: var(--text-muted); }
+.tp-search__kbd {
+  margin-left: auto;
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: var(--text-muted);
+}
+
+.tp-actions {
+  justify-self: end;
+  display: flex; align-items: center; gap: 8px;
+}
+.tp-quick-action {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  font-size: 12px; font-weight: 600;
+  text-decoration: none;
+  transition: all var(--motion-fast);
+  cursor: pointer;
+}
+.tp-quick-action:hover {
+  border-color: var(--school-primary-light);
+  color: var(--school-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--elev-1);
+}
+.tp-quick-action--primary {
+  background: var(--school-primary);
+  border-color: var(--school-primary);
+  color: white;
+}
+.tp-quick-action--primary:hover {
+  background: var(--school-primary-soft);
+  color: white;
+  border-color: var(--school-primary-soft);
+}
+
+.tp-bell {
+  position: relative;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+.tp-bell:hover { color: var(--school-primary); transform: scale(1.05); }
+.tp-bell__badge {
+  position: absolute; top: -3px; right: -3px;
+  background: var(--danger);
+  color: white;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 700;
+  padding: 1px 5px;
+  border: 2px solid var(--surface-popover);
+  animation: tp-bell-pulse 2s ease-in-out infinite;
+}
+@keyframes tp-bell-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  70%      { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+}
+
+.tp-user {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 14px 4px 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+.tp-user:hover { box-shadow: var(--elev-1); border-color: var(--school-primary-light); }
+.tp-user__avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--school-gradient);
+  color: white;
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 12px;
+  position: relative;
+}
+.tp-user__avatar::after {
+  content: "";
+  position: absolute; bottom: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 2px solid var(--surface-elevated);
+}
+.tp-user__meta { line-height: 1.2; font-size: 12px; }
+.tp-user__meta strong { color: var(--text-primary); font-weight: 600; }
+.tp-user__meta span { display: block; color: var(--text-tertiary); font-size: 10px; }
+
+/* Primary nav */
+.tp-primary-nav {
+  display: flex; gap: 4px;
+  padding: 0 28px 10px;
+  align-items: center;
+  justify-content: center;
+}
+.tp-primary-nav__item {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--motion-fast);
+  position: relative;
+}
+.tp-primary-nav__item:hover { background: var(--surface-overlay); color: var(--text-primary); }
+.tp-primary-nav__item[aria-current="page"] {
+  background: var(--school-gradient);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(30, 111, 58, 0.28);
+}
+.tp-primary-nav__item .tp-nav-count {
+  margin-left: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 700;
+}
+.tp-primary-nav__item:not([aria-current="page"]) .tp-nav-count {
+  background: var(--danger);
+  color: white;
+}
+
+/* ============================================================
+   SIDEBAR — richer, premium
+   ============================================================ */
+.tp-sidebar-inner { padding: 18px 14px; display: flex; flex-direction: column; gap: 6px; }
+
+/* Child selector — confidence + presence */
+.tp-child-context {
+  position: relative;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-2);
+  overflow: hidden;
+}
+.tp-child-context::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: var(--school-gradient-soft);
+  pointer-events: none;
+  opacity: 0.6;
+}
+.tp-child-context > * { position: relative; }
+
+.tp-child-context__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  font-weight: 700;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.tp-child-context__label::after {
+  content: "✓ Live";
+  color: var(--success);
+  font-size: 9px;
+  background: var(--success-soft);
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+}
+
+.tp-child-context__active {
+  display: flex; align-items: center; gap: 12px;
+}
+.tp-child-context__avatar {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--school-gradient);
+  color: white;
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 16px;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(30, 111, 58, 0.25);
+  flex-shrink: 0;
+}
+.tp-child-context__avatar::after {
+  content: "";
+  position: absolute; bottom: -2px; right: -2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 2px solid var(--surface-elevated);
+}
+.tp-child-context__who { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; flex: 1; }
+.tp-child-context__who strong { color: var(--text-primary); font-size: 14px; font-weight: 700; }
+.tp-child-context__who span { color: var(--text-secondary); font-size: 11px; }
+.tp-child-context__stats {
+  display: flex; gap: 4px; margin-top: 4px;
+  font-size: 10px;
+}
+.tp-child-context__stat {
+  display: inline-flex; align-items: center; gap: 3px;
+  color: var(--text-tertiary);
+}
+.tp-child-context__stat--ok { color: var(--success); }
+.tp-child-context__stat-divider { color: var(--text-muted); }
+
+.tp-child-context__siblings {
+  display: flex; gap: 6px; align-items: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+}
+.tp-child-context__siblings-label { font-weight: 600; }
+.tp-child-context__sibling {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  font-weight: 700; font-size: 11px;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+}
+.tp-child-context__sibling:hover {
+  border-color: var(--school-primary);
+  color: var(--school-primary);
+  transform: scale(1.08);
+}
+.tp-child-context__sibling-plus {
+  border: 1px dashed var(--hairline-strong);
+  color: var(--text-tertiary);
+}
+
+/* Pinned items */
+.tp-pinned {
+  margin: 0 0 6px;
+  padding: 4px 0;
+}
+.tp-pinned__label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-muted);
+  padding: 6px 14px 4px;
+  font-weight: 700;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* Collapsible groups */
+.tp-sidebar__group { margin: 0; padding: 0; }
+.tp-sidebar__group > summary {
+  list-style: none; cursor: pointer; user-select: none;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  padding: 14px 14px 6px;
+  display: flex; align-items: center; gap: 4px;
+  font-weight: 700;
+}
+.tp-sidebar__group > summary::-webkit-details-marker { display: none; }
+.tp-sidebar__group > summary::before {
+  content: "▸";
+  font-size: 9px;
+  margin-right: 4px;
+  transition: transform var(--motion-fast);
+  color: var(--text-muted);
+}
+.tp-sidebar__group[open] > summary::before { transform: rotate(90deg); }
+
+.tp-sidebar__item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 13px;
+  position: relative;
+  transition: background var(--motion-fast);
+}
+.tp-sidebar__item:hover { background: var(--surface-overlay); }
+.tp-sidebar__item[aria-current="page"] {
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  font-weight: 600;
+}
+.tp-sidebar__item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: 3px; top: 22%; bottom: 22%;
+  width: 3px;
+  background: var(--school-primary);
+  border-radius: var(--radius-pill);
+}
+.tp-sidebar__count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--danger);
+  color: white;
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+}
+.tp-sidebar__count--info { background: var(--info); }
+.tp-sidebar__count--neutral { background: var(--surface-canvas); color: var(--text-tertiary); border: 1px solid var(--hairline); }
+
+/* ============================================================
+   CANVAS — premium dashboard
+   ============================================================ */
+.tp-canvas-body { padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px; }
+
+.tp-breadcrumb {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.tp-breadcrumb a { color: var(--text-tertiary); text-decoration: none; transition: color var(--motion-fast); }
+.tp-breadcrumb a:hover { color: var(--school-primary); }
+.tp-breadcrumb__separator { color: var(--text-muted); opacity: 0.45; font-weight: 400; }
+.tp-breadcrumb__current { color: var(--text-secondary); }
+
+.tp-hero-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+}
+.tp-greeting-block { flex: 1; min-width: 240px; }
+.tp-greeting-block__eyebrow {
+  font-size: 12px; color: var(--text-tertiary);
+  letter-spacing: 0.04em; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.tp-greeting-block__weather {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  font-size: 10px; font-weight: 600;
+}
+.tp-page-h1 { margin: 6px 0 4px; font-size: 32px; color: var(--text-primary); font-weight: 700; letter-spacing: -0.02em; }
+.tp-page-h1 strong { background: var(--school-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tp-greeting { font-size: 14px; color: var(--text-secondary); }
+.tp-greeting strong { color: var(--text-primary); }
+
+.tp-hero-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-top: 6px;
+}
+.tp-btn-primary, .tp-btn-secondary {
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--motion-fast);
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.tp-btn-primary {
+  background: var(--school-primary);
+  color: white;
+  box-shadow: 0 4px 10px rgba(30, 111, 58, 0.28);
+}
+.tp-btn-primary:hover { background: var(--school-primary-soft); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(30, 111, 58, 0.35); }
+.tp-btn-secondary { background: var(--surface-elevated); color: var(--text-primary); border-color: var(--hairline); }
+.tp-btn-secondary:hover { border-color: var(--school-primary-light); box-shadow: var(--elev-1); }
+
+/* Academic year progress */
+.tp-year-progress {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 18px;
+  box-shadow: var(--elev-1);
+}
+.tp-year-progress__icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--school-gradient-soft);
+  color: var(--school-primary);
+  display: grid; place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.tp-year-progress__body { flex: 1; min-width: 0; }
+.tp-year-progress__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.tp-year-progress__title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.tp-year-progress__pct { font-size: 12px; color: var(--school-primary); font-weight: 700; }
+.tp-year-progress__bar {
+  height: 8px;
+  background: var(--surface-sunken, #e5e7eb);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  position: relative;
+}
+.tp-year-progress__bar::after {
+  content: "";
+  position: absolute; inset: 0;
+  width: 62%;
+  background: var(--school-gradient);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 2px rgba(30, 111, 58, 0.12);
+}
+.tp-year-progress__meta {
+  display: flex; gap: 16px;
+  margin-top: 8px;
+  font-size: 11px; color: var(--text-tertiary);
+}
+.tp-year-progress__meta strong { color: var(--text-secondary); }
+
+/* Today snapshot — premium */
+.tp-snapshot { display: flex; flex-direction: column; gap: 10px; }
+.tp-section-label {
+  display: flex; align-items: center; gap: 10px; justify-content: space-between;
+}
+.tp-section-label__title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); font-weight: 700;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.tp-section-label__live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success);
+  animation: tp-bell-pulse 1.8s ease-in-out infinite;
+}
+.tp-section-label__link { color: var(--school-primary); font-size: 12px; font-weight: 600; text-decoration: none; }
+
+.tp-snapshot__cards {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;
+}
+@media (max-width: 1200px) { .tp-snapshot__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tp-snap-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 6px;
+  box-shadow: var(--elev-1);
+  transition: all var(--motion-fast);
+  position: relative;
+  overflow: hidden;
+}
+.tp-snap-card:hover { transform: translateY(-2px); box-shadow: var(--elev-2); border-color: var(--school-primary-light); }
+.tp-snap-card__head { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.tp-snap-card__icon { font-size: 14px; }
+.tp-snap-card__value { font-size: 26px; font-weight: 800; color: var(--text-primary); line-height: 1.05; margin-top: 4px; letter-spacing: -0.02em; }
+.tp-snap-card__label { font-size: 11px; color: var(--text-secondary); }
+.tp-snap-card__delta { font-size: 11px; color: var(--text-tertiary); margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; }
+.tp-snap-card__delta--success { color: var(--success); }
+.tp-snap-card__delta--warn { color: var(--warning); }
+.tp-snap-card__spark { margin-top: 6px; height: 24px; opacity: 0.85; }
+
+/* Quick actions tile grid */
+.tp-quick-grid {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;
+}
+@media (max-width: 1200px) { .tp-quick-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.tp-quick-tile {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 18px 16px;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all var(--motion-fast);
+  box-shadow: var(--elev-1);
+  position: relative;
+  overflow: hidden;
+}
+.tp-quick-tile:hover { transform: translateY(-2px); box-shadow: var(--elev-2); border-color: var(--school-primary-light); }
+.tp-quick-tile__icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  display: grid; place-items: center;
+  font-size: 16px;
+}
+.tp-quick-tile__title { font-size: 13px; font-weight: 600; line-height: 1.3; }
+.tp-quick-tile__sub { font-size: 11px; color: var(--text-tertiary); }
+.tp-quick-tile__badge {
+  position: absolute; top: 14px; right: 14px;
+  font-size: 9px; padding: 2px 7px; border-radius: var(--radius-pill);
+  background: var(--danger); color: white; font-weight: 700;
+}
+
+/* Upcoming events strip */
+.tp-events {
+  display: flex; gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin; scrollbar-color: var(--hairline) transparent;
+}
+.tp-event {
+  flex: 0 0 auto;
+  width: 220px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  text-decoration: none;
+  color: var(--text-primary);
+  box-shadow: var(--elev-1);
+  transition: all var(--motion-fast);
+  position: relative;
+}
+.tp-event:hover { transform: translateY(-2px); box-shadow: var(--elev-2); }
+.tp-event--today { border-color: var(--school-primary); box-shadow: 0 0 0 3px var(--school-primary-tint), var(--elev-2); }
+.tp-event__date { display: flex; align-items: baseline; gap: 6px; }
+.tp-event__day { font-size: 22px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }
+.tp-event__month { font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; }
+.tp-event__pill {
+  margin-left: auto; font-size: 9px; padding: 2px 7px; border-radius: var(--radius-pill);
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+}
+.tp-event__pill--today { background: var(--school-primary); color: white; }
+.tp-event__pill--soon { background: var(--warning-soft); color: var(--warning); }
+.tp-event__pill--info { background: var(--info-soft); color: var(--info); }
+.tp-event__title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-top: 4px; }
+.tp-event__meta { font-size: 11px; color: var(--text-tertiary); }
+
+/* Two-column row */
+.tp-grid-2 {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px;
+}
+@media (max-width: 1100px) { .tp-grid-2 { grid-template-columns: 1fr; } }
+
+/* Recent activity card */
+.tp-activity {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--elev-1);
+}
+.tp-activity__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.tp-activity__head h3 { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.tp-activity__head h3 span { color: var(--text-tertiary); font-weight: 500; margin-left: 6px; }
+.tp-activity__link { color: var(--school-primary); text-decoration: none; font-size: 12px; font-weight: 600; }
+.tp-activity__timeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+.tp-activity__timeline::before {
+  content: "";
+  position: absolute;
+  left: 18px; top: 22px; bottom: 22px;
+  width: 1px;
+  background: var(--hairline);
+}
+.tp-activity__item { display: flex; gap: 14px; align-items: flex-start; padding: 10px 0; position: relative; }
+.tp-activity__icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  border: 3px solid var(--surface-elevated);
+  position: relative;
+  z-index: 1;
+}
+.tp-activity__icon--success { background: var(--success-soft); color: var(--success); }
+.tp-activity__icon--warn { background: var(--warning-soft); color: var(--warning); }
+.tp-activity__icon--info { background: var(--info-soft); color: var(--info); }
+.tp-activity__body { flex: 1; min-width: 0; }
+.tp-activity__text { color: var(--text-primary); font-size: 13px; line-height: 1.45; }
+.tp-activity__text strong { font-weight: 700; }
+.tp-activity__meta { display: flex; gap: 10px; margin-top: 3px; font-size: 11px; color: var(--text-muted); }
+
+/* Achievements card */
+.tp-achievements {
+  background: var(--school-gradient);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(30, 111, 58, 0.28);
+}
+.tp-achievements::before {
+  content: "";
+  position: absolute;
+  top: -40%; right: -10%;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+.tp-achievements__head { display: flex; justify-content: space-between; align-items: center; position: relative; }
+.tp-achievements__title { font-size: 14px; font-weight: 700; margin: 0; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.06em; }
+.tp-achievements__count { font-size: 12px; opacity: 0.75; font-weight: 600; }
+.tp-achievements__list { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; position: relative; }
+.tp-achievement {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  min-width: 78px;
+  text-align: center;
+}
+.tp-achievement__icon { font-size: 22px; }
+.tp-achievement__label { font-size: 10px; font-weight: 600; opacity: 0.95; line-height: 1.2; }
+
+/* Teacher spotlight */
+.tp-spotlight {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--elev-1);
+}
+.tp-spotlight__head { margin-bottom: 16px; }
+.tp-spotlight__title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; }
+.tp-spotlight__sub { font-size: 12px; color: var(--text-tertiary); }
+.tp-spotlight__teacher { display: flex; gap: 14px; align-items: center; }
+.tp-spotlight__avatar {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: var(--school-gradient-soft);
+  color: var(--school-primary);
+  display: grid; place-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  position: relative;
+}
+.tp-spotlight__avatar::after {
+  content: "";
+  position: absolute; bottom: -2px; right: -2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 2px solid var(--surface-elevated);
+}
+.tp-spotlight__name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.tp-spotlight__role { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.tp-spotlight__quote { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 13px; line-height: 1.5; color: var(--text-secondary); font-style: italic; }
+.tp-spotlight__quote::before { content: "“"; color: var(--school-primary); font-size: 22px; line-height: 0; vertical-align: -6px; margin-right: 2px; }
+.tp-spotlight__action { margin-top: 14px; display: flex; gap: 8px; }
+.tp-spotlight__chip {
+  padding: 6px 12px;
+  background: var(--school-primary-light);
+  color: var(--school-primary);
+  border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600;
+  text-decoration: none;
+}
+.tp-spotlight__chip:hover { background: var(--school-primary); color: white; }
+
+/* ============================================================
+   100x community band — student-of-month + parent testimonial + district map
+   ============================================================ */
+.tp-community-band {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr 1.3fr;
+  gap: 18px;
+  margin-top: 22px;
+}
+@media (max-width: 1100px) {
+  .tp-community-band { grid-template-columns: 1fr; }
+}
+.tp-cband-card {
+  position: relative;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  padding: 18px 20px;
+  box-shadow: var(--elev-1, 0 1px 3px rgba(0,0,0,0.04));
+  overflow: hidden;
+}
+.tp-cband-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.tp-cband-card__title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+.tp-cband-card__chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--school-primary-light, var(--info-soft));
+  color: var(--school-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Student-of-the-month */
+.tp-cband-card--achievement::before {
+  content: ""; position: absolute; top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, var(--school-secondary-light, rgba(193,154,38,0.22)) 0%, transparent 70%);
+  pointer-events: none;
+}
+.tp-cband-card--achievement .tp-cband-card__chip {
+  background: var(--school-secondary-light, rgba(193,154,38,0.18));
+  color: var(--school-secondary, #c19a26);
+}
+.tp-achiever {
+  display: flex; align-items: center; gap: 14px;
+  position: relative;
+}
+.tp-achiever__avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--school-primary), var(--school-secondary, #c19a26));
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 800;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+.tp-achiever__body { min-width: 0; flex: 1; }
+.tp-achiever__name { font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px; }
+.tp-achiever__grade { font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; }
+.tp-achiever__quote {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+.tp-achiever__cite { display: block; margin-top: 6px; font-size: 10.5px; color: var(--text-tertiary); font-style: normal; }
+
+/* Parent testimonial rotation */
+.tp-cband-card--testimonial { background: linear-gradient(135deg, var(--school-primary-light) 0%, var(--surface-elevated) 60%); }
+.tp-testimonial { position: relative; min-height: 110px; }
+.tp-testimonial__quote {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+  margin: 0 0 12px;
+  display: none;
+}
+.tp-testimonial__quote.is-active { display: block; }
+.tp-testimonial__quote::before {
+  content: "\201C";
+  font-size: 36px;
+  line-height: 0;
+  vertical-align: -10px;
+  color: var(--school-primary);
+  margin-right: 4px;
+  font-style: normal;
+}
+.tp-testimonial__cite {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-style: normal;
+  font-family: inherit;
+}
+.tp-testimonial__cite span { color: var(--text-tertiary); font-weight: 400; margin-left: 6px; }
+.tp-testimonial__dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.tp-testimonial__dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  border: none;
+  background: var(--hairline-strong, var(--hairline));
+  cursor: pointer;
+  padding: 0;
+  transition: background 200ms ease;
+}
+.tp-testimonial__dot.is-active { background: var(--school-primary); }
+
+/* School district map preview */
+.tp-cband-card--map { padding: 0; overflow: hidden; }
+.tp-mapcard__inner { display: flex; flex-direction: column; height: 100%; }
+.tp-mapcard__head { padding: 16px 18px 8px; }
+.tp-mapcard__viewport {
+  position: relative;
+  flex: 1;
+  min-height: 140px;
+  background:
+    linear-gradient(135deg, #e8f1ec 0%, #f4ead6 100%);
+  border-top: 1px solid var(--hairline);
+}
+.tp-mapcard__grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(0deg, rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.7;
+}
+.tp-mapcard__road {
+  position: absolute;
+  background: white;
+  box-shadow: 0 0 0 1px var(--hairline);
+}
+.tp-mapcard__road--h1 { top: 38%; left: 0; right: 0; height: 6px; }
+.tp-mapcard__road--h2 { top: 70%; left: 0; right: 60%; height: 4px; }
+.tp-mapcard__road--v1 { top: 0; bottom: 0; left: 32%; width: 6px; }
+.tp-mapcard__road--v2 { top: 38%; bottom: 0; right: 18%; width: 4px; }
+.tp-mapcard__pin {
+  position: absolute;
+  top: 32%; left: 38%;
+  width: 28px; height: 28px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--school-primary);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2), 0 0 0 5px rgba(255,255,255,0.5);
+  z-index: 2;
+}
+.tp-mapcard__pin::after {
+  content: "🎓";
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  font-size: 13px;
+}
+.tp-mapcard__pin-pulse {
+  position: absolute;
+  top: 32%; left: 38%;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--school-primary);
+  opacity: 0.35;
+  animation: tp-mapcard-pulse 2.8s ease-out infinite;
+  z-index: 1;
+}
+@keyframes tp-mapcard-pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(3); opacity: 0; }
+}
+.tp-mapcard__overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 10px 14px;
+  background: linear-gradient(0deg, rgba(255,255,255,0.97), rgba(255,255,255,0.85) 70%, transparent);
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 8px;
+}
+.tp-mapcard__addr { font-size: 12px; color: var(--text-primary); font-weight: 600; line-height: 1.3; }
+.tp-mapcard__addr span { display: block; font-size: 10.5px; color: var(--text-tertiary); font-weight: 400; margin-top: 2px; }
+.tp-mapcard__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--school-primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tp-mapcard__pin-pulse { animation: none; opacity: 0; }
+}
+
+/* ============================================================
+   100x newsletter signup band (above footer)
+   ============================================================ */
+.tp-newsletter-band {
+  margin-top: 22px;
+  padding: 20px 24px;
+  background:
+    linear-gradient(135deg, var(--school-primary) 0%, var(--school-secondary, #c19a26) 100%);
+  border-radius: var(--radius-lg, 16px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  color: white;
+  box-shadow: var(--elev-2, 0 6px 18px rgba(0,0,0,0.12));
+  position: relative;
+  overflow: hidden;
+}
+.tp-newsletter-band::before {
+  content: ""; position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+  pointer-events: none;
+}
+.tp-newsletter-band__copy { position: relative; }
+.tp-newsletter-band__copy strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+}
+.tp-newsletter-band__copy span {
+  font-size: 12px;
+  opacity: 0.92;
+  display: block;
+}
+.tp-newsletter-band__form {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tp-newsletter-band__input {
+  appearance: none;
+  border: 0;
+  background: rgba(255,255,255,0.96);
+  color: var(--text-primary);
+  padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  width: 240px;
+  font-family: inherit;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+.tp-newsletter-band__input::placeholder { color: var(--text-tertiary); }
+.tp-newsletter-band__input:focus { outline: 2px solid white; outline-offset: 1px; }
+.tp-newsletter-band__btn {
+  appearance: none;
+  border: 0;
+  background: rgba(0,0,0,0.18);
+  color: white;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.tp-newsletter-band__btn:hover { background: rgba(0,0,0,0.32); transform: translateY(-1px); }
+.tp-newsletter-band__small { font-size: 10.5px; opacity: 0.85; }
+.tp-newsletter-band__small a { color: white; text-decoration: underline; }
+
+/* B-Corp / Green School chips inherit base pill but with cert-tones */
+.tp-footer-pillar--cert {
+  background: var(--info-soft, rgba(59,130,246,0.12));
+  color: var(--info, #2563eb);
+  font-weight: 700;
+}
+.tp-footer-pillar--green {
+  background: rgba(34,197,94,0.14);
+  color: #16a34a;
+  font-weight: 700;
+}
+
+/* Footer — centered civic layout (densified, 25% shorter, 20x richer content) */
+.tp-footer-inner {
+  padding: 18px 32px 14px;        /* was 28/24 — ~30% vertical padding reduction */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;                       /* was 14 — ~43% gap reduction */
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  text-align: center;
+  align-items: center;
+}
+.tp-footer-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Tier 1: brand + inline motto + est. */
+.tp-footer-brandrow {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.2;
+}
+.tp-footer-brandrow strong { color: var(--text-primary); font-weight: 700; letter-spacing: 0.01em; }
+.tp-footer-motto {
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.015em;
+}
+.tp-footer-est { color: var(--text-tertiary); font-size: 11.5px; }
+
+/* Tier 2: trust pillars + language switcher + app badges + social — single dense row */
+.tp-footer-pillars {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+.tp-footer-pillar {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken, #eef2f6);
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.tp-footer-pillar--secure { background: var(--success-soft); color: var(--success); font-weight: 700; }
+.tp-footer-divider {
+  display: inline-block;
+  width: 1px; height: 14px;
+  background: var(--hairline);
+  margin: 0 4px;
+  align-self: center;
+}
+
+/* Language switcher chip — interactive look */
+.tp-footer-langswitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px 3px 8px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated, #fff);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+.tp-footer-langswitch:hover {
+  border-color: var(--school-primary, var(--text-tertiary));
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.tp-footer-langswitch__caret { font-size: 9px; opacity: 0.6; }
+
+/* App store mini-badges */
+.tp-footer-appbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, #fff);
+  color: var(--text-primary);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 140ms ease, transform 140ms ease;
+}
+.tp-footer-appbadge:hover { border-color: var(--school-primary, var(--text-tertiary)); transform: translateY(-1px); }
+.tp-footer-appbadge__glyph { font-size: 11px; }
+
+/* Social icon row */
+.tp-footer-social {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tp-footer-social__label {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  margin-right: 2px;
+}
+.tp-footer-social__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, #fff);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  transition: all 160ms ease;
+}
+.tp-footer-social__icon:hover {
+  border-color: var(--school-primary, var(--text-tertiary));
+  color: var(--school-primary, var(--text-primary));
+  transform: translateY(-1px);
+}
+
+/* Tier 3: contact strip — denser */
+.tp-footer-contacts {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 10.5px;
+  justify-content: center;
+}
+.tp-footer-contact { display: inline-flex; align-items: center; gap: 4px; }
+.tp-footer-contact a { text-decoration: none; }
+.tp-footer-stat {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+}
+.tp-footer-stat strong { color: var(--text-secondary); font-weight: 700; }
+
+/* Tier 4: legal — single dense centered line, hairline above */
+.tp-footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 14px;
+  padding-top: 10px;
+  margin-top: 2px;
+  border-top: 1px solid var(--hairline);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  width: 100%;
+  max-width: 920px;
+}
+.tp-footer-legal__copy { letter-spacing: 0.01em; }
+.tp-footer-legal__sep { color: var(--text-tertiary); opacity: 0.6; }
+.tp-footer-legal a { color: var(--text-muted); text-decoration: none; }
+.tp-footer-legal a:hover { color: var(--text-secondary); }
+
+/* Bleed-prove callout */
+.bleed-callout {
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+  background: var(--school-primary); color: white;
+  padding: 8px 16px; border-radius: var(--radius-pill);
+  font-size: 12px; box-shadow: var(--elev-2);
+  z-index: 9999; pointer-events: none; font-weight: 600;
+}
+.bleed-callout strong { color: rgba(255,255,255,0.92); }
+</style>
+</head>
+<body>
+
+<div class="bleed-callout">TENANT PORTAL · 10x preview · <strong>same shell, school-scoped, premium polish</strong></div>
+
+<div class="rmc-app-shell">
+
+  <!-- ==========================================================
+       HEADER — frosted glass, quick actions, premium
+       ========================================================== -->
+  <header class="rmc-app-shell__header">
+    <div class="tp-header">
+      <div class="tp-header__row">
+        <a href="#" class="tp-brand">
+          <span class="tp-brand__mark">G</span>
+          <span class="tp-brand__text">
+            <span class="tp-brand__name">Gilead Tech High<span class="tp-brand__pill">Family</span></span>
+            <span class="tp-brand__tagline">
+              <span class="tp-brand__year-badge">2026/27</span>
+              Term 2 · Week 8 of 14
+            </span>
+          </span>
+        </a>
+
+        <div class="tp-search">
+          <span class="tp-search__icon">🔍</span>
+          <span>Search announcements, grades, fees, teachers…</span>
+          <span class="tp-search__kbd">Ctrl K</span>
+        </div>
+
+        <div class="tp-actions">
+          <a href="#" class="tp-quick-action tp-quick-action--primary">💳 Pay fees</a>
+          <a href="#" class="tp-quick-action">📅 Book</a>
+          <a href="#" class="tp-quick-action">💬 Message</a>
+          <div class="tp-bell">🔔<span class="tp-bell__badge">3</span></div>
+          <div class="tp-user">
+            <div class="tp-user__avatar">MA</div>
+            <div class="tp-user__meta">
+              <strong>Marie Adebayo</strong>
+              <span>Parent · 2 children</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="tp-primary-nav" aria-label="Primary">
+        <a href="#" class="tp-primary-nav__item" aria-current="page">🏠 Home</a>
+        <a href="#" class="tp-primary-nav__item">📚 Academics</a>
+        <a href="#" class="tp-primary-nav__item">💳 Finance <span class="tp-nav-count">1</span></a>
+        <a href="#" class="tp-primary-nav__item">💬 Messages <span class="tp-nav-count">3</span></a>
+        <a href="#" class="tp-primary-nav__item">📅 Calendar</a>
+        <a href="#" class="tp-primary-nav__item">⚙ Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ==========================================================
+       SIDEBAR — premium card + count badges + collapsible
+       ========================================================== -->
+  <aside class="rmc-app-shell__sidebar">
+    <div class="tp-sidebar-inner">
+
+      <!-- Rich child selector with presence + inline stats -->
+      <div class="tp-child-context">
+        <div class="tp-child-context__label">Viewing child</div>
+        <div class="tp-child-context__active">
+          <div class="tp-child-context__avatar">SA</div>
+          <div class="tp-child-context__who">
+            <strong>Samuel Adebayo</strong>
+            <span>Grade 10 · Section B</span>
+            <div class="tp-child-context__stats">
+              <span class="tp-child-context__stat tp-child-context__stat--ok">● Present today</span>
+              <span class="tp-child-context__stat-divider">·</span>
+              <span class="tp-child-context__stat">B+ avg</span>
+            </div>
+          </div>
+        </div>
+        <div class="tp-child-context__siblings">
+          <span class="tp-child-context__siblings-label">Siblings:</span>
+          <button class="tp-child-context__sibling" title="Esther Adebayo · Grade 7">E</button>
+          <button class="tp-child-context__sibling tp-child-context__sibling-plus" title="Add child">+</button>
+        </div>
+      </div>
+
+      <!-- Pinned -->
+      <div class="tp-pinned">
+        <div class="tp-pinned__label">📌 Pinned</div>
+        <a href="#" class="tp-sidebar__item" aria-current="page">🏠 Home dashboard</a>
+        <a href="#" class="tp-sidebar__item">💳 Pay fees <span class="tp-sidebar__count">1</span></a>
+        <a href="#" class="tp-sidebar__item">💬 Messages <span class="tp-sidebar__count">3</span></a>
+        <a href="#" class="tp-sidebar__item">📊 Latest report card</a>
+        <a href="#" class="tp-sidebar__item" title="Subscribe school calendar to your phone / Outlook / Google calendar">📅 Subscribe calendar (.ics)</a>
+      </div>
+
+      <details class="tp-sidebar__group" open>
+        <summary>Academics</summary>
+        <a href="#" class="tp-sidebar__item">📝 Assignments <span class="tp-sidebar__count tp-sidebar__count--info">2</span></a>
+        <a href="#" class="tp-sidebar__item">📈 Grades &amp; progress</a>
+        <a href="#" class="tp-sidebar__item">🎓 Teachers</a>
+        <a href="#" class="tp-sidebar__item">📚 Subjects</a>
+        <a href="#" class="tp-sidebar__item">📋 Curriculum</a>
+      </details>
+
+      <details class="tp-sidebar__group" open>
+        <summary>Finance</summary>
+        <a href="#" class="tp-sidebar__item">💳 Pay fees <span class="tp-sidebar__count">$420</span></a>
+        <a href="#" class="tp-sidebar__item">📃 Invoices &amp; receipts</a>
+        <a href="#" class="tp-sidebar__item">🍱 Meal plan <span class="tp-sidebar__count tp-sidebar__count--neutral">$24</span></a>
+        <a href="#" class="tp-sidebar__item">🚌 Transport plan</a>
+      </details>
+
+      <details class="tp-sidebar__group" open>
+        <summary>Communications</summary>
+        <a href="#" class="tp-sidebar__item">💬 Messages <span class="tp-sidebar__count">3</span></a>
+        <a href="#" class="tp-sidebar__item">📢 Announcements</a>
+        <a href="#" class="tp-sidebar__item">📅 Events &amp; calendar</a>
+      </details>
+
+      <details class="tp-sidebar__group">
+        <summary>People</summary>
+        <a href="#" class="tp-sidebar__item">🎓 Teachers directory</a>
+        <a href="#" class="tp-sidebar__item">🏫 School administration</a>
+        <a href="#" class="tp-sidebar__item">👥 Parent community</a>
+      </details>
+
+      <details class="tp-sidebar__group">
+        <summary>My account</summary>
+        <a href="#" class="tp-sidebar__item">👤 Profile</a>
+        <a href="#" class="tp-sidebar__item">🔔 Notification preferences</a>
+        <a href="#" class="tp-sidebar__item">🔒 Privacy &amp; security</a>
+        <a href="#" class="tp-sidebar__item">🌐 Language &amp; region</a>
+      </details>
+    </div>
+  </aside>
+
+  <!-- ==========================================================
+       CANVAS — premium parent dashboard
+       ========================================================== -->
+  <div class="rmc-app-shell__canvas">
+    <div class="rmc-app-shell__canvas-body">
+      <div class="tp-canvas-body">
+
+        <nav class="tp-breadcrumb" aria-label="Breadcrumb">
+          <a href="#">Gilead Tech High</a>
+          <span class="tp-breadcrumb__separator">›</span>
+          <a href="#">Family portal</a>
+          <span class="tp-breadcrumb__separator">›</span>
+          <span class="tp-breadcrumb__current">Home</span>
+        </nav>
+
+        <!-- Hero greeting + actions -->
+        <div class="tp-hero-row">
+          <div class="tp-greeting-block">
+            <div class="tp-greeting-block__eyebrow">
+              Thursday, May 21 · 8:42 AM
+              <span class="tp-greeting-block__weather">☀ 24°C · sunny in Lagos</span>
+            </div>
+            <h1 class="tp-page-h1">Good morning, <strong>Marie</strong></h1>
+            <p class="tp-greeting">Here's what's happening with <strong>Samuel</strong> &amp; <strong>Esther</strong> today.</p>
+          </div>
+          <div class="tp-hero-actions">
+            <button class="tp-btn-secondary">📄 Download report</button>
+            <button class="tp-btn-primary">💳 Pay $420 outstanding →</button>
+          </div>
+        </div>
+
+        <!-- Academic year progress -->
+        <div class="tp-year-progress">
+          <div class="tp-year-progress__icon">🎓</div>
+          <div class="tp-year-progress__body">
+            <div class="tp-year-progress__head">
+              <div class="tp-year-progress__title">2026/27 academic year · Term 2</div>
+              <div class="tp-year-progress__pct">62% complete</div>
+            </div>
+            <div class="tp-year-progress__bar"></div>
+            <div class="tp-year-progress__meta">
+              <span><strong>Week 8</strong> of 14</span>
+              <span>📅 Term break: <strong>June 28</strong></span>
+              <span>🎯 Next report card: <strong>June 14</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today snapshot -->
+        <section class="tp-snapshot">
+          <div class="tp-section-label">
+            <div class="tp-section-label__title">
+              <span class="tp-section-label__live-dot"></span>
+              Today · Samuel · live
+            </div>
+            <a href="#" class="tp-section-label__link">Switch to Esther →</a>
+          </div>
+          <div class="tp-snapshot__cards">
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head"><span class="tp-snap-card__icon">✓</span>Attendance</div>
+              <div class="tp-snap-card__value">Present</div>
+              <div class="tp-snap-card__label">Checked in 7:48 AM</div>
+              <svg class="tp-snap-card__spark" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,18 14,16 28,12 42,14 56,8 70,10 84,4 100,6" fill="none" stroke="#16a34a" stroke-width="2"/></svg>
+              <div class="tp-snap-card__delta tp-snap-card__delta--success">▲ 98% this term · +2pts</div>
+            </article>
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head"><span class="tp-snap-card__icon">📝</span>Assignments</div>
+              <div class="tp-snap-card__value">2 due</div>
+              <div class="tp-snap-card__label">This week</div>
+              <svg class="tp-snap-card__spark" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,10 14,14 28,8 42,12 56,16 70,14 84,18 100,16" fill="none" stroke="#d97706" stroke-width="2"/></svg>
+              <div class="tp-snap-card__delta tp-snap-card__delta--warn">⚠ Math due Thursday 5 PM</div>
+            </article>
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head"><span class="tp-snap-card__icon">🍱</span>Meal plan</div>
+              <div class="tp-snap-card__value">$24.50</div>
+              <div class="tp-snap-card__label">Remaining balance</div>
+              <svg class="tp-snap-card__spark" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,4 14,8 28,12 42,10 56,14 70,16 84,18 100,20" fill="none" stroke="#64748b" stroke-width="2"/></svg>
+              <div class="tp-snap-card__delta">≈ 6 lunches left · top-up suggested</div>
+            </article>
+            <article class="tp-snap-card">
+              <div class="tp-snap-card__head"><span class="tp-snap-card__icon">💳</span>Fees</div>
+              <div class="tp-snap-card__value">$420</div>
+              <div class="tp-snap-card__label">Outstanding</div>
+              <svg class="tp-snap-card__spark" viewBox="0 0 100 24" preserveAspectRatio="none"><polyline points="0,4 14,4 28,4 42,4 56,12 70,12 84,12 100,12" fill="none" stroke="#d97706" stroke-width="2"/></svg>
+              <div class="tp-snap-card__delta tp-snap-card__delta--warn">Due 2026-06-15 · 25 days left</div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Quick actions grid -->
+        <section>
+          <div class="tp-section-label" style="margin-bottom:10px;">
+            <div class="tp-section-label__title">Quick actions</div>
+          </div>
+          <div class="tp-quick-grid">
+            <a href="#" class="tp-quick-tile">
+              <span class="tp-quick-tile__icon">💳</span>
+              <span class="tp-quick-tile__title">Pay fees</span>
+              <span class="tp-quick-tile__sub">$420 outstanding</span>
+              <span class="tp-quick-tile__badge">1</span>
+            </a>
+            <a href="#" class="tp-quick-tile">
+              <span class="tp-quick-tile__icon">📅</span>
+              <span class="tp-quick-tile__title">Book conference</span>
+              <span class="tp-quick-tile__sub">May 26 slots open</span>
+            </a>
+            <a href="#" class="tp-quick-tile">
+              <span class="tp-quick-tile__icon">💬</span>
+              <span class="tp-quick-tile__title">Message teacher</span>
+              <span class="tp-quick-tile__sub">3 unread</span>
+              <span class="tp-quick-tile__badge">3</span>
+            </a>
+            <a href="#" class="tp-quick-tile">
+              <span class="tp-quick-tile__icon">📊</span>
+              <span class="tp-quick-tile__title">View report card</span>
+              <span class="tp-quick-tile__sub">Latest: B+ avg</span>
+            </a>
+            <a href="#" class="tp-quick-tile">
+              <span class="tp-quick-tile__icon">🍱</span>
+              <span class="tp-quick-tile__title">Top up meals</span>
+              <span class="tp-quick-tile__sub">$24.50 left</span>
+            </a>
+            <a href="#" class="tp-quick-tile">
+              <span class="tp-quick-tile__icon">📞</span>
+              <span class="tp-quick-tile__title">Report absence</span>
+              <span class="tp-quick-tile__sub">Quick form</span>
+            </a>
+          </div>
+        </section>
+
+        <!-- Upcoming events -->
+        <section>
+          <div class="tp-section-label" style="margin-bottom:10px;">
+            <div class="tp-section-label__title">📅 Upcoming · next 14 days</div>
+            <a href="#" class="tp-section-label__link">View calendar →</a>
+          </div>
+          <div class="tp-events">
+            <a href="#" class="tp-event tp-event--today">
+              <div class="tp-event__date">
+                <span class="tp-event__day">21</span>
+                <span class="tp-event__month">May</span>
+                <span class="tp-event__pill tp-event__pill--today">Today</span>
+              </div>
+              <div class="tp-event__title">Math homework due</div>
+              <div class="tp-event__meta">⏰ 5 PM · Algebra II</div>
+            </a>
+            <a href="#" class="tp-event">
+              <div class="tp-event__date">
+                <span class="tp-event__day">26</span>
+                <span class="tp-event__month">May</span>
+                <span class="tp-event__pill tp-event__pill--soon">5 days</span>
+              </div>
+              <div class="tp-event__title">Parent-teacher conferences</div>
+              <div class="tp-event__meta">📅 All-day · book your slot</div>
+            </a>
+            <a href="#" class="tp-event">
+              <div class="tp-event__date">
+                <span class="tp-event__day">30</span>
+                <span class="tp-event__month">May</span>
+                <span class="tp-event__pill tp-event__pill--info">9 days</span>
+              </div>
+              <div class="tp-event__title">Science fair · Grade 10</div>
+              <div class="tp-event__meta">📍 Main hall · Mr. Diallo</div>
+            </a>
+            <a href="#" class="tp-event">
+              <div class="tp-event__date">
+                <span class="tp-event__day">02</span>
+                <span class="tp-event__month">Jun</span>
+                <span class="tp-event__pill tp-event__pill--info">12 days</span>
+              </div>
+              <div class="tp-event__title">Inter-house sports day</div>
+              <div class="tp-event__meta">🏃 8 AM · uniform required</div>
+            </a>
+            <a href="#" class="tp-event">
+              <div class="tp-event__date">
+                <span class="tp-event__day">14</span>
+                <span class="tp-event__month">Jun</span>
+                <span class="tp-event__pill tp-event__pill--info">3 weeks</span>
+              </div>
+              <div class="tp-event__title">Mid-term report cards</div>
+              <div class="tp-event__meta">📊 Released to parents</div>
+            </a>
+          </div>
+        </section>
+
+        <!-- 2-column: activity + achievements -->
+        <div class="tp-grid-2">
+          <!-- Recent activity timeline -->
+          <section class="tp-activity">
+            <div class="tp-activity__head">
+              <h3>Recent activity <span>· this week</span></h3>
+              <a href="#" class="tp-activity__link">View all →</a>
+            </div>
+            <div class="tp-activity__timeline">
+              <div class="tp-activity__item">
+                <div class="tp-activity__icon tp-activity__icon--success">📝</div>
+                <div class="tp-activity__body">
+                  <div class="tp-activity__text">Samuel received <strong>B+</strong> on the Algebra II midterm</div>
+                  <div class="tp-activity__meta"><span>Mrs. Okonkwo</span> · <span>Yesterday · 2:14 PM</span></div>
+                </div>
+              </div>
+              <div class="tp-activity__item">
+                <div class="tp-activity__icon tp-activity__icon--info">💬</div>
+                <div class="tp-activity__body">
+                  <div class="tp-activity__text"><strong>Mr. Diallo</strong> sent a message about the upcoming science fair</div>
+                  <div class="tp-activity__meta"><span>1 reply needed</span> · <span>Yesterday · 9:42 AM</span></div>
+                </div>
+              </div>
+              <div class="tp-activity__item">
+                <div class="tp-activity__icon">📅</div>
+                <div class="tp-activity__body">
+                  <div class="tp-activity__text">School calendar updated: <strong>Term break starts June 28</strong></div>
+                  <div class="tp-activity__meta"><span>School admin</span> · <span>2 days ago</span></div>
+                </div>
+              </div>
+              <div class="tp-activity__item">
+                <div class="tp-activity__icon tp-activity__icon--success">🎓</div>
+                <div class="tp-activity__body">
+                  <div class="tp-activity__text">Esther moved up to <strong>Reading Group A</strong></div>
+                  <div class="tp-activity__meta"><span>Grade 7 · Mr. Adeyemi</span> · <span>3 days ago</span></div>
+                </div>
+              </div>
+              <div class="tp-activity__item">
+                <div class="tp-activity__icon tp-activity__icon--warn">💳</div>
+                <div class="tp-activity__body">
+                  <div class="tp-activity__text">Invoice reminder: <strong>$420 due June 15</strong></div>
+                  <div class="tp-activity__meta"><span>Finance office</span> · <span>4 days ago</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Achievements + teacher spotlight stacked -->
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <section class="tp-achievements">
+              <div class="tp-achievements__head">
+                <h3 class="tp-achievements__title">🏆 Samuel's achievements</h3>
+                <span class="tp-achievements__count">8 of 24</span>
+              </div>
+              <div class="tp-achievements__list">
+                <div class="tp-achievement"><div class="tp-achievement__icon">🎯</div><div class="tp-achievement__label">Perfect attendance</div></div>
+                <div class="tp-achievement"><div class="tp-achievement__icon">📚</div><div class="tp-achievement__label">Top reader · April</div></div>
+                <div class="tp-achievement"><div class="tp-achievement__icon">🥇</div><div class="tp-achievement__label">Math olympiad bronze</div></div>
+                <div class="tp-achievement"><div class="tp-achievement__icon">⭐</div><div class="tp-achievement__label">+5 more</div></div>
+              </div>
+            </section>
+
+            <section class="tp-spotlight">
+              <div class="tp-spotlight__head">
+                <h3 class="tp-spotlight__title">Teacher spotlight</h3>
+                <div class="tp-spotlight__sub">This week's featured staff member</div>
+              </div>
+              <div class="tp-spotlight__teacher">
+                <div class="tp-spotlight__avatar">OK</div>
+                <div>
+                  <div class="tp-spotlight__name">Mrs. Adaeze Okonkwo</div>
+                  <div class="tp-spotlight__role">Mathematics · Grade 10 Section B</div>
+                </div>
+              </div>
+              <div class="tp-spotlight__quote">Algebra II is going to challenge them this term — but they're ready. Looking forward to seeing the science fair entries next week.</div>
+              <div class="tp-spotlight__action">
+                <a href="#" class="tp-spotlight__chip">💬 Send message</a>
+                <a href="#" class="tp-spotlight__chip">📅 Book office hours</a>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- ==========================================================
+             100x COMMUNITY BAND — student of the month + parent
+             testimonial rotation + school district map (3 columns)
+             ========================================================== -->
+        <section class="tp-community-band" aria-label="Community spotlight">
+
+          <!-- Student of the month -->
+          <article class="tp-cband-card tp-cband-card--achievement">
+            <div class="tp-cband-card__head">
+              <h3 class="tp-cband-card__title">🏅 Student of the month</h3>
+              <span class="tp-cband-card__chip">May 2026</span>
+            </div>
+            <div class="tp-achiever">
+              <div class="tp-achiever__avatar" aria-hidden="true">AO</div>
+              <div class="tp-achiever__body">
+                <div class="tp-achiever__name">Adaeze Okonkwo · Grade 8</div>
+                <div class="tp-achiever__grade">Honor roll · Robotics club lead</div>
+                <p class="tp-achiever__quote">
+                  &ldquo;Built a working water-quality sensor for the science fair — and taught three classmates the soldering steps herself.&rdquo;
+                  <cite class="tp-achiever__cite">— Mr. Adebayo, Science teacher</cite>
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Parent testimonial — rotating quotes -->
+          <article class="tp-cband-card tp-cband-card--testimonial">
+            <div class="tp-cband-card__head">
+              <h3 class="tp-cband-card__title">💬 Parent voices</h3>
+              <span class="tp-cband-card__chip">Live</span>
+            </div>
+            <div class="tp-testimonial" data-tp-testimonial>
+              <p class="tp-testimonial__quote is-active" data-tp-testimonial-quote>
+                The portal makes me feel like I&rsquo;m in the classroom — I can see what Samuel learned today before he even gets home.
+                <cite class="tp-testimonial__cite">— Mrs. Eze<span>Parent · Grade 7</span></cite>
+              </p>
+              <p class="tp-testimonial__quote" data-tp-testimonial-quote>
+                Three siblings, one tap. The fee-pay flow finally respects how busy our weeks are.
+                <cite class="tp-testimonial__cite">— Mr. Adesina<span>Parent · Grades 3, 7, 11</span></cite>
+              </p>
+              <p class="tp-testimonial__quote" data-tp-testimonial-quote>
+                The teacher messages are kind, specific, and actually arrive on time. Best school comms we&rsquo;ve ever had.
+                <cite class="tp-testimonial__cite">— Dr. Okeke<span>Parent · Grade 9</span></cite>
+              </p>
+              <div class="tp-testimonial__dots" role="tablist" aria-label="Testimonial selector">
+                <button type="button" class="tp-testimonial__dot is-active" data-tp-testimonial-dot="0" aria-label="Show testimonial 1"></button>
+                <button type="button" class="tp-testimonial__dot" data-tp-testimonial-dot="1" aria-label="Show testimonial 2"></button>
+                <button type="button" class="tp-testimonial__dot" data-tp-testimonial-dot="2" aria-label="Show testimonial 3"></button>
+              </div>
+            </div>
+          </article>
+
+          <!-- School district map -->
+          <article class="tp-cband-card tp-cband-card--map">
+            <div class="tp-mapcard__inner">
+              <div class="tp-mapcard__head">
+                <div class="tp-cband-card__head" style="margin-bottom:0;">
+                  <h3 class="tp-cband-card__title">📍 Visit Gilead Tech High</h3>
+                  <span class="tp-cband-card__chip">Open weekdays</span>
+                </div>
+              </div>
+              <div class="tp-mapcard__viewport" aria-label="Map preview">
+                <div class="tp-mapcard__grid" aria-hidden="true"></div>
+                <span class="tp-mapcard__road tp-mapcard__road--h1" aria-hidden="true"></span>
+                <span class="tp-mapcard__road tp-mapcard__road--h2" aria-hidden="true"></span>
+                <span class="tp-mapcard__road tp-mapcard__road--v1" aria-hidden="true"></span>
+                <span class="tp-mapcard__road tp-mapcard__road--v2" aria-hidden="true"></span>
+                <span class="tp-mapcard__pin-pulse" aria-hidden="true"></span>
+                <span class="tp-mapcard__pin" aria-hidden="true"></span>
+                <div class="tp-mapcard__overlay">
+                  <div class="tp-mapcard__addr">
+                    12 Education Avenue
+                    <span>Ikoyi · Lagos · Nigeria</span>
+                  </div>
+                  <a href="https://maps.google.com/?q=Ikoyi+Lagos" target="_blank" rel="noopener" class="tp-mapcard__cta">Open in maps ↗</a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </section>
+
+        <!-- ==========================================================
+             100x NEWSLETTER BAND — weekly digest signup
+             ========================================================== -->
+        <section class="tp-newsletter-band" aria-label="Subscribe to family digest">
+          <div class="tp-newsletter-band__copy">
+            <strong>Stay in the loop · weekly family digest</strong>
+            <span>Term highlights · upcoming events · achievements · 1 email every Sunday</span>
+          </div>
+          <form class="tp-newsletter-band__form" action="#" method="post" onsubmit="event.preventDefault(); alert('Subscribed (preview).');">
+            <input type="email" class="tp-newsletter-band__input" placeholder="parent@email.com" aria-label="Email address" required>
+            <button type="submit" class="tp-newsletter-band__btn">Subscribe →</button>
+            <span class="tp-newsletter-band__small">By subscribing you agree to our <a href="#">privacy notice</a>.</span>
+          </form>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================
+       FOOTER — school contact + trust signals
+       ========================================================== -->
+  <footer class="rmc-app-shell__footer">
+    <div class="tp-footer-inner">
+      <!-- Tier 1: Brand + school motto + est. (inline, single row) -->
+      <div class="tp-footer-brandrow">
+        <strong>Gilead Tech High</strong>
+        <span class="tp-footer-motto">&ldquo;Where character meets opportunity.&rdquo;</span>
+        <span class="tp-footer-est">· Family portal · Est. 2018</span>
+      </div>
+
+      <!-- Tier 2: Trust pillars · language switcher · app badges · social — dense single row -->
+      <div class="tp-footer-pillars">
+        <span class="tp-footer-pillar tp-footer-pillar--secure">🔒 FERPA · ISO 27001 · WCAG 2.1 AA</span>
+        <span class="tp-footer-pillar tp-footer-pillar--green" title="Certified B Corporation · sustainability + community">♻ Green School certified</span>
+        <span class="tp-footer-pillar tp-footer-pillar--cert" title="B Lab certified — business as a force for good">🌍 B-Corp pending</span>
+
+        <button type="button" class="tp-footer-langswitch" aria-haspopup="listbox" aria-label="Change language">
+          🌐 English <span class="tp-footer-langswitch__caret" aria-hidden="true">▾</span>
+        </button>
+
+        <a href="#" class="tp-footer-appbadge" aria-label="Download for iOS"><span class="tp-footer-appbadge__glyph"></span> App Store</a>
+        <a href="#" class="tp-footer-appbadge" aria-label="Get it on Google Play"><span class="tp-footer-appbadge__glyph">▶</span> Google Play</a>
+
+        <span class="tp-footer-divider" aria-hidden="true"></span>
+
+        <span class="tp-footer-social" aria-label="Follow Gilead Tech High">
+          <span class="tp-footer-social__label">Follow</span>
+          <a class="tp-footer-social__icon" href="#" aria-label="X (Twitter)" title="X">𝕏</a>
+          <a class="tp-footer-social__icon" href="#" aria-label="Instagram" title="Instagram">◉</a>
+          <a class="tp-footer-social__icon" href="#" aria-label="Facebook" title="Facebook">f</a>
+          <a class="tp-footer-social__icon" href="#" aria-label="YouTube" title="YouTube">▶</a>
+          <a class="tp-footer-social__icon" href="#" aria-label="LinkedIn" title="LinkedIn">in</a>
+        </span>
+      </div>
+
+      <!-- Tier 3: Contact strip + social-proof stat -->
+      <div class="tp-footer-contacts">
+        <div class="tp-footer-contact">📞 <a href="tel:" style="color:inherit;">+234 (0) 1 234 5678</a></div>
+        <div class="tp-footer-contact">📧 <a href="mailto:" style="color:inherit;">family@gileadtech.edu</a></div>
+        <div class="tp-footer-contact">📍 12 Education Avenue, Lagos</div>
+        <div class="tp-footer-contact">🆘 24/7 emergency line</div>
+        <span class="tp-footer-divider" aria-hidden="true"></span>
+        <span class="tp-footer-stat">Serving <strong>480</strong> families · Made with ❤ in Lagos</span>
+      </div>
+
+      <!-- Tier 4: Legal — single dense centered line -->
+      <div class="tp-footer-legal">
+        <span class="tp-footer-legal__copy">© 2026 Gilead Tech High</span>
+        <span class="tp-footer-legal__sep">·</span>
+        <a href="#">Privacy policy</a>
+        <span class="tp-footer-legal__sep">·</span>
+        <a href="#">Terms of use</a>
+        <span class="tp-footer-legal__sep">·</span>
+        <a href="#">Accessibility statement (WCAG 2.1 AA)</a>
+        <span class="tp-footer-legal__sep">·</span>
+        <a href="#">Cookie preferences</a>
+        <span class="tp-footer-legal__sep">·</span>
+        <a href="#" title="Subscribe school calendar to your phone / Outlook / Google calendar">📅 Download school calendar (.ics)</a>
+        <span class="tp-footer-legal__sep">·</span>
+        <a href="#">Sitemap</a>
+        <span class="tp-footer-legal__sep">·</span>
+        <span>Powered by <a href="#">RunMyCampus</a></span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- 100x: parent testimonial rotation (no framework, vanilla JS, ~30 lines) -->
+<script>
+(function () {
+  var root = document.querySelector('[data-tp-testimonial]');
+  if (!root) return;
+  var quotes = root.querySelectorAll('[data-tp-testimonial-quote]');
+  var dots   = root.querySelectorAll('[data-tp-testimonial-dot]');
+  if (!quotes.length) return;
+  var idx = 0;
+  var paused = false;
+  function show(n) {
+    idx = (n + quotes.length) % quotes.length;
+    quotes.forEach(function (q, i) { q.classList.toggle('is-active', i === idx); });
+    dots.forEach(function (d, i) { d.classList.toggle('is-active', i === idx); });
+  }
+  dots.forEach(function (dot, i) {
+    dot.addEventListener('click', function () {
+      paused = true;            // user interaction pauses auto-rotate
+      show(i);
+    });
+  });
+  root.addEventListener('mouseenter', function () { paused = true; });
+  setInterval(function () {
+    if (paused) return;
+    if (document.visibilityState !== 'visible') return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    show(idx + 1);
+  }, 7000);
+})();
+</script>
+
+</body>
+</html>

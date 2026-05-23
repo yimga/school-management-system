@@ -86,6 +86,57 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-ico
   color: var(--text-secondary) !important; /* style-allow: tenant-header-icon-override-bootstrap */
 }
 
+/* Primary nav row — v3 100x preview */
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav {
+  display: flex;
+  gap: 4px;
+  padding: 0 28px 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--hairline);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item:hover {
+  background: var(--surface-overlay, rgba(30, 111, 58, 0.05));
+  color: var(--text-primary);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[aria-current="page"] {
+  background: var(--school-gradient, linear-gradient(135deg, var(--school-primary), var(--school-accent)));
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(30, 111, 58, 0.28);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-nav-count {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--danger, #dc2626);
+  color: #fff;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[aria-current="page"] .tp-nav-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
 @media (max-width: 991.98px) {
   body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .container-fluid {
     grid-template-columns: 1fr auto;
@@ -97,5 +148,10 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-ico
     grid-column: 1 / -1;
     grid-row: 2;
     max-width: none;
+  }
+
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav {
+    padding: 0 16px 8px;
+    justify-content: flex-start;
   }
 }
