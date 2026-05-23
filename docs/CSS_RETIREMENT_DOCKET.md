@@ -1,6 +1,74 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-22 (v3.59.2 — 200x final closeout cascade: PlatformPulseSnapshot Django admin, Studio OS canvas-body 200x polish, true token-by-token gateway streaming (Ollama + LiteLLM), tenant portal `.rmc-app-shell` contract bridge. ~65% → ~95%.)
+**Last updated:** 2026-05-22 (v3.62.9 — local-first Waves 6 + 7 + 8: multilingual education-system overlays for 30+ countries with language-divergent school systems (CM Anglo/Franco, CA EN/Quebec-FR, BE NL/FR/DE communities, CH 4 lang, IN 11 lang, ZA 5 lang, SG/MY/PH/PK/LK), Indian lakh-crore digit grouping, DB-backed CountryRegistry override layer with migration 0005.)
+
+## 2026-05-22 — v3.62.9: local-first Waves 6 + 7 + 8 (multilingual education systems + Indian number grouping + DB override layer)
+
+**Status:** SHIPPED in-repo. Continuation of v3.62.7 (Waves 3+4 lexicon + formats + non-Gregorian + RTL). User mandate verbatim: "make sure all the countries are represented by their official languages so countries like cameroon and canada have english and french so on the signup form and everywhere that applies give users the option to choose english or french and the language determines the system of education in the different regions that speak those languages so this should be done to every single country that exist so seed properly". NON-CSS (cross-cutting platform wave).
+
+**SW:** `sms-v3.62.9-local-first-waves-6-7-8-multilingual-edu-systems-indian-grouping-db-override-2026-05-22`.
+
+### Wave 6 — per-language education systems (headline wave)
+
+For multilingual countries, each official language carries an optional region-specific education-system overlay. When a user picks a language on the signup form, the calendar cards + school-type cards + terminology all re-render to reflect that language's region's actual school system:
+
+- **Cameroon** → Français → Maternelle/Primaire/Collège/Lycée/Université (French Baccalauréat); English → Nursery/Primary/Secondary (Form 1-5)/High School/University (British GCE O/A Level).
+- **Canada** → English → K-12 Provincial (Elementary/Middle/High); Français → Québec system (Préscolaire/Primaire/Secondaire/CÉGEP/Université, étapes août-juin).
+- **Belgium** → Nederlands (Vlaamse Gemeenschap: Kleuter/Lager/Secundair); Français (Fédération Wallonie-Bruxelles); Deutsch (Deutschsprachige Gemeinschaft).
+- **Switzerland** → Deutsch / Français / Italiano cantonal systems; Rumantsch uses baseline.
+- **India** → English baseline; Hindi → Bhāratīya Śikṣā Pranālī (Adhyāpak/Pradhānāchārya/Satr).
+- **South Africa** → English baseline; Afrikaans → Suid-Afrikaanse Onderwysstelsel (Onderwyser/Skoolhoof/Kwartaal/Graad).
+- **30+ multilingual countries** + **all 199 UN countries** carry at least one official-language entry. Monolingual countries hide the picker (single-language read-out).
+
+### What landed (Waves 6+7+8)
+
+| Layer | File | What's new |
+|---|---|---|
+| **Service** | `apps/siteconfig/country_localization_service.py` | `get_languages` / `get_default_language` / `validate_language_code` / `resolve_language_pack` / `resolve_language_for_request`; `_coerce_seed_pack` preserves `languages`; `resolve_country_pack` layers DB override on top via `_load_db_override` (Wave 8). |
+| **Seed** | `apps/siteconfig/_seed_country_languages.py` (NEW ~720 lines) | `COUNTRY_LANGUAGES` + 11 reusable `_*_SYSTEM` building blocks; 30+ multilingual countries hand-researched; all 199 UN countries seeded with primary language. |
+| **Seed loader** | `apps/siteconfig/_seed_country_localization.py` | Folds `COUNTRY_LANGUAGES` into `COUNTRY_LOCALIZATION[<cc>]["languages"]`; promotes regional-default countries to Tier 1. |
+| **API** | `apps/siteconfig/views_country_localization.py` | `?lang=<bcp47>` returns per-language overlay; response includes `languages[]`, `language_code`, `system_name`. |
+| **Context processor** | `apps/siteconfig/localization_context_processor.py` | Uses `resolve_for_request` (language-aware); emits `localization.language_code` / `language_native` / `language_region` / `system_name` / `languages[]`. |
+| **Template tags** | `apps/siteconfig/templatetags/localization.py` | `{% local_language_code %}` / `{% local_language_native %}` / `{% local_system_name %}` (Wave 6); `local_number` filter + `{% local_number_for %}` + `{% local_currency_grouped_for %}` (Wave 7 — Indian lakh-crore grouping). |
+| **Signup form** | `templates/schools/signup_school.html` + `apps/schools/signup_views.py` | Language picker block gated `{% if country_pack.languages\|length > 1 %}`; GET resolves to per-language pack; POST validates + persists `school.settings.localization.language_code`. |
+| **Rapid create** | `templates/lifecycle/rapid_create.html` + `apps/lifecycle/views_rapid_create.py` | Same picker + persistence; `?lang=<bcp47>` honored on GET. |
+| **Adapter JS** | `static/js/_pages/rmc-signup-country-adapter.js` | New `language` card kind; on language change fetches `/api/v1/localization/<cc>/?lang=<lc>`, re-renders calendar + school-type grids; idempotent + HTMX-aware. |
+| **Bootstrap JS** | `static/js/rmc-localization-bootstrap.js` | Reads new `data-rmc-language` attr; exposes `RMCLocalization.language` + `formatNumber(n)` + `pickGrouping(cc)` (Wave 7 — Indian grouping for IN/PK/BD/NP/LK/BT/MV). |
+| **CSS** | `static/css/rmc-signup-v2.css` | `.rmc-signup-type-cards--language` variant + `.__sub` / `.__badge` (Recommended) / `.__hint` (Region-specific education system). |
+| **DB override (Wave 8)** | `apps/registries/models.py` + `apps/registries/migrations/0005_country_cockpit_override_payload.py` | `CountryRegistry.cockpit_override_payload = JSONField(default=dict)`; reversible AddField migration; shape mirrors country pack. |
+| **Body attrs (5 shells)** | `base.html` / `portal_base.html` / `control_plane_skeleton.html` / `marketing/base_marketing.html` / `admin/base_site.html` | All gain `data-rmc-language="{{ localization.language_code }}"`. |
+
+### Verification (smoke-tested locally)
+
+```
+CM languages: 2, default=fr
+CM-FR: French / Baccalauréat Subsystem — maternelle/primaire/college/lycee/universite
+       teacher=Enseignant, principal=Directeur, calendar=3 Trimestres
+CM-EN: British / GCE O & A Level Subsystem — nursery/primary/secondary/high-school/university
+       teacher=Teacher, principal=Headmaster, calendar=3 Terms (Anglophone)
+CA-FR: Système d'éducation du Québec — prematernelle/primaire/secondaire/cegep/universite
+CA-EN: Provincial English-Language System (K-12) — preschool/elementary/middle/high/university
+CH-DE: Schweizer Schulsystem (Deutschsprachige Kantone)
+CH-FR: Système Scolaire Suisse (Cantons Romands)
+CH-IT: Sistema Scolastico Svizzero (Canton Ticino)
+validate_language("CM","fr")="fr"   validate_language("CM","xx")=""
+```
+
+### Honest deferred (Wave 9+)
+
+- Mass template sweep for raw `{% trans "Teacher" %}` / `"Principal"` strings → `{{ lexicon.teacher.singular }}` adoption (~20% of dashboards still use raw `{% trans %}`).
+- GeoIP integration: `resolve_country_for_request` uses Accept-Language heuristic — future wave can plug MaxMind GeoIP2.
+- Operator admin UI for `CountryRegistry.cockpit_override_payload` rich-edit experience (Django admin's default JSONField textarea works immediately post-migration).
+- Chinese myriad (萬/亿) digit grouping for CN/JP/KR/TW — bootstrap exposes `grouping: "myriad"` as opt-in; no countries default to it.
+- Per-state India education-system overlay (Tamil/Telugu/Bengali-medium etc. carry language entries without their own state-board calendar overlay; only Hindi-medium has one).
+
+### Deploy
+
+1. Render predeploy applies migration `0005_country_cockpit_override_payload` via `migrate_schemas --shared` (CountryRegistry is shared-schema).
+2. Optionally re-run `python manage.py seed_country_localization_registries` from Render Shell after deploy.
+3. SW cache busts on `sms-v3.62.9-...`; all 5 shells re-emit `data-rmc-language` body attr on next visit.
+
+---
 
 ## 2026-05-22 — platform workflow audit & how-to system: Wave F (final 100% push + validation sweep + bug patch)
 
