@@ -22,9 +22,13 @@ def main() -> int:
         "apps/schoolops/models_email_delivery.py",
         "apps/schoolops/views_email_health.py",
         "apps/schoolops/views_email_admin.py",
+        "apps/schoolops/notification_intent.py",
+        "apps/schools/email_delivery_settings.py",
+        "apps/schools/views_infrastructure.py",
         "apps/schools/views_signup_diagnostics.py",
         "templates/schoolops/super/email_health.html",
         "templates/schoolops/super/signup_diagnostics.html",
+        "templates/schools/studio/infrastructure_email.html",
         "docs/EMAIL_DELIVERABILITY.md",
     ):
         if not (ROOT / rel).is_file():
@@ -46,6 +50,10 @@ def main() -> int:
     delivery = _text("apps/schoolops/email_delivery.py")
     if "def send_transactional" not in delivery:
         findings.append("send_transactional missing")
+    if "_load_tenant_school_override" not in delivery:
+        findings.append("tenant SMTP cascade missing")
+    if "school=None" not in delivery.split("def get_resolved_smtp_config", 1)[-1][:120]:
+        findings.append("get_resolved_smtp_config missing school= parameter")
 
     signup = _text("apps/schools/signup_views.py")
     if "async_send=True" not in signup and "async_send = True" not in signup:

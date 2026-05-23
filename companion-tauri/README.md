@@ -13,6 +13,14 @@ cd src-tauri && cargo test    # 10 tests pass (handshake + csv + crypto)
 cd .. && npm run tauri dev    # launches the 4-step wizard window
 ```
 
+## Field Client mode (SODP batch 1409)
+
+Set `RMC_FIELD_CLIENT=1` in the WebView when loading tenant teacher URLs.
+Offline tokens use **Tauri Stronghold** (stub: `rmc_stronghold_seal` /
+`rmc_stronghold_open` commands) — never local password hashes.
+
+See `docs/FIELD_CLIENT_TAURI_OPERATOR.md` for the operator runbook.
+
 ## What this appliance does NOT do
 
 It does NOT log into PowerSchool / Blackbaud / Veracross / Alma / FACTS

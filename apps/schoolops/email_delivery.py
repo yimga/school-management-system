@@ -220,13 +220,13 @@ def _decrypt_password_b64(encrypted_b64: str) -> str:
         return ""
 
 
-def get_resolved_smtp_config() -> dict:
+def get_resolved_smtp_config(*, school=None) -> dict:
     """Return the resolved SMTP config dict.
 
-    Operator override (``SiteSettings.email_delivery`` JSONField with
-    ``enabled=True``) wins over env settings. Returned dict is safe to
-    render to the operator dashboard EXCEPT for the ``host_password``
-    key, which the caller MUST omit before serialization.
+    Cascade (SODP batch 1407): tenant ``School.settings["email_delivery"]``
+    when enabled and allowed → operator ``SiteSettings.email_delivery`` → env.
+
+    Returned dict is safe to render EXCEPT ``host_password`` (never serialize).
 
     Keys::
 
@@ -240,7 +240,7 @@ def get_resolved_smtp_config() -> dict:
           "default_from_name": str,
           "default_reply_to": str,
           "connection_timeout_seconds": int,
-          "source": "env" | "site_settings_override",
+          "source": "env" | "site_settings_override" | "tenant_school_settings",
           "enabled": bool,
         }
     """
@@ -265,6 +265,10 @@ def get_resolved_smtp_config() -> dict:
         "source": "env",
         "enabled": True,
     }
+
+    tenant_cfg = _load_tenant_school_override(school)
+    if tenant_cfg:
+        return tenant_cfg
 
     override = _load_site_settings_override()
     if not override or not _coerce_to_bool(override.get("enabled"), False):
@@ -292,6 +296,70 @@ def get_resolved_smtp_config() -> dict:
     merged["source"] = "site_settings_override"
     merged["enabled"] = True
     return merged
+
+
+def _load_tenant_school_override(school) -> dict | None:
+    """Tenant BYO-SMTP from ``School.settings['email_delivery']`` when enabled."""
+    if school is None:
+        return None
+    try:
+        from apps.schools.email_delivery_settings import (
+            get_email_delivery_payload,
+            tenant_email_override_allowed,
+        )
+        from apps.siteconfig.models import SiteSettings
+
+        # tenant-isolation-allow: platform-email-policy-row-no-tenant-scope
+        site_row = SiteSettings.objects.first()
+        if site_row is not None and not tenant_email_override_allowed(site_row):
+            return None
+        payload = get_email_delivery_payload(school)
+        if not payload.get("enabled"):
+            return None
+        settings_json = getattr(school, "settings", None) or {}
+        raw = settings_json.get("email_delivery") if isinstance(settings_json, dict) else {}
+        if not isinstance(raw, dict):
+            return None
+        env_cfg = {
+            "host": getattr(settings, "EMAIL_HOST", "") or "",
+            "port": _coerce_to_int(getattr(settings, "EMAIL_PORT", 587), 587),
+            "use_tls": _coerce_to_bool(getattr(settings, "EMAIL_USE_TLS", True), True),
+            "host_user": getattr(settings, "EMAIL_HOST_USER", "") or "",
+            "host_password": getattr(settings, "EMAIL_HOST_PASSWORD", "") or "",
+            "default_from_email": (
+                getattr(settings, "DEFAULT_FROM_EMAIL", "") or "noreply@runmycampus.com"
+            ),
+            "default_from_name": "",
+            "default_reply_to": "",
+            "connection_timeout_seconds": _coerce_to_int(
+                getattr(settings, "EMAIL_TIMEOUT", _DEFAULT_CONNECTION_TIMEOUT),
+                _DEFAULT_CONNECTION_TIMEOUT,
+            ),
+            "source": "tenant_school_settings",
+            "enabled": True,
+        }
+        merged = dict(env_cfg)
+        merged["host"] = raw.get("host") or env_cfg["host"]
+        merged["port"] = _coerce_to_int(raw.get("port"), env_cfg["port"])
+        merged["use_tls"] = _coerce_to_bool(raw.get("use_tls"), env_cfg["use_tls"])
+        merged["host_user"] = raw.get("host_user") or env_cfg["host_user"]
+        pwd_b64 = raw.get("host_password_encrypted_b64") or ""
+        if pwd_b64:
+            merged["host_password"] = _decrypt_password_b64(pwd_b64)
+        merged["default_from_email"] = raw.get("default_from_email") or env_cfg["default_from_email"]
+        merged["default_from_name"] = raw.get("default_from_name") or ""
+        merged["default_reply_to"] = raw.get("default_reply_to") or ""
+        merged["connection_timeout_seconds"] = _coerce_to_int(
+            raw.get("connection_timeout_seconds"),
+            env_cfg["connection_timeout_seconds"],
+        )
+        return merged
+    except Exception as exc:  # broad-by-design — never break the hot path
+        logger.warning(
+            "schoolops.email_delivery.tenant_override_load_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return None
 
 
 def _load_site_settings_override() -> dict:
@@ -528,6 +596,8 @@ def _send_transactional_sync_core(
     headers: Optional[dict] = None,
     priority: str = "transactional",
     enforce_sync_budget: bool = True,
+    school=None,
+    idempotency_key: str = "",
 ) -> dict:
     """Internal synchronous send implementation.
 
@@ -554,7 +624,7 @@ def _send_transactional_sync_core(
             "error_kind": _ERR_VALUE,
         }
 
-    cfg = get_resolved_smtp_config()
+    cfg = get_resolved_smtp_config(school=school)
     if enforce_sync_budget:
         # Cap the connection-level socket timeout so a single hung
         # SMTP attempt cannot block the request for the full
@@ -802,6 +872,8 @@ def send_transactional(
     priority: str = "transactional",
     async_send: bool = False,
     tenant_hash: Optional[str] = None,
+    school=None,
+    idempotency_key: str = "",
 ) -> dict:
     """Send a transactional message with retries + audit logging.
 
@@ -900,6 +972,8 @@ def send_transactional(
                 "from_email": from_email,
                 "headers": headers,
                 "priority": priority,
+                "school": school,
+                "idempotency_key": idempotency_key,
             },
             name="schoolops-email-async-send",
             daemon=True,
@@ -938,6 +1012,8 @@ def send_transactional(
         headers=headers,
         priority=priority,
         enforce_sync_budget=True,
+        school=school,
+        idempotency_key=idempotency_key,
     )
 
 

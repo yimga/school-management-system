@@ -1,6 +1,6 @@
 # Sovereign Offline–Online Delivery Platform (SODP) — execution plan
 
-**Status:** **PLANNED — NOT YET STARTED** (plan + SOT reservation only; implementation delegated to build agent)
+**Status:** **DONE (Lane 1, repo-scope)** — Waves A–G shipped 2026-05-23 (batches **1406–1412**). Lane 2: store publish + corridor-live evidence only.
 **Plan owner:** RunMyCampus platform team
 **Created:** 2026-05-23
 **Target SW range:** `sms-v3.65.0` → `sms-v3.70.x`

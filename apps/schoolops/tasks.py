@@ -455,3 +455,43 @@ def dispatch_bulk_email(
             "delivery_event_id": None,
             "error_kind": "task_crashed",
         }
+
+
+@shared_task(name="schoolops.deliver_notification_intent")
+def deliver_notification_intent_task(
+    *,
+    school_id: int,
+    subject: str,
+    body: str,
+    to_hash_target: str,
+    to_email: str,
+    html_body: str | None = None,
+    idempotency_key: str = "",
+    tenant_hash: str = "",
+) -> dict[str, Any]:
+    """Async path for SODP notification intents (never logs raw recipient)."""
+    try:
+        from apps.schoolops.email_delivery import send_transactional
+        from apps.schools.models import School
+
+        school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            return {"ok": False, "error": "school_not_found"}
+        return send_transactional(
+            subject=subject,
+            body=body,
+            to=to_email,
+            html_body=html_body,
+            async_send=False,
+            tenant_hash=tenant_hash or None,
+            school=school,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "schoolops.deliver_notification_intent failed school_id=%s to_hash=%s err_type=%s",
+            school_id,
+            to_hash_target,
+            type(exc).__name__,
+        )
+        return {"ok": False, "error_kind": "task_crashed"}

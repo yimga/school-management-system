@@ -9,6 +9,8 @@ Cross-links:
 
 - Operator dashboard: `/super/email/health/`
 - Operator config form: `/super/email/configure/`
+- **Tenant BYO-SMTP (SODP):** Studio → Infrastructure → Email (`/school/studio/infrastructure/email/`) — school-owned SMTP; passwords encrypted in `School.settings["email_delivery"]`; never on devices.
+- **Email resolution cascade:** tenant school JSON (when enabled) → operator `SiteSettings.email_delivery` → Django env / Anymail on Render.
 - Shared-secret rotation guidance: [`docs/SECURITY_KEYS.md`](SECURITY_KEYS.md)
 - Source code: `apps/schoolops/email_delivery.py`,
   `apps/schoolops/views_email_webhook.py`,

@@ -536,3 +536,7 @@ class FederationSsoHealth(models.Model):
 
 
 from apps.academics.models import RolloverProposal, RolloverProposalItem  # noqa: E402,F401
+from apps.accounts.models_offline_device import (  # noqa: E402,F401
+    DeviceRegistration,
+    OfflineCapabilityToken,
+)

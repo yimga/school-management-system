@@ -2026,6 +2026,13 @@ class OfflineAction(models.Model):
             models.Index(fields=["school", "status"]),
             models.Index(fields=["school", "user", "status"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "idempotency_key"],
+                condition=models.Q(idempotency_key__gt=""),
+                name="uniq_offline_action_idempotency_per_school",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"OfflineAction {self.pk} {self.action_type} ({self.status})"

@@ -84,6 +84,8 @@ from apps.api.offline_replay_views import (
     QueueMetricsAPI,
 )
 from apps.api.sync_delta_api import DeltaSyncAPI
+from apps.api.offline_device_api import OfflineTokenMintView
+from apps.api.sync_bundle_api import SyncBundleUploadView
 from apps.portal.views_command_bar import api_command_bar_search
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
@@ -651,6 +653,16 @@ urlpatterns = [
         "offline/queue_metrics/",
         QueueMetricsAPI.as_view(),
         name="offline-queue-metrics",
+    ),
+    path(
+        "devices/offline-token/",
+        OfflineTokenMintView.as_view(),
+        name="devices-offline-token",
+    ),
+    path(
+        "sync/bundle/upload/",
+        SyncBundleUploadView.as_view(),
+        name="sync-bundle-upload",
     ),
     # Roadmap due-today implementations (ROADMAP_DUE_TODAY.md) — 16.x, 17.x, 29.x, 30/31, section_11, TENANT_MEDIA, gap ledger
     path(

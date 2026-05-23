@@ -401,6 +401,12 @@
         }
         if (d.type === 'queue-length') {
           pendingCount = d.total != null ? d.total : 0;
+          var maxQ = parseInt((getConfig().maxQueueItems || 500), 10);
+          if (pendingCount >= maxQ * 0.9) {
+            document.dispatchEvent(new CustomEvent('rmc:warning', {
+              detail: { message: 'Offline queue nearly full — sync when connected.', duration: 6000 }
+            }));
+          }
           if (pendingCount >= 0 && typeof fetch === 'function') {
             var metricsUrl = (getConfig().baseUrl || '').replace(/\/+$/, '') + '/api/offline/queue_metrics/';
             if (!metricsUrl.startsWith('http')) metricsUrl = window.location.origin + (metricsUrl.startsWith('/') ? metricsUrl : '/' + metricsUrl);

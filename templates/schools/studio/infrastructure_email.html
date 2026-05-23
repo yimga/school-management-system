@@ -1,0 +1,38 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Email delivery" %} — {% trans "Infrastructure" %}{% endblock %}
+
+{% block content %}
+<main id="main-content" class="rmc-page-stack content-max-960">
+  <header class="rmc-page-header">
+    <h1 class="h2">{% trans "Email & notifications" %}</h1>
+    <p class="rmc-muted">{% trans "Configure your school's SMTP server. Credentials stay on the server — never on devices." %}</p>
+  </header>
+  {% if not allow_tenant_override %}
+  <div class="alert alert-warning" role="status">{% trans "Platform operator has disabled tenant SMTP overrides." %}</div>
+  {% else %}
+  <form id="rmc-infra-email-form" class="rmc-form-stack" method="post" action="">
+    {% csrf_token %}
+    <label class="form-check">
+      <input type="checkbox" name="enabled" class="form-check-input" {% if email_delivery.enabled %}checked{% endif %}>
+      <span>{% trans "Use school SMTP" %}</span>
+    </label>
+    <label>{% trans "SMTP host" %}<input class="form-control" name="host" value="{{ email_delivery.host|default:'' }}"></label>
+    <label>{% trans "Port" %}<input class="form-control" name="port" type="number" value="{{ email_delivery.port|default:587 }}"></label>
+    <label class="form-check">
+      <input type="checkbox" name="use_tls" class="form-check-input" {% if email_delivery.use_tls %}checked{% endif %}>
+      <span>{% trans "STARTTLS" %}</span>
+    </label>
+    <label>{% trans "Username" %}<input class="form-control" name="host_user" value="{{ email_delivery.host_user|default:'' }}"></label>
+    <label>{% trans "Password" %}<input class="form-control" name="host_password" type="password" autocomplete="new-password" placeholder="{% if email_delivery.has_password %}{% trans 'Leave blank to keep' %}{% endif %}"></label>
+    <label>{% trans "From email" %}<input class="form-control" name="default_from_email" value="{{ email_delivery.default_from_email|default:'' }}"></label>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+      <button type="button" class="btn btn-outline-secondary" id="rmc-infra-email-probe">{% trans "Test connection" %}</button>
+    </div>
+  </form>
+  {% endif %}
+</main>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/rmc-infrastructure-email.js' %}"></script>
+{% endblock %}

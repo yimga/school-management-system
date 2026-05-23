@@ -649,11 +649,30 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
 
 def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
     from apps.platform_runtime.models import OfflineAction
+    from apps.platform_runtime.offline_action_types import is_notify_action, normalize_action_type
 
     at = action.action_type
+    at_norm = normalize_action_type(at)
     payload = action.payload or {}
     sid = action.school_id
     uid = action.user_id
+    if is_notify_action(at_norm):
+        from apps.schools.models import School
+        from apps.schoolops.notification_intent import dispatch_notification_intent
+
+        school = School.objects.filter(pk=sid).first()
+        if school is None:
+            return {"ok": False, "error": "school_not_found"}
+        result = dispatch_notification_intent(
+            school=school,
+            action_type=at_norm,
+            payload=payload,
+            idempotency_key=(action.idempotency_key or "")[:128],
+            async_send=True,
+        )
+        if result.get("ok"):
+            return {"ok": True, "notification": True, **result}
+        return result
     if at == OfflineAction.ActionType.ATTENDANCE:
         return _apply_attendance(sid, uid, payload, force_local=force_local)
     if at == OfflineAction.ActionType.GRADING:

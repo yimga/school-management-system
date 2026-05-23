@@ -155,6 +155,18 @@ python scripts/verify_online_edge_dual_mode.py
 
 ---
 
+## mDNS hub discovery (SODP batch 1411)
+
+When `RMC_DEPLOYMENT_PROFILE=hybrid`, clients may discover the LAN hub via:
+
+- **Service type:** `_runmycampus-hub._tcp.local.`
+- **Client config:** `SMS_OFFLINE_CONFIG.hubBaseUrl` (tenant override in Studio → Infrastructure → Offline & sync)
+- **Failover:** service worker retries `hubBaseUrl` when cloud `fetch` fails (no CouchDB / port 5984)
+
+Install: `scripts/install_local_hub.sh` with `RMC_DEPLOYMENT_PROFILE=edge`.
+
+---
+
 ## Summary
 
 - **No code fork** for edge: same repo, different env + URL.

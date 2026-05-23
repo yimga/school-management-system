@@ -1,0 +1,24 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Offline & sync" %} — {% trans "Infrastructure" %}{% endblock %}
+
+{% block content %}
+<main id="main-content" class="rmc-page-stack content-max-960">
+  <header class="rmc-page-header">
+    <h1 class="h2">{% trans "Offline & sync" %}</h1>
+    <p class="rmc-muted">{% trans "Hub URL, mesh mode, and queue limits for this school." %}</p>
+  </header>
+  <form id="rmc-infra-offline-form" class="rmc-form-stack">
+    {% csrf_token %}
+    <label>{% trans "Hub base URL" %}<input class="form-control" name="hub_base_url" value="{{ offline_delivery.hub_base_url|default:'' }}" placeholder="http://hub.local:8000"></label>
+    <label class="form-check">
+      <input type="checkbox" name="mesh_enabled" class="form-check-input" {% if offline_delivery.mesh_enabled %}checked{% endif %}>
+      <span>{% trans "Enable LAN mesh (data-mule)" %}</span>
+    </label>
+    <label>{% trans "Max queue items per device" %}<input class="form-control" name="max_queue_items" type="number" min="50" max="5000" value="{{ offline_delivery.max_queue_items|default:500 }}"></label>
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+  </form>
+</main>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/rmc-infrastructure-offline.js' %}"></script>
+{% endblock %}

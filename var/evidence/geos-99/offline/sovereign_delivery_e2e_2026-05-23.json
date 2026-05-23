@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "program": "SODP",
+  "batch_range": "1406-1412",
+  "generated_at": "2026-05-23",
+  "lane": 1,
+  "repo_complete": true,
+  "corridor_live": false,
+  "proof": {
+    "verifiers": [
+      "verify_sovereign_offline_foundation.py",
+      "verify_sovereign_offline_config_cascade.py",
+      "verify_tenant_email_delivery_cascade.py",
+      "verify_offline_auth_contract.py",
+      "verify_field_client_scaffold.py",
+      "verify_capacitor_shell_scaffold.py",
+      "verify_sovereign_offline_e2e_scaffold.py"
+    ],
+    "playwright": "tests/e2e/offline-queue-replay.spec.js"
+  },
+  "honest_lane2_residuals": [
+    "Apple notarization / Windows Authenticode for Field Client",
+    "Google Play listing for Capacitor shell",
+    "Live corridor DNS + mDNS proof on school LAN"
+  ]
+}

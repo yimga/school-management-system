@@ -998,6 +998,17 @@ def site_settings(request):
     ).strip().lower()
     ctx["RMC_AI_NEEDS_NETWORK"] = True
     flags_ctx = _resolve_backend_feature_flags(request, site)
+    school_for_offline_cfg = getattr(request, "school", None)
+    if school_for_offline_cfg is not None:
+        from apps.schools.offline_delivery_settings import build_client_offline_config
+
+        ctx["OFFLINE_DELIVERY_CLIENT"] = build_client_offline_config(
+            school_for_offline_cfg,
+            deployment_profile=ctx["RMC_DEPLOYMENT_PROFILE"],
+            feature_flags=flags_ctx,
+        )
+    else:
+        ctx["OFFLINE_DELIVERY_CLIENT"] = {}
     # Whether to show the connection status bar (offline pill) in the header.
     ctx["SHOW_OFFLINE_STATUS_BAR"] = ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] and bool(
         flags_ctx.get("show_offline_status_bar", True)

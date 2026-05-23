@@ -106,7 +106,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.64.2-template-marketplace-150-templates-50-local-profiles-2026-05-23";
+const CACHE_VERSION = "sms-v3.70.0-sovereign-offline-e2e-wave-g-2026-05-23";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -114,7 +114,7 @@ const SYNC_DB_NAME = "sms-offline-sync-db";
 const SYNC_DB_VERSION = 1;
 const SYNC_STORE = "syncQueue";
 /** Max items per sync type; oldest are dropped when enqueueing over limit. */
-const MAX_QUEUE_PER_TYPE = 500;
+const DEFAULT_MAX_QUEUE_PER_TYPE = 500;
 /** Auth/session headers we must not store so replay uses fresh credentials. */
 const SKIP_HEADERS = ["cookie", "authorization", "x-csrftoken", "x-csrf-token", "content-length"];
 /** Exponential backoff: max delay between retries (ms). */
@@ -169,7 +169,15 @@ let OFFLINE_CONFIG = {
   requestsSyncEnabled: true,
   backgroundSyncEnabled: true,
   hubBaseUrl: "",
+  maxQueueItems: DEFAULT_MAX_QUEUE_PER_TYPE,
+  meshEnabled: false,
 };
+
+function maxQueueLimit() {
+  const n = parseInt(OFFLINE_CONFIG.maxQueueItems, 10);
+  if (!Number.isFinite(n) || n < 50) return DEFAULT_MAX_QUEUE_PER_TYPE;
+  return Math.min(n, 5000);
+}
 
 // Cache manifest — WhiteNoise (CompressedManifestStaticFilesStorage) serves both
 // hashed and unhashed paths, so /static/css/foo.css resolves whether collectstatic
@@ -451,6 +459,7 @@ function isApiWriteRequest(request, url) {
   if (url.pathname.startsWith("/api/sync/")) return true;
   // Offline foundational (2026-05-11): teacher grade entry now queues offline.
   if (url.pathname.startsWith("/api/grades/") || url.pathname.startsWith("/api/evals/")) return true;
+  if (url.pathname.startsWith("/portal/api/offline/")) return true;
   return false;
 }
 
@@ -649,9 +658,10 @@ async function serializeRequest(request) {
 /** Keep queue under MAX_QUEUE_PER_TYPE by removing oldest items for this syncType. */
 async function enforceQueueLimit(syncType) {
   const items = await getSyncItems(syncType);
-  if (!items || items.length < MAX_QUEUE_PER_TYPE) return;
+  const cap = maxQueueLimit();
+  if (!items || items.length < cap) return;
   const sorted = items.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  const toRemove = sorted.length - MAX_QUEUE_PER_TYPE + 1;
+  const toRemove = sorted.length - cap + 1;
   for (let i = 0; i < toRemove && i < sorted.length; i++) {
     await deleteSyncItem(sorted[i].id);
   }

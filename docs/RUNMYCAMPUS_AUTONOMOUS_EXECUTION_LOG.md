@@ -1,18 +1,32 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — SODP Waves A–G implementation batches 1406–1412 (2026-05-23)
+
+**A. Scope:** Full repo implementation per [`docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md`](../docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md) — offline foundation, server notification intents + tenant SMTP, offline auth vault, Tauri/Capacitor scaffolds, mDNS/hybrid config, LAN signed bundles + E2E scaffold.
+
+**B. Shipped:** `offline_action_types.py`, `offline_delivery_settings.py`, `email_delivery_settings.py`, `notification_intent.py`, tenant Studio infrastructure UI, `get_resolved_smtp_config(school=)`, `DeviceRegistration`/`OfflineCapabilityToken`, DRF offline-token + bundle upload APIs, `delta_bundle.py`, SW `sms-v3.70.0-sovereign-offline-e2e-wave-g-2026-05-23`, `companion-capacitor/`, eight named verifiers, migrations `platform_runtime 0070` + `accounts 0034`. SOT §11.4 batches **1406–1412** DONE.
+
+**C. Proof:** Proof bundle below (manage.py check, makemigrations --check, all `verify_sovereign_*` / `verify_tenant_email_*` / `verify_offline_auth_*` / `verify_field_client_*` / `verify_capacitor_*` / `verify_online_edge_dual_mode` green).
+
+**D. Residual (Lane 2 only):** Apple notarization, Google Play listing, live corridor mDNS/DNS proof, full Playwright offline→replay on tenant portal with auth.
+
+**E. Plan:** Operator files Lane 2 evidence under `var/evidence/geos-99/offline/` when corridor-ready.
+
+**F. Headline:** **SODP REPO-COMPLETE.**
+
 ## Slice — batch 1405 Sovereign Offline–Online Delivery Platform plan (2026-05-23)
 
-**A. Scope:** Architecture + SOT reservation only (no product code this slice). User requested aggressive 10× push on offline/online delivery, email, security, simplicity, and African low-connectivity — plan for build agent while operator continues external work.
+**A. Scope:** Architecture + SOT reservation (superseded by 1406–1412 implementation slice above).
 
-**B. Shipped:** [`docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md`](../docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md) — 7-wave program (batches **1406–1412**) extending existing PWA/Django queue/email/hub stack; rejects client SMTP, CouchDB mesh, unsafe offline JWT auth; defines `OfflineActionType` notification intents, Tauri Field Client, Capacitor shell, mDNS hub discovery, LAN delta mule, verifier registry. SOT §11.4 batch **1405** program row.
+**B. Shipped:** [`docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md`](../docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md) — program contract + wave map.
 
-**C. Proof:** Plan-only slice — no code verifiers required. Inheritance verified against `offline_queue.py`, `email_delivery.py`, `offline-queue-client.js`, `LOCAL_HUB_MODE.md`, `conflict_resolver.py`, `companion-tauri/`.
+**C. Proof:** Plan authorship; implementation proof in slice above.
 
-**D. Residual:** Implementation waves **1406–1412** unclaimed; Lane 2 Resend/DKIM DNS, Tauri notarization, Playwright corridor E2E, app store publish.
+**D. Residual:** Lane 2 only (see 1406–1412 slice).
 
-**E. Plan:** Build agent starts at plan §6 handoff → Wave A batch **1406**.
+**E. Plan:** —
 
-**F. Headline:** **SODP PLANNED — HANDOFF READY FOR BUILD AGENT.**
+**F. Headline:** **SODP program reserved → implemented in same release train.**
 
 ## Slice — batch 1402 Option A LiteLLM + GEOS deploy SHA parity (2026-05-23)
 

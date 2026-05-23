@@ -177,16 +177,16 @@
           "system_impacted": "offline_sync,mobile_clients,notifications",
           "provider_authority": "RunMyCampus platform",
           "countries_regions": "Africa corridors + global low-connectivity",
-          "status": "planned",
+          "status": "repo_complete",
           "owner": "Platform engineering",
-          "required_credentials_approvals": "Plan authorship complete batch 1405; implementation 1406–1412",
-          "repo_readiness": "partial — PWA queue + offline_queue + email_delivery + LOCAL_HUB_MODE + companion-tauri scaffold exist; 7-wave build plan filed, not yet implemented",
-          "external_action_needed": "Build agent executes docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md waves A–G",
+          "required_credentials_approvals": "Lane 2: Apple notarization, Google Play, corridor mDNS/DNS live proof",
+          "repo_readiness": "complete — waves 1406–1412 shipped: notification intents, tenant SMTP cascade, offline auth vault, Capacitor/Tauri scaffolds, signed delta bundles, eight verifiers green",
+          "external_action_needed": "Operator corridor pilot + store publish; file live evidence under var/evidence/geos-99/offline/",
           "blocking_level": "non_blocking",
           "target_environment": "production",
-          "evidence_notes": "var/evidence/geos-99/offline/ (planned); Playwright offline-queue-replay.spec.js (batch 1412)",
+          "evidence_notes": "var/evidence/geos-99/offline/sovereign_delivery_e2e_2026-05-23.json (Lane 1 scaffold); tests/e2e/offline-queue-replay.spec.js",
           "connection_runbook_path": "docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md",
-          "verification_command": "python scripts/verify_sovereign_offline_foundation.py (after batch 1406)"
+          "verification_command": "python scripts/verify_sovereign_offline_e2e_scaffold.py && python scripts/verify_sovereign_offline_foundation.py"
         }
       ]
     },

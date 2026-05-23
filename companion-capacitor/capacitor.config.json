@@ -1,0 +1,15 @@
+{
+  "appId": "com.runmycampus.portal",
+  "appName": "RunMyCampus",
+  "webDir": "../static",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false
+  },
+  "plugins": {
+    "SecureStoragePlugin": {}
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

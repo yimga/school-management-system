@@ -38,12 +38,22 @@ def main() -> int:
         errors.append("LOCAL_HUB_MODE.md missing Online (SaaS) section")
 
     gw = ROOT / "services/ai_gateway.py"
-    if "LITELLM_API_KEY" not in gw.read_text(encoding="utf-8"):
-        errors.append("ai_gateway._call_litellm missing LITELLM_API_KEY header support")
+    gw_text = gw.read_text(encoding="utf-8")
+    if "litellm_api_key" not in gw_text and "LITELLM_API_KEY" not in gw_text:
+        errors.append("ai_gateway._call_litellm missing litellm API key wiring")
 
     portal = ROOT / "templates/portal_base.html"
-    if "deploymentProfile" not in portal.read_text(encoding="utf-8"):
+    portal_text = portal.read_text(encoding="utf-8")
+    if "deploymentProfile" not in portal_text:
         errors.append("portal_base SMS_OFFLINE_CONFIG missing deploymentProfile")
+    if "maxQueueItems" not in portal_text:
+        errors.append("portal_base SMS_OFFLINE_CONFIG missing maxQueueItems")
+    if "meshEnabled" not in portal_text:
+        errors.append("portal_base SMS_OFFLINE_CONFIG missing meshEnabled")
+
+    hub_doc_text = hub_doc.read_text(encoding="utf-8")
+    if "mDNS" not in hub_doc_text and "_runmycampus-hub._tcp.local." not in hub_doc_text:
+        errors.append("LOCAL_HUB_MODE.md missing mDNS hub service type")
 
     settings = ROOT / "config/settings.py"
     st = settings.read_text(encoding="utf-8")

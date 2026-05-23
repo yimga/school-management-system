@@ -294,6 +294,46 @@ urlpatterns = [
         "school/studio/templates/",
         include(("apps.brand_experience.urls_template_marketplace", "template_marketplace"), namespace="template_marketplace"),
     ),
+    path(
+        "school/studio/infrastructure/email/",
+        __import__(
+            "apps.schools.views_infrastructure",
+            fromlist=["infrastructure_email_page"],
+        ).infrastructure_email_page,
+        name="school_studio_infrastructure_email",
+    ),
+    path(
+        "school/studio/infrastructure/email/save/",
+        __import__(
+            "apps.schools.views_infrastructure",
+            fromlist=["infrastructure_email_save"],
+        ).infrastructure_email_save,
+        name="school_studio_infrastructure_email_save",
+    ),
+    path(
+        "school/studio/infrastructure/email/probe/",
+        __import__(
+            "apps.schools.views_infrastructure",
+            fromlist=["infrastructure_email_probe"],
+        ).infrastructure_email_probe,
+        name="school_studio_infrastructure_email_probe",
+    ),
+    path(
+        "school/studio/infrastructure/offline/",
+        __import__(
+            "apps.schools.views_infrastructure",
+            fromlist=["infrastructure_offline_page"],
+        ).infrastructure_offline_page,
+        name="school_studio_infrastructure_offline",
+    ),
+    path(
+        "school/studio/infrastructure/offline/save/",
+        __import__(
+            "apps.schools.views_infrastructure",
+            fromlist=["infrastructure_offline_save"],
+        ).infrastructure_offline_save,
+        name="school_studio_infrastructure_offline_save",
+    ),
     # Wave L4 (v3.61.3 — 2026-05-22): one-click DSAR export + close (lifecycle app).
     path(
         "portal/configure/offboarding/export-and-close/",
