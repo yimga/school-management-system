@@ -157,6 +157,24 @@
   background: color-mix(in srgb, var(--color-primary-600, #4f46e5) 8%, transparent);
   color: var(--text-primary, #1c1a17);
   border: 1px solid color-mix(in srgb, var(--color-primary-600, #4f46e5) 18%, transparent);
+  /* Wave 15 (v3.62.20): drag-drop reorder affordance. */
+  cursor: grab;
+  user-select: none;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.rmc-mv-preview-chips__list .rmc-mv-preview-chip:hover {
+  background: color-mix(in srgb, var(--color-primary-600, #4f46e5) 14%, transparent);
+}
+
+.rmc-mv-preview-chips__list .rmc-mv-preview-chip:active {
+  cursor: grabbing;
+  transform: scale(0.96);
+}
+
+.rmc-mv-preview-chips__list .rmc-mv-preview-chip:focus-visible {
+  outline: 2px solid var(--color-primary-600, #4f46e5);
+  outline-offset: 2px;
 }
 
 /* Testimonial figure */

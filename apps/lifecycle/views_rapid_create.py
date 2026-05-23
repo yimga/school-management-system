@@ -32,6 +32,7 @@ from apps.schools.models import School
 from apps.siteconfig.country_localization_service import (
     get_default_calendar_code,
     get_default_language,
+    get_india_state_options,
     resolve_country_pack,
     resolve_language_pack,
     resolve_primary_sector_for_school_type,
@@ -158,6 +159,11 @@ class RapidCreateView(View):
                 "country_code": initial_country,
                 "language_code": initial_lang,
                 "country_pack": pack,
+                # Wave 15 (v3.62.20) — IN per-state mini-picker on rapid-create.
+                # Template gates on `india_state_options` + hidden by default;
+                # the existing rmc-signup-country-adapter.js shows it when
+                # country = IN and auto-flips the calendar radio on state pick.
+                "india_state_options": get_india_state_options(),
             },
         )
 

@@ -159,7 +159,8 @@
       <div class="tdm-hero__profile card-glass">
         <div class="tdm-profile-top">
           {% if request.user.profile_photo %}
-          <img src="{{ request.user.profile_photo.url }}" alt="{% trans 'Teacher profile photo' %}" class="tdm-avatar" loading="lazy" decoding="async">
+          {% term "teacher" capitalize=True as _td_teacher_sg %}
+          <img src="{{ request.user.profile_photo.url }}" alt="{% blocktrans with t=_td_teacher_sg %}{{ t }} profile photo{% endblocktrans %}" class="tdm-avatar" loading="lazy" decoding="async">
           {% else %}
           <div class="tdm-avatar fallback">{% firstof request.user.username|default:"T" "T" %}</div>
           {% endif %}
@@ -390,7 +391,8 @@
               {% endif %}
             </article>
           </div>
-          <div class="tdm-action-grid" aria-label="{% trans 'Teacher action blocks' %}">
+          {% term "teacher" capitalize=True as _td_teacher_sg_actions %}
+          <div class="tdm-action-grid" aria-label="{% blocktrans with t=_td_teacher_sg_actions %}{{ t }} action blocks{% endblocktrans %}">
             <article class="tdm-action-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "At-risk follow-up" %}</h4>

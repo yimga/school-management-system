@@ -2,7 +2,12 @@
 {% load static %}
 {% load i18n %}
 {% load terminology_tags %}
-{% block title %}{% trans "Student attendance export" %}{% endblock %}
+{% term "student" capitalize=True as _sae_student_sg %}
+{% term "student" as _sae_student_sg_lc %}
+{% term "teacher" capitalize=True as _sae_teacher_sg %}
+{% term "teacher" plural=True as _sae_teacher_pl_lc %}
+{% term "classroom" plural=True as _sae_classroom_pl_lc %}
+{% block title %}{% blocktrans with t=_sae_student_sg %}{{ t }} attendance export{% endblocktrans %}{% endblock %}
 {% block content %}
 <div
   class="container py-3 ui-premium-surface"
@@ -12,9 +17,9 @@
   data-rmc-attendance-export="student-csv"
   data-cp-evidence-surface="student-attendance-export"
 >
-  <h1 class="h4 mb-2">{% trans "Student attendance (CSV export)" %}</h1>
+  <h1 class="h4 mb-2">{% blocktrans with t=_sae_student_sg %}{{ t }} attendance (CSV export){% endblocktrans %}</h1>
   <p class="text-muted small mb-3">
-    {% trans "Download student attendance rows for this school only. Teachers only see classes they are assigned to teach (marks assignments). Admins see the full school for the selected range." %}
+    {% blocktrans with sl=_sae_student_sg_lc tp=_sae_teacher_pl_lc cp=_sae_classroom_pl_lc %}Download {{ sl }} attendance rows for this school only. {{ tp }} only see {{ cp }} they are assigned to teach (marks assignments). Admins see the full school for the selected range.{% endblocktrans %}
   </p>
   {% if filter_error %}
   <div class="alert alert-danger small" role="alert">
@@ -66,7 +71,7 @@
 
   <div class="d-flex flex-wrap gap-2 small">
     <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ take_attendance_url }}">{% trans "Take student attendance" %}</a>
-    <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ evals_teacher_dashboard_url }}">{% trans "Teacher dashboard" %}</a>
+    <a class="btn btn-sm btn-outline-primary ds-btn" href="{{ evals_teacher_dashboard_url }}">{% blocktrans with t=_sae_teacher_sg %}{{ t }} dashboard{% endblocktrans %}</a>
     {% if compliance_exports_url %}
     <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ compliance_exports_url }}">{% trans "Compliance exports" %}</a>
     {% endif %}

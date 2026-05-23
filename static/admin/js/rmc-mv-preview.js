@@ -50,6 +50,84 @@
       setPreviewText('data-rmc-mv-preview-headline', text);
     }
 
+    // Wave 15 (v3.62.20 — 2026-05-23) — chips drag-drop reorder.
+    // Each preview chip is rendered as a draggable button group with up/down
+    // arrow fallback for keyboard + a11y. Reorder writes the new line order
+    // back to the textarea and triggers refresh.
+    var _dragSrcIdx = null;
+
+    function reorderChipsInTextarea(fromIdx, toIdx) {
+      var ta = document.getElementById('id_mv_case_study_chips');
+      if (!ta) return;
+      var lines = (ta.value || '').split(/\r?\n/);
+      // Filter out blank lines for index math but preserve trailing blank
+      // so the operator can keep typing on a new line.
+      var nonBlank = [];
+      var nonBlankIdxMap = [];
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          nonBlank.push(lines[i]);
+          nonBlankIdxMap.push(i);
+        }
+      }
+      if (fromIdx < 0 || fromIdx >= nonBlank.length) return;
+      if (toIdx < 0 || toIdx >= nonBlank.length) return;
+      if (fromIdx === toIdx) return;
+      var moved = nonBlank.splice(fromIdx, 1)[0];
+      nonBlank.splice(toIdx, 0, moved);
+      ta.value = nonBlank.join('\n');
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function attachChipDragHandlers(chipEl, idx, totalCount) {
+      chipEl.setAttribute('draggable', 'true');
+      chipEl.dataset.chipIndex = String(idx);
+      chipEl.style.cursor = 'grab';
+
+      chipEl.addEventListener('dragstart', function (ev) {
+        _dragSrcIdx = idx;
+        chipEl.style.opacity = '0.4';
+        if (ev.dataTransfer) {
+          ev.dataTransfer.effectAllowed = 'move';
+          try { ev.dataTransfer.setData('text/plain', String(idx)); } catch (e) {}
+        }
+      });
+      chipEl.addEventListener('dragend', function () {
+        chipEl.style.opacity = '';
+        _dragSrcIdx = null;
+      });
+      chipEl.addEventListener('dragover', function (ev) {
+        ev.preventDefault();
+        if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+      });
+      chipEl.addEventListener('drop', function (ev) {
+        ev.preventDefault();
+        var src = _dragSrcIdx;
+        if (src === null) {
+          try { src = parseInt(ev.dataTransfer.getData('text/plain'), 10); } catch (e) { src = null; }
+        }
+        if (src === null || isNaN(src)) return;
+        reorderChipsInTextarea(src, idx);
+      });
+
+      // Keyboard a11y: Alt+Up / Alt+Down move within the list.
+      chipEl.addEventListener('keydown', function (ev) {
+        if (!ev.altKey) return;
+        if (ev.key === 'ArrowUp' && idx > 0) {
+          ev.preventDefault();
+          reorderChipsInTextarea(idx, idx - 1);
+        } else if (ev.key === 'ArrowDown' && idx < totalCount - 1) {
+          ev.preventDefault();
+          reorderChipsInTextarea(idx, idx + 1);
+        }
+      });
+
+      chipEl.tabIndex = 0;
+      chipEl.setAttribute('role', 'button');
+      chipEl.setAttribute('aria-label',
+        'Chip ' + (idx + 1) + ' of ' + totalCount + ' — Alt+Up or Alt+Down to reorder, or drag.');
+    }
+
     function refreshChips() {
       var raw = getValue('id_mv_case_study_chips');
       var listEl = document.querySelector('[data-rmc-mv-preview-chips-list]');
@@ -70,6 +148,7 @@
         var chip = document.createElement('span');
         chip.className = 'rmc-mv-preview-chip';
         chip.textContent = lines[i];
+        attachChipDragHandlers(chip, i, lines.length);
         listEl.appendChild(chip);
       }
     }

@@ -219,6 +219,235 @@ _MAXMIND_CITY_READER = None
 _MAXMIND_CITY_INIT_FAILED = False
 
 
+# Wave 15 (v3.62.20 — 2026-05-23) — canonical city-name map.
+#
+# Some GeoIP databases return city names with different conventions:
+# `São Paulo` vs `Sao Paulo` vs `SAO PAULO` vs `São Paulo`. Headers
+# from Cloudflare (CF-IPCity), MaxMind GeoLite2-City, and operator-injected
+# X-City headers each ship their own normalization. This canonical map
+# folds the most common variants for the 60+ priority markets into a
+# single canonical form that matches the country-pack's `anchor_city`
+# convention. Anything not in the map passes through verbatim (so the
+# operator still sees the correct local city even on unknown metros).
+#
+# Folding rules: case-insensitive ASCII slugify lookup (handles "Sao Paulo"
+# AND "São Paulo" AND "SAO PAULO" → same key). Values are the canonical
+# display form (correct diacritics, mixed case, often "City / Metro").
+_CITY_CANONICAL_MAP: dict[str, str] = {
+    # Brazil
+    "sao paulo": "São Paulo",
+    "rio de janeiro": "Rio de Janeiro",
+    "salvador": "Salvador",
+    "fortaleza": "Fortaleza",
+    "brasilia": "Brasília",
+    "belo horizonte": "Belo Horizonte",
+    "curitiba": "Curitiba",
+    # France
+    "paris": "Paris",
+    "marseille": "Marseille",
+    "lyon": "Lyon",
+    "toulouse": "Toulouse",
+    # Mexico / Spain Spanish
+    "ciudad de mexico": "Ciudad de México",
+    "guadalajara": "Guadalajara",
+    "monterrey": "Monterrey",
+    "madrid": "Madrid",
+    "barcelona": "Barcelona",
+    "sevilla": "Sevilla",
+    # Germany
+    "muenchen": "München",
+    "munchen": "München",
+    "munich": "München",
+    "berlin": "Berlin",
+    "hamburg": "Hamburg",
+    "koeln": "Köln",
+    "koln": "Köln",
+    "cologne": "Köln",
+    "frankfurt am main": "Frankfurt am Main",
+    "frankfurt": "Frankfurt am Main",
+    # Italy
+    "roma": "Roma",
+    "rome": "Roma",
+    "milano": "Milano",
+    "milan": "Milano",
+    "napoli": "Napoli",
+    "naples": "Napoli",
+    "torino": "Torino",
+    "turin": "Torino",
+    # Türkiye
+    "istanbul": "İstanbul",
+    "i̇stanbul": "İstanbul",
+    "ankara": "Ankara",
+    "izmir": "İzmir",
+    # India (major metros — IN per-state map already covers states)
+    "mumbai": "Mumbai",
+    "bombay": "Mumbai",
+    "delhi": "Delhi",
+    "new delhi": "New Delhi",
+    "bengaluru": "Bengaluru",
+    "bangalore": "Bengaluru",
+    "chennai": "Chennai",
+    "madras": "Chennai",
+    "kolkata": "Kolkata",
+    "calcutta": "Kolkata",
+    "hyderabad": "Hyderabad",
+    "ahmedabad": "Ahmedabad",
+    "pune": "Pune",
+    # China / Taiwan / Hong Kong
+    "beijing": "北京",
+    "peking": "北京",
+    "shanghai": "上海",
+    "guangzhou": "广州",
+    "shenzhen": "深圳",
+    "taipei": "臺北",
+    "kaohsiung": "高雄",
+    "hong kong": "香港",
+    "kowloon": "九龍",
+    # Japan / Korea
+    "tokyo": "東京",
+    "osaka": "大阪",
+    "kyoto": "京都",
+    "seoul": "서울",
+    "busan": "부산",
+    # SE Asia
+    "manila": "Manila",
+    "quezon city": "Quezon City",
+    "cebu": "Cebu",
+    "kuala lumpur": "Kuala Lumpur",
+    "george town": "George Town",
+    "johor bahru": "Johor Bahru",
+    "jakarta": "Jakarta",
+    "surabaya": "Surabaya",
+    "bangkok": "กรุงเทพมหานคร",
+    "hanoi": "Hà Nội",
+    "ho chi minh city": "TP. Hồ Chí Minh",
+    "hcmc": "TP. Hồ Chí Minh",
+    "saigon": "TP. Hồ Chí Minh",
+    "singapore": "Singapore",
+    # Middle East / North Africa
+    "dubai": "Dubai",
+    "abu dhabi": "Abu Dhabi",
+    "doha": "Doha",
+    "riyadh": "Riyadh",
+    "jeddah": "Jeddah",
+    "cairo": "Cairo",
+    "alexandria": "Alexandria",
+    "casablanca": "Casablanca",
+    "rabat": "Rabat",
+    "marrakech": "Marrakech",
+    "tel aviv": "Tel Aviv",
+    "tel aviv-yafo": "Tel Aviv",
+    "jerusalem": "Jerusalem",
+    # West Africa
+    "lagos": "Lagos",
+    "abuja": "Abuja",
+    "kano": "Kano",
+    "ibadan": "Ibadan",
+    "accra": "Accra",
+    "kumasi": "Kumasi",
+    "abidjan": "Abidjan",
+    "dakar": "Dakar",
+    "douala": "Douala",
+    "yaounde": "Yaoundé",
+    "yaoundé": "Yaoundé",
+    # East / Southern Africa
+    "nairobi": "Nairobi",
+    "mombasa": "Mombasa",
+    "kampala": "Kampala",
+    "dar es salaam": "Dar es Salaam",
+    "kigali": "Kigali",
+    "addis ababa": "አዲስ አበባ",
+    "asmara": "ኣስመራ",
+    "khartoum": "الخرطوم",
+    "johannesburg": "Johannesburg",
+    "cape town": "Cape Town",
+    "durban": "Durban",
+    "pretoria": "Pretoria",
+    # UK / Ireland
+    "london": "London",
+    "manchester": "Manchester",
+    "birmingham": "Birmingham",
+    "edinburgh": "Edinburgh",
+    "glasgow": "Glasgow",
+    "dublin": "Dublin",
+    "cork": "Cork",
+    # Americas
+    "new york": "New York",
+    "new york city": "New York",
+    "los angeles": "Los Angeles",
+    "chicago": "Chicago",
+    "toronto": "Toronto",
+    "montreal": "Montréal",
+    "montréal": "Montréal",
+    "vancouver": "Vancouver",
+    "buenos aires": "Buenos Aires",
+    "cordoba": "Córdoba",
+    "córdoba": "Córdoba",
+    "bogota": "Bogotá",
+    "bogotá": "Bogotá",
+    "medellin": "Medellín",
+    "medellín": "Medellín",
+    # Oceania
+    "sydney": "Sydney",
+    "melbourne": "Melbourne",
+    "brisbane": "Brisbane",
+    "perth": "Perth",
+    "auckland": "Auckland",
+    "wellington": "Wellington",
+    "christchurch": "Christchurch",
+    # South Asia
+    "karachi": "Karachi",
+    "lahore": "Lahore",
+    "islamabad": "Islamabad",
+    "dhaka": "ঢাকা",
+    "chittagong": "চট্টগ্রাম",
+    "colombo": "කොළඹ",
+    "jaffna": "யாழ்ப்பாணம்",
+}
+
+
+def _slugify_city_key(value: str) -> str:
+    """Lower-case + strip diacritics + collapse whitespace for map lookup.
+
+    Doesn't touch CJK / Arabic / Devanagari — those land as-is and only
+    match if the original input already exists in the map as a CJK key.
+    """
+    import unicodedata
+    norm = unicodedata.normalize("NFKD", value or "")
+    out_chars = []
+    for ch in norm:
+        # Drop combining marks (diacritics)
+        if unicodedata.combining(ch):
+            continue
+        out_chars.append(ch.lower())
+    return " ".join("".join(out_chars).split())
+
+
+def canonicalize_city(value: str) -> str:
+    """Wave 15 (v3.62.20) — fold a raw GeoIP city name to canonical form.
+
+    Returns the canonical display form when the input matches a known
+    variant (case-insensitive, diacritic-insensitive). Unknown cities
+    pass through verbatim (after _normalize_city() control-char strip).
+
+    Safe to call with empty / None / non-string inputs (returns "").
+    """
+    s = (value or "").strip()
+    if not s:
+        return ""
+    key = _slugify_city_key(s)
+    if not key:
+        return s
+    if key in _CITY_CANONICAL_MAP:
+        return _CITY_CANONICAL_MAP[key]
+    # Also try the raw lower-cased input (covers CJK / Arabic / Devanagari
+    # already in canonical form but submitted lowercased by some clients).
+    raw_lower = s.lower()
+    if raw_lower in _CITY_CANONICAL_MAP:
+        return _CITY_CANONICAL_MAP[raw_lower]
+    return s
+
+
 def _selected_city_backend() -> str:
     return (os.environ.get(_CITY_BACKEND_ENV) or "noop").strip().lower()
 
@@ -310,6 +539,11 @@ def lookup_city(request) -> str:
 
     Returns "" when backend is noop / not configured / cannot resolve OR the
     .mmdb city tier has no city record for the IP. Never raises.
+
+    Wave 15 (v3.62.20): result is fed through ``canonicalize_city`` so the
+    output uses the canonical display form ("São Paulo" not "Sao Paulo",
+    "Bengaluru" not "Bangalore", "東京" not "Tokyo" when CJK is preferred).
+    Unknown cities pass through verbatim.
     """
     if request is None:
         return ""
@@ -322,6 +556,7 @@ def lookup_city(request) -> str:
         )
         return ""
     try:
-        return handler(request) or ""
+        raw = handler(request) or ""
+        return canonicalize_city(raw) if raw else ""
     except Exception:  # noqa: BLE001
         return ""

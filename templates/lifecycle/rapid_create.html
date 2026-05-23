@@ -113,6 +113,29 @@
             {% endfor %}
           </div>
 
+          {% comment %}Wave 15 (v3.62.20 — 2026-05-23): IN "Which state?" mini-picker
+             on the operator rapid-create flow (sister of the public signup form
+             Wave 14 addition). Hidden by default; rmc-signup-country-adapter.js
+             shows it when country_code == 'IN' and auto-flips the calendar radio
+             above to the right state-board variant on state pick.{% endcomment %}
+          {% if india_state_options %}
+          <div class="mt-3" data-rmc-india-state-block="1" style="display:none">
+            <label for="id_rapid_india_state" class="form-label small">
+              {% trans "Which state?" %}
+              <span class="text-muted">({% trans "auto-flips the calendar above" %})</span>
+            </label>
+            <select id="id_rapid_india_state" name="india_state"
+                    class="form-select form-select-sm"
+                    data-rmc-india-state-picker="1"
+                    aria-label="{% trans 'India state' %}">
+              <option value="">— {% trans "Select your state" %} —</option>
+              {% for state in india_state_options %}
+                <option value="{{ state.code }}" data-calendar-code="{{ state.calendar_code }}">{{ state.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
           <h2 class="h6 mt-3">{% trans "Step 4 — School identity" %}</h2>
           <div class="row g-2">
             <div class="col-md-7">

@@ -148,7 +148,7 @@ from .views_tenant_studio_hub import (
     TenantStudioDay1Act3LockView,
     TenantStudioDay1ResetView,
 )
-from .views_cockpit_admin import CockpitConfigureView
+from .views_cockpit_admin import CockpitConfigureView, MarketingVoiceConfigureView
 from .views_cockpit_previews import CockpitPreviewIndexView, CockpitPreviewServeView
 from .views_cockpit_health import CockpitHealthView
 from .views_theme_personality import ThemePersonalityConfigView
@@ -600,6 +600,17 @@ urlpatterns = [
         "super/configure/cockpit/",
         CockpitConfigureView.as_view(),
         name="cockpit_configure",
+    ),
+    # Wave 15 (v3.62.20 — 2026-05-23): per-tenant marketing voice rich-edit.
+    # Sister surface of cockpit_configure; targets only the marketing_voice
+    # sub-tree of cockpit_payload via the dedicated MarketingVoiceForm with
+    # live preview alongside.
+    # Realized URL on the control plane: /siteconfig/super/configure/marketing-voice/
+    # # rbac-allow: super-staff-marketing-voice-config
+    path(
+        "super/configure/marketing-voice/",
+        MarketingVoiceConfigureView.as_view(),
+        name="marketing_voice_configure",
     ),
     # v3.59.x Wave 11 Agent W (2026-05-22): operator-overridable theme
     # personality cockpit section. Reachable from both platform-operator

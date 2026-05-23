@@ -78,7 +78,8 @@
             <dt class="col-sm-5">{% trans "Purpose" %}</dt>
             <dd class="col-sm-7">{{ disclosure.get_purpose_display }}</dd>
 
-            <dt class="col-sm-5">{% trans "Parent consent on file" %}</dt>
+            {% term "parent" capitalize=True as _ferpa_parent_sg %}
+            <dt class="col-sm-5">{% blocktrans with t=_ferpa_parent_sg %}{{ t }} consent on file{% endblocktrans %}</dt>
             <dd class="col-sm-7">
               {% if disclosure.parent_consent_obtained %}
                 <span class="badge bg-success">{% trans "Yes" %}</span>

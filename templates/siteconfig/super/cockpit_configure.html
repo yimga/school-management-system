@@ -37,6 +37,10 @@
         <a href="{% url 'siteconfig:theme_personality_configure' %}" class="btn btn-outline-secondary btn-sm rmc-button rmc-button--secondary">
           {% trans "Theme personality →" %}
         </a>
+        {# Wave 15 (v3.62.20 — 2026-05-23): cross-link to per-tenant marketing voice. #}
+        <a href="{% url 'siteconfig:marketing_voice_configure' %}" class="btn btn-outline-secondary btn-sm rmc-button rmc-button--secondary">
+          {% trans "Marketing voice →" %}
+        </a>
       </div>
     </div>
   </header>

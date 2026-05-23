@@ -24,9 +24,11 @@
           <tr><th scope="row" class="text-muted" style="width:12rem;">{% trans_term "Student" key="student" %}</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans_term "Academic year" key="academic_year" %}</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans "Annual average" %}</th><td>{{ snapshot.annual_average|floatformat:2|default:"—" }}</td></tr>
-          <tr><th scope="row" class="text-muted">{% trans "Class rank" %}</th><td>{{ snapshot.class_rank_display|default:"—" }}</td></tr>
+          {% term "classroom" capitalize=True as _ta_cl_sg %}
+          {% term "teacher" capitalize=True as _ta_t_sg %}
+          <tr><th scope="row" class="text-muted">{% blocktrans with t=_ta_cl_sg %}Rank in {{ t }}{% endblocktrans %}</th><td>{{ snapshot.class_rank_display|default:"—" }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans "Promotion status" %}</th><td>{{ snapshot.promotion_status|default:"—" }}</td></tr>
-          <tr><th scope="row" class="text-muted">{% trans "Teacher remark" %}</th><td>{{ snapshot.teacher_remark|default:"—" }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% blocktrans with t=_ta_t_sg %}{{ t }} remark{% endblocktrans %}</th><td>{{ snapshot.teacher_remark|default:"—" }}</td></tr>
         </tbody>
       </table>
       {% if snapshot.term_rows %}

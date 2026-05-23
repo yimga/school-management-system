@@ -91,7 +91,8 @@
         <dt class="col-sm-4">{% trans "Campuses in scope" %}</dt>
         <dd class="col-sm-8">{{ group_summary.campus_count }}</dd>
         {% if group_summary.student_count is not None %}
-        <dt class="col-sm-4">{% trans "Students (active)" %}</dt>
+        {% term "student" plural=True capitalize=True as _sgh_student_pl %}
+        <dt class="col-sm-4">{% blocktrans with t=_sgh_student_pl %}{{ t }} (active){% endblocktrans %}</dt>
         <dd class="col-sm-8">{{ group_summary.student_count }}</dd>
         {% endif %}
         {% if group_summary.teacher_count is not None %}

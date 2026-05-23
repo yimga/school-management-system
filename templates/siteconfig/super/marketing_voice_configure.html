@@ -1,0 +1,181 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% comment %}
+Wave 15 (v3.62.20 — 2026-05-23) — per-tenant marketing voice configure UI.
+
+Mirrors the Wave 13 CountryRegistry admin change_form side-by-side layout
+(form left, sticky preview right). Re-uses static/admin/css/rmc-mv-preview.css
++ static/admin/js/rmc-mv-preview.js so the preview updates as operator types.
+{% endcomment %}
+
+{% block cp_title %}{% trans "Marketing voice (per-tenant)" %} — RunMyCampus Manager{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/rmc-mv-preview.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/super/">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'siteconfig:cockpit_configure' %}">{% trans "Cockpit configuration" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Marketing voice" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="configuration-form" data-rmc-page="marketing-voice-configure">
+  <header class="mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="h6 text-uppercase mb-1">{% trans "Per-tenant marketing voice" %}</div>
+        <h1 class="h4 mb-1 fw-bold page-h1">{% trans "Marketing voice" %}</h1>
+        <p class="small mb-0 text-muted">
+          {% trans "Tenant-level override that layers ABOVE the country-wide CountryRegistry override. Per-page overrides at the bottom let you ship bespoke voice on individual marketing URLs. Empty fields fall through to the country pack." %}
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="/" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+          {% trans "Preview marketing band" %}
+        </a>
+        <a href="{% url 'siteconfig:cockpit_configure' %}" class="btn btn-outline-secondary btn-sm">
+          {% trans "← Back to cockpit" %}
+        </a>
+      </div>
+    </div>
+  </header>
+
+  {% if messages %}
+    <ul class="messages list-unstyled mb-3">
+      {% for message in messages %}
+      <li class="alert alert-{{ message.tags|default:'info' }} py-2 px-3 small">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div class="rmc-mv-form-with-preview">
+    <div class="rmc-mv-form-with-preview__form">
+      <form method="post" action="{{ marketing_voice_url }}" novalidate>
+        {% csrf_token %}
+
+        <fieldset class="border rounded-3 mb-3 p-3">
+          <legend class="h6 px-2 fw-bold">{% trans "Greeting & header" %}</legend>
+          <div class="row g-3">
+            <div class="col-md-6">{{ form.mv_country_name.label_tag }}{{ form.mv_country_name }}</div>
+            <div class="col-md-6">{{ form.mv_greeting.label_tag }}{{ form.mv_greeting }}</div>
+            <div class="col-md-12">{{ form.mv_headline_lead.label_tag }}{{ form.mv_headline_lead }}</div>
+            <div class="col-md-12">
+              {{ form.mv_headline_lead_native.label_tag }}{{ form.mv_headline_lead_native }}
+              <div class="form-text small">{{ form.mv_headline_lead_native.help_text }}</div>
+            </div>
+            <div class="col-md-12">{{ form.mv_hero_subline.label_tag }}{{ form.mv_hero_subline }}</div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border rounded-3 mb-3 p-3">
+          <legend class="h6 px-2 fw-bold">{% trans "Trust & local data" %}</legend>
+          <div class="row g-3">
+            <div class="col-md-12">
+              {{ form.mv_trust_count.label_tag }}{{ form.mv_trust_count }}
+              <div class="form-text small">{{ form.mv_trust_count.help_text }}</div>
+            </div>
+            <div class="col-md-6">
+              {{ form.mv_currency_sample.label_tag }}{{ form.mv_currency_sample }}
+              <div class="form-text small">{{ form.mv_currency_sample.help_text }}</div>
+            </div>
+            <div class="col-md-6">
+              {{ form.mv_calendar_sample.label_tag }}{{ form.mv_calendar_sample }}
+              <div class="form-text small">{{ form.mv_calendar_sample.help_text }}</div>
+            </div>
+            <div class="col-md-12">{{ form.mv_regulatory_line.label_tag }}{{ form.mv_regulatory_line }}</div>
+            <div class="col-md-6">{{ form.mv_anchor_city.label_tag }}{{ form.mv_anchor_city }}</div>
+            <div class="col-md-6">{{ form.mv_regional_phrase.label_tag }}{{ form.mv_regional_phrase }}</div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border rounded-3 mb-3 p-3">
+          <legend class="h6 px-2 fw-bold">{% trans "Testimonial" %}</legend>
+          <div class="row g-3">
+            <div class="col-md-12">
+              {{ form.mv_testimonial_quote.label_tag }}{{ form.mv_testimonial_quote }}
+              <div class="form-text small">{{ form.mv_testimonial_quote.help_text }}</div>
+            </div>
+            <div class="col-md-6">{{ form.mv_testimonial_author.label_tag }}{{ form.mv_testimonial_author }}</div>
+            <div class="col-md-6">{{ form.mv_testimonial_credential.label_tag }}{{ form.mv_testimonial_credential }}</div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border rounded-3 mb-3 p-3">
+          <legend class="h6 px-2 fw-bold">{% trans "Case-study chips" %}</legend>
+          {{ form.mv_case_study_chips }}
+          <div class="form-text small">{{ form.mv_case_study_chips.help_text }}</div>
+        </fieldset>
+
+        <fieldset class="border rounded-3 mb-3 p-3">
+          <legend class="h6 px-2 fw-bold">{% trans "Per-page overrides (advanced)" %}</legend>
+          {{ form.mv_per_page_json }}
+          <div class="form-text small">{{ form.mv_per_page_json.help_text }}</div>
+          {% if form.mv_per_page_json.errors %}
+            <div class="text-danger small mt-1">{{ form.mv_per_page_json.errors }}</div>
+          {% endif %}
+        </fieldset>
+
+        {# Hidden cockpit_payload field; form.clean() repopulates this. #}
+        {{ form.cockpit_payload }}
+
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary">{% trans "Save marketing voice" %}</button>
+          <button type="submit" name="action" value="reset_marketing_voice"
+                  class="btn btn-outline-danger"
+                  onclick="return confirm('{% trans "Clear this tenant's marketing voice override? Country defaults will apply." %}');">
+            {% trans "Clear override" %}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <aside class="rmc-mv-form-with-preview__preview" aria-label="{% trans 'Marketing voice preview' %}">
+      <div class="rmc-mv-preview-sticky">
+        <h2 class="rmc-mv-preview__title">{% trans "Live preview" %}</h2>
+        <p class="rmc-mv-preview__hint">{% trans "Updates as you type. This is how the marketing band will render for this tenant's visitors." %}</p>
+
+        <div class="rmc-mv-preview-band" data-rmc-mv-preview-band>
+          <div class="rmc-mv-preview-band__row">
+            <div class="rmc-mv-preview-band__chip" data-rmc-mv-preview-greeting>—</div>
+            <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--ghost" data-rmc-mv-preview-anchor>—</div>
+          </div>
+          <h3 class="rmc-mv-preview-band__headline" data-rmc-mv-preview-headline>—</h3>
+          <p class="rmc-mv-preview-band__subline" data-rmc-mv-preview-subline>—</p>
+          <div class="rmc-mv-preview-band__trust" data-rmc-mv-preview-trust>—</div>
+          <div class="rmc-mv-preview-band__row">
+            <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-currency>—</div>
+            <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-calendar>—</div>
+          </div>
+          <p class="rmc-mv-preview-band__regulatory" data-rmc-mv-preview-regulatory>—</p>
+        </div>
+
+        <div class="rmc-mv-preview-chips" data-rmc-mv-preview-chips-empty>
+          <div class="rmc-mv-preview-chips__heading">{% trans "Case-study chips" %}</div>
+          <div class="rmc-mv-preview-chips__list" data-rmc-mv-preview-chips-list>
+            <em class="rmc-mv-preview-empty">{% trans "(no chips yet — add one per line in the form)" %}</em>
+          </div>
+        </div>
+
+        <figure class="rmc-mv-preview-testimonial" data-rmc-mv-preview-testimonial-empty>
+          <blockquote class="rmc-mv-preview-testimonial__quote" data-rmc-mv-preview-testimonial-quote>
+            <em class="rmc-mv-preview-empty">{% trans "(no testimonial yet)" %}</em>
+          </blockquote>
+          <figcaption class="rmc-mv-preview-testimonial__caption">
+            <span class="rmc-mv-preview-testimonial__author" data-rmc-mv-preview-testimonial-author></span>
+            <span class="rmc-mv-preview-testimonial__credential" data-rmc-mv-preview-testimonial-credential></span>
+          </figcaption>
+        </figure>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="{% static 'admin/js/rmc-mv-preview.js' %}" nonce="{{ csp_nonce }}" defer></script>
+{% endblock %}

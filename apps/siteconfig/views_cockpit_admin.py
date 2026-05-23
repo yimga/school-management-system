@@ -286,3 +286,71 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
             instance.save()
         messages.info(request, _("Cockpit configuration reset to defaults."))
         return HttpResponseRedirect(self._success_url())
+
+
+# ---------------------------------------------------------------------------
+# Wave 15 (v3.62.20 — 2026-05-23) — per-tenant marketing voice rich-edit.
+#
+# Sister of CockpitConfigureView; targets the narrower
+# ``SiteSettings.cockpit_payload["marketing_voice"]`` sub-tree via a
+# dedicated form so the main 5000-line CockpitPayloadForm doesn't need
+# to grow another 15 fields. Live preview ships alongside the form
+# (template re-uses the same side-by-side layout + JS as the Wave 13
+# CountryRegistry admin form).
+# ---------------------------------------------------------------------------
+
+
+class MarketingVoiceConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
+    """GET renders the per-tenant marketing voice form; POST saves it.
+
+    Same access policy as ``CockpitConfigureView`` — staff OR superuser.
+    """
+
+    template_name = "siteconfig/super/marketing_voice_configure.html"
+    raise_exception = True
+
+    def get_form_class(self) -> Any:
+        from .forms_marketing_voice import MarketingVoiceForm
+        return MarketingVoiceForm
+
+    def test_func(self) -> bool:
+        user = self.request.user
+        if not user.is_authenticated:
+            return False
+        return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+
+    def get_form_kwargs(self) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs()
+        kwargs["instance"] = _resolve_site_settings_instance(self.request)
+        return kwargs
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["page_title"] = _("Marketing voice (per-tenant)")
+        ctx["marketing_voice_url"] = self.request.path
+        return ctx
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        instance = form.instance
+        instance.cockpit_payload = form.cleaned_data.get("cockpit_payload", {})
+        try:
+            instance.save(update_fields=["cockpit_payload", "updated_at"])
+        except Exception:
+            instance.save()
+        messages.success(self.request, _("Marketing voice saved for this tenant."))
+        return HttpResponseRedirect(self.request.path)
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if request.POST.get("action") == "reset_marketing_voice":
+            instance = _resolve_site_settings_instance(request)
+            payload = getattr(instance, "cockpit_payload", None) or {}
+            if isinstance(payload, dict) and "marketing_voice" in payload:
+                payload = {k: v for k, v in payload.items() if k != "marketing_voice"}
+                instance.cockpit_payload = payload
+                try:
+                    instance.save(update_fields=["cockpit_payload", "updated_at"])
+                except Exception:
+                    instance.save()
+                messages.info(request, _("Marketing voice cleared — country defaults will apply."))
+            return HttpResponseRedirect(request.path)
+        return super().post(request, *args, **kwargs)

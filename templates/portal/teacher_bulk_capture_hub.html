@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n terminology_tags %}
+{% term "student" as _tbch_student_sg_lc %}
 {% url 'portal:teacher_bulk_capture_hub' as bulk_capture_post_url %}
 {% block title %}{% trans "Bulk capture" %}{% endblock %}
 {% block content %}
@@ -34,7 +35,7 @@
           <input type="text" name="title" class="form-control form-control-sm" maxlength="200" autocomplete="off">
         </div>
         <div class="col-12 col-md-6">
-          <label class="form-label small mb-0">{% trans "Student id (optional)" %}</label>
+          <label class="form-label small mb-0">{% blocktrans with t=_tbch_student_sg_lc %}{{ t }} id (optional){% endblocktrans %}</label>
           <input type="number" name="student_id" class="form-control form-control-sm" min="1" placeholder="{% trans 'Internal student id if known' %}">
         </div>
         <div class="col-12">

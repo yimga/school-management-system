@@ -1,5 +1,7 @@
 {% extends "portal_base.html" %}
-{% load region_format i18n static %}
+{% load region_format i18n static terminology_tags %}
+{% term "student" capitalize=True as _lc_student_sg %}
+{% term "parent" capitalize=True as _lc_parent_sg %}
 {% block title %}{% trans "Link a Child" %}{% endblock %}
 
 {% block content %}
@@ -84,7 +86,7 @@
         {% endif %}
 
         <div class="col-12">
-          <h5 class="mb-2">{% trans "Student details" %}</h5>
+          <h5 class="mb-2">{% blocktrans with t=_lc_student_sg %}{{ t }} details{% endblocktrans %}</h5>
         </div>
 
         <div class="col-md-6">
@@ -131,7 +133,7 @@
         </div>
 
         <div class="col-12">
-          <h5 class="mb-2">{% trans "Parent & contact" %}</h5>
+          <h5 class="mb-2">{% blocktrans with t=_lc_parent_sg %}{{ t }} & contact{% endblocktrans %}</h5>
         </div>
 
         <div class="col-md-4">

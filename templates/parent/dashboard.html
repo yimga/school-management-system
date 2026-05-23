@@ -432,7 +432,8 @@
                       <h3 class="h6 mb-0">{{ card.link.student.get_full_name }}</h3>
                       <p class="small text-muted mb-0">{{ card.link.student.grade|default:_("N/A") }} - {{ card.link.student.section|default:_("N/A") }}</p>
                       {% if card.badges %}
-                      <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% trans 'Student badges' %}">
+                      {% term "student" capitalize=True as _pd_student_sg %}
+                      <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% blocktrans with t=_pd_student_sg %}{{ t }} badges{% endblocktrans %}">
                         {% for b in card.badges %}
                         <span class="badge rounded-pill" style="background: var(--school-primary); color: var(--text-on-brand);" role="listitem">{{ b.badge_type.label }}</span>
                         {% endfor %}

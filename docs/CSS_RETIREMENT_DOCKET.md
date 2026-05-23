@@ -1,6 +1,149 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-23 (v3.62.19 — local-first Wave 14: zero-deferred push. **51 of 51 priority markets** in voice dict now carry hand-written testimonials (was 34 — added 12 remaining + 5 new market entries for under-covered scripts: KH Khmer / MM Burmese / LA Lao / ER Tigrinya / SD Arabic-Sudan); per-tenant + per-page marketing voice override via `SiteSettings.cockpit_payload["marketing_voice"]` with optional `per_page` sub-dict; side-by-side live-preview pane in the Django admin marketing voice form (CSP-safe IIFE JS, mirrors local-first band styling); India "Which state?" mini-picker on signup with full 36-entry state map (KA/KL/MH/OR/TN/TG/AP/GJ/GA/PY/LD/AN → June-April; HI-belt + PA/UR/CBSE → April-March; WB/AS/TR → January-December) — auto-flips calendar radio on state pick; city-tier GeoIP backend on `RMC_GEOIP_CITY_BACKEND` env (noop/cloudflare CF-IPCity/x-city/maxmind-lite2 GeoLite2-City.mmdb) — when resolved, overrides marketing band `anchor_city` from country anchor to actual metro; lexicon sweep +17 templates (35 total now: backend_student_detail / compliance_erasure_request / studio_os reports + credentials / persona_quickstart / cockpit teacher_spotlight + parent_teacher_thread + community_band / analytics dashboard / teacher feed / parent finance + attendance_discipline + workflow_center / portal digital_id + unified_calendar + roll_call_student + student_passport + student_transcript_vault); `download_geoip_mmdb.py` extended with `--edition GeoLite2-City` flag.)
+**Last updated:** 2026-05-23 (v3.62.20 — local-first Wave 15: final sweep closing every remaining Wave 14 polish item. (1) Per-tenant marketing voice rich-edit operator UI: new `MarketingVoiceForm` + `MarketingVoiceConfigureView` at `/siteconfig/super/configure/marketing-voice/` ports the Wave 13 CountryRegistry rich-edit pattern (15 discrete form fields + chips textarea) to `SiteSettings.cockpit_payload["marketing_voice"]` with side-by-side live preview re-using the same CSS+JS bundle; extra `mv_per_page_json` textarea exposes the per-page override layer added in Wave 14; cross-link from existing cockpit_configure header. (2) IN "Which state?" mini-picker on operator rapid-create flow: `india_state_options` context injected into `lifecycle/rapid_create.html` + 36-entry `<select>` block (hidden by default; existing rmc-signup-country-adapter.js handles show/hide + auto-flip without changes). (3) City-name canonical normalization: `_CITY_CANONICAL_MAP` (~110 entries covering all 51 priority markets) + `_slugify_city_key()` (unicode NFKD + diacritic strip + collapse whitespace) + `canonicalize_city()` public API + wired into `lookup_city()` — folds "Sao Paulo" / "São Paulo" / "SAO PAULO" → "São Paulo"; "Bangalore" → "Bengaluru"; "munchen" → "München"; "Beijing" → "北京"; "Saigon" → "TP. Hồ Chí Minh"; unknown cities pass through verbatim. (4) Marketing voice chips drag-drop reorder: HTML5 drag-and-drop + Alt+Up/Alt+Down keyboard a11y on each preview chip; reorder writes new line order back to the textarea + dispatches input event to trigger re-render; cursor:grab + grabbing affordances + focus-visible outline. (5) Lexicon sweep +17 more templates (35 → 52 total): compliance/ferpa_disclosure_detail / finance/invoices / portal/teacher_bulk_capture_hub + student_attendance_export + roll_call_teacher + syllabus / parent/results + dashboard + link_child + wallet / student360/transcript_archive_year / migration_cloud/customer/consent_campaign_start + consent_campaign_status / teacher/dashboard / siteconfig/bulk_letters + school_group_hierarchy + parent_tenant_dashboard.)
+
+## 2026-05-23 — v3.62.20: local-first Wave 15 (final sweep — every Wave 14 polish item closed)
+
+**Status:** SHIPPED in-repo. Continuation of v3.62.19 (Wave 14). User mandate verbatim: "do a final sweep with an aggressive push". Closes the 5 remaining Wave 14 polish items.
+
+**SW:** `sms-v3.62.20-local-first-wave-15-final-sweep-per-tenant-mv-rich-edit-form-in-state-on-rapid-create-city-canonical-map-chips-drag-drop-lexicon-17-more-templates-2026-05-23`.
+
+### Wave 15a — per-tenant marketing voice rich-edit operator UI
+
+Sister of Wave 13's `CountryRegistryAdminForm` rich-edit form but targeting the *per-tenant* override surface:
+
+- `apps/siteconfig/forms_marketing_voice.py` (NEW ~230 lines) — `MarketingVoiceForm(forms.ModelForm)` carries 14 scalar fields + chips textarea + `mv_per_page_json` per-page mapping editor. `__init__` pre-fills from existing `SiteSettings.cockpit_payload["marketing_voice"]`; `_build_marketing_voice_from_form()` rebuilds the nested dict; `clean()` merges into the broader `cockpit_payload` preserving every other top-level key; `clean_mv_per_page_json()` validates per-page JSON shape (dict of dicts) with friendly error messages.
+- `apps/siteconfig/views_cockpit_admin.py` extended with `MarketingVoiceConfigureView` (~70 lines) — staff-only FormView at `/siteconfig/super/configure/marketing-voice/` with `action=reset_marketing_voice` POST sub-action that drops the `marketing_voice` key without touching other payload keys.
+- URL: `siteconfig:marketing_voice_configure` wired in `apps/siteconfig/urls.py` with `# rbac-allow: super-staff-marketing-voice-config` marker.
+- `templates/siteconfig/super/marketing_voice_configure.html` (NEW ~165 lines) — extends `control_plane_base.html` with the same side-by-side layout as the Wave 13 admin form; 5 grouped fieldsets (Greeting & header / Trust & local data / Testimonial / Case-study chips / Per-page overrides); re-uses `static/admin/css/rmc-mv-preview.css` + `static/admin/js/rmc-mv-preview.js` so the preview ships zero net new bytes; cross-link from existing cockpit_configure header.
+
+### Wave 15b — IN per-state mini-picker on operator rapid-create
+
+Wave 14 shipped the IN state picker on the public signup form. Wave 15 extends it to the operator rapid-create flow at `/super/schools/rapid/`:
+
+- `apps/lifecycle/views_rapid_create.py` imports `get_india_state_options` + injects `india_state_options` into the GET context
+- `templates/lifecycle/rapid_create.html` renders the `<select>` block in Step 3 (Calendar), gated on `india_state_options` + hidden by default
+- Existing `rmc-signup-country-adapter.js` (Wave 14) handles the show/hide + auto-flip — zero JS changes needed because the data attributes already match (`data-rmc-india-state-block`, `data-rmc-india-state-picker`, `data-calendar-code`)
+
+### Wave 15c — city-name canonical normalization
+
+New `_CITY_CANONICAL_MAP` constant in `apps/siteconfig/geoip_country_lookup.py` with ~110 entries covering every priority market in the voice dict + major regional metros:
+
+- Brazil: São Paulo / Rio de Janeiro / Brasília / Belo Horizonte / Curitiba / Fortaleza / Salvador
+- France: Paris / Marseille / Lyon / Toulouse
+- Mexico / Spain: Ciudad de México / Guadalajara / Monterrey / Madrid / Barcelona / Sevilla
+- Germany: München (folds "Munich" / "munchen" / "Munchen") / Berlin / Hamburg / Köln (folds "Cologne" / "koln" / "koeln") / Frankfurt am Main
+- Italy: Roma (folds "Rome") / Milano (folds "Milan") / Napoli (folds "Naples") / Torino (folds "Turin")
+- Türkiye: İstanbul (folds plain "Istanbul") / Ankara / İzmir
+- India: Mumbai (folds "Bombay") / Bengaluru (folds "Bangalore") / Chennai (folds "Madras") / Kolkata (folds "Calcutta") / Delhi / Hyderabad / Ahmedabad / Pune
+- CJK: 北京 (Beijing) / 上海 (Shanghai) / 廣州 / 深圳 / 臺北 / 高雄 / 香港 / 九龍 / 東京 / 大阪 / 京都 / 서울 / 부산
+- SE Asia: Manila / Cebu / Kuala Lumpur / George Town / Jakarta / Surabaya / กรุงเทพมหานคร / Hà Nội / TP. Hồ Chí Minh (folds "Saigon" / "HCMC" / "Ho Chi Minh City") / Singapore
+- Middle East: Dubai / Doha / Riyadh / Jeddah / Cairo / Tel Aviv
+- Africa: Lagos / Accra / Abidjan / Dakar / Yaoundé / Nairobi / Dar es Salaam / Kigali / አዲስ አበባ / ኣስመራ / الخرطوم / Johannesburg / Cape Town
+- UK/Ireland: London / Manchester / Birmingham / Edinburgh / Dublin / Cork
+- Americas: New York / Los Angeles / Chicago / Toronto / Montréal / Vancouver / Buenos Aires / Córdoba / Bogotá / Medellín
+- Oceania: Sydney / Melbourne / Brisbane / Perth / Auckland / Wellington
+- South Asia: Karachi / Lahore / Islamabad / ঢাকা / කොළඹ / யாழ்ப்பாணம்
+
+Helpers:
+- `_slugify_city_key(value)` — unicode NFKD + diacritic strip + lowercase + collapse whitespace (so "São Paulo" / "Sao Paulo" / "SAO PAULO" all hash to "sao paulo")
+- `canonicalize_city(value)` — public API; case + diacritic-insensitive map lookup; unknown cities pass through verbatim
+- `lookup_city(request)` wired to feed every backend's raw output through `canonicalize_city()` so callers always see the canonical form
+
+Smoke-verified:
+```
+'Sao Paulo'    -> 'São Paulo'
+'SAO PAULO'    -> 'São Paulo'
+'Bangalore'    -> 'Bengaluru'
+'munchen'      -> 'München'
+'Beijing'      -> '北京'
+'Saigon'       -> 'TP. Hồ Chí Minh'
+'Lagos'        -> 'Lagos'
+'unknown city' -> 'unknown city'
+```
+
+### Wave 15d — marketing voice chips drag-drop reorder
+
+`static/admin/js/rmc-mv-preview.js` extended (~75 new lines) with HTML5 drag-and-drop on each preview chip + Alt+Up/Alt+Down keyboard a11y:
+
+- `attachChipDragHandlers(chipEl, idx, totalCount)` — wires `dragstart` / `dragend` / `dragover` / `drop` + `keydown` (Alt+Up/Alt+Down)
+- `reorderChipsInTextarea(fromIdx, toIdx)` — rewrites the textarea value to the new line order + dispatches `input` event (triggers existing `refreshAll`)
+- Each chip carries `draggable="true"`, `tabindex=0`, `role="button"`, `aria-label="Chip N of M — Alt+Up or Alt+Down to reorder, or drag."` for screen readers
+- `_dragSrcIdx` module-scoped state for drag tracking + fallback via `dataTransfer.getData('text/plain')`
+
+`static/admin/css/rmc-mv-preview.css` extended:
+- `cursor: grab` (`grabbing` on `:active`) + `transform: scale(0.96)` on active
+- `:hover` deepens the background tint for visual affordance
+- `:focus-visible` shows brand-token 2px outline for keyboard users
+
+### Wave 15e — lexicon sweep +17 more templates (35 → 52 total)
+
+17 more templates fully adopted on the canonical `{% term %}` + `{% blocktrans asvar %}` pattern:
+
+| Template | Term keys |
+|---|---|
+| `templates/compliance/ferpa_disclosure_detail.html` | parent |
+| `templates/finance/invoices.html` | parent (2 column headers via replace_all) |
+| `templates/portal/teacher_bulk_capture_hub.html` | student |
+| `templates/portal/student_attendance_export.html` | student + teacher + classroom (title + body copy + button) |
+| `templates/parent/results.html` | subject (table heading + column label) |
+| `templates/parent/dashboard.html` | student (badges aria-label) |
+| `templates/student360/transcript_archive_year.html` | classroom (rank label) + teacher (remark label) |
+| `templates/portal/syllabus.html` | classroom + subject + teacher (title + body copy) |
+| `templates/schools/parent_tenant_dashboard.html` | parent (2 sites) |
+| `templates/migration_cloud/customer/consent_campaign_start.html` | guardian |
+| `templates/migration_cloud/customer/consent_campaign_status.html` | guardian (title + 2 column headers) |
+| `templates/siteconfig/bulk_letters.html` | student (summary stat) |
+| `templates/siteconfig/school_group_hierarchy.html` | student (active count) |
+| `templates/portal/roll_call_teacher.html` | teacher (title + h1 + offline-hint + draft-pending) |
+| `templates/teacher/dashboard.html` | teacher (avatar alt + action-grid aria-label) |
+| `templates/parent/link_child.html` | student + parent (form section headings) |
+| `templates/parent/wallet.html` | parent (breadcrumb home link) |
+
+### Smoke test results
+
+```
+Form parse + admin form round-trip: OK
+canonicalize_city test cases: 12/12 expected outputs match
+IN state picker on rapid-create: india_state_options injected
+Template safety: 0 findings across 1,329 templates
+All Python + JS files parse OK
+SW: sms-v3.62.20-local-first-wave-15-...-2026-05-23
+```
+
+### Final state
+
+After Wave 15, the local-first dimension is **exhausted to the architectural floor**:
+- 51 / 51 voice-dict markets carry testimonials (100%)
+- 5 new market entries for scripts (Khmer / Burmese / Lao / Tigrinya / Arabic-Sudan)
+- 3-layer marketing voice override (seed → CountryRegistry country-wide → SiteSettings per-tenant → per-page) with rich-edit UIs on layers 2 and 3
+- IN per-state calendar picker on BOTH public signup AND operator rapid-create
+- City-tier GeoIP with canonical name normalization
+- Side-by-side live preview on both rich-edit forms with drag-drop chip reorder + Alt+arrow a11y
+- 52 templates fully lexicon-adopted
+
+### Honest deferred (Wave 16+)
+
+Genuinely nothing structural. Remaining items are pure delta:
+- Lexicon adoption beyond 52 templates — pure per-template review, no architectural lift
+- Per-page override UI form (currently raw JSON textarea on the per-tenant form — works for power-operators but lacks the rich field UI)
+- Additional canonical city entries for tier-2 cities (current map ~110 entries; major metros covered)
+- Operator UI for City-tier GeoIP backend selection (currently env var only — UI would let operators flip backends without redeploy)
+
+### Key files (Wave 15)
+
+- `apps/siteconfig/forms_marketing_voice.py` (NEW ~230 lines)
+- `apps/siteconfig/views_cockpit_admin.py` — `MarketingVoiceConfigureView` (+70 lines)
+- `apps/siteconfig/urls.py` — `marketing_voice_configure` URL
+- `apps/siteconfig/geoip_country_lookup.py` — `_CITY_CANONICAL_MAP` (~110 entries) + `_slugify_city_key()` + `canonicalize_city()` + `lookup_city()` wire-up
+- `apps/lifecycle/views_rapid_create.py` — `india_state_options` context injection
+- `templates/siteconfig/super/marketing_voice_configure.html` (NEW ~165 lines)
+- `templates/siteconfig/super/cockpit_configure.html` — cross-link to marketing voice
+- `templates/lifecycle/rapid_create.html` — IN state mini-picker block
+- `static/admin/js/rmc-mv-preview.js` — drag-drop + Alt+Up/Down handlers (+75 lines)
+- `static/admin/css/rmc-mv-preview.css` — drag affordance + focus-visible outline
+- 17 lexicon-adopted templates (above)
+- `static/js/service-worker.js` — SW bump to v3.62.20
 
 ## 2026-05-23 — v3.62.19: local-first Wave 14 (zero-deferred push)
 
