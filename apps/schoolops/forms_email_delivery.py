@@ -50,6 +50,15 @@ class EmailDeliveryForm(forms.Form):
             "SMTP server."
         ),
     )
+    allow_tenant_email_delivery_override = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Allow schools to use their own SMTP",
+        help_text=(
+            "When unchecked, tenant Studio email settings are ignored and "
+            "only platform env / operator override applies (SODP policy)."
+        ),
+    )
     host = forms.CharField(
         required=False,
         max_length=_HOST_MAX,
@@ -170,6 +179,9 @@ class EmailDeliveryForm(forms.Form):
         payload = payload or {}
         initial = {
             "enabled": bool(payload.get("enabled", False)),
+            "allow_tenant_email_delivery_override": bool(
+                payload.get("allow_tenant_email_delivery_override", True)
+            ),
             "host": payload.get("host", "") or "",
             "port": int(payload.get("port", 587) or 587),
             "use_tls": bool(payload.get("use_tls", True)),
@@ -224,6 +236,9 @@ class EmailDeliveryForm(forms.Form):
 
         return {
             "enabled": bool(cleaned.get("enabled", False)),
+            "allow_tenant_email_delivery_override": bool(
+                cleaned.get("allow_tenant_email_delivery_override", True)
+            ),
             "host": (cleaned.get("host") or "").strip(),
             "port": int(cleaned.get("port") or 587),
             "use_tls": bool(cleaned.get("use_tls", True)),

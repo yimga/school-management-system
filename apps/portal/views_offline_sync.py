@@ -310,21 +310,42 @@ def api_offline_enqueue(request: HttpRequest) -> JsonResponse:
     if not data:
         return JsonResponse({"ok": False, "error": "invalid_json"}, status=400)
 
-    action_type = str(data.get("action_type") or "").strip()
-    allowed = {c for c, _ in OfflineAction.ActionType.choices}
-    if action_type not in allowed:
+    if data.get("tenant_id") is not None or data.get("school_id") is not None:
+        return JsonResponse({"ok": False, "error": "tenant_from_session_only"}, status=400)
+
+    from apps.platform_runtime.offline_action_types import (
+        OfflineActionType,
+        SODP_TO_LEGACY,
+        normalize_action_type,
+        validate_offline_payload,
+    )
+
+    action_type = normalize_action_type(str(data.get("action_type") or ""))
+    legacy = {c for c, _ in OfflineAction.ActionType.choices}
+    if action_type not in OfflineActionType.values and action_type not in legacy:
+        return JsonResponse({"ok": False, "error": "invalid_action_type"}, status=400)
+
+    stored_type = SODP_TO_LEGACY.get(action_type, action_type)
+    if stored_type not in legacy:
         return JsonResponse({"ok": False, "error": "invalid_action_type"}, status=400)
 
     payload = data.get("payload")
     if payload is not None and not isinstance(payload, dict):
         return JsonResponse({"ok": False, "error": "payload_must_be_object"}, status=400)
 
+    validation_errors = validate_offline_payload(action_type, payload if isinstance(payload, dict) else {})
+    if validation_errors:
+        return JsonResponse(
+            {"ok": False, "error": "invalid_payload", "details": validation_errors},
+            status=400,
+        )
+
     idem = str(data.get("idempotency_key") or "")[:128]
     try:
         row = enqueue_offline_action(
             user_id=request.user.pk,
             school_id=school.pk,
-            action_type=action_type,
+            action_type=stored_type,
             payload=payload if isinstance(payload, dict) else {},
             idempotency_key=idem,
         )

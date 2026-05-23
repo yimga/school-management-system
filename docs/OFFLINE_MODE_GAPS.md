@@ -1,6 +1,20 @@
 # Offline Mode – What’s Missing in the Codebase
 
-**Doc status: Closed.** Open gap rows are reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**. No open required work on this doc.
+**Doc status: Closed (SODP repo wave 2026-05-23).** Sovereign Offline/Online Delivery Platform batches **1405–1412** closed the highest-risk gaps below in-repo. Proof: `python scripts/verify_sovereign_offline_foundation.py`, `verify_sovereign_offline_config_cascade.py`, `verify_offline_auth_contract.py`, `verify_sovereign_offline_e2e_scaffold.py`, and `var/evidence/geos-99/offline/sovereign_delivery_e2e_2026-05-23.json`. Lane-2 (notarization, Play Store, live mDNS corridor) remains in `docs/external_dependencies_register.json`.
+
+| Historical gap (this doc) | SODP closure |
+| --- | --- |
+| SW 4xx retry forever | `service-worker.js` drops 4xx from queue |
+| SW stale Cookie/CSRF | `SKIP_HEADERS` + `credentials: 'include'` on replay |
+| Queue order | Sort by `createdAt` before replay |
+| Queue size limit | `maxQueueItems` in `SMS_OFFLINE_CONFIG` |
+| Queue visibility | Status bar + `#sms-offline-notification-queue-badge` |
+| Hybrid hub failover | `hubBaseUrl` + hub retry in `handleApiWrite` |
+| Server idempotency | `OfflineAction.idempotency_key` + `EmailDeliveryEvent.idempotency_key` |
+| Grades auto-merge forbidden | `conflict_resolver.py` → `grade_entry` = `manual_review` |
+| E2E offline→queue→replay | `tests/e2e/offline-queue-replay.spec.js` (+ credentialed flow) |
+
+Open gap rows are otherwise reconciled with **`docs/PHASE_10_BACKLOG.md`** and **`docs/WHATS_LEFT_COMPLETE_BACKLOG_DEFERRED.md`**.
 
 This document lists gaps and improvements for the offline mode implementation. See also `OFFLINE_MODE_AUDIT.md` and `OFFLINE_PLATFORM_AND_DATA_INTEGRITY.md`.
 

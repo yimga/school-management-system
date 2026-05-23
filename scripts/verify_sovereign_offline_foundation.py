@@ -27,12 +27,25 @@ def main() -> int:
             findings.append(f"missing {rel}")
 
     sw = _text("static/js/service-worker.js")
+    portal_views = _text("apps/portal/views_offline_sync.py")
+    if "tenant_from_session_only" not in portal_views:
+        findings.append("api_offline_enqueue must reject body tenant_id")
+    if "validate_offline_payload" not in portal_views:
+        findings.append("api_offline_enqueue must validate offline payloads")
+    if "SODP_TO_LEGACY" not in portal_views:
+        findings.append("api_offline_enqueue must map SODP types to stored legacy types")
+
+    status_bar = _text("templates/components/offline_status_bar.html")
+    if "sms-offline-notification-queue-badge" not in status_bar:
+        findings.append("offline status bar missing notification queue badge")
+
     for needle in (
         "SKIP_HEADERS",
         "createdAt",
         "response.status >= 400 && response.status < 500",
         "/portal/api/offline/",
         "maxQueueItems",
+        "hubBaseUrl",
     ):
         if needle not in sw:
             findings.append(f"service-worker missing {needle}")

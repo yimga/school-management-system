@@ -425,6 +425,26 @@ def _get_connection_for_send(cfg: dict):
 # ──────────────────────────────────────────────────────────────────────
 
 
+def _find_idempotent_delivery_event(idempotency_key: str) -> Optional[str]:
+    """Return existing event UUID when the same idempotency key was already sent."""
+    key = (idempotency_key or "").strip()[:128]
+    if not key:
+        return None
+    try:
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
+
+        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        row = (
+            EmailDeliveryEvent.objects.filter(idempotency_key=key)
+            .order_by("-created_at")
+            .only("pk")
+            .first()
+        )
+        return str(row.pk) if row else None
+    except Exception:
+        return None
+
+
 def _persist_event(
     *,
     to_hash: str,
@@ -435,6 +455,7 @@ def _persist_event(
     error_kind: str,
     bounced: bool = False,
     bounce_kind: str = "",
+    idempotency_key: str = "",
 ) -> Optional[str]:
     """Best-effort write of an EmailDeliveryEvent row. Returns its UUID str.
 
@@ -458,6 +479,7 @@ def _persist_event(
             error_kind=error_kind,
             bounced=bool(bounced),
             bounce_kind=(bounce_kind or "")[:32],
+            idempotency_key=(idempotency_key or "")[:128],
         )
         return str(row.pk)
     except Exception as exc:  # broad-by-design — log persistence is never load-bearing
@@ -809,6 +831,7 @@ def _send_transactional_sync_core(
         error_kind="" if ok else last_exc_kind,
         bounced=bounced_flag,
         bounce_kind=last_bounce_kind if bounced_flag else "",
+        idempotency_key=idempotency_key,
     )
 
     if ok:
@@ -907,6 +930,10 @@ def send_transactional(
     are NEVER logged. We persist only ``to_hash`` (sha256[:12]) and a
     redacted 64-char subject prefix.
 
+  * ``idempotency_key`` — when non-empty, a prior successful or failed
+    send with the same key returns immediately with the existing
+    ``delivery_event_id`` and ``ok`` from that row (no second SMTP).
+
     v3.58.x Wave 9 Agent K — ``async_send=True``:
         Schedule the send in a daemon thread and return IMMEDIATELY
         with ``{"ok": True, "queued": True, "attempts": 0,
@@ -922,6 +949,31 @@ def send_transactional(
     is capped at 5s. A single sync caller can never block longer than
     the budget regardless of how BACKOFF is configured.
     """
+    idem = (idempotency_key or "").strip()[:128]
+    if idem:
+        existing_id = _find_idempotent_delivery_event(idem)
+        if existing_id:
+            try:
+                from apps.schoolops.models_email_delivery import EmailDeliveryEvent
+
+                # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+                row = EmailDeliveryEvent.objects.filter(pk=existing_id).only(
+                    "ok", "attempts", "error_kind", "bounced", "bounce_kind"
+                ).first()
+            except Exception:
+                row = None
+            if row is not None:
+                return {
+                    "ok": bool(row.ok),
+                    "attempts": int(row.attempts or 0),
+                    "delivery_event_id": existing_id,
+                    "error_kind": row.error_kind or None,
+                    "queued": False,
+                    "bounced": bool(row.bounced),
+                    "bounce_kind": row.bounce_kind or "",
+                    "deduplicated": True,
+                }
+
     # ── v3.58.x Wave 9 Agent M — per-tenant rate-limit gate ──────────
     # Gate at the outer entry so both sync AND async paths share one
     # bucket. When tenant_hash is None (platform-level sends) the gate

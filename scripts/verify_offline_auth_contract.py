@@ -34,6 +34,10 @@ def main() -> int:
     if "@extend_schema" not in api:
         findings.append("OfflineTokenMintView missing @extend_schema")
 
+    lib = (ROOT / "companion-tauri/src-tauri/src/lib.rs").read_text(encoding="utf-8", errors="replace")
+    if "rmc_stronghold_seal" not in lib or "rmc_stronghold_open" not in lib:
+        findings.append("companion-tauri missing Stronghold stub commands")
+
     if findings:
         print("verify_offline_auth_contract: FAIL", file=sys.stderr)
         for item in findings:

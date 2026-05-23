@@ -46,6 +46,8 @@ def main() -> int:
     models = _text("apps/schoolops/models_email_delivery.py")
     if "class EmailDeliveryEvent" not in models:
         findings.append("EmailDeliveryEvent model missing")
+    if "idempotency_key" not in models:
+        findings.append("EmailDeliveryEvent missing idempotency_key")
 
     delivery = _text("apps/schoolops/email_delivery.py")
     if "def send_transactional" not in delivery:
@@ -54,6 +56,8 @@ def main() -> int:
         findings.append("tenant SMTP cascade missing")
     if "school=None" not in delivery.split("def get_resolved_smtp_config", 1)[-1][:120]:
         findings.append("get_resolved_smtp_config missing school= parameter")
+    if "_find_idempotent_delivery_event" not in delivery:
+        findings.append("send_transactional missing idempotency dedupe helper")
 
     signup = _text("apps/schools/signup_views.py")
     if "async_send=True" not in signup and "async_send = True" not in signup:

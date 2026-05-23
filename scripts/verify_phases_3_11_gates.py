@@ -491,6 +491,38 @@ def main(argv: list[str] | None = None) -> int:
         "Online + edge dual-mode: offline bundle, hub docs, portal config",
     )
     run(
+        [py, _script_path("verify_sovereign_offline_foundation.py"), *base_args],
+        "SODP Wave A: offline foundation + no client SMTP",
+    )
+    run(
+        [py, _script_path("verify_sovereign_offline_config_cascade.py"), *base_args],
+        "SODP: offline config cascade + tenant Studio UI",
+    )
+    run(
+        [py, _script_path("verify_tenant_email_delivery_cascade.py"), *base_args],
+        "SODP Wave B: tenant email cascade",
+    )
+    run(
+        [py, _script_path("verify_offline_auth_contract.py"), *base_args],
+        "SODP Wave C: offline auth vault contract",
+    )
+    run(
+        [py, _script_path("verify_field_client_scaffold.py"), *base_args],
+        "SODP Wave D: Tauri Field Client scaffold",
+    )
+    run(
+        [py, _script_path("verify_capacitor_shell_scaffold.py"), *base_args],
+        "SODP Wave E: Capacitor shell scaffold",
+    )
+    run(
+        [py, _script_path("verify_sovereign_offline_e2e_scaffold.py"), *base_args],
+        "SODP Wave G: E2E + delta bundle scaffold",
+    )
+    run(
+        [py, _script_path("verify_email_delivery_surface.py"), *base_args],
+        "Email delivery surface (includes SODP tenant cascade)",
+    )
+    run(
         [py, _script_path("verify_page_fold_standards.py"), "--write", *base_args],
         "Page fold: 4-fold cap, back-to-top, task pagination markers",
     )

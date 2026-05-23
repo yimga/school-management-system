@@ -31,6 +31,10 @@ def main() -> int:
     if 'type="password"' not in infra:
         findings.append("tenant email form missing password field")
 
+    forms = (ROOT / "apps/schoolops/forms_email_delivery.py").read_text(encoding="utf-8", errors="replace")
+    if "allow_tenant_email_delivery_override" not in forms:
+        findings.append("operator form missing allow_tenant_email_delivery_override")
+
     if findings:
         print("verify_tenant_email_delivery_cascade: FAIL", file=sys.stderr)
         for item in findings:

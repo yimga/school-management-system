@@ -18,6 +18,7 @@
   var reachabilityRetryCount = 0;
   var reachabilityRetryTimer = null;
   var pendingCount = 0;
+  var notifyBadgeEl = null;
   var syncingWaitingLength = false;
   var syncingViaBatch = false;
   var serverUnreachable = false;
@@ -158,6 +159,7 @@
       if (spinnerEl) spinnerEl.classList.add('d-none');
       refreshLastSynced();
       refreshConflictsButton();
+      refreshNotificationQueueBadge();
     } else {
       bar.classList.remove('d-none');
       bar.classList.add('d-inline-flex');
@@ -168,6 +170,7 @@
       if (spinnerEl) spinnerEl.classList.add('d-none');
       if (lastSyncedEl) lastSyncedEl.classList.add('d-none');
       if (conflictsBtn) conflictsBtn.classList.add('d-none');
+      refreshNotificationQueueBadge();
     }
   }
   function refreshLastSynced() {
@@ -180,6 +183,20 @@
     lastSyncedEl.title = failed > 0 ? 'Last sync had ' + failed + ' failed item(s)' : 'Last sync';
     lastSyncedEl.classList.remove('d-none');
   }
+  function refreshNotificationQueueBadge() {
+    if (!notifyBadgeEl) return;
+    if (pendingCount > 0) {
+      notifyBadgeEl.textContent = String(pendingCount);
+      notifyBadgeEl.classList.remove('d-none');
+      notifyBadgeEl.setAttribute(
+        'aria-label',
+        pendingCount + ' queued item(s) including notifications — delivers when connected',
+      );
+    } else {
+      notifyBadgeEl.classList.add('d-none');
+    }
+  }
+
   function refreshConflictsButton() {
     if (!conflictsBtn) return;
     var list = getStoredConflicts();
@@ -327,6 +344,7 @@
     dot = document.getElementById('sms-offline-status-dot');
     textEl = document.getElementById('sms-offline-status-text');
     spinnerEl = document.getElementById('sms-offline-status-spinner');
+    notifyBadgeEl = document.getElementById('sms-offline-notification-queue-badge');
     syncBtn = document.getElementById('sms-offline-sync-now-btn');
     lastSyncedEl = document.getElementById('sms-offline-status-last-synced');
     conflictsBtn = document.getElementById('sms-offline-conflicts-btn');
@@ -401,6 +419,7 @@
         }
         if (d.type === 'queue-length') {
           pendingCount = d.total != null ? d.total : 0;
+          refreshNotificationQueueBadge();
           var maxQ = parseInt((getConfig().maxQueueItems || 500), 10);
           if (pendingCount >= maxQ * 0.9) {
             document.dispatchEvent(new CustomEvent('rmc:warning', {

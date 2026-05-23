@@ -134,6 +134,16 @@ class EmailDeliveryEvent(models.Model):
             "<type> is the raw vendor-reported bounce label."
         ),
     )
+    idempotency_key = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Optional caller-supplied dedupe key. When non-empty, a second "
+            "send with the same key returns the existing row id without SMTP."
+        ),
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,
@@ -149,6 +159,18 @@ class EmailDeliveryEvent(models.Model):
         indexes = [
             models.Index(fields=["to_hash", "created_at"]),
             models.Index(fields=["ok", "created_at"]),
+            models.Index(
+                fields=["idempotency_key"],
+                condition=models.Q(idempotency_key__gt=""),
+                name="schoolops_em_idem_nonempty",
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["idempotency_key"],
+                condition=models.Q(idempotency_key__gt=""),
+                name="schoolops_email_delivery_idem_unique",
+            ),
         ]
 
     def __str__(self) -> str:

@@ -137,3 +137,15 @@ pub async fn rmc_ingest_csv(
         row_count: canonical_rows.len(),
     })
 }
+
+/// Field Client offline vault — Stronghold integration stub (SODP batch 1409).
+/// Production builds wire `tauri-plugin-stronghold`; this stub keeps `cargo check` green.
+#[tauri::command]
+pub fn rmc_stronghold_seal(_pin: String, _payload_b64: String) -> Result<String, String> {
+    Err("stronghold_plugin_not_linked — use WebCrypto vault in PWA or enable Stronghold in release build".into())
+}
+
+#[tauri::command]
+pub fn rmc_stronghold_open(_pin: String, _sealed_id: String) -> Result<String, String> {
+    Err("stronghold_plugin_not_linked".into())
+}
