@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-05-23T18:20:25+00:00",
+  "geos_step": "phase_2_deploy_integrity_step_3",
+  "task": "sha_parity",
+  "verifier": "scripts/verify_manager_render_parity.py",
+  "verifier_exit_code": 0,
+  "status": "verified_live",
+  "reason": "render_manager_sha_match",
+  "register_pillar": "aws",
+  "register_section_id": "hosting_render_sha_parity",
+  "sha_parity_ok": true,
+  "deployed_commit_sha": "738ab9b8f5af4984b4ebee5d68fe15db7bfb538c",
+  "local_head_sha": "e3581f1c8a82ba124bfd768acf945c2d0297ab7d",
+  "local_vs_deployed_parity": "drift",
+  "local_vs_deployed_note": "Workspace HEAD differs from live deploy; cross-host parity (Render vs manager) is the GEOS gate.",
+  "remote_version": {
+    "RENDER_PARITY_BASE_URL": {
+      "url": "https://school-management-system-2kzk.onrender.com",
+      "ok": true,
+      "commit_sha": "738ab9b8f5af4984b4ebee5d68fe15db7bfb538c",
+      "build_time": "unknown",
+      "app_version": "3.2.1",
+      "environment": "school-management-system-2kzk"
+    },
+    "MANAGER_PARITY_BASE_URL": {
+      "url": "https://manager.runmycampus.com",
+      "ok": true,
+      "commit_sha": "738ab9b8f5af4984b4ebee5d68fe15db7bfb538c",
+      "build_time": "unknown",
+      "app_version": "3.2.1",
+      "environment": "school-management-system-2kzk"
+    }
+  },
+  "matrix_ok": true,
+  "local_version_ok": true,
+  "report_path": "docs/generated/manager_render_parity_report.json"
+}

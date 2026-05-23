@@ -1,7 +1,7 @@
 {
   "alternatives": [
-    "admin-school-command-center",
-    "admin-launch-readiness-cockpit"
+    "admin-offline-field-ops",
+    "admin-school-command-center"
   ],
   "audit_entry_pii_safe": true,
   "confidence": 0.95,
@@ -9,7 +9,7 @@
   "external_pending": true,
   "primary": "admin-low-connectivity-hub",
   "registry_membership_validated": true,
-  "registry_template_count": 75,
+  "registry_template_count": 150,
   "risks": [],
   "source": "rules",
   "status": "TEMPLATE_AI_RECOMMENDER_FALLBACK_PASS"

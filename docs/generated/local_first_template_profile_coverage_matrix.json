@@ -1,13 +1,13 @@
 {
   "by_category": {
-    "local-first": 25,
-    "operator": 10,
-    "parent": 6,
-    "specialized": 8,
-    "staff": 4,
-    "student": 6,
-    "teacher": 8,
-    "tenant-admin": 8
+    "local-first": 50,
+    "operator": 20,
+    "parent": 12,
+    "specialized": 16,
+    "staff": 8,
+    "student": 12,
+    "teacher": 16,
+    "tenant-admin": 16
   },
   "by_country_local_first": {
     "AE": [
@@ -22,8 +22,14 @@
     "BR": [
       "local-br-private-bilingual"
     ],
+    "CA": [
+      "local-ca-independent-school"
+    ],
     "CI": [
       "local-ci-private-college"
+    ],
+    "CL": [
+      "local-cl-private-bilingual"
     ],
     "CM": [
       "local-cm-anglophone-private-secondary",
@@ -32,14 +38,38 @@
     "CN": [
       "local-cn-bilingual-private"
     ],
+    "CO": [
+      "local-co-private-bilingual"
+    ],
+    "DE": [
+      "local-de-gymnasium-private"
+    ],
+    "EG": [
+      "local-eg-private-school"
+    ],
+    "ES": [
+      "local-es-private-bilingual"
+    ],
+    "ET": [
+      "local-et-private-school"
+    ],
+    "FR": [
+      "local-fr-private-school"
+    ],
     "GB": [
       "local-uk-cambridge-international"
     ],
     "GH": [
       "local-gh-private-school"
     ],
+    "HK": [
+      "local-hk-international-school"
+    ],
     "ID": [
       "local-id-private-school"
+    ],
+    "IE": [
+      "local-ie-private-secondary"
     ],
     "IN": [
       "local-in-cbse-private",
@@ -54,6 +84,9 @@
     "KR": [
       "local-kr-international-private"
     ],
+    "LK": [
+      "local-lk-private-school"
+    ],
     "MA": [
       "local-ma-private-school"
     ],
@@ -66,47 +99,212 @@
     "NG": [
       "local-ng-private-secondary"
     ],
+    "NL": [
+      "local-nl-international-school"
+    ],
+    "NP": [
+      "local-np-private-school"
+    ],
+    "NZ": [
+      "local-nz-private-school"
+    ],
+    "PE": [
+      "local-pe-private-bilingual"
+    ],
     "PH": [
       "local-ph-private-school"
     ],
     "PK": [
       "local-pk-private-school"
     ],
+    "PT": [
+      "local-pt-private-school"
+    ],
+    "QA": [
+      "local-qa-international-school"
+    ],
+    "RW": [
+      "local-rw-private-school"
+    ],
+    "SA": [
+      "local-sa-international-school"
+    ],
+    "SG": [
+      "local-sg-private-school"
+    ],
     "SN": [
       "local-sn-private-lycee"
     ],
+    "TH": [
+      "local-th-private-school"
+    ],
+    "TR": [
+      "local-tr-private-school"
+    ],
+    "TZ": [
+      "local-tz-private-school"
+    ],
+    "UG": [
+      "local-ug-private-school"
+    ],
     "US": [
       "local-us-charter"
+    ],
+    "VN": [
+      "local-vn-private-school"
     ],
     "ZA": [
       "local-za-provincial"
     ]
   },
-  "generated_at": "2026-05-23T14:09:48.833174+00:00",
-  "profile_count": 25,
+  "generated_at": "2026-05-23T14:35:23.651549+00:00",
+  "profile_count": 50,
   "profiles_by_country": {
-    "AE": "ae-cbse-or-british",
-    "AU": "au-state-curriculum",
-    "BD": "bd-sec-edu-bengali",
-    "BR": "br-mec-bilingual",
-    "CI": "ci-bac-francophone",
-    "CM": "cm-francophone-bac",
-    "CN": "cn-bilingual-private",
-    "GB": "gb-igcse-a-level",
-    "GH": "gh-private-school",
-    "ID": "id-private-bilingual",
-    "IN": "in-ka-state-board",
-    "JP": "jp-mext-bilingual",
-    "KE": "ke-cbc-primary-secondary",
-    "KR": "kr-international-bilingual",
-    "MA": "ma-bac-bilingual",
-    "MX": "mx-sep-bilingual",
-    "MY": "my-igcse-bilingual",
-    "NG": "ng-private-secondary",
-    "PH": "ph-deped-k12",
-    "PK": "pk-fbise-urdu-medium",
-    "SN": "sn-bac-francophone",
-    "US": "us-charter-state",
-    "ZA": "za-provincial-grades"
+    "AE": [
+      "ae-cbse-or-british"
+    ],
+    "AU": [
+      "au-state-curriculum"
+    ],
+    "BD": [
+      "bd-sec-edu-bengali"
+    ],
+    "BR": [
+      "br-mec-bilingual"
+    ],
+    "CA": [
+      "ca-independent-provincial"
+    ],
+    "CI": [
+      "ci-bac-francophone"
+    ],
+    "CL": [
+      "cl-mineduc-bilingual"
+    ],
+    "CM": [
+      "cm-anglophone-gce",
+      "cm-francophone-bac"
+    ],
+    "CN": [
+      "cn-bilingual-private"
+    ],
+    "CO": [
+      "co-icfes-bilingual"
+    ],
+    "DE": [
+      "de-abitur-bilingual"
+    ],
+    "EG": [
+      "eg-thanaweya-bilingual"
+    ],
+    "ES": [
+      "es-bachillerato-bilingual"
+    ],
+    "ET": [
+      "et-national-bilingual"
+    ],
+    "FR": [
+      "fr-baccalaureat-bilingual"
+    ],
+    "GB": [
+      "gb-igcse-a-level"
+    ],
+    "GH": [
+      "gh-private-school"
+    ],
+    "HK": [
+      "hk-international-bilingual"
+    ],
+    "ID": [
+      "id-private-bilingual"
+    ],
+    "IE": [
+      "ie-leaving-cert"
+    ],
+    "IN": [
+      "in-cbse-hindi-medium",
+      "in-ka-state-board"
+    ],
+    "JP": [
+      "jp-mext-bilingual"
+    ],
+    "KE": [
+      "ke-cbc-primary-secondary"
+    ],
+    "KR": [
+      "kr-international-bilingual"
+    ],
+    "LK": [
+      "lk-national-bilingual"
+    ],
+    "MA": [
+      "ma-bac-bilingual"
+    ],
+    "MX": [
+      "mx-sep-bilingual"
+    ],
+    "MY": [
+      "my-igcse-bilingual"
+    ],
+    "NG": [
+      "ng-private-secondary"
+    ],
+    "NL": [
+      "nl-international-bilingual"
+    ],
+    "NP": [
+      "np-see-private"
+    ],
+    "NZ": [
+      "nz-ncea-bilingual"
+    ],
+    "PE": [
+      "pe-minedu-bilingual"
+    ],
+    "PH": [
+      "ph-deped-k12"
+    ],
+    "PK": [
+      "pk-fbise-urdu-medium"
+    ],
+    "PT": [
+      "pt-national-bilingual"
+    ],
+    "QA": [
+      "qa-international-bilingual"
+    ],
+    "RW": [
+      "rw-reb-trilingual"
+    ],
+    "SA": [
+      "sa-international-bilingual"
+    ],
+    "SG": [
+      "sg-moe-international"
+    ],
+    "SN": [
+      "sn-bac-francophone"
+    ],
+    "TH": [
+      "th-private-bilingual"
+    ],
+    "TR": [
+      "tr-meb-bilingual"
+    ],
+    "TZ": [
+      "tz-necta-bilingual"
+    ],
+    "UG": [
+      "ug-uneb-private"
+    ],
+    "US": [
+      "us-charter-state"
+    ],
+    "VN": [
+      "vn-private-bilingual"
+    ],
+    "ZA": [
+      "za-provincial-grades"
+    ]
   }
 }

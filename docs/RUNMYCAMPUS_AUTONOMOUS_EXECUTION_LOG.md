@@ -1,5 +1,33 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — batch 1405 Sovereign Offline–Online Delivery Platform plan (2026-05-23)
+
+**A. Scope:** Architecture + SOT reservation only (no product code this slice). User requested aggressive 10× push on offline/online delivery, email, security, simplicity, and African low-connectivity — plan for build agent while operator continues external work.
+
+**B. Shipped:** [`docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md`](../docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md) — 7-wave program (batches **1406–1412**) extending existing PWA/Django queue/email/hub stack; rejects client SMTP, CouchDB mesh, unsafe offline JWT auth; defines `OfflineActionType` notification intents, Tauri Field Client, Capacitor shell, mDNS hub discovery, LAN delta mule, verifier registry. SOT §11.4 batch **1405** program row.
+
+**C. Proof:** Plan-only slice — no code verifiers required. Inheritance verified against `offline_queue.py`, `email_delivery.py`, `offline-queue-client.js`, `LOCAL_HUB_MODE.md`, `conflict_resolver.py`, `companion-tauri/`.
+
+**D. Residual:** Implementation waves **1406–1412** unclaimed; Lane 2 Resend/DKIM DNS, Tauri notarization, Playwright corridor E2E, app store publish.
+
+**E. Plan:** Build agent starts at plan §6 handoff → Wave A batch **1406**.
+
+**F. Headline:** **SODP PLANNED — HANDOFF READY FOR BUILD AGENT.**
+
+## Slice — batch 1402 Option A LiteLLM + GEOS deploy SHA parity (2026-05-23)
+
+**A. Scope:** Close Option A OpenAI/LiteLLM repo backlog (batch **1370**/**1392**) + GEOS Phase 2 step 3 SHA parity (batch **1391** §13.7).
+
+**B. Shipped:** Option A defaults (`gpt-5.4-mini`, `api.openai.com`, `max_completion_tokens`); `litellm_proxy_url`/`litellm_model`/`litellm_api_key` settings helpers; test isolation on invoke suites; live SHA parity evidence `var/evidence/geos-99/render/sha_parity_2026-05-23.json`; SOT §11.4 batch **1402**; external register rows `hosting_render_sha_parity` (**verified_live**) + `openai_litellm_option_a` (**approved_production**).
+
+**C. Proof:** `python scripts/verify_render_online_ai_posture.py` → **RENDER_ONLINE_AI_POSTURE_PASS**; `RENDER_PARITY_BASE_URL=… MANAGER_PARITY_BASE_URL=… python scripts/verify_manager_render_parity.py --write-matrix` exit **0** (both hosts `738ab9b8…`); `services.tests.test_ai_gateway` **30/30 OK**.
+
+**D. Residual:** Flip `openai_litellm_option_a` to **verified_live** after Render AI Center **live_cloud**; template recommender live smoke (`RMC_PRODUCT_MCP_ENABLED=1`, batch **1401**); optional `verify_render_live_sha.py` with Render API credentials.
+
+**E. Plan:** SOT §13.7 step 3 closed; §13.8 Option A repo closed.
+
+**F. Headline:** **DEPLOY SHA PARITY VERIFIED_LIVE** + **OPTION A AI POSTURE REPO-COMPLETE**.
+
 ## Slice — batch 1401 Template Marketplace Waves B+C+D+E closeout (2026-05-23)
 
 **A. Scope:** Single compressed wave closing every plan §11.5 residual from batch 1400 — 9 of 12 fully shipped, 3 of 12 explicitly external blockers with counsel-pending docket.
@@ -8,7 +36,7 @@
 
 **C. Proof:** Python ast.parse all 10 new/edited files = 10/10 PASS; `verify_template_ai_recommender_live_smoke.py` live = TEMPLATE_AI_RECOMMENDER_FALLBACK_PASS (source=rules, primary=admin-low-connectivity-hub, registry_membership_validated=true, external_pending=true); `verify_experience_template_registry.py` re-run = EXPERIENCE_TEMPLATE_REGISTRY_PASS (75/25/plan-categories); thumbnail count = 75/75; palette files = 11 (10 split + 1 consolidated); Django app boot success during thumbnail run proves migration + new models import cleanly. SW `sms-v3.64.0-template-marketplace-waves-b-c-d-e-closeout-...-2026-05-23`.
 
-**D. Residual (truly external — NOT code-fixable):** Live LiteLLM smoke against Render gateway (verifier auto-upgrades when configured); Wave E+ partner-publish endpoint flip (gated on 6 counsel docket items); Wave E+ monetization billing pipeline (gated on same docket + Stripe Connect).
+**D. Residual (truly external — NOT code-fixable):** Template AI recommender **live** smoke on Render (`RMC_PRODUCT_MCP_ENABLED=1` — core Option A closed batch **1402**); Wave E+ partner-publish endpoint flip (gated on 6 counsel docket items); Wave E+ monetization billing pipeline (gated on same docket + Stripe Connect).
 
 **E. Plan:** Plan §11.5 burndown — 9/12 residuals SHIPPED, 3/12 are external blockers explicitly documented. Plan §11.5 fully closed in-repo.
 
@@ -64,7 +92,7 @@
 
 **C. Proof:** `npm run verify:geos-99` → **GEOS_99_MATRIX_PASS** + **EMAIL_DELIVERY_SURFACE_PASS** + **GEOS_CHROME_LOCALE_PASS** + **GEOS_LANE2_SCAFFOLD_PASS**; all pillars repo **100%**; live **0%** honest.
 
-**D. Residual (Lane 2 operator only):** PSP settlement, Render SHA parity, pilot slot 1 core loop, SOC2/residency → `verified_live` in `external_dependencies_register.json` with `var/evidence/geos-99/` paths per §13.7.
+**D. Residual (Lane 2 operator only):** PSP settlement, ~~Render SHA parity~~ **closed batch 1402**, pilot slot 1 core loop, SOC2/residency → `verified_live` in `external_dependencies_register.json` with `var/evidence/geos-99/` paths per §13.7.
 
 **E. Plan:** `99%_greatest_education_os_50240e1d.plan.md` — all todos **completed** (optional ecosystem §13 thresholds **cancelled**; matrix authoritative).
 

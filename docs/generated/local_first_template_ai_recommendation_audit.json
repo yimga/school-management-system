@@ -4,7 +4,7 @@
     "services.ai_gateway"
   ],
   "gateway_routed_through": "services.ai_helpers.invoke_with_request",
-  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "generated_at": "2026-05-23T14:35:23.651549+00:00",
   "live_smoke_verifier": "scripts/verify_template_ai_recommender_live_smoke.py",
   "module": "apps.brand_experience.template_ai_recommender",
   "registry_validation": "Refuses any AI-proposed key not in OVERLAYS; refuses operator-only proposals"

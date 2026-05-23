@@ -33,9 +33,26 @@ def main() -> int:
         from apps.siteconfig import local_experience_profiles as lep
         from apps.platform_runtime import pack_contract as pc
 
-        checks.append(("3.1 ExperienceTemplate overlay count = 75", len(et.OVERLAYS) == 75, f"actual={len(et.OVERLAYS)}"))
-        checks.append(("3.2 PackContract experience_template count = 75", len(pc.EXPERIENCE_TEMPLATE_PACKS) == 75, f"actual={len(pc.EXPERIENCE_TEMPLATE_PACKS)}"))
-        checks.append(("3.3 LocalExperienceProfile count = 25", len(lep.PROFILES) == 25, f"actual={len(lep.PROFILES)}"))
+        # Plan baseline is 75/25. The 150/50 scale-up wave kept the same shape
+        # (categories doubled, palettes/layouts unchanged) so accept either tier.
+        ov = len(et.OVERLAYS)
+        pk = len(pc.EXPERIENCE_TEMPLATE_PACKS)
+        pf = len(lep.PROFILES)
+        checks.append((
+            "3.1 ExperienceTemplate overlay count in {75, 150}",
+            ov in (75, 150),
+            f"actual={ov}",
+        ))
+        checks.append((
+            "3.2 PackContract experience_template count matches overlays",
+            pk == ov,
+            f"packs={pk} overlays={ov}",
+        ))
+        checks.append((
+            "3.3 LocalExperienceProfile count in {25, 50}",
+            pf in (25, 50),
+            f"actual={pf}",
+        ))
         checks.append(("3.4 PACK_TYPES contains experience_template", "experience_template" in pc.PACK_TYPES, ""))
     except Exception as exc:
         checks.append(("3.x registry imports", False, str(exc)))
@@ -100,19 +117,27 @@ def main() -> int:
     except Exception as exc:
         checks.append(("5.3 tenant URL surface", False, str(exc)))
 
-    # §6 — Category distribution
+    # §6 — Category distribution. Original plan baseline; scale-up keeps the
+    # shape (2x each category at the 150-template tier).
     try:
         from apps.brand_experience import experience_templates as et
         counts = {}
         for o in et.OVERLAYS:
             counts[o.category] = counts.get(o.category, 0) + 1
-        plan = {
+        plan_75 = {
             "operator": 10, "tenant-admin": 8, "teacher": 8, "parent": 6,
             "student": 6, "staff": 4, "specialized": 8, "local-first": 25,
         }
-        for cat, expected in plan.items():
+        total = sum(counts.values())
+        scale = 2 if total >= 150 else 1
+        for cat, expected_base in plan_75.items():
+            expected = expected_base * scale
             actual = counts.get(cat, 0)
-            checks.append((f"6.x category '{cat}' count = {expected}", actual == expected, f"actual={actual}"))
+            checks.append((
+                f"6.x category '{cat}' count = {expected} (scale={scale}x)",
+                actual == expected,
+                f"actual={actual}",
+            ))
     except Exception as exc:
         checks.append(("6.x category distribution", False, str(exc)))
 
@@ -128,10 +153,19 @@ def main() -> int:
         checks.append((f"7.x palette file for {family}", f.exists(), str(f.relative_to(repo)) if f.exists() else "missing"))
     checks.append(("7.11 consolidated palette bundle", (css_dir / "design-tokens-local-palettes.css").exists(), ""))
 
-    # §6 — 75 thumbnails
+    # §6 — Thumbnails (one SVG per template; 75 at original tier, 150 at scale-up).
     thumb_dir = repo / "static" / "img" / "template-thumbs"
     thumb_count = len(list(thumb_dir.glob("*.svg"))) if thumb_dir.exists() else 0
-    checks.append(("6.x 75 thumbnail SVGs materialized", thumb_count == 75, f"actual={thumb_count}"))
+    try:
+        from apps.brand_experience import experience_templates as et_for_thumbs
+        expected_thumbs = len(et_for_thumbs.OVERLAYS)
+    except Exception:
+        expected_thumbs = 75
+    checks.append((
+        f"6.x thumbnail SVGs materialized = {expected_thumbs} (one per template)",
+        thumb_count == expected_thumbs,
+        f"actual={thumb_count}",
+    ))
 
     # §8 — Apply/customize/rollback wiring (via pack lifecycle)
     try:
@@ -212,8 +246,14 @@ def main() -> int:
         "docs/generated/local_first_template_marketplace_code_truth_inventory.md",
         "docs/generated/local_first_template_marketplace_architecture_audit.json",
         "docs/generated/local_first_template_marketplace_architecture_audit.md",
-        "docs/generated/local_first_template_catalog_75_premium.json",
-        "docs/generated/local_first_template_catalog_75_premium.md",
+        # Catalog audit pair is per-tier: _75_premium at original tier, _150_premium after scale-up.
+        # Both filenames are equivalent contracts; accept either present.
+        ("either",
+         "docs/generated/local_first_template_catalog_75_premium.json",
+         "docs/generated/local_first_template_catalog_150_premium.json"),
+        ("either",
+         "docs/generated/local_first_template_catalog_75_premium.md",
+         "docs/generated/local_first_template_catalog_150_premium.md"),
         "docs/generated/local_first_template_profile_coverage_matrix.json",
         "docs/generated/local_first_template_profile_coverage_matrix.md",
         "docs/generated/local_first_template_live_preview_engine_audit.json",
@@ -234,8 +274,16 @@ def main() -> int:
         "docs/generated/local_heritage_design_system.md",
     ]
     for ef in expected_generated:
-        p = repo / ef
-        checks.append((f"11.y generated artifact {ef}", p.exists(), ""))
+        if isinstance(ef, tuple) and ef[0] == "either":
+            _, a, b = ef
+            pa = repo / a
+            pb = repo / b
+            ok = pa.exists() or pb.exists()
+            present = a if pa.exists() else (b if pb.exists() else "neither")
+            checks.append((f"11.y generated artifact (either) {a} | {b}", ok, present))
+        else:
+            p = repo / ef
+            checks.append((f"11.y generated artifact {ef}", p.exists(), ""))
 
     # §11 — Architecture doc + CI workflow (plan §11 file list)
     arch_doc = repo / "docs" / "architecture" / "RUNMYCAMPUS_LOCAL_FIRST_TEMPLATE_MARKETPLACE.md"
@@ -259,9 +307,107 @@ def main() -> int:
     checks.append(("13.1 SOT contains batch 1400 entry", "batch 1400 (Local-First Global Template Marketplace" in sot, ""))
     checks.append(("13.2 SOT contains batch 1401 entry", "batch 1401 (Template Marketplace Waves B+C+D+E closeout" in sot, ""))
 
-    # §16 — Cleanliness
+    # §16 — Cleanliness. Service worker must be on a v3.64.x template-marketplace
+    # CACHE_VERSION (the wave's monotonic family — covers waves B/C/D/E closeout,
+    # semantic-runtime closeout, and the 150-template/50-profile scale-up).
     sw = (repo / "static" / "js" / "service-worker.js").read_text(encoding="utf-8", errors="ignore")
-    checks.append(("16.1 SW bumped to v3.64.0", "sms-v3.64.0-template-marketplace-waves" in sw, ""))
+    import re as _re_sw
+    sw_match = _re_sw.search(r'CACHE_VERSION\s*=\s*"sms-v3\.64\.\d+-template-marketplace[^"]+"', sw)
+    checks.append((
+        "16.1 SW on v3.64.x template-marketplace family",
+        bool(sw_match),
+        sw_match.group(0) if sw_match else "no v3.64.x template-marketplace SW",
+    ))
+
+    # §11.5 closeout — Semantic runtime gate (fold + tenant views + setup-studio + audit).
+    # Lifts the program from structural-only to semantic correctness: the Studio OS
+    # Experience-mode view actually injects experience_template_overlays into the fold
+    # partial, all 9 tenant marketplace views render under the real request cycle, the
+    # Setup Studio select_experience_template step actually surfaces in the live payload,
+    # and the append-only TemplateAuditEvent contract holds under the ORM.
+
+    body_path = repo / "templates" / "studio_os" / "partials" / "studio_experience_mode_body.html"
+    if body_path.exists():
+        body_text = body_path.read_text(encoding="utf-8")
+        checks.append((
+            "11.5-fold studio_experience_mode_body includes experience_templates_fold.html",
+            "experience_templates_fold.html" in body_text,
+            "",
+        ))
+    else:
+        checks.append(("11.5-fold studio_experience_mode_body present", False, "missing"))
+
+    views_path = repo / "apps" / "studio_os" / "views.py"
+    if views_path.exists():
+        views_text = views_path.read_text(encoding="utf-8")
+        checks.append((
+            "11.5-context studio_os view injects experience_template_overlays on experience mode",
+            "experience_template_overlays" in views_text and "list_overlays(tenant_safe_only=True)" in views_text,
+            "",
+        ))
+        checks.append((
+            "11.5-urls studio_os view passes pre-resolved template_marketplace urls",
+            "experience_template_marketplace_urls" in views_text,
+            "",
+        ))
+    else:
+        checks.append(("11.5-context apps/studio_os/views.py present", False, "missing"))
+
+    runtime_test = repo / "apps" / "brand_experience" / "tests" / "test_template_marketplace_semantic_runtime.py"
+    checks.append((
+        "11.5-test semantic-runtime test module present",
+        runtime_test.exists(),
+        str(runtime_test.relative_to(repo)) if runtime_test.exists() else "missing",
+    ))
+
+    runtime_verifier = repo / "scripts" / "verify_template_marketplace_semantic_runtime.py"
+    checks.append((
+        "11.5-verifier semantic-runtime verifier present",
+        runtime_verifier.exists(),
+        str(runtime_verifier.relative_to(repo)) if runtime_verifier.exists() else "missing",
+    ))
+
+    runtime_json = repo / "docs" / "generated" / "template_marketplace_semantic_runtime.json"
+    if runtime_json.exists():
+        try:
+            runtime_payload = json.loads(runtime_json.read_text(encoding="utf-8"))
+            status = runtime_payload.get("status", "")
+            checks.append((
+                "11.5-pass semantic-runtime PASS in artifact",
+                status == "TEMPLATE_MARKETPLACE_SEMANTIC_RUNTIME_PASS",
+                f"status={status}",
+            ))
+            honest_scope = runtime_payload.get("honest_scope", {})
+            does_not_exercise = " ".join(honest_scope.get("does_not_exercise", []))
+            blocker_note = str(honest_scope.get("wave_e_external_blockers", ""))
+            checks.append((
+                "11.5-scope semantic-runtime artifact excludes operator configuration routes",
+                "/configuration/experience-templates/*" in does_not_exercise
+                and "platform_runtime" in str(honest_scope.get("operator_route_coverage_source", "")),
+                "honest_scope missing operator route boundary",
+            ))
+            checks.append((
+                "11.5-scope semantic-runtime artifact keeps Wave E blockers counsel-pending",
+                "counsel-pending" in blocker_note
+                and "TEMPLATE_MARKETPLACE_WAVE_E_COUNSEL_PENDING.md" in blocker_note,
+                "honest_scope missing Wave E counsel boundary",
+            ))
+        except (json.JSONDecodeError, OSError) as exc:
+            checks.append(("11.5-pass semantic-runtime artifact readable", False, str(exc)))
+    else:
+        checks.append((
+            "11.5-pass semantic-runtime artifact written",
+            False,
+            "run scripts/verify_template_marketplace_semantic_runtime.py to produce it",
+        ))
+
+    # CI workflow gates the semantic-runtime verifier
+    if wf.exists():
+        checks.append((
+            "11.5-ci CI workflow runs semantic-runtime verifier",
+            "verify_template_marketplace_semantic_runtime.py" in wf_text,
+            "",
+        ))
 
     # Final report
     passed = sum(1 for _, ok, _ in checks if ok)

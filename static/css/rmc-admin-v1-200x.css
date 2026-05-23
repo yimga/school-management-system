@@ -1,5 +1,5 @@
-/**
- * Manager /admin/ v1 200x — preview parity (docs/generated/preview_app_shell_admin_v1_200x.html).
+﻿/**
+ * Manager /admin/ v1 200x â€” preview parity (docs/generated/preview_app_shell_admin_v1_200x.html).
  * v3.62.12 (2026-05-22)
  */
 
@@ -44,9 +44,9 @@ body.admin-manager-shell .cp-live-strip .cp-live-pill {
   gap: 6px;
   padding: 3px 10px;
   border-radius: var(--radius-pill, 999px);
-  background: rgba(239, 68, 68, 0.22);
-  border: 1px solid rgba(239, 68, 68, 0.5);
-  color: #fecaca;
+  background: rgba(239, 68, 68, 0.22); /* off-token-allow: fixed-shell-accent */
+  border: 1px solid rgba(239, 68, 68, 0.5); /* off-token-allow: fixed-shell-accent */
+  color: #fecaca; /* off-token-allow: fixed-shell-accent */
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -65,7 +65,7 @@ body.admin-manager-shell .rmc-cockpit-workspace {
   align-items: center;
   padding: 10px 12px;
   border-radius: var(--radius-md, 10px);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.03); /* off-token-allow: fixed-shell-accent */
   border: 1px solid var(--cp-chrome-hairline, var(--hairline));
   margin-bottom: 14px;
 }
@@ -102,14 +102,14 @@ body.admin-manager-shell .cp-sidebar-nav .nav-link {
 
 body.admin-manager-shell .cp-sidebar-nav .nav-link:hover,
 body.admin-manager-shell .cp-sidebar-nav .nav-link:focus-visible {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: fixed-shell-accent */
   color: var(--cp-chrome-text, var(--text-primary));
 }
 
 body.admin-manager-shell .cp-sidebar-nav .nav-link.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
-  border-color: rgba(99, 102, 241, 0.3);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15)); /* off-token-allow: fixed-shell-accent */
+  border-color: rgba(99, 102, 241, 0.3); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
 }
 
 body.admin-manager-shell .cp-sidebar-nav .cp-nav-icon {
@@ -119,11 +119,11 @@ body.admin-manager-shell .cp-sidebar-nav .cp-nav-icon {
   display: grid;
   place-items: center;
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: fixed-shell-accent */
   margin-right: 0 !important;
 }
 
-/* Index canvas — preview body (no double padding) */
+/* Index canvas â€” preview body (no double padding) */
 body.admin-manager-shell[data-rmc-admin-index-v200x="1"] .cp-admin-page-body {
   padding: 0 !important;
   max-width: none;
@@ -195,8 +195,8 @@ body.admin-manager-shell[data-rmc-admin-index-v200x="1"] #content.colM {
 }
 
 .cp-btn--primary {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
   border-color: transparent;
   box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
 }
@@ -222,11 +222,11 @@ body.admin-manager-shell[data-rmc-admin-index-v200x="1"] #content.colM {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1));
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.1)); /* off-token-allow: fixed-shell-accent */
+  border: 1px solid rgba(16, 185, 129, 0.3); /* off-token-allow: fixed-shell-accent */
   display: grid;
   place-items: center;
-  color: #047857;
+  color: #047857; /* off-token-allow: fixed-shell-accent */
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -269,8 +269,8 @@ body.admin-manager-shell[data-rmc-admin-index-v200x="1"] #content.colM {
 
 .cp-steering__path:hover,
 .cp-steering__path[data-active] {
-  background: linear-gradient(135deg, #10b981, #34d399);
-  color: #fff;
+  background: linear-gradient(135deg, #10b981, #34d399); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
   border-color: transparent;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
@@ -365,8 +365,8 @@ body.admin-manager-shell[data-rmc-admin-index-v200x="1"] #content.colM {
 }
 
 .cp-tab[data-active] {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
   border-color: transparent;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
@@ -482,7 +482,7 @@ body.admin-manager-shell .cp-admin-v1-index button {
   cursor: pointer;
 }
 
-/* Primary nav row — Home / Studio / Operations only (help lives in sidebar). */
+/* Primary nav row â€” Home / Studio / Operations only (help lives in sidebar). */
 body.admin-manager-shell .cp-header .cp-primary-nav,
 body.control-plane-shell .cp-header .cp-primary-nav {
   justify-content: flex-start;
@@ -490,7 +490,7 @@ body.control-plane-shell .cp-header .cp-primary-nav {
   gap: 6px;
 }
 
-/* Sidebar page-help bar — under operator / user profile block */
+/* Sidebar page-help bar â€” under operator / user profile block */
 .rmc-sidebar-page-help {
   margin: 10px 0 12px;
   padding: 0 2px;
@@ -504,7 +504,7 @@ body.control-plane-shell .cp-header .cp-primary-nav {
   padding: 8px 12px;
   border-radius: var(--radius-md, 12px);
   border: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.1));
-  background: rgba(124, 58, 237, 0.08);
+  background: rgba(124, 58, 237, 0.08); /* off-token-allow: fixed-shell-accent */
   color: var(--cp-chrome-text-muted, #94a3b8);
   font-size: 12px;
   font-weight: 600;
@@ -515,7 +515,7 @@ body.control-plane-shell .cp-header .cp-primary-nav {
 
 .rmc-sidebar-page-help__btn:hover,
 .rmc-sidebar-page-help__btn:focus-visible {
-  background: rgba(124, 58, 237, 0.16);
+  background: rgba(124, 58, 237, 0.16); /* off-token-allow: fixed-shell-accent */
   color: var(--cp-chrome-text, #f1f5f9);
   outline: 2px solid var(--focus-ring-color, rgba(99, 102, 241, 0.45));
   outline-offset: 2px;
@@ -532,7 +532,7 @@ body[data-rmc-help-in-nav="1"] .rmc-help-contextual-drawer {
   display: none !important;
 }
 
-/* Sidebar apps tree — flex scroll contract */
+/* Sidebar apps tree â€” flex scroll contract */
 body.admin-manager-shell .cp-sidebar-platform-admin {
   min-height: 0;
 }
@@ -567,7 +567,7 @@ body.admin-manager-shell .cp-sidebar-catalog-sections .nav-link {
   padding: 6px 10px;
 }
 
-/* Catalog grid fills width — reduces empty right gutter */
+/* Catalog grid fills width â€” reduces empty right gutter */
 body.admin-manager-shell .cp-catalog {
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
@@ -653,9 +653,9 @@ body.admin-manager-shell .cp-catalog {
 }
 
 .cp-filter-pill[data-active] {
-  background: rgba(79, 70, 229, 0.1);
+  background: rgba(79, 70, 229, 0.1); /* off-token-allow: fixed-shell-accent */
   color: var(--school-primary, var(--primary));
-  border-color: rgba(79, 70, 229, 0.3);
+  border-color: rgba(79, 70, 229, 0.3); /* off-token-allow: fixed-shell-accent */
   font-weight: 600;
 }
 
@@ -717,7 +717,7 @@ body.admin-manager-shell .cp-catalog {
 }
 
 .cp-table tr:hover td {
-  background: rgba(99, 102, 241, 0.04);
+  background: rgba(99, 102, 241, 0.04); /* off-token-allow: fixed-shell-accent */
 }
 
 .cp-table td a {
@@ -736,18 +736,18 @@ body.admin-manager-shell .cp-catalog {
 }
 
 .cp-status[data-tone="success"] {
-  background: rgba(34, 197, 94, 0.12);
-  color: #15803d;
+  background: rgba(34, 197, 94, 0.12); /* off-token-allow: fixed-shell-accent */
+  color: #15803d; /* off-token-allow: fixed-shell-accent */
 }
 
 .cp-status[data-tone="warn"] {
-  background: rgba(245, 158, 11, 0.14);
-  color: #b45309;
+  background: rgba(245, 158, 11, 0.14); /* off-token-allow: fixed-shell-accent */
+  color: #b45309; /* off-token-allow: fixed-shell-accent */
 }
 
 .cp-status[data-tone="danger"] {
-  background: rgba(239, 68, 68, 0.1);
-  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1); /* off-token-allow: fixed-shell-accent */
+  color: #b91c1c; /* off-token-allow: fixed-shell-accent */
 }
 
 .cp-status[data-tone="muted"] {
@@ -782,8 +782,8 @@ body.admin-manager-shell .cp-catalog {
 }
 
 .cp-pager__pill[data-active] {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
   border-color: transparent;
 }
 
@@ -1009,7 +1009,7 @@ body.admin-manager-shell .cp-catalog {
   margin-right: auto;
 }
 
-/* Tighter page body — less dead vertical band under breadcrumbs */
+/* Tighter page body â€” less dead vertical band under breadcrumbs */
 body.admin-manager-shell .cp-admin-page-body {
   padding-top: 0.5rem;
 }

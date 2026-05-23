@@ -10,6 +10,7 @@ from services.ai_deployment_posture import (
     build_posture_fields,
     default_tier_chain_for_profile,
     is_litellm_configured,
+    litellm_proxy_url,
     merge_effective_task_tiers,
     normalize_deployment_profile,
     operator_setup_kind,
@@ -19,8 +20,21 @@ from services.ai_gateway import TaskType
 
 class AiDeploymentPostureTests(SimpleTestCase):
     @override_settings(RMC_DEPLOYMENT_PROFILE="online", LITELLM_PROXY_URL="")
-    def test_online_without_litellm_uses_ollama_chain(self):
+    def test_litellm_proxy_url_honors_empty_override(self):
+        self.assertFalse(is_litellm_configured())
         self.assertEqual(default_tier_chain_for_profile(), ["ollama", "rules"])
+
+    @override_settings(
+        RMC_DEPLOYMENT_PROFILE="online",
+        LITELLM_PROXY_URL="https://api.openai.com",
+    )
+    def test_litellm_proxy_url_reads_configured_override(self):
+        self.assertTrue(is_litellm_configured())
+        self.assertEqual(litellm_proxy_url(), "https://api.openai.com")
+        self.assertEqual(
+            default_tier_chain_for_profile(),
+            ["litellm", "ollama", "rules"],
+        )
 
     @override_settings(
         RMC_DEPLOYMENT_PROFILE="online",

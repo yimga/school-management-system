@@ -705,14 +705,17 @@ body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-
 body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__viewport {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   position: relative;
+  contain: layout paint;
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
           mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 60px), transparent 100%);
 }
 
 body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-cockpit-ticker__track {
   display: inline-flex;
+  max-width: max-content;
   gap: 36px;
   animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 40s) linear infinite;
   will-change: transform;

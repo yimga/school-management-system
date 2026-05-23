@@ -138,13 +138,25 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
 .cp-header .cp-activity-ticker__viewport {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
+  min-height: 1.5rem;
   overflow: hidden;
+  position: relative;
+  contain: layout paint;
 }
 
 .cp-header .rmc-cockpit-ticker__track,
 .cp-header .cp-activity-ticker__track {
   display: inline-flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  align-items: center;
   gap: 36px;
+  overflow: hidden;
   animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 40s) linear infinite;
   will-change: transform;
 }
@@ -154,6 +166,25 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
 .cp-header .cp-activity-ticker:hover .cp-activity-ticker__track,
 .cp-header .cp-activity-ticker:focus-within .cp-activity-ticker__track {
   animation-play-state: paused;
+}
+
+.cp-header .rmc-cockpit-ticker__track > .rmc-cockpit-ticker__event:nth-child(n+2),
+.cp-header .cp-activity-ticker__track > .cp-activity-ticker__event:nth-child(n+2) {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .cp-header .rmc-cockpit-ticker__track > .rmc-cockpit-ticker__event:nth-child(-n+2),
+  .cp-header .cp-activity-ticker__track > .cp-activity-ticker__event:nth-child(-n+2) {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 1180px) {
+  .cp-header .rmc-cockpit-ticker__track > .rmc-cockpit-ticker__event:nth-child(-n+4),
+  .cp-header .cp-activity-ticker__track > .cp-activity-ticker__event:nth-child(-n+4) {
+    display: inline-flex;
+  }
 }
 
 .cp-header .cp-primary-nav {
@@ -172,6 +203,10 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
   font-size: 13px;
   font-weight: 600;
   pointer-events: auto;
+}
+
+.cp-context-drawer:not(.show) {
+  display: none !important;
 }
 
 .cp-header .cp-presence {

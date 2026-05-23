@@ -131,6 +131,36 @@ PROFILES: tuple[LocalExperienceProfile, ...] = (
     _p("br-mec-bilingual", "BR", ("pt", "en"), academic="mec-brazil", grading="numeric-0-10", calendar="gregorian-feb-dec", palette="andes-clay", typography="stack-bilingual-mixed", currency="BRL", rails=("bank-transfer", "card-online", "pix"), style="warm-formal", accent="community-organic"),
 )
 
+EXPANSION_PROFILES: tuple[LocalExperienceProfile, ...] = (
+    _p("ca-independent-provincial", "CA", ("en", "fr"), academic="provincial-canada", grading="numeric-0-100", calendar="gregorian-sep-jun", palette="cool-indigo", typography="stack-bilingual-mixed", currency="CAD", rails=("card-online", "bank-transfer"), style="formal", accent="geometric-cool"),
+    _p("ie-leaving-cert", "IE", ("en", "ga"), academic="leaving-certificate", grading="points-625", calendar="gregorian-sep-jun", palette="green-emerald", typography="stack-bilingual-mixed", currency="EUR", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("nz-ncea-bilingual", "NZ", ("en", "mi"), academic="ncea", grading="achievement-levels", calendar="gregorian-jan-dec", palette="green-emerald", typography="stack-bilingual-mixed", currency="NZD", rails=("card-online", "bank-transfer"), style="warm-formal"),
+    _p("sg-moe-international", "SG", ("en", "zh-Hans", "ms", "ta"), academic="moe-international", grading="letter", calendar="gregorian-jan-dec", palette="monsoon-teal", typography="stack-bilingual-mixed", currency="SGD", rails=("card-online", "bank-transfer"), style="formal", accent="geometric-cool"),
+    _p("hk-international-bilingual", "HK", ("en", "zh-Hant"), academic="hk-international", grading="letter", calendar="gregorian-sep-jun", palette="sakura-blush", typography="stack-bilingual-mixed", currency="HKD", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("th-private-bilingual", "TH", ("th", "en"), academic="thai-basic-education", grading="numeric-0-100", calendar="gregorian-may-mar", palette="monsoon-teal", typography="stack-bilingual-mixed", currency="THB", rails=("bank-transfer", "card-online"), style="warm-formal"),
+    _p("vn-private-bilingual", "VN", ("vi", "en"), academic="moet-vietnam", grading="numeric-0-10", calendar="gregorian-aug-may", palette="monsoon-teal", typography="stack-bilingual-mixed", currency="VND", rails=("bank-transfer", "card-online"), style="warm-formal"),
+    _p("lk-national-bilingual", "LK", ("si", "ta", "en"), academic="gce-sri-lanka", grading="letter", calendar="gregorian-jan-dec", palette="monsoon-teal", typography="stack-bilingual-mixed", currency="LKR", rails=("bank-transfer", "card-online"), style="formal"),
+    _p("np-see-private", "NP", ("ne", "en"), academic="see-nepal", grading="gpa-4", calendar="bikram-sambat", palette="desert-amber", typography="stack-bilingual-mixed", currency="NPR", rails=("bank-transfer", "cash-collection"), style="warm-formal", low_connect=True),
+    _p("tz-necta-bilingual", "TZ", ("sw", "en"), academic="necta-tanzania", grading="division", calendar="gregorian-jan-dec", palette="savanna-ochre", typography="stack-bilingual-mixed", currency="TZS", rails=("mobile-money", "bank-transfer", "cash-collection"), parent_engage="mobile-sms-first", low_connect=True),
+    _p("ug-uneb-private", "UG", ("en",), academic="uneb-uganda", grading="division", calendar="gregorian-feb-dec", palette="savanna-ochre", typography="stack-system-sans", currency="UGX", rails=("mobile-money", "bank-transfer", "cash-collection"), low_connect=True),
+    _p("rw-reb-trilingual", "RW", ("rw", "en", "fr"), academic="reb-rwanda", grading="numeric-0-100", calendar="gregorian-sep-jul", palette="savanna-ochre", typography="stack-bilingual-mixed", currency="RWF", rails=("mobile-money", "bank-transfer"), style="formal"),
+    _p("et-national-bilingual", "ET", ("am", "en"), academic="ethiopian-national", grading="numeric-0-100", calendar="ethiopian-calendar", palette="desert-amber", typography="stack-bilingual-mixed", currency="ETB", rails=("bank-transfer", "cash-collection"), style="formal"),
+    _p("eg-thanaweya-bilingual", "EG", ("ar", "en"), academic="thanaweya-amma", grading="numeric-0-100", calendar="gregorian-sep-jun", palette="desert-amber", typography="stack-bilingual-mixed", currency="EGP", rails=("card-online", "bank-transfer", "cash-collection"), style="formal"),
+    _p("sa-international-bilingual", "SA", ("ar", "en"), academic="sa-international", grading="numeric-0-100", calendar="gregorian-aug-jun", palette="desert-amber", typography="stack-bilingual-mixed", currency="SAR", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("qa-international-bilingual", "QA", ("ar", "en"), academic="qa-international", grading="numeric-0-100", calendar="gregorian-aug-jun", palette="desert-amber", typography="stack-bilingual-mixed", currency="QAR", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("tr-meb-bilingual", "TR", ("tr", "en"), academic="meb-turkey", grading="numeric-0-100", calendar="gregorian-sep-jun", palette="andes-clay", typography="stack-bilingual-mixed", currency="TRY", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("es-bachillerato-bilingual", "ES", ("es", "en"), academic="eso-bachillerato", grading="numeric-0-10", calendar="gregorian-sep-jun", palette="andes-clay", typography="stack-bilingual-mixed", currency="EUR", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("fr-baccalaureat-bilingual", "FR", ("fr", "en"), academic="baccalaureat-france", grading="numeric-0-20", calendar="gregorian-sep-jul", palette="editorial-cream", typography="stack-bilingual-mixed", currency="EUR", rails=("card-online", "bank-transfer"), style="formal", accent="editorial-neutral"),
+    _p("de-abitur-bilingual", "DE", ("de", "en"), academic="abitur", grading="numeric-1-6", calendar="gregorian-aug-jul", palette="nordic-slate", typography="stack-bilingual-mixed", currency="EUR", rails=("card-online", "bank-transfer"), style="formal", accent="geometric-cool"),
+    _p("nl-international-bilingual", "NL", ("nl", "en"), academic="dutch-international", grading="numeric-1-10", calendar="gregorian-aug-jul", palette="nordic-slate", typography="stack-bilingual-mixed", currency="EUR", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("pt-national-bilingual", "PT", ("pt", "en"), academic="portugal-national", grading="numeric-0-20", calendar="gregorian-sep-jun", palette="andes-clay", typography="stack-bilingual-mixed", currency="EUR", rails=("card-online", "bank-transfer"), style="formal"),
+    _p("cl-mineduc-bilingual", "CL", ("es", "en"), academic="mineduc-chile", grading="numeric-1-7", calendar="gregorian-mar-dec", palette="andes-clay", typography="stack-bilingual-mixed", currency="CLP", rails=("card-online", "bank-transfer"), style="warm-formal"),
+    _p("co-icfes-bilingual", "CO", ("es", "en"), academic="icfes-colombia", grading="numeric-0-5", calendar="gregorian-jan-nov", palette="andes-clay", typography="stack-bilingual-mixed", currency="COP", rails=("card-online", "bank-transfer", "cash-collection"), style="warm-formal"),
+    _p("pe-minedu-bilingual", "PE", ("es", "en"), academic="minedu-peru", grading="numeric-0-20", calendar="gregorian-mar-dec", palette="andes-clay", typography="stack-bilingual-mixed", currency="PEN", rails=("card-online", "bank-transfer", "cash-collection"), style="warm-formal"),
+)
+
+PROFILES = PROFILES + EXPANSION_PROFILES
+
 
 _PROFILE_INDEX: dict[str, LocalExperienceProfile] = {p.key: p for p in PROFILES}
 
@@ -153,8 +183,8 @@ def profile_keys() -> Iterable[str]:
 
 def assert_registry_invariants() -> None:
     """Raise AssertionError if registry shape regresses. Run from verifier."""
-    if len(PROFILES) != 25:
-        raise AssertionError(f"Expected exactly 25 LocalExperienceProfile entries, got {len(PROFILES)}")
+    if len(PROFILES) != 50:
+        raise AssertionError(f"Expected exactly 50 LocalExperienceProfile entries, got {len(PROFILES)}")
     keys = [p.key for p in PROFILES]
     if len(set(keys)) != len(keys):
         raise AssertionError("Duplicate LocalExperienceProfile keys detected.")

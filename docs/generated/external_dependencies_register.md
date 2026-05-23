@@ -1,7 +1,7 @@
 # External dependencies register
 
 **Source:** `docs/external_dependencies_register.json`  
-**Blocking level counts:** `{"blocks_feature": 1, "blocks_full_market": 3, "blocks_region": 5, "non_blocking": 5}`  
+**Blocking level counts:** `{"blocks_feature": 1, "blocks_full_market": 3, "blocks_region": 5, "non_blocking": 8}`  
 
 ## Payments / PSP highlights
 
@@ -17,4 +17,4 @@
 
 ## Systems impacted (aggregate)
 
-accounts, global_payments, marketplace_monetization, mobile_clients, multi_region, notifications, platform_runtime, platform_security, sales_contracts
+accounts, ai_gateway, global_payments, marketplace_monetization, mobile_clients, multi_region, notifications, offline_sync, platform_runtime, platform_security, sales_contracts

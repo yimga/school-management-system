@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+from django.conf import settings
 from django.test import SimpleTestCase
 
 from apps.brand_experience import experience_templates as et
@@ -14,8 +17,8 @@ from apps.siteconfig import local_experience_profiles as lep
 
 
 class ExperienceTemplateRegistryTests(SimpleTestCase):
-    def test_exactly_75_overlays_registered(self):
-        self.assertEqual(len(et.OVERLAYS), 75)
+    def test_exactly_150_overlays_registered(self):
+        self.assertEqual(len(et.OVERLAYS), 150)
 
     def test_overlay_keys_unique(self):
         keys = [o.key for o in et.OVERLAYS]
@@ -33,14 +36,14 @@ class ExperienceTemplateRegistryTests(SimpleTestCase):
         counts = {}
         for o in et.OVERLAYS:
             counts[o.category] = counts.get(o.category, 0) + 1
-        self.assertEqual(counts.get("operator"), 10)
-        self.assertEqual(counts.get("tenant-admin"), 8)
-        self.assertEqual(counts.get("teacher"), 8)
-        self.assertEqual(counts.get("parent"), 6)
-        self.assertEqual(counts.get("student"), 6)
-        self.assertEqual(counts.get("staff"), 4)
-        self.assertEqual(counts.get("specialized"), 8)
-        self.assertEqual(counts.get("local-first"), 25)
+        self.assertEqual(counts.get("operator"), 20)
+        self.assertEqual(counts.get("tenant-admin"), 16)
+        self.assertEqual(counts.get("teacher"), 16)
+        self.assertEqual(counts.get("parent"), 12)
+        self.assertEqual(counts.get("student"), 12)
+        self.assertEqual(counts.get("staff"), 8)
+        self.assertEqual(counts.get("specialized"), 16)
+        self.assertEqual(counts.get("local-first"), 50)
 
     def test_layout_family_in_1_to_10(self):
         for o in et.OVERLAYS:
@@ -60,6 +63,12 @@ class ExperienceTemplateRegistryTests(SimpleTestCase):
             if o.category == "local-first":
                 self.assertTrue(o.local_profile_ref, f"{o.key}: missing local_profile_ref")
                 self.assertIn(o.local_profile_ref, profile_keys, f"{o.key}: ref {o.local_profile_ref} not in profile registry")
+
+    def test_every_overlay_has_premium_thumbnail_asset(self):
+        static_root = Path(settings.BASE_DIR) / "static"
+        for o in et.OVERLAYS:
+            self.assertTrue(o.thumbnail.endswith(".svg"), f"{o.key}: thumbnail must be svg")
+            self.assertTrue((static_root / o.thumbnail).exists(), f"{o.key}: missing thumbnail {o.thumbnail}")
 
 
 class TenantBoundaryTests(SimpleTestCase):
@@ -88,8 +97,8 @@ class TenantBoundaryTests(SimpleTestCase):
 
 
 class LocalExperienceProfileTests(SimpleTestCase):
-    def test_exactly_25_profiles(self):
-        self.assertEqual(len(lep.PROFILES), 25)
+    def test_exactly_50_profiles(self):
+        self.assertEqual(len(lep.PROFILES), 50)
 
     def test_profile_keys_unique(self):
         keys = [p.key for p in lep.PROFILES]

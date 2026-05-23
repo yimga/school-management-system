@@ -71,11 +71,17 @@ def tenant_template_marketplace(request: HttpRequest) -> HttpResponse:
         if not pack:
             continue
         rows.append({**pack, **o})
+    category_counts: dict[str, int] = {}
+    for row in rows:
+        category_counts[row["category"]] = category_counts.get(row["category"], 0) + 1
     return render(
         request,
         "marketplace/templates_browse.html",
         {
             "templates": rows,
+            "template_total": len(rows),
+            "template_local_first_total": sum(1 for row in rows if row.get("is_local_first")),
+            "template_category_total": len(category_counts),
             "selected_school": school,
             "active_category": category or "",
             "active_country": country or "",

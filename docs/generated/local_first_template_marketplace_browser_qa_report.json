@@ -4,7 +4,7 @@
     "768\u00d71024 (tablet)",
     "1366\u00d7768 (desktop)"
   ],
-  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "generated_at": "2026-05-23T14:35:23.651549+00:00",
   "live_execution_status": "spec authored; live execution Lane 2 (operator runs `npx playwright test`)",
   "scenarios": [
     "tenant browse renders without horizontal overflow",

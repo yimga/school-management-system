@@ -11,12 +11,12 @@
       "ThemePack"
     ],
     "registries_python": [
-      "EXPERIENCE_TEMPLATE_PACKS (75)",
-      "OVERLAYS (75)",
-      "PROFILES (25)"
+      "EXPERIENCE_TEMPLATE_PACKS (150)",
+      "OVERLAYS (150)",
+      "PROFILES (50)"
     ]
   },
-  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "generated_at": "2026-05-23T14:35:23.651549+00:00",
   "layering": "ExperienceTemplate registered as 4th pack_type, composed over existing pack lifecycle.",
   "lifecycle_engine_reused": [
     "preview_pack",

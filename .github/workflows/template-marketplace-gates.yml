@@ -91,6 +91,8 @@ jobs:
         run: python scripts/verify_template_ai_recommender_live_smoke.py
       - name: Template registry tests
         run: python manage.py test apps.brand_experience.tests.test_experience_template_registry --settings=config.settings --noinput --keepdb
+      - name: Semantic-runtime gate (fold + tenant views + setup-studio + audit append-only)
+        run: python scripts/verify_template_marketplace_semantic_runtime.py
       - name: Upload registry verifier JSON
         if: always()
         uses: actions/upload-artifact@v4
@@ -105,5 +107,13 @@ jobs:
         with:
           name: template-marketplace-ai-smoke
           path: beta/school-management-system/docs/generated/template_ai_recommender_live_smoke.json
+          if-no-files-found: ignore
+          retention-days: 1  # Strict storage hygiene — never default 90d
+      - name: Upload semantic-runtime JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: template-marketplace-semantic-runtime
+          path: beta/school-management-system/docs/generated/template_marketplace_semantic_runtime.json
           if-no-files-found: ignore
           retention-days: 1  # Strict storage hygiene — never default 90d

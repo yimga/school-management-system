@@ -1,8 +1,8 @@
 {% load static i18n terminology_tags %}
-{% term "student" capitalize=True as _cband_student_sg %}
-{% term "parent" plural=True capitalize=True as _cband_parent_pl %}
-{% blocktrans asvar _cband_student_default with t=_cband_student_sg %}{{ t }} of the month{% endblocktrans %}
-{% blocktrans asvar _cband_parent_default with t=_cband_parent_pl %}{{ t }} voices{% endblocktrans %}
+{% term "student" capitalize=True as cband_student_sg %}
+{% term "parent" plural=True capitalize=True as cband_parent_pl %}
+{% blocktrans asvar cband_student_default with t=cband_student_sg %}{{ t }} of the month{% endblocktrans %}
+{% blocktrans asvar cband_parent_default with t=cband_parent_pl %}{{ t }} voices{% endblocktrans %}
 {% comment %}
 Tenant community band — v3.55.2 (2026-05-21)
 
@@ -51,7 +51,7 @@ PII safety:
     {% with ach=cockpit.community_band.achievement %}
     <article class="rmc-cband__card rmc-cband__card--achievement">
       <div class="rmc-cband__head">
-        <h3 class="rmc-cband__title">🏅 {{ ach.title|default:_cband_student_default }}</h3>
+        <h3 class="rmc-cband__title">🏅 {{ ach.title|default:cband_student_default }}</h3>
         {% if ach.period_label %}<span class="rmc-cband__chip">{{ ach.period_label }}</span>{% endif %}
       </div>
       <div class="rmc-cband-achiever">
@@ -74,7 +74,7 @@ PII safety:
     {% with t=cockpit.community_band.testimonial %}
     <article class="rmc-cband__card rmc-cband__card--testimonial">
       <div class="rmc-cband__head">
-        <h3 class="rmc-cband__title">💬 {{ t.title|default:_cband_parent_default }}</h3>
+        <h3 class="rmc-cband__title">💬 {{ t.title|default:cband_parent_default }}</h3>
         <span class="rmc-cband__chip">{% trans "Live" %}</span>
       </div>
       <div class="rmc-cband-testimonial"

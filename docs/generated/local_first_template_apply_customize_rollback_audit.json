@@ -8,7 +8,7 @@
     "audit_event": "template.customized",
     "tenant": "template_marketplace:customize (edits TemplateAssignment.customizations JSON)"
   },
-  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "generated_at": "2026-05-23T14:35:23.651549+00:00",
   "rollback": {
     "audit_event": "template.rolled_back",
     "tenant": "template_marketplace:rollback (delegates to packages.engine.rollback)"

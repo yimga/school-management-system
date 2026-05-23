@@ -36,6 +36,7 @@ class TemplateAssignment(models.Model):
     local_profile_key, surface, role_target, customizations (JSON), notes.
     """
 
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")
     installed_package = models.OneToOneField(
         "packages.InstalledPackage",
         on_delete=models.CASCADE,
@@ -62,8 +63,8 @@ class TemplateAssignment(models.Model):
         verbose_name = "Template Assignment"
         verbose_name_plural = "Template Assignments"
         indexes = [
-            models.Index(fields=["template_key", "applied_at"]),
-            models.Index(fields=["local_profile_key", "applied_at"]),
+            models.Index(fields=["template_key", "applied_at"], name="be_tplassign_tplkey_idx"),
+            models.Index(fields=["local_profile_key", "applied_at"], name="be_tplassign_lockey_idx"),
         ]
 
     def __str__(self) -> str:
@@ -128,9 +129,9 @@ class TemplateAuditEvent(AppendOnlyModelMixin, models.Model):
         verbose_name_plural = "Template Audit Events"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["tenant_id_hash", "created_at"]),
-            models.Index(fields=["event_type", "created_at"]),
-            models.Index(fields=["template_key", "created_at"]),
+            models.Index(fields=["tenant_id_hash", "created_at"], name="be_tplaudit_tenant_idx"),
+            models.Index(fields=["event_type", "created_at"], name="be_tplaudit_evtype_idx"),
+            models.Index(fields=["template_key", "created_at"], name="be_tplaudit_tplkey_idx"),
         ]
 
     def save(self, *args, **kwargs):

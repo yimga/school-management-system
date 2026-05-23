@@ -12,7 +12,7 @@
     "static/css/design-tokens-local-savanna-ochre.css",
     "static/css/design-tokens-local-nordic-slate.css"
   ],
-  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "generated_at": "2026-05-23T14:35:23.651549+00:00",
   "layout_families": {
     "1": "executive-command",
     "10": "premium-international",
@@ -43,7 +43,7 @@
     "No ethnic-coded color choices \u2014 palettes named by aesthetic/material.",
     "RTL handled by existing LOCALIZATION_RTL_ARCHITECTURE.md."
   ],
-  "thumbnail_count": 75,
+  "thumbnail_count": 150,
   "thumbnail_dir": "static/img/template-thumbs/",
   "typography_stacks": [
     "stack-editorial-serif",

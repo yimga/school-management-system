@@ -112,7 +112,11 @@ def main() -> int:
             "rollback (via packages.engine.rollback)", "audit_pack_event",
         ],
         "data_model": {
-            "registries_python": ["EXPERIENCE_TEMPLATE_PACKS (75)", "OVERLAYS (75)", "PROFILES (25)"],
+            "registries_python": [
+                f"EXPERIENCE_TEMPLATE_PACKS ({len(pc.EXPERIENCE_TEMPLATE_PACKS)})",
+                f"OVERLAYS ({len(et.OVERLAYS)})",
+                f"PROFILES ({len(lep.PROFILES)})",
+            ],
             "models_first_class": ["TemplateAssignment", "TemplateAuditEvent"],
             "models_reused": ["InstalledPackage", "PackageChangeLog", "ExperiencePack", "ThemePack"],
         },
@@ -131,7 +135,7 @@ def main() -> int:
     _write_pair(out_dir, "local_first_template_marketplace_architecture_audit", data, md)
     written.extend(["local_first_template_marketplace_architecture_audit.json", "local_first_template_marketplace_architecture_audit.md"])
 
-    # 3. 75-template catalog
+    # 3. Premium template catalog
     catalog_rows = []
     for o in et.OVERLAYS:
         catalog_rows.append({
@@ -146,13 +150,13 @@ def main() -> int:
         })
     data = {"generated_at": now, "total_templates": len(catalog_rows), "templates": catalog_rows}
     md = (
-        "# 75 Premium Template Catalog\n\n"
+        "# 150 Premium Template Catalog\n\n"
         f"Generated: {now} — total: {len(catalog_rows)}\n\n"
         + _md_table_rows(catalog_rows, ["key", "category", "layout_family", "palette_family", "accessibility_level", "mobile_level", "supported_countries", "local_profile_ref"])
         + "\n"
     )
-    _write_pair(out_dir, "local_first_template_catalog_75_premium", data, md)
-    written.extend(["local_first_template_catalog_75_premium.json", "local_first_template_catalog_75_premium.md"])
+    _write_pair(out_dir, "local_first_template_catalog_150_premium", data, md)
+    written.extend(["local_first_template_catalog_150_premium.json", "local_first_template_catalog_150_premium.md"])
 
     # 4. Profile coverage matrix
     by_country: dict[str, list[str]] = {}
@@ -168,7 +172,7 @@ def main() -> int:
         "by_category": by_category,
         "by_country_local_first": by_country,
         "profile_count": len(lep.PROFILES),
-        "profiles_by_country": {p.country: p.key for p in lep.PROFILES},
+        "profiles_by_country": {p.country: sorted([x.key for x in lep.PROFILES if x.country == p.country]) for p in lep.PROFILES},
     }
     md = (
         "# Template Profile Coverage Matrix\n\n"
@@ -384,7 +388,7 @@ def main() -> int:
             *[f"static/css/design-tokens-local-{f}.css" for f in et.PALETTE_FAMILIES],
         ],
         "thumbnail_dir": "static/img/template-thumbs/",
-        "thumbnail_count": 75,
+        "thumbnail_count": len(et.OVERLAYS),
         "rules": [
             "No flags in design (data-only).",
             "No religious or political imagery.",

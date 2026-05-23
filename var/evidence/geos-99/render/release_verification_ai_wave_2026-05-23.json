@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "phase": "GEOS Phase 3 — Release verification (AI wave)",
+  "verified_at": "2026-05-23T18:34:00Z",
+  "environment": "local repo (Lane 1 scaffold; prod deploy uses same verifier bundle post-deploy)",
+  "task_5_verifiers": {
+    "verify_unified_ai_assistant.py": "UNIFIED_AI_ASSISTANT_PASS",
+    "verify_unified_ai_lane2_readiness.py": "UNIFIED_AI_LANE2_READINESS_PASS",
+    "verify_render_online_ai_posture.py": "RENDER_ONLINE_AI_POSTURE_PASS",
+    "verify_help_center_tiers.py": "HELP_CENTER_TIERS_PASS",
+    "verify_greatest_education_os_matrix.py": "GEOS_99_MATRIX_PASS"
+  },
+  "task_6_tests": {
+    "command": "python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_unified_ai_gear2 apps.portal.tests.test_unified_ai_phases_bc apps.portal.tests.test_ai_surface_context apps.observability.tests.test_ai_copilot_service apps.portal.tests.test_help_governance --verbosity=1 --noinput",
+    "ran": 20,
+    "status": "OK"
+  },
+  "geos_matrix": {
+    "verdict": "GEOS_99_MATRIX_PASS",
+    "overall_repo_pct": 100.0,
+    "google_pillar_repo_pct": 100.0
+  },
+  "notes": [
+    "1354-cp-drawer verifier updated for v3.57.10 sidebar help (retired floating help_contextual_drawer).",
+    "manage.py check passed; bootstrap_platform_catalog --all hit local SQLite lock (Windows concurrent access) — rerun on Render shell after deploy."
+  ]
+}

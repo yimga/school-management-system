@@ -61,7 +61,7 @@ ORM additions are `TemplateAssignment` (extends `InstalledPackage` 1:1) and
 - 10 palette families: `editorial-cream`, `warm-terracotta`, `cool-indigo`, `green-emerald`, `desert-amber`, `monsoon-teal`, `sakura-blush`, `andes-clay`, `savanna-ochre`, `nordic-slate`.
 - 3 typography stacks: `stack-editorial-serif`, `stack-system-sans`, `stack-bilingual-mixed`.
 - 10 layout families (1=executive-command ... 10=premium-international).
-- 75 thumbnail SVGs generated programmatically from registry state.
+- 150 thumbnail SVGs generated programmatically from registry state.
 - **No flags in design.** No religious or political imagery. No ethnic-coded color choices.
 
 Palette overrides arrive via `data-rmc-template-palette="<family>"` on root elements, resolving through the per-family `:root[data-rmc-local-palette="<family>"]` selector in `static/css/design-tokens-local-<family>.css`.
@@ -86,24 +86,26 @@ The 6-gate counsel docket at [`docs/TEMPLATE_MARKETPLACE_WAVE_E_COUNSEL_PENDING.
 
 Manifest schemas for both partner-published templates and monetization are scaffolded in `apps/marketplace/template_partner_manifest.py` and `apps/marketplace/template_monetization_manifest.py` so partners can self-check manifests against the contract the platform will eventually accept.
 
+Live LiteLLM recommendations, partner-publish production enablement, and monetization billing remain external blockers until the 6-gate counsel docket is cleared.
+
 ## 7 — Verifiers (the bar for green)
 
 | Verifier | Purpose |
 |---|---|
-| `verify_experience_template_registry` | 75 templates / 25 profiles / category distribution matches plan |
+| `verify_experience_template_registry` | 150 templates / 50 profiles / category distribution matches plan |
 | `verify_template_marketplace_routes` | 6 operator routes resolve |
 | `verify_template_tenant_boundaries` | Operator templates never appear in tenant catalog |
-| `verify_template_local_first_coverage` | 23 priority markets coverage report; orphan-profile-ref check |
+| `verify_template_local_first_coverage` | 50 local-first profile coverage report; orphan-profile-ref check |
 | `verify_template_a11y_floor` | Every template ≥ WCAG AA |
 | `verify_template_ai_recommender_boundary` | Recommender never imports `services.ai_gateway` |
 | `verify_template_ai_recommender_live_smoke` | End-to-end recommender invocation; fallback OK; LIVE when LiteLLM configured |
+| `verify_template_marketplace_semantic_runtime` | Studio OS Experience-mode + 9 tenant marketplace views + Setup Studio step + audit append-only ORM contract. Honest scope: does not exercise the 6 operator `/configuration/experience-templates/*` routes because they reuse the platform_runtime pack route stack. |
 | `verify_template_marketplace_plan_compliance` | Audits every plan section against repo state |
 | `audit_template_render_safety` | (Existing) Catches multi-line `{# … #}` regressions |
 | `scan_off_token_colors` / `scan_undefined_css_classes` / 20 more | (Existing) Zero-tolerance gates that must stay 0 |
 
 ## 8 — Status
 
-- **Batch 1400 (SW v3.63.0, 2026-05-23):** Foundational wave — 75 templates + 25 profiles + 10 palettes + AI recommender + 6 verifiers + 24 tests + 6 marketplace templates.
-- **Batch 1401 (SW v3.64.0, 2026-05-23):** Plan §11.5 burndown — TemplateAssignment + TemplateAuditEvent + migration 0004 + Setup Studio step + Studio OS fold + Playwright + live-iframe compare + 10 palette splits + 75 thumbnails + AI live-smoke verifier + Wave E manifest scaffolds + counsel docket.
-- **Plan compliance:** `TEMPLATE_MARKETPLACE_PLAN_COMPLIANCE_PASS` (71/71 checks PASS).
-- **Verdict:** **75 PREMIUM TEMPLATE SYSTEM READY — REPO SCOPE.** Wave E+ live monetization explicitly counsel-pending.
+- **Batch 1404 (SW v3.64.2, 2026-05-23):** Repo-scope closeout — 150 templates + 50 profiles + 10 palettes + AI recommender + semantic runtime verifier + Playwright browser QA + 150 thumbnails + Wave E manifest scaffolds + counsel docket.
+- **Plan compliance:** `TEMPLATE_MARKETPLACE_PLAN_COMPLIANCE_PASS`.
+- **Verdict:** **150 PREMIUM TEMPLATE SYSTEM READY — REPO SCOPE.** Wave E+ live LiteLLM, partner publishing, and monetization billing remain explicitly counsel-pending.

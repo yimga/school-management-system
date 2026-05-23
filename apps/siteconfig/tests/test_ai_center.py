@@ -20,7 +20,7 @@ from apps.schools.models import School, SchoolMembership
 _T_HOST = "aicenter.runmycampus.com"
 
 
-@override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST])
+@override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST], LITELLM_PROXY_URL="")
 class AICenterPageTests(TestCase):
     databases = {"default"}
 
@@ -185,6 +185,7 @@ _MGR_HOST = "manager.runmycampus.com"
 @override_settings(
     ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _MGR_HOST],
     ROOT_URLCONF="config.manager_urls",
+    LITELLM_PROXY_URL="",
 )
 class AICenterManagerControlPlaneTests(TestCase):
     databases = {"default"}

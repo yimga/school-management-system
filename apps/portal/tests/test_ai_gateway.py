@@ -21,6 +21,7 @@ from services.ai_schemas import (
 
 
 class TaskTiersTests(SimpleTestCase):
+    @override_settings(RMC_DEPLOYMENT_PROFILE="online", LITELLM_PROXY_URL="")
     def test_default_task_tiers_include_ollama_rules(self):
         tiers = _task_tiers()
         self.assertIn(TaskType.CONFIG_EXPLAIN.value, tiers)
@@ -38,7 +39,19 @@ class TaskTiersTests(SimpleTestCase):
                 msg=f"task {task_key} should default to Ollama + rules only",
             )
 
+    @override_settings(
+        RMC_DEPLOYMENT_PROFILE="online",
+        LITELLM_PROXY_URL="https://api.openai.com",
+    )
+    def test_online_option_a_includes_litellm_when_configured(self):
+        tiers = _task_tiers()
+        self.assertEqual(
+            tiers.get(TaskType.GENERAL_CHAT.value, []),
+            ["litellm", "ollama", "rules"],
+        )
 
+
+@override_settings(LITELLM_PROXY_URL="")
 class InvokeTests(SimpleTestCase):
     @classmethod
     def setUpClass(cls):

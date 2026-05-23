@@ -1,5 +1,7 @@
 # Offline Mode: Platform-Wide Strategy and Data Integrity
 
+**Execution program (2026-05-23):** Multi-wave build plan at [`docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md`](plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md) (SOT batch **1405**, implementation **1406–1412**). This doc remains the strategy reference; the plan owns wave deliverables and verifiers.
+
 This document describes how to extend offline support to **every component, module, app, and workflow** on the platform, and how to **preserve data integrity** when multiple staff work concurrently (some offline, some online).
 
 ---

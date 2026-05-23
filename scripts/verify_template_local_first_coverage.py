@@ -18,6 +18,12 @@ PRIORITY_MARKETS = {
     "PH", "MY", "ID",
     "US", "GB", "AU",
     "AE", "MX", "BR",
+    "CA", "IE", "NZ",
+    "SG", "HK", "TH", "VN", "LK", "NP",
+    "TZ", "UG", "RW", "ET", "EG",
+    "SA", "QA", "TR",
+    "ES", "FR", "DE", "NL", "PT",
+    "CL", "CO", "PE",
 }
 
 
@@ -45,7 +51,8 @@ def main() -> int:
 
     missing = sorted(PRIORITY_MARKETS - by_country.keys())
     if missing:
-        print(f"WARN: {len(missing)} priority markets without a local-first template: {missing}")
+        print(f"FAIL: {len(missing)} priority markets without a local-first template: {missing}")
+        return 1
 
     profile_keys = set(lep.profile_keys())
     orphan_refs = [
@@ -55,6 +62,10 @@ def main() -> int:
     ]
     if orphan_refs:
         print(f"FAIL: {len(orphan_refs)} local-first templates reference unknown profiles: {orphan_refs[:3]}")
+        return 1
+
+    if len(lep.PROFILES) != 50:
+        print(f"FAIL: expected 50 LocalExperienceProfile entries, found {len(lep.PROFILES)}")
         return 1
 
     print(

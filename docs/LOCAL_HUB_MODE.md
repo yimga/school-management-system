@@ -1,5 +1,7 @@
 # Local Hub Mode and dual deployment (online + edge)
 
+**Sovereign delivery program:** Full offline/online + email + Field Client roadmap — [`docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md`](plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md) (SOT batch **1405**).
+
 AI routing (cloud vs Ollama vs guided): **[AI_DEPLOYMENT_POSTURE.md](AI_DEPLOYMENT_POSTURE.md)**.
 
 RunMyCampus supports **two connectivity profiles** with one codebase:

@@ -409,6 +409,94 @@ EXPERIENCE_TEMPLATE_PACKS: tuple[PackContract, ...] = (
     _tpl("local-br-private-bilingual", "Brazil Private Bilingual", category="local-first", layout_family=10, roles=("Admin",), widgets=("mec_calendar", "brl_collection", "portuguese_english_band"), region="br"),
 )
 
+EXPERIENCE_TEMPLATE_EXPANSION_PACKS: tuple[PackContract, ...] = (
+    # I. Operator expansion (10)
+    _tpl("operator-global-growth-room", "Global Growth Room", category="operator", layout_family=1, roles=("Operator", "Platform Manager"), widgets=("growth_funnel", "activation_cohorts", "market_health"), tenant_safe=False, platform_only=True, safety="medium"),
+    _tpl("operator-product-adoption-center", "Product Adoption Center", category="operator", layout_family=1, roles=("Product Operator",), widgets=("feature_adoption", "journey_dropoff", "tenant_segments"), tenant_safe=False, platform_only=True),
+    _tpl("operator-partner-quality-board", "Partner Quality Board", category="operator", layout_family=8, roles=("Marketplace Operator",), widgets=("review_queue", "quality_scores", "kill_switches"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-global-fee-intelligence", "Global Fee Intelligence", category="operator", layout_family=3, roles=("Finance Operator",), widgets=("regional_fee_mix", "settlement_readiness", "arrears_risk"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-country-rollout-map", "Country Rollout Map", category="operator", layout_family=7, roles=("Implementation Operator",), widgets=("country_readiness", "profile_coverage", "launch_risks"), tenant_safe=False, platform_only=True, safety="medium"),
+    _tpl("operator-support-sla-tower", "Support SLA Tower", category="operator", layout_family=8, roles=("Support Operator",), widgets=("sla_clocks", "escalation_lane", "tenant_sentiment"), tenant_safe=False, platform_only=True),
+    _tpl("operator-ai-safety-review-room", "AI Safety Review Room", category="operator", layout_family=8, roles=("AI Operator",), widgets=("model_policy_checks", "prompt_audit", "recommendation_drift"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-template-performance-lab", "Template Performance Lab", category="operator", layout_family=1, roles=("Marketplace Operator",), widgets=("template_installs", "template_retention", "conversion_paths"), tenant_safe=False, platform_only=True),
+    _tpl("operator-incident-response-desk", "Incident Response Desk", category="operator", layout_family=8, roles=("Security Operator", "SRE"), widgets=("incident_timeline", "blast_radius", "remediation_tasks"), tenant_safe=False, platform_only=True, safety="high"),
+    _tpl("operator-global-payment-readiness", "Global Payment Readiness", category="operator", layout_family=3, roles=("Finance Operator",), widgets=("payment_rail_matrix", "country_fee_posture", "settlement_gates"), tenant_safe=False, platform_only=True, safety="high"),
+    # J. Tenant admin expansion (8)
+    _tpl("admin-enrollment-growth-center", "Enrollment Growth Center", category="tenant-admin", layout_family=1, roles=("Admin", "Admissions"), widgets=("lead_pipeline", "admissions_tasks", "conversion_summary")),
+    _tpl("admin-fee-collection-accelerator", "Fee Collection Accelerator", category="tenant-admin", layout_family=3, roles=("Admin", "Bursar"), widgets=("fee_plan_progress", "payer_queue", "collection_actions"), requires_modules=("finance",), safety="high"),
+    _tpl("admin-parent-trust-console", "Parent Trust Console", category="tenant-admin", layout_family=4, roles=("Admin", "Communications"), widgets=("trust_signals", "message_quality", "family_followups")),
+    _tpl("admin-accreditation-readiness", "Accreditation Readiness", category="tenant-admin", layout_family=8, roles=("Admin", "Leadership"), widgets=("evidence_binder", "policy_checks", "review_calendar"), safety="high"),
+    _tpl("admin-multi-campus-ops", "Multi-Campus Operations", category="tenant-admin", layout_family=1, roles=("Group admin", "Admin"), widgets=("campus_comparison", "shared_tasks", "network_alerts"), target_school_types=("network", "international")),
+    _tpl("admin-boarding-life-command", "Boarding Life Command", category="tenant-admin", layout_family=10, roles=("Admin", "Boarding Lead"), widgets=("hostel_roll_call", "meal_counts", "study_hall")),
+    _tpl("admin-exam-season-command", "Exam Season Command", category="tenant-admin", layout_family=2, roles=("Admin", "Academic Lead"), widgets=("exam_calendar", "moderation_queue", "release_checklist"), requires_modules=("academics",), safety="medium"),
+    _tpl("admin-offline-field-ops", "Offline Field Operations", category="tenant-admin", layout_family=9, roles=("Admin",), widgets=("sync_queue", "offline_rosters", "field_tasks"), mobile_behavior="mobile_first_single_column"),
+    # K. Teacher expansion (8)
+    _tpl("teacher-ai-planning-desk", "AI Planning Desk", category="teacher", layout_family=5, roles=("Teacher",), widgets=("lesson_suggestions", "resource_matches", "approval_queue")),
+    _tpl("teacher-intervention-tracker", "Intervention Tracker", category="teacher", layout_family=5, roles=("Teacher",), widgets=("risk_cohort", "intervention_steps", "guardian_touchpoints")),
+    _tpl("teacher-exam-moderation-room", "Exam Moderation Room", category="teacher", layout_family=2, roles=("Teacher",), widgets=("question_review", "marks_moderation", "publish_gate")),
+    _tpl("teacher-resource-studio", "Resource Studio", category="teacher", layout_family=5, roles=("Teacher",), widgets=("resource_library", "lesson_builder", "sharing_queue")),
+    _tpl("teacher-substitute-handoff", "Substitute Handoff", category="teacher", layout_family=5, roles=("Teacher",), widgets=("handoff_notes", "class_context", "coverage_tasks")),
+    _tpl("teacher-competency-map", "Competency Map", category="teacher", layout_family=2, roles=("Teacher",), widgets=("competency_grid", "evidence_cards", "next_actions")),
+    _tpl("teacher-feedback-loop", "Feedback Loop", category="teacher", layout_family=5, roles=("Teacher",), widgets=("feedback_queue", "rubric_notes", "parent_responses")),
+    _tpl("teacher-offline-gradebook", "Offline Gradebook", category="teacher", layout_family=9, roles=("Teacher",), widgets=("offline_marks", "sync_status", "conflict_review"), mobile_behavior="mobile_first_single_column"),
+    # L. Parent expansion (6)
+    _tpl("parent-fee-plan-center", "Fee Plan Center", category="parent", layout_family=3, roles=("Parent",), widgets=("fee_plan", "due_dates", "receipt_history"), requires_modules=("finance",)),
+    _tpl("parent-transport-safety-view", "Transport Safety View", category="parent", layout_family=4, roles=("Parent",), widgets=("route_card", "pickup_status", "transport_messages")),
+    _tpl("parent-exam-readiness-view", "Exam Readiness View", category="parent", layout_family=6, roles=("Parent",), widgets=("exam_calendar", "study_progress", "teacher_feedback")),
+    _tpl("parent-wellbeing-checkins", "Wellbeing Check-ins", category="parent", layout_family=4, roles=("Parent",), widgets=("wellbeing_summary", "counselor_notes", "followup_requests")),
+    _tpl("parent-bilingual-comms", "Bilingual Communications", category="parent", layout_family=4, roles=("Parent",), widgets=("translated_threads", "language_switcher", "school_broadcasts")),
+    _tpl("parent-offline-sms-first", "Offline SMS-First Family View", category="parent", layout_family=9, roles=("Parent",), widgets=("sms_summary", "compact_balance", "next_event"), mobile_behavior="mobile_first_single_column"),
+    # M. Student expansion (6)
+    _tpl("student-exam-command", "Student Exam Command", category="student", layout_family=6, roles=("Student",), widgets=("exam_countdown", "revision_tasks", "results_release")),
+    _tpl("student-career-pathway", "Career Pathway", category="student", layout_family=6, roles=("Student",), widgets=("pathway_map", "portfolio_tasks", "mentor_notes")),
+    _tpl("student-wellbeing-space", "Wellbeing Space", category="student", layout_family=6, roles=("Student",), widgets=("wellbeing_checkin", "support_links", "trusted_contacts")),
+    _tpl("student-clubs-activities", "Clubs and Activities", category="student", layout_family=4, roles=("Student",), widgets=("club_calendar", "activity_signups", "badges")),
+    _tpl("student-project-portfolio", "Project Portfolio", category="student", layout_family=6, roles=("Student",), widgets=("project_board", "evidence_uploads", "feedback_notes")),
+    _tpl("student-offline-study-lite", "Offline Study Lite", category="student", layout_family=9, roles=("Student",), widgets=("cached_lessons", "study_tasks", "sync_status"), mobile_behavior="mobile_first_single_column"),
+    # N. Staff expansion (4)
+    _tpl("staff-front-office-command", "Front Office Command", category="staff", layout_family=1, roles=("Staff",), widgets=("visitor_log", "front_desk_tasks", "daily_notices")),
+    _tpl("staff-procurement-assets", "Procurement and Assets", category="staff", layout_family=3, roles=("Operations", "Finance"), widgets=("purchase_requests", "asset_register", "approval_queue"), safety="medium"),
+    _tpl("staff-health-clinic", "Health Clinic View", category="staff", layout_family=4, roles=("Staff",), widgets=("clinic_visits", "care_notes", "guardian_followups"), safety="medium"),
+    _tpl("staff-offline-operations-lite", "Offline Operations Lite", category="staff", layout_family=9, roles=("Operations",), widgets=("offline_tasks", "facility_checks", "sync_status"), mobile_behavior="mobile_first_single_column"),
+    # O. Specialized expansion (8)
+    _tpl("specialized-montessori-primary", "Montessori Primary School", category="specialized", layout_family=4, roles=("Admin",), widgets=("learning_areas", "observation_notes", "family_updates")),
+    _tpl("specialized-stem-academy", "STEM Academy", category="specialized", layout_family=2, roles=("Admin",), widgets=("lab_schedule", "project_pipeline", "competition_calendar")),
+    _tpl("specialized-arts-conservatory", "Arts Conservatory", category="specialized", layout_family=10, roles=("Admin",), widgets=("portfolio_showcase", "studio_schedule", "performance_calendar")),
+    _tpl("specialized-sports-academy", "Sports Academy", category="specialized", layout_family=6, roles=("Admin",), widgets=("training_calendar", "fitness_tracking", "competition_roster")),
+    _tpl("specialized-exam-prep-school", "Exam Prep School", category="specialized", layout_family=2, roles=("Admin",), widgets=("cohort_scores", "mock_exam_calendar", "intervention_queue")),
+    _tpl("specialized-micro-school", "Micro School", category="specialized", layout_family=9, roles=("Admin",), widgets=("mixed_age_groups", "compact_schedule", "family_updates"), mobile_behavior="mobile_first_single_column"),
+    _tpl("specialized-career-technical", "Career Technical School", category="specialized", layout_family=7, roles=("Admin",), widgets=("skills_matrix", "placement_pipeline", "workshop_schedule")),
+    _tpl("specialized-alumni-advancement", "Alumni and Advancement", category="specialized", layout_family=10, roles=("Admin",), widgets=("alumni_pipeline", "donor_signals", "event_calendar")),
+    # P. Local-first expansion (25)
+    _tpl("local-ca-independent-school", "Canada Independent School", category="local-first", layout_family=2, roles=("Admin",), widgets=("provincial_calendar", "cad_collection", "bilingual_band"), region="ca"),
+    _tpl("local-ie-private-secondary", "Ireland Private Secondary", category="local-first", layout_family=2, roles=("Admin",), widgets=("leaving_cert_calendar", "eur_collection", "irish_band"), region="ie"),
+    _tpl("local-nz-private-school", "New Zealand Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("ncea_calendar", "nzd_collection", "bilingual_band"), region="nz"),
+    _tpl("local-sg-private-school", "Singapore Private School", category="local-first", layout_family=10, roles=("Admin",), widgets=("moe_calendar", "sgd_collection", "multilingual_band"), region="sg"),
+    _tpl("local-hk-international-school", "Hong Kong International School", category="local-first", layout_family=10, roles=("Admin",), widgets=("hk_calendar", "hkd_collection", "bilingual_band"), region="hk"),
+    _tpl("local-th-private-school", "Thailand Private School", category="local-first", layout_family=4, roles=("Admin",), widgets=("thai_calendar", "thb_collection", "bilingual_band"), region="th"),
+    _tpl("local-vn-private-school", "Vietnam Private School", category="local-first", layout_family=4, roles=("Admin",), widgets=("moet_calendar", "vnd_collection", "bilingual_band"), region="vn"),
+    _tpl("local-lk-private-school", "Sri Lanka Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("gce_lk_calendar", "lkr_collection", "trilingual_band"), region="lk"),
+    _tpl("local-np-private-school", "Nepal Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("see_calendar", "npr_collection", "nepali_band"), region="np"),
+    _tpl("local-tz-private-school", "Tanzania Private School", category="local-first", layout_family=4, roles=("Admin",), widgets=("necta_calendar", "tzs_collection", "swahili_band"), region="tz"),
+    _tpl("local-ug-private-school", "Uganda Private School", category="local-first", layout_family=4, roles=("Admin",), widgets=("uneb_calendar", "ugx_collection", "mobile_money_band"), region="ug"),
+    _tpl("local-rw-private-school", "Rwanda Private School", category="local-first", layout_family=4, roles=("Admin",), widgets=("reb_calendar", "rwf_collection", "trilingual_band"), region="rw"),
+    _tpl("local-et-private-school", "Ethiopia Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("ethiopian_calendar", "etb_collection", "amharic_band"), region="et"),
+    _tpl("local-eg-private-school", "Egypt Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("thanaweya_calendar", "egp_collection", "arabic_english_band"), region="eg"),
+    _tpl("local-sa-international-school", "Saudi Arabia International School", category="local-first", layout_family=10, roles=("Admin",), widgets=("sa_calendar", "sar_collection", "arabic_english_band"), region="sa"),
+    _tpl("local-qa-international-school", "Qatar International School", category="local-first", layout_family=10, roles=("Admin",), widgets=("qa_calendar", "qar_collection", "arabic_english_band"), region="qa"),
+    _tpl("local-tr-private-school", "Turkiye Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("meb_calendar", "try_collection", "turkish_band"), region="tr"),
+    _tpl("local-es-private-bilingual", "Spain Private Bilingual", category="local-first", layout_family=10, roles=("Admin",), widgets=("bachillerato_calendar", "eur_collection", "spanish_english_band"), region="es"),
+    _tpl("local-fr-private-school", "France Private School", category="local-first", layout_family=10, roles=("Admin",), widgets=("baccalaureat_calendar", "eur_collection", "french_english_band"), region="fr"),
+    _tpl("local-de-gymnasium-private", "Germany Gymnasium Private", category="local-first", layout_family=2, roles=("Admin",), widgets=("abitur_calendar", "eur_collection", "german_english_band"), region="de"),
+    _tpl("local-nl-international-school", "Netherlands International School", category="local-first", layout_family=10, roles=("Admin",), widgets=("nl_calendar", "eur_collection", "dutch_english_band"), region="nl"),
+    _tpl("local-pt-private-school", "Portugal Private School", category="local-first", layout_family=2, roles=("Admin",), widgets=("pt_calendar", "eur_collection", "portuguese_english_band"), region="pt"),
+    _tpl("local-cl-private-bilingual", "Chile Private Bilingual", category="local-first", layout_family=10, roles=("Admin",), widgets=("mineduc_cl_calendar", "clp_collection", "spanish_english_band"), region="cl"),
+    _tpl("local-co-private-bilingual", "Colombia Private Bilingual", category="local-first", layout_family=10, roles=("Admin",), widgets=("icfes_calendar", "cop_collection", "spanish_english_band"), region="co"),
+    _tpl("local-pe-private-bilingual", "Peru Private Bilingual", category="local-first", layout_family=10, roles=("Admin",), widgets=("minedu_pe_calendar", "pen_collection", "spanish_english_band"), region="pe"),
+)
+
+EXPERIENCE_TEMPLATE_PACKS = EXPERIENCE_TEMPLATE_PACKS + EXPERIENCE_TEMPLATE_EXPANSION_PACKS
+
 
 def _normalize(value: str) -> str:
     return (value or "").strip().lower().replace("_", "-").replace(" / ", "-").replace(" ", "-")

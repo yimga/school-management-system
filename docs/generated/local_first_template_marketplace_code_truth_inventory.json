@@ -17,7 +17,7 @@
     "apps.setup_studio.services",
     "apps.siteconfig.CountryRegistry (Wave 12/13 marketing voice)"
   ],
-  "generated_at": "2026-05-23T14:09:48.833174+00:00",
+  "generated_at": "2026-05-23T14:35:23.651549+00:00",
   "new_modules": [
     "apps/brand_experience/experience_templates.py",
     "apps/brand_experience/template_ai_recommender.py",

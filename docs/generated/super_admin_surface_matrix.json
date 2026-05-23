@@ -131,10 +131,40 @@
     {
       "slug": "integrations",
       "label": "Integrations",
-      "super_url_name": null,
-      "super_url": null,
+      "super_url_name": "super:marketplace_governance",
+      "super_url": "/super/marketplace/",
       "bridge_key": "integrations",
       "admin_bridge_url": "/super/admin-bridge/integrations/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "service_integrations",
+      "label": "Service integrations",
+      "super_url_name": "super:marketplace_governance",
+      "super_url": "/super/marketplace/",
+      "bridge_key": "service_integrations",
+      "admin_bridge_url": "/super/admin-bridge/service_integrations/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "packages_installed",
+      "label": "Installed packages",
+      "super_url_name": "super:blueprint_marketplace",
+      "super_url": "/super/marketplace/blueprints/",
+      "bridge_key": "packages_installed",
+      "admin_bridge_url": "/super/admin-bridge/packages_installed/",
+      "bridge_registered": true,
+      "ok": true
+    },
+    {
+      "slug": "runtime_defaults",
+      "label": "Runtime defaults",
+      "super_url_name": "configuration:center",
+      "super_url": "/configuration/",
+      "bridge_key": "runtime_defaults",
+      "admin_bridge_url": "/super/admin-bridge/runtime_defaults/",
       "bridge_registered": true,
       "ok": true
     },
@@ -165,16 +195,6 @@
       "super_url": "/super/trust/",
       "bridge_key": "platform_event_logs",
       "admin_bridge_url": "/super/admin-bridge/platform_event_logs/",
-      "bridge_registered": true,
-      "ok": true
-    },
-    {
-      "slug": "runtime_defaults",
-      "label": "Runtime defaults",
-      "super_url_name": null,
-      "super_url": null,
-      "bridge_key": "runtime_defaults",
-      "admin_bridge_url": "/super/admin-bridge/runtime_defaults/",
       "bridge_registered": true,
       "ok": true
     },

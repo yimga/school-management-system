@@ -1,13 +1,30 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block portal_title %}{% trans "Experience templates" %}{% endblock %}
 
 {% block content %}
 <section class="rmc-template-marketplace" data-page-marker="rmc-template-marketplace-tenant">
   <header class="rmc-template-marketplace__header">
-    <h1>{% trans "Experience templates" %}</h1>
-    <p class="rmc-template-marketplace__subtitle">{% blocktrans %}Premium operating-experience templates for {{ selected_school }}. Preview, compare, apply, and roll back.{% endblocktrans %}</p>
+    <div class="rmc-template-marketplace__title-block">
+      <p class="rmc-template-marketplace__eyebrow">{% trans "Local-first template marketplace" %}</p>
+      <h1>{% trans "Experience templates" %}</h1>
+      <p class="rmc-template-marketplace__subtitle">{% blocktrans %}Premium operating-experience templates for {{ selected_school }}. Preview, compare, apply, and roll back.{% endblocktrans %}</p>
+    </div>
+    <div class="rmc-template-marketplace__proof-strip" aria-label="{% trans 'Template catalog proof' %}">
+      <div class="rmc-template-marketplace__proof-item">
+        <strong>{{ template_total }}</strong>
+        <span>{% trans "tenant-safe templates" %}</span>
+      </div>
+      <div class="rmc-template-marketplace__proof-item">
+        <strong>{{ template_local_first_total }}</strong>
+        <span>{% trans "local-first profiles" %}</span>
+      </div>
+      <div class="rmc-template-marketplace__proof-item">
+        <strong>{{ template_category_total }}</strong>
+        <span>{% trans "role lanes" %}</span>
+      </div>
+    </div>
   </header>
 
   <form class="rmc-template-marketplace__filter-rail" method="get" data-rmc-template-filter-form>
@@ -34,11 +51,23 @@
   <div class="rmc-template-marketplace__grid">
     {% for t in templates %}
       <article class="rmc-template-marketplace__card rmc-reveal" data-rmc-template-card="{{ t.key }}" data-rmc-template-palette="{{ t.palette_family }}">
+        <figure class="rmc-template-marketplace__thumb">
+          <img src="{% static t.thumbnail %}" alt="" loading="lazy" decoding="async">
+          <figcaption>{{ t.layout_family_name }}</figcaption>
+        </figure>
         <header class="rmc-template-marketplace__card-header">
-          <h2>{{ t.name }}</h2>
+          <div>
+            <p class="rmc-template-marketplace__card-kicker">{{ t.palette_family }}</p>
+            <h2>{{ t.name }}</h2>
+          </div>
           <span class="rmc-template-marketplace__category-chip">{{ t.category }}</span>
         </header>
         <p class="rmc-template-marketplace__description">{{ t.description }}</p>
+        <div class="rmc-template-marketplace__quality-row" aria-label="{% trans 'Template quality signals' %}">
+          <span>{% trans "WCAG" %} {{ t.accessibility_level }}</span>
+          <span>{{ t.mobile_level }}</span>
+          <span>{{ t.typography_stack }}</span>
+        </div>
         <dl class="rmc-template-marketplace__meta">
           <dt>{% trans "Layout" %}</dt><dd>{{ t.layout_family_name }}</dd>
           <dt>{% trans "Palette" %}</dt><dd>{{ t.palette_family }}</dd>

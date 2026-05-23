@@ -62,14 +62,14 @@ def main() -> int:
     for o in et.OVERLAYS:
         counts[o.category] = counts.get(o.category, 0) + 1
     expected = {
-        "operator": 10,
-        "tenant-admin": 8,
-        "teacher": 8,
-        "parent": 6,
-        "student": 6,
-        "staff": 4,
-        "specialized": 8,
-        "local-first": 25,
+        "operator": 20,
+        "tenant-admin": 16,
+        "teacher": 16,
+        "parent": 12,
+        "student": 12,
+        "staff": 8,
+        "specialized": 16,
+        "local-first": 50,
     }
     for cat, n in expected.items():
         actual = counts.get(cat, 0)

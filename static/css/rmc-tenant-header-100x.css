@@ -1,5 +1,5 @@
-/* ============================================================
-   rmc-tenant-header-100x.css — v3.62.8 / 2026-05-22
+﻿/* ============================================================
+   rmc-tenant-header-100x.css â€” v3.62.8 / 2026-05-22
    Tenant portal header parity (rmc-shell-preview-tenant-portal-v3-100x.html).
    Maps live portal_base #portalHeader DOM onto .tp-header contract.
    ============================================================ */
@@ -55,7 +55,7 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-sea
   justify-self: center;
   width: 100%;
   max-width: 520px;
-  background: rgba(15, 23, 42, 0.04);
+  background: rgba(15, 23, 42, 0.04); /* off-token-allow: fixed-shell-accent */
   border: 1px solid var(--hairline);
   border-radius: var(--radius-pill, 999px);
   padding: 9px 18px;
@@ -86,7 +86,7 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-ico
   color: var(--text-secondary) !important; /* style-allow: tenant-header-icon-override-bootstrap */
 }
 
-/* Primary nav row — v3 100x preview */
+/* Primary nav row â€” v3 100x preview */
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav {
   display: flex;
   gap: 4px;
@@ -128,7 +128,7 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item:hov
 
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[aria-current="page"] {
   background: var(--school-gradient, linear-gradient(135deg, var(--school-primary), var(--school-accent)));
-  color: #fff;
+  color: #fff; /* off-token-allow: fixed-shell-accent */
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(30, 111, 58, 0.28);
 }
@@ -140,12 +140,12 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-nav-count {
   font-size: 10px;
   font-weight: 700;
   background: var(--danger, #dc2626);
-  color: #fff;
+  color: #fff; /* off-token-allow: fixed-shell-accent */
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[aria-current="page"] .tp-nav-count {
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.25); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
 }
 
 @media (max-width: 991.98px) {

@@ -56,9 +56,10 @@ def main() -> int:
         for f in failures:
             print(f"  {f}")
         return 1
+    operator_count = len([o for o in et.OVERLAYS if o.category == "operator"])
     print(
         f"TEMPLATE_TENANT_BOUNDARIES_PASS "
-        f"(operator: 10 hidden / tenant_safe pool: {len(tenant_packs)})"
+        f"(operator: {operator_count} hidden / tenant_safe pool: {len(tenant_packs)})"
     )
     return 0
 

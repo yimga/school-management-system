@@ -158,18 +158,35 @@
           "id": "sms_email_placeholder",
           "external_dependency": "SMS / email delivery providers",
           "system_impacted": "notifications",
-          "provider_authority": "Twilio / SendGrid / regional carriers",
+          "provider_authority": "Twilio / SendGrid / Resend / regional carriers",
           "countries_regions": "Global",
           "status": "not_required",
           "owner": "Platform ops",
-          "required_credentials_approvals": "API keys per corridor",
-          "repo_readiness": "complete — communication adapters under apps/communication; configure provider via env",
-          "external_action_needed": "Provision carrier contracts; set provider env vars (SENDGRID_API_KEY, TWILIO_ACCOUNT_SID, etc.)",
+          "required_credentials_approvals": "API keys per corridor; SPF/DKIM/DMARC DNS per sending domain",
+          "repo_readiness": "complete — apps/schoolops/email_delivery.py (send_transactional, Celery, EmailDeliveryEvent); SODP batch 1405 plan routes offline clients through server notification intents (batch 1407), never client SMTP",
+          "external_action_needed": "Provision Resend/Anymail on Render; school DNS for deliverability per docs/EMAIL_DELIVERABILITY.md",
           "blocking_level": "non_blocking",
           "target_environment": "production",
-          "evidence_notes": "Provider dashboard delivery logs",
-          "connection_runbook_path": "docs/integrations/COMMUNICATION_PROVIDERS_CONNECTION_GUIDE.md",
-          "verification_command": "python manage.py test apps.communication --settings=config.settings"
+          "evidence_notes": "/super/email/health/ probe; verify_email_delivery_surface.py; Lane 2 corridor proof after batch 1407",
+          "connection_runbook_path": "docs/EMAIL_DELIVERABILITY.md",
+          "verification_command": "python scripts/verify_email_delivery_surface.py"
+        },
+        {
+          "id": "sovereign_offline_delivery_platform",
+          "external_dependency": "SODP corridor-live evidence (offline E2E, signed Field Client, hub mDNS)",
+          "system_impacted": "offline_sync,mobile_clients,notifications",
+          "provider_authority": "RunMyCampus platform",
+          "countries_regions": "Africa corridors + global low-connectivity",
+          "status": "planned",
+          "owner": "Platform engineering",
+          "required_credentials_approvals": "Plan authorship complete batch 1405; implementation 1406–1412",
+          "repo_readiness": "partial — PWA queue + offline_queue + email_delivery + LOCAL_HUB_MODE + companion-tauri scaffold exist; 7-wave build plan filed, not yet implemented",
+          "external_action_needed": "Build agent executes docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md waves A–G",
+          "blocking_level": "non_blocking",
+          "target_environment": "production",
+          "evidence_notes": "var/evidence/geos-99/offline/ (planned); Playwright offline-queue-replay.spec.js (batch 1412)",
+          "connection_runbook_path": "docs/plans/SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN.md",
+          "verification_command": "python scripts/verify_sovereign_offline_foundation.py (after batch 1406)"
         }
       ]
     },
@@ -186,7 +203,7 @@
           "status": "not_required",
           "owner": "Product distribution owner",
           "required_credentials_approvals": "Developer programs",
-          "repo_readiness": "not_required — web app is the primary surface; native shells optional. Offline-first PWA scaffolding is in repo if/when needed.",
+          "repo_readiness": "partial — PWA primary; SODP batch 1405 plans Tauri Field Client (1409) + Capacitor Android (1410); companion-tauri scaffold exists",
           "external_action_needed": "Separate mobile release track (Apple Developer Program $99/yr, Google Play Console $25 once)",
           "blocking_level": "non_blocking",
           "target_environment": "production",
@@ -236,15 +253,55 @@
           "external_action_needed": "Operator-managed (Render dashboard, DNS registrar)",
           "blocking_level": "non_blocking",
           "target_environment": "production",
-          "evidence_notes": "Operational — DNS + TLS verified; deployed SHA pending /-/version/ deploy parity",
+          "evidence_notes": "Operational — DNS + TLS verified; cross-host SHA parity verified_live batch 1402 (see hosting_render_sha_parity)",
           "connection_runbook_path": "docs/deployment/RENDER_DEPLOYMENT_RUNBOOK.md",
-          "verification_command": "curl https://manager.runmycampus.com/-/version/ # expects JSON with commit_sha"
+          "verification_command": "python scripts/verify_manager_render_parity.py"
+        },
+        {
+          "id": "hosting_render_sha_parity",
+          "external_dependency": "Render ↔ manager deployed commit SHA parity",
+          "system_impacted": "platform_runtime",
+          "provider_authority": "Render.com",
+          "countries_regions": "Global",
+          "status": "verified_live",
+          "owner": "Platform ops",
+          "required_credentials_approvals": "Live Render + manager DNS; RENDER_PARITY_BASE_URL + MANAGER_PARITY_BASE_URL",
+          "repo_readiness": "complete — verify_manager_render_parity.py, /-/version/ JSON on manager + public hosts",
+          "external_action_needed": "Re-run after each production deploy; store evidence under var/evidence/geos-99/render/",
+          "blocking_level": "non_blocking",
+          "target_environment": "production",
+          "evidence_notes": "var/evidence/geos-99/render/sha_parity_2026-05-23.json — commit_sha 738ab9b8f5af4984b4ebee5d68fe15db7bfb538c on Render + manager (2026-05-23)",
+          "connection_runbook_path": "docs/generated/geos_lane2_operator_checklist.md",
+          "verification_command": "RENDER_PARITY_BASE_URL=https://school-management-system-2kzk.onrender.com MANAGER_PARITY_BASE_URL=https://manager.runmycampus.com python scripts/verify_manager_render_parity.py --write-matrix"
+        }
+      ]
+    },
+    {
+      "id": "ai_inference",
+      "title": "12.7 AI inference (cloud tier)",
+      "entries": [
+        {
+          "id": "openai_litellm_option_a",
+          "external_dependency": "OpenAI API — Option A cloud tier (LITELLM_* env)",
+          "system_impacted": "ai_gateway",
+          "provider_authority": "OpenAI",
+          "countries_regions": "Global (operator corridor policy)",
+          "status": "approved_production",
+          "owner": "Platform ops",
+          "required_credentials_approvals": "LITELLM_PROXY_URL=https://api.openai.com; LITELLM_API_KEY; LITELLM_MODEL=gpt-5.4-mini; AI_GATEWAY_ENABLED=1; AI_ALLOW_RULES_FALLBACK=1",
+          "repo_readiness": "complete — Option A defaults batch 1402; verify_render_online_ai_posture.py; docs/AI_DEPLOYMENT_POSTURE.md",
+          "external_action_needed": "Set secrets on Render; confirm AI Center posture live_cloud; flip to verified_live with screenshot or /api/ai/health/ export",
+          "blocking_level": "non_blocking",
+          "target_environment": "production",
+          "evidence_notes": "RENDER_ONLINE_AI_POSTURE_PASS (repo); production live_cloud probe pending operator",
+          "connection_runbook_path": "docs/AI_DEPLOYMENT_POSTURE.md",
+          "verification_command": "python scripts/verify_render_online_ai_posture.py"
         }
       ]
     },
     {
       "id": "government_regional",
-      "title": "12.7 Government / Regional Compliance",
+      "title": "12.8 Government / Regional Compliance",
       "entries": [
         {
           "id": "data_localization_placeholder",
@@ -267,7 +324,7 @@
     },
     {
       "id": "procurement_enterprise_sales",
-      "title": "12.8 Procurement / Enterprise Sales Requirements",
+      "title": "12.9 Procurement / Enterprise Sales Requirements",
       "entries": [
         {
           "id": "msa_placeholder",

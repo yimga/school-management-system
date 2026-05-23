@@ -1,15 +1,15 @@
 {
   "category_counts": {
-    "local-first": 25,
-    "operator": 10,
-    "parent": 6,
-    "specialized": 8,
-    "staff": 4,
-    "student": 6,
-    "teacher": 8,
-    "tenant-admin": 8
+    "local-first": 50,
+    "operator": 20,
+    "parent": 12,
+    "specialized": 16,
+    "staff": 8,
+    "student": 12,
+    "teacher": 16,
+    "tenant-admin": 16
   },
-  "pack_contract_count": 75,
+  "pack_contract_count": 150,
   "palette_families": [
     "editorial-cream",
     "warm-terracotta",
@@ -22,7 +22,7 @@
     "savanna-ochre",
     "nordic-slate"
   ],
-  "profile_count": 25,
+  "profile_count": 50,
   "status": "EXPERIENCE_TEMPLATE_REGISTRY_PASS",
-  "template_count": 75
+  "template_count": 150
 }

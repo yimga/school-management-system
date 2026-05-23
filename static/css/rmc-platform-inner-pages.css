@@ -1,5 +1,5 @@
-/**
- * Inner-page beauty layer — all authenticated surfaces inherit landing polish.
+﻿/**
+ * Inner-page beauty layer â€” all authenticated surfaces inherit landing polish.
  * v3.62.12 (2026-05-22). Composes with design-tokens-personality.css per slug.
  */
 
@@ -131,7 +131,7 @@ body[data-rmc-page-personality="tenant-admin"] .btn-primary {
 .rmc-section-nav a[data-active],
 .rmc-page-fold-nav a.active {
   background: var(--personality-gradient, linear-gradient(135deg, #4f46e5, #7c3aed));
-  color: #fff;
+  color: #fff; /* off-token-allow: fixed-shell-accent */
   border-color: transparent;
 }
 

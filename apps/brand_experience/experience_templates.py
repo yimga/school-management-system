@@ -220,6 +220,94 @@ OVERLAYS: tuple[ExperienceTemplateOverlay, ...] = (
     _o("local-br-private-bilingual", "local-first", 10, "andes-clay", countries=("BR",), languages=("pt", "en"), typography="stack-bilingual-mixed", local_profile="br-mec-bilingual", tags=("heritage", "premium", "bilingual")),
 )
 
+EXPANSION_OVERLAYS: tuple[ExperienceTemplateOverlay, ...] = (
+    # I. Global/operator expansion (10) - doubles operator catalog depth
+    _o("operator-global-growth-room", "operator", 1, "cool-indigo", tags=("executive", "growth", "data-rich")),
+    _o("operator-product-adoption-center", "operator", 1, "cool-indigo", tags=("operations", "data-rich")),
+    _o("operator-partner-quality-board", "operator", 8, "cool-indigo", tags=("compliance", "marketplace")),
+    _o("operator-global-fee-intelligence", "operator", 3, "cool-indigo", tags=("finance", "data-rich")),
+    _o("operator-country-rollout-map", "operator", 7, "cool-indigo", tags=("local-first", "operations")),
+    _o("operator-support-sla-tower", "operator", 8, "nordic-slate", tags=("operations", "compliance")),
+    _o("operator-ai-safety-review-room", "operator", 8, "nordic-slate", tags=("ai", "compliance")),
+    _o("operator-template-performance-lab", "operator", 1, "cool-indigo", tags=("marketplace", "data-rich")),
+    _o("operator-incident-response-desk", "operator", 8, "nordic-slate", tags=("security", "operations")),
+    _o("operator-global-payment-readiness", "operator", 3, "cool-indigo", tags=("finance", "local-first")),
+    # J. Tenant admin expansion (8)
+    _o("admin-enrollment-growth-center", "tenant-admin", 1, "green-emerald", tags=("admissions", "growth")),
+    _o("admin-fee-collection-accelerator", "tenant-admin", 3, "green-emerald", tags=("finance", "payments")),
+    _o("admin-parent-trust-console", "tenant-admin", 4, "warm-terracotta", tags=("parent-friendly", "communications")),
+    _o("admin-accreditation-readiness", "tenant-admin", 8, "nordic-slate", tags=("compliance", "premium")),
+    _o("admin-multi-campus-ops", "tenant-admin", 1, "cool-indigo", tags=("network", "operations")),
+    _o("admin-boarding-life-command", "tenant-admin", 10, "editorial-cream", tags=("boarding", "premium")),
+    _o("admin-exam-season-command", "tenant-admin", 2, "green-emerald", tags=("academic", "exam")),
+    _o("admin-offline-field-ops", "tenant-admin", 9, "savanna-ochre", mobile="mobile-first", tags=("low-connectivity", "mobile-first")),
+    # K. Teacher expansion (8)
+    _o("teacher-ai-planning-desk", "teacher", 5, "green-emerald", tags=("teacher-focused", "ai")),
+    _o("teacher-intervention-tracker", "teacher", 5, "green-emerald", tags=("teacher-focused", "student-risk")),
+    _o("teacher-exam-moderation-room", "teacher", 2, "green-emerald", tags=("teacher-focused", "exam")),
+    _o("teacher-resource-studio", "teacher", 5, "editorial-cream", tags=("teacher-focused", "content")),
+    _o("teacher-substitute-handoff", "teacher", 5, "nordic-slate", tags=("teacher-focused", "operations")),
+    _o("teacher-competency-map", "teacher", 2, "monsoon-teal", tags=("teacher-focused", "academic")),
+    _o("teacher-feedback-loop", "teacher", 5, "warm-terracotta", tags=("teacher-focused", "communications")),
+    _o("teacher-offline-gradebook", "teacher", 9, "savanna-ochre", mobile="mobile-first", tags=("teacher-focused", "low-connectivity")),
+    # L. Parent expansion (6)
+    _o("parent-fee-plan-center", "parent", 3, "warm-terracotta", tags=("parent-friendly", "finance")),
+    _o("parent-transport-safety-view", "parent", 4, "warm-terracotta", tags=("parent-friendly", "operations")),
+    _o("parent-exam-readiness-view", "parent", 6, "green-emerald", tags=("parent-friendly", "academic")),
+    _o("parent-wellbeing-checkins", "parent", 4, "warm-terracotta", tags=("parent-friendly", "student-risk")),
+    _o("parent-bilingual-comms", "parent", 4, "editorial-cream", typography="stack-bilingual-mixed", tags=("parent-friendly", "bilingual")),
+    _o("parent-offline-sms-first", "parent", 9, "savanna-ochre", mobile="mobile-first", tags=("parent-friendly", "low-connectivity")),
+    # M. Student expansion (6)
+    _o("student-exam-command", "student", 6, "green-emerald", tags=("student-friendly", "exam")),
+    _o("student-career-pathway", "student", 6, "cool-indigo", tags=("student-friendly", "career")),
+    _o("student-wellbeing-space", "student", 6, "sakura-blush", tags=("student-friendly", "wellbeing")),
+    _o("student-clubs-activities", "student", 4, "warm-terracotta", tags=("student-friendly", "activities")),
+    _o("student-project-portfolio", "student", 6, "monsoon-teal", tags=("student-friendly", "portfolio")),
+    _o("student-offline-study-lite", "student", 9, "savanna-ochre", mobile="mobile-first", tags=("student-friendly", "low-connectivity")),
+    # N. Staff expansion (4)
+    _o("staff-front-office-command", "staff", 1, "nordic-slate", tags=("operations",)),
+    _o("staff-procurement-assets", "staff", 3, "nordic-slate", tags=("operations", "finance")),
+    _o("staff-health-clinic", "staff", 4, "sakura-blush", tags=("operations", "wellbeing")),
+    _o("staff-offline-operations-lite", "staff", 9, "savanna-ochre", mobile="mobile-first", tags=("operations", "low-connectivity")),
+    # O. Specialized expansion (8)
+    _o("specialized-montessori-primary", "specialized", 4, "editorial-cream", tags=("premium", "primary")),
+    _o("specialized-stem-academy", "specialized", 2, "cool-indigo", tags=("academic", "premium")),
+    _o("specialized-arts-conservatory", "specialized", 10, "sakura-blush", tags=("premium", "portfolio")),
+    _o("specialized-sports-academy", "specialized", 6, "green-emerald", tags=("student-friendly", "activities")),
+    _o("specialized-exam-prep-school", "specialized", 2, "green-emerald", tags=("academic", "exam")),
+    _o("specialized-micro-school", "specialized", 9, "editorial-cream", mobile="mobile-first", tags=("compact", "premium")),
+    _o("specialized-career-technical", "specialized", 7, "cool-indigo", tags=("career", "operations")),
+    _o("specialized-alumni-advancement", "specialized", 10, "editorial-cream", tags=("premium", "growth")),
+    # P. Local-first expansion (25) - doubles local-first profile coverage
+    _o("local-ca-independent-school", "local-first", 2, "cool-indigo", countries=("CA",), languages=("en", "fr"), typography="stack-bilingual-mixed", local_profile="ca-independent-provincial", tags=("heritage", "bilingual")),
+    _o("local-ie-private-secondary", "local-first", 2, "green-emerald", countries=("IE",), languages=("en", "ga"), typography="stack-bilingual-mixed", local_profile="ie-leaving-cert", tags=("heritage", "bilingual")),
+    _o("local-nz-private-school", "local-first", 2, "green-emerald", countries=("NZ",), languages=("en", "mi"), typography="stack-bilingual-mixed", local_profile="nz-ncea-bilingual", tags=("heritage", "bilingual")),
+    _o("local-sg-private-school", "local-first", 10, "monsoon-teal", countries=("SG",), languages=("en", "zh-Hans", "ms", "ta"), typography="stack-bilingual-mixed", local_profile="sg-moe-international", tags=("heritage", "premium", "bilingual")),
+    _o("local-hk-international-school", "local-first", 10, "sakura-blush", countries=("HK",), languages=("en", "zh-Hant"), typography="stack-bilingual-mixed", local_profile="hk-international-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-th-private-school", "local-first", 4, "monsoon-teal", countries=("TH",), languages=("th", "en"), typography="stack-bilingual-mixed", local_profile="th-private-bilingual", tags=("heritage", "bilingual")),
+    _o("local-vn-private-school", "local-first", 4, "monsoon-teal", countries=("VN",), languages=("vi", "en"), typography="stack-bilingual-mixed", local_profile="vn-private-bilingual", tags=("heritage", "bilingual")),
+    _o("local-lk-private-school", "local-first", 2, "monsoon-teal", countries=("LK",), languages=("si", "ta", "en"), typography="stack-bilingual-mixed", local_profile="lk-national-bilingual", tags=("heritage", "bilingual")),
+    _o("local-np-private-school", "local-first", 2, "desert-amber", countries=("NP",), languages=("ne", "en"), typography="stack-bilingual-mixed", local_profile="np-see-private", tags=("heritage", "bilingual")),
+    _o("local-tz-private-school", "local-first", 4, "savanna-ochre", countries=("TZ",), languages=("sw", "en"), typography="stack-bilingual-mixed", local_profile="tz-necta-bilingual", tags=("heritage", "bilingual")),
+    _o("local-ug-private-school", "local-first", 4, "savanna-ochre", countries=("UG",), languages=("en",), local_profile="ug-uneb-private", tags=("heritage",)),
+    _o("local-rw-private-school", "local-first", 4, "savanna-ochre", countries=("RW",), languages=("rw", "en", "fr"), typography="stack-bilingual-mixed", local_profile="rw-reb-trilingual", tags=("heritage", "bilingual")),
+    _o("local-et-private-school", "local-first", 2, "desert-amber", countries=("ET",), languages=("am", "en"), typography="stack-bilingual-mixed", local_profile="et-national-bilingual", tags=("heritage", "bilingual")),
+    _o("local-eg-private-school", "local-first", 2, "desert-amber", countries=("EG",), languages=("ar", "en"), typography="stack-bilingual-mixed", local_profile="eg-thanaweya-bilingual", tags=("heritage", "bilingual")),
+    _o("local-sa-international-school", "local-first", 10, "desert-amber", countries=("SA",), languages=("ar", "en"), typography="stack-bilingual-mixed", local_profile="sa-international-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-qa-international-school", "local-first", 10, "desert-amber", countries=("QA",), languages=("ar", "en"), typography="stack-bilingual-mixed", local_profile="qa-international-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-tr-private-school", "local-first", 2, "andes-clay", countries=("TR",), languages=("tr", "en"), typography="stack-bilingual-mixed", local_profile="tr-meb-bilingual", tags=("heritage", "bilingual")),
+    _o("local-es-private-bilingual", "local-first", 10, "andes-clay", countries=("ES",), languages=("es", "en"), typography="stack-bilingual-mixed", local_profile="es-bachillerato-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-fr-private-school", "local-first", 10, "editorial-cream", countries=("FR",), languages=("fr", "en"), typography="stack-bilingual-mixed", local_profile="fr-baccalaureat-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-de-gymnasium-private", "local-first", 2, "nordic-slate", countries=("DE",), languages=("de", "en"), typography="stack-bilingual-mixed", local_profile="de-abitur-bilingual", tags=("heritage", "bilingual")),
+    _o("local-nl-international-school", "local-first", 10, "nordic-slate", countries=("NL",), languages=("nl", "en"), typography="stack-bilingual-mixed", local_profile="nl-international-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-pt-private-school", "local-first", 2, "andes-clay", countries=("PT",), languages=("pt", "en"), typography="stack-bilingual-mixed", local_profile="pt-national-bilingual", tags=("heritage", "bilingual")),
+    _o("local-cl-private-bilingual", "local-first", 10, "andes-clay", countries=("CL",), languages=("es", "en"), typography="stack-bilingual-mixed", local_profile="cl-mineduc-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-co-private-bilingual", "local-first", 10, "andes-clay", countries=("CO",), languages=("es", "en"), typography="stack-bilingual-mixed", local_profile="co-icfes-bilingual", tags=("heritage", "premium", "bilingual")),
+    _o("local-pe-private-bilingual", "local-first", 10, "andes-clay", countries=("PE",), languages=("es", "en"), typography="stack-bilingual-mixed", local_profile="pe-minedu-bilingual", tags=("heritage", "premium", "bilingual")),
+)
+
+OVERLAYS = OVERLAYS + EXPANSION_OVERLAYS
+
 
 _OVERLAY_INDEX: dict[str, ExperienceTemplateOverlay] = {o.key: o for o in OVERLAYS}
 
@@ -255,8 +343,8 @@ def overlay_keys() -> Iterable[str]:
 
 def assert_registry_invariants() -> None:
     """Raise AssertionError if registry shape regresses. Run from verifier."""
-    if len(OVERLAYS) != 75:
-        raise AssertionError(f"Expected exactly 75 ExperienceTemplate overlays, got {len(OVERLAYS)}")
+    if len(OVERLAYS) != 150:
+        raise AssertionError(f"Expected exactly 150 ExperienceTemplate overlays, got {len(OVERLAYS)}")
     keys = [o.key for o in OVERLAYS]
     if len(set(keys)) != len(keys):
         raise AssertionError("Duplicate ExperienceTemplate overlay keys detected.")

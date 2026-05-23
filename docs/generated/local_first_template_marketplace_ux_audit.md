@@ -1,6 +1,6 @@
 # Marketplace UX Audit
 
-Generated: 2026-05-23T14:09:48.833174+00:00
+Generated: 2026-05-23T14:35:23.651549+00:00
 
 - **cards**: rmc-template-marketplace__card with category chip + tag chips + 3-action row
 - **filters**: category + country + language filter rail

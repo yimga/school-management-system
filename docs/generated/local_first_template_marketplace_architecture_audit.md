@@ -1,6 +1,6 @@
 # Architecture audit — Local-First Template Marketplace
 
-Generated: 2026-05-23T14:09:48.833174+00:00
+Generated: 2026-05-23T14:35:23.651549+00:00
 
 ## Layering decision
 

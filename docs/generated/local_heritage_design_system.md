@@ -1,6 +1,6 @@
 # Local Heritage Design System
 
-Generated: 2026-05-23T14:09:48.833174+00:00
+Generated: 2026-05-23T14:35:23.651549+00:00
 
 ## Palette families
 
@@ -50,7 +50,7 @@ Generated: 2026-05-23T14:09:48.833174+00:00
 
 ## Thumbnails
 
-Generated 75 SVGs under `static/img/template-thumbs/`.
+Generated 150 SVGs under `static/img/template-thumbs/`.
 
 ## Hard rules (never violated)
 

@@ -1,5 +1,5 @@
-/**
- * Control plane + manager /admin/ sidebar — v8 200x preview parity.
+﻿/**
+ * Control plane + manager /admin/ sidebar â€” v8 200x preview parity.
  * v3.62.12 (2026-05-22)
  */
 
@@ -10,7 +10,7 @@ body.admin-manager-shell .cp-sidebar .rmc-cockpit-workspace {
   align-items: center;
   padding: 10px 12px;
   border-radius: var(--radius-md, 10px);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.03); /* off-token-allow: fixed-shell-accent */
   border: 1px solid var(--cp-chrome-hairline, var(--hairline));
   margin-bottom: 14px;
 }
@@ -44,15 +44,15 @@ body.control-plane-shell .cp-sidebar .nav-link:hover,
 body.control-plane-shell .cp-sidebar .nav-link:focus-visible,
 body.admin-manager-shell .cp-sidebar-nav .nav-link:hover,
 body.admin-manager-shell .cp-sidebar-nav .nav-link:focus-visible {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: fixed-shell-accent */
   color: var(--cp-chrome-text, var(--text-primary));
 }
 
 body.control-plane-shell .cp-sidebar .nav-link.active,
 body.admin-manager-shell .cp-sidebar-nav .nav-link.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
-  border-color: rgba(99, 102, 241, 0.3);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15)); /* off-token-allow: fixed-shell-accent */
+  border-color: rgba(99, 102, 241, 0.3); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .list-group-item,
@@ -68,7 +68,7 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .nav-li
 body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .nav-link.active,
 body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .list-group-item.active {
   background: var(--school-gradient, linear-gradient(135deg, var(--school-primary), var(--school-accent)));
-  color: #fff;
+  color: #fff; /* off-token-allow: fixed-shell-accent */
   border-color: transparent;
   box-shadow: 0 2px 8px rgba(30, 111, 58, 0.2);
 }

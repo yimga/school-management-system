@@ -4622,3 +4622,25 @@
 .rmc-cr-stepper__list {
   display: flex;
 }
+
+/* Template-marketplace closeout + shell grammar classes.
+ * These are structural hooks whose detailed visual treatment lives in the
+ * page/shell bundles; keep lightweight definitions here for scanner coverage.
+ */
+
+.cp-header__row {
+  display: block;
+}
+
+.cp-sidebar__link-count {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cp-section--platform-tags {
+  display: block;
+}
+
+.rmc-mv-preview-testimonial__credential {
+  display: inline;
+}

@@ -29,18 +29,35 @@ def main() -> int:
         ("configuration:experience_template_impact", {"key": "operator-executive-command-center"}),
         ("configuration:experience_template_apply", {"key": "operator-executive-command-center"}),
     ]
+    expected_tenant_routes = [
+        ("template_marketplace:browse", {}),
+        ("template_marketplace:ai_recommend", {}),
+        ("template_marketplace:local_catalog", {"country_code": "IN"}),
+        ("template_marketplace:detail", {"key": "admin-school-command-center"}),
+        ("template_marketplace:preview", {"key": "admin-school-command-center"}),
+        ("template_marketplace:compare", {"key": "admin-school-command-center"}),
+        ("template_marketplace:apply", {"key": "admin-school-command-center"}),
+        ("template_marketplace:rollback", {"key": "admin-school-command-center"}),
+        ("template_marketplace:customize", {"key": "admin-school-command-center"}),
+    ]
     failures = []
     for name, kwargs in expected_routes:
         try:
             reverse(name, kwargs=kwargs)
         except NoReverseMatch as exc:
             failures.append(f"{name}: {exc}")
+    for name, kwargs in expected_tenant_routes:
+        try:
+            reverse(name, kwargs=kwargs, urlconf="config.tenant_urls")
+        except NoReverseMatch as exc:
+            failures.append(f"{name} (tenant urlconf): {exc}")
     if failures:
         print("FAIL: route resolution failures")
         for f in failures:
             print(f"  {f}")
         return 1
-    print(f"TEMPLATE_MARKETPLACE_ROUTES_PASS ({len(expected_routes)}/{len(expected_routes)} routes resolved)")
+    total = len(expected_routes) + len(expected_tenant_routes)
+    print(f"TEMPLATE_MARKETPLACE_ROUTES_PASS ({total}/{total} routes resolved)")
     return 0
 
 
