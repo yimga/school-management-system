@@ -62,6 +62,7 @@
     var contextToggle = document.querySelector(".cp-context-drawer-toggle");
     var voc = document.querySelector(".voc-widget");
     var helpBtn = document.querySelector("[data-rmc-page-help]");
+    if (helpBtn === document.body) helpBtn = null;
     var backBtn = document.getElementById("back-to-top-btn");
     var chat = document.querySelector(".portal-chathead");
     if (!aiWrap && !voc && !helpBtn && !backBtn && !chat) return;
