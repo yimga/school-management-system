@@ -9,6 +9,26 @@ body.control-plane-shell [data-rmc-cp-page-body="1"] {
   padding-top: 0.25rem;
 }
 
+/* Collapse dead vertical bands under breadcrumb-only headers */
+body.control-plane-shell .cp-page-body > .container-fluid:empty,
+body.control-plane-shell .cp-page-body > .w-100:empty,
+body.admin-manager-shell .cp-admin-page-body > .w-100:empty {
+  display: none;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+body.control-plane-shell .rmc-os-page-header:only-child,
+body.admin-manager-shell .rmc-admin-breadcrumb-nav:only-child {
+  margin-bottom: 0.25rem;
+}
+
+body.control-plane-shell .cp-page-body .breadcrumb + .container-fluid {
+  margin-top: 0;
+  padding-top: 0.5rem;
+}
+
 body.control-plane-shell .cp-page-body .card,
 body.control-plane-shell .cp-page-body .page-family-content-card,
 body.control-plane-shell .rmc-os-page-header,

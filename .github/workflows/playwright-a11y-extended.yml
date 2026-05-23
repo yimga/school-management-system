@@ -121,3 +121,4 @@ jobs:
             beta/school-management-system/test-results
             beta/school-management-system/playwright-report
           if-no-files-found: ignore
+          retention-days: 1  # Strict storage hygiene — never default 90d

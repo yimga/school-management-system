@@ -125,10 +125,22 @@ def main() -> int:
     add(
         "manager",
         "platform_shell_wrapper",
-        "Skeleton wraps all manager pages in cp-shell-content + cp_shell_page",
-        _contains("templates/control_plane_skeleton.html", "cp_shell_page")
-        and _contains("templates/control_plane_skeleton.html", "cp_shell_footer")
-        and _contains("templates/control_plane_base.html", "block cp_shell_page"),
+        "Skeleton wraps all manager pages in cp-shell canvas blocks",
+        (
+            _contains("templates/control_plane_skeleton.html", "cp_shell_footer")
+            and (
+                _contains("templates/control_plane_base.html", "block cp_shell_page")
+                or _contains(
+                    "templates/control_plane_base.html", "block cp_shell_canvas_body"
+                )
+            )
+            and (
+                _contains("templates/control_plane_skeleton.html", "cp_shell_page")
+                or _contains(
+                    "templates/control_plane_skeleton.html", "cp_shell_canvas_body"
+                )
+            )
+        ),
         "control_plane_skeleton + control_plane_base",
     )
     add(
@@ -299,7 +311,12 @@ def main() -> int:
         and _contains("templates/partials/manager_operator_topbar.html", 'lockup_layout="inline"')
         and _contains("templates/components/ai_guided_assistant_card.html", "rmc-ai-guided-assistant-card")
         and _exists("static/css/rmc-ai-guided-assistant-card.css")
-        and _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="document"')
+        and (
+            _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="canvas"')
+            or _contains(
+                "templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="document"'
+            )
+        )
         and _contains("apps/schools/middleware.py", "/authentication/documentation/")
         and _contains("templates/components/user_dropdown.html", "manager_help_center")
         and _contains("templates/components/user_dropdown.html", "kb:kb_home")

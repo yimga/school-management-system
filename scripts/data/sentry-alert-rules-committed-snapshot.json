@@ -1,0 +1,51 @@
+{
+  "note": "Code-committed snapshot generated from in-repo ALERT_RULES. Used as fallback when operator-supplied var/sentry-alert-rules-snapshot.json is absent. Regenerate via scripts/regenerate_sentry_committed_snapshot.py whenever ALERT_RULES changes.",
+  "rules": [
+    {
+      "action_hint": "page on-call; check the offending tenant's recent admin activity for a 'revoke all app permissions' click",
+      "condition_tag": "refresh.deactivated_invalid_grant",
+      "name": "integrations.refresh_storm",
+      "runbook_url": "docs/INTEGRATIONS_MARKETPLACE_OPERATIONS_HANDBOOK.md#41",
+      "summary": "OAuth refresh deactivations are spiking \u2014 likely a tenant's whole-org consent was revoked or platform credentials rotated without a worker restart.",
+      "threshold": 5,
+      "window_minutes": 60
+    },
+    {
+      "action_hint": "ack + monitor; if persistent >2h, raise an upstream support ticket and consider pausing the refresh worker",
+      "condition_tag": "refresh.transport_error",
+      "name": "integrations.refresh_transport_flap",
+      "runbook_url": "docs/INTEGRATIONS_MARKETPLACE_OPERATIONS_HANDBOOK.md#41",
+      "summary": "OAuth refresh transport errors are spiking \u2014 likely an upstream OAuth endpoint outage. Check upstream provider status pages.",
+      "threshold": 20,
+      "window_minutes": 30
+    },
+    {
+      "action_hint": "ack + fix; receiver returns 500 so upstream retries \u2014 no data loss but errors compound until resolved",
+      "condition_tag": "connector",
+      "name": "integrations.webhook_handler_crash",
+      "runbook_url": "docs/INTEGRATIONS_MARKETPLACE_OPERATIONS_HANDBOOK.md#42",
+      "summary": "A registered webhook handler raised an unhandled exception. Inbound deliveries hit 500 and the upstream will retry.",
+      "threshold": 1,
+      "window_minutes": 5
+    },
+    {
+      "action_hint": "check the affected row's config['push_subscription'] for last_renewal_error; common causes: expired access_token, revoked scope, Graph subscription id rotated upstream",
+      "condition_tag": "renew.renewal_failed",
+      "name": "integrations.subscription_renewal_failed",
+      "runbook_url": "docs/INTEGRATIONS_MARKETPLACE_OPERATIONS_HANDBOOK.md",
+      "summary": "Calendar push subscription failed to renew. Once expiry passes, tenant stops receiving push notifications until manually resubscribed.",
+      "threshold": 3,
+      "window_minutes": 60
+    },
+    {
+      "action_hint": "have the tenant disconnect+reconnect the mailbox; if across multiple tenants, suspect a credential rotation issue",
+      "condition_tag": "fetch.unauthorized",
+      "name": "integrations.mailbox_fetch_unauthorized",
+      "runbook_url": "docs/INTEGRATIONS_MARKETPLACE_OPERATIONS_HANDBOOK.md",
+      "summary": "Mailbox fetch returned 401 \u2014 access_token rejected by upstream. Tenant won't see new mail until reconnected.",
+      "threshold": 1,
+      "window_minutes": 15
+    }
+  ],
+  "source": "apps.integrations_marketplace.sentry_alert_rules.all_rules_as_dicts"
+}

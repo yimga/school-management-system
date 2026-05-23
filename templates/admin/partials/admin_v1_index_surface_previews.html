@@ -1,0 +1,144 @@
+{% load i18n static %}
+<section class="cp-section cp-section--platform-tags" id="rmc-admin-sec-tags" data-rmc-section-anchor aria-labelledby="cp-platform-tags-heading">
+  <h2 class="cp-section__title" id="cp-platform-tags-heading">{% trans "Platform information tags" %}</h2>
+  <p class="cp-section__lede">{% trans "Compliance, trust, and operational labels surfaced on operator surfaces — seeded from platform registry." %}</p>
+  <div class="cp-platform-tag-row" role="list">
+    <span class="cp-status" data-tone="success" role="listitem">SOC 2</span>
+    <span class="cp-status" data-tone="success" role="listitem">ISO 27001</span>
+    <span class="cp-status" data-tone="muted" role="listitem">FERPA</span>
+    <span class="cp-status" data-tone="muted" role="listitem">GDPR</span>
+    <span class="cp-status" data-tone="warn" role="listitem">{% trans "Multi-tenant" %}</span>
+    <span class="cp-status" data-tone="success" role="listitem">{% trans "Audit chain" %}</span>
+  </div>
+</section>
+
+<section class="cp-section cp-section--surface-preview" id="rmc-admin-sec-changelist" data-rmc-section-anchor aria-labelledby="cp-changelist-preview-heading">
+  <h2 class="cp-section__title" id="cp-changelist-preview-heading">
+    {% trans "Changelist" %} · {% trans "Schools" %}
+    <span class="cp-section__path">/admin/schools/school/</span>
+  </h2>
+  <p class="cp-section__lede">{% trans "Sortable + filterable + bulk actions. Filters live on the rail. Pagination 25/page (page-fold standards)." %}</p>
+
+  <div class="cp-changelist">
+    <aside class="cp-filters" aria-label="{% trans 'Filter rail preview' %}">
+      <p class="cp-filters__title">{% trans "Filters" %}</p>
+      <div class="cp-filter-group">
+        <div class="cp-filter-group__name">{% trans "Status" %}</div>
+        <span class="cp-filter-pill" data-active>{% trans "All" %}</span>
+        <span class="cp-filter-pill">{% trans "Active" %}</span>
+        <span class="cp-filter-pill">{% trans "Pending" %}</span>
+      </div>
+      <div class="cp-filter-group">
+        <div class="cp-filter-group__name">{% trans "Plan" %}</div>
+        <span class="cp-filter-pill">{% trans "Standard" %}</span>
+        <span class="cp-filter-pill">{% trans "Pro" %}</span>
+        <span class="cp-filter-pill">{% trans "Enterprise" %}</span>
+      </div>
+    </aside>
+
+    <div class="cp-table-wrap">
+      <div class="cp-table-head">
+        <span class="cp-table-head__crumb">{% trans "Showing sample rows — open changelist for live data" %}</span>
+        <div class="cp-table-head__actions">
+          <a class="cp-btn cp-btn--ghost" href="{% url 'admin:schools_school_changelist' %}">{% trans "Open changelist" %}</a>
+          <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "Add school" %}</a>
+        </div>
+      </div>
+      <table class="cp-table rmc-data-table" data-rmc-scroll-policy="paginate">
+        <thead>
+          <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Slug" %}</th>
+            <th>{% trans "Status" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="{% url 'admin:schools_school_changelist' %}">{% trans "Live schools registry" %}</a></td>
+            <td><code class="cp-mono">…</code></td>
+            <td><span class="cp-status" data-tone="success">{% trans "Active" %}</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="cp-pager">
+        <span>{% trans "1–25 of N" %}</span>
+        <div class="cp-pager__pages" aria-hidden="true">
+          <span class="cp-pager__pill" data-active>1</span>
+          <span class="cp-pager__pill">2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cp-section cp-section--surface-preview" id="rmc-admin-sec-changeform" data-rmc-section-anchor aria-labelledby="cp-changeform-preview-heading">
+  <h2 class="cp-section__title" id="cp-changeform-preview-heading">
+    {% trans "Change form" %} · {% trans "Edit school" %}
+    <span class="cp-section__path">/admin/schools/school/…/change/</span>
+  </h2>
+  <p class="cp-section__lede">{% trans "Tabbed fieldsets, dense field grid, inline help, audit sidecar." %}</p>
+
+  <div class="cp-form-frame">
+    <div class="cp-form">
+      <div class="cp-form__header">
+        <div>
+          <strong>{% trans "School record" %}</strong>
+          <div class="cp-form__meta"><code class="cp-mono">{% trans "id · slug · created" %}</code></div>
+        </div>
+        <div class="cp-form__header-actions">
+          <a class="cp-btn" href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to list" %}</a>
+          <span class="cp-btn cp-btn--primary">{% trans "Save changes" %}</span>
+        </div>
+      </div>
+      <nav class="cp-form__tabs" aria-label="{% trans 'Fieldset tabs preview' %}">
+        <span class="cp-form__tab" data-active>{% trans "Identity" %}</span>
+        <span class="cp-form__tab">{% trans "Brand & theme" %}</span>
+        <span class="cp-form__tab">{% trans "Plan & addons" %}</span>
+      </nav>
+      <div class="cp-fieldset">
+        <p class="cp-fieldset__title">{% trans "Identity" %}</p>
+        <div class="cp-field-grid">
+          <div class="cp-field">
+            <label class="cp-field__label">{% trans "Name" %}</label>
+            <input class="cp-field__input" type="text" value="{% trans 'Example academy' %}" readonly>
+          </div>
+          <div class="cp-field">
+            <label class="cp-field__label">{% trans "Slug" %}</label>
+            <input class="cp-field__input" type="text" value="example-academy" readonly>
+            <span class="cp-field__hint">{% trans "Cannot be changed after first migration." %}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="cp-sidecar" aria-label="{% trans 'Audit sidecar preview' %}">
+      <div class="cp-sidecar__card">
+        <p class="cp-sidecar__title">{% trans "Audit trail · last 24h" %}</p>
+        <div class="cp-audit">
+          <div class="cp-audit__row">
+            <span class="cp-audit__dot"></span>
+            <div class="cp-audit__body">
+              <strong>{% trans "Plan updated" %}</strong>
+              <span>{% trans "by operator · recently" %}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cp-sidecar__card">
+        <p class="cp-sidecar__title">{% trans "Related" %}</p>
+        <div class="cp-sidecar__links">
+          <a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Site settings" %}</a>
+          <a href="{% url 'super:dashboard' %}">{% trans "Control plane" %}</a>
+        </div>
+      </div>
+      <div class="cp-sidecar__card">
+        <p class="cp-sidecar__title">{% trans "Empty-state example" %}</p>
+        <div class="cp-empty">
+          <div class="cp-empty__icon" aria-hidden="true">∅</div>
+          <div class="cp-empty__title">{% trans "No NPS responses yet" %}</div>
+          <div class="cp-empty__hint">{% trans "Sparklines and trend deltas appear when parents submit surveys — no mock data on live changelists." %}</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>

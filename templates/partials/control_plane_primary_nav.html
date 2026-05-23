@@ -3,8 +3,18 @@
    Pass D aesthetic: indigo→emerald gradient for the active pill (matches the
    platform palette); subtle ghost surface for inactive pills (no harsh
    white-on-dark borders). {% endcomment %}
-{% if PRIMARY_CONTROL_PLANE_NAV %}
+{% if PRIMARY_CONTROL_PLANE_NAV or show_contextual_help_drawer %}
 <nav class="cp-primary-nav rmc-horizontal-nav-rail px-3 py-2 border-bottom" aria-label="{% trans 'Primary product navigation' %}">
+  {% if show_contextual_help_drawer %}
+  <button type="button"
+          class="cp-primary-nav__pill cp-primary-nav__pill--help"
+          data-rmc-page-help
+          title="{% trans 'Need help on this page?' %}"
+          aria-label="{% trans 'Need help on this page?' %}">
+    <i class="bi bi-question-circle" aria-hidden="true"></i>
+    <span>{% trans "Need help on this page?" %}</span>
+  </button>
+  {% endif %}
   {% for item in PRIMARY_CONTROL_PLANE_NAV %}
   <a href="{{ item.url }}"
      class="cp-primary-nav__pill {% if item.is_current %}cp-primary-nav__pill--active{% endif %}"

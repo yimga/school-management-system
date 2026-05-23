@@ -30,7 +30,15 @@
   </div>
   {% endif %}
 
-  <section class="cp-hero">
+  <nav class="rmc-page-fold-nav rmc-section-nav cp-section__fold-nav sticky-top" aria-label="{% trans 'On this page' %}">
+    <a href="#rmc-admin-sec-hero" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Overview" %}</a>
+    <a href="#rmc-admin-sec-catalog" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
+    <a href="#rmc-admin-sec-tags" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Platform tags" %}</a>
+    <a href="#rmc-admin-sec-changelist" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Changelist preview" %}</a>
+    <a href="#rmc-admin-sec-changeform" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Change form preview" %}</a>
+  </nav>
+
+  <section class="cp-hero" id="rmc-admin-sec-hero" data-rmc-section-anchor>
     <div class="cp-hero__eyebrow">{% trans "Platform Backoffice" %}</div>
     <h1 class="cp-hero__title">{% trans "Operator catalog & raw records" %}</h1>
     <p class="cp-hero__lede">
@@ -78,7 +86,7 @@
     {% endfor %}
   </div>
 
-  <section class="cp-section" aria-labelledby="cp-catalog-heading">
+  <section class="cp-section" id="rmc-admin-sec-catalog" data-rmc-section-anchor aria-labelledby="cp-catalog-heading">
     <h2 class="cp-section__title" id="cp-catalog-heading">{% trans "Model catalog by section" %}</h2>
     <p class="cp-section__lede">{% trans "Direct access to each Django admin changelist. Counts are live from the registry." %}</p>
 
@@ -119,6 +127,27 @@
       </article>
       {% endfor %}
     </div>
+
+    <div class="rmc-admin-catalog-details mt-3">
+      {% for section in admin_catalog.sections %}
+      <details class="rmc-admin-catalog-section" id="rmc-admin-catalog-sec-{{ forloop.counter }}" data-rmc-admin-catalog-section data-admin-search="{{ section.title|lower }} {% for app in section.apps %}{{ app.app_name|lower }} {{ app.app_label|lower }} {% for model in app.models %}{{ model.search_blob }} {% endfor %}{% endfor %}">
+        <summary>
+          <span>{{ section.title }}</span>
+          <span class="small text-muted" data-rmc-section-visible-count>{{ section.model_count }}</span>
+        </summary>
+        <div class="rmc-admin-catalog-model-grid">
+          {% for app in section.apps %}
+          {% for model in app.models %}
+          <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-card" data-admin-search="{{ model.search_blob }}">
+            <span class="rmc-admin-catalog-model-card__name">{{ model.name }}</span>
+            <span class="rmc-admin-catalog-model-card__app text-muted small">{{ app.app_name }}</span>
+          </a>
+          {% endfor %}
+          {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+    </div>
     {% else %}
     <ul class="cp-catalog-card__items">
       {% for app in app_list %}
@@ -129,5 +158,7 @@
     </ul>
     {% endif %}
   </section>
+
+  {% include "admin/partials/admin_v1_index_surface_previews.html" %}
 </div>
 {% endblock %}

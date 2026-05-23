@@ -2,32 +2,44 @@
 
 from __future__ import annotations
 
+import uuid
+
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 from django.urls import reverse
+
+from apps.test_utils.http_clients import MANAGER_TEST_DEFAULTS, login_manager_client
 
 _MGR = "manager.runmycampus.com"
 
 
-@override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _MGR])
-class OperatorControlPlaneShellTests(TestCase):
+@override_settings(
+    **MANAGER_TEST_DEFAULTS,
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _MGR, "*"],
+)
+class OperatorControlPlaneShellTests(TransactionTestCase):
     databases = {"default"}
 
     def setUp(self):
         User = get_user_model()
+        suffix = uuid.uuid4().hex[:8]
         self.user = User.objects.create_user(
-            username="cp_shell_op",
+            username=f"cp_shell_op_{suffix}",
             password="x" * 8,
             is_staff=True,
             is_superuser=True,
         )
-        self.client = Client(HTTP_HOST=_MGR)
-        self.client.login(username=self.user.username, password="x" * 8)
+        self.client = login_manager_client(self.user, password="x" * 8)
 
-    def _assert_cp_shell(self, path_name: str, urlconf: str = "config.manager_urls"):
-        path = reverse(path_name, urlconf=urlconf)
+    def _assert_cp_shell(self, path_name: str):
+        path = reverse(path_name)
         resp = self.client.get(path)
-        self.assertEqual(resp.status_code, 200, msg=getattr(resp, "content", b"")[:400])
+        self.assertEqual(
+            resp.status_code,
+            200,
+            msg=f"{path} -> {resp.status_code} {resp.get('Location', '')!r} "
+            f"{getattr(resp, 'content', b'')[:200]!r}",
+        )
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-os-shell="control-plane"', body)
         self.assertIn('id="cp-main-content"', body)

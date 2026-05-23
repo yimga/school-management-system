@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-05-23T01:00:52.468532+00:00",
+  "local_head_sha": "c63c96840ace0321b65281010345dc788b040fde",
+  "missing_env": [
+    "RENDER_API_KEY",
+    "RENDER_SERVICE_ID"
+  ],
+  "reason": "env_absent",
+  "register_pillar": "aws",
+  "register_section_id": "hosting_render_sha_parity",
+  "status": "external_pending"
+}

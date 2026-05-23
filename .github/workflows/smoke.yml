@@ -67,7 +67,7 @@ jobs:
         with:
           name: sbom
           path: sbom.json
-          retention-days: 90
+          retention-days: 1
 
       - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
         timeout-minutes: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 55 || 30 }}
@@ -96,4 +96,4 @@ jobs:
             test-results
             playwright-report
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 1

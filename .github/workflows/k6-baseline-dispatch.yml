@@ -62,3 +62,4 @@ jobs:
           name: k6-baseline-output
           path: artifacts/k6
           if-no-files-found: ignore
+          retention-days: 1  # Strict storage hygiene — never default 90d

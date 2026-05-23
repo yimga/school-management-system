@@ -183,6 +183,7 @@ jobs:
           name: intoto-subject-macos
           path: ${{ runner.temp }}/intoto/macos-subject.json
           if-no-files-found: error
+          retention-days: 1
 
       - name: Notarize .dmg via xcrun notarytool
         env:

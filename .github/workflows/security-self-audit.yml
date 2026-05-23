@@ -79,4 +79,4 @@ jobs:
         with:
           name: security-self-audit-${{ github.sha }}
           path: self-audit.json
-          retention-days: 90
+          retention-days: 1

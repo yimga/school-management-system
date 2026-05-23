@@ -89,6 +89,8 @@ on:
       - "beta/school-management-system/static/js/theme-preference-bootstrap.js"
       - "beta/school-management-system/apps/**/urls*.py"
       - ".github/workflows/architectural-boundaries.yml"
+      - ".github/workflows/*.yml"
+      - "beta/school-management-system/scripts/verify_github_artifact_retention.py"
   workflow_dispatch: {}
 
 defaults:
@@ -847,6 +849,7 @@ jobs:
           SECRET_KEY: "ci-platform-pillar-gates-not-production-64chars-long"
           ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
         run: |
+          python scripts/verify_github_artifact_retention.py
           python scripts/verify_middleware_stack_order.py
           python scripts/verify_tenant_resolution_cache_keys.py
           python scripts/verify_list_search_adoption.py

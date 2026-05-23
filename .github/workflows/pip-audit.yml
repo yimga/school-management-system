@@ -89,3 +89,4 @@ jobs:
           name: pip-audit-report
           path: beta/school-management-system/pip-audit-report.json
           if-no-files-found: ignore
+          retention-days: 1  # Strict storage hygiene — never default 90d

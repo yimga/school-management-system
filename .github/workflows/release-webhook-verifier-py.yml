@@ -97,6 +97,7 @@ jobs:
         with:
           name: webhook-verifier-py-dist
           path: beta/school-management-system/packages/runmycampus-webhook-verifier-py/dist/*
+          retention-days: 1
 
   publish:
     name: Publish to PyPI (OIDC trusted publishing)

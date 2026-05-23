@@ -99,6 +99,7 @@ jobs:
         with:
           name: webhook-verifier-js-tarball
           path: beta/school-management-system/packages/runmycampus-webhook-verifier-js/*.tgz
+          retention-days: 1
 
   publish:
     name: Publish to npm with provenance (OIDC)

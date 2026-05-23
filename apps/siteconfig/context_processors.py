@@ -785,6 +785,17 @@ def site_settings(request):
                     if ctx["MANAGER_PLATFORM_ADMIN_SHELL"]
                     else {"quick_links": []}
                 )
+                if ctx["MANAGER_PLATFORM_ADMIN_SHELL"]:
+                    try:
+                        from config.admin import platform_admin_site
+                        from apps.siteconfig.platform_admin_catalog import (
+                            build_platform_admin_catalog,
+                        )
+
+                        _app_list = platform_admin_site.get_app_list(request)
+                        ctx["admin_catalog"] = build_platform_admin_catalog(_app_list)
+                    except OPTIONAL_CONTEXT_ERRORS:
+                        ctx["admin_catalog"] = None
             except OPTIONAL_CONTEXT_ERRORS:
                 ctx["STUDIO_FOCUS_SHELL"] = False
                 ctx["STUDIO_FOCUS_SIDEBAR"] = []

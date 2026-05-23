@@ -161,7 +161,8 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
   gap: 4px;
   padding: 6px 20px 8px;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   border-bottom: 1px solid var(--cp-chrome-hairline);
   pointer-events: auto;
 }

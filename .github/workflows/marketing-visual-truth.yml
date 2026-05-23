@@ -75,3 +75,4 @@ jobs:
             artifacts/marketing-visual-truth
             test-results
           if-no-files-found: ignore
+          retention-days: 1  # Strict storage hygiene — never default 90d

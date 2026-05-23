@@ -1085,6 +1085,19 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
 /* ============================================================
    Element 4 — Operator notebook quick-capture (floating)
    ============================================================ */
+/* Footer-docked notebook (opens above operator footer; keeps drag handle) */
+body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook {
+  position: fixed;
+  bottom: calc(var(--rmc-operator-footer-height, 56px) + 12px);
+  left: 20px;
+  right: auto;
+  z-index: 60;
+}
+
+body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook[data-rmc-notebook-state="minimized"] {
+  bottom: calc(var(--rmc-operator-footer-height, 56px) + 8px);
+}
+
 .lx-notebook {
   position: fixed;
   bottom: 100px;

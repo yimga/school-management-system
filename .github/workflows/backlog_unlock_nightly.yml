@@ -42,4 +42,4 @@ jobs:
         with:
           name: backlog-eval-snapshot
           path: backlog_eval_snapshot.json
-          retention-days: 14
+          retention-days: 1

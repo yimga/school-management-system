@@ -8,10 +8,17 @@ from django.test import SimpleTestCase
 class PageFoldStandardsTests(SimpleTestCase):
     def test_portal_base_wires_fold_standards(self):
         text = Path("templates/portal_base.html").read_text(encoding="utf-8")
+        chrome_styles = Path("templates/partials/rmc_platform_chrome_styles.html").read_text(
+            encoding="utf-8"
+        )
+        chrome_scripts = Path("templates/partials/rmc_platform_chrome_scripts.html").read_text(
+            encoding="utf-8"
+        )
         self.assertIn("back_to_top.html", text)
-        self.assertIn("rmc-page-fold-standards.css", text)
+        self.assertIn("rmc_platform_chrome_styles.html", text)
+        self.assertIn("rmc-page-fold-standards.css", chrome_styles)
         self.assertIn("rmc-page-fold-standards.js", text)
-        self.assertIn("rmc-scroll-container.js", text)
+        self.assertIn("rmc-scroll-container.js", chrome_scripts)
 
     def test_control_plane_skeleton_wires_fold_standards(self):
         text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")

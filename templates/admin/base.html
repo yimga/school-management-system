@@ -142,6 +142,9 @@
 
         {# ---------- Grid row 3 — static footer (viewport-pinned) ---------- #}
         {% if is_manager_host %}
+        <div class="rmc-footer-notebook-anchor" data-rmc-footer-notebook-anchor>
+          {% include "partials/cockpit/_operator_notebook.html" %}
+        </div>
         <footer class="rmc-app-shell__footer cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
           {% include "partials/rmc_operator_footer_compact.html" %}
         </footer>

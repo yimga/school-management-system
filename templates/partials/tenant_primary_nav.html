@@ -5,6 +5,16 @@
 {% endcomment %}
 {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
 <nav class="tp-primary-nav" aria-label="{% trans 'Primary portal navigation' %}" data-rmc-tenant-primary-nav="1">
+  {% if show_contextual_help_drawer %}
+  <button type="button"
+          class="tp-primary-nav__item tp-primary-nav__item--help"
+          data-rmc-page-help
+          title="{% trans 'Need help on this page?' %}"
+          aria-label="{% trans 'Need help on this page?' %}">
+    <i class="bi bi-question-circle" aria-hidden="true"></i>
+    <span>{% trans "Need help on this page?" %}</span>
+  </button>
+  {% endif %}
   {% if request.user.role == 'ADMIN' or request.user.is_staff %}
   <a href="{% url 'accounts:backend_dashboard' %}" class="tp-primary-nav__item"{% if request.path|slice:':18' == '/accounts/backend' or '/portal/backend' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
   <a href="{% url 'finance:dashboard' %}" class="tp-primary-nav__item">💳 {% trans "Finance" %}</a>

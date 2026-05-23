@@ -65,6 +65,7 @@ jobs:
           name: admin-changelist-render-audit
           path: docs/generated/admin_changelist_render_audit.json
           if-no-files-found: ignore
+          retention-days: 1
 
   admin-playwright-sweep:
     runs-on: ubuntu-latest
@@ -128,3 +129,4 @@ jobs:
             docs/generated/admin_playwright_sweep_audit.json
             debug-7911e1.log
           if-no-files-found: ignore
+          retention-days: 1  # Strict storage hygiene — never default 90d

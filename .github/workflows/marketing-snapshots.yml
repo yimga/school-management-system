@@ -86,3 +86,4 @@ jobs:
             test-results
             tests/e2e/marketing-snapshots.spec.js-snapshots
           if-no-files-found: ignore
+          retention-days: 1  # Strict storage hygiene — never default 90d

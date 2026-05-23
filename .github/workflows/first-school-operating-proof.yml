@@ -60,4 +60,4 @@ jobs:
         with:
           name: playwright-report
           path: beta/school-management-system/tests/playwright/playwright-report
-          retention-days: 14
+          retention-days: 1

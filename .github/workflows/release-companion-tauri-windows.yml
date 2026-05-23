@@ -192,6 +192,7 @@ jobs:
           name: intoto-subject-windows
           path: ${{ runner.temp }}/intoto/windows-subject.json
           if-no-files-found: error
+          retention-days: 1
 
       - name: Sign installers (signtool branch)
         if: ${{ env.SIGNTOOL_PROVIDER == 'signtool' }}
