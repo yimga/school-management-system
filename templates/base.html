@@ -38,6 +38,8 @@
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
     {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
+    {# v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. #}
+    <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
     {# v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. #}
     <script src="{% static 'js/rmc-command-bar.js' %}"></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
@@ -198,7 +200,7 @@
      focus rings / hover borders / button polish already shipped in form-system.css
      (lines 55-122) actually render. Previously the CSS was loaded but no element
      opted in, so every form ran on raw Bootstrap defaults. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}" data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %}>
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}" data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     {# Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. #}

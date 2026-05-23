@@ -450,6 +450,12 @@ TEMPLATES = [
                 "apps.platform_runtime.context_processors.ai_operating_layer_context",
                 "apps.platform_runtime.context_processors.system_actions_context",
                 "apps.platform_runtime.context_processors.offline_sync_bar_context",
+                # v3.62.5 Wave 2 local-first: emits `localization` dict
+                # (country_code, calendar, school_types, terminology,
+                # week_start, date_format, currency_code, is_rtl) into
+                # every template. Used by {% load localization %} tags +
+                # by base shells emitting data-rmc-* body attrs.
+                "apps.siteconfig.localization_context_processor.localization_context",
             ]
         },
     }

@@ -33,6 +33,8 @@
   <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
   {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
   <script src="{% static 'js/rmc-reveal.js' %}"></script>
+  {# v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. #}
+  <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
   {# v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. #}
   <script src="{% static 'js/rmc-command-bar.js' %}"></script>
   <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
@@ -179,6 +181,12 @@
             /* v3.58.5: /admin/ now uses .rmc-app-shell canvas scroll (single scrollable surface). */
             document.body.setAttribute('data-rmc-cp-scroll', 'canvas');
             document.body.setAttribute('data-rmc-page-help', '1');
+            /* v3.62.5 Wave 2 local-first: emit localization attrs for JS calendar widgets. */
+            document.body.setAttribute('data-rmc-country', '{{ localization.country_code|default:""|escapejs }}');
+            document.body.setAttribute('data-rmc-week-start', '{{ localization.week_start|default:1 }}');
+            document.body.setAttribute('data-rmc-date-format', '{{ localization.date_format|default:"%d/%m/%Y"|escapejs }}');
+            document.body.setAttribute('data-rmc-currency', '{{ localization.currency_code|default:"USD"|escapejs }}');
+            document.body.setAttribute('data-rmc-is-rtl', '{% if localization.is_rtl %}1{% else %}0{% endif %}');
             var legacyPage = document.getElementById('page');
             if (legacyPage) {
               legacyPage.classList.add('admin-cp-unified-page');
@@ -196,6 +204,12 @@
             /* v3.59.x Wave 11 Agent U: per-page-personality accent slug. */
             document.body.setAttribute('data-rmc-page-personality', '{{ rmc_page_personality|default:"tenant-admin"|escapejs }}');
             document.body.setAttribute('data-rmc-page-help', '1');
+            /* v3.62.5 Wave 2 local-first: emit localization attrs for tenant admin too. */
+            document.body.setAttribute('data-rmc-country', '{{ localization.country_code|default:""|escapejs }}');
+            document.body.setAttribute('data-rmc-week-start', '{{ localization.week_start|default:1 }}');
+            document.body.setAttribute('data-rmc-date-format', '{{ localization.date_format|default:"%d/%m/%Y"|escapejs }}');
+            document.body.setAttribute('data-rmc-currency', '{{ localization.currency_code|default:"USD"|escapejs }}');
+            document.body.setAttribute('data-rmc-is-rtl', '{% if localization.is_rtl %}1{% else %}0{% endif %}');
             document.body.classList.add('admin-premium-shell');
           }
         }

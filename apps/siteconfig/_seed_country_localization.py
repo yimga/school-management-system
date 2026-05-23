@@ -1788,3 +1788,102 @@ COUNTRY_REGIONAL_DEFAULT = {
     "TM": "east-asia", "UZ": "east-asia",
 }
 
+
+# ---------------------------------------------------------------------------
+# Tier 1 extensions (v3.62.5 Wave 1 completion) — merged in from per-region
+# extension modules built by the parallel research agents. Each module
+# exports a dict that gets folded into COUNTRY_LOCALIZATION.
+#
+# When a country exists in BOTH the original hand-curated block above AND
+# the extension module, the extension wins (since the extensions are the
+# more comprehensive hand-research). When a country exists in
+# COUNTRY_REGIONAL_DEFAULT but ALSO lands in an extension, we drop it from
+# the routing map below (Tier 1 entry now resolves directly).
+# ---------------------------------------------------------------------------
+
+try:
+    from ._seed_africa_extension import AFRICA_EXTENSION
+    COUNTRY_LOCALIZATION.update(AFRICA_EXTENSION)
+except ImportError:
+    AFRICA_EXTENSION = {}
+
+try:
+    from ._seed_latam_caribbean_extension import LATAM_CARIBBEAN_EXTENSION
+    COUNTRY_LOCALIZATION.update(LATAM_CARIBBEAN_EXTENSION)
+except ImportError:
+    LATAM_CARIBBEAN_EXTENSION = {}
+
+try:
+    from ._seed_asia_me_extension import ASIA_ME_EXTENSION
+    COUNTRY_LOCALIZATION.update(ASIA_ME_EXTENSION)
+except ImportError:
+    ASIA_ME_EXTENSION = {}
+
+try:
+    from ._seed_europe_oceania_extension import EUROPE_OCEANIA_EXTENSION
+    COUNTRY_LOCALIZATION.update(EUROPE_OCEANIA_EXTENSION)
+except ImportError:
+    EUROPE_OCEANIA_EXTENSION = {}
+
+
+# ---------------------------------------------------------------------------
+# Final Tier 1 patches — ZM/ZW were omitted from the Africa agent's batch.
+# Add them explicitly so every Anglophone African country is Tier 1.
+# ---------------------------------------------------------------------------
+
+COUNTRY_LOCALIZATION.setdefault("ZM", {
+    "calendar_system": {
+        "code": "zm-3-term", "label": "3 Terms (Zambian)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecce",      "label": "Early Childhood (ECCE)", "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",   "label": "Primary School",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-13"},
+        {"code": "secondary", "label": "Secondary (Junior+Senior)","glyph": "\U0001F393", "primary_sector": "secondary",     "typical_ages": "14-18"},
+        {"code": "tevet",     "label": "TEVET College",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university","label": "University",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "zm-g1",  "label": "Grade 1",     "order": 1},
+        {"code": "zm-g7",  "label": "Grade 7",     "order": 7},
+        {"code": "zm-g12", "label": "Grade 12",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Headteacher", "term": "Term",
+        "report_card": "Report Card", "grade_level": "Grade",
+    },
+})
+
+COUNTRY_LOCALIZATION.setdefault("ZW", {
+    "calendar_system": {
+        "code": "zw-3-term", "label": "3 Terms (Zimbabwean)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecd",       "label": "Early Childhood (ECD)",  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",   "label": "Primary School",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary", "label": "Secondary School (Form 1-6)","glyph": "\U0001F393","primary_sector": "secondary",    "typical_ages": "13-18"},
+        {"code": "polytech",  "label": "Polytechnic / Teachers' College","glyph": "\U0001F527", "primary_sector": "vocational","typical_ages": "16+"},
+        {"code": "university","label": "University",              "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "zw-g1",  "label": "Grade 1",   "order": 1},
+        {"code": "zw-g7",  "label": "Grade 7",   "order": 7},
+        {"code": "zw-f6",  "label": "Form 6 (A-Level)", "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Headmaster/mistress", "term": "Term",
+        "report_card": "Report", "grade_level": "Form / Grade",
+    },
+})
+
+# Drop any country from the regional-default routing map that now has a
+# Tier 1 entry — direct match must win, the routing map is only for the
+# fall-through case.
+for _cc in list(COUNTRY_REGIONAL_DEFAULT.keys()):
+    if _cc in COUNTRY_LOCALIZATION:
+        COUNTRY_REGIONAL_DEFAULT.pop(_cc, None)
+del _cc
+

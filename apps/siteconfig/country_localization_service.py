@@ -334,3 +334,83 @@ def resolve_primary_sector_for_school_type(
 def clear_cache() -> None:
     """Test helper — drop the lru_cache so changed seed data takes effect."""
     resolve_country_pack.cache_clear()
+
+
+# ---------------------------------------------------------------------------
+# Wave 2 (v3.62.5) — request-level resolution.
+#
+# `resolve_for_request(request)` is the canonical "what is THIS user's country?"
+# helper used by the context processor + everywhere that needs to know the
+# effective country for the current request (signup form, dashboards, date
+# pickers, currency display).
+#
+# Resolution order:
+#   1. request.school.country_code           — multi-tenant tenant context
+#   2. request.session["onboarding_country_code"] — public signup flow
+#   3. request.COOKIES["rmc_country"]        — long-lived UX preference
+#   4. Accept-Language header tail           — best-effort browser hint
+#   5. ""                                    — fall through to generic pack
+# ---------------------------------------------------------------------------
+
+def _country_from_school(request) -> str:
+    school = getattr(request, "school", None)
+    if school is None:
+        return ""
+    return normalize_country_code(getattr(school, "country_code", "") or "")
+
+
+def _country_from_session(request) -> str:
+    sess = getattr(request, "session", None)
+    if sess is None:
+        return ""
+    try:
+        return normalize_country_code(sess.get("onboarding_country_code") or "")
+    except Exception:  # noqa: BLE001 — session backends can raise
+        return ""
+
+
+def _country_from_cookie(request) -> str:
+    try:
+        return normalize_country_code(request.COOKIES.get("rmc_country") or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def _country_from_accept_language(request) -> str:
+    """Tail-of-primary-langtag heuristic, e.g. en-NG -> NG."""
+    try:
+        header = (request.META.get("HTTP_ACCEPT_LANGUAGE") or "").strip()
+        if not header:
+            return ""
+        primary = header.split(",")[0].strip()
+        if "-" not in primary:
+            return ""
+        return normalize_country_code(primary.split("-")[-1])
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def resolve_country_for_request(request) -> str:
+    """Return the effective ISO 3166-1 alpha-2 country code for this request."""
+    for resolver in (
+        _country_from_school,
+        _country_from_session,
+        _country_from_cookie,
+        _country_from_accept_language,
+    ):
+        cc = resolver(request)
+        if cc:
+            return cc
+    return ""
+
+
+def resolve_for_request(request) -> dict:
+    """Return the full localization pack for the current request.
+
+    Same pack shape as ``resolve_country_pack`` but the country_code is
+    derived from request context. Used by the context processor.
+    """
+    cc = resolve_country_for_request(request)
+    pack = dict(resolve_country_pack(cc))
+    pack["country_code"] = cc
+    return pack
