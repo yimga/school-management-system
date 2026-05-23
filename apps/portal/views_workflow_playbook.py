@@ -14,8 +14,7 @@ from apps.portal.workflow_playbook_ai import (
     build_offboarding_playbook_context,
     build_onboarding_playbook_context,
 )
-from apps.portal.views_ai_gateway import _api_guided_domain_assistant
-from services.ai_gateway import TaskType
+from apps.portal.views_ai_gateway import TaskType, _api_guided_domain_assistant
 
 
 def _decode_body(request) -> dict:

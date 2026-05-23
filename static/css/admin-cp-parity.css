@@ -750,3 +750,47 @@ body.admin-manager-shell #changelist.filtered .result-list-wrapper {
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 0.5rem;
 }
+
+/* v3.59.x canvas scroll — pairs with rmc-app-shell.css + data-rmc-cp-scroll=canvas on manager /admin/. */
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] {
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  overflow: hidden;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page.rmc-app-shell {
+  min-height: 0;
+  height: 100%;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .rmc-app-shell__canvas {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #cp-main-content,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .cp-admin-page-body,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #cp-main-content #content,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .cp-admin-index {
+  overflow: visible !important;
+  max-height: none !important;
+  min-height: 0;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] #page.admin-cp-unified-page {
+  display: block !important;
+  flex-direction: column !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] #page.admin-cp-unified-page > div:first-child,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] #page.admin-cp-unified-page .admin-sidebar-column {
+  flex: none !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}

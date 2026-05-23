@@ -62,7 +62,7 @@ def _open_support_ticket_count() -> int | None:
             GlobalSupportTicket.Status.IN_PROGRESS,
             GlobalSupportTicket.Status.WAITING,
         )
-        return GlobalSupportTicket.objects.filter(status__in=open_statuses).count()
+        return GlobalSupportTicket.objects.filter(status__in=open_statuses).count()  # tenant-isolation-allow: global-support-ticket-platform-wide-aggregate-for-operator-copilot
     except Exception:
         logger.debug("copilot open ticket count skipped", exc_info=True)
         return None
@@ -72,7 +72,7 @@ def _pending_ai_review_count() -> int | None:
     try:
         from apps.feedback.models import SupportAIInteractionReview
 
-        return SupportAIInteractionReview.objects.filter(
+        return SupportAIInteractionReview.objects.filter(  # tenant-isolation-allow: ai-review-queue-platform-wide-aggregate-for-operator-copilot
             status=SupportAIInteractionReview.Status.PENDING
         ).count()
     except Exception:

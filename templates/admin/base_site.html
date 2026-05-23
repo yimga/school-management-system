@@ -44,6 +44,11 @@
   <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  {% if is_manager_host %}
+  {% comment %} v3.59.x: grid + single canvas scroll contract (pairs with data-rmc-cp-scroll=canvas).
+     Without this sheet, .rmc-app-shell in admin/base.html has no layout rules — clicks/scroll break. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-app-shell.css' %}">
+  {% endif %}
   {% comment %} v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer.
      Loads AFTER design-tokens.css so personality overrides the defaults, but
      BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
@@ -174,6 +179,10 @@
             /* v3.58.5: /admin/ now uses .rmc-app-shell canvas scroll (single scrollable surface). */
             document.body.setAttribute('data-rmc-cp-scroll', 'canvas');
             document.body.setAttribute('data-rmc-page-help', '1');
+            var legacyPage = document.getElementById('page');
+            if (legacyPage) {
+              legacyPage.classList.add('admin-cp-unified-page');
+            }
           }
         } else {
           document.documentElement.setAttribute('data-surface', 'tenant');
@@ -303,6 +312,7 @@
   {% endif %}
   {% if is_manager_host %}
   {% include "partials/cp_context_drawer_shell.html" %}
+  <script src="{% static 'js/_pages/rmc-app-shell.js' %}" defer></script>
   <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
   <script nonce="{{ csp_nonce }}">
   (function () {

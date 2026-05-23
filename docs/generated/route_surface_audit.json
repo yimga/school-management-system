@@ -655,7 +655,7 @@
         },
         {
           "kind": "reverse",
-          "line": 891,
+          "line": 1035,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -664,7 +664,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1154,
+          "line": 1298,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -673,7 +673,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1218,
+          "line": 1362,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -682,7 +682,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1232,
+          "line": 1376,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -1352,7 +1352,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 61,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/admin_nav_bridge.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -2700,7 +2700,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 245,
           "name": "accounts:dismiss_mfa_banner",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'accounts:dismiss_mfa_banner' %}",
@@ -3023,6 +3023,15 @@
           "line": 451,
           "name": "accounts:district_lms_interop",
           "path": "apps/accounts/views_district_interop.py",
+          "raw": "reverse(\"accounts:district_lms_interop\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 34,
+          "name": "accounts:district_lms_interop",
+          "path": "apps/portal/views_partner_docs.py",
           "raw": "reverse(\"accounts:district_lms_interop\")",
           "reason": "",
           "status": "OK"
@@ -6632,7 +6641,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 53,
+          "line": 58,
           "name": "admin:app_list",
           "path": "templates/admin/base.html",
           "raw": "{% url 'admin:app_list' opts.app_label %}",
@@ -8698,7 +8707,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 56,
           "name": "admin:index",
           "path": "templates/admin/base.html",
           "raw": "{% url 'admin:index' %}",
@@ -17440,6 +17449,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 33,
+          "name": "api:ai-interop-assistant",
+          "path": "apps/portal/views_partner_docs.py",
+          "raw": "reverse(\"api:ai-interop-assistant\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 169,
           "name": "api:ai-interop-assistant",
           "path": "apps/siteconfig/tests/test_ai_center.py",
@@ -17524,6 +17542,28 @@
       "view": "apps.portal.views_ai_gateway.api_marketplace_recommend"
     },
     {
+      "name": "api:ai-mcp-invoke",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/invoke/",
+      "view": "apps.portal.views_mcp_product.api_mcp_invoke_tool"
+    },
+    {
+      "name": "api:ai-mcp-list-tools",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/tools/",
+      "view": "apps.portal.views_mcp_product.api_mcp_list_tools"
+    },
+    {
       "name": "api:ai-migration-suggest",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -17573,6 +17613,57 @@
       "template_usage": [],
       "url_path": "/api/ai/observability-assistant/",
       "view": "apps.portal.views_ai_gateway.api_observability_assistant"
+    },
+    {
+      "name": "api:ai-offboarding-playbook",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 59,
+          "name": "api:ai-offboarding-playbook",
+          "path": "apps/schools/views_tenant_self_offboarding.py",
+          "raw": "reverse(\"api:ai-offboarding-playbook\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/offboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_offboarding_playbook_ask"
+    },
+    {
+      "name": "api:ai-onboarding-playbook",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 126,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/tenant_studio_hub_context.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 61,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/views_school_onboarding.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        }
+      ],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/onboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_onboarding_playbook_ask"
     },
     {
       "name": "api:ai-policy-explain",
@@ -20655,7 +20746,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 626,
+          "line": 634,
           "name": "api:kb-typeahead",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:kb-typeahead\")",
@@ -22602,7 +22693,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 623,
+          "line": 631,
           "name": "api:support-deflection",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection\")",
@@ -22632,7 +22723,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 624,
+          "line": 632,
           "name": "api:support-deflection-ack",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection-ack\")",
@@ -23215,6 +23306,17 @@
       "template_usage": [],
       "url_path": "/api/v1/intervention/red-flags",
       "view": "apps.api.views_v1_intervention.InterventionRedFlagsView"
+    },
+    {
+      "name": "api_v1:localization-country-pack",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/v1/localization/<str:country_code>/",
+      "view": "apps.siteconfig.views_country_localization.country_localization_pack"
     },
     {
       "name": "api_v1:manifest",
@@ -25389,7 +25491,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 25,
+          "line": 43,
           "name": "configuration:change_request_detail",
           "path": "templates/platform_runtime/change_requests.html",
           "raw": "{% url 'configuration:change_request_detail' row.id %}",
@@ -26121,6 +26223,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 376,
+          "name": "feedback:help_center",
+          "path": "apps/platform_runtime/workflow_guidance.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 123,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
@@ -26133,6 +26244,24 @@
           "line": 21,
           "name": "feedback:help_center",
           "path": "apps/portal/help_proactive_inline.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 139,
+          "name": "feedback:help_center",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 42,
+          "name": "feedback:help_center",
+          "path": "apps/portal/views_education_pack.py",
           "raw": "reverse(\"feedback:help_center\")",
           "reason": "",
           "status": "OK"
@@ -26260,6 +26389,15 @@
         },
         {
           "kind": "template_url",
+          "line": 113,
+          "name": "feedback:help_center",
+          "path": "templates/components/dashboard_footer.html",
+          "raw": "{% url 'feedback:help_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
           "line": 38,
           "name": "feedback:help_center",
           "path": "templates/components/rmc_command_palette.html",
@@ -26308,6 +26446,15 @@
           "line": 16,
           "name": "feedback:help_center",
           "path": "templates/feedback/voice_of_customer.html",
+          "raw": "{% url 'feedback:help_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 6,
+          "name": "feedback:help_center",
+          "path": "templates/partials/ai_nutrition_label.html",
           "raw": "{% url 'feedback:help_center' %}",
           "reason": "",
           "status": "OK"
@@ -27166,7 +27313,7 @@
         },
         {
           "kind": "template_url",
-          "line": 175,
+          "line": 255,
           "name": "global_login_discovery",
           "path": "templates/schools/signup_school.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -27175,7 +27322,7 @@
         },
         {
           "kind": "template_url",
-          "line": 17,
+          "line": 72,
           "name": "global_login_discovery",
           "path": "templates/schools/signup_school_done.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -28268,6 +28415,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 43,
+          "name": "kb:kb_article_submit",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"kb:kb_article_submit\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 769,
           "name": "kb:kb_article_submit",
           "path": "apps/siteconfig/tests/test_admin_ui_smoke.py",
@@ -28290,7 +28446,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 30,
+          "line": 34,
           "name": "kb:kb_article_submit",
           "path": "templates/portal/kb_article_submit.html",
           "raw": "{% url 'kb:kb_article_submit' %}",
@@ -28779,7 +28935,7 @@
         },
         {
           "kind": "template_url",
-          "line": 213,
+          "line": 217,
           "name": "kb:kb_home",
           "path": "templates/portal/kb_article_submit.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -28968,7 +29124,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 625,
+          "line": 633,
           "name": "kb:kb_search",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"kb:kb_search\")",
@@ -30864,7 +31020,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1224,
+          "line": 1368,
           "name": "migration_cloud_super:bundle_new",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"migration_cloud_super:bundle_new\")",
@@ -31557,6 +31713,27 @@
       "template_usage": [],
       "url_path": "/super/migration/id-map/lookup/",
       "view": "apps.migration_cloud.views.MigrationCloudIdMappingLookupView"
+    },
+    {
+      "name": "migration_cloud_super:intake_ai_ask",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 3,
+          "name": "migration_cloud_super:intake_ai_ask",
+          "path": "templates/migration_cloud/partials/intake_ai_assistant.html",
+          "raw": "{% url 'migration_cloud_super:intake_ai_ask' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/migration/intake-ai-ask/",
+      "view": "apps.migration_cloud.views.MigrationCloudIntakeAIAskView"
     },
     {
       "name": "migration_cloud_super:maa_counsel_activate",
@@ -34515,7 +34692,7 @@
         },
         {
           "kind": "template_url",
-          "line": 214,
+          "line": 225,
           "name": "siteconfig:clear_preview",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -35315,7 +35492,7 @@
         },
         {
           "kind": "template_url",
-          "line": 314,
+          "line": 326,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/admin/base_site.html",
           "raw": "{% url \"siteconfig:console_domains_hub\" %}",
@@ -37918,6 +38095,15 @@
       "permission_requirement": "control_plane",
       "reasons": [],
       "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 121,
+          "name": "siteconfig:onboarding",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"siteconfig:onboarding\")",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "reverse",
           "line": 53,
@@ -40882,7 +41068,7 @@
         },
         {
           "kind": "template_url",
-          "line": 213,
+          "line": 224,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -40891,7 +41077,7 @@
         },
         {
           "kind": "template_url",
-          "line": 223,
+          "line": 234,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -45569,7 +45755,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 57,
           "name": "super:api_run_scheduled_purges",
           "path": "templates/schools/super_offboarding_queue.html",
           "raw": "{% url 'super:api_run_scheduled_purges' %}",
@@ -45871,7 +46057,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1010,
+          "line": 1154,
           "name": "super:api_school_timeline",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"super:api_school_timeline\", args=[school.id])",
@@ -47252,7 +47438,7 @@
         },
         {
           "kind": "reverse",
-          "line": 54,
+          "line": 75,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_offboarding_queue.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -47832,7 +48018,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 56,
           "name": "super:dashboard",
           "path": "templates/components/admin_nav_bridge.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -47880,6 +48066,42 @@
           "line": 20,
           "name": "super:dashboard",
           "path": "templates/errors/503_control_plane.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/bulk_create.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 53,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/dsar_export_and_close.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 19,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 26,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/timeline.html",
           "raw": "{% url 'super:dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -48066,7 +48288,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 18,
           "name": "super:dashboard",
           "path": "templates/schools/super_offboarding_queue.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -49184,6 +49406,64 @@
       "template_usage": [],
       "url_path": "/super/tools/legacy-csv-preview/",
       "view": "apps.schools.super_views_beyond_reach.super_legacy_sis_csv_preview"
+    },
+    {
+      "name": "super:lifecycle_timeline",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 65,
+          "name": "super:lifecycle_timeline",
+          "path": "apps/lifecycle/views_clone.py",
+          "raw": "reverse(\"super:lifecycle_timeline\", args=[cloned.new_id])",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 173,
+          "name": "super:lifecycle_timeline",
+          "path": "apps/lifecycle/views_rapid_create.py",
+          "raw": "reverse(\"super:lifecycle_timeline\", args=[school.id])",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 286,
+          "name": "super:lifecycle_timeline",
+          "path": "apps/lifecycle/views_rapid_create.py",
+          "raw": "reverse(\"super:lifecycle_timeline\", args=[school.id])",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        }
+      ],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 64,
+          "name": "super:lifecycle_timeline",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:lifecycle_timeline' event.school.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 88,
+          "name": "super:lifecycle_timeline",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:lifecycle_timeline' row.school.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/lifecycle/<uuid:school_id>/",
+      "view": "apps.lifecycle.views.LifecycleTimelineView"
     },
     {
       "name": "super:marketplace_activate_sandbox",
@@ -51353,6 +51633,27 @@
       "view": "apps.schools.super_views_policy.super_policy_diff"
     },
     {
+      "name": "super:provisioning_jobs",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 104,
+          "name": "super:provisioning_jobs",
+          "path": "templates/lifecycle/bulk_create.html",
+          "raw": "{% url 'super:provisioning_jobs' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/provisioning/jobs/",
+      "view": "apps.lifecycle.views_jobs.ProvisioningJobsDashboardView"
+    },
+    {
       "name": "super:pulse",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -51762,6 +52063,38 @@
       "view": "apps.schoolops.views_analytics.MealPlanAnalyticsView"
     },
     {
+      "name": "super:schools_bulk_create",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 18,
+          "name": "super:schools_bulk_create",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:schools_bulk_create' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/schools/bulk-create/",
+      "view": "apps.lifecycle.views_bulk.BulkSchoolCreateView"
+    },
+    {
+      "name": "super:schools_clone",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/schools/<uuid:source_id>/clone/",
+      "view": "apps.lifecycle.views_clone.CloneSchoolView"
+    },
+    {
       "name": "super:schools_list",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -51889,6 +52222,15 @@
       "template_usage": [
         {
           "kind": "template_url",
+          "line": 123,
+          "name": "super:schools_list",
+          "path": "templates/lifecycle/rapid_create.html",
+          "raw": "{% url 'super:schools_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
           "line": 16,
           "name": "super:schools_list",
           "path": "templates/platform_runtime/manager_offline_sync_center.html",
@@ -51962,6 +52304,28 @@
       ],
       "url_path": "/super/schools/",
       "view": "apps.schools.super_views_overview_surfaces.super_schools_list"
+    },
+    {
+      "name": "super:schools_migration_intent",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/schools/<uuid:school_id>/migration-intent/",
+      "view": "apps.lifecycle.views_migration_intent.SchoolMigrationIntentView"
+    },
+    {
+      "name": "super:schools_rapid_create",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "manager",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/schools/rapid/",
+      "view": "apps.lifecycle.views_rapid_create.RapidCreateView"
     },
     {
       "name": "super:security_command_center",
@@ -52786,7 +53150,7 @@
         },
         {
           "kind": "reverse",
-          "line": 41,
+          "line": 62,
           "name": "super:tenant_360",
           "path": "apps/schools/super_views_offboarding_queue.py",
           "raw": "reverse(\"super:tenant_360\", args=[school.id])",
@@ -52842,6 +53206,24 @@
       "scope": "manager",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "super:tenant_360",
+          "path": "templates/lifecycle/clone.html",
+          "raw": "{% url 'super:tenant_360' source.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 25,
+          "name": "super:tenant_360",
+          "path": "templates/lifecycle/timeline.html",
+          "raw": "{% url 'super:tenant_360' school.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 35,
@@ -54520,7 +54902,7 @@
         },
         {
           "kind": "reverse",
-          "line": 891,
+          "line": 1035,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -54529,7 +54911,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1154,
+          "line": 1298,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -54538,7 +54920,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1218,
+          "line": 1362,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -54547,7 +54929,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1232,
+          "line": 1376,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -55217,7 +55599,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 61,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/admin_nav_bridge.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -56565,7 +56947,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 245,
           "name": "accounts:dismiss_mfa_banner",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'accounts:dismiss_mfa_banner' %}",
@@ -56888,6 +57270,15 @@
           "line": 451,
           "name": "accounts:district_lms_interop",
           "path": "apps/accounts/views_district_interop.py",
+          "raw": "reverse(\"accounts:district_lms_interop\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 34,
+          "name": "accounts:district_lms_interop",
+          "path": "apps/portal/views_partner_docs.py",
           "raw": "reverse(\"accounts:district_lms_interop\")",
           "reason": "",
           "status": "OK"
@@ -60497,7 +60888,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 53,
+          "line": 58,
           "name": "admin:app_list",
           "path": "templates/admin/base.html",
           "raw": "{% url 'admin:app_list' opts.app_label %}",
@@ -62563,7 +62954,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 56,
           "name": "admin:index",
           "path": "templates/admin/base.html",
           "raw": "{% url 'admin:index' %}",
@@ -72501,6 +72892,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 33,
+          "name": "api:ai-interop-assistant",
+          "path": "apps/portal/views_partner_docs.py",
+          "raw": "reverse(\"api:ai-interop-assistant\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 169,
           "name": "api:ai-interop-assistant",
           "path": "apps/siteconfig/tests/test_ai_center.py",
@@ -72585,6 +72985,28 @@
       "view": "apps.portal.views_ai_gateway.api_marketplace_recommend"
     },
     {
+      "name": "api:ai-mcp-invoke",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/invoke/",
+      "view": "apps.portal.views_mcp_product.api_mcp_invoke_tool"
+    },
+    {
+      "name": "api:ai-mcp-list-tools",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/tools/",
+      "view": "apps.portal.views_mcp_product.api_mcp_list_tools"
+    },
+    {
       "name": "api:ai-migration-suggest",
       "permission_requirement": "authenticated_or_token",
       "reasons": [],
@@ -72634,6 +73056,57 @@
       "template_usage": [],
       "url_path": "/api/ai/observability-assistant/",
       "view": "apps.portal.views_ai_gateway.api_observability_assistant"
+    },
+    {
+      "name": "api:ai-offboarding-playbook",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 59,
+          "name": "api:ai-offboarding-playbook",
+          "path": "apps/schools/views_tenant_self_offboarding.py",
+          "raw": "reverse(\"api:ai-offboarding-playbook\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/offboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_offboarding_playbook_ask"
+    },
+    {
+      "name": "api:ai-onboarding-playbook",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 126,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/tenant_studio_hub_context.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 61,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/views_school_onboarding.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/onboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_onboarding_playbook_ask"
     },
     {
       "name": "api:ai-policy-explain",
@@ -75716,7 +76189,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 626,
+          "line": 634,
           "name": "api:kb-typeahead",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:kb-typeahead\")",
@@ -77663,7 +78136,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 623,
+          "line": 631,
           "name": "api:support-deflection",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection\")",
@@ -77693,7 +78166,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 624,
+          "line": 632,
           "name": "api:support-deflection-ack",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection-ack\")",
@@ -77982,7 +78455,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 743,
+          "line": 887,
           "name": "api_trial_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"api_trial_school\")",
@@ -78408,6 +78881,17 @@
       "template_usage": [],
       "url_path": "/api/v1/intervention/red-flags",
       "view": "apps.api.views_v1_intervention.InterventionRedFlagsView"
+    },
+    {
+      "name": "api_v1:localization-country-pack",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/v1/localization/<str:country_code>/",
+      "view": "apps.siteconfig.views_country_localization.country_localization_pack"
     },
     {
       "name": "api_v1:manifest",
@@ -81921,7 +82405,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 25,
+          "line": 43,
           "name": "configuration:change_request_detail",
           "path": "templates/platform_runtime/change_requests.html",
           "raw": "{% url 'configuration:change_request_detail' row.id %}",
@@ -84020,6 +84504,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 376,
+          "name": "feedback:help_center",
+          "path": "apps/platform_runtime/workflow_guidance.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 123,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
@@ -84032,6 +84525,24 @@
           "line": 21,
           "name": "feedback:help_center",
           "path": "apps/portal/help_proactive_inline.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 139,
+          "name": "feedback:help_center",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 42,
+          "name": "feedback:help_center",
+          "path": "apps/portal/views_education_pack.py",
           "raw": "reverse(\"feedback:help_center\")",
           "reason": "",
           "status": "OK"
@@ -84159,6 +84670,15 @@
         },
         {
           "kind": "template_url",
+          "line": 113,
+          "name": "feedback:help_center",
+          "path": "templates/components/dashboard_footer.html",
+          "raw": "{% url 'feedback:help_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
           "line": 38,
           "name": "feedback:help_center",
           "path": "templates/components/rmc_command_palette.html",
@@ -84207,6 +84727,15 @@
           "line": 16,
           "name": "feedback:help_center",
           "path": "templates/feedback/voice_of_customer.html",
+          "raw": "{% url 'feedback:help_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 6,
+          "name": "feedback:help_center",
+          "path": "templates/partials/ai_nutrition_label.html",
           "raw": "{% url 'feedback:help_center' %}",
           "reason": "",
           "status": "OK"
@@ -85155,7 +85684,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 66,
+          "line": 69,
           "name": "finance:generate_fees",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:generate_fees' %}",
@@ -85164,7 +85693,7 @@
         },
         {
           "kind": "template_url",
-          "line": 123,
+          "line": 126,
           "name": "finance:generate_fees",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:generate_fees' as empty_action_url %}",
@@ -85575,7 +86104,7 @@
         },
         {
           "kind": "template_url",
-          "line": 61,
+          "line": 64,
           "name": "finance:invoices",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:invoices' as money_primary_url %}",
@@ -85584,7 +86113,7 @@
         },
         {
           "kind": "template_url",
-          "line": 67,
+          "line": 70,
           "name": "finance:invoices",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:invoices' %}",
@@ -85593,7 +86122,7 @@
         },
         {
           "kind": "template_url",
-          "line": 154,
+          "line": 157,
           "name": "finance:invoices",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:invoices' as empty_action_url %}",
@@ -85748,7 +86277,7 @@
         },
         {
           "kind": "template_url",
-          "line": 70,
+          "line": 73,
           "name": "finance:payment_readiness_dashboard",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:payment_readiness_dashboard' %}",
@@ -85913,7 +86442,7 @@
         },
         {
           "kind": "template_url",
-          "line": 68,
+          "line": 71,
           "name": "finance:payments",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:payments' %}",
@@ -86257,7 +86786,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 69,
+          "line": 72,
           "name": "finance:trial_balance",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:trial_balance' %}",
@@ -86602,7 +87131,7 @@
         },
         {
           "kind": "template_url",
-          "line": 175,
+          "line": 255,
           "name": "global_login_discovery",
           "path": "templates/schools/signup_school.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -86611,7 +87140,7 @@
         },
         {
           "kind": "template_url",
-          "line": 17,
+          "line": 72,
           "name": "global_login_discovery",
           "path": "templates/schools/signup_school_done.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -88304,6 +88833,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 43,
+          "name": "kb:kb_article_submit",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"kb:kb_article_submit\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 769,
           "name": "kb:kb_article_submit",
           "path": "apps/siteconfig/tests/test_admin_ui_smoke.py",
@@ -88326,7 +88864,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 30,
+          "line": 34,
           "name": "kb:kb_article_submit",
           "path": "templates/portal/kb_article_submit.html",
           "raw": "{% url 'kb:kb_article_submit' %}",
@@ -88815,7 +89353,7 @@
         },
         {
           "kind": "template_url",
-          "line": 213,
+          "line": 217,
           "name": "kb:kb_home",
           "path": "templates/portal/kb_article_submit.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -89004,7 +89542,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 625,
+          "line": 633,
           "name": "kb:kb_search",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"kb:kb_search\")",
@@ -95215,7 +95753,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1227,
+          "line": 1371,
           "name": "migration_cloud_portal:bundle_new",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"migration_cloud_portal:bundle_new\")",
@@ -95743,6 +96281,27 @@
       "template_usage": [],
       "url_path": "/portal/configure/migration/id-map/lookup/",
       "view": "apps.migration_cloud.views.MigrationCloudIdMappingLookupView"
+    },
+    {
+      "name": "migration_cloud_portal:intake_ai_ask",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 3,
+          "name": "migration_cloud_portal:intake_ai_ask",
+          "path": "templates/migration_cloud/partials/intake_ai_assistant.html",
+          "raw": "{% url 'migration_cloud_portal:intake_ai_ask' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/portal/configure/migration/intake-ai-ask/",
+      "view": "apps.migration_cloud.views.MigrationCloudIntakeAIAskView"
     },
     {
       "name": "migration_cloud_portal:maa_counsel_activate",
@@ -97630,7 +98189,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1224,
+          "line": 1368,
           "name": "migration_cloud_super:bundle_new",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"migration_cloud_super:bundle_new\")",
@@ -98323,6 +98882,27 @@
       "template_usage": [],
       "url_path": "/super/migration/id-map/lookup/",
       "view": "apps.migration_cloud.views.MigrationCloudIdMappingLookupView"
+    },
+    {
+      "name": "migration_cloud_super:intake_ai_ask",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 3,
+          "name": "migration_cloud_super:intake_ai_ask",
+          "path": "templates/migration_cloud/partials/intake_ai_assistant.html",
+          "raw": "{% url 'migration_cloud_super:intake_ai_ask' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/migration/intake-ai-ask/",
+      "view": "apps.migration_cloud.views.MigrationCloudIntakeAIAskView"
     },
     {
       "name": "migration_cloud_super:maa_counsel_activate",
@@ -100495,7 +101075,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1190,
+          "line": 1334,
           "name": "onboard_migration_handoff",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_migration_handoff\")",
@@ -100504,7 +101084,7 @@
         },
         {
           "kind": "reverse",
-          "line": 879,
+          "line": 1023,
           "name": "onboard_migration_handoff",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_migration_handoff\")",
@@ -100513,7 +101093,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1122,
+          "line": 1266,
           "name": "onboard_migration_handoff",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse('onboard_migration_handoff')",
@@ -100610,7 +101190,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 621,
+          "line": 765,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -100619,7 +101199,7 @@
         },
         {
           "kind": "reverse",
-          "line": 656,
+          "line": 800,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -100628,7 +101208,7 @@
         },
         {
           "kind": "reverse",
-          "line": 685,
+          "line": 829,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -100637,7 +101217,7 @@
         },
         {
           "kind": "reverse",
-          "line": 636,
+          "line": 780,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -101479,6 +102059,27 @@
       "view": "apps.portal.views_student.admissions_application_status"
     },
     {
+      "name": "portal:ai_draft_lesson_outline",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 33,
+          "name": "portal:ai_draft_lesson_outline",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:ai_draft_lesson_outline\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/ai/draft/lesson-outline/",
+      "view": "apps.portal.views_ai_draft.ai_draft_lesson_outline"
+    },
+    {
       "name": "portal:ai_draft_parent_message",
       "permission_requirement": "authenticated",
       "reasons": [],
@@ -101488,6 +102089,15 @@
           "line": 931,
           "name": "portal:ai_draft_parent_message",
           "path": "apps/accounts/views.py",
+          "raw": "reverse(\"portal:ai_draft_parent_message\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 31,
+          "name": "portal:ai_draft_parent_message",
+          "path": "apps/portal/views_education_pack.py",
           "raw": "reverse(\"portal:ai_draft_parent_message\")",
           "reason": "",
           "status": "OK"
@@ -101503,7 +102113,17 @@
       "name": "portal:ai_draft_report_card_comment",
       "permission_requirement": "authenticated",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 32,
+          "name": "portal:ai_draft_report_card_comment",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:ai_draft_report_card_comment\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public",
       "status": "OK",
       "template_usage": [],
@@ -101514,7 +102134,17 @@
       "name": "portal:ai_semantic_student_search",
       "permission_requirement": "authenticated",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 41,
+          "name": "portal:ai_semantic_student_search",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:ai_semantic_student_search\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "public",
       "status": "OK",
       "template_usage": [],
@@ -101542,6 +102172,27 @@
       "template_usage": [],
       "url_path": "/portal/student/<int:student_id>/risk-drivers/",
       "view": "apps.portal.views_ai_surfaces.student_risk_drivers"
+    },
+    {
+      "name": "portal:ai_student_risk_explanation_regenerate",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 74,
+          "name": "portal:ai_student_risk_explanation_regenerate",
+          "path": "templates/portal/ai_surfaces/risk_drivers.html",
+          "raw": "{% url 'portal:ai_student_risk_explanation_regenerate' student.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/portal/student/<int:student_id>/risk-drivers/regenerate/",
+      "view": "apps.portal.views_ai_surfaces.student_risk_explanation_regenerate"
     },
     {
       "name": "portal:api_offline_enqueue",
@@ -102133,6 +102784,28 @@
       ],
       "url_path": "/portal/backend/documents/upload/",
       "view": "apps.portal.views_documents.document_upload"
+    },
+    {
+      "name": "portal:education_pack_parent",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/education/parent/",
+      "view": "apps.portal.views_education_pack.education_pack_parent"
+    },
+    {
+      "name": "portal:education_pack_teacher",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/education/teacher/",
+      "view": "apps.portal.views_education_pack.education_pack_teacher"
     },
     {
       "name": "portal:employer_confirm_hours",
@@ -103848,10 +104521,30 @@
           "raw": "{% url 'portal:parent_workflow' %}",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 26,
+          "name": "portal:parent_workflow",
+          "path": "templates/portal/education_pack_parent.html",
+          "raw": "{% url 'portal:parent_workflow' %}",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "url_path": "/portal/parent/workflow/",
       "view": "apps.portal.views_parent.parent_workflow_center"
+    },
+    {
+      "name": "portal:partner_documentation_assistant",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/partner-docs/assistant/",
+      "view": "apps.portal.views_partner_docs.partner_documentation_assistant"
     },
     {
       "name": "portal:photo_upload_generate",
@@ -104320,6 +105013,36 @@
       ],
       "url_path": "/portal/attendance/teacher/",
       "view": "apps.portal.views_teacher.record_teacher_attendance"
+    },
+    {
+      "name": "portal:runmycampus_guide",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 98,
+          "name": "portal:runmycampus_guide",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"portal:runmycampus_guide\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 44,
+          "name": "portal:runmycampus_guide",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:runmycampus_guide\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/guide/",
+      "view": "apps.portal.views_runmycampus_guide.runmycampus_guide"
     },
     {
       "name": "portal:seating_chart",
@@ -105533,7 +106256,7 @@
         },
         {
           "kind": "template_url",
-          "line": 70,
+          "line": 74,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/teacher/attendance.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_dash_url %}",
@@ -105732,6 +106455,15 @@
           "line": 138,
           "name": "portal:teacher_lesson_notes",
           "path": "templates/partials/portal_sidebar.html",
+          "raw": "{% url 'portal:teacher_lesson_notes' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 64,
+          "name": "portal:teacher_lesson_notes",
+          "path": "templates/portal/education_pack_teacher.html",
           "raw": "{% url 'portal:teacher_lesson_notes' %}",
           "reason": "",
           "status": "OK"
@@ -107586,7 +108318,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 721,
+          "line": 865,
           "name": "signup_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"signup_school\")",
@@ -107595,7 +108327,7 @@
         },
         {
           "kind": "reverse",
-          "line": 696,
+          "line": 840,
           "name": "signup_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"signup_school\")",
@@ -107644,7 +108376,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 60,
           "name": "signup_school",
           "path": "templates/schools/signup_school.html",
           "raw": "{% url 'signup_school' %}",
@@ -108586,7 +109318,7 @@
         },
         {
           "kind": "template_url",
-          "line": 214,
+          "line": 225,
           "name": "siteconfig:clear_preview",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -109386,7 +110118,7 @@
         },
         {
           "kind": "template_url",
-          "line": 314,
+          "line": 326,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/admin/base_site.html",
           "raw": "{% url \"siteconfig:console_domains_hub\" %}",
@@ -111989,6 +112721,15 @@
       "permission_requirement": "authenticated",
       "reasons": [],
       "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 121,
+          "name": "siteconfig:onboarding",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"siteconfig:onboarding\")",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "reverse",
           "line": 53,
@@ -114953,7 +115694,7 @@
         },
         {
           "kind": "template_url",
-          "line": 213,
+          "line": 224,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -114962,7 +115703,7 @@
         },
         {
           "kind": "template_url",
-          "line": 223,
+          "line": 234,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -119640,7 +120381,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 57,
           "name": "super:api_run_scheduled_purges",
           "path": "templates/schools/super_offboarding_queue.html",
           "raw": "{% url 'super:api_run_scheduled_purges' %}",
@@ -119942,7 +120683,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1010,
+          "line": 1154,
           "name": "super:api_school_timeline",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"super:api_school_timeline\", args=[school.id])",
@@ -121323,7 +122064,7 @@
         },
         {
           "kind": "reverse",
-          "line": 54,
+          "line": 75,
           "name": "super:dashboard",
           "path": "apps/schools/super_views_offboarding_queue.py",
           "raw": "reverse(\"super:dashboard\")",
@@ -121903,7 +122644,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 56,
           "name": "super:dashboard",
           "path": "templates/components/admin_nav_bridge.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -121951,6 +122692,42 @@
           "line": 20,
           "name": "super:dashboard",
           "path": "templates/errors/503_control_plane.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 36,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/bulk_create.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 53,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/dsar_export_and_close.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 19,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:dashboard' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 26,
+          "name": "super:dashboard",
+          "path": "templates/lifecycle/timeline.html",
           "raw": "{% url 'super:dashboard' %}",
           "reason": "",
           "status": "OK"
@@ -122137,7 +122914,7 @@
         },
         {
           "kind": "template_url",
-          "line": 12,
+          "line": 18,
           "name": "super:dashboard",
           "path": "templates/schools/super_offboarding_queue.html",
           "raw": "{% url 'super:dashboard' %}",
@@ -123255,6 +124032,64 @@
       "template_usage": [],
       "url_path": "/super/tools/legacy-csv-preview/",
       "view": "apps.schools.super_views_beyond_reach.super_legacy_sis_csv_preview"
+    },
+    {
+      "name": "super:lifecycle_timeline",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 65,
+          "name": "super:lifecycle_timeline",
+          "path": "apps/lifecycle/views_clone.py",
+          "raw": "reverse(\"super:lifecycle_timeline\", args=[cloned.new_id])",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 173,
+          "name": "super:lifecycle_timeline",
+          "path": "apps/lifecycle/views_rapid_create.py",
+          "raw": "reverse(\"super:lifecycle_timeline\", args=[school.id])",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 286,
+          "name": "super:lifecycle_timeline",
+          "path": "apps/lifecycle/views_rapid_create.py",
+          "raw": "reverse(\"super:lifecycle_timeline\", args=[school.id])",
+          "reason": "requires runtime arguments",
+          "status": "OK"
+        }
+      ],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 64,
+          "name": "super:lifecycle_timeline",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:lifecycle_timeline' event.school.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 88,
+          "name": "super:lifecycle_timeline",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:lifecycle_timeline' row.school.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/lifecycle/<uuid:school_id>/",
+      "view": "apps.lifecycle.views.LifecycleTimelineView"
     },
     {
       "name": "super:marketplace_activate_sandbox",
@@ -125424,6 +126259,27 @@
       "view": "apps.schools.super_views_policy.super_policy_diff"
     },
     {
+      "name": "super:provisioning_jobs",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 104,
+          "name": "super:provisioning_jobs",
+          "path": "templates/lifecycle/bulk_create.html",
+          "raw": "{% url 'super:provisioning_jobs' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/provisioning/jobs/",
+      "view": "apps.lifecycle.views_jobs.ProvisioningJobsDashboardView"
+    },
+    {
       "name": "super:pulse",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -125833,6 +126689,38 @@
       "view": "apps.schoolops.views_analytics.MealPlanAnalyticsView"
     },
     {
+      "name": "super:schools_bulk_create",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 18,
+          "name": "super:schools_bulk_create",
+          "path": "templates/lifecycle/jobs_dashboard.html",
+          "raw": "{% url 'super:schools_bulk_create' %}",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/super/schools/bulk-create/",
+      "view": "apps.lifecycle.views_bulk.BulkSchoolCreateView"
+    },
+    {
+      "name": "super:schools_clone",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/schools/<uuid:source_id>/clone/",
+      "view": "apps.lifecycle.views_clone.CloneSchoolView"
+    },
+    {
       "name": "super:schools_list",
       "permission_requirement": "control_plane",
       "reasons": [],
@@ -125960,6 +126848,15 @@
       "template_usage": [
         {
           "kind": "template_url",
+          "line": 123,
+          "name": "super:schools_list",
+          "path": "templates/lifecycle/rapid_create.html",
+          "raw": "{% url 'super:schools_list' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
           "line": 16,
           "name": "super:schools_list",
           "path": "templates/platform_runtime/manager_offline_sync_center.html",
@@ -126033,6 +126930,28 @@
       ],
       "url_path": "/super/schools/",
       "view": "apps.schools.super_views_overview_surfaces.super_schools_list"
+    },
+    {
+      "name": "super:schools_migration_intent",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/schools/<uuid:school_id>/migration-intent/",
+      "view": "apps.lifecycle.views_migration_intent.SchoolMigrationIntentView"
+    },
+    {
+      "name": "super:schools_rapid_create",
+      "permission_requirement": "control_plane",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/super/schools/rapid/",
+      "view": "apps.lifecycle.views_rapid_create.RapidCreateView"
     },
     {
       "name": "super:security_command_center",
@@ -126857,7 +127776,7 @@
         },
         {
           "kind": "reverse",
-          "line": 41,
+          "line": 62,
           "name": "super:tenant_360",
           "path": "apps/schools/super_views_offboarding_queue.py",
           "raw": "reverse(\"super:tenant_360\", args=[school.id])",
@@ -126913,6 +127832,24 @@
       "scope": "public",
       "status": "OK",
       "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 31,
+          "name": "super:tenant_360",
+          "path": "templates/lifecycle/clone.html",
+          "raw": "{% url 'super:tenant_360' source.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 25,
+          "name": "super:tenant_360",
+          "path": "templates/lifecycle/timeline.html",
+          "raw": "{% url 'super:tenant_360' school.id %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        },
         {
           "kind": "template_url",
           "line": 35,
@@ -128298,7 +129235,7 @@
         },
         {
           "kind": "reverse",
-          "line": 891,
+          "line": 1035,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -128307,7 +129244,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1154,
+          "line": 1298,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -128316,7 +129253,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1218,
+          "line": 1362,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -128325,7 +129262,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1232,
+          "line": 1376,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -128995,7 +129932,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 61,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/admin_nav_bridge.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -130343,7 +131280,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 245,
           "name": "accounts:dismiss_mfa_banner",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'accounts:dismiss_mfa_banner' %}",
@@ -130666,6 +131603,15 @@
           "line": 451,
           "name": "accounts:district_lms_interop",
           "path": "apps/accounts/views_district_interop.py",
+          "raw": "reverse(\"accounts:district_lms_interop\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 34,
+          "name": "accounts:district_lms_interop",
+          "path": "apps/portal/views_partner_docs.py",
           "raw": "reverse(\"accounts:district_lms_interop\")",
           "reason": "",
           "status": "OK"
@@ -134231,6 +135177,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 33,
+          "name": "api:ai-interop-assistant",
+          "path": "apps/portal/views_partner_docs.py",
+          "raw": "reverse(\"api:ai-interop-assistant\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 169,
           "name": "api:ai-interop-assistant",
           "path": "apps/siteconfig/tests/test_ai_center.py",
@@ -134315,6 +135270,28 @@
       "view": "apps.portal.views_ai_gateway.api_marketplace_recommend"
     },
     {
+      "name": "api:ai-mcp-invoke",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/invoke/",
+      "view": "apps.portal.views_mcp_product.api_mcp_invoke_tool"
+    },
+    {
+      "name": "api:ai-mcp-list-tools",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/tools/",
+      "view": "apps.portal.views_mcp_product.api_mcp_list_tools"
+    },
+    {
       "name": "api:ai-migration-suggest",
       "permission_requirement": "authenticated_or_token",
       "reasons": [],
@@ -134364,6 +135341,57 @@
       "template_usage": [],
       "url_path": "/api/ai/observability-assistant/",
       "view": "apps.portal.views_ai_gateway.api_observability_assistant"
+    },
+    {
+      "name": "api:ai-offboarding-playbook",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 59,
+          "name": "api:ai-offboarding-playbook",
+          "path": "apps/schools/views_tenant_self_offboarding.py",
+          "raw": "reverse(\"api:ai-offboarding-playbook\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/offboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_offboarding_playbook_ask"
+    },
+    {
+      "name": "api:ai-onboarding-playbook",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 126,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/tenant_studio_hub_context.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 61,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/views_school_onboarding.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        }
+      ],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/onboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_onboarding_playbook_ask"
     },
     {
       "name": "api:ai-policy-explain",
@@ -137446,7 +138474,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 626,
+          "line": 634,
           "name": "api:kb-typeahead",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:kb-typeahead\")",
@@ -139393,7 +140421,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 623,
+          "line": 631,
           "name": "api:support-deflection",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection\")",
@@ -139423,7 +140451,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 624,
+          "line": 632,
           "name": "api:support-deflection-ack",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection-ack\")",
@@ -139538,7 +140566,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 743,
+          "line": 887,
           "name": "api_trial_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"api_trial_school\")",
@@ -139964,6 +140992,17 @@
       "template_usage": [],
       "url_path": "/api/v1/intervention/red-flags",
       "view": "apps.api.views_v1_intervention.InterventionRedFlagsView"
+    },
+    {
+      "name": "api_v1:localization-country-pack",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "public_host",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/v1/localization/<str:country_code>/",
+      "view": "apps.siteconfig.views_country_localization.country_localization_pack"
     },
     {
       "name": "api_v1:manifest",
@@ -141769,7 +142808,7 @@
         },
         {
           "kind": "template_url",
-          "line": 175,
+          "line": 255,
           "name": "global_login_discovery",
           "path": "templates/schools/signup_school.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -141778,7 +142817,7 @@
         },
         {
           "kind": "template_url",
-          "line": 17,
+          "line": 72,
           "name": "global_login_discovery",
           "path": "templates/schools/signup_school_done.html",
           "raw": "{% url 'global_login_discovery' %}",
@@ -148021,7 +149060,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 1190,
+          "line": 1334,
           "name": "onboard_migration_handoff",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_migration_handoff\")",
@@ -148030,7 +149069,7 @@
         },
         {
           "kind": "reverse",
-          "line": 879,
+          "line": 1023,
           "name": "onboard_migration_handoff",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_migration_handoff\")",
@@ -148039,7 +149078,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1122,
+          "line": 1266,
           "name": "onboard_migration_handoff",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse('onboard_migration_handoff')",
@@ -148136,7 +149175,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 621,
+          "line": 765,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -148145,7 +149184,7 @@
         },
         {
           "kind": "reverse",
-          "line": 656,
+          "line": 800,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -148154,7 +149193,7 @@
         },
         {
           "kind": "reverse",
-          "line": 685,
+          "line": 829,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -148163,7 +149202,7 @@
         },
         {
           "kind": "reverse",
-          "line": 636,
+          "line": 780,
           "name": "onboard_wizard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"onboard_wizard\")",
@@ -148771,7 +149810,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 721,
+          "line": 865,
           "name": "signup_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"signup_school\")",
@@ -148780,7 +149819,7 @@
         },
         {
           "kind": "reverse",
-          "line": 696,
+          "line": 840,
           "name": "signup_school",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"signup_school\")",
@@ -148829,7 +149868,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 50,
+          "line": 60,
           "name": "signup_school",
           "path": "templates/schools/signup_school.html",
           "raw": "{% url 'signup_school' %}",
@@ -150081,7 +151120,7 @@
         },
         {
           "kind": "reverse",
-          "line": 891,
+          "line": 1035,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -150090,7 +151129,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1154,
+          "line": 1298,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -150099,7 +151138,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1218,
+          "line": 1362,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -150108,7 +151147,7 @@
         },
         {
           "kind": "reverse",
-          "line": 1232,
+          "line": 1376,
           "name": "accounts:backend_dashboard",
           "path": "apps/schools/signup_views.py",
           "raw": "reverse(\"accounts:backend_dashboard\")",
@@ -150778,7 +151817,7 @@
         },
         {
           "kind": "template_url",
-          "line": 56,
+          "line": 61,
           "name": "accounts:backend_dashboard",
           "path": "templates/components/admin_nav_bridge.html",
           "raw": "{% url 'accounts:backend_dashboard' %}",
@@ -152126,7 +153165,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 234,
+          "line": 245,
           "name": "accounts:dismiss_mfa_banner",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'accounts:dismiss_mfa_banner' %}",
@@ -152449,6 +153488,15 @@
           "line": 451,
           "name": "accounts:district_lms_interop",
           "path": "apps/accounts/views_district_interop.py",
+          "raw": "reverse(\"accounts:district_lms_interop\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 34,
+          "name": "accounts:district_lms_interop",
+          "path": "apps/portal/views_partner_docs.py",
           "raw": "reverse(\"accounts:district_lms_interop\")",
           "reason": "",
           "status": "OK"
@@ -158898,7 +159946,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 53,
+          "line": 58,
           "name": "admin:app_list",
           "path": "templates/admin/base.html",
           "raw": "{% url 'admin:app_list' opts.app_label %}",
@@ -164260,7 +165308,7 @@
         },
         {
           "kind": "template_url",
-          "line": 51,
+          "line": 56,
           "name": "admin:index",
           "path": "templates/admin/base.html",
           "raw": "{% url 'admin:index' %}",
@@ -172161,6 +173209,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 33,
+          "name": "api:ai-interop-assistant",
+          "path": "apps/portal/views_partner_docs.py",
+          "raw": "reverse(\"api:ai-interop-assistant\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 169,
           "name": "api:ai-interop-assistant",
           "path": "apps/siteconfig/tests/test_ai_center.py",
@@ -172245,6 +173302,28 @@
       "view": "apps.portal.views_ai_gateway.api_marketplace_recommend"
     },
     {
+      "name": "api:ai-mcp-invoke",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/invoke/",
+      "view": "apps.portal.views_mcp_product.api_mcp_invoke_tool"
+    },
+    {
+      "name": "api:ai-mcp-list-tools",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/mcp/tools/",
+      "view": "apps.portal.views_mcp_product.api_mcp_list_tools"
+    },
+    {
       "name": "api:ai-migration-suggest",
       "permission_requirement": "authenticated_or_token",
       "reasons": [],
@@ -172294,6 +173373,57 @@
       "template_usage": [],
       "url_path": "/api/ai/observability-assistant/",
       "view": "apps.portal.views_ai_gateway.api_observability_assistant"
+    },
+    {
+      "name": "api:ai-offboarding-playbook",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 59,
+          "name": "api:ai-offboarding-playbook",
+          "path": "apps/schools/views_tenant_self_offboarding.py",
+          "raw": "reverse(\"api:ai-offboarding-playbook\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/offboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_offboarding_playbook_ask"
+    },
+    {
+      "name": "api:ai-onboarding-playbook",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 126,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/tenant_studio_hub_context.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 61,
+          "name": "api:ai-onboarding-playbook",
+          "path": "apps/siteconfig/views_school_onboarding.py",
+          "raw": "reverse(\"api:ai-onboarding-playbook\")",
+          "reason": "protected by NoReverseMatch fallback",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/ai/onboarding-playbook/",
+      "view": "apps.portal.views_workflow_playbook.api_onboarding_playbook_ask"
     },
     {
       "name": "api:ai-policy-explain",
@@ -175376,7 +176506,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 626,
+          "line": 634,
           "name": "api:kb-typeahead",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:kb-typeahead\")",
@@ -177323,7 +178453,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 623,
+          "line": 631,
           "name": "api:support-deflection",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection\")",
@@ -177353,7 +178483,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 624,
+          "line": 632,
           "name": "api:support-deflection-ack",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"api:support-deflection-ack\")",
@@ -178046,6 +179176,17 @@
       "template_usage": [],
       "url_path": "/api/v1/intervention/red-flags",
       "view": "apps.api.views_v1_intervention.InterventionRedFlagsView"
+    },
+    {
+      "name": "api_v1:localization-country-pack",
+      "permission_requirement": "authenticated_or_token",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/api/v1/localization/<str:country_code>/",
+      "view": "apps.siteconfig.views_country_localization.country_localization_pack"
     },
     {
       "name": "api_v1:manifest",
@@ -183160,6 +184301,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 376,
+          "name": "feedback:help_center",
+          "path": "apps/platform_runtime/workflow_guidance.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 123,
           "name": "feedback:help_center",
           "path": "apps/portal/context_processors.py",
@@ -183172,6 +184322,24 @@
           "line": 21,
           "name": "feedback:help_center",
           "path": "apps/portal/help_proactive_inline.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 139,
+          "name": "feedback:help_center",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"feedback:help_center\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 42,
+          "name": "feedback:help_center",
+          "path": "apps/portal/views_education_pack.py",
           "raw": "reverse(\"feedback:help_center\")",
           "reason": "",
           "status": "OK"
@@ -183299,6 +184467,15 @@
         },
         {
           "kind": "template_url",
+          "line": 113,
+          "name": "feedback:help_center",
+          "path": "templates/components/dashboard_footer.html",
+          "raw": "{% url 'feedback:help_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
           "line": 38,
           "name": "feedback:help_center",
           "path": "templates/components/rmc_command_palette.html",
@@ -183347,6 +184524,15 @@
           "line": 16,
           "name": "feedback:help_center",
           "path": "templates/feedback/voice_of_customer.html",
+          "raw": "{% url 'feedback:help_center' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 6,
+          "name": "feedback:help_center",
+          "path": "templates/partials/ai_nutrition_label.html",
           "raw": "{% url 'feedback:help_center' %}",
           "reason": "",
           "status": "OK"
@@ -184295,7 +185481,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 66,
+          "line": 69,
           "name": "finance:generate_fees",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:generate_fees' %}",
@@ -184304,7 +185490,7 @@
         },
         {
           "kind": "template_url",
-          "line": 123,
+          "line": 126,
           "name": "finance:generate_fees",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:generate_fees' as empty_action_url %}",
@@ -184715,7 +185901,7 @@
         },
         {
           "kind": "template_url",
-          "line": 61,
+          "line": 64,
           "name": "finance:invoices",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:invoices' as money_primary_url %}",
@@ -184724,7 +185910,7 @@
         },
         {
           "kind": "template_url",
-          "line": 67,
+          "line": 70,
           "name": "finance:invoices",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:invoices' %}",
@@ -184733,7 +185919,7 @@
         },
         {
           "kind": "template_url",
-          "line": 154,
+          "line": 157,
           "name": "finance:invoices",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:invoices' as empty_action_url %}",
@@ -184888,7 +186074,7 @@
         },
         {
           "kind": "template_url",
-          "line": 70,
+          "line": 73,
           "name": "finance:payment_readiness_dashboard",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:payment_readiness_dashboard' %}",
@@ -185053,7 +186239,7 @@
         },
         {
           "kind": "template_url",
-          "line": 68,
+          "line": 71,
           "name": "finance:payments",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:payments' %}",
@@ -185397,7 +186583,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 69,
+          "line": 72,
           "name": "finance:trial_balance",
           "path": "templates/finance/dashboard.html",
           "raw": "{% url 'finance:trial_balance' %}",
@@ -186458,6 +187644,15 @@
       "reverse_usage": [
         {
           "kind": "reverse",
+          "line": 43,
+          "name": "kb:kb_article_submit",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"kb:kb_article_submit\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
           "line": 769,
           "name": "kb:kb_article_submit",
           "path": "apps/siteconfig/tests/test_admin_ui_smoke.py",
@@ -186480,7 +187675,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 30,
+          "line": 34,
           "name": "kb:kb_article_submit",
           "path": "templates/portal/kb_article_submit.html",
           "raw": "{% url 'kb:kb_article_submit' %}",
@@ -186969,7 +188164,7 @@
         },
         {
           "kind": "template_url",
-          "line": 213,
+          "line": 217,
           "name": "kb:kb_home",
           "path": "templates/portal/kb_article_submit.html",
           "raw": "{% url 'kb:kb_home' %}",
@@ -187158,7 +188353,7 @@
       "reverse_usage": [
         {
           "kind": "reverse",
-          "line": 625,
+          "line": 633,
           "name": "kb:kb_search",
           "path": "apps/feedback/views.py",
           "raw": "reverse(\"kb:kb_search\")",
@@ -187393,6 +188588,28 @@
       "template_usage": [],
       "url_path": "/kb/wopi/files/<int:document_id>/contents",
       "view": "apps.portal.views_office.wopi_file_contents"
+    },
+    {
+      "name": "lifecycle_dsar_export_and_close",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/configure/offboarding/export-and-close/",
+      "view": "apps.lifecycle.views_dsar.dsar_export_and_close"
+    },
+    {
+      "name": "lifecycle_migration_status",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/migration/status/",
+      "view": "apps.lifecycle.views_migration_status.tenant_migration_status"
     },
     {
       "name": "marketing_cookie_policy",
@@ -188211,6 +189428,27 @@
       "view": "apps.portal.views_student.admissions_application_status"
     },
     {
+      "name": "portal:ai_draft_lesson_outline",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 33,
+          "name": "portal:ai_draft_lesson_outline",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:ai_draft_lesson_outline\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/ai/draft/lesson-outline/",
+      "view": "apps.portal.views_ai_draft.ai_draft_lesson_outline"
+    },
+    {
       "name": "portal:ai_draft_parent_message",
       "permission_requirement": "authenticated",
       "reasons": [],
@@ -188220,6 +189458,15 @@
           "line": 931,
           "name": "portal:ai_draft_parent_message",
           "path": "apps/accounts/views.py",
+          "raw": "reverse(\"portal:ai_draft_parent_message\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 31,
+          "name": "portal:ai_draft_parent_message",
+          "path": "apps/portal/views_education_pack.py",
           "raw": "reverse(\"portal:ai_draft_parent_message\")",
           "reason": "",
           "status": "OK"
@@ -188235,7 +189482,17 @@
       "name": "portal:ai_draft_report_card_comment",
       "permission_requirement": "authenticated",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 32,
+          "name": "portal:ai_draft_report_card_comment",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:ai_draft_report_card_comment\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "tenant",
       "status": "OK",
       "template_usage": [],
@@ -188246,7 +189503,17 @@
       "name": "portal:ai_semantic_student_search",
       "permission_requirement": "authenticated",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 41,
+          "name": "portal:ai_semantic_student_search",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:ai_semantic_student_search\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "tenant",
       "status": "OK",
       "template_usage": [],
@@ -188274,6 +189541,27 @@
       "template_usage": [],
       "url_path": "/portal/student/<int:student_id>/risk-drivers/",
       "view": "apps.portal.views_ai_surfaces.student_risk_drivers"
+    },
+    {
+      "name": "portal:ai_student_risk_explanation_regenerate",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [
+        {
+          "kind": "template_url",
+          "line": 74,
+          "name": "portal:ai_student_risk_explanation_regenerate",
+          "path": "templates/portal/ai_surfaces/risk_drivers.html",
+          "raw": "{% url 'portal:ai_student_risk_explanation_regenerate' student.pk %}",
+          "reason": "requires template context arguments",
+          "status": "OK"
+        }
+      ],
+      "url_path": "/portal/student/<int:student_id>/risk-drivers/regenerate/",
+      "view": "apps.portal.views_ai_surfaces.student_risk_explanation_regenerate"
     },
     {
       "name": "portal:api_offline_enqueue",
@@ -188865,6 +190153,28 @@
       ],
       "url_path": "/portal/backend/documents/upload/",
       "view": "apps.portal.views_documents.document_upload"
+    },
+    {
+      "name": "portal:education_pack_parent",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/education/parent/",
+      "view": "apps.portal.views_education_pack.education_pack_parent"
+    },
+    {
+      "name": "portal:education_pack_teacher",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/education/teacher/",
+      "view": "apps.portal.views_education_pack.education_pack_teacher"
     },
     {
       "name": "portal:employer_confirm_hours",
@@ -190580,10 +191890,30 @@
           "raw": "{% url 'portal:parent_workflow' %}",
           "reason": "",
           "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 26,
+          "name": "portal:parent_workflow",
+          "path": "templates/portal/education_pack_parent.html",
+          "raw": "{% url 'portal:parent_workflow' %}",
+          "reason": "",
+          "status": "OK"
         }
       ],
       "url_path": "/portal/parent/workflow/",
       "view": "apps.portal.views_parent.parent_workflow_center"
+    },
+    {
+      "name": "portal:partner_documentation_assistant",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/partner-docs/assistant/",
+      "view": "apps.portal.views_partner_docs.partner_documentation_assistant"
     },
     {
       "name": "portal:photo_upload_generate",
@@ -191052,6 +192382,36 @@
       ],
       "url_path": "/portal/attendance/teacher/",
       "view": "apps.portal.views_teacher.record_teacher_attendance"
+    },
+    {
+      "name": "portal:runmycampus_guide",
+      "permission_requirement": "authenticated",
+      "reasons": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 98,
+          "name": "portal:runmycampus_guide",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"portal:runmycampus_guide\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 44,
+          "name": "portal:runmycampus_guide",
+          "path": "apps/portal/views_education_pack.py",
+          "raw": "reverse(\"portal:runmycampus_guide\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
+      "scope": "tenant",
+      "status": "OK",
+      "template_usage": [],
+      "url_path": "/portal/guide/",
+      "view": "apps.portal.views_runmycampus_guide.runmycampus_guide"
     },
     {
       "name": "portal:seating_chart",
@@ -192265,7 +193625,7 @@
         },
         {
           "kind": "template_url",
-          "line": 70,
+          "line": 74,
           "name": "portal:teacher_dashboard_alias",
           "path": "templates/teacher/attendance.html",
           "raw": "{% url 'portal:teacher_dashboard_alias' as teacher_dash_url %}",
@@ -192464,6 +193824,15 @@
           "line": 138,
           "name": "portal:teacher_lesson_notes",
           "path": "templates/partials/portal_sidebar.html",
+          "raw": "{% url 'portal:teacher_lesson_notes' %}",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "template_url",
+          "line": 64,
+          "name": "portal:teacher_lesson_notes",
+          "path": "templates/portal/education_pack_teacher.html",
           "raw": "{% url 'portal:teacher_lesson_notes' %}",
           "reason": "",
           "status": "OK"
@@ -194136,7 +195505,26 @@
       "name": "school_studio",
       "permission_requirement": "public",
       "reasons": [],
-      "reverse_usage": [],
+      "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 130,
+          "name": "school_studio",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"school_studio\", urlconf=\"config.tenant_urls\")",
+          "reason": "",
+          "status": "OK"
+        },
+        {
+          "kind": "reverse",
+          "line": 110,
+          "name": "school_studio",
+          "path": "apps/portal/views_runmycampus_guide.py",
+          "raw": "reverse(\"school_studio\", urlconf=\"config.tenant_urls\")",
+          "reason": "",
+          "status": "OK"
+        }
+      ],
       "scope": "tenant",
       "status": "OK",
       "template_usage": [
@@ -195130,7 +196518,7 @@
         },
         {
           "kind": "template_url",
-          "line": 214,
+          "line": 225,
           "name": "siteconfig:clear_preview",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:clear_preview' %}",
@@ -195930,7 +197318,7 @@
         },
         {
           "kind": "template_url",
-          "line": 314,
+          "line": 326,
           "name": "siteconfig:console_domains_hub",
           "path": "templates/admin/base_site.html",
           "raw": "{% url \"siteconfig:console_domains_hub\" %}",
@@ -198533,6 +199921,15 @@
       "permission_requirement": "authenticated",
       "reasons": [],
       "reverse_usage": [
+        {
+          "kind": "reverse",
+          "line": 121,
+          "name": "siteconfig:onboarding",
+          "path": "apps/portal/tenant_proactive_suggestions.py",
+          "raw": "reverse(\"siteconfig:onboarding\")",
+          "reason": "",
+          "status": "OK"
+        },
         {
           "kind": "reverse",
           "line": 53,
@@ -201497,7 +202894,7 @@
         },
         {
           "kind": "template_url",
-          "line": 213,
+          "line": 224,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -201506,7 +202903,7 @@
         },
         {
           "kind": "template_url",
-          "line": 223,
+          "line": 234,
           "name": "siteconfig:toggle_preview_mode",
           "path": "templates/admin/base_site.html",
           "raw": "{% url 'siteconfig:toggle_preview_mode' %}",
@@ -205988,7 +207385,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 45,
+          "line": 49,
           "name": "tenant_offboarding_cancel",
           "path": "templates/siteconfig/tenant_self_offboarding.html",
           "raw": "{% url 'tenant_offboarding_cancel' %}",
@@ -206009,7 +207406,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 43,
+          "line": 47,
           "name": "tenant_offboarding_export",
           "path": "templates/siteconfig/tenant_self_offboarding.html",
           "raw": "{% url 'tenant_offboarding_export' %}",
@@ -206051,7 +207448,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 44,
+          "line": 48,
           "name": "tenant_offboarding_request",
           "path": "templates/siteconfig/tenant_self_offboarding.html",
           "raw": "{% url 'tenant_offboarding_request' %}",
@@ -206072,7 +207469,7 @@
       "template_usage": [
         {
           "kind": "template_url",
-          "line": 42,
+          "line": 46,
           "name": "tenant_offboarding_snapshot",
           "path": "templates/siteconfig/tenant_self_offboarding.html",
           "raw": "{% url 'tenant_offboarding_snapshot' %}",
@@ -206244,12 +207641,12 @@
   ],
   "summary": {
     "broken_count": 0,
-    "reverse_usages": 2888,
+    "reverse_usages": 2910,
     "risk_count": 0,
-    "routes_audited": 7887,
+    "routes_audited": 7936,
     "status": "ROUTE SYSTEM CERTIFIED",
-    "template_href_action_usages": 302,
-    "template_url_usages": 2412
+    "template_href_action_usages": 308,
+    "template_url_usages": 2430
   },
   "urlconfs": {
     "manager": "config.manager_urls",

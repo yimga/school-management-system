@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T09:33:14.835221+00:00",
+  "generated_at": "2026-05-23T00:28:51.381548+00:00",
   "verdict": "OPERATOR_HELP_CENTER_PASS",
   "pass_count": 38,
   "fail_count": 0,
@@ -230,7 +230,7 @@
       "id": "tests",
       "label": "Operator help center + manager path + HTTP tests",
       "status": "PASS",
-      "proof": "contract: tered.\n...............\n----------------------------------------------------------------------\nRan 15 tests in 1.187s\n\nOK\nhttp: skipped (set RMC_VERIFY_OPERATOR_HTTP=1 for full Client HTTP gate)"
+      "proof": "contract: tered.\n...............\n----------------------------------------------------------------------\nRan 15 tests in 2.179s\n\nOK\nhttp: skipped (set RMC_VERIFY_OPERATOR_HTTP=1 for full Client HTTP gate)"
     }
   ]
 }

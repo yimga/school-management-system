@@ -30,7 +30,6 @@
     "templates/admin/includes/admin_operator_outcome_deck.html",
     "templates/admin/includes/admin_operator_steering_strip.html",
     "templates/admin/includes/model_count_badge.html",
-    "templates/admin/includes/operator_path_banner.html",
     "templates/admin/includes/tenant_admin_decision_banner.html",
     "templates/admin/index.html",
     "templates/admin/index_superadmin.html",
@@ -57,6 +56,7 @@
     "templates/admin/portal/partials/communication_test_preview.html",
     "templates/admin/portal/partials/syllabus_student_preview.html",
     "templates/admin/portal/portalfeatureitem/change_form.html",
+    "templates/admin/schools/school/delete_guided.html",
     "templates/admin/schools/school/waive_subscription_form.html",
     "templates/admin/sidebar_inner.html",
     "templates/admin/siteconfig/app_index.html",
@@ -95,6 +95,10 @@
     "apps/migration_cloud/views_guardian_consent_admin.py": [
       97
     ],
+    "apps/platform_runtime/workflow_registry_promoted.py": [
+      296,
+      413
+    ],
     "apps/schools/platform_admin_surface_bridges.py": [
       163,
       240,
@@ -132,7 +136,7 @@
       585
     ],
     "apps/schools/super_admin_paired_surfaces.py": [
-      220
+      232
     ],
     "apps/schools/super_views_catalog.py": [
       32,
@@ -143,7 +147,7 @@
       460
     ],
     "apps/siteconfig/admin.py": [
-      638
+      701
     ],
     "apps/siteconfig/portal_sidebar_items.py": [
       1315
@@ -335,7 +339,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-05-20T12:45:29.270930+00:00",
+  "generated_at": "2026-05-23T00:35:16.804600+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -356,11 +360,20 @@
       126
     ],
     "apps/migration_cloud/api/rate_limiting.py": [
-      227
+      242
     ],
     "apps/platform_runtime/onboarding.py": [
       84,
       128
+    ],
+    "apps/platform_runtime/workflow_registry_promoted.py": [
+      62,
+      101,
+      218,
+      257,
+      322,
+      361,
+      413
     ],
     "apps/schools/platform_admin_surface_bridges.py": [
       114,
@@ -402,11 +415,11 @@
       733
     ],
     "apps/schools/super_admin_paired_surfaces.py": [
-      213
+      225
     ],
     "apps/siteconfig/admin.py": [
-      703,
-      733
+      766,
+      796
     ],
     "apps/siteconfig/forms.py": [
       1518
@@ -415,8 +428,8 @@
       95
     ],
     "apps/siteconfig/models.py": [
-      1625,
-      1822
+      1747,
+      1944
     ],
     "apps/siteconfig/unfold_dashboard.py": [
       5
@@ -631,16 +644,17 @@
       409
     ],
     "apps/schools/admin.py": [
-      154,
-      212
+      157,
+      215,
+      268
     ],
     "apps/schools/control_plane_nav.py": [
-      92,
-      102,
-      104,
-      109,
-      120,
-      991
+      93,
+      103,
+      105,
+      131,
+      144,
+      1046
     ],
     "apps/schools/dashboard_rbac.py": [
       7,
@@ -667,16 +681,16 @@
     "apps/schools/super_admin_paired_surfaces.py": [
       3,
       39,
-      200,
-      206,
-      213,
-      220,
-      236,
-      249,
-      275,
-      276,
-      301,
-      412
+      212,
+      218,
+      225,
+      232,
+      246,
+      261,
+      287,
+      288,
+      308,
+      310
     ],
     "apps/schools/super_views_catalog.py": [
       32,
@@ -685,7 +699,7 @@
     "apps/schools/super_views_config.py": [
       77,
       84,
-      370
+      377
     ],
     "apps/schools/super_views_enterprise_security.py": [
       455,
@@ -713,16 +727,17 @@
       79
     ],
     "apps/siteconfig/admin.py": [
-      539,
-      638,
-      659,
-      700,
-      703,
-      715,
-      716,
-      733,
-      1986,
-      1994
+      330,
+      602,
+      701,
+      722,
+      763,
+      766,
+      778,
+      779,
+      796,
+      2049,
+      2057
     ],
     "apps/siteconfig/context_processors.py": [
       418,
@@ -736,6 +751,10 @@
     "apps/siteconfig/middleware/maintenance_mode.py": [
       23,
       63
+    ],
+    "apps/siteconfig/page_personality.py": [
+      71,
+      78
     ],
     "apps/siteconfig/portal_sidebar_items.py": [
       861,
@@ -1029,19 +1048,20 @@
     "apps/schools/admin.py": {
       "category": "harmless_django_admin_registration",
       "line_numbers": [
-        154,
-        212
+        157,
+        215,
+        268
       ]
     },
     "apps/schools/control_plane_nav.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        92,
-        102,
-        104,
-        109,
-        120,
-        991
+        93,
+        103,
+        105,
+        131,
+        144,
+        1046
       ]
     },
     "apps/schools/dashboard_rbac.py": {
@@ -1083,16 +1103,16 @@
       "line_numbers": [
         3,
         39,
-        200,
-        206,
-        213,
-        220,
-        236,
-        249,
-        275,
-        276,
-        301,
-        412
+        212,
+        218,
+        225,
+        232,
+        246,
+        261,
+        287,
+        288,
+        308,
+        310
       ]
     },
     "apps/schools/super_views_catalog.py": {
@@ -1107,7 +1127,7 @@
       "line_numbers": [
         77,
         84,
-        370
+        377
       ]
     },
     "apps/schools/super_views_enterprise_security.py": {
@@ -1153,16 +1173,17 @@
     "apps/siteconfig/admin.py": {
       "category": "harmless_django_admin_registration",
       "line_numbers": [
-        539,
-        638,
-        659,
-        700,
-        703,
-        715,
-        716,
-        733,
-        1986,
-        1994
+        330,
+        602,
+        701,
+        722,
+        763,
+        766,
+        778,
+        779,
+        796,
+        2049,
+        2057
       ]
     },
     "apps/siteconfig/context_processors.py": {
@@ -1185,6 +1206,13 @@
       "line_numbers": [
         23,
         63
+      ]
+    },
+    "apps/siteconfig/page_personality.py": {
+      "category": "redirect_or_link_to_admin",
+      "line_numbers": [
+        71,
+        78
       ]
     },
     "apps/siteconfig/portal_sidebar_items.py": {
@@ -1550,19 +1578,20 @@
     },
     "apps/schools/admin.py": {
       "line_numbers": [
-        154,
-        212
+        157,
+        215,
+        268
       ],
       "v2": "admin_fallback_only"
     },
     "apps/schools/control_plane_nav.py": {
       "line_numbers": [
-        92,
-        102,
-        104,
-        109,
-        120,
-        991
+        93,
+        103,
+        105,
+        131,
+        144,
+        1046
       ],
       "v2": "needs_model_service_support"
     },
@@ -1604,16 +1633,16 @@
       "line_numbers": [
         3,
         39,
-        200,
-        206,
-        213,
-        220,
-        236,
-        249,
-        275,
-        276,
-        301,
-        412
+        212,
+        218,
+        225,
+        232,
+        246,
+        261,
+        287,
+        288,
+        308,
+        310
       ],
       "v2": "needs_model_service_support"
     },
@@ -1628,7 +1657,7 @@
       "line_numbers": [
         77,
         84,
-        370
+        377
       ],
       "v2": "needs_model_service_support"
     },
@@ -1674,16 +1703,17 @@
     },
     "apps/siteconfig/admin.py": {
       "line_numbers": [
-        539,
-        638,
-        659,
-        700,
-        703,
-        715,
-        716,
-        733,
-        1986,
-        1994
+        330,
+        602,
+        701,
+        722,
+        763,
+        766,
+        778,
+        779,
+        796,
+        2049,
+        2057
       ],
       "v2": "admin_fallback_only"
     },
@@ -1706,6 +1736,13 @@
       "line_numbers": [
         23,
         63
+      ],
+      "v2": "needs_model_service_support"
+    },
+    "apps/siteconfig/page_personality.py": {
+      "line_numbers": [
+        71,
+        78
       ],
       "v2": "needs_model_service_support"
     },
@@ -2008,23 +2045,24 @@
           "lines": [
             77,
             84,
-            370
+            377
           ],
           "path": "apps/schools/super_views_config.py",
           "v2": "needs_model_service_support"
         },
         {
           "lines": [
-            539,
-            638,
-            659,
-            700,
-            703,
-            715,
-            716,
-            733,
-            1986,
-            1994
+            330,
+            602,
+            701,
+            722,
+            763,
+            766,
+            778,
+            779,
+            796,
+            2049,
+            2057
           ],
           "path": "apps/siteconfig/admin.py",
           "v2": "admin_fallback_only"
@@ -2052,6 +2090,14 @@
             63
           ],
           "path": "apps/siteconfig/middleware/maintenance_mode.py",
+          "v2": "needs_model_service_support"
+        },
+        {
+          "lines": [
+            71,
+            78
+          ],
+          "path": "apps/siteconfig/page_personality.py",
           "v2": "needs_model_service_support"
         },
         {
@@ -2346,20 +2392,21 @@
         },
         {
           "lines": [
-            154,
-            212
+            157,
+            215,
+            268
           ],
           "path": "apps/schools/admin.py",
           "v2": "admin_fallback_only"
         },
         {
           "lines": [
-            92,
-            102,
-            104,
-            109,
-            120,
-            991
+            93,
+            103,
+            105,
+            131,
+            144,
+            1046
           ],
           "path": "apps/schools/control_plane_nav.py",
           "v2": "needs_model_service_support"
@@ -2406,16 +2453,16 @@
           "lines": [
             3,
             39,
-            200,
-            206,
-            213,
-            220,
-            236,
-            249,
-            275,
-            276,
-            301,
-            412
+            212,
+            218,
+            225,
+            232,
+            246,
+            261,
+            287,
+            288,
+            308,
+            310
           ],
           "path": "apps/schools/super_admin_paired_surfaces.py",
           "v2": "needs_model_service_support"
@@ -2477,8 +2524,7 @@
       "templates": [
         {
           "lines": [
-            182,
-            247
+            1
           ],
           "path": "templates/admin/admin_dashboard.html",
           "straggler_class": "admin_fallback_only"
@@ -2499,8 +2545,8 @@
         },
         {
           "lines": [
-            42,
-            44
+            56,
+            58
           ],
           "path": "templates/admin/base.html",
           "straggler_class": "admin_fallback_only"
@@ -2521,20 +2567,20 @@
         },
         {
           "lines": [
-            411,
-            412,
-            413,
-            426,
-            427,
-            428,
-            437,
-            446,
-            455,
-            464,
-            473,
-            482,
-            491,
-            500
+            418,
+            419,
+            420,
+            433,
+            434,
+            435,
+            444,
+            453,
+            462,
+            471,
+            480,
+            489,
+            498,
+            507
           ],
           "path": "templates/admin/index.html",
           "straggler_class": "admin_fallback_only"
@@ -2543,8 +2589,8 @@
           "lines": [
             58,
             59,
-            112,
-            137
+            118,
+            143
           ],
           "path": "templates/admin/index_superadmin.html",
           "straggler_class": "admin_fallback_only"
@@ -2566,6 +2612,13 @@
         },
         {
           "lines": [
+            14
+          ],
+          "path": "templates/admin/schools/school/delete_guided.html",
+          "straggler_class": "admin_fallback_only"
+        },
+        {
+          "lines": [
             23,
             27
           ],
@@ -2581,9 +2634,9 @@
         },
         {
           "lines": [
-            13,
-            29,
-            44
+            20,
+            36,
+            60
           ],
           "path": "templates/components/admin_nav_bridge.html",
           "straggler_class": "needs_model_service_support"
@@ -2613,7 +2666,7 @@
         },
         {
           "lines": [
-            305
+            316
           ],
           "path": "templates/partials/portal_sidebar.html",
           "straggler_class": "needs_model_service_support"
@@ -2770,6 +2823,11 @@
   "product_renders_admin_template": [],
   "registrations_by_app": [],
   "reports_bulk_export_admin_line_hits": {
+    "apps/platform_runtime/workflow_registry_promoted.py": [
+      36,
+      101,
+      231
+    ],
     "apps/schools/platform_admin_surface_bridges.py": [
       625
     ],
@@ -2803,7 +2861,7 @@
     "admin_bridge_hits_by_category": {
       "harmless_django_admin_registration": 4,
       "permission_and_admin_or_bridge": 31,
-      "redirect_or_link_to_admin": 32
+      "redirect_or_link_to_admin": 33
     },
     "admin_template_files": 74,
     "admin_url_namespaces_by_app_label_segment": {
@@ -2834,11 +2892,11 @@
       "reports": 4,
       "runtime": 13,
       "sales": 2,
-      "schools": 9,
+      "schools": 10,
       "siteconfig": 42,
       "system": 1
     },
-    "approx_product_code_lines_with_admin_substring": 593,
+    "approx_product_code_lines_with_admin_substring": 610,
     "approx_register_calls_in_admin_py": 0,
     "apps_with_admin_py": 38,
     "high_registration_app_labels_gte_3": [],
@@ -2847,11 +2905,11 @@
       "accounts_security": 7,
       "marketplace": 4,
       "metadata": 18,
-      "other": 33,
+      "other": 34,
       "platform_runtime_fleet": 2,
       "reports_compliance": 3
     },
-    "product_files_mentioning_admin_bridge": 67,
+    "product_files_mentioning_admin_bridge": 68,
     "shipped_category_regression_checks": {
       "backend_classroom_academic_years_before_admin": "pass",
       "backend_student_portal_tabbed_before_admin": "pass",
@@ -2859,12 +2917,11 @@
       "entity_catalog_template_order": "pass",
       "metadata_console_order": "pass"
     },
-    "template_files_mentioning_admin_url_or_href": 29
+    "template_files_mentioning_admin_url_or_href": 30
   },
   "template_admin_url_reference_hits": {
     "templates/admin/admin_dashboard.html": [
-      182,
-      247
+      1
     ],
     "templates/admin/app_index.html": [
       11
@@ -2873,8 +2930,8 @@
       23
     ],
     "templates/admin/base.html": [
-      42,
-      44
+      56,
+      58
     ],
     "templates/admin/change_form.html": [
       6
@@ -2883,26 +2940,26 @@
       7
     ],
     "templates/admin/index.html": [
-      411,
-      412,
-      413,
-      426,
-      427,
-      428,
-      437,
-      446,
-      455,
-      464,
-      473,
-      482,
-      491,
-      500
+      418,
+      419,
+      420,
+      433,
+      434,
+      435,
+      444,
+      453,
+      462,
+      471,
+      480,
+      489,
+      498,
+      507
     ],
     "templates/admin/index_superadmin.html": [
       58,
       59,
-      112,
-      137
+      118,
+      143
     ],
     "templates/admin/index_tenant.html": [
       53,
@@ -2910,6 +2967,9 @@
     ],
     "templates/admin/login.html": [
       61
+    ],
+    "templates/admin/schools/school/delete_guided.html": [
+      14
     ],
     "templates/admin/schools/school/waive_subscription_form.html": [
       23,
@@ -2919,9 +2979,9 @@
       9
     ],
     "templates/components/admin_nav_bridge.html": [
-      13,
-      29,
-      44
+      20,
+      36,
+      60
     ],
     "templates/migration_cloud/console.html": [
       42
@@ -2935,7 +2995,7 @@
       47
     ],
     "templates/partials/portal_sidebar.html": [
-      305
+      316
     ],
     "templates/partials/shell_chrome_backend_ops_strip.html": [
       62
@@ -2986,6 +3046,9 @@
       308,
       309
     ],
+    "apps/platform_runtime/workflow_registry_promoted.py": [
+      348
+    ],
     "apps/schools/platform_admin_surface_bridges.py": [
       114,
       121,
@@ -3024,14 +3087,14 @@
       443
     ],
     "apps/siteconfig/admin.py": [
-      700,
-      703
+      763,
+      766
     ],
     "apps/siteconfig/forms.py": [
       1518
     ],
     "apps/siteconfig/models.py": [
-      1822
+      1944
     ],
     "apps/siteconfig/views.py": [
       807

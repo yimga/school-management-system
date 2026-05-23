@@ -65,11 +65,11 @@
   {% with pillars=cockpit.trust_pillars_alerts.pillars %}
   {% with ok_count=0 warn_count=0 danger_count=0 info_count=0 neutral_count=0 %}
     {% comment %} Walk once and tally — Django template can't increment, so we use a regroup-style approach via filters. {% endcomment %}
-    {% regroup pillars by status|default:"neutral" as _status_groups %}
+    {% regroup pillars by status|default:"neutral" as status_groups %}
     <div class="lx-trust-pillars__summary" role="group" aria-label="{% trans 'Posture summary' %}">
       <div class="lx-trust-pillars__summary-label">{{ cockpit.trust_pillars_alerts.summary_label|default:_("Posture") }}</div>
       <ul class="lx-trust-pillars__summary-counts" role="list">
-        {% for group in _status_groups %}
+        {% for group in status_groups %}
         <li class="lx-trust-pillars__summary-chip lx-trust-pillars__summary-chip--{{ group.grouper }}" role="listitem">
           <span class="lx-trust-pillars__summary-dot lx-trust-pillars__summary-dot--{{ group.grouper }}" aria-hidden="true"></span>
           <span class="lx-trust-pillars__summary-count">{{ group.list|length }}</span>

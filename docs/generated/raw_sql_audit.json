@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-05-20T12:45:35.376327+00:00",
+  "generated_at": "2026-05-23T00:35:25.410574+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -893,7 +893,7 @@
     {
       "classification": "needs_review",
       "file": "apps/schools/rls_readiness.py",
-      "line": "140",
+      "line": "142",
       "pattern": "connection_cursor"
     },
     {

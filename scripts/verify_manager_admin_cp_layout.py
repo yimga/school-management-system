@@ -41,6 +41,10 @@ DOCUMENT_MAIN_CONTRACT = re.compile(
     r"body\.admin-manager-shell\[data-rmc-cp-scroll=\"document\"\].*#cp-main-content\s*\{[^}]*overflow-y:\s*visible",
     re.DOTALL,
 )
+CANVAS_SCROLL_CONTRACT = re.compile(
+    r"body\.admin-manager-shell\[data-rmc-cp-scroll=\"canvas\"\].*\.rmc-app-shell__canvas\s*\{[^}]*overflow-y:\s*auto",
+    re.DOTALL,
+)
 CP_PAGE_BODY_CONTRACT = re.compile(
     r"cp-admin-page-body",
     re.DOTALL,
@@ -76,6 +80,10 @@ def check_css() -> list[str]:
                 errors.append(
                     f"{rel}: missing document-scroll #cp-main-content overflow-y:visible contract"
                 )
+            if not CANVAS_SCROLL_CONTRACT.search(text):
+                errors.append(
+                    f"{rel}: missing canvas-scroll .rmc-app-shell__canvas overflow-y:auto contract"
+                )
     admin_base = (REPO_ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
     if "admin-cp-unified-page" not in admin_base:
         errors.append("templates/admin/base.html missing admin-cp-unified-page class")
@@ -85,10 +93,18 @@ def check_css() -> list[str]:
         errors.append("templates/admin/base.html missing cp-admin-page-body (super parity)")
     if 'data-rmc-cp-scroll="main"' in admin_base:
         errors.append("templates/admin/base.html must not set data-rmc-cp-scroll=main on #page")
+    if "rmc-app-shell admin-cp-unified-page" not in admin_base:
+        errors.append("templates/admin/base.html must combine rmc-app-shell + admin-cp-unified-page")
     base_site = (REPO_ROOT / "templates/admin/base_site.html").read_text(encoding="utf-8")
-    if "data-rmc-cp-scroll', 'document'" not in base_site:
+    if "data-rmc-cp-scroll', 'canvas'" not in base_site:
         errors.append(
-            "templates/admin/base_site.html must set data-rmc-cp-scroll=document for manager admin"
+            "templates/admin/base_site.html must set data-rmc-cp-scroll=canvas for manager admin"
+        )
+    if "rmc-app-shell.css" not in base_site:
+        errors.append("templates/admin/base_site.html must load rmc-app-shell.css on manager host")
+    if "legacyPage.classList.add('admin-cp-unified-page')" not in base_site:
+        errors.append(
+            "templates/admin/base_site.html must tag legacy #page with admin-cp-unified-page"
         )
     if "control-plane-skeleton-root.css" not in base_site:
         errors.append("templates/admin/base_site.html must load control-plane-skeleton-root.css")

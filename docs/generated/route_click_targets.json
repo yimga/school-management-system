@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-05-20T12:47:28.143350+00:00",
-  "nav_item_count": 75,
+  "generated_at": "2026-05-23T00:14:38.743419+00:00",
+  "nav_item_count": 76,
   "lazy_fallback_count": 0,
   "targets": [
     {
@@ -50,6 +50,12 @@
       "label": "Schools list",
       "url": "/super/schools/",
       "url_name": "super:schools_list"
+    },
+    {
+      "id": "super_offboarding_queue",
+      "label": "Offboarding queue",
+      "url": "/super/offboarding/",
+      "url_name": "super:offboarding_queue"
     },
     {
       "id": "super_provision",

@@ -46,6 +46,20 @@ body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] {
     linear-gradient(180deg, #0a0d22 0%, #07091a 100%);                                 /* off-token-allow: dark-chrome-admin-bg */
 }
 
+/* v3.59.x: light operator canvas per preview_app_shell_admin_v1_200x.html — dark
+   chrome header/sidebar, airy catalog surface (not a white Unfold slab). */
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .rmc-app-shell__canvas {
+  background:
+    radial-gradient(1200px 500px at 18% -5%, rgba(99,102,241,0.05), transparent 60%), /* off-token-allow: admin-canvas-radial */
+    radial-gradient(1100px 500px at 82% -10%, rgba(16,185,129,0.04), transparent 60%), /* off-token-allow: admin-canvas-radial */
+    var(--surface-bg, #f5f5f7);
+  color: var(--text-primary, #1d1d1f);
+}
+body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .cp-admin-canvas-main {
+  background: transparent !important;
+  color: inherit;
+}
+
 /* === Dashboard hero card (templates/admin/index.html .dashboard-header) === */
 body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .dashboard-header {
   background: linear-gradient(180deg, rgba(15,21,48,0.92) 0%, rgba(7,9,26,0.88) 100%); /* off-token-allow: dark-chrome-admin-hero */

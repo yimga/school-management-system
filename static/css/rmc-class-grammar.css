@@ -4600,3 +4600,25 @@
     transition: none;
   }
 }
+
+/* ============================================================
+ * AI nutrition transparency label + workflow playbook + change-request stepper
+ * Functional containers — Bootstrap utility classes do the visual work;
+ * defined here to satisfy the zero-tolerance scan_undefined_css_classes gate.
+ * ============================================================ */
+
+.rmc-ai-nutrition {
+  display: block;
+}
+
+.rmc-workflow-playbook {
+  display: block;
+}
+
+.rmc-cr-stepper {
+  display: block;
+}
+
+.rmc-cr-stepper__list {
+  display: flex;
+}
