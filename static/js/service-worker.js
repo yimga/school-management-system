@@ -106,7 +106,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.64.0-template-marketplace-waves-b-c-d-e-closeout-models-migration-setup-step-studio-fold-deep-links-playwright-iframe-compare-palette-split-75-thumbnails-ai-live-smoke-wave-e-scaffolds-2026-05-23";
+const CACHE_VERSION = "sms-v3.64.1-click-failure-rootcause-fix-2026-05-23";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

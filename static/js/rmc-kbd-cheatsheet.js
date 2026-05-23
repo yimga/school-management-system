@@ -397,6 +397,14 @@
     else open();
   });
 
+  document.addEventListener("click", function (e) {
+    var target = e.target && e.target.closest ? e.target : null;
+    var trigger = target ? target.closest("[data-rmc-kbd-cheatsheet-trigger]") : null;
+    if (!trigger) return;
+    e.preventDefault();
+    open();
+  });
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", syncPinButton);
   } else {

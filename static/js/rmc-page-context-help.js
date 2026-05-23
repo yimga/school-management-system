@@ -32,8 +32,10 @@
   }
 
   document.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-rmc-page-help]");
+    var target = e.target && e.target.closest ? e.target : null;
+    var btn = target ? target.closest("[data-rmc-page-help]") : null;
     if (!btn) return;
+    if (btn === document.body || btn === document.documentElement) return;
     e.preventDefault();
     openPageHelp();
   });

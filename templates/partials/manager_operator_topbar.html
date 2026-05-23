@@ -30,7 +30,7 @@
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1">
           </div>
           {% if request.user.is_authenticated %}
-            <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" onclick="typeof window.cpShowShortcutsHelp === 'function' && window.cpShowShortcutsHelp();" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
+            <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
               <i class="bi bi-command" aria-hidden="true"></i>
             </button>
             <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-xl-inline-flex" title="{% trans 'Studio workspace' %}">
