@@ -1500,9 +1500,28 @@ def studio_shell(request, mode=None):
                 _row["layout_family_name"] = LAYOUT_FAMILY_NAMES.get(
                     _row.get("layout_family"), ""
                 )
+            _tpl_urls: dict[str, str] = {}
+            for _name, _url_name in (
+                ("browse", "template_marketplace:browse"),
+                ("ai_recommend", "template_marketplace:ai_recommend"),
+            ):
+                try:
+                    _tpl_urls[_name] = reverse(_url_name)
+                except NoReverseMatch:
+                    _tpl_urls[_name] = ""
+            if _tpl_urls.get("browse"):
+                for _row in _overlay_rows:
+                    try:
+                        _row["detail_url"] = reverse(
+                            "template_marketplace:detail", args=[_row["key"]]
+                        )
+                    except NoReverseMatch:
+                        _row["detail_url"] = ""
             context["experience_template_overlays"] = _overlay_rows
+            context["experience_template_marketplace_urls"] = _tpl_urls
         except (ImportError, AttributeError, TypeError, ValueError):
             context["experience_template_overlays"] = []
+            context["experience_template_marketplace_urls"] = {}
 
     if mode == "launch" and school:
         try:
