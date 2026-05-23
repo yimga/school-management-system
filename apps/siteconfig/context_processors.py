@@ -1412,6 +1412,41 @@ def lexicon_context(request):
     except (AttributeError, DatabaseError, ImportError, RuntimeError, TypeError, ValueError):
         payload_json = ""
         full = {}
+    # v3.62.6 Wave 3 local-first: layer country-pack terminology BETWEEN
+    # operator overrides and global defaults. Order of precedence (highest wins):
+    #   1. Tenant lexicon (operator-configured per-school via terminology UI)
+    #   2. country_pack.terminology (country-local defaults — Wave 1 seed)
+    #   3. LEXICON_REGISTRY built-in defaults (English-leaning)
+    #
+    # Because `resolve_all_terms` ALWAYS fills every key with at least a default,
+    # we can't tell from `full` alone which keys are operator-overridden. So we
+    # query `lexicon_payload` (which only emits operator deltas) to detect the
+    # override set, then upsert country-pack values for everything NOT overridden.
+    try:
+        from apps.siteconfig.country_localization_service import resolve_for_request
+        from apps.siteconfig.terminology_service import lexicon_payload as _lp
+
+        pack = resolve_for_request(request) if request is not None else {}
+        country_terms = (pack or {}).get("terminology") or {}
+        if country_terms:
+            try:
+                operator_overrides = set((_lp(school) or {}).keys())
+            except Exception:  # noqa: BLE001
+                operator_overrides = set()
+            for key, val in country_terms.items():
+                if not val or key in operator_overrides:
+                    continue
+                # Build singular/plural — country pack stores flat strings.
+                # For ASCII labels, naive "+s" plural; for non-ASCII (Arabic,
+                # Hebrew, CJK, Cyrillic, Devanagari, etc.) reuse singular since
+                # there's no general suffix rule.
+                if val.isascii():
+                    plur = val if val.endswith("s") else val + "s"
+                else:
+                    plur = val
+                full[key] = {"singular": val, "plural": plur}
+    except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
+        pass
     return {
         "rmc_lexicon_meta": payload_json,
         "lexicon": full,

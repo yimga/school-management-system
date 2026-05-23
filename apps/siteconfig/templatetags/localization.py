@@ -199,3 +199,68 @@ def local_calendar_default(context) -> dict:
     loc = _loc_from_context(context)
     cal = loc.get("default_calendar")
     return cal if isinstance(cal, dict) else {}
+
+
+# --- Wave 4 format helpers --------------------------------------------------
+
+@register.simple_tag(takes_context=True, name="local_full_name")
+def local_full_name(context, given: str, family: str) -> str:
+    """Render a person's full name in the country's order.
+
+    Usage:  {% local_full_name student.given_name student.family_name %}
+        - US → "Naomi Tanaka"
+        - JP → "Tanaka Naomi"
+        - HU → "Tanaka Naomi"
+    """
+    try:
+        from apps.siteconfig.country_formats_service import compose_full_name
+    except ImportError:
+        # Fallback: simple given + family
+        return f"{(given or '').strip()} {(family or '').strip()}".strip()
+    loc = _loc_from_context(context)
+    return compose_full_name(given or "", family or "", loc.get("country_code") or "")
+
+
+@register.simple_tag(takes_context=True, name="local_dial_code")
+def local_dial_code(context) -> str:
+    """Return the international dialing prefix (e.g. '+234' for NG)."""
+    loc = _loc_from_context(context)
+    return str(loc.get("dial_code") or "")
+
+
+@register.simple_tag(takes_context=True, name="local_postal_label")
+def local_postal_label(context) -> str:
+    """Return the user-friendly postal-code field label (ZIP/PIN/CEP/...)."""
+    loc = _loc_from_context(context)
+    return str(loc.get("postal_code_label") or "Postal code")
+
+
+@register.simple_tag(takes_context=True, name="local_region_label")
+def local_region_label(context) -> str:
+    """Return the localized first-level subdivision label (State/Province/...)."""
+    loc = _loc_from_context(context)
+    return str(loc.get("region_label") or "Region")
+
+
+@register.simple_tag(takes_context=True, name="local_address_order")
+def local_address_order(context) -> list:
+    """Return the country's ordered list of address-field keys.
+
+    Usage:
+        {% local_address_order as fields %}
+        {% for key in fields %}
+            <input name="{{ key }}" placeholder="{{ key }}">
+        {% endfor %}
+    """
+    loc = _loc_from_context(context)
+    order = loc.get("address_order")
+    if isinstance(order, list):
+        return order
+    return ["street", "city", "region", "postal_code", "country"]
+
+
+@register.simple_tag(takes_context=True, name="local_name_order")
+def local_name_order(context) -> str:
+    """Return either 'given-family' (Western) or 'family-given' (Eastern)."""
+    loc = _loc_from_context(context)
+    return str(loc.get("name_order") or "given-family")

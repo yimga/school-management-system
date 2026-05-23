@@ -113,10 +113,40 @@
     },
   };
 
+  // v3.62.7 Wave 4: if the user's country is RTL AND the document's dir
+  // is still the server-default 'ltr', flip it. Templates can override by
+  // emitting an explicit `dir` attr in {{ rmc_text_direction }} which the
+  // server-side processor leaves untouched.
+  if (isRTL && document.documentElement.getAttribute("dir") !== "rtl") {
+    document.documentElement.setAttribute("dir", "rtl");
+    document.documentElement.setAttribute("data-rmc-is-rtl-country", "1");
+  }
+
   // Emit a custom event so widgets can hook into init after this lands.
   try {
     document.dispatchEvent(new CustomEvent("rmc:localization-ready", {
       detail: window.RMCLocalization,
     }));
   } catch (_e) { /* IE compat irrelevant */ }
+
+  // v3.62.7 Wave 4: lazy-load the non-Gregorian display layer ONLY when the
+  // user's country uses a non-Gregorian primary calendar. Saves ~3KB on
+  // every Gregorian page-load (the vast majority of traffic). The layer
+  // converts data-rmc-non-gregorian-date elements to Hijri / Hebrew /
+  // Ethiopian / Persian / Chinese / Japanese representations as appropriate.
+  var NON_GREG_COUNTRIES = {
+    SA:1, AE:1, OM:1, KW:1, QA:1, BH:1, YE:1, JO:1, LB:1, SY:1, IQ:1,
+    EG:1, MA:1, TN:1, DZ:1, LY:1, SD:1, MR:1,
+    IR:1, AF:1, IL:1, ET:1, ER:1,
+    JP:1, CN:1, TW:1, HK:1, MO:1,
+  };
+  if (country && NON_GREG_COUNTRIES[country.toUpperCase()]) {
+    var s = document.createElement("script");
+    s.src = (document.currentScript && document.currentScript.src
+            ? document.currentScript.src.replace(/rmc-localization-bootstrap\.js.*$/, "rmc-non-gregorian-display.js")
+            : "/static/js/rmc-non-gregorian-display.js");
+    s.defer = true;
+    s.async = true;
+    (document.head || document.documentElement).appendChild(s);
+  }
 })();

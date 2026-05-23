@@ -22,6 +22,14 @@ from .country_localization_service import (
     resolve_country_for_request,
     resolve_country_pack,
 )
+from .country_formats_service import (
+    address_order_for,
+    compose_full_name,
+    dial_code_for,
+    name_order_for,
+    postal_code_label_for,
+    region_label_for,
+)
 
 # Static cross-country defaults — overridable per-country via CurrencyRegistry
 # / LocaleRegistry later (Wave 4). Kept inline here so the context processor
@@ -116,6 +124,13 @@ def localization_context(request) -> dict:
             "date_format":      _date_format(cc),
             "currency_code":    _currency_code(cc),
             "is_rtl":           cc in _RTL_COUNTRIES,
+            # Wave 4: format helpers — emit alongside calendar/terminology so
+            # forms / cards / invoices don't need to import the helpers.
+            "name_order":       name_order_for(cc),
+            "address_order":    list(address_order_for(cc)),
+            "dial_code":        dial_code_for(cc),
+            "postal_code_label": postal_code_label_for(cc),
+            "region_label":     region_label_for(cc),
             "_source":          pack.get("_source", ""),
         }
     except Exception:  # noqa: BLE001 — never break template rendering
@@ -123,6 +138,11 @@ def localization_context(request) -> dict:
             "country_code": "", "calendar_systems": [], "default_calendar": {},
             "school_types": [], "education_levels": [], "terminology": {},
             "week_start": 1, "date_format": "%d/%m/%Y", "currency_code": "USD",
-            "is_rtl": False, "_source": "context-processor-error",
+            "is_rtl": False,
+            "name_order": "given-family",
+            "address_order": ["street", "city", "region", "postal_code", "country"],
+            "dial_code": "", "postal_code_label": "Postal code",
+            "region_label": "Region",
+            "_source": "context-processor-error",
         }
     return {"localization": loc}
