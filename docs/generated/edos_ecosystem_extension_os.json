@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Ecosystem, API, Marketplace, and Extension OS",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_ECOSYSTEM_EXTENSION_OS_READY",
+  "scope": "Refactors apicenter + api + integrations_marketplace + marketplace + interop + automation + orchestration. Open Educational Core API + API docs + REST/GraphQL safety + webhooks + developer portal + app install/uninstall + app permission scopes + app review workflow + revenue share readiness + partner sandbox + workflow builder + no-code rules + tenant extension boundaries + self-healing integration sandbox + integration schema drift detection + fallback version posture + API Center operator alerts.",
+  "sections": [
+    {
+      "title": "Ecosystem primitives",
+      "items": [
+        "Open Educational Core API \u2014 apps.api REST surface + OpenAPI spec",
+        "GraphQL safety \u2014 narrow schema, introspection disabled in prod, rate limit + Content-Type + method restriction, staff-gated resolvers (verified in Prompt 1 Phase 2)",
+        "Webhooks \u2014 apps.integrations_marketplace webhook adapter with HMAC signature + replay window",
+        "Developer portal \u2014 apps.api developer_portal_routes",
+        "App install/uninstall \u2014 apps.integrations_marketplace.AppInstall + uninstall reverse hook",
+        "App permission scopes \u2014 apps.security app_scope_registry per app",
+        "App review workflow \u2014 apps.marketplace app_review_pipeline (operator-gated publish)",
+        "Revenue share \u2014 apps.marketplace.template_monetization_manifest (counsel-pending Wave E+ blocker preserved)",
+        "Partner sandbox \u2014 apps.marketplace.template_partner_manifest",
+        "Workflow builder \u2014 apps.automation no-code workflow rules",
+        "Tenant extension boundaries \u2014 tenant cannot install apps requiring operator-only scopes; gated",
+        "Self-healing integration sandbox \u2014 apps.interop self_healing_integration_sandbox (schema drift detection + fallback version)",
+        "API Center operator alerts \u2014 apps.observability + apps.apicenter alert_router"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/apicenter/",
+    "apps/api/",
+    "apps/integrations_marketplace/",
+    "apps/marketplace/",
+    "apps/interop/",
+    "apps/automation/",
+    "apps/orchestration/"
+  ],
+  "tests": [
+    "apps/api/tests/test_edos_open_api_contract.py",
+    "apps/integrations_marketplace/tests/test_edos_app_install_uninstall.py",
+    "apps/interop/tests/test_edos_self_healing_sandbox.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

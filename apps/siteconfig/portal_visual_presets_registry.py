@@ -108,7 +108,8 @@ PORTAL_VISUAL_PRESETS: Final[tuple[PortalVisualPreset, ...]] = tuple(
     _build_tenant_presets() + _build_operator_presets()
 )
 
-assert len(PORTAL_VISUAL_PRESETS) == 50, f"expected 50 presets, got {len(PORTAL_VISUAL_PRESETS)}"
+if len(PORTAL_VISUAL_PRESETS) != 50:
+    raise RuntimeError(f"expected 50 presets, got {len(PORTAL_VISUAL_PRESETS)}")
 
 
 def preset_slugs() -> frozenset[str]:

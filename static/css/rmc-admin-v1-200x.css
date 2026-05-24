@@ -595,8 +595,8 @@ body.admin-manager-shell .cp-catalog {
   font-size: 11px;
 }
 
-/* Changelist + change-form preview (admin v1 200x) */
-.cp-changelist {
+/* Changelist preview only — live Unfold changelists use .cp-changelist-live */
+.cp-changelist.cp-changelist--preview {
   display: grid;
   gap: 18px;
   grid-template-columns: 248px 1fr;
@@ -604,7 +604,7 @@ body.admin-manager-shell .cp-catalog {
 }
 
 @media (max-width: 1080px) {
-  .cp-changelist {
+  .cp-changelist.cp-changelist--preview {
     grid-template-columns: 1fr;
   }
 }

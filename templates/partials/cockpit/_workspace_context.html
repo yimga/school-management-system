@@ -14,7 +14,7 @@
    or username). Operator name uses `actor_display.label`. Role uses
    `actor_display.role_label`. All sourced from a PII-safe view helper. {% endcomment %}
 
-{% if cockpit.workspace_context.enabled|default:True %}
+{% if cockpit.workspace_context.enabled|default:False %}
 <div class="rmc-cockpit-workspace" data-rmc-cockpit-workspace="1">
   <div class="rmc-cockpit-workspace__identity">
     <div class="rmc-cockpit-workspace__avatar" aria-hidden="true">{{ actor_display.initials|default:"··" }}</div>

@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "STAKEHOLDER_OPERATING_SYSTEMS_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 14 — 7 stakeholder operating systems",
+  "stakeholder_systems": [
+    {
+      "name": "Government / Ministry OS",
+      "status": "contract",
+      "capabilities": [
+        "hash-chain attendance identity verification (MigrationCloudAuditEvent integrity_hash pattern reused)",
+        "QR attendance proof",
+        "anonymized reporting (no PII; hashed tenant identifiers)",
+        "MoE export contracts (regional per Phase 15)",
+        "anti-ghost-student proof posture"
+      ],
+      "external_blocker": "no fake government integration claim; per-country MoE onboarding required"
+    },
+    {
+      "name": "NGO / Donor OS",
+      "status": "contract",
+      "capabilities": [
+        "read-only donor impact portal",
+        "anonymized impact metrics",
+        "program-specific dashboards",
+        "secure donor access (scoped tokens)",
+        "no student PII exposure",
+        "funding impact proof posture"
+      ],
+      "external_blocker": "donor portal counsel signoff for impact reporting visibility"
+    },
+    {
+      "name": "Institution Owner / Board OS",
+      "status": "contract",
+      "capabilities": [
+        "inventory ledger (Asset model existing)",
+        "asset custody log",
+        "capital leakage dashboard",
+        "ancillary fee collection visibility",
+        "procurement/reorder posture",
+        "owner-level risk view"
+      ],
+      "external_blocker": null
+    },
+    {
+      "name": "Administrator / Principal OS",
+      "status": "shipped (control plane operator landing) + extension contract",
+      "capabilities": [
+        "compliance bottleneck dashboard (apps/compliance/)",
+        "substitute marketplace/handover (Phase 13)",
+        "morning ops cockpit (control_plane_skeleton)",
+        "staff shortage workflow",
+        "launch/readiness blockers"
+      ],
+      "external_blocker": null
+    },
+    {
+      "name": "Teacher OS",
+      "status": "shipped (preview_shell_100x_tenant_v3 + teacher dashboard)",
+      "capabilities": [
+        "micro-grading matrix (apps/evals/)",
+        "quick comment tags",
+        "fast attendance/marks (workflow registry: teacher-enter-marks)",
+        "workload reduction analytics",
+        "mobile-first teacher desk (PWA)",
+        "homework support signals"
+      ],
+      "external_blocker": null
+    },
+    {
+      "name": "Parent / Guardian OS",
+      "status": "shipped (parent_dashboard + parent portal)",
+      "capabilities": [
+        "omnichannel micro-updates (Phase 3)",
+        "fee anxiety reducer",
+        "split-family routing (StudentGuardian flags)",
+        "permission-to-pay (Phase 4)",
+        "language/channel preference",
+        "low-data/PWA install path"
+      ],
+      "external_blocker": null
+    },
+    {
+      "name": "Student OS",
+      "status": "shipped (student dashboard) + extension contract",
+      "capabilities": [
+        "polymorphic learning queue (apps/academics/)",
+        "targeted practice",
+        "student-safe help (apps/portal/help_governance.py)",
+        "homework support guard (no answer leakage)",
+        "offline homework posture (PWA offline queue)"
+      ],
+      "external_blocker": null
+    }
+  ],
+  "compliance": {
+    "no_fake_government_integration": true,
+    "no_student_pii_exposure_in_donor_portal": true,
+    "all_stakeholder_systems_documented": true
+  }
+}

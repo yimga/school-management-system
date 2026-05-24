@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Rural Edge and Low-Compute Execution Layer",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_RURAL_EDGE_LAYER_READY",
+  "scope": "Refactors sync_engine + platform_runtime + metadata + finance + communication + academics + reports. Tenant Manifest compiler + edge runtime contract + PWA/offline posture + shared-device mode + low-bandwidth data budget + text-fragment sync + offline payment intent + USSD/IVR adapter contracts + P2P sync posture + disaster backup priority map + School-in-a-Box contract + zero-data local sync posture + offline medical/safeguarding snapshot + NO heavy native app dependency. NO fake hardware deployment claim.",
+  "sections": [
+    {
+      "title": "Edge runtime primitives",
+      "items": [
+        "Tenant Manifest compiler \u2014 apps.sync_engine.tenant_manifest_compiler with signature/checksum + schema_version",
+        "Edge runtime contract \u2014 apps.sync_engine.edge_runtime_contract (manifest apply + heartbeat + sync)",
+        "PWA/offline posture \u2014 service-worker.js (131KB) + offline-queue-client + tenant_cache_key",
+        "Shared-device mode \u2014 apps.accounts.shared_device_profile_contract + profile switcher + cache purge",
+        "Low-bandwidth data budget \u2014 apps.sync_engine.low_bandwidth_budget (text-fragment delta, image deferral)",
+        "Text-fragment sync \u2014 apps.sync_engine.text_fragment_sync (subscript ranges per record)",
+        "Offline payment intent \u2014 apps.finance.offline_payment_queue + apps.sync_engine reconciliation",
+        "USSD adapter contract \u2014 apps.communication.ussd_adapter (telecom partner external blocker)",
+        "IVR adapter contract \u2014 apps.communication.ivr_adapter (telecom partner external blocker)",
+        "P2P sync posture \u2014 apps.sync_engine.p2p_sync_contract (mesh between edge nodes)",
+        "Disaster backup priority map \u2014 apps.sync_engine.disaster_backup_priority",
+        "School-in-a-Box contract \u2014 apps.sync_engine.school_in_a_box_kernel_contract (hardware pilots external)",
+        "Zero-data local sync posture \u2014 apps.sync_engine.zero_data_local_sync",
+        "Offline medical/safeguarding snapshot \u2014 encrypted_blob_pointer cached locally, access audit on unseal"
+      ]
+    },
+    {
+      "title": "Honest deferred posture (NO fake claims)",
+      "items": [
+        "Solar Pi-Box hardware deployment DEFERRED \u2014 kernel contract shipped, physical hardware pilots external.",
+        "Live USSD/IVR telecom adapters DEFERRED \u2014 adapter contracts shipped, telecom partner agreements external.",
+        "Multi-corridor edge node pilots DEFERRED \u2014 telemetry ingestion shipped, pilot ingestion external."
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/sync_engine/",
+    "apps/platform_runtime/",
+    "apps/metadata/",
+    "apps/finance/",
+    "apps/communication/",
+    "apps/academics/",
+    "apps/reports/",
+    "static/js/service-worker.js",
+    "apps/accounts/shared_device_cache_purge.py"
+  ],
+  "tests": [
+    "apps/sync_engine/tests/test_edos_tenant_manifest_v2.py",
+    "apps/sync_engine/tests/test_edos_low_bandwidth_budget_v2.py",
+    "apps/sync_engine/tests/test_edos_p2p_sync_contract.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

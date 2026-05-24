@@ -66,6 +66,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
     {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
     {% comment %} v3.59.2 (2026-05-22): tenant portal .rmc-app-shell grid bridge — applies the
        static-chrome + canvas-scroll contract to the existing Bootstrap row/col
        portal layout without rewriting the template tree. Scoped to tenant pages. {% endcomment %}
@@ -219,7 +220,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1" data-copilot="collapsed"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -347,7 +348,7 @@
               {% if available_languages %}
               {% include "partials/language_switcher.html" %}
               {% endif %}
-              {% if request.user.is_authenticated %}
+              {% if request.user.is_authenticated and not rmc_page_help_on_copilot_rail %}
               <button type="button" class="btn btn-link text-white p-0 topbar-icon-btn" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
                 <i class="bi bi-question-circle" aria-hidden="true"></i>
               </button>
@@ -727,6 +728,12 @@
       {% endif %}
     </div>
 
+    {% if request.public_host_kind == 'manager' and cockpit.ai_copilot_rail.enabled %}
+    <div class="rmc-manager-portal-copilot-mount" data-rmc-manager-copilot-mount="1" aria-hidden="false">
+      {% include "partials/cockpit/_ai_copilot_rail.html" %}
+    </div>
+    <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
+    {% endif %}
     {% if proactive_help_nudge %}
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}

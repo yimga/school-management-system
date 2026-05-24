@@ -3,7 +3,11 @@
   Page-context help control — lives in the app shell sidebar directly under the
   operator/user identity block (not in the Home / Studio primary nav row).
   Opens AI first-line support via static/js/rmc-page-context-help.js.
+
+  v3.84.9: Suppressed on manager when cockpit.ai_copilot_rail is enabled — the
+  copilot rail owns "Need help on this page?" (see _ai_copilot_rail.html).
 {% endcomment %}
+{% if not rmc_page_help_on_copilot_rail %}
 {% if show_contextual_help_drawer or request.user.is_authenticated %}
 <div class="rmc-sidebar-page-help" data-rmc-sidebar-page-help="1">
   <button type="button"
@@ -15,4 +19,5 @@
     <span>{% trans "Need help on this page?" %}</span>
   </button>
 </div>
+{% endif %}
 {% endif %}

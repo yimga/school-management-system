@@ -269,9 +269,9 @@ def check_render() -> list[str]:
                     f"{path}: rendered header must stack cp-live-strip before cp-nav-row (v8 200x)"
                 )
         elif path.startswith("/admin"):
-            if nav_pos < 0 or live_pos < 0 or nav_pos > live_pos:
+            if live_pos < 0 or nav_pos < 0 or live_pos > nav_pos:
                 errors.append(
-                    f"{path}: rendered header must stack cp-nav-row before cp-live-strip (admin v1 200x)"
+                    f"{path}: rendered header must stack cp-live-strip before cp-nav-row (utility → ticker → nav)"
                 )
     return errors
 

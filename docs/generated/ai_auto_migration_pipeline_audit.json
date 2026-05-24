@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "AI_AUTO_MIGRATION_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 9 — AI auto-migration + customer success",
+  "existing_infrastructure": {
+    "migration_cloud_app": "apps/migration_cloud/",
+    "customersuccess_app": "apps/customersuccess/",
+    "companion_extension": "companion-extension/ (MV3, operator's own authenticated tab; legal-isolation parity)",
+    "companion_tauri": "companion-tauri/ (Tauri 2.x Rust; IT-locked-down districts; thick-client SIS)",
+    "companion_docker": "companion-docker/ (FastAPI in python:3.12-slim; in-DMZ on-prem extraction)",
+    "canonical_csv_intake": "canonical_csv.{rs,py} — parse + match + canonicalize",
+    "vendor_preprocessors": "PowerSchool, Blackbaud, Veracross, Alma, FACTS, Skyward (read-only)",
+    "ai_field_mapping_via_ai_helpers": "services/ai_helpers.py — NEVER direct services.ai_gateway",
+    "rmc_handshake": "rmc_handshake.{rs,py} — login + fetch_maa + sign_and_submit_maa + fetch_receipt",
+    "maa_v1_signed": "apps/migration_cloud/services/maa_text.py — v1.0 active; v2.0 in draft + counsel-pending",
+    "audit_event_signing": "MigrationCloudAuditEvent root_key_signature HMAC-SHA512",
+    "secret_handling": "Credentials + SessionToken impl ZeroizeOnDrop in Rust; httpx verify=True, no cookie jar; constant-time token compare",
+    "no_source_credentials_in_logs": true,
+    "scan_pii_logging_smell_baseline": 0
+  },
+  "ai_field_mapping_contract": {
+    "drag_drop_legacy_ingestion": "shipped (canonical CSV ingest path)",
+    "excel_csv_parser": "shipped",
+    "raw_db_backup_intake": "contract (counsel-pending Wave E)",
+    "source_system_detection": "shipped (detect_vendor() heuristic with ≥3-hit threshold)",
+    "field_auto_detection": "shipped (per-vendor extractors)",
+    "ai_assisted_field_mapping": "shipped via services.ai_helpers (NEVER services.ai_gateway)",
+    "confidence_scoring": "shipped (per-mapping confidence)",
+    "human_approval_before_import": "shipped (Wave 12+ memory)",
+    "visual_data_cleanup_dashboard": "contract documented",
+    "row_level_error_highlighting": "contract documented",
+    "invalid_email_phone_date_detection": "shipped",
+    "duplicate_student_detection": "shipped",
+    "tuition_ledger_structure_detection": "shipped",
+    "historical_grade_mapping": "shipped",
+    "guardian_relationship_mapping": "shipped",
+    "migration_readiness_score": "contract",
+    "migration_success_plan": "contract",
+    "customer_success_handoff": "shipped",
+    "onboarding_checklist_generation": "shipped (apps/customersuccess/)",
+    "no_destructive_import_without_preview": true,
+    "pre_commit_quarantine": "shipped",
+    "rollback_posture": "shipped"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/migration_cloud/tests/test_ai_field_mapping_contract.py",
+    "apps/migration_cloud/tests/test_legacy_file_ingestion.py",
+    "apps/migration_cloud/tests/test_migration_data_cleanup_dashboard.py",
+    "apps/migration_cloud/tests/test_visual_data_cleanup_contract.py",
+    "apps/customersuccess/tests/test_auto_onboarding_from_migration.py"
+  ],
+  "external_blockers": [
+    "FACTS/Skyward write paths (CFAA/DMCA counsel docket — preserved)",
+    "MAA v2.0 promotion (counsel signoff PDF pending)",
+    "Production LiteLLM keys for live AI field-mapping smoke (Lane 2)"
+  ]
+}

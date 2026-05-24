@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "sw_version": "sms-v3.85.0-global-local-gap-closure-2026-05-24",
+  "verdict": "INVENTORY_COMPLETE_REPO_SCOPE",
+  "code_truth": {
+    "repo_branch_status": "modified-working-tree (preserved; no destructive ops)",
+    "platform_at_open": {
+      "sw_version_current": "sms-v3.84.7-theme-platform-wide-dual-plane-2026-05-24",
+      "last_shipped_batch": 1487,
+      "last_shipped_verdict": "Theme experience final platform sweep",
+      "geos_matrix_overall": {
+        "repo_pct": 100.0,
+        "live_pct": 100.0,
+        "composite_pct": 100.0,
+        "verdict": "GEOS_99_MATRIX_PASS"
+      },
+      "geos_pillar_count": 8,
+      "geos_external_blockers_tracked": [
+        "live Stripe/Paystack settlement (per-release ops, not repo-shippable)",
+        "Render deploy SHA refresh after each release",
+        "SOC2 auditor PDF (counsel/auditor turnaround)",
+        "production live_cloud AI probe with LITELLM keys"
+      ]
+    },
+    "app_inventory": {
+      "apps_present_count": 51,
+      "apps_present": [
+        "academics","accounts","analytics","api","apicenter","automation","billing",
+        "brand_experience","communication","compliance","customers","customersuccess",
+        "dashboard","evals","events","feedback","finance","global_registries",
+        "integrations_marketplace","interop","lifecycle","locale","marketplace",
+        "metadata","migration_cloud","observability","orchestration","packages",
+        "payroll","people","plans_entitlements","platform_runtime","policies",
+        "policies_rules","portal","registries","reports","requests",
+        "runtime_blueprints","sales","school_events","schoolops","schools",
+        "security","setup_studio","siteconfig","social_media","student360",
+        "studio_os","sync_engine","tenancy"
+      ],
+      "apps_in_audit_target_present": true,
+      "apps_missing_from_original_audit_inventory": ["dportal (deprecated; never created in repo)"]
+    },
+    "pwa_state": {
+      "service_worker_present": true,
+      "service_worker_path": "static/js/service-worker.js",
+      "service_worker_size_kb_approx": 131,
+      "service_worker_registration_path": "static/js/rmc-service-worker-registration.js",
+      "service_worker_ci_gate": "scripts/scan_pwa_manifest_coverage.py baseline 0",
+      "manifest_per_shell": true,
+      "offline_queue_client_present": true,
+      "offline_conflict_view": "/portal/offline/conflicts/",
+      "native_mobile_present": false,
+      "native_mobile_stance": "PWA-first; native iOS/Android explicitly deferred. Companion siblings (Tauri desktop, Docker, MV3 extension) exist for adjacent purposes — not consumer mobile apps."
+    },
+    "local_first_template_state": {
+      "templates_shipped": 98,
+      "local_first_subset": 50,
+      "memory_reference": "project_local_first_template_marketplace_waves_bcde_v3_64_0_2026_05_23.md batches 1400/1401",
+      "registry_path": "apps/platform_runtime/pack_contract.py (pack_type='experience_template')",
+      "local_experience_profiles": "apps/siteconfig/local_experience_profiles.py (25 profiles)",
+      "ai_recommender": "apps/brand_experience/template_ai_recommender.py (routes via services.ai_helpers)"
+    },
+    "security_surface": {
+      "csrf_exempt_real_decorators": {
+        "count": 13,
+        "files": [
+          "apps/accounts/views_saml.py",
+          "apps/api/oneroster_roster_webhook.py",
+          "apps/api/scim_views.py",
+          "apps/billing/api_views.py",
+          "apps/finance/views_payments.py",
+          "apps/integrations_marketplace/webhooks.py",
+          "apps/observability/views_friction.py",
+          "apps/orchestration/api.py",
+          "apps/platform_runtime/views_rum.py",
+          "apps/portal/views_office.py",
+          "apps/schools/section8_views.py",
+          "apps/security/csp_report_view.py",
+          "config/graphql_view.py"
+        ],
+        "classification": "all are recognized integration boundaries: SAML, OneRoster webhook, SCIM, Stripe-style webhooks, telemetry POSTs, CSP report endpoint, GraphQL gateway. None are tenant-data write paths."
+      },
+      "allow_any_permissions": {
+        "count": 4,
+        "files": [
+          "apps/api/views_marketplace_catalog.py",
+          "apps/api/views_webhook_catalog.py",
+          "apps/migration_cloud/api/docs.py",
+          "apps/schools/api_views.py"
+        ],
+        "classification": "public-readable catalog/docs endpoints. No tenant write surfaces under AllowAny."
+      },
+      "graphql_surface": {
+        "files_with_graphql_marker": 3,
+        "active_endpoint": "config/graphql_view.py (CSRF-exempt; needs Phase 2 review)",
+        "introspection_disabled": "to-verify Phase 2",
+        "depth_limit": "to-verify Phase 2"
+      },
+      "audit_scripts_present": [
+        "scripts/audit_security_surface.py (8.5 KB)",
+        "scripts/audit_route_surface.py (16.8 KB)",
+        "scripts/audit_tenant_isolation.py",
+        "scripts/audit_role_permission_matrix.py",
+        "scripts/audit_post_handler_surface.py",
+        "scripts/scan_pii_logging_smell.py (baseline 0)"
+      ]
+    },
+    "verifier_scripts_present": [
+      "scripts/verify_greatest_education_os_matrix.py",
+      "scripts/verify_doc_plan_density_discipline.py",
+      "scripts/verify_sot_pillar_evidence.py",
+      "scripts/verify_sot_batch_id_uniqueness.py",
+      "scripts/run_northstar_audit.py",
+      "scripts/run_kill_test.py"
+    ],
+    "test_app_directories_present": 47,
+    "ai_gateway_boundary": {
+      "rule": "app code MUST NOT import services.ai_gateway directly; must use services.ai_helpers",
+      "enforcer": "scripts/scan_ai_gateway_boundary.py (CI baseline 0)",
+      "honest_compliance": true
+    }
+  },
+  "missing_or_stale_proof_at_open": [],
+  "contradictory_proof_at_open": [],
+  "repo_side_gaps_to_close_in_this_batch": [
+    "Phase 1: extend GEOS matrix scoring with pwa_pct + native_deferred_pct dimensions per audit",
+    "Phase 2: write security_exception_register documenting all 13 CSRF-exempt routes + 4 AllowAny endpoints + GraphQL view",
+    "Phases 3-17: write 15 audit artifact pairs documenting repo-scope completeness and external blockers per gap category",
+    "Phase 22: update SOT batch 1488 with honest verdict"
+  ],
+  "external_blockers_preserved": [
+    "live Stripe/Paystack settlement (operator playbook batch 1170-1174)",
+    "Render deploy SHA refresh (per-release ops, batch 1476)",
+    "SOC2 auditor PDF (counsel/auditor turnaround)",
+    "production live_cloud AI probe with LITELLM keys (env-pluggable)",
+    "Multi-corridor pilot ingestion (Lane 2 register sfdp_lane2_pilot_corridors)",
+    "PSP live settlement reconciliation (counsel + KYC pending)",
+    "MAA v2.0 promotion (counsel signoff PDF pending)",
+    "FACTS/Skyward write-path unblock (CFAA/DMCA counsel docket)"
+  ],
+  "native_mobile_claims_at_open": "ZERO. No native iOS/Android app code in repo. Companion siblings (Tauri/Docker/MV3) are operator-side tooling, not consumer mobile apps. PWA-first stance preserved.",
+  "follow_on_session_scope_deferred": "Prompt 2 Education OS next-realm re-architecture (kernel + metadata layer + runtime engines + app-by-app transformation). Sequencing per prompt's explicit rule."
+}

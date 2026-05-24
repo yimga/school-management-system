@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Relationship and Communication OS",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_RELATIONSHIP_COMM_OS_READY",
+  "scope": "Refactors communication + sales + customers + customersuccess + feedback + student360 + people into a relationship operating layer: stakeholder graph, admissions pipeline, lifecycle timeline, parent communication history, teacher availability guard, omnichannel router, safeguarding audit hash, support case linkage, alumni/donor extension posture, retention signals, feedback-to-roadmap loop, AI workflow support (safe), split-family communication, right-to-disconnect queue, parent micro-updates, NGO/donor impact portal linkage, government reporting relationship posture.",
+  "sections": [
+    {
+      "title": "Engine components",
+      "items": [
+        "Stakeholder graph \u2014 apps.people custody + apps.student360 relationships",
+        "Admissions pipeline \u2014 apps.sales admissions Kanban + lead scoring",
+        "Lifecycle timeline \u2014 apps.student360 LifecycleTimeline with attendance/grades/comms threads",
+        "Parent communication history \u2014 apps.communication ParentCommHistory append-only",
+        "Teacher availability guard \u2014 apps.communication availability_guard with right-to-disconnect buffer",
+        "Omnichannel router \u2014 apps.communication ChannelAdapter registry (email/push/SMS/WhatsApp/Telegram/IVR/USSD contracts)",
+        "Safeguarding audit hash \u2014 apps.communication safeguarding_audit_hash (HMAC-SHA512 immutable timeline)",
+        "Support case linkage \u2014 apps.customersuccess.support_crm_linkage",
+        "Alumni/donor extension \u2014 apps.dportal donor program visibility (gated by consent)",
+        "Retention signals \u2014 apps.evals risk_drivers + apps.customersuccess retention alerts",
+        "Feedback-to-roadmap loop \u2014 apps.feedback voice-of-customer router",
+        "Split-family communication \u2014 apps.communication multi_custodian_routing",
+        "Right-to-disconnect queue \u2014 apps.communication out_of_hours_queue with release_at scheduling",
+        "Parent micro-updates \u2014 apps.communication parent_micro_update_router",
+        "NGO/donor impact portal linkage \u2014 apps.dportal anonymized impact metrics",
+        "Government reporting relationship posture \u2014 apps.compliance.gov_export_envelope (anonymized, jurisdiction-tagged)"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/communication/",
+    "apps/sales/",
+    "apps/customers/",
+    "apps/customersuccess/",
+    "apps/feedback/",
+    "apps/student360/",
+    "apps/people/"
+  ],
+  "tests": [
+    "apps/communication/tests/test_edos_relationship_os_router.py",
+    "apps/student360/tests/test_edos_lifecycle_timeline_v2.py",
+    "apps/customersuccess/tests/test_edos_retention_signals_v2.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

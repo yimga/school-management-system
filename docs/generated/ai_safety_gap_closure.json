@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "AI_SAFETY_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 17 — AI safety + inventory redaction",
+  "existing_infrastructure": {
+    "ai_helpers_boundary": "services/ai_helpers.py — app code MUST use this; NEVER services.ai_gateway directly",
+    "ai_gateway_boundary_scanner": "scripts/scan_ai_gateway_boundary.py (CI baseline 0)",
+    "ai_deployment_posture": "services/ai_deployment_posture.py — RMC_DEPLOYMENT_PROFILE → cloud/edge gateway tiers",
+    "ai_governance_classroom_doc": "docs/AI_GOVERNANCE_CLASSROOM.md",
+    "help_governance": "apps/portal/help_governance.py — ai_assistant_panel_enabled_for_request",
+    "risk_regen_endpoint": "apps/portal/views_ai_surfaces.py — student_risk_explanation_regenerate",
+    "tenant_copilot": "templates/portal_base.html wires components/ai_copilot.html",
+    "ai_engine_room_verifier": "scripts/verify_ai_engine_room.py — tiers 1-5 engine room + product assistants 100%",
+    "ai_inventory_redaction": "_sanitize_labels in apps/observability/metrics.py drops sensitive VALUES (password/secret/token/signature_text/private_key/email/slug)",
+    "template_ai_recommender": "apps/brand_experience/template_ai_recommender.py — routes via services.ai_helpers; registry-validated; refuses operator-only leaks",
+    "migration_ai_credential_redaction": "ZeroizeOnDrop Rust + Python hmac.compare_digest; no source credentials in logs/prompts",
+    "pii_logging_smell_baseline": 0
+  },
+  "ai_safety_status": {
+    "no_raw_prompt_logging_with_pii": true,
+    "no_tenant_data_crossing_into_platform_ai_context": true,
+    "no_secrets_in_inventory": true,
+    "no_source_credentials_in_migration_prompts": true,
+    "no_tenant_visible_code_oracle": true,
+    "tenant_safe_ai_answers": "shipped (per-tenant scope binding via invoke_with_request)",
+    "missing_context_fallback_DATA_DEFAULTER": "shipped",
+    "missing_feature_fallback_FEATURE_CODESPACE_DISCONNECT": "shipped",
+    "review_gated_kb_faq_generation": "shipped (apps/portal/marketing_kb.py drafts review-gated)",
+    "no_generic_ai_answers": "shipped (per-tenant + per-feature scope)",
+    "no_destructive_ai_actions": "shipped (human approval gate per Phase 9)",
+    "no_homework_cheating_answer_leakage": "shipped (Phase 13 Homework Support Guard contract)",
+    "no_template_recommendation_stereotyping": "shipped (template_ai_recommender registry-validated; deterministic rules fallback)"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/apicenter/tests/test_ai_context_tenant_safety.py",
+    "apps/apicenter/tests/test_ai_inventory_redaction.py",
+    "apps/apicenter/tests/test_ai_missing_context_fallbacks.py",
+    "apps/migration_cloud/tests/test_migration_ai_credential_redaction.py",
+    "apps/academics/tests/test_homework_ai_guardrails.py",
+    "apps/platform_runtime/tests/test_ai_local_template_recommendation_safety.py"
+  ],
+  "external_blockers": [
+    "Production LiteLLM keys for live AI probe (Lane 2)",
+    "Operator counsel signoff for tenant-visible KB auto-publish (currently review-gated by design)"
+  ]
+}

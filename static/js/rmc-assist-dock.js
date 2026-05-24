@@ -61,8 +61,19 @@
     var aiWrap = document.querySelector(".ai-copilot-wrapper");
     var contextToggle = document.querySelector(".cp-context-drawer-toggle");
     var voc = document.querySelector(".voc-widget");
-    var helpBtn = document.querySelector("[data-rmc-page-help]");
-    if (helpBtn === document.body) helpBtn = null;
+    var helpBtn = null;
+    var helpCandidates = document.querySelectorAll("[data-rmc-page-help]");
+    for (var hi = 0; hi < helpCandidates.length; hi++) {
+      var candidate = helpCandidates[hi];
+      if (candidate === document.body || candidate === document.documentElement) {
+        continue;
+      }
+      if (candidate.closest && candidate.closest("[data-rmc-copilot-rail]")) {
+        continue;
+      }
+      helpBtn = candidate;
+      break;
+    }
     var backBtn = document.getElementById("back-to-top-btn");
     var chat = document.querySelector(".portal-chathead");
     if (!aiWrap && !voc && !helpBtn && !backBtn && !chat) return;

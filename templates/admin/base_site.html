@@ -112,6 +112,7 @@
      docs/generated/preview_app_shell_admin_v1_200x.html for the design target. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
   {% endif %}
@@ -131,6 +132,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
   {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
   <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
   {# v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic + admin mirror cockpit (adoption wave). #}
   <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
@@ -194,6 +196,9 @@
             document.body.setAttribute('data-rmc-page-help', '1');
             document.body.setAttribute('data-rmc-admin-cp-unified', '1');
             document.body.setAttribute('data-rmc-notebook-footer-dock', '1');
+            {% if rmc_page_help_on_copilot_rail %}
+            document.body.setAttribute('data-rmc-copilot-page-help', '1');
+            {% endif %}
             /* v3.62.5 Wave 2 local-first: emit localization attrs for JS calendar widgets. */
             document.body.setAttribute('data-rmc-country', '{{ localization.country_code|default:""|escapejs }}');
             document.body.setAttribute('data-rmc-language', '{{ localization.language_code|default:""|escapejs }}');
@@ -299,9 +304,8 @@
      theme toggle, dashboard header — and the v3.58 200x re-skin lives in
      `static/css/admin-200x-shell-overlay.css` (re-styles the Unfold DOM
      toward the v8 preview target without injecting new floating widgets).
-     Keep the notebook + copilot rail on /super/ control-plane-skeleton.html
-     where the grid layout supports them; admin operators reach them via
-     the cross-shell command bar / shortcuts instead. {% endcomment %}
+     v3.85.0: manager /admin/ uses the same 3-column app shell + copilot rail
+     as /super/ (see admin/base.html + rmc-platform-vertical-compact.css). {% endcomment %}
   {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB +
      rmc-page-help-fab per v8 200x preview parity — admin uses Unfold's
      native chrome, AI lives at /super/ control plane, not a /admin/
@@ -335,6 +339,7 @@
   {% if is_manager_host %}
   {% include "partials/cp_context_drawer_shell.html" %}
   <script src="{% static 'js/_pages/rmc-app-shell.js' %}" defer></script>
+  <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
   <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
   <script nonce="{{ csp_nonce }}">
   (function () {

@@ -55,8 +55,10 @@ def main() -> int:
     admin_base = (REPO / "templates/admin/base.html").read_text(encoding="utf-8", errors="replace")
     an = admin_base.find("cp-nav-row")
     al = admin_base.find("cp-live-strip")
-    if an < 0 or al < 0 or an > al:
-        errors.append("admin/base.html: cp-nav-row must precede cp-live-strip")
+    if an < 0 or al < 0 or al > an:
+        errors.append(
+            "admin/base.html: cp-live-strip must precede cp-nav-row (utility → ticker → nav)"
+        )
 
     previews = REPO / "docs/generated"
     for name in (

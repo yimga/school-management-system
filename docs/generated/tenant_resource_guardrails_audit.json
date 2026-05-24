@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "TENANT_RESOURCE_GUARDRAILS_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 10 — Tenant resource guardrails + compute quotas",
+  "existing_infrastructure": {
+    "plans_entitlements_app": "apps/plans_entitlements/",
+    "automation_app": "apps/automation/",
+    "orchestration_app": "apps/orchestration/",
+    "billing_app": "apps/billing/",
+    "migration_cloud_rate_limiting": "apps/migration_cloud/api/rate_limiting.py — tenant sliding-window quotas (1000 webhook/hr soft-warn 800 hard-reject 429; per-scope token quotas)",
+    "api_throttling": "DRF DEFAULT_THROTTLE_CLASSES wired scope-aware",
+    "rate_limit_module": "apps/api/rate_limit.py — throttle_ip_request",
+    "workflow_registry": "apps/platform_runtime/workflow_registry.py",
+    "celery_beat_quotas": "per-task @shared_task with rate limit + per-tenant lazy-guarded execution"
+  },
+  "guardrails_status": {
+    "per_tenant_workflow_execution_quotas": "contract",
+    "per_plan_automation_limits": "shipped (plans_entitlements feature flags)",
+    "per_tenant_api_rate_limits": "shipped (rate_limiting.py)",
+    "per_tenant_ai_usage_limits": "shipped (services/ai_helpers.py per-tenant request counting)",
+    "per_tenant_migration_import_limits": "shipped (bulk multipart 50f/100MB/500MB; idempotency)",
+    "per_tenant_report_export_limits": "contract",
+    "async_job_concurrency_limits": "shipped (Celery worker config)",
+    "runaway_workflow_loop_detection": "contract",
+    "dead_letter_hold_queue": "shipped (webhook FSM retry [1m,5m,30m,2h,12h,24h]→exhausted)",
+    "operator_override": "shipped (operator UI views_token_admin + views_webhook_admin)",
+    "customer_facing_quota_explanation": "shipped (X-RateLimit-Soft-Warn header at >80%)",
+    "billing_plan_entitlement_connection": "shipped (apps/plans_entitlements + apps/billing)",
+    "observability_metrics": "shipped (per-tenant hashed metrics)",
+    "safe_throttling_behavior": "shipped (Retry-After header)",
+    "noisy_tenant_isolation": "shipped (per-tenant scope buckets)",
+    "pwa_sync_queue_quotas": "contract",
+    "telemetry_upload_quotas": "contract",
+    "offline_sync_reconciliation_quotas": "contract"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/plans_entitlements/tests/test_compute_quota_contracts.py",
+    "apps/automation/tests/test_workflow_loop_guard.py",
+    "apps/orchestration/tests/test_tenant_rate_limit_hold_queue.py",
+    "apps/billing/tests/test_usage_metering_quota_link.py",
+    "apps/sync_engine/tests/test_offline_sync_quota_guard.py"
+  ],
+  "external_blockers": [
+    "Production load test for noisy-tenant isolation (Lane 2 internal)",
+    "Per-plan AI usage live billing meter (LiteLLM Lane 2)"
+  ]
+}

@@ -1,6 +1,3 @@
 {% load static %}
-{# Platform-wide authenticated theme tail (operator + tenant).
-   Every route that extends portal_base, control_plane_skeleton, admin/base_site,
-   or base.html inherits this bundle — not limited to /super/, /admin/, or one dashboard.
-   Public marketing (data-surface=marketing) does NOT include this partial. #}
+{% comment %}Platform-wide authenticated theme tail (operator + tenant). Every route that extends portal_base, control_plane_skeleton, admin/base_site, or base.html inherits this bundle. Public marketing (data-surface=marketing) does NOT include this partial.{% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-theme-experience-dual-plane.css' %}">

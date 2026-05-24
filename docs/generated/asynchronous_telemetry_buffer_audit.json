@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "ASYNCHRONOUS_TELEMETRY_BUFFER_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 8 — Async telemetry buffer + distributed auditing",
+  "existing_infrastructure": {
+    "observability_metrics_bridge": "apps/observability/metrics.py — 4 backends (noop/structured-log/prometheus-client/statsd); emit_counter/emit_gauge/emit_histogram + _sanitize_labels (drops sensitive VALUES regex-matched against password/secret/token/signature_text/private_key/email/slug; normalizes keys; truncates values 64 chars)",
+    "prometheus_metrics_view": "/metrics/ anonymous-readable (firewall-protected); 404 when backend != prometheus-client",
+    "metrics_app": "apps/observability/",
+    "migration_cloud_metrics": "apps/migration_cloud/metrics.py — _hash_tenant_id (sha256[:12]) + 6 record_* helpers (companion_upload/maa_sign/key_rotation/webhook_delivery/token_mint/legacy_hash_decryption); tenant slug ALWAYS hashed before emission",
+    "migration_cloud_audit_event": "apps/migration_cloud/models_audit.py — append-only, HMAC-SHA512 root_key_signature + integrity_hash chain (batches 1399/1400 v3.39.0)",
+    "sentry_observability": "apps/observability/tracing.py — start_named_transaction / set_transaction_status / finish_transaction / trace_view / set_tags (apps MUST use this, not sentry_sdk directly)",
+    "sentry_drift_detector": "scripts/verify_sentry_alert_rule_drift.py — apps/integrations_marketplace/sentry_alert_rules.py SOT vs operator snapshot",
+    "compliance_app": "apps/compliance/",
+    "sync_engine_app": "apps/sync_engine/"
+  },
+  "telemetry_packet_contract": {
+    "local_encrypted_packet": "contract (apps/sync_engine/telemetry_packet.py contract)",
+    "edge_heartbeat_packet": "contract",
+    "sync_error_packet": "contract",
+    "data_corruption_packet": "contract",
+    "local_payment_sync_failure_packet": "contract (apps/finance/offline_payment_intent_sync_failure.py contract)",
+    "compliance_heartbeat_packet": "contract",
+    "low_bandwidth_priority_queue": "shipped (offline-queue-client priority field)",
+    "replay_safe_telemetry_upload": "contract (idempotency key per packet)",
+    "central_observability_ingestion_route": "/metrics/ + /super/migration/health/ + offline buffer expiration",
+    "tenant_operator_visibility": "shipped (operator dashboard surfaces)",
+    "no_pii_in_telemetry_payload": "_sanitize_labels enforced",
+    "packet_redaction": "shipped",
+    "packet_signing_checksum": "contract",
+    "offline_buffer_expiration": "contract",
+    "operator_alert_routing": "shipped (Sentry alert rules SOT)"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/observability/tests/test_telemetry_packet_redaction.py",
+    "apps/observability/tests/test_edge_heartbeat_contract.py",
+    "apps/sync_engine/tests/test_offline_telemetry_buffer.py",
+    "apps/compliance/tests/test_compliance_heartbeat_ingestion.py"
+  ],
+  "external_blockers": [
+    "live edge node deployment (rural Pi-box hardware partner)",
+    "Render production /metrics/ endpoint behind firewall + Bearer token auth (operator action)",
+    "Sentry operator snapshot file for drift detection (operator action per docs/OBSERVABILITY_METRICS.md)"
+  ]
+}

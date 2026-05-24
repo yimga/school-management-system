@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "GLOBAL_LOCAL_MICRO_SOLUTION_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 15 — Global-local micro-solution closure",
+  "existing_infrastructure": {
+    "regional_payment_profiles_250_iso2": "apps/finance/regional_payment_profiles.json",
+    "local_experience_profiles_25": "apps/siteconfig/local_experience_profiles.py (CM/NG/GH/KE/ZA/CI/SN/MA/IN-CBSE/IN-KA/PK/BD/JP/KR/CN/PH/MY/ID/US/GB/AU/AE/MX/BR + 1 placeholder)",
+    "local_first_template_marketplace": "75 templates (batches 1400/1401); 25 LocalExperienceProfile",
+    "marketing_local_first_band": "60+ hand-voiced markets + 14 regional fallbacks (Wave 9 v3.62.15)",
+    "india_per_state_overlays": "11 of 11 (KN/ML/PA/OR/AS/UR + 5 from Wave 9-10)",
+    "testimonials_51_markets": "51/51 voice-dict markets with native-language quotes",
+    "country_calendar_alternatives": "_INDIA_STATE_BOARD_CALENDAR_VARIANTS + per-language overlays",
+    "geoip_country_lookup": "apps/siteconfig/geoip_country_lookup.py (4 backends)",
+    "geoip_city_lookup": "apps/siteconfig/geoip_city_lookup.py (4 backends, Wave 14)",
+    "indian_lakh_crore_grouping": "Python templatetags + JS bootstrap (Wave 7)",
+    "chinese_myriad_grouping": "useNativeMarks option for CN/JP/KR/TW/HK"
+  },
+  "regional_adapter_status": {
+    "latam": {
+      "fiscal_router": "shipped (regional_payment_profiles + e-invoice contract)",
+      "factura_electronica_nota_fiscal": "contract (counsel-pending Wave E for live monetization)",
+      "barcode_voucher_cash_retail": "shipped (Boleto/OXXO in profiles)",
+      "pix_codi_transbank": "shipped (BR/MX/CL profiles)",
+      "whatsapp_receipt_delivery": "contract (Phase 3 external blocker)"
+    },
+    "africa": {
+      "mobile_money_split_wallet": "contract (counsel-gated SFDP_PAYMENT_SPLIT_COUNSEL_TOKEN)",
+      "ussd_payment": "contract (Phase 5)",
+      "offline_mobile_money_webhook": "contract",
+      "p2p_offline_sync": "contract",
+      "school_in_a_box_edge_kernel": "contract",
+      "shared_device_teacher_mode": "shipped (Wave 15)",
+      "low_data_parent_messaging": "shipped (Phase 3)"
+    },
+    "apac_south_asia": {
+      "dual_identity_formal_school_private_academy": "contract (Phase 7 dual-profile)",
+      "script_aware_ui_engine": "shipped (51 markets with native-script quotes)",
+      "flexbox_isomorphic_layout_posture": "shipped (design tokens + Bootstrap)",
+      "shared_device_portal": "shipped",
+      "automated_state_compliance_export": "contract (Phase 14 Government OS)",
+      "high_volume_tutoring_marketplace_posture": "contract"
+    },
+    "europe_uk": {
+      "cryptographic_anonymization_key_shredding": "contract",
+      "gdpr_deletion_vs_academic_record_preservation": "shipped (DSAR self-serve + audit hash)",
+      "right_to_disconnect_communication_buffer": "shipped (Phase 3)",
+      "labor_hours_policy_enforcement": "contract",
+      "data_residency_policy_mapping": "contract"
+    },
+    "mena": {
+      "data_residency_provisioning_posture": "contract",
+      "multi_curriculum_grading_matrix": "shipped (evals app)",
+      "arabic_rtl_support": "shipped (dir='rtl' in 5-locale email templates; full RTL CSS in design tokens)",
+      "national_curriculum_overlays": "shipped (AE + SA profiles)",
+      "local_hosting_external_blocker_map": "contract"
+    }
+  },
+  "external_blockers": [
+    "Live PSP integration per regional rail (counsel + KYC)",
+    "Per-country MoE export validation (operator + government)",
+    "Local hosting deployment per data-residency requirement (Render multi-region not in scope)",
+    "WhatsApp Business API for LATAM receipt delivery (Meta verification)",
+    "USSD telecom partner + short-code per African country",
+    "Per-jurisdiction labor law data for right-to-disconnect (DataLayer)"
+  ],
+  "compliance": {
+    "no_live_government_psp_telecom_claims": true,
+    "75_template_marketplace_extended_with_regional_adapters": true,
+    "25_local_experience_profiles_preserved": true
+  }
+}

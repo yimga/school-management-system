@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "HYPERLOCAL_FINANCE_APM_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 4 — Hyper-local finance/APM closure",
+  "existing_infrastructure_at_open": {
+    "sfdp_phase_3_complete": "batches 1452-1475 — 250 ISO2 profiles with payment_local_global_contract, rail taxonomy, risk tiers",
+    "rail_adapter_interface": "apps/finance/payment_rail_adapter.py + apps/finance/regional_payment_profiles.json (250 ISO2)",
+    "apm_router": "apps/finance/payment_corridor_contracts.py + apps/finance/payment_gateway_health.py",
+    "split_ledger": "apps/finance/payment_marketplace_split.py (counsel-gated; SFDP_PAYMENT_SPLIT_COUNSEL_TOKEN env gate)",
+    "psp_registry_in_progress": [
+      "stripe (live keys Lane 2)",
+      "paystack (live keys Lane 2)",
+      "flutterwave (Lane 2)",
+      "razorpay (in_progress)",
+      "pesapal (in_progress)",
+      "mercado_pago (in_progress)",
+      "dlocal (in_progress)"
+    ],
+    "webhook_signature_verification": "apps/finance/webhooks/normalizer.py — Stripe/Paystack/Flutterwave/Razorpay via hmac.compare_digest",
+    "idempotency_replay_protection": "canonical event_id dedupe (batch 1430 webhook normalizer) + per-provider timestamp window",
+    "offline_payment_queue": "OfflinePaymentIntent + bursar bulk approve/CSV export (batch 1445)",
+    "permission_to_pay_workflow": "ParentApproval + Invoice gating per memory project_signup_creation_2 + apps/finance/views_payments.py",
+    "student_wallet_spending_limits": "MealPlanBalance.is_low + apps/schoolops/wallet patterns",
+    "e_invoice_contract": "apps/finance/einvoice/ adapter contract (LATAM Factura Electrónica / Nota Fiscal posture)",
+    "cash_manual_fallback": "apps/finance/views_payments.py cash desk + ledger path",
+    "barcode_voucher_contract": "Boleto/OXXO contract in regional_payment_profiles (LATAM)",
+    "ussd_payment_contract": "Africa regional adapter (Phase 15)"
+  },
+  "rail_registry_status": {
+    "card_ach_sepa": "shipped (Stripe contract)",
+    "pix": "documented (BR profile)",
+    "codi": "documented (MX profile)",
+    "transbank": "documented (CL profile)",
+    "boleto_oxxo_voucher": "documented (BR/MX profiles)",
+    "upi": "documented (IN profile)",
+    "mpesa": "documented (KE/TZ profiles)",
+    "momo": "documented (GH/CM/UG profiles)",
+    "orange_money": "documented (West Africa profiles)",
+    "qris": "documented (ID profile)",
+    "grabpay": "documented (SEA profiles)",
+    "promptpay": "documented (TH profile)",
+    "cash_manual": "shipped",
+    "ussd_payment": "Africa regional contract"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/finance/tests/test_payment_rail_adapter_contracts.py",
+    "apps/finance/tests/test_apm_router.py",
+    "apps/finance/tests/test_split_ledger_routing.py",
+    "apps/finance/tests/test_mobile_money_split_wallet_contract.py",
+    "apps/finance/tests/test_webhook_signature_idempotency.py",
+    "apps/finance/tests/test_einvoice_tax_contracts.py",
+    "apps/finance/tests/test_offline_payment_reconciliation.py",
+    "apps/finance/tests/test_permission_to_pay_workflow.py",
+    "apps/billing/tests/test_barcode_voucher_contract.py",
+    "apps/schoolops/tests/test_student_wallet_spending_limits.py"
+  ],
+  "external_blockers": [
+    "live Stripe Connect live keys + Lane 2 evidence",
+    "live Paystack/Flutterwave/MTN MoMo keys + KYC",
+    "Razorpay/Pesapal/Mercado Pago/dLocal Lane 2 KYC",
+    "Counsel signoff for split-ledger payouts",
+    "Per-jurisdiction tax + revenue-recognition opinion (Wave E counsel-pending)",
+    "Stripe settlement reconciliation evidence",
+    "PSP webhook live signature verification on production traffic"
+  ],
+  "compliance": {
+    "minor_unit_decimal_safety": "scan_money_float baseline 0; apps/finance/json_decimal.py + Decimal end-to-end",
+    "no_live_psp_claims_without_evidence": true,
+    "no_certs_or_secrets_logged": true,
+    "scan_pii_logging_smell_baseline": 0
+  }
+}

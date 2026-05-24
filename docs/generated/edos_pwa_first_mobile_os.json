@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "title": "EdOS PWA-First Mobile OS Layer",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_PWA_FIRST_MOBILE_OS_READY",
+  "scope": "Re-architects the platform mobile strategy around PWA as launch mobile app. Native Capacitor/Tauri wrapper EXPLICITLY DEFERRED until web core stability + first-100-schools proof + PWA installability proof. This phase consumes the existing service-worker.js (131KB) + rmc-service-worker-registration.js + offline-queue-client + offline-conflicts UI shipped in prior batches.",
+  "sections": [
+    {
+      "title": "PWA shell contracts (SHIPPED in prior batches; consumed here, NOT duplicated)",
+      "items": [
+        "Web manifest \u2014 manifest.json with installable name/short_name/icons/theme_color/background_color/display=standalone",
+        "Service worker \u2014 static/js/service-worker.js (131KB) with monotonic CACHE_VERSION + tenant-aware cache scoping",
+        "IndexedDB \u2014 offline-queue-client + offline-conflicts UI + tenant_cache_key isolation",
+        "Offline command queue \u2014 apps.sync_engine.offline_queue with replay-safe upload",
+        "Low-data sync \u2014 text-fragment delta sync + image deferral",
+        "Shared-device mode \u2014 apps.accounts.shared_device_cache_purge contract",
+        "Add-to-home-screen \u2014 install prompt orchestrated by rmc-service-worker-registration.js",
+        "Offline-safe logout \u2014 tenant cache purge on session_logout event",
+        "Stale-data banners \u2014 apps.platform_runtime stale_banner middleware + UI partial",
+        "Conflict resolution UI \u2014 offline-conflicts UI page (apps.sync_engine surface)"
+      ]
+    },
+    {
+      "title": "Mobile-first surfaces (route-level offline matrix)",
+      "items": [
+        "Teacher dashboard \u2014 offline attendance + grade entry + homework support queue",
+        "Parent portal \u2014 offline timeline + permission slip cache + last-sync banner",
+        "Student portal \u2014 offline polymorphic learning queue + homework support guard",
+        "Substitute portal \u2014 temporary credentials + offline lesson plan packet + expiry-aware",
+        "Operator \u2014 NOT mobile-offline (operator surface remains online-only by design)"
+      ]
+    },
+    {
+      "title": "Device capability detection",
+      "items": [
+        "User-Agent + Client Hints (sec-ch-ua-mobile, sec-ch-ua-platform)",
+        "Bandwidth class from navigator.connection.effectiveType (4g/3g/2g/slow-2g) \u2014 fallback to CountryRegistry.low_bandwidth_class",
+        "PWA install state via navigator.standalone + matchMedia('(display-mode: standalone)')",
+        "IndexedDB quota via navigator.storage.estimate()"
+      ]
+    },
+    {
+      "title": "Deferred native wrapper roadmap (NOT shipped this batch)",
+      "items": [
+        "Capacitor/Tauri shell \u2014 ONLY after web core stability + first-100-schools + PWA installability proof",
+        "Push notification \u2014 Web Push API first (with VAPID); native push notification deferred to wrapper phase",
+        "Biometric login \u2014 WebAuthn first; native biometric deferred",
+        "Bluetooth \u2014 WebBluetooth where supported; native deferred",
+        "App-store submission \u2014 deferred until wrapper phase; no Swift/Kotlin rewrite",
+        "Web remains single source of truth \u2014 native shell MUST NOT fork product logic"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "static/js/service-worker.js",
+    "static/js/rmc-service-worker-registration.js",
+    "static/js/offline-queue-client.js",
+    "static/js/offline-conflicts.js",
+    "static/manifest.json",
+    "apps/sync_engine/offline_queue.py",
+    "apps/accounts/shared_device_cache_purge.py",
+    "apps/platform_runtime/middleware_stale_banner.py"
+  ],
+  "tests": [
+    "apps/platform_runtime/tests/test_edos_pwa_manifest_v2.py",
+    "apps/sync_engine/tests/test_edos_pwa_offline_storage_v2.py",
+    "apps/accounts/tests/test_edos_shared_device_cache_purge_v2.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

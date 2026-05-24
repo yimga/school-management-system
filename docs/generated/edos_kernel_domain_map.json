@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "title": "Education OS Kernel Domain Map",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_KERNEL_MAP_READY",
+  "scope": "Maps every existing Django app into one of 8 OS layers (Kernel Runtime, Configuration Plane, Relationship Plane, Academic Plane, Commerce Plane, Operations Plane, Intelligence/Extension Plane, Global-Local Edge Plane). For each app: current role, target OS role, dependencies, events emitted/consumed, tenant safety boundary, metadata/config usage, workflow usage, API exposure, test coverage, PWA/offline relevance, stakeholder OS relevance, gaps.",
+  "sections": [
+    {
+      "title": "Layer 1 \u2014 Kernel Runtime",
+      "items": [
+        "platform_runtime \u2014 pack/blueprint lifecycle (apply/audit/preview/rollback). Target: OS kernel runtime; consumes events; emits package.applied/.rolledback.",
+        "tenancy \u2014 tenant lookup + tenant context propagation. Target: tenant identity kernel.",
+        "accounts \u2014 user/account model + session binding. Target: actor/identity primitive.",
+        "schools \u2014 School canonical model + soft delete (live_objects manager). Target: canonical core.",
+        "security \u2014 permissions + audit + tenant boundary scanner. Target: kernel security service.",
+        "siteconfig \u2014 SiteSettings + CountryRegistry + cockpit_payload. Target: kernel config primitive.",
+        "metadata \u2014 custom fields + global mapping. Target: kernel metadata service.",
+        "global_registries \u2014 immutable global core field registry. Target: kernel universal schema service.",
+        "registries \u2014 supporting lookup registries. Target: kernel registry service.",
+        "events \u2014 domain event bus + outbox. Target: kernel event service.",
+        "lifecycle \u2014 SchoolLifecycleStage + onboarding/offboarding state machine. Target: kernel lifecycle service."
+      ]
+    },
+    {
+      "title": "Layer 2 \u2014 Configuration Plane",
+      "items": [
+        "setup_studio \u2014 onboarding wizard + select_experience_template step. Target: tenant setup OS.",
+        "studio_os \u2014 operator control plane + experience fold + 200x polish. Target: operator design OS.",
+        "brand_experience \u2014 experience templates + TemplateAssignment + TemplateAuditEvent. Target: experience config.",
+        "runtime_blueprints \u2014 blueprint definitions. Target: tenant manifest spec.",
+        "packages \u2014 InstalledPackage + PackageChangeLog. Target: package lifecycle ledger.",
+        "policies + policies_rules \u2014 runtime policy enforcement. Target: kernel policy service.",
+        "plans_entitlements \u2014 plan-to-entitlement mapping. Target: subscription contract.",
+        "locale \u2014 localization runtime. Target: locale/region overlay service.",
+        "marketplace \u2014 98-template local-first catalog + monetization manifest. Target: template marketplace."
+      ]
+    },
+    {
+      "title": "Layer 3 \u2014 Relationship Plane",
+      "items": [
+        "sales \u2014 admissions pipeline + lead scoring. Target: CRM admissions engine.",
+        "customers \u2014 customer profile primitive. Target: customer entity.",
+        "customersuccess \u2014 auto-onboarding + retention. Target: customer success OS.",
+        "communication \u2014 omnichannel adapters (email/push/SMS/WhatsApp/Telegram/IVR/USSD contracts). Target: communication OS.",
+        "feedback \u2014 Voice-of-Customer loop. Target: feedback router.",
+        "people \u2014 guardian/custody relationship graph. Target: relationship graph service.",
+        "student360 \u2014 lifecycle timeline + dual-identity profile. Target: student journey graph.",
+        "requests \u2014 generic request lifecycle. Target: case/ticket primitive."
+      ]
+    },
+    {
+      "title": "Layer 4 \u2014 Academic Plane",
+      "items": [
+        "academics \u2014 syllabus + homework guard + grading schema. Target: academic engine.",
+        "evals \u2014 micro-progress timeline + risk drivers. Target: evaluation engine.",
+        "reports \u2014 report card factory + transcript. Target: report engine.",
+        "school_events \u2014 calendar + permission slips. Target: events engine.",
+        "dashboard \u2014 role-aware dashboards. Target: dashboard composer."
+      ]
+    },
+    {
+      "title": "Layer 5 \u2014 Commerce Plane",
+      "items": [
+        "finance \u2014 invoices + wallet limits + permission-to-pay. Target: ledger primitive.",
+        "billing \u2014 usage metering + plan link. Target: billing engine.",
+        "payroll \u2014 salary + reimbursement ledger. Target: payroll engine.",
+        "integrations_marketplace \u2014 third-party integration installs. Target: integration store."
+      ]
+    },
+    {
+      "title": "Layer 6 \u2014 Operations Plane",
+      "items": [
+        "schoolops \u2014 TransportAssignment + HostelAssignment + MealPlanBalance + asset QR loop. Target: campus operations engine.",
+        "sync_engine \u2014 Tenant Manifest compiler + edge sync + offline queue + P2P. Target: edge/offline kernel.",
+        "migration_cloud \u2014 AI auto-migration + visual data cleanup. Target: migration OS.",
+        "observability \u2014 telemetry packets + edge heartbeat. Target: observability engine.",
+        "compliance \u2014 DSAR + compliance heartbeat. Target: compliance engine."
+      ]
+    },
+    {
+      "title": "Layer 7 \u2014 Intelligence and Extension Plane",
+      "items": [
+        "apicenter \u2014 ai_helpers boundary + AI safety (baseline 0). Target: AI gateway primitive.",
+        "api \u2014 REST API surface. Target: external API.",
+        "automation \u2014 workflow engine. Target: tenant automation runtime.",
+        "orchestration \u2014 async job orchestration + hold queue. Target: workflow orchestrator.",
+        "analytics \u2014 analytics primitives. Target: analytics engine.",
+        "social_media \u2014 social adapter contracts. Target: social bridge.",
+        "interop \u2014 student/teacher transfer envelopes + self-healing integration sandbox. Target: interoperability kernel."
+      ]
+    },
+    {
+      "title": "Layer 8 \u2014 Global-Local Edge Plane",
+      "items": [
+        "service-worker.js (131KB) + rmc-service-worker-registration.js + offline-queue-client + conflicts UI. Target: PWA shell.",
+        "sync_engine \u2014 manifest compiler + low-bandwidth budget + shared-device profile contract. Target: edge runtime.",
+        "siteconfig.country_registry + 250 ISO2 profiles + 25 LocalExperienceProfile + 75-template local-first. Target: global-local overlay.",
+        "compliance \u2014 data residency policy contract. Target: sovereignty service."
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/platform_runtime/",
+    "apps/tenancy/",
+    "apps/accounts/",
+    "apps/schools/",
+    "apps/security/",
+    "apps/siteconfig/",
+    "apps/metadata/",
+    "apps/global_registries/",
+    "apps/events/",
+    "apps/lifecycle/",
+    "apps/setup_studio/",
+    "apps/studio_os/",
+    "apps/brand_experience/",
+    "apps/marketplace/",
+    "apps/sales/",
+    "apps/customersuccess/",
+    "apps/communication/",
+    "apps/people/",
+    "apps/student360/",
+    "apps/academics/",
+    "apps/evals/",
+    "apps/reports/",
+    "apps/finance/",
+    "apps/billing/",
+    "apps/payroll/",
+    "apps/schoolops/",
+    "apps/sync_engine/",
+    "apps/migration_cloud/",
+    "apps/observability/",
+    "apps/compliance/",
+    "apps/apicenter/",
+    "apps/automation/",
+    "apps/orchestration/",
+    "apps/interop/",
+    "static/js/service-worker.js"
+  ],
+  "tests": [],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

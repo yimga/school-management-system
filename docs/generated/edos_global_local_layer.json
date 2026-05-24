@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Global-Local Localization and Sovereignty Layer",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_GLOBAL_LOCAL_LAYER_READY",
+  "scope": "Re-architects locale + global_registries + compliance + siteconfig + brand_experience + metadata + finance + communication + academics + reports + sync_engine + platform_runtime to expose a single Local Overlay service. Builds on the existing 250 ISO2 regional payment profile registry + 25 LocalExperienceProfile + 98-template marketplace + 51-market testimonial voice + per-state India calendar variants + script-aware UI.",
+  "sections": [
+    {
+      "title": "Local overlay primitives",
+      "items": [
+        "Local terminology mapper \u2014 apps.locale lexicon cascade (52 templates currently using {% term %} + {% blocktrans asvar %})",
+        "School-type mapper \u2014 IN/CM/PK/MY/PH dual-system overlays + ZA AF Provincial + CH 4 cantons + BE 3 communities",
+        "Academic calendar mapper \u2014 IN 3-variant per-state + IN_per-language overlay (KN/ML/MR/OR/TA/TE/GU/HI/PA/UR/CBSE)",
+        "Grading system mapper \u2014 multi-curriculum (IGCSE/IB/Bac/GCE/CBSE/ICSE/state boards) matrix",
+        "Regional compliance map \u2014 GDPR/UK-GDPR/CCPA/POPIA/LGPD/PDPB/PIPEDA per ISO2",
+        "Data residency policy map \u2014 EU/UK/CA/AU/AE/IN/BR/ZA/KE/NG residency target per tenant",
+        "Local profile map \u2014 25 LocalExperienceProfile (CM/NG/GH/KE/ZA/CI/SN/MA/IN-CBSE/IN-KA/PK/BD/JP/KR/CN/PH/MY/ID/US/GB/AU/AE/MX/BR + extensions)",
+        "Local template selection \u2014 75 templates baseline + 50 local-first + 23 specialized = 98 total templates",
+        "RTL posture \u2014 Arabic/Hebrew + script-aware UI layout engine",
+        "Language override posture \u2014 51 of 51 voice-dict markets covered (100%)",
+        "Country/region feature matrix \u2014 250 ISO2 with regional payment profiles",
+        "Script-aware UI layout engine \u2014 apps.brand_experience palette + CSS bundle responsive at 390/768/1366 breakpoints",
+        "Flexbox-isomorphic typographic layout posture \u2014 design-tokens-local-palettes.css with 10 heritage families",
+        "Right-to-disconnect rules \u2014 apps.communication availability_guard + out-of-hours queue",
+        "GDPR anonymization/key-shredding contract \u2014 apps.compliance erasure_request workflow",
+        "Data sovereignty provisioning posture \u2014 Render region tag per tenant (contract; live cross-region NOT shipped)",
+        "Local payment rail matrix \u2014 13 PSP rail registry entries + 250 ISO2 profiles",
+        "PWA low-data defaults by region \u2014 CountryRegistry.cockpit_payload.low_bandwidth_class per ISO2"
+      ]
+    },
+    {
+      "title": "Sovereignty honest posture",
+      "items": [
+        "Repo-scope policy maps SHIPPED \u2014 DEFERRED: live cross-region physical sharding (Render multi-region + paid tier ops work).",
+        "Data residency CONTRACTED \u2014 DEFERRED: per-country live verification pilots.",
+        "Live MoE/government export TARGETS DOCUMENTED \u2014 DEFERRED: per-country MoE integration agreements."
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/locale/",
+    "apps/global_registries/",
+    "apps/compliance/",
+    "apps/siteconfig/local_experience_profiles.py",
+    "apps/siteconfig/country_registry.py",
+    "apps/brand_experience/",
+    "apps/metadata/",
+    "apps/finance/regional_payment_profiles.py",
+    "apps/communication/",
+    "apps/academics/",
+    "apps/reports/",
+    "apps/sync_engine/",
+    "apps/platform_runtime/",
+    "static/css/design-tokens-local-palettes.css"
+  ],
+  "tests": [
+    "apps/locale/tests/test_edos_local_overlay_resolution.py",
+    "apps/compliance/tests/test_edos_data_residency_contract.py",
+    "apps/siteconfig/tests/test_edos_country_registry_overlay.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

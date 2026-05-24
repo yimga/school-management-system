@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "CRM_LIFECYCLE_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 11 — CRM lifecycle closure",
+  "existing_infrastructure": {
+    "sales_app": "apps/sales/",
+    "student360_app": "apps/student360/",
+    "customersuccess_app": "apps/customersuccess/",
+    "communication_app": "apps/communication/",
+    "feedback_app": "apps/feedback/",
+    "lifecycle_app": "apps/lifecycle/ (SchoolLifecycleStage model + bulk CSV/clone/jobs dashboard + onboarding concierge + soft-delete on School + DSAR self-serve + migration auto-launch per memory project_lifecycle_360_10x)",
+    "signup_creation_2": "/signup/ 12-option migration vendor picker + 5 school-type cards + Accept-Language detect (batch 1488 prior wave)",
+    "rapid_create": "/super/schools/rapid/ 4 template cards + 1-click demo",
+    "billing_gate_offboarding": "billing-gate banner in offboarding queue (L6 memory)"
+  },
+  "crm_requirements_status": {
+    "admissions_pipeline_kanban": "contract (apps/sales/ admission stages)",
+    "lifecycle_stage_model": "shipped (SchoolLifecycleStage)",
+    "student_lifecycle_timeline": "shipped (student360 timeline)",
+    "stakeholder_relationship_graph": "contract (apps/student360/ relationship graph)",
+    "parent_communication_history": "shipped (apps/communication/ + parent_dashboard)",
+    "tasks_case_management": "shipped (customersuccess + feedback)",
+    "retention_alerts": "shipped (lifecycle stage transitions + observability)",
+    "alumni_donor_crm": "contract",
+    "campaigns_fundraising": "contract",
+    "support_customer_success_linkage": "shipped (customersuccess CRM linkage)",
+    "ngo_donor_impact_program_linkage": "contract (Phase 14 NGO/Donor OS)",
+    "split_family_relationship_matrix": "shipped (StudentGuardian per-relationship flags)",
+    "prospective_family_conversion_journey": "shipped (signup creation 2.0 L7)",
+    "school_success_journey": "shipped (lifecycle stages)",
+    "first_100_schools_tracking": "contract"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/sales/tests/test_admissions_pipeline_contracts.py",
+    "apps/student360/tests/test_lifecycle_timeline.py",
+    "apps/student360/tests/test_stakeholder_relationship_graph.py",
+    "apps/customersuccess/tests/test_support_crm_linkage.py",
+    "apps/communication/tests/test_parent_communication_history.py"
+  ],
+  "external_blockers": [
+    "Live first-100-schools pilot CRM data (operator action)",
+    "Donor portal counsel signoff for impact reporting visibility (NGO/Donor OS Phase 14)"
+  ],
+  "compliance": {
+    "no_duplicate_crm_system": true,
+    "uses_existing_apps": true,
+    "dportal_deprecated_skipped": true
+  }
+}

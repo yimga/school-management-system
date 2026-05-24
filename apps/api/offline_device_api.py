@@ -7,7 +7,7 @@ import secrets
 from datetime import timedelta
 
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -28,12 +28,20 @@ class OfflineTokenMintSerializer(serializers.Serializer):
     )
 
 
+@extend_schema_view(
+    post=extend_schema(
+        tags=["Offline Sync"],
+        summary="Mint scoped offline capability token",
+        description="Online session required; registers device and mints a 12h-expiry capability token.",
+        request=OfflineTokenMintSerializer,
+        responses={201: dict},
+    ),
+)
 class OfflineTokenMintView(APIView):
     """Mint scoped offline capability token (online session required)."""
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(request=OfflineTokenMintSerializer, responses={201: dict})
     def post(self, request):
         school = getattr(request, "school", None)
         if school is None:

@@ -66,11 +66,19 @@ def _is_redirect_escape(path: str, final_path: str, redirect_chain: list) -> boo
 def _check_shell(html: str) -> list[str]:
     issues: list[str] = []
     if "data-rmc-admin-steering-strip" not in html:
-        issues.append("missing_steering_strip")
-    if "data-rmc-operator-surface-strip" not in html:
-        issues.append("missing_surface_strip")
+        issues.append("missing_steering_strip_markup")
+    if "data-rmc-operator-surface-strip" in html:
+        issues.append("surface_strip_on_changelist")
+    if "data-rmc-admin-changelist-live" not in html and "cp-changelist-live" not in html:
+        issues.append("missing_changelist_live_marker")
+    if "rmc-admin-changelist-pagehead" not in html:
+        issues.append("missing_changelist_pagehead")
     if "cp-main-content" not in html and "admin-manager-shell" not in html:
         issues.append("missing_shell_markers")
+    if "data-rmc-copilot-rail" not in html:
+        issues.append("missing_copilot_rail")
+    if "data-rmc-page-help" not in html and 'data-rmc-page-help="1"' not in html:
+        issues.append("missing_page_help_hook")
     if "TemplateSyntaxError" in html or "Server Error (500)" in html:
         issues.append("template_or_server_error")
     return issues

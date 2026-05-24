@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "UNIVERSAL_SCHEMA_MAPPING_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 7 — Universal schema mapping",
+  "existing_infrastructure": {
+    "global_registries_app": "apps/global_registries/",
+    "interop_app": "apps/interop/",
+    "metadata_app": "apps/metadata/",
+    "student360_app": "apps/student360/",
+    "canonical_csv_contract": "20-domain DOMAIN_CANONICAL_HEADERS in apps/migration_cloud/ (mirror in companion-tauri + companion-docker)",
+    "oneroster_integration": "apps/api/oneroster_roster_webhook.py — IMS Global OneRoster 1.2",
+    "scim_integration": "apps/api/scim_views.py — SCIM 2.0 (RFC 7644)",
+    "vendor_field_mappings": "PowerSchool/Blackbaud/Veracross/Alma/FACTS/Skyward per VENDOR_COVERAGE.md"
+  },
+  "global_field_classes_status": {
+    "identity": "shipped (User + Student PII + GuardianPII)",
+    "demographic": "shipped (Student demographics)",
+    "contact": "shipped (Email, Phone, Address)",
+    "enrollment": "shipped (Enrollment + Section)",
+    "guardian_custody": "shipped (StudentGuardian + relationship_type)",
+    "academic_record": "shipped (Grade, Course, Term)",
+    "attendance": "shipped (Attendance, AttendanceSession)",
+    "finance_summary": "shipped (Invoice, Payment, MealPlanBalance)",
+    "medical_safeguarding": "shipped (HealthRecord + safeguarding flags, privacy-gated)",
+    "compliance": "shipped (Compliance status fields)",
+    "consent": "shipped (ConsentRecord)",
+    "curriculum_track": "shipped (Track, CurriculumStream)",
+    "academy_dual_profile": "contract (student360 dual identity for formal+private-academy)"
+  },
+  "transfer_envelope_contracts": {
+    "student_transfer_envelope": "contract documented (apps/interop/student_transfer_envelope.py contract)",
+    "teacher_transfer_envelope": "contract documented (apps/interop/teacher_transfer_envelope.py contract)",
+    "consent_legal_permission_gate": "shipped (ConsentRecord + audit event)",
+    "academic_record_portability": "shipped (canonical CSV exports)",
+    "finance_record_portability": "contract (legally-allowed subset only)"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/global_registries/tests/test_universal_schema_mapping.py",
+    "apps/metadata/tests/test_custom_field_global_mapping_required.py",
+    "apps/interop/tests/test_student_transfer_envelope.py",
+    "apps/interop/tests/test_teacher_transfer_envelope.py",
+    "apps/interop/tests/test_schema_mapping_validation.py",
+    "apps/student360/tests/test_dual_identity_profile_contract.py"
+  ],
+  "external_blockers": [
+    "OneRoster receiving school registry (vendor onboarding)",
+    "MoE/government schema mapping per country (Phase 14 stakeholder OS)",
+    "FACTS/Skyward write paths (CFAA/DMCA counsel docket — preserved)"
+  ]
+}

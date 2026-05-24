@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "TENANT_IDENTITY_FEDERATION_RLS_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 6 — Tenant identity federation + RLS boundary",
+  "existing_infrastructure": {
+    "tenant_isolation_scanner_baseline": 0,
+    "tenant_isolation_marker_quality_baseline": 0,
+    "audit_tenant_isolation_script": "scripts/audit_tenant_isolation.py",
+    "tenant_app": "apps/tenancy/",
+    "security_app": "apps/security/",
+    "accounts_app": "apps/accounts/",
+    "session_tenant_binding": "Django session middleware honors request.tenant",
+    "jwt_session_tenant_binding": "SCIMProvisioningToken + MigrationCloudAPIToken patterns bind tenant_id",
+    "rls_policy_files": "ready to add per Phase 6 deployment checklist (SQLite local; Postgres production)",
+    "tenant_context_propagation": "async tenant context via @schema_context (django-tenants) + apps/sync_engine/ tenant tagging",
+    "ai_tenant_boundary": "services/ai_helpers.py invoke_with_request honors request.tenant",
+    "pwa_offline_tenant_boundary": "service-worker.js scopes caches per tenant host"
+  },
+  "rls_status": {
+    "postgres_environment": "production target; local SQLite for unit tests",
+    "policy_files_needed": "apps/tenancy/rls_policies/ — to be added by ops in deployment",
+    "migration_safe_plan": "AddIndex+RunSQL policy creation; rollback via RunSQL DROP POLICY",
+    "test_strategy": "Postgres-tagged tests + SQLite contract tests (no faked RLS in SQLite)",
+    "deployment_checklist": "apps/tenancy/RLS_DEPLOYMENT_CHECKLIST.md (Phase 6 contract)"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/security/tests/test_tenant_identity_boundary.py",
+    "apps/tenancy/tests/test_rls_policy_contract.py",
+    "apps/accounts/tests/test_tenant_session_binding.py",
+    "apps/platform_runtime/tests/test_async_tenant_context_safety.py",
+    "apps/apicenter/tests/test_ai_tenant_context_boundary.py",
+    "apps/sync_engine/tests/test_offline_tenant_context_boundary.py"
+  ],
+  "external_blockers": [
+    "Postgres RLS policy deployment to Render (operator action; SQLite local)",
+    "Cross-tenant penetration test (Lane 2 internal sec review)"
+  ]
+}

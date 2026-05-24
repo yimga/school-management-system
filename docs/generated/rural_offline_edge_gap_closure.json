@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "RURAL_OFFLINE_EDGE_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 5 — Rural/offline edge + PWA closure",
+  "existing_infrastructure": {
+    "service_worker": "static/js/service-worker.js (131KB; sms-v3.84.7 cache version)",
+    "registration": "static/js/rmc-service-worker-registration.js",
+    "manifest_per_shell": "all 4 dashboard shells emit manifest; scan_pwa_manifest_coverage.py baseline 0",
+    "offline_queue_client": "data-rmc-offline-form markers + portal offline-queue-client",
+    "offline_conflicts_view": "/portal/offline/conflicts/",
+    "sync_engine_app": "apps/sync_engine/ — tests dir present",
+    "tenant_manifest_compiler_contract": "documented in Phase 5 (this batch)",
+    "low_bandwidth_budget_contract": "documented in Phase 5 (this batch)",
+    "shared_device_profile_contract": "documented in Phase 5 (this batch)",
+    "ussd_ivr_adapter_contract": "Africa regional adapter (Phase 15) + this batch"
+  },
+  "rural_offline_status": {
+    "tenant_manifest_compiler": "contract documented (apps/sync_engine/tenant_manifest_compiler.py contract)",
+    "edge_runtime_contract": "contract documented",
+    "p2p_sync_contract": "contract documented (Africa regional adapter Phase 15)",
+    "low_bandwidth_budget": "contract documented; text-first sync + image deferral",
+    "shared_device_profile": "contract documented; PIN/pattern posture + cache purge on logout",
+    "ussd_adapter": "contract (Phase 15 Africa adapter)",
+    "ivr_adapter": "contract (Phase 15 Africa adapter)",
+    "school_in_a_box_deployment": "contract documented (Africa regional adapter)",
+    "disaster_resistant_backup_priority": "contract documented",
+    "offline_medical_safeguarding": "contract documented (privacy-limited)",
+    "offline_attendance_grade_queue": "shipped (offline-queue-client portal forms)"
+  },
+  "pwa_status": {
+    "web_app_manifest": "shipped (all 4 shells)",
+    "installability": "shipped (Add-to-Home-Screen contract)",
+    "service_worker_registration": "shipped",
+    "offline_fallback_route": "shipped (/portal/offline/conflicts/)",
+    "cache_strategy": "shipped (CACHE_VERSION monotonicity verified by verify_service_worker_version.py)",
+    "route_allowlist_denylist": "shipped (in service-worker.js)",
+    "tenant_aware_offline_shell": "shipped",
+    "no_secrets_cached": true,
+    "no_cross_tenant_cached_data": true
+  },
+  "low_data_mode_status": {
+    "compact_payloads": "shipped (canonical-JSON; tiny envelopes)",
+    "text_first_sync": "shipped (text-first templates)",
+    "image_deferral": "shipped",
+    "install_size_target_under_2mb": "shipped (PWA install — no 100MB downloads)",
+    "low_data_budget_report": "documented (Phase 5 artifact)"
+  },
+  "deferred_native_wrapper_roadmap": {
+    "native_wrapper_required_post": "first 100 schools stable + web core proven + PWA installability proven + app-store wrapper value justified",
+    "wrapper_technology": "Capacitor/Tauri (web remains SoT; native wrapper does not fork product logic)",
+    "deferred_features_pending_wrapper": "native push (FCM/APNS), biometric login, Bluetooth, app-store presence",
+    "native_consumer_app_present": false,
+    "honest_stance": "PWA-first; native deferred"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/sync_engine/tests/test_tenant_manifest_compiler.py",
+    "apps/sync_engine/tests/test_offline_edge_sync_contract.py",
+    "apps/sync_engine/tests/test_low_bandwidth_budget.py",
+    "apps/sync_engine/tests/test_shared_device_profile_contract.py",
+    "apps/sync_engine/tests/test_offline_payment_sync_contract.py",
+    "apps/sync_engine/tests/test_offline_queue_contract.py",
+    "apps/platform_runtime/tests/test_pwa_manifest.py",
+    "apps/platform_runtime/tests/test_pwa_offline_storage_contract.py",
+    "apps/platform_runtime/tests/test_pwa_tenant_cache_safety.py",
+    "apps/accounts/tests/test_shared_device_cache_purge.py"
+  ],
+  "external_blockers": [
+    "live solar Pi-box deployment partner",
+    "live USSD telecom partner + short-code allocation",
+    "live IVR vendor setup",
+    "live device-matrix Playwright (iOS Safari + Android Chrome + Edge desktop install/offline)",
+    "MaxMind GeoLite2-City .mmdb deployment to Render (operator action per docs/GEOIP_DEPLOYMENT.md)"
+  ]
+}

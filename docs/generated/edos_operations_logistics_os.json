@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Operations and Campus Logistics OS",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_OPERATIONS_LOGISTICS_OS_READY",
+  "scope": "Refactors schoolops + sync_engine + payroll + finance + communication + observability. Transport/fleet contract + route optimization posture + geofenced drop-off coordination (opt-in privacy-limited) + hostel/residential workflows + canteen/POS/wallet workflows + asset lifecycle + QR asset lost-and-found loop + procurement lifecycle + substitute allocation + substitute handover blueprint + health/safeguarding linkage + IoT device contract + offline field operations posture + board/institution capital leakage dashboard + teacher/staff reimbursement workflow.",
+  "sections": [
+    {
+      "title": "Engine components",
+      "items": [
+        "Transport/fleet contract \u2014 apps.schoolops.TransportAssignment first-class + GPS contract (no fake hardware)",
+        "Route optimization posture \u2014 apps.schoolops.route_optimization (contract; live optimizer external)",
+        "Geofenced drop-off \u2014 apps.schoolops.dropoff_coordination_privacy_contract (opt-in, privacy-limited, NO overcollection)",
+        "Hostel/residential \u2014 apps.schoolops.HostelAssignment first-class + warden logs",
+        "Canteen/POS/wallet \u2014 apps.schoolops.MealPlanBalance first-class + cafeteria POS workflow",
+        "Asset lifecycle \u2014 apps.schoolops asset_lifecycle + procurement reorder automation",
+        "QR asset lost-and-found \u2014 apps.schoolops.lost_belongings_asset_qr_contract + asset.qr_scanned event",
+        "Substitute allocation \u2014 apps.schoolops.substitute_payroll_integration",
+        "Substitute handover blueprint \u2014 apps.schoolops.substitute_handover_blueprint with expiry + audit",
+        "Health/safeguarding linkage \u2014 apps.compliance + apps.security (encrypted blob pointer + access audit)",
+        "IoT device contract \u2014 apps.schoolops.iot_device_contract (no fake hardware readiness)",
+        "Offline field ops \u2014 apps.sync_engine offline_field_ops_contract",
+        "Board capital leakage dashboard \u2014 apps.dashboard.board_capital_leakage",
+        "Teacher/staff reimbursement \u2014 apps.payroll.reimbursement_ledger_contract"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/schoolops/",
+    "apps/sync_engine/",
+    "apps/payroll/",
+    "apps/finance/",
+    "apps/communication/",
+    "apps/observability/",
+    "apps/compliance/",
+    "apps/security/"
+  ],
+  "tests": [
+    "apps/schoolops/tests/test_edos_transport_assignment_v2.py",
+    "apps/schoolops/tests/test_edos_hostel_workflow_v2.py",
+    "apps/schoolops/tests/test_edos_meal_plan_balance_v2.py",
+    "apps/schoolops/tests/test_edos_lost_belongings_qr_v2.py",
+    "apps/schoolops/tests/test_edos_substitute_handover_v2.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

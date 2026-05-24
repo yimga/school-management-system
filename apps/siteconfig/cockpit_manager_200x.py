@@ -1,8 +1,10 @@
 """Cockpit manager 200x defaults — v3.55.0+ (2026-05-21).
 
 Default payloads for the 10 luxury "200x" elements layered over the v7
-manager cockpit. Every section returns a dict with `enabled=False` so
-the operator must explicitly opt in via SiteSettings.cockpit_payload.
+manager cockpit. Most sections default to `enabled=False`; the AI copilot
+rail defaults to `enabled=True` so page-help and the operator rail ship on
+manager hosts without demo overlay. Operators may still disable via
+SiteSettings.cockpit_payload.
 
 This module is consumed by `apps/siteconfig/cockpit_context.py` (the
 orchestrator integrates these into the manager-host branch). Helpers
@@ -53,7 +55,7 @@ def _manager_ai_copilot_defaults() -> dict[str, Any]:
         send_label         str        — send button label
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "default_state": "collapsed",
         "title": _("Copilot"),
         "title_em": _("always listening"),

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Zero-Overhead Runtime Abstraction",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_RUNTIME_ABSTRACTION_READY",
+  "scope": "Defines the 15 runtime context primitives that propagate through every kernel operation. Each context is tenant-safe, request-scoped or explicitly passed, testable, serializable where edge/offline needs it, secret-redacted, and propagates safely into async jobs, AI calls, and PWA offline sync queues.",
+  "sections": [
+    {
+      "title": "Runtime primitives",
+      "items": [
+        "TenantContext \u2014 tenant_id, schema_hint, RLS policy version, cache key prefix, manifest_hash",
+        "ActorContext \u2014 user_id, role, impersonation_chain, mfa_state, session_id, audit_actor_label",
+        "PermissionContext \u2014 granted_scopes, denied_reasons, RBAC matrix snapshot, override_token (operator only)",
+        "LocaleContext \u2014 language, country, RTL flag, calendar variant, currency, number_formatting_locale, script_aware_layout flag",
+        "RegionContext \u2014 payment_rail_preference, compliance_regime (GDPR/CCPA/POPIA/LGPD/PDPB), data_residency_target",
+        "WorkflowContext \u2014 workflow_id, step_id, idempotency_key, dead_letter_target, retry_budget_remaining",
+        "ExperienceContext \u2014 assigned_template_key, palette_family, override_payload_hash, preview_mode flag",
+        "AIContext \u2014 gateway_key (ai_helpers only), tenant_redaction_policy, max_tokens, model_alias, never_log_raw_prompt flag",
+        "EdgeContext \u2014 manifest_hash, last_sync_at, conflict_count, bandwidth_class (low/mid/high), shared_device flag",
+        "AuditContext \u2014 audit_event_id, root_key_signature_chain, immutability flag, replay_safe flag",
+        "PWAContext \u2014 sw_version, install_state, offline_queue_depth, indexeddb_quota_bytes, tenant_cache_key",
+        "OfflineSyncContext \u2014 queue_id, oldest_pending_at, conflict_resolution_strategy, tenant_purge_token",
+        "ResourceQuotaContext \u2014 plan_id, ai_token_budget_remaining, workflow_minutes_remaining, export_count_remaining, abuse_score",
+        "StakeholderContext \u2014 stakeholder_os (gov/ngo/owner/admin/teacher/parent/student), visibility_scope, redaction_profile",
+        "PaymentRailContext \u2014 selected_rail, fallback_rails, idempotency_key, replay_window_seconds, signature_required flag"
+      ]
+    },
+    {
+      "title": "Propagation rules (non-negotiable)",
+      "items": [
+        "All async jobs (Celery/threadpool) MUST accept TenantContext + ActorContext as first arg; never read from thread-local.",
+        "AI calls go through services.ai_helpers ONLY; gateway boundary scanner baseline 0 enforces.",
+        "PWA/offline queue messages serialize TenantContext but NEVER ActorContext.session_id (replay-safe).",
+        "Telemetry packets carry TenantContext.tenant_id + ResourceQuotaContext.abuse_score; NO PII fields by default.",
+        "Audit events HMAC-SHA512 sign with root_key_signature_chain; immutable; replay-safe.",
+        "Cross-tenant context switch requires explicit operator override_token + audit_event in same transaction."
+      ]
+    },
+    {
+      "title": "Repo implementation pointers",
+      "items": [
+        "apps/platform_runtime/runtime_context.py \u2014 anchor module (extend, do not duplicate)",
+        "apps/tenancy/middleware.py \u2014 TenantContext binding (existing)",
+        "apps/accounts/middleware.py \u2014 ActorContext binding (existing)",
+        "services/ai_helpers.py \u2014 AIContext gateway (boundary baseline 0)",
+        "apps/sync_engine/offline_queue.py \u2014 OfflineSyncContext serialization",
+        "apps/observability/tracing.py \u2014 sentry boundary (only module allowed to import sentry_sdk)"
+      ]
+    }
+  ],
+  "repo_evidence": [],
+  "tests": [
+    "apps/platform_runtime/tests/test_edos_runtime_contexts.py",
+    "apps/tenancy/tests/test_tenant_context_propagation.py",
+    "apps/apicenter/tests/test_ai_context_redaction_contract.py",
+    "apps/sync_engine/tests/test_offline_context_serialization.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

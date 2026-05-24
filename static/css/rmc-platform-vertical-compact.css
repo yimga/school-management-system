@@ -1,0 +1,272 @@
+/**
+ * rmc-platform-vertical-compact.css — v3.85.0 (2026-05-24)
+ * Platform-wide vertical density: collapse dead bands, tighten admin changelists,
+ * align operator canvas with v8 200x preview (content hugs header chrome).
+ */
+
+/* === Bleed guard: never render template comment leakage as text ========= */
+body.control-plane-shell,
+body.admin-manager-shell,
+body.portal-body-with-layout {
+  /* No-op anchor — documents intent for scanners */
+}
+
+/* === Remove workspace card dead zone (sidebar starts at nav catalog) === */
+body.control-plane-shell .cp-sidebar .rmc-cockpit-workspace,
+body.admin-manager-shell .cp-sidebar .rmc-cockpit-workspace {
+  display: none !important;
+}
+
+body.control-plane-shell .cp-sidebar-inner,
+body.admin-manager-shell .cp-sidebar {
+  padding-top: 0.35rem !important;
+}
+
+/* === Canvas: collapse empty wrappers (breadcrumb-only void) ============== */
+body.control-plane-shell .rmc-app-shell__canvas-body > .container-fluid:empty,
+body.control-plane-shell .cp-page-body > .container-fluid:empty,
+body.control-plane-shell .cp-layout > main > .w-100:empty,
+body.admin-manager-shell .cp-admin-canvas-main > .w-100:empty,
+body.admin-manager-shell #content > .w-100:empty {
+  display: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.admin-manager-shell .cp-admin-canvas-main {
+  padding-top: 0 !important;
+}
+
+body.control-plane-shell .cp-layout {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+body.control-plane-shell .breadcrumb,
+body.admin-manager-shell .rmc-admin-breadcrumb-nav {
+  margin-bottom: 0.35rem !important;
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+
+body.admin-manager-shell .cp-admin-page-body {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+body.admin-manager-shell #content.colM,
+body.admin-manager-shell #content {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+body.admin-manager-shell .admin-operator-steering-strip,
+body.admin-manager-shell [data-rmc-operator-surface-strip] {
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* MFA / preview cues — slim vertical footprint */
+body.admin-manager-shell .preview-cue,
+body.control-plane-shell .preview-cue {
+  margin-bottom: 0.5rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* === /admin/ changelist & inner config surfaces (10x density) =========== */
+body.admin-manager-shell #changelist {
+  margin-top: 0 !important;
+}
+
+body.admin-manager-shell #changelist .changelist-form-container,
+body.admin-manager-shell #changelist-form {
+  margin-top: 0.35rem !important;
+}
+
+body.admin-manager-shell #changelist-filter {
+  top: 0;
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+}
+
+body.admin-manager-shell .object-tools {
+  margin-bottom: 0.5rem !important;
+}
+
+body.admin-manager-shell #result_list,
+body.admin-manager-shell .results {
+  border-radius: var(--radius-lg, 16px);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+}
+
+body.admin-manager-shell #result_list thead th,
+body.admin-manager-shell .results thead th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  background: var(--surface-elevated);
+}
+
+body.admin-manager-shell .paginator {
+  margin-top: 0.75rem !important;
+  font-size: 13px;
+}
+
+body.admin-manager-shell .rmc-admin-changelist-header,
+body.admin-manager-shell #content h1 {
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+body.admin-manager-shell .rmc-admin-filter-panel,
+body.admin-manager-shell fieldset.module {
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+  margin-bottom: 0.75rem !important;
+}
+
+body.admin-manager-shell #toolbar,
+body.admin-manager-shell .actions,
+body.admin-manager-shell .changelist-search {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+body.admin-manager-shell #changelist-search input[type="search"],
+body.admin-manager-shell #searchbar {
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--hairline);
+  min-height: 2.25rem;
+}
+
+body.admin-manager-shell #changelist .actions select,
+body.admin-manager-shell #changelist .actions button {
+  border-radius: var(--radius-md, 12px);
+}
+
+body.admin-manager-shell #result_list tbody tr:hover,
+body.admin-manager-shell .results tbody tr:hover {
+  background: color-mix(in srgb, var(--surface-elevated) 88%, var(--text-primary) 12%);
+}
+
+body.admin-manager-shell .submit-row {
+  margin-top: 0.75rem !important;
+  padding-top: 0.75rem !important;
+  border-top: 1px solid var(--hairline);
+}
+
+body.manager-portal-bridge .cp-sidebar .rmc-cockpit-workspace {
+  display: none !important;
+}
+
+body.manager-portal-bridge .cp-sidebar-inner {
+  padding-top: 0.35rem !important;
+}
+
+body.manager-portal-bridge .page-wrap > .container-fluid:first-child,
+body.manager-portal-bridge #main-content > .container-fluid:first-child {
+  padding-top: 0.35rem !important;
+}
+
+/* === Footer notebook: right dock, collapsed default ==================== */
+.rmc-footer-notebook-anchor {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.rmc-footer-notebook-anchor .lx-notebook {
+  pointer-events: auto;
+}
+
+body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook[data-rmc-notebook-state="minimized"] {
+  width: min(280px, 92vw);
+  max-width: 280px;
+}
+
+/* === Manager portal bridge: fixed copilot rail (Bootstrap layout) ====== */
+body.manager-portal-bridge .rmc-manager-portal-copilot-mount {
+  position: fixed;
+  top: var(--rmc-app-shell-header-h, 104px);
+  right: 0;
+  bottom: calc(var(--rmc-operator-footer-height, 56px) + 8px);
+  width: var(--rmc-app-shell-copilot-w, 44px);
+  z-index: 45;
+  pointer-events: none;
+}
+
+body.manager-portal-bridge .rmc-manager-portal-copilot-mount .rmc-app-shell__copilot,
+body.manager-portal-bridge .rmc-manager-portal-copilot-mount .lx-copilot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+body.manager-portal-bridge[data-copilot="expanded"] .rmc-manager-portal-copilot-mount {
+  --rmc-app-shell-copilot-w: 360px;
+  width: 360px;
+}
+
+body.manager-portal-bridge[data-rmc-copilot-page-help="1"] .rmc-help-contextual-drawer {
+  display: none !important;
+}
+
+body.manager-portal-bridge .portal-main-col,
+body.manager-portal-bridge #main-content {
+  padding-right: calc(var(--rmc-app-shell-copilot-w, 44px) + 8px);
+}
+
+body.manager-portal-bridge[data-copilot="expanded"] .portal-main-col,
+body.manager-portal-bridge[data-copilot="expanded"] #main-content {
+  padding-right: calc(360px + 8px);
+}
+
+@media (max-width: 1199.98px) {
+  body.manager-portal-bridge .rmc-manager-portal-copilot-mount {
+    display: none;
+  }
+  body.manager-portal-bridge .portal-main-col,
+  body.manager-portal-bridge #main-content {
+    padding-right: 0;
+  }
+}
+
+/* === Manager /admin/ copilot rail (3rd grid column) ===================== */
+body.admin-manager-shell .rmc-app-shell.admin-cp-unified-page {
+  grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr var(--rmc-app-shell-copilot-w, 44px);
+}
+
+body.admin-manager-shell .rmc-app-shell.admin-cp-unified-page[data-copilot="expanded"] {
+  --rmc-app-shell-copilot-w: 360px;
+}
+
+body.admin-manager-shell .rmc-app-shell__copilot {
+  grid-row: 2;
+  grid-column: 3;
+}
+
+@media (max-width: 1199.98px) {
+  body.admin-manager-shell .rmc-app-shell.admin-cp-unified-page {
+    grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr;
+  }
+  body.admin-manager-shell .rmc-app-shell__copilot {
+    display: none;
+  }
+}
+
+/* Floating help drawer hidden when copilot owns page-help */
+body.control-plane-shell[data-rmc-copilot-page-help="1"] .rmc-help-contextual-drawer,
+body.admin-manager-shell[data-rmc-copilot-page-help="1"] .rmc-help-contextual-drawer {
+  display: none !important;
+}

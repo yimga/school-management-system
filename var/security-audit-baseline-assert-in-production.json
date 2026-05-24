@@ -14,15 +14,9 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 1,
-  "findings": [
-    {
-      "line": 111,
-      "path": "apps/siteconfig/portal_visual_presets_registry.py",
-      "snippet": "assert len(PORTAL_VISUAL_PRESETS) == 50, f\"expected 50 presets, got {len(PORTAL_VISUAL_PRESETS)}\""
-    }
-  ],
-  "generated_at": "2026-05-24T00:46:44+00:00",
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-05-24T14:12:42+00:00",
   "rule": "assert statements are stripped under python -O; use explicit raise in production code",
   "scan_dirs": [
     "apps",

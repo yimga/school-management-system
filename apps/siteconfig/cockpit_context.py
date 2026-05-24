@@ -626,7 +626,7 @@ def cockpit_context(request) -> dict[str, Any]:
                 "cards": _resolve_pulse_cards_safely(),
             },
             "workspace_context": {
-                "enabled": True,
+                "enabled": False,
                 "show_role": True,
                 "scope_dropdown": True,
                 "collapse_toggle": True,
@@ -738,7 +738,13 @@ def cockpit_context(request) -> dict[str, Any]:
             atk_section["enabled"] = False
             manager_cockpit["activity_ticker"] = atk_section
 
-        return {"cockpit": manager_cockpit}
+        rmc_page_help_on_copilot_rail = bool(
+            (manager_cockpit.get("ai_copilot_rail") or {}).get("enabled")
+        )
+        return {
+            "cockpit": manager_cockpit,
+            "rmc_page_help_on_copilot_rail": rmc_page_help_on_copilot_rail,
+        }
 
     # Tenant host — civic footer + community band + newsletter band +
     # v3.56.0 v2 dashboard sections (workspace_context_tenant / today_snapshot /
@@ -826,4 +832,4 @@ def cockpit_context(request) -> dict[str, Any]:
     if tat_section:
         tenant_cockpit["tenant_activity_ticker"] = tat_section
 
-    return {"cockpit": tenant_cockpit}
+    return {"cockpit": tenant_cockpit, "rmc_page_help_on_copilot_rail": False}

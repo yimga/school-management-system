@@ -49,7 +49,7 @@ IMPLEMENTATION: dict[str, dict] = {
             ("templates/partials/manager_platform_admin_sidebar.html", ("cp-sidebar-platform-admin", "data-rmc-platform-admin-sidebar")),
         ),
         "order_checks": (
-            ("templates/admin/base.html", "cp-nav-row", "cp-live-strip"),
+            ("templates/admin/base.html", "cp-live-strip", "cp-nav-row"),
         ),
         "css_files": (
             "static/css/rmc-admin-v1-200x.css",

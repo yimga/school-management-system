@@ -1,5 +1,7 @@
 {% load i18n static %}
-{% if show_contextual_help_drawer %}
+{% comment %} v3.84.9: When the manager AI copilot rail is enabled, page help lives on
+   the rail only — suppress this floating drawer to avoid duplicate CTAs. {% endcomment %}
+{% if show_contextual_help_drawer and not rmc_page_help_on_copilot_rail %}
 <aside class="rmc-help-contextual-drawer border-top mt-2 pt-2" data-rmc-help-contextual-drawer aria-label="{% trans 'Contextual help' %}">
   <details class="small">
     <summary class="fw-semibold text-primary">{% trans "Need help on this page?" %}</summary>

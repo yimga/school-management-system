@@ -58,6 +58,10 @@
               data-rmc-operator-notebook-toggle
               title="{% trans 'Toggle operator notebook' %}"
               aria-label="{% trans 'Toggle operator notebook' %}">✎</button>
+      <button class="lx-copilot__rail-icon lx-copilot__rail-icon--help" type="button"
+              data-rmc-page-help
+              title="{% trans 'Need help on this page?' %}"
+              aria-label="{% trans 'Need help on this page?' %}">?</button>
       <div class="lx-copilot__kbd" aria-hidden="true">⌘ K</div>
     </div>
 
@@ -95,6 +99,15 @@
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="actions" role="tab">{% trans 'Actions' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="threads" role="tab">{% trans 'Threads' %}</button>
       </nav>
+
+      <div class="lx-copilot__page-help-wrap">
+        <button type="button" class="lx-copilot__page-help" data-rmc-page-help
+                title="{% trans 'Need help on this page?' %}"
+                aria-label="{% trans 'Need help on this page?' %}">
+          <span class="lx-copilot__page-help-icon" aria-hidden="true">?</span>
+          <span class="lx-copilot__page-help-label">{% trans "Need help on this page?" %}</span>
+        </button>
+      </div>
 
       {% if cockpit.ai_copilot_rail.insight_text %}
       <div class="lx-copilot__insight">

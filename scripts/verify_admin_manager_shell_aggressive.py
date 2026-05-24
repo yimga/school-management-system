@@ -13,12 +13,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _run(cmd: list[str], label: str) -> list[str]:
+    import os
+
+    env = os.environ.copy()
+    env.setdefault("PYTHONPATH", str(ROOT))
     proc = subprocess.run(
         cmd,
         cwd=ROOT,
         capture_output=True,
         text=True,
         timeout=300,
+        env=env,
     )
     out = (proc.stdout or "") + (proc.stderr or "")
     if proc.returncode != 0:
@@ -54,7 +59,13 @@ def main() -> int:
                 ("page_fold", [py, "scripts/verify_page_fold_standards.py"]),
                 ("template_safety", [py, "scripts/audit_template_render_safety.py"]),
                 ("admin_gear_up", [py, "scripts/verify_admin_platform_gear_up_bundle.py"]),
-                ("admin_changelist", [py, "scripts/verify_admin_changelist_render_contract.py"]),
+                (
+                    "admin_changelist",
+                    [
+                        py,
+                        "scripts/verify_admin_changelist_render_contract.py",
+                    ],
+                ),
                 ("admin_steering", [py, "scripts/verify_admin_steering_strip_contract.py"]),
                 ("manager_chrome", [py, "scripts/verify_manager_portal_chrome_completion.py"]),
             ]
@@ -81,6 +92,60 @@ def main() -> int:
     skeleton = (ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
     if "help_contextual_drawer.html" not in skeleton or "rmc-footer-notebook-anchor" not in skeleton:
         errors.append("control_plane_skeleton.html: contextual help drawer or footer notebook anchor missing")
+    if "_workspace_context.html" in skeleton:
+        errors.append("control_plane_skeleton.html: workspace_context must not ship in sidebar")
+    if "data-rmc-copilot-page-help" not in skeleton or "rmc-platform-vertical-compact.css" not in skeleton:
+        errors.append("control_plane_skeleton.html: copilot page-help attr or vertical-compact CSS missing")
+
+    admin_base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
+    if "_workspace_context.html" in admin_base:
+        errors.append("admin/base.html: workspace_context must not ship in manager sidebar")
+    if admin_base.find("cp-live-strip") < 0 or admin_base.find("cp-live-strip") > admin_base.find("cp-nav-row"):
+        errors.append("admin/base.html: live ticker must precede primary nav row")
+    if "_ai_copilot_rail.html" not in admin_base:
+        errors.append("admin/base.html: manager copilot rail include missing")
+
+    portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
+    if "rmc-manager-portal-copilot-mount" not in portal:
+        errors.append("portal_base.html: manager copilot bridge mount missing")
+    mgr_hdr = portal.find('data-rmc-shell-header="portal-manager"')
+    if mgr_hdr >= 0:
+        hdr_slice = portal[mgr_hdr : mgr_hdr + 2500]
+        strip_i = hdr_slice.find("cp-live-strip")
+        nav_i = hdr_slice.find("cp-nav-row")
+        if strip_i < 0:
+            errors.append("portal_base.html: manager header missing live ticker strip")
+        elif nav_i >= 0 and strip_i > nav_i:
+            errors.append("portal_base.html: manager header must be utility → ticker → nav")
+
+    cockpit_defaults = (ROOT / "apps/siteconfig/cockpit_manager_200x.py").read_text(encoding="utf-8")
+    if '"enabled": True' not in cockpit_defaults.split("_manager_ai_copilot_defaults")[1].split("def _manager_world_map")[0]:
+        errors.append("cockpit_manager_200x.py: ai_copilot_rail.enabled must default True")
+
+    theme_tail = (ROOT / "templates/partials/rmc_authenticated_theme_tail.html").read_text(encoding="utf-8")
+    if "{#" in theme_tail and "#}" in theme_tail:
+        errors.append("rmc_authenticated_theme_tail.html: use {% comment %} not {# #} (bleed risk)")
+
+    copilot_partial = (ROOT / "templates/partials/cockpit/_ai_copilot_rail.html").read_text(encoding="utf-8")
+    if "data-rmc-page-help" not in copilot_partial:
+        errors.append("_ai_copilot_rail.html: page-help control missing on rail")
+
+    changelist_tpl = (ROOT / "templates/admin/change_list.html").read_text(encoding="utf-8")
+    if "cp-changelist-live" not in changelist_tpl or "cp-changelist--preview" in changelist_tpl:
+        errors.append("change_list.html: must use cp-changelist-live (not preview grid class)")
+    preview_tpl = (ROOT / "templates/admin/partials/admin_v1_index_surface_previews.html").read_text(
+        encoding="utf-8"
+    )
+    if "cp-changelist--preview" not in preview_tpl:
+        errors.append("admin_v1_index_surface_previews.html: missing cp-changelist--preview scoping")
+
+    v1_css = (ROOT / "static/css/rmc-admin-v1-200x.css").read_text(encoding="utf-8")
+    if ".cp-changelist.cp-changelist--preview" not in v1_css:
+        errors.append("rmc-admin-v1-200x.css: preview changelist grid must be scoped to --preview")
+    if not (ROOT / "static/css/rmc-admin-changelist-live.css").is_file():
+        errors.append("rmc-admin-changelist-live.css: missing live changelist stylesheet")
+
+    errors.extend(_run([py, "scripts/verify_theme_tail_no_bleed.py"], "theme_tail_no_bleed"))
 
     guard = (ROOT / "static/js/rmc-surface-overlay-guard.js").read_text(encoding="utf-8")
     if "MutationObserver" not in guard or 'getElementById("modal-overlay")' not in guard:

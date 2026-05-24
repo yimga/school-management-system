@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "title": "EdOS AI, Help Center, FAQ, Forum, and Product Voice OS",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_AI_HELP_PRODUCT_VOICE_OS_READY",
+  "scope": "Refactors AI (apicenter) + feedback + Help Center + FAQ/KB + customersuccess + observability. One safe AI gateway + workflow-aware assistant + evidence-backed KB/FAQ generation + support ticket enrichment + product voice loop + friction analysis + tenant-safe help + operator-only code/topology oracle + missing context fallback (DATA DEFAULTER) + missing feature fallback (FEATURE CODESPACE DISCONNECT) + no raw PII prompts + review-gated publishing + AI auto-migration support + AI data cleanup support + AI local-first template recommendations + AI homework support guardrails + no generic answers + no tenant-visible platform internals.",
+  "sections": [
+    {
+      "title": "AI safety (baseline 0 enforced)",
+      "items": [
+        "One gateway \u2014 apicenter.services.ai_helpers; gateway boundary scanner baseline 0 (app code MUST NOT import services.ai_gateway directly)",
+        "Tenant-safe context \u2014 AIContext.tenant_redaction_policy applied before every call",
+        "No raw PII prompts \u2014 apicenter.redact_pii() at gateway",
+        "Missing context fallback \u2014 return DATA DEFAULTER token, not hallucinated answer",
+        "Missing feature fallback \u2014 return FEATURE CODESPACE DISCONNECT token",
+        "Review-gated KB publishing \u2014 apps.feedback voice-of-customer router gates publication",
+        "Operator-only code/topology oracle \u2014 operator-only scope; tenant never sees platform internals",
+        "AI auto-migration support \u2014 apps.migration_cloud (Phase 10)",
+        "AI data cleanup support \u2014 apps.migration_cloud visual_data_cleanup",
+        "AI local-first template recommendations \u2014 apps.brand_experience.template_ai_recommender (registry-validated, no stereotyping)",
+        "AI homework support guardrails \u2014 apps.academics.homework_ai_guardrails (no answer leakage)",
+        "No generic answers \u2014 apicenter rejects empty-context prompts"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "services/ai_helpers.py",
+    "apps/apicenter/",
+    "apps/feedback/",
+    "apps/customersuccess/",
+    "apps/migration_cloud/",
+    "apps/brand_experience/template_ai_recommender.py",
+    "apps/academics/"
+  ],
+  "tests": [
+    "apps/apicenter/tests/test_edos_ai_gateway_boundary_v2.py",
+    "apps/apicenter/tests/test_edos_ai_missing_context_fallback_v2.py",
+    "apps/feedback/tests/test_edos_kb_review_gated_publish.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

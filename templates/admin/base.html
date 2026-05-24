@@ -2,7 +2,7 @@
 
 {% load admin_list i18n unfold admin_urls %}
 {% block base %}
-    <div class="rmc-app-shell admin-cp-unified-page {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}"{% if is_manager_host %} data-rmc-admin-cp-unified="1"{% endif %}>
+    <div class="rmc-app-shell admin-cp-unified-page {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}"{% if is_manager_host %} data-rmc-admin-cp-unified="1" data-copilot="collapsed"{% endif %}>
 
         {# ---------- Grid row 1 — static header (viewport-pinned) ---------- #}
         {% comment %}v3.59.9 (2026-05-22): added data-rmc-control-plane-chrome="1" so
@@ -17,11 +17,11 @@
                 <div class="cp-header__row cp-header__row--utility">
                   {% include "partials/manager_operator_topbar.html" %}
                 </div>
-                <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
-                  {% include "partials/control_plane_primary_nav.html" %}
-                </div>
                 <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
                   {% include "partials/cockpit/_activity_ticker.html" %}
+                </div>
+                <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
+                  {% include "partials/control_plane_primary_nav.html" %}
                 </div>
               </div>
             </div>
@@ -34,7 +34,6 @@
         {% if is_manager_host %}
         <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
             <div class="cp-sidebar">
-                {% include "partials/cockpit/_workspace_context.html" %}
                 {% include "partials/manager_platform_admin_sidebar.html" %}
             </div>
         </aside>
@@ -82,7 +81,9 @@
                 {% if is_manager_host %}
                 {% block admin_operator_steering %}
                     {% if not is_popup and request.resolver_match.url_name|default:"" != "index" %}
+                        {% if not cl %}
                         {% include "components/rmc_operator_surface_strip.html" %}
+                        {% endif %}
                         {% include "admin/includes/admin_operator_steering_strip.html" %}
                     {% endif %}
                 {% endblock admin_operator_steering %}
@@ -139,6 +140,10 @@
 
             </main>
         </div>
+
+        {% if is_manager_host %}
+        {% include "partials/cockpit/_ai_copilot_rail.html" %}
+        {% endif %}
 
         {# ---------- Grid row 3 — static footer (viewport-pinned) ---------- #}
         {% if is_manager_host %}

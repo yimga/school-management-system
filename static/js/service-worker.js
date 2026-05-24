@@ -106,7 +106,9 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.84.7-theme-platform-wide-dual-plane-2026-05-24";
+// v3.84.8: Copilot rail page-help — "Need help on this page?" on collapsed ? icon + expanded label (data-rmc-page-help → rmc-page-context-help.js).
+// v3.84.9: Page-help dedupe — suppress floating drawer / portal topbar / assist-dock relocation when copilot rail owns help.
+const CACHE_VERSION = "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

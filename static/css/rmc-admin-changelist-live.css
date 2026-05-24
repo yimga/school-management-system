@@ -1,0 +1,142 @@
+/**
+ * rmc-admin-changelist-live.css — v3.85.2 (2026-05-22)
+ * Live Unfold changelist surfaces on manager /admin/* (not index preview grid).
+ */
+
+body.admin-manager-shell.change-list [data-rmc-operator-surface-strip] {
+  display: none !important;
+}
+
+body.admin-manager-shell.change-list .rmc-admin-breadcrumb-nav {
+  padding-top: 0.15rem !important;
+  padding-bottom: 0.15rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+body.admin-manager-shell.change-list .rmc-admin-changelist-pagehead {
+  margin-bottom: 0.5rem !important;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+body.admin-manager-shell.change-list .cp-changelist-live {
+  margin-top: 0;
+}
+
+body.admin-manager-shell.change-list #changelist.module {
+  margin-top: 0;
+  border: none;
+  background: transparent;
+}
+
+body.admin-manager-shell.change-list .rmc-admin-changelist-toolbar {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline) !important;
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-1);
+  padding: 0.65rem 0.85rem !important;
+  margin-bottom: 0.65rem !important;
+}
+
+body.admin-manager-shell.change-list .rmc-admin-changelist-toolbar label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+body.admin-manager-shell.change-list #changelist-search input,
+body.admin-manager-shell.change-list #searchbar {
+  min-height: 2.35rem;
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+}
+
+body.admin-manager-shell.change-list #changelist-form {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: var(--elev-1);
+  overflow: hidden;
+}
+
+body.admin-manager-shell.change-list #result_list,
+body.admin-manager-shell.change-list .results {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.admin-manager-shell.change-list #result_list thead th,
+body.admin-manager-shell.change-list .results thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-canvas);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--hairline);
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+body.admin-manager-shell.change-list #result_list tbody td,
+body.admin-manager-shell.change-list .results tbody td {
+  font-size: 13px;
+  vertical-align: middle;
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
+}
+
+body.admin-manager-shell.change-list #result_list tbody tr:hover td,
+body.admin-manager-shell.change-list .results tbody tr:hover td {
+  background: color-mix(in srgb, var(--surface-canvas) 92%, var(--school-primary, var(--primary)) 8%);
+}
+
+body.admin-manager-shell.change-list #result_list tbody tr.selected td,
+body.admin-manager-shell.change-list .results tbody tr.selected td {
+  background: color-mix(in srgb, var(--surface-canvas) 85%, var(--school-primary, var(--primary)) 15%);
+}
+
+body.admin-manager-shell.change-list .actions {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+}
+
+body.admin-manager-shell.change-list .actions select,
+body.admin-manager-shell.change-list .actions .button {
+  border-radius: var(--radius-md, 12px);
+}
+
+body.admin-manager-shell.change-list .paginator,
+body.admin-manager-shell.change-list .rmc-pagination,
+body.admin-manager-shell.change-list [data-rmc-pagination] {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+}
+
+/* Unfold filter sheet — card parity with v1 preview */
+body.admin-manager-shell.change-list [data-change-list-filter] {
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-2);
+}
+
+body.admin-manager-shell.change-list .changelist-form-container {
+  gap: 1rem !important;
+}
+
+@media (max-width: 1080px) {
+  body.admin-manager-shell.change-list .changelist-form-container {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "OPERATIONS_LOGISTICS_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 12 — Operations / logistics closure",
+  "existing_infrastructure": {
+    "schoolops_app": "apps/schoolops/",
+    "payroll_app": "apps/payroll/",
+    "finance_app": "apps/finance/",
+    "observability_app": "apps/observability/",
+    "first_class_assignment_models": "TransportAssignment + HostelAssignment + MealPlanBalance (batch 1399 v3.39.0; per memory project_migration_cloud_platform_productionization_v3_31_0)",
+    "low_meal_balance_notification": "tasks.py::notify_low_meal_plan_balance + 5-locale templates + 7-day cooldown + daily sweep",
+    "warden_logs": "apps/schoolops/ HostelAssignment + visitor log",
+    "asset_lifecycle": "Asset model + asset transfer logs",
+    "procurement": "PurchaseOrder + Vendor + reorder posture",
+    "substitute_allocator": "apps/schoolops/substitute_allocator.py contract"
+  },
+  "logistics_requirements_status": {
+    "gps_fleet_tracking_contract": "contract (no live hardware)",
+    "route_optimization_posture": "contract",
+    "transport_assignment_workflow": "shipped (TransportAssignment first-class)",
+    "cafeteria_pos_workflow": "shipped (MealPlanBalance + low-balance notifications)",
+    "student_wallet_spending_limits": "shipped (Phase 4)",
+    "hostel_residential_workflow": "shipped (HostelAssignment)",
+    "warden_logs": "shipped",
+    "health_safeguarding_linkage": "shipped (apps/people/ + privacy-gated medical)",
+    "asset_lifecycle": "shipped (Asset model + custody log)",
+    "procurement_reorder_automation": "contract",
+    "substitute_allocator": "shipped (contract)",
+    "payroll_integration_posture": "shipped (apps/payroll/)",
+    "iot_device_management_contract": "contract",
+    "qr_lost_and_found_asset_loop": "contract (Phase 13 micro-friction)",
+    "geofenced_drop_off": "contract privacy-limited opt-in (Phase 13)",
+    "principal_morning_ops_cockpit": "shipped (control_plane_skeleton operator landing)",
+    "substitute_handover_blueprint": "contract (Phase 13)",
+    "temporary_substitute_portal": "contract (Phase 13)",
+    "secure_medical_iep_gating": "shipped (privacy gates)",
+    "inventory_capital_leakage_dashboard": "contract (board owner OS Phase 14)",
+    "board_owner_capital_leakage": "contract (Phase 14)"
+  },
+  "tests_to_add_in_this_batch": [
+    "apps/schoolops/tests/test_transport_tracking_contracts.py",
+    "apps/schoolops/tests/test_cafeteria_wallet_contracts.py",
+    "apps/schoolops/tests/test_hostel_warden_workflows.py",
+    "apps/schoolops/tests/test_asset_procurement_lifecycle.py",
+    "apps/schoolops/tests/test_substitute_payroll_integration.py",
+    "apps/schoolops/tests/test_lost_belongings_asset_qr_contract.py",
+    "apps/schoolops/tests/test_dropoff_coordination_privacy_contract.py",
+    "apps/schoolops/tests/test_substitute_handover_blueprint.py"
+  ],
+  "external_blockers": [
+    "live GPS hardware deployment (vendor partner)",
+    "live cafeteria POS hardware integration (per-tenant vendor)",
+    "live IoT device fleet (vendor + ops)"
+  ],
+  "privacy_compliance": {
+    "geofenced_drop_off_is_opt_in": true,
+    "no_raw_gps_overcollection": true,
+    "no_student_tracking_without_consent": true
+  }
+}

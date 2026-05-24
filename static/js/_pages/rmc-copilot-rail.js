@@ -40,7 +40,15 @@
       }
       el = el.parentElement;
     }
-    return document.querySelector(".rmc-app-shell");
+    var shell = document.querySelector(".rmc-app-shell");
+    if (shell) {
+      return shell;
+    }
+    /* Manager portal bridge: Bootstrap layout pins [data-copilot] on <body>. */
+    if (document.body && document.body.hasAttribute("data-copilot")) {
+      return document.body;
+    }
+    return null;
   }
 
   function setShellState(shell, state) {

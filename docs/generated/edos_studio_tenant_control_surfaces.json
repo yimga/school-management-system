@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Studio OS and Tenant Studio Control Surfaces",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_STUDIO_CONTROL_SURFACES_READY",
+  "scope": "Studio OS becomes operator/tenant design-and-control environment. Tenant Studio becomes simple tenant operating cockpit. Both consume the existing 200x polish + experience template fold + Setup Studio onboarding step + Playwright spec at 3 breakpoints + audit/rollback wiring.",
+  "sections": [
+    {
+      "title": "Studio OS surface (operator)",
+      "items": [
+        "Overview \u2014 apps.studio_os.dashboard with platform pulse snapshot",
+        "Experience \u2014 apps.studio_os.experience_fold (templates + palettes + previews)",
+        "Automation \u2014 apps.studio_os.automation_canvas (workflow builder, no-code rules)",
+        "Output \u2014 apps.studio_os.output_panel (reports, exports, audit ledger)",
+        "Launch \u2014 apps.studio_os.launch_checklist (school readiness, billing readiness, migration readiness)",
+        "Control \u2014 apps.studio_os.control_plane (operator-only quota override, impersonation, audit)",
+        "Live previews \u2014 Playwright spec at 390/768/1366 breakpoints (shipped batch 1401)",
+        "No horizontal overflow \u2014 design-tokens responsive grid",
+        "Operator/tenant mode \u2014 explicit mode flag; tenant cannot see operator surfaces",
+        "Audit/rollback \u2014 apps.platform_runtime.pack_rollback wiring; every change emits audit event",
+        "AI guidance \u2014 apicenter.ai_helpers operator-only oracle (tenant never sees platform internals)",
+        "Template marketplace integration \u2014 98 templates (75 + 23 local-first specialized)",
+        "Local-first templates \u2014 50 local-first + 25 LocalExperienceProfile registry",
+        "PWA/offline preview posture \u2014 service-worker.js + tenant_cache_key"
+      ]
+    },
+    {
+      "title": "Tenant Studio surface (tenant)",
+      "items": [
+        "Launch path \u2014 apps.setup_studio onboarding wizard with select_experience_template step",
+        "Setup essentials \u2014 apps.setup_studio core_setup_checklist",
+        "Readiness \u2014 apps.lifecycle SchoolLifecycleStage progression dashboard",
+        "Migration \u2014 apps.migration_cloud entry point with visual data cleanup",
+        "Templates \u2014 apps.brand_experience tenant template marketplace (operator-gated 404 on operator-only templates)",
+        "Data quality \u2014 apps.migration_cloud + apps.evals data_quality_warnings",
+        "Billing readiness \u2014 apps.billing readiness dashboard",
+        "Help/feedback \u2014 apps.feedback voice-of-customer router",
+        "AI guidance \u2014 apicenter.ai_helpers tenant-safe (DATA DEFAULTER / FEATURE CODESPACE DISCONNECT fallbacks)",
+        "PWA install guidance \u2014 install prompt orchestrated by rmc-service-worker-registration.js",
+        "Low-data mode \u2014 CountryRegistry.cockpit_payload.low_bandwidth_class",
+        "Offline readiness labels \u2014 apps.platform_runtime.stale_banner"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/studio_os/",
+    "apps/setup_studio/",
+    "apps/brand_experience/",
+    "apps/lifecycle/",
+    "apps/migration_cloud/",
+    "apps/billing/",
+    "apps/feedback/",
+    "services/ai_helpers.py",
+    "static/js/rmc-service-worker-registration.js"
+  ],
+  "tests": [
+    "apps/studio_os/tests/test_edos_operator_studio_control_v2.py",
+    "apps/setup_studio/tests/test_edos_tenant_setup_essentials.py",
+    "apps/lifecycle/tests/test_edos_readiness_progression.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

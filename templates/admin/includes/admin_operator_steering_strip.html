@@ -84,6 +84,11 @@
   try {
     if (sessionStorage.getItem(KEY) === "1") return;
   } catch (e) { /* ignore */ }
+  if (document.body.classList.contains("change-list")) {
+    var hasDeck = el.querySelector("[data-admin-outcome-deck]");
+    var hasHint = el.querySelector("[data-rmc-admin-cp-hint]");
+    if (!hasDeck && !hasHint) return;
+  }
   el.removeAttribute("hidden");
   if (btn) {
     btn.addEventListener("click", function () {

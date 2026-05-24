@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Universal Interoperability and Global Transfer Kernel",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_INTEROP_KERNEL_READY",
+  "scope": "Re-architects global_registries + interop + metadata + people + student360 + academics + finance + migration_cloud around the Linux-style open educational data layer: immutable canonical core schemas, custom-field-to-global-type mapping, secure transfer envelopes for student/teacher/alumni, academic history portability, enrollment portability, finance summary portability where legal, guardian/custody portability where legal, consent/legal gate, audit event, formal-school/private-academy dual-profile model, government/MoE export envelope, NGO anonymized impact envelope.",
+  "sections": [
+    {
+      "title": "Canonical global field classes (13 \u2014 already shipped in Prompt 1 Phase 7)",
+      "items": [
+        "identity \u2014 unique_id + verified_identity_hash",
+        "demographic \u2014 birthdate (date_of_birth), gender (gender_self_id), nationality_iso2",
+        "contact \u2014 primary_email + primary_phone_e164 + redaction_class",
+        "enrollment \u2014 current_school_id + grade_level + status + last_enrollment_change_at",
+        "guardian/custody \u2014 guardians[] {id, relationship, legal_custody_flag, communication_consent}",
+        "academic record \u2014 grades[] {term, subject, score, scale_id, attestation_hash}",
+        "attendance \u2014 attendance_summary {present_days, absent_days, late_days, hash_proof}",
+        "finance summary \u2014 outstanding_balance_minor_units + currency_iso3 + last_settled_at (legal-gated)",
+        "medical/safeguarding flags \u2014 encrypted_blob_pointer + access_audit_required (legal-gated)",
+        "compliance status \u2014 consents[] {policy_id, granted_at, jurisdiction}",
+        "consent/legal permissions \u2014 permissions[] {scope, granted_by_role, expiry_at}",
+        "curriculum track \u2014 track_id + framework_id (CBSE/IGCSE/IB/Bac/...)",
+        "academy/private tutoring dimension \u2014 academy_profile {tutoring_subjects, hourly_rate_minor_units}"
+      ]
+    },
+    {
+      "title": "Transfer envelopes (signed + auditable)",
+      "items": [
+        "Student transfer envelope \u2014 apps.interop.student_transfer_envelope.py with HMAC-SHA512 signature + consent gate",
+        "Teacher transfer envelope \u2014 apps.interop.teacher_transfer_envelope.py",
+        "Alumni transfer envelope \u2014 apps.interop.alumni_transfer_envelope.py (legal-gated for jurisdictions allowing alumni data sharing)",
+        "Government/MoE export envelope \u2014 anonymized + jurisdiction-tagged + auditable",
+        "NGO donor impact envelope \u2014 anonymized aggregate; NO student PII"
+      ]
+    },
+    {
+      "title": "Dual-identity profile (formal school + private academy)",
+      "items": [
+        "Single canonical Person with dual profile slots: school_enrollment_profile + academy_tutoring_profile",
+        "Identity ledger \u2014 apps.student360.dual_identity_profile_contract enforces shared verified_identity_hash; no profile drift",
+        "Cross-context query API \u2014 apps.interop returns merged record gated by consent"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/global_registries/",
+    "apps/interop/",
+    "apps/metadata/",
+    "apps/people/",
+    "apps/student360/",
+    "apps/academics/",
+    "apps/finance/",
+    "apps/migration_cloud/"
+  ],
+  "tests": [
+    "apps/interop/tests/test_edos_student_transfer_envelope_v2.py",
+    "apps/interop/tests/test_edos_teacher_transfer_envelope_v2.py",
+    "apps/student360/tests/test_edos_dual_identity_profile_v2.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}

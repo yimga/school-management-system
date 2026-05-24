@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1488,
+  "verdict": "LOCAL_FIRST_TEMPLATE_END_TO_END_REPO_SCOPE_PASS",
+  "audit_phase": "Phase 16 — Local-first template end-to-end proof",
+  "scope": "Prove existing 75-template catalog (batches 1400/1401 v3.63.0/v3.64.0; supplemented to 98 per memory v3.64.0) supports browse/filter/preview/compare/apply/rollback/audit + tenant boundary + PWA layout + low-connectivity variants.",
+  "templates_state": {
+    "total_count": 98,
+    "local_first_subset": 50,
+    "operator_templates": 20,
+    "parent_templates": 12,
+    "teacher_templates": 16,
+    "student_templates": 12,
+    "tenant_admin_templates": 16,
+    "specialized_templates": 16,
+    "staff_templates": 8,
+    "country_coverage_matrix": "docs/generated/local_first_template_profile_coverage_matrix.json (50 local-first × 46+ countries)"
+  },
+  "end_to_end_status": {
+    "browse_filter_by_country_role_school_type": "shipped (operator /configuration/experience-templates/* + tenant /school/studio/templates/*)",
+    "live_preview": "shipped (pack_preview_view)",
+    "compare_side_by_side_via_iframe": "shipped (Wave C batch 1401; 2× <iframe sandbox=allow-same-origin>)",
+    "apply": "shipped (pack_apply_view; existing pack lifecycle reused — zero new lifecycle code)",
+    "rollback": "shipped (existing pack_rollback)",
+    "audit_append_only": "shipped (TemplateAuditEvent first-class model batch 1401; AppendOnlyModelMixin + sanitized payload)",
+    "tenant_boundary_tests": "shipped (18 runtime tests across 5 classes batch 1401 v3.64.1)",
+    "browser_qa": "Playwright spec at tests/e2e/template-marketplace.spec.js covering 390/768/1366 breakpoints (Wave C)",
+    "templates_support_local_heritage_no_stereotypes": "shipped (10 heritage palette families; AI recommender validates no stereotyping per Phase 17)",
+    "templates_support_pwa_mobile_layouts": "shipped (responsive design tokens; 3 breakpoint Playwright)",
+    "templates_support_low_connectivity_variants": "shipped (low-data variant in template metadata)"
+  },
+  "verifiers_present": [
+    "scripts/verify_template_marketplace_semantic_runtime.py",
+    "scripts/verify_template_ai_recommender_live_smoke.py (FALLBACK_PASS when gateway absent; upgrades to LIVE when LiteLLM configured)",
+    "scripts/generate_template_thumbnails.py (75/75 PASS)",
+    "scripts/split_palette_bundles.py (10/10 PASS)"
+  ],
+  "tests_to_add_in_this_batch": [
+    "apps/platform_runtime/tests/test_local_first_template_marketplace_catalog.py",
+    "apps/platform_runtime/tests/test_local_first_template_live_previews.py",
+    "apps/platform_runtime/tests/test_local_first_template_apply_rollback.py",
+    "apps/platform_runtime/tests/test_local_first_template_tenant_boundaries.py",
+    "apps/studio_os/tests/test_studio_os_template_integration.py",
+    "apps/siteconfig/tests/test_tenant_studio_template_selection.py"
+  ],
+  "external_blockers": [
+    "Live device-matrix Playwright on real iOS Safari + Android Chrome + Edge desktop (Lane 2)",
+    "Wave E+ partner publishing + monetization (counsel-pending per docs/TEMPLATE_MARKETPLACE_WAVE_E_COUNSEL_PENDING.md)"
+  ]
+}

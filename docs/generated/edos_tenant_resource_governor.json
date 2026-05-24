@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "title": "EdOS Tenant Resource Governor and Compute Economy",
+  "generated_at": "2026-05-24T00:00:00+00:00",
+  "batch_id": 1489,
+  "sw_version": "sms-v3.86.0-edos-realm-rearchitecture-2026-05-24",
+  "verdict": "EDOS_RESOURCE_GOVERNOR_READY",
+  "scope": "Re-architects lifecycle + plans_entitlements + billing + automation + orchestration + events + analytics + apicenter + sync_engine + migration_cloud + AI around per-tenant compute budget, per-plan workflow budget, API rate limits, AI token/task quotas, migration import budgets, report/export limits, async job concurrency, runaway workflow detection, tenant hold queue, operator override, usage-to-billing linkage, abuse alerts, no single-tenant platform degradation, PWA sync throttling, offline replay throttling, telemetry quota, low-bandwidth priority lanes.",
+  "sections": [
+    {
+      "title": "ResourceQuotaContext fields",
+      "items": [
+        "plan_id \u2014 tenant subscription plan from plans_entitlements",
+        "ai_token_budget_remaining \u2014 per-month token budget from apicenter rate limiter",
+        "workflow_minutes_remaining \u2014 automation budget",
+        "export_count_remaining \u2014 report/export budget",
+        "async_job_concurrency_remaining \u2014 orchestration concurrency cap",
+        "pwa_sync_quota_remaining \u2014 sync_engine offline replay throttle",
+        "telemetry_quota_remaining \u2014 observability quota",
+        "abuse_score \u2014 composite anomaly score for noisy-tenant isolation"
+      ]
+    },
+    {
+      "title": "Enforcement points",
+      "items": [
+        "orchestration.tenant_rate_limit_hold_queue \u2014 throttle to hold queue, never silent drop",
+        "automation.workflow_loop_guard \u2014 runaway detection + circuit break",
+        "billing.usage_metering_quota_link \u2014 every quota consumption emits billing event",
+        "sync_engine.offline_sync_quota_guard \u2014 PWA replay throttle",
+        "apicenter.ai_token_budget_guard \u2014 AI token quota at gateway",
+        "Operator override \u2014 explicit override_token + audit_event required; never silent override"
+      ]
+    }
+  ],
+  "repo_evidence": [
+    "apps/plans_entitlements/",
+    "apps/billing/",
+    "apps/automation/",
+    "apps/orchestration/",
+    "apps/lifecycle/",
+    "apps/sync_engine/",
+    "apps/apicenter/",
+    "apps/observability/"
+  ],
+  "tests": [
+    "apps/plans_entitlements/tests/test_edos_compute_quota_v2.py",
+    "apps/orchestration/tests/test_edos_hold_queue_throttling.py",
+    "apps/billing/tests/test_edos_usage_metering_quota_link_v2.py"
+  ],
+  "external_blockers": [
+    "live PSP settlement reconciliation per corridor",
+    "SOC2 Type II PDF",
+    "MoE / Ministry of Education per-country live integrations",
+    "WhatsApp Business platform Meta verification",
+    "USSD telecom partner agreements per country",
+    "native push notification wrapper (Capacitor/Tauri) \u2014 deferred until first-100-schools proof",
+    "live LiteLLM API keys on Render",
+    "Render SHA parity live verification",
+    "multi-corridor pilot ingestion",
+    "Postgres RLS enforced in production (current local env is SQLite)"
+  ],
+  "pwa_posture": "PWA is the launch mobile strategy. Native iOS/Android apps are explicitly DEFERRED until web core stability + first-100-schools proof + PWA installability proof. Service worker + manifest + IndexedDB + offline queue shipped in prior batches; this re-architecture preserves and consumes that infrastructure rather than forking.",
+  "honesty_notes": [
+    "Repo-scope contracts only \u2014 no live vendor integration claims.",
+    "Existing canonical models preserved; metadata layer absorbs tenant variance per architecture correction.",
+    "External blockers listed above remain unchanged by batch 1489."
+  ]
+}
