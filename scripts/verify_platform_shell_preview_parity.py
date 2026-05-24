@@ -19,7 +19,7 @@ REQUIRED_CSS = (
 )
 
 TEMPLATE_CHECKS: tuple[tuple[str, str, str], ...] = (
-    ("templates/control_plane_base.html", "cp-nav-row", "cp-nav-row before live strip"),
+    ("templates/control_plane_base.html", "cp-live-strip", "cp-live-strip before nav row"),
     ("templates/control_plane_base.html", "cp-live-strip", "cp-live-strip wrapper"),
     ("templates/admin/base.html", "cp-nav-row", "admin header nav row"),
     ("templates/admin/base.html", "cp-live-strip", "admin header live strip"),
@@ -47,8 +47,10 @@ def main() -> int:
     cp_base = (REPO / "templates/control_plane_base.html").read_text(encoding="utf-8", errors="replace")
     nav_pos = cp_base.find("cp-nav-row")
     live_pos = cp_base.find("cp-live-strip")
-    if nav_pos < 0 or live_pos < 0 or nav_pos > live_pos:
-        errors.append("control_plane_base.html: cp-nav-row must precede cp-live-strip")
+    if nav_pos < 0 or live_pos < 0 or live_pos > nav_pos:
+        errors.append(
+            "control_plane_base.html: cp-live-strip must precede cp-nav-row (v8 200x manager stack)"
+        )
 
     admin_base = (REPO / "templates/admin/base.html").read_text(encoding="utf-8", errors="replace")
     an = admin_base.find("cp-nav-row")

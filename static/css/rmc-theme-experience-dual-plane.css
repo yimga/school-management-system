@@ -1,0 +1,555 @@
+/* ============================================================
+   rmc-theme-experience-dual-plane.css — v3.84.7 (2026-05-24)
+   ------------------------------------------------------------
+   PLATFORM-WIDE dual-plane theme (every operator + tenant authenticated
+   route inheriting portal_base, control_plane_skeleton, admin/base_site,
+   or base.html — finance, academics, migration cloud, studio, backend,
+   parent/teacher/student, siteconfig, marketplace operator views, etc.).
+
+   EXCLUDES: public marketing (data-surface=marketing, .marketing-surface,
+   data-rmc-page-purpose=public-story) — editorial palette stays locked.
+
+   OPERATOR (manager host + control plane):
+     • Chrome plane (header + sidebar) stays dark in light AND dark prefs.
+     • Canvas + footer flip with data-theme / data-resolved-theme.
+
+   TENANT (school subdomains + backend):
+     • Full-surface flip (header, sidebar, canvas) — semantic tokens + brand.
+
+   Loaded LAST among shell bundles so it wins specificity ties without
+   scattering !important. Colors use semantic / cp-chrome tokens only.
+   ============================================================ */
+
+:root {
+  --rmc-vertical-section-gap: clamp(14px, 2vh, 22px);
+  --rmc-vertical-page-pad-x: clamp(16px, 2.5vw, 28px);
+  --rmc-vertical-page-pad-y: clamp(12px, 1.8vh, 20px);
+  --rmc-vertical-page-pad-bottom: clamp(18px, 2.4vh, 28px);
+}
+
+/* ----- A) Operator chrome lock (always dark) ---------------- */
+
+body.control-plane-shell,
+html[data-surface="control-plane"],
+body[data-rmc-host-kind="manager"]:not(.marketing-surface),
+body.manager-portal-bridge {
+  --rmc-chrome-plane: dark;
+}
+
+body.control-plane-shell .rmc-app-shell__header,
+html[data-surface="control-plane"] .rmc-app-shell__header,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__header,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__header,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) #portalHeader.topbar,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .statement-header.topbar {
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.20), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald, 16, 185, 129), 0.16), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg, #07091a) 100%); /* off-token-allow: dark-chrome-header-bg */
+  color: var(--cp-chrome-text, #f1f5f9);
+  border-bottom-color: var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+}
+
+body.control-plane-shell .rmc-app-shell__sidebar,
+html[data-surface="control-plane"] .rmc-app-shell__sidebar,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sidebar,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__sidebar,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .portal-sidebar-col .sidebar {
+  background: linear-gradient(180deg, var(--cp-chrome-bg, #07091a) 0%, var(--cp-chrome-bg-deep, #04060f) 100%);
+  color: var(--cp-chrome-text, #f1f5f9);
+  border-right-color: var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+  box-shadow: none;
+}
+
+body.control-plane-shell .cp-sidebar,
+body.control-plane-shell .cp-sidebar-inner,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .cp-sidebar,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .cp-sidebar-inner,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] #nav-sidebar,
+body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] #nav-sidebar-inner {
+  background: transparent;
+  color: inherit;
+  border-color: var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+}
+
+html[data-resolved-theme="light"] body.control-plane-shell .cp-sidebar-inner .nav-link,
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-sidebar-nav .nav-link {
+  color: var(--cp-chrome-text-muted, #94a3b8);
+}
+
+html[data-resolved-theme="light"] body.control-plane-shell .cp-sidebar-inner .nav-link.active,
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-sidebar-nav .nav-link.active {
+  color: var(--cp-chrome-text, #f1f5f9);
+}
+
+/* ----- B) Light canvas plane (operator + manager admin) ----- */
+
+html[data-resolved-theme="light"] body.control-plane-shell .rmc-app-shell__canvas,
+html[data-bs-theme="light"] body.control-plane-shell .rmc-app-shell__canvas,
+html[data-resolved-theme="light"] body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__canvas,
+html[data-bs-theme="light"] body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__canvas,
+html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-bs-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .page-wrap,
+html[data-resolved-theme="light"][data-surface="tenant"] body:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-resolved-theme="light"] body.portal-body-with-layout:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-resolved-theme="light"] body.backend-shell .rmc-app-shell__canvas,
+html[data-bs-theme="light"] body.portal-body-with-layout:not(.marketing-surface) .rmc-app-shell__canvas {
+  background:
+    radial-gradient(1200px 500px at 18% -5%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.05), transparent 60%), /* off-token-allow: canvas-radial-accent */
+    radial-gradient(1100px 500px at 82% -10%, rgba(var(--cp-glow-emerald, 16, 185, 129), 0.04), transparent 60%), /* off-token-allow: canvas-radial-accent */
+    var(--surface-bg, #f5f5f7);
+  color: var(--text-primary, #1d1d1f);
+}
+
+html[data-resolved-theme="light"] body.control-plane-shell #cp-main-content,
+html[data-bs-theme="light"] body.control-plane-shell #cp-main-content,
+html[data-resolved-theme="light"] body.admin-manager-shell #cp-main-content,
+html[data-bs-theme="light"] body.admin-manager-shell #cp-main-content,
+html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) #cp-main-content,
+html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) #main-content,
+html[data-resolved-theme="light"][data-surface="tenant"] body:not(.marketing-surface) #main-content,
+html[data-resolved-theme="light"] body.portal-body-with-layout:not(.marketing-surface) #main-content,
+html[data-resolved-theme="light"] body.backend-shell #main-content,
+html[data-resolved-theme="light"] [data-rmc-authenticated-shell] {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="light"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] {
+  background: var(--surface-bg, #f5f5f7);
+  color: var(--text-primary);
+}
+
+/* ----- C) Dark canvas plane (full coherence) ---------------- */
+
+html[data-theme="dark"] body.control-plane-shell .rmc-app-shell__canvas,
+html[data-resolved-theme="dark"] body.control-plane-shell .rmc-app-shell__canvas,
+html[data-theme="dark"] body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__canvas,
+html[data-resolved-theme="dark"] body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__canvas,
+html[data-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-resolved-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-theme="dark"][data-surface="tenant"] body:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-resolved-theme="dark"][data-surface="tenant"] body:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-resolved-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) .rmc-app-shell__canvas,
+html[data-theme="dark"] body.backend-shell .rmc-app-shell__canvas,
+html[data-resolved-theme="dark"] body.backend-shell .rmc-app-shell__canvas {
+  background:
+    radial-gradient(1200px 500px at 18% -5%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.10), transparent 60%), /* off-token-allow: canvas-radial-accent */
+    radial-gradient(1100px 500px at 82% -10%, rgba(var(--cp-glow-emerald, 16, 185, 129), 0.08), transparent 60%), /* off-token-allow: canvas-radial-accent */
+    var(--surface-bg, #0c0f1a);
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] body.control-plane-shell #cp-main-content,
+html[data-resolved-theme="dark"] body.control-plane-shell #cp-main-content,
+html[data-theme="dark"] body.admin-manager-shell #cp-main-content,
+html[data-resolved-theme="dark"] body.admin-manager-shell #cp-main-content,
+html[data-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) #cp-main-content,
+html[data-resolved-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) #cp-main-content,
+html[data-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) #main-content,
+html[data-resolved-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) #main-content,
+html[data-theme="dark"][data-surface="tenant"] body:not(.marketing-surface) #main-content,
+html[data-resolved-theme="dark"][data-surface="tenant"] body:not(.marketing-surface) #main-content,
+html[data-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) #main-content,
+html[data-resolved-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) #main-content,
+html[data-theme="dark"] body.backend-shell #main-content,
+html[data-resolved-theme="dark"] body.backend-shell #main-content,
+html[data-theme="dark"] [data-rmc-authenticated-shell],
+html[data-resolved-theme="dark"] [data-rmc-authenticated-shell] {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"],
+html[data-resolved-theme="dark"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"],
+html[data-theme="dark"] body[data-rmc-host-kind="tenant"]:not(.marketing-surface),
+html[data-resolved-theme="dark"] body[data-rmc-host-kind="tenant"]:not(.marketing-surface) {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+/* ----- D) Footer follows canvas theme ----------------------- */
+
+html[data-resolved-theme="light"] body.control-plane-shell .rmc-app-shell__footer,
+html[data-resolved-theme="light"] body.admin-manager-shell .rmc-app-shell__footer,
+html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__footer,
+html[data-resolved-theme="light"] body[data-rmc-host-kind="tenant"]:not(.marketing-surface) .rmc-app-shell__footer {
+  background: var(--surface-canvas, #fbfbfd);
+  color: var(--text-secondary);
+  border-top: 1px solid var(--hairline);
+}
+
+html[data-theme="dark"] body.control-plane-shell .rmc-app-shell__footer,
+html[data-resolved-theme="dark"] body.admin-manager-shell .rmc-app-shell__footer,
+html[data-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__footer,
+html[data-resolved-theme="dark"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__footer,
+html[data-theme="dark"] body[data-rmc-host-kind="tenant"]:not(.marketing-surface) .rmc-app-shell__footer,
+html[data-resolved-theme="dark"] body[data-rmc-host-kind="tenant"]:not(.marketing-surface) .rmc-app-shell__footer {
+  background: var(--surface-canvas, var(--surface-bg));
+  color: var(--text-secondary);
+  border-top: 1px solid var(--hairline-strong, var(--hairline));
+}
+
+/* ----- E) Primary nav active — indigo gradient on chrome ---- */
+
+body.control-plane-shell .cp-primary-nav__pill--active,
+body.control-plane-shell .cp-primary-nav__pill[aria-current="page"],
+body.admin-manager-shell .cp-primary-nav__pill--active,
+body.admin-manager-shell .cp-primary-nav__pill[aria-current="page"],
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .cp-primary-nav__pill--active,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .cp-primary-nav__pill[aria-current="page"] {
+  background: linear-gradient(
+    135deg,
+    var(--school-primary, #4f46e5),
+    color-mix(in oklab, var(--school-primary, #4f46e5) 65%, var(--school-accent, #10b981))
+  );
+  border-color: transparent;
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: on-brand-contrast */
+  font-weight: 600;
+  box-shadow:
+    0 4px 12px -2px color-mix(in oklab, var(--school-primary, #4f46e5) 35%, transparent),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset; /* off-token-allow: white-overlay */
+}
+
+body.control-plane-shell .cp-primary-nav__pill--active i,
+body.control-plane-shell .cp-primary-nav__pill[aria-current="page"] i,
+body.admin-manager-shell .cp-primary-nav__pill--active i {
+  color: rgba(255, 255, 255, 0.95); /* off-token-allow: white-overlay */
+}
+
+/* ----- F) Vertical rhythm — platform authenticated canvas ----- */
+
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.admin-manager-shell .rmc-app-shell__canvas-body,
+body.portal-body-with-layout:not(.marketing-surface) .rmc-app-shell__canvas-body,
+body.backend-shell .rmc-app-shell__canvas-body {
+  min-height: 100%;
+}
+
+body.control-plane-shell .cp-shell-content,
+body.control-plane-shell #cp-main-content.cp-main-col,
+body.admin-manager-shell .cp-admin-canvas-main,
+body.admin-manager-shell #cp-main-content,
+body.portal-body-with-layout:not(.marketing-surface) .portal-layout-wrap,
+body.portal-body-with-layout:not(.marketing-surface) #main-content,
+body.backend-shell #main-content,
+[data-rmc-authenticated-shell] {
+  padding:
+    var(--rmc-vertical-page-pad-y)
+    var(--rmc-vertical-page-pad-x)
+    var(--rmc-vertical-page-pad-bottom);
+}
+
+body.control-plane-shell .cp-shell-content > section + section,
+body.control-plane-shell #cp-main-content > .container-fluid + .container-fluid,
+body.admin-manager-shell #cp-main-content > .dashboard-container > section + section,
+body.portal-body-with-layout:not(.marketing-surface) .portal-layout-wrap > section + section,
+[data-rmc-authenticated-shell] .rmc-page > section + section,
+[data-rmc-authenticated-shell] .rmc-page > .rmc-page__header + * {
+  margin-top: var(--rmc-vertical-section-gap);
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__inner {
+  padding-block: 8px;
+  min-height: 48px;
+}
+
+body.control-plane-shell .cp-live-strip,
+body.admin-manager-shell .cp-live-strip {
+  padding-block: 5px;
+  min-height: 28px;
+}
+
+body.control-plane-shell .cp-nav-row,
+body.admin-manager-shell .cp-nav-row {
+  padding-block: 6px;
+}
+
+/* ----- G) Tenant + backend — full theme + vertical rhythm ---------- */
+
+html[data-rmc-host-kind="tenant"] body:not(.marketing-surface) .rmc-app-shell__canvas,
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .rmc-app-shell__canvas,
+body.backend-shell .rmc-app-shell__canvas,
+html[data-surface="tenant"] body:not(.marketing-surface) .rmc-app-shell__canvas {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+body.portal-body-with-layout:not(.marketing-surface) .portal-page-body,
+body.portal-body-with-layout:not(.marketing-surface) .rmc-app-shell__canvas-body,
+body.backend-shell .portal-page-body,
+body.backend-shell .rmc-app-shell__canvas-body,
+html[data-rmc-host-kind="tenant"] body:not(.marketing-surface) .portal-page-body,
+html[data-rmc-host-kind="tenant"] body:not(.marketing-surface) .rmc-app-shell__canvas-body,
+[data-rmc-authenticated-shell] .rmc-page,
+[data-rmc-authenticated-shell] main[role="main"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rmc-vertical-section-gap);
+  padding:
+    var(--rmc-vertical-page-pad-y)
+    var(--rmc-vertical-page-pad-x)
+    var(--rmc-vertical-page-pad-bottom);
+  min-height: 100%;
+}
+
+html[data-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) #portalHeader.tp-header__row,
+html[data-resolved-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) #portalHeader.topbar,
+html[data-theme="dark"][data-rmc-host-kind="tenant"] body:not(.marketing-surface) #portalHeader.tp-header__row,
+html[data-resolved-theme="dark"][data-rmc-host-kind="tenant"] body:not(.marketing-surface) #portalHeader.topbar {
+  background: color-mix(in oklab, var(--surface-popover) 88%, transparent);
+  border-bottom-color: var(--hairline-strong, var(--hairline));
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) .portal-sidebar-col .sidebar,
+html[data-resolved-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) .rmc-app-shell__sidebar,
+html[data-theme="dark"][data-rmc-host-kind="tenant"] body:not(.marketing-surface) .portal-sidebar-col .sidebar,
+html[data-resolved-theme="dark"][data-rmc-host-kind="tenant"] body:not(.marketing-surface) .rmc-app-shell__sidebar {
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+/* ----- H) Canvas alerts / MFA (theme-aware) ----------------- */
+
+html[data-resolved-theme="light"] #cp-main-content .alert:not(.alert-danger):not(.alert-warning),
+html[data-resolved-theme="light"] #cp-main-content [data-rmc-mfa-banner] {
+  background: color-mix(in oklab, var(--info, #60a5fa) 8%, var(--surface-elevated));
+  border-color: color-mix(in oklab, var(--info, #60a5fa) 28%, var(--hairline));
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] #cp-main-content .alert:not(.alert-danger):not(.alert-warning),
+html[data-resolved-theme="dark"] #cp-main-content [data-rmc-mfa-banner] {
+  background: color-mix(in oklab, var(--info, #60a5fa) 12%, var(--surface-elevated));
+  border-color: color-mix(in oklab, var(--info, #60a5fa) 32%, var(--hairline-strong, var(--hairline)));
+  color: var(--text-primary);
+}
+
+/* ----- I) Operator notebook — light canvas variant ---------- */
+
+html[data-resolved-theme="light"] .lx-notebook,
+html[data-bs-theme="light"] .lx-notebook {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  color: var(--text-primary);
+  box-shadow: var(--elev-2, 0 4px 12px rgba(15, 23, 42, 0.08));
+}
+
+html[data-resolved-theme="light"] .lx-notebook .lx-notebook__title,
+html[data-resolved-theme="light"] .lx-notebook label,
+html[data-bs-theme="light"] .lx-notebook .lx-notebook__title {
+  color: var(--text-secondary);
+}
+
+html[data-resolved-theme="light"] .lx-notebook textarea,
+html[data-bs-theme="light"] .lx-notebook textarea {
+  background: var(--surface-canvas);
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+/* ----- J) Dark chrome controls (search, inputs, kbd) ---------- */
+
+body.control-plane-shell .cp-header .form-control,
+body.control-plane-shell .cp-header .cp-topbar-search-input,
+body.admin-manager-shell .cp-header .form-control,
+body.admin-manager-shell .cp-header .cp-topbar-search-input {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: dark-chrome-input-wash */
+  border-color: var(--cp-chrome-hairline-strong, rgba(255, 255, 255, 0.14));
+  color: var(--cp-chrome-text, #f1f5f9);
+}
+
+body.control-plane-shell .cp-header .form-control::placeholder,
+body.control-plane-shell .cp-header .cp-topbar-search-input::placeholder,
+body.admin-manager-shell .cp-header .form-control::placeholder {
+  color: var(--cp-chrome-text-faint, #64748b);
+}
+
+body.control-plane-shell .cp-header .cp-search-kbd,
+body.admin-manager-shell .cp-header .cp-search-kbd {
+  background: rgba(255, 255, 255, 0.08); /* off-token-allow: dark-chrome-input-wash */
+  border-color: var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+  color: var(--cp-chrome-text-muted, #94a3b8);
+}
+
+/* ----- K) Canvas Bootstrap surface leaks (all authenticated) -- */
+
+html[data-resolved-theme="light"] :is(
+  #cp-main-content,
+  #main-content,
+  .rmc-app-shell__canvas,
+  [data-rmc-authenticated-shell]
+) :is(.bg-light, .bg-body-secondary) {
+  background-color: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+html[data-resolved-theme="light"] :is(
+  #cp-main-content,
+  #main-content,
+  .rmc-app-shell__canvas,
+  [data-rmc-authenticated-shell]
+) .bg-white {
+  background-color: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] :is(
+  #cp-main-content,
+  #main-content,
+  .rmc-app-shell__canvas,
+  [data-rmc-authenticated-shell]
+) :is(.bg-light, .bg-white, .bg-body-secondary) {
+  background-color: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] :is(
+  #cp-main-content,
+  #main-content,
+  .rmc-app-shell__canvas,
+  [data-rmc-authenticated-shell]
+) .text-dark {
+  color: var(--text-primary);
+}
+
+/* ----- L) Card / panel coherence on canvas -------------------- */
+
+html[data-resolved-theme="light"] :is(
+  body.control-plane-shell,
+  body.admin-manager-shell,
+  body.portal-body-with-layout,
+  body.backend-shell
+) :is(#cp-main-content, #main-content, .rmc-app-shell__canvas, [data-rmc-authenticated-shell]) :is(
+  .card,
+  .rmc-acx-metric-card,
+  .rmc-acx-glass-panel,
+  .lx-card,
+  .stat-card,
+  .app-section,
+  .module
+) {
+  background-color: var(--surface-elevated);
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] :is(
+  body.control-plane-shell,
+  body.admin-manager-shell,
+  body.portal-body-with-layout,
+  body.backend-shell
+) :is(#cp-main-content, #main-content, .rmc-app-shell__canvas, [data-rmc-authenticated-shell]) :is(
+  .card,
+  .rmc-acx-metric-card,
+  .rmc-acx-glass-panel,
+  .lx-card,
+  .rmc-cockpit-pulse-card,
+  .stat-card,
+  .app-section,
+  .module
+) {
+  background-color: var(--surface-elevated);
+  border-color: var(--hairline-strong, var(--hairline));
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] :is(
+  body.control-plane-shell,
+  body.admin-manager-shell,
+  body.portal-body-with-layout,
+  body.backend-shell
+) :is(#cp-main-content, #main-content, .rmc-app-shell__canvas, [data-rmc-authenticated-shell]) :is(
+  .card-header,
+  .card-footer
+) {
+  background-color: color-mix(in oklab, var(--surface-elevated) 92%, var(--surface-canvas));
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+/* ----- M) Legacy base.html tenant + onboarding surfaces ------- */
+
+html[data-surface="tenant"] body.base-document-shell:not(.control-plane-shell),
+html[data-surface="onboarding"] body.base-document-shell {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+html[data-surface="tenant"] body.base-document-shell:not(.control-plane-shell) #main-content,
+html[data-surface="onboarding"] body.base-document-shell #main-content {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"][data-surface="tenant"] body.base-document-shell:not(.control-plane-shell),
+html[data-resolved-theme="dark"][data-surface="tenant"] body.base-document-shell:not(.control-plane-shell),
+html[data-theme="dark"][data-surface="onboarding"] body.base-document-shell,
+html[data-resolved-theme="dark"][data-surface="onboarding"] body.base-document-shell {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+/* ----- N) Tenant portal cards + tables ------------------------ */
+
+body.portal-body-with-layout:not(.marketing-surface) :is(
+  .rmc-app-shell__canvas,
+  [data-rmc-authenticated-shell]
+) :is(.card, .rmc-data-table, .list-group-item),
+body.backend-shell :is(.card, .rmc-data-table, .list-group-item),
+html[data-rmc-host-kind="tenant"] body:not(.marketing-surface) :is(.card, .rmc-data-table, .list-group-item) {
+  background-color: var(--surface-elevated);
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) :is(
+  .rmc-app-shell__canvas,
+  [data-rmc-authenticated-shell]
+) .list-group-item-action:hover,
+html[data-resolved-theme="dark"] body.portal-body-with-layout:not(.marketing-surface) :is(
+  .rmc-app-shell__canvas,
+  [data-rmc-authenticated-shell]
+) .list-group-item-action:hover,
+html[data-theme="dark"][data-rmc-host-kind="tenant"] body:not(.marketing-surface) .list-group-item-action:hover,
+html[data-resolved-theme="dark"][data-rmc-host-kind="tenant"] body:not(.marketing-surface) .list-group-item-action:hover {
+  background-color: var(--surface-canvas);
+  color: var(--text-primary);
+}
+
+/* ----- O) Tenant admin on school host (not manager chrome) ---- */
+
+body.admin-manager-shell:not([data-rmc-nav-bridge-host="manager"]) #cp-main-content,
+body[data-rmc-admin-shell="1"]:not([data-rmc-nav-bridge-host="manager"]) #content {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+html[data-theme="dark"] body.admin-manager-shell:not([data-rmc-nav-bridge-host="manager"]) #cp-main-content,
+html[data-resolved-theme="dark"] body[data-rmc-admin-shell="1"]:not([data-rmc-nav-bridge-host="manager"]) #content {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+/* ----- P) Civic footer text on both themes -------------------- */
+
+html[data-resolved-theme="light"] .rmc-civic-footer,
+html[data-theme="dark"] .rmc-civic-footer,
+html[data-resolved-theme="dark"] .rmc-civic-footer {
+  color: var(--text-secondary);
+}
+
+html[data-resolved-theme="light"] .rmc-civic-footer a,
+html[data-theme="dark"] .rmc-civic-footer a,
+html[data-resolved-theme="dark"] .rmc-civic-footer a {
+  color: var(--text-secondary);
+}
+
+html[data-resolved-theme="light"] .rmc-civic-footer a:hover,
+html[data-theme="dark"] .rmc-civic-footer a:hover,
+html[data-resolved-theme="dark"] .rmc-civic-footer a:hover {
+  color: var(--text-primary);
+}

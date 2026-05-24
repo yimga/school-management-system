@@ -219,7 +219,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% endif %}{% if request.user.is_authenticated %} data-rmc-help-in-sidebar="1"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -231,16 +231,16 @@
           <div class="cp-header__row cp-header__row--utility">
             {% include "partials/manager_operator_topbar.html" %}
           </div>
-          {% if PRIMARY_CONTROL_PLANE_NAV %}
-          <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
-            {% include "partials/control_plane_primary_nav.html" %}
-          </div>
-          {% endif %}
           <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
             {% block portal_shell_header_ticker %}
               {% include "partials/cockpit/_activity_ticker.html" %}
             {% endblock %}
           </div>
+          {% if PRIMARY_CONTROL_PLANE_NAV %}
+          <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
+            {% include "partials/control_plane_primary_nav.html" %}
+          </div>
+          {% endif %}
         </div>
       </div>
     </header>
@@ -249,9 +249,9 @@
       {% block portal_shell_header_ticker_tenant %}
         {% include "partials/cockpit/_activity_ticker.html" %}
       {% endblock %}
-    <nav id="portalHeader" class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky statement-header" role="navigation" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
-      <div class="container-fluid px-3" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
-        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="{% trans 'Open sidebar menu' %}">
+    <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
+      <div class="container-fluid px-3 tp-header__row-inner" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
+        <button class="btn btn-sm btn-outline-secondary d-lg-none me-2 tp-header__menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="{% trans 'Open sidebar menu' %}">
           <i class="bi bi-list" aria-hidden="true"></i>
         </button>
 
@@ -295,18 +295,18 @@
         </div>
 
         {% if request.user.is_authenticated %}
-          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}" aria-label="{% trans 'Home' %}">
+          <a class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}" aria-label="{% trans 'Home' %}">
             <i class="bi bi-house" aria-hidden="true"></i>
             <span class="d-none d-sm-inline">{% trans 'Home' %}</span>
           </a>
         {% else %}
-          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{% url 'home' %}" aria-label="{% trans 'Home' %}">
+          <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 ms-2" href="{% url 'home' %}" aria-label="{% trans 'Home' %}">
             <i class="bi bi-house" aria-hidden="true"></i>
             <span class="d-none d-sm-inline">{% trans 'Home' %}</span>
           </a>
         {% endif %}
 
-        <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
+        <div class="tp-actions topbar-actions d-flex align-items-center gap-3 ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
           {% if request.user.is_authenticated %}
             {% if SHOW_OFFLINE_STATUS_BAR or SHOW_HEADER_CONTEXT_STRIP or SHOW_ROLE_SWITCHER %}
             <div class="topbar-context-row topbar-weather">
@@ -351,7 +351,7 @@
               <button type="button" class="btn btn-link text-white p-0 topbar-icon-btn" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
                 <i class="bi bi-question-circle" aria-hidden="true"></i>
               </button>
-              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="{% trans 'Messages' %}" aria-label="{% trans 'Open Messages' %}">
+              <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="{% trans 'Messages' %}" aria-label="{% trans 'Open Messages' %}">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ messages_unread_count }}</span>
@@ -359,7 +359,7 @@
               </a>
               {% endif %}
               {% if SHOW_HEADER_NOTIFICATIONS %}
-              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}" aria-label="{% trans 'View notifications' %}">
+              <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}" aria-label="{% trans 'View notifications' %}">
                 <i class="bi bi-bell"></i>
                 {% if NOTIFICATIONS_UNREAD_COUNT %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
@@ -375,7 +375,7 @@
                   {% include "components/rmc_shell_switcher.html" %}
                 </span>
               {% endif %}
-              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
+              <a class="btn btn-link p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
 
               {% comment %} Phase D end-to-end (2026-05-12): portal topbar now uses the same rich
                  user_dropdown.html as control plane and admin. The component already
@@ -390,11 +390,11 @@
               {% endif %}
             </div>
           {% else %}
-            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
           {% endif %}
         </div>
       </div>
-    </nav>
+    </div>
     {% include "partials/tenant_primary_nav.html" %}
     </div>
     {% endif %}
@@ -612,6 +612,7 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     {% if SHOW_OFFLINE_STATUS_BAR %}
     <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
     <script src="{% static 'js/vendor/dexie.min.js' %}"></script>
@@ -729,6 +730,7 @@
     {% if proactive_help_nudge %}
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
+    {% include "partials/help_contextual_drawer.html" %}
     {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
     {% include "partials/help_module_inline_assistant.html" %}
     {% endif %}

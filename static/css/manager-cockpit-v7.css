@@ -377,9 +377,20 @@
   min-width: 0;
   transition: border-color var(--motion-fast), transform var(--motion-fast);
 }
+.rmc-cockpit-pulse-card[data-rmc-cp-pulse-drill="1"] {
+  cursor: pointer;
+}
 .rmc-cockpit-pulse-card:hover {
   border-color: var(--hairline-strong);
   transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-cockpit-pulse__live-dot {
+    animation: none;
+  }
+  .rmc-cockpit-pulse-card:hover {
+    transform: none;
+  }
 }
 .rmc-cockpit-pulse-card__head {
   display: flex;

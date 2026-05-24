@@ -78,6 +78,7 @@ from apps.siteconfig.config_service import (
 )
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.siteconfig.models_support import filter_portal_items
+from apps.portal.tenant_role_home import build_tp_hero_context
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from .runtime_helpers import get_policy_for_request
 from .views_common import (
@@ -1209,6 +1210,17 @@ def parent_dashboard(request: HttpRequest):
             "parent_upcoming_events": parent_upcoming_events,
             "parent_simplified": parent_simplified,
             "parent_full_dashboard_url": parent_full_dashboard_url,
+            "parent_show_legacy_dashboard": parent_simplified,
+            **build_tp_hero_context(
+                request,
+                role=role,
+                children_names=", ".join(
+                    s.get_full_name() or s.first_name or ""
+                    for s in students[:3]
+                    if s
+                ),
+                has_fees_due=has_fees_due,
+            ),
         },
     )
 

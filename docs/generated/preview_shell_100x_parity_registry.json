@@ -1,0 +1,133 @@
+{
+  "program": "PREVIEW_SHELL_100X_PARITY",
+  "plan": "docs/plans/PREVIEW_SHELL_100X_PARITY_PLAN.md",
+  "batches": {
+    "1477": {
+      "phase": "program",
+      "status": "DONE"
+    },
+    "1478": {
+      "phase": 0,
+      "title": "contract_freeze",
+      "status": "DONE"
+    },
+    "1479": {
+      "phase": 1,
+      "title": "super_v8",
+      "status": "DONE"
+    },
+    "1480": {
+      "phase": 2,
+      "title": "admin_v1",
+      "status": "DONE"
+    },
+    "1481": {
+      "phase": 3,
+      "title": "tenant_v3",
+      "status": "DONE"
+    },
+    "1482": {
+      "phase": 4,
+      "title": "inner_pages",
+      "status": "DONE"
+    },
+    "1483": {
+      "phase": 5,
+      "title": "surpass_certify",
+      "status": "DONE"
+    }
+  },
+  "previews": {
+    "manager-v8-200x": {
+      "file": "docs/generated/preview_app_shell_manager_v8_200x.html",
+      "surface": "/super/",
+      "header_order": [
+        "cp-utility-row",
+        "cp-live-strip",
+        "cp-primary-nav"
+      ],
+      "archetype": "cp-operator-dashboard"
+    },
+    "admin-v1-200x": {
+      "file": "docs/generated/preview_app_shell_admin_v1_200x.html",
+      "surface": "/admin/",
+      "header_order": [
+        "cp-utility-row",
+        "cp-nav-row",
+        "cp-live-strip"
+      ],
+      "archetype": "cp-admin-backoffice"
+    },
+    "tenant-portal-v3-100x": {
+      "file": "docs/generated/preview_app_shell_tenant_portal_v3_100x.html",
+      "surface": "tenant_portal",
+      "header_order": [
+        "tp-header__row",
+        "tp-primary-nav"
+      ],
+      "archetype": "tp-role-home"
+    }
+  },
+  "route_families": [
+    {
+      "prefix": "/super/",
+      "preview": "manager-v8-200x",
+      "archetype": "cp-operator-dashboard"
+    },
+    {
+      "prefix": "/admin/",
+      "preview": "admin-v1-200x",
+      "archetype": "cp-admin-backoffice"
+    },
+    {
+      "prefix": "/portal/parent/",
+      "preview": "tenant-portal-v3-100x",
+      "archetype": "tp-role-home"
+    },
+    {
+      "prefix": "/portal/teacher/",
+      "preview": "tenant-portal-v3-100x",
+      "archetype": "tp-role-home"
+    }
+  ],
+  "invariants": {
+    "copilot_rail": "templates/partials/cockpit/_ai_copilot_rail.html",
+    "page_context_help": "static/js/rmc-page-context-help.js",
+    "do_not_refactor": [
+      "_ai_copilot_rail.html",
+      "rmc-copilot-rail.js grid column"
+    ]
+  },
+  "phase4_pagination_targets": [
+    "templates/schools/super_command_center.html",
+    "templates/schools/super_dashboard.html",
+    "templates/schools/super_security_hub.html",
+    "templates/schools/super_education_systems.html",
+    "templates/schools/super_migration_cloud.html",
+    "templates/schools/super_phase_b_snapshot_diff.html",
+    "templates/schools/super_playbook_operator_hub.html",
+    "templates/schools/super_create_school_wizard.html",
+    "templates/migration_cloud/super/health.html",
+    "templates/feedback/school_center.html",
+    "templates/platform_runtime/change_requests.html",
+    "templates/platform_runtime/blueprint_marketplace.html",
+    "templates/platform_runtime/pack_marketplace.html",
+    "templates/schools/super_schools_list.html",
+    "templates/schools/super_incidents_list.html",
+    "templates/schools/super_billing_accounts_list.html",
+    "templates/schools/super_feature_toggles_list.html",
+    "templates/schools/super_country_multipliers_list.html",
+    "templates/schools/super_tenant_360.html",
+    "templates/schools/super_geography.html",
+    "templates/schools/super_compliance_overview.html",
+    "templates/schools/super_analytics_overview.html",
+    "templates/schools/super_support_dashboard.html",
+    "templates/schools/super_blueprints_catalog.html",
+    "templates/schools/super_offboarding_queue.html",
+    "templates/schools/super_migration_runs_list.html",
+    "templates/schools/super_platform_events.html",
+    "templates/schools/super_metadata_catalog.html",
+    "templates/schools/super_ai_gateway_console.html",
+    "templates/marketplace/governance_console.html"
+  ]
+}

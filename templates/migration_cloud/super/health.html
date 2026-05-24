@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--migration-cloud-health" id="main">
+<main class="rmc-page rmc-page--migration-cloud-health" data-rmc-scroll-policy="paginate" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
     <h1 class="rmc-h1">{% trans "Migration Cloud — operator health" %}</h1>

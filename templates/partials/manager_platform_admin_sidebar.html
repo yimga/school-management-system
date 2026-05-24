@@ -1,7 +1,7 @@
 {% load i18n static unfold %}
 <nav class="cp-sidebar-nav cp-sidebar-platform-admin d-flex flex-column min-h-0 h-100" id="{% firstof sidebar_nav_id 'cpSidebarNav' %}" aria-label="{% trans 'Platform backoffice navigation' %}" data-sidebar-nav="true" data-shell-nav-family="platform-admin" data-rmc-platform-admin-sidebar="1">
   {% if MANAGER_PLATFORM_ADMIN_NAV and MANAGER_PLATFORM_ADMIN_NAV.quick_links %}
-  <p class="cp-nav-section-label rmc-type-eyebrow mb-2 mt-0">{% trans "Start" %}</p>
+  <p class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow mb-2 mt-0">{% trans "Start" %}</p>
   <ul class="nav flex-column gap-1 mb-3 ps-0">
     {% for item in MANAGER_PLATFORM_ADMIN_NAV.quick_links %}
     <li class="nav-item">
@@ -14,7 +14,7 @@
   </ul>
   {% endif %}
   {% if MANAGER_PLATFORM_ADMIN_NAV.guided_links %}
-  <p class="cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Guided setup" %}</p>
+  <p class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Guided setup" %}</p>
   <ul class="nav flex-column gap-1 mb-3 ps-0">
     {% for item in MANAGER_PLATFORM_ADMIN_NAV.guided_links %}
     <li class="nav-item">
@@ -32,8 +32,9 @@
     <p class="rmc-sidebar-catalog-empty small text-muted mb-0 mt-1" data-rmc-sidebar-catalog-empty hidden>{% trans "No matches" %}</p>
   </div>
   {% if admin_catalog and admin_catalog.sections %}
-  <p class="cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Catalog by section" %}</p>
-  <ul class="nav flex-column gap-1 mb-2 ps-0 cp-sidebar-catalog-sections">
+  <div class="cp-sidebar__group" data-rmc-cp-sidebar-group="catalog">
+  <p class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Catalog by section" %}</p>
+  <ul class="nav flex-column gap-1 mb-2 ps-0 cp-sidebar-catalog-sections cp-sidebar__group-list">
     {% for section in admin_catalog.sections %}
     <li class="nav-item">
       <a class="nav-link text-white d-flex align-items-center justify-content-between" href="{% url 'admin:index' %}#rmc-admin-sec-{{ forloop.counter }}">
@@ -43,9 +44,12 @@
     </li>
     {% endfor %}
   </ul>
+  </div>
   {% endif %}
-  <p class="cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Apps" %}</p>
+  <div class="cp-sidebar__group" data-rmc-cp-sidebar-group="apps">
+  <p class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Apps" %}</p>
   <div class="cp-platform-admin-app-tree flex-grow-1 min-h-0 overflow-auto" data-rmc-platform-admin-app-tree>
     {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False platform_admin_sidebar_embed=True %}
+  </div>
   </div>
 </nav>

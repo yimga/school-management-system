@@ -52,8 +52,8 @@
       ]
     }
   },
-  "generated_at": "2026-05-23T00:37:25.716912+00:00",
-  "high_impact_templates_total": 244,
+  "generated_at": "2026-05-24T11:06:42.356018+00:00",
+  "high_impact_templates_total": 247,
   "inline_styles": {
     "count": 50,
     "needs_review_count": 50,
@@ -115,8 +115,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 113,
-    "needs_review_count": 113,
+    "count": 115,
+    "needs_review_count": 115,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -129,6 +129,7 @@
       "templates/reports/statistical_return.html",
       "templates/schools/billing_dashboard.html",
       "templates/schools/super_dashboard.html",
+      "templates/siteconfig/billing_stripe_connect.html",
       "templates/siteconfig/bulk_letters.html",
       "templates/siteconfig/campus_workflow_canvas_hub.html",
       "templates/siteconfig/config_mutation_audit_evidence.html",
@@ -190,6 +191,7 @@
       "templates/siteconfig/super/cockpit_configure.html",
       "templates/siteconfig/super/cockpit_health.html",
       "templates/siteconfig/super/cockpit_previews.html",
+      "templates/siteconfig/super/marketing_voice_configure.html",
       "templates/siteconfig/super/theme_personality_configure.html",
       "templates/siteconfig/sync_center.html",
       "templates/siteconfig/template_gallery.html",
@@ -487,7 +489,7 @@
       "empty": 2,
       "error": 2,
       "loading": 2,
-      "offline": 0,
+      "offline": 1,
       "permission_denied": 0,
       "retry": 3
     },
@@ -605,7 +607,7 @@
         "empty": false,
         "error": false,
         "loading": false,
-        "offline": false,
+        "offline": true,
         "path": "templates/parent/attendance_discipline.html",
         "permission_denied": false,
         "retry": false,
@@ -694,7 +696,7 @@
     ]
   },
   "state_handling_major_screens": {
-    "major_without_state_hints": 11,
+    "major_without_state_hints": 10,
     "rows": [
       {
         "path": "templates/accounts/backend_dashboard.html",
@@ -738,7 +740,7 @@
       },
       {
         "path": "templates/parent/attendance_discipline.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/student360/student_360_page.html",

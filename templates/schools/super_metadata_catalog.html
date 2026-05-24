@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="catalog" data-decision-engine="surface">
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate" data-page-archetype="catalog" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_metadata_catalog.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Metadata Catalog") subtitle=_("Entity and field catalog with usage references; platform catalog (schema, experience, runtime, registry) from Master Platform Checklist.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="py-2">

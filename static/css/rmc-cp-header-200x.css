@@ -242,7 +242,8 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
   }
 }
 
-/* v3.62.12 — header row order: utility → nav → live strip (preview v8 200x) */
+/* v3.62.12 — /super/ header stack: utility → live strip → primary nav (v8 200x).
+   /admin/ backoffice keeps utility → nav → live strip (admin v1 200x preview). */
 .cp-header .cp-nav-row {
   display: flex;
   flex-wrap: wrap;

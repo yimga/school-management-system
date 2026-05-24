@@ -16,6 +16,7 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-header .rmc-cockpit-t
   background: linear-gradient(90deg, rgba(30, 111, 58, 0.06) 0%, transparent 42%, transparent 100%); /* off-token-allow: tenant-ticker-brand-fade */
 }
 
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.tp-header__row,
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.topbar,
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.statement-header {
   background: var(--surface-popover);

@@ -28,6 +28,11 @@ REQUIRED_CSS = (
     "theme-platform-contrast.css",
     "theme-platform-readability.css",
 )
+DUAL_PLANE_MARKERS = (
+    "rmc-theme-experience-dual-plane.css",
+    "rmc_authenticated_theme_tail.html",
+    "rmc_theme_experience_dual_plane_styles.html",
+)
 
 FORBIDDEN_JS = re.compile(
     r"portal-backend-dark['\"]?\s*\)",
@@ -50,6 +55,8 @@ def check_shell_css() -> list[str]:
         for css in REQUIRED_CSS:
             if css not in content:
                 errors.append(f"{rel}: missing {css}")
+        if not any(marker in content for marker in DUAL_PLANE_MARKERS):
+            errors.append(f"{rel}: missing dual-plane theme bundle")
     admin_site = _read(REPO_ROOT / "templates/admin/base_site.html")
     if "portal-backend-dark" in admin_site and "classList.add('control-plane-shell'" in admin_site:
         if "portal-backend-dark" in admin_site.split("classList.add('control-plane-shell'")[1][:400]:

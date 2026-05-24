@@ -20,7 +20,7 @@
 
 {% block cp_content %}
   <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#command-center-main">{% trans "Skip to operational queues" %}</a>
-  <div id="command-center-main" class="container-fluid py-4 control-plane-shell" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  <div id="command-center-main" class="container-fluid py-4 control-plane-shell" data-rmc-scroll-policy="paginate" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
   {% if operator_command_center_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>

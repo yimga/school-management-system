@@ -16,7 +16,7 @@
 {% block cp_content %}
 {% operator_console_strip %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-schools-list-main">{% trans "Skip to schools list" %}</a>
-<div id="super-schools-list-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench">
+<div id="super-schools-list-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench">
   {% if operator_super_schools_list_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
@@ -87,7 +87,7 @@
   </form>
   {% if page.object_list %}
   <div class="table-responsive">
-    <table class="table table-family table-hover">
+    <table class="table table-family table-hover rmc-data-table">
       <caption class="visually-hidden">{% trans_term "Schools" key="school" plural=True %}</caption>
       <thead>
         <tr>
@@ -120,7 +120,6 @@
       </tbody>
     </table>
   </div>
-  {% if page.has_other_pages %}
   {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
      alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
   <nav aria-label="{% trans 'Schools pagination' %}" class="mt-2 rmc-pagination" data-rmc-component="pagination">
@@ -134,7 +133,6 @@
       {% endif %}
     </ul>
   </nav>
-  {% endif %}
   {% else %}
   <p class="text-muted">{% trans "No schools match the filters." %}</p>
   {% endif %}

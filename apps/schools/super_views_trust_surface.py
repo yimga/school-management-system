@@ -317,14 +317,15 @@ def super_platform_events(request):
     §0.3 Pillar 5 — complements Compliance audit export (admin actions).
     """
     from apps.platform_runtime.models import PlatformEventLog
+    from apps.schools.control_plane_pagination import paginate_for_request
 
-    try:
-        raw_limit = int(request.GET.get("limit") or 100)
-    except (TypeError, ValueError):
-        raw_limit = 100
-    limit = min(max(raw_limit, 1), 500)
+    page_obj = paginate_for_request(
+        request,
+        PlatformEventLog.objects.order_by("-created_at"),
+        per_page=25,
+    )
     events = list(
-        PlatformEventLog.objects.order_by("-created_at")[:limit].values(
+        page_obj.object_list.values(
             "id",
             "event_type",
             "tenant_id",
@@ -347,6 +348,6 @@ def super_platform_events(request):
             "dashboard_url": reverse("super:dashboard"),
             "trust_center_url": reverse("super:trust_center"),
             "events": events,
-            "limit": limit,
+            "page_obj": page_obj,
         },
     )

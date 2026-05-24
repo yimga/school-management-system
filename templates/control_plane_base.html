@@ -35,13 +35,13 @@
     <div class="cp-header__row cp-header__row--utility">
       {% include "partials/manager_operator_topbar.html" %}
     </div>
-    <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
-      {% include "partials/control_plane_primary_nav.html" %}
-    </div>
     <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
       {% block cp_shell_header_ticker %}
         {% include "partials/cockpit/_activity_ticker.html" %}
       {% endblock %}
+    </div>
+    <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
+      {% include "partials/control_plane_primary_nav.html" %}
     </div>
   </div>
 </div>
@@ -86,8 +86,15 @@
       {% block breadcrumb_actions %}{% endblock %}
     {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
     {% if request.user.is_authenticated %}
+    {% block cp_preview_page_h1 %}
+    {% if cp_page_title %}
+    {% include "partials/cp_page_h1_row.html" %}
+    {% endif %}
+    {% endblock %}
     {% block cp_workspace_header %}
+    {% if not cp_page_title %}
     {% include "components/rmc_os_page_header.html" %}
+    {% endif %}
     {% endblock %}
     <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
       {% block rmc_os_shell_primary_action %}{% endblock %}

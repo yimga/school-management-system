@@ -26,6 +26,7 @@
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
+    <script src="{% static 'js/rmc-cp-pulse-sheet.js' %}" defer></script>
     {% include "partials/rmc_shortcuts_i18n.html" %}
     <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
@@ -142,8 +143,9 @@
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </head>
-  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="canvas" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-help-in-sidebar="1" data-rmc-notebook-footer-dock="1" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="canvas" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-notebook-footer-dock="1" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -179,6 +181,7 @@
           {% block cp_shell_landing_sections %}{% endblock %}
         </div>
       </div>
+      {% include "partials/cockpit/_pulse_drill_sheet.html" %}
       {# v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot rail (grid col 3). Self-gates on cockpit.ai_copilot_rail.enabled. #}
       {% include "partials/cockpit/_ai_copilot_rail.html" %}
       {% comment %} v3.55.0: footer is a sibling grid child (row 3), NOT inside the canvas.
@@ -198,6 +201,7 @@
     {% if proactive_help_nudge %}
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
+    {% include "partials/help_contextual_drawer.html" %}
     {% block cp_shell_after %}{% endblock %}
     {% endblock %}
     {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB +

@@ -6,6 +6,8 @@ from datetime import date
 
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render
+
+from apps.schools.control_plane_pagination import paginate_for_request
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -64,11 +66,13 @@ def super_offboarding_queue(request):
             }
         )
     due_today = schools_scheduled_for_purge(on_or_before=date.today())
+    page_obj = paginate_for_request(request, rows, per_page=25)
     return render(
         request,
         "schools/super_offboarding_queue.html",
         {
-            "rows": rows,
+            "rows": page_obj.object_list,
+            "page_obj": page_obj,
             "due_count": len(due_today),
             "auto_purge_enabled": auto_purge_enabled(),
             "grace_days": auto_purge_grace_days(),

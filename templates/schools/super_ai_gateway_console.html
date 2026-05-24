@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench">
   {% trans "Productized /api/ai/* endpoints" as gw_subtitle %}
   {% include "studio_os/components/page_header.html" with title=_("AI gateway console") subtitle=gw_subtitle action_url=dashboard_url action_text=_("Back to dashboard") %}
   {% if provider_status %}

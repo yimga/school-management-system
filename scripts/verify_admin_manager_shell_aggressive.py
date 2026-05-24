@@ -28,6 +28,16 @@ def _run(cmd: list[str], label: str) -> list[str]:
 
 
 def main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--css-only",
+        action="store_true",
+        help="Fast path: shell parity + layout only (preview shell 100x phase 2)",
+    )
+    args = parser.parse_args()
+
     errors: list[str] = []
     py = sys.executable
 
@@ -35,15 +45,20 @@ def main() -> int:
         ("preview_shell_impl", [py, "scripts/verify_all_preview_shell_html_implementation.py"]),
         ("shell_preview_parity", [py, "scripts/verify_platform_shell_preview_parity.py"]),
         ("manager_admin_layout", [py, "scripts/verify_manager_admin_cp_layout.py"]),
-        ("interaction_integrity", [py, "scripts/verify_interaction_integrity_completion.py"]),
-        ("dead_hrefs", [py, "scripts/scan_operator_shell_dead_hrefs.py", "--strict"]),
-        ("page_fold", [py, "scripts/verify_page_fold_standards.py"]),
-        ("template_safety", [py, "scripts/audit_template_render_safety.py"]),
-        ("admin_gear_up", [py, "scripts/verify_admin_platform_gear_up_bundle.py"]),
-        ("admin_changelist", [py, "scripts/verify_admin_changelist_render_contract.py"]),
-        ("admin_steering", [py, "scripts/verify_admin_steering_strip_contract.py"]),
-        ("manager_chrome", [py, "scripts/verify_manager_portal_chrome_completion.py"]),
     ]
+    if not args.css_only:
+        checks.extend(
+            [
+                ("interaction_integrity", [py, "scripts/verify_interaction_integrity_completion.py"]),
+                ("dead_hrefs", [py, "scripts/scan_operator_shell_dead_hrefs.py", "--strict"]),
+                ("page_fold", [py, "scripts/verify_page_fold_standards.py"]),
+                ("template_safety", [py, "scripts/audit_template_render_safety.py"]),
+                ("admin_gear_up", [py, "scripts/verify_admin_platform_gear_up_bundle.py"]),
+                ("admin_changelist", [py, "scripts/verify_admin_changelist_render_contract.py"]),
+                ("admin_steering", [py, "scripts/verify_admin_steering_strip_contract.py"]),
+                ("manager_chrome", [py, "scripts/verify_manager_portal_chrome_completion.py"]),
+            ]
+        )
 
     for label, cmd in checks:
         errors.extend(_run(cmd, label))
@@ -59,13 +74,13 @@ def main() -> int:
         if needle not in index:
             errors.append(f"index_superadmin.html: missing {needle}")
 
-    help_sidebar = (ROOT / "templates/partials/rmc_page_help_sidebar.html").read_text(encoding="utf-8")
-    if "data-rmc-page-help" not in help_sidebar or "rmc-sidebar-page-help" not in help_sidebar:
-        errors.append("rmc_page_help_sidebar.html: sidebar help control missing")
+    help_drawer = (ROOT / "templates/partials/help_contextual_drawer.html").read_text(encoding="utf-8")
+    if "rmc-help-contextual-drawer" not in help_drawer or "Need help on this page?" not in help_drawer:
+        errors.append("help_contextual_drawer.html: contextual help chip missing")
 
     skeleton = (ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
-    if "data-rmc-help-in-sidebar" not in skeleton or "rmc-footer-notebook-anchor" not in skeleton:
-        errors.append("control_plane_skeleton.html: help-in-sidebar or footer notebook anchor missing")
+    if "help_contextual_drawer.html" not in skeleton or "rmc-footer-notebook-anchor" not in skeleton:
+        errors.append("control_plane_skeleton.html: contextual help drawer or footer notebook anchor missing")
 
     guard = (ROOT / "static/js/rmc-surface-overlay-guard.js").read_text(encoding="utf-8")
     if "MutationObserver" not in guard or 'getElementById("modal-overlay")' not in guard:

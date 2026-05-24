@@ -8,8 +8,8 @@
     <ul class="nav flex-column gap-1 ps-0 mt-1" id="cpNavRecentList" aria-label="{% trans 'Recently visited pages' %}"></ul>
   </div>
   {% if PINNED_CONTROL_PLANE_ITEMS %}
-  <div class="cp-nav-quick-access mb-2">
-    <span class="cp-nav-section-label rmc-type-eyebrow">{% trans "Quick access" %}</span>
+  <div class="cp-sidebar__group cp-nav-quick-access mb-2" data-rmc-cp-sidebar-group="quick-access">
+    <span class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow">{% trans "Quick access" %}</span>
     <ul class="nav flex-column gap-1 ps-0 mt-1">
       {% for item in PINNED_CONTROL_PLANE_ITEMS %}
       <li class="nav-item d-flex align-items-center gap-0">
@@ -23,14 +23,14 @@
   <ul class="nav flex-column gap-1">
     {% for group in CONTROL_PLANE_NAV %}
       {% if group.label %}
-        <li class="nav-item">
-          <button type="button" class="cp-nav-group-toggle nav-link rmc-type-eyebrow mt-3 border-0 bg-transparent text-start w-100 d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#cp-nav-grp-{{ forloop.counter }}" aria-expanded="{% if group.expanded %}true{% else %}false{% endif %}">
+        <li class="nav-item cp-sidebar__group" data-rmc-cp-sidebar-group="{{ forloop.counter }}">
+          <button type="button" class="cp-sidebar__group-toggle cp-nav-group-toggle nav-link rmc-type-eyebrow mt-3 border-0 bg-transparent text-start w-100 d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#cp-nav-grp-{{ forloop.counter }}" aria-expanded="{% if group.expanded %}true{% else %}false{% endif %}">
             <i class="bi bi-chevron-down me-1 cp-nav-group-chevron"></i>
-            <span class="cp-nav-label">{% trans group.label %}</span>
+            <span class="cp-sidebar__group-label cp-nav-label">{% trans group.label %}</span>
           </button>
         </li>
-        <li class="nav-item collapse{% if group.expanded %} show{% endif %}" id="cp-nav-grp-{{ forloop.counter }}">
-          <ul class="nav flex-column gap-1 ps-2 border-0">
+        <li class="nav-item collapse cp-sidebar__group-items{% if group.expanded %} show{% endif %}" id="cp-nav-grp-{{ forloop.counter }}">
+          <ul class="nav flex-column gap-1 ps-2 border-0 cp-sidebar__group-list">
       {% endif %}
       {% for item in group.items %}
         {% if item.id not in PINNED_CONTROL_PLANE_IDS %}

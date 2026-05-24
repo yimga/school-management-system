@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block cp_title %}Change Requests{% endblock %}
 {% block cp_content %}
-<section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1">
+<section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required">
   {% include "components/world_class_page_hero.html" with hero_id="change-requests-title" role="Platform operators" title="Change requests" subtitle="Approval, scheduling, application, cancellation, audit, and rollback posture for governed configuration changes." purpose="Configuration governance" status="Approval queue" primary_url="/configuration/" primary_label="Configuration center" secondary_url="/configuration/registries/health/" secondary_label="Registry health" visual_title="Governance queue" visual_body="Risk level, approver, tenant scope, and health are visible before changes are applied." %}
   {% include "components/world_class_guided_stepper.html" %}
   <div class="change-request-summary rmc-wcx-grid mb-3" data-change-request-summary>
@@ -44,10 +44,11 @@
             <td><a href="{% url 'configuration:change_request_detail' row.id %}">View</a></td>
           </tr>
         {% empty %}
-          <tr><td colspan="6">{% include "components/world_class_empty_state.html" with title="No change requests yet" body="New blueprint and pack requests will appear here with risk, approval, scheduling, and audit state." primary_url="/configuration/" primary_label="Open configuration center" %}</td></tr>
+          <tr><td colspan="6">{% include "components/cp_empty.html" with cp_empty_title="No change requests yet" cp_empty_hint="New blueprint and pack requests will appear here with risk, approval, scheduling, and audit state." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
+    {% include "components/pagination.html" %}
   </div>
   {% include "components/world_class_timeline.html" %}
 </section>

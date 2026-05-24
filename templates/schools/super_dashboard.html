@@ -64,7 +64,7 @@
    `cockpit.trust_pillars_alerts.enabled` so it renders nothing until opted in
    via /super/configure/cockpit/. {% endcomment %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="super__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
-<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   {% url 'super:create_school_wizard' as wcx_create_school_url %}
   {% url 'configuration:center' as wcx_configuration_url %}

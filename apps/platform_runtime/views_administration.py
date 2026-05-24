@@ -125,12 +125,18 @@ def _selected_school(request):
 
 @require_control_plane_access
 def blueprint_marketplace(request):
+    from django.core.paginator import Paginator
+
     schools = School.objects.filter(is_active=True).order_by("name")[:50]
+    blueprint_page = Paginator(list_blueprints(), 12).get_page(
+        request.GET.get("page") or 1
+    )
     return render(
         request,
         "platform_runtime/blueprint_marketplace.html",
         {
-            "blueprints": list_blueprints(),
+            "blueprints": blueprint_page.object_list,
+            "page_obj": blueprint_page,
             "schools": schools,
             "selected_school": _selected_school(request),
             "page_marker": "rmc-blueprint-marketplace-depth",
@@ -281,14 +287,20 @@ def _pack_template_prefix(pack_type: str) -> str:
 
 @require_control_plane_access
 def pack_marketplace(request, pack_route: str):
+    from django.core.paginator import Paginator
+
     pack_type = PACK_ROUTE_TYPES.get(pack_route)
     if not pack_type:
         return HttpResponseForbidden("Unknown pack route.")
+    pack_page = Paginator(list_packs(pack_type=pack_type), 12).get_page(
+        request.GET.get("page") or 1
+    )
     return render(
         request,
         "platform_runtime/pack_marketplace.html",
         {
-            "packs": list_packs(pack_type=pack_type),
+            "packs": pack_page.object_list,
+            "page_obj": pack_page,
             "pack_route": pack_route,
             "pack_type": pack_type,
             "selected_school": _selected_school(request),
@@ -544,33 +556,39 @@ def tenant_pack_setup(request):
 
 @require_control_plane_access
 def change_requests(request):
-    rows = list(
-        ConfigurationChangeRequest.objects.select_related("school", "requested_by").order_by(
-            "-updated_at", "-pk"
-        )[:200]
-    )
+    from django.core.paginator import Paginator
+
     from apps.platform_runtime.models import ConfigurationChangeRequest as CCR
 
+    qs = ConfigurationChangeRequest.objects.select_related(
+        "school", "requested_by"
+    ).order_by("-updated_at", "-pk")
     summary = {
-        "pending": sum(
-            1
-            for r in rows
-            if r.status
-            in (
+        "pending": qs.filter(
+            status__in=(
                 CCR.Status.REQUESTED,
                 CCR.Status.PENDING_APPROVAL,
                 CCR.Status.DRAFT,
             )
-        ),
-        "scheduled": sum(1 for r in rows if r.status == CCR.Status.SCHEDULED),
-        "applied": sum(1 for r in rows if r.status == CCR.Status.APPLIED),
-        "rejected": sum(1 for r in rows if r.status == CCR.Status.REJECTED),
-        "failed": sum(1 for r in rows if r.status == CCR.Status.FAILED),
+        ).count(),
+        "scheduled": qs.filter(status=CCR.Status.SCHEDULED).count(),
+        "applied": qs.filter(status=CCR.Status.APPLIED).count(),
+        "rejected": qs.filter(status=CCR.Status.REJECTED).count(),
+        "failed": qs.filter(status=CCR.Status.FAILED).count(),
     }
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    q = request.GET.copy()
+    q.pop("page", None)
     return render(
         request,
         "platform_runtime/change_requests.html",
-        {"change_requests": rows, "change_request_summary": summary},
+        {
+            "change_requests": page_obj.object_list,
+            "change_request_summary": summary,
+            "page_obj": page_obj,
+            "pagination_extra_query": q.urlencode(),
+        },
     )
 
 

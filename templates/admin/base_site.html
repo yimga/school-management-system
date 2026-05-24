@@ -146,6 +146,7 @@
   {# v3.53.0 (2026-05-21): signature motion + command bar styles. #}
   <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
+  {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {# Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). #}
   <style id="admin-brand-resolved-tokens">
@@ -191,7 +192,6 @@
             /* v3.58.5: /admin/ now uses .rmc-app-shell canvas scroll (single scrollable surface). */
             document.body.setAttribute('data-rmc-cp-scroll', 'canvas');
             document.body.setAttribute('data-rmc-page-help', '1');
-            document.body.setAttribute('data-rmc-help-in-sidebar', '1');
             document.body.setAttribute('data-rmc-admin-cp-unified', '1');
             document.body.setAttribute('data-rmc-notebook-footer-dock', '1');
             /* v3.62.5 Wave 2 local-first: emit localization attrs for JS calendar widgets. */
@@ -306,6 +306,7 @@
      rmc-page-help-fab per v8 200x preview parity — admin uses Unfold's
      native chrome, AI lives at /super/ control plane, not a /admin/
      bottom-right floating button. {% endcomment %}
+  {% include "partials/help_contextual_drawer.html" %}
   {% include 'components/toast_notifications.html' %}
   {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
   {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}

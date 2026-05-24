@@ -1,0 +1,17 @@
+{% load i18n %}
+{% comment %} v8 200x inner-page title row (preview_app_shell_manager_v8_200x). {% endcomment %}
+{% if cp_page_title %}
+<div class="cp-page-h1-row rmc-reveal" data-rmc-reveal data-rmc-cp-page-h1="1">
+  <div class="cp-page-h1-row__copy min-w-0">
+    <h1 class="cp-page-h1 mb-0">{% block cp_page_h1 %}{{ cp_page_title }}{% endblock %}</h1>
+    {% if cp_page_subtitle %}
+    <div class="cp-page-h1-sub">{{ cp_page_subtitle }}</div>
+    {% endif %}
+  </div>
+  {% if cp_page_h1_actions %}
+  <div class="cp-page-h1-row__actions d-flex flex-wrap gap-2 align-items-center">
+    {{ cp_page_h1_actions }}
+  </div>
+  {% endif %}
+</div>
+{% endif %}

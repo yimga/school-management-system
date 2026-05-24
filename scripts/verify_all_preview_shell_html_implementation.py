@@ -44,8 +44,8 @@ IMPLEMENTATION: dict[str, dict] = {
             ("templates/admin/base_site.html", ("rmc-admin-v1-200x.css", "rmc-cp-header-200x.css", "rmc-cp-sidebar-200x.css")),
             ("templates/admin/index_superadmin.html", ("cp-hero", "cp-steering", "cp-kpi-strip", "cp-catalog-card", "data-rmc-admin-catalog-index", "admin_v1_index_surface_previews", "rmc-page-fold-nav", "rmc-admin-catalog-section")),
             ("templates/admin/partials/admin_v1_index_surface_previews.html", ("cp-changelist", "cp-form-frame", "cp-platform-tag-row")),
-            ("templates/partials/rmc_page_help_sidebar.html", ("rmc-sidebar-page-help", "data-rmc-page-help")),
-            ("templates/partials/cockpit/_workspace_context.html", ("rmc_page_help_sidebar.html",)),
+            ("templates/admin/base_site.html", ("help_contextual_drawer.html",)),
+            ("templates/partials/help_contextual_drawer.html", ("Need help on this page?",)),
             ("templates/partials/manager_platform_admin_sidebar.html", ("cp-sidebar-platform-admin", "data-rmc-platform-admin-sidebar")),
         ),
         "order_checks": (
@@ -68,12 +68,12 @@ IMPLEMENTATION: dict[str, dict] = {
             ("templates/control_plane_base.html", ("cp-header", "cp-nav-row", "cp-live-strip", 'data-rmc-cp-header-200x="1"')),
             ("templates/control_plane_skeleton.html", ("rmc-cp-header-200x.css", "rmc-cp-sidebar-200x.css", "rmc-platform-inner-pages.css")),
             ("templates/partials/control_plane_primary_nav.html", ("cp-primary-nav",)),
-            ("templates/partials/rmc_page_help_sidebar.html", ("rmc-sidebar-page-help", "data-rmc-page-help")),
+            ("templates/control_plane_skeleton.html", ("help_contextual_drawer.html",)),
             ("templates/partials/cockpit/_activity_ticker.html", ("cp-activity-ticker",)),
             ("templates/partials/manager_operator_topbar.html", ("cp-brand__tagline", "cp-header-search")),
         ),
         "order_checks": (
-            ("templates/control_plane_base.html", "cp-nav-row", "cp-live-strip"),
+            ("templates/control_plane_base.html", "cp-live-strip", "cp-nav-row"),
         ),
         "css_files": (
             "static/css/rmc-cp-header-200x.css",
@@ -92,8 +92,8 @@ IMPLEMENTATION: dict[str, dict] = {
         "templates": (
             ("templates/portal_base.html", ("tp-header", "tenant_primary_nav.html", "tp-sidebar-inner", "rmc-tenant-header-100x.css", "rmc-tenant-canvas-100x.css", "rmc-civic-footer.css")),
             ("templates/partials/tenant_primary_nav.html", ("tp-primary-nav", "tp-primary-nav__item")),
-            ("templates/partials/portal_sidebar.html", ("rmc_page_help_sidebar.html",)),
-            ("templates/partials/rmc_page_help_sidebar.html", ("data-rmc-page-help", "rmc-sidebar-page-help")),
+            ("templates/portal_base.html", ("help_contextual_drawer.html",)),
+            ("templates/partials/help_contextual_drawer.html", ("Need help on this page?",)),
             ("templates/partials/cockpit/_community_band.html", ("rmc-cband", "community_band")),
             ("templates/partials/cockpit/_newsletter_band.html", ("rmc-newsletter-band", "newsletter_band")),
         ),

@@ -63,6 +63,8 @@ backend-shell dashboard-page-backend
   {% admin_health as health %}
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 
+  {% include "partials/tenant/hero_greeting.html" %}
+
   {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 
      v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in the collapsable
@@ -90,7 +92,7 @@ backend-shell dashboard-page-backend
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="backend__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}
   </div>
 
-
+  {% if backend_show_legacy_dashboard %}
   {# 1012: Same breadcrumb chrome as portal_base; actions DRY via backend_portal_breadcrumb_actions (no nested blocks). #}
   {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.tenant_portal_breadcrumb_surface %}
   {% include "partials/breadcrumbs.html" %}
@@ -1004,6 +1006,7 @@ backend-shell dashboard-page-backend
     </div>
   </div>
   </div><!-- .backend-dashboard-content -->
+  {% endif %}
 
 {% endblock %}
 

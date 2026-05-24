@@ -15,10 +15,12 @@
 {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
 
 {% endblock %}
 
 {% block content %}
+{% include "partials/tenant/hero_greeting.html" %}
 {% workflow_resolve "parent-portal-pay-invoice" as wf %}
 {% if wf %}
   {% with next_action=wf|workflow_next_action_payload:request %}
@@ -54,6 +56,7 @@
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Life event timeline") key="parent__life_event_timeline" include_partial="partials/cockpit/_life_event_timeline.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Sibling compare") key="parent__sibling_compare" default_state="collapsed" include_partial="partials/cockpit/_sibling_compare.html" chrome="section" %}
 </div>
+{% if parent_show_legacy_dashboard %}
 <div class="parent-dashboard dashboard-clear parent-dashboard-shell ui-premium-surface" data-page-archetype="role-home" data-decision-engine="surface" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="family-home" data-rmc-page="parent-portal">
   <div class="container-lg py-4">
     {% phase8_dashboard_declaration "parent/dashboard.html" %}
@@ -706,6 +709,7 @@
 
   </div>
 </div>
+{% endif %}
 {% endwith %}
 {% endblock %}
 

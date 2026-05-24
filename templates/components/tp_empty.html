@@ -1,0 +1,8 @@
+{% load i18n %}
+<div class="tp-empty" role="status"{% if tp_empty_id %} id="{{ tp_empty_id }}"{% endif %}>
+  <div class="tp-empty__icon" aria-hidden="true">{{ tp_empty_icon|default:"∅" }}</div>
+  <div class="tp-empty__title">{{ tp_empty_title|default:_("Nothing here yet") }}</div>
+  {% if tp_empty_hint %}
+  <div class="tp-empty__hint">{{ tp_empty_hint }}</div>
+  {% endif %}
+</div>

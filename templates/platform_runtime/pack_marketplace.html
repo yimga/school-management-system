@@ -3,7 +3,7 @@
 {% block cp_title %}Pack Installation{% endblock %}
 
 {% block cp_content %}
-<section class="cp-page" data-page-marker="rmc-pack-installation-marketplace" data-apple-class-governed-installation="1">
+<section class="cp-page" data-rmc-scroll-policy="paginate" data-page-marker="rmc-pack-installation-marketplace" data-apple-class-governed-installation="1">
   {% url 'configuration:pack_installations' as wcx_pack_installations_url %}
   {% include "components/world_class_page_hero.html" with hero_id="pack-marketplace-title" role="Platform operators" title="Pack installation" subtitle="Preview, simulate, impact-analyze, request approval, schedule, apply, monitor, deactivate, and roll back installable platform packs." purpose="Governed pack installation" status="Tenant boundary visible" primary_url=wcx_pack_installations_url primary_label="Installation history" secondary_url="/configuration/" secondary_label="Configuration center" visual_title="Guided pack flow" visual_body="Preview, simulation, risk, approval state, dependency graph, audit timeline, and health stay visible." %}
   {% include "components/world_class_guided_stepper.html" %}
@@ -63,6 +63,7 @@
       </article>
     {% endfor %}
   </div>
+  {% include "components/pagination.html" %}
   {% include "components/world_class_timeline.html" %}
   <p><a class="cp-button" href="{% url 'configuration:pack_installations' %}">Installation history</a></p>
 </section>

@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="catalog">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="catalog">
   {% include "studio_os/components/page_header.html" with title=_("Blueprint Packs") subtitle=_("Institution archetypes: assign to schools for default structure, workflow and dashboard recommendations. Filter by sector (Wedges 14–22).") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   {% if sector_choices %}
   <p class="small text-muted mb-2">{% trans "Filter by sector:" %}
@@ -58,5 +58,6 @@
       </table>
     </div>
   </div>
+  {% include "components/pagination.html" %}
 </div>
 {% endblock %}

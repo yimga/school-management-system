@@ -825,6 +825,84 @@
 /* ============================================================
    Reduced motion — disable transforms / animations / transitions
    ============================================================ */
+/* Hero greeting row (preview v3 100x) */
+.tp-hero-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 1.25rem;
+}
+.tp-greeting-block { flex: 1; min-width: 240px; }
+.tp-greeting-block__eyebrow {
+  font-size: var(--type-size-xs, 12px);
+  color: var(--text-tertiary);
+  margin-bottom: 0.35rem;
+}
+.tp-greeting-block__weather { margin-left: 0.5rem; }
+.tp-page-h1 {
+  font-size: var(--type-size-2xl, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+.tp-greeting {
+  font-size: var(--type-size-sm, 14px);
+  color: var(--text-secondary);
+  margin: 0.35rem 0 0;
+}
+.tp-greeting--tier {
+  margin-top: 0.25rem;
+  font-size: var(--type-size-xs, 12px);
+}
+.tp-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.tp-btn-primary,
+.tp-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: var(--type-size-sm, 13px);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--hairline);
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+}
+.tp-btn-primary {
+  background: var(--school-gradient, linear-gradient(135deg, var(--school-primary), var(--school-accent)));
+  color: #fff; /* off-token-allow: fixed-shell-accent */
+  border-color: transparent;
+}
+.tp-btn-secondary {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.tp-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-elevated);
+}
+.tp-empty__icon { font-size: 22px; margin-bottom: 6px; }
+.tp-empty__title { font-weight: 600; color: var(--text-secondary); font-size: 13px; }
+.tp-empty__hint {
+  font-size: 11.5px;
+  margin-top: 4px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--text-tertiary);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tp-section-label__live-dot { animation: none; }
   .tp-snap-card,

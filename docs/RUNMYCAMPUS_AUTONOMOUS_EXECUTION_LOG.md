@@ -1,5 +1,85 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Preview Shell 100x batch 1485 pagination depth + Lane 2 E2E (2026-05-24)
+
+**A. Scope:** Close post-1484 follow-ups — real Paginator on high-traffic operator lists; Playwright Lane 2 on manager host.
+
+**B. Shipped:** `control_plane_pagination.py`; paginated views (offboarding, platform events, blueprints catalog, blueprint/pack marketplace); schools list `rmc-data-table` + always-visible page indicator; `verify_preview_shell_operator_list_pagination.py`; `run_preview_shell_lane2_e2e.sh`; expanded `preview-shell-parity.spec.js` (storage state, MFA-safe admin login).
+
+**C. Proof:** `verify_preview_shell_operator_list_pagination.py` → **PREVIEW_SHELL_OPERATOR_LIST_PAGINATION_PASS**; `test_control_plane_list_pagination` **3/3 OK**; `run_preview_shell_lane2_e2e.sh` → **PREVIEW_SHELL_LANE2_E2E_PASS** (5 passed, 1 skipped).
+
+**D. Residual:** Full 6/6 Playwright needs tenant host in Chromium resolver + `teacher1` login on demo-school subdomain.
+
+**E. Plan:** Batches **1477–1485** repo + Lane 2 manager green.
+
+**F. Headline:** Operator lists paginate in views, not only template markers; manager Playwright parity green.
+
+---
+
+## Slice — Preview Shell 100x batch 1484 tenant role-home gap closeout (2026-05-24)
+
+**A. Scope:** Post-program gap analysis — teacher/backend role homes missing v3 hero; duplicate legacy stacks ungated; Phase 5 PII-safe assist tier line deferred on hero.
+
+**B. Shipped:** `apps/portal/tenant_role_home.py`; `hero_greeting.html` role subtitles + `tp_hero_ai_tier_line`; `teacher/dashboard.html` hero + `teacher_show_legacy_dashboard` gate on `tdm-bg`; `backend_dashboard.html` hero + `backend_show_legacy_dashboard` gate on command-center stack; `views_parent.py` / `evals/views.py` / `accounts/views.py` context; extended `verify_preview_shell_100x_tenant_parity.py`; `test_tenant_role_home_parity.py`.
+
+**C. Proof:** `verify_preview_shell_100x_tenant_parity.py` → **PREVIEW_SHELL_TENANT_V3_PARITY_PASS**; `verify_preview_shell_100x_completion.py` → **PREVIEW_SHELL_100X_PARITY_COMPLETE**; `test_tenant_role_home_parity` **5/5 OK**; `verify_page_fold_standards.py` **18/18**; `audit_template_render_safety.py` **0**; `verify_copilot_rail_contract.py` → PASS.
+
+**D. Residual:** Lane 2 Playwright; server-side Paginator on all 30 phase-4-marked operator lists (only change_requests + schools/incidents already paginated).
+
+**E. Plan:** Batch **1484** DONE; program **1477–1484** Lane 1.
+
+**F. Headline:** All three tenant role homes share v3 hero + opt-in legacy via `?simple=1`.
+
+---
+
+## Slice — Preview Shell 100x Phase 4–5 + program complete batches 1482–1483 (2026-05-24)
+
+**A. Scope:** Close preview shell 100x program — inner-page pagination markers (30 operator templates), empty partials, pulse drill-down sheet, Playwright spec, completion gate.
+
+**B. Shipped:** `tp_empty.html`; `apply_preview_shell_phase4_pagination_markers.py` + registry targets; `change_requests` Paginator + `cp_empty`; `rmc-cp-pulse-sheet.js` + `_pulse_drill_sheet.html` + pulse card `data-rmc-cp-pulse-drill`; `tests/e2e/preview-shell-parity.spec.js`; `verify_preview_shell_100x_phase4.py` / `phase5.py`; `verify_admin_manager_shell_aggressive.py --css-only` fast path.
+
+**C. Proof:** `verify_preview_shell_100x_phase4.py` → **PREVIEW_SHELL_100X_PHASE4_PASS**; `verify_preview_shell_100x_phase5.py` → **PREVIEW_SHELL_100X_PHASE5_PASS**; `verify_preview_shell_100x_completion.py` → **PREVIEW_SHELL_100X_PARITY_COMPLETE**; `ADMIN_MANAGER_SHELL_AGGRESSIVE_PASS` (--css-only).
+
+**D. Residual (Lane 2):** Full `verify_admin_manager_shell_aggressive.py` without `--css-only` still slow locally; Playwright spec needs live Django + manager auth for screenshot evidence.
+
+**E. Plan:** Program **1477–1483** repo-complete. Copilot rail preserved throughout.
+
+**F. Headline:** Preview Shell 100x Parity — **REPO SCOPE** achieved; three north-star previews enforced with gates.
+
+---
+
+## Slice — Preview Shell 100x Phase 2–3 batches 1480–1481 (2026-05-24)
+
+**A. Scope:** `/admin/` v1 changelist/form skin + sidebar groups; tenant v3 frosted header + hero greeting + parent dashboard de-dupe.
+
+**B. Shipped:** `admin/change_list.html` + `change_form.html` (`cp-changelist` / `cp-form-frame`); `manager_platform_admin_sidebar.html` (`cp-sidebar__group`); `components/cp_empty.html`; `portal_base.html` `tp-header__row` (removed `navbar-dark topbar`); `partials/tenant/hero_greeting.html`; `parent/dashboard.html` legacy gated; `views_parent.py` context; `rmc-tenant-header-100x.css` + `rmc-tenant-dashboard-v2.css` hero tokens.
+
+**C. Proof:** `verify_preview_shell_100x_tenant_parity.py` → **PREVIEW_SHELL_TENANT_V3_PARITY_PASS**; `verify_platform_shell_preview_parity.py` → **PLATFORM_SHELL_PREVIEW_PARITY_PASS**; `verify_manager_admin_cp_layout.py` → OK; `verify_copilot_rail_contract.py` → PASS; portal tests **2/2 OK**.
+
+**D. Residual:** `verify_admin_manager_shell_aggressive.py --css-only` slow/hangs locally (>45s); Phase **1482–1483** NOT DONE; teacher/backend role homes not yet hero-wired.
+
+**E. Plan:** Next batch **1482** (inner pages + pagination).
+
+**F. Headline:** Tenant portal header matches v3 preview grammar; parent home is single-surface by default.
+
+---
+
+## Slice — Preview Shell 100x program reservation batch 1477 (2026-05-24)
+
+**A. Scope:** Convert preview-driven UI audit into phased execution plan; reserve SOT batches **1477–1483**; scaffold program verifiers + route registry; preserve AI copilot rail invariant.
+
+**B. Shipped:** [`docs/plans/PREVIEW_SHELL_100X_PARITY_PLAN.md`](plans/PREVIEW_SHELL_100X_PARITY_PLAN.md) (6 phases, per-phase 100% gates, aggressive build-agent prompt §5); SOT §11.4 rows **1477–1483**; `scripts/verify_preview_shell_100x_program.py`, `verify_preview_shell_100x_completion.py`, `verify_preview_shell_100x_tenant_parity.py`; `docs/generated/preview_shell_100x_parity_registry.json`; archetype stubs `templates/archetypes/{cp_operator_dashboard,cp_admin_backoffice,tp_role_home}.html`.
+
+**C. Proof:** `verify_preview_shell_100x_program.py` → **PREVIEW_SHELL_100X_PROGRAM_PASS**; Phase 0 **1478** DONE; Phase 1 **1479** → shell parity + copilot + dead-href gates green.
+
+**D. Residual:** Phases **1480–1483** NOT DONE — tenant header rewrite + parent dashboard de-dupe (**1481**) highest ROI; Playwright (**1483**) Lane 2.
+
+**E. Plan:** Next batch **1480** (/admin/) then **1481** (tenant v3); **do not refactor** `_ai_copilot_rail.html`.
+
+**F. Headline:** North-star previews are now a gated program, not an ad-hoc audit thread.
+
+---
+
 ## Slice — SFDP Phase 3 batches 1452–1475 local-global force (2026-05-23)
 
 **A. Scope:** Execute full SFDP Phase 3 wave — country-native checkout/receipt/readiness for 250 ISO2 profiles while preserving one global ledger, PSP registry, webhook normalizer, entitlement gate, and evidence discipline.

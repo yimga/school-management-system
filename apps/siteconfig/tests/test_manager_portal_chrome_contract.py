@@ -83,8 +83,8 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
             encoding="utf-8"
         )
         self.assertIn(
-            "rmc_page_help_sidebar.html",
-            Path("templates/partials/portal_sidebar.html").read_text(encoding="utf-8"),
+            "help_contextual_drawer.html",
+            Path("templates/portal_base.html").read_text(encoding="utf-8"),
         )
         self.assertNotIn("tp-primary-nav__item--help", tenant_nav)
 

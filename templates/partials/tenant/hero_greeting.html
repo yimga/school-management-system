@@ -1,0 +1,37 @@
+{% load i18n %}
+{% comment %} v3 100x tenant role-home hero (preview_app_shell_tenant_portal_v3_100x). {% endcomment %}
+<div class="tp-hero-row rmc-reveal" data-rmc-reveal data-rmc-tp-hero-greeting="1">
+  <div class="tp-greeting-block">
+    <div class="tp-greeting-block__eyebrow">
+      <span data-rmc-tp-greeting-datetime>{% now "l, F j · g:i A" %}</span>
+    </div>
+    <h1 class="tp-page-h1">
+      {% trans "Good day," %}
+      <strong>{{ request.user.get_short_name|default:request.user.username }}</strong>
+    </h1>
+    <p class="tp-greeting">
+      {% if tp_greeting_role == "TEACHER" %}
+        {% trans "Here's your teaching workspace for today." %}
+      {% elif tp_greeting_role == "ADMIN" or tp_greeting_role == "SUPERADMIN" %}
+        {% trans "Here's your school command surface for today." %}
+      {% elif tp_greeting_children_names %}
+        {% blocktrans %}Here's what's happening with <strong>{{ tp_greeting_children_names }}</strong> today.{% endblocktrans %}
+      {% else %}
+        {% trans "Here's your family portal home for today." %}
+      {% endif %}
+    </p>
+    {% if tp_hero_ai_tier_line %}
+    <p class="tp-greeting tp-greeting--tier small text-muted mb-0">{{ tp_hero_ai_tier_line }}</p>
+    {% endif %}
+  </div>
+  {% if portal_quick_actions %}
+  <div class="tp-hero-actions">
+    {% for action in portal_quick_actions|slice:":2" %}
+    <a href="{{ action.url }}" class="{% if forloop.first and has_fees_due %}tp-btn-primary{% else %}tp-btn-secondary{% endif %}">
+      {% if action.icon %}<i class="bi {{ action.icon }} me-1" aria-hidden="true"></i>{% endif %}
+      {{ action.label }}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

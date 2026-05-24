@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T22:44:02.347136+00:00",
+  "generated_at": "2026-05-24T11:06:36.059240+00:00",
   "pass": true,
   "rows": [
     {
@@ -58,9 +58,9 @@
     },
     {
       "check_id": "cursor_rule",
-      "description": "Cursor rule documents fold standards",
+      "description": "Fold standards documented (.cursor rule or tracked .cursorrules)",
       "status": "PASS",
-      "proof": ".cursor/rules/runmycampus-page-fold-standards.mdc"
+      "proof": ".cursorrules"
     },
     {
       "check_id": "feature_control_fold_nav",
@@ -79,6 +79,24 @@
       "description": "Feature control category tabs are sticky nav",
       "status": "PASS",
       "proof": "feature_control_panel_content.html"
+    },
+    {
+      "check_id": "admin_index_fold_nav",
+      "description": "Platform admin index marks data-rmc-page-fold-nav=required",
+      "status": "PASS",
+      "proof": "templates/admin/index_superadmin.html"
+    },
+    {
+      "check_id": "admin_index_section_nav",
+      "description": "Platform admin index includes rmc-page-fold-nav section anchors",
+      "status": "PASS",
+      "proof": "templates/admin/index_superadmin.html"
+    },
+    {
+      "check_id": "admin_index_catalog_collapsed",
+      "description": "Platform admin catalog sections default collapsed (no open attribute)",
+      "status": "PASS",
+      "proof": "templates/admin/index_superadmin.html"
     },
     {
       "check_id": "pagination_partial",

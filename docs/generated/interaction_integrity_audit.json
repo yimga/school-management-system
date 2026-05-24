@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-24T00:40:20.878146+00:00",
+  "generated_at": "2026-05-24T10:35:11.410865+00:00",
   "verdict": "INTERACTION_INTEGRITY_PASS",
   "pass_count": 17,
   "fail_count": 0,
@@ -104,7 +104,7 @@
       "id": "17",
       "label": "Contract tests green",
       "status": "PASS",
-      "proof": "fast: server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired\n........................\n----------------------------------------------------------------------\nRan 24 tests in 1.979s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "proof": "fast: f upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 2.849s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

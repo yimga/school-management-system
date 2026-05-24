@@ -1090,10 +1090,19 @@ def teacher_dashboard(request: HttpRequest):
     ]
     teacher_fast_workflows = [w for w in teacher_fast_workflows if w.get("url")]
 
+    from apps.portal.tenant_role_home import (
+        build_tp_hero_context,
+        role_home_show_legacy,
+    )
+
+    tp_hero = build_tp_hero_context(request, role=User.Role.TEACHER)
+
     return render(
         request,
         "teacher/dashboard.html",
         {
+            **tp_hero,
+            "teacher_show_legacy_dashboard": role_home_show_legacy(request),
             "year": year,
             "term": term,
             "assignments": assignments,

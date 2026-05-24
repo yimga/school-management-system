@@ -15,7 +15,7 @@
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#playbook-operator-hub-main">{% trans "Skip to playbook operator hub content" %}</a>
-<div id="playbook-operator-hub-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div id="playbook-operator-hub-main" class="container-fluid py-4" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
 {% phase8_dashboard_declaration "schools/super_playbook_operator_hub.html" %}
   {% include "studio_os/components/page_header.html" with title="Playbook operator hub" subtitle="Migration playbooks, execution audit, and curated operator deep links." action_url=dashboard_url action_text="Back to dashboard" %}
 

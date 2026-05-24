@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-clear.css' %}">
 <link rel="stylesheet" href="{% static 'css/teacher-dashboard-modern.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
 {# Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. #}
 <script src="{% static 'js/_pages/teacher__dashboard.js' %}"></script>
 {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
@@ -20,6 +21,7 @@
 {% endblock %}
 
 {% block content %}
+{% include "partials/tenant/hero_greeting.html" %}
 {% with widgets=display_widgets %}
 {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 
@@ -48,6 +50,7 @@
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="teacher__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="teacher__gradebook_trend" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}
 </div>
+{% if teacher_show_legacy_dashboard %}
 <div class="tdm-bg" data-decision-engine="surface" data-rmc-page="teacher-portal">
   {% phase8_dashboard_declaration "teacher/dashboard.html" %}
   <div class="tdm-shell" data-rmc-ux-role-dashboard="teacher-workspace">
@@ -665,6 +668,7 @@
     </section>
   </div>
 </div>
+{% endif %}
 {% endwith %}
 {% endblock %}
 

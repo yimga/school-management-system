@@ -261,6 +261,18 @@ def check_render() -> list[str]:
         for needle in needles:
             if needle not in html:
                 errors.append(f"{path}: missing {needle!r} in HTML")
+        live_pos = html.find("cp-live-strip")
+        nav_pos = html.find("cp-nav-row")
+        if path.startswith("/super"):
+            if live_pos < 0 or nav_pos < 0 or live_pos > nav_pos:
+                errors.append(
+                    f"{path}: rendered header must stack cp-live-strip before cp-nav-row (v8 200x)"
+                )
+        elif path.startswith("/admin"):
+            if nav_pos < 0 or live_pos < 0 or nav_pos > live_pos:
+                errors.append(
+                    f"{path}: rendered header must stack cp-nav-row before cp-live-strip (admin v1 200x)"
+                )
     return errors
 
 

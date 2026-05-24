@@ -61,12 +61,12 @@ def main() -> int:
         ("1354-manager-deflection", _ok("templates/schools/partials/manager_help_center_body.html", "data-deflection-form-auto")),
         ("1354-school-feedback-deflection", _ok("templates/feedback/school_center.html", "data-deflection-form-auto")),
         ("1354-role-feedback-deflection", _ok("templates/feedback/role_center.html", "data-deflection-form-auto")),
-        # v3.57.10 retired floating help_contextual_drawer; CP help lives in sidebar + page-context JS.
+        # Contextual help drawer (fixed chip) + page-context JS on control plane / portal shells.
         (
             "1354-cp-drawer",
-            _ok("templates/control_plane_skeleton.html", "data-rmc-help-in-sidebar")
+            _ok("templates/control_plane_skeleton.html", "help_contextual_drawer.html")
             and _ok("templates/control_plane_skeleton.html", "rmc-page-context-help.js")
-            and _ok("templates/partials/cockpit/_workspace_context.html", "rmc_page_help_sidebar"),
+            and _ok("templates/portal_base.html", "help_contextual_drawer.html"),
         ),
         ("1354-csat-hitl", _ok("apps/portal/views_ai_gateway.py", 'thumbs == "down"')),
         ("1354-publish-kb", _ok("apps/portal/kb_hitl_publish.py", "publish_kb_article")),

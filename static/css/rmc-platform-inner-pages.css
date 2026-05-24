@@ -144,3 +144,31 @@ body.portal-body-with-layout a,
 body.portal-body-with-layout button {
   pointer-events: auto;
 }
+
+/* v8 200x inner-page h1 row (preview_app_shell_manager_v8_200x) */
+body.control-plane-shell .cp-page-h1-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+body.control-plane-shell .cp-page-h1 {
+  font-size: var(--type-size-2xl, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+body.control-plane-shell .cp-page-h1-sub {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+body.control-plane-shell .cp-sidebar__group-label {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

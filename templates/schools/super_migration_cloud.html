@@ -7,7 +7,7 @@
 {% block cp_content %}
 {% operator_console_strip %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#migration-cloud-main">{% trans "Skip to migration cloud" %}</a>
-  <div id="migration-cloud-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-migration-ux="1">
+  <div id="migration-cloud-main" class="container-fluid py-4" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-migration-ux="1">
     {% phase8_dashboard_declaration "schools/super_migration_cloud.html" %}
     {% with migration_new_url=migration_cloud_operator_urls.new|default:dashboard_url migration_health_url=migration_cloud_operator_urls.health|default:registry_url %}
     {% include "components/world_class_page_hero.html" with hero_id="migration-cloud-title" role=_("Implementation operators") title=_("Migration Center") subtitle=_("Upload or select a template, preview, map fields, validate, quarantine issues, score data quality, apply, audit, and preserve rollback posture.") purpose=_("Migration and import governance") status=_("Rollback aware") primary_url=migration_new_url primary_label=_("Start migration") secondary_url=migration_health_url secondary_label=_("Operator health") visual_title=_("Data quality before import") visual_body=_("Duplicates, invalid rows, quarantine state, and rollback posture are visible before apply.") %}

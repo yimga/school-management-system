@@ -2667,6 +2667,14 @@ def backend_dashboard(request):
         context["rmc_school_health_nudges"] = []
         context["rmc_ai_system_health_insight"] = None
         context["rmc_ai_system_onboarding_insight"] = None
+    from apps.accounts.models import User
+    from apps.portal.tenant_role_home import (
+        build_tp_hero_context,
+        role_home_show_legacy,
+    )
+
+    context.update(build_tp_hero_context(request, role=User.Role.ADMIN))
+    context["backend_show_legacy_dashboard"] = role_home_show_legacy(request)
     return render(request, "accounts/backend_dashboard.html", context)
 
 
